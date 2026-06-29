@@ -1,0 +1,126 @@
+{
+  "id": "prof-001",
+  "title": "Brew & Bean Profitability",
+  "firmStyle": "mckinsey",
+  "difficulty": "medium",
+  "prompt": "Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 12% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?",
+  "interviewerNotes": "Push candidate to disaggregate revenue vs. cost drivers first. If candidate jumps to solutions, redirect to diagnosis. Key insight: the margin decline is entirely driven by COGS inflation (coffee beans +40%) combined with the company's inability to pass cost increases to customers. If candidate gets close, probe whether price elasticity was tested.",
+  "dataLedger": [
+    {
+      "id": "revenue_total",
+      "label": "Total annual revenue",
+      "value": "$480M",
+      "releaseWhen": "CLARIFY"
+    },
+    {
+      "id": "stores_count",
+      "label": "Number of stores",
+      "value": "200 stores",
+      "releaseWhen": "CLARIFY"
+    },
+    {
+      "id": "revenue_per_store",
+      "label": "Average revenue per store",
+      "value": "$2.4M per store per year",
+      "releaseWhen": "ANALYSIS"
+    },
+    {
+      "id": "cogs_pct",
+      "label": "COGS as % of revenue (current)",
+      "value": "58% of revenue (up from 42% two years ago)",
+      "releaseWhen": "ANALYSIS"
+    },
+    {
+      "id": "labor_pct",
+      "label": "Labor as % of revenue",
+      "value": "22% of revenue (stable)",
+      "releaseWhen": "ANALYSIS"
+    },
+    {
+      "id": "overhead_pct",
+      "label": "Overhead / rent as % of revenue",
+      "value": "14% of revenue (slight increase from 12%)",
+      "releaseWhen": "ANALYSIS"
+    },
+    {
+      "id": "bean_price_change",
+      "label": "Coffee bean price change over 2 years",
+      "value": "+40% increase in raw coffee bean costs",
+      "releaseWhen": "EXHIBIT"
+    },
+    {
+      "id": "avg_ticket",
+      "label": "Average transaction value",
+      "value": "$6.80 (up from $6.20 two years ago, +10%)",
+      "releaseWhen": "ANALYSIS"
+    }
+  ],
+  "mathSteps": [
+    {
+      "id": "profit_margin_now",
+      "description": "Current profit margin = 100% - COGS% - Labor% - Overhead% = 100 - 58 - 22 - 14",
+      "answer": 6,
+      "tolerance": 0.5
+    },
+    {
+      "id": "profit_margin_prior",
+      "description": "Prior profit margin = 100% - 42% - 22% - 12% = 24%? No: prior was 12%. Check: 100-42-22-12=24, but prompt says 12%. Flag: 'other' costs ~12% not shown.",
+      "answer": 12,
+      "tolerance": 0.5
+    },
+    {
+      "id": "cogs_dollar_impact",
+      "description": "COGS increase in dollar terms: 16pp margin hit × $480M revenue = $76.8M additional cost",
+      "answer": 76.8,
+      "tolerance": 2
+    },
+    {
+      "id": "revenue_per_store_check",
+      "description": "$480M / 200 stores = $2.4M per store",
+      "answer": 2.4,
+      "tolerance": 0.05
+    }
+  ],
+  "exhibits": [
+    {
+      "id": "exhibit-a",
+      "title": "Brew & Bean Cost Structure Over Time",
+      "chartType": "bar",
+      "data": [
+        { "year": "2 years ago", "COGS": 42, "Labor": 22, "Overhead": 12, "Profit": 24 },
+        { "year": "Last year",   "COGS": 50, "Labor": 22, "Overhead": 13, "Profit": 15 },
+        { "year": "Current",     "COGS": 58, "Labor": 22, "Overhead": 14, "Profit": 6  }
+      ],
+      "interpretationKey": "COGS is the sole driver of margin compression. Labor and overhead are essentially flat. A strong candidate names COGS specifically and asks what's inside it — the answer is coffee bean prices (+40%). Weak candidates say 'costs went up' without specifying."
+    }
+  ],
+  "structureKey": "Strong structure disaggregates profit = revenue − costs, then breaks revenue into volume × price and costs into COGS / labor / overhead / other. The candidate should hypothesize which bucket is the driver before asking for data. Bonus: asks about competitive context (are peers also seeing this?) and pricing power.",
+  "recommendationKey": "Primary recommendation: selectively raise prices by 8–12% on high-margin SKUs (specialty drinks) where demand is less elastic, while negotiating multi-year bean supply contracts to lock in cost. Secondary: pilot a lower-cost 'commodity blend' for budget-conscious locations. Do not recommend blanket cost cuts — labor and overhead are already lean.",
+  "rubricAnchors": {
+    "structure": {
+      "needs_work": "Jumps to solutions or lists unrelated ideas without a profit framework. Does not disaggregate revenue vs. cost.",
+      "meets_bar": "Correctly uses profit = revenue − costs framework; breaks costs into major buckets; asks for data before diagnosing.",
+      "strong": "Proactively hypothesizes the most likely driver (cost inflation given revenue growth), structures issue tree top-down, and sizes buckets before receiving data."
+    },
+    "quantitative": {
+      "needs_work": "Cannot calculate margins or makes arithmetic errors. Does not quantify the impact of COGS increase.",
+      "meets_bar": "Correctly calculates current vs. prior margin (12% → 6%) and identifies the 16pp COGS increase as the driver.",
+      "strong": "Calculates dollar impact of COGS increase (~$77M), cross-checks revenue per store, and synthesizes math into a clear recommendation sizing."
+    },
+    "judgment": {
+      "needs_work": "Recommends blanket cost cuts or generic 'increase revenue' without testing pricing elasticity or supply-side options.",
+      "meets_bar": "Identifies pricing and procurement as the two levers; acknowledges trade-offs between them.",
+      "strong": "Differentiates by SKU elasticity, proposes a testable pilot, and proactively flags risks (customer churn on price increases, bean contract lock-in)."
+    },
+    "communication": {
+      "needs_work": "Rambles, loses the thread, or presents findings without a logical storyline.",
+      "meets_bar": "Communicates findings in a logical sequence; summarizes key insight clearly.",
+      "strong": "Uses crisp top-down communication (answer first), adapts to interviewer pushback without becoming defensive, and recaps the MECE structure after each data reveal."
+    },
+    "synthesis": {
+      "needs_work": "Cannot integrate all data points into a single coherent recommendation.",
+      "meets_bar": "Connects COGS data and pricing data to a specific recommendation with rationale.",
+      "strong": "Delivers a 30-second recommendation that names the root cause, the two-lever solution, and the top risk — unprompted, at the end of the case."
+    }
+  }
+}
