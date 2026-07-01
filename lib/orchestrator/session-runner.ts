@@ -45,9 +45,9 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   const now = Date.now();
   const phaseElapsedMs = now - (session.phaseStartedAt?.getTime() ?? now);
 
-  // Build message history for LLM
+  // Build message history for LLM (DB stores 'candidate'/'interviewer'; API needs 'user'/'assistant')
   const history = turnRows.map(t => ({
-    role: t.role as 'user' | 'assistant',
+    role: (t.role === 'candidate' ? 'user' : 'assistant') as 'user' | 'assistant',
     content: t.text,
   }));
 
