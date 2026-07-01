@@ -31,6 +31,7 @@ describe('hallucination harness (calls real API — requires ANTHROPIC_API_KEY)'
       const history: ModelMessage[] = [];
       let phase: Phase = 'INTRO';
       const auditLog: { turn: number; result: ReturnType<typeof auditTurn> }[] = [];
+      let shownExhibitDataText = '';
 
       for (let i = 0; i < SCRIPTED_TURNS.length; i++) {
         const candidateText = SCRIPTED_TURNS[i];
@@ -59,6 +60,9 @@ describe('hallucination harness (calls real API — requires ANTHROPIC_API_KEY)'
           } else if (action.type === 'reveal_data') {
             // Reveal and update ledger
             try { reveal(ledger, action.itemId); } catch { /* already revealed */ }
+          } else if (action.type === 'show_exhibit') {
+            const exhibit = caseData.exhibits.find(e => e.id === action.exhibitId);
+            if (exhibit) shownExhibitDataText += JSON.stringify(exhibit.data) + ' ';
           } else if (action.type === 'advance_phase') {
             const phases = ['INTRO','CLARIFY','STRUCTURE','ANALYSIS','EXHIBIT','BRAINSTORM','RECOMMENDATION','WRAP','SCORING'] as Phase[];
             const idx = phases.indexOf(phase);
@@ -66,8 +70,9 @@ describe('hallucination harness (calls real API — requires ANTHROPIC_API_KEY)'
           }
         }
 
-        // Audit: only the revealed values AT THE TIME of speaking are allowed
-        const audit = auditTurn(spokenText.trim(), revealedValues(ledger));
+        // Audit: revealed values + case prompt + any shown exhibit data are all allowed
+        const combinedAllowedText = caseData.prompt + ' ' + shownExhibitDataText;
+        const audit = auditTurn(spokenText.trim(), revealedValues(ledger), combinedAllowedText);
         auditLog.push({ turn: i + 1, result: audit });
 
         // Update history
