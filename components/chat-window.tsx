@@ -30,6 +30,11 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text }),
     });
+    if (!res.ok) {
+      setMessages(m => [...m, { role: 'interviewer', text: 'Something went wrong. Please try again.' }]);
+      setLoading(false);
+      return;
+    }
     const data = await res.json();
     setMessages(m => [...m, { role: 'interviewer', text: data.interviewerText }]);
     setLoading(false);
