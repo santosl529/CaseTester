@@ -4,7 +4,50 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ReactMarkdown from 'react-markdown';
 
-type Message = { role: 'interviewer' | 'candidate'; text: string };
+type ExhibitDisplay = {
+  id: string;
+  title: string;
+  chartType: string;
+  data: Record<string, unknown>[];
+};
+
+type Message =
+  | { role: 'interviewer' | 'candidate'; text: string; exhibit?: ExhibitDisplay };
+
+function ExhibitTable({ exhibit }: { exhibit: ExhibitDisplay }) {
+  const columns = Object.keys(exhibit.data[0] ?? {});
+  return (
+    <div className="mt-3 rounded-lg border border-neutral-200 overflow-hidden text-xs">
+      <div className="bg-neutral-50 px-3 py-2 font-medium text-neutral-700 border-b border-neutral-200">
+        {exhibit.title}
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-neutral-50">
+            <tr>
+              {columns.map(col => (
+                <th key={col} className="px-3 py-2 text-left font-medium text-neutral-600 whitespace-nowrap">
+                  {col}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {exhibit.data.map((row, i) => (
+              <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-neutral-50'}>
+                {columns.map(col => (
+                  <td key={col} className="px-3 py-2 text-neutral-800 whitespace-nowrap">
+                    {String(row[col] ?? '')}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
 
 function TypingIndicator() {
   return (
@@ -49,7 +92,7 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
       return;
     }
     const data = await res.json();
-    setMessages(m => [...m, { role: 'interviewer', text: data.interviewerText }]);
+    setMessages(m => [...m, { role: 'interviewer', text: data.interviewerText, exhibit: data.exhibit }]);
     setLoading(false);
     if (data.ended) {
       setEnded(true);
@@ -68,9 +111,12 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
                 : 'bg-neutral-100 text-neutral-900'
             }`}>
               {m.role === 'interviewer' ? (
-                <div className="prose prose-sm max-w-none prose-p:my-1 prose-strong:font-semibold">
-                  <ReactMarkdown>{m.text}</ReactMarkdown>
-                </div>
+                <>
+                  <div className="prose prose-sm max-w-none prose-p:my-1 prose-strong:font-semibold">
+                    <ReactMarkdown>{m.text}</ReactMarkdown>
+                  </div>
+                  {m.exhibit && <ExhibitTable exhibit={m.exhibit} />}
+                </>
               ) : (
                 m.text
               )}

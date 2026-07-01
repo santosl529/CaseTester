@@ -10,9 +10,16 @@ import { HaikuInterviewerModel } from '@/lib/agent/models/haiku';
 
 const model = new HaikuInterviewerModel();
 
+export type ExhibitDisplay = {
+  id: string;
+  title: string;
+  chartType: string;
+  data: Record<string, unknown>[];
+};
+
 export type TurnResult = {
   interviewerText: string;
-  exhibitId?: string;
+  exhibit?: ExhibitDisplay;
   phase: Phase;
   ended: boolean;
   auditPassed: boolean;
@@ -70,7 +77,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
 
   // Execute actions
   let spokenText = '';
-  let exhibitId: string | undefined;
+  let exhibit: ExhibitDisplay | undefined;
   let nextPhaseValue: Phase = currentPhase;
   let ended = false;
   const newReveals: string[] = [];
@@ -85,7 +92,10 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
         spokenText += `${value} `;
       }
     } else if (action.type === 'show_exhibit') {
-      exhibitId = action.exhibitId;
+      const found = caseData.exhibits.find(e => e.id === action.exhibitId);
+      if (found) {
+        exhibit = { id: found.id, title: found.title, chartType: found.chartType, data: found.data as Record<string, unknown>[] };
+      }
     } else if (action.type === 'advance_phase') {
       nextPhaseValue = nextPhase(currentPhase) ?? currentPhase;
     } else if (action.type === 'end_case') {
@@ -111,8 +121,8 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     await db.insert(revealedData).values({ sessionId, ledgerItemId: itemId, revealedAtMs: now });
   }
 
-  if (exhibitId) {
-    await db.insert(exhibitsShown).values({ sessionId, exhibitId, shownAtMs: now });
+  if (exhibit) {
+    await db.insert(exhibitsShown).values({ sessionId, exhibitId: exhibit.id, shownAtMs: now });
   }
 
   // Update session phase
@@ -129,7 +139,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
 
   return {
     interviewerText: spokenText,
-    exhibitId,
+    exhibit,
     phase: ended ? 'SCORING' : nextPhaseValue,
     ended,
     auditPassed: auditResult.passed,
