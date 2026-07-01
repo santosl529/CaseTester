@@ -16,7 +16,7 @@ const RATING_COLOR: Record<string, string> = {
 export default async function ReportPage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = await params;
 
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/');
 
