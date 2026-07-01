@@ -26,7 +26,7 @@ describe('hallucination harness (calls real API — requires ANTHROPIC_API_KEY)'
     'zero invented numbers across scripted turns on prof-001',
     async () => {
       const caseData = getCaseById('prof-001');
-      const ledger = createLedger(caseData.dataLedger as any);
+      const ledger = createLedger(caseData.dataLedger);
       const model = new HaikuInterviewerModel();
       const history: ModelMessage[] = [];
       let phase: Phase = 'INTRO';
