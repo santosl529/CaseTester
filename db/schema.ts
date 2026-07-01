@@ -30,7 +30,7 @@ export const cases = pgTable('cases', {
 export const sessions = pgTable('sessions', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull(),
-  caseId: text('case_id').notNull().references(() => cases.id),
+  caseId: text('case_id').notNull(),
   phase: phaseEnum('phase').notNull().default('INTRO'),
   elapsedMs: bigint('elapsed_ms', { mode: 'number' }).notNull().default(0),
   phaseStartedAt: timestamp('phase_started_at', { withTimezone: true }).notNull().defaultNow(),
