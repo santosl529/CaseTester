@@ -16,7 +16,7 @@ const MathStepSchema = z.object({
   id: z.string(),
   description: z.string(),
   answer: z.number(),                      // ground truth — server-only
-  tolerance: z.number().default(0.05),     // ±5% acceptable error
+  tolerance: z.number(),                    // ±5% acceptable error — must be explicit in case file
 });
 
 const ExhibitSchema = z.object({

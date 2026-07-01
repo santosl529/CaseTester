@@ -79,5 +79,11 @@ Respond with ONLY valid JSON matching this schema:
   });
 
   const raw = (response.content[0] as { type: 'text'; text: string }).text;
-  return JSON.parse(raw) as RubricScores;
+  // Strip markdown fences if Opus wraps its response
+  const jsonText = raw.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim();
+  try {
+    return JSON.parse(jsonText) as RubricScores;
+  } catch {
+    throw new Error(`Judge returned invalid JSON. Raw response:\n${raw}`);
+  }
 }
