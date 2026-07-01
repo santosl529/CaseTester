@@ -44,6 +44,10 @@ export default function LandingPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ caseId }),
     });
+    if (!res.ok) {
+      setError('Failed to start case. Please try again.');
+      return;
+    }
     const { sessionId } = await res.json();
     router.push(`/case/${sessionId}`);
   }

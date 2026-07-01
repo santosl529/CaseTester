@@ -1,14 +1,19 @@
 import { db } from '@/db/client';
 import { sessions, sessionTurns } from '@/db/schema';
-import { eq, asc } from 'drizzle-orm';
-import { notFound } from 'next/navigation';
+import { eq, asc, and } from 'drizzle-orm';
+import { notFound, redirect } from 'next/navigation';
 import { ChatWindow } from '@/components/chat-window';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 export default async function CasePage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = await params;
 
+  const supabase = createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/');
+
   const session = await db.query.sessions.findFirst({
-    where: eq(sessions.id, sessionId),
+    where: and(eq(sessions.id, sessionId), eq(sessions.userId, user.id)),
   });
   if (!session) notFound();
 

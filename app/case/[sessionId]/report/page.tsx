@@ -1,9 +1,11 @@
 import { db } from '@/db/client';
-import { scores } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { notFound } from 'next/navigation';
+import { sessions, scores } from '@/db/schema';
+import { eq, and } from 'drizzle-orm';
+import { notFound, redirect } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ReportCard } from '@/components/report-card';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 const RATING_COLOR: Record<string, string> = {
   needs_work: 'destructive',
@@ -13,6 +15,15 @@ const RATING_COLOR: Record<string, string> = {
 
 export default async function ReportPage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = await params;
+
+  const supabase = createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/');
+
+  const session = await db.query.sessions.findFirst({
+    where: and(eq(sessions.id, sessionId), eq(sessions.userId, user.id)),
+  });
+  if (!session) notFound();
 
   const score = await db.query.scores.findFirst({
     where: eq(scores.sessionId, sessionId),
@@ -45,23 +56,7 @@ export default async function ReportPage({ params }: { params: Promise<{ session
 
       <div className="space-y-4">
         {DIMENSIONS.map(d => (
-          <Card key={d.key}>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">{d.label}</CardTitle>
-                <Badge variant={RATING_COLOR[d.rating ?? 'meets_bar'] as 'destructive' | 'secondary' | 'default'}>
-                  {d.rating?.replace('_', ' ')}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {Array.isArray(d.evidence) && d.evidence.map((q: string, i: number) => (
-                <blockquote key={i} className="border-l-2 border-neutral-300 pl-3 text-sm text-neutral-600 italic mb-2">
-                  &ldquo;{q}&rdquo;
-                </blockquote>
-              ))}
-            </CardContent>
-          </Card>
+          <ReportCard key={d.key} label={d.label} rating={d.rating ?? null} evidence={d.evidence} />
         ))}
       </div>
 
