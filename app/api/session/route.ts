@@ -14,7 +14,12 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { caseId } = await req.json();
-  const caseData = getCaseById(caseId);
+  let caseData;
+  try {
+    caseData = getCaseById(caseId);
+  } catch {
+    return NextResponse.json({ error: 'Unknown case' }, { status: 400 });
+  }
 
   // Create session
   const [session] = await db.insert(sessions).values({
