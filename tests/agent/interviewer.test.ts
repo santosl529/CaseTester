@@ -12,6 +12,7 @@ const baseCtx = {
   currentPhase: 'CLARIFY' as const,
   revealedValues: {},
   unrevealedLabels: ['Total revenue'],
+  exhibits: [],
   pushbackDone: false,
   phaseElapsedMs: 0,
   phaseBudgetMs: 5 * 60 * 1000,

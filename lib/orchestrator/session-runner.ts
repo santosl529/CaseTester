@@ -69,6 +69,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
       currentPhase,
       revealedValues: revealedValues(ledger),
       unrevealedLabels: unrevealedLabels(ledger),
+      exhibits: caseData.exhibits.map(e => ({ id: e.id, title: e.title })),
       pushbackDone: Boolean(flags.pushbackDone),
       phaseElapsedMs,
       phaseBudgetMs: PHASE_BUDGETS_MS[currentPhase],

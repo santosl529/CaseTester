@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
       currentPhase: 'INTRO',
       revealedValues: {},
       unrevealedLabels: unrevealedLabels(ledger),
+      exhibits: caseData.exhibits.map(e => ({ id: e.id, title: e.title })),
       pushbackDone: false,
       phaseElapsedMs: 0,
       phaseBudgetMs: PHASE_BUDGETS_MS['INTRO'],

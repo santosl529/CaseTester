@@ -6,14 +6,14 @@ export const PHASES = [
 export type Phase = typeof PHASES[number];
 
 export const PHASE_BUDGETS_MS: Record<Phase, number> = {
-  INTRO:          2  * 60 * 1000,
-  CLARIFY:        5  * 60 * 1000,
-  STRUCTURE:      5  * 60 * 1000,
-  ANALYSIS:       15 * 60 * 1000,
-  EXHIBIT:        5  * 60 * 1000,
-  BRAINSTORM:     5  * 60 * 1000,
-  RECOMMENDATION: 5  * 60 * 1000,
-  WRAP:           2  * 60 * 1000,
+  INTRO:          30 * 1000,
+  CLARIFY:        45 * 1000,
+  STRUCTURE:      45 * 1000,
+  ANALYSIS:       90 * 1000,
+  EXHIBIT:        30 * 1000,
+  BRAINSTORM:     30 * 1000,
+  RECOMMENDATION: 30 * 1000,
+  WRAP:           30 * 1000,
   SCORING:        0,
 };
 

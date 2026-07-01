@@ -46,6 +46,7 @@ describe('hallucination harness (calls real API — requires ANTHROPIC_API_KEY)'
             currentPhase: phase,
             revealedValues: revealedValues(ledger),
             unrevealedLabels: unrevealedLabels(ledger),
+            exhibits: caseData.exhibits.map(e => ({ id: e.id, title: e.title })),
             pushbackDone: false,
             phaseElapsedMs: 0,
             phaseBudgetMs: PHASE_BUDGETS_MS[phase],

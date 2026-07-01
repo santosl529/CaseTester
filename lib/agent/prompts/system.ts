@@ -7,6 +7,7 @@ export type PromptContext = {
   currentPhase: Phase;
   revealedValues: Record<string, string>;   // id → value (already disclosed)
   unrevealedLabels: string[];               // labels of items not yet revealed
+  exhibits: { id: string; title: string }[]; // available exhibits (id + title only)
   pushbackDone: boolean;
   phaseElapsedMs: number;
   phaseBudgetMs: number;
@@ -20,6 +21,10 @@ export function buildSystemPrompt(ctx: PromptContext): string {
   const unrevealedSection = ctx.unrevealedLabels.length > 0
     ? `Data available to reveal (labels only — do NOT state values until revealed):\n${ctx.unrevealedLabels.map(l => `- ${l}`).join('\n')}`
     : 'All data has been revealed.';
+
+  const exhibitSection = ctx.exhibits.length > 0
+    ? `Available exhibits (use show_exhibit with the exact id):\n${ctx.exhibits.map(e => `- id: "${e.id}" — ${e.title}`).join('\n')}`
+    : '';
 
   const pushbackInstruction = !ctx.pushbackDone
     ? 'IMPORTANT: You have not yet pushed back on the candidate this session. If the candidate makes an assertion without evidence or jumps to a conclusion, challenge it once before the end of RECOMMENDATION phase.'
@@ -37,6 +42,7 @@ ${ctx.casePrompt}
 Current phase: ${ctx.currentPhase}
 ${revealedSection}
 ${unrevealedSection}
+${exhibitSection}
 
 Your behavior:
 - Ask probing questions; do not volunteer the framework or solve the case.
