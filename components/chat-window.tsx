@@ -2,8 +2,21 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import ReactMarkdown from 'react-markdown';
 
 type Message = { role: 'interviewer' | 'candidate'; text: string };
+
+function TypingIndicator() {
+  return (
+    <div className="flex justify-start">
+      <div className="bg-neutral-100 rounded-lg px-4 py-3 flex items-center gap-1">
+        <span className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+        <span className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+        <span className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce" />
+      </div>
+    </div>
+  );
+}
 
 export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; initialMessage: string }) {
   const [messages, setMessages] = useState<Message[]>([
@@ -16,7 +29,7 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, loading]);
 
   async function sendTurn(e: React.FormEvent) {
     e.preventDefault();
@@ -54,17 +67,17 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
                 ? 'bg-blue-600 text-white'
                 : 'bg-neutral-100 text-neutral-900'
             }`}>
-              {m.text}
+              {m.role === 'interviewer' ? (
+                <div className="prose prose-sm max-w-none prose-p:my-1 prose-strong:font-semibold">
+                  <ReactMarkdown>{m.text}</ReactMarkdown>
+                </div>
+              ) : (
+                m.text
+              )}
             </div>
           </div>
         ))}
-        {loading && (
-          <div className="flex justify-start">
-            <div className="bg-neutral-100 rounded-lg px-4 py-2 text-sm text-neutral-400 animate-pulse">
-              Thinking…
-            </div>
-          </div>
-        )}
+        {loading && <TypingIndicator />}
         <div ref={bottomRef} />
       </div>
       <form onSubmit={sendTurn} className="border-t p-4 flex gap-2">
