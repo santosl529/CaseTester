@@ -70,8 +70,8 @@ describe('hallucination harness (calls real API — requires ANTHROPIC_API_KEY)'
           }
         }
 
-        // Audit: revealed values + case prompt + any shown exhibit data are all allowed
-        const combinedAllowedText = caseData.prompt + ' ' + shownExhibitDataText;
+        // Audit: revealed values + case prompt + shown exhibit data + candidate's own words (can be echoed)
+        const combinedAllowedText = caseData.prompt + ' ' + shownExhibitDataText + ' ' + SCRIPTED_TURNS.slice(0, i + 1).join(' ');
         const audit = auditTurn(spokenText.trim(), revealedValues(ledger), combinedAllowedText);
         auditLog.push({ turn: i + 1, result: audit });
 
