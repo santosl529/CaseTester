@@ -6,8 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-const VALID_CLUB_CODES = (process.env.NEXT_PUBLIC_CLUB_CODES ?? '').split(',');
-
 export default function LandingPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,10 +29,11 @@ export default function LandingPage() {
 
   function handleClubCode(e: React.FormEvent) {
     e.preventDefault();
-    if (!VALID_CLUB_CODES.includes(clubCode.toUpperCase())) {
-      setError('Invalid club code. Contact your club president.');
+    if (!clubCode.trim()) {
+      setError('Please enter your club code.');
       return;
     }
+    setError('');
     setStep('select');
   }
 
@@ -42,10 +41,12 @@ export default function LandingPage() {
     const res = await fetch('/api/session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ caseId }),
+      body: JSON.stringify({ caseId, clubCode }),
     });
     if (!res.ok) {
-      setError('Failed to start case. Please try again.');
+      const data = await res.json().catch(() => ({}));
+      setError(data.error === 'Invalid club code' ? 'Invalid club code. Contact your club president.' : 'Failed to start case. Please try again.');
+      setStep('club');
       return;
     }
     const { sessionId } = await res.json();

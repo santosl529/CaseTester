@@ -13,7 +13,13 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { caseId } = await req.json();
+  const { caseId, clubCode } = await req.json();
+
+  const validCodes = (process.env.CLUB_CODES ?? '').split(',').map(c => c.trim().toUpperCase());
+  if (!validCodes.includes((clubCode ?? '').toUpperCase())) {
+    return NextResponse.json({ error: 'Invalid club code' }, { status: 403 });
+  }
+
   let caseData;
   try {
     caseData = getCaseById(caseId);
