@@ -15,6 +15,55 @@
       "when": 1782948444997,
       "tag": "0001_big_the_leader",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783138113749,
+      "tag": "0002_bright_skreet",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783176056992,
+      "tag": "0003_loose_obadiah_stane",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783180197145,
+      "tag": "0004_daffy_turbo",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783957288498,
+      "tag": "0005_bouncy_captain_britain",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783989701629,
+      "tag": "0006_superb_joshua_kane",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1784428385370,
+      "tag": "0007_outgoing_starjammers",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784483726217,
+      "tag": "0008_low_titanium_man",
+      "breakpoints": true
     }
   ]
 }
