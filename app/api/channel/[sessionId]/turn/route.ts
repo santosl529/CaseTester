@@ -1,13 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { runTurn } from '@/lib/orchestrator/session-runner';
-import { runJudge } from '@/lib/scoring/judge';
-import { checkMathSteps } from '@/lib/scoring/deterministic';
-import { assembleReport } from '@/lib/scoring/report';
+import { assessCoverage } from '@/lib/scoring/coverage';
 import { db } from '@/db/client';
-import { sessions, sessionTurns, revealedData, scores } from '@/db/schema';
-import { and, eq } from 'drizzle-orm';
-import { getCaseById } from '@/lib/cases/loader';
+import { sessions, sessionTurns } from '@/db/schema';
+import { and, eq, asc } from 'drizzle-orm';
+import { logEvent } from '@/lib/analytics';
 
 export async function POST(
   req: NextRequest,
@@ -30,51 +28,32 @@ export async function POST(
   }
 
   const result = await runTurn(sessionId, text.trim());
+  console.log('[turn route] result:', JSON.stringify({ exhibit: result.exhibit?.id ?? null, ended: result.ended }));
 
-  if (result.ended) {
-    // Trigger scoring inline for M1
-    // session is already loaded and ownership-verified above
-    const start = Date.now();
-    const caseData = getCaseById(session.caseId);
-    const turns = await db.query.sessionTurns.findMany({
-      where: eq(sessionTurns.sessionId, sessionId),
-      orderBy: (t, { asc }) => [asc(t.turnIndex)],
-    });
-    const revealedRows = await db.query.revealedData.findMany({
-      where: eq(revealedData.sessionId, sessionId),
-    });
-
-    const transcript = turns.map(t => ({ role: t.role, text: t.text, turnIndex: t.turnIndex }));
-    const mathResults = checkMathSteps(transcript, caseData.mathSteps);
-    const rubric = await runJudge(transcript, caseData, revealedRows.map(r => r.ledgerItemId));
-    const report = assembleReport({
-      sessionId,
-      caseData,
-      rubric,
-      mathResults,
-      scoringRuntimeMs: Date.now() - start,
-    });
-
-    await db.insert(scores).values({
-      sessionId,
-      structureRating: rubric.structure.rating,
-      structureEvidence: rubric.structure.evidence,
-      quantitativeRating: rubric.quantitative.rating,
-      quantitativeEvidence: rubric.quantitative.evidence,
-      judgmentRating: rubric.judgment.rating,
-      judgmentEvidence: rubric.judgment.evidence,
-      communicationRating: rubric.communication.rating,
-      communicationEvidence: rubric.communication.evidence,
-      synthesisRating: rubric.synthesis.rating,
-      synthesisEvidence: rubric.synthesis.evidence,
-      overallRating: rubric.overallRating,
-      topFix: rubric.topFix,
-      deterministicJsonb: mathResults,
-      modelAnswerJsonb: report.modelAnswer,
-      scoringRuntimeMs: report.scoringRuntimeMs,
-      judgeModel: report.judgeModel,
+  // Background coverage pass (runs AFTER the response is sent, so it adds no
+  // latency; the next turn reads the result). Lagging ~a turn is acceptable.
+  if (!result.ended) {
+    after(async () => {
+      try {
+        const turns = await db.query.sessionTurns.findMany({
+          where: eq(sessionTurns.sessionId, sessionId),
+          orderBy: [asc(sessionTurns.turnIndex)],
+        });
+        const coverage = await assessCoverage(
+          turns.map(t => ({ role: t.role, text: t.text })),
+          u => { void logEvent('llm_usage', { ...u }, { sessionId, userId: user.id }); },
+        );
+        if (coverage) {
+          await db.update(sessions).set({ coverageJsonb: coverage }).where(eq(sessions.id, sessionId));
+        }
+      } catch (e) {
+        console.error('[coverage] background pass failed:', e);
+      }
     });
   }
 
+  // Scoring runs in a separate request (POST …/score) so this response returns
+  // as soon as the final turn completes and the client can show an
+  // "evaluating" state.
   return NextResponse.json(result);
 }
