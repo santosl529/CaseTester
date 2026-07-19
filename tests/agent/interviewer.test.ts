@@ -11,11 +11,11 @@ const baseCtx = {
   casePrompt: 'Client has declining profits.',
   currentPhase: 'CLARIFY' as const,
   revealedValues: {},
-  unrevealedLabels: ['Total revenue'],
+  unrevealedItems: [{ id: 'rev', label: 'Total revenue' }],
   exhibits: [],
-  pushbackDone: false,
-  phaseElapsedMs: 0,
-  phaseBudgetMs: 5 * 60 * 1000,
+  advancedLastTurn: false,
+  elapsedMs: 0,
+  totalMs: 5 * 60 * 1000,
 };
 
 describe('runInterviewerTurn', () => {
@@ -28,22 +28,58 @@ describe('runInterviewerTurn', () => {
   });
 
   it('filters illegal actions for the phase', async () => {
-    // show_exhibit is illegal in CLARIFY
+    // advance_phase is illegal in WRAP
+    const model = mockModel([
+      { type: 'speak', text: 'Thanks for your time.' },
+      { type: 'advance_phase' },
+    ]);
+    const result = await runInterviewerTurn({
+      model, candidateText: 'I am done.', history: [],
+      promptCtx: { ...baseCtx, currentPhase: 'WRAP' }, phase: 'WRAP',
+    });
+    expect(result.some(a => a.type === 'advance_phase')).toBe(false);
+    expect(result.some(a => a.type === 'speak')).toBe(true);
+  });
+
+  it('allows end_case in early phases (time can run out anywhere)', async () => {
+    const model = mockModel([
+      { type: 'speak', text: 'We are out of time — thanks for coming in.' },
+      { type: 'end_case' },
+    ]);
+    const result = await runInterviewerTurn({
+      model, candidateText: 'OK', history: [], promptCtx: baseCtx, phase: 'CLARIFY',
+    });
+    expect(result.some(a => a.type === 'end_case')).toBe(true);
+  });
+
+  it('allows reveal_data in INTRO when the candidate asks', async () => {
+    const model = mockModel([
+      { type: 'speak', text: 'Sure, here is the revenue.' },
+      { type: 'reveal_data', itemId: 'rev' },
+    ]);
+    const result = await runInterviewerTurn({
+      model, candidateText: 'What is the revenue?', history: [],
+      promptCtx: { ...baseCtx, currentPhase: 'INTRO' }, phase: 'INTRO',
+    });
+    expect(result.some(a => a.type === 'reveal_data')).toBe(true);
+  });
+
+  it('allows show_exhibit in CLARIFY when the candidate asks', async () => {
     const model = mockModel([
       { type: 'speak', text: 'Here is the exhibit.' },
       { type: 'show_exhibit', exhibitId: 'exhibit-a' },
     ]);
     const result = await runInterviewerTurn({
-      model, candidateText: 'Show me data', history: [], promptCtx: baseCtx, phase: 'CLARIFY',
+      model, candidateText: 'Can I see the exhibit?', history: [], promptCtx: baseCtx, phase: 'CLARIFY',
     });
-    expect(result.some(a => a.type === 'show_exhibit')).toBe(false);
-    expect(result.some(a => a.type === 'speak')).toBe(true);
+    expect(result.some(a => a.type === 'show_exhibit')).toBe(true);
   });
 
   it('returns fallback speak if all actions filtered', async () => {
-    const model = mockModel([{ type: 'end_case' }]); // illegal in CLARIFY
+    const model = mockModel([{ type: 'advance_phase' }]); // illegal in WRAP
     const result = await runInterviewerTurn({
-      model, candidateText: 'OK', history: [], promptCtx: baseCtx, phase: 'CLARIFY',
+      model, candidateText: 'OK', history: [],
+      promptCtx: { ...baseCtx, currentPhase: 'WRAP' }, phase: 'WRAP',
     });
     expect(result[0].type).toBe('speak');
   });

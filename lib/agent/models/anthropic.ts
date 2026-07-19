@@ -1,0 +1,155 @@
+import Anthropic from '@anthropic-ai/sdk';
+import type { InterviewerModel, TurnContext } from './interface';
+import type { Action } from '@/lib/orchestrator/actions';
+import { extractToolId, validateToolUses } from './tool-input';
+
+const TOOLS: Anthropic.Tool[] = [
+  {
+    name: 'speak',
+    description: 'Say something to the candidate.',
+    input_schema: {
+      type: 'object',
+      properties: { text: { type: 'string', description: 'What to say.' } },
+      required: ['text'],
+    },
+  },
+  {
+    name: 'reveal_data',
+    description: 'Disclose a data ledger item to the candidate. Only call this when the candidate has asked for the data.',
+    input_schema: {
+      type: 'object',
+      properties: { item_id: { type: 'string', description: 'The ledger item id.' } },
+      required: ['item_id'],
+    },
+  },
+  {
+    name: 'show_exhibit',
+    description: 'Display an exhibit (chart/table) to the candidate.',
+    input_schema: {
+      type: 'object',
+      properties: { exhibit_id: { type: 'string', description: 'The exhibit id.' } },
+      required: ['exhibit_id'],
+    },
+  },
+  {
+    name: 'advance_phase',
+    description: 'Move to the next interview phase when the candidate has completed the current one.',
+    input_schema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'end_case',
+    description: 'End the case interview. Use when the case is complete or time is up.',
+    input_schema: { type: 'object', properties: {} },
+  },
+];
+
+// Opus 4.8: pilot runs showed Haiku 4.5 missing candidate math errors live
+// (e.g. %-of-COGS vs points-of-revenue confusion). Revisit for the M2 voice
+// latency budget — Opus turns are slower and pricier.
+export const INTERVIEWER_MODEL_ID = 'claude-opus-4-8';
+
+export class AnthropicInterviewerModel implements InterviewerModel {
+  private client: Anthropic;
+  private modelId: string;
+
+  constructor(modelId: string = INTERVIEWER_MODEL_ID) {
+    this.client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    this.modelId = modelId;
+  }
+
+  async runTurn(ctx: TurnContext): Promise<Action[]> {
+    const messages: Anthropic.MessageParam[] = ctx.history.map(m => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    const logBlocks = (r: Anthropic.Message) => console.log('[interviewer-model] raw blocks:', JSON.stringify(
+      r.content.map(b => b.type === 'tool_use' ? { type: 'tool_use', name: b.name, input: b.input } : { type: b.type }),
+      null, 2,
+    ));
+    const call = async () => {
+      const r = await this.client.messages.create({
+        model: this.modelId,
+        max_tokens: 1024,
+        system: ctx.systemPrompt,
+        messages,
+        tools: TOOLS,
+      });
+      ctx.onUsage?.({
+        component: 'interviewer',
+        model: this.modelId,
+        inputTokens: r.usage.input_tokens,
+        outputTokens: r.usage.output_tokens,
+      });
+      return r;
+    };
+
+    let response = await call();
+    logBlocks(response);
+
+    // Tool-id validation loop: if the model called reveal_data/show_exhibit with
+    // an id that doesn't resolve to a real target, hand the error back (with the
+    // valid ids) and let it correct itself — bounded — instead of silently
+    // delivering nothing or the wrong exhibit.
+    const idValidators = ctx.idValidators ?? {};
+    const maxCorrections = ctx.maxToolCorrections ?? 2;
+    if (Object.keys(idValidators).length > 0) {
+      for (let attempt = 0; attempt < maxCorrections; attempt++) {
+        const toolUses = response.content.filter((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use');
+        if (toolUses.length === 0) break;
+        const { toolResults, anyInvalid } = validateToolUses(
+          toolUses.map(b => ({ id: b.id, name: b.name, input: b.input })), idValidators,
+        );
+        if (!anyInvalid) break;
+        console.warn('[interviewer-model] invalid tool id — asking model to correct',
+          JSON.stringify(toolResults.filter(r => r.is_error)));
+        messages.push({ role: 'assistant', content: response.content });
+        messages.push({ role: 'user', content: toolResults as Anthropic.ToolResultBlockParam[] });
+        response = await call();
+        logBlocks(response);
+      }
+    }
+
+    const actions: Action[] = [];
+
+    for (const block of response.content) {
+      if (block.type === 'text' && block.text.trim()) {
+        // LLM produced raw text — treat as speak (shouldn't happen ideally)
+        actions.push({ type: 'speak', text: block.text.trim() });
+      } else if (block.type === 'tool_use') {
+        switch (block.name) {
+          case 'speak': {
+            const text = (block.input as { text?: unknown }).text;
+            if (typeof text === 'string' && text.trim()) actions.push({ type: 'speak', text });
+            break;
+          }
+          case 'reveal_data': {
+            const itemId = extractToolId(block.input, 'item_id');
+            if (itemId) actions.push({ type: 'reveal_data', itemId });
+            else console.warn('[interviewer-model] reveal_data with no resolvable id:', JSON.stringify(block.input));
+            break;
+          }
+          case 'show_exhibit': {
+            const exhibitId = extractToolId(block.input, 'exhibit_id');
+            if (exhibitId) actions.push({ type: 'show_exhibit', exhibitId });
+            else console.warn('[interviewer-model] show_exhibit with no resolvable id:', JSON.stringify(block.input));
+            break;
+          }
+          case 'advance_phase':
+            actions.push({ type: 'advance_phase' });
+            break;
+          case 'end_case':
+            actions.push({ type: 'end_case' });
+            break;
+        }
+      }
+    }
+
+    // Always ensure at least a speak action
+    if (actions.length === 0) {
+      actions.push({ type: 'speak', text: "I see. What would you like to explore next?" });
+    }
+
+    return actions;
+  }
+}

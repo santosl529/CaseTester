@@ -1,0 +1,1 @@
+ALTER TABLE "sessions" ADD COLUMN "coverage_jsonb" jsonb;

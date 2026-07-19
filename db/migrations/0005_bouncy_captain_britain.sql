@@ -1,0 +1,1 @@
+ALTER TABLE "sessions" ALTER COLUMN "flags_jsonb" SET DEFAULT '{"stalled":false,"ranLong":false,"askedRepeat":false,"offTopicCount":0,"pushbackDone":false,"advancedLastTurn":false,"timeWarningFired":false}'::jsonb;

@@ -49,10 +49,11 @@ function ExhibitTable({ exhibit }: { exhibit: ExhibitDisplay }) {
   );
 }
 
-function TypingIndicator() {
+function TypingIndicator({ label }: { label?: string }) {
   return (
     <div className="flex justify-start">
       <div className="bg-neutral-100 rounded-lg px-4 py-3 flex items-center gap-1">
+        {label && <span className="text-sm text-neutral-600 mr-2">{label}</span>}
         <span className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
         <span className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
         <span className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce" />
@@ -66,21 +67,37 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
     { role: 'interviewer', text: initialMessage },
   ]);
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [ended, setEnded] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'waiting' | 'evaluating' | 'closed'>('idle');
   const bottomRef = useRef<HTMLDivElement>(null);
+  const busy = status !== 'idle';
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, loading]);
+  }, [messages, status]);
+
+  async function scoreAndRedirect() {
+    setStatus('evaluating');
+    // The score endpoint is idempotent, so one retry on failure is safe
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const res = await fetch(`/api/channel/${sessionId}/score`, { method: 'POST' });
+      if (res.ok) {
+        window.location.href = `/case/${sessionId}/report`;
+        return;
+      }
+    }
+    setMessages(m => [...m, {
+      role: 'interviewer',
+      text: 'The case ended, but generating your report hit an error. Reload this page to retry.',
+    }]);
+  }
 
   async function sendTurn(e: React.FormEvent) {
     e.preventDefault();
-    if (!input.trim() || loading) return;
+    if (!input.trim() || busy) return;
     const text = input.trim();
     setInput('');
     setMessages(m => [...m, { role: 'candidate', text }]);
-    setLoading(true);
+    setStatus('waiting');
     const res = await fetch(`/api/channel/${sessionId}/turn`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -88,15 +105,23 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
     });
     if (!res.ok) {
       setMessages(m => [...m, { role: 'interviewer', text: 'Something went wrong. Please try again.' }]);
-      setLoading(false);
+      setStatus('idle');
       return;
     }
     const data = await res.json();
-    setMessages(m => [...m, { role: 'interviewer', text: data.interviewerText, exhibit: data.exhibit }]);
-    setLoading(false);
-    if (data.ended) {
-      setEnded(true);
-      window.location.href = `/case/${sessionId}/report`;
+    // Render the turn if there's text OR an exhibit — an exhibit-only turn (the
+    // model showed a chart without speaking) must not be dropped.
+    if (data.interviewerText || data.exhibit) {
+      setMessages(m => [...m, { role: 'interviewer', text: data.interviewerText ?? '', exhibit: data.exhibit }]);
+    }
+    if (data.ended && data.scoringSuppressed) {
+      // Session ended without a score (conduct termination or accepted pause).
+      // No report — just close the input.
+      setStatus('closed');
+    } else if (data.ended) {
+      await scoreAndRedirect();
+    } else {
+      setStatus('idle');
     }
   }
 
@@ -112,9 +137,11 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
             }`}>
               {m.role === 'interviewer' ? (
                 <>
-                  <div className="prose prose-sm max-w-none prose-p:my-1 prose-strong:font-semibold">
-                    <ReactMarkdown>{m.text}</ReactMarkdown>
-                  </div>
+                  {m.text && (
+                    <div className="prose prose-sm max-w-none prose-p:my-1 prose-strong:font-semibold">
+                      <ReactMarkdown>{m.text}</ReactMarkdown>
+                    </div>
+                  )}
                   {m.exhibit && <ExhibitTable exhibit={m.exhibit} />}
                 </>
               ) : (
@@ -123,7 +150,8 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
             </div>
           </div>
         ))}
-        {loading && <TypingIndicator />}
+        {status === 'waiting' && <TypingIndicator />}
+        {status === 'evaluating' && <TypingIndicator label="Case ended, now evaluating…" />}
         <div ref={bottomRef} />
       </div>
       <form onSubmit={sendTurn} className="border-t p-4 flex gap-2">
@@ -131,10 +159,10 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder="Type your response…"
-          disabled={loading || ended}
+          disabled={busy}
           className="flex-1"
         />
-        <Button type="submit" disabled={loading || ended}>Send</Button>
+        <Button type="submit" disabled={busy}>Send</Button>
       </form>
     </div>
   );

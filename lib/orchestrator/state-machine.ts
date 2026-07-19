@@ -5,17 +5,9 @@ export const PHASES = [
 
 export type Phase = typeof PHASES[number];
 
-export const PHASE_BUDGETS_MS: Record<Phase, number> = {
-  INTRO:          30 * 1000,
-  CLARIFY:        45 * 1000,
-  STRUCTURE:      45 * 1000,
-  ANALYSIS:       90 * 1000,
-  EXHIBIT:        30 * 1000,
-  BRAINSTORM:     30 * 1000,
-  RECOMMENDATION: 30 * 1000,
-  WRAP:           30 * 1000,
-  SCORING:        0,
-};
+// Single wall-clock budget for the whole case. Phases carry no timers —
+// they advance only when the interviewer decides the candidate is ready.
+export const TOTAL_CASE_MS = 5 * 60 * 1000;
 
 export function nextPhase(current: Phase): Phase | null {
   const idx = PHASES.indexOf(current);
@@ -23,14 +15,21 @@ export function nextPhase(current: Phase): Phase | null {
   return PHASES[idx + 1];
 }
 
+// reveal_data and show_exhibit are legal in every active phase: a real
+// interviewer hands over data or an exhibit when asked instead of hiding it
+// behind the interview stage. Whether to give or redirect is the model's
+// judgment call — but if it commits, the orchestrator must deliver.
+// end_case is also legal everywhere: when the wall clock runs out in an early
+// phase, the model must be able to close the case — filtering its end_case
+// produced silent final turns.
 export const LEGAL_ACTIONS: Record<Phase, string[]> = {
-  INTRO:          ['speak', 'advance_phase'],
-  CLARIFY:        ['speak', 'reveal_data', 'advance_phase'],
-  STRUCTURE:      ['speak', 'reveal_data', 'advance_phase'],
-  ANALYSIS:       ['speak', 'reveal_data', 'show_exhibit', 'advance_phase'],
-  EXHIBIT:        ['speak', 'reveal_data', 'show_exhibit', 'advance_phase'],
-  BRAINSTORM:     ['speak', 'reveal_data', 'advance_phase'],
-  RECOMMENDATION: ['speak', 'reveal_data', 'advance_phase', 'end_case'],
-  WRAP:           ['speak', 'end_case'],
+  INTRO:          ['speak', 'reveal_data', 'show_exhibit', 'advance_phase', 'end_case'],
+  CLARIFY:        ['speak', 'reveal_data', 'show_exhibit', 'advance_phase', 'end_case'],
+  STRUCTURE:      ['speak', 'reveal_data', 'show_exhibit', 'advance_phase', 'end_case'],
+  ANALYSIS:       ['speak', 'reveal_data', 'show_exhibit', 'advance_phase', 'end_case'],
+  EXHIBIT:        ['speak', 'reveal_data', 'show_exhibit', 'advance_phase', 'end_case'],
+  BRAINSTORM:     ['speak', 'reveal_data', 'show_exhibit', 'advance_phase', 'end_case'],
+  RECOMMENDATION: ['speak', 'reveal_data', 'show_exhibit', 'advance_phase', 'end_case'],
+  WRAP:           ['speak', 'reveal_data', 'show_exhibit', 'end_case'],
   SCORING:        [],
 };

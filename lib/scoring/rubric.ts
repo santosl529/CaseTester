@@ -1,0 +1,115 @@
+// The consolidated 8-dimension scoring rubric (docs/Case Interview Feedback Rubric.pdf).
+// This is the generic, case-independent rubric the judge scores against; case files
+// supply case-specific ground truth (structure_key, recommendation_key, interpretation_key).
+// Server-only: this text goes into the judge prompt, never to the client.
+
+export type Rating = 'needs_work' | 'meets_bar' | 'strong';
+
+// Display names follow the rubric PDF ("Adequate"); `meets_bar` stays the
+// internal/DB enum value.
+export const RATING_LABELS: Record<Rating, string> = {
+  needs_work: 'needs work',
+  meets_bar: 'adequate',
+  strong: 'strong',
+};
+
+export const RUBRIC_DIMENSION_KEYS = [
+  'structure',
+  'quantitative',
+  'dataExhibit',
+  'judgment',
+  'creativity',
+  'synthesis',
+  'communication',
+  'pushback',
+] as const;
+
+export type RubricDimensionKey = (typeof RUBRIC_DIMENSION_KEYS)[number];
+
+export const RUBRIC_DIMENSION_LABELS: Record<RubricDimensionKey, string> = {
+  structure: 'Problem Structuring',
+  quantitative: 'Quantitative & Analytical Rigor',
+  dataExhibit: 'Data & Exhibit Interpretation',
+  judgment: 'Business Judgment & Insight',
+  creativity: 'Creativity & Brainstorming',
+  synthesis: 'Synthesis & Recommendation',
+  communication: 'Communication & Delivery',
+  pushback: 'Pushback, Composure & Case Leadership',
+};
+
+export const RUBRIC_PROMPT_TEXT = `Case stages referenced: (1) Opening/Framework, (2) Analysis/Math, (3) Data/Exhibit interpretation, (4) Brainstorming, (5) Synthesis/Recommendation.
+Ratings: "strong", "meets_bar" (the rubric's "Adequate"), "needs_work".
+
+DIMENSION "structure" — Problem Structuring
+Definition: Breaking an ambiguous problem into a logical, MECE, tailored structure that fits the specific objective (not a memorized template).
+Stage: Opening/Framework (primary); reused throughout via signposting.
+Signals: explicit enumeration of buckets ("three areas…"); coverage breadth vs. overlap; tailoring tied to the specific client/industry; statement of the objective before the structure; stated prioritization ("I'd start with X because…").
+strong: Objective restated; 3–4 tailored, non-overlapping buckets with brief sub-points; prioritizes where the answer likely lives; ties structure to the decision.
+meets_bar: Recognizable relevant framework, mostly MECE, limited tailoring; no clear prioritization.
+needs_work: Generic memorized template (e.g., unmodified Porter/4P), overlapping or missing buckets, no objective, or jumps to analysis with no structure.
+
+DIMENSION "quantitative" — Quantitative & Analytical Rigor
+Definition: Accurate, well-organized math (mental math, market sizing, consulting math) with verbalized setup and sanity-checking.
+Stage: Analysis/Math (primary); Brainstorming (sizing).
+Signals: stated approach before calculating; step-by-step verbalization; correct arithmetic; unit tracking; explicit sanity check; reasonable assumptions named.
+strong: Lays out the equation first, computes accurately, narrates steps, sanity-checks the result, states the business implication of the number.
+meets_bar: Reaches a correct or near-correct answer with some verbalization; minor errors self-caught or immaterial; limited sanity check.
+needs_work: Silent calculation, arithmetic errors uncorrected, disorganized setup, unreasonable assumptions, no interpretation of the result. Asserting a number (e.g., a price increase percentage) without ever deriving it also rates needs_work.
+
+DIMENSION "dataExhibit" — Data & Exhibit / Chart Interpretation
+Definition: Extracting the key pattern/anomaly from a chart or table and translating it into a business implication.
+Stage: Data/Exhibit interpretation (primary).
+Signals: orients first (title/axes/units); identifies the main insight or outlier; states a "so-what"; proposes a next step.
+strong: Reads the exhibit systematically, isolates the driver/anomaly, states implication and next step ("…so I'd next check…").
+meets_bar: Correctly reads the data and notes a relevant point but weak on implication or next step.
+needs_work: Merely restates numbers ("revenue is up 12%") with no insight, or misreads the exhibit.
+
+DIMENSION "judgment" — Business Judgment & Insight
+Definition: Commercial sense — reasonable assumptions, practical/implementable ideas, awareness of risks and real-world dynamics.
+Stage: All stages; concentrated in Analysis and Synthesis.
+Signals: references to realistic business levers; risk/caveat mentions; feasibility comments; prioritization by impact; assumptions that pass a plausibility check.
+strong: Recommendations are practical and commercially sound; proactively surfaces risks and mitigations; assumptions are realistic and justified.
+meets_bar: Generally sensible judgment; some generic or unprioritized ideas; limited risk awareness.
+needs_work: Impractical or non-viable suggestions; ignores risks; assumptions clearly unrealistic.
+
+DIMENSION "creativity" — Creativity & Brainstorming
+Definition: Generating a structured breadth of relevant, non-obvious ideas.
+Stage: Brainstorming (primary); Synthesis (options).
+Signals: explicit mini-structure for the brainstorm ("I'll split ideas into organic vs. inorganic…"); number and diversity of ideas; at least one non-obvious idea.
+strong: Organizes ideas into buckets, produces several distinct ideas including non-obvious ones, then prioritizes.
+meets_bar: Several relevant ideas but flat/unstructured or conventional.
+needs_work: Few ideas, all obvious, no structure, or dries up quickly.
+
+DIMENSION "synthesis" — Synthesis & Recommendation
+Definition: A concise, answer-first recommendation supported by evidence, risks, and next steps.
+Stage: Synthesis/Recommendation (primary); mini-syntheses after each analysis segment.
+Signals: conclusion stated first; 2–3 supporting reasons; explicit risk/caveat; next steps; brevity (~60–90 seconds spoken).
+strong: Leads with a clear recommendation, gives 2–3 reasons tied to the analysis, names key risk and next steps, stays concise.
+meets_bar: Clear conclusion with some support but wordy, missing risks or next steps, or partially buried.
+needs_work: No committed answer ("there are arguments on both sides"), rambling, or a summary that merely recaps without recommending.
+
+DIMENSION "communication" — Communication & Delivery
+Definition: Top-down, signposted, clear verbal communication with good pacing and active listening.
+Stage: All stages.
+Signals: answer-first ordering; signposting/discourse markers; hypothesis language; explicit structure narration; controlled pace vs. filler density; not interrupting.
+strong: Consistently top-down and signposted; states structure before detail; hypothesis-driven phrasing; calm, well-paced; listens and builds on cues.
+meets_bar: Mostly clear and followable; intermittent signposting; some rambling or filler.
+needs_work: Bottom-up/meandering, no signposting, hard to follow, heavy filler, talks over the interviewer, or long silences.
+
+DIMENSION "pushback" — Handling Pushback, Composure & Case Leadership
+Definition: Responding to challenges with poise and evaluative logic (update or hold with reasons); driving the case forward or answering the precise question crisply; coachability.
+Stage: All stages; challenges typically in Analysis and Synthesis.
+Signals: acknowledges the challenge specifically; restates position with evidence; states what changed vs. what holds; proactively proposes next steps; asks for relevant data; incorporates feedback in subsequent turns.
+strong: Acknowledges the challenge, holds or updates with explicit reasoning (no reflexive capitulation, no defensiveness); drives next steps; visibly incorporates hints.
+meets_bar: Handles the challenge reasonably but either concedes a little too fast or defends slightly rigidly; moderate proactivity.
+needs_work: Caves immediately to any pushback or becomes defensive; passive/waits to be led; ignores hints/feedback.
+
+Rubric-to-stage weighting (● primary, ○ secondary):
+structure: Opening ●, Analysis ○ (signposting), Data/Exhibit ○, Brainstorm ○ (mini-structure), Synthesis ○
+quantitative: Analysis ●, Brainstorm ● (sizing), Synthesis ○
+dataExhibit: Data/Exhibit ●, Analysis ○, Synthesis ○
+judgment: Analysis ●, Brainstorm ●, Synthesis ●, Opening ○, Data/Exhibit ○
+creativity: Brainstorm ●, Synthesis ○
+synthesis: Synthesis ●, Analysis ○ (mini), Data/Exhibit ○ (mini)
+communication: all stages ●
+pushback: Analysis ●, Data/Exhibit ●, Synthesis ●, Opening ○, Brainstorm ○`;

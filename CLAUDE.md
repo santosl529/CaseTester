@@ -8,8 +8,9 @@ A voice-based AI mock case interview for undergraduates recruiting for managemen
 - Supabase (Postgres + Auth, email + club-code gate); RLS on all candidate-owned tables.
 - drizzle for typed schema + migrations (or Supabase migrations — flag if you switch).
 - Tailwind; minimal mid-case UI (voice is primary, exhibit panel is the only mid-case visual).
-- Live interviewer LLM: Claude Haiku 4.5 (`claude-haiku-4-5-20251001`), behind an `InterviewerModel` interface.
-- Scoring/judge LLM: Claude Opus 4.8 (`claude-opus-4-8`), runs once at case end.
+- Live interviewer LLM: Claude Opus 4.8 (`claude-opus-4-8`), behind an `InterviewerModel` interface. (Switched from Haiku 4.5 July 2026 after pilot runs showed missed live math errors; revisit for the M2 voice latency budget — Opus turns are slower and pricier.)
+- Scoring LLM: Claude Opus 4.8 (`claude-opus-4-8`), runs at case end — judge pass, then a claim-verifier pass; plus deterministic evidence-quote and math audits in code.
+- The scoring rubric is the 8-dimension consolidated rubric (`docs/Case Interview Feedback Rubric.pdf`), encoded generically in `lib/scoring/rubric.ts`; interviewer behavior rules live in `docs/interviewer-behavior.md`, case-authoring rules in `docs/case-authoring.md`.
 - Voice (M2, spike-pending, all behind interfaces): LiveKit Agents (transport/VAD/barge-in) + Deepgram STT + Cartesia TTS.
 
 ## The non-negotiable architectural rule

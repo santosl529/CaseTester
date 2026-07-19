@@ -3,55 +3,55 @@
   "title": "Brew & Bean Profitability",
   "firmStyle": "mckinsey",
   "difficulty": "medium",
-  "prompt": "Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 12% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?",
+  "prompt": "Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?",
   "interviewerNotes": "Push candidate to disaggregate revenue vs. cost drivers first. If candidate jumps to solutions, redirect to diagnosis. Key insight: the margin decline is entirely driven by COGS inflation (coffee beans +40%) combined with the company's inability to pass cost increases to customers. If candidate gets close, probe whether price elasticity was tested.",
   "dataLedger": [
     {
       "id": "revenue_total",
       "label": "Total annual revenue",
-      "value": "$480M",
+      "value": "Total revenue is $480M a year.",
       "releaseWhen": "CLARIFY"
     },
     {
       "id": "stores_count",
       "label": "Number of stores",
-      "value": "200 stores",
+      "value": "200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed.",
       "releaseWhen": "CLARIFY"
     },
     {
       "id": "revenue_per_store",
       "label": "Average revenue per store",
-      "value": "$2.4M per store per year",
+      "value": "Average revenue per store is $2.4M a year.",
       "releaseWhen": "ANALYSIS"
     },
     {
       "id": "cogs_pct",
       "label": "COGS as % of revenue (current)",
-      "value": "58% of revenue (up from 42% two years ago)",
+      "value": "COGS is 58% of revenue today, up from 42% two years ago.",
       "releaseWhen": "ANALYSIS"
     },
     {
       "id": "labor_pct",
       "label": "Labor as % of revenue",
-      "value": "22% of revenue (stable)",
+      "value": "Labor is 22% of revenue, and it’s been stable.",
       "releaseWhen": "ANALYSIS"
     },
     {
       "id": "overhead_pct",
       "label": "Overhead / rent as % of revenue",
-      "value": "14% of revenue (slight increase from 12%)",
+      "value": "Overhead is 14% of revenue, up slightly from 12%.",
       "releaseWhen": "ANALYSIS"
     },
     {
       "id": "bean_price_change",
       "label": "Coffee bean price change over 2 years",
-      "value": "+40% increase in raw coffee bean costs",
+      "value": "Raw coffee bean costs are up 40% over the past two years.",
       "releaseWhen": "EXHIBIT"
     },
     {
       "id": "avg_ticket",
       "label": "Average transaction value",
-      "value": "$6.80 (up from $6.20 two years ago, +10%)",
+      "value": "The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase.",
       "releaseWhen": "ANALYSIS"
     }
   ],
@@ -64,15 +64,16 @@
     },
     {
       "id": "profit_margin_prior",
-      "description": "Prior profit margin = 100% - 42% - 22% - 12% = 24%? No: prior was 12%. Check: 100-42-22-12=24, but prompt says 12%. Flag: 'other' costs ~12% not shown.",
-      "answer": 12,
+      "description": "Prior profit margin = 100% - COGS% - Labor% - Overhead% = 100 - 42 - 22 - 12 = 24",
+      "answer": 24,
       "tolerance": 0.5
     },
     {
       "id": "cogs_dollar_impact",
-      "description": "COGS increase in dollar terms: 16pp margin hit × $480M revenue = $76.8M additional cost",
+      "description": "Margin impact of the COGS increase = 16pp × current revenue $480M = $76.8M. This measures the margin compression valued at today's revenue. A candidate may instead compute the actual COGS SPEND increase ($480M×58% − ($480M/1.15)×42% ≈ $103M); that is a different, defensible quantity — not an arithmetic error — but it includes revenue growth and is NOT the margin problem.",
       "answer": 76.8,
-      "tolerance": 2
+      "tolerance": 2,
+      "altAnswers": [103.1]
     },
     {
       "id": "revenue_per_store_check",
@@ -87,13 +88,43 @@
       "title": "Brew & Bean Cost Structure Over Time",
       "chartType": "bar",
       "data": [
-        { "year": "2 years ago", "COGS": 42, "Labor": 22, "Overhead": 12, "Profit": 24 },
-        { "year": "Last year",   "COGS": 50, "Labor": 22, "Overhead": 13, "Profit": 15 },
-        { "year": "Current",     "COGS": 58, "Labor": 22, "Overhead": 14, "Profit": 6  }
+        {
+          "year": "2 years ago",
+          "COGS": 42,
+          "Labor": 22,
+          "Overhead": 12,
+          "Profit": 24
+        },
+        {
+          "year": "Last year",
+          "COGS": 50,
+          "Labor": 22,
+          "Overhead": 13,
+          "Profit": 15
+        },
+        {
+          "year": "Current",
+          "COGS": 58,
+          "Labor": 22,
+          "Overhead": 14,
+          "Profit": 6
+        }
       ],
       "interpretationKey": "COGS is the sole driver of margin compression. Labor and overhead are essentially flat. A strong candidate names COGS specifically and asks what's inside it — the answer is coffee bean prices (+40%). Weak candidates say 'costs went up' without specifying."
     }
   ],
+  "pacing": {
+    "phaseBudgetsMs": {
+      "INTRO": 10000,
+      "CLARIFY": 30000,
+      "STRUCTURE": 50000,
+      "ANALYSIS": 80000,
+      "EXHIBIT": 30000,
+      "BRAINSTORM": 40000,
+      "RECOMMENDATION": 50000,
+      "WRAP": 10000
+    }
+  },
   "structureKey": "Strong structure disaggregates profit = revenue − costs, then breaks revenue into volume × price and costs into COGS / labor / overhead / other. The candidate should hypothesize which bucket is the driver before asking for data. Bonus: asks about competitive context (are peers also seeing this?) and pricing power.",
   "recommendationKey": "Primary recommendation: selectively raise prices by 8–12% on high-margin SKUs (specialty drinks) where demand is less elastic, while negotiating multi-year bean supply contracts to lock in cost. Secondary: pilot a lower-cost 'commodity blend' for budget-conscious locations. Do not recommend blanket cost cuts — labor and overhead are already lean.",
   "rubricAnchors": {
@@ -104,7 +135,7 @@
     },
     "quantitative": {
       "needs_work": "Cannot calculate margins or makes arithmetic errors. Does not quantify the impact of COGS increase.",
-      "meets_bar": "Correctly calculates current vs. prior margin (12% → 6%) and identifies the 16pp COGS increase as the driver.",
+      "meets_bar": "Correctly calculates current vs. prior margin (24% → 6%) and identifies the 16pp COGS increase as the driver.",
       "strong": "Calculates dollar impact of COGS increase (~$77M), cross-checks revenue per store, and synthesizes math into a clear recommendation sizing."
     },
     "judgment": {

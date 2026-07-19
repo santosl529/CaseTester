@@ -14,12 +14,24 @@ describe('state machine', () => {
     expect(LEGAL_ACTIONS['SCORING']).toEqual([]);
   });
 
-  it('show_exhibit is illegal in CLARIFY', () => {
-    expect(LEGAL_ACTIONS['CLARIFY']).not.toContain('show_exhibit');
+  it('reveal_data and show_exhibit are legal in every active phase', () => {
+    for (const phase of PHASES) {
+      if (phase === 'SCORING') continue;
+      expect(LEGAL_ACTIONS[phase]).toContain('show_exhibit');
+      expect(LEGAL_ACTIONS[phase]).toContain('reveal_data');
+    }
   });
 
-  it('show_exhibit is legal in ANALYSIS', () => {
-    expect(LEGAL_ACTIONS['ANALYSIS']).toContain('show_exhibit');
+  it('end_case is legal in every active phase (time can run out anywhere)', () => {
+    for (const phase of PHASES) {
+      if (phase === 'SCORING') continue;
+      expect(LEGAL_ACTIONS[phase]).toContain('end_case');
+    }
+  });
+
+  it('advance_phase is illegal in WRAP and SCORING', () => {
+    expect(LEGAL_ACTIONS['WRAP']).not.toContain('advance_phase');
+    expect(LEGAL_ACTIONS['SCORING']).not.toContain('advance_phase');
   });
 
   it('PHASES has 9 entries', () => {

@@ -14,7 +14,15 @@ describe('case loader', () => {
     expect(c.mathSteps.length).toBeGreaterThan(0);
     expect(c.structureKey).toBeTruthy();
     expect(c.recommendationKey).toBeTruthy();
-    expect(c.rubricAnchors.structure.needs_work).toBeTruthy();
+  });
+
+  it('accepts cases with or without legacy rubricAnchors', () => {
+    // rubricAnchors is deprecated (judge uses the generic rubric in lib/scoring/rubric.ts)
+    // but still tolerated in case files
+    const c = getCaseById('prof-001');
+    if (c.rubricAnchors) {
+      expect(c.rubricAnchors.structure.needs_work).toBeTruthy();
+    }
   });
 
   it('throws on unknown case id', () => {
