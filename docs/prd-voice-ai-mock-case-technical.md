@@ -6,6 +6,11 @@
 
 > Read this alongside the product PRD. Where the product PRD states a requirement (FR-N), this doc says how to build it. The product PRD wins on intent; this doc wins on implementation detail. If they conflict, flag it — don't silently pick one.
 
+> **Companion normative docs** (added as the build matured; this PRD points to them rather than duplicating):
+> - `docs/interviewer-behavior.md` — the authored interviewer conduct spec (Rules 1–19, incl. the conduct/wellbeing track). Governs §5.4.
+> - `docs/scoring-qa.md` — judge, report-verification pipeline, and scoring-attribution requirements (implemented/pending marked). Governs §6.
+> - `docs/case-authoring.md` — case-content authoring + the ledger-consistency QA gate. Governs §10.
+
 ---
 
 ## 0. The one decision that shapes the whole build
@@ -27,7 +32,7 @@ This is the single most important constraint in the document. It de-risks the ex
 | DB + Auth | **Supabase** (Postgres + Supabase Auth) | Email + **club code** gating. RLS on all candidate-owned tables. |
 | ORM / DB access | Supabase client; **`drizzle`** for typed schema + migrations (agent's choice if it prefers Supabase migrations directly — flag the decision). |
 | Styling | Tailwind + a component lib of the agent's choice (shadcn/ui acceptable). Keep mid-case UI minimal (§10 product PRD). |
-| Live interviewer LLM | **Claude Haiku 4.5** (`claude-haiku-4-5-20251001`) | Latency-critical; behavior constrained by orchestrator. Swappable behind `InterviewerModel` interface. |
+| Live interviewer LLM | **Claude Opus 4.8** (`claude-opus-4-8`) | Switched from Haiku 4.5 (July 2026): pilot runs showed Haiku missing candidate math errors live (nested-percentage confusion). Swappable behind `InterviewerModel` interface. Revisit for M2 voice latency — Opus turns are slower/pricier. |
 | Scoring/judge LLM | **Claude Opus 4.8** (`claude-opus-4-8`) | Runs once at case end; latency-insensitive; this is the product. |
 | STT | **Deepgram** (streaming) | Spike-pending (M0). Behind `STTProvider` interface. |
 | TTS | **Cartesia** (Sonic, sentence-chunked) | Spike-pending (M0). Behind `TTSProvider` interface. |
@@ -58,7 +63,7 @@ This is the single most important constraint in the document. It de-risks the ex
                                                                 ▼
                                                        ┌──────────────────┐
                                                        │ Interviewer LLM  │
-                                                       │  (Haiku 4.5,     │
+                                                       │  (Opus 4.8,      │
                                                        │   tool-calling)  │
                                                        └──────────────────┘
 
@@ -88,11 +93,11 @@ This is the single most important constraint in the document. It de-risks the ex
   /agent
     interviewer.ts        per-turn prompt assembly + tool-call handling
     prompts/              system prompt, anti-hallucination, anti-jailbreak
-    models/               InterviewerModel interface + Haiku impl
+    models/               InterviewerModel interface + Anthropic impl (Opus 4.8)
   /scoring
     judge.ts              Opus rubric evaluation over full transcript
     deterministic.ts      math-tolerance checks, data-leak audit (NOT the LLM)
-    report.ts             assembles the 5-dimension report + model answer
+    report.ts             assembles the 8-dimension report + model answer
   /voice                  (M2 only) STTProvider, TTSProvider, LiveKit glue
   /cases                  case JSON loader + schema validation (zod)
 /cases                    human-authored case content (JSON, version-controlled)
@@ -119,9 +124,19 @@ cases                  -- human-authored, version-controlled in /cases, synced t
 sessions
   id (uuid), user_id (fk), case_id (fk),
   phase (enum), elapsed_ms, phase_started_at,
-  status (active|completed|abandoned), abandon_phase,
+  status (active|completed|abandoned|terminated), abandon_phase,
   started_at, completed_at,
-  flags_jsonb            -- stalled, ran_long, asked_repeat, off_topic_count
+  coverage_jsonb         -- per-dimension live coverage (0-100 evidence, NOT
+                         --   quality) from the background coverage agent;
+                         --   steers the interviewer + gates early end_case
+  flags_jsonb            -- orchestrator run-state. Booleans: stalled, ran_long,
+                         --   asked_repeat, off_topic_count, advanced_last_turn
+                         --   (gates the no-back-to-back behavior shift),
+                         --   time_warning_fired, load_shed_logged.
+                         -- Sub-objects: stall{} (stall-ladder state, Rule 13),
+                         --   conduct{ warnings, distress_offered, category } (Rule 17).
+                         -- (pushback_done is vestigial — the "push back once"
+                         --   nag was removed; general rigor rules cover it.)
 
 session_turns
   id, session_id (fk), turn_index, role (interviewer|candidate),
@@ -135,12 +150,26 @@ revealed_data
 exhibits_shown
   id, session_id (fk), exhibit_id, shown_at_ms
 
+session_events         -- typed log; two categories share one table
+  id, session_id (fk), category (intervention|conduct), subtype,
+  turn_index, phase, payload_jsonb, created_at
+  -- 'intervention': stall-ladder assists (restate_anchor|narrow_frame|
+  --    directive_rescue), synthesis_unresolved, load_shed — SCORING inputs
+  --    ("assisted ≠ covered" and time-pressure coverage caveats).
+  -- 'conduct': C1–C5 conduct events (Rule 17) — internal only, NEVER
+  --    surfaced to client/report (Rule 18, FERPA). Filter by category;
+  --    the report/score paths query 'intervention' only.
+
 scores
   id, session_id (fk),
-  structure (enum: needs_work|meets_bar|strong), structure_evidence_jsonb,
-  quantitative ..., judgment ..., communication ..., synthesis ...,
-  overall_rating, top_fix (text),
-  deterministic_jsonb    -- math pass/fail, data-leak audit result
+  -- 8 rubric dimensions, each: <dim>_rating (enum) + <dim>_evidence_jsonb (legacy):
+  --   structure, quantitative, data_exhibit, judgment, creativity,
+  --   synthesis, communication, pushback
+  overall_rating (enum), top_fix (text),
+  rubric_jsonb           -- full structured judge output (per-dimension
+                         --   wentWell/needsWork/missedOpportunities + coverageCaveat);
+                         --   the *_evidence columns are legacy (pre-8-dim rows)
+  deterministic_jsonb    -- math step results (per-step errorClass) + data-leak audit
   model_answer_jsonb     -- structure / key math / recommendation exemplars
   scoring_runtime_ms, judge_model, created_at
 
@@ -152,7 +181,9 @@ analytics_events       -- append-only; feeds §13 metrics
   event_type, payload_jsonb, created_at
 ```
 
-**Enums:** `phase` = `INTRO|CLARIFY|STRUCTURE|ANALYSIS|EXHIBIT|BRAINSTORM|RECOMMENDATION|WRAP|SCORING`. `rating` = `needs_work|meets_bar|strong`.
+**Enums:** `phase` = `INTRO|CLARIFY|STRUCTURE|ANALYSIS|EXHIBIT|BRAINSTORM|RECOMMENDATION|WRAP|SCORING`. `session_status` = `active|completed|abandoned|terminated`. `rating` = `needs_work|meets_bar|strong` (displayed as needs work / adequate / strong).
+
+**Terminated / abandoned scoring (Rule 18/19):** a `terminated` session (conduct C2-repeat / C3) produces **no score, no report**; a C5-`abandoned` session is excluded from scoring. The score route only proceeds for `status = completed`, so both are safe by construction.
 
 `content_jsonb` holds the full case schema (§11 of product PRD). It is **loaded server-side only**; the client receives the read-aloud prompt and exhibits-as-shown, never the ledger answers or keys.
 
@@ -167,15 +198,18 @@ This is where FR-4 ("zero hallucinated figures") is won or lost. **The acceptanc
 1. The interviewer LLM **never receives un-revealed numeric values in its prompt.** The per-turn prompt includes: case prompt, current phase, conversation history, the *labels* of ledger items (so it knows what data exists and can decide whether the candidate's request warrants revealing it), and the values of items **already in `revealed_data`** — nothing more.
 2. To disclose a number, the LLM must emit a `reveal_data(item_id)` tool call. The orchestrator validates the item exists and its `release_when` condition is satisfied, marks it revealed, and only *then* feeds the value back so the interviewer can speak it.
 3. The system prompt forbids stating any number not provided in context. But the prompt is the soft layer — the hard layer is that **the model literally does not have the un-revealed values**, so it can't leak what it never saw.
-4. **Post-turn audit (deterministic, not LLM):** after every interviewer turn, scan the spoken text for numeric tokens and verify each appears in `revealed_data` or is trivially derivable from already-revealed values (the candidate's own math read back is fine). Any unexplained number → flag, log, and in QA mode fail the run. This audit is also what proves the "zero hallucinated data" metric.
+4. **Post-turn audit (deterministic, not LLM):** after every interviewer turn, scan the spoken text for numeric tokens and verify each appears in `revealed_data` or is derivable from already-revealed / candidate / orchestrator-derived values. Any unexplained number → flag, log, and in QA mode fail the run. This audit proves the "zero hallucinated data" metric. It is the base of a wider post-turn suite (see §5.4): the tiered numeric-provenance audit (word-number aware), the style/length audit, and the meta-leak strip all run here too.
 
 ### 5.2 State machine
 
 `INTRO → CLARIFY → STRUCTURE → ANALYSIS → EXHIBIT → BRAINSTORM → RECOMMENDATION → WRAP → SCORING`
 
-- Transitions fire on **candidate completion signals** (LLM judges the candidate has finished a phase via an `advance_phase()` tool call) **or** soft time limits (FR-2/FR-3). Not a fixed timer alone.
-- The orchestrator gates which actions are legal per phase (FR-1): e.g. `show_exhibit` is illegal before `ANALYSIS`/`EXHIBIT` unless flow warrants it. Illegal actions are rejected and the turn is re-prompted.
-- Phase time soft-management: if `phase_time` exceeds the phase budget, inject a nudge instruction into the next prompt ("move the candidate toward a recommendation").
+- Transitions fire when the LLM emits `advance_phase()`. The advance is **always booked** (state accuracy over pacing, Rule 8); a separate `advanced_last_turn` flag gates the interviewer's *visible* behavior shift so there's no back-to-back "let's move on." **INTRO auto-advances** to CLARIFY after the opening exchange if the model doesn't — a live run got stuck in INTRO the whole case.
+- **Legality per phase** (`LEGAL_ACTIONS`): `speak`/`reveal_data`/`show_exhibit`/`advance_phase`/`end_case` are legal in every active phase (a real interviewer hands over data/exhibits when asked, and time can run out anywhere). `advance_phase` is not legal in WRAP; nothing is legal in SCORING. Illegal actions are filtered, not re-prompted.
+- **Single wall clock, per-phase budgets.** There is one total case budget (5 min); phases carry per-phase budgets from case config (`pacing.phaseBudgetsMs`, uniform fallback). A pacing nudge injects "advance now if the exit criterion is met" when a phase exceeds its budget or the session falls ≥2 phases behind.
+- **Load-shedding (Rule 15):** in the final stretch (keyed to *total* remaining time — robust to the phase machine under-advancing), the prompt carries a directive to stop optional probing and protect the recommendation; entry is logged (`load_shed`) so the judge attributes thin late coverage to time, not the candidate.
+- **Deterministic close/time-warning (Rule 12):** an orchestrator-emitted recommendation-ask fires at T−30s (suppressed if the model already asked), and a close line is guaranteed if the case ends with nothing spoken.
+- **Coverage-gated ending:** a background coverage agent (Haiku, run via `after()`) scores each dimension 0–100 on *evidence sufficiency* every turn; `end_case` is suppressed until every dimension is sufficiently tested (or time is up), and the interviewer is steered toward the undertested ones. Keeps the interviewer from wrapping early and leaving weak areas unprobed. Normative detail in `docs/scoring-qa.md`.
 
 ### 5.3 Interviewer actions (tool calls)
 
@@ -184,10 +218,18 @@ Every turn returns one or more actions. The orchestrator executes them in order,
 
 ### 5.4 Behavioral requirements (system prompt + orchestrator)
 
-- Withhold data until asked; never volunteer the framework or solve the case (FR-5).
-- Stay in character, professional-neutral, **push back at least once** per case (FR-6) — orchestrator tracks a `pushback_done` flag and injects the instruction if it hasn't happened by RECOMMENDATION.
-- Handle "repeat that," "give me a moment," clarifiers gracefully (FR-7).
-- Resist jailbreak / answer-key extraction (FR-8) — and note: even a successful jailbreak can't surface un-revealed numbers, because they aren't in context (§5.1). Defense in depth.
+**Normative source: `docs/interviewer-behavior.md`** (the authored conduct spec, Rules 1–19 across core conduct, data delivery, struggling-candidate handling, and a conduct/wellbeing track). The prompt encodes the rules; **deterministic backstops** in the orchestrator enforce what a prompt can't reliably guarantee. This section summarizes; the doc governs.
+
+Core prompt constraints: neutral affect / never grade mid-case (1); force structure + live math (2); no fabricated candidate claims (3); one candidate task per turn, Socratic not coaching (4); 1–3 sentence spoken turns, no markdown (5); never adopt candidate-derived figures as fact, or state the correct figure on a misquote (6); pressure-test the opening structure (7); reveal data the candidate has earned and asked for, and say "I don't have that" rather than deflect (10/11). Withhold-until-asked and jailbreak-resistance (FR-5/FR-8) still hold — and a jailbreak still can't surface un-revealed numbers (§5.1).
+
+Deterministic backstops (all in `/lib/orchestrator`, logged; QA-gated in the harness):
+- **Numeric provenance audit** — every quantity in an interviewer turn must trace to revealed ledger values, a candidate-attributed figure, or an orchestrator-derived value; word-numbers and ranges normalized; unit-bearing unmatched quantities block, bare counts log.
+- **Recompute + unit-check** — per-turn, deterministically recompute figures the candidate states against the case `math_steps` (respecting `alt_answers`) and detect nested-percentage conversions, injecting a hint so the interviewer probes/corrects.
+- **Style + meta-leak** — 1–3 sentence / no-markdown length audit (data read-outs exempt), and a strip of internal planning that leaks into spoken text ("the candidate has…", "let me pressure…").
+- **Stall ladder (Rule 13)** — graduated restate → narrow → directive-rescue for struggling candidates; logged as `intervention` events ("assisted ≠ covered").
+- **Malformed-tool-call recovery** — tolerant id resolution for `reveal_data`/`show_exhibit` (the model sometimes passes the id as the key or a fuzzy name), plus a validate-and-retry loop that feeds an `is_error` tool result back to the model (bounded by `maxToolCorrections`) when a tool call's id doesn't resolve. A promised-but-undelivered **exhibit** is recovered (`promisesExhibit`, same-sentence exhibit+delivery-verb match, skipped on the closing turn). The equivalent recovery for `reveal_data` is now built (`promisesReveal`/`resolveItemFromText` in `lib/orchestrator/data-ledger.ts`): unlike the exhibit case, there's no safe "only one candidate" fallback (guessing the wrong ledger item would itself be a data leak), so recovery only resolves to a ledger item whose *label* is actually named in the spoken text — a closed-catalog match, same guarantee as tool-call id resolution — and if nothing matches (the candidate asked for a cut that isn't in the case, e.g. the "vintage split" pilot bug), it injects an explicit Rule-11 refusal script (`REVEAL_REFUSAL_SCRIPTS`) rather than leaving the promise dangling or letting the model silently substitute unrelated data.
+
+**Conduct & wellbeing track (Rule 17–19, Part IV of the behavior doc).** A separate track that intercepts *before* case rules: C1 self-directed frustration (ignore), C2 directed hostility (warn then terminate), C3 harassment/slurs/threats (terminate immediately), C4 prompt injection (redirect + log, never terminate), C5 distress (break persona, offer pause/stop, never terminate). Deterministic classifier today; the doc's model-tiebreaker and full pause/resume are pending. Termination/abandonment → no score (see §4). The lexicons were adversarially hardened (July 2026) against a probe corpus now locked into `tests/orchestrator/conduct.test.ts`: the pre-hardening lexicon scored 14/23 false positives (including a C3 *terminate* on "I'll find you the exact number" and C2 warns on client-directed case speech like "your margins are terrible") and 13/30 misses (including "Ignore all previous instructions"); the rebuilt patterns require both a meddling/probing shape AND a model-operation object, and score 0/0 on the corpus. **Still pending:** the model-judgment tiebreaker, and human review of the lexicons against real pilot-population data — the probe corpus is authored, not observed, so it cannot stand in for what actual candidates say.
 
 ---
 
@@ -196,11 +238,14 @@ Every turn returns one or more actions. The orchestrator executes them in order,
 Heavy work at the end protects live latency (FR-11). Pipeline:
 
 1. **Deterministic checks first** (`/lib/scoring/deterministic.ts`, no LLM):
-   - For each `math_step` with a ground-truth `answer`, check the candidate's stated result against `answer` within `tolerance` (FR-14). Pass/fail is computed, never judged by the LLM.
-   - Run the data-leak audit over the full interviewer transcript (the §5.1 audit, aggregated) → contributes to the QA metric.
-2. **LLM judge** (`judge.ts`, Opus 4.8): evaluates the full transcript against the **5-dimension rubric** + case **answer key** + **calibration few-shots**. Returns, per dimension: rating (`needs_work|meets_bar|strong`), 1–2 **evidence quotes pulled from the candidate's own transcript** (FR-12), and improvement guidance.
-3. **Report assembly** (`report.ts`):
-   - Per-dimension rating + evidence + guidance.
+   - For each `math_step`, check the candidate's stated result against `answer` (or any `alt_answers`) within `tolerance` (FR-14), classifying each as `non_issue|minor|case_breaking|unmentioned`. `alt_answers` credits genuinely ambiguous quantities (e.g. margin-impact vs actual-spend COGS increase) so a defensible-but-different computation isn't mislabeled an arithmetic error.
+   - Run the data-leak audit over the full transcript (§5.1) → QA metric.
+2. **LLM judge** (`judge.ts`, Opus 4.8): evaluates the full transcript against the **8-dimension consolidated rubric** (`docs/Case Interview Feedback Rubric.pdf`, encoded in `lib/scoring/rubric.ts`) + case **answer key**. Returns, per dimension: rating (`needs_work|meets_bar|strong`, displayed as needs work/adequate/strong), **what went well** and **what needs work** (each point with verbatim candidate quotes, FR-12), **missed opportunities**, and a **coverage caveat**. The judge prompt is fed deterministic context so it doesn't re-derive or misjudge: the **math-check results** (trust these over re-derivation; wrong math can't appear in "went well"), the **data actually revealed vs never revealed** (don't penalize conclusions that needed withheld data — Rule 11 coherence), and the **intervention log** ("assisted ≠ covered" for stall rescues; time-pressure coverage for load-shed). It is also told to distinguish an arithmetic error from a wrong-*quantity* conceptual error. Normative scoring spec: `docs/scoring-qa.md`.
+3. **Report verification** — a report that misstates the transcript is the worst feedback failure:
+   - Deterministic evidence audit (`evidence-audit.ts`): every judge quote must appear in candidate turns (normalized, ellipsis-fragment-aware); fabricated quotes are stripped.
+   - Claim-verifier pass (`verifier.ts`, Opus 4.8): re-checks every `needsWork`/`missedOpportunities`/`topFix` claim against the transcript and drops what it contradicts (catches false omission claims, which contain no quote to check). Fails open — a broken verifier response ships the unverified report rather than blocking scoring.
+4. **Report assembly** (`report.ts`):
+   - Per-dimension rating + structured feedback sections.
    - **Model answer** for structure, key math, recommendation (FR-13) — sourced from the case keys so it's verifiable, not invented.
    - Deterministic math results layered in (overrides any LLM claim where ground truth exists).
    - Overall rating + **single highest-leverage next fix** (FR-15).
@@ -217,16 +262,15 @@ All mutations via **server actions** or route handlers; case keys and ledger val
 
 | Endpoint / action | Purpose |
 |---|---|
-| `createSession(caseId)` | New session; returns session id + read-aloud prompt. Auth + club-code gated. |
-| `channel` (WS/route) | Bidirectional candidate ↔ orchestrator. Text for M1; voice (LiveKit token + room) for M2. |
-| `advanceSession` (internal) | Orchestrator-driven; not client-callable directly. |
-| `endSession(sessionId)` | Triggers scoring; returns when report is ready (or polls). |
-| `getReport(sessionId)` | Returns the assembled report (no raw keys). |
-| `getTranscript(sessionId)` | Timestamped transcript + revealed-data trail + exhibits shown. |
+| `POST /api/session` | New session; opening message is the **verbatim case prompt** (deterministic — the candidate must see the exact scenario/numbers; not a model turn) + a rotating invitation. Auth + club-code gated. |
+| `POST /api/channel/[id]/turn` | One candidate turn → orchestrator → interviewer turn. Returns immediately on the final turn (scoring is separate) with `scoring_suppressed` on conduct-terminated/abandoned sessions. |
+| `POST /api/channel/[id]/score` | Runs scoring for a completed session (idempotent; guarded to `status = completed`). Split out so the client can show an "evaluating" state and so a failed pass is retryable. |
+| `GET /api/report/[id]/pdf` | Streams the report as a PDF (server-rendered; ownership-checked). |
+| `case/[id]/report` (page) | Renders the assembled report (no raw keys); persistent case-prompt banner on the live page. |
 | `logEvent(...)` | Append analytics events (§13). |
 
 **Security non-negotiables:**
-- `data_ledger` values, `*_key` fields, `math_steps.answer`, and `rubric_anchors` are **server-only**. The client never receives them, even gzipped in a bundle.
+- `data_ledger` values, `*_key` fields, and `math_steps.answer` are **server-only**. The client never receives them, even gzipped in a bundle. (Legacy per-case `rubric_anchors`, where still present, are likewise server-only; the live rubric is the generic 8-dimension one in `lib/scoring/rubric.ts`.)
 - RLS enforces per-user session access.
 - Exhibits are sent to the client only when `show_exhibit` fires, and only the displayable chart data (not the `interpretation_key`).
 
@@ -254,7 +298,7 @@ Barge-in: candidate interrupting stops playback and starts listening (FR-17). Tu
 ## 9. Non-functional
 
 - **Latency:** §8.2 hard gate. Instrument per-turn latency from day one of M2.
-- **Cost:** instrument `$/completed case` (STT + LLM + TTS minutes + scoring) from the first session. Internal ceiling + per-user case cap during validation. Haiku for turns / Opus once at end is the cost-control lever.
+- **Cost:** instrument `$/completed case` (STT + LLM + TTS minutes + scoring) from the first session. Internal ceiling + per-user case cap during validation. Turns and scoring both run Opus 4.8 (quality choice after pilot misses; two scoring passes — judge + verifier), so the cost lever is now the per-user case cap; if `$/completed case` breaches the ceiling, dropping the turn model back to a smaller one is the first candidate.
 - **Reliability:** graceful degradation — if voice fails mid-case, fall back to the M1 text channel so the session survives (this is nearly free because text is the base layer).
 - **Privacy:** explicit consent for audio storage; don't store audio by default (`session_audio` empty unless consented).
 - **Browser:** latest Chrome/Edge/Safari desktop; mic-permission flow.
@@ -266,7 +310,7 @@ Barge-in: candidate interrupting stops playback and starts listening (FR-17). Tu
 
 Cases are **human-authored JSON** in `/cases`, version-controlled, validated against a **zod schema** on load (reject malformed cases at boot, not mid-session). Schema per product PRD §11. 8–12 cases across profitability, market entry, M&A, market sizing, ops/cost.
 
-**FR-20:** no case ships without an answer key + rubric anchors; ex-MBB author + second reviewer. Enforce: the loader fails any case missing `structure_key`, `data_ledger`, `math_steps[].answer`, `recommendation_key`, or `rubric_anchors`.
+**FR-20:** no case ships without an answer key; ex-MBB author + second reviewer. Enforce: the loader fails any case missing `structure_key`, `data_ledger`, `math_steps[].answer`, or `recommendation_key`. Rubric anchors are generic (the 8-dimension rubric in `lib/scoring/rubric.ts`); per-case `rubric_anchors` are deprecated/optional. Additionally, every case needs a ledger-consistency block in `tests/cases/consistency.test.ts` (prompt ↔ ledger ↔ exhibits ↔ math steps reconcile). Authoring rules — including speakable ledger values, per-phase `pacing` budgets, and `alt_answers` for legitimately ambiguous math steps — live in **`docs/case-authoring.md`**.
 
 ---
 
@@ -290,7 +334,7 @@ The coding agent must not pull these in. Scope creep is the default failure mode
 
 1. **Schema + auth foundation.** Supabase project (new keys), Auth + club-code gate, drizzle schema, RLS, case loader + zod validation. One seed case.
 2. **Orchestrator + data ledger (text, no LLM yet).** State machine, phase gating, `reveal_data` mechanism, the deterministic post-turn data-leak audit. Drive it with scripted candidate input in tests.
-3. **Interviewer agent (text, Haiku).** Tool-calling turn loop, system/anti-hallucination/anti-jailbreak prompts, pushback flag. **Gate: run the 50-case-style hallucination harness on the seed case → zero invented numbers.**
+3. **Interviewer agent (text, Opus 4.8).** Tool-calling turn loop, system/anti-hallucination/anti-jailbreak prompts, pushback flag. **Gate: run the 50-case-style hallucination harness on the seed case → zero invented numbers.**
 4. **Scoring engine (Opus + deterministic).** Judge, math checks, report assembly with model answer. **Gate: feedback beats ChatGPT in a blind test on the same answer (product PRD M1 gate).**
 5. **Text case UI + report UI.** Full end-to-end text case in the browser. Transcript view. This is a *complete, usable product* minus voice.
 6. **Content: author 8–12 cases.** Each with keys + reviewer sign-off. Re-run the hallucination harness across all cases → **0 incidents (DoD #2).**
@@ -313,8 +357,8 @@ Log: `case_start`, `mic_check_result`, per-turn latency, phase transitions, data
 
 1. End-to-end interviewer-led **voice** case, median turn latency ≤1.5s (p95 ≤2.5s).
 2. **Zero** numbers stated outside the data ledger across a 50-case QA run (deterministic audit proves it).
-3. Interviewer withholds data until asked, pushes back ≥once, holds character against jailbreak.
-4. Report shows all 5 rubric dimensions (rating + transcript-sourced evidence + model answer); deterministic math checked programmatically.
+3. Interviewer withholds data until asked, challenges unevidenced assertions, holds character against jailbreak, and follows the conduct/wellbeing track (`docs/interviewer-behavior.md` Rules 17–19) on abusive/distressed input.
+4. Report shows all 8 rubric dimensions (rating + went-well/needs-work with transcript-sourced quotes + missed opportunities + coverage caveats + model answer); deterministic math checked programmatically; report claims verified against the transcript (quote audit + verifier pass).
 5. ≥65% blind preference for our feedback vs ChatGPT on the same answer.
 6. Text-fallback works on voice failure; state persists across a network drop.
 7. All §13 events flowing to analytics.
