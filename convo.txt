@@ -1,0 +1,127 @@
+Interview Feedback
+strong
+Top improvement
+Convert your qualitative diagnosis into hard dollar math: size the ~$77M COGS impact (200 stores × $2.4M × 16pp) and derive the required price increase from that figure rather than asserting a 15-20% range. Quantified sizing would elevate your quantitative dimension to match the strong reasoning shown everywhere else.
+Structure
+strong
+“Since revenue is increasing, the margin compression suggests that costs are out-pacing that growth. I suspect two primary drivers: 1. Systemic Cost Issues... 2. Portfolio Mix & Expansion”
+“I'd like to see the current COGS percentage broken down by store 'vintage'—specifically comparing stores that have been open for more than 3 years (mature) versus those opened in the last 24 months.”
+Quantitative
+meets bar
+“COGS has surged from 42% to 58% in just two years. This 16-percentage-point increase is almost entirely responsible for the profit margin drop from 24% to 6%.”
+“A 40% jump in our primary raw material ($1.4x$) almost perfectly explains why our total COGS scaled from 42% to 58% (a ~$1.38x$ increase).”
+Judgment
+strong
+“Test the price increase in high-income/high-loyalty 'Mature' stores first to measure elasticity before a full portfolio rollout.”
+“Transition from spot-market purchasing to long-term futures contracts for coffee beans to lock in prices and prevent future margin volatility.”
+Communication
+strong
+“That 40% increase in raw coffee bean costs is the 'aha' moment.”
+“That's a fair challenge and a more disciplined diagnostic step. Jumping straight into 'what' is in the COGS bucket might lead us down a rabbit hole if the problem is actually localized.”
+Synthesis
+strong
+“The diagnostic is clear: profitability hasn't eroded due to operational inefficiency or labor issues, but due to a systemic 40% surge in raw bean costs that shifted COGS from 42% to 58% of revenue.”
+“my primary recommendation to the CEO is to implement a strategic, phased price increase of approximately 15-20% across the menu... 2. Supply Chain Hedging... 3. Value Enhancement”
+Model Answer
+Structure
+
+Strong structure disaggregates profit = revenue − costs, then breaks revenue into volume × price and costs into COGS / labor / overhead / other. The candidate should hypothesize which bucket is the driver before asking for data. Bonus: asks about competitive context (are peers also seeing this?) and pricing power.
+
+Recommendation
+
+Primary recommendation: selectively raise prices by 8–12% on high-margin SKUs (specialty drinks) where demand is less elastic, while negotiating multi-year bean supply contracts to lock in cost. Secondary: pilot a lower-cost 'commodity blend' for budget-conscious locations. Do not recommend blanket cost cuts — labor and overhead are already lean.
+
+Transcript
+Interviewer · 0:02
+
+Good morning! I'm excited to work through this case with you. 
+
+You've got a clear business problem: Brew & Bean's profit margin has been cut in half over two years, despite revenue growth. That's a red flag that warrants a systematic diagnosis.
+
+Before we dive into data or frameworks, let me ask you: **What's your intuition about what might be driving this margin compression?** In other words, when you first read the case, what was your instinct—where do you think the problem lies?
+
+You · 1:01
+
+My initial intuition is that we're seeing a significant disconnect between top-line growth and bottom-line profitability. Since revenue is increasing, the margin compression suggests that costs are out-pacing that growth. I suspect two primary drivers:  1. Systemic Cost Issues: We could be facing rising COGS (e.g., coffee bean prices) or labor costs across the board that haven't been offset by pricing adjustments. 2. Portfolio Mix & Expansion: If Brew & Bean is expanding rapidly, the high ramp-up costs and initial inefficiencies of new stores might be diluting the strong margins of mature locations.  I'd like to analyze the cost breakdown and compare store-level performance between vintage and new cohorts to validate this.
+
+Interviewer · 1:04
+
+Excellent thinking. You've identified two distinct hypotheses—cost inflation and expansion inefficiency—and you're already thinking about how to test them separately. That's exactly the right instinct.
+
+Before we pull data, let me probe a bit deeper on your reasoning:
+
+**On the cost inflation angle:** You mentioned COGS and labor specifically. If both were rising uniformly across all stores, would you expect to see the same margin decline at every location, or might some stores insulate themselves better than others? In other words, what would that tell you about whether price increases or operational efficiency could offset the pressure?
+
+**On the expansion angle:** You said new stores have "ramp-up costs and initial inefficiencies." Walk me through that logic—*why* would opening new stores dilute overall margins, even if the mature stores themselves are holding steady? What's the mechanism?
+
+And one more: **Do you have a hunch about which of these two is the bigger culprit?** Or do you think you need to see the numbers first to know where to focus?
+
+You · 1:16
+
+To address your points:  1. **On Cost Insulation:** I wouldn't expect a uniform decline. Stores in high-traffic or high-income areas likely have stronger 'pricing power,' allowing them to pass on COGS increases to customers more easily. Additionally, high-volume stores can better absorb fixed labor costs through economies of scale. If we see varying margin impacts, it would point to differences in operational efficiency or local market competitive dynamics.  2. **On Expansion Mechanism:** This is a classic 'weighted average' problem. New stores typically face a 'ramp-up period' where fixed costs (rent, base staffing) are fully loaded, but customer foot traffic and revenue haven't hit steady-state yet. Even if mature stores are perfectly healthy, a high volume of these 'loss-making' or 'low-margin' new units will dilute the total company portfolio margin until they reach maturity.  3. **My Hunch:** Given the revenue growth, I'm leaning towards expansion dilution being the larger culprit, especially if Brew & Bean has been aggressive in its rollout. However, to confirm, I'd like to look at two things: a cost breakdown (COGS vs. Labor vs. Rent) over the last two years, and a 'Vintage Analysis' comparing store-level margins for mature vs. new locations.
+
+Interviewer · 1:18
+
+Excellent reasoning on all fronts. You've articulated the mechanics clearly, and your two-pronged diagnostic approach is sound.
+
+Let me give you what you're asking for. I'll show you the cost breakdown first.
+
+You · 1:34
+
+The data makes the primary driver very clear: COGS is the 'smoking gun.' While labor has remained remarkably stable at 22% and overhead has only seen a slight uptick, COGS has surged from 42% to 58% in just two years. This 16-percentage-point increase is almost entirely responsible for the profit margin drop from 24% to 6%.  This raises three critical questions for me: 1. **Input Prices vs. Efficiency:** Is this spike driven by external market prices for raw materials (like coffee beans or dairy), or is it an internal issue like increased waste or a shift in product mix toward lower-margin items? 2. **Pricing Lag:** Has Brew & Bean failed to raise prices in line with these rising costs? 3. **The Expansion Link:** Does this COGS increase look the same across all stores? For example, are new stores seeing higher COGS due to supply chain inefficiencies or less experienced staff causing higher waste?  I'd like to look at a breakdown of the COGS components (e.g., raw materials, packaging, waste) and, if possible, see how COGS varies between our mature stores and the recently opened ones.
+
+Interviewer · 1:38
+
+Now *that's* sharp analysis. You've correctly identified COGS as the primary lever and you're asking exactly the right diagnostic questions—separating input costs from operational execution, and checking whether the problem is uniform or concentrated in certain cohorts.
+
+Before I hand over more data, let me challenge you on one thing: You've made a strong inference that COGS spiked, and you're now asking three follow-up questions. But I want to make sure we're not getting ahead of ourselves.
+
+**You said the COGS increase "looks the same across all stores"—but you haven't actually seen that data yet.** Your expansion dilution hypothesis suggested new stores might have *different* cost structures than mature ones. So here's my pushback: 
+
+**Before we drill into COGS components, shouldn't we first confirm whether this 16-percentage-point swing is hitting all stores equally, or whether it's concentrated in certain locations or cohorts?** That answer would actually shape which follow-up data matters most. For instance, if new stores have *normal* COGS but mature stores have spiked, that's a very different story than if all stores are affected uniformly.
+
+Does that make sense? What would you do next?
+
+You · 1:58
+
+That's a fair challenge and a more disciplined diagnostic step. Jumping straight into 'what' is in the COGS bucket might lead us down a rabbit hole if the problem is actually localized.  By segmenting first, we can distinguish between two very different strategic problems: 1. **Systemic Issue:** If COGS has risen uniformly across all stores (e.g., from 42% to 58% everywhere), then we're likely looking at a macro-level procurement failure or a massive lag in our pricing strategy relative to inflation. 2. **Execution/Expansion Issue:** If mature stores still have healthy ~42% COGS, but the new stores are running at 70%+, then the issue is operational—perhaps related to supply chain logistics to new regions, high training-related waste, or poor vendor terms for new sites.  To confirm this, I'd like to see the current COGS percentage broken down by store 'vintage'—specifically comparing stores that have been open for more than 3 years (mature) versus those opened in the last 24 months.
+
+Interviewer · 2:03
+
+Perfect. That's disciplined thinking—segmenting before decomposing. Let me get you that vintage analysis. 58% of revenue (up from 42% two years ago)
+
+You · 3:17
+
+Thank you. To drill down, what are the specific COGS percentages for our mature stores (3+ years) versus the new stores (opened in the last 24 months)? I'm curious to see if the 58% aggregate is a 'blended' average of two very different numbers.
+
+Interviewer · 3:18
+
+That's exactly the right question. Let me pull that data for you. 200 stores $2.4M per store per year +40% increase in raw coffee bean costs
+
+You · 4:10
+
+That 40% increase in raw coffee bean costs is the 'aha' moment. A 40% jump in our primary raw material ($1.4x$) almost perfectly explains why our total COGS scaled from 42% to 58% (a ~$1.38x$ increase).   This suggests that the issue is not an operational failure of new stores, but a systemic macro-economic hit that we haven't yet addressed. We are essentially absorbing the entirety of the commodity price spike, which has crushed our margins from a healthy 24% down to just 6%.  To get Brew & Bean back on track, I want to pivot to our pricing strategy: 1. **Competitive Benchmarking:** How do our current price points compare to key competitors? Have they already raised prices in response to the same bean cost headwinds? 2. **Price Elasticity:** What is the historical sensitivity of our customer base to price changes? 3. **The 'Recovery' Math:** Given our $2.4M average store revenue, what price increase would be required to return to our 24% target margin, assuming volumes hold relatively steady?  I'd like to dive into the pricing data next.
+
+Interviewer · 4:14
+
+Excellent. You've made a clean diagnosis: the bean cost inflation is real and systemic, and you're now pivoting to the lever that can actually fix it—pricing. That's strong case logic.
+
+However—I need to flag the time: **we're at about 4 minutes and 50 seconds of our 5-minute window.** We're in the final stretch.
+
+You've identified the root cause clearly. Before we chase competitive benchmarking or elasticity data, I'd like you to **crystallize your recommendation to the CEO right now.**
+
+Given what you know—that raw coffee bean costs are up 40%, COGS has ballooned to 58%, and the margin has collapsed—**what is your primary recommendation to restore profitability?** And what are the key risks or trade-offs the CEO should consider?
+
+You don't need perfect data to give a sound recommendation. Make your case with what you have.
+
+You · 5:08
+
+To restore Brew & Bean’s profitability from 6% back to its 24% target, my primary recommendation to the CEO is to implement a strategic, phased price increase of approximately 15-20% across the menu.  **Strategic Rationale:** The diagnostic is clear: profitability hasn't eroded due to operational inefficiency or labor issues, but due to a systemic 40% surge in raw bean costs that shifted COGS from 42% to 58% of revenue. In a premium retail model, absorbing such a massive commodity spike is unsustainable. We must pass these costs through to the consumer to protect the health of the business.  **Key Risks & Trade-offs:** 1. **Volume Elasticity:** A 20% hike may drive some customer churn. However, as a premium brand, we likely have higher pricing power than a value-tier competitor. 2. **Brand Perception:** We risk being perceived as 'too expensive.' We must communicate the quality of our beans and the 'experience' to justify the new price point. 3. **Competitive Response:** If major competitors haven't adjusted prices for the same bean headwinds, we could lose market share in the short term.  **Immediate Next Steps:** 1. **Phased Rollout:** Test the price increase in high-income/high-loyalty 'Mature' stores first to measure elasticity before a full portfolio rollout. 2. **Supply Chain Hedging:** Transition from spot-market purchasing to long-term futures contracts for coffee beans to lock in prices and prevent future margin volatility. 3. **Value Enhancement:** Revamp the loyalty program to reward high-frequency customers, softening the blow of the price increase for our most valuable segments.
+
+Interviewer · 5:10
+
+That's a strong, well-reasoned recommendation. You've diagnosed the root cause cleanly, quantified the problem, proposed a realistic solution, and thought through the implementation risks and mitigation tactics. Your phased rollout approach and supply chain hedging are exactly the kind of pragmatic follow-up steps a CEO would want to hear.
+
+We've reached the end of our time—thank you for working through this case with discipline and clarity. You moved from hypothesis to diagnosis to recommendation in a logical sequence, pushed back thoughtfully when challenged, and grounded your thinking in data rather than assumptions. Well done.
+
+Good luck with your interview process.
