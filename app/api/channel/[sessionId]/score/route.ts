@@ -4,6 +4,7 @@ import { runJudge } from '@/lib/scoring/judge';
 import { repairTranscript } from '@/lib/scoring/transcript-artifacts';
 import { auditEvidence } from '@/lib/scoring/evidence-audit';
 import { runClaimVerifier } from '@/lib/scoring/verifier';
+import { runReconciliation } from '@/lib/scoring/reconcile';
 import { checkMathSteps } from '@/lib/scoring/deterministic';
 import { assembleReport } from '@/lib/scoring/report';
 import { summarizeAssists, summarizeCoverage } from '@/lib/scoring/assists';
@@ -131,10 +132,21 @@ export async function POST(
 
   // Second pass: verify claims the quote audit can't (omission claims,
   // mischaracterizations); drop what the transcript contradicts.
-  const { rubric, dropped } = await runClaimVerifier(auditedRubric, transcript, u => logUsage({ ...u }));
+  const { rubric: verifiedRubric, dropped } = await runClaimVerifier(auditedRubric, transcript, u => logUsage({ ...u }));
   if (dropped.length > 0) {
     console.warn('[score] verifier dropped unsupported claims:', JSON.stringify(dropped));
   }
+
+  // Dimension reconciliation LAST (docs/scoring-qa.md §4 — after the verifier,
+  // because removing a claim can create or resolve a both-sides collision):
+  // merge same-concept strength/weakness pairs, drop faults resting on
+  // requested-but-never-provided data (Rule 11), log cross-dimension repeats.
+  const { rubric, merges, gapDrops, crossDimension } = await runReconciliation(
+    verifiedRubric, dataCoverage.requestedUnanswered, u => logUsage({ ...u }),
+  );
+  if (merges.length > 0) console.warn('[score] reconciliation merged both-sides claims:', JSON.stringify(merges));
+  if (gapDrops.length > 0) console.warn('[score] reconciliation dropped coverage-gap faults:', JSON.stringify(gapDrops));
+  if (crossDimension.length > 0) console.warn('[score] cross-dimension repetition:', JSON.stringify(crossDimension));
 
   const report = assembleReport({
     sessionId,
@@ -179,6 +191,11 @@ export async function POST(
     // judge) and requests for data the case doesn't have.
     dataRequestGaps: dataCoverage.requestedUnanswered.length,
     dataRequestsNotInCase: dataCoverage.requestedNotInCase.length,
+    // Report coherence (dimension reconciliation): same-concept-both-sides
+    // merges, coverage-gap faults dropped, cross-dimension repeats (log only).
+    reconcileMerges: merges.length,
+    gapClaimDrops: gapDrops.length,
+    crossDimensionRepeats: crossDimension.length,
   }, { sessionId, userId: user.id });
 
   return NextResponse.json({ scored: true });

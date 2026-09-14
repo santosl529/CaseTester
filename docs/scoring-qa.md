@@ -75,7 +75,7 @@ The batched version fails open (a malformed verifier response ships the
 unverified report rather than blocking scoring) — keep that property in any
 upgrade.
 
-### 4. Dimension reconciliation — both-sides collisions [pending]
+### 4. Dimension reconciliation — both-sides collisions [implemented: `lib/scoring/reconcile.ts`, wired in score route after the verifier]
 
 After the verifier, an LLM pass scans each dimension for the same concept
 appearing under both What Went Well and What Needs Work (run 4: Business
@@ -88,6 +88,21 @@ ships the unreconciled report.
 The same pass logs **cross-dimension repetition** — a concept appearing as a
 weakness in 3+ dimensions (the Jul 17 run `81ed3af7` charged one misdiagnosis
 in four). Logged only, not merged: some repetition is legitimate evidence.
+
+It also runs the **coverage-gap leak check** (Rule 11) when the session has
+requested-but-never-provided data: a needsWork, missedOpportunities, or topFix
+item that faults an assumption resting on that data is dropped (topFix falls
+back like the verifier), and the dimension gets a fixed coverageCaveat if the
+judge didn't write one. wentWell items can never be dropped by this check.
+
+Implementation notes: one batched Opus 4.8 call proposes changes; code
+validates and applies them — merge ids must name a wentWell and a needsWork
+item in the same dimension, each item is used at most once, gap drops apply
+before merges (data integrity outranks coherence), cross-dimension entries
+must name 3+ valid dimension keys. Merged items keep the union of both items'
+already-audited quotes. The call is skipped when nothing could collide (no
+dimension with both sides, fewer than 3 dimensions with weaknesses, no gaps).
+Fails open on an API error or malformed response.
 
 ## Judge requirements
 
@@ -174,9 +189,9 @@ or topFix), plus a fair-game "REQUESTED BUT NOT IN THE CASE DATA" section.
 With no request rows the section is unchanged. Counts land in the `scoring_qa`
 event (`dataRequestGaps`, `dataRequestsNotInCase`).
 
-Limit: enforcement on the judge is prompt-level. There is no post-judge
-deterministic check that a gap item didn't end up in needsWork or topFix — that
-is a semantic match, a candidate for the dimension-reconciliation LLM pass.
+Backstop: the dimension-reconciliation pass (§4) drops needsWork,
+missedOpportunities, and topFix items that fault an assumption resting on gap
+data. That check is an LLM semantic match, not deterministic.
 
 ### Coverage caveats [implemented: `coverageCaveat` in `lib/scoring/judge.ts`]
 
@@ -283,9 +298,13 @@ forever.
 - Conduct-event rate by category (`session_events`, category `conduct`) —
   internal only. [logged; not aggregated]
 - Same-concept-both-sides rate (dimension reconciliation merges) — report
-  coherence measure, same family as contradicted-claim rate. [pending]
+  coherence measure, same family as contradicted-claim rate. [implemented:
+  `reconcileMerges` in the `scoring_qa` event]
 - Cross-dimension repetition rate (concept as a weakness in 3+ dimensions) —
-  report coherence, logged to inform a future rule. [pending]
+  report coherence, logged to inform a future rule. [implemented:
+  `crossDimensionRepeats` in the `scoring_qa` event]
+- Coverage-gap faults dropped by reconciliation — judge non-compliance with the
+  data-coverage caveat. [implemented: `gapClaimDrops` in the `scoring_qa` event]
 - Data-request non-response rate (interviewer-behavior Rule 11), split by
   ledger-exists vs. not (`session_events`, category `data_request`, subtype
   `none`). [logged; not aggregated]

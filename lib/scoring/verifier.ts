@@ -80,15 +80,23 @@ export function applyVerdicts(
 
   const topFixClaim = claims.find(c => c.section === 'topFix');
   if (topFixClaim && unsupported(topFixClaim)) {
-    const ratingOrder = { needs_work: 0, meets_bar: 1, strong: 2 } as const;
-    const fallback = RUBRIC_DIMENSION_KEYS
-      .map(key => cleaned[key])
-      .sort((a, b) => ratingOrder[a.rating] - ratingOrder[b.rating])
-      .flatMap(d => d.needsWork)[0];
-    if (fallback) cleaned.topFix = fallback.point;
+    const fallback = fallbackTopFix(cleaned);
+    if (fallback) cleaned.topFix = fallback;
   }
 
   return { rubric: cleaned, dropped };
+}
+
+// Replacement when topFix itself is removed (here, or by the reconciliation
+// pass): the first surviving needsWork point of the lowest-rated dimension.
+// Undefined if nothing survives — callers keep the original rather than
+// fabricate one.
+export function fallbackTopFix(rubric: RubricScores): string | undefined {
+  const ratingOrder = { needs_work: 0, meets_bar: 1, strong: 2 } as const;
+  return RUBRIC_DIMENSION_KEYS
+    .map(key => rubric[key])
+    .sort((a, b) => ratingOrder[a.rating] - ratingOrder[b.rating])
+    .flatMap(d => d.needsWork)[0]?.point;
 }
 
 type TranscriptTurn = { role: string; text: string; turnIndex: number };

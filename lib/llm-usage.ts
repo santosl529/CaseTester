@@ -4,7 +4,7 @@
 // nothing in tests). Raw tokens + model id are logged, not dollars: pricing
 // changes out-of-band, so cost is computed at analysis time from the tokens.
 export type LlmUsage = {
-  component: 'interviewer' | 'judge' | 'verifier' | 'coverage' | 'data_request';
+  component: 'interviewer' | 'judge' | 'verifier' | 'coverage' | 'data_request' | 'reconcile';
   model: string;
   inputTokens: number;
   outputTokens: number;
