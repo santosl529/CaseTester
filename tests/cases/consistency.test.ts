@@ -64,6 +64,44 @@ describe('case ledger consistency: prof-001', () => {
     expect(alt).toBeCloseTo(actualSpendIncrease, 0);
   });
 
+  // Root-cause attribution (docs/case-authoring.md): the root cause the keys
+  // state must be derivable from ledger values. prof-001 previously claimed
+  // beans +40% explained the whole 16-point COGS jump — impossible unless beans
+  // were ~95% of COGS — so candidates who did the math correctly were graded
+  // against an answer the data couldn't reach.
+  const pct = (id: string): number[] =>
+    [...c.dataLedger.find(d => d.id === id)!.value.matchAll(/(\d+(?:\.\d+)?)%/g)].map(m => Number(m[1]));
+
+  it('menu prices are flat, so the COGS% change is pure input-cost inflation on the prior revenue base', () => {
+    expect(c.dataLedger.find(d => d.id === 'menu_price_change')!.value).toMatch(/not changed/i);
+    // The higher ticket is more items per visit, not price.
+    const atv = c.dataLedger.find(d => d.id === 'avg_ticket')!.value;
+    expect(atv).toContain('$6.80');
+    expect(atv).toContain('$6.20');
+    expect(atv).toMatch(/more items/i);
+  });
+
+  it('root cause reconciles: bean + other input inflation account for the full COGS increase', () => {
+    const priorCogs = Number(exhibit.data[0].COGS);                          // 42
+    const ppIncrease = Number(exhibit.data[2].COGS) - priorCogs;             // 16
+    const [beanShareOfCogs] = pct('bean_share_of_cogs');                     // 25
+    const [beanRise] = pct('bean_price_change');                             // 40
+    const [otherRise] = pct('non_bean_input_change');                        // 37.5
+    const beanPoints = priorCogs * (beanShareOfCogs / 100) * (beanRise / 100);         // 42 × 25% × 40% = 4.2
+    const otherPoints = priorCogs * (1 - beanShareOfCogs / 100) * (otherRise / 100);  // 42 × 75% × 37.5% ≈ 11.8
+    expect(beanPoints).toBeCloseTo(4.2, 5);
+    expect(otherPoints).toBeCloseTo(11.8, 1);
+    expect(beanPoints + otherPoints).toBeCloseTo(ppIncrease, 1);
+  });
+
+  it('answer keys state the reconciled attribution, not "beans explain it all"', () => {
+    for (const key of [c.interviewerNotes, exhibit.interpretationKey]) {
+      expect(key).toContain('4.2');
+      expect(key).toContain('11.8');
+    }
+    expect(c.recommendationKey).toMatch(/dairy|packaging/i);
+  });
+
   it('phase budgets (Rule 8 pacing config), if present, sum to the total case time', () => {
     const budgets = c.pacing?.phaseBudgetsMs;
     if (!budgets) return; // pacing config is optional; nothing to reconcile

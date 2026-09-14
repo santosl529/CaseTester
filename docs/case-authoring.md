@@ -24,7 +24,16 @@ Requirements:
    - the prompt's headline figures match the exhibit/ledger they summarize;
    - every `mathSteps[].answer` is derivable from ledger/exhibit values, and the
      derivation is written into the test;
-   - cross-item identities hold (e.g. revenue ÷ store count = revenue per store).
+   - cross-item identities hold (e.g. revenue ÷ store count = revenue per store);
+   - **the stated root cause is derivable from the ledger.** If
+     `interviewerNotes`, an exhibit `interpretationKey`, or the
+     `recommendationKey` says X drives the change, the ledger must contain the
+     figures that make X add up, and the test writes the attribution out.
+     prof-001 shipped claiming coffee beans (+40%) explained the entire
+     16-point COGS jump — true only if beans were ~95% of COGS. The P&L summed
+     perfectly, so every existing check passed, while candidates who did the
+     share-of-COGS math correctly (beans explain ~a quarter) were graded
+     against an answer the data could not reach.
 2. **No case ships without its consistency block.** This is part of the 50-case
    QA gate alongside the zero-hallucination run (FR-4).
 3. **Math-step descriptions must be clean derivations.** No author notes, doubts,

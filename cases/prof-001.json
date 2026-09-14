@@ -4,7 +4,7 @@
   "firmStyle": "mckinsey",
   "difficulty": "medium",
   "prompt": "Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?",
-  "interviewerNotes": "Push candidate to disaggregate revenue vs. cost drivers first. If candidate jumps to solutions, redirect to diagnosis. Key insight: the margin decline is entirely driven by COGS inflation (coffee beans +40%) combined with the company's inability to pass cost increases to customers. If candidate gets close, probe whether price elasticity was tested.",
+  "interviewerNotes": "Push candidate to disaggregate revenue vs. cost drivers first. If candidate jumps to solutions, redirect to diagnosis. Key insight: the margin decline is entirely COGS, driven by broad input-cost inflation (about 38% across inputs) that was never passed through — menu prices have not changed in two years, and the higher average ticket is customers buying more items. Coffee beans (+40%) are the most visible driver but, at 25% of COGS, explain only about 4.2 of the 16 points; other inputs (dairy, packaging, food, up 37.5%) explain the other 11.8. If the candidate stops at beans, probe whether beans alone can explain 16 points. If candidate gets close, probe whether price elasticity was tested.",
   "dataLedger": [
     {
       "id": "revenue_total",
@@ -51,8 +51,26 @@
     {
       "id": "avg_ticket",
       "label": "Average transaction value",
-      "value": "The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase.",
+      "value": "The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit.",
       "releaseWhen": "ANALYSIS"
+    },
+    {
+      "id": "menu_price_change",
+      "label": "Menu price changes over 2 years",
+      "value": "Menu prices have not changed in two years.",
+      "releaseWhen": "ANALYSIS"
+    },
+    {
+      "id": "bean_share_of_cogs",
+      "label": "Coffee beans as a share of COGS",
+      "value": "Coffee beans were 25% of COGS two years ago.",
+      "releaseWhen": "EXHIBIT"
+    },
+    {
+      "id": "non_bean_input_change",
+      "label": "Other input cost changes (dairy, packaging, food) over 2 years",
+      "value": "Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.",
+      "releaseWhen": "EXHIBIT"
     }
   ],
   "mathSteps": [
@@ -110,7 +128,7 @@
           "Profit": 6
         }
       ],
-      "interpretationKey": "COGS is the sole driver of margin compression. Labor and overhead are essentially flat. A strong candidate names COGS specifically and asks what's inside it — the answer is coffee bean prices (+40%). Weak candidates say 'costs went up' without specifying."
+      "interpretationKey": "COGS is the sole driver of margin compression. Labor and overhead are essentially flat. A strong candidate names COGS specifically, asks what's inside it, and tests whether the coffee bean spike (+40%) can explain the full 16 points — it can't: beans are 25% of COGS, so they add about 4.2 points, and other inputs up 37.5% add the other 11.8. Weak candidates say 'costs went up' without specifying, or stop at beans."
     }
   ],
   "pacing": {
@@ -126,7 +144,7 @@
     }
   },
   "structureKey": "Strong structure disaggregates profit = revenue − costs, then breaks revenue into volume × price and costs into COGS / labor / overhead / other. The candidate should hypothesize which bucket is the driver before asking for data. Bonus: asks about competitive context (are peers also seeing this?) and pricing power.",
-  "recommendationKey": "Primary recommendation: selectively raise prices by 8–12% on high-margin SKUs (specialty drinks) where demand is less elastic, while negotiating multi-year bean supply contracts to lock in cost. Secondary: pilot a lower-cost 'commodity blend' for budget-conscious locations. Do not recommend blanket cost cuts — labor and overhead are already lean.",
+  "recommendationKey": "Primary recommendation: raise menu prices, which have not changed in two years while input costs rose about 38% — selectively, by 8–12% on high-margin specialty SKUs where demand is less elastic. Pair it with procurement across all inputs, not just beans: multi-year bean supply contracts plus renegotiated dairy and packaging supply, since beans explain only about a quarter of the COGS increase. Secondary: pilot a lower-cost 'commodity blend' for budget-conscious locations. Do not recommend blanket cost cuts — labor and overhead are already lean.",
   "rubricAnchors": {
     "structure": {
       "needs_work": "Jumps to solutions or lists unrelated ideas without a profit framework. Does not disaggregate revenue vs. cost.",
@@ -136,7 +154,7 @@
     "quantitative": {
       "needs_work": "Cannot calculate margins or makes arithmetic errors. Does not quantify the impact of COGS increase.",
       "meets_bar": "Correctly calculates current vs. prior margin (24% → 6%) and identifies the 16pp COGS increase as the driver.",
-      "strong": "Calculates dollar impact of COGS increase (~$77M), cross-checks revenue per store, and synthesizes math into a clear recommendation sizing."
+      "strong": "Calculates dollar impact of COGS increase (~$77M), tests whether bean inflation explains the 16pp (it explains about 4.2), cross-checks revenue per store, and synthesizes math into a clear recommendation sizing."
     },
     "judgment": {
       "needs_work": "Recommends blanket cost cuts or generic 'increase revenue' without testing pricing elasticity or supply-side options.",
