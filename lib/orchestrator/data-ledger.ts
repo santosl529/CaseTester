@@ -41,6 +41,23 @@ export function reveal(ledger: DataLedger, itemId: string): string {
   return item.value;
 }
 
+// An exhibit that displays ledger figures releases them as surely as reading
+// them aloud. Live run db41a01e: the cost exhibit showed COGS 42 → 58, the
+// ledger still counted cogs_pct as unreleased, and the Rule 11 force-release
+// re-read "COGS is 58% of revenue…" to a candidate already working from it.
+// Marks covered items revealed without producing values to speak; returns the
+// ids newly revealed so the caller can persist them. Unknown ids and items
+// already revealed are skipped.
+export function markExhibitReveals(ledger: DataLedger, exhibit: { coversLedgerItems?: string[] }): string[] {
+  const newlyRevealed: string[] = [];
+  for (const id of exhibit.coversLedgerItems ?? []) {
+    if (!canReveal(ledger, id)) continue;
+    ledger.revealed.add(id);
+    newlyRevealed.push(id);
+  }
+  return newlyRevealed;
+}
+
 export function revealedValues(ledger: DataLedger): Record<string, string> {
   return Object.fromEntries(
     [...ledger.revealed].map(id => {

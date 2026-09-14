@@ -57,6 +57,17 @@ consistency test and the post-turn number audit can match them. One value = one
 item: if a sentence bundles several figures (current + prior), that's fine, but
 don't merge separate ledger items into one value.
 
+## Exhibits declare the ledger items they display
+
+If an exhibit shows the same figures as ledger items (prof-001's cost exhibit
+shows the COGS, labor, and overhead percentages), list those ids in the
+exhibit's `coversLedgerItems`. Showing the exhibit then marks them revealed,
+exactly as if they had been read aloud. Without it, the ledger believes the
+candidate never received data they have been working from: open-request hints
+and scoring disagree with the transcript, and Rule 11's force-release re-reads
+the figures to them before the recommendation ask (live run db41a01e). The
+consistency test checks every listed id exists in the ledger.
+
 ## `mathSteps` double as the live recompute backstop
 
 `docs/interviewer-behavior.md` Rule 2/14's deterministic recompute check

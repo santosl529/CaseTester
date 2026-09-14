@@ -176,6 +176,11 @@ describe('buildDataRequestPrompt', () => {
     expect(prompt).toContain("We're near time.");
   });
 
+  it('tells the classifier that stating or restating a figure is not a request (live run db41a01e)', () => {
+    const prompt = buildDataRequestPrompt('COGS is 58% of revenue, so a 5% cut is 2.9 points.', 'Walk me through that.', fullCatalog);
+    expect(prompt).toContain('stating or restating a figure');
+  });
+
   it('never contains ledger VALUES (FR-4: values are server-only and reveal-gated)', () => {
     const prompt = buildDataRequestPrompt('Any data on costs?', 'Walk me through that.', fullCatalog);
     for (const item of c.dataLedger) {

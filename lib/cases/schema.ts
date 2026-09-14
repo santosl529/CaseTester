@@ -64,6 +64,9 @@ const ExhibitSchema = z.object({
   chartType: z.enum(['bar', 'line', 'table', 'pie']),
   data: z.array(z.record(z.string(), z.unknown())),    // client-safe display data
   interpretationKey: z.string(),           // server-only insight
+  // Ledger item ids whose figures this exhibit displays — showing the exhibit
+  // releases them (docs/case-authoring.md, interviewer-behavior Rule 11).
+  coversLedgerItems: z.array(z.string()).optional(),
 });
 
 const RubricAnchorSchema = z.object({

@@ -9,7 +9,7 @@ import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
 import {
   createLedger, canReveal, reveal, resolveItemId, revealedValues, unrevealedItems,
-  resolveItemFromText, promisesReveal,
+  resolveItemFromText, promisesReveal, markExhibitReveals,
 } from './data-ledger';
 import { auditTurn, auditTurnStyle, stripMetaLeak, stripFabricatedTurn } from './audit';
 import { auditNumericProvenance } from './numeric-provenance';
@@ -356,6 +356,16 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     }
   }
 
+  // An exhibit that displays ledger figures releases them (case config
+  // `coversLedgerItems`). Marked here — after both exhibit paths above and
+  // before the Rule 11 force-release below — so the ledger, the open-request
+  // hints, the provenance audit, and scoring all agree the candidate has them.
+  // Kept apart from newReveals: nothing is appended to speech, and these must
+  // not trip the reveal-driven length exemption or promise recovery.
+  const exhibitReveals = exhibit
+    ? markExhibitReveals(ledger, caseData.exhibits.find(e => e.id === exhibit!.id) ?? {})
+    : [];
+
   // Rule 11 backstop: if the interviewer's words promise a data delivery but
   // no reveal_data call landed this turn, recover it — from a ledger item
   // named in the spoken text, or, if nothing in the ledger matches what was
@@ -482,6 +492,10 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   for (const itemId of newReveals) {
     await db.insert(revealedData).values({ sessionId, ledgerItemId: itemId, revealedAtMs: now });
     await logEvent('data_revealed', { itemId, phase: currentPhase }, { sessionId, userId: session.userId });
+  }
+  for (const itemId of exhibitReveals) {
+    await db.insert(revealedData).values({ sessionId, ledgerItemId: itemId, revealedAtMs: now });
+    await logEvent('data_revealed', { itemId, phase: currentPhase, via: 'exhibit' }, { sessionId, userId: session.userId });
   }
   if (exhibit) {
     await db.insert(exhibitsShown).values({ sessionId, exhibitId: exhibit.id, shownAtMs: now });

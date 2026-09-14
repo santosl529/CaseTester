@@ -87,7 +87,7 @@ export function buildDataRequestPrompt(
 
   return `You are auditing one exchange in a mock case interview. Identify every DATA REQUEST the candidate made, and how the interviewer's very next turn handled each one.
 
-A data request is the candidate asking the interviewer to provide information about the case: numbers, trends, breakdowns, an exhibit, or case facts ("Do we have the gross margin trend?", "What happened to menu prices?", "What does the product mix data show?"). NOT a request: rhetorical questions, hypotheses the candidate poses to themselves, checking whether their reasoning makes sense ("Does that framework make sense?"), or asking for feedback.
+A data request is the candidate asking the interviewer to provide information about the case: numbers, trends, breakdowns, an exhibit, or case facts ("Do we have the gross margin trend?", "What happened to menu prices?", "What does the product mix data show?"). NOT a request: rhetorical questions, hypotheses the candidate poses to themselves, checking whether their reasoning makes sense ("Does that framework make sense?"), asking for feedback, or stating or restating a figure they already have ("COGS is 58% of revenue, so a 5% cut is 2.9 points").
 
 For each request, give:
 - "what": a short description of the information asked for.

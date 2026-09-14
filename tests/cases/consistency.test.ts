@@ -94,6 +94,14 @@ describe('case ledger consistency: prof-001', () => {
     expect(beanPoints + otherPoints).toBeCloseTo(ppIncrease, 1);
   });
 
+  it('exhibit coverage: showing the cost exhibit counts as releasing the ledger items it displays', () => {
+    // The exhibit's COGS/Labor/Overhead series are the same figures as these
+    // ledger items (cross-checked against the exhibit in the test above).
+    expect(exhibit.coversLedgerItems).toEqual(['cogs_pct', 'labor_pct', 'overhead_pct']);
+    const ids = new Set(c.dataLedger.map(d => d.id));
+    for (const id of exhibit.coversLedgerItems ?? []) expect(ids.has(id), `${id} is a ledger item`).toBe(true);
+  });
+
   it('answer keys state the reconciled attribution, not "beans explain it all"', () => {
     for (const key of [c.interviewerNotes, exhibit.interpretationKey]) {
       expect(key).toContain('4.2');
