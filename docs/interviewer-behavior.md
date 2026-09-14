@@ -412,6 +412,19 @@ A pilot run completed an entire case while the session sat in CLARIFY.
     kept state wrong. The `advancedLastTurn` flag now gates behavior shift,
     not bookkeeping.
 
+**Implementation status — evidence-based phase repair:** the model's
+`advance_phase` calls alone proved unreliable. Both 2026-09-14 live runs sat in
+STRUCTURE from ~0:30 to the end while data, the exhibit, the brainstorm, and
+the recommendation all happened — one model advance per session. After every
+turn the orchestrator raises the phase to the highest stage the turn's
+observable evidence supports: a ledger reveal → that item's `releaseWhen`; an
+exhibit shown → EXHIBIT; an interviewer brainstorm question → BRAINSTORM; a
+recommendation ask → RECOMMENDATION (`lib/orchestrator/phase-repair.ts`,
+logged as `phase_repair`). Forward only, never past RECOMMENDATION; the
+model's own advances still apply. The brainstorm and recommendation signals
+are phrase matches — soft: unusual wording is missed (the phase then lags, as
+before), but state can never move backwards.
+
 ## 9. Administer every scored phase; never grade an absent stage
 
 Run 3 scored Creativity "adequate" for a brainstorm the interviewer never

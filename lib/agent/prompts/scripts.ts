@@ -95,6 +95,14 @@ export const DISTRESS_CLOSE =
 const TIME_CUE = /\b(out of time|near(ly)?\s+time|time'?s\s+(up|nearly)|almost out of time|we'?re (almost )?(out of|near) time|running out of time|wrap (up|it up)|near the end)\b/i;
 const REC_ASK = /\b(bottom.?line recommendation|recommendation to the (ceo|client)|final recommendation|bring it home|what'?s your recommendation|what would you (tell|recommend) the (ceo|client))\b/i;
 
+// Recommendation ask only, no bare time cue — used by phase repair
+// (lib/orchestrator/phase-repair.ts): an interviewer asking for the
+// recommendation means the case is in RECOMMENDATION whatever the phase
+// machine says. "We're near time" alone does not.
+export function asksForRecommendation(spokenText: string): boolean {
+  return REC_ASK.test(spokenText);
+}
+
 export function alreadySignaledTimeOrRec(spokenText: string): boolean {
   return TIME_CUE.test(spokenText) || REC_ASK.test(spokenText);
 }

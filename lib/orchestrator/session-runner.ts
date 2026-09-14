@@ -22,6 +22,7 @@ import { evaluateStall, rungName, INITIAL_STALL_STATE, type StallState } from '.
 import { classifyConduct, isPauseAccepted } from './conduct';
 import { logEvent } from '@/lib/analytics';
 import { nextPhase, TOTAL_CASE_MS, type Phase } from './state-machine';
+import { inferPhaseRepair } from './phase-repair';
 import { runInterviewerTurn } from '@/lib/agent/interviewer';
 import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import {
@@ -455,6 +456,28 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   const usedCloseFallback = ended && spokenText === '';
   if (usedCloseFallback) {
     spokenText = pickScript(CLOSE_SCRIPTS, sessionId);
+  }
+
+  // Rule 8 silent phase repair (lib/orchestrator/phase-repair.ts): raise the
+  // phase to what this turn visibly did — reveals by any path (including
+  // exhibit coverage and forced releases), an exhibit, a brainstorm question,
+  // a recommendation ask. The model's advance_phase alone left both
+  // 2026-09-14 live runs in STRUCTURE for the whole case. A repair counts as an
+  // advance below, so advancedLastTurn still gates the visible behavior shift.
+  if (!ended) {
+    const releaseWhenById = new Map(caseData.dataLedger.map(d => [d.id, d.releaseWhen as Phase]));
+    const repair = inferPhaseRepair(nextPhaseValue, {
+      revealedReleaseWhen: [...newReveals, ...exhibitReveals]
+        .map(id => releaseWhenById.get(id))
+        .filter((p): p is Phase => p !== undefined),
+      exhibitShown: exhibit !== undefined,
+      interviewerText: spokenText,
+    });
+    if (repair) {
+      console.log('[runner] phase repair:', JSON.stringify(repair));
+      nextPhaseValue = repair.to;
+      await logEvent('phase_repair', { ...repair }, { sessionId, userId: session.userId });
+    }
   }
 
   // Post-turn audits. Three valid provenances (Rule 6): revealed ledger values,
