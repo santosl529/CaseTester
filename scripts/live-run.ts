@@ -19,7 +19,7 @@ import { db } from '@/db/client';
 import { sessions, sessionTurns, sessionEvents, scores, analyticsEvents, revealedData } from '@/db/schema';
 import { getCaseById } from '@/lib/cases/loader';
 import { startSession } from '@/lib/orchestrator/start-session';
-import { runTurn } from '@/lib/orchestrator/session-runner';
+import { runTurn, type ExhibitDisplay } from '@/lib/orchestrator/session-runner';
 import { runPostTurnBackground } from '@/lib/orchestrator/post-turn';
 import type { Phase } from '@/lib/orchestrator/state-machine';
 import { scoreSession } from '@/lib/scoring/score-session';
@@ -67,6 +67,15 @@ async function candidateReply(client: Anthropic, transcript: Line[]): Promise<st
   return text;
 }
 
+// The app renders exhibits in a panel beside the chat; a text-only simulated
+// candidate sees none of it, so hand it the same data as a plain table. Run
+// 58cb8061 lost three turns to "nothing is coming through" without this.
+function exhibitAsText(exhibit: ExhibitDisplay): string {
+  const columns = [...new Set(exhibit.data.flatMap(row => Object.keys(row)))];
+  const rows = exhibit.data.map(row => columns.map(c => String(row[c] ?? '')).join(' | '));
+  return `[Exhibit shown: ${exhibit.title}]\n${columns.join(' | ')}\n${rows.join('\n')}`;
+}
+
 function clock(ms: number): string {
   const s = Math.max(0, Math.round(ms / 1000));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -98,7 +107,12 @@ async function main() {
 
     const phaseBeforeTurn = phase;
     const result = await runTurn(sessionId, candidateText);
-    transcript.push({ role: 'interviewer', text: result.interviewerText });
+    // What the candidate sees: the spoken text, plus the exhibit the app would
+    // render in its side panel. The DB transcript is unaffected.
+    transcript.push({
+      role: 'interviewer',
+      text: result.exhibit ? `${result.interviewerText}\n\n${exhibitAsText(result.exhibit)}` : result.interviewerText,
+    });
     console.log(`\n[interviewer · ${result.phase} · ${clock(Date.now() - startedAt)}] ${result.interviewerText}`);
     phase = result.phase;
 
