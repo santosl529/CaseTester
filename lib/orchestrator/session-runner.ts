@@ -11,7 +11,7 @@ import {
   createLedger, canReveal, reveal, resolveItemId, revealedValues, unrevealedItems,
   resolveItemFromText, promisesReveal,
 } from './data-ledger';
-import { auditTurn, auditTurnStyle, stripMetaLeak } from './audit';
+import { auditTurn, auditTurnStyle, stripMetaLeak, stripFabricatedTurn } from './audit';
 import { auditNumericProvenance } from './numeric-provenance';
 import { checkRecomputeForTurn, formatRecomputeHint } from './recompute';
 import { detectNestedPercentConversion, formatUnitCheckHint } from './unit-check';
@@ -264,11 +264,21 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   let exhibit: ExhibitDisplay | undefined;
   let nextPhaseValue: Phase = currentPhase;
   let ended = false;
+  let fabricatedStripped = false;
   const newReveals: string[] = [];
 
   for (const action of actions) {
     if (action.type === 'speak') {
-      spokenText += action.text + ' ';
+      // A line opening as another speaker means the model kept writing past its
+      // own turn and authored the candidate's side (live run 58cb8061). Cut it
+      // per speak action — before any revealed value is appended — so it is
+      // never spoken, persisted, scored, or read by the coverage agent.
+      const { cleaned, fabricated } = stripFabricatedTurn(action.text);
+      if (fabricated !== null) {
+        console.warn('[runner] stripped fabricated speaker continuation:', JSON.stringify(fabricated));
+        fabricatedStripped = true;
+      }
+      spokenText += cleaned + ' ';
     } else if (action.type === 'reveal_data') {
       const itemId = resolveItemId(ledger, action.itemId);
       if (itemId && canReveal(ledger, itemId)) {
@@ -311,6 +321,11 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   }
 
   spokenText = spokenText.trim();
+  if (fabricatedStripped) {
+    // Nothing real left: a neutral acknowledgment (Rule 1) beats a blank turn.
+    if (!spokenText && !ended) spokenText = 'Go on.';
+    await logEvent('fabricated_turn_stripped', { phase: currentPhase }, { sessionId, userId: session.userId });
+  }
 
   // Strip any internal planning that leaked into the spoken turn (Rule 1/5).
   // The prompt forbids it; this is the backstop so a model slip like "The

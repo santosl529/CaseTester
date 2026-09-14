@@ -48,6 +48,15 @@ const TOOLS: Anthropic.Tool[] = [
 // latency budget — Opus turns are slower and pricier.
 export const INTERVIEWER_MODEL_ID = 'claude-opus-4-8';
 
+// Live run 58cb8061 (2026-09-14): after asking the brainstorm question the
+// model kept generating — "\n\nuser Several levers…" — and wrote the
+// candidate's answer itself, which was then spoken and scored. Stop generation
+// at a line that opens as another speaker. First line of defense only; the
+// runner's stripFabricatedTurn (lib/orchestrator/audit.ts) is the
+// deterministic backstop, since stop sequences are case-sensitive and can't
+// enumerate every label.
+export const INTERVIEWER_STOP_SEQUENCES = ['\nuser', '\nUser', '\nHuman:', '\nCandidate:', '\nCANDIDATE:'];
+
 export class AnthropicInterviewerModel implements InterviewerModel {
   private client: Anthropic;
   private modelId: string;
@@ -74,6 +83,7 @@ export class AnthropicInterviewerModel implements InterviewerModel {
         system: ctx.systemPrompt,
         messages,
         tools: TOOLS,
+        stop_sequences: INTERVIEWER_STOP_SEQUENCES,
       });
       ctx.onUsage?.({
         component: 'interviewer',

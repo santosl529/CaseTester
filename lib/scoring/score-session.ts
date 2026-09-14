@@ -113,9 +113,12 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
   // Deterministic report-vs-transcript check: strip evidence quotes that don't
   // appear in candidate turns before anything renders.
   const candidateTexts = transcript.filter(t => t.role === 'candidate').map(t => t.text);
-  const { rubric: auditedRubric, violations } = auditEvidence(rawRubric, candidateTexts);
+  const { rubric: auditedRubric, violations, droppedPoints } = auditEvidence(rawRubric, candidateTexts);
   if (violations.length > 0) {
     console.warn('[score] evidence audit stripped fabricated quotes:', JSON.stringify(violations));
+  }
+  if (droppedPoints.length > 0) {
+    console.warn('[score] evidence audit dropped points left without evidence:', JSON.stringify(droppedPoints));
   }
 
   // Second pass: verify claims the quote audit can't (omission claims,
@@ -174,6 +177,7 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
     transcriptArtifacts: artifacts.length,
     artifactTypes: artifacts.map(a => a.type),
     evidenceStrips: violations.length,
+    evidencePointDrops: droppedPoints.length,
     verifierDrops: dropped.length,
     // Rule 11: requested-and-unanswered ledger items (coverage gaps fed to the
     // judge) and requests for data the case doesn't have.

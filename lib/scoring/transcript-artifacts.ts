@@ -15,10 +15,19 @@
 //   - truncated close: final interviewer turn ends mid-sentence (logged only —
 //     there is no safe deterministic repair for missing words).
 
+//   - fabricated turn: an interviewer turn containing a line that opens as
+//     another speaker ("\nuser …", "\nCandidate: …") — the model wrote the
+//     candidate's side itself (live run 58cb8061). The continuation is cut
+//     (the turn is dropped if nothing precedes it), so the judge can never
+//     score interviewer-written text as candidate evidence. Candidate turns
+//     are never touched.
+
+import { stripFabricatedTurn } from '@/lib/orchestrator/audit';
+
 export type TranscriptTurn = { role: string; text: string; turnIndex: number };
 
 export type TranscriptArtifact = {
-  type: 'empty_turn' | 'duplicate_turn' | 'truncated_close';
+  type: 'empty_turn' | 'duplicate_turn' | 'truncated_close' | 'fabricated_turn';
   turnIndex: number;
 };
 
@@ -35,7 +44,16 @@ export function repairTranscript(turns: TranscriptTurn[]): RepairResult {
   const artifacts: TranscriptArtifact[] = [];
   const kept: TranscriptTurn[] = [];
 
-  for (const turn of turns) {
+  for (const original of turns) {
+    let turn = original;
+    if (turn.role === 'interviewer') {
+      const { cleaned, fabricated } = stripFabricatedTurn(turn.text);
+      if (fabricated !== null) {
+        artifacts.push({ type: 'fabricated_turn', turnIndex: turn.turnIndex });
+        if (cleaned === '') continue;
+        turn = { ...turn, text: cleaned };
+      }
+    }
     if (norm(turn.text) === '') {
       artifacts.push({ type: 'empty_turn', turnIndex: turn.turnIndex });
       continue;

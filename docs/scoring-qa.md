@@ -31,6 +31,16 @@ are removed; a truncated close (final interviewer turn ending mid-sentence)
 is logged but not repaired, since inventing missing words would be worse than
 flagging. Artifacts land in the per-run `scoring_qa` analytics event.
 
+**Fabricated turn** (`fabricated_turn`): an interviewer turn containing a line
+that opens as another speaker ("\nuser …", "\nCandidate: …"). Live run
+58cb8061 had the interviewer ask the brainstorm question, then write the
+candidate's brainstorm answer itself; Creativity was scored "strong" on it. The
+continuation is cut (the turn is dropped if nothing precedes it); candidate
+turns are never touched. The same detector (`stripFabricatedTurn`,
+`lib/orchestrator/audit.ts`) runs live in the session runner per speak action,
+behind role-label stop sequences on the interviewer model call — so this
+repair mainly protects sessions recorded before that guard.
+
 ### 2. Evidence audit — positive claims [implemented: `lib/scoring/evidence-audit.ts`]
 
 Any quote or paraphrase the judge attributes to the candidate must appear in
@@ -43,6 +53,13 @@ substring check was stripping genuine near-verbatim multi-sentence quotes and
 gutting the evidence; the tolerant matcher fixes that without opening the door
 to invented numbers. Unsupported evidence is stripped before the report
 renders; violations are logged.
+
+Points left without evidence are dropped too (`droppedPoints`, logged as
+`evidencePointDrops` in `scoring_qa`): a wentWell point needs at least one
+surviving candidate quote, and a needsWork point is dropped when every quote it
+cited was stripped. A needsWork point that never had quotes is kept — omission
+claims have nothing to quote, and the claim verifier checks them. Before this,
+run 58cb8061 shipped two Creativity strengths with no evidence at all.
 
 ### 3. Omission-claim verifier — negative claims [partially implemented: `lib/scoring/verifier.ts`]
 

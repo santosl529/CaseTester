@@ -98,6 +98,22 @@ export function stripMetaLeak(spokenText: string): MetaLeakResult {
   return { cleaned: kept.join(' ').trim(), strippedSentences: stripped };
 }
 
+// A line that opens as another speaker: the model kept generating past its own
+// turn and wrote the other side of the dialogue (live run 58cb8061: the
+// brainstorm question followed by "\n\nuser Several levers…" — the candidate's
+// answer, written by the interviewer, then scored). Matched only at the start
+// of a line after a newline and only as a whole word followed by a label mark
+// or more text, so "Candidates often…" and "what the user would pay" pass.
+const FABRICATED_SPEAKER_LINE = /\n[ \t]*(?:user|human|candidate|assistant|interviewer)\b(?=[ \t]*[:\-—]|[ \t]+\S)/i;
+
+export type FabricatedTurnResult = { cleaned: string; fabricated: string | null };
+
+export function stripFabricatedTurn(text: string): FabricatedTurnResult {
+  const match = FABRICATED_SPEAKER_LINE.exec(text);
+  if (!match) return { cleaned: text, fabricated: null };
+  return { cleaned: text.slice(0, match.index).trim(), fabricated: text.slice(match.index).trim() };
+}
+
 export function auditTurn(
   spokenText: string,
   revealed: Record<string, string>,

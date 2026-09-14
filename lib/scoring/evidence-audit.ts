@@ -63,25 +63,42 @@ export function quoteAppearsIn(quote: string, corpus: string): boolean {
   return fragments.every(f => fragmentAppears(f, normCorpus, corpusTokens));
 }
 
+export type DroppedPoint = {
+  dimension: string;
+  section: 'wentWell' | 'needsWork';
+  point: string;
+};
+
 export function auditEvidence(
   rubric: RubricScores,
   candidateTurns: string[],
-): { rubric: RubricScores; violations: EvidenceViolation[] } {
+): { rubric: RubricScores; violations: EvidenceViolation[]; droppedPoints: DroppedPoint[] } {
   const corpus = candidateTurns.join('\n');
   const violations: EvidenceViolation[] = [];
+  const droppedPoints: DroppedPoint[] = [];
   const cleaned = structuredClone(rubric);
 
   for (const key of RUBRIC_DIMENSION_KEYS) {
     for (const section of ['wentWell', 'needsWork'] as const) {
-      for (const item of cleaned[key][section]) {
+      cleaned[key][section] = cleaned[key][section].filter(item => {
+        const hadQuotes = item.quotes.length > 0;
         item.quotes = item.quotes.filter(quote => {
           const ok = quoteAppearsIn(quote, corpus);
           if (!ok) violations.push({ dimension: key, section, quote });
           return ok;
         });
-      }
+        // A point is only as good as its evidence. Live run 58cb8061 shipped
+        // Creativity strengths whose every quote came from interviewer-written
+        // text. Praise needs at least one real candidate quote. A weakness is
+        // dropped only when all the evidence it cited was fabricated —
+        // omission claims ("never mentioned X") legitimately carry no quotes,
+        // and the claim verifier checks those.
+        const keep = item.quotes.length > 0 || (section === 'needsWork' && !hadQuotes);
+        if (!keep) droppedPoints.push({ dimension: key, section, point: item.point });
+        return keep;
+      });
     }
   }
 
-  return { rubric: cleaned, violations };
+  return { rubric: cleaned, violations, droppedPoints };
 }
