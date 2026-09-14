@@ -149,7 +149,16 @@ Required split:
 - **Requested but not in the ledger** (properly refused): fair game — the
   candidate was told it doesn't exist and could reason around it.
 
-Blocked on the Rule 11 request detector (soft signal) and the non-response log.
+Input feed [implemented: `lib/orchestrator/data-requests.ts`, wired in the turn
+route's `after()`]: a background Haiku pass classifies each exchange's
+candidate data requests (soft signal) and how the next interviewer turn handled
+them (release / refuse / defer / clarify / none), logged as `session_events`
+rows with category `data_request`. Deterministic guards in code: the ledger id
+must come from the case's closed catalog (invented ids drop to null), and
+`revealedByNow` comes from `revealed_data`, not the model. The classifier sees
+ledger ids and labels only, never values. Fails open (bad response → no rows).
+Not yet validated against live Haiku output on real transcripts.
+[Still pending]: the judge-side three-way split above, which consumes these rows.
 
 ### Coverage caveats [implemented: `coverageCaveat` in `lib/scoring/judge.ts`]
 
@@ -260,4 +269,5 @@ forever.
 - Cross-dimension repetition rate (concept as a weakness in 3+ dimensions) —
   report coherence, logged to inform a future rule. [pending]
 - Data-request non-response rate (interviewer-behavior Rule 11), split by
-  ledger-exists vs. not. [pending]
+  ledger-exists vs. not (`session_events`, category `data_request`, subtype
+  `none`). [logged; not aggregated]
