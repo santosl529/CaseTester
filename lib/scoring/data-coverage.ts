@@ -39,6 +39,7 @@ export function summarizeDataRequests(
   const seenNotInCase = new Set<string>();
 
   for (const r of byTurn) {
+    if (r.subtype === 'classified') continue; // marker: exchange was checked, not a request
     const p = r.payloadJsonb as { what?: unknown; ledgerItemId?: unknown } | null;
     if (!p || typeof p.what !== 'string' || !p.what.trim()) continue;
     const what = p.what.trim();

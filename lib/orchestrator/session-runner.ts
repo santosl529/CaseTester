@@ -2,8 +2,9 @@ import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
 import {
-  classifyDataRequests, toDataRequestEvents, formatOpenRequestsHint, planForcedReleases, composeForcedReleaseTurn,
+  classifyDataRequests, formatOpenRequestsHint, planForcedReleases, composeForcedReleaseTurn,
 } from './data-requests';
+import { logDataRequestClassification } from './data-request-log';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
 import {
@@ -388,15 +389,10 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     let currentRows: typeof dataRequestRows = [];
     if (current !== null) {
       dataRequestsClassified = true;
-      const events = toDataRequestEvents(current, {
+      const events = await logDataRequestClassification({
+        sessionId, phase: currentPhase, requests: current,
         candidateTurnIndex: nextTurnIndex, interviewerTurnIndex: nextTurnIndex + 1, revealedIds: revealedNow,
       });
-      if (events.length > 0) {
-        await db.insert(sessionEvents).values(events.map(e => ({
-          sessionId, category: e.category, subtype: e.subtype, turnIndex: e.turnIndex,
-          phase: currentPhase, payloadJsonb: e.payload,
-        })));
-      }
       currentRows = events.map(e => ({ subtype: e.subtype, turnIndex: e.turnIndex, payloadJsonb: e.payload }));
     }
     const gaps = summarizeDataRequests([...dataRequestRows, ...currentRows], catalog, [...revealedNow]).requestedUnanswered;

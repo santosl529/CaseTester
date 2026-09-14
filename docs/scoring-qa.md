@@ -177,9 +177,14 @@ must come from the case's closed catalog (invented ids drop to null), and
 `revealedByNow` comes from `revealed_data`, not the model. The classifier sees
 ledger ids and labels only, never values. Fails open (bad response → no rows).
 Not yet validated against live Haiku output on real transcripts.
+Every successful classification also writes a `classified` marker row
+(`lib/orchestrator/data-request-log.ts`), so "checked, nothing asked" is
+distinguishable from "never checked"; a failed classification writes nothing.
 The turn route skips the ending turn (the client calls `/score` immediately and
-would race the background pass); the score route classifies the final exchange
-itself before summarizing.
+would race the background pass). At scoring time the score route backfills
+every exchange with no rows at all — the final exchange, plus any whose
+background pass failed or was dropped — before summarizing. Backfill count
+lands in the `scoring_qa` event (`dataRequestBackfills`).
 
 Judge-side split: `summarizeDataRequests` computes, in code, against the FINAL
 revealed set — a ledger item that was requested and never revealed is a gap

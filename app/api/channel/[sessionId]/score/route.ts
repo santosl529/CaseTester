@@ -9,7 +9,8 @@ import { checkMathSteps } from '@/lib/scoring/deterministic';
 import { assembleReport } from '@/lib/scoring/report';
 import { summarizeAssists, summarizeCoverage } from '@/lib/scoring/assists';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
-import { classifyDataRequests, toDataRequestEvents } from '@/lib/orchestrator/data-requests';
+import { classifyDataRequests, findUnclassifiedExchanges } from '@/lib/orchestrator/data-requests';
+import { logDataRequestClassification } from '@/lib/orchestrator/data-request-log';
 import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, scores, sessionEvents } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
@@ -73,37 +74,37 @@ export async function POST(
     .join('\n\n');
   const logUsage = (u: Record<string, unknown>) => { void logEvent('llm_usage', u, { sessionId, userId: user.id }); };
 
-  // Rule 11 data-coverage caveat (docs/scoring-qa.md). The turn route logs
-  // data_request events in the background for every exchange EXCEPT the final
-  // one (it would race this route), so classify the final exchange here first.
+  // Rule 11 data-coverage caveat (docs/scoring-qa.md). Backfill every exchange
+  // that was never classified — the final exchange (the turn route skips it so
+  // it can't race this route) and any exchange whose background pass failed or
+  // was dropped. The `classified` marker separates "checked, nothing asked"
+  // from "never checked", so nothing is classified twice, including on retry.
   const revealedIds = revealedRows.map(r => r.ledgerItemId);
   const catalog = caseData.dataLedger.map(d => ({ id: d.id, label: d.label }));
-  const lastInterviewer = transcript.at(-1);
-  const lastCandidate = transcript.at(-2);
-  // The runner already classifies recommendation-ask turns synchronously; don't
-  // re-log an exchange that has rows (a retried scoring run would too).
   const priorRequestRows = await db.query.sessionEvents.findMany({
     where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'data_request')),
   });
-  const finalExchangeLogged = priorRequestRows.some(r => r.turnIndex === lastCandidate?.turnIndex);
-  if (lastInterviewer?.role === 'interviewer' && lastCandidate?.role === 'candidate' && !finalExchangeLogged) {
-    const finalRequests = await classifyDataRequests({
-      candidateText: lastCandidate.text,
-      interviewerText: lastInterviewer.text,
+  const unclassified = findUnclassifiedExchanges(transcript, priorRequestRows);
+  await Promise.all(unclassified.map(async ({ candidate, interviewer }) => {
+    const requests = await classifyDataRequests({
+      candidateText: candidate.text,
+      interviewerText: interviewer.text,
       catalog,
       onUsage: u => logUsage({ ...u }),
     });
-    if (finalRequests && finalRequests.length > 0) {
-      const events = toDataRequestEvents(finalRequests, {
-        candidateTurnIndex: lastCandidate.turnIndex,
-        interviewerTurnIndex: lastInterviewer.turnIndex,
-        revealedIds: new Set(revealedIds),
-      });
-      await db.insert(sessionEvents).values(events.map(e => ({
-        sessionId, category: e.category, subtype: e.subtype, turnIndex: e.turnIndex,
-        phase: session.phase, payloadJsonb: e.payload,
-      })));
-    }
+    if (!requests) return; // failed again: stays unmarked; a retried scoring run picks it up
+    await logDataRequestClassification({
+      sessionId,
+      phase: session.phase,
+      requests,
+      candidateTurnIndex: candidate.turnIndex,
+      interviewerTurnIndex: interviewer.turnIndex,
+      revealedIds: new Set(revealedIds),
+    });
+  }));
+  if (unclassified.length > 0) {
+    console.warn('[score] backfilled data-request classification for candidate turns:',
+      JSON.stringify(unclassified.map(u => u.candidate.turnIndex)));
   }
   const dataRequestRows = await db.query.sessionEvents.findMany({
     where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'data_request')),
@@ -191,6 +192,7 @@ export async function POST(
     // judge) and requests for data the case doesn't have.
     dataRequestGaps: dataCoverage.requestedUnanswered.length,
     dataRequestsNotInCase: dataCoverage.requestedNotInCase.length,
+    dataRequestBackfills: unclassified.length,
     // Report coherence (dimension reconciliation): same-concept-both-sides
     // merges, coverage-gap faults dropped, cross-dimension repeats (log only).
     reconcileMerges: merges.length,

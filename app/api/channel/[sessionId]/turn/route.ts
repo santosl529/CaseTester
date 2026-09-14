@@ -2,10 +2,11 @@ import { NextRequest, NextResponse, after } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { runTurn } from '@/lib/orchestrator/session-runner';
 import { assessCoverage } from '@/lib/scoring/coverage';
-import { classifyDataRequests, toDataRequestEvents } from '@/lib/orchestrator/data-requests';
+import { classifyDataRequests } from '@/lib/orchestrator/data-requests';
+import { logDataRequestClassification } from '@/lib/orchestrator/data-request-log';
 import { getCaseById } from '@/lib/cases/loader';
 import { db } from '@/db/client';
-import { sessions, sessionTurns, sessionEvents, revealedData } from '@/db/schema';
+import { sessions, sessionTurns, revealedData } from '@/db/schema';
 import { and, eq, asc } from 'drizzle-orm';
 import { logEvent } from '@/lib/analytics';
 
@@ -82,22 +83,17 @@ export async function POST(
           catalog,
           onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId: user.id }); },
         });
-        if (!requests || requests.length === 0) return;
+        if (!requests) return; // classifier failed: no marker, so scoring backfills this exchange
 
         const revealedRows = await db.query.revealedData.findMany({ where: eq(revealedData.sessionId, sessionId) });
-        const events = toDataRequestEvents(requests, {
+        const events = await logDataRequestClassification({
+          sessionId,
+          phase: session.phase,
+          requests,
           candidateTurnIndex: candidateTurn.turnIndex,
           interviewerTurnIndex: interviewerTurn.turnIndex,
           revealedIds: new Set(revealedRows.map(r => r.ledgerItemId)),
         });
-        await db.insert(sessionEvents).values(events.map(e => ({
-          sessionId,
-          category: e.category,
-          subtype: e.subtype,
-          turnIndex: e.turnIndex,
-          phase: session.phase,
-          payloadJsonb: e.payload,
-        })));
         for (const e of events) {
           if (e.subtype === 'none' && e.payload.ledgerItemId && !e.payload.revealedByNow) {
             console.warn('[data-requests] non-response to available ledger data:', JSON.stringify(e.payload));

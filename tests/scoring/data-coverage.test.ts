@@ -59,6 +59,14 @@ describe('summarizeDataRequests (Rule 11 data-coverage caveat)', () => {
     expect(out).toEqual({ requestedUnanswered: [], requestedNotInCase: [] });
   });
 
+  it('ignores "classified" marker rows (they record that an exchange was checked, not a request)', () => {
+    const out = summarizeDataRequests(
+      [{ subtype: 'classified', turnIndex: 3, payloadJsonb: { interviewerTurnIndex: 4, requestCount: 0 } }],
+      catalog, [],
+    );
+    expect(out).toEqual({ requestedUnanswered: [], requestedNotInCase: [] });
+  });
+
   it('orders results by turn', () => {
     const out = summarizeDataRequests(
       [row('none', 8, 'beans', 'bean_price_change'), row('none', 3, 'ticket', 'avg_ticket')],

@@ -2,8 +2,42 @@ import { describe, it, expect } from 'vitest';
 import {
   parseDataRequestResponse, buildDataRequestPrompt, toDataRequestEvents,
   formatOpenRequestsHint, planForcedReleases, composeForcedReleaseTurn,
+  classifiedMarkerEvent, findUnclassifiedExchanges,
   type LedgerCatalogItem,
 } from '@/lib/orchestrator/data-requests';
+
+describe('classifiedMarkerEvent (classified-empty vs never-classified)', () => {
+  it('marks an exchange as classified with its request count, so zero requests still leaves a trace', () => {
+    expect(classifiedMarkerEvent({ candidateTurnIndex: 4, interviewerTurnIndex: 5, requestCount: 0 })).toEqual({
+      category: 'data_request', subtype: 'classified', turnIndex: 4,
+      payload: { interviewerTurnIndex: 5, requestCount: 0 },
+    });
+  });
+});
+
+describe('findUnclassifiedExchanges (scoring-time backfill)', () => {
+  const t = (turnIndex: number, role: string, text = `turn ${turnIndex}`) => ({ turnIndex, role, text });
+  const transcript = [
+    t(0, 'interviewer'), t(1, 'candidate'), t(2, 'interviewer'),
+    t(3, 'candidate'), t(4, 'interviewer'), t(5, 'candidate'), t(6, 'interviewer'),
+  ];
+
+  it('returns candidate→interviewer exchanges whose candidate turn has no data_request rows', () => {
+    const rows = [
+      { subtype: 'classified', turnIndex: 1 },
+      { subtype: 'none', turnIndex: 5 }, // pre-marker session rows also count as classified
+    ];
+    expect(findUnclassifiedExchanges(transcript, rows)).toEqual([
+      { candidate: t(3, 'candidate'), interviewer: t(4, 'interviewer') },
+    ]);
+  });
+
+  it('skips a trailing candidate turn with no interviewer reply', () => {
+    expect(findUnclassifiedExchanges([...transcript, t(7, 'candidate')], [
+      { subtype: 'classified', turnIndex: 1 }, { subtype: 'classified', turnIndex: 3 }, { subtype: 'classified', turnIndex: 5 },
+    ])).toEqual([]);
+  });
+});
 import { FORCED_RELEASE_LEADINS, alreadySignaledTimeOrRec } from '@/lib/agent/prompts/scripts';
 import { getCaseById } from '@/lib/cases/loader';
 

@@ -129,6 +129,53 @@ export function toDataRequestEvents(
   }));
 }
 
+// ── Classified markers + scoring-time backfill ──────────────────────────────
+// Zero detected requests writes no request rows, so without a marker "checked,
+// nothing asked" is indistinguishable from "never checked" (classifier call
+// failed, background after() dropped). Every successful classification writes
+// one `classified` marker; scoring classifies any exchange that has neither a
+// marker nor request rows. Marker rows carry no `what`, and the summarizer
+// skips them.
+
+export type ClassifiedMarkerEvent = {
+  category: 'data_request';
+  subtype: 'classified';
+  turnIndex: number; // the candidate turn
+  payload: { interviewerTurnIndex: number; requestCount: number };
+};
+
+export function classifiedMarkerEvent(ctx: {
+  candidateTurnIndex: number;
+  interviewerTurnIndex: number;
+  requestCount: number;
+}): ClassifiedMarkerEvent {
+  return {
+    category: 'data_request',
+    subtype: 'classified',
+    turnIndex: ctx.candidateTurnIndex,
+    payload: { interviewerTurnIndex: ctx.interviewerTurnIndex, requestCount: ctx.requestCount },
+  };
+}
+
+// Candidate→interviewer exchanges with no data_request rows at all for the
+// candidate turn. Any row counts — a marker, or request rows from sessions
+// logged before markers existed — so nothing is classified twice.
+export function findUnclassifiedExchanges<T extends { turnIndex: number; role: string }>(
+  transcript: T[],
+  rows: { subtype: string; turnIndex: number | null }[],
+): { candidate: T; interviewer: T }[] {
+  const classified = new Set(rows.map(r => r.turnIndex).filter((t): t is number => t !== null));
+  const out: { candidate: T; interviewer: T }[] = [];
+  for (let i = 0; i < transcript.length - 1; i++) {
+    const candidate = transcript[i];
+    const interviewer = transcript[i + 1];
+    if (candidate.role === 'candidate' && interviewer.role === 'interviewer' && !classified.has(candidate.turnIndex)) {
+      out.push({ candidate, interviewer });
+    }
+  }
+  return out;
+}
+
 // ── Deferral tracking + force-resolve before the recommendation ask ─────────
 // Rule 11 v4.1: open deferrals are resolved before the recommendation ask,
 // not at CLOSE — after the ask, the recommendation is already built on the
