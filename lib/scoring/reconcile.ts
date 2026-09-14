@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { RubricScores, FeedbackItem } from './judge';
 import { RUBRIC_DIMENSION_KEYS, type RubricDimensionKey } from './rubric';
 import { fallbackTopFix } from './verifier';
-import type { RequestedUnanswered } from './data-coverage';
+import type { DataCoverage, RequestedNotInCase, RequestedUnanswered } from './data-coverage';
 import type { OnUsage } from '@/lib/llm-usage';
 
 // Dimension reconciliation (docs/interviewer-behavior.md Rule 3 v4.1;
@@ -180,14 +180,29 @@ export function parseReconcileResponse(raw: string): ReconcileResult | null {
   return parsed.success ? parsed.data : null;
 }
 
-export function buildReconcilePrompt(items: ReconcileItem[], gaps: RequestedUnanswered[]): string {
+// `notInCase` exists to stop over-dropping: run 4's report faulted a "waste
+// narrative" whose disambiguating data (an itemized COGS breakdown) the case
+// doesn't have and the interviewer properly refused — a fair critique that sat
+// in the same quote as the genuinely withheld price question. Listing refused
+// requests explicitly as NOT gaps, plus the "would it still stand with the
+// data?" test, keeps the gap check from swallowing fair critiques.
+export function buildReconcilePrompt(
+  items: ReconcileItem[],
+  gaps: RequestedUnanswered[],
+  notInCase: RequestedNotInCase[] = [],
+): string {
   const itemsText = items.map(i => `${i.id}. [${i.dimension}/${i.section}] ${i.text}`).join('\n');
+  const notGaps = notInCase.length > 0
+    ? `
+NOT GAPS — the candidate also asked for the following, but this data does not exist in the case, so its absence is fair; critiques resting on it must NOT be listed:
+${notInCase.map(n => `- "${n.what}"`).join('\n')}`
+    : '';
   const gapTask = gaps.length > 0
     ? `
 
 TASK 3 — COVERAGE-GAP LEAKS. The candidate asked for the data below, it exists in the case, and the interviewer never provided it (REQUESTED BUT NEVER PROVIDED):
-${gaps.map(g => `- ${g.label} — the candidate asked about "${g.what}"`).join('\n')}
-List every needsWork, missedOpportunities, or topFix item that faults the candidate for an assumption or conclusion that rests on that missing data, or for not reaching an insight that required it. Do NOT list faults that stand on their own regardless of that data. Never list wentWell items.`
+${gaps.map(g => `- ${g.label} — the candidate asked about "${g.what}"`).join('\n')}${notGaps}
+List every needsWork, missedOpportunities, or topFix item that faults the candidate for an assumption or conclusion that rests on the REQUESTED BUT NEVER PROVIDED data, or for not reaching an insight that required it. The test for each item: would the critique still stand if the candidate HAD received that data? If it would still stand, it is not a leak — do not list it, even when the quoted text also mentions the missing data. Never list wentWell items.`
     : '';
 
   return `You are reconciling a case-interview feedback report so it doesn't contradict itself. Items are numbered; each is tagged [dimension/section].
@@ -206,10 +221,11 @@ Use empty arrays when there is nothing to report.`;
 
 export async function runReconciliation(
   rubric: RubricScores,
-  gaps: RequestedUnanswered[],
+  dataCoverage: DataCoverage, // lib/scoring/data-coverage.ts — gaps to check, refused requests as counter-examples
   onUsage?: OnUsage, // lib/llm-usage.ts — token reporting for $/case (PRD §13)
 ): Promise<ReconcileOutcome> {
   const unchanged: ReconcileOutcome = { rubric, merges: [], gapDrops: [], crossDimension: [] };
+  const gaps = dataCoverage.requestedUnanswered;
 
   // Skip the call when no job could possibly find anything.
   const anyBothSides = RUBRIC_DIMENSION_KEYS.some(k => rubric[k].wentWell.length > 0 && rubric[k].needsWork.length > 0);
@@ -223,7 +239,7 @@ export async function runReconciliation(
     const response = await client.messages.create({
       model: RECONCILE_MODEL_ID,
       max_tokens: 4096,
-      messages: [{ role: 'user', content: buildReconcilePrompt(items, gaps) }],
+      messages: [{ role: 'user', content: buildReconcilePrompt(items, gaps, dataCoverage.requestedNotInCase) }],
     });
     onUsage?.({
       component: 'reconcile',

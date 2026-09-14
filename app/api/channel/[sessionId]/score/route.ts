@@ -142,7 +142,7 @@ export async function POST(
   // merge same-concept strength/weakness pairs, drop faults resting on
   // requested-but-never-provided data (Rule 11), log cross-dimension repeats.
   const { rubric, merges, gapDrops, crossDimension } = await runReconciliation(
-    verifiedRubric, dataCoverage.requestedUnanswered, u => logUsage({ ...u }),
+    verifiedRubric, dataCoverage, u => logUsage({ ...u }),
   );
   if (merges.length > 0) console.warn('[score] reconciliation merged both-sides claims:', JSON.stringify(merges));
   if (gapDrops.length > 0) console.warn('[score] reconciliation dropped coverage-gap faults:', JSON.stringify(gapDrops));

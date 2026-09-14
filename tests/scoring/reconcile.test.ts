@@ -192,6 +192,27 @@ describe('parseReconcileResponse', () => {
 });
 
 describe('buildReconcilePrompt', () => {
+  const gap = { ledgerItemId: 'avg_ticket', label: 'Average transaction value', what: 'menu price history', turnIndex: 12 };
+
+  it('lists properly refused not-in-case requests as NOT gaps, so fair critiques are not dropped', () => {
+    const items = collectReconcileItems(baseRubric());
+    const prompt = buildReconcilePrompt(items, [gap], [
+      { what: 'itemized COGS breakdown', response: 'refuse', turnIndex: 5 },
+    ]);
+    const counter = prompt.split('NOT GAPS')[1];
+    expect(counter).toBeDefined();
+    expect(counter).toContain('itemized COGS breakdown');
+    // The test for a leak is whether the critique would stand WITH the data.
+    expect(prompt).toContain('would still stand');
+  });
+
+  it('never adds the gap task for not-in-case requests alone', () => {
+    const items = collectReconcileItems(baseRubric());
+    const prompt = buildReconcilePrompt(items, [], [{ what: 'store-level data', response: 'refuse', turnIndex: 1 }]);
+    expect(prompt).not.toContain('REQUESTED BUT NEVER PROVIDED');
+    expect(prompt).not.toContain('NOT GAPS');
+  });
+
   it('includes the coverage-gap task only when gaps exist', () => {
     const items = collectReconcileItems(baseRubric());
     expect(buildReconcilePrompt(items, [])).not.toContain('REQUESTED BUT NEVER PROVIDED');
