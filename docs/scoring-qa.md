@@ -10,10 +10,11 @@ built — do not let the mark rot.
 ## Report verification pipeline
 
 Order is load-bearing: **artifact detection → evidence audit → omission-claim
-verifier**. Artifact detection first, or both audits run against contaminated
-transcripts (run 3's duplicated opening turn) and give false confidence; the
-verifier last, because it judges absence against the artifact-cleaned
-transcript.
+verifier → dimension reconciliation**. Artifact detection first, or both audits
+run against contaminated transcripts (run 3's duplicated opening turn) and give
+false confidence; the verifier before reconciliation, because removing or
+rewriting a claim can itself create — or resolve — a both-sides collision, so
+reconciliation must see the final claim set.
 
 ### 1. Transcript-artifact detection [implemented: `lib/scoring/transcript-artifacts.ts`]
 
@@ -74,6 +75,20 @@ The batched version fails open (a malformed verifier response ships the
 unverified report rather than blocking scoring) — keep that property in any
 upgrade.
 
+### 4. Dimension reconciliation — both-sides collisions [pending]
+
+After the verifier, an LLM pass scans each dimension for the same concept
+appearing under both What Went Well and What Needs Work (run 4: Business
+Judgment credited implicit elasticity targeting and faulted not naming
+elasticity risk). On a hit, merge into one calibrated statement placed on the
+side the rating reflects: `strong` → wentWell; `meets_bar` / `needs_work` →
+needsWork. Log every merge. Fails open like the verifier: a malformed response
+ships the unreconciled report.
+
+The same pass logs **cross-dimension repetition** — a concept appearing as a
+weakness in 3+ dimensions (the Jul 17 run `81ed3af7` charged one misdiagnosis
+in four). Logged only, not merged: some repetition is legitimate evidence.
+
 ## Judge requirements
 
 ### Recompute grading [implemented: `buildMathCheckSection` in `lib/scoring/judge.ts`]
@@ -115,6 +130,26 @@ withheld. (The judge may still weigh how hard the candidate pursued the missing
 data.) The paired interviewer-side fix (reveal data the candidate has earned
 and asked for, rather than deflecting) lives in the system prompt's DATA AND
 EXHIBITS section.
+
+### Data-coverage caveat — requested vs. never requested [pending]
+
+interviewer-behavior Rule 11 (v4.1). The section above lists *every*
+unrevealed item, so it cannot tell the judge which gaps are coverage gaps. Run
+4 shows that isn't enough: the report conceded "the disambiguating data was
+never provided" and still charged the unverified assumption to the candidate.
+Required split:
+
+- **Requested and unanswered** (a detected request mapped to a ledger item that
+  was never released, refused, or resolved): a coverage gap. The judge sets a
+  coverageCaveat on the dimension(s) whose conclusions rest on it and must not
+  fault the candidate for the unverified assumption — including in the Top
+  Improvement.
+- **Available but never requested**: fair game — not pursuing data is
+  candidate performance.
+- **Requested but not in the ledger** (properly refused): fair game — the
+  candidate was told it doesn't exist and could reason around it.
+
+Blocked on the Rule 11 request detector (soft signal) and the non-response log.
 
 ### Coverage caveats [implemented: `coverageCaveat` in `lib/scoring/judge.ts`]
 
@@ -220,3 +255,9 @@ forever.
   `intervention`) — struggling-candidate load measure. [logged; not aggregated]
 - Conduct-event rate by category (`session_events`, category `conduct`) —
   internal only. [logged; not aggregated]
+- Same-concept-both-sides rate (dimension reconciliation merges) — report
+  coherence measure, same family as contradicted-claim rate. [pending]
+- Cross-dimension repetition rate (concept as a weakness in 3+ dimensions) —
+  report coherence, logged to inform a future rule. [pending]
+- Data-request non-response rate (interviewer-behavior Rule 11), split by
+  ledger-exists vs. not. [pending]

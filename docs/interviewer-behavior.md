@@ -1,4 +1,14 @@
-# Interviewer Behavior Rules (v4)
+# Interviewer Behavior Rules (v4.1)
+
+**v4.1 changes (run 4 review):** Rule 11 gains a third failure mode — silent
+non-response to a data request is as bad as silent substitution; every request
+must be released, refused, or explicitly deferred. Rule 11 also gains the
+data-coverage caveat: a conclusion the candidate could not verify because
+requested-and-available data was withheld is a session-coverage gap, not a
+judgment weakness — the data-side analogue of the assisted-vs-covered rule for
+stages. Rule 3 gains a dimension-reconciliation pass: the same concept must not
+appear as both strength and weakness within one rubric dimension. New worked
+conflict resolution: time warning + open data request.
 
 ## Precedence hierarchy (global tiebreaker)
 
@@ -10,7 +20,8 @@ anticipates, resolve by tier — higher tier wins:
   everything below, including data integrity: when a distress signal fires,
   the case stops mattering.
 - **Tier 1 — State & data integrity** — provenance audit (6), silent state
-  repair (8), no silent data substitution (11), no fabricated claims (3)
+  repair (8), every data request released/refused/deferred — never ignored,
+  never substituted (11), no fabricated claims (3)
 - **Tier 2 — Time-boxing & close** — time warning, CLOSE criterion (12), load
   shedding (15)
 - **Tier 3 — Corrections** — case-breaking math corrections (14), factual
@@ -55,6 +66,13 @@ same way):
   so the audit passes the correction. If a correction figure somehow lacks
   derived provenance, Tier 1 wins: the turn is blocked and the orchestrator
   regenerates it with the recompute output.
+- **Time warning due + open data request (Tier 1 vs. Tier 2):** both fire in
+  one turn, request first — release or refuse, then the recommendation ask:
+  "The average transaction is $6.80, up from $6.20 two years ago. And we're
+  near time: what's your bottom-line recommendation?" Deferral is not available here: there is
+  no later turn to defer to. Run 4 (3:39) is the failure this prevents — the
+  orchestrator-scripted warning displaced the candidate's price request, and
+  the recommendation inherited the unverified assumption.
 
 ## Exempt turn types (single whitelist)
 
@@ -161,7 +179,7 @@ candidate actually said. Restating a question as an assertion is a violation.
 alongside fabricated case data (FR-4): any quote or paraphrase attributed to
 the candidate must be supported by an actual candidate turn.
 
-**Report-side enforcement — two audits for two claim types** (normative text
+**Report-side enforcement — three checks for three claim defects** (normative text
 in `docs/scoring-qa.md`; summarized here so the pipeline ordering is visible
 where the rule lives):
 
@@ -187,12 +205,39 @@ where the rule lives):
      — never a flat "omitted."
   4. All verifier decisions logged; contradicted-claim rate is a tracked
      scoring-QA metric (it measures judge hallucination directly).
+- **Self-contradicting claims within a dimension** → the
+  **dimension-reconciliation pass**, an LLM pass ("same concept" is a
+  semantic judgment, not string-matchable). Run 4: Business Judgment credited
+  "recognized demand elasticity implicitly by targeting select premium items"
+  under What Went Well and faulted "did not surface the key risk of a price
+  increase (demand elasticity / volume loss)" under What Needs Work. Both are
+  defensible in isolation — implicit targeting is not naming a risk — but a
+  user reading one dimension concludes the scorer is confused. Mechanism:
+  after the evidence audit and omission verifier, scan each dimension for the
+  same concept appearing on both sides; on a hit, merge into one calibrated
+  statement ("recognized elasticity implicitly in targeting premium SKUs, but
+  never named volume loss as the risk") placed on the side the rating
+  reflects — `strong` → What Went Well; `needs_work` and `meets_bar` → What
+  Needs Work (a qualified "did X but not Y" describes a skill not yet
+  reliable, which is what `meets_bar` means). Log every merge; the
+  same-concept-both-sides rate is a tracked scoring-QA metric, in the same
+  family as the contradicted-claim rate — both measure report coherence,
+  which is what users actually judge the product on.
+
+**Cross-dimension repetition (tracked, not merged):** one root error can be
+charged in several dimensions — the Jul 17 run (`81ed3af7`) penalized the same
+mix-vs-input-cost misdiagnosis in Data Interpretation, Business Judgment,
+Synthesis, and Pushback. Some repetition is legitimate (one error can be
+genuine evidence on several dimensions), so this is not blocked or merged; the
+reconciliation pass logs concepts appearing as a weakness in 3+ dimensions as
+a report-coherence metric, so the rate is visible before deciding on a rule.
 
 **Pipeline order is load-bearing:** transcript-artifact detection → evidence
-audit → omission verifier. Artifact detection first, or both audits run
-against contaminated transcripts (run 3's duplicated turn) and give false
-confidence; the verifier last, because it needs the artifact-cleaned
-transcript to judge absence against.
+audit → omission verifier → dimension reconciliation. Artifact detection
+first, or both audits run against contaminated transcripts (run 3's duplicated
+turn) and give false confidence; the verifier before reconciliation, because
+removing or rewriting a claim can itself create — or resolve — a both-sides
+collision, so reconciliation must see the final claim set.
 
 ## 4. At most one candidate task per turn; Socratic, not coaching — with a rescue exception
 
@@ -417,20 +462,89 @@ every turn would false-positive on math-correction and orchestrator-derived
 commentary. `show_exhibit` calls accompanied by empty utterance text are not
 yet separately checked.
 
-## 11. Unavailable data: refuse explicitly, never substitute
+## 11. Data requests: release, refuse, or defer — never ignore; never substitute
 
 Run 1 silently swapped different data for the vintage split the candidate
-asked for twice. Runs 2–3 executed the fix well; codifying it.
+asked for twice. Runs 2–3 executed the refusal fix well. Run 4 exposed a third
+failure mode: silent non-response. Twice the candidate requested data and
+received neither a release nor a refusal — just a redirect to the next
+interviewer agenda item (0:21, store-level concentration → structure probe;
+3:39, menu price history → time warning). The second case mattered: the price
+data exists in the ledger (`avg_ticket`, released in run 2 as $6.80, up from
+$6.20), the candidate's entire prioritization rested on assuming prices had
+not moved, and the recommendation inherited that assumption. (The Jul 17 run,
+`81ed3af7`, shows the same pattern on the root cause: at 3:28 the candidate
+asked "Is this commodity inflation, or something else?", the bean-price item
+was in the ledger, and the interviewer answered with a lever question.)
 
-**Rule:** the interviewer responds to the data actually requested, or
-explicitly states it is unavailable and redirects: "I don't have that level of
-detail. What would you do next to narrow it down?" Silently substituting
-different data is a violation even when the substituted data is
-ledger-accurate. "We don't have that cut" is itself realistic interviewer
-behavior.
+**Rule:** every candidate data request gets exactly one of three responses:
+
+1. **Release** — the data, labeled per Rule 10.
+2. **Refuse** — "I don't have that level of detail. What would you do next to
+   narrow it down?" (Realistic interviewer behavior; "we don't have that cut"
+   is a legitimate answer.)
+3. **Defer** — explicitly and audibly: "Hold that — let's come back to it."
+
+**Timing:** the response is due in the interviewer turn immediately after the
+request. One extension: if that turn asks which cut the candidate means ("price
+per cup or average transaction?"), the response is due in the turn after the
+candidate clarifies. Nothing else extends it.
+
+**Deferral limits** — deferral is the escape hatch most likely to be abused,
+by the model (a polite way to avoid a request) or by candidates (asking for
+everything up front to bank coverage excuses):
+
+- A deferred request is tracked. The orchestrator force-resolves every open
+  deferral — release or refuse — **before the recommendation ask**, not at
+  CLOSE: after the ask, the recommendation has already been built on the
+  assumption.
+- Deferral is unavailable once the time warning is due (worked conflict
+  resolution, top of doc): there is no later turn to defer to.
+- An unresolved deferral converts to a coverage gap (below) only if
+  force-resolution failed — it is an interviewer failure, not a default path.
+
+Silently substituting different data is a violation even when the substituted
+data is ledger-accurate. Silently ignoring a request is equally a violation:
+from the candidate's side, an unanswered request and a refused one lead to
+opposite inferences — the first leaves them assuming, the second makes them
+reason around a known gap.
+
+**Data-coverage caveat (scoring attribution).** Rule 13's assisted-vs-covered
+rule settles attribution for stages; this is the same rule for data. When a
+candidate's conclusion rests on an assumption they tried to verify and the
+interviewer withheld available ledger data — or never answered — the gap is
+attributed to session coverage, not candidate judgment. The judge sets a
+coverageCaveat on the affected dimension(s) and must not fault the candidate
+for the unverified assumption. Run 4's report did exactly the wrong thing here:
+its Top Improvement criticized the candidate for anchoring on an unverified
+waste narrative while, in the same paragraph, conceding "the disambiguating
+data was never provided." The engine noticed the gap and charged it to the
+candidate anyway.
+
+Distinguish the two cases: data that does not exist in the ledger and was
+properly refused leaves the candidate free to reason about it — an unverified
+conclusion there is fair game for scoring. Data that exists and was withheld or
+ignored is a coverage gap. The caveat is scoped to conclusions that **rest on**
+the unanswered request — it is not a blanket excuse for the dimension, and data
+the candidate never asked for earns no caveat. The ledger side of this
+distinction is deterministic: `releaseWhen` is advisory, not enforced, so
+available data that went unreleased was always the interviewer's choice.
 
 **Cross-reference:** what data exists is governed by the ledger
 (`docs/case-authoring.md`); how its absence is communicated is governed here.
+
+**QA check — soft detection, deterministic ledger match.** Detecting that a
+candidate turn *contains* a data request is not deterministic: candidate turns
+are long and full of rhetorical questions ("What's the story there?"), and
+"Data I'd pull: product mix by year…" may or may not be a request. Request
+detection is a heuristic/model classification and is a **soft signal** (same
+knowing downgrade as Rule 4's enforcement note). What is deterministic: whether
+a detected request maps to a ledger item (closed-catalog label match) and
+whether that item was released. Each detected request is matched to a release,
+refusal, or explicit deferral within the timing window above; unmatched
+requests are logged as non-responses; an unmatched request whose data exists in
+the ledger feeds the judge a requested-and-unanswered entry that drives the
+coverageCaveat.
 
 ## 12. Case close and time-boxing are deterministic
 
@@ -759,7 +873,7 @@ administering" becomes the screenshot.
 | — | Precedence hierarchy | global tiebreaker in prompt | n/a (resolves unanticipated collisions) |
 | 1 | No sycophancy | hard constraint | post-turn praise-word lint |
 | 2 | Structure + live math | phase gate, probe scoping; unit errors addressed, mode per Rule 14 | ledger recompute hint; probe gated on recompute flag |
-| 3 | No fabricated claims | attribution constraint | post-turn claim-vs-transcript audit; report-side: evidence audit (positive claims) + omission-claim verifier (negative claims), after artifact detection |
+| 3 | No fabricated claims | attribution constraint | post-turn claim-vs-transcript audit; report-side: evidence audit (positive claims) + omission-claim verifier (negative claims) + dimension-reconciliation pass (both-sides collisions; cross-dimension repetition logged), after artifact detection |
 | 4 | ≤1 candidate task; Socratic default | constraint + rescue exception | 2+ question marks → QA flag (soft signal, not a gate) |
 | 5 | 1–3 sentence turns | word ceiling | length audit → shared exempt-turn whitelist |
 | 6 | Candidate numbers: 4 options | constraint | provenance audit, action-tiered, 3 valid provenances; covers digit numerals + normalized number words/ranges/multipliers; fuzzy magnitudes log-only |
@@ -767,7 +881,7 @@ administering" becomes the screenshot.
 | 8 | Phase sync | phase guide | per-phase budget nudge; silent state repair always permitted; advancedLastTurn gates behavior shift only |
 | 9 | Administer scored phases | phase guide | stage-coverage log → coverageCaveat |
 | 10 | Labeled data read-outs | constraint | numeral-label lint (correction turns exempt); non-empty exhibit turns |
-| 11 | No silent substitution | constraint | request-vs-response data match audit |
+| 11 | Release, refuse, or defer — never ignore; never substitute | constraint + deferral limits | request detection (soft signal) → deterministic ledger match; non-response log; open deferrals force-resolved before the recommendation ask; ledger-exists + unanswered → coverageCaveat |
 | 12 | Close + time-boxing | CLOSE criterion; ask-before-ladder ordering | T−30s trigger; close-in-transcript check |
 | 13 | Stall ladder | ladder in prompt; Level 2 cap at synthesis; assisted ≠ covered | silence/no-progress triggers; clarifying-Q budget (N consecutive, verbatim-repeat excluded); hint log |
 | 14 | Math bands + error class + 2-attempt cap | routing boundary (misquote → 6-correct); correction + fast-path scripts | bands, ≥2× magnitude threshold, and class assignment in recompute spec; attempt counter |
@@ -777,3 +891,11 @@ administering" becomes the screenshot.
 | 17 | Conduct categories C1–C5 | in-persona warning + persona-break scripts | directedness classifier (2nd-person + lexicon, model tiebreak); verbatim injection log; conduct-event log |
 | 18 | Termination mechanics | closing sentence only | orchestrator-executed close; no scores, no debrief; post-termination messages get no response |
 | 19 | Pause mechanics | pause offer script (C5) | state preservation; pause-interval exclusion; abandoned ≠ failed in analytics |
+
+**Design principle (recorded from v3.2 review):** deterministic backstops keep
+being specified against the typical surface form of a risk (digit numerals,
+unit errors) rather than the underlying risk (any fabricated quantity, any
+conclusion-changing error). When adding a new check, ask what the risk looks
+like in its least typical form — and route that form to the log-only tier if
+it can't be blocked deterministically. The block tier catches the pattern; the
+log catches the pattern's disguises.
