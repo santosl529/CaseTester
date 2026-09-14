@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { OnUsage } from '@/lib/llm-usage';
+import type { RequestedUnanswered } from '@/lib/scoring/data-coverage';
 
 // Rule 11 (docs/interviewer-behavior.md v4.1): every candidate data request is
 // released, refused, or audibly deferred — never ignored. Run 4 had two silent
@@ -126,6 +127,61 @@ export function toDataRequestEvents(
       revealedByNow: r.ledgerItemId !== null && ctx.revealedIds.has(r.ledgerItemId),
     },
   }));
+}
+
+// ── Deferral tracking + force-resolve before the recommendation ask ─────────
+// Rule 11 v4.1: open deferrals are resolved before the recommendation ask,
+// not at CLOSE — after the ask, the recommendation is already built on the
+// assumption. Pure helpers; session-runner.ts does the I/O.
+
+// Interviewer-facing reminder of ledger data the candidate asked for that is
+// still unreleased. Labels only — never values (FR-4).
+export function formatOpenRequestsHint(gaps: RequestedUnanswered[]): string | undefined {
+  if (gaps.length === 0) return undefined;
+  const lines = gaps
+    .map(g => `- ${g.label} — asked about "${g.what}"${g.turnIndex === null ? '' : ` (turn ${g.turnIndex})`}`)
+    .join('\n');
+  return `OPEN DATA REQUESTS (the candidate asked for these and they are still unreleased):
+${lines}
+Release each with reveal_data as soon as the candidate has earned it; if one is still genuinely premature, say out loud that you'll come back to it. All of them must be released BEFORE you ask for the recommendation.`;
+}
+
+// Which open requests to force-release on a recommendation-ask turn: not
+// already revealed (including reveals made earlier this turn), earliest ask
+// first, capped so a wrap-up turn never becomes a data monologue.
+export function planForcedReleases(gaps: RequestedUnanswered[], revealedIds: Set<string>, cap = 2): string[] {
+  const seen = new Set<string>();
+  return [...gaps]
+    .sort((a, b) => (a.turnIndex ?? Infinity) - (b.turnIndex ?? Infinity))
+    .filter(g => !revealedIds.has(g.ledgerItemId) && !seen.has(g.ledgerItemId) && seen.add(g.ledgerItemId))
+    .slice(0, cap)
+    .map(g => g.ledgerItemId);
+}
+
+// Assemble the turn so released data always lands BEFORE the recommendation
+// ask (worked conflict resolution "time warning + open data request"):
+// - scripted warning: model text → release → warning
+// - model asked on its own: release inserted just before the first sentence
+//   that asks (or first, if no single sentence matches)
+// With nothing to release, output is exactly the pre-v4.1 behavior.
+export function composeForcedReleaseTurn(params: {
+  spokenText: string;
+  releaseValues: string[];
+  leadIn: string;
+  warningLine?: string;
+  isAskSentence?: (sentence: string) => boolean;
+}): string {
+  const join = (parts: (string | undefined)[]) => parts.map(p => p?.trim()).filter(Boolean).join(' ');
+  const { spokenText, releaseValues, leadIn, warningLine, isAskSentence } = params;
+
+  if (releaseValues.length === 0) return join([spokenText, warningLine]);
+  const release = join([leadIn, ...releaseValues]);
+  if (warningLine) return join([spokenText, release, warningLine]);
+
+  const sentences = spokenText.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+  const askIdx = isAskSentence ? sentences.findIndex(isAskSentence) : -1;
+  if (askIdx === -1) return join([release, spokenText]);
+  return join([...sentences.slice(0, askIdx), release, ...sentences.slice(askIdx)]);
 }
 
 export async function classifyDataRequests(params: {

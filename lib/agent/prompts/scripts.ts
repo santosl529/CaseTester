@@ -33,6 +33,16 @@ export const EXHIBIT_REFUSAL_SCRIPTS = [
   "That's not something I have a chart for. What would you ask for instead?",
 ];
 
+// Rule 11 v4.1 force-resolve: lead-in spoken before ledger data the candidate
+// asked for earlier and never got, released just before the recommendation
+// ask (session-runner.ts). The ledger value follows verbatim and carries its
+// own label (Rule 10), so these stay numeral-free (Rule 6 provenance).
+export const FORCED_RELEASE_LEADINS = [
+  "Before we wrap, on what you asked about earlier:",
+  "One thing you asked for earlier:",
+  "Picking up what you asked about before:",
+];
+
 export const CLOSE_SCRIPTS = [
   "That's time. Thanks for working through it.",
   "We'll stop there. Thanks for working through the case.",

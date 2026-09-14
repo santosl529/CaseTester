@@ -546,6 +546,22 @@ requests are logged as non-responses; an unmatched request whose data exists in
 the ledger feeds the judge a requested-and-unanswered entry that drives the
 coverageCaveat.
 
+**Implementation status:** request detection and the non-response log run as a
+background Haiku pass per exchange (`lib/orchestrator/data-requests.ts`,
+`data_request` session events). Each turn, still-unreleased ledger requests are
+injected into the interviewer prompt as an OPEN DATA REQUESTS reminder. On any
+recommendation-ask turn — the scripted T−30s warning or the model asking on its
+own — the runner classifies the current candidate message synchronously and
+force-releases up to two open ledger requests before the ask
+(`composeForcedReleaseTurn`), so the worked conflict resolution above is
+enforced in code, not only prompted. Scoring-side split: `docs/scoring-qa.md`.
+Not built: forced refusal of requests for data not in the ledger (it would mean
+speaking classifier-generated text — logged only), and any check that a
+deferral was actually spoken (deferral itself is prompt-level). Known cost: the
+synchronous classification adds one Haiku call to ask turns, and a classifier
+false positive can release a ledger item the candidate didn't ask for — at the
+recommendation ask, where early release is least harmful.
+
 ## 12. Case close and time-boxing are deterministic
 
 Run 2: "Let's continue — what are your thoughts?" after the final

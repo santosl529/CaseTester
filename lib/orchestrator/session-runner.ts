@@ -1,6 +1,10 @@
 import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
+import {
+  classifyDataRequests, toDataRequestEvents, formatOpenRequestsHint, planForcedReleases, composeForcedReleaseTurn,
+} from './data-requests';
+import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
 import {
   createLedger, canReveal, reveal, resolveItemId, revealedValues, unrevealedItems,
@@ -20,7 +24,7 @@ import { nextPhase, TOTAL_CASE_MS, type Phase } from './state-machine';
 import { runInterviewerTurn } from '@/lib/agent/interviewer';
 import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import {
-  TIME_WARNING_SCRIPTS, CLOSE_SCRIPTS, REVEAL_REFUSAL_SCRIPTS, EXHIBIT_REFUSAL_SCRIPTS,
+  TIME_WARNING_SCRIPTS, CLOSE_SCRIPTS, REVEAL_REFUSAL_SCRIPTS, EXHIBIT_REFUSAL_SCRIPTS, FORCED_RELEASE_LEADINS,
   pickScript, alreadySignaledTimeOrRec,
   CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, DISTRESS_OFFER, DISTRESS_CLOSE,
 } from '@/lib/agent/prompts/scripts';
@@ -43,6 +47,10 @@ export type TurnResult = {
   // Set when the session ended WITHOUT producing a score (conduct termination
   // or C5-accepted abandonment). The client must not trigger scoring.
   scoringSuppressed?: boolean;
+  // Set when this turn's exchange was already classified for data requests
+  // synchronously (recommendation-ask turns) — the turn route's background
+  // pass must skip it, or the rows would be logged twice.
+  dataRequestsClassified?: boolean;
 };
 
 type ConductFlags = { warnings?: number; distressOffered?: boolean; category?: string };
@@ -167,6 +175,18 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     try { reveal(ledger, r.ledgerItemId); } catch { /* ignore */ }
   }
 
+  // Rule 11 deferral tracking: ledger data the candidate asked for (logged by
+  // earlier turns' background classifier) that is still unreleased. Lags a
+  // turn, which is fine for deferrals; the same-turn case is handled at the
+  // recommendation ask below.
+  const catalog = caseData.dataLedger.map(d => ({ id: d.id, label: d.label }));
+  const dataRequestRows = (await db.query.sessionEvents.findMany({
+    where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'data_request')),
+  })).map(r => ({ subtype: r.subtype, turnIndex: r.turnIndex, payloadJsonb: r.payloadJsonb }));
+  const openDataRequestsHint = formatOpenRequestsHint(
+    summarizeDataRequests(dataRequestRows, catalog, Object.keys(revealedValues(ledger))).requestedUnanswered,
+  );
+
   const elapsedMs = now - session.startedAt.getTime();
   const timeUp = elapsedMs >= TOTAL_CASE_MS;
 
@@ -233,6 +253,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
       stallGuidance: stallDecision.guidance,
       coverageSteer,
       mayEnd,
+      openDataRequestsHint,
     },
   });
   const modelLatencyMs = Date.now() - modelCallStart;
@@ -345,19 +366,68 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     ended = true;
   }
 
+  // Rule 11 + the "time warning + open data request" worked conflict
+  // resolution (docs/interviewer-behavior.md v4.1): before ANY recommendation
+  // ask goes out — the scripted T−30s warning or the model asking on its own —
+  // release open ledger requests first, in the same turn. This candidate
+  // message is classified synchronously here because run 4's ignored price
+  // request was in the very message the warning answered, which the lagging
+  // background log can't see yet. One Haiku call, only on ask turns.
+  const warningDue = shouldFireTimeWarning && !ended;
+  const modelAsked = !ended && alreadySignaledTimeOrRec(spokenText);
+  const forcedReleaseValues: string[] = [];
+  let dataRequestsClassified = false;
+  if (warningDue || modelAsked) {
+    const revealedNow = new Set(Object.keys(revealedValues(ledger)));
+    const current = await classifyDataRequests({
+      candidateText,
+      interviewerText: spokenText,
+      catalog,
+      onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId: session.userId }); },
+    });
+    let currentRows: typeof dataRequestRows = [];
+    if (current !== null) {
+      dataRequestsClassified = true;
+      const events = toDataRequestEvents(current, {
+        candidateTurnIndex: nextTurnIndex, interviewerTurnIndex: nextTurnIndex + 1, revealedIds: revealedNow,
+      });
+      if (events.length > 0) {
+        await db.insert(sessionEvents).values(events.map(e => ({
+          sessionId, category: e.category, subtype: e.subtype, turnIndex: e.turnIndex,
+          phase: currentPhase, payloadJsonb: e.payload,
+        })));
+      }
+      currentRows = events.map(e => ({ subtype: e.subtype, turnIndex: e.turnIndex, payloadJsonb: e.payload }));
+    }
+    const gaps = summarizeDataRequests([...dataRequestRows, ...currentRows], catalog, [...revealedNow]).requestedUnanswered;
+    const forcedIds: string[] = [];
+    for (const itemId of planForcedReleases(gaps, revealedNow)) {
+      if (!canReveal(ledger, itemId)) continue;
+      forcedReleaseValues.push(reveal(ledger, itemId));
+      newReveals.push(itemId);
+      forcedIds.push(itemId);
+    }
+    if (forcedIds.length > 0) {
+      console.warn('[runner] force-released open data requests before the recommendation ask:', JSON.stringify(forcedIds));
+      await logEvent('data_force_released', { itemIds: forcedIds, trigger: warningDue ? 'time_warning' : 'model_ask', phase: currentPhase },
+        { sessionId, userId: session.userId });
+    }
+  }
+  const forcedLeadIn = pickScript(FORCED_RELEASE_LEADINS, sessionId);
+
   // Rule 12: deterministic T−30s time warning, orchestrator-emitted — but only
   // as a BACKSTOP. If the model already warned or asked for the recommendation
   // this turn, appending the script just stutters ("We're nearly out of time..."
-  // + "We're near time..."), so suppress the append and mark it handled.
+  // + "We're near time..."), so suppress the append and mark it handled. Any
+  // forced release above lands before the ask either way.
   let timeWarningFiredThisTurn = false;
-  if (shouldFireTimeWarning && !ended) {
-    if (alreadySignaledTimeOrRec(spokenText)) {
-      timeWarningFiredThisTurn = true; // model handled it; don't fire again later
-    } else {
-      const warningLine = pickScript(TIME_WARNING_SCRIPTS, sessionId);
-      spokenText = spokenText ? `${spokenText} ${warningLine}` : warningLine;
-      timeWarningFiredThisTurn = true;
-    }
+  if (warningDue) {
+    spokenText = modelAsked
+      ? composeForcedReleaseTurn({ spokenText, releaseValues: forcedReleaseValues, leadIn: forcedLeadIn, isAskSentence: alreadySignaledTimeOrRec })
+      : composeForcedReleaseTurn({ spokenText, releaseValues: forcedReleaseValues, leadIn: forcedLeadIn, warningLine: pickScript(TIME_WARNING_SCRIPTS, sessionId) });
+    timeWarningFiredThisTurn = true;
+  } else if (forcedReleaseValues.length > 0) {
+    spokenText = composeForcedReleaseTurn({ spokenText, releaseValues: forcedReleaseValues, leadIn: forcedLeadIn, isAskSentence: alreadySignaledTimeOrRec });
   }
 
   // Rule 12: guarantee a close line if the case ends with nothing spoken.
@@ -458,5 +528,6 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     phase: ended ? 'SCORING' : nextPhaseValue,
     ended,
     auditPassed: auditResult.passed,
+    dataRequestsClassified,
   };
 }

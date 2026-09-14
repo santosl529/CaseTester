@@ -163,6 +163,11 @@ describe('buildSystemPrompt data requests (Rule 11 v4.1: release, refuse, or def
     expect(prompt).toContain('Deferral is no longer available');
   });
 
+  it('injects the open-data-requests hint when provided', () => {
+    const prompt = buildSystemPrompt(ctx({ openDataRequestsHint: 'OPEN DATA REQUESTS — test hint' }));
+    expect(prompt).toContain('OPEN DATA REQUESTS — test hint');
+  });
+
   it('does not add the time-pressure data-request ordering early in the case', () => {
     expect(buildSystemPrompt(ctx({ elapsedMs: 0.4 * TOTAL }))).not.toContain('Deferral is no longer available');
   });

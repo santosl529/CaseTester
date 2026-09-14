@@ -79,7 +79,13 @@ export async function POST(
   const catalog = caseData.dataLedger.map(d => ({ id: d.id, label: d.label }));
   const lastInterviewer = transcript.at(-1);
   const lastCandidate = transcript.at(-2);
-  if (lastInterviewer?.role === 'interviewer' && lastCandidate?.role === 'candidate') {
+  // The runner already classifies recommendation-ask turns synchronously; don't
+  // re-log an exchange that has rows (a retried scoring run would too).
+  const priorRequestRows = await db.query.sessionEvents.findMany({
+    where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'data_request')),
+  });
+  const finalExchangeLogged = priorRequestRows.some(r => r.turnIndex === lastCandidate?.turnIndex);
+  if (lastInterviewer?.role === 'interviewer' && lastCandidate?.role === 'candidate' && !finalExchangeLogged) {
     const finalRequests = await classifyDataRequests({
       candidateText: lastCandidate.text,
       interviewerText: lastInterviewer.text,

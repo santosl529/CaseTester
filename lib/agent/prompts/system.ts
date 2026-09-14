@@ -30,6 +30,9 @@ export type PromptContext = {
   // and whether the case may wrap yet. From the background coverage agent.
   coverageSteer?: string;
   mayEnd?: boolean;
+  // Rule 11 deferral tracking (lib/orchestrator/data-requests.ts): ledger data
+  // the candidate asked for that is still unreleased. Labels only, never values.
+  openDataRequestsHint?: string;
 };
 
 // What each phase is for and when to leave it. The model owns pacing; this is
@@ -164,7 +167,7 @@ DATA AND EXHIBITS:
 - When you call reveal_data, the system speaks the value verbatim immediately after your words. End your spoken text with a short natural handoff — "Here's what I have on bean costs:" — and say nothing after it. Never state, guess, or paraphrase the value yourself.
 - If the candidate asks for an exhibit, show it with show_exhibit — a real interviewer hands over the page when asked. Do not re-show an exhibit already on the table.
 - NEVER promise data or an exhibit without delivering it: if your spoken text says you are giving something, the matching reveal_data or show_exhibit call must be in this same turn.
-
+${ctx.openDataRequestsHint ? `\n${ctx.openDataRequestsHint}\n` : ''}
 ${ctx.stallGuidance ? `${ctx.stallGuidance}\nThis stall guidance takes priority over the demeanor/rigor defaults for THIS turn.\n` : ''}
 FLOW:
 ${PHASE_GUIDE}

@@ -62,7 +62,9 @@ export async function POST(
   // /score immediately, which would race this pass, so the score route
   // classifies the final exchange itself (a request ignored by the close still
   // counts). Terminated/abandoned sessions also end here and are never scored.
-  if (!result.ended) {
+  // Also skipped when the runner already classified this exchange
+  // synchronously (recommendation-ask turns), so rows aren't logged twice.
+  if (!result.ended && !result.dataRequestsClassified) {
     after(async () => {
       try {
         const turns = await db.query.sessionTurns.findMany({
