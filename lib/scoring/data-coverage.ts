@@ -40,18 +40,24 @@ export function summarizeDataRequests(
 
   for (const r of byTurn) {
     if (r.subtype === 'classified') continue; // marker: exchange was checked, not a request
-    const p = r.payloadJsonb as { what?: unknown; ledgerItemId?: unknown } | null;
+    const p = r.payloadJsonb as { what?: unknown; ledgerItemIds?: unknown; ledgerItemId?: unknown } | null;
     if (!p || typeof p.what !== 'string' || !p.what.trim()) continue;
     const what = p.what.trim();
-    const ledgerItemId = typeof p.ledgerItemId === 'string' ? p.ledgerItemId : null;
-    const label = ledgerItemId ? labels.get(ledgerItemId) : undefined;
+    // One request can cover several ledger items (a "what's inside COGS?"
+    // ask); rows logged before that change carry a single ledgerItemId.
+    const rawIds: unknown[] = Array.isArray(p.ledgerItemIds) ? p.ledgerItemIds : [p.ledgerItemId];
+    const knownIds = rawIds.filter((id): id is string => typeof id === 'string' && labels.has(id));
 
-    if (ledgerItemId && label !== undefined) {
+    if (knownIds.length > 0) {
       // Only a release resolves a request for data that exists — a refusal of
       // existing data is withholding, not a legitimate "we don't have that".
-      if (revealed.has(ledgerItemId) || seenGap.has(ledgerItemId)) continue;
-      seenGap.add(ledgerItemId);
-      requestedUnanswered.push({ ledgerItemId, label, what, turnIndex: r.turnIndex });
+      // Each covered item still unrevealed is its own gap: run 58cb8061's
+      // component-split request got beans but never the other-inputs item.
+      for (const ledgerItemId of knownIds) {
+        if (revealed.has(ledgerItemId) || seenGap.has(ledgerItemId)) continue;
+        seenGap.add(ledgerItemId);
+        requestedUnanswered.push({ ledgerItemId, label: labels.get(ledgerItemId)!, what, turnIndex: r.turnIndex });
+      }
     } else {
       // Retried scoring can re-log the final exchange; dedupe on turn + ask.
       const key = `${r.turnIndex}|${what}`;

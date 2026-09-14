@@ -189,8 +189,9 @@ Input feed [implemented: `lib/orchestrator/data-requests.ts`, wired in the turn
 route's `after()`]: a background Haiku pass classifies each exchange's
 candidate data requests (soft signal) and how the next interviewer turn handled
 them (release / refuse / defer / clarify / none), logged as `session_events`
-rows with category `data_request`. Deterministic guards in code: the ledger id
-must come from the case's closed catalog (invented ids drop to null), and
+rows with category `data_request`. Deterministic guards in code: ledger ids
+must come from the case's closed catalog (invented ids are dropped; one request
+can cover several items, and each still-unrevealed one is its own gap), and
 `revealedByNow` comes from `revealed_data`, not the model. The classifier sees
 ledger ids and labels only, never values. Fails open (bad response → no rows).
 Not yet validated against live Haiku output on real transcripts.

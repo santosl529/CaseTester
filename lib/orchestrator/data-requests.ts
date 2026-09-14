@@ -31,7 +31,7 @@ export type LedgerCatalogItem = { id: string; label: string };
 
 export type DetectedDataRequest = {
   what: string;                  // short description of what was asked for
-  ledgerItemId: string | null;   // closed-catalog match, or null if not in the ledger
+  ledgerItemIds: string[];       // closed-catalog matches — every ledger item the request covers; [] if none
   response: RequestResponse;     // how the very next interviewer turn handled it
 };
 
@@ -41,9 +41,9 @@ export type DataRequestEvent = {
   turnIndex: number; // the candidate turn that made the request
   payload: {
     what: string;
-    ledgerItemId: string | null;
+    ledgerItemIds: string[];
     interviewerTurnIndex: number;
-    revealedByNow: boolean; // deterministic, from revealed_data — not the model's say-so
+    revealedByNow: boolean; // every covered item released — deterministic, from revealed_data, not the model's say-so
   };
 };
 
@@ -67,11 +67,16 @@ export function parseDataRequestResponse(raw: string, catalog: LedgerCatalogItem
     if (entry == null || typeof entry !== 'object') continue;
     const e = entry as Record<string, unknown>;
     if (typeof e.what !== 'string' || !e.what.trim()) continue;
-    const ledgerItemId = typeof e.ledgerItemId === 'string' && ids.has(e.ledgerItemId) ? e.ledgerItemId : null;
+    // Closed catalog: keep only ids the case actually has, deduped in order.
+    // One request can cover several items (live run 58cb8061's "COGS broken
+    // into components" spans beans and other inputs). The legacy single
+    // `ledgerItemId` field is still accepted.
+    const rawIds: unknown[] = Array.isArray(e.ledgerItemIds) ? e.ledgerItemIds : [e.ledgerItemId];
+    const ledgerItemIds = [...new Set(rawIds.filter((id): id is string => typeof id === 'string' && ids.has(id)))];
     const response = (REQUEST_RESPONSES as readonly string[]).includes(e.response as string)
       ? (e.response as RequestResponse)
       : 'none'; // unanswered is the safe default: it can raise a caveat, never hide one
-    out.push({ what: e.what.trim(), ledgerItemId, response });
+    out.push({ what: e.what.trim(), ledgerItemIds, response });
   }
   return out;
 }
@@ -91,7 +96,7 @@ A data request is the candidate asking the interviewer to provide information ab
 
 For each request, give:
 - "what": a short description of the information asked for.
-- "ledgerItemId": the id from the CASE DATA CATALOG below whose label covers exactly what was asked for, or null if nothing in the catalog covers it. Use only ids from the catalog.
+- "ledgerItemIds": every id from the CASE DATA CATALOG below whose label covers part of what was asked for — a broad request ("what's inside COGS?") can cover several items. Empty array if nothing in the catalog covers it. Use only ids from the catalog.
 - "response": how the interviewer's next turn handled it:
   - "release": provided the requested information.
   - "refuse": said plainly the information isn't available.
@@ -109,7 +114,7 @@ INTERVIEWER'S NEXT TURN:
 ${interviewerText}
 
 Respond with ONLY this JSON (empty array if the candidate made no data request):
-{"requests":[{"what":"...","ledgerItemId":"id-or-null","response":"release|refuse|defer|clarify|none"}]}`;
+{"requests":[{"what":"...","ledgerItemIds":["id", ...],"response":"release|refuse|defer|clarify|none"}]}`;
 }
 
 export function toDataRequestEvents(
@@ -122,9 +127,9 @@ export function toDataRequestEvents(
     turnIndex: ctx.candidateTurnIndex,
     payload: {
       what: r.what,
-      ledgerItemId: r.ledgerItemId,
+      ledgerItemIds: r.ledgerItemIds,
       interviewerTurnIndex: ctx.interviewerTurnIndex,
-      revealedByNow: r.ledgerItemId !== null && ctx.revealedIds.has(r.ledgerItemId),
+      revealedByNow: r.ledgerItemIds.length > 0 && r.ledgerItemIds.every(id => ctx.revealedIds.has(id)),
     },
   }));
 }

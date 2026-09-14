@@ -179,10 +179,11 @@ async function writeArtifacts(sessionId: string, caseTitle: string) {
   md.push(`- Force-released before the recommendation ask: ${forced.length ? '`' + JSON.stringify(forced) + '`' : 'none'}`);
   md.push(`- Scoring QA: \`${JSON.stringify(scoringQa ?? {})}\``);
   md.push(`- Assists / interventions: ${interventions.map(i => `${i.subtype}@${i.turnIndex}`).join(', ') || 'none'}`, '');
-  md.push('| Candidate turn | Response | Ledger item | Asked for | Revealed by then |', '|---|---|---|---|---|');
+  md.push('| Candidate turn | Response | Ledger items | Asked for | Revealed by then |', '|---|---|---|---|---|');
   for (const r of dataRequests) {
-    const p = r.payloadJsonb as { what?: string; ledgerItemId?: string | null; revealedByNow?: boolean };
-    md.push(`| ${r.turnIndex} | ${r.subtype} | ${p.ledgerItemId ?? '—'} | ${(p.what ?? '').replace(/\|/g, '/')} | ${p.revealedByNow ? 'yes' : 'no'} |`);
+    const p = r.payloadJsonb as { what?: string; ledgerItemIds?: string[]; ledgerItemId?: string | null; revealedByNow?: boolean };
+    const ids = p.ledgerItemIds ?? (p.ledgerItemId ? [p.ledgerItemId] : []);
+    md.push(`| ${r.turnIndex} | ${r.subtype} | ${ids.join(', ') || '—'} | ${(p.what ?? '').replace(/\|/g, '/')} | ${p.revealedByNow ? 'yes' : 'no'} |`);
   }
   md.push('');
 

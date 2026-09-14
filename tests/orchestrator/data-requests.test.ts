@@ -119,17 +119,29 @@ const catalog: LedgerCatalogItem[] = [
 ];
 
 describe('parseDataRequestResponse', () => {
-  it('parses detected requests with a ledger id and response type', () => {
+  it('parses detected requests with their ledger ids and response type', () => {
     const raw = JSON.stringify({
       requests: [
-        { what: 'menu price history', ledgerItemId: 'avg_ticket', response: 'none' },
-        { what: 'store-level concentration', ledgerItemId: null, response: 'refuse' },
+        { what: 'menu price history', ledgerItemIds: ['avg_ticket'], response: 'none' },
+        { what: 'store-level concentration', ledgerItemIds: [], response: 'refuse' },
       ],
     });
     expect(parseDataRequestResponse(raw, catalog)).toEqual([
-      { what: 'menu price history', ledgerItemId: 'avg_ticket', response: 'none' },
-      { what: 'store-level concentration', ledgerItemId: null, response: 'refuse' },
+      { what: 'menu price history', ledgerItemIds: ['avg_ticket'], response: 'none' },
+      { what: 'store-level concentration', ledgerItemIds: [], response: 'refuse' },
     ]);
+  });
+
+  it('one request can cover several ledger items, deduped in order (live run 58cb8061: a COGS component split)', () => {
+    const raw = '{"requests":[{"what":"COGS broken into its components","ledgerItemIds":["bean_price_change","avg_ticket","bean_price_change"],"response":"none"}]}';
+    expect(parseDataRequestResponse(raw, catalog)?.[0].ledgerItemIds).toEqual(['bean_price_change', 'avg_ticket']);
+  });
+
+  it('accepts the legacy single ledgerItemId field', () => {
+    const one = '{"requests":[{"what":"bean costs","ledgerItemId":"bean_price_change","response":"release"}]}';
+    expect(parseDataRequestResponse(one, catalog)?.[0].ledgerItemIds).toEqual(['bean_price_change']);
+    const none = '{"requests":[{"what":"store data","ledgerItemId":null,"response":"refuse"}]}';
+    expect(parseDataRequestResponse(none, catalog)?.[0].ledgerItemIds).toEqual([]);
   });
 
   it('returns an empty list when the turn contains no request', () => {
@@ -137,24 +149,24 @@ describe('parseDataRequestResponse', () => {
   });
 
   it('strips code fences', () => {
-    const raw = '```json\n{"requests":[{"what":"bean costs","ledgerItemId":"bean_price_change","response":"release"}]}\n```';
-    expect(parseDataRequestResponse(raw, catalog)?.[0].ledgerItemId).toBe('bean_price_change');
+    const raw = '```json\n{"requests":[{"what":"bean costs","ledgerItemIds":["bean_price_change"],"response":"release"}]}\n```';
+    expect(parseDataRequestResponse(raw, catalog)?.[0].ledgerItemIds).toEqual(['bean_price_change']);
   });
 
-  it('closed catalog: an id not in the ledger is dropped to null, never trusted', () => {
-    const raw = '{"requests":[{"what":"vintage split","ledgerItemId":"vintage_split","response":"none"}]}';
-    expect(parseDataRequestResponse(raw, catalog)?.[0].ledgerItemId).toBeNull();
+  it('closed catalog: ids not in the ledger are dropped, never trusted', () => {
+    const raw = '{"requests":[{"what":"vintage split","ledgerItemIds":["vintage_split","avg_ticket"],"response":"none"}]}';
+    expect(parseDataRequestResponse(raw, catalog)?.[0].ledgerItemIds).toEqual(['avg_ticket']);
   });
 
   it('coerces an unknown response type to "none" (unanswered is the safe default)', () => {
-    const raw = '{"requests":[{"what":"bean costs","ledgerItemId":"bean_price_change","response":"sort of"}]}';
+    const raw = '{"requests":[{"what":"bean costs","ledgerItemIds":["bean_price_change"],"response":"sort of"}]}';
     expect(parseDataRequestResponse(raw, catalog)?.[0].response).toBe('none');
   });
 
   it('skips malformed entries but keeps valid ones', () => {
-    const raw = '{"requests":[{"ledgerItemId":"avg_ticket"},{"what":"bean costs","ledgerItemId":null,"response":"defer"}]}';
+    const raw = '{"requests":[{"ledgerItemIds":["avg_ticket"]},{"what":"bean costs","ledgerItemIds":[],"response":"defer"}]}';
     expect(parseDataRequestResponse(raw, catalog)).toEqual([
-      { what: 'bean costs', ledgerItemId: null, response: 'defer' },
+      { what: 'bean costs', ledgerItemIds: [], response: 'defer' },
     ]);
   });
 
@@ -193,28 +205,27 @@ describe('toDataRequestEvents', () => {
   it('maps requests to data_request session events keyed to the candidate turn', () => {
     const events = toDataRequestEvents(
       [
-        { what: 'menu price history', ledgerItemId: 'avg_ticket', response: 'none' },
-        { what: 'store concentration', ledgerItemId: null, response: 'refuse' },
+        { what: 'menu price history', ledgerItemIds: ['avg_ticket'], response: 'none' },
+        { what: 'store concentration', ledgerItemIds: [], response: 'refuse' },
       ],
       { candidateTurnIndex: 12, interviewerTurnIndex: 13, revealedIds: new Set(['bean_price_change']) },
     );
     expect(events).toEqual([
       {
         category: 'data_request', subtype: 'none', turnIndex: 12,
-        payload: { what: 'menu price history', ledgerItemId: 'avg_ticket', interviewerTurnIndex: 13, revealedByNow: false },
+        payload: { what: 'menu price history', ledgerItemIds: ['avg_ticket'], interviewerTurnIndex: 13, revealedByNow: false },
       },
       {
         category: 'data_request', subtype: 'refuse', turnIndex: 12,
-        payload: { what: 'store concentration', ledgerItemId: null, interviewerTurnIndex: 13, revealedByNow: false },
+        payload: { what: 'store concentration', ledgerItemIds: [], interviewerTurnIndex: 13, revealedByNow: false },
       },
     ]);
   });
 
-  it('marks a ledger request as revealedByNow when the item has been released', () => {
-    const [e] = toDataRequestEvents(
-      [{ what: 'ticket size', ledgerItemId: 'avg_ticket', response: 'release' }],
-      { candidateTurnIndex: 4, interviewerTurnIndex: 5, revealedIds: new Set(['avg_ticket']) },
-    );
-    expect(e.payload.revealedByNow).toBe(true);
+  it('revealedByNow only when every covered ledger item has been released', () => {
+    const request = [{ what: 'cost detail', ledgerItemIds: ['avg_ticket', 'bean_price_change'], response: 'release' as const }];
+    const ctx = { candidateTurnIndex: 4, interviewerTurnIndex: 5 };
+    expect(toDataRequestEvents(request, { ...ctx, revealedIds: new Set(['avg_ticket']) })[0].payload.revealedByNow).toBe(false);
+    expect(toDataRequestEvents(request, { ...ctx, revealedIds: new Set(['avg_ticket', 'bean_price_change']) })[0].payload.revealedByNow).toBe(true);
   });
 });

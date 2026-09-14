@@ -88,7 +88,7 @@ async function dataRequestPass({ sessionId, userId, caseId, phase }: PostTurnPar
       revealedIds: new Set(revealedRows.map(r => r.ledgerItemId)),
     });
     for (const e of events) {
-      if (e.subtype === 'none' && e.payload.ledgerItemId && !e.payload.revealedByNow) {
+      if (e.subtype === 'none' && e.payload.ledgerItemIds.length > 0 && !e.payload.revealedByNow) {
         console.warn('[data-requests] non-response to available ledger data:', JSON.stringify(e.payload));
       }
     }

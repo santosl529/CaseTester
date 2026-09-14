@@ -67,6 +67,25 @@ describe('summarizeDataRequests (Rule 11 data-coverage caveat)', () => {
     expect(out).toEqual({ requestedUnanswered: [], requestedNotInCase: [] });
   });
 
+  it('a request covering several ledger items is a gap for each one still unrevealed (live run 58cb8061)', () => {
+    const out = summarizeDataRequests(
+      [{ subtype: 'none', turnIndex: 13, payloadJsonb: { what: 'COGS broken into components', ledgerItemIds: ['avg_ticket', 'bean_price_change'] } }],
+      catalog, ['avg_ticket'],
+    );
+    expect(out.requestedUnanswered).toEqual([
+      { ledgerItemId: 'bean_price_change', label: 'Coffee bean price change over 2 years', what: 'COGS broken into components', turnIndex: 13 },
+    ]);
+    expect(out.requestedNotInCase).toEqual([]);
+  });
+
+  it('a request whose ledger ids are all unknown to the case is not-in-case', () => {
+    const out = summarizeDataRequests(
+      [{ subtype: 'refuse', turnIndex: 2, payloadJsonb: { what: 'vintage split', ledgerItemIds: ['vintage_split'] } }],
+      catalog, [],
+    );
+    expect(out.requestedNotInCase.map(r => r.what)).toEqual(['vintage split']);
+  });
+
   it('orders results by turn', () => {
     const out = summarizeDataRequests(
       [row('none', 8, 'beans', 'bean_price_change'), row('none', 3, 'ticket', 'avg_ticket')],
