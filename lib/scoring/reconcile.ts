@@ -39,9 +39,12 @@ export type ReconcileItem = {
   text: string;
 };
 
+// Item ids, tolerating a model that quotes them ("3").
+const ItemId = z.union([z.number(), z.string().regex(/^\d+$/).transform(Number)]);
+
 const ReconcileSchema = z.object({
-  merges: z.array(z.object({ wentWellId: z.number(), needsWorkId: z.number(), merged: z.string() })).default([]),
-  gapLeaks: z.array(z.object({ id: z.number(), reason: z.string() })).default([]),
+  merges: z.array(z.object({ wentWellId: ItemId, needsWorkId: ItemId, merged: z.string() })).default([]),
+  gapLeaks: z.array(z.object({ id: ItemId, reason: z.string() })).default([]),
   crossDimension: z.array(z.object({ concept: z.string(), dimensions: z.array(z.string()) })).default([]),
 });
 
@@ -168,8 +171,22 @@ export function applyReconciliation(
   return { rubric: cleaned, merges, gapDrops, crossDimension };
 }
 
+// On this multi-task prompt the model reasons in prose first and puts the JSON
+// in a fenced block at the end (found by replaying live runs 58cb8061 and
+// db41a01e with raw logging) — so a whole-string parse failed every time and
+// reconciliation silently never ran. Take the last fenced block, else the
+// outermost {...} span.
+function extractJson(raw: string): string | null {
+  const fences = [...raw.matchAll(/```(?:json)?\s*\n([\s\S]*?)```/g)];
+  if (fences.length > 0) return fences[fences.length - 1][1].trim();
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  return start !== -1 && end > start ? raw.slice(start, end + 1) : null;
+}
+
 export function parseReconcileResponse(raw: string): ReconcileResult | null {
-  const jsonText = raw.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim();
+  const jsonText = extractJson(raw);
+  if (!jsonText) return null;
   let obj: unknown;
   try {
     obj = JSON.parse(jsonText);
@@ -250,7 +267,10 @@ export async function runReconciliation(
     const text = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
     const result = text ? parseReconcileResponse(text.text) : null;
     if (!result) {
-      console.error('[reconcile] invalid response, skipping reconciliation');
+      // Log what actually came back: two live runs (58cb8061, db41a01e) failed
+      // here with no raw output, which left the cause undiagnosable.
+      console.error('[reconcile] invalid response, skipping reconciliation. stop_reason:', response.stop_reason,
+        'raw:', (text?.text ?? JSON.stringify(response.content)).slice(0, 2000));
       return unchanged;
     }
     return applyReconciliation(rubric, items, result);

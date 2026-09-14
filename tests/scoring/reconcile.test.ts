@@ -184,6 +184,33 @@ describe('parseReconcileResponse', () => {
     });
   });
 
+  it('extracts the JSON when the model reasons in prose first (live runs 58cb8061, db41a01e)', () => {
+    // Abridged from the replayed raw output: prose analysis, then a fenced block.
+    const raw = [
+      'Looking for same-concept pairs within each dimension.',
+      '',
+      '**Structure:** Item 4 (missedOpp) is about competitive context/pricing power. Items 1-3 are about disaggregation. No same-concept match.',
+      '',
+      '**Cross-dimension repetition:** quantitative(8,9) + judgment(16) = 2 distinct dimensions. Need 3+.',
+      '',
+      'No pair is genuinely the same concept within a dimension.',
+      '',
+      '```json',
+      '{"merges":[],"gapLeaks":[],"crossDimension":[]}',
+      '```',
+    ].join('\n');
+    expect(parseReconcileResponse(raw)).toEqual(empty);
+  });
+
+  it('extracts a bare JSON object that follows prose, and accepts numeric-string ids', () => {
+    const raw = 'One pair found.\n{"merges":[{"wentWellId":"3","needsWorkId":"4","merged":"m"}],"gapLeaks":[{"id":"7","reason":"r"}]}';
+    expect(parseReconcileResponse(raw)).toEqual({
+      merges: [{ wentWellId: 3, needsWorkId: 4, merged: 'm' }],
+      gapLeaks: [{ id: 7, reason: 'r' }],
+      crossDimension: [],
+    });
+  });
+
   it('strips code fences and returns null on garbage (fail open)', () => {
     expect(parseReconcileResponse('```json\n{}\n```')).toEqual(empty);
     expect(parseReconcileResponse('nope')).toBeNull();
