@@ -3,10 +3,10 @@
 // The data-side analogue of assisted-vs-covered for stages: when the candidate
 // asked for data that EXISTS in the case and the interviewer never provided it
 // — ignored, deferred forever, or wrongly refused — an assumption built on
-// that gap is session coverage, not candidate judgment. Run 4's report
-// conceded "the disambiguating data was never provided" and charged the
-// assumption to the candidate anyway, because the judge only saw one flat
-// "never revealed" list and couldn't tell asked-for from never-asked-for.
+// that gap is session coverage, not candidate judgment. In run 4 the
+// candidate asked about menu prices three times and never got the ledger's
+// average-ticket data; the judge only saw one flat "never revealed" list and
+// couldn't tell asked-for from never-asked-for.
 //
 // Deterministic over the `data_request` session events
 // (lib/orchestrator/data-requests.ts). The request DETECTION behind those rows

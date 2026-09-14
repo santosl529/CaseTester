@@ -71,8 +71,8 @@ same way):
   "The average transaction is $6.80, up from $6.20 two years ago. And we're
   near time: what's your bottom-line recommendation?" Deferral is not available here: there is
   no later turn to defer to. Run 4 (3:39) is the failure this prevents — the
-  orchestrator-scripted warning displaced the candidate's price request, and
-  the recommendation inherited the unverified assumption.
+  recommendation ask displaced the candidate's price request, and the
+  recommendation inherited the untested assumption.
 
 ## Exempt turn types (single whitelist)
 
@@ -466,13 +466,16 @@ yet separately checked.
 
 Run 1 silently swapped different data for the vintage split the candidate
 asked for twice. Runs 2–3 executed the refusal fix well. Run 4 exposed a third
-failure mode: silent non-response. Twice the candidate requested data and
+failure mode: silent non-response. Four times the candidate requested data and
 received neither a release nor a refusal — just a redirect to the next
 interviewer agenda item (0:21, store-level concentration → structure probe;
-3:39, menu price history → time warning). The second case mattered: the price
-data exists in the ledger (`avg_ticket`, released in run 2 as $6.80, up from
-$6.20), the candidate's entire prioritization rested on assuming prices had
-not moved, and the recommendation inherited that assumption. (The Jul 17 run,
+2:34, menu price changes and inventory waste → unit-check probe; 3:09, average
+ticket and menu price history → prioritization question; 3:39, whether prices
+were raised → recommendation ask). The price requests mattered: average
+transaction value existed in the ledger (`avg_ticket`) and was never released,
+the candidate's primary lever rested on assuming menu prices had not moved
+("if … we haven't touched our menu prices"), and that premise went untested
+into the recommendation. (The Jul 17 run,
 `81ed3af7`, shows the same pattern on the root cause: at 3:28 the candidate
 asked "Is this commodity inflation, or something else?", the bean-price item
 was in the ledger, and the interviewer answered with a lever question.)
@@ -515,11 +518,13 @@ candidate's conclusion rests on an assumption they tried to verify and the
 interviewer withheld available ledger data — or never answered — the gap is
 attributed to session coverage, not candidate judgment. The judge sets a
 coverageCaveat on the affected dimension(s) and must not fault the candidate
-for the unverified assumption. Run 4's report did exactly the wrong thing here:
-its Top Improvement criticized the candidate for anchoring on an unverified
-waste narrative while, in the same paragraph, conceding "the disambiguating
-data was never provided." The engine noticed the gap and charged it to the
-candidate anyway.
+for the unverified assumption. Run 4 shows why the two cases below must be
+told apart: its Business Judgment feedback faulted an unverified "waste"
+narrative while conceding "the disambiguating data was never provided" — but
+that data (an itemized COGS breakdown) does not exist in the ledger and was
+properly refused at 1:18, so under this rule that critique is fair. The run's
+actual coverage gap was the price data: requested three times, available,
+never released — and it bore on the premise of the lever the report praised.
 
 Distinguish the two cases: data that does not exist in the ledger and was
 properly refused leaves the candidate free to reason about it — an unverified

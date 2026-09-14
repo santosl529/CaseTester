@@ -149,9 +149,13 @@ EXHIBITS section.
 ### Data-coverage caveat — requested vs. never requested [implemented: `lib/scoring/data-coverage.ts`, `buildRevealedDataSection` in `lib/scoring/judge.ts`, wired in score route]
 
 interviewer-behavior Rule 11 (v4.1). The section above lists *every*
-unrevealed item, so it cannot tell the judge which gaps are coverage gaps. Run
-4 shows that isn't enough: the report conceded "the disambiguating data was
-never provided" and still charged the unverified assumption to the candidate.
+unrevealed item, so it cannot tell the judge which gaps are coverage gaps. In
+run 4 the candidate asked about menu prices three times; average transaction
+value existed in the ledger and was never released, so the premise of their
+primary lever went untested — and the flat list gave the judge no way to see
+that. (The same report's "waste narrative" critique rested on an itemized COGS
+breakdown the case doesn't have and the interviewer properly refused: fair
+game, not a gap.)
 Required split:
 
 - **Requested and unanswered** (a detected request mapped to a ledger item that
