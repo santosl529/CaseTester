@@ -58,10 +58,11 @@ export async function POST(
   // classify this exchange's candidate data requests and how the interviewer
   // handled them, logged as `data_request` session events for the scoring-side
   // data-coverage caveat. Separate after() so a failure here can't take the
-  // coverage pass down with it. Runs on the final turn too (a request ignored
-  // by the close still counts); skipped for terminated/abandoned sessions,
-  // which are never scored.
-  if (!result.scoringSuppressed) {
+  // coverage pass down with it. Skipped on the ending turn: the client calls
+  // /score immediately, which would race this pass, so the score route
+  // classifies the final exchange itself (a request ignored by the close still
+  // counts). Terminated/abandoned sessions also end here and are never scored.
+  if (!result.ended) {
     after(async () => {
       try {
         const turns = await db.query.sessionTurns.findMany({

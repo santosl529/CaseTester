@@ -7,6 +7,8 @@ import { runClaimVerifier } from '@/lib/scoring/verifier';
 import { checkMathSteps } from '@/lib/scoring/deterministic';
 import { assembleReport } from '@/lib/scoring/report';
 import { summarizeAssists, summarizeCoverage } from '@/lib/scoring/assists';
+import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
+import { classifyDataRequests, toDataRequestEvents } from '@/lib/orchestrator/data-requests';
 import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, scores, sessionEvents } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
@@ -69,8 +71,47 @@ export async function POST(
     .filter(Boolean)
     .join('\n\n');
   const logUsage = (u: Record<string, unknown>) => { void logEvent('llm_usage', u, { sessionId, userId: user.id }); };
+
+  // Rule 11 data-coverage caveat (docs/scoring-qa.md). The turn route logs
+  // data_request events in the background for every exchange EXCEPT the final
+  // one (it would race this route), so classify the final exchange here first.
+  const revealedIds = revealedRows.map(r => r.ledgerItemId);
+  const catalog = caseData.dataLedger.map(d => ({ id: d.id, label: d.label }));
+  const lastInterviewer = transcript.at(-1);
+  const lastCandidate = transcript.at(-2);
+  if (lastInterviewer?.role === 'interviewer' && lastCandidate?.role === 'candidate') {
+    const finalRequests = await classifyDataRequests({
+      candidateText: lastCandidate.text,
+      interviewerText: lastInterviewer.text,
+      catalog,
+      onUsage: u => logUsage({ ...u }),
+    });
+    if (finalRequests && finalRequests.length > 0) {
+      const events = toDataRequestEvents(finalRequests, {
+        candidateTurnIndex: lastCandidate.turnIndex,
+        interviewerTurnIndex: lastInterviewer.turnIndex,
+        revealedIds: new Set(revealedIds),
+      });
+      await db.insert(sessionEvents).values(events.map(e => ({
+        sessionId, category: e.category, subtype: e.subtype, turnIndex: e.turnIndex,
+        phase: session.phase, payloadJsonb: e.payload,
+      })));
+    }
+  }
+  const dataRequestRows = await db.query.sessionEvents.findMany({
+    where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'data_request')),
+  });
+  const dataCoverage = summarizeDataRequests(
+    dataRequestRows.map(r => ({ subtype: r.subtype, turnIndex: r.turnIndex, payloadJsonb: r.payloadJsonb })),
+    catalog,
+    revealedIds,
+  );
+  if (dataCoverage.requestedUnanswered.length > 0) {
+    console.warn('[score] requested-but-unanswered ledger data (coverage gap):', JSON.stringify(dataCoverage.requestedUnanswered));
+  }
+
   const rawRubric = await runJudge(
-    transcript, caseData, revealedRows.map(r => r.ledgerItemId), mathResults, interventionSummary,
+    transcript, caseData, revealedIds, mathResults, interventionSummary, dataCoverage,
     u => logUsage({ ...u }),
   );
 
@@ -128,6 +169,10 @@ export async function POST(
     artifactTypes: artifacts.map(a => a.type),
     evidenceStrips: violations.length,
     verifierDrops: dropped.length,
+    // Rule 11: requested-and-unanswered ledger items (coverage gaps fed to the
+    // judge) and requests for data the case doesn't have.
+    dataRequestGaps: dataCoverage.requestedUnanswered.length,
+    dataRequestsNotInCase: dataCoverage.requestedNotInCase.length,
   }, { sessionId, userId: user.id });
 
   return NextResponse.json({ scored: true });

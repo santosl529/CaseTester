@@ -131,7 +131,7 @@ data.) The paired interviewer-side fix (reveal data the candidate has earned
 and asked for, rather than deflecting) lives in the system prompt's DATA AND
 EXHIBITS section.
 
-### Data-coverage caveat — requested vs. never requested [pending]
+### Data-coverage caveat — requested vs. never requested [implemented: `lib/scoring/data-coverage.ts`, `buildRevealedDataSection` in `lib/scoring/judge.ts`, wired in score route]
 
 interviewer-behavior Rule 11 (v4.1). The section above lists *every*
 unrevealed item, so it cannot tell the judge which gaps are coverage gaps. Run
@@ -158,7 +158,25 @@ must come from the case's closed catalog (invented ids drop to null), and
 `revealedByNow` comes from `revealed_data`, not the model. The classifier sees
 ledger ids and labels only, never values. Fails open (bad response → no rows).
 Not yet validated against live Haiku output on real transcripts.
-[Still pending]: the judge-side three-way split above, which consumes these rows.
+The turn route skips the ending turn (the client calls `/score` immediately and
+would race the background pass); the score route classifies the final exchange
+itself before summarizing.
+
+Judge-side split: `summarizeDataRequests` computes, in code, against the FINAL
+revealed set — a ledger item that was requested and never revealed is a gap
+regardless of how the interviewer responded (refusing data that exists is
+withholding); a request resolved by a later reveal is not a gap; requests with
+no ledger match are not-in-case. `buildRevealedDataSection` moves gap items out
+of the plain never-revealed list into a "REQUESTED BUT NEVER PROVIDED" section
+carrying the directive (confirm the request in the transcript — the classifier
+is a soft signal; set coverageCaveat; never in needsWork, missedOpportunities,
+or topFix), plus a fair-game "REQUESTED BUT NOT IN THE CASE DATA" section.
+With no request rows the section is unchanged. Counts land in the `scoring_qa`
+event (`dataRequestGaps`, `dataRequestsNotInCase`).
+
+Limit: enforcement on the judge is prompt-level. There is no post-judge
+deterministic check that a gap item didn't end up in needsWork or topFix — that
+is a semantic match, a candidate for the dimension-reconciliation LLM pass.
 
 ### Coverage caveats [implemented: `coverageCaveat` in `lib/scoring/judge.ts`]
 

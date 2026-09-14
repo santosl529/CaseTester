@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { Case } from '@/lib/cases/schema';
 import { RUBRIC_PROMPT_TEXT, RUBRIC_DIMENSION_KEYS, type Rating } from './rubric';
 import type { MathStepResult } from './deterministic';
+import type { DataCoverage } from './data-coverage';
 import type { OnUsage } from '@/lib/llm-usage';
 
 export type { Rating };
@@ -72,17 +73,50 @@ export function buildMathCheckSection(mathResults: MathStepResult[]): string {
 // diagnosis and its levers — an insight that required the withheld data. Tell
 // the judge exactly what data the candidate actually received so it doesn't
 // fault them for conclusions that were impossible with what they were given.
-export function buildRevealedDataSection(caseData: Case, revealedItemIds: string[]): string {
+//
+// Rule 11 v4.1 (lib/scoring/data-coverage.ts): when data-request events exist,
+// requested-and-unanswered ledger items move out of the plain never-revealed
+// list into their own coverage-gap section, and requests for data the case
+// doesn't have are listed as fair game. The scoring directive travels inside
+// the section so it's unit-testable. Without request data the output is the
+// original two-section form.
+export function buildRevealedDataSection(
+  caseData: Case,
+  revealedItemIds: string[],
+  dataCoverage?: DataCoverage,
+): string {
   const revealedSet = new Set(revealedItemIds);
+  const gaps = dataCoverage?.requestedUnanswered ?? [];
+  const notInCase = dataCoverage?.requestedNotInCase ?? [];
+  const gapIds = new Set(gaps.map(g => g.ledgerItemId));
   const revealed = caseData.dataLedger.filter(i => revealedSet.has(i.id));
-  const withheld = caseData.dataLedger.filter(i => !revealedSet.has(i.id));
+  const withheld = caseData.dataLedger.filter(i => !revealedSet.has(i.id) && !gapIds.has(i.id));
   const revealedLines = revealed.length > 0 ? revealed.map(i => `- ${i.label}: ${i.value}`).join('\n') : '- (none)';
   const withheldLines = withheld.length > 0 ? withheld.map(i => `- ${i.label}`).join('\n') : '- (none)';
-  return `DATA THE CANDIDATE ACTUALLY RECEIVED during the interview:
+  const turnRef = (t: number | null) => (t === null ? '' : ` (turn ${t})`);
+
+  let section = `DATA THE CANDIDATE ACTUALLY RECEIVED during the interview:
 ${revealedLines}
 
 DATA NEVER REVEALED to the candidate (they could not have seen or used these values):
 ${withheldLines}`;
+
+  if (gaps.length > 0) {
+    section += `
+
+REQUESTED BUT NEVER PROVIDED — SESSION COVERAGE GAP (the candidate asked for this data, it exists in the case, and the interviewer never gave it — ignored, left deferred, or wrongly refused):
+${gaps.map(g => `- ${g.label} — candidate asked about "${g.what}"${turnRef(g.turnIndex)}`).join('\n')}
+How to score these: this list comes from an automated classifier, so first confirm in the transcript that the candidate actually asked for that data at that turn; ignore any line the transcript doesn't support. For each confirmed line, a conclusion or assumption the candidate built on the missing data is a SESSION COVERAGE GAP, not a judgment weakness: set a coverageCaveat on each dimension whose rating it affects, attributing the gap to the interviewer not providing requested data. Do NOT put that unverified assumption — or the failure to reach an insight that needed this data — in needsWork or missedOpportunities, and do NOT make it the topFix.`;
+  }
+
+  if (notInCase.length > 0) {
+    section += `
+
+REQUESTED BUT NOT IN THE CASE DATA (not a coverage gap — this data doesn't exist in the case, so the candidate was free to reason around it; unverified conclusions here are fair to score):
+${notInCase.map(n => `- "${n.what}"${turnRef(n.turnIndex)}, interviewer response: ${n.response}`).join('\n')}`;
+  }
+
+  return section;
 }
 
 export async function runJudge(
@@ -91,6 +125,7 @@ export async function runJudge(
   revealedItemIds: string[], // ledger item ids the interviewer actually disclosed
   mathResults: MathStepResult[] = [],
   assistSummary = '', // Rule 13 "assisted ≠ covered" (lib/scoring/assists.ts)
+  dataCoverage?: DataCoverage, // Rule 11 data-coverage caveat (lib/scoring/data-coverage.ts)
   onUsage?: OnUsage, // lib/llm-usage.ts — token reporting for $/case (PRD §13)
 ): Promise<RubricScores> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -104,7 +139,7 @@ export async function runJudge(
     .join('\n');
 
   const mathCheckSection = buildMathCheckSection(mathResults);
-  const revealedDataSection = buildRevealedDataSection(caseData, revealedItemIds);
+  const revealedDataSection = buildRevealedDataSection(caseData, revealedItemIds, dataCoverage);
 
   const dimensionJsonLines = RUBRIC_DIMENSION_KEYS
     .map(k => `  "${k}": { "rating": "...", "wentWell": [...], "needsWork": [...], "missedOpportunities": [...] },`)
@@ -132,10 +167,10 @@ For each dimension, provide:
 2. "wentWell": the top 1-3 things the candidate did well on this dimension. Each item: { "point": one-sentence observation, "quotes": [1-2 direct quotes from CANDIDATE turns as evidence] }. Empty array if nothing genuinely stood out.
 3. "needsWork": the top 1-3 things that need improvement on this dimension, same shape ({ "point", "quotes" } with CANDIDATE quotes showing the weakness). Empty array only if the dimension was flawless.
 4. "missedOpportunities": 1-2 key moments where a great candidate would have said something better. Each item: { "moment": what was happening (anchor it to the exchange, quoting the transcript where useful), "betterResponse": the words a great candidate would have said in that moment }. Empty array if none.
-5. "coverageCaveat" (optional): if the INTERVIEWER never administered this dimension's primary stage (e.g. never asked a brainstorm question), rate on whatever secondary evidence exists and set this to a one-sentence note attributing the gap to session coverage (e.g. "The interviewer never ran a brainstorm — this rating reflects limited secondary evidence, not a candidate failing."). Never list an un-administered stage as a candidate weakness in needsWork, and never lower the rating because of it.
+5. "coverageCaveat" (optional): if the INTERVIEWER never administered this dimension's primary stage (e.g. never asked a brainstorm question), rate on whatever secondary evidence exists and set this to a one-sentence note attributing the gap to session coverage (e.g. "The interviewer never ran a brainstorm — this rating reflects limited secondary evidence, not a candidate failing."). Never list an un-administered stage as a candidate weakness in needsWork, and never lower the rating because of it. The same applies to DATA: if a conclusion this dimension is rated on rests on data listed under "REQUESTED BUT NEVER PROVIDED" (and the transcript confirms the request), set a coverageCaveat attributing the gap to the interviewer not providing requested data.
 
 Scoring discipline:
-- Judge the candidate ONLY on the data they actually received (see "DATA THE CANDIDATE ACTUALLY RECEIVED" vs "DATA NEVER REVEALED" above). Do NOT penalize conclusions or recommendation levers that would require never-revealed data, and do NOT call a hypothesis a misdiagnosis when the data that would disambiguate it was withheld — if a hypothesis is consistent with the data they were given, rate the reasoning quality given available information, not against the hidden answer key. (You may still weigh how hard they pursued the missing data, but the absence of an insight that needed withheld data is not a candidate failing.)
+- Judge the candidate ONLY on the data they actually received (see "DATA THE CANDIDATE ACTUALLY RECEIVED" vs "DATA NEVER REVEALED" above). Do NOT penalize conclusions or recommendation levers that would require never-revealed data, and do NOT call a hypothesis a misdiagnosis when the data that would disambiguate it was withheld — if a hypothesis is consistent with the data they were given, rate the reasoning quality given available information, not against the hidden answer key. (You may still weigh how hard they pursued the missing data, but the absence of an insight that needed withheld data is not a candidate failing.) A candidate who ASKED for data that was never provided (see "REQUESTED BUT NEVER PROVIDED") pursued it — never fault them for an assumption resting on it, not even while acknowledging in the same breath that the data was never provided.
 - Judge each dimension at its primary stage(s) per the stage weighting.
 - A number the candidate asserted but never derived out loud is NOT quantitative evidence of rigor.
 - Use the DETERMINISTIC MATH CHECK RESULTS above where they cover a figure — they are computed in code, not re-derived by you. For anything they don't cover, RECOMPUTE the candidate's arithmetic yourself against the case data before citing it anywhere. Pay special attention to nested-percentage conversions: a share of COGS is NOT points of revenue — converting requires multiplying by the COGS share of revenue (e.g. beans at 12% of COGS with COGS at 42% of revenue is ~5% of revenue, so a 40% bean-price rise adds ~2 points of revenue share, not 4-6). Mixing these units is the most common case-math error.
@@ -149,7 +184,7 @@ Scoring discipline:
 
 Also provide:
 - "overallRating": the single overall rating ("needs_work", "meets_bar", or "strong")
-- "topFix": the single highest-leverage improvement the candidate should make
+- "topFix": the single highest-leverage improvement the candidate should make — never an assumption that rests on data listed under "REQUESTED BUT NEVER PROVIDED"
 
 Respond with ONLY valid JSON matching this schema:
 {
