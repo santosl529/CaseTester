@@ -140,3 +140,30 @@ describe('buildSystemPrompt load-shedding (Rule 15)', () => {
     expect(buildSystemPrompt(ctx({ elapsedMs: 0.4 * TOTAL }))).not.toContain('SHED OPTIONAL PROBING');
   });
 });
+
+describe('buildSystemPrompt data requests (Rule 11 v4.1: release, refuse, or defer)', () => {
+  it('requires every data request to be released, refused, or audibly deferred — never ignored', () => {
+    const prompt = buildSystemPrompt(ctx());
+    expect(prompt).toContain('Every data request gets exactly one response: RELEASE, REFUSE, or DEFER');
+    expect(prompt).toContain('Hold that — let\'s come back to it');
+    expect(prompt).toContain('A redirect to your next question with no release, refusal, or deferral is a violation');
+  });
+
+  it('no longer permits a silent redirect instead of revealing', () => {
+    expect(buildSystemPrompt(ctx())).not.toContain('You may briefly redirect instead of revealing');
+  });
+
+  it('requires open deferrals to be resolved before asking for the recommendation', () => {
+    expect(buildSystemPrompt(ctx())).toContain('resolve every deferred request — release or refuse — BEFORE you ask for the recommendation');
+  });
+
+  it('under time pressure: answer the open request first, then the recommendation ask; no deferral', () => {
+    const prompt = buildSystemPrompt(ctx({ elapsedMs: TOTAL - 60_000 }));
+    expect(prompt).toContain('answer any open data request (release or refuse) FIRST, then ask for the recommendation, in the same turn');
+    expect(prompt).toContain('Deferral is no longer available');
+  });
+
+  it('does not add the time-pressure data-request ordering early in the case', () => {
+    expect(buildSystemPrompt(ctx({ elapsedMs: 0.4 * TOTAL }))).not.toContain('Deferral is no longer available');
+  });
+});

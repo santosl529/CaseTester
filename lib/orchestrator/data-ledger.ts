@@ -56,8 +56,8 @@ export function unrevealedItems(ledger: DataLedger): { id: string; label: string
     .map(i => ({ id: i.id, label: i.label }));
 }
 
-// Broken-promise recovery for reveal_data (Rule 11: "unavailable data: refuse
-// explicitly, never substitute"). A pilot run had the interviewer say "let me
+// Broken-promise recovery for reveal_data (Rule 11: "release, refuse, or
+// defer — never ignore; never substitute"). A pilot run had the interviewer say "let me
 // pull that data for you" with no reveal_data tool call, then paper over the
 // gap by re-stating already-revealed figures instead of the data actually
 // requested — see docs/interviewer-behavior.md Rule 11 and
