@@ -12,7 +12,7 @@ import {
   resolveItemFromText, promisesReveal, markExhibitReveals,
 } from './data-ledger';
 import { auditTurn, auditTurnStyle, stripMetaLeak, stripFabricatedTurn } from './audit';
-import { auditNumericProvenance } from './numeric-provenance';
+import { auditNumericProvenance, changeFigures } from './numeric-provenance';
 import { checkRecomputeForTurn, formatRecomputeHint } from './recompute';
 import { detectNestedPercentConversion, formatUnitCheckHint } from './unit-check';
 import { resolveExhibit, promisesExhibit } from './exhibits';
@@ -492,8 +492,17 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
 
   // Post-turn audits. Three valid provenances (Rule 6): revealed ledger values,
   // candidate-attributed figures, orchestrator-derived (recompute) values.
-  const allowedText = [candidateText, ...derivedValueTexts].join(' ');
-  const auditResult = auditTurn(spokenText, revealedValues(ledger), allowedText);
+  // Candidate figures come from EVERY candidate turn, not only this one; the
+  // case prompt (shown to the candidate verbatim) counts as revealed; and the
+  // change inside a single released value ("58% … up from 42%" → 16) counts as
+  // derived. Live run eca39ec7 blocked "the 16-point compression" for lack of
+  // all three.
+  const revealedTexts = Object.values(revealedValues(ledger));
+  const priorCandidateTexts = turnRows.filter(t => t.role === 'candidate').map(t => t.text);
+  const allowedTexts = [
+    caseData.prompt, ...changeFigures(revealedTexts), ...priorCandidateTexts, candidateText, ...derivedValueTexts,
+  ];
+  const auditResult = auditTurn(spokenText, revealedValues(ledger), allowedTexts.join(' '));
   const styleResult = auditTurnStyle(spokenText, {
     lengthExempt: newReveals.length > 0 || exhibit !== undefined || stallDecision.rung === 3,
   });
@@ -502,7 +511,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
 
   const provenanceResult = auditNumericProvenance(
     spokenText,
-    [...Object.values(revealedValues(ledger)), candidateText, ...derivedValueTexts],
+    [...revealedTexts, ...allowedTexts],
     { exempt: timeWarningFiredThisTurn || usedCloseFallback },
   );
   const blockedFindings = provenanceResult.findings.filter(f => f.action === 'block');

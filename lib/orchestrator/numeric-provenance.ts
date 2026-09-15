@@ -147,6 +147,36 @@ function valueMatches(value: number, allowed: Set<number>): boolean {
   return false;
 }
 
+// ---- derived change figures -------------------------------------------------
+
+// The change between two same-unit figures inside ONE released value —
+// "COGS is 58% of revenue today, up from 42% two years ago" → "16". An
+// interviewer naturally speaks the change ("the 16-point compression"); without
+// this the audit blocked it (live run eca39ec7), which the 50-case
+// zero-invented-numbers gate would count as an incident. Pairs only % with %
+// and $ with $ inside the same value, so unrelated numbers never combine.
+export function changeFigures(values: string[]): string[] {
+  const out = new Set<string>();
+  for (const value of values) {
+    const byUnit = new Map<'$' | '%', number[]>();
+    for (const m of value.matchAll(/(\$\s*)?(\d[\d,]*(?:\.\d+)?)(\s*%)?/g)) {
+      const unit = m[1] ? '$' : m[3] ? '%' : null;
+      const n = parseFloat(m[2].replace(/,/g, ''));
+      if (!unit || isNaN(n)) continue;
+      byUnit.set(unit, [...(byUnit.get(unit) ?? []), n]);
+    }
+    for (const nums of byUnit.values()) {
+      for (let i = 0; i < nums.length; i++) {
+        for (let j = i + 1; j < nums.length; j++) {
+          const change = Math.round(Math.abs(nums[i] - nums[j]) * 100) / 100;
+          if (change > 0) out.add(String(change));
+        }
+      }
+    }
+  }
+  return [...out];
+}
+
 // ---- main audit -------------------------------------------------------------
 
 export function auditNumericProvenance(
