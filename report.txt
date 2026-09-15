@@ -88,18 +88,59 @@ dev server's background processing, the UI, and the PDF download button.
     case prompt, and the change inside a released value (58% vs 42% → 16).
 
 2.5 prof-001 (needs your review — see section 6)
-  - The answer key said coffee beans (+40%) explained the whole 16-point COGS
-    jump, which the ledger couldn't support (beans would have to be ~95% of
-    COGS). New ledger items make it add up: beans are 25% of COGS (4.2 points),
-    other inputs up 37.5% (11.8 points), menu prices unchanged, and the higher
-    ticket is more items per visit.
-  - Keys now say COGS explains 16 of the 18 points and overhead the other 2
-    (previously "entirely COGS").
-  - The two COGS component labels start with "COGS breakdown:", and the cost
-    exhibit lists the ledger items it displays.
-  - Consistency tests now write out and check the root-cause attribution.
+  Why: the answer key said coffee beans (+40%) explained the whole 16-point
+  COGS jump, which the ledger couldn't support (beans would have to be ~95% of
+  COGS). Candidates who did the math correctly were graded against it.
+
+  Every change to cases/prof-001.json, by field (commits 1d9478e, a2bbea1,
+  1adcf39, f5754e6):
+
+  Ledger — added:
+    menu_price_change      "Menu prices have not changed in two years."
+    bean_share_of_cogs     "Coffee beans were 25% of COGS two years ago."
+                           (label: "COGS breakdown: coffee beans as a share
+                           of COGS")
+    non_bean_input_change  "Other input costs — dairy, packaging, and food —
+                           are up 37.5% over the past two years."
+                           (label: "COGS breakdown: other input cost changes
+                           (dairy, packaging, food) over 2 years")
+  Ledger — changed:
+    avg_ticket             value now ends "…about a 10% increase, because
+                           customers are buying more items per visit."
+  Exhibit (cost structure):
+    coversLedgerItems      new: cogs_pct, labor_pct, overhead_pct
+    interpretationKey      rewritten: COGS drives 16 of the 18 points
+                           (overhead 2); a strong candidate tests whether
+                           beans can explain the 16 — they can't (beans add
+                           ~4.2, other inputs ~11.8)
+  Keys and anchors:
+    recommendationKey      rewritten: raise menu prices (flat for two years)
+                           8–12% on less price-sensitive specialty SKUs, PLUS
+                           procurement across all inputs (bean contracts and
+                           dairy/packaging supply), since beans are only ~a
+                           quarter of the increase. Commodity-blend pilot and
+                           "no blanket cost cuts" kept. Previously: price
+                           increase + bean contracts only. This changes what
+                           the judge rewards.
+    quantitative "strong"  anchor now also requires testing whether bean
+                           inflation explains the 16 points (~4.2)
+    interviewerNotes       rewritten to the same story. Note: nothing reads
+                           this field at runtime — not the interviewer prompt
+                           (it contains unreleased numbers) and not the
+                           judge — so this edit is documentation only.
+  Unchanged: prompt, exhibit data, mathSteps, pacing, structureKey, the other
+  rubric anchors, and all other ledger items.
+
+  The math now adds up exactly: 42 × (25% × 1.40 + 75% × 1.375) = 58.0.
+  Related (outside the case file):
+  - tests/cases/consistency.test.ts writes out and checks the attribution,
+    the flat menu prices, exhibit coverage, and the 16-of-18 wording.
+  - lib/scoring/judge.ts: its nested-percentage example now uses beans at 25%
+    of COGS (it previously said 12%, which contradicted the new ledger).
   - docs/case-authoring.md gained two rules: the stated root cause must be
     derivable from the ledger; exhibits declare the ledger items they show.
+  - No mathSteps were added for the 10.5% / 4.2 / 11.8 calculation — blocked
+    on the math-step matcher bug (section 7).
 
 2.6 Code structure and tooling
   - Route logic moved into shared functions (start-session, post-turn,
