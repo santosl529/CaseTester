@@ -134,14 +134,14 @@
   ],
   "pacing": {
     "phaseBudgetsMs": {
-      "INTRO": 10000,
-      "CLARIFY": 30000,
-      "STRUCTURE": 50000,
-      "ANALYSIS": 80000,
-      "EXHIBIT": 30000,
-      "BRAINSTORM": 40000,
-      "RECOMMENDATION": 50000,
-      "WRAP": 10000
+      "INTRO": 40000,
+      "CLARIFY": 120000,
+      "STRUCTURE": 200000,
+      "ANALYSIS": 320000,
+      "EXHIBIT": 120000,
+      "BRAINSTORM": 160000,
+      "RECOMMENDATION": 200000,
+      "WRAP": 40000
     }
   },
   "structureKey": "Strong structure disaggregates profit = revenue − costs, then breaks revenue into volume × price and costs into COGS / labor / overhead / other. The candidate should hypothesize which bucket is the driver before asking for data. Bonus: asks about competitive context (are peers also seeing this?) and pricing power.",

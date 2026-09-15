@@ -275,8 +275,10 @@ Not verified at all:
    - The recommendation key's 8–12% price rise recovers only ~5 of the 16
      points, and the key doesn't say that increase is partial.
 
-3. Text-mode clock. 5 minutes allows ~3 typed replies. You said this will be
-   increased later; it belongs in the PRD when decided.
+3. Text-mode clock. 5 minutes allowed ~3 typed replies. DONE 2026-09-15: raised
+   to 20 minutes (prof-001's phase budgets scaled ×4; PRD updated). Still open:
+   the time warning fires at 30s left and time-pressure mode at 90s left —
+   short for a typed recommendation (~90s per reply in the paced run).
 
 
 ==============================================================================

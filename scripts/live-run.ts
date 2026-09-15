@@ -29,7 +29,7 @@ import { renderReportPdf } from '@/app/api/report/[sessionId]/pdf/render';
 
 const CANDIDATE_MODEL = 'claude-opus-5';
 const MAX_TURNS = 30;
-const MAX_WALL_MS = 10 * 60_000; // the case clock is 5 minutes; this only guards a hang
+const MAX_WALL_MS = 30 * 60_000; // the case clock is 20 minutes; this only guards a hang
 const OUT_DIR = path.resolve('Case Interview Runs');
 
 // The simulator must not know the answer — it sees only the transcript. The

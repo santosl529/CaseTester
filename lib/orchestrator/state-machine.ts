@@ -7,7 +7,9 @@ export type Phase = typeof PHASES[number];
 
 // Single wall-clock budget for the whole case. Phases carry no timers —
 // they advance only when the interviewer decides the candidate is ready.
-export const TOTAL_CASE_MS = 5 * 60 * 1000;
+// 20 minutes (raised from 5 on 2026-09-15): a human-paced run showed 5 minutes
+// allows only ~3 typed candidate replies. Case pacing budgets must sum to this.
+export const TOTAL_CASE_MS = 20 * 60 * 1000;
 
 export function nextPhase(current: Phase): Phase | null {
   const idx = PHASES.indexOf(current);

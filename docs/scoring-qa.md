@@ -301,7 +301,7 @@ forever.
   not a hard override.
 - **Gates early ending** (`canEndCase`): the interviewer may only wrap once
   every dimension ≥ threshold (default 60) AND past a ~60s minimum guard (so a
-  bad reading can't end absurdly early) — OR time is up (the hard 5-min limit
+  bad reading can't end absurdly early) — OR time is up (the hard 20-min limit
   always ends, so a genuinely-untestable dimension can't trap the session). If
   the coverage signal is missing (agent failed/pending), it degrades to an 80%
   time floor. This replaced the idea of a fixed time floor: the case ends when

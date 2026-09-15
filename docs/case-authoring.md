@@ -99,7 +99,8 @@ computable more than one way.
 ## Pacing config (optional)
 
 Cases may set `pacing.phaseBudgetsMs` (per-phase time budgets, must sum to the
-5-minute total — enforced by `tests/cases/consistency.test.ts`) and
+total case time, `TOTAL_CASE_MS` — currently 20 minutes — enforced by
+`tests/cases/consistency.test.ts`) and
 `pacing.timeWarningMs` (default 30s before time runs out). Omitted entirely,
 the orchestrator falls back to an even split across the 8 active phases and
 the 30s default warning (`lib/orchestrator/pacing.ts`). Prefer setting
