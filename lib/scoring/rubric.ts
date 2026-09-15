@@ -13,6 +13,13 @@ export const RATING_LABELS: Record<Rating, string> = {
   strong: 'strong',
 };
 
+// Reports are read by the student, and a model guessing their gender from a
+// transcript misgenders real people (live run eca39ec7's report: "his inability
+// to weight beans"). Shared by every prompt whose output text reaches the
+// report — the judge and the reconciliation pass's merged statements.
+export const CANDIDATE_REFERENCE_RULE =
+  'Refer to the candidate as "the candidate" (or "you" in direct advice). Never use gendered pronouns for the candidate (he/him/his, she/her/hers).';
+
 export const RUBRIC_DIMENSION_KEYS = [
   'structure',
   'quantitative',

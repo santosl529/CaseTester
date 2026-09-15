@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 import type { RubricScores, FeedbackItem } from './judge';
-import { RUBRIC_DIMENSION_KEYS, type RubricDimensionKey } from './rubric';
+import { RUBRIC_DIMENSION_KEYS, CANDIDATE_REFERENCE_RULE, type RubricDimensionKey } from './rubric';
 import { fallbackTopFix } from './verifier';
 import type { DataCoverage, RequestedNotInCase, RequestedUnanswered } from './data-coverage';
 import type { OnUsage } from '@/lib/llm-usage';
@@ -224,7 +224,7 @@ List every needsWork, missedOpportunities, or topFix item that faults the candid
 
   return `You are reconciling a case-interview feedback report so it doesn't contradict itself. Items are numbered; each is tagged [dimension/section].
 
-TASK 1 — SAME CONCEPT ON BOTH SIDES. Within a single dimension, find a wentWell item and a needsWork item that are about the same concept (e.g. "recognized elasticity implicitly by targeting premium items" vs. "did not name elasticity / volume loss as the risk"). For each pair, write ONE calibrated sentence that keeps what is true in both ("recognized elasticity implicitly in targeting premium SKUs, but never named volume loss as the risk"). Only pair items that are genuinely the same concept — different aspects of a dimension are not a collision. Use each item at most once.
+TASK 1 — SAME CONCEPT ON BOTH SIDES. Within a single dimension, find a wentWell item and a needsWork item that are about the same concept (e.g. "recognized elasticity implicitly by targeting premium items" vs. "did not name elasticity / volume loss as the risk"). For each pair, write ONE calibrated sentence that keeps what is true in both ("recognized elasticity implicitly in targeting premium SKUs, but never named volume loss as the risk"). Only pair items that are genuinely the same concept — different aspects of a dimension are not a collision. Use each item at most once. The merged sentence is shown to the candidate: ${CANDIDATE_REFERENCE_RULE}
 
 TASK 2 — CROSS-DIMENSION REPETITION. Find any single concept that appears as a weakness (needsWork or missedOpportunities) in 3 or more different dimensions. Report the concept and the dimension keys. This is for logging; do not change anything for it.${gapTask}
 

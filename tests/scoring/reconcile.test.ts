@@ -3,7 +3,7 @@ import {
   collectReconcileItems, applyReconciliation, parseReconcileResponse, buildReconcilePrompt,
   GAP_COVERAGE_CAVEAT, type ReconcileResult,
 } from '@/lib/scoring/reconcile';
-import { RUBRIC_DIMENSION_KEYS } from '@/lib/scoring/rubric';
+import { RUBRIC_DIMENSION_KEYS, CANDIDATE_REFERENCE_RULE } from '@/lib/scoring/rubric';
 import type { RubricScores, DimensionFeedback } from '@/lib/scoring/judge';
 
 function dim(overrides: Partial<DimensionFeedback> = {}): DimensionFeedback {
@@ -215,6 +215,17 @@ describe('parseReconcileResponse', () => {
     expect(parseReconcileResponse('```json\n{}\n```')).toEqual(empty);
     expect(parseReconcileResponse('nope')).toBeNull();
     expect(parseReconcileResponse('{"merges":"bad"}')).toBeNull();
+  });
+});
+
+describe('candidate reference rule (student-facing reports)', () => {
+  it('forbids gendered pronouns for the candidate (live run eca39ec7: "his inability to weight beans")', () => {
+    expect(CANDIDATE_REFERENCE_RULE).toMatch(/never/i);
+    expect(CANDIDATE_REFERENCE_RULE).toMatch(/he\/him\/his/);
+  });
+
+  it('is included in the reconciliation prompt, whose merged statements are shown to students', () => {
+    expect(buildReconcilePrompt(collectReconcileItems(baseRubric()), [])).toContain(CANDIDATE_REFERENCE_RULE);
   });
 });
 
