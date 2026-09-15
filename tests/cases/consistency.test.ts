@@ -102,6 +102,17 @@ describe('case ledger consistency: prof-001', () => {
     for (const id of exhibit.coversLedgerItems ?? []) expect(ids.has(id), `${id} is a ledger item`).toBe(true);
   });
 
+  it('keys attribute the margin decline as the exhibit does: COGS 16 of 18 points, overhead 2 (not "entirely COGS")', () => {
+    const cogsPts = Number(exhibit.data[2].COGS) - Number(exhibit.data[0].COGS);             // 16
+    const overheadPts = Number(exhibit.data[2].Overhead) - Number(exhibit.data[0].Overhead); // 2
+    const marginPts = Number(exhibit.data[0].Profit) - Number(exhibit.data[2].Profit);       // 18
+    expect(cogsPts + overheadPts).toBe(marginPts);
+    for (const key of [c.interviewerNotes, exhibit.interpretationKey]) {
+      expect(key).toContain(`${cogsPts} of the ${marginPts} points`);
+      expect(key).not.toMatch(/entirely COGS|sole driver|essentially flat/i);
+    }
+  });
+
   it('answer keys state the reconciled attribution, not "beans explain it all"', () => {
     for (const key of [c.interviewerNotes, exhibit.interpretationKey]) {
       expect(key).toContain('4.2');

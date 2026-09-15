@@ -4,7 +4,7 @@
   "firmStyle": "mckinsey",
   "difficulty": "medium",
   "prompt": "Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?",
-  "interviewerNotes": "Push candidate to disaggregate revenue vs. cost drivers first. If candidate jumps to solutions, redirect to diagnosis. Key insight: the margin decline is entirely COGS, driven by broad input-cost inflation (about 38% across inputs) that was never passed through — menu prices have not changed in two years, and the higher average ticket is customers buying more items. Coffee beans (+40%) are the most visible driver but, at 25% of COGS, explain only about 4.2 of the 16 points; other inputs (dairy, packaging, food, up 37.5%) explain the other 11.8. If the candidate stops at beans, probe whether beans alone can explain 16 points. If candidate gets close, probe whether price elasticity was tested.",
+  "interviewerNotes": "Push candidate to disaggregate revenue vs. cost drivers first. If candidate jumps to solutions, redirect to diagnosis. Key insight: COGS explains 16 of the 18 points of margin decline (overhead adds the other 2; labor is flat), driven by broad input-cost inflation (about 38% across inputs) that was never passed through — menu prices have not changed in two years, and the higher average ticket is customers buying more items. Coffee beans (+40%) are the most visible driver but, at 25% of COGS, explain only about 4.2 of the 16 points; other inputs (dairy, packaging, food, up 37.5%) explain the other 11.8. If the candidate stops at beans, probe whether beans alone can explain 16 points. If candidate gets close, probe whether price elasticity was tested.",
   "dataLedger": [
     {
       "id": "revenue_total",
@@ -129,7 +129,7 @@
           "Profit": 6
         }
       ],
-      "interpretationKey": "COGS is the sole driver of margin compression. Labor and overhead are essentially flat. A strong candidate names COGS specifically, asks what's inside it, and tests whether the coffee bean spike (+40%) can explain the full 16 points — it can't: beans are 25% of COGS, so they add about 4.2 points, and other inputs up 37.5% add the other 11.8. Weak candidates say 'costs went up' without specifying, or stop at beans."
+      "interpretationKey": "COGS drives the margin compression: 16 of the 18 points (labor is flat; overhead adds the other 2). A strong candidate names COGS specifically, asks what's inside it, and tests whether the coffee bean spike (+40%) can explain the full 16 points — it can't: beans are 25% of COGS, so they add about 4.2 points, and other inputs up 37.5% add the other 11.8. Weak candidates say 'costs went up' without specifying, or stop at beans."
     }
   ],
   "pacing": {
