@@ -62,13 +62,13 @@
     },
     {
       "id": "bean_share_of_cogs",
-      "label": "Coffee beans as a share of COGS",
+      "label": "COGS breakdown: coffee beans as a share of COGS",
       "value": "Coffee beans were 25% of COGS two years ago.",
       "releaseWhen": "EXHIBIT"
     },
     {
       "id": "non_bean_input_change",
-      "label": "Other input cost changes (dairy, packaging, food) over 2 years",
+      "label": "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years",
       "value": "Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.",
       "releaseWhen": "EXHIBIT"
     }

@@ -199,15 +199,36 @@ Release each with reveal_data as soon as the candidate has earned it; if one is 
 }
 
 // Which open requests to force-release on a recommendation-ask turn: not
-// already revealed (including reveals made earlier this turn), earliest ask
-// first, capped so a wrap-up turn never becomes a data monologue.
-export function planForcedReleases(gaps: RequestedUnanswered[], revealedIds: Set<string>, cap = 2): string[] {
+// already revealed (including reveals made earlier this turn), capped so a
+// wrap-up turn never becomes a data monologue. What the candidate asked for in
+// THIS turn goes first, then the most recent asks — live run eca39ec7 spent
+// both slots on an early store-count question while the COGS split the
+// candidate had just asked for (and the recommendation rested on) stayed
+// withheld.
+export function planForcedReleases(
+  gaps: RequestedUnanswered[],
+  revealedIds: Set<string>,
+  opts: { currentTurnIndex?: number; cap?: number } = {},
+): string[] {
+  const { currentTurnIndex, cap = 2 } = opts;
+  const askedThisTurn = (g: RequestedUnanswered) => (g.turnIndex !== null && g.turnIndex === currentTurnIndex ? 1 : 0);
   const seen = new Set<string>();
   return [...gaps]
-    .sort((a, b) => (a.turnIndex ?? Infinity) - (b.turnIndex ?? Infinity))
+    .sort((a, b) => askedThisTurn(b) - askedThisTurn(a) || (b.turnIndex ?? -Infinity) - (a.turnIndex ?? -Infinity))
     .filter(g => !revealedIds.has(g.ledgerItemId) && !seen.has(g.ledgerItemId) && seen.add(g.ledgerItemId))
     .slice(0, cap)
     .map(g => g.ledgerItemId);
+}
+
+// When the orchestrator appends the scripted recommendation ask, a question
+// the model left at the end of its turn is superseded — keeping both stacks two
+// asks and leaves one hanging (live run eca39ec7, 4:40: "What specifically do
+// you want on beans?" … "What's your bottom-line recommendation?"). Drops only
+// the trailing run of question sentences.
+export function dropTrailingQuestions(text: string): string {
+  const sentences = text.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+  while (sentences.length > 0 && sentences[sentences.length - 1].trim().endsWith('?')) sentences.pop();
+  return sentences.join(' ');
 }
 
 // Assemble the turn so released data always lands BEFORE the recommendation

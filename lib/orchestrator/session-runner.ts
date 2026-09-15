@@ -2,7 +2,7 @@ import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
 import {
-  classifyDataRequests, formatOpenRequestsHint, planForcedReleases, composeForcedReleaseTurn,
+  classifyDataRequests, formatOpenRequestsHint, planForcedReleases, composeForcedReleaseTurn, dropTrailingQuestions,
 } from './data-requests';
 import { logDataRequestClassification } from './data-request-log';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
@@ -27,7 +27,7 @@ import { runInterviewerTurn } from '@/lib/agent/interviewer';
 import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import {
   TIME_WARNING_SCRIPTS, CLOSE_SCRIPTS, REVEAL_REFUSAL_SCRIPTS, EXHIBIT_REFUSAL_SCRIPTS, FORCED_RELEASE_LEADINS,
-  pickScript, alreadySignaledTimeOrRec,
+  pickScript, alreadySignaledTimeOrRec, hasCloseCue,
   CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, DISTRESS_OFFER, DISTRESS_CLOSE,
 } from '@/lib/agent/prompts/scripts';
 
@@ -423,7 +423,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     }
     const gaps = summarizeDataRequests([...dataRequestRows, ...currentRows], catalog, [...revealedNow]).requestedUnanswered;
     const forcedIds: string[] = [];
-    for (const itemId of planForcedReleases(gaps, revealedNow)) {
+    for (const itemId of planForcedReleases(gaps, revealedNow, { currentTurnIndex: nextTurnIndex })) {
       if (!canReveal(ledger, itemId)) continue;
       forcedReleaseValues.push(reveal(ledger, itemId));
       newReveals.push(itemId);
@@ -446,16 +446,26 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   if (warningDue) {
     spokenText = modelAsked
       ? composeForcedReleaseTurn({ spokenText, releaseValues: forcedReleaseValues, leadIn: forcedLeadIn, isAskSentence: alreadySignaledTimeOrRec })
-      : composeForcedReleaseTurn({ spokenText, releaseValues: forcedReleaseValues, leadIn: forcedLeadIn, warningLine: pickScript(TIME_WARNING_SCRIPTS, sessionId) });
+      : composeForcedReleaseTurn({
+        // The scripted ask supersedes any question the model ended on.
+        spokenText: dropTrailingQuestions(spokenText),
+        releaseValues: forcedReleaseValues,
+        leadIn: forcedLeadIn,
+        warningLine: pickScript(TIME_WARNING_SCRIPTS, sessionId),
+      });
     timeWarningFiredThisTurn = true;
   } else if (forcedReleaseValues.length > 0) {
     spokenText = composeForcedReleaseTurn({ spokenText, releaseValues: forcedReleaseValues, leadIn: forcedLeadIn, isAskSentence: alreadySignaledTimeOrRec });
   }
 
-  // Rule 12: guarantee a close line if the case ends with nothing spoken.
+  // Rule 12: every ending turn carries a close — the script alone if nothing
+  // was spoken, appended if the turn said something else but never closed
+  // (live run eca39ec7 ended on a bare correction after time-up).
   const usedCloseFallback = ended && spokenText === '';
   if (usedCloseFallback) {
     spokenText = pickScript(CLOSE_SCRIPTS, sessionId);
+  } else if (ended && !hasCloseCue(spokenText)) {
+    spokenText = `${spokenText} ${pickScript(CLOSE_SCRIPTS, sessionId)}`;
   }
 
   // Rule 8 silent phase repair (lib/orchestrator/phase-repair.ts): raise the

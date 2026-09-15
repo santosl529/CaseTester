@@ -60,11 +60,19 @@ describe('formatOpenRequestsHint (Rule 11 deferral tracking)', () => {
 });
 
 describe('planForcedReleases', () => {
-  it('skips anything already revealed (including this turn), earliest request first, capped', () => {
+  it('releases what the candidate asked for THIS turn first (live run eca39ec7: store count beat the COGS split just asked for)', () => {
+    const gaps = [
+      gap('stores_count', 'S', 3), gap('revenue_per_store', 'R', 3),
+      gap('bean_share_of_cogs', 'B', 5), gap('non_bean_input_change', 'N', 5),
+    ];
+    expect(planForcedReleases(gaps, new Set(), { currentTurnIndex: 5 })).toEqual(['bean_share_of_cogs', 'non_bean_input_change']);
+  });
+
+  it('otherwise the most recent requests first, skipping anything already revealed, capped', () => {
     const gaps = [
       gap('c', 'C', 9), gap('a', 'A', 2), gap('b', 'B', 5), gap('d', 'D', 1),
     ];
-    expect(planForcedReleases(gaps, new Set(['d']), 2)).toEqual(['a', 'b']);
+    expect(planForcedReleases(gaps, new Set(['c']), { cap: 2 })).toEqual(['b', 'a']);
   });
 
   it('defaults to a cap of 2 so a wrap-up turn never becomes a data monologue', () => {

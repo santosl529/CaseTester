@@ -117,7 +117,7 @@ export function buildSystemPrompt(ctx: PromptContext): string {
 
   const remainingMs = ctx.totalMs - ctx.elapsedMs;
   const timeSection = remainingMs <= 0
-    ? `TIME: The ${formatClock(ctx.totalMs)} interview is over — time is up. Thank the candidate and give a brief, courteous close. This is your final message; the session ends after it.`
+    ? `TIME: The ${formatClock(ctx.totalMs)} interview is over — time is up. Thank the candidate and give a brief, courteous close. This is your final message; the session ends after it. Do not add feedback, corrections, or new analysis — anything unsaid belongs to the written report.`
     : remainingMs <= 60 * 1000
       ? `TIME: ${formatClock(ctx.elapsedMs)} elapsed of ${formatClock(ctx.totalMs)} total — under a minute left. Steer the candidate to deliver their final recommendation now.`
       : `TIME: ${formatClock(ctx.elapsedMs)} elapsed of ${formatClock(ctx.totalMs)} total. This clock is measured by the system and updated every turn — trust it; never estimate or announce times of your own.`;

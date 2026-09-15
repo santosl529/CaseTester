@@ -141,6 +141,13 @@ describe('buildSystemPrompt load-shedding (Rule 15)', () => {
   });
 });
 
+describe('buildSystemPrompt time-up close (Rule 12)', () => {
+  it('once time is up, forbids feedback, corrections, or new analysis in the closing message (live run eca39ec7)', () => {
+    const prompt = buildSystemPrompt(ctx({ elapsedMs: TOTAL + 1000 }));
+    expect(prompt).toContain('Do not add feedback, corrections, or new analysis');
+  });
+});
+
 describe('buildSystemPrompt data requests (Rule 11 v4.1: release, refuse, or defer)', () => {
   it('requires every data request to be released, refused, or audibly deferred — never ignored', () => {
     const prompt = buildSystemPrompt(ctx());

@@ -95,6 +95,16 @@ export const DISTRESS_CLOSE =
 const TIME_CUE = /\b(out of time|near(ly)?\s+time|time'?s\s+(up|nearly)|almost out of time|we'?re (almost )?(out of|near) time|running out of time|wrap (up|it up)|near the end)\b/i;
 const REC_ASK = /\b(bottom.?line recommendation|recommendation to the (ceo|client)|final recommendation|bring it home|what'?s your recommendation|what would you (tell|recommend) the (ceo|client))\b/i;
 
+// Rule 12: does this turn already close the case? Used to guarantee a close
+// line on ending turns that say something else (live run eca39ec7 ended on a
+// bare correction after time-up). "Before we close" is not a close.
+const CLOSE_CUE =
+  /\b(that'?s (our )?time|we'?ll stop (there|here)|(that'?s|this is) where we'?ll stop|thanks?( you)? for (working|walking)|we'?re out of time|report (with feedback )?will follow)\b/i;
+
+export function hasCloseCue(spokenText: string): boolean {
+  return CLOSE_CUE.test(spokenText);
+}
+
 // Recommendation ask only, no bare time cue — used by phase repair
 // (lib/orchestrator/phase-repair.ts): an interviewer asking for the
 // recommendation means the case is in RECOMMENDATION whatever the phase
