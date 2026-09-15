@@ -5,11 +5,7 @@
 // real scoring pipeline scores the session. Saves the transcript, feedback,
 // Rule 11 audit rows, and scoring-QA metrics to "Case Interview Runs/".
 //
-//   npx tsx --env-file=.env.local scripts/live-run.ts [caseId] [--pace=human] [--wpm=90] [--think-ms=8000]
-//
-// --pace=human paces the candidate like a person (think + type time before each
-// message). Without it the simulator answers in seconds and the case finishes
-// long before the clock matters.
+//   npx tsx --env-file=.env.local scripts/live-run.ts [caseId]
 //
 // Costs real money: interviewer + judge + verifier + reconciliation on Opus,
 // classifier + coverage on Haiku, candidate simulator on Opus 5. Writes a real
@@ -35,25 +31,6 @@ const CANDIDATE_MODEL = 'claude-opus-5';
 const MAX_TURNS = 30;
 const MAX_WALL_MS = 10 * 60_000; // the case clock is 5 minutes; this only guards a hang
 const OUT_DIR = path.resolve('Case Interview Runs');
-
-// Human pacing. The simulator replies in ~7s, so the 2026-09-14 runs finished
-// every stage in ~2 of the 5 minutes: the T−30s time warning, the time-up
-// close, Rule 15 load shedding, and the time-warning force-release path never
-// ran. --pace=human waits before each candidate message for reading/thinking
-// plus typing at a chat-typing speed, capped per turn so one long answer can't
-// eat the whole clock.
-const flag = (name: string) => process.argv.find(a => a.startsWith(`--${name}=`))?.split('=')[1];
-const PACE: 'human' | 'fast' = flag('pace') === 'human' ? 'human' : 'fast';
-const WPM = Number(flag('wpm') ?? 90);
-const THINK_MS = Number(flag('think-ms') ?? 8000);
-const MAX_TURN_DELAY_MS = 90_000;
-
-function humanDelayMs(text: string): number {
-  const words = text.trim().split(/\s+/).length;
-  return Math.min(MAX_TURN_DELAY_MS, THINK_MS + (words / WPM) * 60_000);
-}
-
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // The simulator must not know the answer — it sees only the transcript. The
 // data-request guidance exercises Rule 11 paths (release / refuse / defer /
@@ -105,7 +82,7 @@ function clock(ms: number): string {
 }
 
 async function main() {
-  const caseId = process.argv.slice(2).find(a => !a.startsWith('--')) ?? 'prof-001';
+  const caseId = process.argv[2] ?? 'prof-001';
   const caseData = getCaseById(caseId);
 
   const owner = await db.query.sessions.findFirst({ orderBy: [desc(sessions.startedAt)] });
@@ -124,12 +101,7 @@ async function main() {
   let ended = false;
 
   for (let turn = 0; turn < MAX_TURNS && Date.now() - startedAt < MAX_WALL_MS; turn++) {
-    const replyStartedAt = Date.now();
     const candidateText = await candidateReply(client, transcript);
-    if (PACE === 'human') {
-      // The simulator's own latency counts toward the person's think + type time.
-      await sleep(Math.max(0, humanDelayMs(candidateText) - (Date.now() - replyStartedAt)));
-    }
     transcript.push({ role: 'candidate', text: candidateText });
     console.log(`\n[candidate · ${clock(Date.now() - startedAt)}] ${candidateText}`);
 
@@ -200,8 +172,7 @@ async function writeArtifacts(sessionId: string, caseTitle: string) {
   md.push(`# Live run — ${caseTitle}`, '');
   md.push(`- Session: \`${sessionId}\` · case \`${session.caseId}\` · status **${session.status}** · ${date}`);
   md.push(`- Overall: **${score?.overallRating ?? 'not scored'}**`);
-  md.push(`- Candidate simulator: \`${CANDIDATE_MODEL}\` (sees only the transcript)`);
-  md.push(`- Pacing: ${PACE === 'human' ? `human (${THINK_MS}ms think + ${WPM} wpm typing, ≤${MAX_TURN_DELAY_MS / 1000}s per turn)` : 'fast (no delay)'}`, '');
+  md.push(`- Candidate simulator: \`${CANDIDATE_MODEL}\` (sees only the transcript)`, '');
 
   md.push('## Rule 11 / v4.1 checks', '');
   md.push(`- Ledger items revealed: ${revealed.map(r => `\`${r.ledgerItemId}\``).join(', ') || 'none'}`);

@@ -287,7 +287,7 @@ All mutations via **server actions** or route handlers; case keys and ledger val
 | `POST /api/channel/[id]/turn` | One candidate turn → orchestrator → interviewer turn. Returns immediately on the final turn (scoring is separate) with `scoring_suppressed` on conduct-terminated/abandoned sessions. |
 | `POST /api/channel/[id]/score` | Runs scoring for a completed session (idempotent; guarded to `status = completed`). Split out so the client can show an "evaluating" state and so a failed pass is retryable. |
 | `GET /api/report/[id]/pdf` | Streams the report as a PDF (server-rendered; ownership-checked). |
-| `scripts/live-run.ts` (dev only) | End-to-end run with a simulated candidate against real models and the real DB (`--pace=human` for realistic timing); writes transcript, report, and QA metrics to `Case Interview Runs/`. Route handlers are thin wrappers over `lib` (`start-session`, `post-turn`, `score-session`, PDF `render`), so the script exercises the same code paths. |
+| `scripts/live-run.ts` (dev only) | End-to-end run with a simulated candidate against real models and the real DB (fast-replying candidate — a pipeline check, not a timing test); writes transcript, report, and QA metrics to `Case Interview Runs/`. Route handlers are thin wrappers over `lib` (`start-session`, `post-turn`, `score-session`, PDF `render`), so the script exercises the same code paths. |
 | `case/[id]/report` (page) | Renders the assembled report (no raw keys); persistent case-prompt banner on the live page. |
 | `logEvent(...)` | Append analytics events (§13). |
 
