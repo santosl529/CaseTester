@@ -1,0 +1,282 @@
+CASETESTER — SESSION REPORT
+Sessions: 2026-09-14 / 2026-09-15
+Commits: 2737008 .. f5754e6 (24 commits on main, plus the commit adding this report)
+
+==============================================================================
+1. STATUS AT A GLANCE
+==============================================================================
+
+Everything below was run on 2026-09-15 against the final code:
+
+  Unit/integration tests   415 passed, 1 skipped (the API-key hallucination
+                           harness, which skips when no key is loaded)
+  Typecheck (tsc)          clean
+  Lint (incl. the rule     clean
+  keeping voice libraries
+  out of the core)
+  Production build         clean — all 9 routes compile
+  Hallucination gate       re-run with the API key after the prof-001 ledger
+  (Task 6, prof-001)       and audit changes: PASSED, zero invented numbers
+                           across 9 scripted turns
+  Live end-to-end run      a simulated candidate played prof-001 through the
+  (fast candidate)         real orchestrator, background passes, scoring, and
+                           PDF: completed, report written
+
+Ready for you to test by hand. What that test covers that mine did not: login
+and club code, the HTTP routes (reworked into thin wrappers this session), the
+dev server's background processing, the UI, and the PDF download button.
+
+
+==============================================================================
+2. WHAT CHANGED
+==============================================================================
+
+2.1 Behavior spec (docs/interviewer-behavior.md, now v4.1)
+  - Your v3.4 rewrite integrated, renumbered v4.1 (the repo copy was already
+    v4). My critiques folded in: data-request detection is a soft signal;
+    deferrals must be settled before the recommendation ask; a worked example
+    for "time warning + open data request"; reconciliation is an LLM pass.
+  - The run-4 account in Rule 11 corrected against the transcript: four
+    ignored requests, not two (menu prices asked three times); the "waste
+    narrative" critique rested on a COGS breakdown the case doesn't have, so it
+    was fair; the real gap was the withheld price data.
+  - Rule 10's enforcement note kept as it was (the paste would have reverted it
+    to describe a check that never existed).
+
+2.2 Data requests (Rule 11)
+  - A Haiku classifier logs every candidate data request and how the next
+    interviewer turn handled it (release / refuse / defer / clarify / none).
+  - One request can map to several ledger items ("what's inside COGS?" covers
+    both the bean share and other inputs).
+  - A "classified" marker per exchange, so scoring can re-check any exchange the
+    background pass missed.
+  - Still-unreleased requests are reminded to the interviewer each turn.
+  - Before any recommendation ask, up to two open ledger requests are released
+    ahead of the ask — what the candidate asked for that turn first, then the
+    most recent asks.
+  - Showing an exhibit counts as releasing the ledger items it displays.
+  - Stating a figure is no longer logged as a request.
+
+2.3 Scoring and the report
+  - The judge now sees data the candidate asked for and never got as its own
+    coverage-gap section, and is told never to charge the candidate for it.
+  - New final pass (reconciliation): merges a point stated as both a strength
+    and a weakness within one dimension, drops criticism that rests on data the
+    candidate asked for and never got, logs points repeated across 3+
+    dimensions. Its parser was broken on first contact with live output (the
+    model writes prose before the JSON) — found by replaying with raw logging
+    and fixed.
+  - Feedback points with no real candidate quote are dropped.
+  - Transcript repair cuts any interviewer turn where the model wrote the
+    candidate's side.
+  - The judge and reconciliation prompts must say "the candidate" / "you",
+    never he/his or she/her (prompt-level only).
+
+2.4 Live interviewer (orchestrator)
+  - Phase repair: the phase now moves forward on what visibly happened (data
+    released, exhibit shown, brainstorm asked, recommendation asked). Before
+    this, every live run sat in STRUCTURE for the whole case.
+  - Guard against the interviewer writing the candidate's answer: stop
+    sequences on the model call plus a cut in the runner. (Live run 58cb8061
+    had the interviewer write the candidate's brainstorm, which was then
+    scored "strong".)
+  - On the scripted recommendation-ask turn, a question the model ended on is
+    dropped so only one question is asked.
+  - Every ending turn gets a closing line; after time-up the prompt forbids
+    new feedback, corrections, or analysis.
+  - The number-source check accepts figures from every candidate turn, the
+    case prompt, and the change inside a released value (58% vs 42% → 16).
+
+2.5 prof-001 (needs your review — see section 6)
+  - The answer key said coffee beans (+40%) explained the whole 16-point COGS
+    jump, which the ledger couldn't support (beans would have to be ~95% of
+    COGS). New ledger items make it add up: beans are 25% of COGS (4.2 points),
+    other inputs up 37.5% (11.8 points), menu prices unchanged, and the higher
+    ticket is more items per visit.
+  - Keys now say COGS explains 16 of the 18 points and overhead the other 2
+    (previously "entirely COGS").
+  - The two COGS component labels start with "COGS breakdown:", and the cost
+    exhibit lists the ledger items it displays.
+  - Consistency tests now write out and check the root-cause attribution.
+  - docs/case-authoring.md gained two rules: the stated root cause must be
+    derivable from the ledger; exhibits declare the ledger items they show.
+
+2.6 Code structure and tooling
+  - Route logic moved into shared functions (start-session, post-turn,
+    score-session, PDF render); routes keep auth and ownership checks.
+  - scripts/live-run.ts runs a whole case with a simulated candidate against
+    real models and the real database and saves .md/.json/.pdf to
+    "Case Interview Runs/". Fast candidate only — a pipeline check, not a
+    timing test (a human-paced mode was built and removed at your request).
+  - Token usage is logged per call by component; a scoring_qa event records
+    the report-verification metrics for every scored session.
+
+2.7 Docs brought up to date
+  - docs/prd-voice-ai-mock-case-technical.md: model calls, data-release
+    paths, phase repair, scoring order, cost, analytics events.
+  - docs/scoring-qa.md: every new check marked implemented or pending.
+  - .superpowers/sdd/progress.md: post-plan section added.
+
+
+==============================================================================
+3. LIVE RUNS AND WHAT THEY SHOWED
+==============================================================================
+
+All four runs are saved in "Case Interview Runs/" (live-run-*.md/.json/.pdf).
+
+58cb8061 (fast)
+  - The interviewer wrote the candidate's brainstorm answer; it was scored.
+  - The simulated candidate couldn't see exhibits (script bug), losing three
+    turns.
+  - Phase stuck in STRUCTURE; reconciliation silently failed to parse.
+  - The classifier worked live; the case fix worked (the candidate correctly
+    found beans explain ~a quarter and was credited for it).
+
+db41a01e (fast)
+  - No invented turn; the candidate read the exhibit.
+  - The forced release fired but re-read data the exhibit had already shown.
+  - Phase still stuck; reconciliation failed to parse again.
+
+eca39ec7 (human-paced — before the final five fixes)
+  - Phase repair, the time warning, forced release, time-pressure mode,
+    time-up, multi-item mapping, and reconciliation all worked live.
+  - Found the five problems fixed last: wrong forced-release priority, two
+    questions stacked on the warning turn, no closing line after time-up,
+    "his" in the report, and a false block on "16".
+  - Showed a 5-minute clock allows only ~3 typed replies (you plan to lengthen
+    the text-mode clock later).
+
+5b99c7b9 (fast — final code)
+  - Completed end to end with no errors.
+  - Phase went CLARIFY → ANALYSIS → EXHIBIT → RECOMMENDATION.
+  - The candidate asked for the COGS breakdown and got both component items;
+    every item needed for the answer came out, so there were no gaps.
+  - Clean closing line; no gendered pronouns; nothing falsely blocked.
+
+Approximate LLM cost per run: ~$1 for a fast run (12–13 interviewer turns),
+~$0.50 for the paced one. The simulated candidate's calls aren't included.
+
+
+==============================================================================
+4. COMMITS
+==============================================================================
+
+2737008  docs: behavior spec v4.1 (Rule 11 release/refuse/defer, data-coverage
+         caveat, dimension reconciliation)
+0c7af92  interviewer prompt: release/refuse/defer; request first under time
+         pressure
+1288313  background data-request classifier + non-response log
+87439f6  judge: split data asked-for-and-never-given from the rest
+6d3be31  release open data requests before the recommendation ask
+3eb61d2  dimension-reconciliation pass
+680440a  docs: correct the run-4 account
+13abc11  reconciliation can't drop critiques resting on properly refused data
+1d9478e  prof-001 root cause reconciled with its ledger
+51a68fd  classified markers + scoring-time backfill
+78f0841  live-run script; route logic moved into shared lib functions
+6fe94a3  block interviewer-written candidate turns; drop unsupported points
+e6059c2  script: show exhibits to the simulated candidate
+0f69ed2  reconciliation parser handles prose before JSON
+a2bbea1  exhibits release their ledger items; statements aren't requests
+f0d3d8f  evidence-based phase repair
+1287994  one data request can cover several ledger items
+9cc1408  human pacing for live runs (later reverted)
+6a9caac  docs: technical PRD brought in line with the build
+493153a  revert human pacing
+1adcf39  recommendation-ask and closing turn composition
+32accd3  no gendered pronouns for the candidate in reports
+630af09  number-source check false positives
+f5754e6  prof-001 keys: COGS 16 of 18 points, not all of it
+
+
+==============================================================================
+5. VERIFIED VS NOT VERIFIED
+==============================================================================
+
+Verified live:
+  - classifier, multi-item mapping, markers and scoring backfill
+  - phase repair
+  - forced release before a recommendation ask
+  - reconciliation (merges, gap drops, cross-dimension log)
+  - coverage caveats, closing line, pronoun rule, number-source fix
+  - the corrected prof-001 attribution
+
+Covered by tests but not yet seen live:
+  - The time-warning turn after the final fixes (dropping the model's
+    question, current-turn priority). The fixes came from the paced run, and
+    fast runs finish before the warning at 4:30.
+  - Time-up closing line after a correction (the fast run ended normally).
+  - Exhibit coverage (the interviewer read the figures aloud instead of showing
+    the exhibit in the runs since).
+  - The guard against interviewer-written candidate turns (it hasn't needed to
+    fire since it was added).
+
+Not verified at all:
+  - The app through the browser and HTTP (build passes; no request was made
+    through the routes).
+  - The gendered-pronoun rule is an instruction to the model only; nothing
+    rewrites the report if it slips.
+
+
+==============================================================================
+6. DECISIONS THAT NEED YOU
+==============================================================================
+
+1. release_when. The PRD said the orchestrator enforces each ledger item's
+   release_when; the code has never enforced it, and phase repair now uses it
+   as a hint. Marked in PRD §5.1 — either enforce it or amend the spec.
+
+2. prof-001 review (FR-20 requires a human author and reviewer; I wrote the new
+   content). Judgment calls for you:
+   - Dairy, packaging and food all up 37.5% in two years is on the high side.
+   - The average-ticket value explains its own cause ("because customers are
+     buying more items per visit"), which hands the candidate the mix point.
+   - The recommendation key's 8–12% price rise recovers only ~5 of the 16
+     points, and the key doesn't say that increase is partial.
+
+3. Text-mode clock. 5 minutes allows ~3 typed replies. You said this will be
+   increased later; it belongs in the PRD when decided.
+
+
+==============================================================================
+7. OPEN ISSUES AND BACKLOG
+==============================================================================
+
+  - Math-step matcher bug: checkMathSteps grades a step by the nearest number
+    anywhere in the candidate's turns, so a step the candidate never did can be
+    marked "materially wrong" from an unrelated figure. This is also why
+    prof-001 has no mathSteps for its central 10.5% / 4.2 / 11.8 calculation —
+    nothing automatic catches a candidate getting it wrong.
+  - In the final run the interviewer did the candidate's profit math in its
+    first reply, framed as a correction (possible Rule 4 issue). Watch for it.
+  - The verifier, coverage agent, and classifier use the same fragile JSON
+    parsing that broke reconciliation. No failures seen, but same risk.
+  - M2 latency: recommendation-ask turns now make one synchronous Haiku call
+    (~1s) before responding.
+  - Still pending from before this session: omission-verifier upgrade
+    (per-claim calls, three-way verdict), per-stage "was it administered" log,
+    conduct classifier model tiebreaker, full pause/resume.
+  - Task 10: prof-001 is still the only case (plan calls for 8–12).
+
+
+==============================================================================
+8. TESTING IT YOURSELF
+==============================================================================
+
+  npm run dev, sign in, start prof-001.
+
+  In one session:
+  - Ask for data explicitly ("what's inside COGS?", "did menu prices change?").
+  - Let the clock reach the warning (4:30) with a request unanswered. That
+    turn should give you the data first, then one recommendation question.
+  - Keep going past time-up. The last turn should close cleanly with no new
+    analysis.
+
+  In the report/PDF, check:
+  - no he/his referring to you
+  - coverage caveats wherever data you asked for never came
+  - no strength without a quote from you
+
+  If something looks off: the dev console shows [runner], [data-requests] and
+  [score] lines; the session_events and analytics_events tables hold the
+  requests, phase repairs, and scoring metrics. Send the session id.
