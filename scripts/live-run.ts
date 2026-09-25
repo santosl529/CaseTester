@@ -5,7 +5,16 @@
 // real scoring pipeline scores the session. Saves the transcript, feedback,
 // Rule 11 audit rows, and scoring-QA metrics to "Case Interview Runs/".
 //
-//   npx tsx --env-file=.env.local scripts/live-run.ts [caseId]
+//   npx tsx --env-file=.env.local scripts/live-run.ts [caseId] [--persona=N] [--pace=human] [--wpm=90] [--think-ms=8000]
+//
+// --persona=N plays pressure-test persona N (scripts/personas.ts) instead of
+// the default solid-but-unpolished candidate.
+//
+// --pace=human paces the candidate like a person (think + type time before each
+// message). Without it the simulator answers in seconds and the case finishes
+// long before the clock matters. A persona can also ask for an explicit silence
+// by starting a reply with [pause Ns]; the tag is stripped and the harness
+// waits N seconds (≤180) before sending, in either pacing mode.
 //
 // Costs real money: interviewer + judge + verifier + reconciliation on Opus,
 // classifier + coverage on Haiku, candidate simulator on Opus 5. Writes a real
@@ -26,11 +35,39 @@ import { scoreSession } from '@/lib/scoring/score-session';
 import { RUBRIC_DIMENSION_KEYS, RUBRIC_DIMENSION_LABELS } from '@/lib/scoring/rubric';
 import type { RubricScores } from '@/lib/scoring/judge';
 import { renderReportPdf } from '@/app/api/report/[sessionId]/pdf/render';
+import { getPersona, type Persona } from './personas';
 
 const CANDIDATE_MODEL = 'claude-opus-5';
-const MAX_TURNS = 30;
+const MAX_TURNS = 60; // human pacing on a 20-minute clock can exceed 30 turns
 const MAX_WALL_MS = 30 * 60_000; // the case clock is 20 minutes; this only guards a hang
 const OUT_DIR = path.resolve('Case Interview Runs');
+
+// Human pacing. The simulator replies in ~7s, so fast runs finish every stage
+// long before the clock: the time warning, the time-up close, Rule 15 load
+// shedding, and the time-warning force-release path never run. --pace=human
+// waits before each candidate message for reading/thinking plus typing at a
+// chat-typing speed, capped per turn so one long answer can't eat the clock.
+const flag = (name: string) => process.argv.find(a => a.startsWith(`--${name}=`))?.split('=')[1];
+const PACE: 'human' | 'fast' = flag('pace') === 'human' ? 'human' : 'fast';
+const WPM = Number(flag('wpm') ?? 90);
+const THINK_MS = Number(flag('think-ms') ?? 8000);
+const MAX_TURN_DELAY_MS = 90_000;
+const MAX_PAUSE_MS = 180_000;
+const PERSONA: Persona | null = flag('persona') ? getPersona(Number(flag('persona'))) : null;
+
+function humanDelayMs(text: string): number {
+  const words = text.trim().split(/\s+/).length;
+  return Math.min(MAX_TURN_DELAY_MS, THINK_MS + (words / WPM) * 60_000);
+}
+
+// A leading [pause Ns] is a silence the persona wants before this message.
+function takePause(text: string): { text: string; pauseMs: number } {
+  const m = text.match(/^\s*\[pause\s+(\d+)\s*s?\]\s*/i);
+  if (!m) return { text, pauseMs: 0 };
+  return { text: text.slice(m[0].length).trim(), pauseMs: Math.min(MAX_PAUSE_MS, Number(m[1]) * 1000) };
+}
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // The simulator must not know the answer — it sees only the transcript. The
 // data-request guidance exercises Rule 11 paths (release / refuse / defer /
@@ -45,13 +82,29 @@ How you behave:
 - Show your math when you compute something.
 - When asked for a recommendation, give one: answer first, then the supporting points, risks, and next steps.`;
 
+// A persona replaces the default character. Its brief overrides the defaults
+// above where they conflict (a candidate who never asks for data, freezes at
+// the recommendation, etc.). The standing data-request requirement comes from
+// the persona PDF: every run should exercise the non-response catch.
+function personaSystem(persona: Persona): string {
+  return `${CANDIDATE_SYSTEM}
+
+You are playing a specific candidate for a pressure test of the interviewer. Stay in character for the whole case; where the character below conflicts with the defaults above, play the character.
+
+Your character: ${persona.brief}
+
+Also, unless your character never asks for data or never attempts the case: at some point, ask for one piece of data a profitability case like this would plausibly hold but that an interviewer might skip past (e.g. menu-price history, transaction volume, or a split of the biggest cost line), then keep going without pressing if it goes unanswered.
+
+Silences: if your character would go quiet before answering, begin the reply with [pause Ns] (N in seconds, at most 180). The tag is stripped before sending; the interviewer only experiences the wait. Do not otherwise mention the pause.`;
+}
+
 type Line = { role: 'interviewer' | 'candidate'; text: string };
 
 async function candidateReply(client: Anthropic, transcript: Line[]): Promise<string> {
   const response = await client.beta.messages.create({
     model: CANDIDATE_MODEL,
     max_tokens: 4096,
-    system: CANDIDATE_SYSTEM,
+    system: PERSONA ? personaSystem(PERSONA) : CANDIDATE_SYSTEM,
     output_config: { effort: 'low' },
     betas: ['server-side-fallback-2026-06-01'],
     fallbacks: [{ model: 'claude-opus-4-8' }],
@@ -82,7 +135,7 @@ function clock(ms: number): string {
 }
 
 async function main() {
-  const caseId = process.argv[2] ?? 'prof-001';
+  const caseId = process.argv.slice(2).find(a => !a.startsWith('--')) ?? 'prof-001';
   const caseData = getCaseById(caseId);
 
   const owner = await db.query.sessions.findFirst({ orderBy: [desc(sessions.startedAt)] });
@@ -91,7 +144,7 @@ async function main() {
 
   const client = new Anthropic();
   const { sessionId, openingText } = await startSession(userId, caseId);
-  console.log(`[live-run] session ${sessionId} · ${caseData.title}`);
+  console.log(`[live-run] session ${sessionId} · ${caseData.title}${PERSONA ? ` · persona ${PERSONA.id} ${PERSONA.name}` : ''} · pace ${PACE}`);
   console.log(`\n[interviewer · INTRO] ${openingText}`);
 
   const transcript: Line[] = [{ role: 'interviewer', text: openingText }];
@@ -101,7 +154,12 @@ async function main() {
   let ended = false;
 
   for (let turn = 0; turn < MAX_TURNS && Date.now() - startedAt < MAX_WALL_MS; turn++) {
-    const candidateText = await candidateReply(client, transcript);
+    const replyStartedAt = Date.now();
+    const { text: candidateText, pauseMs } = takePause(await candidateReply(client, transcript));
+    // The simulator's own latency counts toward the person's think + type time.
+    const waitMs = pauseMs + (PACE === 'human' ? humanDelayMs(candidateText) : 0) - (Date.now() - replyStartedAt);
+    if (waitMs > 0) await sleep(waitMs);
+    if (pauseMs) console.log(`\n[candidate silent ${pauseMs / 1000}s]`);
     transcript.push({ role: 'candidate', text: candidateText });
     console.log(`\n[candidate · ${clock(Date.now() - startedAt)}] ${candidateText}`);
 
@@ -165,14 +223,19 @@ async function writeArtifacts(sessionId: string, caseTitle: string) {
   }
 
   const date = new Date().toISOString().slice(0, 10);
-  const base = `live-run-${date}-${sessionId.slice(0, 8)}`;
+  const base = `live-run-${date}-${PERSONA ? `p${String(PERSONA.id).padStart(2, '0')}-` : ''}${sessionId.slice(0, 8)}`;
   await mkdir(OUT_DIR, { recursive: true });
 
   const md: string[] = [];
   md.push(`# Live run — ${caseTitle}`, '');
   md.push(`- Session: \`${sessionId}\` · case \`${session.caseId}\` · status **${session.status}** · ${date}`);
   md.push(`- Overall: **${score?.overallRating ?? 'not scored'}**`);
-  md.push(`- Candidate simulator: \`${CANDIDATE_MODEL}\` (sees only the transcript)`, '');
+  md.push(`- Candidate simulator: \`${CANDIDATE_MODEL}\` (sees only the transcript)`);
+  if (PERSONA) {
+    md.push(`- Persona: **${PERSONA.id}. ${PERSONA.name}**`);
+    md.push(`- Tests: ${PERSONA.tests}`);
+  }
+  md.push(`- Pacing: ${PACE === 'human' ? `human (${THINK_MS}ms think + ${WPM} wpm typing, ≤${MAX_TURN_DELAY_MS / 1000}s per turn)` : 'fast (no delay)'}; persona pauses ≤${MAX_PAUSE_MS / 1000}s`, '');
 
   md.push('## Rule 11 / v4.1 checks', '');
   md.push(`- Ledger items revealed: ${revealed.map(r => `\`${r.ledgerItemId}\``).join(', ') || 'none'}`);
