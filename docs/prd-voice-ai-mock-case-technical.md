@@ -285,9 +285,10 @@ All mutations via **server actions** or route handlers; case keys and ledger val
 |---|---|
 | `POST /api/session` | New session; opening message is the **verbatim case prompt** (deterministic — the candidate must see the exact scenario/numbers; not a model turn) + a rotating invitation. Auth + club-code gated. |
 | `POST /api/channel/[id]/turn` | One candidate turn → orchestrator → interviewer turn. Returns immediately on the final turn (scoring is separate) with `scoring_suppressed` on conduct-terminated/abandoned sessions. |
+| `POST /api/channel/[id]/silence` | Text-mode silence tick (`{ silentMs }` since the interviewer's last turn) → scripted check-in at 60s, technical pause at 180s, or nothing (Rules 13/16/19; `lib/orchestrator/silence.ts`). Idempotent per silence; `silentMs` bounded server-side. No client idle timer calls it yet — `scripts/live-run.ts` does. |
 | `POST /api/channel/[id]/score` | Runs scoring for a completed session (idempotent; guarded to `status = completed`). Split out so the client can show an "evaluating" state and so a failed pass is retryable. |
 | `GET /api/report/[id]/pdf` | Streams the report as a PDF (server-rendered; ownership-checked). |
-| `scripts/live-run.ts` (dev only) | End-to-end run with a simulated candidate against real models and the real DB (fast-replying candidate — a pipeline check, not a timing test); writes transcript, report, and QA metrics to `Case Interview Runs/`. Route handlers are thin wrappers over `lib` (`start-session`, `post-turn`, `score-session`, PDF `render`), so the script exercises the same code paths. |
+| `scripts/live-run.ts` (dev only) | End-to-end run with a simulated candidate against real models and the real DB (fast by default; `--pace=human` adds think + typing time; `--persona=N` plays a pressure-test persona from `scripts/personas.ts`, whose `[pause Ns]` silences drive the silence endpoint's logic); writes transcript, report, and QA metrics to `Case Interview Runs/`. Route handlers are thin wrappers over `lib` (`start-session`, `post-turn`, `score-session`, PDF `render`), so the script exercises the same code paths. |
 | `case/[id]/report` (page) | Renders the assembled report (no raw keys); persistent case-prompt banner on the live page. |
 | `logEvent(...)` | Append analytics events (§13). |
 

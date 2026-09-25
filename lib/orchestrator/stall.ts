@@ -99,6 +99,14 @@ export function rungName(rung: LadderRung): string {
   return RUNG_NAME[rung];
 }
 
+// Text-mode silence past the tolerance window (lib/orchestrator/silence.ts)
+// counts as one no-progress turn. It never fires a rung on its own — the
+// check-in is the response to silence (Rule 16) — but silence followed by a
+// hedge escalates on that candidate turn.
+export function recordSilenceStall(prior: StallState): StallState {
+  return { ...prior, consecutiveNoProgress: prior.consecutiveNoProgress + 1, consecutiveClarify: 0 };
+}
+
 // Pure state transition: classify this candidate turn, update counters, and
 // decide whether to fire the next ladder rung.
 export function evaluateStall(candidateText: string, phase: Phase, prior: StallState): StallDecision {

@@ -1,4 +1,12 @@
-# Interviewer Behavior Rules (v4.1)
+# Interviewer Behavior Rules (v4.2)
+
+**v4.2 changes (text-mode silence):** silence handling is no longer voice-only.
+The text channel reports candidate silence (typing is not silence); after the
+Rule 13 tolerance window the interviewer delivers one scripted check-in that
+restates the question on the table, and the check-in counts as one no-progress
+turn for the ladder without firing a rung itself. Continued silence becomes a
+Rule 19 technical pause, backdated to the start of the silence and excluded
+from case time. Rules 13, 16, and 19 amended.
 
 **v4.1 changes (run 4 review):** Rule 11 gains a third failure mode — silent
 non-response to a data request is as bad as silent substitution; every request
@@ -647,7 +655,13 @@ the event log this doc mandates is its input.)
 
 **Triggers (deterministic where possible):**
 
-- Voice: silence > configured threshold after the tolerance window.
+- Silence (both modes) past the tolerance window (text: 60s since the
+  interviewer's last turn; typing is not silence): one scripted check-in —
+  "Still with me? Take your time." plus the question on the table (a Level 1
+  anchor in effect). It counts as ONE no-progress turn but never fires a rung
+  on its own; silence followed by a stalled turn escalates on that turn.
+  Continued silence is Rule 16's dropout path, not the ladder. Voice
+  threshold configured separately (M2).
 - Either mode: two consecutive candidate turns with no analytical progress
   (orchestrator-detectable: no new structure element, no data request, no
   derivation). Clarifying and scoping questions count as progress — under a
@@ -789,9 +803,13 @@ One rule per case; all flat-register; all logged.
   the candidate is right, concede plainly ("You're right — it's 58%.") and
   continue. Never bluff, never stonewall. Logged as an interviewer-error
   event, excluded from candidate scoring impact.
-- **Voice: silence vs. dropout ambiguity (M2):** after the Rule 13 tolerance
-  window, one check-in ("Still with me? Take your time"); continued silence →
-  session-pause logic, not ladder escalation. Distinct from the stall ladder.
+- **Silence vs. dropout ambiguity (text now; voice M2):** after the Rule 13
+  tolerance window, one check-in ("Still with me? Take your time"); continued
+  silence (text: 180s) → Rule 19 technical pause, not ladder escalation. The
+  pause is backdated to when the silence began and ends on the candidate's
+  next message. Distinct from the stall ladder. The channel's reported
+  silence is bounded server-side by the last turn, so a client cannot
+  backdate a pause to recover case time.
 
 ---
 
@@ -889,8 +907,9 @@ administering" becomes the screenshot.
 ## 19. Pause mechanics
 
 - Pause preserves state for resumption; terminate does not. Two pause
-  triggers: C5 (candidate accepts the offer) and technical (voice dropout
-  session-pause logic, Rule 16).
+  triggers: C5 (candidate accepts the offer) and technical (dropout
+  session-pause logic, Rule 16 — text and voice). A technical pause resumes
+  on the candidate's next message.
 - A resumed session continues from the preserved phase with time budgets
   intact; the pause interval is excluded from case-time analytics.
 - A C5 pause that is never resumed is scored as **abandoned** — excluded, not

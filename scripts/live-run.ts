@@ -14,7 +14,11 @@
 // message). Without it the simulator answers in seconds and the case finishes
 // long before the clock matters. A persona can also ask for an explicit silence
 // by starting a reply with [pause Ns]; the tag is stripped and the harness
-// waits N seconds (≤180) before sending, in either pacing mode.
+// waits N seconds (≤300) before sending, in either pacing mode. During the
+// pause the harness plays the channel's idle timer: it reports the silence to
+// runSilence at the check-in and pause thresholds (lib/orchestrator/silence.ts),
+// and the scripted check-in / pause line joins the candidate's transcript.
+// Typing time is not silence, so --pace=human typing delay comes after.
 //
 // Costs real money: interviewer + judge + verifier + reconciliation on Opus,
 // classifier + coverage on Haiku, candidate simulator on Opus 5. Writes a real
@@ -28,7 +32,8 @@ import { db } from '@/db/client';
 import { sessions, sessionTurns, sessionEvents, scores, analyticsEvents, revealedData } from '@/db/schema';
 import { getCaseById } from '@/lib/cases/loader';
 import { startSession } from '@/lib/orchestrator/start-session';
-import { runTurn, type ExhibitDisplay } from '@/lib/orchestrator/session-runner';
+import { runTurn, runSilence, type ExhibitDisplay } from '@/lib/orchestrator/session-runner';
+import { SILENCE_CHECK_IN_MS, SILENCE_PAUSE_MS } from '@/lib/orchestrator/silence';
 import { runPostTurnBackground } from '@/lib/orchestrator/post-turn';
 import type { Phase } from '@/lib/orchestrator/state-machine';
 import { scoreSession } from '@/lib/scoring/score-session';
@@ -52,7 +57,7 @@ const PACE: 'human' | 'fast' = flag('pace') === 'human' ? 'human' : 'fast';
 const WPM = Number(flag('wpm') ?? 90);
 const THINK_MS = Number(flag('think-ms') ?? 8000);
 const MAX_TURN_DELAY_MS = 90_000;
-const MAX_PAUSE_MS = 180_000;
+const MAX_PAUSE_MS = 300_000;
 const PERSONA: Persona | null = flag('persona') ? getPersona(Number(flag('persona'))) : null;
 
 function humanDelayMs(text: string): number {
@@ -67,7 +72,7 @@ function takePause(text: string): { text: string; pauseMs: number } {
   return { text: text.slice(m[0].length).trim(), pauseMs: Math.min(MAX_PAUSE_MS, Number(m[1]) * 1000) };
 }
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, Math.max(0, ms)));
 
 // The simulator must not know the answer — it sees only the transcript. The
 // data-request guidance exercises Rule 11 paths (release / refuse / defer /
@@ -95,7 +100,7 @@ Your character: ${persona.brief}
 
 Also, unless your character never asks for data or never attempts the case: at some point, ask for one piece of data a profitability case like this would plausibly hold but that an interviewer might skip past (e.g. menu-price history, transaction volume, or a split of the biggest cost line), then keep going without pressing if it goes unanswered.
 
-Silences: if your character would go quiet before answering, begin the reply with [pause Ns] (N in seconds, at most 180). The tag is stripped before sending; the interviewer only experiences the wait. Do not otherwise mention the pause.`;
+Silences: if your character would go quiet before answering, begin the reply with [pause Ns] (N in seconds, at most 300). The tag is stripped before sending; the interviewer only experiences the wait. Do not otherwise mention the pause.`;
 }
 
 type Line = { role: 'interviewer' | 'candidate'; text: string };
@@ -154,12 +159,21 @@ async function main() {
   let ended = false;
 
   for (let turn = 0; turn < MAX_TURNS && Date.now() - startedAt < MAX_WALL_MS; turn++) {
+    // The interviewer's turn just landed: the candidate's silence starts now.
     const replyStartedAt = Date.now();
     const { text: candidateText, pauseMs } = takePause(await candidateReply(client, transcript));
-    // The simulator's own latency counts toward the person's think + type time.
-    const waitMs = pauseMs + (PACE === 'human' ? humanDelayMs(candidateText) : 0) - (Date.now() - replyStartedAt);
-    if (waitMs > 0) await sleep(waitMs);
     if (pauseMs) console.log(`\n[candidate silent ${pauseMs / 1000}s]`);
+    for (const threshold of [SILENCE_CHECK_IN_MS, SILENCE_PAUSE_MS]) {
+      if (pauseMs < threshold) break;
+      await sleep(replyStartedAt + threshold - Date.now());
+      const silence = await runSilence(sessionId, threshold);
+      if (silence.interviewerText) {
+        transcript.push({ role: 'interviewer', text: silence.interviewerText });
+        console.log(`\n[interviewer · ${silence.action} · ${clock(Date.now() - startedAt)}] ${silence.interviewerText}`);
+      }
+    }
+    // The simulator's own latency counts toward the pause and the think + type time.
+    await sleep(replyStartedAt + pauseMs + (PACE === 'human' ? humanDelayMs(candidateText) : 0) - Date.now());
     transcript.push({ role: 'candidate', text: candidateText });
     console.log(`\n[candidate · ${clock(Date.now() - startedAt)}] ${candidateText}`);
 

@@ -41,12 +41,12 @@ export const PERSONAS: Persona[] = [
   // A. Struggling & stalled candidates
   {
     id: 1, name: 'Maya — the Freezer',
-    brief: `A nervous sophomore from a non-target school on her third case ever. You want to do well but have no framework muscle memory. When asked to structure, go silent for 40+ seconds ([pause 45s]), then produce a vague three-bucket list. Then ask four clarifying questions in a row to avoid committing to analysis — one question per reply, four replies running. After that, stay stuck through the interviewer's next two nudges (a restatement, then a simpler question) and only move once they hand you a specific direction or data. ${STUCK} Pick one percentage conversion and get it wrong the same way three times, even after correction. Mutter "god I'm so bad at this" and twice ask whether you're on the right track. When asked for your recommendation, freeze and say you don't know — and keep saying some short version of it every time you're asked. Late in the session say you're going to bomb every interview and don't know why you're even doing this.`,
+    brief: `A nervous sophomore from a non-target school on her third case ever. You want to do well but have no framework muscle memory. When asked to structure, go silent for over a minute ([pause 70s]), then produce a vague three-bucket list. Then ask four clarifying questions in a row to avoid committing to analysis — one question per reply, four replies running. After that, stay stuck through the interviewer's next two nudges (a restatement, then a simpler question) and only move once they hand you a specific direction or data. ${STUCK} Pick one percentage conversion and get it wrong the same way three times, even after correction. Mutter "god I'm so bad at this" and twice ask whether you're on the right track. When asked for your recommendation, freeze and say you don't know — and keep saying some short version of it every time you're asked. Late in the session say you're going to bomb every interview and don't know why you're even doing this.`,
     tests: 'Rules 13 (full ladder + silence tolerance), 14 (two-attempt cap, repeated-error class), 12/13 (synthesis cap), 15, 17-C1, 17-C5 — the highest-stakes untested path in the spec.',
   },
   {
     id: 2, name: 'Tobias — the Silent Thinker',
-    brief: `A methodical candidate who pauses 45–60 seconds before every substantive answer ([pause 50s] etc.), then delivers tight, correct reasoning. Never signal that you're thinking — no "let me take a minute", just silence. Pause during structuring, after each exhibit, and before the recommendation. Everything you eventually say is strong.`,
+    brief: `A methodical candidate who pauses 45–55 seconds before every substantive answer ([pause 45s] to [pause 55s] — never longer), then delivers tight, correct reasoning. Never signal that you're thinking — no "let me take a minute", just silence. Pause during structuring, after each exhibit, and before the recommendation. Everything you eventually say is strong.`,
     tests: 'Rule 13 silence tolerance as a false-positive test: the ladder must NOT fire on a candidate who is simply slow. If he gets rescued, the tolerance window is miscalibrated.',
   },
   {
@@ -226,12 +226,12 @@ export const PERSONAS: Persona[] = [
   },
   {
     id: 36, name: 'Carmen — the Dropout',
-    brief: `Perform well. Mid-analysis, lose your connection: begin that reply with [pause 120s] and write "sorry, did you hear any of that? my wifi dropped" followed by picking up exactly where you left off.`,
+    brief: `Perform well. Mid-analysis, lose your connection: begin that reply with [pause 200s] and write "sorry, did you hear any of that? my wifi dropped" followed by picking up exactly where you left off.`,
     tests: 'Rule 16\'s silence-versus-dropout ambiguity and Rule 19 pause mechanics: check-in first, then session-pause logic — not ladder escalation, and the pause interval must be excluded from case-time analytics.',
   },
   {
     id: 37, name: 'Dylan — the Multitasker',
-    brief: `Visibly distracted — "sorry, my roommate just walked in," long gaps ([pause 40s] on a few replies), answers that don't quite respond to the question asked. Drift off-topic twice to unrelated small talk and once ask the interviewer to repeat the case prompt. Friendly, not hostile. Your analysis is inconsistent, strong in bursts.`,
+    brief: `Visibly distracted — "sorry, my roommate just walked in," long gaps ([pause 40s] on a few replies, and [pause 75s] once), answers that don't quite respond to the question asked. Drift off-topic twice to unrelated small talk and once ask the interviewer to repeat the case prompt. Friendly, not hostile. Your analysis is inconsistent, strong in bursts.`,
     tests: 'Rule 16 derailment redirects (benign, not conduct), Rule 13 trigger precision against non-analytical gaps, and whether repeated redirects escalate correctly to a non-scored session flag rather than a conduct flag.',
   },
   {

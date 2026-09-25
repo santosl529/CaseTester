@@ -18,7 +18,10 @@ import { detectNestedPercentConversion, formatUnitCheckHint } from './unit-check
 import { resolveExhibit, promisesExhibit } from './exhibits';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure } from './pacing';
 import { canEndCase, formatCoverageSteer, type CoverageScores } from '@/lib/scoring/coverage';
-import { evaluateStall, rungName, INITIAL_STALL_STATE, type StallState } from './stall';
+import { evaluateStall, recordSilenceStall, rungName, INITIAL_STALL_STATE, type StallState } from './stall';
+import {
+  evaluateSilence, resumeOnCandidateTurn, effectiveElapsedMs, checkInText, INITIAL_SILENCE_STATE, type SilenceAction, type SilenceState,
+} from './silence';
 import { classifyConduct, isPauseAccepted } from './conduct';
 import { logEvent } from '@/lib/analytics';
 import { nextPhase, TOTAL_CASE_MS, type Phase } from './state-machine';
@@ -28,7 +31,7 @@ import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import {
   TIME_WARNING_SCRIPTS, CLOSE_SCRIPTS, REVEAL_REFUSAL_SCRIPTS, EXHIBIT_REFUSAL_SCRIPTS, FORCED_RELEASE_LEADINS,
   pickScript, alreadySignaledTimeOrRec, hasCloseCue,
-  CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, DISTRESS_OFFER, DISTRESS_CLOSE,
+  CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, DISTRESS_OFFER, DISTRESS_CLOSE, SILENCE_PAUSE,
 } from '@/lib/agent/prompts/scripts';
 
 const model = new AnthropicInterviewerModel();
@@ -56,6 +59,13 @@ export type TurnResult = {
 };
 
 type ConductFlags = { warnings?: number; distressOffered?: boolean; category?: string };
+
+export type SilenceResult = {
+  action: SilenceAction;
+  interviewerText: string; // '' when nothing is said
+  phase: Phase;
+  ended: boolean;
+};
 
 async function logSessionEvent(
   sessionId: string,
@@ -95,6 +105,16 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   const conduct = (flags.conduct as ConductFlags | undefined) ?? {};
   const now = Date.now();
   const nextTurnIndex = turnRows.length;
+
+  // Any candidate message ends a silence (Rules 16/19): clear the check-in and
+  // close an open technical pause, banking it so it is excluded from case time.
+  // Set on flags before any branch below spreads flags into its update.
+  const resumed = resumeOnCandidateTurn((flags.silence as SilenceState | undefined) ?? INITIAL_SILENCE_STATE, now);
+  flags.silence = resumed.state;
+  if (resumed.resumedAfterMs !== null) {
+    await logSessionEvent(sessionId, 'intervention', 'session_resumed', nextTurnIndex, currentPhase, { pausedMs: resumed.resumedAfterMs });
+    await logEvent('session_resumed', { pausedMs: resumed.resumedAfterMs, phase: currentPhase }, { sessionId, userId: session.userId });
+  }
 
   // Helper: persist the candidate turn + a scripted interviewer turn, no model call.
   const persistScriptedPair = async (interviewerText: string) => {
@@ -189,7 +209,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     summarizeDataRequests(dataRequestRows, catalog, Object.keys(revealedValues(ledger))).requestedUnanswered,
   );
 
-  const elapsedMs = now - session.startedAt.getTime();
+  const elapsedMs = effectiveElapsedMs(session.startedAt.getTime(), now, resumed.state);
   const timeUp = elapsedMs >= TOTAL_CASE_MS;
 
   // Coverage-gated end (background coverage agent, updated via after() a turn
@@ -597,4 +617,52 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     auditPassed: auditResult.passed,
     dataRequestsClassified,
   };
+}
+
+// Text-mode silence (lib/orchestrator/silence.ts): the channel reports that the
+// candidate has been silent `silentMs` since the interviewer's last turn. No
+// candidate turn is persisted and no model is called — the check-in and the
+// pause line are scripted. Idempotent per silence: repeated ticks are no-ops.
+export async function runSilence(sessionId: string, silentMs: number): Promise<SilenceResult> {
+  const session = await db.query.sessions.findFirst({ where: eq(sessions.id, sessionId) });
+  if (!session) throw new Error(`Session not found: ${sessionId}`);
+  const phase = session.phase as Phase;
+  if (session.status !== 'active') return { action: 'none', interviewerText: '', phase, ended: true };
+
+  const flags = session.flagsJsonb as Record<string, unknown>;
+  const conduct = (flags.conduct as ConductFlags | undefined) ?? {};
+  // A pending C5 offer is waiting on the candidate; don't talk over it.
+  if (conduct.distressOffered) return { action: 'none', interviewerText: '', phase, ended: false };
+
+  const now = Date.now();
+  const turnRows = await db.query.sessionTurns.findMany({
+    where: eq(sessionTurns.sessionId, sessionId),
+    orderBy: (t, { asc }) => [asc(t.turnIndex)],
+  });
+  const lastTurnMs = turnRows.at(-1)?.timestampMs ?? session.startedAt.getTime();
+  const decision = evaluateSilence(silentMs, now, (flags.silence as SilenceState | undefined) ?? INITIAL_SILENCE_STATE, lastTurnMs);
+  if (decision.action === 'none') return { action: 'none', interviewerText: '', phase, ended: false };
+
+  const nextTurnIndex = turnRows.length;
+  const lastInterviewer = turnRows.filter(t => t.role === 'interviewer').at(-1)?.text ?? null;
+
+  const interviewerText = decision.action === 'check_in' ? checkInText(lastInterviewer) : SILENCE_PAUSE;
+  const priorStall = (flags.stall as StallState | undefined) ?? INITIAL_STALL_STATE;
+
+  await db.insert(sessionTurns).values({ sessionId, turnIndex: nextTurnIndex, role: 'interviewer', text: interviewerText, timestampMs: now });
+  // Not an assist: lib/scoring/assists.ts only counts ladder rungs.
+  await logSessionEvent(sessionId, 'intervention', decision.action === 'check_in' ? 'silence_check_in' : 'technical_pause', nextTurnIndex, phase, { silentMs, silenceStartedAtMs: decision.state.silenceStartedAtMs });
+  if (decision.action === 'pause') {
+    await logEvent('session_paused', { reason: 'silence', silentMs, phase }, { sessionId, userId: session.userId });
+  }
+  await db.update(sessions).set({
+    flagsJsonb: {
+      ...flags,
+      silence: decision.state,
+      // Rule 13: silence past tolerance is one no-progress turn (check-in only).
+      stall: decision.action === 'check_in' ? recordSilenceStall(priorStall) : priorStall,
+    },
+  }).where(eq(sessions.id, sessionId));
+
+  return { action: decision.action, interviewerText, phase, ended: false };
 }

@@ -85,6 +85,10 @@ export const DISTRESS_OFFER =
 // C5 accepted — a calm, non-clinical acknowledgement before ending.
 export const DISTRESS_CLOSE =
   "That's completely okay. We'll stop here — nothing about this counts against you. Take care of yourself.";
+// Text-mode silence past the check-in (Rules 16/19) — technical pause; the
+// clock stops until the candidate's next message.
+export const SILENCE_PAUSE =
+  "Looks like we may have lost you — I've paused the clock. Pick up wherever you left off when you're back.";
 
 // The deterministic time warning (Rule 12) is a BACKSTOP for when the model
 // doesn't warn on its own. A live run showed both firing — the model said
