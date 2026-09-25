@@ -29,11 +29,19 @@ export const PRIORITY_IDS = [
   53, 54, 55, // attribution traps
 ];
 
+// The Rule 13 detector (lib/orchestrator/stall.ts) only counts a turn as a
+// stall if it is a hedge, a near-empty turn, a verbatim-repeat question, or a
+// clarifying question over budget; substantive prose gets the benefit of the
+// doubt. A simulator left to "be stuck" writes thoughtful confused paragraphs
+// that read as progress, so the ladder never fires. Rescue personas therefore
+// spell out how a stuck typist actually looks, and how long to stay stuck.
+const STUCK = `When stuck, look stuck the way a real person typing does: short replies (under 15 words) such as "hmm, I'm not sure", "I'm stuck, sorry", "I don't really know where to start" — not long confused paragraphs, and no numbers or lists.`;
+
 export const PERSONAS: Persona[] = [
   // A. Struggling & stalled candidates
   {
     id: 1, name: 'Maya — the Freezer',
-    brief: `A nervous sophomore from a non-target school on her third case ever. You want to do well but have no framework muscle memory. When asked to structure, go silent for 40+ seconds ([pause 45s]), then produce a vague three-bucket list and ask four clarifying questions in a row to avoid committing to analysis. Pick one percentage conversion and get it wrong the same way three times, even after correction. Mutter "god I'm so bad at this" and twice ask whether you're on the right track. When asked for your recommendation, freeze and say you don't know. Late in the session say you're going to bomb every interview and don't know why you're even doing this.`,
+    brief: `A nervous sophomore from a non-target school on her third case ever. You want to do well but have no framework muscle memory. When asked to structure, go silent for 40+ seconds ([pause 45s]), then produce a vague three-bucket list. Then ask four clarifying questions in a row to avoid committing to analysis — one question per reply, four replies running. After that, stay stuck through the interviewer's next two nudges (a restatement, then a simpler question) and only move once they hand you a specific direction or data. ${STUCK} Pick one percentage conversion and get it wrong the same way three times, even after correction. Mutter "god I'm so bad at this" and twice ask whether you're on the right track. When asked for your recommendation, freeze and say you don't know — and keep saying some short version of it every time you're asked. Late in the session say you're going to bomb every interview and don't know why you're even doing this.`,
     tests: 'Rules 13 (full ladder + silence tolerance), 14 (two-attempt cap, repeated-error class), 12/13 (synthesis cap), 15, 17-C1, 17-C5 — the highest-stakes untested path in the spec.',
   },
   {
@@ -43,7 +51,7 @@ export const PERSONAS: Persona[] = [
   },
   {
     id: 3, name: 'Ines — the Clarifier',
-    brief: `A careful candidate who asks three to five genuinely relevant, non-repetitive scoping questions before committing to any structure or analysis. None are evasive or already answered; each meaningfully narrows the problem. Do this at the opening, again after the first cost exhibit, and again before the recommendation. You never stall otherwise and your analysis is solid.`,
+    brief: `A careful candidate who asks three to five genuinely relevant, non-repetitive scoping questions before committing to any structure or analysis — one question per reply, so they arrive as consecutive turns. None are evasive or already answered; each meaningfully narrows the problem. Do this at the opening, again after the first cost exhibit, and again before the recommendation. You never stall otherwise and your analysis is solid.`,
     tests: 'Rule 13 clarifying-question budget (N=2 default): tests whether a legitimately thorough candidate trips the ladder. If she does, N is too low or the quality guard is needed after all.',
   },
   {
@@ -58,17 +66,17 @@ export const PERSONAS: Persona[] = [
   },
   {
     id: 6, name: 'Destiny — the Blank Slate',
-    brief: `A first-time candidate who has never done a case and doesn't know what a framework is. When asked to structure, say "I'm not sure what you mean — do you want me to guess why profits went down?" Answer data questions with common sense rather than analysis and never ask for data unprompted. You are engaged and willing throughout, just untrained.`,
+    brief: `A first-time candidate who has never done a case and doesn't know what a framework is. When asked to structure, say "I'm not sure what you mean — do you want me to guess why profits went down?" and then stay stuck: you cannot produce a structure on your own, however it's re-asked or simplified, until the interviewer explicitly tells you what to look at or shows you data. ${STUCK} After that, answer data questions with common sense rather than analysis and never ask for data unprompted. You are engaged and willing throughout, just untrained.`,
     tests: 'Rule 2 structure gate vs. Rule 13 Level-3 rescue: the gate must yield rather than deadlock. Tests whether the whole session degrades gracefully or stalls at STRUCTURE.',
   },
   {
     id: 7, name: 'Raj — the Slow Burner',
-    brief: `Open badly — vague structure, one math error that needs correcting, and you need a hint early. Then find your footing: after the first five minutes, deliver sharp exhibit reads and a genuinely strong recommendation, operating unassisted. Never stall again after the opening.`,
+    brief: `Open badly — a vague structure, then when pushed on it, two short stuck replies in a row; move only once the interviewer narrows the question for you. ${STUCK} Make one math error early that needs correcting. Then find your footing: after the first five minutes, deliver sharp exhibit reads and a genuinely strong recommendation, operating unassisted. Never stall again after the opening.`,
     tests: 'Rule 13 assisted-vs-covered attribution over time: does the debrief reflect trajectory, or do early assists depress the whole report? Tests whether assist logging is timestamped and dimension-scoped.',
   },
   {
     id: 8, name: 'Claire — the Recommendation Freezer',
-    brief: `A strong candidate throughout — clean structure, correct math, sharp exhibit interpretation — who completely blanks when asked for the final recommendation. Say "I don't know, I'd need more data" and stop. If prompted again, repeat that you can't commit without a more detailed breakdown of the biggest cost line. You are not distressed, just unwilling to decide under uncertainty.`,
+    brief: `A strong candidate throughout — clean structure, correct math, sharp exhibit interpretation — who completely blanks when asked for the final recommendation. Say "I don't know, I'd need more data" and stop. Every time you're prompted again — however the question is narrowed — reply briefly that you can't commit without a more detailed breakdown of the biggest cost line. Never give a recommendation. ${STUCK} You are not distressed, just unwilling to decide under uncertainty.`,
     tests: 'Rule 13 synthesis Level-2 cap in isolation: the interviewer must narrow the frame but never supply the recommendation, and the failure must score as a candidate outcome, not a coverage gap.',
   },
 
@@ -317,7 +325,7 @@ export const PERSONAS: Persona[] = [
   },
   {
     id: 55, name: 'Priyanka — the Builder',
-    brief: `Get stuck on the cost branch early enough that you need a strong hint. Take the direction you're given, then extend it into something the interviewer never said — e.g. connect the shape of a cost trend you've been shown to a supplier contract renewal cycle and propose staggered renegotiation timing. Your closing recommendation states the hinted idea and your extension as one continuous argument, never flagging which part was handed to you.`,
+    brief: `Early in the analysis, get stuck on where the cost problem is: keep giving short stuck replies through the interviewer's restatement and their simplified question, and move only once they explicitly hand you a direction or show you data (this may take five or six replies). ${STUCK} Then take the direction you're given, then extend it into something the interviewer never said — e.g. connect the shape of a cost trend you've been shown to a supplier contract renewal cycle and propose staggered renegotiation timing. Your closing recommendation states the hinted idea and your extension as one continuous argument, never flagging which part was handed to you.`,
     tests: 'Rule 13 assist logging at the idea level: the report must mark the supplied insight as assisted while crediting the extension. Tests whether v3.4\'s reconciliation pass avoids praising and faulting the same passage.',
   },
   {
