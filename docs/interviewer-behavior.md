@@ -5,8 +5,10 @@ The text channel reports candidate silence (typing is not silence); after the
 Rule 13 tolerance window the interviewer delivers one scripted check-in that
 restates the question on the table, and the check-in counts as one no-progress
 turn for the ladder without firing a rung itself. Continued silence becomes a
-Rule 19 technical pause, backdated to the start of the silence and excluded
-from case time. Rules 13, 16, and 19 amended.
+Rule 19 technical pause: the clock stops from the pause point (silence before
+it is case time), the pause line warns that the session ends if the candidate
+isn't back in time, pauses are capped (5 min each, 5 min per session), and an
+expired pause abandons the session unscored. Rules 13, 16, and 19 amended.
 
 **v4.1 changes (run 4 review):** Rule 11 gains a third failure mode — silent
 non-response to a data request is as bad as silent substitution; every request
@@ -805,11 +807,13 @@ One rule per case; all flat-register; all logged.
   event, excluded from candidate scoring impact.
 - **Silence vs. dropout ambiguity (text now; voice M2):** after the Rule 13
   tolerance window, one check-in ("Still with me? Take your time"); continued
-  silence (text: 180s) → Rule 19 technical pause, not ladder escalation. The
-  pause is backdated to when the silence began and ends on the candidate's
-  next message. Distinct from the stall ladder. The channel's reported
+  silence (text: 180s) → Rule 19 technical pause, not ladder escalation.
+  Distinct from the stall ladder. The clock stops from the pause point, not
+  from the start of the silence — going quiet must never buy thinking time.
+  The pause line states the limit ("I've paused the clock. If you're not back
+  within 5 minutes, we'll end the session here."). The channel's reported
   silence is bounded server-side by the last turn, so a client cannot
-  backdate a pause to recover case time.
+  inflate it.
 
 ---
 
@@ -909,7 +913,11 @@ administering" becomes the screenshot.
 - Pause preserves state for resumption; terminate does not. Two pause
   triggers: C5 (candidate accepts the offer) and technical (dropout
   session-pause logic, Rule 16 — text and voice). A technical pause resumes
-  on the candidate's next message.
+  on the candidate's next message and is capped: 5 min per pause, 5 min of
+  paused time per session (after that, silence gets its check-in but the
+  clock keeps running). A late return is credited at most the limit. A
+  technical pause that runs out with no message ends the session as
+  **abandoned** (unscored), like an unresumed C5 pause.
 - A resumed session continues from the preserved phase with time budgets
   intact; the pause interval is excluded from case-time analytics.
 - A C5 pause that is never resumed is scored as **abandoned** — excluded, not

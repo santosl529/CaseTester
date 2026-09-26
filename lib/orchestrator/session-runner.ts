@@ -20,7 +20,7 @@ import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure } from '
 import { canEndCase, formatCoverageSteer, type CoverageScores } from '@/lib/scoring/coverage';
 import { evaluateStall, recordSilenceStall, rungName, INITIAL_STALL_STATE, type StallState } from './stall';
 import {
-  evaluateSilence, resumeOnCandidateTurn, effectiveElapsedMs, checkInText, INITIAL_SILENCE_STATE, type SilenceAction, type SilenceState,
+  evaluateSilence, resumeOnCandidateTurn, effectiveElapsedMs, checkInText, pauseText, INITIAL_SILENCE_STATE, type SilenceAction, type SilenceState,
 } from './silence';
 import { classifyConduct, isPauseAccepted } from './conduct';
 import { logEvent } from '@/lib/analytics';
@@ -31,7 +31,7 @@ import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import {
   TIME_WARNING_SCRIPTS, CLOSE_SCRIPTS, REVEAL_REFUSAL_SCRIPTS, EXHIBIT_REFUSAL_SCRIPTS, FORCED_RELEASE_LEADINS,
   pickScript, alreadySignaledTimeOrRec, hasCloseCue,
-  CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, DISTRESS_OFFER, DISTRESS_CLOSE, SILENCE_PAUSE,
+  CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, DISTRESS_OFFER, DISTRESS_CLOSE, SILENCE_PAUSE_EXPIRED,
 } from '@/lib/agent/prompts/scripts';
 
 const model = new AnthropicInterviewerModel();
@@ -65,6 +65,7 @@ export type SilenceResult = {
   interviewerText: string; // '' when nothing is said
   phase: Phase;
   ended: boolean;
+  scoringSuppressed?: boolean; // set when an expired pause abandoned the session
 };
 
 async function logSessionEvent(
@@ -646,14 +647,30 @@ export async function runSilence(sessionId: string, silentMs: number): Promise<S
   const nextTurnIndex = turnRows.length;
   const lastInterviewer = turnRows.filter(t => t.role === 'interviewer').at(-1)?.text ?? null;
 
-  const interviewerText = decision.action === 'check_in' ? checkInText(lastInterviewer) : SILENCE_PAUSE;
   const priorStall = (flags.stall as StallState | undefined) ?? INITIAL_STALL_STATE;
+
+  if (decision.action === 'expire') {
+    // Rule 19: a pause that is never resumed is abandoned — excluded, not failed.
+    await db.insert(sessionTurns).values({ sessionId, turnIndex: nextTurnIndex, role: 'interviewer', text: SILENCE_PAUSE_EXPIRED, timestampMs: now });
+    await logSessionEvent(sessionId, 'intervention', 'technical_pause_expired', nextTurnIndex, phase, { silentMs });
+    await logEvent('case_abandoned', { reason: 'silence_pause_expired', phase }, { sessionId, userId: session.userId });
+    await db.update(sessions).set({
+      status: 'abandoned',
+      completedAt: new Date(),
+      flagsJsonb: { ...flags, silence: decision.state },
+    }).where(eq(sessions.id, sessionId));
+    return { action: 'expire', interviewerText: SILENCE_PAUSE_EXPIRED, phase, ended: true, scoringSuppressed: true };
+  }
+
+  const interviewerText = decision.action === 'check_in' ? checkInText(lastInterviewer) : pauseText(decision.state.pauseLimitMs ?? 0);
 
   await db.insert(sessionTurns).values({ sessionId, turnIndex: nextTurnIndex, role: 'interviewer', text: interviewerText, timestampMs: now });
   // Not an assist: lib/scoring/assists.ts only counts ladder rungs.
-  await logSessionEvent(sessionId, 'intervention', decision.action === 'check_in' ? 'silence_check_in' : 'technical_pause', nextTurnIndex, phase, { silentMs, silenceStartedAtMs: decision.state.silenceStartedAtMs });
+  await logSessionEvent(sessionId, 'intervention', decision.action === 'check_in' ? 'silence_check_in' : 'technical_pause', nextTurnIndex, phase, {
+    silentMs, silenceStartedAtMs: decision.state.silenceStartedAtMs, pauseLimitMs: decision.state.pauseLimitMs,
+  });
   if (decision.action === 'pause') {
-    await logEvent('session_paused', { reason: 'silence', silentMs, phase }, { sessionId, userId: session.userId });
+    await logEvent('session_paused', { reason: 'silence', silentMs, pauseLimitMs: decision.state.pauseLimitMs, phase }, { sessionId, userId: session.userId });
   }
   await db.update(sessions).set({
     flagsJsonb: {

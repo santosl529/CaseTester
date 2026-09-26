@@ -11,58 +11,82 @@
 //   (recordSilenceStall) but never fires a rung itself: silence alone is
 //   ambiguous between thinking and a dropout (Rule 16).
 // - At SILENCE_PAUSE_MS, after the check-in: technical pause (Rule 19). The
-//   pause is backdated to when the silence began, so the whole dropout is
-//   excluded from case time, and it ends on the candidate's next turn.
+//   clock stops FROM the pause point — the silence before it is ordinary case
+//   time, so going quiet is never a way to buy thinking time. The pause line
+//   warns that the session ends if the candidate isn't back within the limit.
+// - A pause lasts at most SILENCE_PAUSE_MAX_MS, and a session gets
+//   SESSION_PAUSE_BUDGET_MS of paused time in total; once the budget is spent,
+//   silence still gets its check-in but never pauses again. A pause that runs
+//   out with no candidate message expires: the session is abandoned (Rule 19,
+//   unscored). A candidate who returns late is credited at most the limit.
 //
 // silentMs comes from the channel, so it is bounded server-side: a silence
 // can't predate the last turn, and once checked in, it can't predate the
-// silence start recorded then (the check-in is itself a turn). A client can't
-// inflate silentMs to backdate a pause and claw back case time.
+// silence start recorded then (the check-in is itself a turn).
 
 export const SILENCE_CHECK_IN_MS = 60_000;
 export const SILENCE_PAUSE_MS = 180_000;
+export const SILENCE_PAUSE_MAX_MS = 5 * 60_000;
+export const SESSION_PAUSE_BUDGET_MS = 5 * 60_000;
 
 export type SilenceState = {
-  checkedIn: boolean;        // check-in already delivered for the current silence
+  checkedIn: boolean;                // check-in already delivered for the current silence
   silenceStartedAtMs: number | null; // recorded at the check-in
-  pausedAtMs: number | null; // open technical pause (epoch ms), null if none
-  pausedTotalMs: number;     // closed pauses, excluded from case time
+  pausedAtMs: number | null;         // open technical pause (epoch ms), null if none
+  pauseLimitMs: number | null;       // how long the open pause may last
+  pausedTotalMs: number;             // closed pauses, excluded from case time
 };
 
-export const INITIAL_SILENCE_STATE: SilenceState = { checkedIn: false, silenceStartedAtMs: null, pausedAtMs: null, pausedTotalMs: 0 };
+export const INITIAL_SILENCE_STATE: SilenceState = {
+  checkedIn: false, silenceStartedAtMs: null, pausedAtMs: null, pauseLimitMs: null, pausedTotalMs: 0,
+};
 
-export type SilenceAction = 'none' | 'check_in' | 'pause';
+export type SilenceAction = 'none' | 'check_in' | 'pause' | 'expire';
 
 export function evaluateSilence(
   reportedSilentMs: number, nowMs: number, prior: SilenceState, lastTurnMs: number,
 ): { action: SilenceAction; state: SilenceState } {
-  if (prior.pausedAtMs !== null) return { action: 'none', state: prior };
   const floorMs = prior.silenceStartedAtMs ?? lastTurnMs;
   const silentMs = Math.min(reportedSilentMs, Math.max(0, nowMs - floorMs));
+  if (prior.pausedAtMs !== null) {
+    const pausedForMs = silentMs - SILENCE_PAUSE_MS;
+    return { action: pausedForMs >= (prior.pauseLimitMs ?? 0) ? 'expire' : 'none', state: prior };
+  }
   // Check-in always comes first, even if a coarse tick lands past the pause threshold.
   if (!prior.checkedIn) {
     if (silentMs < SILENCE_CHECK_IN_MS) return { action: 'none', state: prior };
     return { action: 'check_in', state: { ...prior, checkedIn: true, silenceStartedAtMs: nowMs - silentMs } };
   }
-  if (silentMs < SILENCE_PAUSE_MS) return { action: 'none', state: prior };
-  return { action: 'pause', state: { ...prior, pausedAtMs: nowMs - silentMs } };
+  const budgetLeftMs = SESSION_PAUSE_BUDGET_MS - prior.pausedTotalMs;
+  if (silentMs < SILENCE_PAUSE_MS || budgetLeftMs <= 0) return { action: 'none', state: prior };
+  return {
+    action: 'pause',
+    state: {
+      ...prior,
+      pausedAtMs: nowMs - silentMs + SILENCE_PAUSE_MS,
+      pauseLimitMs: Math.min(SILENCE_PAUSE_MAX_MS, budgetLeftMs),
+    },
+  };
 }
 
-// Any candidate turn ends the silence: clear the check-in and close an open pause.
+function creditedPauseMs(state: SilenceState, nowMs: number): number {
+  if (state.pausedAtMs === null) return 0;
+  return Math.min(Math.max(0, nowMs - state.pausedAtMs), state.pauseLimitMs ?? 0);
+}
+
+// Any candidate turn ends the silence: clear the check-in and close an open
+// pause, banking at most its limit.
 export function resumeOnCandidateTurn(prior: SilenceState, nowMs: number): { state: SilenceState; resumedAfterMs: number | null } {
-  if (prior.pausedAtMs === null) return { state: { ...prior, checkedIn: false, silenceStartedAtMs: null }, resumedAfterMs: null };
-  const resumedAfterMs = nowMs - prior.pausedAtMs;
-  return {
-    state: { checkedIn: false, silenceStartedAtMs: null, pausedAtMs: null, pausedTotalMs: prior.pausedTotalMs + resumedAfterMs },
-    resumedAfterMs,
-  };
+  const cleared = { ...prior, checkedIn: false, silenceStartedAtMs: null, pausedAtMs: null, pauseLimitMs: null };
+  if (prior.pausedAtMs === null) return { state: cleared, resumedAfterMs: null };
+  const credited = creditedPauseMs(prior, nowMs);
+  return { state: { ...cleared, pausedTotalMs: prior.pausedTotalMs + credited }, resumedAfterMs: credited };
 }
 
 // Case time with pauses excluded (Rule 19) — drives the clock, time warning,
 // load shedding, and case_complete analytics.
 export function effectiveElapsedMs(startedAtMs: number, nowMs: number, state: SilenceState): number {
-  const open = state.pausedAtMs !== null ? nowMs - state.pausedAtMs : 0;
-  return nowMs - startedAtMs - state.pausedTotalMs - open;
+  return nowMs - startedAtMs - state.pausedTotalMs - creditedPauseMs(state, nowMs);
 }
 
 const CHECK_IN = 'Still with me? Take your time.';
@@ -71,4 +95,9 @@ export function checkInText(lastInterviewerText: string | null): string {
   const question = lastInterviewerText?.match(/[^.?!]*\?/g)?.at(-1)?.trim();
   if (!question) return CHECK_IN;
   return `${CHECK_IN} The question on the table: ${question.charAt(0).toLowerCase()}${question.slice(1)}`;
+}
+
+export function pauseText(limitMs: number): string {
+  const minutes = Math.max(1, Math.ceil(limitMs / 60_000));
+  return `Looks like we may have lost you — I've paused the clock. If you're not back within ${minutes} minute${minutes === 1 ? '' : 's'}, we'll end the session here.`;
 }

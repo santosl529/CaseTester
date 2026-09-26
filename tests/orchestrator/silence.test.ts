@@ -1,12 +1,21 @@
 import { describe, it, expect } from 'vitest';
 import {
-  evaluateSilence, resumeOnCandidateTurn, effectiveElapsedMs, checkInText,
-  INITIAL_SILENCE_STATE, SILENCE_CHECK_IN_MS, SILENCE_PAUSE_MS,
+  evaluateSilence, resumeOnCandidateTurn, effectiveElapsedMs, checkInText, pauseText,
+  INITIAL_SILENCE_STATE, SILENCE_CHECK_IN_MS, SILENCE_PAUSE_MS, SILENCE_PAUSE_MAX_MS, SESSION_PAUSE_BUDGET_MS,
+  type SilenceState,
 } from '@/lib/orchestrator/silence';
 import { recordSilenceStall, evaluateStall, INITIAL_STALL_STATE } from '@/lib/orchestrator/stall';
 
 const NOW = 1_000_000;
 const LONG_AGO = 0; // last turn far enough back that reported silence is never bounded
+
+// Drive a silence that began at `start` through check-in and pause, via the real transitions.
+function pausedFrom(start: number, prior: SilenceState = INITIAL_SILENCE_STATE): SilenceState {
+  const checked = evaluateSilence(SILENCE_CHECK_IN_MS, start + SILENCE_CHECK_IN_MS, prior, start).state;
+  const d = evaluateSilence(SILENCE_PAUSE_MS, start + SILENCE_PAUSE_MS, checked, start + SILENCE_CHECK_IN_MS);
+  expect(d.action).toBe('pause');
+  return d.state;
+}
 
 describe('evaluateSilence', () => {
   it('does nothing inside the tolerance window (a slow thinker is not rescued)', () => {
@@ -33,12 +42,18 @@ describe('evaluateSilence', () => {
     expect(d.state.pausedAtMs).toBeNull();
   });
 
-  it('pauses on continued silence after the check-in, backdated to when the silence began', () => {
-    const checked = evaluateSilence(SILENCE_CHECK_IN_MS, NOW, INITIAL_SILENCE_STATE, LONG_AGO).state;
-    expect(checked.silenceStartedAtMs).toBe(NOW - SILENCE_CHECK_IN_MS);
-    const d = evaluateSilence(SILENCE_PAUSE_MS, NOW + 120_000, checked, NOW); // the check-in itself was a turn at NOW
-    expect(d.action).toBe('pause');
-    expect(d.state.pausedAtMs).toBe(NOW - SILENCE_CHECK_IN_MS);
+  it('pauses on continued silence after the check-in, from the pause point — the silence before it is case time', () => {
+    const start = NOW;
+    const s = pausedFrom(start);
+    expect(s.pausedAtMs).toBe(start + SILENCE_PAUSE_MS);
+    expect(s.pauseLimitMs).toBe(SILENCE_PAUSE_MAX_MS);
+  });
+
+  it('a late pause tick still starts the pause at the pause threshold, not at the tick', () => {
+    const start = NOW;
+    const checked = evaluateSilence(SILENCE_CHECK_IN_MS, start + SILENCE_CHECK_IN_MS, INITIAL_SILENCE_STATE, start).state;
+    const d = evaluateSilence(SILENCE_PAUSE_MS + 40_000, start + SILENCE_PAUSE_MS + 40_000, checked, start + SILENCE_CHECK_IN_MS);
+    expect(d.state.pausedAtMs).toBe(start + SILENCE_PAUSE_MS);
   });
 
   it('bounds reported silence by the last turn (a client cannot inflate it)', () => {
@@ -53,10 +68,34 @@ describe('evaluateSilence', () => {
     expect(early.action).toBe('none');
   });
 
-  it('does nothing further while paused', () => {
-    const checked = evaluateSilence(SILENCE_CHECK_IN_MS, NOW, INITIAL_SILENCE_STATE, LONG_AGO).state;
-    const paused = evaluateSilence(SILENCE_PAUSE_MS, NOW, checked, LONG_AGO).state;
-    expect(evaluateSilence(SILENCE_PAUSE_MS * 2, NOW, paused, LONG_AGO).action).toBe('none');
+  it('does nothing while paused, until the pause limit runs out', () => {
+    const s = pausedFrom(NOW);
+    const t = SILENCE_PAUSE_MS + SILENCE_PAUSE_MAX_MS - 1_000;
+    expect(evaluateSilence(t, NOW + t, s, NOW + SILENCE_PAUSE_MS).action).toBe('none');
+  });
+
+  it('expires the pause once its limit runs out', () => {
+    const s = pausedFrom(NOW);
+    const t = SILENCE_PAUSE_MS + SILENCE_PAUSE_MAX_MS;
+    expect(evaluateSilence(t, NOW + t, s, NOW + SILENCE_PAUSE_MS).action).toBe('expire');
+  });
+
+  it('cannot expire early on an inflated report', () => {
+    const s = pausedFrom(NOW);
+    expect(evaluateSilence(60 * 60_000, NOW + SILENCE_PAUSE_MS + 10_000, s, NOW + SILENCE_PAUSE_MS).action).toBe('none');
+  });
+
+  it('limits a pause to the session budget that remains', () => {
+    const prior = { ...INITIAL_SILENCE_STATE, pausedTotalMs: SESSION_PAUSE_BUDGET_MS - 60_000 };
+    expect(pausedFrom(NOW, prior).pauseLimitMs).toBe(60_000);
+  });
+
+  it('never pauses once the session budget is spent — the clock keeps running', () => {
+    const prior = { ...INITIAL_SILENCE_STATE, pausedTotalMs: SESSION_PAUSE_BUDGET_MS };
+    const checked = evaluateSilence(SILENCE_CHECK_IN_MS, NOW + SILENCE_CHECK_IN_MS, prior, NOW).state;
+    const d = evaluateSilence(SILENCE_PAUSE_MS, NOW + SILENCE_PAUSE_MS, checked, NOW + SILENCE_CHECK_IN_MS);
+    expect(d.action).toBe('none');
+    expect(d.state.pausedAtMs).toBeNull();
   });
 });
 
@@ -69,16 +108,22 @@ describe('resumeOnCandidateTurn', () => {
   });
 
   it('ends a pause and banks the paused interval', () => {
-    const start = NOW - SILENCE_PAUSE_MS;
-    const checked = evaluateSilence(SILENCE_CHECK_IN_MS, start + SILENCE_CHECK_IN_MS, INITIAL_SILENCE_STATE, start).state;
-    const paused = evaluateSilence(SILENCE_PAUSE_MS, NOW, checked, start + SILENCE_CHECK_IN_MS).state; // pausedAt = start
-    const r = resumeOnCandidateTurn(paused, NOW + 20_000);
-    expect(r.resumedAfterMs).toBe(SILENCE_PAUSE_MS + 20_000);
-    expect(r.state).toEqual({ checkedIn: false, silenceStartedAtMs: null, pausedAtMs: null, pausedTotalMs: SILENCE_PAUSE_MS + 20_000 });
+    const s = pausedFrom(NOW);
+    const r = resumeOnCandidateTurn(s, NOW + SILENCE_PAUSE_MS + 20_000);
+    expect(r.resumedAfterMs).toBe(20_000);
+    expect(r.state).toEqual({ ...INITIAL_SILENCE_STATE, pausedTotalMs: 20_000 });
+  });
+
+  it('banks no more than the pause limit if the candidate returns late', () => {
+    const s = pausedFrom(NOW);
+    const r = resumeOnCandidateTurn(s, NOW + SILENCE_PAUSE_MS + SILENCE_PAUSE_MAX_MS + 90_000);
+    expect(r.state.pausedTotalMs).toBe(SILENCE_PAUSE_MAX_MS);
   });
 
   it('accumulates across several pauses', () => {
-    const r = resumeOnCandidateTurn({ checkedIn: true, silenceStartedAtMs: NOW - 10_000, pausedAtMs: NOW - 10_000, pausedTotalMs: 50_000 }, NOW);
+    const first = resumeOnCandidateTurn(pausedFrom(NOW), NOW + SILENCE_PAUSE_MS + 50_000).state;
+    const later = NOW + 1_000_000;
+    const r = resumeOnCandidateTurn(pausedFrom(later, first), later + SILENCE_PAUSE_MS + 10_000);
     expect(r.state.pausedTotalMs).toBe(60_000);
   });
 });
@@ -89,11 +134,25 @@ describe('effectiveElapsedMs', () => {
   });
 
   it('excludes banked pauses (Rule 19)', () => {
-    expect(effectiveElapsedMs(0, 300_000, { checkedIn: false, silenceStartedAtMs: null, pausedAtMs: null, pausedTotalMs: 200_000 })).toBe(100_000);
+    expect(effectiveElapsedMs(0, 300_000, { ...INITIAL_SILENCE_STATE, pausedTotalMs: 200_000 })).toBe(100_000);
   });
 
-  it('excludes an open pause up to now', () => {
-    expect(effectiveElapsedMs(0, 300_000, { checkedIn: true, silenceStartedAtMs: 250_000, pausedAtMs: 250_000, pausedTotalMs: 0 })).toBe(250_000);
+  it('excludes an open pause up to now, capped at its limit', () => {
+    const s = pausedFrom(0); // paused at 180s, limit 5 min
+    expect(effectiveElapsedMs(0, 250_000, s)).toBe(SILENCE_PAUSE_MS);
+    expect(effectiveElapsedMs(0, SILENCE_PAUSE_MS + SILENCE_PAUSE_MAX_MS + 60_000, s)).toBe(SILENCE_PAUSE_MS + 60_000);
+  });
+});
+
+describe('pauseText', () => {
+  it('warns the session ends if they are not back in time', () => {
+    expect(pauseText(5 * 60_000)).toBe(
+      "Looks like we may have lost you — I've paused the clock. If you're not back within 5 minutes, we'll end the session here.",
+    );
+  });
+
+  it('rounds a short remaining budget up to whole minutes', () => {
+    expect(pauseText(40_000)).toContain('within 1 minute,');
   });
 });
 
