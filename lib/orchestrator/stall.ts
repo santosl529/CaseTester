@@ -25,6 +25,7 @@ export type StallState = {
   consecutiveNoProgress: number;  // resets on progress or after an intervention fires
   consecutiveClarify: number;     // consecutive clarifying-question turns
   lastCandidateQuestion: string | null; // for verbatim-repeat detection
+  recommendationDelivered: boolean;     // synthesis done — the ladder has nothing left to rescue
 };
 
 export const INITIAL_STALL_STATE: StallState = {
@@ -32,6 +33,7 @@ export const INITIAL_STALL_STATE: StallState = {
   consecutiveNoProgress: 0,
   consecutiveClarify: 0,
   lastCandidateQuestion: null,
+  recommendationDelivered: false,
 };
 
 export type LadderRung = 1 | 2 | 3;
@@ -46,6 +48,11 @@ export type StallDecision = {
 };
 
 const SYNTHESIS_PHASES: Phase[] = ['RECOMMENDATION', 'WRAP'];
+
+// A committed recommendation, as opposed to a refusal to commit ("I can't
+// commit without more data" is substantive prose, so it classifies as
+// analysis — this is what separates Claire from a delivered close).
+const RECOMMENDATION_PATTERN = /\b(recommend(ation)?|bottom line|my answer|i'?d (raise|cut|take|push|go with|prioriti[sz]e|start|focus)|(they|the client|brew (&|and) bean|we|the ceo) should)\b/i;
 
 function normalize(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -110,8 +117,15 @@ export function recordSilenceStall(prior: StallState): StallState {
 // Pure state transition: classify this candidate turn, update counters, and
 // decide whether to fire the next ladder rung.
 export function evaluateStall(candidateText: string, phase: Phase, prior: StallState): StallDecision {
+  // Once the recommendation is in, short sign-offs are not stalls (run
+  // 1d76e3d9 logged Level 1, Level 2 and synthesis_unresolved on "Goodbye.").
+  if (prior.recommendationDelivered) return { state: prior, intervene: false };
+
   const { kind, isRepeat } = classifyTurn(candidateText, prior.lastCandidateQuestion);
   const state: StallState = { ...prior };
+  if (kind === 'analysis' && SYNTHESIS_PHASES.includes(phase) && RECOMMENDATION_PATTERN.test(candidateText)) {
+    state.recommendationDelivered = true;
+  }
 
   let progress = false;
   if (kind === 'analysis') {

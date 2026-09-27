@@ -129,3 +129,40 @@ describe('evaluateStall — synthesis cap (Rule 13)', () => {
     expect(lastDecision!.synthesisUnresolved).toBe(true);
   });
 });
+
+// Run 1d76e3d9: after a full recommendation, the session looped on goodbyes and
+// "Goodbye." read as a hedge — Level 1, Level 2, and synthesis_unresolved were
+// logged as assists against a candidate who had already delivered.
+describe('evaluateStall — after the recommendation is delivered', () => {
+  const REC = 'My recommendation: take a 12% menu price increase phased over two quarters, because input inflation explains the whole COGS jump. Risks are elasticity; next step is a twenty-store test.';
+
+  it('marks the recommendation delivered in a synthesis phase', () => {
+    const d = evaluateStall(REC, 'RECOMMENDATION', INITIAL_STALL_STATE);
+    expect(d.state.recommendationDelivered).toBe(true);
+  });
+
+  it('does not mark it outside synthesis (an answer-first sprinter has not closed)', () => {
+    const d = evaluateStall(REC, 'STRUCTURE', INITIAL_STALL_STATE);
+    expect(d.state.recommendationDelivered).toBe(false);
+  });
+
+  it('does not count a refusal to commit as a delivered recommendation', () => {
+    const d = evaluateStall("I can't commit without a more detailed breakdown of the biggest cost line.", 'RECOMMENDATION', INITIAL_STALL_STATE);
+    expect(d.state.recommendationDelivered).toBe(false);
+  });
+
+  it('never fires a rung or synthesisUnresolved on sign-offs after delivery', () => {
+    let state = evaluateStall(REC, 'RECOMMENDATION', INITIAL_STALL_STATE).state;
+    for (const t of ['Goodbye.', 'Thanks — take care.', 'Goodbye.', 'Goodbye.', 'Goodbye.', 'Goodbye.']) {
+      const d = evaluateStall(t, 'RECOMMENDATION', state);
+      expect(d.intervene).toBe(false);
+      expect(d.synthesisUnresolved).toBeFalsy();
+      state = d.state;
+    }
+  });
+
+  it('a recommendation that never comes still escalates (Claire)', () => {
+    const { rungs } = runSequence(["I don't know, I'd need more data", "I don't know", "I don't know", "I don't know"], 'RECOMMENDATION');
+    expect(rungs).toEqual([0, 1, 0, 2]);
+  });
+});

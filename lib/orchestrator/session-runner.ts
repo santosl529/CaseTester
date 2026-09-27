@@ -26,6 +26,7 @@ import { classifyConduct, isPauseAccepted } from './conduct';
 import { logEvent } from '@/lib/analytics';
 import { nextPhase, TOTAL_CASE_MS, type Phase } from './state-machine';
 import { inferPhaseRepair } from './phase-repair';
+import { resolveSpokenClose } from './spoken-close';
 import { runInterviewerTurn } from '@/lib/agent/interviewer';
 import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import {
@@ -357,6 +358,16 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   if (metaLeak.strippedSentences.length > 0) {
     console.warn('[runner] stripped meta-leak from interviewer turn:', JSON.stringify(metaLeak.strippedSentences));
     spokenText = metaLeak.cleaned;
+  }
+
+  // Rule 12: the words and the state must agree. A close spoken without
+  // end_case ends the case if it may end, else is withdrawn (spoken-close.ts).
+  const spokenClose = resolveSpokenClose({ spokenText, ended, mayEnd });
+  if (spokenClose.action !== 'none') {
+    console.warn(`[runner] spoken close without end_case — ${spokenClose.action}`);
+    await logEvent('spoken_close_resolved', { action: spokenClose.action, phase: currentPhase }, { sessionId, userId: session.userId });
+    ended = spokenClose.ended;
+    spokenText = spokenClose.spokenText;
   }
 
   // Rule 10 / never-promise-without-delivering: if the interviewer's words
