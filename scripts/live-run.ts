@@ -182,8 +182,11 @@ async function main() {
     let abandoned = false;
     for (const threshold of [SILENCE_CHECK_IN_MS, SILENCE_PAUSE_MS, SILENCE_PAUSE_MS + SILENCE_PAUSE_MAX_MS]) {
       if (pauseMs < threshold) break;
-      await sleep(replyStartedAt + threshold - Date.now());
-      const silence = await runSilence(sessionId, threshold);
+      // Report the silence actually measured, a beat past the threshold: the
+      // server bounds it by its own clock, and an exact-threshold report lost
+      // the 180s pause to millisecond jitter (run 88288c97).
+      await sleep(replyStartedAt + threshold + 1000 - Date.now());
+      const silence = await runSilence(sessionId, Date.now() - replyStartedAt);
       if (silence.interviewerText) {
         transcript.push({ role: 'interviewer', text: silence.interviewerText });
         console.log(`\n[interviewer · ${silence.action} · ${clock(Date.now() - startedAt)}] ${silence.interviewerText}`);
