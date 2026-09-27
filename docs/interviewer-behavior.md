@@ -9,6 +9,10 @@ Rule 19 technical pause: the clock stops from the pause point (silence before
 it is case time), the pause line warns that the session ends if the candidate
 isn't back in time, pauses are capped (5 min each, 5 min per session), and an
 expired pause abandons the session unscored. Rules 13, 16, and 19 amended.
+Also (live run 1d76e3d9): a close spoken without end_case is promoted to a
+real end when the case may end and withdrawn otherwise (Rule 12), and the
+stall ladder stands down once a committed recommendation is delivered
+(Rule 13).
 
 **v4.1 changes (run 4 review):** Rule 11 gains a third failure mode — silent
 non-response to a data request is as bad as silent substitution; every request
@@ -613,6 +617,14 @@ mid-flow.
   after the ask. Never run the ladder instead of asking.
 - The close and debrief handoff must appear in the transcript record (run 3's
   record truncated at an empty final turn — pipeline acceptance criterion).
+- **Words and state agree.** Live run 1d76e3d9: the interviewer said "That's
+  time… I'll close the case here" at 15:33 of 20 without calling end_case;
+  the session looped on goodbyes until time-up, and the ladder read the
+  goodbyes as stalls. A spoken close without end_case is promoted to an end
+  when the case may end (coverage gate or time-up); otherwise the closing
+  sentences are withdrawn and the case continues (a risk probe on the
+  recommendation if nothing else was said). Detection is a narrow close
+  pattern — "thanks for walking me through that" mid-case never ends a case.
 
 ---
 
@@ -678,6 +690,12 @@ the event log this doc mandates is its input.)
   Part III protects; the budget catches the evasion loop deterministically.
   Clarifying-question quality is assessed in the debrief, with full context
   and no real-time pressure, where that assessment belongs.
+
+**After the recommendation:** once the candidate has delivered a committed
+recommendation in RECOMMENDATION/WRAP, the ladder stands down — short
+sign-offs ("Thanks", "Goodbye") are not stalls, and no rung or
+synthesis_unresolved is logged. A refusal to commit ("I can't commit without
+more data") is not a delivered recommendation and still escalates.
 
 Each rung is delivered once; if the candidate stalls again, escalate — never
 repeat the same rung twice. All hint events logged with level and phase.
