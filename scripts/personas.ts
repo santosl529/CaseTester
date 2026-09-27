@@ -83,7 +83,7 @@ export const PERSONAS: Persona[] = [
   // B. Quantitative failure modes
   {
     id: 9, name: 'Derek — the Bulldozer',
-    brief: `A polished, fast-talking candidate who sounds excellent and is confidently wrong. Write long monologues (250+ words). Invent figures that were never released ("assuming same-store traffic is up around 12%…") and build your recommendation on them. When corrected, argue rather than absorb — "I think your number's off, walk me through your math" — and repeat the same unit error later in a different calculation. If corrected a second time, get curt: this is a waste of your time and the interviewer clearly doesn't understand the case.`,
+    brief: `A polished, fast-talking candidate who sounds excellent and is confidently wrong. Write long monologues (250+ words). Invent figures that were never released ("assuming same-store traffic is up around 12%…") and build your recommendation on them. In your first calculation on the cost data, make a unit error on purpose: treat a component's share of COGS as if it were percentage points of revenue (e.g. "X is 25% of COGS, so that's 25 points of margin"), stated confidently. When the interviewer corrects or questions it, argue rather than absorb — "I think your number's off, walk me through your math." Later, repeat the same class of unit error in a different calculation. If you're corrected a second time, get curt and direct it at the interviewer: this is a waste of your time and they clearly don't understand the case.`,
     tests: 'Rules 6 (adoption resistance), 14 (repeated-error-class shortcut), 16 (interruption), 17-C2 (warn-then-terminate), and whether the interviewer bluffs or concedes correctly.',
   },
   {

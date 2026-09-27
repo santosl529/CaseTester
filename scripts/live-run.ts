@@ -65,11 +65,27 @@ function humanDelayMs(text: string): number {
   return Math.min(MAX_TURN_DELAY_MS, THINK_MS + (words / WPM) * 60_000);
 }
 
-// A leading [pause Ns] is a silence the persona wants before this message.
+// A [pause Ns] tag is a silence the persona wants before this message. The
+// prompt says to lead with it, but the simulator also writes it mid-message
+// (run ec32a47f sent "[pause 200s]" to the interviewer verbatim), so take it
+// from anywhere, strip every tag, and wait the longest one.
+const PAUSE_TAG = /\[pause\s+(\d+)\s*s?\]/gi;
 function takePause(text: string): { text: string; pauseMs: number } {
-  const m = text.match(/^\s*\[pause\s+(\d+)\s*s?\]\s*/i);
-  if (!m) return { text, pauseMs: 0 };
-  return { text: text.slice(m[0].length).trim(), pauseMs: Math.min(MAX_PAUSE_MS, Number(m[1]) * 1000) };
+  const seconds = [...text.matchAll(PAUSE_TAG)].map(m => Number(m[1]));
+  if (seconds.length === 0) return { text, pauseMs: 0 };
+  const stripped = text.replace(PAUSE_TAG, '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  return { text: stripped, pauseMs: Math.min(MAX_PAUSE_MS, Math.max(...seconds) * 1000) };
+}
+
+// Everything the run prints — including the orchestrator's per-turn phase and
+// stall-rung lines, which the report files don't carry — saved as <base>.log.
+const logLines: string[] = [];
+for (const level of ['log', 'warn', 'error'] as const) {
+  const original = console[level].bind(console);
+  console[level] = (...args: unknown[]) => {
+    logLines.push(args.map(a => (typeof a === 'string' ? a : JSON.stringify(a))).join(' '));
+    original(...args);
+  };
 }
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, Math.max(0, ms)));
@@ -100,7 +116,7 @@ Your character: ${persona.brief}
 
 Also, unless your character never asks for data or never attempts the case: at some point, ask for one piece of data a profitability case like this would plausibly hold but that an interviewer might skip past (e.g. menu-price history, transaction volume, or a split of the biggest cost line), then keep going without pressing if it goes unanswered.
 
-Silences: if your character would go quiet before answering, begin the reply with [pause Ns] (N in seconds, at most 600). The tag is stripped before sending; the interviewer only experiences the wait. Do not otherwise mention the pause.`;
+Silences: if your character would go quiet before answering, the very first characters of that reply must be [pause Ns] (N in seconds, at most 600) — never in the middle or at the end. A silence always happens before a message is sent, so if your character drops out mid-thought, send what they had, and put the pause at the start of the reply where they come back. The tag is stripped before sending; the interviewer only experiences the wait. Do not otherwise mention the pause.`;
 }
 
 type Line = { role: 'interviewer' | 'candidate'; text: string };
@@ -297,8 +313,9 @@ async function writeArtifacts(sessionId: string, caseTitle: string) {
   await writeFile(path.join(OUT_DIR, `${base}.json`), JSON.stringify({ session, turns, score, events, analytics, revealed }, null, 2));
   const pdf = score ? await renderReportPdf(sessionId) : null;
   if (pdf) await writeFile(path.join(OUT_DIR, `${base}.pdf`), pdf.buffer);
+  await writeFile(path.join(OUT_DIR, `${base}.log`), logLines.join('\n'));
 
-  console.log(`[live-run] wrote ${path.join(OUT_DIR, base)}.{md,json${pdf ? ',pdf' : ''}}`);
+  console.log(`[live-run] wrote ${path.join(OUT_DIR, base)}.{md,json,log${pdf ? ',pdf' : ''}}`);
 }
 
 main()
