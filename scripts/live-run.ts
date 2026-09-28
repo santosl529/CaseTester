@@ -121,6 +121,10 @@ Silences: if your character would go quiet before answering, the very first char
 
 type Line = { role: 'interviewer' | 'candidate'; text: string };
 
+// The simulator's own spend, which the app's llm_usage events don't see —
+// reported beside them so a run's cost is complete.
+const candidateUsage = { calls: 0, input: 0, output: 0, models: new Set<string>() };
+
 async function candidateReply(client: Anthropic, transcript: Line[]): Promise<string> {
   const response = await client.beta.messages.create({
     model: CANDIDATE_MODEL,
@@ -131,6 +135,10 @@ async function candidateReply(client: Anthropic, transcript: Line[]): Promise<st
     fallbacks: [{ model: 'claude-opus-4-8' }],
     messages: transcript.map(l => ({ role: l.role === 'interviewer' ? 'user' : 'assistant', content: l.text })),
   });
+  candidateUsage.calls += 1;
+  candidateUsage.input += response.usage.input_tokens + (response.usage.cache_creation_input_tokens ?? 0) + (response.usage.cache_read_input_tokens ?? 0);
+  candidateUsage.output += response.usage.output_tokens;
+  candidateUsage.models.add(response.model);
   if (response.stop_reason === 'refusal') throw new Error('candidate simulator refused');
   const text = response.content
     .filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === 'text')
@@ -289,9 +297,22 @@ async function writeArtifacts(sessionId: string, caseTitle: string) {
   }
   md.push('');
 
-  md.push('## LLM usage', '', '| Component | Calls | Input tokens | Output tokens |', '|---|---|---|---|');
-  for (const [k, u] of usage) md.push(`| ${k} | ${u.calls} | ${u.input} | ${u.output} |`);
-  md.push('');
+  // List price per million tokens, uncached (the app sets no cache_control).
+  const PRICE_PER_MTOK: Record<'opus' | 'haiku', [number, number]> = { opus: [5, 25], haiku: [1, 5] };
+  const HAIKU_COMPONENTS = new Set(['coverage', 'data_request']);
+  const usd = (tier: 'opus' | 'haiku', input: number, output: number) =>
+    (input * PRICE_PER_MTOK[tier][0] + output * PRICE_PER_MTOK[tier][1]) / 1e6;
+  let appUsd = 0;
+  md.push('## LLM usage', '', '| Component | Calls | Input tokens | Output tokens | Est. USD |', '|---|---|---|---|---|');
+  for (const [k, u] of usage) {
+    const cost = usd(HAIKU_COMPONENTS.has(k) ? 'haiku' : 'opus', u.input, u.output);
+    appUsd += cost;
+    md.push(`| ${k} | ${u.calls} | ${u.input} | ${u.output} | $${cost.toFixed(3)} |`);
+  }
+  const simUsd = usd('opus', candidateUsage.input, candidateUsage.output);
+  md.push(`| candidate simulator (${[...candidateUsage.models].join(', ')}) | ${candidateUsage.calls} | ${candidateUsage.input} | ${candidateUsage.output} | $${simUsd.toFixed(3)} |`);
+  md.push('', `- App cost (interviewer + scoring): **$${appUsd.toFixed(2)}** · with simulator: **$${(appUsd + simUsd).toFixed(2)}** · list prices, uncached`);
+  md.push(`- Wall time: ${clock(Date.now() - startMs)}`, '');
 
   if (score) {
     const rubric = score.rubricJsonb as RubricScores;
