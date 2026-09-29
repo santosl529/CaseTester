@@ -2,12 +2,12 @@
 
 **Companion to:** `prd-voice-ai-mock-case.md` (product PRD — source of *what* and *why*)
 **This document:** the engineering build spec for an AI coding agent (Claude Code). It pins down stack, data model, API surface, orchestration logic, repo structure, and build order.
-**Status:** Draft v1 · **Target:** MVP validation build · **Scale:** tens of pilot users (consulting clubs), bursty seasonal concurrency.
+**Status:** Draft v1, updated through interviewer-behavior v4.3 (2026-09-29) · **Target:** MVP validation build · **Scale:** tens of pilot users (consulting clubs), bursty seasonal concurrency.
 
 > Read this alongside the product PRD. Where the product PRD states a requirement (FR-N), this doc says how to build it. The product PRD wins on intent; this doc wins on implementation detail. If they conflict, flag it — don't silently pick one.
 
 > **Companion normative docs** (added as the build matured; this PRD points to them rather than duplicating):
-> - `docs/interviewer-behavior.md` — the authored interviewer conduct spec (Rules 1–19, incl. the conduct/wellbeing track). Governs §5.4.
+> - `docs/interviewer-behavior.md` — the authored interviewer conduct spec (Rules 1–19, incl. the conduct/wellbeing track; currently v4.3, with an implementation-status register in Part V). Governs §5.4.
 > - `docs/scoring-qa.md` — judge, report-verification pipeline, and scoring-attribution requirements (implemented/pending marked). Governs §6.
 > - `docs/case-authoring.md` — case-content authoring + the ledger-consistency QA gate. Governs §10.
 
@@ -96,6 +96,10 @@ This is the single most important constraint in the document. It de-risks the ex
     data-requests.ts      Rule 11 data-request classifier (Haiku) + open-request / force-release helpers
     post-turn.ts          background passes after each turn (coverage agent, data-request audit)
     start-session.ts      session creation + deterministic opening turn
+    numeric-provenance.ts provenance audit + enforcement (blocked sentences withheld, Rule 6)
+    recompute.ts          live math check → probe/correct hint + Rule 14 attempt counter
+    conduct.ts            C1–C5 conduct classifier (Rule 17)
+    silence.ts, spoken-close.ts, stall.ts, pacing.ts   silence/pause, close, stall ladder, time budgets + grace ask
   /agent
     interviewer.ts        per-turn prompt assembly + tool-call handling
     prompts/              system prompt, anti-hallucination, anti-jailbreak
@@ -107,6 +111,9 @@ This is the single most important constraint in the document. It de-risks the ex
     score-session.ts      the full scoring pipeline (§6), shared by the score route and scripts
     transcript-artifacts.ts, evidence-audit.ts, verifier.ts, reconcile.ts   report verification (§6)
     data-coverage.ts      requested-vs-never-requested data split for the judge (Rule 11)
+    math-spans.ts         source spans for math checks, shared by live recompute and scoring (Rules 2/3)
+    interviewer-errors.ts interviewer-error + wellbeing marks from the event log (Rule 3, 17-C5)
+    caveat-floor.ts       caveated dimensions floored at meets_bar (Rule 9)
   /voice                  (M2 only) STTProvider, TTSProvider, LiveKit glue
   /cases                  case JSON loader + schema validation (zod)
 /cases                    human-authored case content (JSON, version-controlled)
@@ -142,9 +149,14 @@ sessions
   flags_jsonb            -- orchestrator run-state. Booleans: stalled, ran_long,
                          --   asked_repeat, off_topic_count, advanced_last_turn
                          --   (gates the no-back-to-back behavior shift),
-                         --   time_warning_fired, load_shed_logged.
+                         --   time_warning_fired, load_shed_logged,
+                         --   grace_ask_fired (Rule 12 time-up ask, v4.3).
                          -- Sub-objects: stall{} (stall-ladder state, Rule 13),
-                         --   conduct{ warnings, distress_offered, category } (Rule 17).
+                         --   conduct{ warnings, distress_offered,
+                         --   distress_offered_at_ms (C5 clock pause), category }
+                         --   (Rule 17), silence{} (check-in / technical-pause
+                         --   state, Rules 13/16/19), recompute_attempts{ step_id:
+                         --   n } (Rule 14 attempt counter, v4.3).
                          -- (pushback_done is vestigial — the "push back once"
                          --   nag was removed; general rigor rules cover it.)
 
@@ -165,10 +177,16 @@ session_events         -- typed log; three categories share one table
   turn_index, phase, payload_jsonb, created_at
   -- 'intervention': stall-ladder assists (restate_anchor|narrow_frame|
   --    directive_rescue), synthesis_unresolved, load_shed — SCORING inputs
-  --    ("assisted ≠ covered" and time-pressure coverage caveats).
-  -- 'conduct': C1–C5 conduct events (Rule 17) — internal only, NEVER
-  --    surfaced to client/report (Rule 18, FERPA). Filter by category;
-  --    the report/score paths never query 'conduct'.
+  --    ("assisted ≠ covered" and time-pressure coverage caveats); also
+  --    silence_check_in, technical_pause(_expired), session_resumed,
+  --    recompute_flag (payload: step, candidate value, span, attempt — v4.3),
+  --    grace_ask (v4.3). Only ladder rungs count as assists.
+  -- 'conduct': C1–C5 conduct events (Rule 17), plus C2_excluded (quoted /
+  --    reported / generic-you speech, logged not warned — v4.3). Internal
+  --    only, NEVER surfaced to client/report (Rule 18, FERPA). Scoring reads
+  --    'conduct' for ONE purpose (v4.3, interviewer-error marking): to EXCLUDE
+  --    C2-warning and C5 exchanges from candidate evidence. It never feeds a
+  --    penalty, and the judge is told not to mention either in the report.
   -- 'data_request': Rule 11 audit — one row per candidate data request
   --    (subtype release|refuse|defer|clarify|none; payload what, ledgerItemIds,
   --    revealedByNow) plus a 'classified' marker per checked exchange, so
@@ -176,14 +194,17 @@ session_events         -- typed log; three categories share one table
 
 scores
   id, session_id (fk),
-  -- 8 rubric dimensions, each: <dim>_rating (enum) + <dim>_evidence_jsonb (legacy):
+  -- 8 rubric dimensions, each: <dim>_rating (enum; NULL when the dimension
+  --   is "not assessed", Rule 9 v4.3) + <dim>_evidence_jsonb (legacy):
   --   structure, quantitative, data_exhibit, judgment, creativity,
   --   synthesis, communication, pushback
   overall_rating (enum), top_fix (text),
   rubric_jsonb           -- full structured judge output (per-dimension
-                         --   wentWell/needsWork/missedOpportunities + coverageCaveat);
+                         --   wentWell/needsWork/missedOpportunities + coverageCaveat
+                         --   + notAssessed);
                          --   the *_evidence columns are legacy (pre-8-dim rows)
-  deterministic_jsonb    -- math step results (per-step errorClass) + data-leak audit
+  deterministic_jsonb    -- math step results (per-step errorClass + source span)
+                         --   + data-leak audit
   model_answer_jsonb     -- structure / key math / recommendation exemplars
   scoring_runtime_ms, judge_model, created_at
 
@@ -195,7 +216,7 @@ analytics_events       -- append-only; feeds §13 metrics
   event_type, payload_jsonb, created_at
 ```
 
-**Enums:** `phase` = `INTRO|CLARIFY|STRUCTURE|ANALYSIS|EXHIBIT|BRAINSTORM|RECOMMENDATION|WRAP|SCORING`. `session_status` = `active|completed|abandoned|terminated`. `rating` = `needs_work|meets_bar|strong` (displayed as needs work / adequate / strong).
+**Enums:** `phase` = `INTRO|CLARIFY|STRUCTURE|ANALYSIS|EXHIBIT|BRAINSTORM|RECOMMENDATION|WRAP|SCORING`. `session_status` = `active|completed|abandoned|terminated`. `rating` = `needs_work|meets_bar|strong` (displayed as needs work / adequate / strong). "Not assessed" is not an enum value: it is a `notAssessed` flag in `rubric_jsonb` with a NULL rating column, shown via `ratingLabel`.
 
 **Terminated / abandoned scoring (Rule 18/19):** a `terminated` session (conduct C2-repeat / C3) produces **no score, no report**; a C5-`abandoned` session is excluded from scoring. The score route only proceeds for `status = completed`, so both are safe by construction.
 
@@ -235,7 +256,7 @@ Every turn returns one or more actions. The orchestrator executes them in order,
 
 **Normative source: `docs/interviewer-behavior.md`** (the authored conduct spec, Rules 1–19 across core conduct, data delivery, struggling-candidate handling, and a conduct/wellbeing track). The prompt encodes the rules; **deterministic backstops** in the orchestrator enforce what a prompt can't reliably guarantee. This section summarizes; the doc governs.
 
-Core prompt constraints: neutral affect / never grade mid-case (1); force structure + live math (2); no fabricated candidate claims (3); one candidate task per turn, Socratic not coaching (4); 1–3 sentence spoken turns, no markdown (5); never adopt candidate-derived figures as fact, or state the correct figure on a misquote (6); pressure-test the opening structure (7); reveal data the candidate has earned and asked for; every data request is released, refused, or audibly deferred — never ignored, never substituted (10/11). Withhold-until-asked and jailbreak-resistance (FR-5/FR-8) still hold — and a jailbreak still can't surface un-revealed numbers (§5.1).
+Core prompt constraints: neutral affect / never grade mid-case (1); force structure + live math (2); no fabricated candidate claims (3); one candidate task per turn, Socratic not coaching (4); 1–3 sentence spoken turns, no markdown (5); never adopt candidate-derived figures as fact (6) — the model never issues a math correction or states a replacement figure on its own; corrections come only from a valid recompute flag (Rules 2/14, v4.3), and a suspected misquote gets "check that against the figures"; pressure-test the opening structure (7); reveal data the candidate has earned and asked for; every data request is released, refused, or audibly deferred — never ignored, never substituted (10/11). Withhold-until-asked and jailbreak-resistance (FR-5/FR-8) still hold — and a jailbreak still can't surface un-revealed numbers (§5.1).
 
 Deterministic backstops (all in `/lib/orchestrator`, logged; QA-gated in the harness):
 - **Numeric provenance audit** — every quantity in an interviewer turn must trace to revealed ledger values, a candidate-attributed figure, or an orchestrator-derived value; word-numbers and ranges normalized; unit-bearing unmatched quantities block, bare counts log. **Block withholds** (v4.3): sentences carrying a blocked figure are stripped before the turn is spoken (`enforceNumericProvenance`) — the audit previously only logged, and a persona run delivered unrevealed revenue.
@@ -335,7 +356,7 @@ Barge-in: candidate interrupting stops playback and starts listening (FR-17). Tu
 
 Cases are **human-authored JSON** in `/cases`, version-controlled, validated against a **zod schema** on load (reject malformed cases at boot, not mid-session). Schema per product PRD §11. 8–12 cases across profitability, market entry, M&A, market sizing, ops/cost.
 
-**FR-20:** no case ships without an answer key; ex-MBB author + second reviewer. Enforce: the loader fails any case missing `structure_key`, `data_ledger`, `math_steps[].answer`, or `recommendation_key`. Rubric anchors are generic (the 8-dimension rubric in `lib/scoring/rubric.ts`); per-case `rubric_anchors` are deprecated/optional. Additionally, every case needs a ledger-consistency block in `tests/cases/consistency.test.ts` (prompt ↔ ledger ↔ exhibits ↔ math steps reconcile). Authoring rules — including speakable ledger values, per-phase `pacing` budgets, and `alt_answers` for legitimately ambiguous math steps — live in **`docs/case-authoring.md`** — as do two rules added after the 2026-09-14 runs: the stated root cause must be derivable from the ledger (prof-001's key claimed coffee beans explained a COGS jump that was only possible if beans were ~95% of COGS), and exhibits list the ledger items they display in `coversLedgerItems`.
+**FR-20:** no case ships without an answer key; ex-MBB author + second reviewer. Enforce: the loader fails any case missing `structure_key`, `data_ledger`, `math_steps[].answer`, or `recommendation_key`. Rubric anchors are generic (the 8-dimension rubric in `lib/scoring/rubric.ts`); per-case `rubric_anchors` are deprecated/optional. Additionally, every case needs a ledger-consistency block in `tests/cases/consistency.test.ts` (prompt ↔ ledger ↔ exhibits ↔ math steps reconcile). Authoring rules — including speakable ledger values, per-phase `pacing` budgets, `alt_answers` for legitimately ambiguous math steps, and the **source-span fields every math step must declare** (`cues` required, `unit`, `inputs` — ledger ids validated at load — and `live: false` for prompt-fact steps; v4.3) — live in **`docs/case-authoring.md`** — as do two rules added after the 2026-09-14 runs: the stated root cause must be derivable from the ledger (prof-001's key claimed coffee beans explained a COGS jump that was only possible if beans were ~95% of COGS), and exhibits list the ledger items they display in `coversLedgerItems`.
 
 ---
 
@@ -376,7 +397,7 @@ Steps 1–6 contain zero voice code. That's the point.
 
 Log: `case_start`, `mic_check_result`, per-turn latency, phase transitions, data items revealed, exhibit shown, `case_complete` vs `abandon` (+ abandon phase), `scoring_runtime_ms`, `$ cost per session`, post-case ratings (realism, usefulness), blind-comparison opt-ins. These feed the success metrics and go/no-go gates directly. Append to `analytics_events`.
 
-Also logged (added during the build): `llm_usage` (tokens per call, by component — the `$/case` input), `scoring_qa` (one per scoring run: transcript artifacts, evidence strips and point drops, verifier drops, data-request gaps / not-in-case / backfills, reconciliation merges / gap drops / cross-dimension repeats), `turn_latency`, `phase_repair`, `data_force_released`, `fabricated_turn_stripped`, and `data_revealed` with `via: 'exhibit'` for exhibit-covered ledger items.
+Also logged (added during the build): `llm_usage` (tokens per call, by component — the `$/case` input), `scoring_qa` (one per scoring run: transcript artifacts, evidence strips and point drops, verifier drops, data-request gaps / not-in-case / backfills, reconciliation merges / gap drops / cross-dimension repeats), `turn_latency`, `phase_repair`, `data_force_released`, `fabricated_turn_stripped`, `data_revealed` with `via: 'exhibit'` for exhibit-covered ledger items, `spoken_close_resolved`, `session_paused` / `session_resumed`, `case_abandoned`, and `provenance_blocked` (v4.3 — a turn had a figure withheld; target rate is near zero, and every event is a model fabrication caught). `scoring_qa` also carries (v4.3) `interviewerErrorMarks`, `markClaimDrops`, and `caveatFloors`.
 
 ---
 
@@ -385,7 +406,7 @@ Also logged (added during the build): `llm_usage` (tokens per call, by component
 1. End-to-end interviewer-led **voice** case, median turn latency ≤1.5s (p95 ≤2.5s).
 2. **Zero** numbers stated outside the data ledger across a 50-case QA run (deterministic audit proves it).
 3. Interviewer withholds data until asked, challenges unevidenced assertions, holds character against jailbreak, and follows the conduct/wellbeing track (`docs/interviewer-behavior.md` Rules 17–19) on abusive/distressed input.
-4. Report shows all 8 rubric dimensions (rating + went-well/needs-work with transcript-sourced quotes + missed opportunities + coverage caveats + model answer); deterministic math checked programmatically; report claims verified against the transcript (quote audit + verifier + dimension reconciliation).
+4. Report shows all 8 rubric dimensions (rating + went-well/needs-work with transcript-sourced quotes + missed opportunities + coverage caveats + model answer); deterministic math checked programmatically; report claims verified against the transcript (interviewer-error marking + quote audit + verifier incl. error claims + dimension reconciliation + caveat floor); no report item rests only on the candidate's reaction to an interviewer error.
 5. ≥65% blind preference for our feedback vs ChatGPT on the same answer.
 6. Text-fallback works on voice failure; state persists across a network drop.
 7. All §13 events flowing to analytics.
@@ -403,3 +424,5 @@ And the structural one this whole doc is organized around:
 - Audio storage / retention policy specifics (default: don't store).
 - Exact per-user case cap during validation.
 - drizzle vs. raw Supabase migrations (agent may choose; flag it).
+- C5 report discard (behavior doc Rule 17-C5, v4.3): should a candidate who continues after a distress disclosure be offered to discard the report so it isn't kept on their record? A deletion feature with RLS/retention implications — product decision pending.
+- Live recompute recall: the v4.3 span matcher produced zero false flags across the 13 persona runs, but the corpus held no genuine dollar-impact or per-store errors, so its hit rate on real errors is measured only by unit tests. Confirm in the next persona cycle (Sofia, Jordan, Tyler) before relying on it.
