@@ -516,9 +516,10 @@ catches them.
 runs the audit classified Priya's "480" as `action: block`, logged
 `numeric provenance blocked`, and the runner delivered the turn anyway —
 disclosing unrevealed revenue. The audit's block tier currently only logs.
-A blocked turn must be withheld and regenerated once with the offending
-figure named as forbidden; if the regeneration also blocks, the offending
-sentence is stripped (or a neutral "Go on." substituted if nothing remains).
+A blocked figure must not reach the candidate: every sentence carrying a
+block-tier finding is withheld (a neutral "Go on." substituted if nothing
+remains), logged as `provenance_blocked`. Regenerating the turn with the
+figure named as forbidden is a later refinement over stripping.
 This is the core invariant (FR-4), not a later hardening pass. (The v3.5
 review filed this as a P3 "doesn't run properly" item; it is the one
 acceptance criterion the text product cannot ship without.)
@@ -1301,7 +1302,7 @@ warning, and the C5 classifier all exist in code).
 
 | Backstop | Rule | Status | Evidence |
 |---|---|---|---|
-| Provenance audit blocking | 6 | **Runs, doesn't block** — block tier only logs | Priya: "480" logged `blocked`, turn delivered |
+| Provenance audit blocking | 6 | **Fixed in v4.3** — blocked sentences withheld (`enforceNumericProvenance`); regeneration not built | Priya: "480" logged `blocked`, turn delivered |
 | Live recompute flag | 2, 14 | **Runs, wrong** — no source span, no revealed-inputs gate, step description (with unrevealed values) in the hint; hints not logged | Replay: produced all 3 false corrections |
 | Time warning | 12 | **Runs, rarely lands** — turn-driven, suppressed at time-up | Fired 1 of 13 runs; Maya and Priya never asked for a recommendation |
 | Delivery-promise recovery | 10 | **Runs, low recall** — narrow promise vocabulary, whole-label match, refuses existing data | Omar 10, Yuki 8, Maya 45/47 |

@@ -12,7 +12,7 @@ import {
   resolveItemFromText, promisesReveal, markExhibitReveals,
 } from './data-ledger';
 import { auditTurn, auditTurnStyle, stripMetaLeak, stripFabricatedTurn } from './audit';
-import { auditNumericProvenance, changeFigures } from './numeric-provenance';
+import { enforceNumericProvenance, changeFigures } from './numeric-provenance';
 import { checkRecomputeForTurn, formatRecomputeHint } from './recompute';
 import { detectNestedPercentConversion, formatUnitCheckHint } from './unit-check';
 import { resolveExhibit, promisesExhibit } from './exhibits';
@@ -534,20 +534,25 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   const allowedTexts = [
     caseData.prompt, ...changeFigures(revealedTexts), ...priorCandidateTexts, candidateText, ...derivedValueTexts,
   ];
+  // Rule 6 / FR-4: a block-tier figure is withheld, not just logged (v4.3) —
+  // enforced before the other audits so they see what is actually spoken.
+  const provenance = enforceNumericProvenance(
+    spokenText,
+    [...revealedTexts, ...allowedTexts],
+    { exempt: timeWarningFiredThisTurn || usedCloseFallback },
+  );
+  if (provenance.blocked) {
+    console.warn('[runner] numeric provenance blocked — withheld:', JSON.stringify(provenance.findings));
+    spokenText = provenance.text;
+    await logEvent('provenance_blocked', { findings: provenance.findings, phase: currentPhase }, { sessionId, userId: session.userId });
+  }
+
   const auditResult = auditTurn(spokenText, revealedValues(ledger), allowedTexts.join(' '));
   const styleResult = auditTurnStyle(spokenText, {
     lengthExempt: newReveals.length > 0 || exhibit !== undefined || stallDecision.rung === 3,
   });
   if (!styleResult.passed) console.warn('[runner] style audit failed:', JSON.stringify(styleResult));
   if (styleResult.flags.length > 0) console.warn('[runner] style QA flag (soft):', JSON.stringify(styleResult.flags));
-
-  const provenanceResult = auditNumericProvenance(
-    spokenText,
-    [...revealedTexts, ...allowedTexts],
-    { exempt: timeWarningFiredThisTurn || usedCloseFallback },
-  );
-  const blockedFindings = provenanceResult.findings.filter(f => f.action === 'block');
-  if (blockedFindings.length > 0) console.warn('[runner] numeric provenance blocked:', JSON.stringify(blockedFindings));
 
   // Persist turns
   await db.insert(sessionTurns).values([

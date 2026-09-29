@@ -219,3 +219,23 @@ export function auditNumericProvenance(
 
   return { passed: findings.every(f => f.action !== 'block'), findings };
 }
+
+// Rule 6 / FR-4 (docs/interviewer-behavior.md v4.3): "block" means the figure
+// does not reach the candidate. The audit alone only reported — persona run
+// 6caca9a1 logged "480" as blocked and delivered it, disclosing unrevealed
+// revenue. Audits sentence by sentence and withholds every sentence carrying a
+// block-tier finding; if nothing survives, a neutral acknowledgment (Rule 1)
+// stands in. Regenerating the turn instead is a later refinement.
+export function enforceNumericProvenance(
+  spokenText: string,
+  allowedSources: string[],
+  opts: ProvenanceAuditOptions = {},
+): { text: string; blocked: boolean; findings: NumericFinding[] } {
+  const whole = auditNumericProvenance(spokenText, allowedSources, opts);
+  if (whole.passed) return { text: spokenText, blocked: false, findings: whole.findings };
+  const kept = spokenText
+    .split(/(?<=[.!?])\s+/)
+    .filter(s => auditNumericProvenance(s, allowedSources, opts).passed);
+  const text = kept.join(' ').trim() || 'Go on.';
+  return { text, blocked: true, findings: whole.findings.filter(f => f.action === 'block') };
+}

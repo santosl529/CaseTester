@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { auditNumericProvenance } from '@/lib/orchestrator/numeric-provenance';
+import { auditNumericProvenance, enforceNumericProvenance } from '@/lib/orchestrator/numeric-provenance';
 
 describe('auditNumericProvenance', () => {
   describe('digit numbers', () => {
@@ -100,5 +100,34 @@ describe('auditNumericProvenance', () => {
       const r = auditNumericProvenance("It's closer to 2 points, not 6.", ['2']);
       expect(r.passed).toBe(true);
     });
+  });
+});
+
+describe('enforceNumericProvenance (v4.3: block withholds, not just logs)', () => {
+  it('strips only the sentence carrying the blocked figure (Priya 6caca9a1)', () => {
+    const text = 'Quick correction on units — revenue per store is 480 million over 200, closer to 2.4 million, not 0.377. Set that aside.';
+    const r = enforceNumericProvenance(text, ['0.377']);
+    expect(r.blocked).toBe(true);
+    expect(r.text).toBe('Set that aside.');
+    expect(r.text).not.toMatch(/480/);
+  });
+
+  it('leaves a clean turn untouched', () => {
+    const text = 'COGS is 58% of revenue, up from 42%. What does that tell you?';
+    const r = enforceNumericProvenance(text, ['COGS is 58% of revenue, up from 42% two years ago.']);
+    expect(r.blocked).toBe(false);
+    expect(r.text).toBe(text);
+  });
+
+  it('falls back to a neutral acknowledgment when every sentence is blocked', () => {
+    const r = enforceNumericProvenance('Margin is 12%.', []);
+    expect(r.blocked).toBe(true);
+    expect(r.text).toBe('Go on.');
+  });
+
+  it('respects the exempt option', () => {
+    const r = enforceNumericProvenance('Margin is 12%.', [], { exempt: true });
+    expect(r.blocked).toBe(false);
+    expect(r.text).toBe('Margin is 12%.');
   });
 });
