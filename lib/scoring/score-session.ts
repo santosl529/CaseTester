@@ -54,7 +54,7 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
     console.warn('[score] transcript artifacts repaired:', JSON.stringify(artifacts));
   }
   const transcript = repairedTranscript;
-  const mathResults = checkMathSteps(transcript, caseData.mathSteps);
+  const mathResults = checkMathSteps(transcript, caseData.mathSteps, revealedRows.map(r => r.ledgerItemId));
   const interventions = interventionRows.map(r => ({ subtype: r.subtype, phase: r.phase, payloadJsonb: r.payloadJsonb }));
   const interventionSummary = [summarizeAssists(interventions), summarizeCoverage(interventions)]
     .filter(Boolean)

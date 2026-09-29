@@ -180,7 +180,7 @@ independently for figures the deterministic check doesn't cover (case-specific
 `mathSteps` entries only — free-form arithmetic outside those steps still
 relies on the judge's own recompute instruction).
 
-**Source spans [pending] (v4.3).** `checkMathSteps` classifies the closest
+**Source spans [implemented: `lib/scoring/math-spans.ts`] (v4.3).** `checkMathSteps` classifies the closest
 number anywhere in the transcript as the candidate's attempt. The persona runs
 reported a false revenue-per-store error in 10 of 11 reports (a 1.4
 multiplier, a "$2.50 drink", index units), including a candidate who never
@@ -188,8 +188,9 @@ did that calculation and one for whom revenue was never revealed. Every
 extracted value must carry the exact candidate text span it came from and the
 metric it matched; a value whose span isn't about that metric is discarded
 before the judge sees it, and a step whose inputs were never revealed is not
-scored. Regression: re-run scoring on the 13 persona sessions — zero false
-per-store flags.
+scored. Regression: replaying the check over the 13 persona sessions gives
+zero false per-store flags and only correct results overall; each result's
+span is shown to the judge.
 
 Same live backstop, per-turn: `lib/orchestrator/recompute.ts` runs the
 identical `mathSteps`-based check against the candidate's message before each

@@ -13,7 +13,7 @@ import {
 } from './data-ledger';
 import { auditTurn, auditTurnStyle, stripMetaLeak, stripFabricatedTurn } from './audit';
 import { enforceNumericProvenance, changeFigures } from './numeric-provenance';
-import { checkRecomputeForTurn, formatRecomputeHint } from './recompute';
+import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts, type RecomputeAttempts } from './recompute';
 import { detectNestedPercentConversion, formatUnitCheckHint } from './unit-check';
 import { resolveExhibit, promisesExhibit } from './exhibits';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
@@ -240,15 +240,21 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   const shouldFireTimeWarning = !flags.timeWarningFired && !timeUp && elapsedMs >= warningThresholdMs;
 
   // Rule 2/14 deterministic recompute backstop (from THIS candidate message).
-  const recomputeFlags = checkRecomputeForTurn(candidateText, caseData.mathSteps);
-  const recomputeHint = formatRecomputeHint(recomputeFlags);
-  // Flags are probe-only until they carry source spans (Rule 2, v4.3), so a
-  // recompute-derived value is no longer a valid provenance: the interviewer
-  // has no business speaking it. Logged so a flag is never invisible again.
-  const derivedValueTexts: string[] = [];
+  // Only steps whose inputs the candidate has received are checked, and only
+  // numbers stated about that step's metric count (source spans, Rule 2 v4.3).
+  const recomputeFlags = checkRecomputeForTurn(candidateText, caseData.mathSteps, Object.keys(revealedValues(ledger)));
+  // Rule 14: the attempt counter is orchestrator state, not model judgment.
+  const recomputeAttempts = recordAttempts((flags.recomputeAttempts as RecomputeAttempts | undefined) ?? {}, recomputeFlags);
+  const { hint: recomputeHint, derivedValues: derivedValueTexts } = formatRecomputeHint(recomputeFlags, {
+    attempts: recomputeAttempts,
+    underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
+  });
+  // Logged with span and attempt: the input to interviewer-error marking, and
+  // so a flag is never invisible again.
   for (const f of recomputeFlags) {
     await logSessionEvent(sessionId, 'intervention', 'recompute_flag', nextTurnIndex, currentPhase, {
       stepId: f.stepId, candidateValue: f.candidateValue, expected: f.expected, errorClass: f.errorClass,
+      span: f.span, attempt: recomputeAttempts[f.stepId],
     });
   }
 
@@ -666,6 +672,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
         advancedLastTurn: advancedThisTurn,
         timeWarningFired: Boolean(flags.timeWarningFired) || timeWarningFiredThisTurn,
         graceAskFired: Boolean(flags.graceAskFired) || graceAskFiredThisTurn,
+        recomputeAttempts,
         loadShedLogged: Boolean(flags.loadShedLogged) || loadShedLoggedThisTurn,
       },
     })

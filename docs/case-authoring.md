@@ -96,6 +96,33 @@ judgment the judge makes, not an arithmetic check. Do not use `altAnswers` to
 paper over a genuinely wrong answer — only for quantities that are legitimately
 computable more than one way.
 
+**Source-span fields (required since v4.3).** Both checks used to treat any
+number anywhere in the candidate's text as an attempt at a step. In the
+27–28 Sep persona runs that produced all three false live corrections and a
+false revenue-per-store error in most reports. Each step now declares:
+
+- `cues` (required, ≥1) — phrases that name the step's metric ("per store",
+  "margin", "impact"). A number counts toward the step only if a cue sits
+  within five words of it in the same clause (clauses split at "but", "so",
+  commas, dashes). Pick phrases a candidate uses when stating *this* quantity,
+  not words that describe its inputs — "COGS" as a cue for the dollar-impact
+  step matched "$280 million COGS", a spend figure.
+- `unit` (`percent` | `points` | `usd`) — when set, only numbers that state
+  this unit count. Unitless ratios and hypotheticals ("1 minus 0.94") are too
+  weak to attribute. Set it on every step whose answer has a natural unit.
+- `inputs` — the ledger item ids the step derives from. The step is checked
+  only after all of them are revealed (live) or were revealed at some point
+  (scoring). Leave empty only for steps derivable from the case prompt alone.
+  Unknown ids fail case load.
+- `live: false` — keeps a step out of the live recompute hint while still
+  scoring it. Use it for figures stated in the case prompt (prof-001's 24% → 6%
+  margins): candidates quote and reuse those constantly, and target margins
+  ("back to 15%") read as wrong answers.
+
+Before shipping a case, replay the checks over real transcripts and confirm
+zero false live flags — see the v4.3 replay in `docs/interviewer-behavior.md`
+Rule 2.
+
 ## Pacing config (optional)
 
 Cases may set `pacing.phaseBudgetsMs` (per-phase time budgets, must sum to the

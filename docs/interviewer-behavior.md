@@ -276,10 +276,19 @@ Requirements on the recompute flag and every correction it drives:
 
 Note that "no flag, no correction" alone would have prevented none of the
 three false corrections — each was backed by a flag. The span and
-revealed-inputs requirements are what fix them. Until those are built the
-flag's error class is not trustworthy enough to justify a correction: treat
-every flag as probe-only (see Part V register), which knowingly suspends Rule
-15's "case-breaking corrections are never shed" until the check is fixed.
+revealed-inputs requirements are what fix them.
+
+**Built (v4.3):** `lib/scoring/math-spans.ts`, shared by the live check and
+the scoring check. Case math steps declare `cues`, `unit`, `inputs`, and
+`live` (`docs/case-authoring.md`). Replayed over every candidate turn in the
+13 persona runs, with the revealed set as of each turn: zero live flags (the
+three false-correction turns included), and the scoring check reports only
+correct results. The first span design — cue in the same sentence, units
+optional — still flagged heavily on the margin steps (target margins,
+"18-point decline"), which is why margin steps are `live: false` and units are
+required when a step declares one. The corpus has no genuine impact or
+per-store errors, so recall rests on unit tests; watch `recompute_flag` events
+in the next run.
 
 ## 3. Never fabricate candidate claims
 
@@ -951,8 +960,15 @@ a simple misquote.
 figure quoted, no unreleased data. The attempt counter and error class below
 are orchestrator state, not model judgment — the model may not decide on its
 own that an error exists, what class it is, or how many attempts have been
-used. No attempt counter exists yet: Maya received four Socratic rounds
-(roughly three minutes) on one bean calculation before being given the answer.
+used. Maya received four Socratic rounds (roughly three minutes) on one bean
+calculation before being given the answer. **Built (v4.3):** a per-step
+attempt counter in session flags (`recomputeAttempts`); the hint is a probe on
+the first wrong statement, a supplied figure on the second, an immediate
+correction for case-breaking errors under time pressure, and nothing for minor
+errors under time pressure. Limit: it counts only errors on a `mathSteps`
+entry — Maya's bean arithmetic has no step, so it is covered only by the
+unit-conversion probe (`unit-check.ts`), which has no counter. The
+repeated-error-class shortcut is not built.
 
 The recompute check (Rule 2) yields |candidate value − derived value|. Bands
 are encoded in the recompute spec, not left to model judgment — otherwise the
@@ -1306,7 +1322,7 @@ warning, and the C5 classifier all exist in code).
 | Backstop | Rule | Status | Evidence |
 |---|---|---|---|
 | Provenance audit blocking | 6 | **Fixed in v4.3** — blocked sentences withheld (`enforceNumericProvenance`); regeneration not built | Priya: "480" logged `blocked`, turn delivered |
-| Live recompute flag | 2, 14 | **Contained in v4.3** — hint is probe-only (candidate's figure only; no derived value, no description), flags logged as `recompute_flag` events, derived values no longer a provenance, prompt no longer instructs corrections. **Still wrong underneath** — no source span, no revealed-inputs gate | Replay: produced all 3 false corrections |
+| Live recompute flag | 2, 14 | **Fixed in v4.3** — source spans, required units, revealed-inputs gate, `live: false` for prompt-fact steps; hint never carries the description; flags logged with span and attempt. Replay over 13 runs: zero live flags | Replay: produced all 3 false corrections |
 | Time warning | 12 | **Fixed in v4.3** — 90s text-mode default window; time-up grace ask when no ask was ever delivered (would have fired in exactly Maya's and Priya's runs) | Fired 1 of 13 runs; Maya and Priya never asked for a recommendation |
 | Delivery-promise recovery | 10 | **Fixed in v4.3** — "here's the … change/history" handoffs detected; label-token match over unrevealed items; single-open-request fallback before any refusal. All three persona empty releases resolve in tests | Omar 10, Yuki 8, Maya 45/47 |
 | C5 distress detection | 17 | **Fixed in v4.3 (regex)** — Sam's phrasing + hardship disclosures added with C1/C5 boundary tests; offer carries the required elements and a 988 variant for risk-to-self; clock paused from offer to reply. Still regex-only (no model tiebreak); scoring exclusion of the disclosure not built | Sam: no C5 event |
@@ -1314,8 +1330,8 @@ warning, and the C5 classifier all exist in code).
 | C2 directedness | 17 | **Fixed in v4.3** — quoted text, reported-speech sentences, and conditional generic-you removed before the lexicon; such hits logged as `C2_excluded`, never warned. Other ambiguity still warns (no model tiebreak) | Omar warned for quoting the CEO |
 | Deferral re-injection + force-release at ask | 11 | Built | OPEN DATA REQUESTS hint; force-release fired in 2 runs |
 | Request enforcement (block unhandled) | 11 | Not built — deliberately deferred (Rule 11) | Review counted 33 unanswered |
-| Attempt counter + error class state | 14 | Not built | Maya: 4 probes on one calculation |
-| Scoring-check source spans | 3 | Not built (`checkMathSteps` uses closest-number) | Per-store check false in 10 of 11 reports (review's count) |
+| Attempt counter + error class state | 14 | **Built in v4.3** for `mathSteps` errors (probe → supply → fast path); not for errors outside the steps; repeated-error-class shortcut not built | Maya: 4 probes on one calculation |
+| Scoring-check source spans | 3 | **Built in v4.3** — `checkMathSteps` uses the same spans, skips steps with never-revealed inputs; the judge sees each span | Per-store check false in 10 of 11 reports (review's count) |
 | Error-claim verifier | 3 | Not built | Sam's Top Improvement |
 | Interviewer-error marking | 3 | Not built; depends on logged recompute flags | Priya, Omar, Derek |
 | Caveat rating floor / not assessed | 9 | Prompt only; not enforced in code | Maya's Creativity/Synthesis |

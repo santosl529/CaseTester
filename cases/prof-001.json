@@ -78,26 +78,74 @@
       "id": "profit_margin_now",
       "description": "Current profit margin = 100% - COGS% - Labor% - Overhead% = 100 - 58 - 22 - 14",
       "answer": 6,
-      "tolerance": 0.5
+      "tolerance": 0.5,
+      "cues": [
+        "margin"
+      ],
+      "unit": "percent",
+      "inputs": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+      ],
+      "live": false
     },
     {
       "id": "profit_margin_prior",
       "description": "Prior profit margin = 100% - COGS% - Labor% - Overhead% = 100 - 42 - 22 - 12 = 24",
       "answer": 24,
-      "tolerance": 0.5
+      "tolerance": 0.5,
+      "cues": [
+        "margin"
+      ],
+      "unit": "percent",
+      "inputs": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+      ],
+      "live": false
     },
     {
       "id": "cogs_dollar_impact",
       "description": "Margin impact of the COGS increase = 16pp × current revenue $480M = $76.8M. This measures the margin compression valued at today's revenue. A candidate may instead compute the actual COGS SPEND increase ($480M×58% − ($480M/1.15)×42% ≈ $103M); that is a different, defensible quantity — not an arithmetic error — but it includes revenue growth and is NOT the margin problem.",
       "answer": 76.8,
       "tolerance": 2,
-      "altAnswers": [103.1]
+      "altAnswers": [
+        103.1
+      ],
+      "cues": [
+        "impact",
+        "margin",
+        "compression",
+        "hit",
+        "worth",
+        "costing"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "cogs_pct",
+        "revenue_total"
+      ]
     },
     {
       "id": "revenue_per_store_check",
       "description": "$480M / 200 stores = $2.4M per store",
       "answer": 2.4,
-      "tolerance": 0.05
+      "tolerance": 0.05,
+      "cues": [
+        "per store",
+        "per location",
+        "each store",
+        "a store",
+        "store average",
+        "average store",
+        "per-store"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "revenue_total"
+      ]
     }
   ],
   "exhibits": [
@@ -105,7 +153,11 @@
       "id": "exhibit-a",
       "title": "Brew & Bean Cost Structure Over Time",
       "chartType": "bar",
-      "coversLedgerItems": ["cogs_pct", "labor_pct", "overhead_pct"],
+      "coversLedgerItems": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+      ],
       "data": [
         {
           "year": "2 years ago",

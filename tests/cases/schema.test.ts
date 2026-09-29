@@ -6,8 +6,10 @@ function validCaseWith(ledgerValue: string) {
   const base = getCaseById('prof-001');
   return {
     ...base,
+    // The real ledger stays: math-step inputs must reference it.
     dataLedger: [
       { id: 'x', label: 'Total revenue', value: ledgerValue, releaseWhen: 'CLARIFY' },
+      ...base.dataLedger,
     ],
   };
 }
@@ -38,8 +40,26 @@ describe('CaseSchema ledger value sentence check', () => {
   it('accepts every ledger value already shipped in prof-001', () => {
     const c = getCaseById('prof-001');
     for (const item of c.dataLedger) {
-      const result = CaseSchema.safeParse({ ...c, dataLedger: [item] });
+      // Each value checked on its own; the rest of the ledger stays so math-step
+      // inputs still resolve.
+      const result = CaseSchema.safeParse({ ...c, dataLedger: [item, ...c.dataLedger.filter(d => d.id !== item.id)] });
       expect(result.success, `item "${item.id}": ${JSON.stringify(item.value)}`).toBe(true);
     }
+  });
+});
+
+describe('CaseSchema math-step source spans (v4.3)', () => {
+  const base = () => getCaseById('prof-001');
+
+  it('rejects a math step with no cues', () => {
+    const c = base();
+    const result = CaseSchema.safeParse({ ...c, mathSteps: [{ ...c.mathSteps[0], cues: [] }] });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects a math step whose input is not a ledger item', () => {
+    const c = base();
+    const result = CaseSchema.safeParse({ ...c, mathSteps: [{ ...c.mathSteps[0], inputs: ['no_such_item'] }] });
+    expect(result.success).toBe(false);
   });
 });

@@ -1,9 +1,18 @@
+import { assignSpans, findStepSpans, inputsRevealed, type MathUnit } from './math-spans';
+
 export type MathStepInput = {
   id: string;
   description: string;
   answer: number;
   tolerance: number;
   altAnswers?: number[];
+  // Source-span metadata (lib/scoring/math-spans.ts, Rule 3 v4.3).
+  cues?: string[];
+  unit?: MathUnit;
+  inputs?: string[];
+  // false: never checked by the live recompute hint (prompt facts such as the
+  // 24% → 6% margins — candidates quote and reuse them constantly).
+  live?: boolean;
 };
 
 // Error-severity classification (docs/interviewer-behavior.md Rule 14):
@@ -41,6 +50,7 @@ export type MathStepResult = {
   candidateValue: number | null;
   withinTolerance: boolean;
   errorClass: ErrorClass;
+  span?: string | null; // the candidate clause the value came from (Rule 3 v4.3)
 };
 
 type TranscriptTurn = { role: string; text: string };
@@ -51,52 +61,43 @@ export function extractNumbers(text: string): number[] {
     .filter(n => !isNaN(n));
 }
 
+// Scoring-side check over the whole transcript. A step counts as attempted
+// only through a source span (math-spans.ts) — the old "closest number
+// anywhere in the transcript" rule reported a false revenue-per-store error in
+// most persona-run reports. A step whose ledger inputs were never revealed is
+// not scored at all (Omar faa999fd was scored on revenue never released).
 export function checkMathSteps(
   transcript: TranscriptTurn[],
   mathSteps: MathStepInput[],
+  revealedIds?: Iterable<string>,
 ): MathStepResult[] {
-  const candidateTurns = transcript.filter(t => t.role === 'candidate').map(t => t.text).join(' ');
-  const numbersInTranscript = extractNumbers(candidateTurns);
+  const candidateText = transcript.filter(t => t.role === 'candidate').map(t => t.text).join('\n');
+  const revealed = revealedIds === undefined ? undefined : [...revealedIds];
+  const checkable = mathSteps.filter(step => inputsRevealed(step, revealed));
+  const assigned = assignSpans(candidateText, checkable);
 
   return mathSteps.map(step => {
+    const base = { id: step.id, description: step.description, expected: step.answer, tolerance: step.tolerance };
+    const unmentioned = { ...base, mentioned: false, candidateValue: null, withinTolerance: false, errorClass: 'unmentioned' as ErrorClass, span: null };
+    if (!checkable.includes(step)) return unmentioned;
+
+    // A step can have several defensible results; any span landing within
+    // tolerance of any acceptable answer credits the step.
     const acceptable = [step.answer, ...(step.altAnswers ?? [])];
-
-    // A step can have several defensible results (e.g. margin impact vs actual
-    // spend increase). If ANY stated number lands within tolerance of ANY
-    // acceptable answer, the candidate computed a valid figure — credit it even
-    // if a closer-to-primary number exists elsewhere in the turn.
-    const correctMatch = numbersInTranscript.find(n =>
-      acceptable.some(a => n >= a - step.tolerance && n <= a + step.tolerance));
-
-    if (correctMatch !== undefined) {
-      return {
-        id: step.id,
-        description: step.description,
-        expected: step.answer,
-        tolerance: step.tolerance,
-        mentioned: true,
-        candidateValue: correctMatch,
-        withinTolerance: true,
-        errorClass: 'non_issue' as ErrorClass,
-      };
+    const correct = findStepSpans(candidateText, step)
+      .find(m => acceptable.some(a => Math.abs(m.value - a) <= step.tolerance));
+    if (correct) {
+      return { ...base, mentioned: true, candidateValue: correct.value, withinTolerance: true, errorClass: 'non_issue' as ErrorClass, span: correct.span };
     }
-
-    // No valid answer stated — classify the closest-to-primary number as the attempt.
-    const closest = numbersInTranscript.length > 0
-      ? numbersInTranscript.reduce((best, n) =>
-          Math.abs(n - step.answer) < Math.abs(best - step.answer) ? n : best
-        )
-      : null;
-
+    const attempt = assigned.get(step.id);
+    if (!attempt) return unmentioned;
     return {
-      id: step.id,
-      description: step.description,
-      expected: step.answer,
-      tolerance: step.tolerance,
-      mentioned: closest !== null,
-      candidateValue: closest,
+      ...base,
+      mentioned: true,
+      candidateValue: attempt.value,
       withinTolerance: false,
-      errorClass: classifyError(step.answer, step.tolerance, closest),
+      errorClass: classifyError(step.answer, step.tolerance, attempt.value),
+      span: attempt.span,
     };
   });
 }

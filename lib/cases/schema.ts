@@ -56,6 +56,19 @@ const MathStepSchema = z.object({
   // A candidate landing on any of these is NOT an arithmetic error; misusing
   // the figure is a separate (conceptual) judgment the judge makes.
   altAnswers: z.array(z.number()).optional(),
+  // Source spans (lib/scoring/math-spans.ts, docs/interviewer-behavior.md
+  // Rules 2/3 v4.3): a candidate's number counts toward this step only when it
+  // sits near one of these cue phrases in the same clause and states `unit`.
+  // Without cues, any number anywhere counted — the 27–28 Sep persona runs'
+  // false corrections and false report errors.
+  cues: z.array(z.string().min(2)).min(1),
+  unit: z.enum(['percent', 'points', 'usd']).optional(),
+  // Ledger items the step is derived from; the step is checked only once all
+  // are revealed. Empty = derivable from the case prompt alone.
+  inputs: z.array(z.string()).default([]),
+  // false: excluded from the live recompute hint (prompt facts candidates
+  // quote and reuse constantly); still scored.
+  live: z.boolean().optional(),
 });
 
 const ExhibitSchema = z.object({
@@ -100,6 +113,13 @@ export const CaseSchema = z.object({
   // lib/scoring/rubric.ts (docs/Case Interview Feedback Rubric.pdf). Per-case
   // anchors are tolerated in case files but no longer read.
   rubricAnchors: z.record(z.string(), RubricAnchorSchema).optional(),
+}).superRefine((c, ctx) => {
+  const ledgerIds = new Set(c.dataLedger.map(d => d.id));
+  c.mathSteps.forEach((step, i) => step.inputs.forEach((id, j) => {
+    if (!ledgerIds.has(id)) {
+      ctx.addIssue({ code: 'custom', path: ['mathSteps', i, 'inputs', j], message: `Unknown ledger item "${id}"` });
+    }
+  }));
 });
 
 export type Case = z.infer<typeof CaseSchema>;

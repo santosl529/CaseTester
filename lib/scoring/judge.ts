@@ -62,7 +62,10 @@ export function buildMathCheckSection(mathResults: MathStepResult[]): string {
     const verdict = r.errorClass === 'non_issue' ? 'CORRECT (within tolerance)'
       : r.errorClass === 'minor' ? 'MATERIALLY WRONG (minor — same order of magnitude/direction)'
       : 'CASE-BREAKING WRONG (wrong direction or ≥2× off — this cannot be cited as a strength)';
-    return `- "${r.description}": candidate said ${r.candidateValue}, correct answer is ${r.expected} → ${verdict}`;
+    // The source span (v4.3) shows WHERE the figure came from, so the judge
+    // quotes the candidate's own clause rather than a number from elsewhere.
+    const where = r.span ? ` in "${r.span}"` : '';
+    return `- "${r.description}": candidate said ${r.candidateValue}${where}, correct answer is ${r.expected} → ${verdict}`;
   });
   return `DETERMINISTIC MATH CHECK RESULTS (computed in code — trust these over your own re-derivation):\n${lines.join('\n')}`;
 }

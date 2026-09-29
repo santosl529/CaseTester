@@ -1,4 +1,5 @@
-import { extractNumbers, classifyError, type MathStepInput, type ErrorClass } from '@/lib/scoring/deterministic';
+import { classifyError, type MathStepInput, type ErrorClass } from '@/lib/scoring/deterministic';
+import { assignSpans, findStepSpans, inputsRevealed } from '@/lib/scoring/math-spans';
 
 // Rule 2/14 deterministic backstop (docs/interviewer-behavior.md): "Live
 // detection by the model alone is a probabilistic capability, not an
@@ -19,72 +20,90 @@ export type RecomputeFlag = {
   expected: number;
   candidateValue: number;
   errorClass: Extract<ErrorClass, 'minor' | 'case_breaking'>;
+  span: string; // the candidate clause the figure came from (Rule 2 v4.3)
 };
 
+// v4.3: matched through source spans (lib/scoring/math-spans.ts) and gated on
+// revealed inputs. The previous any-number-to-any-step pairing produced all
+// three false corrections in the 27–28 Sep persona runs. revealedIds is the
+// set of ledger items the candidate has actually received; a step whose
+// inputs aren't all in it is never flagged.
 export function checkRecomputeForTurn(
   candidateText: string,
   mathSteps: MathStepInput[],
+  revealedIds?: Iterable<string>,
 ): RecomputeFlag[] {
-  const numbers = extractNumbers(candidateText);
-  if (numbers.length === 0 || mathSteps.length === 0) return [];
-
-  // Deliberately NOT checkMathSteps' "closest number in the whole text"
-  // heuristic: that assumes a large number pool (the full transcript), so
-  // collisions are rare. A single candidate turn is number-scarce — the same
-  // heuristic would let one stated number "explain" several unrelated math
-  // steps (e.g. one turn with a single "6" would independently satisfy both
-  // a margin step expecting 6 AND a $76.8M COGS-impact step, wrongly flagging
-  // the latter as a case-breaking miss). Instead: a global greedy one-to-one
-  // assignment — each stated number matches at most one step, its best
-  // available one, ranked by relative error across ALL (step, number) pairs.
-  type Pairing = { stepIdx: number; numIdx: number; relError: number };
-  const pairings: Pairing[] = [];
-  mathSteps.forEach((step, stepIdx) => {
-    numbers.forEach((n, numIdx) => {
-      const relError = step.answer === 0 ? Math.abs(n) : Math.abs(n - step.answer) / Math.abs(step.answer);
-      pairings.push({ stepIdx, numIdx, relError });
-    });
-  });
-  pairings.sort((a, b) => a.relError - b.relError);
-
-  const claimedSteps = new Set<number>();
-  const claimedNumbers = new Set<number>();
-  const assignment = new Map<number, number>(); // stepIdx -> numIdx
-  for (const p of pairings) {
-    if (claimedSteps.has(p.stepIdx) || claimedNumbers.has(p.numIdx)) continue;
-    claimedSteps.add(p.stepIdx);
-    claimedNumbers.add(p.numIdx);
-    assignment.set(p.stepIdx, p.numIdx);
-  }
+  const revealed = revealedIds === undefined ? undefined : [...revealedIds];
+  const checkable = mathSteps.filter(step => step.live !== false && inputsRevealed(step, revealed));
+  if (checkable.length === 0) return [];
+  const assigned = assignSpans(candidateText, checkable);
 
   const flags: RecomputeFlag[] = [];
-  mathSteps.forEach((step, stepIdx) => {
-    const numIdx = assignment.get(stepIdx);
-    if (numIdx === undefined) return; // step not mentioned this turn — no flag
-    const candidateValue = numbers[numIdx];
-    // A defensible alternative result is not an error (see MathStep.altAnswers).
-    // Also check whether the candidate stated a valid answer with ANY number
-    // this turn — the greedy assignment can hand this step a wrong number while
-    // the right one sits elsewhere in a number-dense turn.
+  for (const step of checkable) {
+    const attempt = assigned.get(step.id);
+    if (!attempt) continue; // step not stated this turn — no flag
+    // A defensible alternative is not an error, and neither is a turn that
+    // states a valid answer in another span of the same step.
     const acceptable = [step.answer, ...(step.altAnswers ?? [])];
-    const statedValid = numbers.some(n => acceptable.some(a => Math.abs(n - a) <= step.tolerance));
-    if (statedValid) return;
-    const errorClass = classifyError(step.answer, step.tolerance, candidateValue);
+    const statedValid = findStepSpans(candidateText, step)
+      .some(m => acceptable.some(a => Math.abs(m.value - a) <= step.tolerance));
+    if (statedValid) continue;
+    const errorClass = classifyError(step.answer, step.tolerance, attempt.value);
     if (errorClass === 'minor' || errorClass === 'case_breaking') {
-      flags.push({ stepId: step.id, description: step.description, expected: step.answer, candidateValue, errorClass });
+      flags.push({ stepId: step.id, description: step.description, expected: step.answer, candidateValue: attempt.value, errorClass, span: attempt.span });
     }
-  });
+  }
   return flags;
 }
 
-// Probe-only (docs/interviewer-behavior.md Rule 2, v4.3). The pairing above
-// has no source span and no revealed-inputs gate, and in the persona runs it
-// produced all three false "Quick correction" turns — one of which read the
-// step description ("$480M / 200 stores") out of this hint and disclosed
-// unrevealed revenue. Until spans exist, the hint names only the candidate's
-// own figure: no derived value, no description, no correction script.
-export function formatRecomputeHint(flags: RecomputeFlag[]): string {
-  if (flags.length === 0) return '';
-  const figures = [...new Set(flags.map(f => f.candidateValue))].join(', ');
-  return `RECOMPUTE FLAG (automated, unverified — it may have matched the wrong number): the candidate's figure(s) ${figures} may not match a value derivable from the case data. If a figure is decision-relevant and you have not already used your probe budget, probe once — "Walk me through that." Do NOT correct it, state a replacement figure, or say which figure is right.`;
+// Rule 14 attempt state, per math step: how many times the candidate has
+// stated a wrong figure for it. Orchestrator state, persisted in session
+// flags — the model never counts attempts itself (Maya c230fe12 got four
+// Socratic rounds on one calculation).
+export type RecomputeAttempts = Record<string, number>;
+
+export function recordAttempts(prior: RecomputeAttempts, flags: RecomputeFlag[]): RecomputeAttempts {
+  const next = { ...prior };
+  for (const f of flags) next[f.stepId] = (next[f.stepId] ?? 0) + 1;
+  return next;
+}
+
+export type RecomputeAction = 'probe' | 'correct' | 'shed';
+
+// Rule 14: first wrong statement → one probe; still wrong → supply the figure
+// and advance (two-attempt cap); under time pressure a case-breaking error is
+// corrected at once (fast path) and a minor one is shed (Rule 15).
+export function recomputeAction(flag: RecomputeFlag, attempt: number, underTimePressure: boolean): RecomputeAction {
+  if (underTimePressure) return flag.errorClass === 'case_breaking' ? 'correct' : 'shed';
+  return attempt >= 2 ? 'correct' : 'probe';
+}
+
+// The hint never carries the step description — it can hold unrevealed
+// ledger values (persona run 6caca9a1 read "$480M / 200 stores" out of it).
+// A derived figure appears only on a correction, and only because the flag's
+// inputs are all revealed (checkRecomputeForTurn's gate), so it is derivable
+// from what the candidate already has. Returns the derived figures it
+// licenses, which the provenance audit accepts this turn (Rule 6).
+export function formatRecomputeHint(
+  flags: RecomputeFlag[],
+  opts: { attempts?: RecomputeAttempts; underTimePressure?: boolean } = {},
+): { hint: string; derivedValues: string[] } {
+  const lines: string[] = [];
+  const derivedValues: string[] = [];
+  for (const f of flags) {
+    const attempt = opts.attempts?.[f.stepId] ?? 1;
+    const action = recomputeAction(f, attempt, Boolean(opts.underTimePressure));
+    if (action === 'shed') continue;
+    if (action === 'probe') {
+      lines.push(`- The candidate said ${f.candidateValue} in "${f.span}" and it does not match the value derivable from the data they have. Probe once — "Walk me through that." Do not correct it or say what the right figure is.`);
+    } else {
+      derivedValues.push(String(f.expected));
+      lines.push(`- The candidate said ${f.candidateValue} in "${f.span}"; the figure derivable from the data they have is ${f.expected}. Correct it now in one flat sentence that quotes their figure — e.g. "It's closer to ${f.expected}, not ${f.candidateValue}. Let's take that and keep going." — then continue. No probe, no consolation.`);
+    }
+  }
+  if (lines.length === 0) return { hint: '', derivedValues };
+  return {
+    hint: `RECOMPUTE FLAG (deterministic, matched to what the candidate said this turn):\n${lines.join('\n')}`,
+    derivedValues,
+  };
 }
