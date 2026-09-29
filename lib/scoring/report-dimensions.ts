@@ -1,5 +1,5 @@
 import type { scores } from '@/db/schema';
-import { RUBRIC_DIMENSION_KEYS, RUBRIC_DIMENSION_LABELS, type RubricDimensionKey } from './rubric';
+import { RUBRIC_DIMENSION_KEYS, RUBRIC_DIMENSION_LABELS, NOT_ASSESSED, type RubricDimensionKey } from './rubric';
 import { RubricScoresSchema, type DimensionFeedback } from './judge';
 
 type ScoreRow = typeof scores.$inferSelect;
@@ -42,7 +42,7 @@ export function reportDimensions(score: ScoreRow): ReportDimension[] {
   return RUBRIC_DIMENSION_KEYS.map(key => ({
     key,
     label: RUBRIC_DIMENSION_LABELS[key],
-    rating: rubric?.[key].rating ?? RATING_COLUMN[key](score),
+    rating: rubric?.[key].notAssessed ? NOT_ASSESSED : rubric?.[key].rating ?? RATING_COLUMN[key](score),
     feedback: rubric?.[key] ?? null,
     legacyEvidence: LEGACY_EVIDENCE[key](score),
   }));

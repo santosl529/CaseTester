@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { collectClaims, applyVerdicts, type Verdict } from '@/lib/scoring/verifier';
+import { collectClaims, applyVerdicts, buildVerifierFacts, type Verdict } from '@/lib/scoring/verifier';
 import { RUBRIC_DIMENSION_KEYS } from '@/lib/scoring/rubric';
 import type { RubricScores, DimensionFeedback } from '@/lib/scoring/judge';
 
@@ -96,5 +96,20 @@ describe('applyVerdicts', () => {
     const claims = collectClaims(rubric);
     applyVerdicts(rubric, claims, claims.map(c => ({ id: c.id, supported: false, reason: 'x' })));
     expect(rubric.synthesis.needsWork).toHaveLength(2);
+  });
+});
+
+describe('buildVerifierFacts (error-claim verifier, v4.3)', () => {
+  it('lists span-checked correct figures only, plus the interviewer-error marks', () => {
+    const facts = buildVerifierFacts([
+      { id: 'rps', description: '$480M / 200 stores = $2.4M per store', expected: 2.4, tolerance: 0.05, mentioned: true,
+        candidateValue: 2.4, withinTolerance: true, errorClass: 'non_issue', span: 'That implies about $2.4 million per store' },
+      { id: 'x', description: 'wrong one', expected: 1, tolerance: 0, mentioned: true,
+        candidateValue: 5, withinTolerance: false, errorClass: 'case_breaking', span: 'five' },
+    ], 'INTERVIEWER ERRORS AND EXCLUSIONS: ...');
+    expect(facts).toContain('That implies about $2.4 million per store');
+    expect(facts).toContain('CORRECT');
+    expect(facts).not.toContain('five');
+    expect(facts).toContain('INTERVIEWER ERRORS');
   });
 });

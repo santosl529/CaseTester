@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { DimensionFeedback } from '@/lib/scoring/judge';
-import { RATING_LABELS, type Rating } from '@/lib/scoring/rubric';
+import { ratingLabel } from '@/lib/scoring/rubric';
 
 const RATING_COLOR: Record<string, string> = {
   needs_work: 'destructive',
@@ -31,7 +31,7 @@ export function ReportCard({ label, rating, feedback, legacyEvidence }: Props) {
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">{label}</CardTitle>
           <Badge variant={RATING_COLOR[rating ?? 'meets_bar'] as 'destructive' | 'secondary' | 'default'}>
-            {rating ? RATING_LABELS[rating as Rating] ?? rating : 'unrated'}
+            {ratingLabel(rating)}
           </Badge>
         </div>
       </CardHeader>

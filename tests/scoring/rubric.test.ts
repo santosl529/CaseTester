@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  RUBRIC_DIMENSION_KEYS,
+  RUBRIC_DIMENSION_KEYS, ratingLabel, NOT_ASSESSED,
   RUBRIC_DIMENSION_LABELS,
   RUBRIC_PROMPT_TEXT,
 } from '@/lib/scoring/rubric';
@@ -28,5 +28,13 @@ describe('scoring rubric', () => {
     expect(strongCount).toBe(8);
     expect(meetsBarCount).toBe(8);
     expect(needsWorkCount).toBe(8);
+  });
+});
+
+describe('ratingLabel (v4.3 not assessed)', () => {
+  it('labels ratings, not-assessed, and missing ratings for display', () => {
+    expect(ratingLabel('meets_bar')).toBe('adequate');
+    expect(ratingLabel(NOT_ASSESSED)).toBe('not assessed');
+    expect(ratingLabel(null)).toBe('unrated');
   });
 });

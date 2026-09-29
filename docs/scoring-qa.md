@@ -11,7 +11,7 @@ built — do not let the mark rot.
 
 Order is load-bearing: **artifact detection → interviewer-error marking →
 evidence audit → omission-claim verifier → error-claim verifier → dimension
-reconciliation** (v4.3; the two new steps are [pending], below). Artifact
+reconciliation** (v4.3). The error-claim check runs inside the omission verifier's call (one LLM pass, both claim types). Artifact
 detection first, or every later check runs against contaminated transcripts
 (run 3's duplicated opening turn) and gives false confidence;
 interviewer-error marking second, so no later step treats a system-caused turn
@@ -128,7 +128,7 @@ Reconciliation must not merge a claim another check marked false into a
 strength (persona run: Omar's false "professionalism lapse" merged with his
 apology into one ✅ bullet) — false claims are removed first.
 
-### Interviewer-error marking [pending]
+### Interviewer-error marking [implemented: `lib/scoring/interviewer-errors.ts`, wired in score-session]
 
 (`docs/interviewer-behavior.md` Rule 3, v4.3.) Before the evidence audit, the
 orchestrator's event log marks every candidate turn that responds to an
@@ -142,7 +142,18 @@ candidate mistake. Regression set: Priya `6caca9a1` (false correction cited),
 Omar `faa999fd` (false warning as lapse), Derek (penalized for flagging an
 unanswered request).
 
-### Error-claim verifier [pending]
+Marks built deterministically: `unbacked_correction` (a correction of the
+candidate with no `recompute_flag` on the preceding turn — replay also found a
+fourth false correction the review missed, Carmen `ec32a47f` t12),
+`empty_release` (the candidate's "I don't see a number" complaint),
+`unanswered_request` (from data coverage), `conduct_warning` (every C2
+warning — the report never judges conduct), `conceded_error` ("you're right"),
+and `wellbeing` (C5 disclosure + reply, excluded from all dimensions). The
+judge gets the marks as a prompt section; after the evidence audit, a
+needs-work item whose every quote comes only from marked candidate turns is
+dropped (`markClaimDrops` metric). The verifier also receives the marks.
+
+### Error-claim verifier [implemented: in `runClaimVerifier`, `lib/scoring/verifier.ts`]
 
 (Rule 3, v4.3.) Extract every claim that the candidate made an error; recompute
 the cited figure from revealed values and the candidate's quoted turn; remove
@@ -150,15 +161,24 @@ the claim if the candidate's figure is within tolerance. Deterministic where
 recomputable, an LLM pass otherwise. Regression: Sam `4ea2840a` — Top
 Improvement cited her correct $2.4M-per-store arithmetic as an error.
 
-### Rating floor for caveated dimensions [pending]
+Implementation: folded into the existing verifier call rather than a new
+pass. The verifier receives the span-checked `non_issue` math results as
+"FIGURES VERIFIED CORRECT IN CODE" and is told to mark error claims
+unsupported when the candidate's figure was right. Deterministic only through
+those facts; everything else is the LLM recompute.
+
+### Rating floor for caveated dimensions [implemented: `lib/scoring/caveat-floor.ts`, after reconciliation]
 
 (Rule 9, v4.3.) A dimension with a coverageCaveat for an un-administered stage
 or withheld data cannot be rated below `meets_bar` on that basis, and its
 needs-work items may not cite the gap; with too little remaining evidence it
 is **not assessed** and excluded from the overall rating. Enforced in code
 after the judge (the prompt already says so and Maya `c230fe12` still got
-`needs_work` on both caveated dimensions). Needs a `not_assessed` rating value
-in `lib/scoring/rubric.ts` and the report UI.
+`needs_work` on both caveated dimensions). "Not assessed" is a judge-set
+`notAssessed` flag on the dimension (only with a caveat), displayed via
+`ratingLabel`, stored as a NULL rating column — no enum migration. The
+overall rating is still the judge's holistic call, instructed to ignore
+not-assessed dimensions; it is not recomputed in code after the floor.
 
 ## Judge requirements
 

@@ -28,6 +28,10 @@ const DimensionFeedbackSchema = z.object({
   // Set when the interviewer never administered this dimension's primary stage:
   // the gap is session coverage, not a candidate failing.
   coverageCaveat: z.string().optional(),
+  // Rule 9 (v4.3): the interviewer's coverage gap left too little evidence to
+  // rate this dimension at all. Shown as "not assessed"; excluded from the
+  // overall rating; stored as a NULL rating column.
+  notAssessed: z.boolean().optional(),
 });
 
 export type FeedbackItem = z.infer<typeof FeedbackItemSchema>;
@@ -129,6 +133,7 @@ export async function runJudge(
   mathResults: MathStepResult[] = [],
   assistSummary = '', // Rule 13 "assisted ≠ covered" (lib/scoring/assists.ts)
   dataCoverage?: DataCoverage, // Rule 11 data-coverage caveat (lib/scoring/data-coverage.ts)
+  interviewerMarksSection = '', // Rule 3/17-C5 v4.3 (lib/scoring/interviewer-errors.ts)
   onUsage?: OnUsage, // lib/llm-usage.ts — token reporting for $/case (PRD §13)
 ): Promise<RubricScores> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -161,6 +166,7 @@ RUBRIC (8 dimensions with behavioral anchors):
 ${RUBRIC_PROMPT_TEXT}
 ${mathCheckSection}
 ${assistSummary}
+${interviewerMarksSection}
 
 TRANSCRIPT:
 ${transcriptText}
@@ -170,7 +176,8 @@ For each dimension, provide:
 2. "wentWell": the top 1-3 things the candidate did well on this dimension. Each item: { "point": one-sentence observation, "quotes": [1-2 direct quotes from CANDIDATE turns as evidence] }. Empty array if nothing genuinely stood out.
 3. "needsWork": the top 1-3 things that need improvement on this dimension, same shape ({ "point", "quotes" } with CANDIDATE quotes showing the weakness). Empty array only if the dimension was flawless.
 4. "missedOpportunities": 1-2 key moments where a great candidate would have said something better. Each item: { "moment": what was happening (anchor it to the exchange, quoting the transcript where useful), "betterResponse": the words a great candidate would have said in that moment }. Empty array if none.
-5. "coverageCaveat" (optional): if the INTERVIEWER never administered this dimension's primary stage (e.g. never asked a brainstorm question), rate on whatever secondary evidence exists and set this to a one-sentence note attributing the gap to session coverage (e.g. "The interviewer never ran a brainstorm — this rating reflects limited secondary evidence, not a candidate failing."). Never list an un-administered stage as a candidate weakness in needsWork, and never lower the rating because of it. The same applies to DATA: if a conclusion this dimension is rated on rests on data listed under "REQUESTED BUT NEVER PROVIDED" (and the transcript confirms the request), set a coverageCaveat attributing the gap to the interviewer not providing requested data.
+5. "coverageCaveat" (optional): if the INTERVIEWER never administered this dimension's primary stage (e.g. never asked a brainstorm question), rate on whatever secondary evidence exists and set this to a one-sentence note attributing the gap to session coverage (e.g. "The interviewer never ran a brainstorm — this rating reflects limited secondary evidence, not a candidate failing."). Never list an un-administered stage as a candidate weakness in needsWork, and never lower the rating because of it. The same applies to DATA: if a conclusion this dimension is rated on rests on data listed under "REQUESTED BUT NEVER PROVIDED" (and the transcript confirms the request), set a coverageCaveat attributing the gap to the interviewer not providing requested data. A caveated dimension may not be rated below "meets_bar" because of the gap, and its needsWork may not cite the missing stage or data.
+6. "notAssessed" (optional, true only with a coverageCaveat): set when the interviewer's gap left too little candidate evidence to rate this dimension at all. The report shows it as "not assessed" and it does not count toward overallRating.
 
 Scoring discipline:
 - Judge the candidate ONLY on the data they actually received (see "DATA THE CANDIDATE ACTUALLY RECEIVED" vs "DATA NEVER REVEALED" above). Do NOT penalize conclusions or recommendation levers that would require never-revealed data, and do NOT call a hypothesis a misdiagnosis when the data that would disambiguate it was withheld — if a hypothesis is consistent with the data they were given, rate the reasoning quality given available information, not against the hidden answer key. (You may still weigh how hard they pursued the missing data, but the absence of an insight that needed withheld data is not a candidate failing.) A candidate who ASKED for data that was never provided (see "REQUESTED BUT NEVER PROVIDED") pursued it — never fault them for an assumption resting on it, not even while acknowledging in the same breath that the data was never provided.
@@ -187,7 +194,7 @@ Scoring discipline:
 - ${CANDIDATE_REFERENCE_RULE} This applies to every field you write — points, moments, coverage caveats, and the topFix.
 
 Also provide:
-- "overallRating": the single overall rating ("needs_work", "meets_bar", or "strong")
+- "overallRating": the single overall rating ("needs_work", "meets_bar", or "strong"), ignoring any dimension marked notAssessed
 - "topFix": the single highest-leverage improvement the candidate should make — never an assumption that rests on data listed under "REQUESTED BUT NEVER PROVIDED"
 
 Respond with ONLY valid JSON matching this schema:

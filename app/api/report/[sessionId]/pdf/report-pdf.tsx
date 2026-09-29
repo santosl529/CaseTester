@@ -1,6 +1,6 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import type { ReportDimension } from '@/lib/scoring/report-dimensions';
-import { RATING_LABELS, type Rating } from '@/lib/scoring/rubric';
+import { ratingLabel } from '@/lib/scoring/rubric';
 
 export type ReportPdfProps = {
   caseTitle: string;
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
 
 function formatRating(rating: string | null): string {
   if (!rating) return 'unrated';
-  return RATING_LABELS[rating as Rating] ?? rating.replace(/_/g, ' ');
+  return ratingLabel(rating);
 }
 
 export function ReportPdf(props: ReportPdfProps) {

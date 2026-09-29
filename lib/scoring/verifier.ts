@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { RubricScores } from './judge';
 import { RUBRIC_DIMENSION_KEYS } from './rubric';
 import type { OnUsage } from '@/lib/llm-usage';
+import type { MathStepResult } from './deterministic';
 
 // Second-pass claim verification (docs/interviewer-behavior.md §3): the
 // deterministic evidence audit catches fabricated quotes, but not false
@@ -101,10 +102,25 @@ export function fallbackTopFix(rubric: RubricScores): string | undefined {
 
 type TranscriptTurn = { role: string; text: string; turnIndex: number };
 
+// Error-claim verifier (docs/interviewer-behavior.md Rule 3, v4.3) runs in the
+// same call: the checks above never test a claim that the candidate MADE AN
+// ERROR — the quotes exist and it isn't an omission — which let Sam's correct
+// 200 × $2.4M = $480M become her Top Improvement. The verifier gets the
+// span-checked math results as facts and the interviewer-error marks.
+export function buildVerifierFacts(mathResults: MathStepResult[] = [], marksSection = ''): string {
+  const correct = mathResults.filter(r => r.errorClass === 'non_issue' && r.span);
+  const mathLines = correct.map(r => `- "${r.span}" — the candidate's ${r.candidateValue} is CORRECT (checked in code against ${r.description.split(' = ')[0]}).`);
+  return [
+    mathLines.length ? `FIGURES VERIFIED CORRECT IN CODE:\n${mathLines.join('\n')}` : '',
+    marksSection,
+  ].filter(Boolean).join('\n\n');
+}
+
 export async function runClaimVerifier(
   rubric: RubricScores,
   transcript: TranscriptTurn[],
   onUsage?: OnUsage, // lib/llm-usage.ts — token reporting for $/case (PRD §13)
+  context: { mathResults?: MathStepResult[]; marksSection?: string } = {},
 ): Promise<{ rubric: RubricScores; dropped: (Claim & { reason: string })[] }> {
   const claims = collectClaims(rubric);
   if (claims.length === 0) return { rubric, dropped: [] };
@@ -122,8 +138,12 @@ export async function runClaimVerifier(
 Mark a claim UNSUPPORTED only when the transcript factually contradicts it — above all:
 - omission claims ("the candidate never mentioned / failed to propose X") when the candidate actually said X anywhere in the transcript;
 - mischaracterizations of what the candidate said or asked;
-- descriptions of moments that did not happen.
+- descriptions of moments that did not happen;
+- ERROR claims ("miscalculated X", "arithmetic error", "wrong figure for Y", "tighten your math on Z") when the candidate's figure was actually right: recompute it from the numbers in the transcript, and treat anything listed under FIGURES VERIFIED CORRECT IN CODE as correct;
+- claims that rest on a candidate turn listed under INTERVIEWER ERRORS AND EXCLUSIONS, or that cite an interviewer error as the candidate's mistake.
 Lean SUPPORTED on matters of judgment or severity — you are checking facts, not re-grading the interview.
+
+${buildVerifierFacts(context.mathResults, context.marksSection)}
 
 TRANSCRIPT:
 ${transcriptText}

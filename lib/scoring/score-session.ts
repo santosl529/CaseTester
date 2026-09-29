@@ -5,7 +5,7 @@ import { getCaseById } from '@/lib/cases/loader';
 import { logEvent } from '@/lib/analytics';
 import { classifyDataRequests, findUnclassifiedExchanges } from '@/lib/orchestrator/data-requests';
 import { logDataRequestClassification } from '@/lib/orchestrator/data-request-log';
-import { runJudge } from './judge';
+import { runJudge, type RubricScores } from './judge';
 import { repairTranscript } from './transcript-artifacts';
 import { auditEvidence } from './evidence-audit';
 import { runClaimVerifier } from './verifier';
@@ -14,12 +14,20 @@ import { checkMathSteps } from './deterministic';
 import { assembleReport } from './report';
 import { summarizeAssists, summarizeCoverage } from './assists';
 import { summarizeDataRequests } from './data-coverage';
+import { buildInterviewerMarks, formatInterviewerMarksSection, dropClaimsOnMarkedTurns } from './interviewer-errors';
+import { applyCaveatFloor } from './caveat-floor';
+import { RUBRIC_DIMENSION_KEYS } from './rubric';
 
 export type ScoreSessionStatus = 'scored' | 'already_scored' | 'not_completed' | 'not_found';
 
 // Score a completed session. Shared by POST /api/channel/[sessionId]/score
 // (which checks ownership first) and scripts/live-run.ts. Idempotent: returns
 // early if a score already exists, so a failed scoring pass can be retried.
+// A not-assessed dimension (Rule 9, v4.3) has no rating: NULL column.
+function ratingColumn(d: { rating: RubricScores['structure']['rating']; notAssessed?: boolean }) {
+  return d.notAssessed ? null : d.rating;
+}
+
 export async function scoreSession({ sessionId, userId }: { sessionId: string; userId: string }): Promise<{ status: ScoreSessionStatus }> {
   const session = await db.query.sessions.findFirst({ where: eq(sessions.id, sessionId) });
   if (!session) return { status: 'not_found' };
@@ -105,15 +113,34 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
     console.warn('[score] requested-but-unanswered ledger data (coverage gap):', JSON.stringify(dataCoverage.requestedUnanswered));
   }
 
+  // Interviewer-error marking (docs/scoring-qa.md, v4.3) — after artifact
+  // detection, before any check reads candidate evidence. Conduct rows are read
+  // here only to PROTECT the candidate (warnings and C5 exchanges can't count
+  // against them); they never feed a penalty (Rule 18).
+  const markEvents = await db.query.sessionEvents.findMany({ where: eq(sessionEvents.sessionId, sessionId) });
+  const marks = buildInterviewerMarks(
+    transcript,
+    markEvents.map(e => ({ category: e.category, subtype: e.subtype, turnIndex: e.turnIndex })),
+    dataCoverage.requestedUnanswered,
+  );
+  if (marks.length > 0) console.warn('[score] interviewer-error marks:', JSON.stringify(marks.map(m => [m.kind, m.interviewerTurn])));
+
   const rawRubric = await runJudge(
     transcript, caseData, revealedIds, mathResults, interventionSummary, dataCoverage,
+    formatInterviewerMarksSection(marks),
     u => logUsage({ ...u }),
   );
 
   // Deterministic report-vs-transcript check: strip evidence quotes that don't
   // appear in candidate turns before anything renders.
   const candidateTexts = transcript.filter(t => t.role === 'candidate').map(t => t.text);
-  const { rubric: auditedRubric, violations, droppedPoints } = auditEvidence(rawRubric, candidateTexts);
+  const { rubric: quoteAuditedRubric, violations, droppedPoints } = auditEvidence(rawRubric, candidateTexts);
+  // Enforcement of the marks: a needs-work item whose only evidence is a
+  // candidate turn responding to an interviewer error (or a C5 exchange) goes.
+  const { rubric: auditedRubric, dropped: markDrops } = dropClaimsOnMarkedTurns(
+    quoteAuditedRubric, RUBRIC_DIMENSION_KEYS, transcript, marks,
+  );
+  if (markDrops.length > 0) console.warn('[score] dropped claims resting on interviewer errors:', JSON.stringify(markDrops));
   if (violations.length > 0) {
     console.warn('[score] evidence audit stripped fabricated quotes:', JSON.stringify(violations));
   }
@@ -123,7 +150,9 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
 
   // Second pass: verify claims the quote audit can't (omission claims,
   // mischaracterizations); drop what the transcript contradicts.
-  const { rubric: verifiedRubric, dropped } = await runClaimVerifier(auditedRubric, transcript, u => logUsage({ ...u }));
+  const { rubric: verifiedRubric, dropped } = await runClaimVerifier(
+    auditedRubric, transcript, u => logUsage({ ...u }), { mathResults, marksSection: formatInterviewerMarksSection(marks) },
+  );
   if (dropped.length > 0) {
     console.warn('[score] verifier dropped unsupported claims:', JSON.stringify(dropped));
   }
@@ -132,9 +161,12 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
   // because removing a claim can create or resolve a both-sides collision):
   // merge same-concept strength/weakness pairs, drop faults resting on
   // requested-but-never-provided data (Rule 11), log cross-dimension repeats.
-  const { rubric, merges, gapDrops, crossDimension } = await runReconciliation(
+  const { rubric: reconciledRubric, merges, gapDrops, crossDimension } = await runReconciliation(
     verifiedRubric, dataCoverage, u => logUsage({ ...u }),
   );
+  // Rule 9 floor (v4.3) — enforced in code, after every text pass.
+  const { rubric, floored } = applyCaveatFloor(reconciledRubric);
+  if (floored.length > 0) console.warn('[score] caveated dimensions floored at meets_bar:', JSON.stringify(floored));
   if (merges.length > 0) console.warn('[score] reconciliation merged both-sides claims:', JSON.stringify(merges));
   if (gapDrops.length > 0) console.warn('[score] reconciliation dropped coverage-gap faults:', JSON.stringify(gapDrops));
   if (crossDimension.length > 0) console.warn('[score] cross-dimension repetition:', JSON.stringify(crossDimension));
@@ -149,14 +181,14 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
 
   await db.insert(scores).values({
     sessionId,
-    structureRating: rubric.structure.rating,
-    quantitativeRating: rubric.quantitative.rating,
-    dataExhibitRating: rubric.dataExhibit.rating,
-    judgmentRating: rubric.judgment.rating,
-    creativityRating: rubric.creativity.rating,
-    communicationRating: rubric.communication.rating,
-    synthesisRating: rubric.synthesis.rating,
-    pushbackRating: rubric.pushback.rating,
+    structureRating: ratingColumn(rubric.structure),
+    quantitativeRating: ratingColumn(rubric.quantitative),
+    dataExhibitRating: ratingColumn(rubric.dataExhibit),
+    judgmentRating: ratingColumn(rubric.judgment),
+    creativityRating: ratingColumn(rubric.creativity),
+    communicationRating: ratingColumn(rubric.communication),
+    synthesisRating: ratingColumn(rubric.synthesis),
+    pushbackRating: ratingColumn(rubric.pushback),
     overallRating: rubric.overallRating,
     rubricJsonb: rubric,
     topFix: rubric.topFix,
@@ -187,6 +219,11 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
     // Report coherence (dimension reconciliation): same-concept-both-sides
     // merges, coverage-gap faults dropped, cross-dimension repeats (log only).
     reconcileMerges: merges.length,
+    // v4.3: claims dropped for resting on interviewer errors, and caveated
+    // dimensions raised to the meets_bar floor.
+    interviewerErrorMarks: marks.length,
+    markClaimDrops: markDrops.length,
+    caveatFloors: floored.length,
     gapClaimDrops: gapDrops.length,
     crossDimensionRepeats: crossDimension.length,
   }, { sessionId, userId });

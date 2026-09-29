@@ -13,6 +13,17 @@ export const RATING_LABELS: Record<Rating, string> = {
   strong: 'strong',
 };
 
+// Rule 9 (v4.3): a dimension the interviewer's coverage gap left unratable.
+// Display-only value — the judge's rating enum and the DB enum are unchanged;
+// the rating column is stored NULL.
+export const NOT_ASSESSED = 'not_assessed';
+
+export function ratingLabel(rating: string | null): string {
+  if (!rating) return 'unrated';
+  if (rating === NOT_ASSESSED) return 'not assessed';
+  return RATING_LABELS[rating as Rating] ?? rating.replace(/_/g, ' ');
+}
+
 // Reports are read by the student, and a model guessing their gender from a
 // transcript misgenders real people (live run eca39ec7's report: "his inability
 // to weight beans"). Shared by every prompt whose output text reaches the
@@ -46,6 +57,7 @@ export const RUBRIC_DIMENSION_LABELS: Record<RubricDimensionKey, string> = {
 
 export const RUBRIC_PROMPT_TEXT = `Case stages referenced: (1) Opening/Framework, (2) Analysis/Math, (3) Data/Exhibit interpretation, (4) Brainstorming, (5) Synthesis/Recommendation.
 Ratings: "strong", "meets_bar" (the rubric's "Adequate"), "needs_work".
+Calibration: "strong" requires EVERY element of that dimension's strong anchor below, each evidenced by what the candidate actually said — not a generally good impression. A dimension that hits some strong elements and misses others is meets_bar. Rate each dimension on its own evidence; one excellent area does not lift the others. (The 27–28 Sep persona runs rated 73 of 88 dimensions strong; a scale with no spread tells the candidate nothing about what to fix.)
 
 DIMENSION "structure" — Problem Structuring
 Definition: Breaking an ambiguous problem into a logical, MECE, tailored structure that fits the specific objective (not a memorized template).

@@ -1325,16 +1325,16 @@ warning, and the C5 classifier all exist in code).
 | Live recompute flag | 2, 14 | **Fixed in v4.3** — source spans, required units, revealed-inputs gate, `live: false` for prompt-fact steps; hint never carries the description; flags logged with span and attempt. Replay over 13 runs: zero live flags | Replay: produced all 3 false corrections |
 | Time warning | 12 | **Fixed in v4.3** — 90s text-mode default window; time-up grace ask when no ask was ever delivered (would have fired in exactly Maya's and Priya's runs) | Fired 1 of 13 runs; Maya and Priya never asked for a recommendation |
 | Delivery-promise recovery | 10 | **Fixed in v4.3** — "here's the … change/history" handoffs detected; label-token match over unrevealed items; single-open-request fallback before any refusal. All three persona empty releases resolve in tests | Omar 10, Yuki 8, Maya 45/47 |
-| C5 distress detection | 17 | **Fixed in v4.3 (regex)** — Sam's phrasing + hardship disclosures added with C1/C5 boundary tests; offer carries the required elements and a 988 variant for risk-to-self; clock paused from offer to reply. Still regex-only (no model tiebreak); scoring exclusion of the disclosure not built | Sam: no C5 event |
+| C5 distress detection | 17 | **Fixed in v4.3 (regex)** — Sam's phrasing + hardship disclosures added with C1/C5 boundary tests; offer carries the required elements and a 988 variant for risk-to-self; clock paused from offer to reply. Disclosure + reply excluded from scoring via the `wellbeing` mark. Still regex-only (no model tiebreak) | Sam: no C5 event |
 | C4 redirect | 16, 17 | **Fixed in v4.3** — redirect directive + normal case turn; prompt no longer scripts "I'm not able to help with that" (the source of Priya's lines) | Priya's same-message requests dropped |
 | C2 directedness | 17 | **Fixed in v4.3** — quoted text, reported-speech sentences, and conditional generic-you removed before the lexicon; such hits logged as `C2_excluded`, never warned. Other ambiguity still warns (no model tiebreak) | Omar warned for quoting the CEO |
 | Deferral re-injection + force-release at ask | 11 | Built | OPEN DATA REQUESTS hint; force-release fired in 2 runs |
 | Request enforcement (block unhandled) | 11 | Not built — deliberately deferred (Rule 11) | Review counted 33 unanswered |
 | Attempt counter + error class state | 14 | **Built in v4.3** for `mathSteps` errors (probe → supply → fast path); not for errors outside the steps; repeated-error-class shortcut not built | Maya: 4 probes on one calculation |
 | Scoring-check source spans | 3 | **Built in v4.3** — `checkMathSteps` uses the same spans, skips steps with never-revealed inputs; the judge sees each span | Per-store check false in 10 of 11 reports (review's count) |
-| Error-claim verifier | 3 | Not built | Sam's Top Improvement |
-| Interviewer-error marking | 3 | Not built; depends on logged recompute flags | Priya, Omar, Derek |
-| Caveat rating floor / not assessed | 9 | Prompt only; not enforced in code | Maya's Creativity/Synthesis |
+| Error-claim verifier | 3 | **Built in v4.3** — inside the omission verifier's call, fed span-checked correct figures | Sam's Top Improvement |
+| Interviewer-error marking | 3 | **Built in v4.3** — deterministic marks → judge section + drop of needs-work items resting only on marked turns; replay found a 4th false correction (Carmen `ec32a47f`) | Priya, Omar, Derek |
+| Caveat rating floor / not assessed | 9 | **Built in v4.3** — floor enforced in code after reconciliation; `notAssessed` judge flag, NULL rating column; overall not recomputed | Maya's Creativity/Synthesis |
 
 Suggested build order: (1) provenance audit actually blocks — the core
 invariant; (2) recompute hint stops carrying unrevealed values and flags go
