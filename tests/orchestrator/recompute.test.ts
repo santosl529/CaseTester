@@ -42,14 +42,17 @@ describe('formatRecomputeHint', () => {
     expect(formatRecomputeHint([])).toBe('');
   });
 
-  it('marks case-breaking flags as always-address, minor as probe-once', () => {
+  it('is probe-only and never carries the derived value or step description (v4.3)', () => {
+    // Persona run 6caca9a1: the description "$480M / 200 stores" reached the
+    // prompt and the interviewer "corrected" the candidate with unrevealed $480M.
     const hint = formatRecomputeHint([
-      { stepId: 'a', description: 'desc a', expected: 76.8, candidateValue: 20, errorClass: 'case_breaking' },
+      { stepId: 'a', description: '$480M / 200 stores = $2.4M per store', expected: 2.4, candidateValue: 0.377, errorClass: 'case_breaking' },
       { stepId: 'b', description: 'desc b', expected: 6, candidateValue: 5.8, errorClass: 'minor' },
     ]);
-    expect(hint).toContain('CASE-BREAKING');
-    expect(hint).toContain('always address this');
-    expect(hint).toContain('probe once');
     expect(hint).toContain('RECOMPUTE FLAG');
+    expect(hint).toContain('0.377');
+    expect(hint).toContain('Walk me through that');
+    expect(hint).not.toMatch(/480|2\.4\b|\b6\b|desc b/);
+    expect(hint).not.toContain('Quick correction');
   });
 });

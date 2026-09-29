@@ -1303,7 +1303,7 @@ warning, and the C5 classifier all exist in code).
 | Backstop | Rule | Status | Evidence |
 |---|---|---|---|
 | Provenance audit blocking | 6 | **Fixed in v4.3** — blocked sentences withheld (`enforceNumericProvenance`); regeneration not built | Priya: "480" logged `blocked`, turn delivered |
-| Live recompute flag | 2, 14 | **Runs, wrong** — no source span, no revealed-inputs gate, step description (with unrevealed values) in the hint; hints not logged | Replay: produced all 3 false corrections |
+| Live recompute flag | 2, 14 | **Contained in v4.3** — hint is probe-only (candidate's figure only; no derived value, no description), flags logged as `recompute_flag` events, derived values no longer a provenance, prompt no longer instructs corrections. **Still wrong underneath** — no source span, no revealed-inputs gate | Replay: produced all 3 false corrections |
 | Time warning | 12 | **Runs, rarely lands** — turn-driven, suppressed at time-up | Fired 1 of 13 runs; Maya and Priya never asked for a recommendation |
 | Delivery-promise recovery | 10 | **Runs, low recall** — narrow promise vocabulary, whole-label match, refuses existing data | Omar 10, Yuki 8, Maya 45/47 |
 | C5 distress detection | 17 | **Runs (regex), missed** — no model tiebreak; offer script lacks crisis resources; clock not paused | Sam: no C5 event |

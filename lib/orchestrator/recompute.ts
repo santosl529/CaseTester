@@ -77,13 +77,14 @@ export function checkRecomputeForTurn(
   return flags;
 }
 
+// Probe-only (docs/interviewer-behavior.md Rule 2, v4.3). The pairing above
+// has no source span and no revealed-inputs gate, and in the persona runs it
+// produced all three false "Quick correction" turns — one of which read the
+// step description ("$480M / 200 stores") out of this hint and disclosed
+// unrevealed revenue. Until spans exist, the hint names only the candidate's
+// own figure: no derived value, no description, no correction script.
 export function formatRecomputeHint(flags: RecomputeFlag[]): string {
   if (flags.length === 0) return '';
-  const lines = flags.map(f => {
-    const action = f.errorClass === 'case_breaking'
-      ? 'CASE-BREAKING — always address this now, even under time pressure (Rule 14 fast path: one short correction, e.g. "Quick correction — it\'s closer to X, not Y.")'
-      : 'minor — probe once ("Walk me through that.") if you have not already used your probe budget';
-    return `- "${f.description}": candidate said ${f.candidateValue}, derived answer is ${f.expected}. ${action}`;
-  });
-  return `RECOMPUTE FLAG (deterministic, from the candidate's message this turn — you do not need to have caught this yourself):\n${lines.join('\n')}`;
+  const figures = [...new Set(flags.map(f => f.candidateValue))].join(', ');
+  return `RECOMPUTE FLAG (automated, unverified — it may have matched the wrong number): the candidate's figure(s) ${figures} may not match a value derivable from the case data. If a figure is decision-relevant and you have not already used your probe budget, probe once — "Walk me through that." Do NOT correct it, state a replacement figure, or say which figure is right.`;
 }

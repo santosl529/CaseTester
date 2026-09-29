@@ -230,7 +230,15 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   // Rule 2/14 deterministic recompute backstop (from THIS candidate message).
   const recomputeFlags = checkRecomputeForTurn(candidateText, caseData.mathSteps);
   const recomputeHint = formatRecomputeHint(recomputeFlags);
-  const derivedValueTexts = recomputeFlags.map(f => String(f.expected));
+  // Flags are probe-only until they carry source spans (Rule 2, v4.3), so a
+  // recompute-derived value is no longer a valid provenance: the interviewer
+  // has no business speaking it. Logged so a flag is never invisible again.
+  const derivedValueTexts: string[] = [];
+  for (const f of recomputeFlags) {
+    await logSessionEvent(sessionId, 'intervention', 'recompute_flag', nextTurnIndex, currentPhase, {
+      stepId: f.stepId, candidateValue: f.candidateValue, expected: f.expected, errorClass: f.errorClass,
+    });
+  }
 
   // Rule 2/14: risky nested-percentage conversion in this candidate message →
   // tell the interviewer to probe the units (unit-check.ts).
