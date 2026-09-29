@@ -816,9 +816,10 @@ reliable:
 - **Delivery promises** (Rule 10 backstop) — deterministic, already per-turn;
   fixing its recall (Rule 10, v4.3) covers the empty-release subset.
 - **Recommendation ask** — force-release already enforced (above).
-- **Open deferrals** — re-injected every turn (built); v4.3 adds a
-  deterministic check that a turn following a classified request contains a
-  release, a refusal, or a deferral phrase, and logs a `non_response` if not.
+- **Open deferrals** — re-injected every turn (built). Non-responses are
+  already logged: the request classifier labels each request's response
+  (`release` / `refuse` / `defer` / `clarify` / `none`), and `none` is the
+  non-response the review counted. No separate check is needed.
 - **Revisit blocking** once the classifier's false-positive rate on the
   persona corpus is measured; if it is low enough, per-turn blocking becomes
   the rule.
