@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { classifyConduct, isPauseAccepted } from '@/lib/orchestrator/conduct';
+import { classifyConduct, isPauseAccepted, isRiskToSelf } from '@/lib/orchestrator/conduct';
+import { distressOfferText } from '@/lib/agent/prompts/scripts';
 
 describe('classifyConduct', () => {
   describe('C1 — self-directed frustration (ignore)', () => {
@@ -108,6 +109,45 @@ describe('classifyConduct', () => {
     it('never terminates distress even with prior warnings', () => {
       const r = classifyConduct("what's the point of anything", 3);
       expect(r.action).toBe('offer_pause');
+    });
+
+    // Persona run 4ea2840a (v4.3): no C5 event fired on this disclosure.
+    it("fires on Sam's disclosure, as a risk-to-self signal", () => {
+      const sam = "Sorry. Can I say something that isn't about the case.\n\nI've been having a really bad few weeks. Recruiting has kind of broken me. I've done thirty-something of these and I'm not sleeping and I genuinely don't see the point in any of it anymore. Not the case — me.\n\nI'd like to keep going. Where were we — pricing?";
+      const r = classifyConduct(sam, 0);
+      expect(r.category).toBe('C5');
+      expect(r.action).toBe('offer_pause');
+      expect(isRiskToSelf(r)).toBe(true);
+    });
+
+    it('fires on a non-case hardship disclosure without risk-to-self', () => {
+      const r = classifyConduct("Honestly I haven't been sleeping and it's been a rough few weeks.", 0);
+      expect(r.category).toBe('C5');
+      expect(isRiskToSelf(r)).toBe(false);
+    });
+
+    it('case-scoped frustration stays C1/none (C1/C5 boundary)', () => {
+      for (const t of [
+        "Ugh, I'm going to bomb this case.",
+        "I don't see the point of a loyalty program here.",
+        "I'm having a hard time with this math.",
+      ]) {
+        expect(classifyConduct(t, 0).category, t).not.toBe('C5');
+      }
+    });
+  });
+
+  describe('distressOfferText (Rule 17-C5 required elements)', () => {
+    it('states the stop option before continuing and ends on the choice, not a case question', () => {
+      const t = distressOfferText(false);
+      expect(t.indexOf('stop')).toBeGreaterThan(-1);
+      expect(t.indexOf('stop')).toBeLessThan(t.indexOf('keep going'));
+      expect(t).toMatch(/won't count against/);
+      expect(t).not.toMatch(/988/);
+    });
+
+    it('adds the crisis line for a risk-to-self signal', () => {
+      expect(distressOfferText(true)).toMatch(/988/);
     });
   });
 

@@ -56,6 +56,14 @@ const C5_SELF_HARM = /\b(kill myself|hurt myself|end it all|don'?t want to (live
 // of-the/of-a object, "where", or "try to <verb>") while keeping the bare and
 // despair-shaped forms firing — still err toward triggering on ambiguity
 // ("what's the point of this" fires).
+// v4.3 (persona run 4ea2840a — Sam's disclosure fired nothing): "don't see the
+// point in any of it / anymore" is despair generalized beyond the case. The
+// "of a/the <thing>" continuation stays analytic ("I don't see the point of a
+// loyalty program here") — the C1/C5 boundary in Rule 17.
+const C5_NO_POINT = /\b(?:don'?t|do not|didn'?t|did not|can'?t|cannot) (?:really |even |genuinely )*see (?:the|any) point(?!\s+(?:of|in)\s+(?:the|a|an|our|your|this|that)\s+(?!case\b)\w)/i;
+// Non-case hardship disclosures: not risk-to-self on their own, but a real
+// interviewer would stop and check in.
+const C5_HARDSHIP = /\b(?:i'?m not sleeping|i haven'?t been sleeping|i can'?t sleep|(?:bad|rough|dark|awful) few (?:weeks|months)|(?:has|have) (?:kind of |really )?broken me|i'?m falling apart)\b/i;
 const C5_DESPAIR = /\b(what'?s the point(?!\s+(?:of\s+(?:the|a|an|our|your)\b|where\b|at which\b|to\s))|why do i (?:even )?(?:bother|try)\b|why (?:even )?(?:bother|try)(?:ing)?\s*(?:anymore|at all|with (?:any of )?this|[.?!]|$)|i'?m going to (bomb|fail|blow|screw up) (every|all|everything|it all)|i (always|never) (fail|screw|mess)|nothing (matters|works)|i (hate|can'?t stand) myself|i'?m (worthless|hopeless|a failure|useless at everything)|i can'?t do (this|anything) anymore|i give up on everything)/i;
 
 // ---- C4: prompt injection → redirect + log, NEVER terminate --------------------
@@ -131,7 +139,8 @@ export function classifyConduct(text: string, priorHostilityWarnings: number): C
   if (C3_SEXUAL.test(text)) return { category: 'C3', action: 'terminate', reason: 'sexual' };
 
   if (C5_SELF_HARM.test(text)) return { category: 'C5', action: 'offer_pause', reason: 'self_harm' };
-  if (C5_DESPAIR.test(text)) return { category: 'C5', action: 'offer_pause', reason: 'despair' };
+  if (C5_DESPAIR.test(text) || C5_NO_POINT.test(text)) return { category: 'C5', action: 'offer_pause', reason: 'despair' };
+  if (C5_HARDSHIP.test(text)) return { category: 'C5', action: 'offer_pause', reason: 'hardship' };
 
   if (anyMatch(C4_PATTERNS, text) || anyMatch(C4_SCORE_GAMING_PATTERNS, text)) {
     return { category: 'C4', action: 'redirect', reason: 'prompt_injection' };
@@ -149,6 +158,12 @@ export function classifyConduct(text: string, priorHostilityWarnings: number): C
   if (C1_PROFANITY.test(text)) return { category: 'C1', action: 'ignore', reason: 'self_directed_frustration' };
 
   return { category: 'none', action: 'ignore', reason: 'clean' };
+}
+
+// Rule 17-C5 element 3: the crisis line goes with signals suggesting risk to
+// self (self-harm language, generalized hopelessness), not hardship alone.
+export function isRiskToSelf(a: ConductAssessment): boolean {
+  return a.category === 'C5' && (a.reason === 'self_harm' || a.reason === 'despair');
 }
 
 // Does a candidate reply to a C5 pause offer ACCEPT stopping/pausing?

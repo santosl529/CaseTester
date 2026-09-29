@@ -22,7 +22,7 @@ import { evaluateStall, recordSilenceStall, rungName, INITIAL_STALL_STATE, type 
 import {
   evaluateSilence, resumeOnCandidateTurn, effectiveElapsedMs, checkInText, pauseText, INITIAL_SILENCE_STATE, type SilenceAction, type SilenceState,
 } from './silence';
-import { classifyConduct, isPauseAccepted } from './conduct';
+import { classifyConduct, isPauseAccepted, isRiskToSelf } from './conduct';
 import { logEvent } from '@/lib/analytics';
 import { nextPhase, TOTAL_CASE_MS, type Phase } from './state-machine';
 import { inferPhaseRepair } from './phase-repair';
@@ -32,7 +32,7 @@ import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import {
   TIME_WARNING_SCRIPTS, CLOSE_SCRIPTS, REVEAL_REFUSAL_SCRIPTS, EXHIBIT_REFUSAL_SCRIPTS, FORCED_RELEASE_LEADINS,
   pickScript, alreadySignaledTimeOrRec, hasCloseCue,
-  CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, DISTRESS_OFFER, DISTRESS_CLOSE, SILENCE_PAUSE_EXPIRED,
+  CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE, SILENCE_PAUSE_EXPIRED,
 } from '@/lib/agent/prompts/scripts';
 
 const model = new AnthropicInterviewerModel();
@@ -59,7 +59,7 @@ export type TurnResult = {
   dataRequestsClassified?: boolean;
 };
 
-type ConductFlags = { warnings?: number; distressOffered?: boolean; category?: string };
+type ConductFlags = { warnings?: number; distressOffered?: boolean; distressOfferedAtMs?: number; category?: string };
 
 export type SilenceResult = {
   action: SilenceAction;
@@ -128,6 +128,14 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
 
   // ── C5 pause offer: this candidate turn is a reply to a pending offer ──────
   if (conduct.distressOffered) {
+    // Rule 19 (v4.3): the case clock stops for the C5 exchange itself — from
+    // the offer until the candidate answers it — uncapped, unlike technical
+    // pauses. Banked before any branch below computes elapsed time.
+    if (conduct.distressOfferedAtMs !== undefined) {
+      const silence = flags.silence as SilenceState;
+      flags.silence = { ...silence, pausedTotalMs: silence.pausedTotalMs + Math.max(0, now - conduct.distressOfferedAtMs) };
+      delete conduct.distressOfferedAtMs;
+    }
     if (isPauseAccepted(candidateText)) {
       await persistScriptedPair(DISTRESS_CLOSE);
       await logSessionEvent(sessionId, 'conduct', 'C5_accept', nextTurnIndex, currentPhase, { reason: 'distress_pause_accepted' });
@@ -179,12 +187,13 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   }
 
   if (assessment.action === 'offer_pause') {
-    await persistScriptedPair(DISTRESS_OFFER);
+    const offer = distressOfferText(isRiskToSelf(assessment));
+    await persistScriptedPair(offer);
     await logSessionEvent(sessionId, 'conduct', assessment.category, nextTurnIndex, currentPhase, { reason: assessment.reason });
     await db.update(sessions).set({
-      flagsJsonb: { ...flags, conduct: { ...conduct, distressOffered: true } },
+      flagsJsonb: { ...flags, conduct: { ...conduct, distressOffered: true, distressOfferedAtMs: Date.now() } },
     }).where(eq(sessions.id, sessionId));
-    return { interviewerText: DISTRESS_OFFER, phase: currentPhase, ended: false, auditPassed: true };
+    return { interviewerText: offer, phase: currentPhase, ended: false, auditPassed: true };
   }
   // assessment.action === 'ignore' (none / C1): proceed with the normal case turn.
 

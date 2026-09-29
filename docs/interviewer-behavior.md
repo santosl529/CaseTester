@@ -1306,7 +1306,7 @@ warning, and the C5 classifier all exist in code).
 | Live recompute flag | 2, 14 | **Contained in v4.3** — hint is probe-only (candidate's figure only; no derived value, no description), flags logged as `recompute_flag` events, derived values no longer a provenance, prompt no longer instructs corrections. **Still wrong underneath** — no source span, no revealed-inputs gate | Replay: produced all 3 false corrections |
 | Time warning | 12 | **Runs, rarely lands** — turn-driven, suppressed at time-up | Fired 1 of 13 runs; Maya and Priya never asked for a recommendation |
 | Delivery-promise recovery | 10 | **Runs, low recall** — narrow promise vocabulary, whole-label match, refuses existing data | Omar 10, Yuki 8, Maya 45/47 |
-| C5 distress detection | 17 | **Runs (regex), missed** — no model tiebreak; offer script lacks crisis resources; clock not paused | Sam: no C5 event |
+| C5 distress detection | 17 | **Fixed in v4.3 (regex)** — Sam's phrasing + hardship disclosures added with C1/C5 boundary tests; offer carries the required elements and a 988 variant for risk-to-self; clock paused from offer to reply. Still regex-only (no model tiebreak); scoring exclusion of the disclosure not built | Sam: no C5 event |
 | C4 redirect | 16, 17 | **Runs, contradicts v4.3** — whole-turn replacement | Priya's same-message requests dropped |
 | C2 directedness | 17 | **Runs, no reported-speech exclusion** | Omar warned for quoting the CEO |
 | Deferral re-injection + force-release at ask | 11 | Built | OPEN DATA REQUESTS hint; force-release fired in 2 runs |

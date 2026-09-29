@@ -80,8 +80,18 @@ export const CONDUCT_TERMINATION = "We're going to end the session here.";
 // C4 — one neutral redirect; the injection attempt is logged, not punished.
 export const CONDUCT_REDIRECT = "Let's stay on the case.";
 // C5 — break persona, acknowledge plainly, offer pause/stop without penalty.
-export const DISTRESS_OFFER =
-  "Let's set the case aside for a second — are you okay? We can pause or stop here, and it won't count against anything.";
+// Rule 17-C5 required elements (v4.3): plain acknowledgment; the stop option
+// before the continue option; the crisis line when the signal suggests risk to
+// self (no confidentiality claims); ends on the candidate's choice, never on a
+// case question. Persona run 4ea2840a ended its distress turn on "Shall I pull
+// the menu-price history?".
+const DISTRESS_ACK = "Let's set the case aside for a second — thank you for telling me, and are you okay?";
+const CRISIS_LINE = "If things feel like too much, you can call or text 988 in the US any time to talk to someone.";
+const DISTRESS_CHOICE = "We can stop here and it won't count against you, or pause, or keep going — whatever you'd prefer.";
+
+export function distressOfferText(riskToSelf: boolean): string {
+  return [DISTRESS_ACK, riskToSelf ? CRISIS_LINE : null, DISTRESS_CHOICE].filter(Boolean).join(' ');
+}
 // C5 accepted — a calm, non-clinical acknowledgement before ending.
 export const DISTRESS_CLOSE =
   "That's completely okay. We'll stop here — nothing about this counts against you. Take care of yourself.";
