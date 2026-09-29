@@ -216,9 +216,8 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   const dataRequestRows = (await db.query.sessionEvents.findMany({
     where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'data_request')),
   })).map(r => ({ subtype: r.subtype, turnIndex: r.turnIndex, payloadJsonb: r.payloadJsonb }));
-  const openDataRequestsHint = formatOpenRequestsHint(
-    summarizeDataRequests(dataRequestRows, catalog, Object.keys(revealedValues(ledger))).requestedUnanswered,
-  );
+  const openDataRequests = summarizeDataRequests(dataRequestRows, catalog, Object.keys(revealedValues(ledger))).requestedUnanswered;
+  const openDataRequestsHint = formatOpenRequestsHint(openDataRequests);
 
   const elapsedMs = effectiveElapsedMs(session.startedAt.getTime(), now, resumed.state);
   const timeUp = elapsedMs >= TOTAL_CASE_MS;
@@ -425,7 +424,10 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   // (data-ledger.ts has the full rationale). Skipped on the closing turn for
   // the same reason as the exhibit recovery.
   if (newReveals.length === 0 && !ended && promisesReveal(spokenText)) {
-    const recoveredId = resolveItemFromText(ledger, spokenText);
+    // Named in the text, else the single open ledger request is what was
+    // promised (v4.3: Maya c230fe12 was refused her open deferral instead).
+    const openIds = [...new Set(openDataRequests.map(r => r.ledgerItemId))].filter(id => canReveal(ledger, id));
+    const recoveredId = resolveItemFromText(ledger, spokenText) ?? (openIds.length === 1 ? openIds[0] : null);
     if (recoveredId) {
       const value = reveal(ledger, recoveredId);
       newReveals.push(recoveredId);

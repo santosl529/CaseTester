@@ -100,6 +100,37 @@ describe('data ledger', () => {
       const ledger = createLedger(items);
       expect(resolveItemFromText(ledger, '')).toBeNull();
     });
+
+    // Persona runs 27–28 Sep (v4.3): the handoff paraphrased the label, the
+    // whole-label match failed, and Maya was told "We don't have that
+    // specific cut" for data the ledger held.
+    describe('label-token matching (v4.3)', () => {
+      const prof = [
+        { id: 'bean_price_change', label: 'Coffee bean price change over 2 years', value: 'Beans up 40%.', releaseWhen: 'ANALYSIS' as const },
+        { id: 'menu_price_change', label: 'Menu price changes over 2 years', value: 'Menu prices have not changed in two years.', releaseWhen: 'ANALYSIS' as const },
+        { id: 'non_bean_input_change', label: 'COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years', value: 'Other inputs up 37.5%.', releaseWhen: 'ANALYSIS' as const },
+      ];
+
+      it.each([
+        ["Here's the menu price data.", 'menu_price_change'],               // Maya c230fe12 t47
+        ["Here's the menu price change over the two years.", 'menu_price_change'], // Maya t45, Omar t10
+        ["Here's the menu price history.", 'menu_price_change'],            // Yuki 9a873577 t8
+        ["Here's the bean price change.", 'bean_price_change'],
+        ["Here's the other input cost changes.", 'non_bean_input_change'],
+      ])('%s → %s', (text, id) => {
+        expect(resolveItemFromText(createLedger(prof), text)).toBe(id);
+      });
+
+      it('never resolves to an already-revealed item', () => {
+        const ledger = createLedger(prof);
+        reveal(ledger, 'menu_price_change');
+        expect(resolveItemFromText(ledger, "Here's the menu price data.")).toBeNull();
+      });
+
+      it('returns null on an ambiguous one-word overlap', () => {
+        expect(resolveItemFromText(createLedger(prof), "Here's the price data.")).toBeNull();
+      });
+    });
   });
 
   describe('promisesReveal', () => {
@@ -109,6 +140,16 @@ describe('data ledger', () => {
       // "analysis" is the data-reference word here.
       expect(promisesReveal("Let me get you that vintage analysis.")).toBe(true);
       expect(promisesReveal("Here's the breakdown you asked for.")).toBe(true);
+    });
+
+    it('detects "change"/"history" handoffs (persona runs: Omar, Yuki, Maya)', () => {
+      expect(promisesReveal("Here's the menu price change over the two years.")).toBe(true);
+      expect(promisesReveal("Here's the menu price history.")).toBe(true);
+    });
+
+    it('does not treat "change" outside a here\'s-handoff as a promise', () => {
+      expect(promisesReveal('I have one change to suggest to your structure.')).toBe(false);
+      expect(promisesReveal("Let me get a sense of what you'd change.")).toBe(false);
     });
 
     it('does not fire on a delivery verb with no data-reference word', () => {

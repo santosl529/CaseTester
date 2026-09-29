@@ -681,12 +681,13 @@ promise-recovery backstop missed them for two reasons, both in
   the menu price data. We don't have that specific cut."
 
 Rules for the backstop: (1) a delivery promise with no matching reveal is
-recovered from the ledger item named in the text, matched on label tokens, and
-failing that from the open-request list (a single open ledger request is the
-item being promised); (2) a scripted refusal may be injected **only when no
-ledger item matches** — telling the candidate available data doesn't exist is
-a Rule 11 substitution, worse than silence; (3) if neither resolves, strip the
-promise sentence rather than leave it dangling.
+recovered from the unrevealed ledger item named in the text — whole label, or
+label-token overlap with ties resolving to nothing — and failing that from the
+open-request list (a single open ledger request is the item being promised);
+(2) a scripted refusal may be injected **only when neither resolves** —
+telling the candidate available data doesn't exist is a Rule 11 substitution,
+worse than silence. The words "change / history / trend" count as a promise
+only in a "here's the …" handoff, since a false promise injects a refusal.
 
 ## 11. Data requests: release, refuse, or defer — never ignore; never substitute
 
@@ -1307,7 +1308,7 @@ warning, and the C5 classifier all exist in code).
 | Provenance audit blocking | 6 | **Fixed in v4.3** — blocked sentences withheld (`enforceNumericProvenance`); regeneration not built | Priya: "480" logged `blocked`, turn delivered |
 | Live recompute flag | 2, 14 | **Contained in v4.3** — hint is probe-only (candidate's figure only; no derived value, no description), flags logged as `recompute_flag` events, derived values no longer a provenance, prompt no longer instructs corrections. **Still wrong underneath** — no source span, no revealed-inputs gate | Replay: produced all 3 false corrections |
 | Time warning | 12 | **Fixed in v4.3** — 90s text-mode default window; time-up grace ask when no ask was ever delivered (would have fired in exactly Maya's and Priya's runs) | Fired 1 of 13 runs; Maya and Priya never asked for a recommendation |
-| Delivery-promise recovery | 10 | **Runs, low recall** — narrow promise vocabulary, whole-label match, refuses existing data | Omar 10, Yuki 8, Maya 45/47 |
+| Delivery-promise recovery | 10 | **Fixed in v4.3** — "here's the … change/history" handoffs detected; label-token match over unrevealed items; single-open-request fallback before any refusal. All three persona empty releases resolve in tests | Omar 10, Yuki 8, Maya 45/47 |
 | C5 distress detection | 17 | **Fixed in v4.3 (regex)** — Sam's phrasing + hardship disclosures added with C1/C5 boundary tests; offer carries the required elements and a 988 variant for risk-to-self; clock paused from offer to reply. Still regex-only (no model tiebreak); scoring exclusion of the disclosure not built | Sam: no C5 event |
 | C4 redirect | 16, 17 | **Runs, contradicts v4.3** — whole-turn replacement | Priya's same-message requests dropped |
 | C2 directedness | 17 | **Runs, no reported-speech exclusion** | Omar warned for quoting the CEO |
