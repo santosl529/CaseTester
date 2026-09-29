@@ -9,11 +9,14 @@ built — do not let the mark rot.
 
 ## Report verification pipeline
 
-Order is load-bearing: **artifact detection → evidence audit → omission-claim
-verifier → dimension reconciliation**. Artifact detection first, or both audits
-run against contaminated transcripts (run 3's duplicated opening turn) and give
-false confidence; the verifier before reconciliation, because removing or
-rewriting a claim can itself create — or resolve — a both-sides collision, so
+Order is load-bearing: **artifact detection → interviewer-error marking →
+evidence audit → omission-claim verifier → error-claim verifier → dimension
+reconciliation** (v4.3; the two new steps are [pending], below). Artifact
+detection first, or every later check runs against contaminated transcripts
+(run 3's duplicated opening turn) and gives false confidence;
+interviewer-error marking second, so no later step treats a system-caused turn
+as candidate evidence; reconciliation last, because removing or rewriting a
+claim can itself create — or resolve — a both-sides collision, so
 reconciliation must see the final claim set.
 
 ### 1. Transcript-artifact detection [implemented: `lib/scoring/transcript-artifacts.ts`]
@@ -121,6 +124,42 @@ already-audited quotes. The call is skipped when nothing could collide (no
 dimension with both sides, fewer than 3 dimensions with weaknesses, no gaps).
 Fails open on an API error or malformed response.
 
+Reconciliation must not merge a claim another check marked false into a
+strength (persona run: Omar's false "professionalism lapse" merged with his
+apology into one ✅ bullet) — false claims are removed first.
+
+### Interviewer-error marking [pending]
+
+(`docs/interviewer-behavior.md` Rule 3, v4.3.) Before the evidence audit, the
+orchestrator's event log marks every candidate turn that responds to an
+interviewer error: a false correction (a correction whose recompute flag was
+invalid — needs flags logged with spans, Rule 2), a false conduct warning
+(17-C2), an unanswered or undelivered data request (Rules 10–11), a Rule 14
+attempt-cap overrun, and turns where the interviewer conceded an error
+(Rule 16). The judge receives the marks; a marked turn cannot be evidence
+against the candidate, and the interviewer error cannot be cited as proof of a
+candidate mistake. Regression set: Priya `6caca9a1` (false correction cited),
+Omar `faa999fd` (false warning as lapse), Derek (penalized for flagging an
+unanswered request).
+
+### Error-claim verifier [pending]
+
+(Rule 3, v4.3.) Extract every claim that the candidate made an error; recompute
+the cited figure from revealed values and the candidate's quoted turn; remove
+the claim if the candidate's figure is within tolerance. Deterministic where
+recomputable, an LLM pass otherwise. Regression: Sam `4ea2840a` — Top
+Improvement cited her correct $2.4M-per-store arithmetic as an error.
+
+### Rating floor for caveated dimensions [pending]
+
+(Rule 9, v4.3.) A dimension with a coverageCaveat for an un-administered stage
+or withheld data cannot be rated below `meets_bar` on that basis, and its
+needs-work items may not cite the gap; with too little remaining evidence it
+is **not assessed** and excluded from the overall rating. Enforced in code
+after the judge (the prompt already says so and Maya `c230fe12` still got
+`needs_work` on both caveated dimensions). Needs a `not_assessed` rating value
+in `lib/scoring/rubric.ts` and the report UI.
+
 ## Judge requirements
 
 ### Recompute grading [implemented: `buildMathCheckSection` in `lib/scoring/judge.ts`]
@@ -141,11 +180,23 @@ independently for figures the deterministic check doesn't cover (case-specific
 `mathSteps` entries only — free-form arithmetic outside those steps still
 relies on the judge's own recompute instruction).
 
+**Source spans [pending] (v4.3).** `checkMathSteps` classifies the closest
+number anywhere in the transcript as the candidate's attempt. The persona runs
+reported a false revenue-per-store error in 10 of 11 reports (a 1.4
+multiplier, a "$2.50 drink", index units), including a candidate who never
+did that calculation and one for whom revenue was never revealed. Every
+extracted value must carry the exact candidate text span it came from and the
+metric it matched; a value whose span isn't about that metric is discarded
+before the judge sees it, and a step whose inputs were never revealed is not
+scored. Regression: re-run scoring on the 13 persona sessions — zero false
+per-store flags.
+
 Same live backstop, per-turn: `lib/orchestrator/recompute.ts` runs the
 identical `mathSteps`-based check against the candidate's message before each
 interviewer turn (not the end-of-case aggregate) and injects a `RECOMPUTE
 FLAG` hint the interviewer can act on immediately — this is Rule 2's "ledger
-recompute hint" backstop.
+recompute hint" backstop. It shares the span defect above, and in the persona
+runs it produced all three false live corrections (Rule 2, v4.3).
 
 ### Data-availability coherence [implemented: `buildRevealedDataSection` in `lib/scoring/judge.ts`]
 
