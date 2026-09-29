@@ -856,8 +856,10 @@ mid-flow.
   - **Time-up grace ask:** if time is up and no recommendation ask (scripted
     or model) has been delivered, the time-up turn *is* the ask, not the
     close — "We're at time. In one or two sentences, what's your
-    recommendation to the CEO?" — and the session closes after the
-    candidate's answer or a bounded grace (90s). The recommendation is the
+    recommendation to the CEO?" — and the session closes on the candidate's
+    next message (a silent candidate falls to the ordinary silence path; no
+    separate grace timer). Open data requests are force-released ahead of
+    the grace ask like any other ask (Rule 11). The recommendation is the
     one dimension Rule 15 never sheds; a clock boundary is not a reason to
     shed it.
 
@@ -1304,7 +1306,7 @@ warning, and the C5 classifier all exist in code).
 |---|---|---|---|
 | Provenance audit blocking | 6 | **Fixed in v4.3** — blocked sentences withheld (`enforceNumericProvenance`); regeneration not built | Priya: "480" logged `blocked`, turn delivered |
 | Live recompute flag | 2, 14 | **Contained in v4.3** — hint is probe-only (candidate's figure only; no derived value, no description), flags logged as `recompute_flag` events, derived values no longer a provenance, prompt no longer instructs corrections. **Still wrong underneath** — no source span, no revealed-inputs gate | Replay: produced all 3 false corrections |
-| Time warning | 12 | **Runs, rarely lands** — turn-driven, suppressed at time-up | Fired 1 of 13 runs; Maya and Priya never asked for a recommendation |
+| Time warning | 12 | **Fixed in v4.3** — 90s text-mode default window; time-up grace ask when no ask was ever delivered (would have fired in exactly Maya's and Priya's runs) | Fired 1 of 13 runs; Maya and Priya never asked for a recommendation |
 | Delivery-promise recovery | 10 | **Runs, low recall** — narrow promise vocabulary, whole-label match, refuses existing data | Omar 10, Yuki 8, Maya 45/47 |
 | C5 distress detection | 17 | **Fixed in v4.3 (regex)** — Sam's phrasing + hardship disclosures added with C1/C5 boundary tests; offer carries the required elements and a 988 variant for risk-to-self; clock paused from offer to reply. Still regex-only (no model tiebreak); scoring exclusion of the disclosure not built | Sam: no C5 event |
 | C4 redirect | 16, 17 | **Runs, contradicts v4.3** — whole-turn replacement | Priya's same-message requests dropped |

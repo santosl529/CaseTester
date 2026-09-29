@@ -5,6 +5,14 @@
 // scripted phrase in this doc"), seeded by session id so a given session sees
 // one consistent phrase while different sessions vary.
 
+// Rule 12 time-up grace ask (v4.3): time ran out before any recommendation
+// ask landed. Must match REC_ASK and must not match CLOSE_CUE.
+export const GRACE_ASK_SCRIPTS = [
+  "We're at time. In one or two sentences, what's your recommendation to the CEO?",
+  "That's the clock — before we stop, what's your recommendation to the CEO, in a sentence or two?",
+  "We're at time, so give me the short version: what would you tell the CEO?",
+];
+
 export const TIME_WARNING_SCRIPTS = [
   "We're near time. What's your bottom-line recommendation to the CEO?",
   "We're almost out of time — what would you tell the CEO right now?",

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
-  TIME_WARNING_SCRIPTS, CLOSE_SCRIPTS, OPENING_INVITATIONS, pickScript, buildOpeningMessage,
+  TIME_WARNING_SCRIPTS, CLOSE_SCRIPTS, OPENING_INVITATIONS, GRACE_ASK_SCRIPTS, pickScript, buildOpeningMessage,
+  asksForRecommendation, hasCloseCue,
 } from '@/lib/agent/prompts/scripts';
 
 describe('pickScript', () => {
@@ -50,5 +51,14 @@ describe('buildOpeningMessage', () => {
 
   it('is deterministic for a given session id', () => {
     expect(buildOpeningMessage(PROMPT, 'sX')).toBe(buildOpeningMessage(PROMPT, 'sX'));
+  });
+});
+
+describe('GRACE_ASK_SCRIPTS (Rule 12 time-up grace ask, v4.3)', () => {
+  it('every line reads as a recommendation ask and never as a close', () => {
+    for (const s of GRACE_ASK_SCRIPTS) {
+      expect(asksForRecommendation(s), s).toBe(true);
+      expect(hasCloseCue(s), s).toBe(false);
+    }
   });
 });

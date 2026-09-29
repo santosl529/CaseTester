@@ -16,7 +16,7 @@ import { enforceNumericProvenance, changeFigures } from './numeric-provenance';
 import { checkRecomputeForTurn, formatRecomputeHint } from './recompute';
 import { detectNestedPercentConversion, formatUnitCheckHint } from './unit-check';
 import { resolveExhibit, promisesExhibit } from './exhibits';
-import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure } from './pacing';
+import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
 import { canEndCase, formatCoverageSteer, type CoverageScores } from '@/lib/scoring/coverage';
 import { evaluateStall, recordSilenceStall, rungName, INITIAL_STALL_STATE, type StallState } from './stall';
 import {
@@ -30,8 +30,8 @@ import { resolveSpokenClose } from './spoken-close';
 import { runInterviewerTurn } from '@/lib/agent/interviewer';
 import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import {
-  TIME_WARNING_SCRIPTS, CLOSE_SCRIPTS, REVEAL_REFUSAL_SCRIPTS, EXHIBIT_REFUSAL_SCRIPTS, FORCED_RELEASE_LEADINS,
-  pickScript, alreadySignaledTimeOrRec, hasCloseCue,
+  TIME_WARNING_SCRIPTS, GRACE_ASK_SCRIPTS, CLOSE_SCRIPTS, REVEAL_REFUSAL_SCRIPTS, EXHIBIT_REFUSAL_SCRIPTS, FORCED_RELEASE_LEADINS,
+  pickScript, alreadySignaledTimeOrRec, asksForRecommendation, hasCloseCue,
   CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE, SILENCE_PAUSE_EXPIRED,
 } from '@/lib/agent/prompts/scripts';
 
@@ -442,6 +442,26 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     ended = true;
   }
 
+  // Rule 12 grace ask (v4.3): if time ran out before any recommendation ask
+  // reached the candidate, this turn asks instead of closing, and the next
+  // candidate message ends the case. The ask then flows through the Rule 11
+  // force-release below like any other ask, so open requests land first.
+  const graceAskFiredThisTurn = shouldGraceAsk({
+    timeUp,
+    graceAskFired: Boolean(flags.graceAskFired),
+    recommendationAsked: turnRows.some(t => t.role === 'interviewer' && asksForRecommendation(t.text)),
+    recommendationDelivered: Boolean(priorStall.recommendationDelivered),
+  });
+  if (graceAskFiredThisTurn) {
+    console.warn('[runner] time up with no recommendation ask — grace ask instead of close');
+    ended = false;
+    // The model wrote a close; replace it, but keep any values it revealed
+    // this turn — they are booked as revealed and must be delivered (Rule 10).
+    const revealedNowById = revealedValues(ledger);
+    spokenText = [...newReveals.map(id => revealedNowById[id]), pickScript(GRACE_ASK_SCRIPTS, sessionId)].join(' ');
+    await logSessionEvent(sessionId, 'intervention', 'grace_ask', nextTurnIndex, currentPhase, { elapsedMs });
+  }
+
   // Rule 11 + the "time warning + open data request" worked conflict
   // resolution (docs/interviewer-behavior.md v4.1): before ANY recommendation
   // ask goes out — the scripted T−30s warning or the model asking on its own —
@@ -638,6 +658,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
         stall: stallDecision.state,
         advancedLastTurn: advancedThisTurn,
         timeWarningFired: Boolean(flags.timeWarningFired) || timeWarningFiredThisTurn,
+        graceAskFired: Boolean(flags.graceAskFired) || graceAskFiredThisTurn,
         loadShedLogged: Boolean(flags.loadShedLogged) || loadShedLoggedThisTurn,
       },
     })

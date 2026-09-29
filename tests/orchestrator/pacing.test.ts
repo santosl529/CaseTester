@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   resolvePhaseBudgets, resolveTimeWarningMs, DEFAULT_TIME_WARNING_MS,
-  isUnderTimePressure, LOAD_SHED_REMAINING_MS,
+  isUnderTimePressure, LOAD_SHED_REMAINING_MS, shouldGraceAsk,
 } from '@/lib/orchestrator/pacing';
 import type { Case } from '@/lib/cases/schema';
 
@@ -45,8 +45,14 @@ describe('resolvePhaseBudgets', () => {
 });
 
 describe('resolveTimeWarningMs', () => {
-  it('defaults to 30s when not configured', () => {
+  it('uses the default when not configured', () => {
     expect(resolveTimeWarningMs({} as Pick<Case, 'pacing'>)).toBe(DEFAULT_TIME_WARNING_MS);
+  });
+
+  it('text-mode default is wide enough to land before a slow reply (v4.3)', () => {
+    // Persona run c230fe12: the last turn before time-up ran with 41s left,
+    // 11s too early for a 30s warning; the next reply arrived after time-up.
+    expect(DEFAULT_TIME_WARNING_MS).toBe(90_000);
   });
 
   it('uses the case-configured value when present', () => {
@@ -73,5 +79,26 @@ describe('isUnderTimePressure (Rule 15 load-shedding window)', () => {
   it('is false once time is fully up (that is the close, not shedding)', () => {
     expect(isUnderTimePressure(TOTAL_MS, TOTAL_MS)).toBe(false);
     expect(isUnderTimePressure(TOTAL_MS + 5_000, TOTAL_MS)).toBe(false);
+  });
+});
+
+describe('shouldGraceAsk (Rule 12 time-up grace ask, v4.3)', () => {
+  const base = { timeUp: true, graceAskFired: false, recommendationAsked: false, recommendationDelivered: false };
+
+  it('fires at time-up when no recommendation was ever asked for (Maya c230fe12, Priya 6caca9a1)', () => {
+    expect(shouldGraceAsk(base)).toBe(true);
+  });
+
+  it('does not fire before time-up', () => {
+    expect(shouldGraceAsk({ ...base, timeUp: false })).toBe(false);
+  });
+
+  it('does not fire when a recommendation was already asked for or delivered', () => {
+    expect(shouldGraceAsk({ ...base, recommendationAsked: true })).toBe(false);
+    expect(shouldGraceAsk({ ...base, recommendationDelivered: true })).toBe(false);
+  });
+
+  it('fires once — the turn after the grace ask ends the case', () => {
+    expect(shouldGraceAsk({ ...base, graceAskFired: true })).toBe(false);
   });
 });

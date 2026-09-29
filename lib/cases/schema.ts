@@ -80,7 +80,7 @@ const RubricAnchorSchema = z.object({
 // pacing fall back to an even split (lib/orchestrator/pacing.ts).
 const PacingSchema = z.object({
   phaseBudgetsMs: z.partialRecord(PhaseSchema, z.number().positive()).optional(),
-  timeWarningMs: z.number().positive().optional(), // default 30s, see DEFAULT_TIME_WARNING_MS
+  timeWarningMs: z.number().positive().optional(), // default 90s (text), see DEFAULT_TIME_WARNING_MS
 });
 
 export const CaseSchema = z.object({
