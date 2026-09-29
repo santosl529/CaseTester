@@ -33,6 +33,9 @@ export type PromptContext = {
   // Rule 11 deferral tracking (lib/orchestrator/data-requests.ts): ledger data
   // the candidate asked for that is still unreleased. Labels only, never values.
   openDataRequestsHint?: string;
+  // Rule 17-C4 redirect-and-continue (v4.3): the candidate's message contained
+  // an injection attempt; the turn redirects in one clause and still answers.
+  conductRedirectHint?: string;
 };
 
 // What each phase is for and when to leave it. The model owns pacing; this is
@@ -168,6 +171,7 @@ DATA AND EXHIBITS:
 - If the candidate asks for an exhibit, show it with show_exhibit — a real interviewer hands over the page when asked. Do not re-show an exhibit already on the table.
 - NEVER promise data or an exhibit without delivering it: if your spoken text says you are giving something, the matching reveal_data or show_exhibit call must be in this same turn.
 ${ctx.openDataRequestsHint ? `\n${ctx.openDataRequestsHint}\n` : ''}
+${ctx.conductRedirectHint ? `${ctx.conductRedirectHint}\n` : ''}
 ${ctx.stallGuidance ? `${ctx.stallGuidance}\nThis stall guidance takes priority over the demeanor/rigor defaults for THIS turn.\n` : ''}
 FLOW:
 ${PHASE_GUIDE}

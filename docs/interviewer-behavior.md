@@ -1310,8 +1310,8 @@ warning, and the C5 classifier all exist in code).
 | Time warning | 12 | **Fixed in v4.3** — 90s text-mode default window; time-up grace ask when no ask was ever delivered (would have fired in exactly Maya's and Priya's runs) | Fired 1 of 13 runs; Maya and Priya never asked for a recommendation |
 | Delivery-promise recovery | 10 | **Fixed in v4.3** — "here's the … change/history" handoffs detected; label-token match over unrevealed items; single-open-request fallback before any refusal. All three persona empty releases resolve in tests | Omar 10, Yuki 8, Maya 45/47 |
 | C5 distress detection | 17 | **Fixed in v4.3 (regex)** — Sam's phrasing + hardship disclosures added with C1/C5 boundary tests; offer carries the required elements and a 988 variant for risk-to-self; clock paused from offer to reply. Still regex-only (no model tiebreak); scoring exclusion of the disclosure not built | Sam: no C5 event |
-| C4 redirect | 16, 17 | **Runs, contradicts v4.3** — whole-turn replacement | Priya's same-message requests dropped |
-| C2 directedness | 17 | **Runs, no reported-speech exclusion** | Omar warned for quoting the CEO |
+| C4 redirect | 16, 17 | **Fixed in v4.3** — redirect directive + normal case turn; prompt no longer scripts "I'm not able to help with that" (the source of Priya's lines) | Priya's same-message requests dropped |
+| C2 directedness | 17 | **Fixed in v4.3** — quoted text, reported-speech sentences, and conditional generic-you removed before the lexicon; such hits logged as `C2_excluded`, never warned. Other ambiguity still warns (no model tiebreak) | Omar warned for quoting the CEO |
 | Deferral re-injection + force-release at ask | 11 | Built | OPEN DATA REQUESTS hint; force-release fired in 2 runs |
 | Request enforcement (block unhandled) | 11 | Not built — deliberately deferred (Rule 11) | Review counted 33 unanswered |
 | Attempt counter + error class state | 14 | Not built | Maya: 4 probes on one calculation |

@@ -86,7 +86,7 @@ export const CONDUCT_WARNING = "Let's keep this professional and get back to the
 // C2 second instance / C3 — orchestrator-executed close (no score, no debrief).
 export const CONDUCT_TERMINATION = "We're going to end the session here.";
 // C4 — one neutral redirect; the injection attempt is logged, not punished.
-export const CONDUCT_REDIRECT = "Let's stay on the case.";
+export const CONDUCT_REDIRECT = "Let's keep to the case.";
 // C5 — break persona, acknowledge plainly, offer pause/stop without penalty.
 // Rule 17-C5 required elements (v4.3): plain acknowledgment; the stop option
 // before the continue option; the crisis line when the signal suggests risk to

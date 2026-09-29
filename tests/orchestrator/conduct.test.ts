@@ -42,6 +42,25 @@ describe('classifyConduct', () => {
     it('threshold is directedness — "you are a joke" is C2', () => {
       expect(classifyConduct('you are a joke', 0).category).toBe('C2');
     });
+
+    // Persona run faa999fd (v4.3): Omar quoted a case character and was warned.
+    it('reported speech is never a warning (Omar)', () => {
+      const omar = "Which is interesting, because it explains something in the framing — I gather the CEO basically said you're an idiot if you think it's labor. The data agrees with him. Labor is not the story.";
+      const r = classifyConduct(omar, 0);
+      expect(r.action).toBe('ignore');
+    });
+
+    it.each([
+      'One franchisee told corporate "you are useless" last year.',
+      "You're an idiot if you think price is the only lever.",
+    ])('reported speech / generic "you" never warns: %s', text => {
+      expect(classifyConduct(text, 0).action).toBe('ignore');
+    });
+
+    it('a quote plus a clear directed insult still warns', () => {
+      const r = classifyConduct('The CEO said it was labor. And honestly you are useless.', 0);
+      expect(r.action).toBe('warn');
+    });
   });
 
   describe('C3 — harassment/slurs/threats/sexual (terminate immediately)', () => {

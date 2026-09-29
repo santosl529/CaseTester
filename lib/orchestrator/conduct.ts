@@ -127,6 +127,23 @@ const anyMatch = (patterns: RegExp[], text: string) => patterns.some(p => p.test
 const C2_INSULT = /\b(?:you'?re|you are|u r)\b[^.?!]*\b(stupid|idiot|useless|worthless|dumb|pathetic|garbage|trash|terrible|awful|moron|incompetent|clueless|a joke|the worst(?!\s*-?\s*case)|braindead|brain dead)\b/i;
 const C2_DIRECTED_PROFANITY = /\b(f[uc]+k (you|u|off)|screw you|shut (the )?(f[uc]+k )?up|you (suck|f[uc]+king suck)|go f[uc]+k yourself|piss off|you'?re (an? )?ass)\b/i;
 
+// Rule 17-C2 (v4.3): reported speech and generic "you" are never directed at
+// the interviewer. Persona run faa999fd: "I gather the CEO basically said
+// you're an idiot if you think it's labor" drew a warning, an apology, and a
+// "professionalism lapse" in the report. Quoted text, sentences that report
+// someone else's words, and conditional generic-you ("you're an idiot if you
+// think X") are removed before the C2 lexicons run.
+const REPORTED_SPEECH = /\b(?:said|says|saying|told|tells|telling|called|calls|claimed|claims|thinks|according to|put it|quote)\b/i;
+const GENERIC_YOU = /\b(?:you'?re|you are)\b[^.?!]*\bif (?:you|u)\b/i;
+
+function directedText(text: string): string {
+  return text
+    .replace(/"[^"]*"|“[^”]*”/g, ' ')
+    .split(/(?<=[.!?])\s+/)
+    .filter(s => !REPORTED_SPEECH.test(s) && !GENERIC_YOU.test(s))
+    .join(' ');
+}
+
 // ---- C1: self-directed profanity / frustration → ignore entirely ---------------
 const C1_PROFANITY = /\b(damn|shit|crap|hell|f[uc]+k|f[uc]+king|goddamn|bloody|ass|piss)\b/i;
 
@@ -146,11 +163,16 @@ export function classifyConduct(text: string, priorHostilityWarnings: number): C
     return { category: 'C4', action: 'redirect', reason: 'prompt_injection' };
   }
 
-  if (C2_INSULT.test(text) || C2_DIRECTED_PROFANITY.test(text)) {
+  const directed = directedText(text);
+  if (C2_INSULT.test(directed) || C2_DIRECTED_PROFANITY.test(directed)) {
     // First instance warns; a second directed-hostility instance terminates.
     return priorHostilityWarnings >= 1
       ? { category: 'C2', action: 'terminate', reason: 'directed_hostility_repeat' }
       : { category: 'C2', action: 'warn', reason: 'directed_hostility_first' };
+  }
+  // The lexicon matched only quoted/reported/generic-you text: log, never warn.
+  if (C2_INSULT.test(text) || C2_DIRECTED_PROFANITY.test(text)) {
+    return { category: 'C2', action: 'ignore', reason: 'reported_or_generic_you' };
   }
 
   // Undirected profanity with no directedness, distress, or injection: normal
