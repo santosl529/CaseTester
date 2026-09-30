@@ -1229,9 +1229,11 @@ undefined).** The session is scored, with constraints:
   (Sam's report praised her "notable composure resuming … after a distressing
   personal disclosure" — scoring her crisis handling).
 - Time lost to the C5 exchange is not counted against coverage.
-- Open product decision (not yet normative): offering to discard the report so
-  it is not kept on the candidate's record. That is a deletion feature with
-  RLS/retention implications; decide before building.
+- Report discard (offering to discard the report so it is not kept on the
+  candidate's record): **decided 2026-09-29 — not built for the pilot.** The
+  session is scored normally with the C5 exchange excluded. Revisit if pilot
+  users ask for it; "hide from my history" is the cheap first step, true
+  deletion needs a retention decision.
 
 **Decision table:**
 

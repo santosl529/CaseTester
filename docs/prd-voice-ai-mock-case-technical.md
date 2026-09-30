@@ -424,5 +424,5 @@ And the structural one this whole doc is organized around:
 - Audio storage / retention policy specifics (default: don't store).
 - Exact per-user case cap during validation.
 - drizzle vs. raw Supabase migrations (agent may choose; flag it).
-- C5 report discard (behavior doc Rule 17-C5, v4.3): should a candidate who continues after a distress disclosure be offered to discard the report so it isn't kept on their record? A deletion feature with RLS/retention implications — product decision pending.
+- C5 report discard (behavior doc Rule 17-C5, v4.3): **decided 2026-09-29 — not built for the pilot**; a candidate who continues after a distress disclosure is scored normally with the C5 exchange excluded. Revisit if pilot users ask ("hide from my history" first; true deletion needs a retention decision).
 - Live recompute recall: the v4.3 span matcher produced zero false flags across the 13 persona runs, but the corpus held no genuine dollar-impact or per-store errors, so its hit rate on real errors is measured only by unit tests. Confirm in the next persona cycle (Sofia, Jordan, Tyler) before relying on it.
