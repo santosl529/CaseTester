@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import { z } from 'zod';
 import type { Case } from '@/lib/cases/schema';
 import { RUBRIC_PROMPT_TEXT, RUBRIC_DIMENSION_KEYS, CANDIDATE_REFERENCE_RULE, type Rating } from './rubric';
@@ -52,6 +53,19 @@ export const RubricScoresSchema = z.object({
 });
 
 export type RubricScores = z.infer<typeof RubricScoresSchema>;
+
+// Structured output: the API constrains the judge's reply to this schema. A
+// prompt-only "respond with ONLY valid JSON" let the judge open with prose
+// (run 2, 30 Sep: "Let me work through the candidate's math…"), which failed
+// the parse and left the session unscored.
+export const JUDGE_OUTPUT_FORMAT = zodOutputFormat(RubricScoresSchema);
+
+// parsed_output is null only when the reply has no text block (a refusal, an
+// empty reply); a text block that doesn't match the schema throws in the SDK.
+export function readJudgeOutput(message: { parsed_output: RubricScores | null; stop_reason: string | null }): RubricScores {
+  if (!message.parsed_output) throw new Error(`Judge returned no structured output (stop_reason: ${message.stop_reason})`);
+  return message.parsed_output;
+}
 
 type TranscriptTurn = { role: string; text: string; turnIndex: number };
 
@@ -204,10 +218,11 @@ ${dimensionJsonLines}
   "topFix": "..."
 }`;
 
-  const response = await client.messages.create({
+  const response = await client.messages.parse({
     model: 'claude-opus-4-8',
     max_tokens: 8192,
     messages: [{ role: 'user', content: prompt }],
+    output_config: { format: JUDGE_OUTPUT_FORMAT },
   });
   onUsage?.({
     component: 'judge',
@@ -216,12 +231,5 @@ ${dimensionJsonLines}
     outputTokens: response.usage.output_tokens,
   });
 
-  const raw = (response.content[0] as { type: 'text'; text: string }).text;
-  // Strip markdown fences if Opus wraps its response
-  const jsonText = raw.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim();
-  try {
-    return RubricScoresSchema.parse(JSON.parse(jsonText));
-  } catch (err) {
-    throw new Error(`Judge returned invalid output: ${err instanceof Error ? err.message : err}\nRaw response:\n${raw}`);
-  }
+  return readJudgeOutput(response);
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { collectClaims, applyVerdicts, buildVerifierFacts, type Verdict } from '@/lib/scoring/verifier';
+import { collectClaims, applyVerdicts, buildVerifierFacts, VERIFIER_OUTPUT_FORMAT, type Verdict } from '@/lib/scoring/verifier';
 import { RUBRIC_DIMENSION_KEYS } from '@/lib/scoring/rubric';
 import type { RubricScores, DimensionFeedback } from '@/lib/scoring/judge';
 
@@ -111,5 +111,12 @@ describe('buildVerifierFacts (error-claim verifier, v4.3)', () => {
     expect(facts).toContain('CORRECT');
     expect(facts).not.toContain('five');
     expect(facts).toContain('INTERVIEWER ERRORS');
+  });
+});
+
+describe('verifier structured output', () => {
+  it('round-trips verdicts through the output format', () => {
+    const verdicts = { verdicts: [{ id: 1, supported: false, reason: 'Transcript contradicts it.' }] };
+    expect(VERIFIER_OUTPUT_FORMAT.parse(JSON.stringify(verdicts))).toEqual(verdicts);
   });
 });

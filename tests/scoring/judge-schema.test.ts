@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { RubricScoresSchema } from '@/lib/scoring/judge';
+import { RubricScoresSchema, JUDGE_OUTPUT_FORMAT, readJudgeOutput } from '@/lib/scoring/judge';
 import { RUBRIC_DIMENSION_KEYS } from '@/lib/scoring/rubric';
 
 const validDimension = {
@@ -43,5 +43,23 @@ describe('RubricScoresSchema', () => {
       topFix: 'x',
     };
     expect(RubricScoresSchema.safeParse(legacy).success).toBe(false);
+  });
+});
+
+// Run 2 (Tobias, 30 Sep) crashed scoring: the judge opened with prose ("Let me
+// work through the candidate's math…") before its JSON. The judge now asks the
+// API for structured output, which constrains decoding to this schema.
+describe('judge structured output', () => {
+  it('round-trips a complete judge response through the output format', () => {
+    expect(JUDGE_OUTPUT_FORMAT.parse(JSON.stringify(validScores()))).toEqual(validScores());
+  });
+
+  it('returns the parsed rubric', () => {
+    const scores = RubricScoresSchema.parse(validScores());
+    expect(readJudgeOutput({ parsed_output: scores, stop_reason: 'end_turn' })).toBe(scores);
+  });
+
+  it('names the stop reason when nothing parsed (refusal, empty reply)', () => {
+    expect(() => readJudgeOutput({ parsed_output: null, stop_reason: 'refusal' })).toThrow(/refusal/);
   });
 });

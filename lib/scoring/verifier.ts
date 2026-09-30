@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import { z } from 'zod';
 import type { RubricScores } from './judge';
 import { RUBRIC_DIMENSION_KEYS } from './rubric';
@@ -30,6 +31,10 @@ const VerdictsSchema = z.object({
     reason: z.string(),
   })),
 });
+
+// Structured output, as for the judge (judge.ts JUDGE_OUTPUT_FORMAT): the API
+// constrains the reply to this schema instead of a prompt-only JSON request.
+export const VERIFIER_OUTPUT_FORMAT = zodOutputFormat(VerdictsSchema);
 
 export function collectClaims(rubric: RubricScores): Claim[] {
   const claims: Claim[] = [];
@@ -155,27 +160,27 @@ Respond with ONLY valid JSON:
 { "verdicts": [{ "id": 1, "supported": true, "reason": "..." }, ...] }
 Include a verdict for every claim.`;
 
-  const response = await client.messages.create({
-    model: 'claude-opus-4-8',
-    max_tokens: 4096,
-    messages: [{ role: 'user', content: prompt }],
-  });
-  onUsage?.({
-    component: 'verifier',
-    model: 'claude-opus-4-8',
-    inputTokens: response.usage.input_tokens,
-    outputTokens: response.usage.output_tokens,
-  });
-
-  const raw = (response.content[0] as { type: 'text'; text: string }).text;
-  const jsonText = raw.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim();
+  // A broken verifier response must not block the report — ship unverified
+  // rather than fail scoring; the caller logs this.
+  let verdicts: Verdict[];
   try {
-    const { verdicts } = VerdictsSchema.parse(JSON.parse(jsonText));
-    return applyVerdicts(rubric, claims, verdicts);
+    const response = await client.messages.parse({
+      model: 'claude-opus-4-8',
+      max_tokens: 4096,
+      messages: [{ role: 'user', content: prompt }],
+      output_config: { format: VERIFIER_OUTPUT_FORMAT },
+    });
+    onUsage?.({
+      component: 'verifier',
+      model: 'claude-opus-4-8',
+      inputTokens: response.usage.input_tokens,
+      outputTokens: response.usage.output_tokens,
+    });
+    if (!response.parsed_output) throw new Error(`no structured output (stop_reason: ${response.stop_reason})`);
+    verdicts = response.parsed_output.verdicts;
   } catch (err) {
-    // A broken verifier response must not block the report — ship unverified
-    // rather than fail scoring; the caller logs this.
     console.error('[verifier] invalid response, skipping verification:', err instanceof Error ? err.message : err);
     return { rubric, dropped: [] };
   }
+  return applyVerdicts(rubric, claims, verdicts);
 }
