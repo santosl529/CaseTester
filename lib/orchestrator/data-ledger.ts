@@ -4,7 +4,7 @@ export type LedgerItem = {
   id: string;
   label: string;
   value: string;
-  releaseWhen: Phase; // advisory pacing hint for case authors; not enforced
+  releaseWhen: Phase; // pacing hint; enforced only by Rule 11 same-turn resolution (data-requests.ts), not on the model's reveals
 };
 
 export type DataLedger = {

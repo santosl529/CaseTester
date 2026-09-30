@@ -1,4 +1,17 @@
-# Interviewer Behavior Rules (v4.3)
+# Interviewer Behavior Rules (v4.4)
+
+**v4.4 changes (batch-2 persona runs, 29–30 Sep 2026):** Rule 11 gains
+same-turn resolution. Batch 2 still left 23 requests for held ledger data
+unanswered (27 in batch 1), and candidates had to ask twice. The candidate
+message is now classified for data requests in parallel with the interviewer
+call; if the draft turn ignored a request for held data, the orchestrator
+releases the item when the case has reached its `releaseWhen` stage, and
+otherwise defers out loud with a scripted line, before the turn is sent. This
+supersedes the v4.3 "Logging is not enforcement" position for ignored
+requests: the turn is repaired in code, not regenerated, so the latency
+objection does not apply. `releaseWhen` is now enforced for this path (it
+stays advisory for the model's own reveals). Untested in a live run as of
+this version.
 
 **v4.3 changes (persona-run review, 13 runs / 11 personas, 27–28 Sep 2026):**
 integrates the external v3.5 review (`feedback/interviewer-behavior-v3.5.md`,
@@ -31,8 +44,9 @@ difference is noted inline.
    unrevealed $480M and delivered the turn anyway — a live FR-4 violation.
 Plus: Part V gains an implementation-status register so the enforcement table
 stops claiming enforcement that doesn't exist. Not adopted from v3.5:
-blocking every turn on the soft request classifier (Rule 11 — see "Logging is
-not enforcement").
+blocking every turn on the soft request classifier (Rule 11; v4.4 later
+enforces ignored requests by repairing the turn instead — see "Same-turn
+resolution").
 
 **v4.2 changes (text-mode silence):** silence handling is no longer voice-only.
 The text channel reports candidate silence (typing is not silence); after the
@@ -768,8 +782,9 @@ conclusion there is fair game for scoring. Data that exists and was withheld or
 ignored is a coverage gap. The caveat is scoped to conclusions that **rest on**
 the unanswered request — it is not a blanket excuse for the dimension, and data
 the candidate never asked for earns no caveat. The ledger side of this
-distinction is deterministic: `releaseWhen` is advisory, not enforced, so
-available data that went unreleased was always the interviewer's choice.
+distinction is deterministic: the model's own reveals are not gated by
+`releaseWhen` (only same-turn resolution, v4.4, uses it), so available data
+that went unreleased was always the interviewer's choice.
 
 **Cross-reference:** what data exists is governed by the ledger
 (`docs/case-authoring.md`); how its absence is communicated is governed here.
@@ -796,33 +811,51 @@ own — the runner classifies the current candidate message synchronously and
 force-releases up to two open ledger requests before the ask
 (`composeForcedReleaseTurn`), so the worked conflict resolution above is
 enforced in code, not only prompted. Scoring-side split: `docs/scoring-qa.md`.
-Not built: forced refusal of requests for data not in the ledger (it would mean
-speaking classifier-generated text — logged only), and any check that a
-deferral was actually spoken (deferral itself is prompt-level). Known cost: the
+Every other turn gets **same-turn resolution (v4.4)**, below. Not built: forced
+refusal of requests for data not in the ledger (it would mean speaking
+classifier-generated text — logged only). Known cost: the
 synchronous classification adds one Haiku call to ask turns, and a classifier
 false positive can release a ledger item the candidate didn't ask for — at the
 recommendation ask, where early release is least harmful.
 
-**Logging is not enforcement (v4.3).** The v3.5 review counted 33 unanswered
-requests for available data across 10 of 11 persona runs — detected and
-logged, not stopped — and proposed blocking every interviewer turn while a
-request from the previous candidate turn is unhandled. **Not adopted as
-written:** request detection is a soft signal (above), so a per-turn block
-converts every classifier false positive into a regenerated Opus turn — a
-latency cost on every affected turn now and a direct conflict with the M2
-turn-latency budget later. Enforcement is instead placed where the signal is
-reliable:
+**Same-turn resolution (v4.4).** Logging did not stop the failure: batch 2
+(29–30 Sep, after the v4.3 fixes) still left 23 requests for held data
+unanswered, against 27 in batch 1, and the typical pattern was the candidate
+asking again and getting the data a turn or two late. The v3.5 review's
+proposal — block every turn while a request is unhandled and regenerate the
+Opus turn — was rejected in v4.3 for latency. v4.4 enforces without
+regenerating:
 
-- **Delivery promises** (Rule 10 backstop) — deterministic, already per-turn;
-  fixing its recall (Rule 10, v4.3) covers the empty-release subset.
-- **Recommendation ask** — force-release already enforced (above).
-- **Open deferrals** — re-injected every turn (built). Non-responses are
-  already logged: the request classifier labels each request's response
-  (`release` / `refuse` / `defer` / `clarify` / `none`), and `none` is the
-  non-response the review counted. No separate check is needed.
-- **Revisit blocking** once the classifier's false-positive rate on the
-  persona corpus is measured; if it is low enough, per-turn blocking becomes
-  the rule.
+1. When the candidate message arrives, the request classifier runs in
+   **detection-only mode** (candidate text only, no response labels) in
+   parallel with the interviewer call. It adds latency only when it outlasts
+   the Opus turn.
+2. After the draft turn is assembled (tool actions, exhibit and promise
+   recovery), each detected request for a held ledger item that is still
+   unrevealed is resolved in code, unless the draft already responded — a
+   deterministic cue for a deferral ("come back to", "shortly"), a refusal
+   ("don't have"), or a clarification ("which cut", "do you mean"):
+   - **Release** the item if the case has reached its `releaseWhen` stage
+     (the later of the turn's start and end phase), with a scripted,
+     numeral-free lead-in. At most two items per turn.
+   - **Defer** out loud with a scripted line ("I'll come to that
+     shortly") for items whose stage isn't reached, and for any over the cap.
+     The deferral is then tracked like any other: re-injected as an OPEN DATA
+     REQUEST and force-resolved before the recommendation ask.
+3. The addition is placed before the question the draft ends on, so the turn
+   still hands the floor back.
+
+Recommendation-ask turns skip this and keep the synchronous classification +
+force-release above. Requests for data not in the ledger are left to the
+model (refusing them would mean speaking classifier-generated text).
+
+Known costs: one extra Haiku call per turn (the background response
+classification still runs, and now sees the repaired turn). A classifier false
+positive can release a ledger item the candidate didn't ask for — only an item
+already at its stage. The response-cue check is coarse: a false cue skips the
+repair and falls back to the pre-v4.4 behavior (logged, not resolved).
+`releaseWhen` is enforced only on this path; the model's own `reveal_data`
+calls are still ungated by stage.
 
 ## 12. Case close and time-boxing are deterministic
 
@@ -1312,7 +1345,7 @@ undefined).** The session is scored, with constraints:
 | 18 | Termination mechanics | closing sentence only | orchestrator-executed close; no scores, no debrief; post-termination messages get no response |
 | 19 | Pause mechanics | pause offer script (C5) | state preservation; pause-interval exclusion; **clock paused during the C5 exchange**; abandoned ≠ failed in analytics |
 
-## Implementation status register (v4.3)
+## Implementation status register (v4.4)
 
 The table above states what each rule's backstop *should* be. The persona runs
 (13 sessions, 11 personas, 27–28 Sep 2026, on code including every commit
@@ -1332,7 +1365,7 @@ warning, and the C5 classifier all exist in code).
 | C4 redirect | 16, 17 | **Fixed in v4.3** — redirect directive + normal case turn; prompt no longer scripts "I'm not able to help with that" (the source of Priya's lines) | Priya's same-message requests dropped |
 | C2 directedness | 17 | **Fixed in v4.3** — quoted text, reported-speech sentences, and conditional generic-you removed before the lexicon; such hits logged as `C2_excluded`, never warned. Other ambiguity still warns (no model tiebreak) | Omar warned for quoting the CEO |
 | Deferral re-injection + force-release at ask | 11 | Built | OPEN DATA REQUESTS hint; force-release fired in 2 runs |
-| Request enforcement (block unhandled) | 11 | Not built — deliberately deferred (Rule 11) | Review counted 33 unanswered |
+| Request enforcement (same-turn resolution) | 11 | **Built in v4.4, untested live** — detection in parallel with the interviewer call; ignored held-data requests released at their `releaseWhen` stage or deferred out loud, before the turn is sent (no regeneration) | Review counted 33 unanswered; batch 2 still 23 |
 | Attempt counter + error class state | 14 | **Built in v4.3** for `mathSteps` errors (probe → supply → fast path); not for errors outside the steps; repeated-error-class shortcut not built | Maya: 4 probes on one calculation |
 | Scoring-check source spans | 3 | **Built in v4.3** — `checkMathSteps` uses the same spans, skips steps with never-revealed inputs; the judge sees each span | Per-store check false in 10 of 11 reports (review's count) |
 | Error-claim verifier | 3 | **Built in v4.3** — inside the omission verifier's call, fed span-checked correct figures | Sam's Top Improvement |
