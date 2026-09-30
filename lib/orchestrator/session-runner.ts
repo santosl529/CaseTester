@@ -3,6 +3,7 @@ import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } fr
 import { and, eq } from 'drizzle-orm';
 import {
   classifyDataRequests, formatOpenRequestsHint, planForcedReleases, composeForcedReleaseTurn, dropTrailingQuestions,
+  planSameTurnResolution, insertBeforeTrailingQuestions,
 } from './data-requests';
 import { logDataRequestClassification } from './data-request-log';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
@@ -24,13 +25,14 @@ import {
 } from './silence';
 import { classifyConduct, isPauseAccepted, isRiskToSelf } from './conduct';
 import { logEvent } from '@/lib/analytics';
-import { nextPhase, TOTAL_CASE_MS, type Phase } from './state-machine';
+import { nextPhase, PHASES, TOTAL_CASE_MS, type Phase } from './state-machine';
 import { inferPhaseRepair } from './phase-repair';
 import { resolveSpokenClose } from './spoken-close';
 import { runInterviewerTurn } from '@/lib/agent/interviewer';
 import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import {
   TIME_WARNING_SCRIPTS, GRACE_ASK_SCRIPTS, CLOSE_SCRIPTS, REVEAL_REFUSAL_SCRIPTS, EXHIBIT_REFUSAL_SCRIPTS, FORCED_RELEASE_LEADINS,
+  SAME_TURN_RELEASE_LEADINS, SAME_TURN_DEFER_SCRIPTS,
   pickScript, alreadySignaledTimeOrRec, asksForRecommendation, hasCloseCue,
   CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE, SILENCE_PAUSE_EXPIRED,
 } from '@/lib/agent/prompts/scripts';
@@ -272,6 +274,16 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     content: t.text,
   }));
 
+  // Rule 11 same-turn resolution (v4.4): detect this message's data requests
+  // in parallel with the interviewer call, so the draft can be checked before
+  // it is sent. Never rejects (classifyDataRequests fails open to null).
+  const detectedRequestsPromise = classifyDataRequests({
+    candidateText,
+    interviewerText: null,
+    catalog,
+    onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId: session.userId }); },
+  });
+
   console.log('[runner] phase:', currentPhase, 'stall rung:', stallDecision.intervene ? stallDecision.rung : 'none');
   // PRD §13: per-turn latency + token usage. The correction loop can make
   // multiple API calls per turn — onUsage fires per call, so sum here.
@@ -484,6 +496,40 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   // background log can't see yet. One Haiku call, only on ask turns.
   const warningDue = shouldFireTimeWarning && !ended;
   const modelAsked = !ended && alreadySignaledTimeOrRec(spokenText);
+
+  // Rule 11 same-turn resolution (v4.4): a request in this message for held
+  // data that the draft ignored is released if the case has reached the item's
+  // stage, else deferred out loud — before the turn is sent, so the candidate
+  // never has to ask twice. Recommendation-ask turns skip this: the forced
+  // release below resolves every open request there.
+  if (!ended && !warningDue && !modelAsked) {
+    const detected = await detectedRequestsPromise;
+    if (detected && detected.length > 0) {
+      const phase = PHASES.indexOf(nextPhaseValue) > PHASES.indexOf(currentPhase) ? nextPhaseValue : currentPhase;
+      const plan = planSameTurnResolution({
+        requests: detected,
+        revealedIds: new Set(Object.keys(revealedValues(ledger))),
+        phase,
+        releaseWhenById: new Map(caseData.dataLedger.map(d => [d.id, d.releaseWhen as Phase])),
+        spokenText,
+      });
+      const values = plan.releaseIds.filter(id => canReveal(ledger, id)).map(id => {
+        newReveals.push(id);
+        return reveal(ledger, id);
+      });
+      const parts = [
+        ...(values.length > 0 ? [pickScript(SAME_TURN_RELEASE_LEADINS, sessionId), ...values] : []),
+        ...(plan.defer ? [pickScript(SAME_TURN_DEFER_SCRIPTS, sessionId)] : []),
+      ];
+      if (parts.length > 0) {
+        spokenText = insertBeforeTrailingQuestions(spokenText, parts.join(' '));
+        console.warn('[runner] same-turn data request resolution:', JSON.stringify({ released: plan.releaseIds, deferred: plan.defer, phase }));
+        await logEvent('data_same_turn_resolved', { itemIds: plan.releaseIds, deferred: plan.defer, phase: currentPhase },
+          { sessionId, userId: session.userId });
+      }
+    }
+  }
+
   const forcedReleaseValues: string[] = [];
   let dataRequestsClassified = false;
   if (warningDue || modelAsked) {

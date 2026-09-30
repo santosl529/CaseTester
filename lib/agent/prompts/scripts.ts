@@ -51,6 +51,21 @@ export const FORCED_RELEASE_LEADINS = [
   "Picking up what you asked about before:",
 ];
 
+// Rule 11 same-turn resolution (v4.4): lead-in before ledger data the
+// candidate asked for in this message that the draft turn ignored, and the
+// scripted defer when the item's stage isn't reached yet. Numeral-free (Rule 6).
+export const SAME_TURN_RELEASE_LEADINS = [
+  "On what you asked for:",
+  "You asked about that —",
+  "To your question on the data:",
+];
+
+export const SAME_TURN_DEFER_SCRIPTS = [
+  "On the data you asked for — I'll come to that shortly.",
+  "Hold that request; I'll come back to it shortly.",
+  "I'll come to that data shortly.",
+];
+
 export const CLOSE_SCRIPTS = [
   "That's time. Thanks for working through it.",
   "We'll stop there. Thanks for working through the case.",

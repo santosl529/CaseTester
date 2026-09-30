@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { OnUsage } from '@/lib/llm-usage';
 import type { RequestedUnanswered } from '@/lib/scoring/data-coverage';
+import { PHASES, type Phase } from './state-machine';
 
 // Rule 11 (docs/interviewer-behavior.md v4.1): every candidate data request is
 // released, refused, or audibly deferred — never ignored. Run 4 had two silent
@@ -81,40 +82,50 @@ export function parseDataRequestResponse(raw: string, catalog: LedgerCatalogItem
   return out;
 }
 
+// interviewerText null = detection only: the candidate message arrives, the
+// interviewer turn is not written yet (same-turn resolution below), so there is
+// no response to label.
 export function buildDataRequestPrompt(
   candidateText: string,
-  interviewerText: string,
+  interviewerText: string | null,
   catalog: LedgerCatalogItem[],
 ): string {
   const catalogLines = catalog.length > 0
     ? catalog.map(c => `- ${c.id}: ${c.label}`).join('\n')
     : '- (none)';
+  const detectOnly = interviewerText === null;
 
-  return `You are auditing one exchange in a mock case interview. Identify every DATA REQUEST the candidate made, and how the interviewer's very next turn handled each one.
-
-A data request is the candidate asking the interviewer to provide information about the case: numbers, trends, breakdowns, an exhibit, or case facts ("Do we have the gross margin trend?", "What happened to menu prices?", "What does the product mix data show?"). NOT a request: rhetorical questions, hypotheses the candidate poses to themselves, checking whether their reasoning makes sense ("Does that framework make sense?"), asking for feedback, or stating or restating a figure they already have ("COGS is 58% of revenue, so a 5% cut is 2.9 points").
-
-For each request, give:
-- "what": a short description of the information asked for.
-- "ledgerItemIds": every id from the CASE DATA CATALOG below whose label covers part of what was asked for — a broad request ("what's inside COGS?") can cover several items. Empty array if nothing in the catalog covers it. Use only ids from the catalog.
+  const responseSpec = detectOnly ? '' : `
 - "response": how the interviewer's next turn handled it:
   - "release": provided the requested information.
   - "refuse": said plainly the information isn't available.
   - "defer": explicitly said to hold it and come back to it later.
   - "clarify": asked which cut or metric the candidate means.
-  - "none": anything else — ignored it, moved on to another question, or gave different information than was asked for.
+  - "none": anything else — ignored it, moved on to another question, or gave different information than was asked for.`;
+  const interviewerSection = detectOnly ? '' : `
+
+INTERVIEWER'S NEXT TURN:
+${interviewerText}`;
+  const shape = detectOnly
+    ? '{"requests":[{"what":"...","ledgerItemIds":["id", ...]}]}'
+    : '{"requests":[{"what":"...","ledgerItemIds":["id", ...],"response":"release|refuse|defer|clarify|none"}]}';
+
+  return `You are auditing one ${detectOnly ? 'candidate message' : 'exchange'} in a mock case interview. Identify every DATA REQUEST the candidate made${detectOnly ? '' : ', and how the interviewer\'s very next turn handled each one'}.
+
+A data request is the candidate asking the interviewer to provide information about the case: numbers, trends, breakdowns, an exhibit, or case facts ("Do we have the gross margin trend?", "What happened to menu prices?", "What does the product mix data show?"). NOT a request: rhetorical questions, hypotheses the candidate poses to themselves, checking whether their reasoning makes sense ("Does that framework make sense?"), asking for feedback, or stating or restating a figure they already have ("COGS is 58% of revenue, so a 5% cut is 2.9 points").
+
+For each request, give:
+- "what": a short description of the information asked for.
+- "ledgerItemIds": every id from the CASE DATA CATALOG below whose label covers part of what was asked for — a broad request ("what's inside COGS?") can cover several items. Empty array if nothing in the catalog covers it. Use only ids from the catalog.${responseSpec}
 
 CASE DATA CATALOG (id: label):
 ${catalogLines}
 
 CANDIDATE TURN:
-${candidateText}
-
-INTERVIEWER'S NEXT TURN:
-${interviewerText}
+${candidateText}${interviewerSection}
 
 Respond with ONLY this JSON (empty array if the candidate made no data request):
-{"requests":[{"what":"...","ledgerItemIds":["id", ...],"response":"release|refuse|defer|clarify|none"}]}`;
+${shape}`;
 }
 
 export function toDataRequestEvents(
@@ -220,6 +231,56 @@ export function planForcedReleases(
     .map(g => g.ledgerItemId);
 }
 
+// ── Same-turn resolution (Rule 11, v4.4) ────────────────────────────────────
+// Batch 2 (29–30 Sep) still left 23 requests for held data unanswered, and the
+// candidate had to ask again to get them. The candidate message is now
+// classified (detection only) in parallel with the interviewer call, and a
+// request the draft turn ignored is resolved in code before the turn is sent:
+// released if the case has reached the item's releaseWhen stage, otherwise
+// deferred out loud. No regenerated Opus turn, so no added latency beyond the
+// Haiku call when it outlasts the interviewer's.
+
+const RESPONDED_CUE =
+  /\b(come back to|get to (that|it)|circle back|hold (that|off|on)|in a (moment|minute|bit)|shortly|don'?t have|not available|isn'?t available|isn'?t something I have|no data on|which (cut|metric|breakdown)|do you mean)\b/i;
+
+// The draft already released, refused, deferred, or asked which cut — the
+// model handled it; leave the turn alone. Coarse on purpose: a false cue only
+// falls back to the pre-v4.4 behavior (logged, not resolved).
+export function respondsToRequest(spokenText: string): boolean {
+  return RESPONDED_CUE.test(spokenText);
+}
+
+export function planSameTurnResolution(params: {
+  requests: DetectedDataRequest[];
+  revealedIds: Set<string>;         // before and during this turn
+  phase: Phase;                     // the later of the turn's start and end phase
+  releaseWhenById: Map<string, Phase>;
+  spokenText: string;
+  cap?: number;
+}): { releaseIds: string[]; defer: boolean } {
+  const { requests, revealedIds, phase, releaseWhenById, spokenText, cap = 2 } = params;
+  const none = { releaseIds: [], defer: false };
+  if (respondsToRequest(spokenText)) return none;
+
+  const open = [...new Set(requests.flatMap(r => r.ledgerItemIds))]
+    .filter(id => releaseWhenById.has(id) && !revealedIds.has(id));
+  if (open.length === 0) return none;
+
+  const reached = (id: string) => PHASES.indexOf(phase) >= PHASES.indexOf(releaseWhenById.get(id)!);
+  const releasable = open.filter(reached);
+  const releaseIds = releasable.slice(0, cap);
+  return { releaseIds, defer: releaseIds.length < open.length };
+}
+
+// Released data and the defer line go before the question the draft ends on,
+// so the turn still ends by handing the floor back.
+export function insertBeforeTrailingQuestions(text: string, addition: string): string {
+  const sentences = text.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+  let i = sentences.length;
+  while (i > 0 && sentences[i - 1].trim().endsWith('?')) i--;
+  return [...sentences.slice(0, i), addition.trim(), ...sentences.slice(i)].join(' ');
+}
+
 // When the orchestrator appends the scripted recommendation ask, a question
 // the model left at the end of its turn is superseded — keeping both stacks two
 // asks and leaves one hanging (live run eca39ec7, 4:40: "What specifically do
@@ -259,7 +320,7 @@ export function composeForcedReleaseTurn(params: {
 
 export async function classifyDataRequests(params: {
   candidateText: string;
-  interviewerText: string;
+  interviewerText: string | null; // null = detection only (same-turn resolution)
   catalog: LedgerCatalogItem[];
   onUsage?: OnUsage; // lib/llm-usage.ts — token reporting for $/case (PRD §13)
 }): Promise<DetectedDataRequest[] | null> {
