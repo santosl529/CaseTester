@@ -3,12 +3,15 @@
 // orchestrator runs every turn, the turn route's background passes run the way
 // after() schedules them (fired, not awaited, so they lag a turn), then the
 // real scoring pipeline scores the session. Saves the transcript, feedback,
-// Rule 11 audit rows, and scoring-QA metrics to "Case Interview Runs/".
+// Rule 11 audit rows, and scoring-QA metrics to "Case Interview Runs/" — a
+// persona run under test runs/<batch>/<NN-name>/, the default candidate under
+// default-candidate/.
 //
-//   npx tsx --env-file=.env.local scripts/live-run.ts [caseId] [--persona=N] [--pace=human] [--wpm=90] [--think-ms=8000]
+//   npx tsx --env-file=.env.local scripts/live-run.ts [caseId] [--persona=N --batch=NAME] [--pace=human] [--wpm=90] [--think-ms=8000]
 //
 // --persona=N plays pressure-test persona N (scripts/personas.ts) instead of
-// the default solid-but-unpolished candidate.
+// the default solid-but-unpolished candidate. --batch names the test-runs
+// folder the run belongs to (e.g. batch-3-oct-02); required with --persona.
 //
 // --pace=human paces the candidate like a person (think + type time before each
 // message). Without it the simulator answers in seconds and the case finishes
@@ -45,7 +48,7 @@ import { getPersona, type Persona } from './personas';
 const CANDIDATE_MODEL = 'claude-opus-5';
 const MAX_TURNS = 60; // human pacing on a 20-minute clock can exceed 30 turns
 const MAX_WALL_MS = 30 * 60_000; // the case clock is 20 minutes; this only guards a hang
-const OUT_DIR = path.resolve('Case Interview Runs');
+const RUNS_DIR = path.resolve('Case Interview Runs');
 
 // Human pacing. The simulator replies in ~7s, so fast runs finish every stage
 // long before the clock: the time warning, the time-up close, Rule 15 load
@@ -59,6 +62,14 @@ const THINK_MS = Number(flag('think-ms') ?? 8000);
 const MAX_TURN_DELAY_MS = 90_000;
 const MAX_PAUSE_MS = 600_000;
 const PERSONA: Persona | null = flag('persona') ? getPersona(Number(flag('persona'))) : null;
+
+const BATCH = flag('batch');
+if (PERSONA && !BATCH) throw new Error('--persona runs need --batch=NAME (the "test runs/" subfolder)');
+
+// "Maya — the Freezer" (id 1) → test runs/<batch>/01-maya-the-freezer
+const OUT_DIR = PERSONA
+  ? path.join(RUNS_DIR, 'test runs', BATCH!, `${String(PERSONA.id).padStart(2, '0')}-${PERSONA.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`)
+  : path.join(RUNS_DIR, 'default-candidate');
 
 function humanDelayMs(text: string): number {
   const words = text.trim().split(/\s+/).length;
@@ -270,7 +281,7 @@ async function writeArtifacts(sessionId: string, caseTitle: string) {
   }
 
   const date = new Date().toISOString().slice(0, 10);
-  const base = `live-run-${date}-${PERSONA ? `p${String(PERSONA.id).padStart(2, '0')}-` : ''}${sessionId.slice(0, 8)}`;
+  const base = `live-run-${date}-${sessionId.slice(0, 8)}`;
   await mkdir(OUT_DIR, { recursive: true });
 
   const md: string[] = [];
