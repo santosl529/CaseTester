@@ -117,6 +117,11 @@
     background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 22px 26px 26px;
     min-height: 400px;
   }
+  .fig { margin: 4px 0 18px; }
+  .fig svg { width: 100%; height: auto; display: block; color: var(--text); font-family: inherit; }
+  .fig figcaption { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .fig-scroll { overflow-x: auto; }
+  .fig-scroll svg { min-width: 560px; }
   .crumbs { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
   .crumbs a { color: var(--accent); cursor: pointer; text-decoration: none; }
   .detail h2 { margin: 0 0 6px; font-size: 21px; }
@@ -849,6 +854,205 @@ const TREE = {
   ]
 };
 
+
+// ───────────── flow charts (hand-drawn inline SVG)
+// Boxes and arrows inherit the page text colour; only the meaningful kinds get a hue:
+// AI steps purple, new steps green, failure exits amber, the student blue.
+const KIND = { code: 'currentColor', ai: 'var(--model)', new: 'var(--new)', warn: 'var(--warn)', person: 'var(--accent)', store: 'currentColor' };
+function fig(w, h, claim, inner) {
+  const aria = claim.replace(/<[^>]+>/g, '').replace(/"/g, '&quot;');
+  return `<figure class="fig"><div class="fig-scroll"><svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${aria}">${inner}</svg></div><figcaption>${claim}</figcaption></figure>`;
+}
+function box(x, y, w, h, title, sub = '', kind = 'code') {
+  const faint = kind === 'code' || kind === 'store' ? 'stroke-opacity:.5;' : '';
+  const dash = kind === 'store' ? 'stroke-dasharray:5 4;' : '';
+  const cx = x + w / 2;
+  const ty = sub ? y + h / 2 - 3 : y + h / 2 + 4.5;
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="7" style="fill:var(--panel);stroke:${KIND[kind]};stroke-width:1.6;${faint}${dash}"/>`
+    + `<text x="${cx}" y="${ty}" text-anchor="middle" style="fill:currentColor;font-size:13px;font-weight:600">${title}</text>`
+    + (sub ? `<text x="${cx}" y="${y + h / 2 + 13}" text-anchor="middle" style="fill:currentColor;fill-opacity:.65;font-size:11px">${sub}</text>` : '');
+}
+function diamond(cx, cy, hw, hh, text) {
+  return `<polygon points="${cx},${cy - hh} ${cx + hw},${cy} ${cx},${cy + hh} ${cx - hw},${cy}" style="fill:var(--panel);stroke:currentColor;stroke-opacity:.5;stroke-width:1.6"/>`
+    + `<text x="${cx}" y="${cy + 4.5}" text-anchor="middle" style="fill:currentColor;font-size:13px;font-weight:600">${text}</text>`;
+}
+function label(x, y, text, anchor = 'middle') {
+  const w = text.length * 6.1 + 8;
+  const rx = anchor === 'middle' ? x - w / 2 : anchor === 'start' ? x - 4 : x - w + 4;
+  return `<rect x="${rx}" y="${y - 8}" width="${w}" height="15" rx="3" style="fill:var(--panel)"/>`
+    + `<text x="${x}" y="${y + 3.5}" text-anchor="${anchor}" style="fill:currentColor;fill-opacity:.8;font-size:11px">${text}</text>`;
+}
+function arrow(pts, text, o = {}) {
+  const col = o.color || 'currentColor';
+  const style = `fill:none;stroke:${col};stroke-width:1.4;${o.dash ? 'stroke-dasharray:5 4;' : ''}${o.color ? '' : 'stroke-opacity:.7;'}`;
+  const [a, b] = [pts[pts.length - 2], pts[pts.length - 1]];
+  const ang = Math.atan2(b[1] - a[1], b[0] - a[0]), L = 8, W = 4.5;
+  const p1 = [b[0] - L * Math.cos(ang) + W * Math.sin(ang), b[1] - L * Math.sin(ang) - W * Math.cos(ang)];
+  const p2 = [b[0] - L * Math.cos(ang) - W * Math.sin(ang), b[1] - L * Math.sin(ang) + W * Math.cos(ang)];
+  return `<polyline points="${pts.map(p => p.join(',')).join(' ')}" style="${style}"/>`
+    + `<polygon points="${b.join(',')} ${p1.join(',')} ${p2.join(',')}" style="fill:${col};${o.color ? '' : 'fill-opacity:.7;'}"/>`
+    + (text ? label(o.at[0], o.at[1], text, o.anchor) : '');
+}
+
+const FIGS = {
+  root: () => fig(860, 370,
+    'One message\'s round trip: code checks run before and after the interviewer AI, two background checks feed the next turn, and scoring runs once when the case ends.',
+    box(20, 70, 120, 58, 'Student', 'chat page', 'person')
+    + box(195, 70, 120, 58, 'Turn route', 'login + owner check')
+    + box(370, 70, 120, 58, 'Before the AI', 'checks + notes')
+    + box(545, 70, 120, 58, 'Interviewer AI', 'Opus 4.8', 'ai')
+    + box(720, 70, 120, 58, 'After the AI', 'fixes + fact-check')
+    + arrow([[140, 99], [195, 99]], 'sends', { at: [167, 86] })
+    + arrow([[315, 99], [370, 99]], 'checked', { at: [342, 86] })
+    + arrow([[490, 99], [545, 99]], 'notes', { at: [517, 86] })
+    + arrow([[665, 99], [720, 99]], 'draft', { at: [692, 86] })
+    + arrow([[780, 70], [780, 30], [80, 30], [80, 70]], 'reply, about 1.9 s after the message', { at: [430, 30] })
+    + box(705, 180, 150, 58, 'Background checks', 'Haiku 4.5', 'ai')
+    + arrow([[780, 128], [780, 180]], 'after reply', { at: [780, 154], dash: true })
+    + arrow([[705, 209], [430, 209], [430, 128]], 'results used next turn', { at: [565, 209], dash: true })
+    + box(370, 290, 150, 58, 'Scoring pipeline', '13 steps, about 30 s', 'ai')
+    + box(580, 290, 150, 58, 'Feedback report', 'screen + PDF', 'person')
+    + arrow([[80, 128], [80, 319], [370, 319]], 'case ends', { at: [225, 319] })
+    + arrow([[520, 319], [580, 319]], '8 ratings', { at: [550, 306] })),
+
+  turn: () => fig(760, 600,
+    'One turn, top to bottom. The conduct check can answer with a script and skip the AI. The interviewer and the request detector run at the same time, and the fact-check can withhold a sentence.',
+    box(180, 20, 300, 46, 'Student message', '', 'person')
+    + box(180, 96, 300, 46, 'Conduct check', 'code: C1 to C5')
+    + box(560, 96, 180, 46, 'Scripted reply', 'warning, end, or pause offer', 'warn')
+    + arrow([[480, 119], [560, 119]], 'if triggered', { at: [520, 108], color: 'var(--warn)' })
+    + box(180, 172, 300, 56, 'Prepare notes', 'released data, clock, maths, stuck?')
+    + box(110, 270, 200, 56, 'Interviewer AI', 'Opus 4.8 writes a draft', 'ai')
+    + box(350, 270, 200, 56, 'Request detector', 'Haiku 4.5, runs alongside', 'new')
+    + box(180, 370, 300, 56, 'After-AI safety nets', 'promises, time-up, answer requests')
+    + box(180, 456, 300, 46, 'Number fact-check', 'code')
+    + box(560, 456, 180, 46, 'Sentence withheld', 'number not released yet', 'warn')
+    + box(180, 532, 300, 46, 'Save and reply', '', 'person')
+    + arrow([[330, 66], [330, 96]])
+    + arrow([[330, 142], [330, 172]], 'allowed', { at: [338, 157], anchor: 'start' })
+    + arrow([[330, 228], [330, 249], [210, 249], [210, 270]], 'message + notes', { at: [262, 249] })
+    + arrow([[330, 249], [450, 249], [450, 270]], 'message only', { at: [395, 249], color: 'var(--new)' })
+    + arrow([[210, 326], [210, 348], [300, 348], [300, 370]], 'draft', { at: [255, 348] })
+    + arrow([[450, 326], [450, 348], [360, 348], [360, 370]], 'requests', { at: [405, 348], color: 'var(--new)' })
+    + arrow([[330, 426], [330, 456]], 'repaired reply', { at: [338, 441], anchor: 'start' })
+    + arrow([[480, 479], [560, 479]], 'fails', { at: [520, 468], color: 'var(--warn)' })
+    + arrow([[330, 502], [330, 532]], 'cleared', { at: [338, 517], anchor: 'start' })),
+
+  ledger: () => fig(820, 330,
+    'How a case number reaches the student. The AI only sees folder names and asks the clerk (code) to read one out; if it types a number itself, the fact-check catches it.',
+    box(20, 40, 200, 56, 'Interviewer AI', 'sees folder labels only', 'ai')
+    + box(20, 200, 200, 70, 'Data ledger', '11 locked folders', 'store')
+    + box(310, 40, 200, 56, 'The clerk', 'code: reads + records', 'code')
+    + box(600, 40, 200, 56, 'Draft reply', 'official sentence added')
+    + box(600, 150, 200, 56, 'Number fact-check', 'every $ and % traced')
+    + box(600, 260, 200, 56, 'Student', '', 'person')
+    + box(310, 266, 200, 50, 'Sentence withheld', '', 'warn')
+    + arrow([[120, 200], [120, 96]], 'labels, no values', { at: [120, 148] })
+    + arrow([[220, 68], [310, 68]], 'reveal_data', { at: [265, 58] })
+    + arrow([[410, 96], [410, 235], [220, 235]], 'opens folder, marks it out', { at: [315, 235] })
+    + arrow([[510, 68], [600, 68]], 'exact words', { at: [555, 58] })
+    + arrow([[700, 96], [700, 150]])
+    + arrow([[700, 206], [700, 260]], 'cleared', { at: [708, 233], anchor: 'start' })
+    + arrow([[600, 178], [560, 178], [560, 291], [510, 291]], 'unreleased number', { at: [552, 240], anchor: 'end', color: 'var(--warn)' })
+    + arrow([[120, 40], [120, 16], [700, 16], [700, 40]], 'if the AI types a number itself', { at: [410, 16], dash: true, color: 'var(--warn)' })),
+
+  sameturn: () => fig(760, 470,
+    'The same-turn rule for one data request. Nothing changes if the draft already answered; otherwise the data is released if the case has reached its stage, or the interviewer says it will come shortly.',
+    box(230, 16, 300, 46, 'Student asks for data', '"Did menu prices change?"', 'person')
+    + box(230, 92, 300, 46, 'Detector names the folder', 'Menu prices', 'new')
+    + diamond(380, 200, 130, 38, 'Did the draft answer it?')
+    + box(560, 177, 180, 46, 'Leave reply as is', 'released, refused, deferred')
+    + diamond(380, 330, 150, 38, 'Case reached its stage?')
+    + box(20, 307, 180, 46, 'Release it now', 'at most 2 per turn', 'new')
+    + box(560, 307, 180, 46, 'Scripted defer', '"I\'ll come to that shortly"', 'new')
+    + box(500, 410, 240, 46, 'Owed until the rec. ask', 'then released automatically')
+    + arrow([[380, 62], [380, 92]])
+    + arrow([[380, 138], [380, 162]])
+    + arrow([[510, 200], [560, 200]], 'yes', { at: [535, 190] })
+    + arrow([[380, 238], [380, 292]], 'no', { at: [390, 265], anchor: 'start' })
+    + arrow([[230, 330], [200, 330]], 'yes', { at: [215, 320] })
+    + arrow([[530, 330], [560, 330]], 'no', { at: [545, 320] })
+    + arrow([[650, 353], [650, 410]], 'tracked', { at: [658, 381], anchor: 'start' })),
+
+  reqlog: () => fig(840, 220,
+    'The life of one data request across the interview. Each stage is a safety net for the one before; anything still unanswered at the end protects the student in scoring.',
+    box(20, 60, 140, 64, 'Turn N', 'student asks', 'person')
+    + box(185, 60, 140, 64, 'Same turn', 'release or defer', 'new')
+    + box(350, 60, 140, 64, 'Background log', 'how was it handled?', 'ai')
+    + box(515, 60, 140, 64, 'Reminder', 'each turn until given')
+    + box(680, 60, 140, 64, 'Before rec. ask', 'owed data released')
+    + arrow([[160, 92], [185, 92]]) + arrow([[325, 92], [350, 92]]) + arrow([[490, 92], [515, 92]]) + arrow([[655, 92], [680, 92]])
+    + box(350, 160, 330, 46, 'Scoring: coverage gap', 'the student isn\'t blamed for the missing data', 'code')
+    + arrow([[750, 124], [750, 183], [680, 183]], 'still unanswered at the end', { at: [742, 145], anchor: 'end', dash: true })),
+
+  silence: () => fig(860, 180,
+    'What happens as a student stays quiet. Nothing for the first minute, a check-in at 60 seconds, a paused clock at 3 minutes, and the session ends if the pause runs out. Any message resumes the case.',
+    `<rect x="40" y="96" width="270" height="12" style="fill:var(--accent);fill-opacity:.35"/>`
+    + `<rect x="310" y="96" width="450" height="12" style="fill:var(--warn);fill-opacity:.35"/>`
+    + arrow([[40, 108], [830, 108]])
+    + [[40, '0', 'last reply', ''], [130, '60 s', 'Check-in', '"Still with me?"'], [310, '3 min', 'Pause', 'clock stops'], [760, '8 min', 'Session ends', 'not scored']]
+      .map(([x, t, title, sub]) =>
+        `<line x1="${x}" y1="${title ? 66 : 96}" x2="${x}" y2="114" style="stroke:currentColor;stroke-opacity:.5;stroke-dasharray:3 3"/>`
+        + `<text x="${x}" y="132" text-anchor="middle" style="fill:currentColor;fill-opacity:.7;font-size:11px">${t}</text>`
+        + (title ? `<text x="${x}" y="40" text-anchor="middle" style="fill:currentColor;font-size:13px;font-weight:600">${title}</text>`
+          + (sub ? `<text x="${x}" y="56" text-anchor="middle" style="fill:currentColor;fill-opacity:.65;font-size:11px">${sub}</text>` : '') : '')
+      ).join('')
+    + `<text x="85" y="88" text-anchor="middle" style="fill:currentColor;fill-opacity:.65;font-size:11px">no action</text>`
+    + `<text x="175" y="160" text-anchor="middle" style="fill:currentColor;fill-opacity:.75;font-size:11px">case clock running</text>`
+    + `<text x="535" y="160" text-anchor="middle" style="fill:currentColor;fill-opacity:.75;font-size:11px">clock paused (up to 5 min)</text>`
+),
+
+  stall: () => fig(800, 250,
+    'The stall ladder climbs one rung each time the student is still stuck after the last hint, and every rung is written to the log that scoring reads.',
+    box(20, 180, 150, 56, 'Making progress', 'no hints')
+    + box(220, 128, 150, 56, 'Rung 1: restate', '"The question is…"')
+    + box(420, 76, 150, 56, 'Rung 2: narrow', '"Just look at COGS"')
+    + box(620, 24, 150, 56, 'Rung 3: rescue', '"COGS rose 16 points"')
+    + arrow([[170, 208], [195, 208], [195, 156], [220, 156]], 'stuck ×2', { at: [195, 140] })
+    + arrow([[370, 156], [395, 156], [395, 104], [420, 104]], 'still stuck', { at: [395, 88] })
+    + arrow([[570, 104], [595, 104], [595, 52], [620, 52]], 'still stuck', { at: [595, 36] })
+    + box(420, 196, 350, 40, 'Every hint is logged for the report', '', 'warn')
+    + arrow([[295, 184], [295, 216], [420, 216]], '', { dash: true })
+    + arrow([[495, 132], [495, 196]], '', { dash: true })
+    + arrow([[695, 80], [695, 196]], '', { dash: true })),
+
+  scoring: () => {
+    const steps = [
+      ['Clean transcript', 'code', 'duplicates and blanks removed'],
+      ['Maths check', 'code', '4 calculations graded'],
+      ['Help received', 'code', 'hints listed for the judge'],
+      ['Data coverage', 'code', 'unanswered requests listed'],
+      ['Interviewer-error marks', 'code', 'turns that can\'t count against them'],
+      ['The judge', 'ai', '8 ratings, quotes, top fix'],
+      ['Quote check', 'code', 'invented quotes removed'],
+      ['Drop unfair criticisms', 'code', 'faults resting on marks removed'],
+      ['Claim checker', 'ai', 'contradicted claims removed'],
+      ['Remove contradictions', 'ai', 'both-sides points merged'],
+      ['Fairness floor', 'code', 'no rating below meets bar if untested'],
+      ['Assemble report', 'code', 'model answer attached'],
+      ['Save + quality metrics', 'code', 'error rates logged'],
+    ];
+    const y0 = 70, dy = 46;
+    let g = box(200, 16, 260, 34, 'Saved transcript + event log', '', 'store') + arrow([[330, 50], [330, 70]]);
+    steps.forEach(([t, k, note], i) => {
+      const y = y0 + i * dy;
+      g += box(200, y, 260, 34, t, '', k)
+        + `<text x="186" y="${y + 22}" text-anchor="end" style="fill:currentColor;fill-opacity:.55;font-size:11px">${i + 1}</text>`
+        + `<text x="476" y="${y + 21}" style="fill:currentColor;fill-opacity:.7;font-size:11.5px">${note}</text>`;
+      if (i < steps.length - 1) g += arrow([[330, y + 34], [330, y + dy]]);
+    });
+    const yEnd = y0 + (steps.length - 1) * dy + 34;
+    g += arrow([[330, yEnd], [330, yEnd + 20]]) + box(200, yEnd + 20, 260, 34, 'Report shown to the student', '', 'person');
+    [['Prepare', 0, 4], ['Write', 5, 5], ['Check and correct', 6, 10], ['Save', 11, 12]].forEach(([name, a, b]) => {
+      const top = y0 + a * dy + 4, bot = y0 + b * dy + 30;
+      g += `<polyline points="160,${top} 154,${top} 154,${bot} 160,${bot}" style="fill:none;stroke:currentColor;stroke-opacity:.4"/>`
+        + `<text x="146" y="${(top + bot) / 2 + 4}" text-anchor="end" style="fill:currentColor;fill-opacity:.75;font-size:12px;font-weight:600">${name}</text>`;
+    });
+    return fig(760, yEnd + 70,
+      'The scoring pipeline in order. Purple steps use an AI model; the rest are code. Most steps exist to remove something unfair or untrue before the student sees it.', g);
+  },
+};
+
 // ───────────── rendering
 const byId = new Map();
 const parentOf = new Map();
@@ -927,7 +1131,7 @@ function select(id, scroll) {
   detailEl.innerHTML = `
     ${crumbs ? `<div class="crumbs">${crumbs}</div>` : ''}
     <h2>${node.title}${tagHtml(node.tags)}</h2>
-    ${node.body}
+    ${withFigure(node.body, FIGS[id])}
     ${kids}
     <div class="nav">
       <button type="button" ${prev ? `data-go="${prev}"` : 'disabled'}>← ${prev ? byId.get(prev).title : ''}</button>
@@ -936,6 +1140,12 @@ function select(id, scroll) {
   document.querySelectorAll('#journey button').forEach(b => b.classList.toggle('on', b.dataset.go === topLevelOf(id)));
   try { history.replaceState(null, '', '#' + id); } catch (e) { /* ignore */ }
   if (scroll && window.matchMedia('(max-width: 820px)').matches) detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+// The chart goes right after the opening sentence, where it explains the most.
+function withFigure(body, make) {
+  if (!make) return body;
+  const i = body.indexOf('</p>');
+  return i === -1 ? make() + body : body.slice(0, i + 4) + make() + body.slice(i + 4);
 }
 function topLevelOf(id) {
   let c = id;
