@@ -1,5 +1,6 @@
 import { classifyError, type MathStepInput, type ErrorClass } from '@/lib/scoring/deterministic';
 import { assignSpans, findStepSpans, inputsRevealed } from '@/lib/scoring/math-spans';
+import { normalizeNumberWords } from '@/lib/number-words';
 
 // Rule 2/14 deterministic backstop (docs/interviewer-behavior.md): "Live
 // detection by the model alone is a probabilistic capability, not an
@@ -34,7 +35,7 @@ export function checkRecomputeForTurn(
   revealedIds?: Iterable<string>,
 ): RecomputeFlag[] {
   const revealed = revealedIds === undefined ? undefined : [...revealedIds];
-  const checkable = mathSteps.filter(step => step.live !== false && inputsRevealed(step, revealed));
+  const checkable = mathSteps.filter(step => step.live !== false && !step.verifyOnly && inputsRevealed(step, revealed));
   if (checkable.length === 0) return [];
   const assigned = assignSpans(candidateText, checkable);
 
@@ -106,4 +107,75 @@ export function formatRecomputeHint(
     hint: `RECOMPUTE FLAG (deterministic, matched to what the candidate said this turn):\n${lines.join('\n')}`,
     derivedValues,
   };
+}
+
+// ── Verified figures (Rule 2 v4.5/v4.6) ─────────────────────────────────────
+// The other half of the recompute signal: a figure the candidate stated that
+// matches a case math step (valid span, revealed inputs, within tolerance).
+// In batch 2 five correct figures were probed — four with the work shown
+// ("25 × 42 = 10.5% of revenue"), and Ines apologized for correct math. The
+// interviewer is told which figures are verified and whether the work was
+// shown, and a pre-send pass withholds probes it may not ask (probe-guard.ts).
+
+export type VerifiedFigure = {
+  stepId: string;
+  value: number;
+  span: string;
+  workShown: boolean;
+  operands: number[]; // the step's inputs — a probe quoting them is about this figure
+};
+
+// "a quarter" / "half" are how candidates say 25 and 50 out loud.
+const SPOKEN_OPERANDS: Record<number, RegExp> = { 25: /\ba quarter\b/i, 50: /\bhalf\b/i };
+const OPERATION = /×|\*|\bx\b|\btimes\b|\bof\b|\bdivided by\b|\bover\b|÷|\bmultipl\w*/i;
+
+function sentencesOf(text: string): string[] {
+  return text.split(/(?<=[.!?])\s+|\n+/).map(x => x.trim()).filter(Boolean);
+}
+
+function statesOperand(text: string, operand: number): boolean {
+  const nums = [...text.matchAll(/\d[\d,]*(?:\.\d+)?/g)].map(m => parseFloat(m[0].replace(/,/g, '')));
+  // 25 may be written 0.25 ("0.25 × 42", Ines).
+  return nums.some(n => Math.abs(n - operand) < 1e-9 || Math.abs(n * 100 - operand) < 1e-6)
+    || Boolean(SPOKEN_OPERANDS[operand]?.test(text));
+}
+
+// Work counts as shown when the span's sentence, or the two sentences before
+// it in the same turn, state every operand AND an operation joining them
+// (Rule 2 v4.5). Naming inputs without the operation — or only the result —
+// is a bare figure. A step without declared operands can't show work.
+export function isWorkShown(candidateText: string, span: string, operands: number[] | undefined): boolean {
+  if (!operands || operands.length === 0) return false;
+  const sentences = sentencesOf(normalizeNumberWords(candidateText));
+  const idx = sentences.findIndex(s => s.includes(span));
+  if (idx === -1) return false;
+  const window = sentences.slice(Math.max(0, idx - 2), idx + 1).join(' ');
+  return operands.every(o => statesOperand(window, o)) && OPERATION.test(window);
+}
+
+export function checkVerifiedForTurn(
+  candidateText: string,
+  mathSteps: MathStepInput[],
+  revealedIds?: Iterable<string>,
+): VerifiedFigure[] {
+  const revealed = revealedIds === undefined ? undefined : [...revealedIds];
+  const out: VerifiedFigure[] = [];
+  for (const step of mathSteps.filter(st => inputsRevealed(st, revealed))) {
+    const acceptable = [step.answer, ...(step.altAnswers ?? [])];
+    const hit = findStepSpans(candidateText, step, 'sentence').find(m => acceptable.some(a => Math.abs(m.value - a) <= step.tolerance));
+    if (hit) out.push({ stepId: step.id, value: hit.value, span: hit.span, workShown: isWorkShown(candidateText, hit.span, step.operands), operands: step.operands ?? [] });
+  }
+  return out;
+}
+
+// recompute_ok: the interviewer-facing line per verified figure (Rule 2 v4.5).
+export function formatVerifiedHint(verified: VerifiedFigure[], alreadyProbed: Set<string>): string {
+  if (verified.length === 0) return '';
+  const lines = verified.map(v => {
+    const allowed = v.workShown || alreadyProbed.has(v.stepId)
+      ? 'Do not probe it at all.'
+      : 'At most one process question — "How did you get there?" — if it is decision-relevant. Never doubt phrasing.';
+    return `- recompute_ok: ${v.value} verified (in "${v.span}"), work_shown: ${v.workShown ? 'yes' : 'no'}. ${allowed}`;
+  });
+  return `VERIFIED FIGURES (deterministic — these are correct): never question them with doubt phrasing ("points of what?", "are you sure?", "check that", "is that right?").\n${lines.join('\n')}`;
 }

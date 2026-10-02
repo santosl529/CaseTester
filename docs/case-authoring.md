@@ -140,6 +140,24 @@ false revenue-per-store error in most reports. Each step now declares:
   margins): candidates quote and reuse those constantly, and target margins
   ("back to 15%") read as wrong answers.
 
+- `unit` may be a list (`["percent", "points"]`) when candidates state the
+  step either way ("10.5% of revenue" / "10.5 points").
+- `verifyOnly: true` (v4.6) — the step confirms correct figures
+  (`recompute_ok`, interviewer-behavior Rule 2) but never raises a mismatch,
+  live or in scoring. Use it for arithmetic surrounded by legitimate nearby
+  numbers, where a span mismatch is too weak to act on: prof-001's bean
+  steps (10.5 points, 4.2 points) sit next to "beans up 40%" in nearly every
+  turn. Without a step, a correct figure cannot be verified, and the
+  interviewer probes it (batch 2: four "points of what?" on correct 10.5s).
+- `operands` (v4.6) — the figures a candidate states when showing their work
+  (`[25, 42]` for 25% × 42% = 10.5). The work-shown test needs every operand
+  plus an operation word in the figure's sentence or the two before it.
+  Decimal forms count (0.25 for 25). A step without operands is always
+  "work not shown".
+- Verification matches the cue anywhere in the sentence, not just the
+  clause — safe because it can only confirm a correct figure. Flags stay
+  clause-scoped. Spoken numbers are normalized first ("ten and a half").
+
 Before shipping a case, replay the checks over real transcripts and confirm
 zero false live flags — see the v4.3 replay in `docs/interviewer-behavior.md`
 Rule 2.

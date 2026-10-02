@@ -62,13 +62,20 @@ const MathStepSchema = z.object({
   // Without cues, any number anywhere counted — the 27–28 Sep persona runs'
   // false corrections and false report errors.
   cues: z.array(z.string().min(2)).min(1),
-  unit: z.enum(['percent', 'points', 'usd']).optional(),
+  unit: z.union([z.enum(['percent', 'points', 'usd']), z.array(z.enum(['percent', 'points', 'usd'])).min(1)]).optional(),
   // Ledger items the step is derived from; the step is checked only once all
   // are revealed. Empty = derivable from the case prompt alone.
   inputs: z.array(z.string()).default([]),
   // false: excluded from the live recompute hint (prompt facts candidates
   // quote and reuse constantly); still scored.
   live: z.boolean().optional(),
+  // Rule 2 v4.6 (docs/case-authoring.md): verifies correct figures, never
+  // raises a mismatch — for arithmetic surrounded by legitimate nearby numbers
+  // (bean shares: "beans up 40%" sits next to every 10.5).
+  verifyOnly: z.boolean().optional(),
+  // Figures the candidate states when showing their work for this step (Rule
+  // 2 v4.5 "work shown"), e.g. [25, 42] for 25% of COGS × 42% of revenue.
+  operands: z.array(z.number()).optional(),
 });
 
 const ExhibitSchema = z.object({

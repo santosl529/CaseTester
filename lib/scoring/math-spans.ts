@@ -12,13 +12,15 @@
 // Each match keeps the clause it came from, so a flag or a report claim can
 // quote what the candidate actually said.
 
+import { normalizeNumberWords } from '@/lib/number-words';
+
 export type MathUnit = 'percent' | 'points' | 'usd';
 
 export type SpanStep = {
   id: string;
   description: string;
   cues?: string[];
-  unit?: MathUnit;
+  unit?: MathUnit | MathUnit[]; // several: the step is stated either way ("10.5% of revenue" / "10.5 points")
 };
 
 export type SpanMatch = { value: number; span: string };
@@ -29,6 +31,8 @@ const CUE_WINDOW_WORDS = 5;
 // the conjunctions that join two separate claims ("revenue grew 15% but margin
 // fell 18 points"). Arithmetic operators are NOT boundaries.
 const CLAUSE_SPLIT = /[.!?;\n]+(?=\s|$)|\s[—–]\s|,\s|\s(?:but|so|and|while|whereas|although|though|because)\s/i;
+
+const SENTENCE_SPLIT = /[.!?;\n]+(?=\s|$)/;
 
 // A quantity with its unit context: optional $, the number, then a unit.
 const QUANTITY = /(\$\s?)?(\d[\d,]*(?:\.\d+)?)(\s*%|[\s-]*(?:percent(?:age points?)?|points?|pp|pts|ppts?)\b|\s*(?:m|mm|mn|million|k|thousand|b|bn|billion)\b)?/gi;
@@ -62,10 +66,19 @@ function cueCharIndexes(clause: string, cue: string): { start: number; end: numb
   return [...clause.matchAll(re)].map(m => ({ start: m.index ?? 0, end: (m.index ?? 0) + m[0].length }));
 }
 
-export function findStepSpans(text: string, step: SpanStep): SpanMatch[] {
+// v4.6: spoken numbers count ("ten and a half points" → 10.5). Spans quote the
+// normalized clause.
+//
+// scope 'sentence' (verification only, Rule 2 v4.6): the cue may sit anywhere
+// in the sentence — "beans were 25% of 42, about 10.5 points of revenue" puts
+// the cue and the figure in different clauses. Safe only for confirming a
+// correct figure; a mismatch flag must stay clause-scoped (v4.3).
+export function findStepSpans(rawText: string, step: SpanStep, scope: 'clause' | 'sentence' = 'clause'): SpanMatch[] {
+  const text = normalizeNumberWords(rawText);
   const cues = cuesFor(step);
+  const units = step.unit === undefined ? undefined : Array.isArray(step.unit) ? step.unit : [step.unit];
   const matches: SpanMatch[] = [];
-  for (const raw of text.split(CLAUSE_SPLIT)) {
+  for (const raw of text.split(scope === 'clause' ? CLAUSE_SPLIT : SENTENCE_SPLIT)) {
     const clause = raw.trim();
     if (!clause) continue;
     const cueAt = cues.flatMap(c => cueCharIndexes(clause, c));
@@ -77,11 +90,12 @@ export function findStepSpans(text: string, step: SpanStep): SpanMatch[] {
       // A step with a unit only accepts numbers that state that unit: free
       // text is full of bare ratios and hypotheticals ("1 minus 0.94"), and a
       // unitless number is too weak a signal to attribute to a metric.
-      if (step.unit && unit !== step.unit) continue;
+      if (units && (unit === undefined || !units.includes(unit))) continue;
       const start = m.index ?? 0;
       const end = start + m[0].length;
       // Cue words themselves don't count toward the distance.
-      const near = cueAt.some(c => (c.end <= start ? wordsBetween(clause, c.end, start) : wordsBetween(clause, end, c.start)) <= CUE_WINDOW_WORDS);
+      const near = scope === 'sentence'
+        || cueAt.some(c => (c.end <= start ? wordsBetween(clause, c.end, start) : wordsBetween(clause, end, c.start)) <= CUE_WINDOW_WORDS);
       if (near) matches.push({ value, span: clause });
     }
   }

@@ -36,5 +36,7 @@ describe('normalizeNumberWords (v4.6: number words count — Yuki, and M2 speech
 
   it('keeps digits as they are', () => {
     expect(normalizeNumberWords('COGS went from 42% to 58%')).toBe('COGS went from 42% to 58%');
+    expect(normalizeNumberWords('about $0.5 million per store')).toBe('about $0.5 million per store');
+    expect(normalizeNumberWords('a hundred stores')).toBe('a hundred stores');
   });
 });

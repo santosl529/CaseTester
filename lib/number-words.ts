@@ -22,11 +22,14 @@ const WORD = [...Object.keys(ONES), ...Object.keys(TENS), ...Object.keys(SCALES)
   .sort((a, b) => b.length - a.length)
   .join('|');
 const DIGIT_WORD = Object.keys(ONES).filter(w => ONES[w] <= 9).join('|');
+// A run starts on a ones/tens word: a bare "million" after digits ("$0.5
+// million") is a unit, not a number.
+const LEAD_WORD = [...Object.keys(ONES), ...Object.keys(TENS)].sort((a, b) => b.length - a.length).join('|');
 
 // A run of number words (space- or hyphen-joined), an optional spoken decimal
 // ("point seven"), and an optional "and (a) half".
 const RUN = new RegExp(
-  `\\b((?:${WORD})(?:[\\s-]+(?:${WORD}))*)(\\s+point((?:\\s+(?:${DIGIT_WORD}))+)(?:\\s+(thousand|million|billion))?)?(\\s+and\\s+(?:a\\s+)?half)?\\b`,
+  `\\b((?:${LEAD_WORD})(?:[\\s-]+(?:${WORD}))*)(\\s+point((?:\\s+(?:${DIGIT_WORD}))+)(?:\\s+(thousand|million|billion))?)?(\\s+and\\s+(?:a\\s+)?half)?\\b`,
   'gi',
 );
 

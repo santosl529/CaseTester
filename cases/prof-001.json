@@ -146,6 +146,57 @@
       "inputs": [
         "revenue_total"
       ]
+    },
+    {
+      "id": "bean_share_of_revenue",
+      "description": "Beans as a share of revenue two years ago = 25% of COGS × 42% COGS share of revenue = 10.5 points",
+      "answer": 10.5,
+      "tolerance": 0.3,
+      "cues": [
+        "bean",
+        "beans",
+        "green coffee"
+      ],
+      "unit": [
+        "percent",
+        "points"
+      ],
+      "inputs": [
+        "bean_share_of_cogs",
+        "cogs_pct"
+      ],
+      "verifyOnly": true,
+      "operands": [
+        25,
+        42
+      ]
+    },
+    {
+      "id": "bean_points_added",
+      "description": "Bean inflation's contribution to the COGS increase = 10.5 points × 40% = 4.2 points of revenue",
+      "answer": 4.2,
+      "tolerance": 0.3,
+      "cues": [
+        "bean",
+        "beans",
+        "explain",
+        "adds",
+        "contribut"
+      ],
+      "unit": [
+        "points",
+        "percent"
+      ],
+      "inputs": [
+        "bean_share_of_cogs",
+        "cogs_pct",
+        "bean_price_change"
+      ],
+      "verifyOnly": true,
+      "operands": [
+        10.5,
+        40
+      ]
     }
   ],
   "exhibits": [

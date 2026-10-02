@@ -14,7 +14,8 @@ import {
 } from './data-ledger';
 import { auditTurn, auditTurnStyle, stripMetaLeak, stripFabricatedTurn } from './audit';
 import { enforceNumericProvenance, changeFigures } from './numeric-provenance';
-import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts, type RecomputeAttempts } from './recompute';
+import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts, checkVerifiedForTurn, formatVerifiedHint, type RecomputeAttempts, type VerifiedFigure } from './recompute';
+import { withholdProbesOnVerified } from './probe-guard';
 import { detectNestedPercentConversion, formatUnitCheckHint } from './unit-check';
 import { resolveExhibit, promisesExhibit } from './exhibits';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
@@ -293,10 +294,27 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     flags: recomputeFlags.map(f => ({ stepId: f.stepId, candidateValue: f.candidateValue, expected: f.expected, errorClass: f.errorClass, span: f.span })),
   });
 
+  // Rule 2 v4.5/v4.6: the other half of the signal — figures the candidate
+  // stated correctly (recompute_ok), with whether the work was shown. Doubt
+  // probes on these are banned and withheld before send (probe-guard.ts).
+  const verifiedNow = checkVerifiedForTurn(candidateText, caseData.mathSteps, Object.keys(revealedValues(ledger)));
+  const verifiedPrev = (flags.lastVerified as VerifiedFigure[] | undefined) ?? [];
+  const explainProbedBefore = new Set((flags.explainProbed as string[] | undefined) ?? []);
+  const verifiedHint = formatVerifiedHint(verifiedNow, explainProbedBefore);
+  checks.record('verified_figures', verifiedNow.length > 0, 'recompute_ok sent to the interviewer', {
+    verified: verifiedNow.map(v => ({ stepId: v.stepId, value: v.value, workShown: v.workShown, span: v.span })),
+  });
+
   // Rule 2/14: risky nested-percentage conversion in this candidate message →
-  // tell the interviewer to probe the units (unit-check.ts).
-  const unitCheckHint = detectNestedPercentConversion(candidateText) ? formatUnitCheckHint() : undefined;
-  checks.record('unit_check', unitCheckHint !== undefined, 'nested share-of-COGS conversion — probe hint sent');
+  // tell the interviewer to probe the units (unit-check.ts) — unless the
+  // conversion was verified this turn and nothing was flagged (v4.6: the
+  // detector fired "points of what?" on every correct 10.5 in batch 2).
+  const nestedConversion = detectNestedPercentConversion(candidateText);
+  const conversionVerified = nestedConversion && verifiedNow.length > 0 && recomputeFlags.length === 0;
+  const unitCheckHint = nestedConversion && !conversionVerified ? formatUnitCheckHint() : undefined;
+  checks.record('unit_check', unitCheckHint !== undefined, 'nested share-of-COGS conversion — probe hint sent', {
+    nestedConversion, suppressedAsVerified: conversionVerified,
+  });
 
   // Rule 13 stall ladder: evaluate BEFORE the model turn so a triggered rung's
   // guidance goes into this turn's prompt.
@@ -361,7 +379,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
       elapsedMs,
       totalMs: TOTAL_CASE_MS,
       phaseBudgetsMs,
-      recomputeHint,
+      recomputeHint: [recomputeHint, verifiedHint].filter(Boolean).join('\n\n') || undefined,
       unitCheckHint,
       stallGuidance: stallDecision.guidance,
       coverageSteer,
@@ -727,6 +745,19 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     await logEvent('provenance_blocked', { findings: provenance.findings, phase: currentPhase }, { sessionId, userId: session.userId });
   }
 
+  // Rule 2 v4.5: no doubt probe on a verified figure; no explain probe where
+  // the work was shown or already asked once. Withheld like provenance.
+  const probeGuard = withholdProbesOnVerified(spokenText, {
+    verified: [...verifiedNow, ...verifiedPrev],
+    alreadyProbed: explainProbedBefore,
+    flaggedThisTurn: recomputeFlags.length > 0,
+  });
+  checks.record('probe_guard', probeGuard.withheld.length > 0, 'probe on a verified figure withheld', { withheld: probeGuard.withheld });
+  if (probeGuard.withheld.length > 0) {
+    console.warn('[runner] withheld probes on verified figures:', JSON.stringify(probeGuard.withheld));
+    spokenText = probeGuard.text;
+  }
+
   const auditResult = auditTurn(spokenText, revealedValues(ledger), allowedTexts.join(' '));
   const styleResult = auditTurnStyle(spokenText, {
     lengthExempt: newReveals.length > 0 || exhibit !== undefined || stallDecision.rung === 3,
@@ -827,6 +858,8 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
         timeWarningFired: Boolean(flags.timeWarningFired) || timeWarningFiredThisTurn,
         graceAskFired: Boolean(flags.graceAskFired) || graceAskFiredThisTurn,
         recomputeAttempts,
+        lastVerified: verifiedNow,
+        explainProbed: [...explainProbedBefore, ...probeGuard.explainProbed],
         loadShedLogged: Boolean(flags.loadShedLogged) || loadShedLoggedThisTurn,
       },
     })

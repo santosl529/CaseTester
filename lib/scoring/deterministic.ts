@@ -8,11 +8,17 @@ export type MathStepInput = {
   altAnswers?: number[];
   // Source-span metadata (lib/scoring/math-spans.ts, Rule 3 v4.3).
   cues?: string[];
-  unit?: MathUnit;
+  unit?: MathUnit | MathUnit[];
   inputs?: string[];
   // false: never checked by the live recompute hint (prompt facts such as the
   // 24% → 6% margins — candidates quote and reuse them constantly).
   live?: boolean;
+  // Rule 2 v4.6: verifies correct figures, never flags a mismatch (live or
+  // scored) — nearby legitimate numbers make a mismatch too weak to act on.
+  verifyOnly?: boolean;
+  // The figures a candidate states when showing their work for this step
+  // (Rule 2 v4.5 work-shown test), e.g. [25, 42] for 25% × 42% = 10.5.
+  operands?: number[];
 };
 
 // Error-severity classification (docs/interviewer-behavior.md Rule 14):
@@ -90,7 +96,7 @@ export function checkMathSteps(
       return { ...base, mentioned: true, candidateValue: correct.value, withinTolerance: true, errorClass: 'non_issue' as ErrorClass, span: correct.span };
     }
     const attempt = assigned.get(step.id);
-    if (!attempt) return unmentioned;
+    if (!attempt || step.verifyOnly) return unmentioned;
     return {
       ...base,
       mentioned: true,
