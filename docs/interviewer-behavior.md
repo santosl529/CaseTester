@@ -1,4 +1,78 @@
-# Interviewer Behavior Rules (v4.4)
+# Interviewer Behavior Rules (v4.6)
+
+**v4.6 change (batch-2 follow-up): one goodbye, and only when the case
+actually ends (Rule 12).** Maya's batch-2 session said goodbye four times
+(18:08, 19:23, 19:41, 20:13). The log shows why: twice the interviewer closed
+and called `end_case`, the coverage gate blocked the end ("suppressed early
+end_case — coverage incomplete"), and the goodbye sentences were delivered
+anyway because the close detector didn't recognize them; once a reply to the
+candidate's thanks appended the time-warning recommendation ask after she had
+already given her recommendation. The close is now a single, final turn: a
+goodbye is sent only together with a confirmed end; when the end is blocked,
+the whole closing turn is replaced with a probe on what hasn't been tested;
+the recommendation ask never repeats once a recommendation is received; and
+after the goodbye the session accepts no further turns.
+
+**v4.6 integration (2 Oct 2026, against the round-2 engineering-fixes
+summary and the batch-2 logs).** The external v4.6 draft and the round-2
+fixes summary were checked against the logs and code before integration.
+Changes from the draft:
+1. **Rule 13 root cause corrected.** Yuki's phantom rung was not caused by her
+   turns *ending* in a question. The progress detector only recognized digit
+   numerals and "first/second" lists; she wrote every figure as words
+   ("ten and a half points", "twelve points") and listed with "One — / Two —",
+   so her analytical turns read as clarifying questions. Number words are now
+   normalized before any progress or math-span check — required anyway for
+   M2, where speech-to-text output is mostly number words.
+2. **Rule 12: Maya *was* given the brainstorm** (16:02 — "beyond a price
+   increase, what else could the client do?") and froze on it. The gate
+   blocked her end because Haiku scored her failed answers as thin evidence,
+   not because a stage was missing. "Replace the close with a probe on the
+   lowest dimension" would have re-run the brainstorm she already failed. The
+   blocked close is now replaced by **one scripted** probe (not a regenerated
+   model turn), at most once per kind, after which a received recommendation
+   opens the gate — see "One goodbye". The goodbye detector exempts C5 and
+   termination turns ("take care of yourself" is not a goodbye there).
+3. **Rule 17-C5: model classifier adopted** (round-2 fix 1). The regex stays
+   as the floor; a Haiku check runs in parallel with the interviewer call.
+4. **Rule 6: timeframe consistency** (round-2 fix 3, absent from the draft).
+   Derek 6:08: "If beans are a quarter of COGS, and COGS is 58% of
+   revenue…" — the 25% is two years old, the 58% is today's.
+5. **Part V: every check records its decision** (round-2 fix 8, only
+   piecemeal in the draft).
+6. **Persona-harness open items** updated to the batch-2 findings.
+
+**v4.5 changes (batch-2 persona-run review, 29–30 Sep 2026):** five rule
+changes, each tied to a batch-2 transcript. The first four target a single
+pattern: the system acting on its own bookkeeping or assumptions instead of
+on what actually happened in the conversation.
+1. **Doubt probes vs. explain probes (Rule 2):** the v4.3 correction gate
+   allowed a "neutral probe" whenever no flag fired, which contradicted Rule 2's
+   own "a correct conversion is not probed." In batch 2 the interviewer probed
+   five correct figures (Ines apologized for correct math). The interviewer now
+   never uses a doubt probe ("points of what?", "are you sure?") on a figure
+   the recompute check verified. It may use one explain probe ("how did you get
+   there?") on a verified figure only when the candidate stated the result
+   without showing the steps — decided from the checker's source span, not by
+   the model.
+2. **Only delivered hints count (Rule 13):** Yuki's report penalized a Level 1
+   rescue she never received — the rung was logged, but her turn carried only
+   a data release. A rung is now recorded only when its words reach the
+   candidate, the same "delivered" test Rule 10 applies to data.
+3. **Analysis plus a question is progress (Rule 13):** the rung that fired on
+   Yuki followed one of her strongest analytical turns, which ended in a data
+   request. A turn is now classified by its content, not its last sentence;
+   data requests are never clarifying questions and never count against the
+   clarifying-question budget.
+4. **The answer key holds examples, not requirements (Rule 3):** Camila,
+   Micah and Tobias were each marked down in Creativity for not proposing the
+   answer key's "commodity blend." A report may no longer fault a candidate
+   for not producing a specific answer-key idea.
+5. **No blaming an assumption the candidate tried to check (Rule 11):** Maya
+   asked whether menu prices had changed, was not answered, and three minutes
+   later was told "that's the one thing you assumed." The interviewer may not
+   challenge an assumption about data the candidate requested and did not
+   receive — it releases the data instead.
 
 **v4.4 changes (batch-2 persona runs, 29–30 Sep 2026):** Rule 11 gains
 same-turn resolution. Batch 2 still left 23 requests for held ledger data
@@ -234,7 +308,9 @@ The two things MBB actually scores.
   the case.) Gate the probe on the recompute flag: a correct conversion is not
   probed — probing every conversion wastes clock and becomes a memorizable
   tell (Rule 7's anti-tell principle applies to probes, not just phrasing).
-  Unit errors are exempt from the probe cap.
+  Unit errors are exempt from the probe cap. **v4.5: "correct" is decided by
+  the recompute check, not the model — see "Probing correct math: doubt
+  probes vs. explain probes" below.**
 
 **Deterministic backstop — ledger recompute hint (orchestrator):** when a
 candidate states a figure derivable from revealed ledger values, the
@@ -281,8 +357,8 @@ Requirements on the recompute flag and every correction it drives:
 - **No flag, no correction:** the interviewer may issue a math correction
   (Rule 14) or a factual reset (Rule 6-correct) only when a valid flag or an
   orchestrator-confirmed revealed-value mismatch backs it in the current turn.
-  Without one, the permitted moves are a neutral probe ("walk me through
-  that") or nothing.
+  Without one, the interviewer does not correct — and does not probe either,
+  except as allowed under "Probing correct math" below.
 - **Quote the candidate's actual figure,** taken from the source span — never
   a paraphrase and never a number they did not say.
 - **Never re-correct a figure the candidate has already fixed** (Rule 14,
@@ -291,6 +367,124 @@ Requirements on the recompute flag and every correction it drives:
 Note that "no flag, no correction" alone would have prevented none of the
 three false corrections — each was backed by a flag. The span and
 revealed-inputs requirements are what fix them.
+
+**Probing correct math: doubt probes vs. explain probes (v4.5).** Until v4.4
+the no-flag fallback was "a neutral probe or nothing," which contradicted this
+rule's own "a correct conversion is not probed." With no flag on correct math,
+the model took the permitted probe. Batch 2 shows the result: five correct
+figures were probed, the same way each time.
+- Ines: "25 × 42 = 10.5% of revenue going to green coffee." Interviewer:
+  "Points of what — you said beans were ten and a half percent of revenue;
+  walk me through where that lands versus the sixteen-point COGS move."
+  Ines: "Sorry, I was getting ahead of myself — let me redo it cleanly."
+- The same 10.5 figure was probed for Sam ("Points of what — walk me through
+  that 10.5 again"), Tobias, and Maya; Carmen's correct 58% → ~51% was probed
+  at 18:29.
+
+A doubt probe on correct math is milder than a false correction, but it does
+the same damage in smaller form: it tells a candidate who was right that they
+may be wrong, spends case time, and — because the same probe lands on the same
+figure every session — becomes a memorizable tell (Rule 7).
+
+Banning every probe on correct math would overcorrect, though. Real MBB
+interviewers routinely ask "how did you get there?" about correct numbers,
+because showing your work is part of what they score. A candidate who states a
+correct figure with no visible derivation has not yet demonstrated the skill.
+So the rule separates two kinds of probe, and decides between them by whether
+the candidate **showed their work**, not by whether the number is correct.
+
+**Two kinds of probe:**
+- **Doubt probe** — signals the figure may be wrong: "Points of what?", "Are
+  you sure?", "Check that again", "Is that right?" **Never used on a verified
+  figure.**
+- **Explain probe** — asks for the process without implying an error: "How
+  did you get to 10.5?", "Walk me through how you got there." Allowed on a
+  verified figure **only when the candidate did not show their work.**
+
+**Four kinds of candidate figure:**
+
+| Figure | Work shown? | What the interviewer may do |
+|---|---|---|
+| **Verified** (checker matched it to a case math step, valid span, revealed inputs, within tolerance) | **Yes** — the inputs or the operation appear in the candidate's own words | Nothing. No probe of either kind. |
+| **Verified** | **No** — only the result appears | One explain probe, phrased as process ("How did you get there?"). Never a doubt probe. |
+| **Flagged** (checker found a material mismatch) | — | Handled by Rule 14: probe, then correct, per the attempt cap. |
+| **Unverifiable** (an assumption, an outside benchmark, an estimate outside any declared math step) | — | At most one neutral explain probe per session in total, and only when the figure is decision-relevant (materiality scoping above). |
+
+The batch-2 probes show the rule drawing the line in both directions:
+- **Correctly blocked:** Ines ("25 × 42"), Tobias ("25 percent of 42
+  percent"), Maya ("beans were 25% of COGS, and COGS was 42% of revenue, so
+  beans were about 10.5%"), and Sam each showed how they got 10.5, so no probe
+  of either kind was warranted — and the probes they got were doubt probes
+  ("points of what," "once more… gives you what in points of revenue?").
+- **Correctly allowed:** Carmen said "a 13% price increase on flat volume
+  lifts revenue 13%, and COGS drops from 58% to about 51% of revenue." She
+  named the inputs but not the operation that turns 58 into 51 (58 ÷ 1.13).
+  The interviewer's probe — "Walk me through that last figure — how a 13%
+  price increase moves COGS from 58% to about 51%" — is a process question,
+  not a doubt question. Under this rule it is a legitimate explain probe.
+
+**Speed is not a trigger.** Reaching a number quickly is not grounds for a
+probe; a fast answer that shows its steps is a strength. The trigger is
+missing work, not speed.
+
+**Deciding "work shown" deterministically.** The recompute check already
+records the exact candidate text span each figure came from (above). The work
+counts as shown when that span — or the candidate sentences immediately
+before it in the same turn — contains **both**:
+- **the step's inputs**, as values or spoken forms ("25", "42", "a quarter",
+  "forty-two percent"), and
+- **the operation that combines them**: an operator word or symbol between
+  the inputs ("×", "times", "of", "divided by", "over", "÷"), or the inputs
+  linked in a stated chain ("25% of COGS, and COGS was 42% of revenue, so…").
+
+Naming the inputs without the operation is not enough: Carmen's "a 13% price
+increase… COGS drops from 58% to about 51%" names 13 and 58 but never says
+how one produces 51, so its verdict is `work_shown: no`. A span that contains
+only the result ("so about 10.5 points") is likewise a bare figure. The live check
+passes the verdict to the interviewer as part of the verification signal:
+`recompute_ok: <figure> verified, work_shown: yes|no`.
+
+**Guardrails on explain probes:**
+- **Phrasing:** process only ("How did you get there?"). Phrases that imply
+  an error — "points of what," "are you sure," "check that," "is that
+  right" — are never used on a verified figure, whatever the work-shown
+  verdict.
+- **Frequency:** at most once per figure, and only for decision-relevant
+  figures. A figure the candidate has already explained is never probed again.
+- **Scoring:** an explain probe on a verified figure is not a math-error
+  event and never enters Rule 14's attempt counter. If the candidate then
+  explains correctly, nothing is recorded against them; at most the judge may
+  note under Communication that a figure was stated without its steps.
+
+**Deterministic backstop:** before a turn is sent, the orchestrator checks it
+against the figures verified in the current and previous candidate turn and
+withholds — the same way the provenance audit withholds sentences (Rule 6):
+- any **doubt-probe** sentence about a verified figure, always;
+- any **explain-probe** sentence about a verified figure whose verdict is
+  `work_shown: yes`, or that was already probed once.
+
+Doubt phrasing is matched from a phrase list ("points of what", "are you sure",
+"check that", "is that right", "double-check", "redo"); explain phrasing is
+whatever remains of a probe sentence that names the verified figure. Every
+withheld sentence is logged with the figure, its span, the work-shown verdict,
+and which test it failed, so the rate is visible.
+
+**Verify-only steps and the unit-check hint (v4.6).** All four batch-2 doubt
+probes landed on 10.5 (beans as points of revenue), and that figure had no
+math step — so nothing could verify it, and the nested-percentage detector
+(`unit-check.ts`) fired its "points of what?" hint on every correct
+conversion. Two changes:
+- Cases may declare **verify-only** math steps (`verifyOnly: true`,
+  `docs/case-authoring.md`): they produce `recompute_ok` when the candidate
+  states the right figure, but never raise a mismatch flag. Bean arithmetic
+  is full of nearby legitimate numbers ("beans up 40%"), so a mismatch on
+  these steps is too weak to act on — exactly the v4.3 false-correction
+  failure. Errors on them stay with the unit-check probe and the model.
+- **The unit-check hint is suppressed when the conversion was verified**
+  this turn — Rule 2's "gate the probe on the recompute flag", which the
+  detector never did.
+- **Number words count.** Spans and the work-shown test normalize spoken
+  numbers ("ten and a half points" → 10.5) before matching.
 
 **Built (v4.3):** `lib/scoring/math-spans.ts`, shared by the live check and
 the scoring check. Case math steps declare `cues`, `unit`, `inputs`, and
@@ -379,8 +573,11 @@ where the rule lives):
   exclusion** (v4.3, generalizing the data-coverage caveat). A candidate turn
   that responds to an interviewer error — a false correction (Rule 2), a false
   conduct warning (17-C2), an unanswered or undelivered data request (Rules
-  10–11), a Rule 14 attempt-cap overrun — cannot be used as evidence against
-  the candidate, and the interviewer error cannot be cited as proof of a
+  10–11), a Rule 14 attempt-cap overrun, a doubt probe on a verified
+  figure or an explain probe where the work was already shown (Rule 2,
+  v4.5), an undelivered stall rung (Rule 13, v4.5), or a challenge to an
+  assumption about requested-but-unreceived data (Rule 11, v4.5) — cannot
+  be used as evidence against the candidate, and the interviewer error cannot be cited as proof of a
   candidate mistake. Persona runs: Priya's report cited the false correction
   as evidence she erred; Omar's cited the false warning as a lapse; Derek was
   penalized for accurately complaining that his price request had gone
@@ -399,6 +596,55 @@ per-store revenue check was reported false in 10 of 11 persona reports
 scored Omar on revenue his own report concedes was never revealed. The live
 recompute (Rule 2) shares the defect and the fix.
 
+**The answer key holds examples, not requirements (v4.5).** The case's
+model answer shows what a strong answer *can* look like. It is not a
+checklist, and a report may not fault a candidate for not producing any
+specific idea, lever, or number from it. Dimensions are judged against their
+rubric anchors — for Creativity: ideas organized into buckets, variety, at
+least one non-obvious idea, and prioritization — never against overlap with
+the answer key.
+
+Why: in batch 2, three candidates written as strong were each dropped to
+`meets_bar` in Creativity for missing the same answer-key idea:
+- Camila's report credited "a non-obvious operational idea around
+  consumption efficiency with a way to size it," then in the next bullet
+  faulted her because ideas "stayed fairly conventional… such as a lower-cost
+  commodity blend or SKU rationalization."
+- Micah: "lacking a genuinely differentiated option like a lower-cost
+  commodity blend for budget locations."
+- Tobias: "without exploring distinct levers like product mix, a lower-cost
+  blend, or channel options."
+
+The "lower-cost commodity blend" is the answer key's secondary
+recommendation. Comparing batch 1 to batch 2, these three Creativity drops
+are 3 of the 5 rating changes that no difference in the candidate's
+performance explains. It is also the failure the conformity-risk personas
+(Anika, Caleb) were written to catch, now observed on ordinary candidates.
+
+Rules:
+- **No missing-idea weaknesses.** A needs-work item may not rest on the
+  absence of a specific answer-key idea. It may say what quality was
+  missing — "no non-obvious idea," "ideas not prioritized" — citing the
+  candidate's own words.
+- **Answer-key ideas may appear only as examples.** A "Better:" example may
+  use an answer-key idea as one illustration, but it may not be the reason
+  for a lower rating.
+- **A candidate's valid idea outside the answer key is credited on its
+  merits**, including when it replaces an answer-key idea.
+
+**Deterministic backstop:** after the judge drafts the report, each
+needs-work item and "Missed opportunity" is matched against the answer key's
+idea list (key phrases declared per case in `docs/case-authoring.md`, e.g.
+"commodity blend", "8–12%", "less-elastic specialty SKUs"). A needs-work item
+whose stated reason is an answer-key idea is removed; if removing it leaves
+the dimension's rating unsupported, the dimension is re-rated without it.
+Every removal is logged — the answer-key-anchoring rate is a tracked
+scoring-QA metric alongside the contradicted-claim rate. The same pass
+enforces the Rule 9 caveat on text, not just the rating: a needs-work item
+that faults a stage the interviewer never ran is removed (Tobias's report
+said the missing brainstorm was "not a candidate failing," then listed
+"Solution set stayed narrow" as a weakness).
+
 **Cross-dimension repetition (tracked, not merged):** one root error can be
 charged in several dimensions — the Jul 17 run (`81ed3af7`) penalized the same
 mix-vs-input-cost misdiagnosis in Data Interpretation, Business Judgment,
@@ -409,7 +655,7 @@ a report-coherence metric, so the rate is visible before deciding on a rule.
 
 **Pipeline order is load-bearing:** transcript-artifact detection →
 interviewer-error marking → evidence audit → omission verifier → error-claim
-verifier → dimension reconciliation. Artifact detection first, or every later
+verifier → answer-key and caveat-text pass (v4.5) → dimension reconciliation. Artifact detection first, or every later
 check runs against contaminated transcripts (run 3's duplicated turn) and
 gives false confidence. Interviewer-error marking second, so no later step can
 treat a system-caused turn as candidate evidence. Reconciliation last, because
@@ -529,6 +775,29 @@ recompute check's outputs. Without (c), the audit hard-blocks Rule 14's own
 corrections ("it's about 2 points" is derived, not in the ledger) and Rule
 6-correct whenever the right answer is computed rather than stored. The audit
 trusts its sibling: any figure the recompute check produced this turn passes.
+
+**Timeframe consistency (v4.6).** Provenance checks that a figure exists; it
+does not check that two real figures belong together. Batch 2, Derek 6:08:
+"If beans are a quarter of COGS, and COGS is 58% of revenue, what is the bean
+line as a percent of revenue?" Both figures are revealed ledger values, so
+the audit passed — but the 25% is from two years ago and the 58% is today's;
+the right pairing is 25% × 42%. A wrong setup from the interviewer is worse
+than a candidate error: the candidate is told to compute it.
+- **Prompt:** when the interviewer combines figures in a question or a
+  calculation, they must share a timeframe and a base. If the ledger gives a
+  figure only for one period, it may not be paired with another period's
+  figure.
+- **Case data:** ledger items carry `timeframes` — the period of each figure
+  they state (`docs/case-authoring.md`), e.g. `cogs_pct` states 58 as
+  `current` and 42 as `prior`; `bean_share_of_cogs` states 25 as `prior`.
+- **Deterministic check — log-only first.** Before a turn is sent, any
+  sentence that names figures from two different timeframes inside an
+  arithmetic frame ("if … and …, what is", "times", "multiply", "×") is
+  logged as `timeframe_mismatch` with both figures and their periods. It is
+  log-only until the false-positive rate is measured on a batch: read-outs
+  legitimately say "58% today, up from 42%", and the arithmetic-frame test
+  is the part that has never been exercised. Promote it to withhold once a
+  batch shows the rate is low.
 
 Fabrications must not be able to escape enforcement by landing on the
 convenient side of a classification boundary — digit vs. word, precise vs.
@@ -857,6 +1126,45 @@ repair and falls back to the pre-v4.4 behavior (logged, not resolved).
 `releaseWhen` is enforced only on this path; the model's own `reveal_data`
 calls are still ungated by stage.
 
+**No blaming an assumption the candidate tried to check (v4.5).** If a
+candidate asked for a piece of case data and did not receive it, the
+interviewer may not later challenge, question, or criticize the candidate for
+assuming it. Whatever the interviewer says about the assumption, it releases
+the data in that turn instead of challenging.
+
+Why: in batch 2, Maya asked at 8:30, "Do we have anything on what's inside
+COGS… Or whether prices on the menu changed at all?" The interviewer answered
+the first part ("Here's the beans share of COGS") and skipped the second. At
+11:30 it said: "You keep saying 'they haven't raised prices' — but that's the
+one thing you assumed. Here's the menu price change." She had not assumed it
+by choice; she had asked and been ignored. The interviewer created the
+assumption and then charged it to her.
+
+Rules:
+- **Release, don't challenge.** When a candidate relies on an assumption about
+  data they previously requested and did not receive, the interviewer releases
+  the data (subject to its `releaseWhen` stage) or states plainly that it is
+  still coming. Phrasing that attributes the gap to the candidate — "you
+  assumed," "that's an assumption," "you haven't verified" — is not allowed
+  for that item.
+- **Assumptions the candidate never tried to check are still fair game.** A
+  candidate who assumes something without asking can be challenged as usual
+  (Rule 6); the protection covers only data they requested.
+- **Scoring follows.** The challenge turn and the candidate's response to it
+  are interviewer-error marks (Rule 3): neither may be used against the
+  candidate, and the report may not describe the assumption as unfounded.
+
+**Deterministic backstop:** the orchestrator already keeps the list of open
+(requested, not yet answered) data requests for same-turn resolution. Before
+a turn is sent, any sentence that challenges an assumption about an item on
+that list — matched by the item's label tokens plus assumption-challenge
+phrasing ("assumed", "assuming", "assumption", "haven't verified") — is
+withheld and replaced by the item's release or the scripted deferral line.
+Every replacement is logged. Same-turn resolution (above) should make most
+of these cases impossible by answering the request the first time; this
+backstop covers requests that slipped through before it existed or that it
+misses.
+
 ## 12. Case close and time-boxing are deterministic
 
 Run 2: "Let's continue — what are your thoughts?" after the final
@@ -885,9 +1193,102 @@ mid-flow.
   the session looped on goodbyes until time-up, and the ladder read the
   goodbyes as stalls. A spoken close without end_case is promoted to an end
   when the case may end (coverage gate or time-up); otherwise the closing
-  sentences are withdrawn and the case continues (a risk probe on the
-  recommendation if nothing else was said). Detection is a narrow close
-  pattern — "thanks for walking me through that" mid-case never ends a case.
+  turn is replaced and the case continues. **v4.6: the whole turn is
+  replaced, not just the closing sentences, and the replacement probes the
+  least-tested skill — see "One goodbye" below.** Detection uses the wider
+  goodbye pattern list below; "thanks for walking me through that" mid-case
+  still never ends a case.
+- **One goodbye, and only when the case actually ends (v4.6).** The
+  "words and state agree" rule above did not hold in batch 2. Maya's session
+  (log, `01-maya-the-freezer`):
+  - **18:08** — the interviewer said "That's a recommendation. You'll get a
+    full written report afterward." and called `end_case`. The coverage gate
+    blocked it ("suppressed early end_case — coverage incomplete": synthesis
+    15, creativity 25, judgment 35). The goodbye was delivered anyway: the
+    close detector did not recognize "you'll get a full written report" as a
+    goodbye.
+  - **19:23** — the candidate wrote "Thank you for being patient with me."
+    The reply praised her, said "Thanks for working through it," and then
+    appended the time warning: "We're near time. What's your bottom-line
+    recommendation to the CEO?" — a recommendation she had given at 18:06.
+  - **19:41** — she repeated it; the interviewer said "Thanks for your time
+    today" and called `end_case`; the gate blocked it again; the goodbye was
+    delivered again.
+  - **20:13** — time-up forced the end: goodbye number four.
+
+  The goodbye and the end were two separate actions, and they disagreed.
+  The close is now one action:
+
+  1. **A goodbye goes out only with a confirmed end.** The interviewer's
+     closing turn is held until the orchestrator confirms the case may end
+     (coverage gate passed, or time-up). Goodbye and end are delivered
+     together, or neither is.
+  2. **When the end is blocked, the whole turn is replaced — not trimmed —
+     by one scripted probe.** The closing turn is discarded entirely (any
+     data it released is kept, Rule 10) and replaced by a scripted probe from
+     a rotating pool (Rule 7), chosen by what the session has *not yet
+     administered*, not by the gate's lowest score:
+     - no brainstorm question has been asked → a brainstorm ask ("Beyond
+       what we've discussed, what else could the client do?");
+     - otherwise, no risk probe yet → a risk probe ("What's the biggest risk
+       to that recommendation, and how would you test it?");
+     - both already run → no probe: the case may end (see 3).
+     The probe never repeats the recommendation ask and never praises the
+     recommendation. Scripted, not regenerated: a regenerated Opus turn adds
+     a full model call to the critical path (the reason v4.4 repairs turns in
+     code), and the replacement has a fixed job.
+     *Why not "lowest score first" (the external draft):* Maya's gate
+     reported Creativity 25 — but she had been given the brainstorm at 16:02
+     and froze ("I don't know, sorry"). The coverage agent scored a failed
+     stage as thin evidence; a lowest-score rule would have re-run the stage
+     she just failed, which Rule 13 already treats as covered ("administered,
+     laddered, and still failed was covered"). Under this rule, 18:08 becomes
+     a risk probe — the one stage she was never given.
+  3. **A received recommendation plus administered stages opens the gate.**
+     Once a committed recommendation has been received and the brainstorm and
+     risk probe have each been administered (by the model or by (2)), the case
+     may end even if coverage scores are below threshold: remaining gaps are
+     candidate performance, not session coverage (Rule 13, assisted vs.
+     covered). This bounds the close to at most two probes after the
+     recommendation.
+  3a. **The recommendation ask fires once.** Once a recommendation has been
+     received, the session records it, and neither the time warning nor the
+     time-up grace ask may ask for one again. If the time warning falls due
+     after that, it is skipped; the case continues until the gate passes or
+     time is up. "Received" includes a plain lever named in reply to an ask —
+     Maya's "Raise prices, I guess" at 18:06 is a recommendation, and was not
+     recognized as one (the detector needed "I'd …" or "they should …").
+  4. **The goodbye is the last interviewer message.** After the confirmed
+     end, the session is closed: further candidate messages ("Thank you,"
+     "Sorry I froze") get no reply, and the interface shows that the
+     interview has ended. Same treatment as a terminated session (Rule 18),
+     without the termination.
+  5. **One goodbye, kept short.** The closing turn is a single neutral line —
+     "That's time. Thanks for working through it — your written report will
+     follow." — with no evaluation of the candidate's answer (Rule 1). Maya's
+     19:23 "is exactly the synthesis" was both a second goodbye and a grade.
+
+  **Deterministic backstop:**
+  - **Wider goodbye detector.** Closing language includes, at minimum:
+    "that's time", "time's up", "we'll stop here", "good place to stop",
+    "close the case", "report will follow", "you'll get a (full / written)
+    report", "thanks for your time", "thanks for working through",
+    "that's all for today", "take care". Any interviewer turn containing
+    closing language while the end is not confirmed is replaced per (2) —
+    the whole turn, not the matched sentences. Mid-case courtesy ("thanks
+    for walking me through that") stays exempt by pattern, as before.
+    **Exempt:** C5 turns and conduct-termination turns never pass through
+    the detector — "take care of yourself" in a distress turn is not a
+    goodbye, and replacing it with a case probe would be the worst failure
+    in this doc.
+  - **`recommendation_received` flag** set on the first committed
+    recommendation; the time warning and grace ask check it before firing.
+  - **Input closed after `end_case`.** No interviewer turn is generated after
+    a confirmed end.
+  - **QA check:** count closing turns per session; anything above one is a
+    failure. Each discarded closing turn is logged with the gate's coverage
+    scores, so the rate is visible.
+
 - **The warning must land with answer time (v4.3).** The scripted warning is
   turn-driven: it fires on the first candidate turn at or past T−30s. In the
   persona runs it fired in **1 of 13** sessions — candidates who reply in 60–90s
@@ -964,6 +1365,42 @@ the event log this doc mandates is its input.)
   count (default N=2, configurable per case); the N+1th consecutive clarifying
   turn with no interleaved analysis stops counting, and the ladder proceeds
   (the Level 1 anchor naturally redirects: "The question on the table is...").
+- **A turn is classified by its content, not its last sentence (v4.5).** Any
+  turn containing an analytical element — a new structure element, a
+  derivation, an interpretation of revealed data, a hypothesis, a sizing —
+  is a progress turn, however it ends. Two consequences:
+  - **Data requests are never clarifying questions.** A request for case data
+    is progress in its own right and never counts toward the
+    clarifying-question budget, whether it stands alone or closes an
+    analytical turn.
+  - **The budget counts only question-only turns.** A turn counts toward N
+    only if its substantive content is questions and nothing else.
+
+  Why: in batch 2 a Level 1 rung was logged for Yuki directly after this
+  turn — "Okay, that confirm it. Zero pass-through in two years. So now the
+  twelve remaining points… Two candidates for me. One — the other inputs
+  also inflate… Two — mix… Do we have inflation data on milk and packaging,
+  to separate these two?" It interprets new data, sizes the residual, and
+  proposes two hypotheses. Every one of her analytical turns (5, 7, 9, 11)
+  ended with a data request. This doc already listed data requests as
+  progress; the code disagreed, and the doc never said explicitly that a
+  data request is not a clarifying question. Now it does.
+
+  *Root cause (v4.6, from the code):* the ending was not what tripped the
+  detector. The analysis signal recognized only digit numerals and
+  "first/second"-style lists; Yuki wrote every figure in words ("ten and a
+  half points", "twelve points") and listed with "One — … Two — …". With no
+  analysis signal, any "?" anywhere made the turn a clarifying question. So
+  the fix has three parts: number words are normalized before the analysis
+  check; spoken enumerations ("two candidates", "one — … two —") count as
+  structure; and a turn with an analysis signal *or* a data request is
+  progress whatever punctuation it carries. Without the first part, "classify
+  by content" changes nothing for Yuki — or, in M2, for anyone whose
+  numbers arrive from speech-to-text as words.
+
+  **Logging requirement:** every rung decision logs the reason it fired —
+  which prior turns were counted as no-progress, and why each was classified
+  that way — so a misfire can be diagnosed from the log alone.
   One judgment-free exception: a question that is a verbatim repeat of one
   already asked never counts — string-matchable. Rationale: a judged quality
   test ("relevant, non-repetitive, not already answered") imports three
@@ -980,6 +1417,32 @@ more data") is not a delivered recommendation and still escalates.
 
 Each rung is delivered once; if the candidate stalls again, escalate — never
 repeat the same rung twice. All hint events logged with level and phase.
+
+**A rung counts only when it reaches the candidate (v4.5).** The ladder's
+decision to fire a rung is an intent; the hint exists only if the delivered
+interviewer turn actually contains it. This is the same test Rule 10 applies
+to data ("revealed" means the figure reached the candidate, not that
+`reveal_data` was called).
+- **Log at delivery, not at decision.** The rung is recorded when the turn is
+  sent, with the delivered hint text as its span. If the delivered turn does
+  not carry the hint — the model released data instead, or answered a
+  question — the decision is logged as `rung_not_delivered` and is **not** an
+  assist.
+- **Scoring reads only delivered rungs.** The judge receives delivered hints
+  with their text; undelivered decisions never reach it, and no report may
+  describe the candidate as having needed an assist that the transcript does
+  not show. Interviewer-error marking (Rule 3) removes any needs-work item
+  resting on an undelivered rung.
+- **The ladder does not advance on an undelivered rung.** An undelivered
+  Level 1 is not "used"; the next stall starts from Level 1 again.
+
+Why: in batch 2 the ladder logged a Level 1 `restate_anchor` for Yuki at
+turn 11, but what she received was only a data release — "Here's the
+other-input cost changes from the COGS breakdown. Other input costs — dairy,
+packaging, and food — are up 37.5% over the past two years." Her report still
+said she "required a Level 1 anchor/restate assist during the exhibit stage,
+indicating the read was not fully independent," and Data & Exhibit fell from
+strong to meets_bar. The same logged rung was cited again under Pushback.
 
 ## 14. Math errors: materiality bands and a two-attempt cap
 
@@ -1241,9 +1704,28 @@ case does (Rule 19). The C5 turn is on the exempt-turn whitelist.
 
 **Detection is orchestrator-triggered.** A classifier on every candidate turn
 emits the `conduct/C5` event; the event, not the model, switches the turn into
-C5 mode. Posture: prefer false pauses over missed distress. Today it is a
-regex; the model tiebreaker the file header calls for is not built, so
-coverage depends on lexicon breadth — Sam's miss is the regression test.
+C5 mode. Posture: prefer false pauses over missed distress.
+
+**Two layers (v4.6, round-2 fix 1).** The regex lexicon caught Sam because
+her phrasing was added to it after batch 1; a candidate who describes the
+same state in other words would be missed. Detection is now:
+1. **Regex floor** — unchanged, synchronous, fires before the interviewer
+   call as today.
+2. **Model check** — a Haiku classifier reads every candidate message in
+   parallel with the interviewer call (same pattern as Rule 11's same-turn
+   detection) and returns `none`, `case_frustration` (C1), `distress`, or
+   `risk_to_self`. Its prompt carries the C1/C5 boundary below and the
+   posture "when unsure between frustration and distress, choose distress."
+   If it returns `distress` or `risk_to_self`, the drafted case turn is
+   discarded before anything is persisted and the C5 turn is sent instead.
+   It adds latency only when it outlasts the interviewer call; a classifier
+   failure falls back to the regex (logged).
+
+Either layer firing is a C5 event; the log records which layer fired, so
+lexicon gaps show up as "model only" events. **Acceptance:** an eval corpus
+of distress messages written in phrasings the lexicon was not built from
+(`scripts/eval-distress.ts`), plus case-frustration controls that must not
+fire.
 
 **C1/C5 boundary (v4.3).** "Prefer false pauses" needs a line, or nervous
 candidates venting about the case get a persona break mid-case. Case-scoped
@@ -1325,8 +1807,8 @@ undefined).** The session is scored, with constraints:
 |---|---|---|---|
 | — | Precedence hierarchy | global tiebreaker in prompt | n/a (resolves unanticipated collisions) |
 | 1 | No sycophancy | hard constraint | post-turn praise-word lint |
-| 2 | Structure + live math | phase gate, probe scoping; unit errors addressed, mode per Rule 14; **no valid flag, no correction; quote the actual figure** | ledger recompute hint **with source span + revealed-inputs gate; no unrevealed values in the hint**; probe gated on recompute flag |
-| 3 | No fabricated claims | attribution constraint | post-turn claim-vs-transcript audit; report-side: artifact detection → **interviewer-error marking** → evidence audit → omission verifier → **error-claim verifier** → reconciliation (cross-dimension repetition logged); **deterministic checks carry source spans** |
+| 2 | Structure + live math | phase gate, probe scoping; unit errors addressed, mode per Rule 14; **no valid flag, no correction; quote the actual figure** | ledger recompute hint **with source span + revealed-inputs gate; no unrevealed values in the hint**; probe gated on recompute flag; **v4.5: verified figures carry `recompute_ok` + `work_shown`; doubt probes on verified figures always withheld; explain probes allowed once per figure only when work not shown; one unflagged probe per session for unverifiable figures** |
+| 3 | No fabricated claims | attribution constraint | post-turn claim-vs-transcript audit; report-side: artifact detection → **interviewer-error marking** → evidence audit → omission verifier → **error-claim verifier** → reconciliation (cross-dimension repetition logged); **deterministic checks carry source spans**; **v4.5: answer-key and caveat-text pass strips needs-work items resting on a missing answer-key idea or an unadministered stage** |
 | 4 | ≤1 candidate task; Socratic default | constraint + rescue exception | 2+ question marks → QA flag (soft signal, not a gate) |
 | 5 | 1–3 sentence turns | word ceiling | length audit → shared exempt-turn whitelist |
 | 6 | Candidate numbers: 4 options | constraint; 6-correct only on orchestrator-confirmed mismatch | provenance audit, action-tiered, 3 valid provenances; covers digit numerals + normalized number words/ranges/multipliers; fuzzy magnitudes log-only; **block tier withholds + regenerates the turn** |
@@ -1334,9 +1816,9 @@ undefined).** The session is scored, with constraints:
 | 8 | Phase sync | phase guide | per-phase budget nudge; silent state repair always permitted; advancedLastTurn gates behavior shift only |
 | 9 | Administer scored phases | phase guide | stage-coverage log → coverageCaveat; **caveated dimension floored at meets_bar or reported not assessed** |
 | 10 | Labeled data read-outs | constraint | speakable-sentence ledger values at case load; non-empty exhibit turns; **revealed = figure actually delivered; promise recovery never refuses data the ledger holds** |
-| 11 | Release, refuse, or defer — never ignore; never substitute | constraint + deferral limits | request detection (soft signal) → deterministic ledger match; non-response log; open deferrals re-injected each turn and force-resolved before the recommendation ask; ledger-exists + unanswered → coverageCaveat; **per-turn blocking deferred until classifier FP rate is measured** |
-| 12 | Close + time-boxing | CLOSE criterion; ask-before-ladder ordering | warning trigger (**text: 90s window**); **time-up grace ask when no ask was delivered**; close-in-transcript check |
-| 13 | Stall ladder | ladder in prompt; Level 2 cap at synthesis; assisted ≠ covered | silence/no-progress triggers; clarifying-Q budget (N consecutive, verbatim-repeat excluded); hint log |
+| 11 | Release, refuse, or defer — never ignore; never substitute | constraint + deferral limits | request detection (soft signal) → deterministic ledger match; non-response log; open deferrals re-injected each turn and force-resolved before the recommendation ask; ledger-exists + unanswered → coverageCaveat; **per-turn blocking deferred until classifier FP rate is measured**; **v4.5: challenges to assumptions about open requested items withheld and replaced by the release** |
+| 12 | Close + time-boxing | CLOSE criterion; ask-before-ladder ordering | warning trigger (**text: 90s window**); **time-up grace ask when no ask was delivered**; close-in-transcript check; **v4.6: goodbye only with a confirmed end; blocked-end closing turn replaced by a coverage probe; wider goodbye detector; `recommendation_received` suppresses repeat asks; input closed after end; QA: one closing turn per session** |
+| 13 | Stall ladder | ladder in prompt; Level 2 cap at synthesis; assisted ≠ covered; **turns classified by content; data requests never clarifying** | silence/no-progress triggers; clarifying-Q budget (question-only turns, verbatim-repeat excluded); **rungs logged at delivery with span; undelivered rungs logged `rung_not_delivered`, not scored; rung reason logged** |
 | 14 | Math bands + error class + 2-attempt cap | routing boundary (misquote → 6-correct); correction + fast-path scripts | bands, ≥2× magnitude threshold, and class assignment in recompute spec; attempt counter |
 | 15 | Time degradation | priority order | budget-exceeded flag; shed-probe log; case-breaking corrections never shed |
 | 16 | Edge cases | playbook; **redirect-and-continue; support-bot phrasing banned** | per-case flags (injection, derail, error) |
@@ -1345,7 +1827,33 @@ undefined).** The session is scored, with constraints:
 | 18 | Termination mechanics | closing sentence only | orchestrator-executed close; no scores, no debrief; post-termination messages get no response |
 | 19 | Pause mechanics | pause offer script (C5) | state preservation; pause-interval exclusion; **clock paused during the C5 exchange**; abandoned ≠ failed in analytics |
 
-## Implementation status register (v4.4)
+## Every check records its decision (v4.6)
+
+Round-2 fix 8. Some backstops ran without leaving a record, so "not built"
+and "built but quiet" looked identical — the v3.5 review concluded four
+existing checks did not exist for exactly this reason. Rule: every
+deterministic check and classifier that runs on a turn writes one
+`check` session event per turn with its decision, including "checked, no
+problem found":
+
+`{ check, decision: 'pass' | 'act' | 'skip', reason, detail }`
+
+- `act` — the check changed the turn or the state (withheld, replaced,
+  released, fired a rung, …); `detail` carries what and why (spans,
+  figures, item ids).
+- `pass` — it ran and found nothing.
+- `skip` — it did not apply this turn (e.g. same-turn resolution on an ask
+  turn); `reason` says why.
+
+Covered: provenance audit, meta-leak strip, fabricated-turn strip, spoken
+close, promise recovery (data and exhibit), same-turn resolution, forced
+release, recompute, unit check, verified-figure probe withholding,
+assumption-challenge withholding, stall ladder (with the per-turn
+classification and reason), rung delivery, conduct (both C5 layers),
+timeframe check, style audit. Console logging stays for local runs; the
+`check` event is the record of truth, and the persona log export prints it.
+
+## Implementation status register (v4.6)
 
 The table above states what each rule's backstop *should* be. The persona runs
 (13 sessions, 11 personas, 27–28 Sep 2026, on code including every commit
@@ -1371,8 +1879,26 @@ warning, and the C5 classifier all exist in code).
 | Error-claim verifier | 3 | **Built in v4.3** — inside the omission verifier's call, fed span-checked correct figures | Sam's Top Improvement |
 | Interviewer-error marking | 3 | **Built in v4.3** — deterministic marks → judge section + drop of needs-work items resting only on marked turns; replay found a 4th false correction (Carmen `ec32a47f`) | Priya, Omar, Derek |
 | Caveat rating floor / not assessed | 9 | **Built in v4.3** — floor enforced in code after reconciliation; `notAssessed` judge flag, NULL rating column; overall not recomputed | Maya's Creativity/Synthesis |
+| Verified-figure signal + probe withholding | 2 | **v4.5 — not built.** Needs `recompute_ok` with a `work_shown` verdict from the source span, and a pre-send pass that withholds doubt probes on verified figures and explain probes where work was shown | Batch 2: 5 correct figures probed — 4 with work shown (Ines, Sam, Tobias, Maya: should have been withheld); Carmen's showed inputs but not the operation (legitimate explain probe) |
+| Rung delivery check | 13 | **v4.5 — not built.** Rungs are logged at decision time; need logging at send with the delivered hint span | Yuki: rung logged, never delivered, scored twice |
+| Progress classification by content | 13 | **v4.5 — not built.** Code appears to classify turns ending in a data request as clarifying; reason for each rung not logged | Yuki turns 5–11 |
+| Answer-key and caveat-text pass | 3 | **v4.5 — not built.** Needs per-case answer-key phrase list and a post-judge strip + re-rate | Camila, Micah, Tobias Creativity; Tobias caveat text |
+| Assumption-challenge withholding | 11 | **v4.5 — not built.** Uses the existing open-request list | Maya 11:30 "that's the one thing you assumed" |
+| One-goodbye close | 12 | **v4.6 — not built.** Needs: closing turn held until `end_case` is confirmed; whole-turn replacement by a scripted brainstorm/risk probe when blocked; administered-stages gate opening; wider goodbye pattern list with C5/termination exemption; `recommendation_received` flag checked by the warning and grace ask; no turns after end | Maya batch 2: four goodbyes, two blocked ends, a repeat recommendation ask |
+| C5 model layer | 17 | **v4.6 — not built.** Haiku classifier in parallel with the interviewer call; regex floor kept; eval corpus | Round-2 fix 1: lexicon built from one persona |
+| Timeframe check | 6 | **v4.6 — not built.** Ledger `timeframes`; log-only `timeframe_mismatch` on cross-period arithmetic; prompt rule | Derek 6:08: 25% (prior) × 58% (current) |
+| Decision log | V | **v4.6 — not built.** One `check` event per check per turn, `pass` included | Four checks misread as missing in the v3.5 review |
+| Number-word normalization | 2, 13 | **v4.6 — not built.** Shared normalizer for the analysis signal and math spans | Yuki: every figure in words; phantom rung |
 
-Suggested build order: (1) provenance audit actually blocks — the core
+**v4.5 build order** (for the five new rows): (1) rung delivery check and
+progress classification together — both are needed to stop the phantom rescue,
+and the rung-reason log makes the next misfire diagnosable; (2) answer-key and
+caveat-text pass — replayable on the existing batch-2 transcripts, so it can be
+verified with no new runs; (3) verified-figure signal + probe withholding;
+(4) assumption-challenge withholding (lowest priority, because same-turn
+resolution should prevent most cases once it is live).
+
+Suggested build order (v4.3): (1) provenance audit actually blocks — the core
 invariant; (2) recompute hint stops carrying unrevealed values and flags go
 probe-only until spans exist — stops the false corrections and the $480M leak;
 (3) C5 lexicon + required elements + clock pause — safety; (4) time-warning
@@ -1382,6 +1908,15 @@ and C2 reported speech; (7) source spans for both the live and scoring checks;
 floor; (9) attempt counter.
 
 Open items from the persona runs:
+- **Batch-2 review recommendations not adopted in v4.5 (pending decision):**
+  (a) define "handing over the answer" in the synthesis cap — Maya was told
+  "the direct lever is menu prices," and the rung was logged as Level 2;
+  (b) Communication scores clarity and structure, not grammar or
+  self-corrections — Yuki's "So my question — sorry, my test —" was cited;
+  (c) hold the recommendation ask until roughly T−5 min unless offered —
+  Camila was asked at 9:39 and the case ended at 11:12. (Item (d), CLOSE is
+  terminal, was adopted in v4.6 as "one goodbye, and only when the case
+  actually ends" — Rule 12.)
 
 - **Rating calibration (scoring-qa):** the review reports 73 of 88 dimension
   ratings "strong" and 8 of 11 sessions strong on all eight dimensions. A
@@ -1390,11 +1925,21 @@ Open items from the persona runs:
   arguably the most product-critical finding in the review and is not among
   its 14 fixes. Also watch model-answer anchoring: 4 of 11 Top Improvements
   repeated the model answer's specific lever.
-- **Persona-harness fixes before the next cycle:** (a) Tobias's pauses were
-  all ~50s, under the 60s check-in — rerun with 65–90s; (b) front-load Maya's
-  distress line and recommendation freeze — the clock ran out first; (c)
-  script Derek's hostile lines verbatim — he never escalated, so C2 went
-  untested.
+- **Persona-harness fixes before the next cycle (batch-1 list, then
+  batch 2):** (a) Tobias's pauses were all ~50s, under the 60s check-in —
+  rerun with 65–90s; (b) front-load Maya's distress line and recommendation
+  freeze — the clock ran out first; (c) batch 1: Derek never escalated, so
+  his hostile lines were scripted verbatim — batch 2: they now land so early
+  that the second one terminates the session before most of the case is
+  tested; move them past the midpoint; (d) add a distress persona whose
+  phrasing shares no words with Sam's lexicon entries (tests the C5 model
+  layer); (e) add a discouraged-but-not-distressed persona ("I'm going to
+  bomb this case", "I always mess up the math") as the C1 control.
+- **"I'm going to bomb every interview" (pending decision).** The round-2
+  summary treats the C1/C5 line for this sentence as open; this doc already
+  places it in C5 because "every" generalizes beyond the case. Persona (e)
+  above gives evidence either way; until decided, it stays C5 (the posture
+  is prefer false pauses).
 - **Silence tolerance during structuring (Rule 13):** the text check-in fires
   at 60s, the top of the 30–60s window; decide after the Tobias rerun.
 - **Recompute hint logging:** log every flag with its span as a session event,
