@@ -777,12 +777,18 @@ corrections ("it's about 2 points" is derived, not in the ledger) and Rule
 trusts its sibling: any figure the recompute check produced this turn passes.
 
 **Timeframe consistency (v4.6).** Provenance checks that a figure exists; it
-does not check that two real figures belong together. Batch 2, Derek 6:08:
-"If beans are a quarter of COGS, and COGS is 58% of revenue, what is the bean
-line as a percent of revenue?" Both figures are revealed ledger values, so
-the audit passed — but the 25% is from two years ago and the 58% is today's;
-the right pairing is 25% × 42%. A wrong setup from the interviewer is worse
-than a candidate error: the candidate is told to compute it.
+does not check that two real figures belong together. The round-2 summary
+cites Derek 6:08: "If beans are a quarter of COGS, and COGS is 58% of
+revenue, what is the bean line as a percent of revenue?" — the ledger's 25%
+is from two years ago, so the case pairing is 25% × 42%. *Checked against
+the log:* at 6:08 the bean-share item had not been released; the 25% was
+Derek's own assumption ("green coffee is typically around 25% of COGS"),
+and the interviewer — which never sees unreleased values — paired an
+assumed current share with today's 58%, which is internally consistent. So
+batch 2 has no confirmed instance. The rule and the check below stand as a
+guard for when both figures *are* released: a wrong setup from the
+interviewer is worse than a candidate error, because the candidate is told
+to compute it.
 - **Prompt:** when the interviewer combines figures in a question or a
   calculation, they must share a timeframe and a base. If the ledger gives a
   figure only for one period, it may not be paired with another period's
@@ -1886,7 +1892,7 @@ warning, and the C5 classifier all exist in code).
 | Assumption-challenge withholding | 11 | **Built in v4.6** — `assumption-guard.ts`: assumption phrasing + open-item label tokens → sentence withheld; item released at its stage or deferred out loud. Replay over batch 2 (open set at turn start): 4 runs — Maya, Tobias, Micah, Priya, all on requested menu prices | Maya 11:30 "that's the one thing you assumed" |
 | One-goodbye close | 12 | **Built in v4.6** — `spoken-close.ts`: wider detector (report hand-offs only when nothing follows); blocked closing turn replaced whole by a scripted brainstorm / recommendation / risk probe for the first stage not administered; stage gate opens the end once a recommendation is received and brainstorm + risk were run; every ending turn is the one scripted close line (plus booked values); `recommendationDelivered` widened to hedged levers and checked by the warning and grace ask. C5/termination are scripted early returns and never reach the detector. Scan of batches 1–2: fires only on real goodbyes; replay of Maya: 18:08 → risk probe, one goodbye | Maya batch 2: four goodbyes, two blocked ends, a repeat recommendation ask |
 | C5 model layer | 17 | **Built in v4.6** — `lib/orchestrator/distress.ts`, parallel with the interviewer call, draft discarded before persistence on `distress`/`risk_to_self`; not run on the reply to an offer; C5 events carry `layer`. Eval (`scripts/eval-distress.ts`, 2 Oct): model 16/16 distress caught, 0/10 controls fired; the regex alone caught 0/16 and false-fired on "I always mess up percentages" (C1 by the boundary — pattern removed) | Round-2 fix 1: lexicon built from one persona |
-| Timeframe check | 6 | **v4.6 — not built.** Ledger `timeframes`; log-only `timeframe_mismatch` on cross-period arithmetic; prompt rule | Derek 6:08: 25% (prior) × 58% (current) |
+| Timeframe check | 6 | **Built in v4.6 (log-only)** — ledger `timeframes`; `timeframe-check.ts` logs cross-period arithmetic over released items (`check` event `timeframe`); prompt rule. Scan of batches 1–2: zero hits | Round-2 fix 3 (Derek 6:08) — on inspection the 25% was Derek's assumption, not yet released; no confirmed instance |
 | Decision log | V | **Built in v4.6** — `lib/orchestrator/check-log.ts`; one `check` event per check per turn (`pass`/`act`/`skip`), written on scripted early returns too; per-check table in the run export | Four checks misread as missing in the v3.5 review |
 | Number-word normalization | 2, 13 | **Built in v4.6** — `lib/number-words.ts` (tables shared with the provenance audit); used by the stall signal; math spans: see verified-figure row | Yuki: every figure in words; phantom rung |
 

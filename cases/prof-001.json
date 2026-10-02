@@ -10,67 +10,102 @@
       "id": "revenue_total",
       "label": "Total annual revenue",
       "value": "Total revenue is $480M a year.",
-      "releaseWhen": "CLARIFY"
+      "releaseWhen": "CLARIFY",
+      "timeframes": {
+        "480": "current"
+      }
     },
     {
       "id": "stores_count",
       "label": "Number of stores",
       "value": "200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed.",
-      "releaseWhen": "CLARIFY"
+      "releaseWhen": "CLARIFY",
+      "timeframes": {
+        "200": "both"
+      }
     },
     {
       "id": "revenue_per_store",
       "label": "Average revenue per store",
       "value": "Average revenue per store is $2.4M a year.",
-      "releaseWhen": "ANALYSIS"
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "2.4": "current"
+      }
     },
     {
       "id": "cogs_pct",
       "label": "COGS as % of revenue (current)",
       "value": "COGS is 58% of revenue today, up from 42% two years ago.",
-      "releaseWhen": "ANALYSIS"
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "58": "current",
+        "42": "prior"
+      }
     },
     {
       "id": "labor_pct",
       "label": "Labor as % of revenue",
       "value": "Labor is 22% of revenue, and it’s been stable.",
-      "releaseWhen": "ANALYSIS"
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "22": "both"
+      }
     },
     {
       "id": "overhead_pct",
       "label": "Overhead / rent as % of revenue",
       "value": "Overhead is 14% of revenue, up slightly from 12%.",
-      "releaseWhen": "ANALYSIS"
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "14": "current",
+        "12": "prior"
+      }
     },
     {
       "id": "bean_price_change",
       "label": "Coffee bean price change over 2 years",
       "value": "Raw coffee bean costs are up 40% over the past two years.",
-      "releaseWhen": "EXHIBIT"
+      "releaseWhen": "EXHIBIT",
+      "timeframes": {
+        "40": "change"
+      }
     },
     {
       "id": "avg_ticket",
       "label": "Average transaction value",
       "value": "The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit.",
-      "releaseWhen": "ANALYSIS"
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "6.80": "current",
+        "6.20": "prior",
+        "10": "change"
+      }
     },
     {
       "id": "menu_price_change",
       "label": "Menu price changes over 2 years",
       "value": "Menu prices have not changed in two years.",
-      "releaseWhen": "ANALYSIS"
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {}
     },
     {
       "id": "bean_share_of_cogs",
       "label": "COGS breakdown: coffee beans as a share of COGS",
       "value": "Coffee beans were 25% of COGS two years ago.",
-      "releaseWhen": "EXHIBIT"
+      "releaseWhen": "EXHIBIT",
+      "timeframes": {
+        "25": "prior"
+      }
     },
     {
       "id": "non_bean_input_change",
       "label": "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years",
       "value": "Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.",
-      "releaseWhen": "EXHIBIT"
+      "releaseWhen": "EXHIBIT",
+      "timeframes": {
+        "37.5": "change"
+      }
     }
   ],
   "mathSteps": [

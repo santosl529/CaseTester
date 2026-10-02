@@ -17,6 +17,7 @@ import { enforceNumericProvenance, changeFigures } from './numeric-provenance';
 import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts, checkVerifiedForTurn, formatVerifiedHint, type RecomputeAttempts, type VerifiedFigure } from './recompute';
 import { withholdProbesOnVerified } from './probe-guard';
 import { withholdAssumptionChallenges } from './assumption-guard';
+import { checkTimeframes } from './timeframe-check';
 import { detectNestedPercentConversion, formatUnitCheckHint } from './unit-check';
 import { resolveExhibit, promisesExhibit } from './exhibits';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
@@ -800,6 +801,14 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     spokenText = provenance.text;
     await logEvent('provenance_blocked', { findings: provenance.findings, phase: currentPhase }, { sessionId, userId: session.userId });
   }
+
+  // Rule 6 v4.6: figures from different periods combined in one calculation
+  // (Derek 6:08: 25% two years ago × 58% today). LOG-ONLY until a batch
+  // measures the false-positive rate; the prompt carries the rule.
+  const revealedIdsNow = new Set(Object.keys(revealedValues(ledger)));
+  const timeframeMismatches = checkTimeframes(spokenText, caseData.dataLedger.filter(d => revealedIdsNow.has(d.id)));
+  checks.record('timeframe', timeframeMismatches.length > 0, 'cross-period arithmetic (log only)', { mismatches: timeframeMismatches });
+  if (timeframeMismatches.length > 0) console.warn('[runner] timeframe mismatch (log only):', JSON.stringify(timeframeMismatches));
 
   // Rule 2 v4.5: no doubt probe on a verified figure; no explain probe where
   // the work was shown or already asked once. Withheld like provenance.

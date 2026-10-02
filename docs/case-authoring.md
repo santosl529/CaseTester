@@ -68,6 +68,17 @@ and scoring disagree with the transcript, and Rule 11's force-release re-reads
 the figures to them before the recommendation ask (live run db41a01e). The
 consistency test checks every listed id exists in the ledger.
 
+## Ledger timeframes
+
+Each ledger item declares the period of every figure its sentence states, keyed
+by the figure as written: `"timeframes": { "58": "current", "42": "prior" }`.
+Periods: `current`, `prior`, `change` (a growth rate or delta), `both` (a
+figure that holds for both periods, e.g. "labor is 22%, stable"). The
+interviewer-behavior Rule 6 timeframe check uses it to spot a calculation that
+pairs one period's figure with another's (25% of COGS *two years ago* × 58%
+COGS *today*). Every key must appear in the item's `value` (a test checks
+this).
+
 ## Answer-key ideas
 
 The recommendation key is prose; list the specific ideas in it — the levers,

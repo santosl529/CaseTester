@@ -34,6 +34,10 @@ const LedgerItemSchema = z.object({
   label: z.string(),        // shown to LLM before reveal (e.g. "Total revenue")
   value: z.string(),        // the actual number — server-only
   releaseWhen: PhaseSchema, // earliest phase at which reveal is legal
+  // Rule 6 v4.6 (docs/case-authoring.md "Ledger timeframes"): the period of
+  // each figure the value states, keyed by the figure as written — e.g.
+  // { "58": "current", "42": "prior" }. Feeds the timeframe check.
+  timeframes: z.record(z.string(), z.enum(['current', 'prior', 'change', 'both'])).optional(),
 }).superRefine((item, ctx) => {
   if (!isSpeakableSentence(item.value)) {
     ctx.addIssue({
