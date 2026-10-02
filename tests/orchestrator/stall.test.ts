@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  evaluateStall, classifyTurn, INITIAL_STALL_STATE,
+  evaluateStall, classifyTurn, INITIAL_STALL_STATE, findRungDelivery, revertUndeliveredRung,
   CLARIFY_BUDGET, type StallState,
 } from '@/lib/orchestrator/stall';
 import type { Phase } from '@/lib/orchestrator/state-machine';
@@ -235,5 +235,34 @@ describe('evaluateStall — after the recommendation is delivered', () => {
   it('a recommendation that never comes still escalates (Claire)', () => {
     const { rungs } = runSequence(["I don't know, I'd need more data", "I don't know", "I don't know", "I don't know"], 'RECOMMENDATION');
     expect(rungs).toEqual([0, 1, 0, 2]);
+  });
+});
+
+describe('rung delivery (Rule 13 v4.5: a rung counts only when it reaches the candidate)', () => {
+  it('finds the delivered hint sentence for each level', () => {
+    expect(findRungDelivery(1, 'Okay. Take your time. The question on the table is why margins fell.', { dataReleased: false, exhibitShown: false }))
+      .toBe('Take your time.');
+    expect(findRungDelivery(2, "Let's simplify — what are the two ways a margin can fall?", { dataReleased: false, exhibitShown: false }))
+      .toMatch(/^Let's simplify/);
+    expect(findRungDelivery(3, "Let's look at costs.", { dataReleased: false, exhibitShown: false })).toBe("Let's look at costs.");
+  });
+
+  it("Yuki's turn 11: a data release is not a Level 1 anchor", () => {
+    const delivered = "Here's the other-input cost changes from the COGS breakdown. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.";
+    expect(findRungDelivery(1, delivered, { dataReleased: true, exhibitShown: false })).toBeNull();
+  });
+
+  it('a release delivers a Level 3 rescue', () => {
+    expect(findRungDelivery(3, 'COGS is 58% of revenue today.', { dataReleased: true, exhibitShown: false })).not.toBeNull();
+  });
+
+  it('an undelivered rung does not advance the ladder', () => {
+    const prior = { ...INITIAL_STALL_STATE, consecutiveNoProgress: 1 };
+    const d = evaluateStall("I don't know.", 'ANALYSIS', prior);
+    expect(d.rung).toBe(1);
+    const reverted = revertUndeliveredRung(d.state, prior);
+    expect(reverted.ladderLevel).toBe(0);
+    const next = evaluateStall("I don't know.", 'ANALYSIS', { ...reverted, consecutiveNoProgress: 1 });
+    expect(next.rung).toBe(1);
   });
 });

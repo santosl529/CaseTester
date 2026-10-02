@@ -19,7 +19,7 @@ import { detectNestedPercentConversion, formatUnitCheckHint } from './unit-check
 import { resolveExhibit, promisesExhibit } from './exhibits';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
 import { canEndCase, formatCoverageSteer, type CoverageScores } from '@/lib/scoring/coverage';
-import { evaluateStall, recordSilenceStall, rungName, INITIAL_STALL_STATE, type StallState } from './stall';
+import { evaluateStall, recordSilenceStall, rungName, findRungDelivery, revertUndeliveredRung, INITIAL_STALL_STATE, type StallState } from './stall';
 import {
   evaluateSilence, resumeOnCandidateTurn, effectiveElapsedMs, checkInText, pauseText, INITIAL_SILENCE_STATE, type SilenceAction, type SilenceState,
 } from './silence';
@@ -705,6 +705,24 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   if (!styleResult.passed) console.warn('[runner] style audit failed:', JSON.stringify(styleResult));
   if (styleResult.flags.length > 0) console.warn('[runner] style QA flag (soft):', JSON.stringify(styleResult.flags));
 
+  // Rule 13 v4.5: a rung counts only when the sent turn carries it. Decided on
+  // the final text, before persistence, so the ladder state and the assist
+  // log reflect what the candidate actually received.
+  let stallState = stallDecision.state;
+  let rungDeliverySpan: string | null = null;
+  if (stallDecision.intervene && stallDecision.rung) {
+    rungDeliverySpan = findRungDelivery(stallDecision.rung, spokenText, {
+      dataReleased: newReveals.length + exhibitReveals.length > 0,
+      exhibitShown: exhibit !== undefined,
+    });
+    if (rungDeliverySpan === null) stallState = revertUndeliveredRung(stallState, priorStall);
+    checks.act('rung_delivery', rungDeliverySpan ? 'rung delivered' : 'rung not delivered — not an assist; ladder not advanced', {
+      rung: stallDecision.rung, span: rungDeliverySpan,
+    });
+  } else {
+    checks.skip('rung_delivery', 'no rung decided this turn');
+  }
+
   // Persist turns
   await db.insert(sessionTurns).values([
     { sessionId, turnIndex: nextTurnIndex, role: 'candidate', text: candidateText, timestampMs: now },
@@ -733,11 +751,14 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     await logEvent('exhibit_shown', { exhibitId: exhibit.id, phase: currentPhase }, { sessionId, userId: session.userId });
   }
 
-  // Rule 13: log the assist event (scoring input — "assisted ≠ covered").
+  // Rule 13: log the assist event (scoring input — "assisted ≠ covered") —
+  // only a delivered rung is an assist; an undelivered decision is logged
+  // apart and never reaches the judge (v4.5).
   if (stallDecision.intervene && stallDecision.rung) {
-    await logSessionEvent(sessionId, 'intervention', rungName(stallDecision.rung), nextTurnIndex, currentPhase, {
+    await logSessionEvent(sessionId, 'intervention', rungDeliverySpan ? rungName(stallDecision.rung) : 'rung_not_delivered', nextTurnIndex, currentPhase, {
       level: stallDecision.rung,
       firedOn: stallDecision.firedOn ?? [],
+      span: rungDeliverySpan,
     });
   }
   if (stallDecision.synthesisUnresolved) {
@@ -771,7 +792,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
       flagsJsonb: {
         ...flags,
         conduct,
-        stall: stallDecision.state,
+        stall: stallState,
         advancedLastTurn: advancedThisTurn,
         timeWarningFired: Boolean(flags.timeWarningFired) || timeWarningFiredThisTurn,
         graceAskFired: Boolean(flags.graceAskFired) || graceAskFiredThisTurn,

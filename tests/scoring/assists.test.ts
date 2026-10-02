@@ -54,3 +54,14 @@ describe('summarizeCoverage (Rule 15 → Rule 9 coverageCaveat)', () => {
     expect(summary).toContain('does not excuse errors the candidate actually made');
   });
 });
+
+describe('summarizeAssists — delivered rungs only (Rule 13 v4.5)', () => {
+  it('never counts an undelivered rung as an assist', () => {
+    expect(summarizeAssists([{ subtype: 'rung_not_delivered', phase: 'EXHIBIT', payloadJsonb: { level: 1 } }])).toBe('');
+  });
+
+  it('shows the delivered hint text', () => {
+    const out = summarizeAssists([{ subtype: 'restate_anchor', phase: 'EXHIBIT', payloadJsonb: { level: 1, span: 'Take your time.' } }]);
+    expect(out).toContain('the interviewer said: "Take your time."');
+  });
+});

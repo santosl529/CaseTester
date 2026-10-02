@@ -6,7 +6,7 @@
 // candidate is not scored identically to an independent one.
 
 export type InterventionEvent = {
-  subtype: string;              // 'restate_anchor' | 'narrow_frame' | 'directive_rescue' | 'synthesis_unresolved'
+  subtype: string;              // 'restate_anchor' | 'narrow_frame' | 'directive_rescue' | 'synthesis_unresolved' | 'rung_not_delivered' (never an assist)
   phase: string | null;
   payloadJsonb: unknown;
 };
@@ -25,7 +25,9 @@ export function summarizeAssists(events: InterventionEvent[]): string {
 
   const lines: string[] = [];
   for (const e of rescues) {
-    lines.push(`- ${RUNG_LABEL[e.subtype]}${e.phase ? ` during ${e.phase}` : ''}`);
+    // v4.5: delivered rungs carry the hint text the candidate received.
+    const span = (e.payloadJsonb as { span?: string | null } | null)?.span;
+    lines.push(`- ${RUNG_LABEL[e.subtype]}${e.phase ? ` during ${e.phase}` : ''}${span ? ` — the interviewer said: "${span}"` : ''}`);
   }
   if (synthesisUnresolved) {
     lines.push('- The candidate could not produce a recommendation even after narrowing; the case closed without one.');

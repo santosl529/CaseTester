@@ -156,6 +156,35 @@ export function rungName(rung: LadderRung): string {
   return RUNG_NAME[rung];
 }
 
+// A rung counts only when it reaches the candidate (Rule 13 v4.5). The ladder's
+// decision is an intent; batch 2 logged a Level 1 for Yuki (41ece01e) whose
+// delivered turn was only a data release, and her report cited the assist
+// twice. Delivery is read from the sent text: each rung has a cue its
+// guidance asks for. Soft by design — a missed cue under-counts assists, which
+// errs toward the candidate.
+const RUNG_CUE: Record<LadderRung, RegExp> = {
+  1: /\b(take your time|the question (on the table|is|was|we'?re on)|back to (the|your|our) question|to restate|let me restate|coming back to)\b/i,
+  2: /\b(let'?s simplify|simpl(er|ify)|narrow (it|this|that)|break (it|this|that) down|start (with|by)|just (the )?one|what are the (two|three|main))\b/i,
+  3: /\b(let'?s (look at|go to|take|move to|turn to|focus on)|here'?s the)\b/i,
+};
+
+export function findRungDelivery(
+  rung: LadderRung,
+  spokenText: string,
+  ctx: { dataReleased: boolean; exhibitShown: boolean },
+): string | null {
+  const sentence = spokenText.split(/(?<=[.!?])\s+/).find(s => RUNG_CUE[rung].test(s));
+  if (sentence) return sentence.trim();
+  // A Level 3 rescue hands over the branch; a release or exhibit is that hand-off.
+  if (rung === 3 && (ctx.dataReleased || ctx.exhibitShown)) return spokenText.trim();
+  return null;
+}
+
+// An undelivered rung is not "used": the next stall starts from it again.
+export function revertUndeliveredRung(state: StallState, prior: StallState): StallState {
+  return { ...state, ladderLevel: prior.ladderLevel };
+}
+
 // Text-mode silence past the tolerance window (lib/orchestrator/silence.ts)
 // counts as one no-progress turn. It never fires a rung on its own — the
 // check-in is the response to silence (Rule 16) — but silence followed by a
