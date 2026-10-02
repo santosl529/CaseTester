@@ -291,6 +291,8 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   const stallDecision = evaluateStall(candidateText, currentPhase, priorStall);
   checks.record('stall', Boolean(stallDecision.intervene), `rung ${stallDecision.rung ?? '-'} decided`, {
     rung: stallDecision.rung ?? null,
+    classification: stallDecision.classification,
+    firedOn: stallDecision.firedOn ?? null,
     synthesisUnresolved: Boolean(stallDecision.synthesisUnresolved),
     consecutiveNoProgress: stallDecision.state.consecutiveNoProgress,
     consecutiveClarify: stallDecision.state.consecutiveClarify,
@@ -735,6 +737,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   if (stallDecision.intervene && stallDecision.rung) {
     await logSessionEvent(sessionId, 'intervention', rungName(stallDecision.rung), nextTurnIndex, currentPhase, {
       level: stallDecision.rung,
+      firedOn: stallDecision.firedOn ?? [],
     });
   }
   if (stallDecision.synthesisUnresolved) {

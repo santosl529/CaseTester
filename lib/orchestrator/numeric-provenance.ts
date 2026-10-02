@@ -11,6 +11,8 @@
 // binary FR-4 gate; this module adds word-number coverage, provenance
 // tiering, and the fuzzy-language carve-out that a digits-only regex cannot.
 
+import { ONES, TENS, SCALES } from '@/lib/number-words';
+
 export type ProvenanceAction = 'pass' | 'log' | 'block';
 
 export type NumericFinding = {
@@ -34,18 +36,9 @@ export type ProvenanceAuditOptions = {
 };
 
 // ---- number-word grammar --------------------------------------------------
+// Word tables shared with the analysis-signal and math-span normalizer.
 
-const ONES: Record<string, number> = {
-  zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9,
-  ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15,
-  sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19,
-};
-const TENS: Record<string, number> = {
-  twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90,
-};
-const SCALES: Record<string, number> = {
-  hundred: 100, thousand: 1_000, million: 1_000_000, billion: 1_000_000_000,
-};
+
 const ARTICLES = new Set(['a', 'an']);
 // Doc: "roughly half," "doubled" — qualitative multiplier language is always
 // log-only, never resolved into a blockable value.

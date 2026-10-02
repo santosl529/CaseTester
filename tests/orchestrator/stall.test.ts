@@ -18,6 +18,25 @@ function runSequence(turns: string[], phase: Phase = 'ANALYSIS'): { rungs: numbe
   return { rungs, final: state };
 }
 
+// Batch 2, Yuki 41ece01e: every figure in words, lists as "One — / Two —".
+  // These turns read as clarifying questions and fired a phantom Level 1.
+const YUKI_11_14 = `Okay, that confirm it. Zero pass-through in two years.
+
+So now the twelve remaining points. Since price is flat, revenue per unit is flat, which means every point of COGS increase is really a cost-per-unit increase, or a mix change. Two candidates for me.
+
+One — the other inputs also inflate. Milk, dairy, cups, food. Thirty-one and half points growing twelve points is about thirty-eight percent increase. That is very close to the forty percent on beans. So honestly, general food and packaging inflation across the board explain it quite well.
+
+Two — mix. If we sell more food and more milk-heavy drinks, those carry lower margin, and COGS percent rise without any supplier price move.
+
+Both end at the same place: costs went up, price did not.
+
+Do we have inflation data on milk and packaging, to separate these two? Or transaction volume and average ticket?`;
+const YUKI_9_22 = `Okay, so let me put the number. Beans ten and a half points, up forty percent, becomes about fourteen point seven. So plus four point two points of revenue.
+
+But the total COGS increase is sixteen points. So beans only explain about four — one quarter. Twelve points still unexplained. That is the bigger part of the problem.
+
+Do we have the menu price history? Did Brew & Bean raise prices at all in two years?`;
+
 describe('classifyTurn', () => {
   it('classifies a numeric derivation as analysis', () => {
     expect(classifyTurn('COGS is 58% and labor 22%, so profit is 6%.', null).kind).toBe('analysis');
@@ -35,8 +54,31 @@ describe('classifyTurn', () => {
     expect(classifyTurn('costs maybe', null).kind).toBe('hedge');
   });
 
-  it('classifies a data question as question', () => {
-    expect(classifyTurn('What is the total revenue?', null).kind).toBe('question');
+  it('classifies a data question as a data request, not a clarifying question (v4.5)', () => {
+    expect(classifyTurn('What is the total revenue?', null).kind).toBe('data_request');
+    expect(classifyTurn('Do we have inflation data on milk and packaging?', null).kind).toBe('data_request');
+  });
+
+  it('classifies a scoping question as a clarifying question', () => {
+    expect(classifyTurn('Is the client focused on the US only?', null).kind).toBe('question');
+  });
+
+  it('classifies by content, not by the last sentence (v4.5)', () => {
+    expect(classifyTurn('Volume could be flat while mix shifted toward cheaper items. What does success look like for the CEO?', null).kind).toBe('analysis');
+  });
+
+  it('treats uptalk answers as statements', () => {
+    expect(classifyTurn('Maybe buy in bulk, or lock in a price?', null).kind).toBe('analysis');
+  });
+
+  it('classifies Yuki\'s worded-number analysis as analysis', () => {
+    expect(classifyTurn(YUKI_11_14, null).kind).toBe('analysis');
+    expect(classifyTurn(YUKI_9_22, null).kind).toBe('analysis');
+  });
+
+  it('gives every classification a reason', () => {
+    expect(classifyTurn(YUKI_11_14, null).reason).toMatch(/analysis signal/);
+    expect(classifyTurn("I don't know.", null).reason).toBe('hedge language');
   });
 
   it('detects a verbatim-repeat question', () => {
@@ -83,21 +125,50 @@ describe('evaluateStall — triggers', () => {
 describe('evaluateStall — clarifying-question budget (Rule 13)', () => {
   it('treats clarifying questions within budget as progress (no intervention)', () => {
     const { rungs } = runSequence([
-      'What is the revenue?',      // clarify #1 (progress)
-      'What are the main costs?',  // clarify #2 (progress)
+      'Is the client focused on the US only?',  // clarify #1 (progress)
+      'Is the goal to fix this within a year?', // clarify #2 (progress)
     ]);
     expect(rungs).toEqual([0, 0]);
     expect(CLARIFY_BUDGET).toBe(2);
   });
 
   it('the (N+1)th consecutive clarifying question stops counting as progress', () => {
-    const { rungs } = runSequence([
-      'What is the revenue?',        // #1 progress
-      'What are the main costs?',    // #2 progress
-      'What is the labor cost?',     // #3 over budget → no-progress (np=1)
-      'What is the overhead cost?',  // #4 over budget → no-progress (np=2 → L1)
+    const { rungs, final } = runSequence([
+      'Is the client focused on the US only?',     // #1 progress
+      'Is the goal to fix this within a year?',    // #2 progress
+      'Are there any competitors nearby?',         // #3 over budget → no-progress (np=1)
+      'Is the CEO open to closing stores?',        // #4 over budget → no-progress (np=2 → L1)
     ]);
     expect(rungs).toEqual([0, 0, 0, 1]);
+    expect(final.noProgressReasons).toEqual([]);
+  });
+
+  it('logs why each turn counted as no progress when a rung fires', () => {
+    let state = { ...INITIAL_STALL_STATE };
+    state = evaluateStall("I don't know.", 'ANALYSIS', state).state;
+    const d = evaluateStall('Is the CEO open to closing stores?', 'ANALYSIS', { ...state, consecutiveClarify: 2 });
+    expect(d.intervene).toBe(true);
+    expect(d.firedOn).toEqual(['hedge language', 'question-only turn over the clarifying budget (2)']);
+  });
+
+  it('data requests never consume the clarifying budget (v4.5)', () => {
+    const { rungs, final } = runSequence([
+      'Is the client focused on the US only?',
+      'Is the goal to fix this within a year?',
+      'What is the labor cost?',
+      'Do we have the overhead trend?',
+    ]);
+    expect(rungs).toEqual([0, 0, 0, 0]);
+    expect(final.consecutiveClarify).toBe(0);
+  });
+
+  it('Yuki\'s batch-2 sequence fires no rung', () => {
+    const { rungs } = runSequence([
+      'Can I ask what the COGS is made of? Beans, milk, cups?',
+      YUKI_9_22,
+      YUKI_11_14,
+    ], 'EXHIBIT');
+    expect(rungs).toEqual([0, 0, 0]);
   });
 
   it('never counts a verbatim-repeat question as progress', () => {

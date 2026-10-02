@@ -1,4 +1,5 @@
 import { extractNumbers } from '@/lib/scoring/deterministic';
+import { normalizeNumberWords } from '@/lib/number-words';
 import type { Phase } from './state-machine';
 
 // Stall ladder (docs/interviewer-behavior.md Rule 13). Resolves the deadlock
@@ -26,6 +27,10 @@ export type StallState = {
   consecutiveClarify: number;     // consecutive clarifying-question turns
   lastCandidateQuestion: string | null; // for verbatim-repeat detection
   recommendationDelivered: boolean;     // synthesis done — the ladder has nothing left to rescue
+  // Rule 13 v4.5 logging: why each turn in the current no-progress streak
+  // counted as no progress, so a rung can be diagnosed from the log alone.
+  // Optional: sessions persisted before v4.6 lack it.
+  noProgressReasons?: string[];
 };
 
 export const INITIAL_STALL_STATE: StallState = {
@@ -37,7 +42,7 @@ export const INITIAL_STALL_STATE: StallState = {
 };
 
 export type LadderRung = 1 | 2 | 3;
-export type TurnKind = 'analysis' | 'question' | 'hedge';
+export type TurnKind = 'analysis' | 'data_request' | 'question' | 'hedge';
 
 export type StallDecision = {
   state: StallState;
@@ -45,6 +50,8 @@ export type StallDecision = {
   rung?: LadderRung;
   guidance?: string;
   synthesisUnresolved?: boolean; // in synthesis, capped, still stalling → session should close w/o rec
+  classification: { kind: TurnKind; isRepeat: boolean; reason: string; progress: boolean };
+  firedOn?: string[]; // when a rung fires: the no-progress reasons that triggered it
 };
 
 const SYNTHESIS_PHASES: Phase[] = ['RECOMMENDATION', 'WRAP'];
@@ -72,26 +79,69 @@ const HEDGE_PATTERN = /\b(i (really )?(don'?t|do not) know|not sure|no idea|i'?m
 // explicit enumerated structure. Intentionally narrow — its job is to
 // RECOGNIZE progress, not to grade it, so a false negative just means a
 // substantive non-question turn falls through to 'analysis' anyway (below).
-function hasAnalysisSignal(text: string): boolean {
+// v4.6: number words are normalized first — Yuki (41ece01e) wrote every
+// figure in words and her analytical turns read as clarifying questions.
+function hasAnalysisSignal(raw: string): boolean {
+  const text = normalizeNumberWords(raw);
   const nums = extractNumbers(text);
   const computeContext = /%|\bpercent\b|=|\bof\b|\bper\b|×|\btimes\b|\bdivided\b|\bminus\b|\bplus\b|\bso that'?s\b|\bwhich is\b/i;
   if (nums.length >= 2 || (nums.length >= 1 && computeContext.test(text))) return true;
   if (/\b(first(ly)?|second(ly)?|third(ly)?)\b/i.test(text)) return true;
-  if (/\b(two|three|four|2|3|4)\s+(ways|areas|buckets|reasons|drivers|factors|things|categories|levers)\b/i.test(text)) return true;
+  if (/\b(two|three|four|2|3|4)\s+(ways|areas|buckets|reasons|drivers|factors|things|categories|levers|candidates|hypotheses|explanations|possibilities|options|causes|pieces|parts)\b/i.test(text)) return true;
+  // Spoken enumeration: "One — … Two — …" at the start of separate lines or
+  // sentences.
+  const enumerated = text.match(/(?:^|[\n.!?]\s*)(?:one|two|three|1|2|3)\s*[—–:-]\s/gim) ?? [];
+  if (enumerated.length >= 2) return true;
   return false;
 }
 
-export function classifyTurn(text: string, lastQuestion: string | null): { kind: TurnKind; isRepeat: boolean } {
+// A request for case data is progress in its own right and never a clarifying
+// question (Rule 13 v4.5). Explicit request phrasing, or a question sentence
+// about a case quantity. Soft, like every phrase signal here — a miss falls
+// back to the clarifying-question budget, the pre-v4.5 behavior.
+const DATA_REQUEST_PHRASE =
+  /\b(do we have|do you have|can (i|we) (get|see|have|look at)|could (i|we|you) (get|see|share|pull)|is there (any )?(data|information|a breakdown)|any (data|numbers|figures|information) on|i'?d (like|want|love) to (see|get|look at)|what (does|do) the (data|numbers|breakdown|exhibit) (show|say))\b/i;
+const DATA_NOUN =
+  /\b(revenue|costs?|cogs|margins?|prices?|pricing|volume|data|numbers?|figures?|breakdown|split|trend|history|share|growth|ticket|transactions?|labor|overhead|inflation|sales|units|traffic|spend)\b/i;
+const INTERROGATIVE_START =
+  /^\s*(?:and |so |okay,? |ok,? )?(what|what'?s|how|why|which|who|when|where|do|does|did|is|are|was|were|can|could|would|should|has|have|any)\b/i;
+
+function sentencesOf(text: string): string[] {
+  return text.split(/(?<=[.!?])\s+|\n+/).map(x => x.trim()).filter(Boolean);
+}
+
+// A real question sentence: ends in "?" AND opens like a question. Uptalk
+// answers ("Maybe buy in bulk, or lock in a price?") are statements.
+function isQuestionSentence(sentence: string): boolean {
+  return sentence.endsWith('?') && INTERROGATIVE_START.test(sentence);
+}
+
+function isDataRequest(text: string): boolean {
+  if (DATA_REQUEST_PHRASE.test(text)) return true;
+  return sentencesOf(text).some(s => isQuestionSentence(s) && DATA_NOUN.test(s));
+}
+
+// Rule 13 v4.5: the budget counts only question-only turns. A sentence that is
+// not a question and has some substance (not "Okay." / "Sure.") is content.
+function hasSubstantiveStatement(text: string): boolean {
+  return sentencesOf(text).some(s => !isQuestionSentence(s) && wordCount(s) >= 4);
+}
+
+// A turn is classified by its content, not its last sentence (Rule 13 v4.5).
+export function classifyTurn(text: string, lastQuestion: string | null): { kind: TurnKind; isRepeat: boolean; reason: string } {
   const trimmed = text.trim();
   const q = isQuestion(trimmed);
   const isRepeat = q && lastQuestion !== null && normalize(trimmed) === normalize(lastQuestion);
 
-  if (hasAnalysisSignal(trimmed)) return { kind: 'analysis', isRepeat: false };
-  if (HEDGE_PATTERN.test(trimmed) || (wordCount(trimmed) <= 4 && !q)) return { kind: 'hedge', isRepeat };
-  if (q) return { kind: 'question', isRepeat };
-  // Substantive non-question prose with no analysis signal: give the benefit of
-  // the doubt (Rule 13 — err toward not flagging the nervous candidate).
-  return { kind: 'analysis', isRepeat: false };
+  if (hasAnalysisSignal(trimmed)) return { kind: 'analysis', isRepeat: false, reason: 'analysis signal (figures in a derivation, or an enumerated structure)' };
+  if (isRepeat) return { kind: 'question', isRepeat, reason: 'verbatim repeat of the previous question' };
+  if (isDataRequest(trimmed)) return { kind: 'data_request', isRepeat: false, reason: 'data request' };
+  if (HEDGE_PATTERN.test(trimmed)) return { kind: 'hedge', isRepeat, reason: 'hedge language' };
+  if (wordCount(trimmed) <= 4 && !q) return { kind: 'hedge', isRepeat, reason: 'near-empty turn' };
+  if (q && !hasSubstantiveStatement(trimmed)) return { kind: 'question', isRepeat, reason: 'question-only turn' };
+  // Substantive prose with no analysis signal: give the benefit of the doubt
+  // (Rule 13 — err toward not flagging the nervous candidate).
+  return { kind: 'analysis', isRepeat: false, reason: 'substantive statement' };
 }
 
 const RUNG_GUIDANCE: Record<LadderRung, string> = {
@@ -119,16 +169,20 @@ export function recordSilenceStall(prior: StallState): StallState {
 export function evaluateStall(candidateText: string, phase: Phase, prior: StallState): StallDecision {
   // Once the recommendation is in, short sign-offs are not stalls (run
   // 1d76e3d9 logged Level 1, Level 2 and synthesis_unresolved on "Goodbye.").
-  if (prior.recommendationDelivered) return { state: prior, intervene: false };
+  if (prior.recommendationDelivered) {
+    return { state: prior, intervene: false, classification: { kind: 'analysis', isRepeat: false, reason: 'recommendation already delivered — ladder stood down', progress: true } };
+  }
 
-  const { kind, isRepeat } = classifyTurn(candidateText, prior.lastCandidateQuestion);
+  const { kind, isRepeat, reason } = classifyTurn(candidateText, prior.lastCandidateQuestion);
   const state: StallState = { ...prior };
   if (kind === 'analysis' && SYNTHESIS_PHASES.includes(phase) && RECOMMENDATION_PATTERN.test(candidateText)) {
     state.recommendationDelivered = true;
   }
 
   let progress = false;
-  if (kind === 'analysis') {
+  let countedReason = reason;
+  if (kind === 'analysis' || kind === 'data_request') {
+    // Data requests never count toward the clarifying-question budget.
     progress = true;
     state.consecutiveClarify = 0;
   } else if (kind === 'question' && !isRepeat && prior.consecutiveClarify < CLARIFY_BUDGET) {
@@ -139,12 +193,15 @@ export function evaluateStall(candidateText: string, phase: Phase, prior: StallS
     // Over-budget clarifying question: no longer progress; keep the streak so
     // a pure clarify-loop escalates rather than resetting each time.
     state.consecutiveClarify = prior.consecutiveClarify + 1;
+    countedReason = `question-only turn over the clarifying budget (${CLARIFY_BUDGET})`;
   } else {
     // Hedge or verbatim-repeat question: a clear stall; the clarify streak breaks.
     state.consecutiveClarify = 0;
   }
 
   state.consecutiveNoProgress = progress ? 0 : prior.consecutiveNoProgress + 1;
+  state.noProgressReasons = progress ? [] : [...(prior.noProgressReasons ?? []), countedReason];
+  const classification = { kind, isRepeat, reason: countedReason, progress };
   if (isQuestion(candidateText)) state.lastCandidateQuestion = candidateText;
 
   const cap = SYNTHESIS_PHASES.includes(phase) ? SYNTHESIS_RUNG_CAP : MAX_RUNG;
@@ -153,7 +210,9 @@ export function evaluateStall(candidateText: string, phase: Phase, prior: StallS
     const rung = (state.ladderLevel + 1) as LadderRung;
     state.ladderLevel = rung;
     state.consecutiveNoProgress = 0; // acted this turn; give the rung a chance to land
-    return { state, intervene: true, rung, guidance: RUNG_GUIDANCE[rung] };
+    const firedOn = state.noProgressReasons ?? [];
+    state.noProgressReasons = [];
+    return { state, intervene: true, rung, guidance: RUNG_GUIDANCE[rung], classification, firedOn };
   }
 
   // In synthesis, capped, and still stalling → no rung left; the case should
@@ -164,5 +223,5 @@ export function evaluateStall(candidateText: string, phase: Phase, prior: StallS
     state.ladderLevel >= cap &&
     SYNTHESIS_PHASES.includes(phase);
 
-  return { state, intervene: false, synthesisUnresolved };
+  return { state, intervene: false, synthesisUnresolved, classification };
 }
