@@ -16,6 +16,7 @@ import { auditTurn, auditTurnStyle, stripMetaLeak, stripFabricatedTurn } from '.
 import { enforceNumericProvenance, changeFigures } from './numeric-provenance';
 import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts, checkVerifiedForTurn, formatVerifiedHint, type RecomputeAttempts, type VerifiedFigure } from './recompute';
 import { withholdProbesOnVerified } from './probe-guard';
+import { withholdAssumptionChallenges } from './assumption-guard';
 import { detectNestedPercentConversion, formatUnitCheckHint } from './unit-check';
 import { resolveExhibit, promisesExhibit } from './exhibits';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
@@ -686,6 +687,32 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   }
 
   if (!timeWarningFiredThisTurn) checks.pass('time_warning');
+
+  // Rule 11 v4.5: never challenge an assumption about data the candidate
+  // asked for and did not receive (Maya c6076209, 11:30: "that's the one
+  // thing you assumed"). The challenge is withheld; an item still unreleased
+  // is released at its stage, or deferred out loud, in its place.
+  if (ended) {
+    checks.skip('assumption_guard', 'closing turn');
+  } else {
+    const assumption = withholdAssumptionChallenges(spokenText, openDataRequests.map(r => ({ ledgerItemId: r.ledgerItemId, label: r.label })));
+    if (assumption.withheld.length > 0) {
+      const releaseWhenById = new Map(caseData.dataLedger.map(d => [d.id, d.releaseWhen as Phase]));
+      const phaseNow = PHASES.indexOf(nextPhaseValue) > PHASES.indexOf(currentPhase) ? nextPhaseValue : currentPhase;
+      const pending = [...new Set(assumption.withheld.map(w => w.ledgerItemId))].filter(id => canReveal(ledger, id));
+      const releasable = pending.filter(id => PHASES.indexOf(phaseNow) >= PHASES.indexOf(releaseWhenById.get(id) ?? 'SCORING'));
+      const values = releasable.map(id => { newReveals.push(id); return reveal(ledger, id); });
+      const parts = [
+        ...(values.length > 0 ? [pickScript(SAME_TURN_RELEASE_LEADINS, sessionId), ...values] : []),
+        ...(pending.length > releasable.length ? [pickScript(SAME_TURN_DEFER_SCRIPTS, sessionId)] : []),
+      ];
+      spokenText = parts.length > 0 ? insertBeforeTrailingQuestions(assumption.text, parts.join(' ')) : (assumption.text || 'Go on.');
+      console.warn('[runner] withheld assumption challenge on requested data:', JSON.stringify(assumption.withheld));
+    }
+    checks.record('assumption_guard', assumption.withheld.length > 0, 'challenge on requested-but-unreceived data withheld', {
+      withheld: assumption.withheld,
+    });
+  }
 
   // Rule 12: every ending turn carries a close — the script alone if nothing
   // was spoken, appended if the turn said something else but never closed
