@@ -255,3 +255,14 @@ describe('isPauseAccepted', () => {
     expect(isPauseAccepted("no I'm ok")).toBe(false);
   });
 });
+
+describe('C1/C5 boundary (Rule 17 v4.6)', () => {
+  it('case-scoped "I always mess up the math" is C1, not C5', () => {
+    expect(classifyConduct("I'm going to bomb this case, I always mess up percentages.", 0).category).not.toBe('C5');
+    expect(classifyConduct('ugh, I always mess up the math', 0).category).not.toBe('C5');
+  });
+
+  it('"I\'m going to bomb every interview" stays C5 (generalizes beyond the case)', () => {
+    expect(classifyConduct("I'm going to bomb every interview, what's the point", 0).category).toBe('C5');
+  });
+});

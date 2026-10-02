@@ -64,7 +64,10 @@ const C5_NO_POINT = /\b(?:don'?t|do not|didn'?t|did not|can'?t|cannot) (?:really
 // Non-case hardship disclosures: not risk-to-self on their own, but a real
 // interviewer would stop and check in.
 const C5_HARDSHIP = /\b(?:i'?m not sleeping|i haven'?t been sleeping|i can'?t sleep|(?:bad|rough|dark|awful) few (?:weeks|months)|(?:has|have) (?:kind of |really )?broken me|i'?m falling apart)\b/i;
-const C5_DESPAIR = /\b(what'?s the point(?!\s+(?:of\s+(?:the|a|an|our|your)\b|where\b|at which\b|to\s))|why do i (?:even )?(?:bother|try)\b|why (?:even )?(?:bother|try)(?:ing)?\s*(?:anymore|at all|with (?:any of )?this|[.?!]|$)|i'?m going to (bomb|fail|blow|screw up) (every|all|everything|it all)|i (always|never) (fail|screw|mess)|nothing (matters|works)|i (hate|can'?t stand) myself|i'?m (worthless|hopeless|a failure|useless at everything)|i can'?t do (this|anything) anymore|i give up on everything)/i;
+// v4.6: "i (always|never) (fail|screw|mess)" removed — "ugh, I always mess up
+// the math" is C1 by the Rule 17 boundary, and the eval corpus showed it
+// firing on exactly that. Generalized self-talk is the model layer's job.
+const C5_DESPAIR = /\b(what'?s the point(?!\s+(?:of\s+(?:the|a|an|our|your)\b|where\b|at which\b|to\s))|why do i (?:even )?(?:bother|try)\b|why (?:even )?(?:bother|try)(?:ing)?\s*(?:anymore|at all|with (?:any of )?this|[.?!]|$)|i'?m going to (bomb|fail|blow|screw up) (every|all|everything|it all)|nothing (matters|works)|i (hate|can'?t stand) myself|i'?m (worthless|hopeless|a failure|useless at everything)|i can'?t do (this|anything) anymore|i give up on everything)/i;
 
 // ---- C4: prompt injection → redirect + log, NEVER terminate --------------------
 // Tuned against an adversarial probe corpus (July 2026, see conduct.test.ts):

@@ -24,6 +24,7 @@ import {
   evaluateSilence, resumeOnCandidateTurn, effectiveElapsedMs, checkInText, pauseText, INITIAL_SILENCE_STATE, type SilenceAction, type SilenceState,
 } from './silence';
 import { classifyConduct, isPauseAccepted, isRiskToSelf } from './conduct';
+import { classifyDistress, isDistressVerdict, type DistressVerdict } from './distress';
 import { logEvent } from '@/lib/analytics';
 import { nextPhase, PHASES, TOTAL_CASE_MS, type Phase } from './state-machine';
 import { inferPhaseRepair } from './phase-repair';
@@ -140,6 +141,11 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     await writeChecks();
   };
 
+  // The reply to a C5 offer is not re-screened by the model layer: "I'm still
+  // not great, but let's keep going" would re-offer in a loop. Read before the
+  // branch below clears the flag.
+  const repliedToDistressOffer = Boolean(conduct.distressOffered);
+
   // ── C5 pause offer: this candidate turn is a reply to a pending offer ──────
   if (conduct.distressOffered) {
     // Rule 19 (v4.3): the case clock stops for the C5 exchange itself — from
@@ -167,6 +173,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     // Declined — clear the offer and fall through to normal processing.
     conduct.distressOffered = false;
   }
+
 
   // ── Conduct pre-check (Rule 17) — intercepts before any case rule ─────────
   const assessment = classifyConduct(candidateText, conduct.warnings ?? 0);
@@ -209,14 +216,20 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     await logSessionEvent(sessionId, 'conduct', 'C2_excluded', nextTurnIndex, currentPhase, { reason: assessment.reason, text: candidateText });
   }
 
-  if (assessment.action === 'offer_pause') {
-    const offer = distressOfferText(isRiskToSelf(assessment));
+  // Rule 17-C5: the scripted pause offer, from either detection layer.
+  const offerPause = async (riskToSelf: boolean, payload: Record<string, unknown>): Promise<TurnResult> => {
+    const offer = distressOfferText(riskToSelf);
     await persistScriptedPair(offer);
-    await logSessionEvent(sessionId, 'conduct', assessment.category, nextTurnIndex, currentPhase, { reason: assessment.reason });
+    await logSessionEvent(sessionId, 'conduct', 'C5', nextTurnIndex, currentPhase, payload);
     await db.update(sessions).set({
       flagsJsonb: { ...flags, conduct: { ...conduct, distressOffered: true, distressOfferedAtMs: Date.now() } },
     }).where(eq(sessions.id, sessionId));
     return { interviewerText: offer, phase: currentPhase, ended: false, auditPassed: true };
+  };
+
+  if (assessment.action === 'offer_pause') {
+    checks.skip('conduct_model', 'regex floor already fired C5');
+    return offerPause(isRiskToSelf(assessment), { reason: assessment.reason, layer: 'regex' });
   }
   // assessment.action === 'ignore' (none / C1): proceed with the normal case turn.
 
@@ -303,6 +316,15 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     content: t.text,
   }));
 
+  // Rule 17-C5 model layer (v4.6): runs in parallel with the interviewer call;
+  // a distress verdict discards the draft below, before anything is persisted.
+  const distressPromise: Promise<DistressVerdict | null> = repliedToDistressOffer
+    ? Promise.resolve(null)
+    : classifyDistress({
+      candidateText,
+      onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId: session.userId }); },
+    });
+
   // Rule 11 same-turn resolution (v4.4): detect this message's data requests
   // in parallel with the interviewer call, so the draft can be checked before
   // it is sent. Never rejects (classifyDataRequests fails open to null).
@@ -348,7 +370,15 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
       conductRedirectHint,
     },
   });
+  const distress = await distressPromise;
   const modelLatencyMs = Date.now() - modelCallStart;
+  if (repliedToDistressOffer) checks.skip('conduct_model', 'reply to a declined pause offer');
+  else if (distress === null) checks.skip('conduct_model', 'classifier failed — regex floor stands');
+  else checks.record('conduct_model', isDistressVerdict(distress), `C5 by model: ${distress.label}`, { ...distress });
+  if (isDistressVerdict(distress)) {
+    console.warn('[runner] C5 by the model layer — draft discarded:', JSON.stringify(distress));
+    return offerPause(distress.label === 'risk_to_self', { reason: distress.reason, label: distress.label, layer: 'model' });
+  }
 
   // Execute actions
   let spokenText = '';
