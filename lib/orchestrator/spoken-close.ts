@@ -1,44 +1,120 @@
-// Spoken close without end_case (Rule 12). Run 1d76e3d9: at 15:33 of a
-// 20-minute case the model said "That's time… I'll close the case here" but
-// never called end_case, and the session looped on goodbyes until time-up. The
-// words and the state must agree:
-// - the case may end (coverage gate / time-up) → promote the close to an end;
-// - it may not end yet → strip the closing sentences and keep going, with a
-//   recommendation-phase depth probe if nothing is left to say.
+import { pickScript } from '@/lib/agent/prompts/scripts';
+
+// One goodbye, and only when the case actually ends (docs/interviewer-
+// behavior.md Rule 12, v4.2 → v4.6). Run 1d76e3d9 looped on goodbyes because
+// a spoken close never called end_case; batch 2 (Maya c6076209) said goodbye
+// four times because the coverage gate blocked end_case twice and the
+// goodbyes went out anyway — the narrow close pattern missed "You'll get a
+// full written report afterward" and "Thanks for your time today".
 //
-// Deliberately narrower than hasCloseCue (lib/agent/prompts/scripts.ts), which
-// also matches "thanks for walking me through…" — fine for checking that an
-// ending turn closed, dangerous as a trigger to END a case.
+// The close is one action:
+// - a closing turn while the case may end → the end is confirmed;
+// - a closing turn while it may not → the WHOLE turn is replaced by one
+//   scripted probe for a stage not yet administered (brainstorm, then the
+//   recommendation ask if none was received, then a risk probe);
+// - a received recommendation plus an administered brainstorm and risk probe
+//   opens the gate (remaining coverage gaps are candidate performance, Rule 13
+//   "assisted vs. covered") — at most a couple of probes after the
+//   recommendation, never a loop.
+// C5 and conduct-termination turns are scripted early returns in the runner
+// and never reach this check.
 
-const SPOKEN_CLOSE =
-  /\b(that'?s (our )?time|we'?re out of time|we'?ll (stop|end|close|wrap)( it)? (there|here)|(that'?s|this is) where we'?ll (stop|end)|(i'?ll|let'?s|we'?ll) close (the case|it|things) (out |up )?(here|there)|that'?s the (end of the )?case|that concludes the case)\b/i;
+// Unambiguous goodbyes. Mid-case courtesy ("thanks for walking me through
+// that", "thanks for working through the math") is not one.
+const STRONG_CLOSE =
+  /\b(that'?s (our )?time|time'?s up|we'?re out of time|we'?ll (stop|end|close|wrap)( it)? (there|here)|(that'?s|this is) where we'?ll (stop|end)|(i'?ll|let'?s|we'?ll) close (the case|it|things) (out |up )?(here|there)|close the case|that'?s the (end of the )?case|that concludes the case|good place to stop|that'?s all for today|thanks?( you)? for your time|thanks?( you)? for working through (it|the case|this)|take care)\b/i;
 
-// Sentences to drop when a close must be withdrawn: the close itself plus the
-// sign-off that travels with it (thanks-for-working, report-will-follow).
-const CLOSE_SENTENCE =
-  /\b(that'?s (our )?time|we'?re out of time|we'?ll (stop|end|close|wrap)|where we'?ll (stop|end)|close (the case|it|things)|that'?s the (end of the )?case|concludes the case|thanks?( you)? for (working|walking) through (it|the case|this)|report .*(will follow|separately|soon)|debrief)\b/i;
+// Report hand-offs read as a goodbye only when nothing follows: the Rule 16
+// meta-answer "You'll get a full written report afterward — for now, back to
+// your structure" is mid-case, and so is Priya's (8baec6bf, 1:32) "You'll get a
+// full written report afterward. Let's keep to the case."
+const REPORT_CLOSE = /\b(report (with feedback )?will follow|you'?ll (get|receive) (a |the |your )?(full |written |detailed )*(report|feedback)|written report)\b/i;
+const CONTINUES = /\?|\bfor now\b|\bback to\b|\bmeanwhile\b|\bin the meantime\b|\blet'?s (keep|get|go|stay|continue|return)\b/i;
 
-export const CLOSE_DEFERRED_PROBE = "Before we close — what's the biggest risk to that recommendation, and how would you test for it?";
+export function isClosingTurn(text: string): boolean {
+  if (STRONG_CLOSE.test(text)) return true;
+  return REPORT_CLOSE.test(text) && !CONTINUES.test(text);
+}
 
-export function isSpokenClose(text: string): boolean {
-  return SPOKEN_CLOSE.test(text);
+// Kept for callers that only need the yes/no.
+export const isSpokenClose = isClosingTurn;
+
+// ── Stage administration (derived from the transcript) ──────────────────────
+
+export const BRAINSTORM_ASK =
+  /\bwhat else (could|can|should|might) [\w&' ]{1,40}? do\b|\bbeyond (pricing|price|a price increase|that|this|what we'?ve (discussed|covered)),? what\b|\bwhat other (levers|ideas|options)\b|\bbrainstorm/i;
+const RISK_ASK =
+  /\b(biggest risk|key risk|main risk|what could go wrong|what would change your mind|what would make you wrong|how would you (test|de-?risk)|risks? (to|of|with|in) (that|this|your) (recommendation|plan))\b/i;
+const REC_ASK =
+  /\b(bottom.?line recommendation|recommendation to the (ceo|client)|final recommendation|what'?s your recommendation|what would you (tell|recommend) (to )?the (ceo|client)|pull it together)\b/i;
+
+export function asksBrainstorm(text: string): boolean { return BRAINSTORM_ASK.test(text); }
+export function asksRisk(text: string): boolean { return RISK_ASK.test(text); }
+
+export type StageAdministration = {
+  brainstormAsked: boolean;
+  riskAsked: boolean;
+  recommendationAsked: boolean;
+  recommendationReceived: boolean;
+};
+
+export function stageAdministration(interviewerTexts: string[], recommendationReceived: boolean): StageAdministration {
+  return {
+    brainstormAsked: interviewerTexts.some(asksBrainstorm),
+    riskAsked: interviewerTexts.some(asksRisk),
+    recommendationAsked: interviewerTexts.some(t => REC_ASK.test(t)),
+    recommendationReceived,
+  };
+}
+
+export function stageGateOpen(s: StageAdministration): boolean {
+  return s.recommendationReceived && s.brainstormAsked && s.riskAsked;
+}
+
+// Rotating pools (Rule 7 anti-tell).
+export const BLOCKED_CLOSE_PROBES = {
+  brainstorm: [
+    "Beyond what we've discussed, what else could the client do?",
+    'What other levers could the client pull here?',
+    "Beyond pricing, what else could the client do to protect margin?",
+  ],
+  recommendation: [
+    "Pull it together — what's your recommendation to the CEO?",
+    'Based on what you have, what would you tell the CEO to do?',
+    "What's your recommendation to the client?",
+  ],
+  risk: [
+    "What's the biggest risk to that recommendation, and how would you test for it?",
+    'What would change your mind on that recommendation?',
+    "What's the key risk with that plan, and how would you de-risk it?",
+  ],
+} as const;
+
+export type BlockedCloseProbe = keyof typeof BLOCKED_CLOSE_PROBES;
+
+export function chooseBlockedCloseProbe(s: StageAdministration): BlockedCloseProbe {
+  if (!s.brainstormAsked) return 'brainstorm';
+  if (!s.recommendationReceived) return 'recommendation';
+  return 'risk';
 }
 
 export type SpokenCloseResolution = {
-  action: 'none' | 'promoted' | 'stripped';
+  action: 'none' | 'promoted' | 'replaced';
   ended: boolean;
   spokenText: string;
+  probe?: BlockedCloseProbe;
 };
 
-export function resolveSpokenClose(params: { spokenText: string; ended: boolean; mayEnd: boolean }): SpokenCloseResolution {
-  const { spokenText, ended, mayEnd } = params;
-  if (ended || !isSpokenClose(spokenText)) return { action: 'none', ended, spokenText };
+export function resolveSpokenClose(params: {
+  spokenText: string;
+  ended: boolean;
+  mayEnd: boolean;
+  stages: StageAdministration;
+  seed: string;
+}): SpokenCloseResolution {
+  const { spokenText, ended, mayEnd, stages, seed } = params;
+  if (ended || !isClosingTurn(spokenText)) return { action: 'none', ended, spokenText };
   if (mayEnd) return { action: 'promoted', ended: true, spokenText };
-
-  const kept = (spokenText.match(/[^.!?\n]+[.!?]*/g) ?? [])
-    .map(s => s.trim())
-    .filter(s => s && !CLOSE_SENTENCE.test(s))
-    .join(' ')
-    .trim();
-  return { action: 'stripped', ended: false, spokenText: kept || CLOSE_DEFERRED_PROBE };
+  const probe = chooseBlockedCloseProbe(stages);
+  return { action: 'replaced', ended: false, spokenText: pickScript([...BLOCKED_CLOSE_PROBES[probe]], seed), probe };
 }

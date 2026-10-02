@@ -179,8 +179,9 @@ ${PHASE_GUIDE}
 - Err toward advancing: a phase that lags the real conversation corrupts pacing. When in doubt and the exit criterion is met, advance.
 ${ctx.advancedLastTurn ? '- You advanced the phase LAST turn. No visible gear-shift: finish the candidate\'s current thread and adopt the new phase\'s behavior at the next natural boundary. Advance again this turn only if the new phase\'s exit criterion is already genuinely met.' : ''}
 - ${ctx.mayEnd === false
-      ? 'Do NOT use end_case yet — the candidate has not been tested on every area (see COVERAGE below). Keep probing the undertested areas; wrapping early wastes the session.'
-      : 'Use end_case only once the candidate has delivered a committed recommendation and the case is genuinely complete (or time is up).'}
+      ? 'Do NOT use end_case yet — the candidate has not been tested on every area (see COVERAGE below). Keep probing the undertested areas; wrapping early wastes the session. Do not say goodbye, thank them for their time, or mention the written report: a closing turn now is discarded and replaced.'
+      : 'Use end_case only once the candidate has delivered a committed recommendation and the case is genuinely complete (or time is up). When you call end_case the system speaks the one closing line — do not write your own goodbye, and never evaluate the candidate\'s answer.'}
+- Once the candidate has given a recommendation, never ask for it again.
 ${ctx.coverageSteer ?? ''}
 ${ctx.advancedLastTurn ? '' : pacingNudge(ctx.currentPhase, ctx.elapsedMs, phaseBudgetsMs)}
 ${loadShedDirective}

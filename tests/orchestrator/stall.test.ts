@@ -266,3 +266,16 @@ describe('rung delivery (Rule 13 v4.5: a rung counts only when it reaches the ca
     expect(next.rung).toBe(1);
   });
 });
+
+describe('recommendation received (Rule 12 v4.6)', () => {
+  it("counts Maya's hedged lever as a recommendation (18:06)", () => {
+    const d = evaluateStall("Raise prices, I guess. But I don't know past that. Sorry.", 'RECOMMENDATION', { ...INITIAL_STALL_STATE });
+    expect(d.state.recommendationDelivered).toBe(true);
+  });
+
+  it('does not count a cost-increase observation or a refusal', () => {
+    expect(evaluateStall('Increase in input costs is the driver here.', 'RECOMMENDATION', { ...INITIAL_STALL_STATE }).state.recommendationDelivered).toBe(false);
+    expect(evaluateStall("I can't commit without more data on prices.", 'RECOMMENDATION', { ...INITIAL_STALL_STATE }).state.recommendationDelivered).toBe(false);
+    expect(evaluateStall("I don't know what to recommend.", 'RECOMMENDATION', { ...INITIAL_STALL_STATE }).state.recommendationDelivered).toBe(false);
+  });
+});

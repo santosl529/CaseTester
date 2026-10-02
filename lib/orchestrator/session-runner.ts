@@ -20,7 +20,7 @@ import { withholdAssumptionChallenges } from './assumption-guard';
 import { detectNestedPercentConversion, formatUnitCheckHint } from './unit-check';
 import { resolveExhibit, promisesExhibit } from './exhibits';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
-import { canEndCase, formatCoverageSteer, type CoverageScores } from '@/lib/scoring/coverage';
+import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
 import { evaluateStall, recordSilenceStall, rungName, findRungDelivery, revertUndeliveredRung, INITIAL_STALL_STATE, type StallState } from './stall';
 import {
   evaluateSilence, resumeOnCandidateTurn, effectiveElapsedMs, checkInText, pauseText, INITIAL_SILENCE_STATE, type SilenceAction, type SilenceState,
@@ -30,14 +30,14 @@ import { classifyDistress, isDistressVerdict, type DistressVerdict } from './dis
 import { logEvent } from '@/lib/analytics';
 import { nextPhase, PHASES, TOTAL_CASE_MS, type Phase } from './state-machine';
 import { inferPhaseRepair } from './phase-repair';
-import { resolveSpokenClose } from './spoken-close';
+import { resolveSpokenClose, stageAdministration, stageGateOpen } from './spoken-close';
 import { CheckLog, toCheckEventRows } from './check-log';
 import { runInterviewerTurn } from '@/lib/agent/interviewer';
 import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import {
   TIME_WARNING_SCRIPTS, GRACE_ASK_SCRIPTS, CLOSE_SCRIPTS, REVEAL_REFUSAL_SCRIPTS, EXHIBIT_REFUSAL_SCRIPTS, FORCED_RELEASE_LEADINS,
   SAME_TURN_RELEASE_LEADINS, SAME_TURN_DEFER_SCRIPTS,
-  pickScript, alreadySignaledTimeOrRec, asksForRecommendation, hasCloseCue,
+  pickScript, alreadySignaledTimeOrRec, asksForRecommendation,
   CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE, SILENCE_PAUSE_EXPIRED,
 } from '@/lib/agent/prompts/scripts';
 
@@ -265,8 +265,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   // evidence to score — or time is up. Also drives the steer toward undertested
   // areas so the interviewer spends the reclaimed time productively.
   const coverage = (session.coverageJsonb as CoverageScores | null) ?? null;
-  const mayEnd = canEndCase({ coverage, elapsedMs, totalMs: TOTAL_CASE_MS, timeUp });
-  const coverageSteer = formatCoverageSteer(coverage);
+  const coverageMayEnd = canEndCase({ coverage, elapsedMs, totalMs: TOTAL_CASE_MS, timeUp });
 
   const phaseBudgetsMs = resolvePhaseBudgets(caseData, TOTAL_CASE_MS);
   const timeWarningMs = resolveTimeWarningMs(caseData);
@@ -321,6 +320,24 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   // guidance goes into this turn's prompt.
   const priorStall = (flags.stall as StallState | undefined) ?? INITIAL_STALL_STATE;
   const stallDecision = evaluateStall(candidateText, currentPhase, priorStall);
+  const recommendationReceived = stallDecision.state.recommendationDelivered;
+
+  // Rule 12 v4.6: a received recommendation plus an administered brainstorm
+  // and risk probe opens the end gate — coverage the candidate didn't produce
+  // after being asked is performance, not session coverage (Rule 13). Maya
+  // c6076209 was blocked twice after a brainstorm she froze on.
+  const stages = stageAdministration(
+    turnRows.filter(t => t.role === 'interviewer').map(t => t.text),
+    recommendationReceived,
+  );
+  const stageGate = stageGateOpen(stages) && elapsedMs >= COVERAGE_MIN_GUARD_MS;
+  const mayEnd = coverageMayEnd || stageGate;
+  const coverageSteer = stageGate && !coverageMayEnd
+    ? 'COVERAGE: the recommendation is in and the brainstorm and risk probe have been run — you may close with end_case.'
+    : formatCoverageSteer(coverage);
+  checks.record('end_gate', stageGate && !coverageMayEnd, 'stage gate opened the end (coverage below threshold)', {
+    coverageMayEnd, stageGate, ...stages,
+  });
   checks.record('stall', Boolean(stallDecision.intervene), `rung ${stallDecision.rung ?? '-'} decided`, {
     rung: stallDecision.rung ?? null,
     classification: stallDecision.classification,
@@ -404,6 +421,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   let exhibit: ExhibitDisplay | undefined;
   let nextPhaseValue: Phase = currentPhase;
   let ended = false;
+  let endCaseBlocked = false;
   let fabricatedStripped = false;
   const newReveals: string[] = [];
 
@@ -445,6 +463,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
       if (mayEnd) {
         ended = true;
       } else {
+        endCaseBlocked = true;
         console.warn('[runner] suppressed early end_case — coverage incomplete:', JSON.stringify(coverage));
       }
     }
@@ -481,13 +500,20 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
 
   // Rule 12: the words and the state must agree. A close spoken without
   // end_case ends the case if it may end, else is withdrawn (spoken-close.ts).
-  const spokenClose = resolveSpokenClose({ spokenText, ended, mayEnd });
-  checks.record('spoken_close', spokenClose.action !== 'none', `close without end_case — ${spokenClose.action}`, { mayEnd });
+  const spokenClose = resolveSpokenClose({ spokenText, ended, mayEnd, stages, seed: `${sessionId}:${nextTurnIndex}` });
+  checks.record('spoken_close', spokenClose.action !== 'none', `closing turn without a confirmed end — ${spokenClose.action}`, {
+    mayEnd, probe: spokenClose.probe ?? null, endCaseBlocked,
+  });
   if (spokenClose.action !== 'none') {
-    console.warn(`[runner] spoken close without end_case — ${spokenClose.action}`);
-    await logEvent('spoken_close_resolved', { action: spokenClose.action, phase: currentPhase }, { sessionId, userId: session.userId });
+    console.warn(`[runner] closing turn without a confirmed end — ${spokenClose.action}${spokenClose.probe ? ` (${spokenClose.probe} probe)` : ''}`);
+    await logEvent('spoken_close_resolved', { action: spokenClose.action, probe: spokenClose.probe ?? null, phase: currentPhase, coverage },
+      { sessionId, userId: session.userId });
     ended = spokenClose.ended;
-    spokenText = spokenClose.spokenText;
+    if (spokenClose.action === 'replaced') {
+      // The whole turn goes; values it revealed stay — they are booked (Rule 10).
+      const revealedNowById = revealedValues(ledger);
+      spokenText = [...newReveals.map(id => revealedNowById[id]), spokenClose.spokenText].join(' ');
+    }
   }
 
   // Rule 10 / never-promise-without-delivering: if the interviewer's words
@@ -564,7 +590,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     timeUp,
     graceAskFired: Boolean(flags.graceAskFired),
     recommendationAsked: turnRows.some(t => t.role === 'interviewer' && asksForRecommendation(t.text)),
-    recommendationDelivered: Boolean(priorStall.recommendationDelivered),
+    recommendationDelivered: recommendationReceived,
   });
   checks.record('grace_ask', graceAskFiredThisTurn, 'time up with no recommendation ask — grace ask instead of close');
   if (graceAskFiredThisTurn) {
@@ -584,7 +610,10 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   // message is classified synchronously here because run 4's ignored price
   // request was in the very message the warning answered, which the lagging
   // background log can't see yet. One Haiku call, only on ask turns.
-  const warningDue = shouldFireTimeWarning && !ended;
+  // v4.6: the recommendation ask fires once — after a received recommendation
+  // the scripted warning is skipped (Maya 19:23 was asked again).
+  const warningDue = shouldFireTimeWarning && !ended && !recommendationReceived;
+  if (shouldFireTimeWarning && !ended && recommendationReceived) checks.skip('time_warning', 'recommendation already received');
   const modelAsked = !ended && alreadySignaledTimeOrRec(spokenText);
 
   // Rule 11 same-turn resolution (v4.4): a request in this message for held
@@ -714,14 +743,14 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     });
   }
 
-  // Rule 12: every ending turn carries a close — the script alone if nothing
-  // was spoken, appended if the turn said something else but never closed
-  // (live run eca39ec7 ended on a bare correction after time-up).
-  const usedCloseFallback = ended && spokenText === '';
-  if (usedCloseFallback) {
-    spokenText = pickScript(CLOSE_SCRIPTS, sessionId);
-  } else if (ended && !hasCloseCue(spokenText)) {
-    spokenText = `${spokenText} ${pickScript(CLOSE_SCRIPTS, sessionId)}`;
+  // Rule 12 v4.6: one goodbye, a single neutral line. An ending turn is the
+  // scripted close (plus any values revealed this turn — they are booked,
+  // Rule 10); the model's own sign-off is dropped, since it is where praise
+  // and a second goodbye crept in (Maya 19:23: "is exactly the synthesis").
+  const usedCloseFallback = ended;
+  if (ended) {
+    const revealedNowById = revealedValues(ledger);
+    spokenText = [...newReveals.map(id => revealedNowById[id]), pickScript(CLOSE_SCRIPTS, sessionId)].join(' ');
   }
 
   // Rule 8 silent phase repair (lib/orchestrator/phase-repair.ts): raise the

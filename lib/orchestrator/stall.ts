@@ -60,6 +60,18 @@ const SYNTHESIS_PHASES: Phase[] = ['RECOMMENDATION', 'WRAP'];
 // commit without more data" is substantive prose, so it classifies as
 // analysis — this is what separates Claire from a delivered close).
 const RECOMMENDATION_PATTERN = /\b(recommend(ation)?|bottom line|my answer|i'?d (raise|cut|take|push|go with|prioriti[sz]e|start|focus)|(they|the client|brew (&|and) bean|we|the ceo) should)\b/i;
+// v4.6 (Maya c6076209, 18:06): "Raise prices, I guess. But I don't know past
+// that." names a lever in reply to the ask — a recommendation, if a hedged
+// one. A sentence that opens on a lever verb counts even inside a hedge turn;
+// an explicit refusal to commit never does.
+const LEVER_LEAD = /(?:^|[.!?]\s+)(?:(?:um+|uh+|so|okay|ok|well|i think|i guess|maybe|probably|honestly)[,.]?\s+)*(raise|increase|cut|reduce|lower|lock in|hedge|renegotiate|reprice|pass (on|through)|introduce|launch|switch)\b(?!\s+(in|of)\b)/i;
+const COMMIT_REFUSAL = /\b(can'?t (commit|recommend)|cannot (commit|recommend)|not (ready|able) to (commit|recommend)|need more (data|information) (before|to))\b/i;
+
+export function isRecommendationStatement(text: string, kind: TurnKind): boolean {
+  if (COMMIT_REFUSAL.test(text)) return false;
+  if (LEVER_LEAD.test(text.trim())) return true;
+  return kind === 'analysis' && RECOMMENDATION_PATTERN.test(text);
+}
 
 function normalize(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -204,7 +216,7 @@ export function evaluateStall(candidateText: string, phase: Phase, prior: StallS
 
   const { kind, isRepeat, reason } = classifyTurn(candidateText, prior.lastCandidateQuestion);
   const state: StallState = { ...prior };
-  if (kind === 'analysis' && SYNTHESIS_PHASES.includes(phase) && RECOMMENDATION_PATTERN.test(candidateText)) {
+  if (SYNTHESIS_PHASES.includes(phase) && isRecommendationStatement(candidateText, kind)) {
     state.recommendationDelivered = true;
   }
 

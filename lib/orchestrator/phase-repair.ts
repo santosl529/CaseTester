@@ -1,5 +1,6 @@
 import { PHASES, type Phase } from './state-machine';
 import { asksForRecommendation } from '@/lib/agent/prompts/scripts';
+import { BRAINSTORM_ASK } from './spoken-close';
 
 // Rule 8 silent phase repair (docs/interviewer-behavior.md): "the orchestrator
 // may repair stale state by any number of phases, at any time". Both
@@ -27,11 +28,9 @@ export type PhaseRepair = { from: Phase; to: Phase; reasons: string[] };
 
 const REPAIR_CEILING: Phase = 'RECOMMENDATION';
 
-// Client-action framing only. "What else could be driving the gap?" is an
-// analysis probe, not a brainstorm, so a bare "what else could" is not enough.
-const BRAINSTORM_ASK =
-  /\bwhat else (could|can|should|might) [\w&' ]{1,40}? do\b|\bbeyond (pricing|price|that|this|what we'?ve (discussed|covered)),? what\b|\bwhat other (levers|ideas|options)\b|\bbrainstorm/i;
-
+// Client-action framing only — shared with the Rule 12 stage check
+// (spoken-close.ts). "What else could be driving the gap?" is an analysis
+// probe, not a brainstorm, so a bare "what else could" is not enough.
 const indexOf = (phase: Phase) => PHASES.indexOf(phase);
 
 function isBrainstormAsk(text: string): boolean {

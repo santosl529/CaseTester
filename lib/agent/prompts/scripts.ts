@@ -66,10 +66,12 @@ export const SAME_TURN_DEFER_SCRIPTS = [
   "I'll come to that data shortly.",
 ];
 
+// Rule 12 v4.6: the one goodbye — a single neutral line, no evaluation
+// (Rule 1), carrying the report hand-off. Every ending turn IS this script.
 export const CLOSE_SCRIPTS = [
-  "That's time. Thanks for working through it.",
-  "We'll stop there. Thanks for working through the case.",
-  "That's our time. Thanks for walking through this with me.",
+  "That's time. Thanks for working through it — your written report will follow.",
+  "We'll stop there. Thanks for working through the case — your written report will follow.",
+  "That's our time. Thanks for working through this with me — your written report will follow.",
 ];
 
 // Opening invitation appended after the (verbatim) case prompt. Rotated for the
