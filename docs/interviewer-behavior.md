@@ -36,8 +36,9 @@ Changes from the draft:
 3. **Rule 17-C5: model classifier adopted** (round-2 fix 1). The regex stays
    as the floor; a Haiku check runs in parallel with the interviewer call.
 4. **Rule 6: timeframe consistency** (round-2 fix 3, absent from the draft).
-   Derek 6:08: "If beans are a quarter of COGS, and COGS is 58% of
-   revenue…" — the 25% is two years old, the 58% is today's.
+   Added as a prompt rule and a log-only check. The cited example (Derek
+   6:08, 25% × 58%) does not reproduce: bean share was not yet released, and
+   the 25% was Derek's own assumption — see Rule 6.
 5. **Part V: every check records its decision** (round-2 fix 8, only
    piecemeal in the draft).
 6. **Persona-harness open items** updated to the batch-2 findings.
@@ -1941,6 +1942,9 @@ Open items from the persona runs:
   phrasing shares no words with Sam's lexicon entries (tests the C5 model
   layer); (e) add a discouraged-but-not-distressed persona ("I'm going to
   bomb this case", "I always mess up the math") as the C1 control.
+  **Done in v4.6** (`scripts/personas.ts`): (c) Derek holds both lines until
+  after the cost breakdown and a brainstorm/recommendation ask; (d) persona
+  61 Leah; (e) persona 62 Ben. (a) and (b) were already in the briefs.
 - **"I'm going to bomb every interview" (pending decision).** The round-2
   summary treats the C1/C5 line for this sentence as open; this doc already
   places it in C5 because "every" generalizes beyond the case. Persona (e)
