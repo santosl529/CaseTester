@@ -414,6 +414,10 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   else checks.record('conduct_model', isDistressVerdict(distress), `C5 by model: ${distress.label}`, { ...distress });
   if (isDistressVerdict(distress)) {
     console.warn('[runner] C5 by the model layer — draft discarded:', JSON.stringify(distress));
+    // The discarded draft still cost an interviewer call ($/case, PRD §13).
+    if (turnUsage.apiCalls > 0) {
+      await logEvent('llm_usage', { component: 'interviewer', ...turnUsage, discarded: true }, { sessionId, userId: session.userId });
+    }
     return offerPause(distress.label === 'risk_to_self', { reason: distress.reason, label: distress.label, layer: 'model' });
   }
 
