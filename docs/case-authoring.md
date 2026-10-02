@@ -68,6 +68,27 @@ and scoring disagree with the transcript, and Rule 11's force-release re-reads
 the figures to them before the recommendation ask (live run db41a01e). The
 consistency test checks every listed id exists in the ledger.
 
+## Answer-key ideas
+
+The recommendation key is prose; list the specific ideas in it — the levers,
+numbers, and named options a strong answer *might* include — in
+`answerKeyIdeas`, each with the phrases that name it:
+
+```json
+{ "idea": "Lower-cost commodity blend for budget-conscious locations",
+  "phrases": ["commodity blend", "lower-cost blend", "cheaper blend"] }
+```
+
+A report may not fault a candidate for not producing one of these
+(interviewer-behavior Rule 3 v4.5; `lib/scoring/answer-key-pass.ts` removes
+any weakness that names one the candidate never raised). List only
+*examples*. Do not list the case's core insight or a lever the rubric
+expects (in prof-001, raising prices and addressing input costs): faulting a
+candidate for never considering supply-side levers at all is a legitimate
+judgment critique, and a phrase like "supply contract" would strip it.
+Phrases are matched case-insensitively as substrings, en dashes folded to
+hyphens.
+
 ## `mathSteps` double as the live recompute backstop
 
 `docs/interviewer-behavior.md` Rule 2/14's deterministic recompute check

@@ -198,6 +198,36 @@
   },
   "structureKey": "Strong structure disaggregates profit = revenue − costs, then breaks revenue into volume × price and costs into COGS / labor / overhead / other. The candidate should hypothesize which bucket is the driver before asking for data. Bonus: asks about competitive context (are peers also seeing this?) and pricing power.",
   "recommendationKey": "Primary recommendation: raise menu prices, which have not changed in two years while input costs rose about 38% — selectively, by 8–12% on high-margin specialty SKUs where demand is less elastic. Pair it with procurement across all inputs, not just beans: multi-year bean supply contracts plus renegotiated dairy and packaging supply, since beans explain only about a quarter of the COGS increase. Secondary: pilot a lower-cost 'commodity blend' for budget-conscious locations. Do not recommend blanket cost cuts — labor and overhead are already lean.",
+  "answerKeyIdeas": [
+    {
+      "idea": "Lower-cost commodity blend for budget-conscious locations",
+      "phrases": [
+        "commodity blend",
+        "lower-cost blend",
+        "cheaper blend",
+        "budget blend",
+        "value blend"
+      ]
+    },
+    {
+      "idea": "An 8–12% price increase",
+      "phrases": [
+        "8–12%",
+        "8-12%",
+        "8 to 12",
+        "eight to twelve"
+      ]
+    },
+    {
+      "idea": "Targeting less-elastic, high-margin specialty SKUs",
+      "phrases": [
+        "specialty sku",
+        "less-elastic",
+        "less elastic",
+        "high-margin specialty"
+      ]
+    }
+  ],
   "rubricAnchors": {
     "structure": {
       "needs_work": "Jumps to solutions or lists unrelated ideas without a profit framework. Does not disaggregate revenue vs. cost.",

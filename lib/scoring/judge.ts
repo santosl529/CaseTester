@@ -172,6 +172,7 @@ export async function runJudge(
 CASE: ${caseData.title}
 STRUCTURE KEY (model framework): ${caseData.structureKey}
 RECOMMENDATION KEY (model answer): ${caseData.recommendationKey}
+The recommendation key holds EXAMPLES of what a strong answer can look like, not requirements. Never fault the candidate for not producing a specific idea, lever, or number from it — judge each dimension against its rubric anchors (for Creativity: ideas organized into buckets, variety, at least one non-obvious idea, prioritization). A needsWork item may name the missing QUALITY ("no non-obvious idea", "ideas not prioritized"), citing the candidate's own words, never the missing answer-key idea. A valid idea outside the key is credited on its merits.
 ${exhibitKeys ? `EXHIBIT INTERPRETATION KEYS (what a strong candidate extracts from each exhibit):\n${exhibitKeys}` : ''}
 
 ${revealedDataSection}

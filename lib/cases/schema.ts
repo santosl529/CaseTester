@@ -108,6 +108,14 @@ export const CaseSchema = z.object({
   exhibits: z.array(ExhibitSchema),
   structureKey: z.string().min(1),
   recommendationKey: z.string().min(1),
+  // Rule 3 v4.5 (docs/case-authoring.md "Answer-key ideas"): the specific
+  // ideas in the model answer, with the phrases that name them. A report may
+  // not fault a candidate for not producing one (lib/scoring/answer-key-pass.ts).
+  // Server-only, like recommendationKey.
+  answerKeyIdeas: z.array(z.object({
+    idea: z.string().min(1),
+    phrases: z.array(z.string().min(3)).min(1),
+  })).default([]),
   pacing: PacingSchema.optional(),
   // Deprecated: the judge scores against the generic 8-dimension rubric in
   // lib/scoring/rubric.ts (docs/Case Interview Feedback Rubric.pdf). Per-case

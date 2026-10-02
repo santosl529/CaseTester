@@ -10,8 +10,9 @@ built — do not let the mark rot.
 ## Report verification pipeline
 
 Order is load-bearing: **artifact detection → interviewer-error marking →
-evidence audit → omission-claim verifier → error-claim verifier → dimension
-reconciliation** (v4.3). The error-claim check runs inside the omission verifier's call (one LLM pass, both claim types). Artifact
+evidence audit → omission-claim verifier → error-claim verifier →
+answer-key and caveat-text pass → dimension reconciliation** (v4.3; the
+answer-key pass v4.5). The error-claim check runs inside the omission verifier's call (one LLM pass, both claim types). Artifact
 detection first, or every later check runs against contaminated transcripts
 (run 3's duplicated opening turn) and gives false confidence;
 interviewer-error marking second, so no later step treats a system-caused turn
@@ -179,6 +180,29 @@ after the judge (the prompt already says so and Maya `c230fe12` still got
 `ratingLabel`, stored as a NULL rating column — no enum migration. The
 overall rating is still the judge's holistic call, instructed to ignore
 not-assessed dimensions; it is not recomputed in code after the floor.
+
+### Answer-key and caveat-text pass [implemented: `lib/scoring/answer-key-pass.ts`, before reconciliation]
+
+(Rule 3 v4.5.) The model answer holds examples, not requirements. Batch 2:
+Camila, Micah and Tobias were each dropped to `meets_bar` in Creativity for
+not proposing the answer key's "lower-cost commodity blend". The judge prompt
+says so; the pass enforces it deterministically:
+- A needs-work item that names an answer-key idea (case `answerKeyIdeas`,
+  `docs/case-authoring.md`) **that the candidate never raised** is removed.
+  If the candidate raised the idea, a weakness about how they handled it
+  stays — that is a judgment of their idea, not of its absence.
+- In a dimension whose coverageCaveat says a stage was not run, a needs-work
+  item citing that stage is removed (Creativity: brainstorm/ideas/levers;
+  Synthesis: recommendation). Data-gap caveats are left to reconciliation.
+- A dimension the pass emptied of needs-work items is re-rated one level up
+  (never to `strong` with nothing in What Went Well).
+
+Replay on the stored batch-2 reports (2 Oct): all three anchored weaknesses
+found; Tobias and Camila re-rate to `strong`. Micah's item is removed but his
+stored report had already merged the strength into that one sentence
+(reconciliation runs after this pass live, so the replay on final reports
+understates the re-rate). Metrics: `answerKeyDrops`, `caveatTextDrops`,
+`answerKeyReRates` in `scoring_qa`.
 
 ## Judge requirements
 
@@ -404,6 +428,10 @@ forever.
   `crossDimensionRepeats` in the `scoring_qa` event]
 - Coverage-gap faults dropped by reconciliation — judge non-compliance with the
   data-coverage caveat. [implemented: `gapClaimDrops` in the `scoring_qa` event]
+- Answer-key anchoring rate — needs-work items resting on a missing
+  answer-key idea, and un-administered-stage faults, removed by the
+  answer-key pass. [implemented: `answerKeyDrops`, `caveatTextDrops`,
+  `answerKeyReRates` in the `scoring_qa` event]
 - Data-request non-response rate (interviewer-behavior Rule 11), split by
   ledger-exists vs. not (`session_events`, category `data_request`, subtype
   `none`). [logged; not aggregated]

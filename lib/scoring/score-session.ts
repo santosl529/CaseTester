@@ -16,6 +16,7 @@ import { summarizeAssists, summarizeCoverage } from './assists';
 import { summarizeDataRequests } from './data-coverage';
 import { buildInterviewerMarks, formatInterviewerMarksSection, dropClaimsOnMarkedTurns } from './interviewer-errors';
 import { applyCaveatFloor } from './caveat-floor';
+import { applyAnswerKeyPass } from './answer-key-pass';
 import { RUBRIC_DIMENSION_KEYS } from './rubric';
 
 export type ScoreSessionStatus = 'scored' | 'already_scored' | 'not_completed' | 'not_found';
@@ -157,12 +158,23 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
     console.warn('[score] verifier dropped unsupported claims:', JSON.stringify(dropped));
   }
 
+  // Answer-key and caveat-text pass (Rule 3 v4.5), deterministic, before
+  // reconciliation: no missing-idea weaknesses, no faulting a stage that was
+  // never run; a dimension emptied by the pass is re-rated one level up.
+  const answerKey = applyAnswerKeyPass(verifiedRubric, {
+    ideas: caseData.answerKeyIdeas,
+    candidateTexts,
+  });
+  if (answerKey.removed.length > 0) console.warn('[score] answer-key pass removed missing-idea weaknesses:', JSON.stringify(answerKey.removed));
+  if (answerKey.caveatRemoved.length > 0) console.warn('[score] caveat-text pass removed un-administered-stage faults:', JSON.stringify(answerKey.caveatRemoved));
+  if (answerKey.reRated.length > 0) console.warn('[score] re-rated after the answer-key pass:', JSON.stringify(answerKey.reRated));
+
   // Dimension reconciliation LAST (docs/scoring-qa.md §4 — after the verifier,
   // because removing a claim can create or resolve a both-sides collision):
   // merge same-concept strength/weakness pairs, drop faults resting on
   // requested-but-never-provided data (Rule 11), log cross-dimension repeats.
   const { rubric: reconciledRubric, merges, gapDrops, crossDimension } = await runReconciliation(
-    verifiedRubric, dataCoverage, u => logUsage({ ...u }),
+    answerKey.rubric, dataCoverage, u => logUsage({ ...u }),
   );
   // Rule 9 floor (v4.3) — enforced in code, after every text pass.
   const { rubric, floored } = applyCaveatFloor(reconciledRubric);
@@ -225,6 +237,10 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
     markClaimDrops: markDrops.length,
     caveatFloors: floored.length,
     gapClaimDrops: gapDrops.length,
+    // v4.5: answer-key anchoring rate and un-administered-stage faults removed.
+    answerKeyDrops: answerKey.removed.length,
+    caveatTextDrops: answerKey.caveatRemoved.length,
+    answerKeyReRates: answerKey.reRated.length,
     crossDimensionRepeats: crossDimension.length,
   }, { sessionId, userId });
 
