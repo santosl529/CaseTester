@@ -28,6 +28,7 @@ import { logEvent } from '@/lib/analytics';
 import { nextPhase, PHASES, TOTAL_CASE_MS, type Phase } from './state-machine';
 import { inferPhaseRepair } from './phase-repair';
 import { resolveSpokenClose } from './spoken-close';
+import { CheckLog, toCheckEventRows } from './check-log';
 import { runInterviewerTurn } from '@/lib/agent/interviewer';
 import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import {
@@ -120,12 +121,23 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     await logEvent('session_resumed', { pausedMs: resumed.resumedAfterMs, phase: currentPhase }, { sessionId, userId: session.userId });
   }
 
-  // Helper: persist the candidate turn + a scripted interviewer turn, no model call.
+  // Part V (v4.6): every check that runs this turn records its decision, and
+  // the decisions are written as `check` events with the turn — including on
+  // the scripted early-return paths below.
+  const checks = new CheckLog();
+  const writeChecks = async () => {
+    const rows = toCheckEventRows(checks, { sessionId, turnIndex: nextTurnIndex, phase: currentPhase });
+    if (rows.length > 0) await db.insert(sessionEvents).values(rows);
+  };
+
+  // Helper: persist the candidate turn + a scripted interviewer turn, no model
+  // call, plus this turn's check decisions.
   const persistScriptedPair = async (interviewerText: string) => {
     await db.insert(sessionTurns).values([
       { sessionId, turnIndex: nextTurnIndex, role: 'candidate', text: candidateText, timestampMs: now },
       { sessionId, turnIndex: nextTurnIndex + 1, role: 'interviewer', text: interviewerText, timestampMs: Date.now() },
     ]);
+    await writeChecks();
   };
 
   // ── C5 pause offer: this candidate turn is a reply to a pending offer ──────
@@ -138,7 +150,9 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
       flags.silence = { ...silence, pausedTotalMs: silence.pausedTotalMs + Math.max(0, now - conduct.distressOfferedAtMs) };
       delete conduct.distressOfferedAtMs;
     }
-    if (isPauseAccepted(candidateText)) {
+    const accepted = isPauseAccepted(candidateText);
+    checks.record('c5_pause_reply', accepted, 'candidate accepted the pause/stop offer');
+    if (accepted) {
       await persistScriptedPair(DISTRESS_CLOSE);
       await logSessionEvent(sessionId, 'conduct', 'C5_accept', nextTurnIndex, currentPhase, { reason: 'distress_pause_accepted' });
       await logEvent('case_abandoned', { reason: 'distress_pause_accepted', phase: currentPhase },
@@ -156,6 +170,9 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
 
   // ── Conduct pre-check (Rule 17) — intercepts before any case rule ─────────
   const assessment = classifyConduct(candidateText, conduct.warnings ?? 0);
+  checks.record('conduct', assessment.category !== 'none', `${assessment.category}: ${assessment.action}`, {
+    category: assessment.category, action: assessment.action, reason: assessment.reason,
+  });
 
   if (assessment.action === 'terminate') {
     await persistScriptedPair(CONDUCT_TERMINATION);
@@ -259,15 +276,25 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
       span: f.span, attempt: recomputeAttempts[f.stepId],
     });
   }
+  checks.record('recompute', recomputeFlags.length > 0, 'mismatch flagged', {
+    flags: recomputeFlags.map(f => ({ stepId: f.stepId, candidateValue: f.candidateValue, expected: f.expected, errorClass: f.errorClass, span: f.span })),
+  });
 
   // Rule 2/14: risky nested-percentage conversion in this candidate message →
   // tell the interviewer to probe the units (unit-check.ts).
   const unitCheckHint = detectNestedPercentConversion(candidateText) ? formatUnitCheckHint() : undefined;
+  checks.record('unit_check', unitCheckHint !== undefined, 'nested share-of-COGS conversion — probe hint sent');
 
   // Rule 13 stall ladder: evaluate BEFORE the model turn so a triggered rung's
   // guidance goes into this turn's prompt.
   const priorStall = (flags.stall as StallState | undefined) ?? INITIAL_STALL_STATE;
   const stallDecision = evaluateStall(candidateText, currentPhase, priorStall);
+  checks.record('stall', Boolean(stallDecision.intervene), `rung ${stallDecision.rung ?? '-'} decided`, {
+    rung: stallDecision.rung ?? null,
+    synthesisUnresolved: Boolean(stallDecision.synthesisUnresolved),
+    consecutiveNoProgress: stallDecision.state.consecutiveNoProgress,
+    consecutiveClarify: stallDecision.state.consecutiveClarify,
+  });
 
   const history = turnRows.map(t => ({
     role: (t.role === 'candidate' ? 'user' : 'assistant') as 'user' | 'assistant',
@@ -383,6 +410,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   }
 
   spokenText = spokenText.trim();
+  checks.record('fabricated_turn', fabricatedStripped, 'model wrote past its turn — continuation cut');
   if (fabricatedStripped) {
     // Nothing real left: a neutral acknowledgment (Rule 1) beats a blank turn.
     if (!spokenText && !ended) spokenText = 'Go on.';
@@ -394,6 +422,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   // candidate has anchored on pricing lag. Let me pressure it once..." never
   // reaches the candidate.
   const metaLeak = stripMetaLeak(spokenText);
+  checks.record('meta_leak', metaLeak.strippedSentences.length > 0, 'internal planning stripped', { sentences: metaLeak.strippedSentences });
   if (metaLeak.strippedSentences.length > 0) {
     console.warn('[runner] stripped meta-leak from interviewer turn:', JSON.stringify(metaLeak.strippedSentences));
     spokenText = metaLeak.cleaned;
@@ -402,6 +431,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   // Rule 12: the words and the state must agree. A close spoken without
   // end_case ends the case if it may end, else is withdrawn (spoken-close.ts).
   const spokenClose = resolveSpokenClose({ spokenText, ended, mayEnd });
+  checks.record('spoken_close', spokenClose.action !== 'none', `close without end_case — ${spokenClose.action}`, { mayEnd });
   if (spokenClose.action !== 'none') {
     console.warn(`[runner] spoken close without end_case — ${spokenClose.action}`);
     await logEvent('spoken_close_resolved', { action: spokenClose.action, phase: currentPhase }, { sessionId, userId: session.userId });
@@ -416,15 +446,19 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   // Skipped on the closing turn: a live run's final debrief mentioned "the
   // exhibit" in retrospective feedback, which isn't a delivery promise, and a
   // case that's ending has no business surfacing new exhibits anyway.
-  if (!exhibit && !ended && promisesExhibit(spokenText)) {
+  const exhibitPromised = !exhibit && !ended && promisesExhibit(spokenText);
+  if (!exhibitPromised) checks.pass('exhibit_promise');
+  if (exhibitPromised) {
     const recovered = resolveExhibit(caseData.exhibits, spokenText)
       ?? (caseData.exhibits.length === 1 ? caseData.exhibits[0] : undefined);
     if (recovered) {
       exhibit = { id: recovered.id, title: recovered.title, chartType: recovered.chartType, data: recovered.data as Record<string, unknown>[] };
       console.warn('[runner] recovered promised-but-undelivered exhibit:', recovered.id);
+      checks.act('exhibit_promise', 'promised exhibit recovered', { exhibitId: recovered.id });
     } else {
       spokenText = `${spokenText} ${pickScript(EXHIBIT_REFUSAL_SCRIPTS, sessionId)}`;
       console.warn('[runner] interviewer promised an exhibit but none could be delivered — injected refusal');
+      checks.act('exhibit_promise', 'promised exhibit unresolvable — refusal injected');
     }
   }
 
@@ -446,7 +480,9 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   // fallback: guessing the wrong ledger item would itself be a data leak
   // (data-ledger.ts has the full rationale). Skipped on the closing turn for
   // the same reason as the exhibit recovery.
-  if (newReveals.length === 0 && !ended && promisesReveal(spokenText)) {
+  const dataPromised = newReveals.length === 0 && !ended && promisesReveal(spokenText);
+  if (!dataPromised) checks.pass('data_promise');
+  if (dataPromised) {
     // Named in the text, else the single open ledger request is what was
     // promised (v4.3: Maya c230fe12 was refused her open deferral instead).
     const openIds = [...new Set(openDataRequests.map(r => r.ledgerItemId))].filter(id => canReveal(ledger, id));
@@ -456,9 +492,11 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
       newReveals.push(recoveredId);
       spokenText = `${spokenText} ${value}`;
       console.warn('[runner] recovered promised-but-undelivered reveal_data:', recoveredId);
+      checks.act('data_promise', 'promised data recovered', { itemId: recoveredId });
     } else {
       spokenText = `${spokenText} ${pickScript(REVEAL_REFUSAL_SCRIPTS, sessionId)}`;
       console.warn('[runner] interviewer promised data with no ledger match — injected refusal');
+      checks.act('data_promise', 'promised data unresolvable — refusal injected');
     }
   }
 
@@ -477,6 +515,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     recommendationAsked: turnRows.some(t => t.role === 'interviewer' && asksForRecommendation(t.text)),
     recommendationDelivered: Boolean(priorStall.recommendationDelivered),
   });
+  checks.record('grace_ask', graceAskFiredThisTurn, 'time up with no recommendation ask — grace ask instead of close');
   if (graceAskFiredThisTurn) {
     console.warn('[runner] time up with no recommendation ask — grace ask instead of close');
     ended = false;
@@ -502,8 +541,12 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   // stage, else deferred out loud — before the turn is sent, so the candidate
   // never has to ask twice. Recommendation-ask turns skip this: the forced
   // release below resolves every open request there.
-  if (!ended && !warningDue && !modelAsked) {
+  if (ended || warningDue || modelAsked) {
+    checks.skip('same_turn_resolution', ended ? 'closing turn' : 'recommendation-ask turn (forced release handles it)');
+  } else {
     const detected = await detectedRequestsPromise;
+    if (detected === null) checks.skip('same_turn_resolution', 'request classifier failed');
+    else if (detected.length === 0) checks.pass('same_turn_resolution', { detected: 0 });
     if (detected && detected.length > 0) {
       const phase = PHASES.indexOf(nextPhaseValue) > PHASES.indexOf(currentPhase) ? nextPhaseValue : currentPhase;
       const plan = planSameTurnResolution({
@@ -521,6 +564,9 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
         ...(values.length > 0 ? [pickScript(SAME_TURN_RELEASE_LEADINS, sessionId), ...values] : []),
         ...(plan.defer ? [pickScript(SAME_TURN_DEFER_SCRIPTS, sessionId)] : []),
       ];
+      checks.record('same_turn_resolution', parts.length > 0, 'ignored request resolved before send', {
+        detected: detected.map(r => r.ledgerItemIds), released: plan.releaseIds, deferred: plan.defer,
+      });
       if (parts.length > 0) {
         spokenText = insertBeforeTrailingQuestions(spokenText, parts.join(' '));
         console.warn('[runner] same-turn data request resolution:', JSON.stringify({ released: plan.releaseIds, deferred: plan.defer, phase }));
@@ -532,6 +578,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
 
   const forcedReleaseValues: string[] = [];
   let dataRequestsClassified = false;
+  if (!(warningDue || modelAsked)) checks.skip('forced_release', 'not a recommendation-ask turn');
   if (warningDue || modelAsked) {
     const revealedNow = new Set(Object.keys(revealedValues(ledger)));
     const current = await classifyDataRequests({
@@ -557,6 +604,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
       newReveals.push(itemId);
       forcedIds.push(itemId);
     }
+    checks.record('forced_release', forcedIds.length > 0, 'open requests released before the ask', { itemIds: forcedIds });
     if (forcedIds.length > 0) {
       console.warn('[runner] force-released open data requests before the recommendation ask:', JSON.stringify(forcedIds));
       await logEvent('data_force_released', { itemIds: forcedIds, trigger: warningDue ? 'time_warning' : 'model_ask', phase: currentPhase },
@@ -582,9 +630,12 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
         warningLine: pickScript(TIME_WARNING_SCRIPTS, sessionId),
       });
     timeWarningFiredThisTurn = true;
+    checks.act('time_warning', modelAsked ? 'model already asked — script suppressed' : 'scripted warning appended');
   } else if (forcedReleaseValues.length > 0) {
     spokenText = composeForcedReleaseTurn({ spokenText, releaseValues: forcedReleaseValues, leadIn: forcedLeadIn, isAskSentence: alreadySignaledTimeOrRec });
   }
+
+  if (!timeWarningFiredThisTurn) checks.pass('time_warning');
 
   // Rule 12: every ending turn carries a close — the script alone if nothing
   // was spoken, appended if the turn said something else but never closed
@@ -637,6 +688,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     [...revealedTexts, ...allowedTexts],
     { exempt: timeWarningFiredThisTurn || usedCloseFallback },
   );
+  checks.record('provenance', provenance.blocked, 'block-tier figure withheld', { findings: provenance.findings.filter(f => f.action !== 'pass') });
   if (provenance.blocked) {
     console.warn('[runner] numeric provenance blocked — withheld:', JSON.stringify(provenance.findings));
     spokenText = provenance.text;
@@ -647,6 +699,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   const styleResult = auditTurnStyle(spokenText, {
     lengthExempt: newReveals.length > 0 || exhibit !== undefined || stallDecision.rung === 3,
   });
+  checks.record('style', !styleResult.passed || styleResult.flags.length > 0, 'style audit flagged (log only)', { ...styleResult });
   if (!styleResult.passed) console.warn('[runner] style audit failed:', JSON.stringify(styleResult));
   if (styleResult.flags.length > 0) console.warn('[runner] style QA flag (soft):', JSON.stringify(styleResult.flags));
 
@@ -655,6 +708,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     { sessionId, turnIndex: nextTurnIndex, role: 'candidate', text: candidateText, timestampMs: now },
     { sessionId, turnIndex: nextTurnIndex + 1, role: 'interviewer', text: spokenText, timestampMs: Date.now(), latencyMs: modelLatencyMs },
   ]);
+  await writeChecks();
 
   // PRD §13: per-turn latency + token usage (feeds $/completed-case, computed
   // at analysis time from tokens — pricing lives out-of-band).

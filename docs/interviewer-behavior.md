@@ -1887,7 +1887,7 @@ warning, and the C5 classifier all exist in code).
 | One-goodbye close | 12 | **v4.6 — not built.** Needs: closing turn held until `end_case` is confirmed; whole-turn replacement by a scripted brainstorm/risk probe when blocked; administered-stages gate opening; wider goodbye pattern list with C5/termination exemption; `recommendation_received` flag checked by the warning and grace ask; no turns after end | Maya batch 2: four goodbyes, two blocked ends, a repeat recommendation ask |
 | C5 model layer | 17 | **v4.6 — not built.** Haiku classifier in parallel with the interviewer call; regex floor kept; eval corpus | Round-2 fix 1: lexicon built from one persona |
 | Timeframe check | 6 | **v4.6 — not built.** Ledger `timeframes`; log-only `timeframe_mismatch` on cross-period arithmetic; prompt rule | Derek 6:08: 25% (prior) × 58% (current) |
-| Decision log | V | **v4.6 — not built.** One `check` event per check per turn, `pass` included | Four checks misread as missing in the v3.5 review |
+| Decision log | V | **Built in v4.6** — `lib/orchestrator/check-log.ts`; one `check` event per check per turn (`pass`/`act`/`skip`), written on scripted early returns too; per-check table in the run export | Four checks misread as missing in the v3.5 review |
 | Number-word normalization | 2, 13 | **v4.6 — not built.** Shared normalizer for the analysis signal and math spans | Yuki: every figure in words; phantom rung |
 
 **v4.5 build order** (for the five new rows): (1) rung delivery check and

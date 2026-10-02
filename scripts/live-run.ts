@@ -33,6 +33,7 @@ import path from 'node:path';
 import { and, desc, eq } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { sessions, sessionTurns, sessionEvents, scores, analyticsEvents, revealedData } from '@/db/schema';
+import { summarizeCheckEvents } from '@/lib/orchestrator/check-log';
 import { getCaseById } from '@/lib/cases/loader';
 import { startSession } from '@/lib/orchestrator/start-session';
 import { runTurn, runSilence, type ExhibitDisplay } from '@/lib/orchestrator/session-runner';
@@ -305,6 +306,14 @@ async function writeArtifacts(sessionId: string, caseTitle: string) {
     const p = r.payloadJsonb as { what?: string; ledgerItemIds?: string[]; ledgerItemId?: string | null; revealedByNow?: boolean };
     const ids = p.ledgerItemIds ?? (p.ledgerItemId ? [p.ledgerItemId] : []);
     md.push(`| ${r.turnIndex} | ${r.subtype} | ${ids.join(', ') || '—'} | ${(p.what ?? '').replace(/\|/g, '/')} | ${p.revealedByNow ? 'yes' : 'no'} |`);
+  }
+  md.push('');
+
+  // Part V (v4.6): every check records its decision — a check with no row
+  // never ran, which is different from one that ran and found nothing.
+  md.push('## Check decisions', '', '| Check | Pass | Act | Skip | Acted at candidate turn |', '|---|---|---|---|---|');
+  for (const c of summarizeCheckEvents(events.filter(e => e.category === 'check'))) {
+    md.push(`| ${c.check} | ${c.pass} | ${c.act} | ${c.skip} | ${c.actedAt.join(', ') || '—'} |`);
   }
   md.push('');
 
