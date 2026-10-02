@@ -180,16 +180,26 @@ const RUNG_CUE: Record<LadderRung, RegExp> = {
   3: /\b(let'?s (look at|go to|take|move to|turn to|focus on)|here'?s the)\b/i,
 };
 
+//
+// Batch 3 (Maya 56b80c44): cue phrases alone were too strict — "Stay with it.
+// Of those three, which do you want to see first?" is a Level 1 in the
+// model's own words, read as undelivered, and her ladder never advanced. So a
+// turn that asks the candidate something counts as carrying the rung; what is
+// NOT delivered is a turn with no question (Yuki's bare data release) or one
+// the orchestrator replaced with a script.
 export function findRungDelivery(
   rung: LadderRung,
   spokenText: string,
-  ctx: { dataReleased: boolean; exhibitShown: boolean },
+  ctx: { dataReleased: boolean; exhibitShown: boolean; replacedByScript?: boolean },
 ): string | null {
-  const sentence = spokenText.split(/(?<=[.!?])\s+/).find(s => RUNG_CUE[rung].test(s));
-  if (sentence) return sentence.trim();
+  if (ctx.replacedByScript) return null;
+  const sentences = spokenText.split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(Boolean);
+  const cued = sentences.find(s => RUNG_CUE[rung].test(s));
+  if (cued) return cued;
   // A Level 3 rescue hands over the branch; a release or exhibit is that hand-off.
   if (rung === 3 && (ctx.dataReleased || ctx.exhibitShown)) return spokenText.trim();
-  return null;
+  const asked = sentences.find(s => s.endsWith('?'));
+  return asked ?? null;
 }
 
 // An undelivered rung is not "used": the next stall starts from it again.

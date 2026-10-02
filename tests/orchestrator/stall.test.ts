@@ -252,6 +252,15 @@ describe('rung delivery (Rule 13 v4.5: a rung counts only when it reaches the ca
     expect(findRungDelivery(1, delivered, { dataReleased: true, exhibitShown: false })).toBeNull();
   });
 
+  it("a hint in the model's own words counts (Maya batch 3)", () => {
+    expect(findRungDelivery(1, 'Stay with it. Of those three — beans, labor, rent — which do you want to see first?', { dataReleased: false, exhibitShown: false }))
+      .toMatch(/which do you want to see first\?$/);
+  });
+
+  it('a turn the orchestrator replaced with a script carries no rung', () => {
+    expect(findRungDelivery(2, "What's your recommendation to the client?", { dataReleased: false, exhibitShown: false, replacedByScript: true })).toBeNull();
+  });
+
   it('a release delivers a Level 3 rescue', () => {
     expect(findRungDelivery(3, 'COGS is 58% of revenue today.', { dataReleased: true, exhibitShown: false })).not.toBeNull();
   });

@@ -12,7 +12,7 @@ const DEREK_CLOSE = "That's time. Thanks for working through it — you'll get a
 const MAYA_18_08 = "That's a recommendation. You'll get a full written report afterward.";
 const MAYA_19_41 = "That's your recommendation. The full written report will follow. Thanks for your time today.";
 
-const NONE_RUN: StageAdministration = { brainstormAsked: false, riskAsked: false, recommendationAsked: false, recommendationReceived: false };
+const NONE_RUN: StageAdministration = { brainstormAsked: false, riskAsked: false, recommendationAsked: false, recommendationAskCount: 0, recommendationReceived: false };
 
 describe('isClosingTurn (Rule 12 v4.6: wider goodbye detector)', () => {
   it('recognizes explicit closes, including the batch-2 ones', () => {
@@ -54,6 +54,12 @@ describe('stage administration and the end gate', () => {
     expect(stageGateOpen(stageAdministration([...interviewer, "What's the biggest risk to that recommendation?"], false))).toBe(false);
   });
 
+  it('opens without a recommendation once it was asked for twice and refused (Maya, batch 3)', () => {
+    const asks = [...interviewer, "Pull it together — what's your recommendation to the CEO?", 'What would you tell the CEO to do?'];
+    expect(stageGateOpen(stageAdministration(asks.slice(0, 3), false))).toBe(false);
+    expect(stageGateOpen(stageAdministration(asks, false))).toBe(true);
+  });
+
   it('chooses the probe by what was not administered: brainstorm, recommendation, then risk', () => {
     expect(chooseBlockedCloseProbe(NONE_RUN)).toBe('brainstorm');
     expect(chooseBlockedCloseProbe({ ...NONE_RUN, brainstormAsked: true })).toBe('recommendation');
@@ -79,7 +85,7 @@ describe('resolveSpokenClose', () => {
   });
 
   it("replaces Maya's blocked 18:08 goodbye — the whole turn — with a risk probe", () => {
-    const stages = { brainstormAsked: true, riskAsked: false, recommendationAsked: true, recommendationReceived: true };
+    const stages = { brainstormAsked: true, riskAsked: false, recommendationAsked: true, recommendationAskCount: 1, recommendationReceived: true };
     const r = resolveSpokenClose({ spokenText: MAYA_18_08, ended: false, mayEnd: false, stages, seed: 'maya' });
     expect(r.action).toBe('replaced');
     expect(r.probe).toBe('risk');

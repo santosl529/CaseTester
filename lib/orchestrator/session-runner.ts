@@ -844,6 +844,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     rungDeliverySpan = findRungDelivery(stallDecision.rung, spokenText, {
       dataReleased: newReveals.length + exhibitReveals.length > 0,
       exhibitShown: exhibit !== undefined,
+      replacedByScript: spokenClose.action === 'replaced' || graceAskFiredThisTurn,
     });
     if (rungDeliverySpan === null) stallState = revertUndeliveredRung(stallState, priorStall);
     checks.act('rung_delivery', rungDeliverySpan ? 'rung delivered' : 'rung not delivered — not an assist; ladder not advanced', {

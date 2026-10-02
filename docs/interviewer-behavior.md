@@ -1257,7 +1257,11 @@ mid-flow.
      may end even if coverage scores are below threshold: remaining gaps are
      candidate performance, not session coverage (Rule 13, assisted vs.
      covered). This bounds the close to at most two probes after the
-     recommendation.
+     recommendation. **A recommendation asked for twice and refused also
+     opens it** (with the brainstorm administered): the synthesis cap (Rule
+     13) makes that a candidate outcome, and the case closes without one.
+     Batch 3, Maya 56b80c44: without this bound she was asked 17 times until
+     the clock ran out.
   3a. **The recommendation ask fires once.** Once a recommendation has been
      received, the session records it, and neither the time warning nor the
      time-up grace ask may ask for one again. If the time warning falls due
@@ -1431,7 +1435,13 @@ interviewer turn actually contains it. This is the same test Rule 10 applies
 to data ("revealed" means the figure reached the candidate, not that
 `reveal_data` was called).
 - **Log at delivery, not at decision.** The rung is recorded when the turn is
-  sent, with the delivered hint text as its span. If the delivered turn does
+  sent, with the delivered hint text as its span. *Delivered* means the sent
+  turn carries a hint: a rung cue phrase, or any question to the candidate
+  (the model words hints its own way — batch 3, Maya: "Stay with it. Of
+  those three, which do you want to see first?"). Not delivered: a turn with
+  no question (Yuki's bare data release), or one the orchestrator replaced
+  with a script. A cue-only test (first build) froze Maya's ladder at
+  Level 1 for the whole case. If the delivered turn does
   not carry the hint — the model released data instead, or answered a
   question — the decision is logged as `rung_not_delivered` and is **not** an
   assist.
@@ -1957,6 +1967,21 @@ Open items from the persona runs:
   so interviewer-error marking has an input.
 - **C5 review:** review every C5 event weekly during pilot; rerun Sam after
   each classifier change.
+
+- **Batch 3 (2 Oct, 10 personas, v4.6 code) — results:** one goodbye in
+  every completed session (Maya had four in batch 2); ignored requests for
+  held data 23 → 4; zero doubt probes on correct math (the two "points of
+  what?" were on real errors — Derek, Maya); no phantom rungs (Yuki, Ines,
+  Tobias); C5 model layer fired on Leah (regex would have missed it);
+  Derek terminated after the cost analysis instead of early. Two bugs,
+  fixed after the batch: the cue-only rung-delivery test and the unbounded
+  recommendation ask (above). **Evidence for the pending C1/C5 decision:**
+  Ben's light "honestly I'm going to bomb every interview at this rate"
+  fired the regex C5 *with the 988 line*; he replied "I didn't mean to worry
+  you… just me grumbling at myself about this case." The model layer would
+  have classed it as case frustration but was skipped because the regex
+  fired first. Still regex-dominated: 8 of 9 scored sessions rated strong
+  overall (rating calibration, open item above).
 
 **Design principle (recorded from v3.2 review):** deterministic backstops keep
 being specified against the typical surface form of a risk (digit numerals,

@@ -55,20 +55,32 @@ export type StageAdministration = {
   brainstormAsked: boolean;
   riskAsked: boolean;
   recommendationAsked: boolean;
+  recommendationAskCount: number;
   recommendationReceived: boolean;
 };
+
+// Rule 13 synthesis cap: a candidate asked for the recommendation this many
+// times who still gives none has a candidate outcome, not a coverage gap — the
+// case may close without one. Batch 3 (Maya 56b80c44) was asked 17 times.
+export const RECOMMENDATION_ASK_LIMIT = 2;
 
 export function stageAdministration(interviewerTexts: string[], recommendationReceived: boolean): StageAdministration {
   return {
     brainstormAsked: interviewerTexts.some(asksBrainstorm),
     riskAsked: interviewerTexts.some(asksRisk),
     recommendationAsked: interviewerTexts.some(t => REC_ASK.test(t)),
+    recommendationAskCount: interviewerTexts.filter(t => REC_ASK.test(t)).length,
     recommendationReceived,
   };
 }
 
+export function recommendationUnresolved(s: StageAdministration): boolean {
+  return !s.recommendationReceived && s.recommendationAskCount >= RECOMMENDATION_ASK_LIMIT;
+}
+
 export function stageGateOpen(s: StageAdministration): boolean {
-  return s.recommendationReceived && s.brainstormAsked && s.riskAsked;
+  if (!s.brainstormAsked) return false;
+  return s.recommendationReceived ? s.riskAsked : recommendationUnresolved(s);
 }
 
 // Rotating pools (Rule 7 anti-tell).
@@ -94,7 +106,7 @@ export type BlockedCloseProbe = keyof typeof BLOCKED_CLOSE_PROBES;
 
 export function chooseBlockedCloseProbe(s: StageAdministration): BlockedCloseProbe {
   if (!s.brainstormAsked) return 'brainstorm';
-  if (!s.recommendationReceived) return 'recommendation';
+  if (!s.recommendationReceived && s.recommendationAskCount < RECOMMENDATION_ASK_LIMIT) return 'recommendation';
   return 'risk';
 }
 
