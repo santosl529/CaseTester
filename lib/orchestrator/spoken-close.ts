@@ -117,15 +117,21 @@ export type SpokenCloseResolution = {
   probe?: BlockedCloseProbe;
 };
 
+// endBlocked: the model called end_case and the gate refused it. A turn that
+// carries no question is then a close in all but words (batch 6, Maya 20:35:
+// end_case alone, and the blank-turn guard sent "Go on." after her
+// recommendation) — it gets the missing stage's probe like a spoken close.
 export function resolveSpokenClose(params: {
   spokenText: string;
   ended: boolean;
   mayEnd: boolean;
+  endBlocked?: boolean;
   stages: StageAdministration;
   seed: string;
 }): SpokenCloseResolution {
-  const { spokenText, ended, mayEnd, stages, seed } = params;
-  if (ended || !isClosingTurn(spokenText)) return { action: 'none', ended, spokenText };
+  const { spokenText, ended, mayEnd, endBlocked = false, stages, seed } = params;
+  const silentBlockedEnd = endBlocked && !spokenText.includes('?');
+  if (ended || !(silentBlockedEnd || isClosingTurn(spokenText))) return { action: 'none', ended, spokenText };
   if (mayEnd) return { action: 'promoted', ended: true, spokenText };
   const probe = chooseBlockedCloseProbe(stages);
   return { action: 'replaced', ended: false, spokenText: pickScript([...BLOCKED_CLOSE_PROBES[probe]], seed), probe };

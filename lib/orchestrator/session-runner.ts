@@ -526,7 +526,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
 
   // Rule 12: the words and the state must agree. A close spoken without
   // end_case ends the case if it may end, else is withdrawn (spoken-close.ts).
-  const spokenClose = resolveSpokenClose({ spokenText, ended, mayEnd, stages, seed: `${sessionId}:${nextTurnIndex}` });
+  const spokenClose = resolveSpokenClose({ spokenText, ended, mayEnd, endBlocked: endCaseBlocked, stages, seed: `${sessionId}:${nextTurnIndex}` });
   checks.record('spoken_close', spokenClose.action !== 'none', `closing turn without a confirmed end — ${spokenClose.action}`, {
     mayEnd, probe: spokenClose.probe ?? null, endCaseBlocked,
   });

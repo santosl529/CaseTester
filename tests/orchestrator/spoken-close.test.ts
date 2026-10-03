@@ -84,6 +84,29 @@ describe('resolveSpokenClose', () => {
       .toEqual({ action: 'promoted', ended: true, spokenText: DEREK_CLOSE });
   });
 
+  // Batch 6, Maya 3a3c (20:35): end_case with no words, blocked by the gate —
+  // the blank-turn guard sent a bare "Go on." right after her recommendation.
+  it('asks the missing stage when a blocked end_case came with no words', () => {
+    const stages = { brainstormAsked: true, riskAsked: false, recommendationAsked: true, recommendationAskCount: 3, recommendationReceived: true };
+    const r = resolveSpokenClose({ spokenText: '', ended: false, mayEnd: false, endBlocked: true, stages, seed: 'maya' });
+    expect(r.action).toBe('replaced');
+    expect(r.probe).toBe('risk');
+    expect(BLOCKED_CLOSE_PROBES.risk).toContain(r.spokenText);
+  });
+
+  it('treats a blocked end_case with words but no question as a close', () => {
+    const stages = { ...NONE_RUN, recommendationAsked: true, recommendationAskCount: 1 };
+    const r = resolveSpokenClose({ spokenText: 'Understood.', ended: false, mayEnd: false, endBlocked: true, stages, seed: 's' });
+    expect(r.action).toBe('replaced');
+    expect(r.probe).toBe('brainstorm');
+  });
+
+  it('leaves a blocked end_case alone when the turn already asks a question', () => {
+    const text = 'What would change your mind on that recommendation?';
+    expect(resolveSpokenClose({ spokenText: text, ended: false, mayEnd: false, endBlocked: true, stages: NONE_RUN, seed: 's' }))
+      .toEqual({ action: 'none', ended: false, spokenText: text });
+  });
+
   it("replaces Maya's blocked 18:08 goodbye — the whole turn — with a risk probe", () => {
     const stages = { brainstormAsked: true, riskAsked: false, recommendationAsked: true, recommendationAskCount: 1, recommendationReceived: true };
     const r = resolveSpokenClose({ spokenText: MAYA_18_08, ended: false, mayEnd: false, stages, seed: 'maya' });
