@@ -104,3 +104,10 @@ describe('probe withholding before send (Rule 2 v4.5)', () => {
     expect(withholdProbesOnVerified(t, { verified: verifiedMaya, alreadyProbed: new Set(), flaggedThisTurn: true }).text).toBe(t);
   });
 });
+
+describe('verify-only non-bean steps (batch 5: Tobias)', () => {
+  it("verifies Tobias's 31.5 × 1.375 = 43.3", () => {
+    const v = checkVerifiedForTurn('Other inputs up 37.5%: 31.5 × 1.375 = 43.3 points of revenue.', steps, ['bean_share_of_cogs', 'cogs_pct', 'non_bean_input_change']);
+    expect(v.find(x => x.stepId === 'non_bean_points_now')?.value).toBe(43.3);
+  });
+});

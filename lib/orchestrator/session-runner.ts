@@ -882,7 +882,10 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   const probeGuard = withholdProbesOnVerified(spokenText, {
     verified: [...verifiedNow, ...verifiedPrev],
     alreadyProbed: explainProbedBefore,
-    flaggedThisTurn: recomputeFlags.length > 0,
+    // A unit-check firing counts as a flag (batch 5: Derek's real "25 points
+    // of revenue" error lost its "Points of what?" to a verified figure
+    // elsewhere in the same message).
+    flaggedThisTurn: recomputeFlags.length > 0 || unitCheckHint !== undefined,
   });
   checks.record('probe_guard', probeGuard.withheld.length > 0, 'probe on a verified figure withheld', { withheld: probeGuard.withheld });
   if (probeGuard.withheld.length > 0) {

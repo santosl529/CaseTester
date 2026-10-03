@@ -288,3 +288,10 @@ describe('recommendation received (Rule 12 v4.6)', () => {
     expect(evaluateStall("I don't know what to recommend.", 'RECOMMENDATION', { ...INITIAL_STALL_STATE }).state.recommendationDelivered).toBe(false);
   });
 });
+
+describe('imperative hints count as delivered (batch 5: Maya)', () => {
+  it("'Pick the lever you'd lead with…' carries the rung", () => {
+    expect(findRungDelivery(2, "Okay. Pick the lever you'd lead with, and tell me what you'd want to confirm before putting it in front of the CEO.", { dataReleased: false, exhibitShown: false }))
+      .toMatch(/^Pick the lever/);
+  });
+});

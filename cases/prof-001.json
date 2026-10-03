@@ -231,6 +231,62 @@
         10.5,
         40
       ]
+    },
+    {
+      "id": "non_bean_points_now",
+      "description": "Other inputs as points of revenue today = 31.5 points two years ago × 1.375 = 43.3 points (prices flat, so cost shares scale with input prices)",
+      "answer": 43.3,
+      "tolerance": 0.4,
+      "cues": [
+        "other inputs",
+        "non-bean",
+        "dairy",
+        "packaging",
+        "other input"
+      ],
+      "unit": [
+        "points",
+        "percent"
+      ],
+      "inputs": [
+        "bean_share_of_cogs",
+        "cogs_pct",
+        "non_bean_input_change"
+      ],
+      "verifyOnly": true,
+      "operands": [
+        31.5,
+        1.375
+      ]
+    },
+    {
+      "id": "non_bean_points_added",
+      "description": "Other inputs' contribution to the COGS increase = 43.3 − 31.5 = 11.8 points of revenue",
+      "answer": 11.8,
+      "tolerance": 0.4,
+      "cues": [
+        "other inputs",
+        "non-bean",
+        "dairy",
+        "packaging",
+        "rest",
+        "remaining",
+        "unexplained"
+      ],
+      "unit": [
+        "points",
+        "percent"
+      ],
+      "inputs": [
+        "bean_share_of_cogs",
+        "cogs_pct",
+        "non_bean_input_change"
+      ],
+      "verifyOnly": true,
+      "operands": [
+        43.3,
+        31.5
+      ]
     }
   ],
   "exhibits": [

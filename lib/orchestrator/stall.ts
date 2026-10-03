@@ -187,6 +187,8 @@ const RUNG_CUE: Record<LadderRung, RegExp> = {
 // turn that asks the candidate something counts as carrying the rung; what is
 // NOT delivered is a turn with no question (Yuki's bare data release) or one
 // the orchestrator replaced with a script.
+const IMPERATIVE_ASK = /^(?:okay[.,]?\s*|so[.,]?\s*)?(?:pick|name|tell me|give me|walk me through|try|start with|think about|focus on|take (?:one|the))\b/i;
+
 export type RungDelivery = { span: string; basis: 'cue' | 'release' | 'question' } | null;
 
 // basis 'question' is the weakest signal — the runner confirms it with a small
@@ -202,7 +204,9 @@ export function classifyRungDelivery(
   if (cued) return { span: cued, basis: 'cue' };
   // A Level 3 rescue hands over the branch; a release or exhibit is that hand-off.
   if (rung === 3 && (ctx.dataReleased || ctx.exhibitShown)) return { span: spokenText.trim(), basis: 'release' };
-  const asked = sentences.find(s => s.endsWith('?'));
+  // A question, or an imperative ask (batch 5, Maya: "Pick the lever you'd
+  // lead with, and tell me what you'd want to confirm").
+  const asked = sentences.find(s => s.endsWith('?') || IMPERATIVE_ASK.test(s));
   return asked ? { span: asked, basis: 'question' } : null;
 }
 
