@@ -74,20 +74,21 @@ export class AnthropicInterviewerModel implements InterviewerModel {
       describeBlocks(r.content as ContentBlock[]), null, 2,
     ));
     const call = async () => {
-      // Adaptive thinking at low effort (3 Oct). With "between_tools" (no
-      // thinking) Sonnet 5.5 reasoned about each release in plain text, which
-      // was spoken (batch 5: ~16 narration lines in 8/10 runs). At low effort
-      // it skips thinking on simple turns; latency is being measured. Thinking
-      // counts toward max_tokens, hence the headroom over the old 1024.
+      // Thinking off: Sonnet 5.5 rejects {type: "disabled"}; "between_tools"
+      // is how it runs without thinking (no other field; effort high or below
+      // — the default). Batch 6 tried adaptive thinking at low effort: it
+      // removed the spoken narration but thinking turns took 4.1s (median
+      // 2.75s vs 1.8s), too slow for voice. Narration is handled by the
+      // runner's meta-leak strip instead. With the server-side fallback, a
+      // cyber/frontier-LLM decline re-runs on Sonnet 5 with thinking disabled.
       const r = await this.client.beta.messages.create({
         model: this.modelId,
-        max_tokens: 4096,
+        max_tokens: 1024,
         system: ctx.systemPrompt,
         messages,
         tools: TOOLS,
         stop_sequences: INTERVIEWER_STOP_SEQUENCES,
-        thinking: { type: 'adaptive' },
-        output_config: { effort: 'low' },
+        thinking: { type: 'between_tools' },
         betas: [FALLBACK_BETA],
         fallbacks: FALLBACKS,
       });
