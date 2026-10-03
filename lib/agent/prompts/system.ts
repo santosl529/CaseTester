@@ -8,7 +8,7 @@ export type PromptContext = {
   currentPhase: Phase;
   revealedValues: Record<string, string>;             // id → value (already disclosed)
   unrevealedItems: { id: string; label: string }[];   // ids + labels of items not yet revealed
-  exhibits: { id: string; title: string }[]; // available exhibits (id + title only)
+  exhibits: { id: string; title: string; shown?: boolean }[]; // available exhibits (id + title only); shown = already on the candidate's screen
   advancedLastTurn: boolean; // phase advanced on the previous turn — no back-to-back advances
   elapsedMs: number;   // real wall-clock time since the session started
   totalMs: number;     // hard time limit for the whole case
@@ -101,7 +101,7 @@ export function buildSystemPrompt(ctx: PromptContext): string {
     : 'All data has been revealed.';
 
   const exhibitSection = ctx.exhibits.length > 0
-    ? `Available exhibits (use show_exhibit with the exact id):\n${ctx.exhibits.map(e => `- id: "${e.id}" — ${e.title}`).join('\n')}`
+    ? `Available exhibits (use show_exhibit with the exact id):\n${ctx.exhibits.map(e => `- id: "${e.id}" — ${e.title}${e.shown ? ' (already shown — it stays on the candidate\'s screen; refer to it, don\'t show it again unless they ask)' : ''}`).join('\n')}`
     : '';
 
   // Fallback for callers that don't pass case-config budgets (older tests,

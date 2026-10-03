@@ -195,3 +195,17 @@ describe('synthesis cap in the prompt (Rule 13)', () => {
     expect(p).toMatch(/Never state a recommendation, or which lever to pull, for the candidate/);
   });
 });
+
+// Batch 7, Maya: the interviewer showed exhibit-a four times and once said "I
+// haven't put an exhibit in front of you yet" — it is never told which
+// exhibits it already showed.
+describe('exhibits already shown', () => {
+  it('marks a shown exhibit in the list', () => {
+    const p = buildSystemPrompt(ctx({ exhibits: [
+      { id: 'exhibit-a', title: 'Cost structure over time', shown: true },
+      { id: 'exhibit-b', title: 'Store map' },
+    ] }));
+    expect(p).toContain('- id: "exhibit-a" — Cost structure over time (already shown');
+    expect(p).toContain('- id: "exhibit-b" — Store map\n');
+  });
+});

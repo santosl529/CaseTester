@@ -238,6 +238,11 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   }
   // assessment.action === 'ignore' (none / C1): proceed with the normal case turn.
 
+  // Batch 7, Maya: exhibit-a shown four times — the model isn't told what it
+  // already showed (system.ts marks these).
+  const shownExhibitIds = new Set((await db.query.exhibitsShown.findMany({
+    where: eq(exhibitsShown.sessionId, sessionId),
+  })).map(r => r.exhibitId));
   const revealedRows = await db.query.revealedData.findMany({
     where: eq(revealedData.sessionId, sessionId),
   });
@@ -399,7 +404,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
       currentPhase,
       revealedValues: revealedValues(ledger),
       unrevealedItems: unrevealedItems(ledger),
-      exhibits: caseData.exhibits.map(e => ({ id: e.id, title: e.title })),
+      exhibits: caseData.exhibits.map(e => ({ id: e.id, title: e.title, shown: shownExhibitIds.has(e.id) })),
       advancedLastTurn: Boolean(flags.advancedLastTurn),
       elapsedMs,
       totalMs: TOTAL_CASE_MS,
