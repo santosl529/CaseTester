@@ -21,6 +21,7 @@ import { checkTimeframes } from './timeframe-check';
 import { checkHintDelivered } from './hint-check';
 import { detectNestedPercentConversion, formatUnitCheckHint } from './unit-check';
 import { resolveExhibit, promisesExhibit } from './exhibits';
+import { suppliesRecommendation, SYNTHESIS_NARROW_SCRIPTS } from './synthesis-guard';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
 import { evaluateStall, recordSilenceStall, rungName, classifyRungDelivery, revertUndeliveredRung, INITIAL_STALL_STATE, type StallState } from './stall';
@@ -433,6 +434,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   let endCaseBlocked = false;
   let fabricatedStripped = false;
   const metaStripped: string[] = [];
+  let modelWords = '';
   const newReveals: string[] = [];
 
   for (const action of actions) {
@@ -452,7 +454,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
       // (batch 5: "I'll release the cost-structure data now." was spoken).
       const meta = stripMetaLeak(cleaned);
       metaStripped.push(...meta.strippedSentences);
-      if (meta.cleaned) spokenText += meta.cleaned + ' ';
+      if (meta.cleaned) { spokenText += meta.cleaned + ' '; modelWords += meta.cleaned + ' '; }
     } else if (action.type === 'reveal_data') {
       const itemId = resolveItemId(ledger, action.itemId);
       if (itemId && canReveal(ledger, itemId)) {
@@ -510,6 +512,20 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   if (metaStripped.length > 0) {
     console.warn('[runner] stripped meta-leak from interviewer turn:', JSON.stringify(metaStripped));
   }
+  // Rule 13 synthesis cap: never supply the recommendation (synthesis-guard.ts).
+  // Checked on the model's own words; values it revealed this turn stay.
+  const inSynthesis = ['RECOMMENDATION', 'WRAP'].includes(currentPhase) || ['RECOMMENDATION', 'WRAP'].includes(nextPhaseValue);
+  const supplied = inSynthesis && !recommendationReceived && !ended && suppliesRecommendation(modelWords);
+  checks.record('synthesis_guard', supplied, 'interviewer supplied the recommendation — replaced with a narrowing question', {
+    text: supplied ? modelWords.trim() : null,
+  });
+  if (supplied) {
+    console.warn('[runner] interviewer supplied the recommendation — replaced:', JSON.stringify(modelWords.trim()));
+    const revealedNowById = revealedValues(ledger);
+    spokenText = [...newReveals.map(id => revealedNowById[id]), pickScript(SYNTHESIS_NARROW_SCRIPTS, `${sessionId}:${nextTurnIndex}`)].join(' ');
+    await logEvent('synthesis_supply_blocked', { phase: currentPhase, text: modelWords.trim() }, { sessionId, userId: session.userId });
+  }
+
   // An exhibit turn left wordless gets a scripted hand-over; any other empty
   // turn falls to the blank-turn guard.
   const exhibitLine = wordlessExhibitLine({ spokenText, exhibitShown: exhibit !== undefined, ended, seed: sessionId });

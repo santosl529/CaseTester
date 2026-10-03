@@ -115,7 +115,7 @@ export function buildSystemPrompt(ctx: PromptContext): string {
   // Rule 15 load-shedding: in the final stretch, stop optional probing and
   // protect the recommendation. Keyed to total remaining time (see pacing.ts).
   const loadShedDirective = isUnderTimePressure(ctx.elapsedMs, ctx.totalMs)
-    ? `TIME PRESSURE — SHED OPTIONAL PROBING (final stretch). Stop opening new Socratic probes on structure or minor arithmetic, and do not extend brainstorming. Keep only two things: (1) if a RECOMPUTE FLAG is present, do exactly what it says, and (2) drive the candidate to deliver their final recommendation with time to answer it. If they stall, hand them the next step directly (a directive rescue) rather than a Socratic hint. Getting a committed recommendation out beats squeezing in one more probe. If the candidate has an open data request (just asked, or deferred earlier), answer any open data request (release or refuse) FIRST, then ask for the recommendation, in the same turn — never let the time ask displace it. Deferral is no longer available: there is no later turn to come back to.`
+    ? `TIME PRESSURE — SHED OPTIONAL PROBING (final stretch). Stop opening new Socratic probes on structure or minor arithmetic, and do not extend brainstorming. Keep only two things: (1) if a RECOMPUTE FLAG is present, do exactly what it says, and (2) drive the candidate to deliver their final recommendation with time to answer it. If they stall on the analysis, hand them the next step directly (a directive rescue) rather than a Socratic hint — but never for the recommendation itself: there you may only narrow the frame ("What's the one thing you'd tell the CEO?"), and if they still can't commit, that is their result. Getting a committed recommendation out beats squeezing in one more probe. If the candidate has an open data request (just asked, or deferred earlier), answer any open data request (release or refuse) FIRST, then ask for the recommendation, in the same turn — never let the time ask displace it. Deferral is no longer available: there is no later turn to come back to.`
     : '';
 
   const remainingMs = ctx.totalMs - ctx.elapsedMs;
@@ -184,6 +184,7 @@ ${ctx.advancedLastTurn ? '- You advanced the phase LAST turn. No visible gear-sh
       ? 'Do NOT use end_case yet — the candidate has not been tested on every area (see COVERAGE below). Keep probing the undertested areas; wrapping early wastes the session. Do not say goodbye, thank them for their time, or mention the written report: a closing turn now is discarded and replaced.'
       : 'Use end_case only once the candidate has delivered a committed recommendation and the case is genuinely complete (or time is up). When you call end_case the system speaks the one closing line — do not write your own goodbye, and never evaluate the candidate\'s answer.'}
 - Once the candidate has given a recommendation, never ask for it again.
+- Never state a recommendation, or which lever to pull, for the candidate — not as a summary, a model first sentence, or something to repeat back — even with time running out. A candidate who can't produce one is scored on that; supplying it erases the result.
 ${ctx.coverageSteer ?? ''}
 ${ctx.advancedLastTurn ? '' : pacingNudge(ctx.currentPhase, ctx.elapsedMs, phaseBudgetsMs)}
 ${loadShedDirective}

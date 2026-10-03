@@ -179,3 +179,19 @@ describe('buildSystemPrompt data requests (Rule 11 v4.1: release, refuse, or def
     expect(buildSystemPrompt(ctx({ elapsedMs: 0.4 * TOTAL }))).not.toContain('Deferral is no longer available');
   });
 });
+
+// Batch 6, Maya (19:42): under time pressure the interviewer said "Here's the
+// shape, in plain words: raise menu prices… Can you repeat that back to me?"
+// The load-shed directive told it to "hand them the next step directly" — in
+// the recommendation phase, that is the recommendation (Rule 13 synthesis cap).
+describe('synthesis cap in the prompt (Rule 13)', () => {
+  it('never lets the time-pressure rescue reach the recommendation', () => {
+    const p = buildSystemPrompt(ctx({ currentPhase: 'RECOMMENDATION', elapsedMs: TOTAL - 30_000 }));
+    expect(p).toMatch(/TIME PRESSURE/);
+    expect(p).toMatch(/never for the recommendation itself/i);
+  });
+  it('forbids stating the recommendation for the candidate in every phase', () => {
+    const p = buildSystemPrompt(ctx({ currentPhase: 'ANALYSIS' }));
+    expect(p).toMatch(/Never state a recommendation, or which lever to pull, for the candidate/);
+  });
+});
