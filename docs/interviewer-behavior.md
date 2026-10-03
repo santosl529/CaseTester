@@ -1305,6 +1305,11 @@ mid-flow.
      "That's time. Thanks for working through it — your written report will
      follow." — with no evaluation of the candidate's answer (Rule 1). Maya's
      19:23 "is exactly the synthesis" was both a second goodbye and a grade.
+  6. **A request in the final message is answered before the goodbye
+     (round 3).** Camila (batch 3) asked for store figures in her last
+     message and got only the close. On an ending turn, data the candidate
+     just asked for is released ahead of the closing line, stage limits
+     aside — the case is over.
 
   **Deterministic backstop:**
   - **Wider goodbye detector.** Closing language includes, at minimum:

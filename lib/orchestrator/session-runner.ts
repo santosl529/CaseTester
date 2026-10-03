@@ -642,6 +642,19 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   // stage, else deferred out loud — before the turn is sent, so the candidate
   // never has to ask twice. Recommendation-ask turns skip this: the forced
   // release below resolves every open request there.
+  // Round-3 fix 4: a request in the candidate's final message is answered
+  // before the goodbye (Camila cf375283 asked for store figures and got only
+  // the close). The case is over, so stage gating no longer applies.
+  let finalReleaseCount = 0;
+  if (ended) {
+    const detected = await detectedRequestsPromise;
+    const ids = [...new Set((detected ?? []).flatMap(r => r.ledgerItemIds))].filter(id => canReveal(ledger, id)).slice(0, 2);
+    for (const id of ids) { reveal(ledger, id); newReveals.push(id); }
+    finalReleaseCount = ids.length;
+    checks.record('final_message_release', ids.length > 0, 'request in the final message answered before the goodbye', {
+      itemIds: ids, classifierFailed: detected === null,
+    });
+  }
   if (ended || warningDue || modelAsked) {
     checks.skip('same_turn_resolution', ended ? 'closing turn' : 'recommendation-ask turn (forced release handles it)');
   } else {
@@ -789,7 +802,11 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   const usedCloseFallback = ended;
   if (ended) {
     const revealedNowById = revealedValues(ledger);
-    spokenText = [...newReveals.map(id => revealedNowById[id]), pickScript(CLOSE_SCRIPTS, sessionId)].join(' ');
+    spokenText = [
+      ...(finalReleaseCount > 0 ? [pickScript(SAME_TURN_RELEASE_LEADINS, sessionId)] : []),
+      ...newReveals.map(id => revealedNowById[id]),
+      pickScript(CLOSE_SCRIPTS, sessionId),
+    ].join(' ');
   }
 
   // Rule 8 silent phase repair (lib/orchestrator/phase-repair.ts): raise the
