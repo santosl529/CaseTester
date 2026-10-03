@@ -295,3 +295,24 @@ describe('imperative hints count as delivered (batch 5: Maya)', () => {
       .toMatch(/^Pick the lever/);
   });
 });
+
+// Batch 5, Claire 8dce6c0b: "I know I didn't get to a recommendation" matched
+// the word and the interviewer asked about "the biggest risk to that
+// recommendation" with none on the table.
+describe('negated recommendation mentions', () => {
+  const negated = [
+    "Thanks for your time. I know I didn't get to a recommendation — I kept wanting the COGS breakdown before committing, and I'd rather be straight about that than guess.",
+    "I couldn't come up with a recommendation, sorry.",
+    'I never landed on a recommendation.',
+    "I don't have a recommendation yet.",
+    'No recommendation from me without the breakdown.',
+  ];
+  for (const text of negated) {
+    it(`is not a recommendation: ${text.slice(0, 50)}…`, () => {
+      expect(evaluateStall(text, 'RECOMMENDATION', { ...INITIAL_STALL_STATE }).state.recommendationDelivered).toBe(false);
+    });
+  }
+  it('still counts a committed recommendation', () => {
+    expect(evaluateStall("My recommendation is to raise menu prices about 8%, because input costs are up roughly 38% and prices haven't moved.", 'RECOMMENDATION', { ...INITIAL_STALL_STATE }).state.recommendationDelivered).toBe(true);
+  });
+});

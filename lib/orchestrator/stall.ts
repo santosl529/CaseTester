@@ -67,10 +67,17 @@ const RECOMMENDATION_PATTERN = /\b(recommend(ation)?|bottom line|my answer|i'?d 
 const LEVER_LEAD = /(?:^|[.!?]\s+)(?:(?:um+|uh+|so|okay|ok|well|i think|i guess|maybe|probably|honestly)[,.]?\s+)*(raise|increase|cut|reduce|lower|lock in|hedge|renegotiate|reprice|pass (on|through)|introduce|launch|switch)\b(?!\s+(in|of)\b)/i;
 const COMMIT_REFUSAL = /\b(can'?t (commit|recommend)|cannot (commit|recommend)|not (ready|able) to (commit|recommend)|need more (data|information) (before|to))\b/i;
 
+// A negated mention names the word without making one (batch 5, Claire
+// 8dce6c0b: "I know I didn't get to a recommendation" opened the risk probe on
+// nothing). Removed before matching rather than vetoing the turn, so a later
+// committed recommendation in the same message still counts.
+const NEGATED_RECOMMENDATION =
+  /\b(?:didn'?t|did not|couldn'?t|could not|can'?t|cannot|never|haven'?t|have not|don'?t|do not)\s+(?:\w+\s+){0,3}?(?:a |any |my |the )?recommendation\b|\bno recommendation\b/gi;
+
 export function isRecommendationStatement(text: string, kind: TurnKind): boolean {
   if (COMMIT_REFUSAL.test(text)) return false;
   if (LEVER_LEAD.test(text.trim())) return true;
-  return kind === 'analysis' && RECOMMENDATION_PATTERN.test(text);
+  return kind === 'analysis' && RECOMMENDATION_PATTERN.test(text.replace(NEGATED_RECOMMENDATION, ' '));
 }
 
 function normalize(s: string): string {
