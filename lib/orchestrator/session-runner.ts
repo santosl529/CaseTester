@@ -18,11 +18,12 @@ import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts, checkVerifi
 import { withholdProbesOnVerified } from './probe-guard';
 import { withholdAssumptionChallenges } from './assumption-guard';
 import { checkTimeframes } from './timeframe-check';
+import { checkHintDelivered } from './hint-check';
 import { detectNestedPercentConversion, formatUnitCheckHint } from './unit-check';
 import { resolveExhibit, promisesExhibit } from './exhibits';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
-import { evaluateStall, recordSilenceStall, rungName, findRungDelivery, revertUndeliveredRung, INITIAL_STALL_STATE, type StallState } from './stall';
+import { evaluateStall, recordSilenceStall, rungName, classifyRungDelivery, revertUndeliveredRung, INITIAL_STALL_STATE, type StallState } from './stall';
 import {
   evaluateSilence, resumeOnCandidateTurn, effectiveElapsedMs, checkInText, pauseText, INITIAL_SILENCE_STATE, type SilenceAction, type SilenceState,
 } from './silence';
@@ -896,11 +897,22 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   let stallState = stallDecision.state;
   let rungDeliverySpan: string | null = null;
   if (stallDecision.intervene && stallDecision.rung) {
-    rungDeliverySpan = findRungDelivery(stallDecision.rung, spokenText, {
+    const delivery = classifyRungDelivery(stallDecision.rung, spokenText, {
       dataReleased: newReveals.length + exhibitReveals.length > 0,
       exhibitShown: exhibit !== undefined,
       replacedByScript: spokenClose.action === 'replaced' || graceAskFiredThisTurn,
     });
+    rungDeliverySpan = delivery?.span ?? null;
+    // Round-3 fix 6: a delivery that rests only on "the turn asked a
+    // question" is confirmed by a small model check; it fails open.
+    if (delivery?.basis === 'question') {
+      const verdict = await checkHintDelivered({
+        rung: stallDecision.rung, candidateText, interviewerText: spokenText,
+        onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId: session.userId }); },
+      });
+      checks.record('hint_check', verdict !== null && !verdict.hint, 'model check: the question was not a hint', { verdict, span: delivery.span });
+      if (verdict && !verdict.hint) rungDeliverySpan = null;
+    }
     if (rungDeliverySpan === null) stallState = revertUndeliveredRung(stallState, priorStall);
     checks.act('rung_delivery', rungDeliverySpan ? 'rung delivered' : 'rung not delivered — not an assist; ladder not advanced', {
       rung: stallDecision.rung, span: rungDeliverySpan,

@@ -319,7 +319,7 @@ async function writeArtifacts(sessionId: string, caseTitle: string) {
 
   // List price per million tokens, uncached (the app sets no cache_control).
   const PRICE_PER_MTOK: Record<'opus' | 'haiku', [number, number]> = { opus: [5, 25], haiku: [1, 5] };
-  const HAIKU_COMPONENTS = new Set(['coverage', 'data_request', 'distress']);
+  const HAIKU_COMPONENTS = new Set(['coverage', 'data_request', 'distress', 'hint_check']);
   const usd = (tier: 'opus' | 'haiku', input: number, output: number) =>
     (input * PRICE_PER_MTOK[tier][0] + output * PRICE_PER_MTOK[tier][1]) / 1e6;
   let appUsd = 0;

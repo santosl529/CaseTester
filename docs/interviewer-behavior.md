@@ -1473,7 +1473,10 @@ to data ("revealed" means the figure reached the candidate, not that
   those three, which do you want to see first?"). Not delivered: a turn with
   no question (Yuki's bare data release), or one the orchestrator replaced
   with a script. A cue-only test (first build) froze Maya's ladder at
-  Level 1 for the whole case. If the delivered turn does
+  Level 1 for the whole case. When delivery rests only on "the turn asked a question"
+  — the weakest signal — a small model check (`hint-check.ts`) reads the
+  turn and confirms it was help of the rung's kind; it runs only on those
+  turns and fails open to the question test (round-3 fix 6). If the delivered turn does
   not carry the hint — the model released data instead, or answered a
   question — the decision is logged as `rung_not_delivered` and is **not** an
   assist.

@@ -187,19 +187,31 @@ const RUNG_CUE: Record<LadderRung, RegExp> = {
 // turn that asks the candidate something counts as carrying the rung; what is
 // NOT delivered is a turn with no question (Yuki's bare data release) or one
 // the orchestrator replaced with a script.
+export type RungDelivery = { span: string; basis: 'cue' | 'release' | 'question' } | null;
+
+// basis 'question' is the weakest signal — the runner confirms it with a small
+// model check (hint-check.ts, round-3 fix 6); cue and release are trusted.
+export function classifyRungDelivery(
+  rung: LadderRung,
+  spokenText: string,
+  ctx: { dataReleased: boolean; exhibitShown: boolean; replacedByScript?: boolean },
+): RungDelivery {
+  if (ctx.replacedByScript) return null;
+  const sentences = spokenText.split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(Boolean);
+  const cued = sentences.find(s => RUNG_CUE[rung].test(s));
+  if (cued) return { span: cued, basis: 'cue' };
+  // A Level 3 rescue hands over the branch; a release or exhibit is that hand-off.
+  if (rung === 3 && (ctx.dataReleased || ctx.exhibitShown)) return { span: spokenText.trim(), basis: 'release' };
+  const asked = sentences.find(s => s.endsWith('?'));
+  return asked ? { span: asked, basis: 'question' } : null;
+}
+
 export function findRungDelivery(
   rung: LadderRung,
   spokenText: string,
   ctx: { dataReleased: boolean; exhibitShown: boolean; replacedByScript?: boolean },
 ): string | null {
-  if (ctx.replacedByScript) return null;
-  const sentences = spokenText.split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(Boolean);
-  const cued = sentences.find(s => RUNG_CUE[rung].test(s));
-  if (cued) return cued;
-  // A Level 3 rescue hands over the branch; a release or exhibit is that hand-off.
-  if (rung === 3 && (ctx.dataReleased || ctx.exhibitShown)) return spokenText.trim();
-  const asked = sentences.find(s => s.endsWith('?'));
-  return asked ?? null;
+  return classifyRungDelivery(rung, spokenText, ctx)?.span ?? null;
 }
 
 // An undelivered rung is not "used": the next stall starts from it again.
