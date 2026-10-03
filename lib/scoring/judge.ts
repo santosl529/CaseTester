@@ -236,7 +236,10 @@ ${dimensionJsonLines}
   // Opus 5.5 with adaptive thinking (2 Oct 2026). Thinking is always on for
   // this model; effort defaults to medium there, so it is set explicitly.
   // Thinking tokens count against max_tokens, hence the larger cap.
-  const response = await client.beta.messages.parse({
+  // Streamed (batch 4, 2 Oct): with thinking, max_tokens 32000 is past the
+  // SDK's non-streaming guard ("may take longer than 10 minutes") and every
+  // scoring run failed. finalMessage() still returns the parsed output.
+  const response = await client.beta.messages.stream({
     model: JUDGE_MODEL_ID,
     max_tokens: 32000,
     thinking: { type: 'adaptive' },
@@ -244,7 +247,7 @@ ${dimensionJsonLines}
     output_config: { format: JUDGE_OUTPUT_FORMAT, effort: 'high' },
     betas: [FALLBACK_BETA],
     fallbacks: FALLBACKS,
-  });
+  }).finalMessage();
   onUsage?.({
     component: 'judge',
     model: JUDGE_MODEL_ID,

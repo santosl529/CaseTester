@@ -167,7 +167,9 @@ Include a verdict for every claim.`;
   try {
     // Opus 5.5: thinking always on (adaptive); effort set explicitly (the
     // model's default is medium); thinking counts against max_tokens.
-    const response = await client.beta.messages.parse({
+    // Streamed like the judge, so a raised max_tokens can never trip the
+    // SDK's non-streaming guard.
+    const response = await client.beta.messages.stream({
       model: SCORING_MODEL_ID,
       max_tokens: 16000,
       thinking: { type: 'adaptive' },
@@ -175,7 +177,7 @@ Include a verdict for every claim.`;
       output_config: { format: VERIFIER_OUTPUT_FORMAT, effort: 'high' },
       betas: [FALLBACK_BETA],
       fallbacks: FALLBACKS,
-    });
+    }).finalMessage();
     onUsage?.({
       component: 'verifier',
       model: SCORING_MODEL_ID,

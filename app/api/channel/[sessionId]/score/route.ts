@@ -9,6 +9,12 @@ import { and, eq } from 'drizzle-orm';
 // show an "evaluating" state during the ~30s judge run — and so a failed
 // scoring pass can be retried (idempotent: returns early if a score exists).
 // The pipeline itself lives in lib/scoring/score-session.ts.
+//
+// Scoring runs three Opus 5.5 passes with thinking (judge, verifier,
+// reconciliation) — minutes, not the old ~30s — so the function gets an
+// explicit budget instead of the platform default.
+export const maxDuration = 300;
+
 export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },

@@ -255,7 +255,7 @@ export async function runReconciliation(
   try {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     // Opus 5.5: thinking always on (adaptive); effort set explicitly.
-    const response = await client.beta.messages.create({
+    const response = await client.beta.messages.stream({
       model: RECONCILE_MODEL_ID,
       max_tokens: 16000,
       thinking: { type: 'adaptive' },
@@ -263,7 +263,7 @@ export async function runReconciliation(
       messages: [{ role: 'user', content: buildReconcilePrompt(items, gaps, dataCoverage.requestedNotInCase) }],
       betas: [FALLBACK_BETA],
       fallbacks: FALLBACKS,
-    });
+    }).finalMessage();
     onUsage?.({
       component: 'reconcile',
       model: RECONCILE_MODEL_ID,
