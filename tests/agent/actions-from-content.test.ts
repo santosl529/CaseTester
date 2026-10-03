@@ -2,11 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { actionsFromContent } from '@/lib/agent/models/anthropic';
 
 describe('actionsFromContent (batch 4: Sonnet narration)', () => {
-  it("drops plain-text narration on a turn that uses tools (Maya's 'The candidate is asking…')", () => {
+  it('keeps plain text as the reply when the turn has no speak call (batch 5: Ines, Destiny)', () => {
     expect(actionsFromContent([
-      { type: 'text', text: 'The candidate is asking about menu price changes, which is a direct data item.' },
-      { type: 'tool_use', name: 'reveal_data', input: { item_id: 'menu_price_change' } },
-    ])).toEqual([{ type: 'reveal_data', itemId: 'menu_price_change' }]);
+      { type: 'text', text: "No guessing. How would you break this down?" },
+      { type: 'tool_use', name: 'advance_phase', input: {} },
+    ])).toEqual([{ type: 'speak', text: 'No guessing. How would you break this down?' }, { type: 'advance_phase' }]);
   });
 
   it('keeps speak alongside other tools', () => {

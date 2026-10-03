@@ -928,6 +928,14 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     checks.skip('rung_delivery', 'no rung decided this turn');
   }
 
+  // Never send a blank turn mid-case (batch 5: two runs crashed on one). A
+  // neutral acknowledgment (Rule 1) keeps the floor with the candidate.
+  if (!ended && !spokenText.trim()) {
+    checks.act('empty_turn', 'blank interviewer turn replaced');
+    console.warn('[runner] blank interviewer turn — neutral acknowledgment sent');
+    spokenText = 'Go on.';
+  }
+
   // Persist turns
   await db.insert(sessionTurns).values([
     { sessionId, turnIndex: nextTurnIndex, role: 'candidate', text: candidateText, timestampMs: now },

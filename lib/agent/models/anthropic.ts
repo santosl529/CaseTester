@@ -144,14 +144,15 @@ export class AnthropicInterviewerModel implements InterviewerModel {
 
 type ContentBlock = { type: string; text?: string; name?: string; input?: unknown };
 
-// Model output → orchestrator actions. Batch 4 (Sonnet 5.5 interviewer):
-// alongside its tool calls the model wrote its reasoning as plain text — "The
-// candidate is asking about menu price changes, which is a direct data item."
-// — and plain text used to be spoken. When a turn uses tools, the spoken words
-// come only from `speak`; plain text is narration and is dropped. A turn with
-// no tool calls at all is still spoken (the model answered in plain text).
+// Model output → orchestrator actions. Batch 4 (Sonnet 5.5 interviewer): the
+// model sometimes writes its reasoning as plain text beside its tool calls.
+// When the turn ALSO calls `speak`, the spoken words are the speak text and
+// plain text is narration — dropped. Without a speak call the plain text IS the
+// reply (batch 5: Ines and Destiny got blank turns when it was dropped beside
+// an advance_phase call); the runner's meta-leak strip catches narration there
+// ("The candidate is asking…").
 export function actionsFromContent(content: ContentBlock[]): Action[] {
-  const usesTools = content.some(b => b.type === 'tool_use');
+  const usesTools = content.some(b => b.type === 'tool_use' && b.name === 'speak');
   const actions: Action[] = [];
   for (const block of content) {
     if (block.type === 'text' && block.text?.trim()) {
