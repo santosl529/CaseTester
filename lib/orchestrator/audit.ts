@@ -105,6 +105,13 @@ const META_RELEASE_REASONING = new RegExp([
   // Batch 7 smoke (Claire): "Available items match: bean_share_of_cogs, …".
   /\bitems? match(?:es)?\b/.source,
   /\b[a-z]+_[a-z0-9_]+\b/.source,
+  // Batch 7: "The structure probe is answered, so I'm moving on.", "I'm
+  // releasing the store count…", "the cost breakdown is earned now", "They
+  // then applied that…", "the unit flag here…".
+  /\b(?:structure|unit|doubt|pressure) (?:probe|flag)\b|\bprobe is answered\b|\bi'?m moving on\b/.source,
+  /\bi'?m (?:releasing|revealing)\b/.source,
+  /\b(?:is|are|it'?s) (?:now )?earned\b|\bearned (?:now|too)\b/.source,
+  /\bthey(?:'ve| have)? (?:then |now |also )?(?:applied|handled|computed|derived|calculated|treated|converted|concluded)\b/.source,
 ].join('|'), 'i');
 
 // "I'll show the exhibit" / "I'll reveal the bean price data" — a tool call

@@ -129,3 +129,27 @@ describe('internal identifiers', () => {
     expect(stripMetaLeak('Available items match what you asked. What stands out?').cleaned).toBe('What stands out?');
   });
 });
+
+// Batch 7: narration that reached the candidate past the batch-5 patterns.
+describe('Sonnet narration (batch 7)', () => {
+  const narration: [string, string][] = [
+    ['Jasmine', "The structure probe is answered, so I'm moving on."],
+    ['Destiny', "I'm releasing the store count and average ticket."],
+    ['Hugo', 'Your profit math is coherent, and the cost breakdown is earned now.'],
+    ['Destiny', "Yes, that's the right data to ask for, and it's earned."],
+    ['Claire', 'They then applied that to old COGS of 42% of revenue to reach 58%.'],
+    ['Claire', "The conversion needs a check, but the unit flag here concerns the shares of COGS, which they've handled with consistent bases."],
+  ];
+  for (const [persona, text] of narration) {
+    it(`strips ${persona}: ${text.slice(0, 50)}…`, () => expect(stripMetaLeak(text).cleaned).toBe(''));
+  }
+  const legitimate = [
+    'Customers have applied more of their spend to food, so what does that do to COGS?',
+    "You've earned a minute to think — take it.",
+    "Let's move on to the brainstorm. What else could the client do?",
+    'Walk me through how you handled the conversion.',
+  ];
+  for (const text of legitimate) {
+    it(`keeps: ${text.slice(0, 50)}…`, () => expect(stripMetaLeak(text)).toEqual({ cleaned: text, strippedSentences: [] }));
+  }
+});
