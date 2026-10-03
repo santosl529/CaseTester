@@ -2063,6 +2063,49 @@ Open items from the persona runs:
   exercised live: the hint check, the timeframe check, final-message
   answers, the system-word rewrite.
 
+- **Batch 5, manual transcript review (3 Oct) — read by hand, not from the
+  request classifier.** Requests for ledger data: ~36; ~29 released the same
+  turn, ~8 deferred out loud and released later, **0 ignored, 0 never
+  delivered**. Requests for data not in the case: ~20; ~5 ignored with no
+  refusal (Nikhil's satisfaction/turnover/market share/waste rates; Devon's
+  comparable-chain elasticity and bean outlook) — not enforced in code,
+  since refusals for non-ledger data are left to the model. Leaks: 0
+  (replayed provenance audit). Problems no automated check counted:
+  1. **Internal narration spoken to the candidate ~16 times in 8 of 10
+     runs** — e.g. Maya: "Best: reveal the cost structure exhibit? They
+     haven't asked for it."; Devon: "You haven't asked for bean price data
+     yet, so I'll hold that." Sonnet writes reasoning as plain text; since
+     the batch-5 fix, plain text beside a non-speak tool call is spoken, and
+     the meta-leak filter misses this phrasing.
+  2. False "recommendation received": Claire's "I know I didn't get to a
+     recommendation" matched the word → "biggest risk to that
+     recommendation?" with none on the table.
+  3. Goodbyes not recognized: "We'll leave it there", "the case is
+     complete" — followed by more questions.
+  4. Lena's case ended at 12.8 min with no recommendation ask: the coverage
+     agent scored her brainstorm answer as synthesis and the gate allowed
+     the end (Rule 9 requires the ask).
+  5. False refusal: Destiny heard "not for two years ago", then got the
+     two-years-ago figures.
+  6. Unrequested release: Destiny got total revenue unasked (classifier
+     false positive in same-turn resolution).
+  7. Stray "I'll come to that data shortly" lines right after releases (~7
+     runs).
+  Also: a doubt probe on a correct but unverifiable figure (Maya's "costs
+  up 18 points… Check that").
+- **Opus 4.8 (batch 3) vs Sonnet 5.5 (batch 5), same manual review:**
+  narration leaks 0 vs ~16; mid-case praise ~9 ("Good reasoning.", "Your
+  logic holds.") vs ~3; ledger data wrongly refused 1 (Ines told "I don't
+  have that breakdown" with the store count in the ledger) vs 1 partial;
+  ledger requests ignored 2 (Camila's new-stores question never answered,
+  Ben's transactions 8 turns late) vs 0 — mostly the round-3 code, not the
+  model; non-ledger requests ignored ~2 vs ~5; interviewer cost $0.54 vs
+  $0.23 per run; median turn 1.8s both. **Pending decision:** keep Sonnet
+  and make the speak tool the only spoken channel (never speak plain text;
+  one retry asking for a speak call, else a neutral line), then a ~4-persona
+  check batch; if narration persists, revert the interviewer to Opus 4.8
+  (`lib/models.ts`).
+
 **Design principle (recorded from v3.2 review):** deterministic backstops keep
 being specified against the typical surface form of a risk (digit numerals,
 unit errors) rather than the underlying risk (any fabricated quantity, any
