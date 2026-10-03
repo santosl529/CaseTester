@@ -2044,6 +2044,25 @@ Open items from the persona runs:
   cue (removed; zero flags over batches 1–4); refusals read as handoffs
   drew a second refusal (refusals excluded).
 
+- **Batch 5 (2–3 Oct; Maya, Claire, Tobias, Ines, Derek, Nikhil, Lena,
+  Destiny, Marisol, Devon):** five runs crashed on a blank turn — the
+  batch-4 narration rule dropped Sonnet's plain-text reply beside an
+  `advance_phase` call; fixed (plain text is dropped only beside `speak`;
+  the runner never sends a blank turn) and all ten rerun. Results: zero
+  false math flags, zero double refusals, one goodbye per session; Maya's
+  close ran as designed (risk probe, then the gate opened); Claire's case
+  ended after two refused asks; Destiny's ladder reached Level 2; earlier
+  requests released by code 3×; Nikhil asked for 52 items and none were
+  left unanswered; the distress check adds 0s (it always finishes first —
+  the 1.8s median is the interviewer). Grades: 26 strong / 35 meets_bar /
+  11 needs_work of 72. **Fixed after:** the probe guard withheld Derek's
+  "Points of what?" on a real unit error (a unit-check firing now counts as
+  a flag); an imperative hint went uncounted; the judge called Tobias's
+  correct 31.5 × 1.375 = 43.3 a mixed-bases error (verify-only steps for
+  the other-input figures now tell the verifier it was right). Still never
+  exercised live: the hint check, the timeframe check, final-message
+  answers, the system-word rewrite.
+
 **Design principle (recorded from v3.2 review):** deterministic backstops keep
 being specified against the typical surface form of a risk (digit numerals,
 unit errors) rather than the underlying risk (any fabricated quantity, any
