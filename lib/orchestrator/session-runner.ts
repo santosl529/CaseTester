@@ -38,7 +38,7 @@ import { CheckLog, toCheckEventRows } from './check-log';
 import { runInterviewerTurn } from '@/lib/agent/interviewer';
 import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import {
-  TIME_WARNING_SCRIPTS, GRACE_ASK_SCRIPTS, CLOSE_SCRIPTS, REVEAL_REFUSAL_SCRIPTS, EXHIBIT_REFUSAL_SCRIPTS, FORCED_RELEASE_LEADINS,
+  TIME_WARNING_SCRIPTS, GRACE_ASK_SCRIPTS, CLOSE_SCRIPTS, REVEAL_REFUSAL_SCRIPTS, EXHIBIT_REFUSAL_SCRIPTS, FORCED_RELEASE_LEADINS, STALE_RELEASE_LEADINS,
   SAME_TURN_RELEASE_LEADINS, SAME_TURN_DEFER_SCRIPTS, SAME_TURN_OFFER_SCRIPTS, SAME_TURN_NOT_YET_SCRIPTS, NOT_IN_CASE_REFUSAL_SCRIPTS,
   pickScript, wordlessExhibitLine, alreadySignaledTimeOrRec, asksForRecommendation,
   CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE, SILENCE_PAUSE_EXPIRED,
@@ -765,7 +765,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     checks.record('stale_release', stale.length > 0, 'earlier request released by the code', { itemIds: stale });
     if (stale.length > 0) {
       const values = stale.map(id => { newReveals.push(id); return reveal(ledger, id); });
-      spokenText = insertBeforeTrailingQuestions(spokenText, [pickScript(FORCED_RELEASE_LEADINS, sessionId), ...values].join(' '));
+      spokenText = insertBeforeTrailingQuestions(spokenText, [pickScript(STALE_RELEASE_LEADINS, sessionId), ...values].join(' '));
       console.warn('[runner] released earlier open requests:', JSON.stringify(stale));
     }
   }

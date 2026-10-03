@@ -77,3 +77,17 @@ describe('wordlessExhibitLine', () => {
     expect(wordlessExhibitLine({ spokenText: '', exhibitShown: true, ended: true, seed: 's' })).toBeNull();
   });
 });
+
+// Batch 7 (Nikhil turn 4, Maya turn 11): the mid-case release of an earlier
+// request used the end-of-case lead-in "Before we wrap, on what you asked about
+// earlier:". Stale releases get their own pool.
+describe('STALE_RELEASE_LEADINS', () => {
+  it('never sound like the end of the case and carry no numerals', async () => {
+    const { STALE_RELEASE_LEADINS } = await import('@/lib/agent/prompts/scripts');
+    expect(STALE_RELEASE_LEADINS.length).toBeGreaterThan(1);
+    for (const line of STALE_RELEASE_LEADINS) {
+      expect(line).not.toMatch(/\bwrap|before we (finish|close|end)\b/i);
+      expect(line).not.toMatch(/\d/);
+    }
+  });
+});

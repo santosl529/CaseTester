@@ -61,6 +61,16 @@ export const FORCED_RELEASE_LEADINS = [
   "Picking up what you asked about before:",
 ];
 
+// Round-3 stale release: an earlier request released by code once its stage
+// is reached, mid-case. Not the forced-release pool — "Before we wrap" there
+// is right only next to the recommendation ask (batch 7: Nikhil heard it at
+// turn 4).
+export const STALE_RELEASE_LEADINS = [
+  'On what you asked about earlier:',
+  'Coming back to what you asked for earlier:',
+  'You asked about this earlier:',
+];
+
 // Rule 11 same-turn resolution (v4.4): lead-in before ledger data the
 // candidate asked for in this message that the draft turn ignored, and the
 // scripted defer when the item's stage isn't reached yet. Numeral-free (Rule 6).
