@@ -29,6 +29,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { mkdir, writeFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { and, desc, eq } from 'drizzle-orm';
 import { db } from '@/db/client';
@@ -242,10 +243,32 @@ async function main() {
   }
   await Promise.allSettled(background);
 
-  const scoring = ended ? await scoreSession({ sessionId, userId }) : { status: 'not_completed' as const };
+  // A scoring failure must not lose the run: batch 4 (2 Oct) threw in the
+  // judge and the transcript files were never written.
+  let scoring: { status: string };
+  try {
+    scoring = ended ? await scoreSession({ sessionId, userId }) : { status: 'not_completed' };
+  } catch (err) {
+    console.error('[live-run] scoring failed:', err instanceof Error ? err.message : err);
+    scoring = { status: 'failed' };
+  }
   console.log(`\n[live-run] ended=${ended} scoring=${scoring.status}`);
 
   await writeArtifacts(sessionId, caseData.title);
+}
+
+// --finish=<sessionId> [--log-from=<file>]: score an already-run session and
+// write its artifacts — for runs whose scoring failed. --log-from restores the
+// original run's console output as the .log. The candidate simulator's spend
+// was not recorded for the original run, so the report shows it as zero.
+async function finish(sessionId: string) {
+  const session = await db.query.sessions.findFirst({ where: eq(sessions.id, sessionId) });
+  if (!session) throw new Error(`Session not found: ${sessionId}`);
+  const logFrom = flag('log-from');
+  if (logFrom) logLines.unshift(...readFileSync(logFrom, 'utf8').split('\n'));
+  const scoring = await scoreSession({ sessionId, userId: session.userId });
+  console.log(`\n[live-run] finish ${sessionId} scoring=${scoring.status}`);
+  await writeArtifacts(sessionId, getCaseById(session.caseId).title);
 }
 
 async function writeArtifacts(sessionId: string, caseTitle: string) {
@@ -368,7 +391,7 @@ async function writeArtifacts(sessionId: string, caseTitle: string) {
   console.log(`[live-run] wrote ${path.join(OUT_DIR, base)}.{md,json,log${pdf ? ',pdf' : ''}}`);
 }
 
-main()
+(flag('finish') ? finish(flag('finish')!) : main())
   .then(() => process.exit(0))
   .catch(err => {
     console.error('[live-run] failed:', err);
