@@ -62,3 +62,14 @@ describe('deterministic reminder release (layer 3)', () => {
       .toEqual([]);
   });
 });
+
+describe('refusals are not handoffs (batch 4)', () => {
+  it("does not read the interviewer's own refusal as a promise", () => {
+    expect(handoffSentences("That's not a cut I have. What I do have is the company-wide cost structure over the two years.")).toEqual([]);
+    expect(handoffSentences("The split of the other inputs bucket isn't in the information I have.")).toEqual([]);
+  });
+
+  it('still reads a real handoff', () => {
+    expect(handoffSentences("Here's the bean price change.")).toHaveLength(1);
+  });
+});

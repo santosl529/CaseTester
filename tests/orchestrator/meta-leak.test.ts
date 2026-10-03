@@ -39,3 +39,10 @@ describe('stripMetaLeak', () => {
     expect(cleaned).toBe('What are the two ways a margin falls?');
   });
 });
+
+describe('tool narration (batch 4, Sonnet interviewer)', () => {
+  it("strips 'so I'll release both'", () => {
+    const r = stripMetaLeak("The question maps to the store count and revenue per store, so I'll release both. Average revenue per store is $2.4M a year.");
+    expect(r.cleaned).toBe('Average revenue per store is $2.4M a year.');
+  });
+});

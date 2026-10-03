@@ -79,8 +79,14 @@ const META_SELF_NARRATION =
 // Internal jargon that should never surface to a candidate.
 const META_JARGON = /\b(stall (ladder|intervention|rung)|\brung\b|socratic|recompute|provenance|directive rescue|one[- ]task per turn)\b/i;
 
+// Narration of its own tool use (batch 4, Sonnet 5.5 interviewer, Ines): "The
+// question maps to the store count and revenue per store, so I'll release
+// both." An interviewer never "releases" data or maps questions to items out
+// loud.
+const META_TOOL_NARRATION = /\b(i'?ll|i will|let me|i'?m going to)\s+release\b|\bmaps to (the|a|your)\b|\breveal_data\b|\bledger\b/i;
+
 function isMetaSentence(sentence: string): boolean {
-  return META_THIRD_PERSON.test(sentence) || META_SELF_NARRATION.test(sentence) || META_JARGON.test(sentence);
+  return META_THIRD_PERSON.test(sentence) || META_SELF_NARRATION.test(sentence) || META_JARGON.test(sentence) || META_TOOL_NARRATION.test(sentence);
 }
 
 export type MetaLeakResult = { cleaned: string; strippedSentences: string[] };

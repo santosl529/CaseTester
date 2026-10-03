@@ -175,9 +175,15 @@ export function resolveItemsFromText(ledger: DataLedger, text: string): string[]
 // call should have landed)? Requires a delivery verb and a data-reference word
 // in the SAME sentence, and excludes sentences mentioning "exhibit" — those
 // are exhibits.ts's job, not this one.
+// A refusal is not a promise. Batch 4 (Ines, Derek): "That's not a cut I
+// have" and "isn't in the information I have" read as handoffs ("I have" +
+// "cut"/"split"), nothing resolved, and a second scripted refusal was stacked
+// on the model's own.
+const NEGATED = /\b(not|no|never|don'?t|doesn'?t|isn'?t|aren'?t|wasn'?t|haven'?t|hasn'?t|can'?t|cannot)\b/i;
+
 export function handoffSentences(spokenText: string): string[] {
   return spokenText.split(/(?<=[.!?])\s+/).filter(
-    s => !/\bexhibit\b/i.test(s) && ((DATA_DELIVERY_VERB.test(s) && DATA_REFERENCE.test(s)) || HANDOFF.test(s)),
+    s => !/\bexhibit\b/i.test(s) && !NEGATED.test(s) && ((DATA_DELIVERY_VERB.test(s) && DATA_REFERENCE.test(s)) || HANDOFF.test(s)),
   );
 }
 
