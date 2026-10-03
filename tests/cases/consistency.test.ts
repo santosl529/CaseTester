@@ -128,3 +128,16 @@ describe('case ledger consistency: prof-001', () => {
     expect(sum).toBe(TOTAL_CASE_MS);
   });
 });
+
+// A label must not name one period when the value carries another (batch 5–6:
+// cogs_pct labelled "(current)" with the prior-year figure in the value).
+describe('ledger labels agree with their timeframes', () => {
+  const c = getCaseById('prof-001');
+  for (const item of c.dataLedger) {
+    it(`${item.id}`, () => {
+      const kinds = new Set(Object.values(item.timeframes ?? {}));
+      if (kinds.has('prior') || kinds.has('both')) expect(item.label).not.toMatch(/\((current|today)\)/i);
+      if (kinds.has('current') || kinds.has('both')) expect(item.label).not.toMatch(/\((prior|two years ago)\)/i);
+    });
+  }
+});

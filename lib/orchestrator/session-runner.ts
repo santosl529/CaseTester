@@ -10,7 +10,7 @@ import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
 import {
   createLedger, canReveal, reveal, resolveItemId, revealedValues, unrevealedItems,
-  resolveItemFromText, resolveItemsFromText, handoffSentences, markExhibitReveals,
+  resolveItemFromText, resolveItemsFromText, handoffSentences, markExhibitReveals, labelWithPeriod,
 } from './data-ledger';
 import { auditTurn, auditTurnStyle, stripMetaLeak, stripFabricatedTurn, rewriteSystemLanguage, stripCopiedCheckIn } from './audit';
 import { enforceNumericProvenance, changeFigures } from './numeric-provenance';
@@ -253,7 +253,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   // earlier turns' background classifier) that is still unreleased. Lags a
   // turn, which is fine for deferrals; the same-turn case is handled at the
   // recommendation ask below.
-  const catalog = caseData.dataLedger.map(d => ({ id: d.id, label: d.label }));
+  const catalog = caseData.dataLedger.map(d => ({ id: d.id, label: labelWithPeriod(d) }));
   const dataRequestRows = (await db.query.sessionEvents.findMany({
     where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'data_request')),
   })).map(r => ({ subtype: r.subtype, turnIndex: r.turnIndex, payloadJsonb: r.payloadJsonb }));

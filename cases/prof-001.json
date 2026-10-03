@@ -35,7 +35,7 @@
     },
     {
       "id": "cogs_pct",
-      "label": "COGS as % of revenue (current)",
+      "label": "COGS as % of revenue",
       "value": "COGS is 58% of revenue today, up from 42% two years ago.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {

@@ -5,6 +5,7 @@ export type LedgerItem = {
   label: string;
   value: string;
   releaseWhen: Phase; // pacing hint; enforced only by Rule 11 same-turn resolution (data-requests.ts), not on the model's reveals
+  timeframes?: Record<string, 'current' | 'prior' | 'change' | 'both'>;
 };
 
 export type DataLedger = {
@@ -67,10 +68,27 @@ export function revealedValues(ledger: DataLedger): Record<string, string> {
   );
 }
 
+// The model sees labels, never values (FR-4), so a label must say which
+// periods its value covers. Batches 5–6: "COGS as % of revenue (current)"
+// hid the prior-year figure in the value — Destiny heard "not for two years
+// ago", Hugo "Starting-year comparison I'll hold for now" after both years were
+// released. Derived from the authored timeframes, so it can't drift.
+export function labelWithPeriod(item: Pick<LedgerItem, 'label' | 'timeframes'>): string {
+  const kinds = new Set(Object.values(item.timeframes ?? {}));
+  const current = kinds.has('current') || kinds.has('both');
+  const prior = kinds.has('prior') || kinds.has('both');
+  const note = current && prior ? 'the current and prior period'
+    : prior ? 'the prior period'
+    : current ? 'the current period'
+    : kinds.has('change') ? 'the change over the period'
+    : null;
+  return note ? `${item.label} (covers ${note})` : item.label;
+}
+
 export function unrevealedItems(ledger: DataLedger): { id: string; label: string }[] {
   return ledger.items
     .filter(i => !ledger.revealed.has(i.id))
-    .map(i => ({ id: i.id, label: i.label }));
+    .map(i => ({ id: i.id, label: labelWithPeriod(i) }));
 }
 
 // Broken-promise recovery for reveal_data (Rule 11: "release, refuse, or

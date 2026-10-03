@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   createLedger, canReveal, reveal, resolveItemId, revealedValues, unrevealedItems,
-  resolveItemFromText, promisesReveal,
+  resolveItemFromText, promisesReveal, type LedgerItem,
 } from '@/lib/orchestrator/data-ledger';
 
 const items = [
@@ -167,5 +167,27 @@ describe('data ledger', () => {
     it('only counts a match within the same sentence, not across sentences', () => {
       expect(promisesReveal("Let me pull that up. The figures are interesting.")).toBe(false);
     });
+  });
+});
+
+// Batches 5–6: the model sees labels, never values. "COGS as % of revenue
+// (current)" hid that the value carries the prior-year figure too — Destiny
+// heard "not for two years ago" and Hugo "Starting-year comparison I'll hold
+// for now" right after both years were released.
+describe('periods in the labels the model sees', () => {
+  const tf: LedgerItem[] = [
+    { id: 'cogs', label: 'COGS as % of revenue', value: '58% today, up from 42%', releaseWhen: 'ANALYSIS' as const, timeframes: { '58': 'current' as const, '42': 'prior' as const } },
+    { id: 'share', label: 'Beans as a share of COGS', value: '25% two years ago', releaseWhen: 'EXHIBIT' as const, timeframes: { '25': 'prior' as const } },
+    { id: 'stores', label: 'Number of stores', value: '200, unchanged', releaseWhen: 'CLARIFY' as const, timeframes: { '200': 'both' as const } },
+    { id: 'beans', label: 'Bean price change', value: 'up 40%', releaseWhen: 'EXHIBIT' as const, timeframes: { '40': 'change' as const } },
+    { id: 'menu', label: 'Menu price changes', value: 'no change', releaseWhen: 'ANALYSIS' as const },
+  ];
+  it('states which periods each value covers', () => {
+    const byId = Object.fromEntries(unrevealedItems(createLedger(tf)).map(i => [i.id, i.label]));
+    expect(byId.cogs).toBe('COGS as % of revenue (covers the current and prior period)');
+    expect(byId.share).toBe('Beans as a share of COGS (covers the prior period)');
+    expect(byId.stores).toBe('Number of stores (covers the current and prior period)');
+    expect(byId.beans).toBe('Bean price change (covers the change over the period)');
+    expect(byId.menu).toBe('Menu price changes');
   });
 });

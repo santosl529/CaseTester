@@ -5,6 +5,7 @@ import { assessCoverage } from '@/lib/scoring/coverage';
 import { getCaseById } from '@/lib/cases/loader';
 import { logEvent } from '@/lib/analytics';
 import { classifyDataRequests } from './data-requests';
+import { labelWithPeriod } from './data-ledger';
 import { logDataRequestClassification } from './data-request-log';
 import type { Phase } from './state-machine';
 import type { TurnResult } from './session-runner';
@@ -69,7 +70,7 @@ async function dataRequestPass({ sessionId, userId, caseId, phase }: PostTurnPar
     const candidateTurn = turns.at(-2);
     if (interviewerTurn?.role !== 'interviewer' || candidateTurn?.role !== 'candidate') return;
 
-    const catalog = getCaseById(caseId).dataLedger.map(d => ({ id: d.id, label: d.label }));
+    const catalog = getCaseById(caseId).dataLedger.map(d => ({ id: d.id, label: labelWithPeriod(d) }));
     const requests = await classifyDataRequests({
       candidateText: candidateTurn.text,
       interviewerText: interviewerTurn.text,
