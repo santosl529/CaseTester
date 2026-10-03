@@ -204,6 +204,22 @@ stored report had already merged the strength into that one sentence
 understates the re-rate). Metrics: `answerKeyDrops`, `caveatTextDrops`,
 `answerKeyReRates` in `scoring_qa`.
 
+### Strong-rating gate [implemented: `lib/scoring/strong-gate.ts`, after reconciliation, before the caveat floor]
+
+(Round-3 fix 3.) The rubric's calibration line — "strong requires EVERY
+element of the strong anchor" — did not hold in the prompt: batch 3 rated 8
+of 9 sessions strong overall, including a candidate written to do only
+adequate analysis. The judge now fills `strongElements` per dimension: each
+element of the strong anchor (`STRONG_ELEMENTS` in `lib/scoring/rubric.ts`)
+marked met / not_met / no_occasion with a verbatim candidate quote. The gate
+keeps "strong" only when every element is met or had no occasion, at least
+half are met, and every met quote appears in the candidate's turns; otherwise
+the dimension becomes meets_bar. The overall rating may be "strong" only if
+no assessed dimension is needs_work and at least half are strong. Metrics:
+`strongDowngrades`, `overallCapped` in `scoring_qa`. Not yet validated: run
+`scripts/regrade.ts` (dry run, costs money) to see the effect on stored
+sessions.
+
 ## Judge requirements
 
 ### Recompute grading [implemented: `buildMathCheckSection` in `lib/scoring/judge.ts`]

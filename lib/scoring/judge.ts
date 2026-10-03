@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import { z } from 'zod';
 import type { Case } from '@/lib/cases/schema';
-import { RUBRIC_PROMPT_TEXT, RUBRIC_DIMENSION_KEYS, CANDIDATE_REFERENCE_RULE, type Rating } from './rubric';
+import { RUBRIC_PROMPT_TEXT, RUBRIC_DIMENSION_KEYS, CANDIDATE_REFERENCE_RULE, STRONG_ELEMENTS, type Rating } from './rubric';
 import type { MathStepResult } from './deterministic';
 import type { DataCoverage } from './data-coverage';
 import type { OnUsage } from '@/lib/llm-usage';
@@ -33,6 +33,14 @@ const DimensionFeedbackSchema = z.object({
   // rate this dimension at all. Shown as "not assessed"; excluded from the
   // overall rating; stored as a NULL rating column.
   notAssessed: z.boolean().optional(),
+  // Round-3 fix 3: the strong anchor's elements, each judged with a candidate
+  // quote; lib/scoring/strong-gate.ts allows "strong" only on this evidence.
+  // Optional so reports stored before it still parse.
+  strongElements: z.array(z.object({
+    element: z.string(),
+    status: z.enum(['met', 'not_met', 'no_occasion']),
+    quote: z.string(),
+  })).optional(),
 });
 
 export type FeedbackItem = z.infer<typeof FeedbackItemSchema>;
@@ -192,6 +200,9 @@ For each dimension, provide:
 3. "needsWork": the top 1-3 things that need improvement on this dimension, same shape ({ "point", "quotes" } with CANDIDATE quotes showing the weakness). Empty array only if the dimension was flawless.
 4. "missedOpportunities": 1-2 key moments where a great candidate would have said something better. Each item: { "moment": what was happening (anchor it to the exchange, quoting the transcript where useful), "betterResponse": the words a great candidate would have said in that moment }. Empty array if none.
 5. "coverageCaveat" (optional): if the INTERVIEWER never administered this dimension's primary stage (e.g. never asked a brainstorm question), rate on whatever secondary evidence exists and set this to a one-sentence note attributing the gap to session coverage (e.g. "The interviewer never ran a brainstorm — this rating reflects limited secondary evidence, not a candidate failing."). Never list an un-administered stage as a candidate weakness in needsWork, and never lower the rating because of it. The same applies to DATA: if a conclusion this dimension is rated on rests on data listed under "REQUESTED BUT NEVER PROVIDED" (and the transcript confirms the request), set a coverageCaveat attributing the gap to the interviewer not providing requested data. A caveated dimension may not be rated below "meets_bar" because of the gap, and its needsWork may not cite the missing stage or data.
+7. "strongElements": for EVERY dimension, one entry per element of its STRONG CHECKLIST below, in order: { "element": the element text, "status": "met" | "not_met" | "no_occasion", "quote": a verbatim CANDIDATE quote showing it ("" unless met) }. "no_occasion" only when the case never gave the candidate a chance (e.g. no challenge to respond to). A dimension may be rated "strong" only if every element is "met" or "no_occasion" and at least half are "met" — this is checked in code, and a strong rating that fails it is lowered.
+STRONG CHECKLIST:
+${RUBRIC_DIMENSION_KEYS.map(k => `- ${k}: ${STRONG_ELEMENTS[k].join(' | ')}`).join('\n')}
 6. "notAssessed" (optional, true only with a coverageCaveat): set when the interviewer's gap left too little candidate evidence to rate this dimension at all. The report shows it as "not assessed" and it does not count toward overallRating.
 
 Scoring discipline:

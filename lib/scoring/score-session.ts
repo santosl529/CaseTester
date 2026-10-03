@@ -17,6 +17,7 @@ import { summarizeDataRequests } from './data-coverage';
 import { buildInterviewerMarks, formatInterviewerMarksSection, dropClaimsOnMarkedTurns } from './interviewer-errors';
 import { applyCaveatFloor } from './caveat-floor';
 import { applyAnswerKeyPass } from './answer-key-pass';
+import { applyStrongGate } from './strong-gate';
 import { RUBRIC_DIMENSION_KEYS } from './rubric';
 
 export type ScoreSessionStatus = 'scored' | 'already_scored' | 'not_completed' | 'not_found';
@@ -39,6 +40,44 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
   });
   if (existing) return { status: 'already_scored' };
 
+  const computed = await computeScore({ sessionId, userId });
+  const { rubric, report, mathResults, qa } = computed;
+
+  await db.insert(scores).values({
+    sessionId,
+    structureRating: ratingColumn(rubric.structure),
+    quantitativeRating: ratingColumn(rubric.quantitative),
+    dataExhibitRating: ratingColumn(rubric.dataExhibit),
+    judgmentRating: ratingColumn(rubric.judgment),
+    creativityRating: ratingColumn(rubric.creativity),
+    communicationRating: ratingColumn(rubric.communication),
+    synthesisRating: ratingColumn(rubric.synthesis),
+    pushbackRating: ratingColumn(rubric.pushback),
+    overallRating: rubric.overallRating,
+    rubricJsonb: rubric,
+    topFix: rubric.topFix,
+    deterministicJsonb: mathResults,
+    modelAnswerJsonb: report.modelAnswer,
+    scoringRuntimeMs: report.scoringRuntimeMs,
+    judgeModel: report.judgeModel,
+  });
+
+  await logEvent('scoring_complete', { scoringRuntimeMs: report.scoringRuntimeMs, overallRating: rubric.overallRating },
+    { sessionId, userId });
+
+  // Scoring-QA metrics (docs/scoring-qa.md): one event per scoring run, zeros
+  // included, so rates have a denominator.
+  await logEvent('scoring_qa', qa, { sessionId, userId });
+
+  return { status: 'scored' };
+}
+
+// The scoring pipeline without persisting a score (round-3: lets
+// scripts/regrade.ts re-grade stored sessions as a dry run). Writes only the
+// idempotent data-request backfill and llm_usage events.
+export async function computeScore({ sessionId, userId }: { sessionId: string; userId: string }) {
+  const session = await db.query.sessions.findFirst({ where: eq(sessions.id, sessionId) });
+  if (!session) throw new Error(`Session not found: ${sessionId}`);
   const start = Date.now();
   const caseData = getCaseById(session.caseId);
   const turns = await db.query.sessionTurns.findMany({
@@ -176,8 +215,13 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
   const { rubric: reconciledRubric, merges, gapDrops, crossDimension } = await runReconciliation(
     answerKey.rubric, dataCoverage, u => logUsage({ ...u }),
   );
+  // Round-3 fix 3: "strong" only on a checklist of the strong anchor's
+  // elements, each evidenced by a real candidate quote; overall capped.
+  const strongGate = applyStrongGate(reconciledRubric, candidateTexts);
+  if (strongGate.downgraded.length > 0) console.warn('[score] strong ratings lowered by the checklist gate:', JSON.stringify(strongGate.downgraded));
+  if (strongGate.overallCapped) console.warn('[score] overall rating capped:', JSON.stringify(strongGate.overallCapped));
   // Rule 9 floor (v4.3) — enforced in code, after every text pass.
-  const { rubric, floored } = applyCaveatFloor(reconciledRubric);
+  const { rubric, floored } = applyCaveatFloor(strongGate.rubric);
   if (floored.length > 0) console.warn('[score] caveated dimensions floored at meets_bar:', JSON.stringify(floored));
   if (merges.length > 0) console.warn('[score] reconciliation merged both-sides claims:', JSON.stringify(merges));
   if (gapDrops.length > 0) console.warn('[score] reconciliation dropped coverage-gap faults:', JSON.stringify(gapDrops));
@@ -191,33 +235,7 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
     scoringRuntimeMs: Date.now() - start,
   });
 
-  await db.insert(scores).values({
-    sessionId,
-    structureRating: ratingColumn(rubric.structure),
-    quantitativeRating: ratingColumn(rubric.quantitative),
-    dataExhibitRating: ratingColumn(rubric.dataExhibit),
-    judgmentRating: ratingColumn(rubric.judgment),
-    creativityRating: ratingColumn(rubric.creativity),
-    communicationRating: ratingColumn(rubric.communication),
-    synthesisRating: ratingColumn(rubric.synthesis),
-    pushbackRating: ratingColumn(rubric.pushback),
-    overallRating: rubric.overallRating,
-    rubricJsonb: rubric,
-    topFix: rubric.topFix,
-    deterministicJsonb: mathResults,
-    modelAnswerJsonb: report.modelAnswer,
-    scoringRuntimeMs: report.scoringRuntimeMs,
-    judgeModel: report.judgeModel,
-  });
-
-  await logEvent('scoring_complete', { scoringRuntimeMs: report.scoringRuntimeMs, overallRating: rubric.overallRating },
-    { sessionId, userId });
-
-  // Scoring-QA metrics (docs/scoring-qa.md): one event per scoring run, zeros
-  // included, so rates have a denominator. transcript_artifacts = pipeline
-  // defect rate; evidence_strips = fabricated-quote rate; verifier_drops =
-  // contradicted-claim (judge hallucination) rate.
-  await logEvent('scoring_qa', {
+  const qa = {
     transcriptArtifacts: artifacts.length,
     artifactTypes: artifacts.map(a => a.type),
     evidenceStrips: violations.length,
@@ -241,8 +259,11 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
     answerKeyDrops: answerKey.removed.length,
     caveatTextDrops: answerKey.caveatRemoved.length,
     answerKeyReRates: answerKey.reRated.length,
+    // Round-3 fix 3: rating calibration.
+    strongDowngrades: strongGate.downgraded.length,
+    overallCapped: strongGate.overallCapped !== null,
     crossDimensionRepeats: crossDimension.length,
-  }, { sessionId, userId });
+  };
 
-  return { status: 'scored' };
+  return { rubric, report, mathResults, qa, strongGate, answerKey };
 }

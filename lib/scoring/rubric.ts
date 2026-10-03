@@ -132,3 +132,60 @@ creativity: Brainstorm ●, Synthesis ○
 synthesis: Synthesis ●, Analysis ○ (mini), Data/Exhibit ○ (mini)
 communication: all stages ●
 pushback: Analysis ●, Data/Exhibit ●, Synthesis ●, Opening ○, Brainstorm ○`;
+
+// Round-3 fix 3 (rating spread): the strong anchor of each dimension split into
+// its elements. The judge marks each one met / not_met / no_occasion with a
+// candidate quote, and lib/scoring/strong-gate.ts allows "strong" only when
+// every element is met or had no occasion — the calibration line above,
+// enforced in code because the prompt alone did not hold (batch 3: 8 of 9
+// sessions strong overall).
+export const STRONG_ELEMENTS: Record<RubricDimensionKey, string[]> = {
+  structure: [
+    'Restates the objective',
+    '3–4 tailored, non-overlapping buckets with brief sub-points',
+    'Prioritizes where the answer likely lives',
+    'Ties the structure to the decision',
+  ],
+  quantitative: [
+    'Lays out the equation before computing',
+    'Computes accurately',
+    'Narrates the steps',
+    'Sanity-checks the result',
+    'States the business implication of the number',
+  ],
+  dataExhibit: [
+    'Reads the data systematically',
+    'Isolates the driver or anomaly',
+    'States the implication',
+    'Proposes a next step',
+  ],
+  judgment: [
+    'Recommendations are practical and commercially sound',
+    'Proactively surfaces risks and mitigations',
+    'Assumptions are realistic and justified',
+  ],
+  creativity: [
+    'Organizes ideas into buckets',
+    'Produces several distinct ideas',
+    'Includes at least one non-obvious idea',
+    'Prioritizes the ideas',
+  ],
+  synthesis: [
+    'Leads with a clear recommendation',
+    'Gives 2–3 reasons tied to the analysis',
+    'Names the key risk',
+    'Names next steps',
+    'Stays concise',
+  ],
+  communication: [
+    'Consistently top-down and signposted',
+    'States structure before detail',
+    'Uses hypothesis-driven phrasing',
+    'Builds on the interviewer\'s cues',
+  ],
+  pushback: [
+    'Acknowledges a challenge and holds or updates with explicit reasoning',
+    'Drives next steps proactively',
+    'Visibly incorporates hints or feedback',
+  ],
+};
