@@ -152,6 +152,16 @@ describe('data ledger', () => {
       expect(promisesReveal("Let me get a sense of what you'd change.")).toBe(false);
     });
 
+    // Batch 7, Jasmine: "Before I give you data, I have one question on the
+    // structure." read as a promise, nothing matched, and a scripted refusal
+    // ("That breakdown isn't something I have.") followed — for data the case
+    // holds. A deferral frame is not a delivery.
+    it('does not treat a deferral frame as a promise', () => {
+      expect(promisesReveal('Before I give you data, I have one question on the structure.')).toBe(false);
+      expect(promisesReveal("Once you've walked me through the structure, I'll give you the breakdown.")).toBe(false);
+      expect(promisesReveal('After that, here is the breakdown you asked for.')).toBe(true);
+    });
+
     it('does not fire on a delivery verb with no data-reference word', () => {
       expect(promisesReveal("Let me get you set up for the next phase.")).toBe(false);
     });
