@@ -148,6 +148,14 @@ describe('planSameTurnResolution — passing mentions', () => {
     expect(planSameTurnResolution({ ...base, requests: [req([], 'below-the-line items', false)] }))
       .toEqual({ releaseIds: [], defer: false, offerIds: [], notYet: false, refuseNotInCase: false });
   });
+  // Batch 7, Destiny t8: "I can share the data on that if it would help. I
+  // can't share those figures at this stage." — two mentions, one reached and
+  // one not, gave both lines. The offer alone is said.
+  it('an offer covers a not-yet mention in the same turn', () => {
+    expect(planSameTurnResolution({ ...base, requests: [req(['avg_ticket'], 'ticket', false), req(['bean_share_of_cogs'], 'beans', false)] }))
+      .toEqual({ releaseIds: [], defer: false, offerIds: ['avg_ticket'], notYet: false, refuseNotInCase: false });
+  });
+
   it('an explicit deferral covers a not-yet mention — no second "not yet"', () => {
     expect(planSameTurnResolution({ ...base, phase: 'CLARIFY', requests: [req(['cogs_pct']), req(['menu_price_change'], 'prices', false)] }))
       .toEqual({ releaseIds: [], defer: true, offerIds: [], notYet: false, refuseNotInCase: false });

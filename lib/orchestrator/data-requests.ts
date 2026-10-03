@@ -296,7 +296,9 @@ export function planSameTurnResolution(params: {
   const asked = new Set(open);
   const mentioned = openIds(requests.filter(r => !r.explicit)).filter(id => !asked.has(id));
   const offerIds = mentioned.filter(reached);
-  const notYet = !defer && mentioned.some(id => !reached(id));
+  // One line per turn on mentions: an offer covers the rest (batch 7, Destiny:
+  // an offer and "can't share those figures at this stage" side by side).
+  const notYet = !defer && offerIds.length === 0 && mentioned.some(id => !reached(id));
 
   const refuseNotInCase = asks.some(r => r.ledgerItemIds.length === 0);
   return { releaseIds, defer, offerIds, notYet, refuseNotInCase };
