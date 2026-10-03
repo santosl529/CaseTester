@@ -33,6 +33,24 @@ describe('isClosingTurn (Rule 12 v4.6: wider goodbye detector)', () => {
     }
   });
 
+  // Batch 5, Claire 8dce6c0b: two goodbyes the detector missed — each was
+  // followed by more questions.
+  it('recognizes "we\'ll leave it there" and "the case is complete"', () => {
+    for (const t of ["Okay, that's fine. We'll leave it there.",
+      "Understood. We'll leave the recommendation there, and the case is complete.",
+      'That completes the case.']) {
+      expect(isClosingTurn(t), t).toBe(true);
+    }
+  });
+
+  it('does not close on leaving one topic to move to another', () => {
+    for (const t of ["We'll leave pricing there for now. What about costs?",
+      "Let's leave it there and look at the exhibit.",
+      "We'll leave the brainstorm there. What's your recommendation to the CEO?"]) {
+      expect(isClosingTurn(t), t).toBe(false);
+    }
+  });
+
   it('recognizes its own close scripts', () => {
     for (const s of CLOSE_SCRIPTS) expect(isClosingTurn(s), s).toBe(true);
   });

@@ -31,9 +31,16 @@ const STRONG_CLOSE =
 const REPORT_CLOSE = /\b(report (with feedback )?will follow|you'?ll (get|receive) (a |the |your )?(full |written |detailed )*(report|feedback)|written report)\b/i;
 const CONTINUES = /\?|\bfor now\b|\bback to\b|\bmeanwhile\b|\bin the meantime\b|\blet'?s (keep|get|go|stay|continue|return)\b/i;
 
+// Batch 5 (Claire 8dce6c0b): "We'll leave it there." and "…the case is
+// complete." were spoken as goodbyes and followed by more questions. "Leave X
+// there" also moves between topics, so it counts only on a turn that doesn't
+// go on.
+const CASE_COMPLETE = /\b(the case is (now )?(complete|over|finished|done)|that completes the case)\b/i;
+const LEAVE_IT_THERE = /\bwe'?ll leave (it|that|things|the \w+) there\b/i;
+
 export function isClosingTurn(text: string): boolean {
-  if (STRONG_CLOSE.test(text)) return true;
-  return REPORT_CLOSE.test(text) && !CONTINUES.test(text);
+  if (STRONG_CLOSE.test(text) || CASE_COMPLETE.test(text)) return true;
+  return (REPORT_CLOSE.test(text) || LEAVE_IT_THERE.test(text)) && !CONTINUES.test(text);
 }
 
 // Kept for callers that only need the yes/no.
