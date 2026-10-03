@@ -99,10 +99,10 @@ function norm(s: string): string {
 // 27–28 Sep: the interviewer paraphrases labels ("the menu price history" for
 // "Menu price changes over 2 years"), the whole-label match failed, and a
 // scripted refusal told the candidate data the ledger held didn't exist.
-export function resolveItemFromText(ledger: DataLedger, text: string): string | null {
+export function resolveItemFromText(ledger: DataLedger, text: string, opts: { includeRevealed?: boolean } = {}): string | null {
   const n = norm(text);
   if (!n) return null;
-  const candidates = ledger.items.filter(i => !ledger.revealed.has(i.id));
+  const candidates = opts.includeRevealed ? ledger.items : ledger.items.filter(i => !ledger.revealed.has(i.id));
   for (const item of candidates) {
     const label = norm(item.label);
     if (label.length >= 3 && n.includes(label)) return item.id;
@@ -148,13 +148,39 @@ const DATA_REFERENCE = /\b(data|numbers?|figures?|breakdown|analysis|split|cut|p
 // a false promise injects a refusal, so they count only after "here's".
 const HANDOFF = /\b(here'?s|here is) (the|your|what)\b[^.!?]*\b(changes?|history|trend)\b/i;
 
+// Round-3 fix 2 (batch 3, Tobias 7fb4372f): "here's the bean price change
+// and the other-input change" was recovered as ONE item — resolveItemFromText
+// returns the best single match — and the other arrived three minutes later.
+// A handoff is split at "and" / commas and each part resolved on its own with
+// the tie-safe single matcher. Matching every label against the whole
+// sentence instead would also pull in "Menu price changes" (shares "price" and
+// "change") — a leak of data nobody asked for.
+const CONJUNCT = /\s*(?:,|;|\band\b|\bplus\b|\bas well as\b|\balong with\b)\s*/i;
+
+//
+// Each part is matched against the WHOLE catalog and delivered items dropped
+// afterwards: matching only undelivered items would let "the bean price
+// change", once delivered, fall through to "Menu price changes".
+export function resolveItemsFromText(ledger: DataLedger, text: string): string[] {
+  const parts = text.split(CONJUNCT).filter(p => p.trim().length > 0);
+  let ids = parts.map(p => resolveItemFromText(ledger, p, { includeRevealed: true })).filter((id): id is string => id !== null);
+  if (ids.length === 0) {
+    const whole = resolveItemFromText(ledger, text, { includeRevealed: true });
+    ids = whole ? [whole] : [];
+  }
+  return [...new Set(ids)].filter(id => !ledger.revealed.has(id));
+}
+
 // Does the interviewer's spoken text promise a data delivery (so a reveal_data
 // call should have landed)? Requires a delivery verb and a data-reference word
 // in the SAME sentence, and excludes sentences mentioning "exhibit" — those
 // are exhibits.ts's job, not this one.
-export function promisesReveal(spokenText: string): boolean {
-  const sentences = spokenText.split(/(?<=[.!?])\s+/);
-  return sentences.some(
+export function handoffSentences(spokenText: string): string[] {
+  return spokenText.split(/(?<=[.!?])\s+/).filter(
     s => !/\bexhibit\b/i.test(s) && ((DATA_DELIVERY_VERB.test(s) && DATA_REFERENCE.test(s)) || HANDOFF.test(s)),
   );
+}
+
+export function promisesReveal(spokenText: string): boolean {
+  return handoffSentences(spokenText).length > 0;
 }

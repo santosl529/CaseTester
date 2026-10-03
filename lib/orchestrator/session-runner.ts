@@ -3,14 +3,14 @@ import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } fr
 import { and, eq } from 'drizzle-orm';
 import {
   classifyDataRequests, formatOpenRequestsHint, planForcedReleases, composeForcedReleaseTurn, dropTrailingQuestions,
-  planSameTurnResolution, insertBeforeTrailingQuestions,
+  planSameTurnResolution, insertBeforeTrailingQuestions, planStaleReleases,
 } from './data-requests';
 import { logDataRequestClassification } from './data-request-log';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
 import {
   createLedger, canReveal, reveal, resolveItemId, revealedValues, unrevealedItems,
-  resolveItemFromText, promisesReveal, markExhibitReveals,
+  resolveItemFromText, resolveItemsFromText, handoffSentences, markExhibitReveals,
 } from './data-ledger';
 import { auditTurn, auditTurnStyle, stripMetaLeak, stripFabricatedTurn } from './audit';
 import { enforceNumericProvenance, changeFigures } from './numeric-provenance';
@@ -562,23 +562,39 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   // fallback: guessing the wrong ledger item would itself be a data leak
   // (data-ledger.ts has the full rationale). Skipped on the closing turn for
   // the same reason as the exhibit recovery.
-  const dataPromised = newReveals.length === 0 && !ended && promisesReveal(spokenText);
-  if (!dataPromised) checks.pass('data_promise');
-  if (dataPromised) {
-    // Named in the text, else the single open ledger request is what was
-    // promised (v4.3: Maya c230fe12 was refused her open deferral instead).
-    const openIds = [...new Set(openDataRequests.map(r => r.ledgerItemId))].filter(id => canReveal(ledger, id));
-    const recoveredId = resolveItemFromText(ledger, spokenText) ?? (openIds.length === 1 ? openIds[0] : null);
-    if (recoveredId) {
-      const value = reveal(ledger, recoveredId);
-      newReveals.push(recoveredId);
-      spokenText = `${spokenText} ${value}`;
-      console.warn('[runner] recovered promised-but-undelivered reveal_data:', recoveredId);
-      checks.act('data_promise', 'promised data recovered', { itemId: recoveredId });
+  // Round-3 fix 2: every fact a handoff names is delivered in the same turn —
+  // not just one (Tobias 7fb4372f: "the bean price change and the other-input
+  // change" delivered the first only). Facts already released this turn are
+  // skipped; a handoff naming nothing deliverable, on a turn that delivered
+  // nothing, falls back to the single open request or a scripted refusal.
+  const handoffs = ended ? [] : handoffSentences(spokenText);
+  if (handoffs.length === 0) {
+    checks.pass('data_promise');
+  } else {
+    const named = [...new Set(handoffs.flatMap(h => resolveItemsFromText(ledger, h)))].filter(id => canReveal(ledger, id));
+    if (named.length > 0) {
+      const values = named.map(id => { newReveals.push(id); return reveal(ledger, id); });
+      spokenText = insertBeforeTrailingQuestions(spokenText, values.join(' '));
+      console.warn('[runner] delivered announced facts:', JSON.stringify(named));
+      checks.act('data_promise', 'announced facts delivered', { itemIds: named });
+    } else if (newReveals.length === 0) {
+      // Named in no ledger label: the single open ledger request is what was
+      // promised (v4.3: Maya c230fe12 was refused her open deferral instead).
+      const openIds = [...new Set(openDataRequests.map(r => r.ledgerItemId))].filter(id => canReveal(ledger, id));
+      const recoveredId = resolveItemFromText(ledger, spokenText) ?? (openIds.length === 1 ? openIds[0] : null);
+      if (recoveredId) {
+        const value = reveal(ledger, recoveredId);
+        newReveals.push(recoveredId);
+        spokenText = insertBeforeTrailingQuestions(spokenText, value);
+        console.warn('[runner] recovered promised-but-undelivered reveal_data:', recoveredId);
+        checks.act('data_promise', 'promised data recovered', { itemId: recoveredId });
+      } else {
+        spokenText = `${spokenText} ${pickScript(REVEAL_REFUSAL_SCRIPTS, sessionId)}`;
+        console.warn('[runner] interviewer promised data with no ledger match — injected refusal');
+        checks.act('data_promise', 'promised data unresolvable — refusal injected');
+      }
     } else {
-      spokenText = `${spokenText} ${pickScript(REVEAL_REFUSAL_SCRIPTS, sessionId)}`;
-      console.warn('[runner] interviewer promised data with no ledger match — injected refusal');
-      checks.act('data_promise', 'promised data unresolvable — refusal injected');
+      checks.pass('data_promise', { note: 'handoff names only facts delivered this turn' });
     }
   }
 
@@ -658,6 +674,24 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
         await logEvent('data_same_turn_resolved', { itemIds: plan.releaseIds, deferred: plan.defer, phase: currentPhase },
           { sessionId, userId: session.userId });
       }
+    }
+
+    // Layer 3, deterministic (round-3 fix): a request from an earlier turn
+    // still unreleased once its stage is reached is released by the code, not
+    // left to the reminder (Ben 9 → 17 in batch 3).
+    const phaseNow = PHASES.indexOf(nextPhaseValue) > PHASES.indexOf(currentPhase) ? nextPhaseValue : currentPhase;
+    const stale = planStaleReleases({
+      open: openDataRequests,
+      revealedIds: new Set(Object.keys(revealedValues(ledger))),
+      phase: phaseNow,
+      releaseWhenById: new Map(caseData.dataLedger.map(d => [d.id, d.releaseWhen as Phase])),
+      currentTurnIndex: nextTurnIndex,
+    }).filter(id => canReveal(ledger, id));
+    checks.record('stale_release', stale.length > 0, 'earlier request released by the code', { itemIds: stale });
+    if (stale.length > 0) {
+      const values = stale.map(id => { newReveals.push(id); return reveal(ledger, id); });
+      spokenText = insertBeforeTrailingQuestions(spokenText, [pickScript(FORCED_RELEASE_LEADINS, sessionId), ...values].join(' '));
+      console.warn('[runner] released earlier open requests:', JSON.stringify(stale));
     }
   }
 

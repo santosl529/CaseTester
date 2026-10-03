@@ -272,6 +272,32 @@ export function planSameTurnResolution(params: {
   return { releaseIds, defer: releaseIds.length < open.length };
 }
 
+// ── Deterministic reminder release (layer 3, round-3 fix) ──────────────────
+// The OPEN DATA REQUESTS reminder asks the model to release what it missed; in
+// batch 3 it never did (Ben's avg_ticket waited eight turns for the forced
+// release at the recommendation ask). A request from an EARLIER turn that is
+// still unreleased once the case has reached the item's stage is now released
+// by the orchestrator. The current turn's requests stay with same-turn
+// resolution; ask turns stay with the forced release.
+export function planStaleReleases(params: {
+  open: RequestedUnanswered[];
+  revealedIds: Set<string>;
+  phase: Phase;
+  releaseWhenById: Map<string, Phase>;
+  currentTurnIndex: number;
+  cap?: number;
+}): string[] {
+  const { open, revealedIds, phase, releaseWhenById, currentTurnIndex, cap = 2 } = params;
+  const reached = (id: string) => releaseWhenById.has(id) && PHASES.indexOf(phase) >= PHASES.indexOf(releaseWhenById.get(id)!);
+  const seen = new Set<string>();
+  return [...open]
+    .filter(g => g.turnIndex !== null && g.turnIndex < currentTurnIndex)
+    .sort((a, b) => (b.turnIndex ?? 0) - (a.turnIndex ?? 0))
+    .filter(g => !revealedIds.has(g.ledgerItemId) && reached(g.ledgerItemId) && !seen.has(g.ledgerItemId) && seen.add(g.ledgerItemId))
+    .slice(0, cap)
+    .map(g => g.ledgerItemId);
+}
+
 // Released data and the defer line go before the question the draft ends on,
 // so the turn still ends by handing the floor back.
 export function insertBeforeTrailingQuestions(text: string, addition: string): string {

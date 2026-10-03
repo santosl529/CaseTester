@@ -985,7 +985,23 @@ label-token overlap with ties resolving to nothing — and failing that from the
 open-request list (a single open ledger request is the item being promised);
 (2) a scripted refusal may be injected **only when neither resolves** —
 telling the candidate available data doesn't exist is a Rule 11 substitution,
-worse than silence. The words "change / history / trend" count as a promise
+worse than silence.
+
+**Every announced fact, not just the first (v4.6, round-3 fix 2).** Batch 3,
+Tobias 7fb4372f: "here's the bean price change and the other-input change"
+with no `reveal_data` call; recovery returned one item, and the other figure
+arrived three minutes later. Replay found the same partial delivery in
+batch 2 (Priya, Ines). Three changes:
+1. **Announcing and delivering are one action.** The prompt no longer asks
+   the model for a handoff line; it calls `reveal_data` once per item, and the
+   value (a complete labeled sentence, Rule 10) is the announcement.
+2. **Recovery covers every named fact.** A handoff is split at "and"/commas
+   and each part resolved with the tie-safe single matcher against the whole
+   catalog; facts already delivered are dropped. Matching all labels against
+   the whole sentence would also pull "Menu price changes" out of "the bean
+   price change" — a leak.
+3. A handoff naming nothing deliverable, on a turn that delivered nothing,
+   still falls to the open-request fallback or the scripted refusal. The words "change / history / trend" count as a promise
 only in a "here's the …" handoff, since a false promise injects a refusal.
 
 ## 11. Data requests: release, refuse, or defer — never ignore; never substitute
@@ -1122,7 +1138,18 @@ regenerating:
    still hands the floor back.
 
 Recommendation-ask turns skip this and keep the synchronous classification +
-force-release above. Requests for data not in the ledger are left to the
+force-release above.
+
+**Layer 3 is deterministic (v4.6, round-3).** The OPEN DATA REQUESTS
+reminder asked the model to release what it had missed; in batch 3 it never
+did — Ben's average-ticket request waited eight turns for the forced release
+at the recommendation ask. A request from an earlier turn that is still
+unreleased once its `releaseWhen` stage is reached is now released by the
+orchestrator (at most two per turn, most recent first, with a scripted
+"one thing you asked for earlier" lead-in). Batch-3 layer rates that
+motivated it, for requests whose data was available when asked: model alone
+14/24 (58%); in-turn check fixed 8 of the 10 misses; the reminder fixed 0
+of 2. Requests for data not in the ledger are left to the
 model (refusing them would mean speaking classifier-generated text).
 
 Known costs: one extra Haiku call per turn (the background response
