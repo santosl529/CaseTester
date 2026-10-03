@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
+import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
+import { SCORING_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { z } from 'zod';
 import type { RubricScores } from './judge';
 import { RUBRIC_DIMENSION_KEYS } from './rubric';
@@ -34,7 +35,7 @@ const VerdictsSchema = z.object({
 
 // Structured output, as for the judge (judge.ts JUDGE_OUTPUT_FORMAT): the API
 // constrains the reply to this schema instead of a prompt-only JSON request.
-export const VERIFIER_OUTPUT_FORMAT = zodOutputFormat(VerdictsSchema);
+export const VERIFIER_OUTPUT_FORMAT = betaZodOutputFormat(VerdictsSchema);
 
 export function collectClaims(rubric: RubricScores): Claim[] {
   const claims: Claim[] = [];
@@ -164,15 +165,20 @@ Include a verdict for every claim.`;
   // rather than fail scoring; the caller logs this.
   let verdicts: Verdict[];
   try {
-    const response = await client.messages.parse({
-      model: 'claude-opus-4-8',
-      max_tokens: 4096,
+    // Opus 5.5: thinking always on (adaptive); effort set explicitly (the
+    // model's default is medium); thinking counts against max_tokens.
+    const response = await client.beta.messages.parse({
+      model: SCORING_MODEL_ID,
+      max_tokens: 16000,
+      thinking: { type: 'adaptive' },
       messages: [{ role: 'user', content: prompt }],
-      output_config: { format: VERIFIER_OUTPUT_FORMAT },
+      output_config: { format: VERIFIER_OUTPUT_FORMAT, effort: 'high' },
+      betas: [FALLBACK_BETA],
+      fallbacks: FALLBACKS,
     });
     onUsage?.({
       component: 'verifier',
-      model: 'claude-opus-4-8',
+      model: SCORING_MODEL_ID,
       inputTokens: response.usage.input_tokens,
       outputTokens: response.usage.output_tokens,
     });

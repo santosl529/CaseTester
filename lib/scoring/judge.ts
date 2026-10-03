@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
+import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
+import { SCORING_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { z } from 'zod';
 import type { Case } from '@/lib/cases/schema';
 import { RUBRIC_PROMPT_TEXT, RUBRIC_DIMENSION_KEYS, CANDIDATE_REFERENCE_RULE, STRONG_ELEMENTS, type Rating } from './rubric';
@@ -66,9 +67,9 @@ export type RubricScores = z.infer<typeof RubricScoresSchema>;
 // prompt-only "respond with ONLY valid JSON" let the judge open with prose
 // (run 2, 30 Sep: "Let me work through the candidate's math…"), which failed
 // the parse and left the session unscored.
-export const JUDGE_OUTPUT_FORMAT = zodOutputFormat(RubricScoresSchema);
+export const JUDGE_OUTPUT_FORMAT = betaZodOutputFormat(RubricScoresSchema);
 
-export const JUDGE_MODEL_ID = 'claude-opus-5-5';
+export const JUDGE_MODEL_ID = SCORING_MODEL_ID;
 
 // parsed_output is null only when the reply has no text block (a refusal, an
 // empty reply); a text block that doesn't match the schema throws in the SDK.
@@ -235,12 +236,14 @@ ${dimensionJsonLines}
   // Opus 5.5 with adaptive thinking (2 Oct 2026). Thinking is always on for
   // this model; effort defaults to medium there, so it is set explicitly.
   // Thinking tokens count against max_tokens, hence the larger cap.
-  const response = await client.messages.parse({
+  const response = await client.beta.messages.parse({
     model: JUDGE_MODEL_ID,
     max_tokens: 32000,
     thinking: { type: 'adaptive' },
     messages: [{ role: 'user', content: prompt }],
     output_config: { format: JUDGE_OUTPUT_FORMAT, effort: 'high' },
+    betas: [FALLBACK_BETA],
+    fallbacks: FALLBACKS,
   });
   onUsage?.({
     component: 'judge',

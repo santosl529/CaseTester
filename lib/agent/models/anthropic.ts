@@ -1,9 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { InterviewerModel, TurnContext } from './interface';
+import { INTERVIEWER_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import type { Action } from '@/lib/orchestrator/actions';
 import { extractToolId, validateToolUses } from './tool-input';
 
-const TOOLS: Anthropic.Tool[] = [
+const TOOLS: Anthropic.Beta.BetaTool[] = [
   {
     name: 'speak',
     description: 'Say something to the candidate.',
@@ -43,18 +44,7 @@ const TOOLS: Anthropic.Tool[] = [
   },
 ];
 
-// Sonnet 5.5, thinking off (2 Oct 2026, Lorenzo's call): faster and cheaper
-// than the Opus 4.8 interviewer for the M2 latency budget. History: Haiku 4.5
-// missed live math errors (%-of-COGS vs points-of-revenue) and was replaced by
-// Opus 4.8 in July; the deterministic math backstops (recompute, verified
-// figures, unit check) now carry most of that load. Watch the next batch for
-// missed math and tool-use regressions.
-export const INTERVIEWER_MODEL_ID = 'claude-sonnet-5-5';
-
-// Sonnet 5.5 rejects thinking {type: "disabled"}; "between_tools" is how it
-// runs without thinking. It takes no other field and needs effort high or
-// below (the default). SDK 0.107's types predate it, hence the cast.
-const INTERVIEWER_THINKING = { type: 'between_tools' } as unknown as Anthropic.ThinkingConfigParam;
+export { INTERVIEWER_MODEL_ID } from '@/lib/models';
 
 // Live run 58cb8061 (2026-09-14): after asking the brainstorm question the
 // model kept generating — "\n\nuser Several levers…" — and wrote the
@@ -75,25 +65,37 @@ export class AnthropicInterviewerModel implements InterviewerModel {
   }
 
   async runTurn(ctx: TurnContext): Promise<Action[]> {
-    const messages: Anthropic.MessageParam[] = ctx.history.map(m => ({
+    const messages: Anthropic.Beta.BetaMessageParam[] = ctx.history.map(m => ({
       role: m.role,
       content: m.content,
     }));
 
-    const logBlocks = (r: Anthropic.Message) => console.log('[interviewer-model] raw blocks:', JSON.stringify(
+    const logBlocks = (r: Anthropic.Beta.BetaMessage) => console.log('[interviewer-model] raw blocks:', JSON.stringify(
       r.content.map(b => b.type === 'tool_use' ? { type: 'tool_use', name: b.name, input: b.input } : { type: b.type }),
       null, 2,
     ));
     const call = async () => {
-      const r = await this.client.messages.create({
+      // Sonnet 5.5 rejects thinking {type: "disabled"}; "between_tools" is
+      // how it runs without thinking (no other field; effort high or below —
+      // the default). With the server-side fallback, a cyber/frontier-LLM
+      // decline re-runs on Sonnet 5 with thinking disabled.
+      const r = await this.client.beta.messages.create({
         model: this.modelId,
         max_tokens: 1024,
         system: ctx.systemPrompt,
         messages,
         tools: TOOLS,
         stop_sequences: INTERVIEWER_STOP_SEQUENCES,
-        thinking: INTERVIEWER_THINKING,
+        thinking: { type: 'between_tools' },
+        betas: [FALLBACK_BETA],
+        fallbacks: FALLBACKS,
       });
+      // Branch on stop_reason before content: a refusal the fallback chain
+      // could not rescue leaves no usable turn (the caller's neutral
+      // continuation applies).
+      if (r.stop_reason === 'refusal') {
+        console.warn('[interviewer-model] refusal:', JSON.stringify(r.stop_details));
+      }
       ctx.onUsage?.({
         component: 'interviewer',
         model: this.modelId,
@@ -114,7 +116,7 @@ export class AnthropicInterviewerModel implements InterviewerModel {
     const maxCorrections = ctx.maxToolCorrections ?? 2;
     if (Object.keys(idValidators).length > 0) {
       for (let attempt = 0; attempt < maxCorrections; attempt++) {
-        const toolUses = response.content.filter((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use');
+        const toolUses = response.content.filter((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === 'tool_use');
         if (toolUses.length === 0) break;
         const { toolResults, anyInvalid } = validateToolUses(
           toolUses.map(b => ({ id: b.id, name: b.name, input: b.input })), idValidators,
@@ -123,7 +125,7 @@ export class AnthropicInterviewerModel implements InterviewerModel {
         console.warn('[interviewer-model] invalid tool id — asking model to correct',
           JSON.stringify(toolResults.filter(r => r.is_error)));
         messages.push({ role: 'assistant', content: response.content });
-        messages.push({ role: 'user', content: toolResults as Anthropic.ToolResultBlockParam[] });
+        messages.push({ role: 'user', content: toolResults as Anthropic.Beta.BetaToolResultBlockParam[] });
         response = await call();
         logBlocks(response);
       }

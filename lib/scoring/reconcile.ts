@@ -5,6 +5,7 @@ import { RUBRIC_DIMENSION_KEYS, CANDIDATE_REFERENCE_RULE, type RubricDimensionKe
 import { fallbackTopFix } from './verifier';
 import type { DataCoverage, RequestedNotInCase, RequestedUnanswered } from './data-coverage';
 import type { OnUsage } from '@/lib/llm-usage';
+import { SCORING_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 
 // Dimension reconciliation (docs/interviewer-behavior.md Rule 3 v4.1;
 // docs/scoring-qa.md §4) — the LAST report pass, after the verifier, because
@@ -27,7 +28,7 @@ import type { OnUsage } from '@/lib/llm-usage';
 export const GAP_COVERAGE_CAVEAT =
   "Part of this dimension's evidence rested on data the candidate asked for but the interviewer never provided — that gap is attributed to session coverage, not counted against the candidate.";
 
-const RECONCILE_MODEL_ID = 'claude-opus-4-8';
+const RECONCILE_MODEL_ID = SCORING_MODEL_ID;
 
 export type ReconcileSection = 'wentWell' | 'needsWork' | 'missedOpportunities' | 'topFix';
 
@@ -253,10 +254,15 @@ export async function runReconciliation(
   const items = collectReconcileItems(rubric);
   try {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const response = await client.messages.create({
+    // Opus 5.5: thinking always on (adaptive); effort set explicitly.
+    const response = await client.beta.messages.create({
       model: RECONCILE_MODEL_ID,
-      max_tokens: 4096,
+      max_tokens: 16000,
+      thinking: { type: 'adaptive' },
+      output_config: { effort: 'high' },
       messages: [{ role: 'user', content: buildReconcilePrompt(items, gaps, dataCoverage.requestedNotInCase) }],
+      betas: [FALLBACK_BETA],
+      fallbacks: FALLBACKS,
     });
     onUsage?.({
       component: 'reconcile',
@@ -264,7 +270,7 @@ export async function runReconciliation(
       inputTokens: response.usage.input_tokens,
       outputTokens: response.usage.output_tokens,
     });
-    const text = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
+    const text = response.content.find((b): b is Anthropic.Beta.BetaTextBlock => b.type === 'text');
     const result = text ? parseReconcileResponse(text.text) : null;
     if (!result) {
       // Log what actually came back: two live runs (58cb8061, db41a01e) failed
