@@ -116,7 +116,7 @@ item that faults an assumption resting on that data is dropped (topFix falls
 back like the verifier), and the dimension gets a fixed coverageCaveat if the
 judge didn't write one. wentWell items can never be dropped by this check.
 
-Implementation notes: one batched Opus 4.8 call proposes changes; code
+Implementation notes: one batched Opus 5.5 call proposes changes; code
 validates and applies them — merge ids must name a wentWell and a needsWork
 item in the same dimension, each item is used at most once, gap drops apply
 before merges (data integrity outranks coherence), cross-dimension entries

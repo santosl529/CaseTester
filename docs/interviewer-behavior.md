@@ -13,6 +13,14 @@ the whole closing turn is replaced with a probe on what hasn't been tested;
 the recommendation ask never repeats once a recommendation is received; and
 after the goodbye the session accepts no further turns.
 
+**Models (2 Oct 2026).** The live interviewer runs on Claude Sonnet 5.5
+without thinking (was Opus 4.8); scoring (judge, verifier, reconciliation)
+on Claude Opus 5.5 with adaptive thinking; classifiers on Haiku 4.5. Ids in
+`lib/models.ts`. The July move off Haiku was for missed live math errors —
+the deterministic math backstops in Rules 2 and 14 now carry that load, so
+batch 4 should check the Sonnet interviewer for regressions there and in
+tool use (`reveal_data` per item, Rule 10).
+
 **v4.6 integration (2 Oct 2026, against the round-2 engineering-fixes
 summary and the batch-2 logs).** The external v4.6 draft and the round-2
 fixes summary were checked against the logs and code before integration.

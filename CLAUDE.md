@@ -8,8 +8,10 @@ A voice-based AI mock case interview for undergraduates recruiting for managemen
 - Supabase (Postgres + Auth, email + club-code gate); RLS on all candidate-owned tables.
 - drizzle for typed schema + migrations (or Supabase migrations — flag if you switch).
 - Tailwind; minimal mid-case UI (voice is primary, exhibit panel is the only mid-case visual).
-- Live interviewer LLM: Claude Opus 4.8 (`claude-opus-4-8`), behind an `InterviewerModel` interface. (Switched from Haiku 4.5 July 2026 after pilot runs showed missed live math errors; revisit for the M2 voice latency budget — Opus turns are slower and pricier.)
-- Scoring LLM: Claude Opus 4.8 (`claude-opus-4-8`), runs at case end — judge pass, then a claim-verifier pass; plus deterministic evidence-quote and math audits in code.
+- Live interviewer LLM: Claude Sonnet 5.5 (`claude-sonnet-5-5`), thinking off (`thinking: {type: "between_tools"}` — Sonnet 5.5 rejects `disabled`), behind an `InterviewerModel` interface. (History: Haiku 4.5 → Opus 4.8 in July 2026 after missed live math errors → Sonnet 5.5 in Oct 2026 for speed/cost; the deterministic math backstops now carry most of the math-catching load — watch for regressions.)
+- Scoring LLM: Claude Opus 5.5 (`claude-opus-5-5`, adaptive thinking, effort `high`), runs at case end — judge, claim-verifier, and dimension-reconciliation passes; plus deterministic evidence-quote, math, answer-key, and strong-rating audits in code.
+- Background classifiers: Claude Haiku 4.5 (`claude-haiku-4-5`) — coverage, data requests, distress (C5), hint check.
+- Model ids live in `lib/models.ts`. Interviewer and scoring calls use server-side refusal fallbacks (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`, Claude API only).
 - The scoring rubric is the 8-dimension consolidated rubric (`docs/Case Interview Feedback Rubric.pdf`), encoded generically in `lib/scoring/rubric.ts`; interviewer behavior rules live in `docs/interviewer-behavior.md`, case-authoring rules in `docs/case-authoring.md`.
 - Voice (M2, spike-pending, all behind interfaces): LiveKit Agents (transport/VAD/barge-in) + Deepgram STT + Cartesia TTS.
 
