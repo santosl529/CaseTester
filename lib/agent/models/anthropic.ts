@@ -43,10 +43,18 @@ const TOOLS: Anthropic.Tool[] = [
   },
 ];
 
-// Opus 4.8: pilot runs showed Haiku 4.5 missing candidate math errors live
-// (e.g. %-of-COGS vs points-of-revenue confusion). Revisit for the M2 voice
-// latency budget — Opus turns are slower and pricier.
-export const INTERVIEWER_MODEL_ID = 'claude-opus-4-8';
+// Sonnet 5.5, thinking off (2 Oct 2026, Lorenzo's call): faster and cheaper
+// than the Opus 4.8 interviewer for the M2 latency budget. History: Haiku 4.5
+// missed live math errors (%-of-COGS vs points-of-revenue) and was replaced by
+// Opus 4.8 in July; the deterministic math backstops (recompute, verified
+// figures, unit check) now carry most of that load. Watch the next batch for
+// missed math and tool-use regressions.
+export const INTERVIEWER_MODEL_ID = 'claude-sonnet-5-5';
+
+// Sonnet 5.5 rejects thinking {type: "disabled"}; "between_tools" is how it
+// runs without thinking. It takes no other field and needs effort high or
+// below (the default). SDK 0.107's types predate it, hence the cast.
+const INTERVIEWER_THINKING = { type: 'between_tools' } as unknown as Anthropic.ThinkingConfigParam;
 
 // Live run 58cb8061 (2026-09-14): after asking the brainstorm question the
 // model kept generating — "\n\nuser Several levers…" — and wrote the
@@ -84,6 +92,7 @@ export class AnthropicInterviewerModel implements InterviewerModel {
         messages,
         tools: TOOLS,
         stop_sequences: INTERVIEWER_STOP_SEQUENCES,
+        thinking: INTERVIEWER_THINKING,
       });
       ctx.onUsage?.({
         component: 'interviewer',

@@ -1,3 +1,4 @@
+import { JUDGE_MODEL_ID } from './judge';
 import type { Case } from '@/lib/cases/schema';
 import type { RubricScores } from './judge';
 import type { MathStepResult } from './deterministic';
@@ -32,6 +33,6 @@ export function assembleReport(params: {
       recommendation: params.caseData.recommendationKey,
     },
     scoringRuntimeMs: params.scoringRuntimeMs,
-    judgeModel: 'claude-opus-4-8',
+    judgeModel: JUDGE_MODEL_ID,
   };
 }

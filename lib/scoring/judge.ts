@@ -68,6 +68,8 @@ export type RubricScores = z.infer<typeof RubricScoresSchema>;
 // the parse and left the session unscored.
 export const JUDGE_OUTPUT_FORMAT = zodOutputFormat(RubricScoresSchema);
 
+export const JUDGE_MODEL_ID = 'claude-opus-5-5';
+
 // parsed_output is null only when the reply has no text block (a refusal, an
 // empty reply); a text block that doesn't match the schema throws in the SDK.
 export function readJudgeOutput(message: { parsed_output: RubricScores | null; stop_reason: string | null }): RubricScores {
@@ -230,15 +232,19 @@ ${dimensionJsonLines}
   "topFix": "..."
 }`;
 
+  // Opus 5.5 with adaptive thinking (2 Oct 2026). Thinking is always on for
+  // this model; effort defaults to medium there, so it is set explicitly.
+  // Thinking tokens count against max_tokens, hence the larger cap.
   const response = await client.messages.parse({
-    model: 'claude-opus-4-8',
-    max_tokens: 8192,
+    model: JUDGE_MODEL_ID,
+    max_tokens: 32000,
+    thinking: { type: 'adaptive' },
     messages: [{ role: 'user', content: prompt }],
-    output_config: { format: JUDGE_OUTPUT_FORMAT },
+    output_config: { format: JUDGE_OUTPUT_FORMAT, effort: 'high' },
   });
   onUsage?.({
     component: 'judge',
-    model: 'claude-opus-4-8',
+    model: JUDGE_MODEL_ID,
     inputTokens: response.usage.input_tokens,
     outputTokens: response.usage.output_tokens,
   });

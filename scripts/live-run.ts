@@ -270,14 +270,26 @@ async function writeArtifacts(sessionId: string, caseTitle: string) {
   const interventions = events.filter(e => e.category === 'intervention');
   const scoringQa = analytics.find(a => a.eventType === 'scoring_qa')?.payloadJsonb as Record<string, unknown> | undefined;
   const forced = analytics.filter(a => a.eventType === 'data_force_released').map(a => a.payloadJsonb);
-  const usage = new Map<string, { calls: number; input: number; output: number }>();
+  // List price per million tokens, uncached, by model id (the app sets no
+  // cache_control). Unknown ids fall back to Opus 4.8 pricing.
+  const PRICE_PER_MTOK: Record<string, [number, number]> = {
+    'claude-opus-5-5': [4, 20], 'claude-opus-5': [5, 25], 'claude-opus-4-8': [5, 25],
+    'claude-sonnet-5-5': [2, 10], 'claude-sonnet-5': [2, 10],
+    'claude-haiku-4-5': [1, 5], 'claude-haiku-4-5-20251001': [1, 5],
+  };
+  const usd = (model: string, input: number, output: number) => {
+    const [i, o] = PRICE_PER_MTOK[model] ?? [5, 25];
+    return (input * i + output * o) / 1e6;
+  };
+  const usage = new Map<string, { calls: number; input: number; output: number; cost: number }>();
   for (const a of analytics.filter(x => x.eventType === 'llm_usage')) {
-    const p = a.payloadJsonb as { component?: string; inputTokens?: number; outputTokens?: number; apiCalls?: number };
-    const key = p.component ?? 'unknown';
-    const u = usage.get(key) ?? { calls: 0, input: 0, output: 0 };
+    const p = a.payloadJsonb as { component?: string; model?: string; inputTokens?: number; outputTokens?: number; apiCalls?: number };
+    const key = `${p.component ?? 'unknown'} (${p.model ?? '?'})`;
+    const u = usage.get(key) ?? { calls: 0, input: 0, output: 0, cost: 0 };
     u.calls += p.apiCalls ?? 1;
     u.input += p.inputTokens ?? 0;
     u.output += p.outputTokens ?? 0;
+    u.cost += usd(p.model ?? '', p.inputTokens ?? 0, p.outputTokens ?? 0);
     usage.set(key, u);
   }
 
@@ -317,19 +329,13 @@ async function writeArtifacts(sessionId: string, caseTitle: string) {
   }
   md.push('');
 
-  // List price per million tokens, uncached (the app sets no cache_control).
-  const PRICE_PER_MTOK: Record<'opus' | 'haiku', [number, number]> = { opus: [5, 25], haiku: [1, 5] };
-  const HAIKU_COMPONENTS = new Set(['coverage', 'data_request', 'distress', 'hint_check']);
-  const usd = (tier: 'opus' | 'haiku', input: number, output: number) =>
-    (input * PRICE_PER_MTOK[tier][0] + output * PRICE_PER_MTOK[tier][1]) / 1e6;
   let appUsd = 0;
   md.push('## LLM usage', '', '| Component | Calls | Input tokens | Output tokens | Est. USD |', '|---|---|---|---|---|');
   for (const [k, u] of usage) {
-    const cost = usd(HAIKU_COMPONENTS.has(k) ? 'haiku' : 'opus', u.input, u.output);
-    appUsd += cost;
-    md.push(`| ${k} | ${u.calls} | ${u.input} | ${u.output} | $${cost.toFixed(3)} |`);
+    appUsd += u.cost;
+    md.push(`| ${k} | ${u.calls} | ${u.input} | ${u.output} | $${u.cost.toFixed(3)} |`);
   }
-  const simUsd = usd('opus', candidateUsage.input, candidateUsage.output);
+  const simUsd = usd(CANDIDATE_MODEL, candidateUsage.input, candidateUsage.output);
   md.push(`| candidate simulator (${[...candidateUsage.models].join(', ')}) | ${candidateUsage.calls} | ${candidateUsage.input} | ${candidateUsage.output} | $${simUsd.toFixed(3)} |`);
   md.push('', `- App cost (interviewer + scoring): **$${appUsd.toFixed(2)}** · with simulator: **$${(appUsd + simUsd).toFixed(2)}** · list prices, uncached`);
   md.push(`- Wall time: ${clock(Date.now() - startMs)}`, '');
