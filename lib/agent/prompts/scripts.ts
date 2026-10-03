@@ -41,6 +41,15 @@ export const EXHIBIT_REFUSAL_SCRIPTS = [
   "That's not something I have a chart for. What would you ask for instead?",
 ];
 
+// Batch 5: an exhibit turn whose only words were narration ("I'll show the
+// exhibit too and ask for interpretation.") is left with nothing to say once
+// the narration is stripped. The exhibit is on screen; hand it over plainly.
+export const EXHIBIT_FRAME_SCRIPTS = [
+  "Take a look at this and tell me what you see.",
+  "Here's the exhibit. What stands out to you?",
+  "Have a look at this. What does it tell you?",
+];
+
 // Rule 11 v4.1 force-resolve: lead-in spoken before ledger data the candidate
 // asked for earlier and never got, released just before the recommendation
 // ask (session-runner.ts). The ledger value follows verbatim and carries its

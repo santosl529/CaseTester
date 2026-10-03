@@ -66,8 +66,9 @@ export function auditTurnStyle(spokenText: string, opts: StyleAuditOptions = {})
 // strip clearly-meta sentences here so a model slip never reaches the user.
 //
 // Conservative by construction: only sentences matching tight meta patterns are
-// removed, and only if at least one non-meta sentence survives (never blank a
-// turn). Patterns are ones that have no legitimate place in interviewer speech.
+// removed. Patterns are ones that have no legitimate place in interviewer
+// speech. An all-meta turn comes back empty and the runner supplies the
+// fallback (batch 5: keeping it spoke pure narration).
 
 // Third-person reference to the candidate — you speak TO them ("you"), never
 // ABOUT them ("the candidate has...").
@@ -75,7 +76,7 @@ const META_THIRD_PERSON = /\bthe candidate\b/i;
 // Self-narration of an interviewing tactic. Note the verb list is specific:
 // "let me show/give you the data" is legitimate and NOT matched.
 const META_SELF_NARRATION =
-  /\b(let me|i'?ll|i will|i'?m going to|i am going to|i should|i need to|i'?m about to|i want to)\s+(pressure|press|probe|push\b|push back|challenge|redirect|see if|move on)\b/i;
+  /\b(let me|i'?ll|i will|i'?m going to|i am going to|i should|i need to|i'?m about to|i want to)\s+(?:also\s+|now\s+|first\s+|just\s+)?(pressure|press|probe|push\b|push back|challenge|redirect|see if|move on|check whether)\b/i;
 // Internal jargon that should never surface to a candidate.
 const META_JARGON = /\b(stall (ladder|intervention|rung)|\brung\b|socratic|recompute|provenance|directive rescue|one[- ]task per turn)\b/i;
 
@@ -83,10 +84,36 @@ const META_JARGON = /\b(stall (ladder|intervention|rung)|\brung\b|socratic|recom
 // question maps to the store count and revenue per store, so I'll release
 // both." An interviewer never "releases" data or maps questions to items out
 // loud.
-const META_TOOL_NARRATION = /\b(i'?ll|i will|let me|i'?m going to)\s+release\b|\bmaps to (the|a|your)\b|\breveal_data\b|\bledger\b/i;
+const META_TOOL_NARRATION = /\b(i'?ll|i will|let me|i'?m going to)\s+release\b|\bmaps (?:best )?to (the|a|your)\b|\breveal_data\b|\bledger\b/i;
+
+// Batch 5 (Sonnet 5.5, thinking off): the model reasons about each release
+// in plain text before the tool call — "They haven't asked for it", "the items
+// that answer it", "so I'll hold that", "Revealing those items now". The
+// candidate is "they" here; customers and the client never ask for, assert,
+// or earn data.
+const META_RELEASE_REASONING = new RegExp([
+  /\bthey(?:'ve| have)?\s+(?:already\s+|now\s+)?(?:asked|asserted|requested|earned)\b/.source,
+  /\bhaven'?t asked for\b/.source,
+  /\blet them\b/.source,
+  /^\s*(?:revealing|releasing)\b/.source,
+  /^\s*best:/.source,
+  /\bis answered by\b/.source,
+  /\bthe items? that answers?\b/.source,
+  /\bitems I hold\b/.source,
+  /\b(?:requests?|items?|lines?) (?:are|is) (?:now |all |too )*(?:earned|revealed)\b/.source,
+  /\bso I'?ll (?:hold|ask)\b/.source,
+].join('|'), 'i');
+
+// "I'll show the exhibit" / "I'll reveal the bean price data" — a tool call
+// announced to no one. Addressed to the candidate ("I'll show you…") it is
+// ordinary speech and kept.
+const TOOL_VERB = /\b(?:i'?ll|i will|let me|i'?m going to)\s+(?:also\s+|now\s+|just\s+)?(?:show|reveal|release)\b/i;
+const ADDRESSED = /\byou\b/i;
 
 function isMetaSentence(sentence: string): boolean {
-  return META_THIRD_PERSON.test(sentence) || META_SELF_NARRATION.test(sentence) || META_JARGON.test(sentence) || META_TOOL_NARRATION.test(sentence);
+  return META_THIRD_PERSON.test(sentence) || META_SELF_NARRATION.test(sentence) || META_JARGON.test(sentence)
+    || META_TOOL_NARRATION.test(sentence) || META_RELEASE_REASONING.test(sentence)
+    || (TOOL_VERB.test(sentence) && !ADDRESSED.test(sentence));
 }
 
 export type MetaLeakResult = { cleaned: string; strippedSentences: string[] };
@@ -137,8 +164,6 @@ export function stripMetaLeak(spokenText: string): MetaLeakResult {
     if (isMetaSentence(s)) stripped.push(s);
     else kept.push(s);
   }
-  // Never blank a turn: if every sentence looked meta, keep the original.
-  if (kept.length === 0) return { cleaned: spokenText, strippedSentences: [] };
   return { cleaned: kept.join(' ').trim(), strippedSentences: stripped };
 }
 

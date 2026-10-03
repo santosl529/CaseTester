@@ -71,8 +71,7 @@ export class AnthropicInterviewerModel implements InterviewerModel {
     }));
 
     const logBlocks = (r: Anthropic.Beta.BetaMessage) => console.log('[interviewer-model] raw blocks:', JSON.stringify(
-      r.content.map(b => b.type === 'tool_use' ? { type: 'tool_use', name: b.name, input: b.input } : { type: b.type }),
-      null, 2,
+      describeBlocks(r.content as ContentBlock[]), null, 2,
     ));
     const call = async () => {
       // Sonnet 5.5 rejects thinking {type: "disabled"}; "between_tools" is
@@ -143,6 +142,17 @@ export class AnthropicInterviewerModel implements InterviewerModel {
 }
 
 type ContentBlock = { type: string; text?: string; name?: string; input?: unknown };
+
+// Log shape for a model response. Text blocks carry their text: narration is
+// counted from the raw model output, before the runner's meta-leak strip
+// hides it (batch-5 logs had only the block types).
+export function describeBlocks(content: ContentBlock[]): Record<string, unknown>[] {
+  return content.map(b => {
+    if (b.type === 'tool_use') return { type: 'tool_use', name: b.name, input: b.input };
+    if (b.type === 'text') return { type: 'text', text: b.text };
+    return { type: b.type };
+  });
+}
 
 // Model output → orchestrator actions. Batch 4 (Sonnet 5.5 interviewer): the
 // model sometimes writes its reasoning as plain text beside its tool calls.

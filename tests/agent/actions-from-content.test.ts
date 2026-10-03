@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { actionsFromContent } from '@/lib/agent/models/anthropic';
+import { actionsFromContent, describeBlocks } from '@/lib/agent/models/anthropic';
 
 describe('actionsFromContent (batch 4: Sonnet narration)', () => {
   it('keeps plain text as the reply when the turn has no speak call (batch 5: Ines, Destiny)', () => {
@@ -19,5 +19,19 @@ describe('actionsFromContent (batch 4: Sonnet narration)', () => {
 
   it('speaks a plain-text-only turn', () => {
     expect(actionsFromContent([{ type: 'text', text: 'Go on.' }])).toEqual([{ type: 'speak', text: 'Go on.' }]);
+  });
+});
+
+// The narration check batch counts narration in the model's raw text, before
+// the runner's strip — so the log must carry the text, not just the type.
+describe('describeBlocks', () => {
+  it('logs text blocks with their text', () => {
+    expect(describeBlocks([
+      { type: 'text', text: "I'll release the data now." },
+      { type: 'tool_use', name: 'reveal_data', input: { item_id: 'cogs' } },
+    ])).toEqual([
+      { type: 'text', text: "I'll release the data now." },
+      { type: 'tool_use', name: 'reveal_data', input: { item_id: 'cogs' } },
+    ]);
   });
 });

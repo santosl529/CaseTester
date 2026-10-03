@@ -37,7 +37,7 @@ import { CheckLog, toCheckEventRows } from './check-log';
 import { runInterviewerTurn } from '@/lib/agent/interviewer';
 import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import {
-  TIME_WARNING_SCRIPTS, GRACE_ASK_SCRIPTS, CLOSE_SCRIPTS, REVEAL_REFUSAL_SCRIPTS, EXHIBIT_REFUSAL_SCRIPTS, FORCED_RELEASE_LEADINS,
+  TIME_WARNING_SCRIPTS, GRACE_ASK_SCRIPTS, CLOSE_SCRIPTS, REVEAL_REFUSAL_SCRIPTS, EXHIBIT_REFUSAL_SCRIPTS, EXHIBIT_FRAME_SCRIPTS, FORCED_RELEASE_LEADINS,
   SAME_TURN_RELEASE_LEADINS, SAME_TURN_DEFER_SCRIPTS,
   pickScript, alreadySignaledTimeOrRec, asksForRecommendation,
   CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE, SILENCE_PAUSE_EXPIRED,
@@ -432,6 +432,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   let ended = false;
   let endCaseBlocked = false;
   let fabricatedStripped = false;
+  const metaStripped: string[] = [];
   const newReveals: string[] = [];
 
   for (const action of actions) {
@@ -445,7 +446,13 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
         console.warn('[runner] stripped fabricated speaker continuation:', JSON.stringify(fabricated));
         fabricatedStripped = true;
       }
-      spokenText += cleaned + ' ';
+      // Strip internal planning from the model's own words (Rule 1/5) — here,
+      // per speak action, so revealed values appended below never pass through
+      // the strip and an all-narration reveal turn leaves just the value
+      // (batch 5: "I'll release the cost-structure data now." was spoken).
+      const meta = stripMetaLeak(cleaned);
+      metaStripped.push(...meta.strippedSentences);
+      if (meta.cleaned) spokenText += meta.cleaned + ' ';
     } else if (action.type === 'reveal_data') {
       const itemId = resolveItemId(ledger, action.itemId);
       if (itemId && canReveal(ledger, itemId)) {
@@ -496,15 +503,14 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     await logEvent('fabricated_turn_stripped', { phase: currentPhase }, { sessionId, userId: session.userId });
   }
 
-  // Strip any internal planning that leaked into the spoken turn (Rule 1/5).
-  // The prompt forbids it; this is the backstop so a model slip like "The
-  // candidate has anchored on pricing lag. Let me pressure it once..." never
-  // reaches the candidate.
-  const metaLeak = stripMetaLeak(spokenText);
-  checks.record('meta_leak', metaLeak.strippedSentences.length > 0, 'internal planning stripped', { sentences: metaLeak.strippedSentences });
-  if (metaLeak.strippedSentences.length > 0) {
-    console.warn('[runner] stripped meta-leak from interviewer turn:', JSON.stringify(metaLeak.strippedSentences));
-    spokenText = metaLeak.cleaned;
+  // Internal planning stripped above (Rule 1/5) — the backstop so a model slip
+  // like "The candidate has anchored on pricing lag. Let me pressure it
+  // once..." never reaches the candidate. An exhibit turn left wordless gets
+  // a scripted hand-over; any other empty turn falls to the blank-turn guard.
+  checks.record('meta_leak', metaStripped.length > 0, 'internal planning stripped', { sentences: metaStripped });
+  if (metaStripped.length > 0) {
+    console.warn('[runner] stripped meta-leak from interviewer turn:', JSON.stringify(metaStripped));
+    if (!spokenText && exhibit && !ended) spokenText = pickScript(EXHIBIT_FRAME_SCRIPTS, sessionId);
   }
 
   const copiedCheckIn = stripCopiedCheckIn(spokenText);
