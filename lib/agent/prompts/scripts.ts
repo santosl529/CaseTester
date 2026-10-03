@@ -41,9 +41,10 @@ export const EXHIBIT_REFUSAL_SCRIPTS = [
   "That's not something I have a chart for. What would you ask for instead?",
 ];
 
-// Batch 5: an exhibit turn whose only words were narration ("I'll show the
-// exhibit too and ask for interpretation.") is left with nothing to say once
-// the narration is stripped. The exhibit is on screen; hand it over plainly.
+// An exhibit turn with no words to speak: the model's only words were
+// narration, stripped (batch 5: "I'll show the exhibit too and ask for
+// interpretation."), or it called show_exhibit with no text at all (batch 6,
+// adaptive thinking). The exhibit is on screen; hand it over plainly.
 export const EXHIBIT_FRAME_SCRIPTS = [
   "Take a look at this and tell me what you see.",
   "Here's the exhibit. What stands out to you?",
@@ -168,6 +169,10 @@ export function alreadySignaledTimeOrRec(spokenText: string): boolean {
 
 // Deterministic per-session pick (not Math.random): stable within a session,
 // varies across sessions, and reproducible in tests.
+export function wordlessExhibitLine(t: { spokenText: string; exhibitShown: boolean; ended: boolean; seed: string }): string | null {
+  return !t.spokenText.trim() && t.exhibitShown && !t.ended ? pickScript(EXHIBIT_FRAME_SCRIPTS, t.seed) : null;
+}
+
 export function pickScript(pool: string[], seed: string): string {
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {

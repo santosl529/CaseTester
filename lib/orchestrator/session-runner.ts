@@ -37,9 +37,9 @@ import { CheckLog, toCheckEventRows } from './check-log';
 import { runInterviewerTurn } from '@/lib/agent/interviewer';
 import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import {
-  TIME_WARNING_SCRIPTS, GRACE_ASK_SCRIPTS, CLOSE_SCRIPTS, REVEAL_REFUSAL_SCRIPTS, EXHIBIT_REFUSAL_SCRIPTS, EXHIBIT_FRAME_SCRIPTS, FORCED_RELEASE_LEADINS,
+  TIME_WARNING_SCRIPTS, GRACE_ASK_SCRIPTS, CLOSE_SCRIPTS, REVEAL_REFUSAL_SCRIPTS, EXHIBIT_REFUSAL_SCRIPTS, FORCED_RELEASE_LEADINS,
   SAME_TURN_RELEASE_LEADINS, SAME_TURN_DEFER_SCRIPTS,
-  pickScript, alreadySignaledTimeOrRec, asksForRecommendation,
+  pickScript, wordlessExhibitLine, alreadySignaledTimeOrRec, asksForRecommendation,
   CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE, SILENCE_PAUSE_EXPIRED,
 } from '@/lib/agent/prompts/scripts';
 
@@ -505,13 +505,16 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
 
   // Internal planning stripped above (Rule 1/5) — the backstop so a model slip
   // like "The candidate has anchored on pricing lag. Let me pressure it
-  // once..." never reaches the candidate. An exhibit turn left wordless gets
-  // a scripted hand-over; any other empty turn falls to the blank-turn guard.
+  // once..." never reaches the candidate.
   checks.record('meta_leak', metaStripped.length > 0, 'internal planning stripped', { sentences: metaStripped });
   if (metaStripped.length > 0) {
     console.warn('[runner] stripped meta-leak from interviewer turn:', JSON.stringify(metaStripped));
-    if (!spokenText && exhibit && !ended) spokenText = pickScript(EXHIBIT_FRAME_SCRIPTS, sessionId);
   }
+  // An exhibit turn left wordless gets a scripted hand-over; any other empty
+  // turn falls to the blank-turn guard.
+  const exhibitLine = wordlessExhibitLine({ spokenText, exhibitShown: exhibit !== undefined, ended, seed: sessionId });
+  checks.record('wordless_exhibit', exhibitLine !== null, 'exhibit shown with no words — scripted hand-over');
+  if (exhibitLine) spokenText = exhibitLine;
 
   const copiedCheckIn = stripCopiedCheckIn(spokenText);
   checks.record('copied_check_in', copiedCheckIn.stripped, 'model-written check-in removed');

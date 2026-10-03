@@ -62,3 +62,18 @@ describe('GRACE_ASK_SCRIPTS (Rule 12 time-up grace ask, v4.3)', () => {
     }
   });
 });
+
+// Batch 6 (Claire, adaptive thinking): the model called show_exhibit with no
+// words and the candidate got the exhibit with a bare "Go on."
+describe('wordlessExhibitLine', () => {
+  it('hands over an exhibit shown with no words', async () => {
+    const { wordlessExhibitLine, EXHIBIT_FRAME_SCRIPTS } = await import('@/lib/agent/prompts/scripts');
+    expect(EXHIBIT_FRAME_SCRIPTS).toContain(wordlessExhibitLine({ spokenText: '', exhibitShown: true, ended: false, seed: 's' }));
+  });
+  it('leaves spoken turns, exhibit-free turns, and the closing turn alone', async () => {
+    const { wordlessExhibitLine } = await import('@/lib/agent/prompts/scripts');
+    expect(wordlessExhibitLine({ spokenText: 'What stands out?', exhibitShown: true, ended: false, seed: 's' })).toBeNull();
+    expect(wordlessExhibitLine({ spokenText: '', exhibitShown: false, ended: false, seed: 's' })).toBeNull();
+    expect(wordlessExhibitLine({ spokenText: '', exhibitShown: true, ended: true, seed: 's' })).toBeNull();
+  });
+});
