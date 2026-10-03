@@ -2026,6 +2026,24 @@ Open items from the persona runs:
   fired first. Still regex-dominated: 8 of 9 scored sessions rated strong
   overall (rating calibration, open item above).
 
+- **Batch 4 (2 Oct, same 10 personas; Sonnet 5.5 interviewer, Opus 5.5
+  scoring, round-3 fixes) — results:** one goodbye per session; Maya's
+  recommendation loop gone (35 turns vs 48); requested-but-never-provided
+  data at scoring 4 → 0; no doubt probes on correct math, and the Sonnet
+  interviewer still caught Derek's and Maya's real errors; C5 model layer
+  caught Leah again. **Grades spread:** skill ratings strong 62 → 32 of 80,
+  meets_bar 3 → 42; overall 5 strong / 4 meets_bar / 1 needs_work (was 8 /
+  0 / 1). The strong gate lowered nothing — the judge, given the checklist,
+  rated more conservatively itself. App cost $0.77 → $0.70 per run; median
+  interviewer turn 1.8s → 1.9s (both included the parallel distress check —
+  now logged apart). **Found and fixed after the batch:** every scoring run
+  failed (non-streaming 32k-token judge request — scoring now streams, score
+  route `maxDuration = 300`); Sonnet spoke its plain-text reasoning beside
+  tool calls (now dropped) and copied the scripted check-in (now stripped);
+  three false case-breaking flags from the dollar-impact step's "margin"
+  cue (removed; zero flags over batches 1–4); refusals read as handoffs
+  drew a second refusal (refusals excluded).
+
 **Design principle (recorded from v3.2 review):** deterministic backstops keep
 being specified against the typical surface form of a risk (digit numerals,
 unit errors) rather than the underlying risk (any fabricated quantity, any
