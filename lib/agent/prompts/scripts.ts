@@ -76,6 +76,31 @@ export const SAME_TURN_DEFER_SCRIPTS = [
   "I'll come to that data shortly.",
 ];
 
+// Batch 6 follow-ups to same-turn resolution. Statements, not questions, so
+// they never stack a second question onto the turn (Rule 5).
+// A passing mention of data the case holds, its stage reached: offered, not
+// released (Maya: "price and cups" released the average ticket unasked).
+export const SAME_TURN_OFFER_SCRIPTS = [
+  "There's data on that if you'd like to see it.",
+  'I have figures on that if you want them.',
+  'I can share the data on that if it would help.',
+];
+
+// A passing mention of data whose stage isn't reached yet.
+export const SAME_TURN_NOT_YET_SCRIPTS = [
+  "I can't give you that data at this point.",
+  "That data isn't something I can share just yet.",
+  "I can't share those figures at this stage.",
+];
+
+// Fix #9: an explicit ask for data the case doesn't hold, ignored by the draft
+// (Tobias b6: whether the bean increase was market-wide).
+export const NOT_IN_CASE_REFUSAL_SCRIPTS = [
+  "That's not in the information I have.",
+  "I don't have data on that.",
+  "That isn't something I have data on.",
+];
+
 // Rule 12 v4.6: the one goodbye — a single neutral line, no evaluation
 // (Rule 1), carrying the report hand-off. Every ending turn IS this script.
 export const CLOSE_SCRIPTS = [

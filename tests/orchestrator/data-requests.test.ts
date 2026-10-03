@@ -135,8 +135,8 @@ describe('parseDataRequestResponse', () => {
       ],
     });
     expect(parseDataRequestResponse(raw, catalog)).toEqual([
-      { what: 'menu price history', ledgerItemIds: ['avg_ticket'], response: 'none' },
-      { what: 'store-level concentration', ledgerItemIds: [], response: 'refuse' },
+      { what: 'menu price history', ledgerItemIds: ['avg_ticket'], response: 'none', explicit: true },
+      { what: 'store-level concentration', ledgerItemIds: [], response: 'refuse', explicit: true },
     ]);
   });
 
@@ -174,13 +174,41 @@ describe('parseDataRequestResponse', () => {
   it('skips malformed entries but keeps valid ones', () => {
     const raw = '{"requests":[{"ledgerItemIds":["avg_ticket"]},{"what":"bean costs","ledgerItemIds":[],"response":"defer"}]}';
     expect(parseDataRequestResponse(raw, catalog)).toEqual([
-      { what: 'bean costs', ledgerItemIds: [], response: 'defer' },
+      { what: 'bean costs', ledgerItemIds: [], response: 'defer', explicit: true },
     ]);
   });
 
   it('returns null on garbage (fail open: no events, never blocks a turn)', () => {
     expect(parseDataRequestResponse('not json', catalog)).toBeNull();
     expect(parseDataRequestResponse('{"nope":1}', catalog)).toBeNull();
+  });
+});
+
+// Batch 6 (Maya): "I'd check revenue first — price and cups" was classified
+// as a request and the average ticket released unasked. Each request is now
+// marked explicit (a direct ask) or a passing mention; a mention gets an offer,
+// never a release.
+describe('explicit vs mention', () => {
+  it('parses the explicit flag, defaulting to explicit when absent', () => {
+    const raw = JSON.stringify({ requests: [
+      { what: 'price and cups', ledgerItemIds: ['avg_ticket'], response: 'none', explicit: false },
+      { what: 'bean costs', ledgerItemIds: ['bean_price_change'], response: 'none' },
+    ] });
+    expect(parseDataRequestResponse(raw, catalog)?.map(r => r.explicit)).toEqual([false, true]);
+  });
+
+  it('asks the classifier to separate direct asks from passing mentions', () => {
+    const prompt = buildDataRequestPrompt("I'd check revenue first — price and cups.", null, catalog);
+    expect(prompt).toMatch(/"explicit"/);
+    expect(prompt).toMatch(/passing mention/i);
+  });
+
+  it('carries the flag into the logged event', () => {
+    const [e] = toDataRequestEvents(
+      [{ what: 'price and cups', ledgerItemIds: ['avg_ticket'], response: 'none', explicit: false }],
+      { candidateTurnIndex: 3, interviewerTurnIndex: 4, revealedIds: new Set() },
+    );
+    expect(e.payload.explicit).toBe(false);
   });
 });
 
@@ -213,25 +241,25 @@ describe('toDataRequestEvents', () => {
   it('maps requests to data_request session events keyed to the candidate turn', () => {
     const events = toDataRequestEvents(
       [
-        { what: 'menu price history', ledgerItemIds: ['avg_ticket'], response: 'none' },
-        { what: 'store concentration', ledgerItemIds: [], response: 'refuse' },
+        { what: 'menu price history', ledgerItemIds: ['avg_ticket'], response: 'none', explicit: true },
+        { what: 'store concentration', ledgerItemIds: [], response: 'refuse', explicit: true },
       ],
       { candidateTurnIndex: 12, interviewerTurnIndex: 13, revealedIds: new Set(['bean_price_change']) },
     );
     expect(events).toEqual([
       {
         category: 'data_request', subtype: 'none', turnIndex: 12,
-        payload: { what: 'menu price history', ledgerItemIds: ['avg_ticket'], interviewerTurnIndex: 13, revealedByNow: false },
+        payload: { what: 'menu price history', ledgerItemIds: ['avg_ticket'], interviewerTurnIndex: 13, revealedByNow: false, explicit: true },
       },
       {
         category: 'data_request', subtype: 'refuse', turnIndex: 12,
-        payload: { what: 'store concentration', ledgerItemIds: [], interviewerTurnIndex: 13, revealedByNow: false },
+        payload: { what: 'store concentration', ledgerItemIds: [], interviewerTurnIndex: 13, revealedByNow: false, explicit: true },
       },
     ]);
   });
 
   it('revealedByNow only when every covered ledger item has been released', () => {
-    const request = [{ what: 'cost detail', ledgerItemIds: ['avg_ticket', 'bean_price_change'], response: 'release' as const }];
+    const request = [{ what: 'cost detail', ledgerItemIds: ['avg_ticket', 'bean_price_change'], response: 'release' as const, explicit: true }];
     const ctx = { candidateTurnIndex: 4, interviewerTurnIndex: 5 };
     expect(toDataRequestEvents(request, { ...ctx, revealedIds: new Set(['avg_ticket']) })[0].payload.revealedByNow).toBe(false);
     expect(toDataRequestEvents(request, { ...ctx, revealedIds: new Set(['avg_ticket', 'bean_price_change']) })[0].payload.revealedByNow).toBe(true);

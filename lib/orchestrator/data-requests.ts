@@ -34,6 +34,11 @@ export type DetectedDataRequest = {
   what: string;                  // short description of what was asked for
   ledgerItemIds: string[];       // closed-catalog matches — every ledger item the request covers; [] if none
   response: RequestResponse;     // how the very next interviewer turn handled it
+  // A direct ask (true) or a passing mention of data inside a plan or a
+  // clarifying question (false). Batch 6, Maya: "I'd check revenue first —
+  // price and cups" released the average ticket unasked. A mention gets an
+  // offer, never a release; only explicit asks count as requested data.
+  explicit: boolean;
 };
 
 export type DataRequestEvent = {
@@ -45,6 +50,7 @@ export type DataRequestEvent = {
     ledgerItemIds: string[];
     interviewerTurnIndex: number;
     revealedByNow: boolean; // every covered item released — deterministic, from revealed_data, not the model's say-so
+    explicit: boolean;
   };
 };
 
@@ -77,7 +83,8 @@ export function parseDataRequestResponse(raw: string, catalog: LedgerCatalogItem
     const response = (REQUEST_RESPONSES as readonly string[]).includes(e.response as string)
       ? (e.response as RequestResponse)
       : 'none'; // unanswered is the safe default: it can raise a caveat, never hide one
-    out.push({ what: e.what.trim(), ledgerItemIds, response });
+    // Absent = explicit: rows and responses from before the field existed.
+    out.push({ what: e.what.trim(), ledgerItemIds, response, explicit: e.explicit !== false });
   }
   return out;
 }
@@ -107,8 +114,8 @@ export function buildDataRequestPrompt(
 INTERVIEWER'S NEXT TURN:
 ${interviewerText}`;
   const shape = detectOnly
-    ? '{"requests":[{"what":"...","ledgerItemIds":["id", ...]}]}'
-    : '{"requests":[{"what":"...","ledgerItemIds":["id", ...],"response":"release|refuse|defer|clarify|none"}]}';
+    ? '{"requests":[{"what":"...","ledgerItemIds":["id", ...],"explicit":true|false}]}'
+    : '{"requests":[{"what":"...","ledgerItemIds":["id", ...],"explicit":true|false,"response":"release|refuse|defer|clarify|none"}]}';
 
   return `You are auditing one ${detectOnly ? 'candidate message' : 'exchange'} in a mock case interview. Identify every DATA REQUEST the candidate made${detectOnly ? '' : ', and how the interviewer\'s very next turn handled each one'}.
 
@@ -116,7 +123,8 @@ A data request is the candidate asking the interviewer to provide information ab
 
 For each request, give:
 - "what": a short description of the information asked for.
-- "ledgerItemIds": every id from the CASE DATA CATALOG below whose label covers part of what was asked for — a broad request ("what's inside COGS?") can cover several items. Empty array if nothing in the catalog covers it. Use only ids from the catalog.${responseSpec}
+- "ledgerItemIds": every id from the CASE DATA CATALOG below whose label covers part of what was asked for — a broad request ("what's inside COGS?") can cover several items. Empty array if nothing in the catalog covers it. Use only ids from the catalog.
+- "explicit": true when the candidate directly asks the interviewer for it — a question ("Do we have the cost breakdown?", "What happened to menu prices?", "Can I see the exhibit?") or a stated need addressed to the interviewer ("I'd like the COGS split", "I'd need to know whether prices changed", "the useful thing here would be a regional split"). false for a passing mention: data named as part of the candidate's own plan or structure ("I'd check revenue first — price and cups", "then I'd look at labor"), or a clarifying question about the case prompt's wording that a catalog item happens to touch ("is the 15% growth total or per year?").${responseSpec}
 
 CASE DATA CATALOG (id: label):
 ${catalogLines}
@@ -141,6 +149,7 @@ export function toDataRequestEvents(
       ledgerItemIds: r.ledgerItemIds,
       interviewerTurnIndex: ctx.interviewerTurnIndex,
       revealedByNow: r.ledgerItemIds.length > 0 && r.ledgerItemIds.every(id => ctx.revealedIds.has(id)),
+      explicit: r.explicit,
     },
   }));
 }
@@ -252,6 +261,14 @@ export function respondsToRequest(spokenText: string): boolean {
   return RESPONDED_CUE.test(spokenText);
 }
 
+export type SameTurnPlan = {
+  releaseIds: string[];     // explicit asks, stage reached
+  defer: boolean;           // explicit asks held for a later stage
+  offerIds: string[];       // passing mentions, stage reached — offered, not released
+  notYet: boolean;          // passing mentions of items whose stage isn't reached
+  refuseNotInCase: boolean; // explicit ask for data the case doesn't hold (fix #9)
+};
+
 export function planSameTurnResolution(params: {
   requests: DetectedDataRequest[];
   revealedIds: Set<string>;         // before and during this turn
@@ -259,19 +276,39 @@ export function planSameTurnResolution(params: {
   releaseWhenById: Map<string, Phase>;
   spokenText: string;
   cap?: number;
-}): { releaseIds: string[]; defer: boolean } {
+}): SameTurnPlan {
   const { requests, revealedIds, phase, releaseWhenById, spokenText, cap = 2 } = params;
-  const none = { releaseIds: [], defer: false };
+  const none: SameTurnPlan = { releaseIds: [], defer: false, offerIds: [], notYet: false, refuseNotInCase: false };
   if (respondsToRequest(spokenText)) return none;
 
-  const open = [...new Set(requests.flatMap(r => r.ledgerItemIds))]
-    .filter(id => releaseWhenById.has(id) && !revealedIds.has(id));
-  if (open.length === 0) return none;
-
   const reached = (id: string) => PHASES.indexOf(phase) >= PHASES.indexOf(releaseWhenById.get(id)!);
-  const releasable = open.filter(reached);
-  const releaseIds = releasable.slice(0, cap);
-  return { releaseIds, defer: releaseIds.length < open.length };
+  const openIds = (rs: DetectedDataRequest[]) => [...new Set(rs.flatMap(r => r.ledgerItemIds))]
+    .filter(id => releaseWhenById.has(id) && !revealedIds.has(id));
+
+  const asks = requests.filter(r => r.explicit);
+  const open = openIds(asks);
+  const releaseIds = open.filter(reached).slice(0, cap);
+  const defer = releaseIds.length < open.length;
+
+  // Batch 6, Maya: "I'd check revenue first — price and cups" released the
+  // average ticket unasked. A passing mention is offered, or met with "not at
+  // this point" — never released.
+  const asked = new Set(open);
+  const mentioned = openIds(requests.filter(r => !r.explicit)).filter(id => !asked.has(id));
+  const offerIds = mentioned.filter(reached);
+  const notYet = !defer && mentioned.some(id => !reached(id));
+
+  const refuseNotInCase = asks.some(r => r.ledgerItemIds.length === 0);
+  return { releaseIds, defer, offerIds, notYet, refuseNotInCase };
+}
+
+// The candidate's reply to an offer ("There's data on that if you'd like to
+// see it."): a yes releases what was offered; anything else drops the offer.
+const AFFIRMATIVE = /^\s*(?:yes|yeah|yep|yup|sure|please|ok(?:ay)?,? (?:yes|sure|please)|that would (?:help|be (?:great|helpful|useful))|i'?d (?:like|love) (?:that|it|to see (?:it|that|them))|i would(?:,| like))\b/i;
+
+export function acceptedOffer(params: { candidateText: string; offeredIds: string[]; revealedIds: Set<string> }): string[] {
+  if (params.offeredIds.length === 0 || !AFFIRMATIVE.test(params.candidateText)) return [];
+  return params.offeredIds.filter(id => !params.revealedIds.has(id));
 }
 
 // ── Deterministic reminder release (layer 3, round-3 fix) ──────────────────

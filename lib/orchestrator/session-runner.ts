@@ -3,7 +3,7 @@ import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } fr
 import { and, eq } from 'drizzle-orm';
 import {
   classifyDataRequests, formatOpenRequestsHint, planForcedReleases, composeForcedReleaseTurn, dropTrailingQuestions,
-  planSameTurnResolution, insertBeforeTrailingQuestions, planStaleReleases,
+  planSameTurnResolution, insertBeforeTrailingQuestions, planStaleReleases, acceptedOffer,
 } from './data-requests';
 import { logDataRequestClassification } from './data-request-log';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
@@ -39,7 +39,7 @@ import { runInterviewerTurn } from '@/lib/agent/interviewer';
 import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import {
   TIME_WARNING_SCRIPTS, GRACE_ASK_SCRIPTS, CLOSE_SCRIPTS, REVEAL_REFUSAL_SCRIPTS, EXHIBIT_REFUSAL_SCRIPTS, FORCED_RELEASE_LEADINS,
-  SAME_TURN_RELEASE_LEADINS, SAME_TURN_DEFER_SCRIPTS,
+  SAME_TURN_RELEASE_LEADINS, SAME_TURN_DEFER_SCRIPTS, SAME_TURN_OFFER_SCRIPTS, SAME_TURN_NOT_YET_SCRIPTS, NOT_IN_CASE_REFUSAL_SCRIPTS,
   pickScript, wordlessExhibitLine, alreadySignaledTimeOrRec, asksForRecommendation,
   CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE, SILENCE_PAUSE_EXPIRED,
 } from '@/lib/agent/prompts/scripts';
@@ -689,13 +689,27 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   let finalReleaseCount = 0;
   if (ended) {
     const detected = await detectedRequestsPromise;
-    const ids = [...new Set((detected ?? []).flatMap(r => r.ledgerItemIds))].filter(id => canReveal(ledger, id)).slice(0, 2);
+    const ids = [...new Set((detected ?? []).filter(r => r.explicit).flatMap(r => r.ledgerItemIds))].filter(id => canReveal(ledger, id)).slice(0, 2);
     for (const id of ids) { reveal(ledger, id); newReveals.push(id); }
     finalReleaseCount = ids.length;
     checks.record('final_message_release', ids.length > 0, 'request in the final message answered before the goodbye', {
       itemIds: ids, classifierFailed: detected === null,
     });
   }
+  // An offer from last turn ("There's data on that if you'd like to see it.")
+  // answered with a yes: release what was offered, unless the draft did.
+  const accepted = ended ? [] : acceptedOffer({
+    candidateText,
+    offeredIds: (flags.pendingOffer as string[] | undefined) ?? [],
+    revealedIds: new Set(Object.keys(revealedValues(ledger))),
+  }).filter(id => canReveal(ledger, id));
+  checks.record('offer_accepted', accepted.length > 0, 'offered data released on a yes', { itemIds: accepted });
+  if (accepted.length > 0) {
+    const values = accepted.map(id => { newReveals.push(id); return reveal(ledger, id); });
+    spokenText = insertBeforeTrailingQuestions(spokenText, values.join(' '));
+  }
+  let offeredThisTurn: string[] = [];
+
   if (ended || warningDue || modelAsked) {
     checks.skip('same_turn_resolution', ended ? 'closing turn' : 'recommendation-ask turn (forced release handles it)');
   } else {
@@ -715,16 +729,23 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
         newReveals.push(id);
         return reveal(ledger, id);
       });
+      offeredThisTurn = plan.offerIds;
       const parts = [
         ...(values.length > 0 ? [pickScript(SAME_TURN_RELEASE_LEADINS, sessionId), ...values] : []),
         ...(plan.defer ? [pickScript(SAME_TURN_DEFER_SCRIPTS, sessionId)] : []),
+        ...(plan.refuseNotInCase ? [pickScript(NOT_IN_CASE_REFUSAL_SCRIPTS, sessionId)] : []),
+        ...(plan.offerIds.length > 0 ? [pickScript(SAME_TURN_OFFER_SCRIPTS, sessionId)] : []),
+        ...(plan.notYet ? [pickScript(SAME_TURN_NOT_YET_SCRIPTS, sessionId)] : []),
       ];
       checks.record('same_turn_resolution', parts.length > 0, 'ignored request resolved before send', {
-        detected: detected.map(r => r.ledgerItemIds), released: plan.releaseIds, deferred: plan.defer,
+        detected: detected.map(r => ({ ids: r.ledgerItemIds, explicit: r.explicit })), released: plan.releaseIds, deferred: plan.defer,
+        offered: plan.offerIds, notYet: plan.notYet, refusedNotInCase: plan.refuseNotInCase,
       });
       if (parts.length > 0) {
         spokenText = insertBeforeTrailingQuestions(spokenText, parts.join(' '));
-        console.warn('[runner] same-turn data request resolution:', JSON.stringify({ released: plan.releaseIds, deferred: plan.defer, phase }));
+        console.warn('[runner] same-turn data request resolution:', JSON.stringify({
+          released: plan.releaseIds, deferred: plan.defer, offered: plan.offerIds, notYet: plan.notYet, refusedNotInCase: plan.refuseNotInCase, phase,
+        }));
         await logEvent('data_same_turn_resolved', { itemIds: plan.releaseIds, deferred: plan.defer, phase: currentPhase },
           { sessionId, userId: session.userId });
       }
@@ -1045,6 +1066,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
         lastVerified: verifiedNow,
         explainProbed: [...explainProbedBefore, ...probeGuard.explainProbed],
         loadShedLogged: Boolean(flags.loadShedLogged) || loadShedLoggedThisTurn,
+        pendingOffer: offeredThisTurn,
       },
     })
     .where(eq(sessions.id, sessionId));

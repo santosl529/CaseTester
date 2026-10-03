@@ -40,8 +40,12 @@ export function summarizeDataRequests(
 
   for (const r of byTurn) {
     if (r.subtype === 'classified') continue; // marker: exchange was checked, not a request
-    const p = r.payloadJsonb as { what?: unknown; ledgerItemIds?: unknown; ledgerItemId?: unknown } | null;
+    const p = r.payloadJsonb as { what?: unknown; ledgerItemIds?: unknown; ledgerItemId?: unknown; explicit?: unknown } | null;
     if (!p || typeof p.what !== 'string' || !p.what.trim()) continue;
+    // A passing mention isn't a request (data-requests.ts): it never becomes a
+    // gap, a forced or stale release, or a caveat. Rows from before the field
+    // existed count as explicit.
+    if (p.explicit === false) continue;
     const what = p.what.trim();
     // One request can cover several ledger items (a "what's inside COGS?"
     // ask); rows logged before that change carry a single ledgerItemId.

@@ -94,3 +94,17 @@ describe('summarizeDataRequests (Rule 11 data-coverage caveat)', () => {
     expect(out.requestedUnanswered.map(r => r.turnIndex)).toEqual([3, 8]);
   });
 });
+
+// A passing mention ("I'd check revenue first — price and cups") is not a
+// request: it never becomes "requested, never provided", so it can't trigger
+// a forced or stale release or a coverage caveat.
+describe('passing mentions are not requests', () => {
+  it('skips rows marked explicit: false; rows without the field still count', () => {
+    const mention = { ...row('none', 3, 'price and cups', 'avg_ticket'), payloadJsonb: { what: 'price and cups', ledgerItemIds: ['avg_ticket'], explicit: false } };
+    const out = summarizeDataRequests([mention, row('none', 5, 'below-the-line items', null)], catalog, []);
+    expect(out.requestedUnanswered).toEqual([]);
+    expect(out.requestedNotInCase.map(r => r.what)).toEqual(['below-the-line items']);
+    const mentionNotInCase = { ...row('none', 7, 'debt', null), payloadJsonb: { what: 'debt', ledgerItemIds: [], explicit: false } };
+    expect(summarizeDataRequests([mentionNotInCase], catalog, []).requestedNotInCase).toEqual([]);
+  });
+});

@@ -18,28 +18,31 @@ const releaseWhenById = new Map<string, Phase>([
   ['avg_ticket', 'ANALYSIS'],
   ['bean_share_of_cogs', 'EXHIBIT'],
 ]);
-const req = (ids: string[], what = 'x'): DetectedDataRequest => ({ what, ledgerItemIds: ids, response: 'none' });
+const req = (ids: string[], what = 'x', explicit = true): DetectedDataRequest => ({ what, ledgerItemIds: ids, response: 'none', explicit });
 
 describe('planSameTurnResolution', () => {
   const base = { revealedIds: new Set<string>(), phase: 'ANALYSIS' as Phase, releaseWhenById, spokenText: 'Walk me through your next step.' };
 
   it('releases a requested item the draft ignored once its stage is reached', () => {
     expect(planSameTurnResolution({ ...base, requests: [req(['menu_price_change'])] }))
-      .toEqual({ releaseIds: ['menu_price_change'], defer: false });
+      .toMatchObject({ releaseIds: ['menu_price_change'], defer: false });
   });
 
   it('defers out loud when the item is held but its stage is not reached yet', () => {
     expect(planSameTurnResolution({ ...base, phase: 'CLARIFY', requests: [req(['cogs_pct'])] }))
-      .toEqual({ releaseIds: [], defer: true });
+      .toMatchObject({ releaseIds: [], defer: true });
   });
 
   it('does nothing for items already revealed, before or during this turn', () => {
     const plan = planSameTurnResolution({ ...base, revealedIds: new Set(['menu_price_change']), requests: [req(['menu_price_change'])] });
-    expect(plan).toEqual({ releaseIds: [], defer: false });
+    expect(plan).toMatchObject({ releaseIds: [], defer: false });
   });
 
-  it('does nothing for requests the ledger does not hold (refusing those is the model\'s call)', () => {
-    expect(planSameTurnResolution({ ...base, requests: [req([])] })).toEqual({ releaseIds: [], defer: false });
+  // Fix #9 (batch 5–6: ~1–5 per batch ignored with no refusal): an explicit
+  // ask for data the case doesn't hold gets a scripted refusal.
+  it('refuses an explicit ask for data the ledger does not hold', () => {
+    expect(planSameTurnResolution({ ...base, requests: [req([])] }))
+      .toEqual({ releaseIds: [], defer: false, offerIds: [], notYet: false, refuseNotInCase: true });
   });
 
   it.each([
@@ -48,8 +51,8 @@ describe('planSameTurnResolution', () => {
     "I don't have that level of detail.",
     'Which cut do you mean — price per cup or average ticket?',
   ])('leaves a turn alone that already answered the request: %s', spokenText => {
-    expect(planSameTurnResolution({ ...base, spokenText, requests: [req(['menu_price_change'])] }))
-      .toEqual({ releaseIds: [], defer: false });
+    expect(planSameTurnResolution({ ...base, spokenText, requests: [req(['menu_price_change']), req(['avg_ticket'], 'x', false), req([])] }))
+      .toEqual({ releaseIds: [], defer: false, offerIds: [], notYet: false, refuseNotInCase: false });
   });
 
   it('releases at most two items and defers the rest, deduped across requests', () => {
@@ -58,12 +61,12 @@ describe('planSameTurnResolution', () => {
       phase: 'EXHIBIT',
       requests: [req(['menu_price_change', 'avg_ticket']), req(['avg_ticket', 'bean_share_of_cogs'])],
     });
-    expect(plan).toEqual({ releaseIds: ['menu_price_change', 'avg_ticket'], defer: true });
+    expect(plan).toMatchObject({ releaseIds: ['menu_price_change', 'avg_ticket'], defer: true });
   });
 
   it('mixes release and defer in one turn when stages differ', () => {
     const plan = planSameTurnResolution({ ...base, requests: [req(['stores_count', 'bean_share_of_cogs'])] });
-    expect(plan).toEqual({ releaseIds: ['stores_count'], defer: true });
+    expect(plan).toMatchObject({ releaseIds: ['stores_count'], defer: true });
   });
 });
 
@@ -119,5 +122,47 @@ describe('respondsToRequest — deferrals in the draft', async () => {
   }
   it('does not see a plain probe as a response', () => {
     expect(respondsToRequest('Which of your three buckets would you test first, and why?')).toBe(false);
+  });
+});
+
+// Batch 6, Maya: "I'd check revenue first — price and cups" released the
+// average ticket unasked. A passing mention of data gets an offer if its stage
+// is reached, or "not at this point" if not — never a release.
+describe('planSameTurnResolution — passing mentions', () => {
+  const base = { revealedIds: new Set<string>(), phase: 'ANALYSIS' as Phase, releaseWhenById, spokenText: 'Walk me through your next step.' };
+  it('offers a mentioned item whose stage is reached, releasing nothing', () => {
+    expect(planSameTurnResolution({ ...base, requests: [req(['avg_ticket'], 'price and cups', false)] }))
+      .toEqual({ releaseIds: [], defer: false, offerIds: ['avg_ticket'], notYet: false, refuseNotInCase: false });
+  });
+  it('says "not at this point" for a mentioned item whose stage is not reached', () => {
+    expect(planSameTurnResolution({ ...base, phase: 'CLARIFY', requests: [req(['cogs_pct'], 'costs', false)] }))
+      .toEqual({ releaseIds: [], defer: false, offerIds: [], notYet: true, refuseNotInCase: false });
+  });
+  it('a mention adds nothing next to an explicit ask for the same item, or an item already out', () => {
+    expect(planSameTurnResolution({ ...base, requests: [req(['avg_ticket']), req(['avg_ticket'], 'ticket', false)] }))
+      .toEqual({ releaseIds: ['avg_ticket'], defer: false, offerIds: [], notYet: false, refuseNotInCase: false });
+    expect(planSameTurnResolution({ ...base, revealedIds: new Set(['avg_ticket']), requests: [req(['avg_ticket'], 'ticket', false)] }))
+      .toEqual({ releaseIds: [], defer: false, offerIds: [], notYet: false, refuseNotInCase: false });
+  });
+  it('a mention of data the case does not hold is not refused', () => {
+    expect(planSameTurnResolution({ ...base, requests: [req([], 'below-the-line items', false)] }))
+      .toEqual({ releaseIds: [], defer: false, offerIds: [], notYet: false, refuseNotInCase: false });
+  });
+  it('an explicit deferral covers a not-yet mention — no second "not yet"', () => {
+    expect(planSameTurnResolution({ ...base, phase: 'CLARIFY', requests: [req(['cogs_pct']), req(['menu_price_change'], 'prices', false)] }))
+      .toEqual({ releaseIds: [], defer: true, offerIds: [], notYet: false, refuseNotInCase: false });
+  });
+});
+
+describe('acceptedOffer', async () => {
+  const { acceptedOffer } = await import('@/lib/orchestrator/data-requests');
+  it.each(['Yes please.', 'Yeah, that would help.', 'Sure — and what about labor?', "I'd like to see it."])('a yes releases the offered items: %s', text => {
+    expect(acceptedOffer({ candidateText: text, offeredIds: ['avg_ticket'], revealedIds: new Set() })).toEqual(['avg_ticket']);
+  });
+  it.each(["No, I'm fine.", 'Not right now, let me finish the structure.', 'So costs went up 16 points, yes, and labor stayed flat.'])('anything else drops the offer: %s', text => {
+    expect(acceptedOffer({ candidateText: text, offeredIds: ['avg_ticket'], revealedIds: new Set() })).toEqual([]);
+  });
+  it('skips offered items released in the meantime', () => {
+    expect(acceptedOffer({ candidateText: 'Yes.', offeredIds: ['avg_ticket', 'cogs_pct'], revealedIds: new Set(['cogs_pct']) })).toEqual(['avg_ticket']);
   });
 });
