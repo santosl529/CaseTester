@@ -240,8 +240,10 @@ export function planForcedReleases(
 // deferred out loud. No regenerated Opus turn, so no added latency beyond the
 // Haiku call when it outlasts the interviewer's.
 
+// Batch 6 (Lena): "Hold both data requests for a moment" was missed and the
+// scripted deferral was stacked on top of the draft's own.
 const RESPONDED_CUE =
-  /\b(come back to|get to (that|it)|circle back|hold (that|off|on)|in a (moment|minute|bit)|shortly|don'?t have|not available|isn'?t available|isn'?t something I have|no data on|which (cut|metric|breakdown)|do you mean)\b/i;
+  /\b(come back to|get to (that|it)|circle back|hold (that|this|those|these|both|them|off|on)|park (that|this|those|the)|(in|for) a (moment|minute|bit|second)|shortly|don'?t have|not available|isn'?t available|isn'?t something I have|no data on|which (cut|metric|breakdown)|do you mean)\b/i;
 
 // The draft already released, refused, deferred, or asked which cut — the
 // model handled it; leave the turn alone. Coarse on purpose: a false cue only

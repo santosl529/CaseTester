@@ -102,3 +102,22 @@ describe('buildDataRequestPrompt, detection only (no interviewer turn yet)', () 
     expect(prompt).not.toContain('"release"');
   });
 });
+
+// Batch 6, Lena: the draft deferred in its own words and the scripted
+// deferral was added on top — "Hold both data requests for a moment. … I'll
+// come to that data shortly."
+describe('respondsToRequest — deferrals in the draft', async () => {
+  const { respondsToRequest } = await import('@/lib/orchestrator/data-requests');
+  const deferrals = [
+    "Hold both data requests for a moment. You've split the problem into revenue and costs. Which branch do you prioritize first, and why?",
+    'Hold those for now — first, which bucket would you test first?',
+    "Let's park the data for a moment. Walk me through the structure.",
+    "We'll come back to the cost breakdown. Which bucket first?",
+  ];
+  for (const text of deferrals) {
+    it(`sees: ${text.slice(0, 50)}…`, () => expect(respondsToRequest(text)).toBe(true));
+  }
+  it('does not see a plain probe as a response', () => {
+    expect(respondsToRequest('Which of your three buckets would you test first, and why?')).toBe(false);
+  });
+});
