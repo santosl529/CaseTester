@@ -46,3 +46,14 @@ describe('tool narration (batch 4, Sonnet interviewer)', () => {
     expect(r.cleaned).toBe('Average revenue per store is $2.4M a year.');
   });
 });
+
+describe('copied check-in (batch 4, Sonnet interviewer)', () => {
+  it("removes a model-written 'Still with me?' and its restatement", async () => {
+    const { stripCopiedCheckIn } = await import('@/lib/orchestrator/audit');
+    expect(stripCopiedCheckIn("Walk me through how you got to the revenue needed for a 24% margin.\n\nStill with me? Take your time. The question on the table: walk me through that calculation.").text)
+      .toBe('Walk me through how you got to the revenue needed for a 24% margin.');
+    expect(stripCopiedCheckIn('Understood. Beyond raising menu prices, what else could Brew & Bean do? Still with me? Take your time.').text)
+      .toBe('Understood. Beyond raising menu prices, what else could Brew & Bean do?');
+    expect(stripCopiedCheckIn('What drives the gap?')).toEqual({ text: 'What drives the gap?', stripped: false });
+  });
+});

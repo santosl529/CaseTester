@@ -12,7 +12,7 @@ import {
   createLedger, canReveal, reveal, resolveItemId, revealedValues, unrevealedItems,
   resolveItemFromText, resolveItemsFromText, handoffSentences, markExhibitReveals,
 } from './data-ledger';
-import { auditTurn, auditTurnStyle, stripMetaLeak, stripFabricatedTurn, rewriteSystemLanguage } from './audit';
+import { auditTurn, auditTurnStyle, stripMetaLeak, stripFabricatedTurn, rewriteSystemLanguage, stripCopiedCheckIn } from './audit';
 import { enforceNumericProvenance, changeFigures } from './numeric-provenance';
 import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts, checkVerifiedForTurn, formatVerifiedHint, type RecomputeAttempts, type VerifiedFigure } from './recompute';
 import { withholdProbesOnVerified } from './probe-guard';
@@ -408,8 +408,11 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
       conductRedirectHint,
     },
   });
-  const distress = await distressPromise;
+  // Interviewer latency is the model call alone; the wait on the parallel
+  // distress check is logged apart (batch 4 conflated them).
   const modelLatencyMs = Date.now() - modelCallStart;
+  const distress = await distressPromise;
+  const distressWaitMs = Date.now() - modelCallStart - modelLatencyMs;
   if (repliedToDistressOffer) checks.skip('conduct_model', 'reply to a declined pause offer');
   else if (distress === null) checks.skip('conduct_model', 'classifier failed — regex floor stands');
   else checks.record('conduct_model', isDistressVerdict(distress), `C5 by model: ${distress.label}`, { ...distress });
@@ -503,6 +506,10 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     console.warn('[runner] stripped meta-leak from interviewer turn:', JSON.stringify(metaLeak.strippedSentences));
     spokenText = metaLeak.cleaned;
   }
+
+  const copiedCheckIn = stripCopiedCheckIn(spokenText);
+  checks.record('copied_check_in', copiedCheckIn.stripped, 'model-written check-in removed');
+  if (copiedCheckIn.stripped) spokenText = copiedCheckIn.text || 'Go on.';
 
   const systemLanguage = rewriteSystemLanguage(spokenText);
   checks.record('system_language', systemLanguage.rewrites.length > 0, 'system vocabulary rewritten', { rewrites: systemLanguage.rewrites });
@@ -930,7 +937,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
 
   // PRD §13: per-turn latency + token usage (feeds $/completed-case, computed
   // at analysis time from tokens — pricing lives out-of-band).
-  await logEvent('turn_latency', { turnIndex: nextTurnIndex + 1, latencyMs: modelLatencyMs, phase: currentPhase },
+  await logEvent('turn_latency', { turnIndex: nextTurnIndex + 1, latencyMs: modelLatencyMs, distressWaitMs, phase: currentPhase },
     { sessionId, userId: session.userId });
   if (turnUsage.apiCalls > 0) {
     await logEvent('llm_usage', { component: 'interviewer', ...turnUsage }, { sessionId, userId: session.userId });

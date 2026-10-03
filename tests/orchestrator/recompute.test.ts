@@ -57,6 +57,12 @@ describe('checkRecomputeForTurn', () => {
       expect(flags[0].span).toContain('per store');
     });
 
+    it('never reads target-margin math or a revenue base as the margin impact (batch 4: Tobias, Derek)', () => {
+      expect(checkRecomputeForTurn('to get back to a 24% margin I need revenue of 451 ÷ 0.76 = $594M', prof, ALL)).toEqual([]);
+      expect(checkRecomputeForTurn('Now I want a 24% margin with that same $451.2M of cost', prof, ALL)).toEqual([]);
+      expect(checkRecomputeForTurn('$48M on a $480M base is 10 points of margin', prof, ALL)).toEqual([]);
+    });
+
     it('never flags a step whose inputs are unrevealed (Omar: revenue never released)', () => {
       expect(checkRecomputeForTurn('So revenue per store is about $0.5 million.', prof, ['stores_count'])).toEqual([]);
     });

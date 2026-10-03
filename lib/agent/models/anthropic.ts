@@ -131,40 +131,7 @@ export class AnthropicInterviewerModel implements InterviewerModel {
       }
     }
 
-    const actions: Action[] = [];
-
-    for (const block of response.content) {
-      if (block.type === 'text' && block.text.trim()) {
-        // LLM produced raw text — treat as speak (shouldn't happen ideally)
-        actions.push({ type: 'speak', text: block.text.trim() });
-      } else if (block.type === 'tool_use') {
-        switch (block.name) {
-          case 'speak': {
-            const text = (block.input as { text?: unknown }).text;
-            if (typeof text === 'string' && text.trim()) actions.push({ type: 'speak', text });
-            break;
-          }
-          case 'reveal_data': {
-            const itemId = extractToolId(block.input, 'item_id');
-            if (itemId) actions.push({ type: 'reveal_data', itemId });
-            else console.warn('[interviewer-model] reveal_data with no resolvable id:', JSON.stringify(block.input));
-            break;
-          }
-          case 'show_exhibit': {
-            const exhibitId = extractToolId(block.input, 'exhibit_id');
-            if (exhibitId) actions.push({ type: 'show_exhibit', exhibitId });
-            else console.warn('[interviewer-model] show_exhibit with no resolvable id:', JSON.stringify(block.input));
-            break;
-          }
-          case 'advance_phase':
-            actions.push({ type: 'advance_phase' });
-            break;
-          case 'end_case':
-            actions.push({ type: 'end_case' });
-            break;
-        }
-      }
-    }
+    const actions = actionsFromContent(response.content);
 
     // Always ensure at least a speak action
     if (actions.length === 0) {
@@ -173,4 +140,53 @@ export class AnthropicInterviewerModel implements InterviewerModel {
 
     return actions;
   }
+}
+
+type ContentBlock = { type: string; text?: string; name?: string; input?: unknown };
+
+// Model output → orchestrator actions. Batch 4 (Sonnet 5.5 interviewer):
+// alongside its tool calls the model wrote its reasoning as plain text — "The
+// candidate is asking about menu price changes, which is a direct data item."
+// — and plain text used to be spoken. When a turn uses tools, the spoken words
+// come only from `speak`; plain text is narration and is dropped. A turn with
+// no tool calls at all is still spoken (the model answered in plain text).
+export function actionsFromContent(content: ContentBlock[]): Action[] {
+  const usesTools = content.some(b => b.type === 'tool_use');
+  const actions: Action[] = [];
+  for (const block of content) {
+    if (block.type === 'text' && block.text?.trim()) {
+      if (usesTools) {
+        console.warn('[interviewer-model] dropped narration outside speak:', JSON.stringify(block.text.trim().slice(0, 200)));
+        continue;
+      }
+      actions.push({ type: 'speak', text: block.text.trim() });
+    } else if (block.type === 'tool_use') {
+      switch (block.name) {
+        case 'speak': {
+          const text = (block.input as { text?: unknown }).text;
+          if (typeof text === 'string' && text.trim()) actions.push({ type: 'speak', text });
+          break;
+        }
+        case 'reveal_data': {
+          const itemId = extractToolId(block.input, 'item_id');
+          if (itemId) actions.push({ type: 'reveal_data', itemId });
+          else console.warn('[interviewer-model] reveal_data with no resolvable id:', JSON.stringify(block.input));
+          break;
+        }
+        case 'show_exhibit': {
+          const exhibitId = extractToolId(block.input, 'exhibit_id');
+          if (exhibitId) actions.push({ type: 'show_exhibit', exhibitId });
+          else console.warn('[interviewer-model] show_exhibit with no resolvable id:', JSON.stringify(block.input));
+          break;
+        }
+        case 'advance_phase':
+          actions.push({ type: 'advance_phase' });
+          break;
+        case 'end_case':
+          actions.push({ type: 'end_case' });
+          break;
+      }
+    }
+  }
+  return actions;
 }

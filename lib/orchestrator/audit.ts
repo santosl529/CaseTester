@@ -91,6 +91,17 @@ function isMetaSentence(sentence: string): boolean {
 
 export type MetaLeakResult = { cleaned: string; strippedSentences: string[] };
 
+// The silence check-in is scripted by the orchestrator (silence.ts), never
+// the model's to say. Batch 4: the Sonnet interviewer copied it from history
+// into its own turns ("…walk me through that. Still with me? Take your time.
+// The question on the table: …") right after asking, with no silence at all.
+const COPIED_CHECK_IN = /\s*Still with me\?(?:\s*Take your time\.)?(?:\s*The question on the table:[^?.!]*[?.!])?/gi;
+
+export function stripCopiedCheckIn(spokenText: string): { text: string; stripped: boolean } {
+  const text = spokenText.replace(COPIED_CHECK_IN, '').trim();
+  return { text, stripped: text !== spokenText.trim() };
+}
+
 // Round-3 fix 5: system vocabulary in an otherwise valid answer. Ines
 // (batch 3, 153135fc) asked about strategic changes and heard "I don't have
 // anything flagged on that." Stripping the sentence would leave her question
