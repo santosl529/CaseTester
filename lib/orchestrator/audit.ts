@@ -85,6 +85,33 @@ function isMetaSentence(sentence: string): boolean {
 
 export type MetaLeakResult = { cleaned: string; strippedSentences: string[] };
 
+// Round-3 fix 5: system vocabulary in an otherwise valid answer. Ines
+// (batch 3, 153135fc) asked about strategic changes and heard "I don't have
+// anything flagged on that." Stripping the sentence would leave her question
+// unanswered, so the phrase is rewritten into an interviewer's words. Only
+// the interviewer's OWN system language: "you flagged menu prices" (the
+// candidate flagging something) is ordinary speech and untouched.
+const SYSTEM_LANGUAGE: [RegExp, string][] = [
+  [/\b(?:I )?(?:don'?t|do not) have anything flagged(?: (?:on|about|for) (?:that|this|it))?/gi, "That's not in the information I have"],
+  [/\b(?:there'?s |there is )?nothing (?:is )?flagged(?: (?:on|about|for) (?:that|this|it))?/gi, "That's not in the information I have"],
+  [/\b(?:in|from) (?:my|the) (?:notes|ledger|case file|system|data list)\b/gi, 'in the information I have'],
+  [/\bthe (?:ledger|system) (shows|says|has)\b/gi, 'the data $1'],
+];
+
+export function rewriteSystemLanguage(spokenText: string): { text: string; rewrites: string[] } {
+  const rewrites: string[] = [];
+  let text = spokenText;
+  for (const [re, replacement] of SYSTEM_LANGUAGE) {
+    text = text.replace(re, (m, ...groups) => {
+      rewrites.push(m);
+      const out = replacement.replace('$1', typeof groups[0] === 'string' ? groups[0] : '');
+      // Keep a sentence-initial capital ("The ledger shows" → "The data shows").
+      return /^[A-Z]/.test(m) ? out.charAt(0).toUpperCase() + out.slice(1) : out;
+    });
+  }
+  return { text, rewrites };
+}
+
 export function stripMetaLeak(spokenText: string): MetaLeakResult {
   const sentences = spokenText.split(/(?<=[.?!])\s+/).filter(Boolean);
   const kept: string[] = [];

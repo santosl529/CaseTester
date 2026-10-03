@@ -12,7 +12,7 @@ import {
   createLedger, canReveal, reveal, resolveItemId, revealedValues, unrevealedItems,
   resolveItemFromText, resolveItemsFromText, handoffSentences, markExhibitReveals,
 } from './data-ledger';
-import { auditTurn, auditTurnStyle, stripMetaLeak, stripFabricatedTurn } from './audit';
+import { auditTurn, auditTurnStyle, stripMetaLeak, stripFabricatedTurn, rewriteSystemLanguage } from './audit';
 import { enforceNumericProvenance, changeFigures } from './numeric-provenance';
 import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts, checkVerifiedForTurn, formatVerifiedHint, type RecomputeAttempts, type VerifiedFigure } from './recompute';
 import { withholdProbesOnVerified } from './probe-guard';
@@ -502,6 +502,10 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     console.warn('[runner] stripped meta-leak from interviewer turn:', JSON.stringify(metaLeak.strippedSentences));
     spokenText = metaLeak.cleaned;
   }
+
+  const systemLanguage = rewriteSystemLanguage(spokenText);
+  checks.record('system_language', systemLanguage.rewrites.length > 0, 'system vocabulary rewritten', { rewrites: systemLanguage.rewrites });
+  spokenText = systemLanguage.text;
 
   // Rule 12: the words and the state must agree. A close spoken without
   // end_case ends the case if it may end, else is withdrawn (spoken-close.ts).
