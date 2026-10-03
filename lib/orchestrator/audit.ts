@@ -102,6 +102,9 @@ const META_RELEASE_REASONING = new RegExp([
   /\bitems I hold\b/.source,
   /\b(?:requests?|items?|lines?) (?:are|is) (?:now |all |too )*(?:earned|revealed)\b/.source,
   /\bso I'?ll (?:hold|ask)\b/.source,
+  // Batch 7 smoke (Claire): "Available items match: bean_share_of_cogs, …".
+  /\bitems? match(?:es)?\b/.source,
+  /\b[a-z]+_[a-z0-9_]+\b/.source,
 ].join('|'), 'i');
 
 // "I'll show the exhibit" / "I'll reveal the bean price data" — a tool call

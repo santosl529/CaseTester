@@ -116,3 +116,16 @@ describe('exhibit frame scripts', () => {
     }
   });
 });
+
+// Batch 7 smoke (Claire): internal ids spoken — "Available items match:
+// bean_share_of_cogs, bean_price_change, …". No spoken line has a snake_case
+// identifier in it.
+describe('internal identifiers', () => {
+  it('strips a sentence naming snake_case ids', () => {
+    expect(stripMetaLeak('Available items match: bean_share_of_cogs, bean_price_change, non_bean_input_change, menu_price_change. Coffee beans were 25% of COGS two years ago.').cleaned)
+      .toBe('Coffee beans were 25% of COGS two years ago.');
+  });
+  it('strips "items match" phrasing on its own', () => {
+    expect(stripMetaLeak('Available items match what you asked. What stands out?').cleaned).toBe('What stands out?');
+  });
+});
