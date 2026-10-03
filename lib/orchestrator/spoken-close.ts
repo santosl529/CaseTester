@@ -53,7 +53,7 @@ export const BRAINSTORM_ASK =
 const RISK_ASK =
   /\b(biggest risk|key risk|main risk|what could go wrong|what would change your mind|what would make you wrong|how would you (test|de-?risk)|risks? (to|of|with|in) (that|this|your) (recommendation|plan))\b/i;
 const REC_ASK =
-  /\b(bottom.?line recommendation|recommendation to the (ceo|client)|final recommendation|what'?s your recommendation|what would you (tell|recommend) (to )?the (ceo|client)|pull it together)\b/i;
+  /\b(bottom.?line recommendation|recommendation to the (ceo|client)|final recommendation|what(?:'?s| is) your recommendation|give me your recommendation|what would you (tell|recommend) (to )?the (ceo|client)|pull it together)\b/i;
 
 export function asksBrainstorm(text: string): boolean { return BRAINSTORM_ASK.test(text); }
 export function asksRisk(text: string): boolean { return RISK_ASK.test(text); }
@@ -91,6 +91,15 @@ export function stageGateOpen(s: StageAdministration): boolean {
 }
 
 // Rotating pools (Rule 7 anti-tell).
+// Rule 9: no ending without the recommendation ask. Coverage scores alone
+// opened the end in batch 5 (Lena, 12.8 min: the coverage agent read her
+// brainstorm as synthesis). Time-up and the stage gate are unchanged; a
+// recommendation the candidate volunteered counts as asked.
+export function endAllowed(p: { coverageMayEnd: boolean; timeUp: boolean; stageGate: boolean; stages: StageAdministration }): boolean {
+  if (p.timeUp || p.stageGate) return true;
+  return p.coverageMayEnd && (p.stages.recommendationAsked || p.stages.recommendationReceived);
+}
+
 export const BLOCKED_CLOSE_PROBES = {
   brainstorm: [
     "Beyond what we've discussed, what else could the client do?",

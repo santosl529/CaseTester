@@ -135,3 +135,31 @@ describe('resolveSpokenClose', () => {
     expect(isClosingTurn(r.spokenText)).toBe(false);
   });
 });
+
+// Batch 5, Lena: the coverage agent scored her brainstorm answer as synthesis
+// and the case ended at 12.8 min with no recommendation ask (Rule 9).
+describe('endAllowed', async () => {
+  const { endAllowed } = await import('@/lib/orchestrator/spoken-close');
+  const noAsk = { ...NONE_RUN, brainstormAsked: true };
+  it('coverage alone cannot end the case before the recommendation is asked', () => {
+    expect(endAllowed({ coverageMayEnd: true, timeUp: false, stageGate: false, stages: noAsk })).toBe(false);
+  });
+  it('coverage can end it once the recommendation was asked or given', () => {
+    expect(endAllowed({ coverageMayEnd: true, timeUp: false, stageGate: false, stages: { ...noAsk, recommendationAsked: true, recommendationAskCount: 1 } })).toBe(true);
+    expect(endAllowed({ coverageMayEnd: true, timeUp: false, stageGate: false, stages: { ...noAsk, recommendationReceived: true } })).toBe(true);
+  });
+  it('time-up and the stage gate still end it', () => {
+    expect(endAllowed({ coverageMayEnd: true, timeUp: true, stageGate: false, stages: noAsk })).toBe(true);
+    expect(endAllowed({ coverageMayEnd: false, timeUp: false, stageGate: true, stages: noAsk })).toBe(true);
+  });
+});
+
+describe('recommendation ask detection (batch 5–6 phrasings)', () => {
+  it('counts "what is your recommendation" and "give me your recommendation"', () => {
+    const s = stageAdministration([
+      'Okay. The CEO is waiting on your answer: what is your recommendation, and how would you sequence it?',
+      'Now give me your recommendation to the CEO: what should Brew & Bean do?',
+    ], false);
+    expect(s.recommendationAskCount).toBe(2);
+  });
+});

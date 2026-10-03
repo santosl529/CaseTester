@@ -33,7 +33,7 @@ import { classifyDistress, isDistressVerdict, type DistressVerdict } from './dis
 import { logEvent } from '@/lib/analytics';
 import { nextPhase, PHASES, TOTAL_CASE_MS, type Phase } from './state-machine';
 import { inferPhaseRepair } from './phase-repair';
-import { resolveSpokenClose, stageAdministration, stageGateOpen } from './spoken-close';
+import { resolveSpokenClose, stageAdministration, stageGateOpen, endAllowed } from './spoken-close';
 import { CheckLog, toCheckEventRows } from './check-log';
 import { runInterviewerTurn } from '@/lib/agent/interviewer';
 import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
@@ -334,10 +334,14 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     recommendationReceived,
   );
   const stageGate = stageGateOpen(stages) && elapsedMs >= COVERAGE_MIN_GUARD_MS;
-  const mayEnd = coverageMayEnd || stageGate;
+  const mayEnd = endAllowed({ coverageMayEnd, timeUp, stageGate, stages });
+  const awaitingRecAsk = coverageMayEnd && !mayEnd;
   const coverageSteer = stageGate && !coverageMayEnd
     ? 'COVERAGE: the recommendation is in and the brainstorm and risk probe have been run — you may close with end_case.'
-    : formatCoverageSteer(coverage);
+    : awaitingRecAsk
+      ? 'COVERAGE: every rubric area has been tested, but you have not asked for the recommendation yet — ask for it before closing.'
+      : formatCoverageSteer(coverage);
+  checks.record('end_rec_ask_gate', awaitingRecAsk, 'coverage complete but the recommendation was never asked — end held');
   checks.record('end_gate', stageGate && !coverageMayEnd, 'stage gate opened the end (coverage below threshold)', {
     coverageMayEnd, stageGate, ...stages,
   });
