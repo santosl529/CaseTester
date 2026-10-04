@@ -1144,6 +1144,21 @@ regenerating:
      REQUEST and force-resolved before the recommendation ask.
 3. The addition is placed before the question the draft ends on, so the turn
    still hands the floor back.
+4. **Explicit asks vs passing mentions (3 Oct, batch-6 fix).** The classifier
+   marks each request *explicit* (a direct ask: "Do we have…?", "I'd need
+   the…") or a *passing mention* (data named inside the candidate's own plan,
+   or a clarifying question about the prompt's wording). Batch 6: Maya's "I'd
+   check revenue first — price and cups" released the average ticket unasked.
+   Only explicit asks are released or deferred as above. A mention whose stage
+   is reached gets a scripted offer ("There's data on that if you'd like to
+   see it."), and a yes on the next turn releases it; a mention ahead of its
+   stage gets "I can't give you that data at this point." An explicit ask for
+   data the case doesn't hold, ignored by the draft, gets a scripted refusal
+   ("That's not in the information I have."). Mentions never count as
+   requested data for scoring, forced or stale releases, or the final-message
+   release. Measured on 73 hand-labelled batch 5–6 turns
+   (`tests/fixtures/data-request-labels.json`, `scripts/eval-data-requests.ts`):
+   69 correct, 1 false explicit, 2 missed explicit.
 
 Recommendation-ask turns skip this and keep the synchronous classification +
 force-release above.
@@ -1391,6 +1406,15 @@ candidate is a fidelity failure.
 supplying the recommendation is not — a rescued recommendation destroys the
 one dimension Rule 15 never sheds). If the candidate still cannot produce one,
 the session closes without a recommendation, logged as a candidate outcome.
+**Supplying (3 Oct, batch-6 fix)** means stating the recommendation or the
+lever to pull for the candidate — as a summary, a model first sentence, a
+"the direct lever is…", or something to repeat back — including under time
+pressure: Rule 15's directive rescue applies to the analysis, never the
+recommendation. Enforced in the prompt and by `synthesis-guard.ts`, which
+replaces such a turn in RECOMMENDATION/WRAP with a scripted narrowing
+question (3 hits in 886 replayed turns, all Maya: batches 2, 4, 6). Still
+open: whether a question naming the lever inside a hypothetical ("Say you
+tell the CEO to raise prices — what would you check?") counts as supplying.
 
 **Assisted vs. covered — scoring attribution:** hints, rescues, and a failed
 synthesis are candidate performance data, not coverage gaps. Rule 9's
@@ -2100,11 +2124,41 @@ Open items from the persona runs:
   ledger requests ignored 2 (Camila's new-stores question never answered,
   Ben's transactions 8 turns late) vs 0 — mostly the round-3 code, not the
   model; non-ledger requests ignored ~2 vs ~5; interviewer cost $0.54 vs
-  $0.23 per run; median turn 1.8s both. **Pending decision:** keep Sonnet
-  and make the speak tool the only spoken channel (never speak plain text;
-  one retry asking for a speak call, else a neutral line), then a ~4-persona
-  check batch; if narration persists, revert the interviewer to Opus 4.8
-  (`lib/models.ts`).
+  $0.23 per run; median turn 1.8s both. The "speak tool only" plan recorded
+  here was dropped on 3 Oct: Sonnet called `speak` in 8 of 135 batch-5 turns
+  and replies in plain text, so it would have meant a retry on ~94% of turns.
+- **Narration, root cause and decision (3 Oct).** With thinking off
+  (`between_tools`), Sonnet reasons about each release in plain text before
+  the tool call, almost always on reveal/exhibit turns ("They haven't asked
+  for it", "Revealing those items now"). The meta-leak strip missed it: its
+  patterns were written for Opus's phrasing, and an all-narration turn was
+  kept whole. Fixed: the strip runs on the model's own words before revealed
+  values are appended, covers the batch 4–5 phrasing (32 sentences stripped
+  across batches 1–5, no false positives), and an all-narration turn falls
+  back to a scripted line. Batch 6 tested adaptive thinking at low effort:
+  0 narration in the raw output, but thinking turns took a median 4.1s (all
+  turns: median 2.75s, p95 5.7s, vs 1.8s / 3.0s) — reverted to thinking off
+  with the strip. Raw model text is now logged so later batches can count
+  narration before the strip.
+- **Batch 6 (3 Oct; Maya, Tobias, Claire, Lena + Tyler, Marcus, Naomi,
+  Anika, Hugo, Caleb; thinking at low effort) — read by hand.** Data
+  integrity held: 0 leaks (built-in check and an independent number scan),
+  0 broken promises (7 deferrals, all delivered next turn), 0 ignored ledger
+  requests; Hugo's confirm-my-guess probes were declined without leaking.
+  Unrequested releases 2–3; non-ledger requests ignored 1 clear + 2 soft.
+  Anika's non-standard structure was not penalized. Problems found, all fixed
+  after the batch (untested live): the interviewer dictated Maya's
+  recommendation under time pressure (Rule 13 cap, above); a wordless
+  `end_case` blocked by the gate sent a bare "Go on." (now asks the missing
+  stage); the `cogs_pct` label said "(current)" though the value carries
+  both years — the cause of Hugo's "Starting-year comparison I'll hold" and
+  Destiny's batch-5 "not for two years ago" (labels the model sees now state
+  the periods covered); passing mentions released data (explicit vs mention,
+  Rule 11 above); "Hold both data requests" missed by the deferral cue. Also
+  fixed from batch 5: negated mentions ("didn't get to a recommendation")
+  no longer count as a recommendation; "we'll leave it there" / "the case is
+  complete" are goodbyes; coverage alone can no longer end the case before
+  the recommendation ask (Lena b5, 12.8 min).
 
 **Design principle (recorded from v3.2 review):** deterministic backstops keep
 being specified against the typical surface form of a risk (digit numerals,
