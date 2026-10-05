@@ -113,6 +113,7 @@ export async function streamTurnSegments(
   let firstSegmentMs: number | null = null;
   let actions: Action[] = [];
   let modelDoneAt: number | null = null;
+  const spokenKeys = new Set<string>();
 
   const send = async (seg: Segment) => {
     try {
@@ -136,6 +137,10 @@ export async function streamTurnSegments(
     if (bufferSwitch) return;
     if (p.kind === 'stop') { bufferSwitch = p.reason; return; }
     if (p.kind === 'sentence') {
+      // normalizeActions drops a repeated line; a repeat must not be spoken twice.
+      const key = p.text.toLowerCase().replace(/\s+/g, ' ');
+      if (spokenKeys.has(key)) { bufferSwitch = 'duplicate'; return; }
+      spokenKeys.add(key);
       const revealed = Object.values(revealedValues(ledger));
       const v = gateSentence(p.text, { ...base, allowedTexts: [...base.allowedTexts, ...revealed, ...changeFigures(revealed)] });
       if (!v.pass) { bufferSwitch = v.reason; return; }
@@ -160,12 +165,15 @@ export async function streamTurnSegments(
       // A regeneration happens only while nothing was delivered: drop the draft.
       queue = [];
       heldQuestions = [];
+      spokenKeys.clear();
       ledger.revealed = new Set(state.ledger.revealed);
       continue;
     }
     if (e.type === 'done') { actions = e.actions; modelDoneAt = Date.now(); break; }
     let p: Pending | null = null;
-    if (e.type === 'sentence') {
+    if (e.type === 'stop') {
+      p = { kind: 'stop', reason: e.reason };
+    } else if (e.type === 'sentence') {
       p = { kind: 'sentence', text: e.text };
     } else if (e.action.type === 'reveal_data') {
       // The approved wording, read from the copy; Settle books the real ledger.

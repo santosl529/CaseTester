@@ -8,7 +8,7 @@
 import type { RawAction } from './json-actions';
 
 export type ParsedEvent =
-  | { type: 'sentence'; text: string; sayIndex: number }
+  | { type: 'sentence'; text: string; sayIndex: number; actionIndex: number } // actionIndex: the action the sentence belongs to
   | { type: 'action'; raw: RawAction; index: number };
 
 const ACTION_DEPTH = 3; // { root  [ actions  { action
@@ -82,7 +82,7 @@ export class ActionStreamParser {
 
   private flush(out: ParsedEvent[]): void {
     const text = this.sentence.trim();
-    if (text) out.push({ type: 'sentence', text, sayIndex: this.sayIndex });
+    if (text) out.push({ type: 'sentence', text, sayIndex: this.sayIndex, actionIndex: this.actionIndex });
     this.sentence = '';
   }
 }

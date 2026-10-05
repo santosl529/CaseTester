@@ -37,6 +37,9 @@ export type TurnEvent =
   | { type: 'sentence'; text: string; sayIndex: number }
   | { type: 'action'; action: Exclude<Action, { type: 'speak' }> }
   | { type: 'restart'; reason: string }
+  // Nothing after this point may be delivered live (e.g. past the action cap);
+  // the final list in `done` decides the rest.
+  | { type: 'stop'; reason: string }
   | { type: 'done'; actions: Action[]; report: ValidationReport; retried: boolean; unparsed: boolean; refused: boolean };
 
 // For a tool call carrying an id (reveal_data.item_id, show_exhibit.exhibit_id):

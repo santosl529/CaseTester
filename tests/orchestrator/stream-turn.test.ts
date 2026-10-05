@@ -104,6 +104,29 @@ describe('streamTurnSegments', () => {
     expect(out).toMatchObject({ kind: 'done', bufferSwitch: 'meta_leak' });
   });
 
+  it('delivers nothing after a stop event (the action cap)', async () => {
+    const { got, sink } = collect();
+    const out = await run([
+      { type: 'sentence', text: 'Okay.', sayIndex: 0 },
+      { type: 'stop', reason: 'action_cap' },
+      { type: 'action', action: { type: 'reveal_data', itemId: 'stores_count' } },
+      done([]),
+    ], undefined, sink);
+    expect(got.map(s => s.text)).toEqual(['Okay.']);
+    expect(out).toMatchObject({ kind: 'done', bufferSwitch: 'action_cap', deliveredRevealIds: [] });
+  });
+
+  it('stops at a repeated sentence (normalizeActions drops duplicate lines)', async () => {
+    const { got, sink } = collect();
+    const out = await run([
+      { type: 'sentence', text: 'Go on.', sayIndex: 0 },
+      { type: 'sentence', text: 'Go on.', sayIndex: 1 },
+      done([]),
+    ], undefined, sink);
+    expect(got.map(s => s.text)).toEqual(['Go on.']);
+    expect(out).toMatchObject({ kind: 'done', bufferSwitch: 'duplicate' });
+  });
+
   it('delivers nothing on a buffered plan', async () => {
     const { got, sink } = collect();
     const out = await run([{ type: 'sentence', text: 'Okay.', sayIndex: 0 }, done([])],

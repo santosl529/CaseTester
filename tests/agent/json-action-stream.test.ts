@@ -18,13 +18,13 @@ function run(chunks: string[]): ParsedEvent[] {
 const chunked = (s: string, n: number) => Array.from({ length: Math.ceil(s.length / n) }, (_, i) => s.slice(i * n, i * n + n));
 
 const EXPECTED: ParsedEvent[] = [
-  { type: 'sentence', text: 'Okay.', sayIndex: 0 },
-  { type: 'sentence', text: 'COGS rose from 42% to 58.5% — that is $4.2M per store.', sayIndex: 0 },
+  { type: 'sentence', text: 'Okay.', sayIndex: 0, actionIndex: 0 },
+  { type: 'sentence', text: 'COGS rose from 42% to 58.5% — that is $4.2M per store.', sayIndex: 0, actionIndex: 0 },
   { type: 'action', raw: { type: 'say', text: 'Okay. COGS rose from 42% to 58.5% — that is $4.2M per store.' }, index: 0 },
   { type: 'action', raw: { type: 'reveal_data', item_id: 'bean_costs' }, index: 1 },
-  { type: 'sentence', text: 'He said "check it", e.g.', sayIndex: 1 },
-  { type: 'sentence', text: 'against labor.', sayIndex: 1 },
-  { type: 'sentence', text: 'What drove it?', sayIndex: 1 },
+  { type: 'sentence', text: 'He said "check it", e.g.', sayIndex: 1, actionIndex: 2 },
+  { type: 'sentence', text: 'against labor.', sayIndex: 1, actionIndex: 2 },
+  { type: 'sentence', text: 'What drove it?', sayIndex: 1, actionIndex: 2 },
   { type: 'action', raw: { type: 'say', text: 'He said "check it", e.g. against labor. What drove it?' }, index: 2 },
   { type: 'action', raw: { type: 'advance_phase' }, index: 3 },
 ];
@@ -49,7 +49,7 @@ describe('ActionStreamParser', () => {
   it('does not split inside figures', () => {
     const s = '{"actions":[{"type":"say","text":"Margin fell 18.0 points to 6.5%."}]}';
     expect(run(chunked(s, 1)).filter(e => e.type === 'sentence')).toEqual([
-      { type: 'sentence', text: 'Margin fell 18.0 points to 6.5%.', sayIndex: 0 },
+      { type: 'sentence', text: 'Margin fell 18.0 points to 6.5%.', sayIndex: 0, actionIndex: 0 },
     ]);
   });
 
@@ -64,6 +64,12 @@ describe('ActionStreamParser', () => {
     const s = '{"actions":[{"type":"say","text":"What else could the client do?\\n\\nuser Several levers. Pricing."}]}';
     const sentences = run(chunked(s, 3)).flatMap(e => (e.type === 'sentence' ? [e.text] : []));
     expect(sentences[0]).toBe('What else could the client do?\n\nuser Several levers.');
+  });
+
+  it('tells which action a sentence belongs to', () => {
+    const p = new ActionStreamParser();
+    const ev = p.push(TURN);
+    expect(ev.filter(e => e.type === 'sentence').map(e => (e as { actionIndex: number }).actionIndex)).toEqual([0, 0, 2, 2, 2]);
   });
 
   it('treats only a "text" value inside an action as speech', () => {

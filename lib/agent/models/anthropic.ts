@@ -3,7 +3,7 @@ import type { InterviewerModel, TurnContext, TurnEvent, ToolIdValidator } from '
 import { INTERVIEWER_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import type { Action } from '@/lib/orchestrator/actions';
 import { extractToolId } from './tool-input';
-import { RESPONSE_FORMAT, RESPONSE_SCHEMA, parseResponse, normalizeActions, retryNote, type RawAction } from './json-actions';
+import { RESPONSE_FORMAT, RESPONSE_SCHEMA, MAX_ACTIONS, parseResponse, normalizeActions, retryNote, type RawAction } from './json-actions';
 import { ActionStreamParser } from './json-action-stream';
 import { collectActions } from './turn-events';
 
@@ -141,10 +141,19 @@ export class AnthropicInterviewerModel implements InterviewerModel {
       fallbacks: FALLBACKS,
     });
     const parser = new ActionStreamParser();
+    // normalizeActions keeps MAX_ACTIONS actions; nothing past the cap may be
+    // delivered live (batch 9, Lena t7: three reveals spoken, then dropped).
+    let capped = false;
     for await (const ev of stream as AsyncIterable<{ type: string; delta?: { type: string; text?: string } }>) {
       if (ev.type !== 'content_block_delta' || ev.delta?.type !== 'text_delta') continue;
       for (const p of parser.push(ev.delta.text ?? '')) {
-        if (p.type === 'sentence') { yield p; continue; }
+        if (capped) continue;
+        if ((p.type === 'sentence' ? p.actionIndex : p.index) >= MAX_ACTIONS) {
+          capped = true;
+          yield { type: 'stop', reason: 'action_cap' };
+          continue;
+        }
+        if (p.type === 'sentence') { yield { type: 'sentence', text: p.text, sayIndex: p.sayIndex }; continue; }
         const action = liveAction(p.raw, validators);
         if (action) yield { type: 'action', action };
       }
