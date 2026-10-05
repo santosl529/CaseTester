@@ -163,7 +163,7 @@ export function classifyTurn(text: string, lastQuestion: string | null): { kind:
   return { kind: 'analysis', isRepeat: false, reason: 'substantive statement' };
 }
 
-const RUNG_GUIDANCE: Record<LadderRung, string> = {
+export const RUNG_GUIDANCE: Record<LadderRung, string> = {
   1: `STALL INTERVENTION — Level 1 (restate/anchor). The candidate has stalled. Do NOT introduce new information or hand them any part of the answer. Calmly restate the question already on the table and give them room. Intent: "Take your time. The question on the table is [restate it]." One or two sentences, flat register — "take your time" is the only reassurance allowed.`,
   2: `STALL INTERVENTION — Level 2 (narrow the frame). The candidate is still stuck after an anchor. Narrow the problem to a simpler decomposing sub-question, still WITHOUT giving the answer. Intent: "Let's simplify — what are the two ways a margin can fall?" One question, flat register.`,
   3: `STALL INTERVENTION — Level 3 (directive rescue). The candidate cannot proceed unaided. This OVERRIDES the one-task-per-turn and never-contain-the-answer defaults: hand them the next branch and move the case forward. Intent: "Let's look at costs — here's the cost data." If a specific data item is the natural next step, reveal it this turn. Then continue.`,

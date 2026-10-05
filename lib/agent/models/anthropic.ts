@@ -4,7 +4,7 @@ import { INTERVIEWER_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import type { Action } from '@/lib/orchestrator/actions';
 import { extractToolId, validateToolUses } from './tool-input';
 
-const TOOLS: Anthropic.Beta.BetaTool[] = [
+export const TOOLS: Anthropic.Beta.BetaTool[] = [
   {
     name: 'speak',
     description: 'Say something to the candidate.',
