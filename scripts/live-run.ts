@@ -224,7 +224,8 @@ async function main() {
     console.log(`\n[candidate · ${clock(Date.now() - startedAt)}] ${candidateText}`);
 
     const phaseBeforeTurn = phase;
-    const result = await runTurn(sessionId, candidateText);
+    // Analytics writes run in the background, as after() runs them in the route.
+    const result = await runTurn(sessionId, candidateText, { defer: task => { background.push(task()); } });
     // What the candidate sees: the spoken text, plus the exhibit the app would
     // render in its side panel. The DB transcript is unaffected.
     transcript.push({

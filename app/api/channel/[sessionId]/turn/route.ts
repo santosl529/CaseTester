@@ -26,7 +26,8 @@ export async function POST(
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
-  const result = await runTurn(sessionId, text.trim());
+  // Analytics writes go after the response (they add nothing the client needs).
+  const result = await runTurn(sessionId, text.trim(), { defer: task => after(task) });
   console.log('[turn route] result:', JSON.stringify({ exhibit: result.exhibit?.id ?? null, ended: result.ended }));
 
   // Background passes — live coverage agent + Rule 11 data-request audit — run

@@ -89,12 +89,42 @@ async function logSessionEvent(
   await db.insert(sessionEvents).values({ sessionId, category, subtype, turnIndex, phase, payloadJsonb: payload });
 }
 
-export async function runTurn(sessionId: string, candidateText: string): Promise<TurnResult> {
+export type RunTurnOptions = {
+  // Where analytics writes go (latency plan step 2): the turn route hands them
+  // to after(), the live-run harness to its background list. Nothing in a turn
+  // or in scoring reads analytics. Without it they are awaited before return.
+  defer?: (task: () => Promise<void>) => void;
+};
+
+export async function runTurn(sessionId: string, candidateText: string, opts: RunTurnOptions = {}): Promise<TurnResult> {
+  const deferred: (() => Promise<void>)[] = [];
+  try {
+    return await runTurnBody(sessionId, candidateText, task => { deferred.push(task); });
+  } finally {
+    if (opts.defer) for (const task of deferred) opts.defer(task);
+    else await Promise.allSettled(deferred.map(task => task()));
+  }
+}
+
+async function runTurnBody(sessionId: string, candidateText: string, later: (task: () => Promise<void>) => void): Promise<TurnResult> {
   // Full-turn timing (latency plan step 1): the model call alone was ~1.9s of
   // a ~2.2s turn in batches 7–8, but the writes after the interviewer row were
   // never timed.
   const turnStartMs = Date.now();
-  const session = await db.query.sessions.findFirst({ where: eq(sessions.id, sessionId) });
+  // Every read this turn needs takes only the session id: issue them together
+  // (they ran one after another).
+  const [session, turnRows, exhibitRows, revealedRows, dataRequestEventRows] = await Promise.all([
+    db.query.sessions.findFirst({ where: eq(sessions.id, sessionId) }),
+    db.query.sessionTurns.findMany({
+      where: eq(sessionTurns.sessionId, sessionId),
+      orderBy: (t, { asc }) => [asc(t.turnIndex)],
+    }),
+    db.query.exhibitsShown.findMany({ where: eq(exhibitsShown.sessionId, sessionId) }),
+    db.query.revealedData.findMany({ where: eq(revealedData.sessionId, sessionId) }),
+    db.query.sessionEvents.findMany({
+      where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'data_request')),
+    }),
+  ]);
   if (!session) throw new Error(`Session not found: ${sessionId}`);
 
   const currentPhase = session.phase as Phase;
@@ -112,10 +142,6 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   }
 
   const caseData = getCaseById(session.caseId);
-  const turnRows = await db.query.sessionTurns.findMany({
-    where: eq(sessionTurns.sessionId, sessionId),
-    orderBy: (t, { asc }) => [asc(t.turnIndex)],
-  });
   const flags = session.flagsJsonb as Record<string, unknown>;
   const conduct = (flags.conduct as ConductFlags | undefined) ?? {};
   const now = Date.now();
@@ -128,7 +154,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   flags.silence = resumed.state;
   if (resumed.resumedAfterMs !== null) {
     await logSessionEvent(sessionId, 'intervention', 'session_resumed', nextTurnIndex, currentPhase, { pausedMs: resumed.resumedAfterMs });
-    await logEvent('session_resumed', { pausedMs: resumed.resumedAfterMs, phase: currentPhase }, { sessionId, userId: session.userId });
+    later(() => logEvent('session_resumed', { pausedMs: resumed.resumedAfterMs, phase: currentPhase }, { sessionId, userId: session.userId }));
   }
 
   // Part V (v4.6): every check that runs this turn records its decision, and
@@ -170,8 +196,8 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     if (accepted) {
       await persistScriptedPair(DISTRESS_CLOSE);
       await logSessionEvent(sessionId, 'conduct', 'C5_accept', nextTurnIndex, currentPhase, { reason: 'distress_pause_accepted' });
-      await logEvent('case_abandoned', { reason: 'distress_pause_accepted', phase: currentPhase },
-        { sessionId, userId: session.userId });
+      later(() => logEvent('case_abandoned', { reason: 'distress_pause_accepted', phase: currentPhase },
+        { sessionId, userId: session.userId }));
       await db.update(sessions).set({
         status: 'abandoned', // Rule 19: excluded from scoring, NOT failed/incomplete
         completedAt: new Date(),
@@ -193,8 +219,8 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   if (assessment.action === 'terminate') {
     await persistScriptedPair(CONDUCT_TERMINATION);
     await logSessionEvent(sessionId, 'conduct', assessment.category, nextTurnIndex, currentPhase, { reason: assessment.reason });
-    await logEvent('case_abandoned', { reason: assessment.reason, category: assessment.category, phase: currentPhase },
-      { sessionId, userId: session.userId });
+    later(() => logEvent('case_abandoned', { reason: assessment.reason, category: assessment.category, phase: currentPhase },
+      { sessionId, userId: session.userId }));
     await db.update(sessions).set({
       status: 'terminated', // Rule 18: no score, no debrief
       completedAt: new Date(),
@@ -244,12 +270,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
 
   // Batch 7, Maya: exhibit-a shown four times — the model isn't told what it
   // already showed (system.ts marks these).
-  const shownExhibitIds = new Set((await db.query.exhibitsShown.findMany({
-    where: eq(exhibitsShown.sessionId, sessionId),
-  })).map(r => r.exhibitId));
-  const revealedRows = await db.query.revealedData.findMany({
-    where: eq(revealedData.sessionId, sessionId),
-  });
+  const shownExhibitIds = new Set(exhibitRows.map(r => r.exhibitId));
 
   // Reconstruct ledger state
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -263,9 +284,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   // turn, which is fine for deferrals; the same-turn case is handled at the
   // recommendation ask below.
   const catalog = caseData.dataLedger.map(d => ({ id: d.id, label: labelWithPeriod(d) }));
-  const dataRequestRows = (await db.query.sessionEvents.findMany({
-    where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'data_request')),
-  })).map(r => ({ subtype: r.subtype, turnIndex: r.turnIndex, payloadJsonb: r.payloadJsonb }));
+  const dataRequestRows = dataRequestEventRows.map(r => ({ subtype: r.subtype, turnIndex: r.turnIndex, payloadJsonb: r.payloadJsonb }));
   const openDataRequests = summarizeDataRequests(dataRequestRows, catalog, Object.keys(revealedValues(ledger))).requestedUnanswered;
   const openDataRequestsHint = formatOpenRequestsHint(openDataRequests);
 
@@ -434,7 +453,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     console.warn('[runner] C5 by the model layer — draft discarded:', JSON.stringify(distress));
     // The discarded draft still cost an interviewer call ($/case, PRD §13).
     if (turnUsage.apiCalls > 0) {
-      await logEvent('llm_usage', { component: 'interviewer', ...turnUsage, discarded: true }, { sessionId, userId: session.userId });
+      later(() => logEvent('llm_usage', { component: 'interviewer', ...turnUsage, discarded: true }, { sessionId, userId: session.userId }));
     }
     return offerPause(distress.label === 'risk_to_self', { reason: distress.reason, label: distress.label, layer: 'model' });
   }
@@ -515,7 +534,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   if (fabricatedStripped) {
     // Nothing real left: a neutral acknowledgment (Rule 1) beats a blank turn.
     if (!spokenText && !ended) spokenText = 'Go on.';
-    await logEvent('fabricated_turn_stripped', { phase: currentPhase }, { sessionId, userId: session.userId });
+    later(() => logEvent('fabricated_turn_stripped', { phase: currentPhase }, { sessionId, userId: session.userId }));
   }
 
   // Internal planning stripped above (Rule 1/5) — the backstop so a model slip
@@ -536,7 +555,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     console.warn('[runner] interviewer supplied the recommendation — replaced:', JSON.stringify(modelWords.trim()));
     const revealedNowById = revealedValues(ledger);
     spokenText = [...newReveals.map(id => revealedNowById[id]), pickScript(SYNTHESIS_NARROW_SCRIPTS, `${sessionId}:${nextTurnIndex}`)].join(' ');
-    await logEvent('synthesis_supply_blocked', { phase: currentPhase, text: modelWords.trim() }, { sessionId, userId: session.userId });
+    later(() => logEvent('synthesis_supply_blocked', { phase: currentPhase, text: modelWords.trim() }, { sessionId, userId: session.userId }));
   }
 
   // An exhibit turn left wordless gets a scripted hand-over; any other empty
@@ -561,8 +580,8 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   });
   if (spokenClose.action !== 'none') {
     console.warn(`[runner] closing turn without a confirmed end — ${spokenClose.action}${spokenClose.probe ? ` (${spokenClose.probe} probe)` : ''}`);
-    await logEvent('spoken_close_resolved', { action: spokenClose.action, probe: spokenClose.probe ?? null, phase: currentPhase, coverage },
-      { sessionId, userId: session.userId });
+    later(() => logEvent('spoken_close_resolved', { action: spokenClose.action, probe: spokenClose.probe ?? null, phase: currentPhase, coverage },
+      { sessionId, userId: session.userId }));
     ended = spokenClose.ended;
     if (spokenClose.action === 'replaced') {
       // The whole turn goes; values it revealed stay — they are booked (Rule 10).
@@ -755,8 +774,8 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
         console.warn('[runner] same-turn data request resolution:', JSON.stringify({
           released: plan.releaseIds, deferred: plan.defer, offered: plan.offerIds, notYet: plan.notYet, refusedNotInCase: plan.refuseNotInCase, phase,
         }));
-        await logEvent('data_same_turn_resolved', { itemIds: plan.releaseIds, deferred: plan.defer, phase: currentPhase },
-          { sessionId, userId: session.userId });
+        later(() => logEvent('data_same_turn_resolved', { itemIds: plan.releaseIds, deferred: plan.defer, phase: currentPhase },
+          { sessionId, userId: session.userId }));
       }
     }
 
@@ -810,8 +829,8 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     checks.record('forced_release', forcedIds.length > 0, 'open requests released before the ask', { itemIds: forcedIds });
     if (forcedIds.length > 0) {
       console.warn('[runner] force-released open data requests before the recommendation ask:', JSON.stringify(forcedIds));
-      await logEvent('data_force_released', { itemIds: forcedIds, trigger: warningDue ? 'time_warning' : 'model_ask', phase: currentPhase },
-        { sessionId, userId: session.userId });
+      later(() => logEvent('data_force_released', { itemIds: forcedIds, trigger: warningDue ? 'time_warning' : 'model_ask', phase: currentPhase },
+        { sessionId, userId: session.userId }));
     }
   }
   const forcedLeadIn = pickScript(FORCED_RELEASE_LEADINS, sessionId);
@@ -898,7 +917,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     if (repair) {
       console.log('[runner] phase repair:', JSON.stringify(repair));
       nextPhaseValue = repair.to;
-      await logEvent('phase_repair', { ...repair }, { sessionId, userId: session.userId });
+      later(() => logEvent('phase_repair', { ...repair }, { sessionId, userId: session.userId }));
     }
   }
 
@@ -925,7 +944,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   if (provenance.blocked) {
     console.warn('[runner] numeric provenance blocked — withheld:', JSON.stringify(provenance.findings));
     spokenText = provenance.text;
-    await logEvent('provenance_blocked', { findings: provenance.findings, phase: currentPhase }, { sessionId, userId: session.userId });
+    later(() => logEvent('provenance_blocked', { findings: provenance.findings, phase: currentPhase }, { sessionId, userId: session.userId }));
   }
 
   // Rule 6 v4.6: figures from different periods combined in one calculation
@@ -999,90 +1018,94 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   }
 
   const persistStartMs = Date.now();
-  // Persist turns
-  await db.insert(sessionTurns).values([
-    { sessionId, turnIndex: nextTurnIndex, role: 'candidate', text: candidateText, timestampMs: now },
-    { sessionId, turnIndex: nextTurnIndex + 1, role: 'interviewer', text: spokenText, timestampMs: Date.now(), latencyMs: modelLatencyMs },
-  ]);
-  await writeChecks();
-
-  // PRD §13: token usage (feeds $/completed-case, computed at analysis time
-  // from tokens — pricing lives out-of-band). Latency is logged at the end.
-  if (turnUsage.apiCalls > 0) {
-    await logEvent('llm_usage', { component: 'interviewer', ...turnUsage }, { sessionId, userId: session.userId });
-  }
-
-  for (const itemId of newReveals) {
-    await db.insert(revealedData).values({ sessionId, ledgerItemId: itemId, revealedAtMs: now });
-    await logEvent('data_revealed', { itemId, phase: currentPhase }, { sessionId, userId: session.userId });
-  }
-  for (const itemId of exhibitReveals) {
-    await db.insert(revealedData).values({ sessionId, ledgerItemId: itemId, revealedAtMs: now });
-    await logEvent('data_revealed', { itemId, phase: currentPhase, via: 'exhibit' }, { sessionId, userId: session.userId });
-  }
-  if (exhibit) {
-    await db.insert(exhibitsShown).values({ sessionId, exhibitId: exhibit.id, shownAtMs: now });
-    await logEvent('exhibit_shown', { exhibitId: exhibit.id, phase: currentPhase }, { sessionId, userId: session.userId });
-  }
-
-  // Rule 13: log the assist event (scoring input — "assisted ≠ covered") —
-  // only a delivered rung is an assist; an undelivered decision is logged
-  // apart and never reaches the judge (v4.5).
-  if (stallDecision.intervene && stallDecision.rung) {
-    await logSessionEvent(sessionId, 'intervention', rungDeliverySpan ? rungName(stallDecision.rung) : 'rung_not_delivered', nextTurnIndex, currentPhase, {
-      level: stallDecision.rung,
-      firedOn: stallDecision.firedOn ?? [],
-      span: rungDeliverySpan,
-    });
-  }
-  if (stallDecision.synthesisUnresolved) {
-    await logSessionEvent(sessionId, 'intervention', 'synthesis_unresolved', nextTurnIndex, currentPhase, {});
-  }
-
-  // Rule 15: record when the interview entered load-shedding, once, so the
-  // judge can attribute thin later-stage coverage to time pressure rather than
-  // to the candidate (deterministic coverageCaveat feed).
+  // Persist. These are independent writes the next turn and scoring read, so
+  // they are awaited, but together (they ran one after another).
   const underTimePressure = isUnderTimePressure(elapsedMs, TOTAL_CASE_MS);
   const loadShedLoggedThisTurn = underTimePressure && !flags.loadShedLogged;
-  if (loadShedLoggedThisTurn) {
-    await logSessionEvent(sessionId, 'intervention', 'load_shed', nextTurnIndex, currentPhase, {
-      elapsedMs, remainingMs: TOTAL_CASE_MS - elapsedMs,
-    });
-  }
-
   const advancedThisTurn = nextPhaseValue !== currentPhase;
+  const revealedRowsNew = [
+    ...newReveals.map(itemId => ({ sessionId, ledgerItemId: itemId, revealedAtMs: now })),
+    ...exhibitReveals.map(itemId => ({ sessionId, ledgerItemId: itemId, revealedAtMs: now })),
+  ];
+  await Promise.all([
+    db.insert(sessionTurns).values([
+      { sessionId, turnIndex: nextTurnIndex, role: 'candidate', text: candidateText, timestampMs: now },
+      { sessionId, turnIndex: nextTurnIndex + 1, role: 'interviewer', text: spokenText, timestampMs: Date.now(), latencyMs: modelLatencyMs },
+    ]),
+    writeChecks(),
+    revealedRowsNew.length > 0 ? db.insert(revealedData).values(revealedRowsNew) : Promise.resolve(),
+    exhibit ? db.insert(exhibitsShown).values({ sessionId, exhibitId: exhibit.id, shownAtMs: now }) : Promise.resolve(),
+    // Rule 13: log the assist event (scoring input — "assisted ≠ covered") —
+    // only a delivered rung is an assist; an undelivered decision is logged
+    // apart and never reaches the judge (v4.5).
+    stallDecision.intervene && stallDecision.rung
+      ? logSessionEvent(sessionId, 'intervention', rungDeliverySpan ? rungName(stallDecision.rung) : 'rung_not_delivered', nextTurnIndex, currentPhase, {
+        level: stallDecision.rung,
+        firedOn: stallDecision.firedOn ?? [],
+        span: rungDeliverySpan,
+      })
+      : Promise.resolve(),
+    stallDecision.synthesisUnresolved
+      ? logSessionEvent(sessionId, 'intervention', 'synthesis_unresolved', nextTurnIndex, currentPhase, {})
+      : Promise.resolve(),
+    // Rule 15: record when the interview entered load-shedding, once, so the
+    // judge can attribute thin later-stage coverage to time pressure rather than
+    // to the candidate (deterministic coverageCaveat feed).
+    loadShedLoggedThisTurn
+      ? logSessionEvent(sessionId, 'intervention', 'load_shed', nextTurnIndex, currentPhase, {
+        elapsedMs, remainingMs: TOTAL_CASE_MS - elapsedMs,
+      })
+      : Promise.resolve(),
+    db.update(sessions)
+      .set({
+        phase: ended ? 'SCORING' : nextPhaseValue,
+        status: ended ? 'completed' : 'active',
+        completedAt: ended ? new Date() : undefined,
+        phaseStartedAt: advancedThisTurn ? new Date() : undefined,
+        flagsJsonb: {
+          ...flags,
+          conduct,
+          stall: stallState,
+          advancedLastTurn: advancedThisTurn,
+          timeWarningFired: Boolean(flags.timeWarningFired) || timeWarningFiredThisTurn,
+          graceAskFired: Boolean(flags.graceAskFired) || graceAskFiredThisTurn,
+          recomputeAttempts,
+          lastVerified: verifiedNow,
+          explainProbed: [...explainProbedBefore, ...probeGuard.explainProbed],
+          loadShedLogged: Boolean(flags.loadShedLogged) || loadShedLoggedThisTurn,
+          pendingOffer: offeredThisTurn,
+        },
+      })
+      .where(eq(sessions.id, sessionId)),
+  ]);
+
+  // PRD §13: token usage (feeds $/completed-case, computed at analysis time
+  // from tokens — pricing lives out-of-band) and product analytics, after the
+  // response.
+  if (turnUsage.apiCalls > 0) {
+    later(() => logEvent('llm_usage', { component: 'interviewer', ...turnUsage }, { sessionId, userId: session.userId }));
+  }
+  for (const itemId of newReveals) {
+    later(() => logEvent('data_revealed', { itemId, phase: currentPhase }, { sessionId, userId: session.userId }));
+  }
+  for (const itemId of exhibitReveals) {
+    later(() => logEvent('data_revealed', { itemId, phase: currentPhase, via: 'exhibit' }, { sessionId, userId: session.userId }));
+  }
+  if (exhibit) {
+    const exhibitId = exhibit.id;
+    later(() => logEvent('exhibit_shown', { exhibitId, phase: currentPhase }, { sessionId, userId: session.userId }));
+  }
   if (advancedThisTurn) {
-    await logEvent('phase_transition', { from: currentPhase, to: nextPhaseValue }, { sessionId, userId: session.userId });
+    later(() => logEvent('phase_transition', { from: currentPhase, to: nextPhaseValue }, { sessionId, userId: session.userId }));
   }
   if (ended) {
-    await logEvent('case_complete', { phase: currentPhase, elapsedMs }, { sessionId, userId: session.userId });
+    later(() => logEvent('case_complete', { phase: currentPhase, elapsedMs }, { sessionId, userId: session.userId }));
   }
-  await db.update(sessions)
-    .set({
-      phase: ended ? 'SCORING' : nextPhaseValue,
-      status: ended ? 'completed' : 'active',
-      completedAt: ended ? new Date() : undefined,
-      phaseStartedAt: advancedThisTurn ? new Date() : undefined,
-      flagsJsonb: {
-        ...flags,
-        conduct,
-        stall: stallState,
-        advancedLastTurn: advancedThisTurn,
-        timeWarningFired: Boolean(flags.timeWarningFired) || timeWarningFiredThisTurn,
-        graceAskFired: Boolean(flags.graceAskFired) || graceAskFiredThisTurn,
-        recomputeAttempts,
-        lastVerified: verifiedNow,
-        explainProbed: [...explainProbedBefore, ...probeGuard.explainProbed],
-        loadShedLogged: Boolean(flags.loadShedLogged) || loadShedLoggedThisTurn,
-        pendingOffer: offeredThisTurn,
-      },
-    })
-    .where(eq(sessions.id, sessionId));
 
   // PRD §13: per-turn latency. latencyMs stays the model call (comparable with
   // earlier batches); the rest splits the turn around it.
   const turnEndMs = Date.now();
-  await logEvent('turn_latency', {
+  later(() => logEvent('turn_latency', {
     turnIndex: nextTurnIndex + 1,
     latencyMs: modelLatencyMs,
     distressWaitMs,
@@ -1092,7 +1115,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     postModelMs: persistStartMs - modelCallStart - modelLatencyMs,
     persistMs: turnEndMs - persistStartMs,
     phase: currentPhase,
-  }, { sessionId, userId: session.userId });
+  }, { sessionId, userId: session.userId }));
 
   return {
     interviewerText: spokenText,
