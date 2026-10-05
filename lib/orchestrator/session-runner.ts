@@ -90,6 +90,10 @@ async function logSessionEvent(
 }
 
 export async function runTurn(sessionId: string, candidateText: string): Promise<TurnResult> {
+  // Full-turn timing (latency plan step 1): the model call alone was ~1.9s of
+  // a ~2.2s turn in batches 7–8, but the writes after the interviewer row were
+  // never timed.
+  const turnStartMs = Date.now();
   const session = await db.query.sessions.findFirst({ where: eq(sessions.id, sessionId) });
   if (!session) throw new Error(`Session not found: ${sessionId}`);
 
@@ -994,6 +998,7 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
     spokenText = 'Go on.';
   }
 
+  const persistStartMs = Date.now();
   // Persist turns
   await db.insert(sessionTurns).values([
     { sessionId, turnIndex: nextTurnIndex, role: 'candidate', text: candidateText, timestampMs: now },
@@ -1001,10 +1006,8 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
   ]);
   await writeChecks();
 
-  // PRD §13: per-turn latency + token usage (feeds $/completed-case, computed
-  // at analysis time from tokens — pricing lives out-of-band).
-  await logEvent('turn_latency', { turnIndex: nextTurnIndex + 1, latencyMs: modelLatencyMs, distressWaitMs, phase: currentPhase },
-    { sessionId, userId: session.userId });
+  // PRD §13: token usage (feeds $/completed-case, computed at analysis time
+  // from tokens — pricing lives out-of-band). Latency is logged at the end.
   if (turnUsage.apiCalls > 0) {
     await logEvent('llm_usage', { component: 'interviewer', ...turnUsage }, { sessionId, userId: session.userId });
   }
@@ -1075,6 +1078,21 @@ export async function runTurn(sessionId: string, candidateText: string): Promise
       },
     })
     .where(eq(sessions.id, sessionId));
+
+  // PRD §13: per-turn latency. latencyMs stays the model call (comparable with
+  // earlier batches); the rest splits the turn around it.
+  const turnEndMs = Date.now();
+  await logEvent('turn_latency', {
+    turnIndex: nextTurnIndex + 1,
+    latencyMs: modelLatencyMs,
+    distressWaitMs,
+    apiCalls: turnUsage.apiCalls,
+    totalMs: turnEndMs - turnStartMs,
+    preModelMs: modelCallStart - turnStartMs,
+    postModelMs: persistStartMs - modelCallStart - modelLatencyMs,
+    persistMs: turnEndMs - persistStartMs,
+    phase: currentPhase,
+  }, { sessionId, userId: session.userId });
 
   return {
     interviewerText: spokenText,
