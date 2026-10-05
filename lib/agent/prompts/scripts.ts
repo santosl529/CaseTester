@@ -204,6 +204,19 @@ export function alreadySignaledTimeOrRec(spokenText: string): boolean {
 
 // Deterministic per-session pick (not Math.random): stable within a session,
 // varies across sessions, and reproducible in tests.
+// A turn that released data with no words of the model's own (replay, JSON
+// format: three releases and nothing said): the values are spoken, then the
+// floor goes back to the candidate.
+export const DATA_HANDOVER_SCRIPTS = [
+  "What do you make of that?",
+  "What does that tell you?",
+  "How does that change your thinking?",
+];
+
+export function wordlessRevealLine(t: { modelWords: string; revealedCount: number; exhibitShown: boolean; ended: boolean; seed: string }): string | null {
+  return !t.modelWords.trim() && t.revealedCount > 0 && !t.exhibitShown && !t.ended ? pickScript(DATA_HANDOVER_SCRIPTS, t.seed) : null;
+}
+
 export function wordlessExhibitLine(t: { spokenText: string; exhibitShown: boolean; ended: boolean; seed: string }): string | null {
   return !t.spokenText.trim() && t.exhibitShown && !t.ended ? pickScript(EXHIBIT_FRAME_SCRIPTS, t.seed) : null;
 }

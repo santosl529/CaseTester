@@ -2,7 +2,7 @@ import type { Action } from '@/lib/orchestrator/actions';
 import type { Phase } from '@/lib/orchestrator/state-machine';
 import { LEGAL_ACTIONS } from '@/lib/orchestrator/state-machine';
 import { buildPromptParts, type PromptContext } from './prompts/system';
-import type { InterviewerModel, ModelMessage, ToolIdValidator } from './models/interface';
+import type { InterviewerModel, ModelMessage, ToolIdValidator, TurnContext } from './models/interface';
 import type { OnUsage } from '@/lib/llm-usage';
 import { resolveExhibit } from '@/lib/orchestrator/exhibits';
 
@@ -13,6 +13,7 @@ export type InterviewerTurnInput = {
   promptCtx: PromptContext;
   phase: Phase;
   onUsage?: OnUsage;
+  onValidation?: TurnContext['onValidation'];
 };
 
 export async function runInterviewerTurn(input: InterviewerTurnInput): Promise<Action[]> {
@@ -49,6 +50,7 @@ export async function runInterviewerTurn(input: InterviewerTurnInput): Promise<A
     tools: [], // tools are defined inside the model impl
     idValidators,
     onUsage: input.onUsage,
+    onValidation: input.onValidation,
   });
 
   // Filter illegal actions for the current phase

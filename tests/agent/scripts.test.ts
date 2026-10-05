@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   TIME_WARNING_SCRIPTS, CLOSE_SCRIPTS, OPENING_INVITATIONS, GRACE_ASK_SCRIPTS, pickScript, buildOpeningMessage,
-  asksForRecommendation, hasCloseCue,
-} from '@/lib/agent/prompts/scripts';
+  asksForRecommendation, hasCloseCue, wordlessRevealLine, DATA_HANDOVER_SCRIPTS } from '@/lib/agent/prompts/scripts';
 
 describe('pickScript', () => {
   it('returns a script from the given pool', () => {
@@ -89,5 +88,18 @@ describe('STALE_RELEASE_LEADINS', () => {
       expect(line).not.toMatch(/\bwrap|before we (finish|close|end)\b/i);
       expect(line).not.toMatch(/\d/);
     }
+  });
+});
+
+describe('wordlessRevealLine', () => {
+  const base = { modelWords: '', revealedCount: 2, exhibitShown: false, ended: false, seed: 's:3' };
+  it('hands the floor back when data went out with no words of the model\'s own', () => {
+    expect(DATA_HANDOVER_SCRIPTS).toContain(wordlessRevealLine(base));
+  });
+  it('stays quiet when the model said something, nothing was released, an exhibit went up, or the case ended', () => {
+    expect(wordlessRevealLine({ ...base, modelWords: 'Okay.' })).toBeNull();
+    expect(wordlessRevealLine({ ...base, revealedCount: 0 })).toBeNull();
+    expect(wordlessRevealLine({ ...base, exhibitShown: true })).toBeNull();
+    expect(wordlessRevealLine({ ...base, ended: true })).toBeNull();
   });
 });

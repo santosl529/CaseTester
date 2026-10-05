@@ -2,7 +2,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { InterviewerModel, TurnContext } from './interface';
 import { INTERVIEWER_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import type { Action } from '@/lib/orchestrator/actions';
-import { extractToolId, validateToolUses } from './tool-input';
+import { extractToolId } from './tool-input';
+import { RESPONSE_FORMAT, RESPONSE_SCHEMA, parseResponse, normalizeActions, retryNote } from './json-actions';
 
 export const TOOLS: Anthropic.Beta.BetaTool[] = [
   {
@@ -69,35 +70,30 @@ export class AnthropicInterviewerModel implements InterviewerModel {
       role: m.role,
       content: m.content,
     }));
+    const validators = ctx.idValidators ?? {};
+    // The response format rides in the cached fixed block (it never changes).
+    const system = buildSystemBlocks(`${ctx.systemPrompt}\n\n${RESPONSE_FORMAT}`, ctx.turnSystem);
 
-    const logBlocks = (r: Anthropic.Beta.BetaMessage) => console.log('[interviewer-model] raw blocks:', JSON.stringify(
-      describeBlocks(r.content as ContentBlock[]), null, 2,
-    ));
-    const call = async () => {
+    const call = async (extra: Anthropic.Beta.BetaMessageParam[] = []) => {
       // Thinking off: Sonnet 5.5 rejects {type: "disabled"}; "between_tools"
       // is how it runs without thinking (no other field; effort high or below
       // — the default). Batch 6 tried adaptive thinking at low effort: it
       // removed the spoken narration but thinking turns took 4.1s (median
-      // 2.75s vs 1.8s), too slow for voice. Narration is handled by the
-      // runner's meta-leak strip instead. With the server-side fallback, a
-      // cyber/frontier-LLM decline re-runs on Sonnet 5 with thinking disabled.
+      // 2.75s vs 1.8s), too slow for voice. The structured response format
+      // keeps reasoning out of speech instead (json-actions.ts). With the
+      // server-side fallback, a declined request re-runs on another model.
+      // No tools and no stop sequences: the reply is one JSON object, and a
+      // stop sequence could cut it mid-string.
       const r = await this.client.beta.messages.create({
         model: this.modelId,
         max_tokens: 1024,
-        system: buildSystemBlocks(ctx.systemPrompt, ctx.turnSystem),
-        messages,
-        tools: TOOLS,
-        stop_sequences: INTERVIEWER_STOP_SEQUENCES,
+        system,
+        messages: [...messages, ...extra],
+        output_config: { format: { type: 'json_schema', schema: RESPONSE_SCHEMA } },
         thinking: { type: 'between_tools' },
         betas: [FALLBACK_BETA],
         fallbacks: FALLBACKS,
       });
-      // Branch on stop_reason before content: a refusal the fallback chain
-      // could not rescue leaves no usable turn (the caller's neutral
-      // continuation applies).
-      if (r.stop_reason === 'refusal') {
-        console.warn('[interviewer-model] refusal:', JSON.stringify(r.stop_details));
-      }
       ctx.onUsage?.({
         component: 'interviewer',
         model: this.modelId,
@@ -106,37 +102,39 @@ export class AnthropicInterviewerModel implements InterviewerModel {
         cacheReadTokens: r.usage.cache_read_input_tokens ?? 0,
         cacheWriteTokens: r.usage.cache_creation_input_tokens ?? 0,
       });
-      return r;
+      const text = r.content.filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === 'text').map(b => b.text).join('');
+      console.log('[interviewer-model] raw response:', text);
+      // Branch on stop_reason before content: a refusal the fallback chain
+      // could not rescue leaves no usable turn (the neutral continuation
+      // below applies) and is not worth regenerating.
+      if (r.stop_reason === 'refusal') {
+        console.warn('[interviewer-model] refusal:', JSON.stringify(r.stop_details));
+        return { raw: null, refused: true };
+      }
+      return { raw: parseResponse(text), refused: false };
     };
 
-    let response = await call();
-    logBlocks(response);
-
-    // Tool-id validation loop: if the model called reveal_data/show_exhibit with
-    // an id that doesn't resolve to a real target, hand the error back (with the
-    // valid ids) and let it correct itself — bounded — instead of silently
-    // delivering nothing or the wrong exhibit.
-    const idValidators = ctx.idValidators ?? {};
-    const maxCorrections = ctx.maxToolCorrections ?? 2;
-    if (Object.keys(idValidators).length > 0) {
-      for (let attempt = 0; attempt < maxCorrections; attempt++) {
-        const toolUses = response.content.filter((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === 'tool_use');
-        if (toolUses.length === 0) break;
-        const { toolResults, anyInvalid } = validateToolUses(
-          toolUses.map(b => ({ id: b.id, name: b.name, input: b.input })), idValidators,
-        );
-        if (!anyInvalid) break;
-        console.warn('[interviewer-model] invalid tool id — asking model to correct',
-          JSON.stringify(toolResults.filter(r => r.is_error)));
-        messages.push({ role: 'assistant', content: response.content });
-        messages.push({ role: 'user', content: toolResults as Anthropic.Beta.BetaToolResultBlockParam[] });
-        response = await call();
-        logBlocks(response);
-      }
+    let first = await call();
+    let result = normalizeActions(first.raw ?? [], validators);
+    let retried = false;
+    // One regeneration when the draft can't be parsed (cut off at max_tokens),
+    // names ids that don't exist, or leaves nothing to say or do. The note
+    // goes after the candidate's message as a system message.
+    if (!first.refused && (first.raw === null || result.retry)) {
+      retried = true;
+      const note = first.raw === null
+        ? 'Your previous draft of this turn was not a complete JSON object. Write the whole turn again as one JSON object.'
+        : retryNote(result.report, validators);
+      console.warn('[interviewer-model] regenerating:', note);
+      first = await call([{ role: 'system', content: note }]);
+      result = normalizeActions(first.raw ?? [], validators);
     }
+    if (result.report.dropped.length > 0) {
+      console.warn('[interviewer-model] dropped actions:', JSON.stringify(result.report.dropped));
+    }
+    ctx.onValidation?.({ report: result.report, retried, unparsed: first.raw === null, refused: first.refused });
 
-    const actions = actionsFromContent(response.content);
-
+    const actions = result.actions;
     // Always ensure at least a speak action
     if (actions.length === 0) {
       actions.push({ type: 'speak', text: "I see. What would you like to explore next?" });

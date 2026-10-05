@@ -1,3 +1,4 @@
+import type { ValidationReport } from './json-actions';
 import type { Action } from '@/lib/orchestrator/actions';
 import type { OnUsage } from '@/lib/llm-usage';
 
@@ -17,6 +18,9 @@ export type TurnContext = {
   // rounds — instead of silently delivering nothing or guessing wrong.
   idValidators?: Record<string, ToolIdValidator>;
   maxToolCorrections?: number; // default 2
+  // What the model layer did to the reply (json-actions.ts): dropped actions,
+  // unknown ids, a regeneration. The runner records it as a check.
+  onValidation?: (v: { report: ValidationReport; retried: boolean; unparsed: boolean; refused: boolean }) => void;
   // Token-usage reporting (lib/llm-usage.ts). Called once per underlying API
   // call — a correction loop reports each round, so the caller sums.
   onUsage?: OnUsage;

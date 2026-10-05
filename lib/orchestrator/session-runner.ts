@@ -40,7 +40,7 @@ import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import {
   TIME_WARNING_SCRIPTS, GRACE_ASK_SCRIPTS, CLOSE_SCRIPTS, REVEAL_REFUSAL_SCRIPTS, EXHIBIT_REFUSAL_SCRIPTS, FORCED_RELEASE_LEADINS, STALE_RELEASE_LEADINS,
   SAME_TURN_RELEASE_LEADINS, SAME_TURN_DEFER_SCRIPTS, SAME_TURN_OFFER_SCRIPTS, SAME_TURN_NOT_YET_SCRIPTS, NOT_IN_CASE_REFUSAL_SCRIPTS,
-  pickScript, wordlessExhibitLine, alreadySignaledTimeOrRec, asksForRecommendation,
+  pickScript, wordlessExhibitLine, wordlessRevealLine, alreadySignaledTimeOrRec, asksForRecommendation,
   CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE, SILENCE_PAUSE_EXPIRED,
 } from '@/lib/agent/prompts/scripts';
 
@@ -416,6 +416,13 @@ async function runTurnBody(sessionId: string, candidateText: string, later: (tas
     candidateText,
     history,
     phase: currentPhase,
+    onValidation: v => {
+      checks.record('action_validation', v.report.dropped.length > 0 || v.retried || v.unparsed,
+        v.retried ? 'model reply regenerated' : 'model actions dropped', {
+          dropped: v.report.dropped.map(d => ({ type: d.action.type, reason: d.reason })),
+          invalidIds: v.report.invalidIds, retried: v.retried, unparsed: v.unparsed, refused: v.refused,
+        });
+    },
     onUsage: u => {
       turnUsage.model = u.model;
       turnUsage.inputTokens += u.inputTokens;
@@ -565,6 +572,10 @@ async function runTurnBody(sessionId: string, candidateText: string, later: (tas
   const exhibitLine = wordlessExhibitLine({ spokenText, exhibitShown: exhibit !== undefined, ended, seed: sessionId });
   checks.record('wordless_exhibit', exhibitLine !== null, 'exhibit shown with no words — scripted hand-over');
   if (exhibitLine) spokenText = exhibitLine;
+  // Data released with no words of the model's own: hand the floor back.
+  const revealLine = wordlessRevealLine({ modelWords, revealedCount: newReveals.length, exhibitShown: exhibit !== undefined, ended, seed: `${sessionId}:${nextTurnIndex}` });
+  checks.record('wordless_reveal', revealLine !== null, 'data released with no words — scripted hand-back');
+  if (revealLine) spokenText = `${spokenText} ${revealLine}`;
 
   const copiedCheckIn = stripCopiedCheckIn(spokenText);
   checks.record('copied_check_in', copiedCheckIn.stripped, 'model-written check-in removed');
