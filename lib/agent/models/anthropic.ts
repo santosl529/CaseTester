@@ -1,9 +1,11 @@
 import Anthropic from '@anthropic-ai/sdk';
-import type { InterviewerModel, TurnContext } from './interface';
+import type { InterviewerModel, TurnContext, TurnEvent, ToolIdValidator } from './interface';
 import { INTERVIEWER_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import type { Action } from '@/lib/orchestrator/actions';
 import { extractToolId } from './tool-input';
-import { RESPONSE_FORMAT, RESPONSE_SCHEMA, parseResponse, normalizeActions, retryNote } from './json-actions';
+import { RESPONSE_FORMAT, RESPONSE_SCHEMA, parseResponse, normalizeActions, retryNote, type RawAction } from './json-actions';
+import { ActionStreamParser } from './json-action-stream';
+import { collectActions } from './turn-events';
 
 export const TOOLS: Anthropic.Beta.BetaTool[] = [
   {
@@ -66,6 +68,13 @@ export class AnthropicInterviewerModel implements InterviewerModel {
   }
 
   async runTurn(ctx: TurnContext): Promise<Action[]> {
+    return collectActions(this.streamTurn(ctx));
+  }
+
+  // The turn, streamed (spec 2026-10-05-streaming-turn §4.5): complete
+  // sentences and actions go out as they close; the whole text is parsed and
+  // normalized at the end exactly as before.
+  async *streamTurn(ctx: TurnContext): AsyncGenerator<TurnEvent> {
     const messages: Anthropic.Beta.BetaMessageParam[] = ctx.history.map(m => ({
       role: m.role,
       content: m.content,
@@ -74,59 +83,22 @@ export class AnthropicInterviewerModel implements InterviewerModel {
     // The response format rides in the cached fixed block (it never changes).
     const system = buildSystemBlocks(`${ctx.systemPrompt}\n\n${RESPONSE_FORMAT}`, ctx.turnSystem);
 
-    const call = async (extra: Anthropic.Beta.BetaMessageParam[] = []) => {
-      // Thinking off: Sonnet 5.5 rejects {type: "disabled"}; "between_tools"
-      // is how it runs without thinking (no other field; effort high or below
-      // — the default). Batch 6 tried adaptive thinking at low effort: it
-      // removed the spoken narration but thinking turns took 4.1s (median
-      // 2.75s vs 1.8s), too slow for voice. The structured response format
-      // keeps reasoning out of speech instead (json-actions.ts). With the
-      // server-side fallback, a declined request re-runs on another model.
-      // No tools and no stop sequences: the reply is one JSON object, and a
-      // stop sequence could cut it mid-string.
-      const r = await this.client.beta.messages.create({
-        model: this.modelId,
-        max_tokens: 1024,
-        system,
-        messages: [...messages, ...extra],
-        output_config: { format: { type: 'json_schema', schema: RESPONSE_SCHEMA } },
-        thinking: { type: 'between_tools' },
-        betas: [FALLBACK_BETA],
-        fallbacks: FALLBACKS,
-      });
-      ctx.onUsage?.({
-        component: 'interviewer',
-        model: this.modelId,
-        inputTokens: r.usage.input_tokens,
-        outputTokens: r.usage.output_tokens,
-        cacheReadTokens: r.usage.cache_read_input_tokens ?? 0,
-        cacheWriteTokens: r.usage.cache_creation_input_tokens ?? 0,
-      });
-      const text = r.content.filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === 'text').map(b => b.text).join('');
-      console.log('[interviewer-model] raw response:', text);
-      // Branch on stop_reason before content: a refusal the fallback chain
-      // could not rescue leaves no usable turn (the neutral continuation
-      // below applies) and is not worth regenerating.
-      if (r.stop_reason === 'refusal') {
-        console.warn('[interviewer-model] refusal:', JSON.stringify(r.stop_details));
-        return { raw: null, refused: true };
-      }
-      return { raw: parseResponse(text), refused: false };
-    };
-
-    let first = await call();
+    let first = yield* this.attempt(system, messages, ctx);
     let result = normalizeActions(first.raw ?? [], validators);
     let retried = false;
     // One regeneration when the draft can't be parsed (cut off at max_tokens),
-    // names ids that don't exist, or leaves nothing to say or do. The note
-    // goes after the candidate's message as a system message.
-    if (!first.refused && (first.raw === null || result.retry)) {
+    // names ids that don't exist, or leaves nothing to say or do — and only
+    // while the caller has delivered none of it: a retry after speech would
+    // repeat or contradict what the candidate heard. The note goes after the
+    // candidate's message as a system message.
+    if (!first.refused && (first.raw === null || result.retry) && (ctx.canRegenerate?.() ?? true)) {
       retried = true;
       const note = first.raw === null
         ? 'Your previous draft of this turn was not a complete JSON object. Write the whole turn again as one JSON object.'
         : retryNote(result.report, validators);
       console.warn('[interviewer-model] regenerating:', note);
-      first = await call([{ role: 'system', content: note }]);
+      yield { type: 'restart', reason: note };
+      first = yield* this.attempt(system, [...messages, { role: 'system', content: note } as unknown as Anthropic.Beta.BetaMessageParam], ctx);
       result = normalizeActions(first.raw ?? [], validators);
     }
     if (result.report.dropped.length > 0) {
@@ -139,9 +111,76 @@ export class AnthropicInterviewerModel implements InterviewerModel {
     if (actions.length === 0) {
       actions.push({ type: 'speak', text: "I see. What would you like to explore next?" });
     }
-
-    return actions;
+    yield { type: 'done', actions, report: result.report, retried, unparsed: first.raw === null, refused: first.refused };
   }
+
+  // One streamed request.
+  private async *attempt(
+    system: Anthropic.Beta.BetaTextBlockParam[],
+    messages: Anthropic.Beta.BetaMessageParam[],
+    ctx: TurnContext,
+  ): AsyncGenerator<TurnEvent, { raw: RawAction[] | null; refused: boolean }> {
+    const validators = ctx.idValidators ?? {};
+    // Thinking off: Sonnet 5.5 rejects {type: "disabled"}; "between_tools"
+    // is how it runs without thinking (no other field; effort high or below
+    // — the default). Batch 6 tried adaptive thinking at low effort: it
+    // removed the spoken narration but thinking turns took 4.1s (median
+    // 2.75s vs 1.8s), too slow for voice. The structured response format
+    // keeps reasoning out of speech instead (json-actions.ts). With the
+    // server-side fallback, a declined request re-runs on another model.
+    // No tools and no stop sequences: the reply is one JSON object, and a
+    // stop sequence could cut it mid-string.
+    const stream = this.client.beta.messages.stream({
+      model: this.modelId,
+      max_tokens: 1024,
+      system,
+      messages,
+      output_config: { format: { type: 'json_schema', schema: RESPONSE_SCHEMA } },
+      thinking: { type: 'between_tools' },
+      betas: [FALLBACK_BETA],
+      fallbacks: FALLBACKS,
+    });
+    const parser = new ActionStreamParser();
+    for await (const ev of stream as AsyncIterable<{ type: string; delta?: { type: string; text?: string } }>) {
+      if (ev.type !== 'content_block_delta' || ev.delta?.type !== 'text_delta') continue;
+      for (const p of parser.push(ev.delta.text ?? '')) {
+        if (p.type === 'sentence') { yield p; continue; }
+        const action = liveAction(p.raw, validators);
+        if (action) yield { type: 'action', action };
+      }
+    }
+    const r = await stream.finalMessage();
+    ctx.onUsage?.({
+      component: 'interviewer',
+      model: this.modelId,
+      inputTokens: r.usage.input_tokens,
+      outputTokens: r.usage.output_tokens,
+      cacheReadTokens: r.usage.cache_read_input_tokens ?? 0,
+      cacheWriteTokens: r.usage.cache_creation_input_tokens ?? 0,
+    });
+    console.log('[interviewer-model] raw response:', parser.text);
+    // Branch on stop_reason before content: a refusal the fallback chain
+    // could not rescue leaves no usable turn (the neutral continuation
+    // applies) and is not worth regenerating.
+    if (r.stop_reason === 'refusal') {
+      console.warn('[interviewer-model] refusal:', JSON.stringify(r.stop_details));
+      return { raw: null, refused: true };
+    }
+    return { raw: parseResponse(parser.text), refused: false };
+  }
+}
+
+// A streamed action whose id resolves — the same resolution normalizeActions
+// applies at the end. Speech is delivered as sentences, never as an action.
+function liveAction(raw: RawAction, validators: Record<string, ToolIdValidator>): Exclude<Action, { type: 'speak' }> | null {
+  if (raw.type === 'reveal_data' || raw.type === 'show_exhibit') {
+    const rawId = String(raw.type === 'reveal_data' ? raw.item_id ?? '' : raw.exhibit_id ?? '');
+    const id = validators[raw.type]?.resolve(rawId) ?? null;
+    if (!id) return null;
+    return raw.type === 'reveal_data' ? { type: 'reveal_data', itemId: id } : { type: 'show_exhibit', exhibitId: id };
+  }
+  if (raw.type === 'advance_phase' || raw.type === 'end_case') return { type: raw.type };
+  return null;
 }
 
 // System prompt with prompt caching (latency plan step 3). The breakpoint on

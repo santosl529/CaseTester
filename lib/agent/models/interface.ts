@@ -24,7 +24,20 @@ export type TurnContext = {
   // Token-usage reporting (lib/llm-usage.ts). Called once per underlying API
   // call — a correction loop reports each round, so the caller sums.
   onUsage?: OnUsage;
+  // Streaming (streamTurn): false once the caller has delivered part of this
+  // turn — a regeneration after speech would repeat or contradict it.
+  canRegenerate?: () => boolean;
 };
+
+// The streamed turn (anthropic.ts streamTurn): complete sentences of the
+// model's spoken text and its actions as they close, a restart when the draft
+// is regenerated (anything held from it is discarded), then the final
+// normalized action list.
+export type TurnEvent =
+  | { type: 'sentence'; text: string; sayIndex: number }
+  | { type: 'action'; action: Exclude<Action, { type: 'speak' }> }
+  | { type: 'restart'; reason: string }
+  | { type: 'done'; actions: Action[]; report: ValidationReport; retried: boolean; unparsed: boolean; refused: boolean };
 
 // For a tool call carrying an id (reveal_data.item_id, show_exhibit.exhibit_id):
 // resolve the raw id to a canonical one (tolerant), or null if it's not real.
@@ -42,4 +55,7 @@ export type ToolDefinition = {
 
 export interface InterviewerModel {
   runTurn(ctx: TurnContext): Promise<Action[]>;
+  // Optional: models without it (test mocks, the replay script's Gemini arm)
+  // are streamed as one burst of their finished turn (turn-events.ts).
+  streamTurn?(ctx: TurnContext): AsyncIterable<TurnEvent>;
 }
