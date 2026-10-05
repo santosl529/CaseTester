@@ -148,9 +148,9 @@ async function runTurnBody(
   // Stream (stream-turn.ts): segments go out as they pass, after the distress
   // verdict; the rest of the turn is left to Settle.
   const streamed = await streamTurnSegments(events, plan, deliver, { isDelivered });
-  // Interviewer latency is the model call alone (the whole stream); the
-  // distress verdict's arrival is logged apart (batch 4 conflated them).
-  const modelLatencyMs = Date.now() - modelCallStart;
+  // Interviewer latency is the model call alone (the whole stream); the wait
+  // on the distress verdict past it is logged apart (batch 4 conflated them).
+  const modelLatencyMs = streamed.modelDoneAt - modelCallStart;
   const distress = await state.distress;
   if (state.repliedToDistressOffer) checks.skip('conduct_model', 'reply to a declined pause offer');
   else if (distress === null) checks.skip('conduct_model', 'classifier failed — regex floor stands');

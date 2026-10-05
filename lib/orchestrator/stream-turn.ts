@@ -54,18 +54,22 @@ export function gateSentence(sentence: string, g: GateContext): GateVerdict {
   return { pass: true };
 }
 
+// Timing, comparable with batches before streaming: modelDoneAt is when the
+// model's last event arrived; distressWaitMs is how long the verdict
+// outlasted the model (0 when it was in first).
+type StreamTiming = { modelDoneAt: number; distressWaitMs: number };
+
 export type StreamOutcome =
-  | { kind: 'distress'; verdict: DistressVerdict; distressWaitMs: number }
-  | {
+  | ({ kind: 'distress'; verdict: DistressVerdict } & StreamTiming)
+  | ({
     kind: 'done';
     actions: Action[];
     delivered: string[];              // spoken text delivered, in order (sentences and reveal wordings)
     deliveredRevealIds: string[];
     undeliveredRevealIds: string[];   // the sink rejected their segment (D3)
-    firstSegmentMs: number | null;
+    firstSegmentMs: number | null;    // stream start → first delivered segment
     bufferSwitch: string | null;      // why delivery stopped, if it did
-    distressWaitMs: number;           // stream start → verdict in hand
-  };
+  } & StreamTiming);
 
 type Pending =
   | { kind: 'sentence'; text: string }
@@ -108,6 +112,7 @@ export async function streamTurnSegments(
   const undeliveredRevealIds: string[] = [];
   let firstSegmentMs: number | null = null;
   let actions: Action[] = [];
+  let modelDoneAt: number | null = null;
 
   const send = async (seg: Segment) => {
     try {
@@ -158,7 +163,7 @@ export async function streamTurnSegments(
       ledger.revealed = new Set(state.ledger.revealed);
       continue;
     }
-    if (e.type === 'done') { actions = e.actions; break; }
+    if (e.type === 'done') { actions = e.actions; modelDoneAt = Date.now(); break; }
     let p: Pending | null = null;
     if (e.type === 'sentence') {
       p = { kind: 'sentence', text: e.text };
@@ -177,9 +182,10 @@ export async function streamTurnSegments(
     await handle(p);
   }
 
+  const doneAt = modelDoneAt ?? Date.now();
   const v = verdict === undefined ? await verdictPromise : verdict;
-  const distressWaitMs = (verdictAtMs ?? Date.now()) - start;
-  if (isDistressVerdict(v)) return { kind: 'distress', verdict: v, distressWaitMs };
+  const timing: StreamTiming = { modelDoneAt: doneAt, distressWaitMs: Math.max(0, (verdictAtMs ?? Date.now()) - doneAt) };
+  if (isDistressVerdict(v)) return { kind: 'distress', verdict: v, ...timing };
   await flushQueue();
-  return { kind: 'done', actions, delivered, deliveredRevealIds, undeliveredRevealIds, firstSegmentMs, bufferSwitch, distressWaitMs };
+  return { kind: 'done', actions, delivered, deliveredRevealIds, undeliveredRevealIds, firstSegmentMs, bufferSwitch, ...timing };
 }
