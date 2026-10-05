@@ -59,6 +59,13 @@ describe('ActionStreamParser', () => {
     expect(p.text).toBe('{"actions":[{"type":"say","text":"Walk me through');
   });
 
+  it('keeps a newline-led continuation in the same sentence, so the fabricated-turn check sees it', () => {
+    // Live run 58cb8061: the model wrote the candidate's answer after "\n\nuser".
+    const s = '{"actions":[{"type":"say","text":"What else could the client do?\\n\\nuser Several levers. Pricing."}]}';
+    const sentences = run(chunked(s, 3)).flatMap(e => (e.type === 'sentence' ? [e.text] : []));
+    expect(sentences[0]).toBe('What else could the client do?\n\nuser Several levers.');
+  });
+
   it('treats only a "text" value inside an action as speech', () => {
     const s = '{"actions":[{"type":"show_exhibit","exhibit_id":"text. Not speech."}]}';
     expect(run([s]).filter(e => e.type === 'sentence')).toEqual([]);
