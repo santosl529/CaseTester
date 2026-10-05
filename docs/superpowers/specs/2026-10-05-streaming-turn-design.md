@@ -121,28 +121,31 @@ Order of operations:
 2. **Buffered turn** (`plan.buffered`, or switched by step 4): collect every
    event; at `done`, hand the full action list to Settle, which runs today's
    full-turn logic unchanged (D2). Nothing is delivered from Stream.
-3. **Streaming turn**, per event:
-   - `sentence` → gates in today's order: `stripFabricatedTurn` (a cut ends
-     the model's text for the turn), `stripMetaLeak`, `rewriteSystemLanguage`,
-     `stripCopiedCheckIn`, `enforceNumericProvenance`,
-     `withholdProbesOnVerified`, `withholdAssumptionChallenges` (withheld
-     items are recorded for Settle to release or defer). A sentence that ends
-     in `?` is held (D4); a held question is released before the next
-     non-question sentence. Otherwise deliver.
-   - `action: reveal_data` → resolve and `canReveal`; deliver a segment with
-     the approved wording and `revealIds`; the ledger books it when the sink
-     resolves (D3). Unresolvable id: recorded, no segment.
-   - `action: show_exhibit` → deliver a segment with `exhibitId` (exhibit
-     coverage via `markExhibitReveals` booked on delivery).
-   - `action: advance_phase` / `end_case` → recorded for Settle (end is only
-     honoured at `done`; `normalizeActions` already drops anything after it).
-4. **Switch to buffered mid-stream** when a sentence matches the close cues
-   used by `resolveSpokenClose`, or, in BRAINSTORM, `suppliesRecommendation`.
-   The triggering sentence and everything after it are collected, not
-   delivered; Settle runs the full-turn logic on the undelivered remainder.
-   Behaviour change: sentences already delivered stay delivered (today the
-   whole turn would be replaced). Logged as check `stream_buffer_switch`.
-5. At `done`: held questions and the event record go to Settle.
+3. **Streaming turn**, per event — **pass or buffer**: a sentence is delivered
+   only if every gate passes it *unchanged*; the first sentence any gate would
+   change (or withhold) switches the rest of the turn to buffered, and Settle
+   decides it with today's full logic.
+   - `sentence` → gates, today's order: `stripFabricatedTurn`,
+     `stripMetaLeak`, `rewriteSystemLanguage`, `stripCopiedCheckIn`,
+     `enforceNumericProvenance` (allowed texts include values revealed earlier
+     in this turn's stream), `withholdProbesOnVerified`,
+     `withholdAssumptionChallenges`. A sentence that ends in `?` is held (D4);
+     a held question is released before the next delivered non-question
+     sentence.
+   - `action: reveal_data` → resolve and `canReveal` (on a copy of the
+     ledger); deliver a segment with the approved wording and `revealIds`.
+     Unresolvable id: no segment.
+   - `action: show_exhibit` → deliver a segment with `exhibitId`.
+   - `action: advance_phase` → recorded. `action: end_case` → switch to
+     buffered.
+4. **Other buffer switches mid-stream:** a sentence with a close cue
+   (`hasCloseCue` / `isClosingTurn`), a time / recommendation cue
+   (`alreadySignaledTimeOrRec`), or, in BRAINSTORM, `suppliesRecommendation`.
+   Behaviour change: sentences already delivered stay delivered (today a
+   whole-turn replacement would drop them). Logged as check
+   `stream_buffer_switch`.
+5. At `done`: the delivered prefix, held questions and the action list go to
+   Settle.
 
 Gates that need cross-sentence state (provenance allowed texts, probe-guard
 `explainProbed`, `metaStripped`, `fabricatedStripped`) keep it in a
@@ -151,18 +154,16 @@ per-turn accumulator, so the check log records the same decisions as today.
 ### 4.4 Settle (`settle-turn.ts`)
 
 Runs after `done` (or immediately for `scripted` / distress-discarded plans):
-- **Streaming turns:** today's post-turn steps that add or insert, applied to
-  the held questions and undelivered text only: wordless exhibit / reveal
-  lines, exhibit and data promise recovery (`handoffSentences` read over all
-  delivered + held text), accepted offer, same-turn resolution, stale
-  releases, forced release on a model-asked recommendation,
-  assumption-guard releases, empty-turn guard. Inserts go before the held
-  question via `insertBeforeTrailingQuestions`; the result is delivered.
-- **Buffered turns:** today's lines 470–1031 run unchanged on the full action
-  list (minus anything Stream already delivered before a mid-stream switch).
-- **Both:** phase repair, provenance re-check on the final undelivered text,
-  timeframe check (log only), `auditTurn` / `auditTurnStyle` on the full
-  delivered text, rung delivery + hint check, then **one commit**: turns,
+- **Prefix lock (both kinds of turn):** Settle runs today's post-model logic
+  (runner lines 470–1031) unchanged on the full action list and produces the
+  final text, exactly as today. The part after the already-delivered prefix is
+  delivered as the tail. If the final text does not start with the delivered
+  prefix (a replacement after a mid-stream switch), the tail is the final
+  text's sentences not yet delivered, in order, and check
+  `stream_prefix_mismatch` records it.
+- Today's logic already includes phase repair, provenance, timeframe check
+  (log only), `auditTurn` / `auditTurnStyle`, rung delivery + hint check.
+  After the tail is delivered, **one commit**: turns,
   checks, revealed rows (delivered only), exhibit row, session update, pending
   events, assist / load-shed / synthesis-unresolved events. Analytics stay on
   `later()`.
