@@ -8,6 +8,7 @@
 //   C   B plus a leading short "note" explaining the turn's decision
 //   D2  B2's JSON written by instruction only, no output_config (cached layout)
 //   P   the production path (runInterviewerTurn + AnthropicInterviewerModel)
+//   G   P's pipeline on Gemini 3.8 Flash (needs GEMINI_API_KEY; GEMINI_THINKING=low|medium)
 //
 // One turn at a time: the conversation after the turn is the logged one, so
 // multi-turn effects (closes, request pile-up) are out of scope. Prompts are
@@ -25,6 +26,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import { buildSystemPrompt, buildPromptParts, type PromptContext } from '@/lib/agent/prompts/system';
 import { TOOLS, INTERVIEWER_STOP_SEQUENCES, actionsFromContent, AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import { runInterviewerTurn } from '@/lib/agent/interviewer';
+import type { InterviewerModel, TurnContext } from '@/lib/agent/models/interface';
+import { RESPONSE_SCHEMA, RESPONSE_FORMAT, parseResponse, normalizeActions, retryNote } from '@/lib/agent/models/json-actions';
 import { INTERVIEWER_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { getCaseById } from '@/lib/cases/loader';
 import { createLedger, reveal, revealedValues, unrevealedItems, labelWithPeriod, resolveItemId } from '@/lib/orchestrator/data-ledger';
@@ -201,8 +204,10 @@ Reply with the JSON object only — no text before or after it.`;
 // Arms: output format × prompt layout. "single" = everything in `system`
 // (production before step 3); "split" = cached fixed prefix + per-turn state
 // as a trailing system message (step 3).
-type Arm = 'P' | 'A' | 'A2' | 'A2nc' | 'A2u' | 'A3' | 'B3' | 'D3' | 'B' | 'B2' | 'C' | 'D2';
-const ARMS: Record<Exclude<Arm, 'P'>, { format: 'tools' | 'json-strict' | 'json-prompt'; layout: 'single' | 'split' | 'split-nocache' | 'user-append' | 'system-tail'; suffix: string; schema?: object }> = {
+type StreamArm = 'S' | 'SL' | 'H' | 'GS';
+type Arm = 'P' | 'G' | StreamArm | 'A' | 'A2' | 'A2nc' | 'A2u' | 'A3' | 'B3' | 'D3' | 'B' | 'B2' | 'C' | 'D2';
+const STREAM_ARMS: StreamArm[] = ['S', 'SL', 'H', 'GS'];
+const ARMS: Record<Exclude<Arm, 'P' | 'G' | StreamArm>,{ format: 'tools' | 'json-strict' | 'json-prompt'; layout: 'single' | 'split' | 'split-nocache' | 'user-append' | 'system-tail'; suffix: string; schema?: object }> = {
   A: { format: 'tools', layout: 'single', suffix: '' },
   A2: { format: 'tools', layout: 'split', suffix: '' },
   A2nc: { format: 'tools', layout: 'split-nocache', suffix: '' },
@@ -219,6 +224,9 @@ const ARMS: Record<Exclude<Arm, 'P'>, { format: 'tools' | 'json-strict' | 'json-
 type ArmResult = {
   arm: Arm; ok: boolean; error?: string; latencyMs: number; inputTokens: number; outputTokens: number; cacheRead: number; cacheWrite: number;
   actions: Action[]; droppedText: string[]; note?: string; spoken: string; assembled: string; metaLeakHits: string[]; badIds: string[];
+  // Streaming arms only: first visible token, and the moment the first "say"
+  // text holds a complete sentence (what voice could hand to TTS).
+  ttftMs?: number; firstSentenceMs?: number;
 };
 
 function assemble(actions: Action[]): { spoken: string; assembled: string; badIds: string[] } {
@@ -253,32 +261,194 @@ function parseJsonActions(text: string): { note?: string; actions: Action[] } {
   };
 }
 
+// G: Gemini 3.8 Flash through the same pipeline as P (runInterviewerTurn, the
+// same JSON action schema, normalizeActions, one regeneration). REST via
+// fetch — no SDK dependency for an experiment. Thinking can't be turned off on
+// this model; "low" is the floor. Schema: Gemini doesn't list `const`, so
+// single-value enums stand in.
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? 'gemini-3.8-flash';
+const GEMINI_THINKING = process.env.GEMINI_THINKING ?? 'low';
+function geminiSchema(x: unknown): unknown {
+  if (Array.isArray(x)) return x.map(geminiSchema);
+  if (x && typeof x === 'object') {
+    const o = x as Record<string, unknown>;
+    if ('const' in o) return { type: 'string', enum: [o.const] };
+    return Object.fromEntries(Object.entries(o).map(([k, v]) => [k, geminiSchema(v)]));
+  }
+  return x;
+}
+class GeminiInterviewerModel implements InterviewerModel {
+  async runTurn(ctx: TurnContext): Promise<Action[]> {
+    const validators = ctx.idValidators ?? {};
+    const call = async (note?: string) => {
+      const body = {
+        systemInstruction: { parts: [{ text: `${ctx.systemPrompt}\n\n${RESPONSE_FORMAT}\n\n${ctx.turnSystem ?? ''}${note ? `\n\n${note}` : ''}` }] },
+        contents: ctx.history.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
+        generationConfig: {
+          maxOutputTokens: 4096,
+          responseMimeType: 'application/json',
+          responseJsonSchema: geminiSchema(RESPONSE_SCHEMA),
+          thinkingConfig: { thinkingLevel: GEMINI_THINKING },
+        },
+      };
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY ?? '' },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json() as {
+        error?: { message: string };
+        candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] }; finishReason?: string }[];
+        usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; thoughtsTokenCount?: number; cachedContentTokenCount?: number };
+      };
+      if (!res.ok || json.error) throw new Error(`gemini ${res.status}: ${json.error?.message ?? JSON.stringify(json).slice(0, 300)}`);
+      const u = json.usageMetadata ?? {};
+      ctx.onUsage?.({
+        component: 'interviewer', model: GEMINI_MODEL,
+        inputTokens: (u.promptTokenCount ?? 0) - (u.cachedContentTokenCount ?? 0),
+        outputTokens: (u.candidatesTokenCount ?? 0) + (u.thoughtsTokenCount ?? 0),
+        cacheReadTokens: u.cachedContentTokenCount ?? 0,
+      });
+      const text = (json.candidates?.[0]?.content?.parts ?? []).filter(p => !p.thought).map(p => p.text ?? '').join('');
+      return parseResponse(text);
+    };
+    let raw = await call();
+    let result = normalizeActions(raw ?? [], validators);
+    let retried = false;
+    if (raw === null || result.retry) {
+      retried = true;
+      raw = await call(raw === null ? 'Your previous draft of this turn was not a complete JSON object. Write the whole turn again as one JSON object.' : retryNote(result.report, validators));
+      result = normalizeActions(raw ?? [], validators);
+    }
+    ctx.onValidation?.({ report: result.report, retried, unparsed: raw === null, refused: false });
+    return result.actions.length ? result.actions : [{ type: 'speak', text: 'I see. What would you like to explore next?' }];
+  }
+}
+const geminiModel = new GeminiInterviewerModel();
+
 // P: the production path itself — runInterviewerTurn with the real model
 // class (JSON output, validation, one regeneration, phase filtering).
 const prodModel = new AnthropicInterviewerModel();
-async function runProd(s: Sample): Promise<ArmResult> {
+async function runProd(s: Sample, arm: 'P' | 'G' = 'P'): Promise<ArmResult> {
   const u = { inputTokens: 0, outputTokens: 0, cacheRead: 0, cacheWrite: 0, calls: 0 };
   let retried = false;
   const t0 = Date.now();
   try {
     const actions = await runInterviewerTurn({
-      model: prodModel, candidateText: s.candidateText, history: s.history, promptCtx: s.ctx, phase: s.ctx.currentPhase,
+      model: arm === 'G' ? geminiModel : prodModel, candidateText: s.candidateText, history: s.history, promptCtx: s.ctx, phase: s.ctx.currentPhase,
       onUsage: x => { u.inputTokens += x.inputTokens; u.outputTokens += x.outputTokens; u.cacheRead += x.cacheReadTokens ?? 0; u.cacheWrite += x.cacheWriteTokens ?? 0; u.calls++; },
       onValidation: v => { retried = v.retried; },
     });
     const latencyMs = Date.now() - t0;
     const asm = assemble(actions);
-    return { arm: 'P', ok: true, latencyMs, inputTokens: u.inputTokens, outputTokens: u.outputTokens, cacheRead: u.cacheRead, cacheWrite: u.cacheWrite,
+    return { arm, ok: true, latencyMs, inputTokens: u.inputTokens, outputTokens: u.outputTokens, cacheRead: u.cacheRead, cacheWrite: u.cacheWrite,
       actions, droppedText: [], note: retried ? 'retried' : undefined, ...asm, metaLeakHits: stripMetaLeak(asm.spoken).strippedSentences };
   } catch (e) {
-    return { arm: 'P', ok: false, error: String(e).slice(0, 300), latencyMs: Date.now() - t0, inputTokens: 0, outputTokens: 0, cacheRead: 0, cacheWrite: 0,
+    return { arm, ok: false, error: String(e).slice(0, 300), latencyMs: Date.now() - t0, inputTokens: 0, outputTokens: 0, cacheRead: 0, cacheWrite: 0,
       actions: [], droppedText: [], spoken: '', assembled: '', metaLeakHits: [], badIds: [] };
   }
 }
 
+// ---------- streaming arms (time to first token / first spoken sentence) ----------
+// Production prompt layout and JSON format, streamed. No validation or
+// regeneration: these measure when voice could start speaking.
+//   S   Sonnet 5.5, thinking off (between_tools), as in production
+//   SL  S at effort low
+//   H   Haiku 4.5 (no thinking)
+//   GS  Gemini Flash, streamGenerateContent (GEMINI_THINKING, default low)
+
+// Watches the raw JSON stream: once inside the first "text" string, a sentence
+// end (. ? ! followed by a space) or the closing quote marks the first sentence.
+function sentenceTracker(t0: number) {
+  let buf = '', ttft: number | undefined, first: number | undefined;
+  return {
+    push(delta: string) {
+      if (!delta) return;
+      const now = Date.now();
+      ttft ??= now - t0;
+      buf += delta;
+      if (first !== undefined) return;
+      const m = /"text"\s*:\s*"/.exec(buf);
+      if (!m) return;
+      const body = buf.slice(m.index + m[0].length);
+      for (let i = 0; i < body.length; i++) {
+        if (body[i] === '\\') { i++; continue; }
+        if (body[i] === '"' || (/[.?!]/.test(body[i]) && body[i + 1] === ' ')) { first = now - t0; return; }
+      }
+    },
+    get text() { return buf; }, get ttft() { return ttft; }, get first() { return first; },
+  };
+}
+
+async function runStream(s: Sample, arm: StreamArm): Promise<ArmResult> {
+  const { stable, turn } = buildPromptParts(s.ctx);
+  const convo = [...s.history, { role: 'user' as const, content: s.candidateText }];
+  const t0 = Date.now();
+  const tr = sentenceTracker(t0);
+  const usage = { inputTokens: 0, outputTokens: 0, cacheRead: 0, cacheWrite: 0 };
+  try {
+    if (arm === 'GS') {
+      const body = {
+        systemInstruction: { parts: [{ text: `${stable}\n\n${RESPONSE_FORMAT}\n\n${turn}` }] },
+        contents: convo.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
+        generationConfig: { maxOutputTokens: 4096, responseMimeType: 'application/json', responseJsonSchema: geminiSchema(RESPONSE_SCHEMA), thinkingConfig: { thinkingLevel: GEMINI_THINKING } },
+      };
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse`, {
+        method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY ?? '' }, body: JSON.stringify(body),
+      });
+      if (!res.ok || !res.body) throw new Error(`gemini ${res.status}: ${(await res.text()).slice(0, 300)}`);
+      const reader = res.body.getReader(); const dec = new TextDecoder(); let pending = '';
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        pending += dec.decode(value, { stream: true });
+        const lines = pending.split('\n'); pending = lines.pop() ?? '';
+        for (const line of lines) {
+          if (!line.startsWith('data:')) continue;
+          const ev = JSON.parse(line.slice(5)) as { candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] } }[]; usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; thoughtsTokenCount?: number; cachedContentTokenCount?: number } };
+          for (const p of ev.candidates?.[0]?.content?.parts ?? []) if (!p.thought) tr.push(p.text ?? '');
+          if (ev.usageMetadata) {
+            const u = ev.usageMetadata;
+            usage.inputTokens = (u.promptTokenCount ?? 0) - (u.cachedContentTokenCount ?? 0);
+            usage.outputTokens = (u.candidatesTokenCount ?? 0) + (u.thoughtsTokenCount ?? 0);
+            usage.cacheRead = u.cachedContentTokenCount ?? 0;
+          }
+        }
+      }
+    } else {
+      const isHaiku = arm === 'H';
+      const stream = client.beta.messages.stream({
+        model: isHaiku ? 'claude-haiku-4-5' : INTERVIEWER_MODEL_ID,
+        max_tokens: 1024,
+        system: [{ type: 'text', text: `${stable}\n\n${RESPONSE_FORMAT}`, cache_control: { type: 'ephemeral' } }, { type: 'text', text: turn }],
+        messages: convo,
+        output_config: { format: { type: 'json_schema', schema: RESPONSE_SCHEMA }, ...(arm === 'SL' ? { effort: 'low' } : {}) },
+        ...(isHaiku ? {} : { thinking: { type: 'between_tools' }, betas: [FALLBACK_BETA], fallbacks: FALLBACKS }),
+      } as never);
+      for await (const ev of stream as AsyncIterable<{ type: string; delta?: { type: string; text?: string } }>) {
+        if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') tr.push(ev.delta.text ?? '');
+      }
+      const r = await (stream as unknown as { finalMessage(): Promise<Anthropic.Beta.BetaMessage> }).finalMessage();
+      usage.inputTokens = r.usage.input_tokens; usage.outputTokens = r.usage.output_tokens;
+      usage.cacheRead = r.usage.cache_read_input_tokens ?? 0; usage.cacheWrite = r.usage.cache_creation_input_tokens ?? 0;
+    }
+    const latencyMs = Date.now() - t0;
+    const raw = parseResponse(tr.text);
+    if (raw === null) {
+      return { arm, ok: false, error: `parse: ${tr.text.slice(0, 200)}`, latencyMs, ...usage, actions: [], droppedText: [], spoken: '', assembled: '', metaLeakHits: [], badIds: [], ttftMs: tr.ttft, firstSentenceMs: tr.first };
+    }
+    const actions = parseJsonActions(tr.text).actions;
+    const asm = assemble(actions);
+    return { arm, ok: true, latencyMs, ...usage, actions, droppedText: [], ...asm, metaLeakHits: stripMetaLeak(asm.spoken).strippedSentences, ttftMs: tr.ttft, firstSentenceMs: tr.first };
+  } catch (e) {
+    return { arm, ok: false, error: String(e).slice(0, 300), latencyMs: Date.now() - t0, ...usage, actions: [], droppedText: [], spoken: '', assembled: '', metaLeakHits: [], badIds: [] };
+  }
+}
+
 async function runArm(s: Sample, arm: Arm): Promise<ArmResult> {
-  if (arm === 'P') return runProd(s);
-  const cfg = ARMS[arm];
+  if (arm === 'P' || arm === 'G') return runProd(s, arm);
+  if ((STREAM_ARMS as Arm[]).includes(arm)) return runStream(s, arm as StreamArm);
+  const cfg = ARMS[arm as keyof typeof ARMS];
   const convo = [...s.history, { role: 'user' as const, content: s.candidateText }];
   let system: unknown, messages: unknown;
   if (cfg.layout === 'single') {
@@ -413,7 +583,12 @@ function report(rows: (ArmResult & { narratedInLog: boolean; judge: Record<strin
       + `\n  meta-leak regex hits   ${ok.filter(x => x.metaLeakHits.length).length}   dropped text outside speak ${ok.filter(x => x.droppedText.length).length}`
       + `\n  empty spoken ${ok.filter(x => !x.spoken.trim()).length}   bad ids ${ok.filter(x => x.badIds.length).length}`
       + `\n  latency median ${pct(ok.map(x => x.latencyMs), 0.5)}ms  p95 ${pct(ok.map(x => x.latencyMs), 0.95)}ms   output tokens median ${pct(ok.map(x => x.outputTokens), 0.5)}`
-      + `\n  cache read median ${pct(ok.map(x => x.cacheRead), 0.5)}  uncached input median ${pct(ok.map(x => x.inputTokens), 0.5)}   regenerated ${ok.filter(x => x.note === 'retried').length}`);
+      + `\n  cache read median ${pct(ok.map(x => x.cacheRead), 0.5)}  uncached input median ${pct(ok.map(x => x.inputTokens), 0.5)}   regenerated ${ok.filter(x => x.note === 'retried').length}`
+      + (ok.some(x => x.ttftMs !== undefined)
+        ? `\n  first token median ${pct(ok.map(x => x.ttftMs ?? 0), 0.5)}ms  p95 ${pct(ok.map(x => x.ttftMs ?? 0), 0.95)}ms`
+          + `   first sentence median ${pct(ok.map(x => x.firstSentenceMs ?? x.latencyMs), 0.5)}ms  p95 ${pct(ok.map(x => x.firstSentenceMs ?? x.latencyMs), 0.95)}ms`
+          + `   (no sentence before end: ${ok.filter(x => x.firstSentenceMs === undefined).length})`
+        : ''));
     for (const x of rs.filter(x => !x.ok).slice(0, 3)) console.log(`  error: ${x.error}`);
   }
 }
@@ -460,7 +635,7 @@ async function main() {
   if (DRY) { writeFileSync(path.join(OUT_DIR, 'replay-sample-prompt.txt'), buildSystemPrompt(samples[0].ctx)); return; }
 
   // Warm the JSON-schema compile cache (one-time per schema) so it doesn't skew latency.
-  const strict = arms.filter(a => a === 'P' || ARMS[a].format === 'json-strict');
+  const strict = arms.filter(a => a === 'P' || a === 'G' || (STREAM_ARMS as Arm[]).includes(a) || ARMS[a as keyof typeof ARMS].format === 'json-strict');
   if (strict.length && !args.includes('--smoke')) await Promise.all(strict.map(a => runArm(samples[0], a)));
   const jobs = samples.flatMap(s => arms.map(arm => ({ s, arm })));
   const results = await pool(jobs, 10, async j => ({ ...j, r: await runArm(j.s, j.arm) }));
