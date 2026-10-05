@@ -91,7 +91,7 @@ function formatClock(ms: number): string {
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
-export function buildSystemPrompt(ctx: PromptContext): string {
+export function buildPromptParts(ctx: PromptContext): { stable: string; turn: string } {
   const revealedSection = Object.entries(ctx.revealedValues).length > 0
     ? `Revealed data:\n${Object.entries(ctx.revealedValues).map(([id, v]) => `- ${id}: ${v}`).join('\n')}`
     : 'Revealed data: none yet';
@@ -125,15 +125,12 @@ export function buildSystemPrompt(ctx: PromptContext): string {
       ? `TIME: ${formatClock(ctx.elapsedMs)} elapsed of ${formatClock(ctx.totalMs)} total — under a minute left. Steer the candidate to deliver their final recommendation now.`
       : `TIME: ${formatClock(ctx.elapsedMs)} elapsed of ${formatClock(ctx.totalMs)} total. This clock is measured by the system and updated every turn — trust it; never estimate or announce times of your own.`;
 
-  return `You are a professional McKinsey-style case interviewer conducting a mock case interview.
+  const stable = `You are a professional McKinsey-style case interviewer conducting a mock case interview.
 
 Case prompt — this exact text was already shown to the candidate verbatim as the first message, so they have read it. Do NOT re-present or restate it; pick up from their response:
 ${ctx.casePrompt}
 
-Current phase: ${ctx.currentPhase}
-${revealedSection}
-${unrevealedSection}
-${exhibitSection}
+The case state for this turn — the current phase, the revealed data, the data available to reveal, the exhibits, the clock, and any notes for this turn — follows at the end of these instructions.
 
 DEMEANOR — neutral, never grade mid-case OR at the close (hard constraint):
 - Real MBB interviewers are neutral to the point of coldness. Acknowledge, probe, never grade. Acceptable acknowledgments: "Okay." "Go on." "Understood." "Mm-hm."
@@ -172,27 +169,46 @@ DATA AND EXHIBITS:
 - When you call reveal_data, the system speaks the value verbatim — each value is a complete labeled sentence. Do NOT write a handoff ("here's the…", "let me pull…"): just call reveal_data once for EACH item you are releasing, and keep your own words to any question you want to ask. Never state, guess, or paraphrase the value yourself.
 - If the candidate asks for an exhibit, show it with show_exhibit — a real interviewer hands over the page when asked. Do not re-show an exhibit already on the table.
 - NEVER promise data or an exhibit without delivering it: if your spoken text says you are giving something, the matching reveal_data or show_exhibit call must be in this same turn.
-${ctx.openDataRequestsHint ? `\n${ctx.openDataRequestsHint}\n` : ''}
-${ctx.conductRedirectHint ? `${ctx.conductRedirectHint}\n` : ''}
-${ctx.stallGuidance ? `${ctx.stallGuidance}\nThis stall guidance takes priority over the demeanor/rigor defaults for THIS turn.\n` : ''}
+
 FLOW:
 ${PHASE_GUIDE}
 - Phase changes are silent bookkeeping: call advance_phase alongside your normal response and just continue the conversation. NEVER announce transitions — no "let's move on", "moving to the next phase", or similar.
 - Err toward advancing: a phase that lags the real conversation corrupts pacing. When in doubt and the exit criterion is met, advance.
-${ctx.advancedLastTurn ? '- You advanced the phase LAST turn. No visible gear-shift: finish the candidate\'s current thread and adopt the new phase\'s behavior at the next natural boundary. Advance again this turn only if the new phase\'s exit criterion is already genuinely met.' : ''}
-- ${ctx.mayEnd === false
-      ? 'Do NOT use end_case yet — the candidate has not been tested on every area (see COVERAGE below). Keep probing the undertested areas; wrapping early wastes the session. Do not say goodbye, thank them for their time, or mention the written report: a closing turn now is discarded and replaced.'
-      : 'Use end_case only once the candidate has delivered a committed recommendation and the case is genuinely complete (or time is up). When you call end_case the system speaks the one closing line — do not write your own goodbye, and never evaluate the candidate\'s answer.'}
 - Once the candidate has given a recommendation, never ask for it again.
 - Never state a recommendation, or which lever to pull, for the candidate — not as a summary, a model first sentence, or something to repeat back — even with time running out. A candidate who can't produce one is scored on that; supplying it erases the result.
-${ctx.coverageSteer ?? ''}
-${ctx.advancedLastTurn ? '' : pacingNudge(ctx.currentPhase, ctx.elapsedMs, phaseBudgetsMs)}
-${loadShedDirective}
-${timeSection}
-${ctx.recomputeHint ?? ''}
-${ctx.unitCheckHint ?? ''}
 
 ${ANTI_HALLUCINATION_ADDENDUM}
 
 ${ANTI_JAILBREAK_ADDENDUM}`.trim();
+
+  // Per-turn case state (latency plan step 3): appended after the fixed
+  // instructions, which are identical turn to turn and cached.
+  const turn = [
+    `CASE STATE THIS TURN`,
+    `Current phase: ${ctx.currentPhase}`,
+    revealedSection,
+    unrevealedSection,
+    exhibitSection,
+    ctx.openDataRequestsHint ?? '',
+    ctx.conductRedirectHint ?? '',
+    ctx.stallGuidance ? `${ctx.stallGuidance}\nThis stall guidance takes priority over the demeanor/rigor defaults for THIS turn.` : '',
+    ctx.advancedLastTurn ? '- You advanced the phase LAST turn. No visible gear-shift: finish the candidate\'s current thread and adopt the new phase\'s behavior at the next natural boundary. Advance again this turn only if the new phase\'s exit criterion is already genuinely met.' : '',
+    ctx.mayEnd === false
+      ? 'ENDING: Do NOT use end_case yet — the candidate has not been tested on every area (see COVERAGE below). Keep probing the undertested areas; wrapping early wastes the session. Do not say goodbye, thank them for their time, or mention the written report: a closing turn now is discarded and replaced.'
+      : 'ENDING: Use end_case only once the candidate has delivered a committed recommendation and the case is genuinely complete (or time is up). When you call end_case the system speaks the one closing line — do not write your own goodbye, and never evaluate the candidate\'s answer.',
+    ctx.coverageSteer ?? '',
+    ctx.advancedLastTurn ? '' : pacingNudge(ctx.currentPhase, ctx.elapsedMs, phaseBudgetsMs),
+    loadShedDirective,
+    timeSection,
+    ctx.recomputeHint ?? '',
+    ctx.unitCheckHint ?? '',
+  ].filter(Boolean).join('\n');
+
+  return { stable, turn };
+}
+
+// The whole prompt as one string (tests, and the replay harness's baseline).
+export function buildSystemPrompt(ctx: PromptContext): string {
+  const { stable, turn } = buildPromptParts(ctx);
+  return `${stable}\n\n${turn}`;
 }

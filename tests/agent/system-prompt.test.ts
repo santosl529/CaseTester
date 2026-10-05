@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildSystemPrompt, type PromptContext } from '@/lib/agent/prompts/system';
+import { buildSystemPrompt, buildPromptParts, type PromptContext } from '@/lib/agent/prompts/system';
 
 const TOTAL = 5 * 60 * 1000;
 
@@ -207,5 +207,45 @@ describe('exhibits already shown', () => {
     ] }));
     expect(p).toContain('- id: "exhibit-a" — Cost structure over time (already shown');
     expect(p).toContain('- id: "exhibit-b" — Store map\n');
+  });
+});
+
+// Latency plan step 3: the fixed instructions are a cacheable prefix, so
+// nothing that changes turn to turn may appear in them.
+describe('buildPromptParts — stable prefix vs per-turn state', () => {
+  const early = ctx();
+  const late = ctx({
+    currentPhase: 'ANALYSIS',
+    revealedValues: { cogs: 'COGS is 58% of revenue.' },
+    unrevealedItems: [{ id: 'beans', label: 'Bean price change' }],
+    exhibits: [{ id: 'exhibit-a', title: 'Cost structure', shown: true }],
+    advancedLastTurn: true,
+    elapsedMs: TOTAL - 20_000,
+    recomputeHint: 'RECOMPUTE FLAG: x',
+    unitCheckHint: 'UNIT-CONVERSION FLAG: y',
+    stallGuidance: 'STALL: z',
+    coverageSteer: 'COVERAGE: w',
+    mayEnd: false,
+    openDataRequestsHint: 'OPEN DATA REQUESTS: v',
+    conductRedirectHint: 'CONDUCT (C4): u',
+  });
+
+  it('keeps the stable part byte-identical across turns of a case', () => {
+    expect(buildPromptParts(late).stable).toBe(buildPromptParts(early).stable);
+  });
+
+  it('carries every per-turn input in the turn part only', () => {
+    const { stable, turn } = buildPromptParts(late);
+    for (const s of ['Current phase: ANALYSIS', 'COGS is 58% of revenue.', 'Bean price change', '(already shown —',
+      'You advanced the phase LAST turn', 'RECOMPUTE FLAG: x', 'UNIT-CONVERSION FLAG: y', 'STALL: z', 'COVERAGE: w',
+      'Do NOT use end_case yet', 'OPEN DATA REQUESTS: v', 'CONDUCT (C4): u', 'under a minute left']) {
+      expect(turn).toContain(s);
+      expect(stable).not.toContain(s);
+    }
+  });
+
+  it('joins both parts for buildSystemPrompt', () => {
+    const { stable, turn } = buildPromptParts(late);
+    expect(buildSystemPrompt(late)).toBe(`${stable}\n\n${turn}`);
   });
 });

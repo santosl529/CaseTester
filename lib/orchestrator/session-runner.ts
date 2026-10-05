@@ -409,7 +409,7 @@ async function runTurnBody(sessionId: string, candidateText: string, later: (tas
   console.log('[runner] phase:', currentPhase, 'stall rung:', stallDecision.intervene ? stallDecision.rung : 'none');
   // PRD §13: per-turn latency + token usage. The correction loop can make
   // multiple API calls per turn — onUsage fires per call, so sum here.
-  const turnUsage = { model: '', inputTokens: 0, outputTokens: 0, apiCalls: 0 };
+  const turnUsage = { model: '', inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, apiCalls: 0 };
   const modelCallStart = Date.now();
   const actions = await runInterviewerTurn({
     model,
@@ -420,6 +420,8 @@ async function runTurnBody(sessionId: string, candidateText: string, later: (tas
       turnUsage.model = u.model;
       turnUsage.inputTokens += u.inputTokens;
       turnUsage.outputTokens += u.outputTokens;
+      turnUsage.cacheReadTokens += u.cacheReadTokens ?? 0;
+      turnUsage.cacheWriteTokens += u.cacheWriteTokens ?? 0;
       turnUsage.apiCalls += 1;
     },
     promptCtx: {

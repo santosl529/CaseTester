@@ -8,6 +8,10 @@ export type LlmUsage = {
   model: string;
   inputTokens: number;
   outputTokens: number;
+  // Prompt caching (interviewer): input tokens read from / written to cache.
+  // inputTokens counts only the uncached remainder.
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
 };
 
 export type OnUsage = (usage: LlmUsage) => void;

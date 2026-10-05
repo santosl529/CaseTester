@@ -4,7 +4,11 @@ import type { OnUsage } from '@/lib/llm-usage';
 export type ModelMessage = { role: 'user' | 'assistant'; content: string };
 
 export type TurnContext = {
+  // Fixed instructions — identical turn to turn, so cacheable.
   systemPrompt: string;
+  // Per-turn case state (phase, data lists, clock, hints), appended to the
+  // system prompt after the cached fixed part.
+  turnSystem?: string;
   history: ModelMessage[];
   tools: ToolDefinition[];
   // Per-tool id validators. When the model calls a tool whose id doesn't

@@ -84,7 +84,7 @@ export class AnthropicInterviewerModel implements InterviewerModel {
       const r = await this.client.beta.messages.create({
         model: this.modelId,
         max_tokens: 1024,
-        system: ctx.systemPrompt,
+        system: buildSystemBlocks(ctx.systemPrompt, ctx.turnSystem),
         messages,
         tools: TOOLS,
         stop_sequences: INTERVIEWER_STOP_SEQUENCES,
@@ -103,6 +103,8 @@ export class AnthropicInterviewerModel implements InterviewerModel {
         model: this.modelId,
         inputTokens: r.usage.input_tokens,
         outputTokens: r.usage.output_tokens,
+        cacheReadTokens: r.usage.cache_read_input_tokens ?? 0,
+        cacheWriteTokens: r.usage.cache_creation_input_tokens ?? 0,
       });
       return r;
     };
@@ -142,6 +144,19 @@ export class AnthropicInterviewerModel implements InterviewerModel {
 
     return actions;
   }
+}
+
+// System prompt with prompt caching (latency plan step 3). The breakpoint on
+// the fixed instructions caches them and the tools (~5.3k of ~8.3k input
+// tokens). The per-turn case state follows in `system`, uncached. Replay
+// (batch 8, 44 turns in order): no latency change either way at this size —
+// the gain is input cost. Moving the state after the candidate's message, so
+// the conversation could be cached too, made Sonnet narrate ~10× more and
+// added ~310ms, so it stays in `system`.
+export function buildSystemBlocks(stable: string, turn?: string): Anthropic.Beta.BetaTextBlockParam[] {
+  const blocks: Anthropic.Beta.BetaTextBlockParam[] = [{ type: 'text', text: stable, cache_control: { type: 'ephemeral' } }];
+  if (turn) blocks.push({ type: 'text', text: turn });
+  return blocks;
 }
 
 type ContentBlock = { type: string; text?: string; name?: string; input?: unknown };

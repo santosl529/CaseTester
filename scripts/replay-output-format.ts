@@ -1,9 +1,12 @@
-// Output-format replay experiment (narration). Rebuilds the interviewer's
-// per-turn prompt from saved persona runs and regenerates single turns under
-// three output formats, then has a blind judge score each result:
-//   A  current format — free text + tool calls (production call shape)
-//   B  one JSON object: an ordered action list (output_config.format, no tools)
-//   C  B plus a leading short "note" explaining the turn's decision
+// Output-format replay experiment (narration + latency). Rebuilds the
+// interviewer's per-turn prompt from saved persona runs and regenerates single
+// turns under alternative output formats and prompt layouts (ARMS below), then
+// has a blind judge score each result:
+//   A   free text + tool calls, everything in `system` (production before step 3)
+//   A2  A with the cached layout (fixed prefix + per-turn system message)
+//   B   one JSON object: an ordered action list (output_config.format, no tools); B2 cached
+//   C   B plus a leading short "note" explaining the turn's decision
+//   D2  B2's JSON written by instruction only, no output_config (cached layout)
 //
 // One turn at a time: the conversation after the turn is the logged one, so
 // multi-turn effects (closes, request pile-up) are out of scope. Prompts are
@@ -12,12 +15,13 @@
 // (recompute attempts, explain-probed figures) start empty.
 //
 //   npx tsx --env-file=.env.local scripts/replay-output-format.ts --dry
-//   npx tsx --env-file=.env.local scripts/replay-output-format.ts --limit 50
+//   npx tsx --env-file=.env.local scripts/replay-output-format.ts --limit 50 --arms A,B,C
+//   npx tsx --env-file=.env.local scripts/replay-output-format.ts --sequential 01-maya --arms A,A2 --no-judge
 
 import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import Anthropic from '@anthropic-ai/sdk';
-import { buildSystemPrompt, type PromptContext } from '@/lib/agent/prompts/system';
+import { buildSystemPrompt, buildPromptParts, type PromptContext } from '@/lib/agent/prompts/system';
 import { TOOLS, INTERVIEWER_STOP_SEQUENCES, actionsFromContent } from '@/lib/agent/models/anthropic';
 import { INTERVIEWER_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { getCaseById } from '@/lib/cases/loader';
@@ -53,7 +57,7 @@ type Turn = { turnIndex: number; role: 'candidate' | 'interviewer'; text: string
 type Ev = { category: string; subtype: string; turnIndex: number | null; phase: string; payloadJsonb: Record<string, unknown> };
 type Sample = {
   id: string; session: string; turnIndex: number; narratedInLog: boolean;
-  systemPrompt: string; history: { role: 'user' | 'assistant'; content: string }[];
+  ctx: PromptContext; history: { role: 'user' | 'assistant'; content: string }[];
   candidateText: string; priorInterviewer: string; revealedLabels: string[];
 };
 
@@ -98,8 +102,8 @@ function loadSamples(): Sample[] {
         }));
         const priorInterviewer = [...turns].reverse().find(t => t.turnIndex < cIdx && t.role === 'interviewer')?.text ?? '';
         out.push({
-          id: `${dir.slice(0, 14)}#${iTurn}`, session: dir, turnIndex: iTurn, narratedInLog: groups[k].narrated,
-          systemPrompt: buildSystemPrompt(ctx.prompt), history, candidateText: cand.text, priorInterviewer,
+          id: `${dir.slice(0, 14)}#${iTurn}`, session: `${batch}/${dir}`, turnIndex: iTurn, narratedInLog: groups[k].narrated,
+          ctx: ctx.prompt, history, candidateText: cand.text, priorInterviewer,
           revealedLabels: ctx.revealedLabels,
         });
       });
@@ -189,8 +193,27 @@ Wherever these instructions say to call reveal_data, show_exhibit, advance_phase
 const FORMAT_C = `${FORMAT_B}
 - Before "actions", "note" holds one short sentence explaining this turn's decision. It is never shown to the candidate.`;
 
+const FORMAT_D = `${FORMAT_B}
+Reply with the JSON object only — no text before or after it.`;
+
+// Arms: output format × prompt layout. "single" = everything in `system`
+// (production before step 3); "split" = cached fixed prefix + per-turn state
+// as a trailing system message (step 3).
+type Arm = 'A' | 'A2' | 'A2nc' | 'A2u' | 'A3' | 'B' | 'B2' | 'C' | 'D2';
+const ARMS: Record<Arm, { format: 'tools' | 'json-strict' | 'json-prompt'; layout: 'single' | 'split' | 'split-nocache' | 'user-append' | 'system-tail'; suffix: string; schema?: object }> = {
+  A: { format: 'tools', layout: 'single', suffix: '' },
+  A2: { format: 'tools', layout: 'split', suffix: '' },
+  A2nc: { format: 'tools', layout: 'split-nocache', suffix: '' },
+  A2u: { format: 'tools', layout: 'user-append', suffix: '' },
+  A3: { format: 'tools', layout: 'system-tail', suffix: '' },
+  B: { format: 'json-strict', layout: 'single', suffix: FORMAT_B, schema: SCHEMA_B },
+  B2: { format: 'json-strict', layout: 'split', suffix: FORMAT_B, schema: SCHEMA_B },
+  C: { format: 'json-strict', layout: 'single', suffix: FORMAT_C, schema: SCHEMA_C },
+  D2: { format: 'json-prompt', layout: 'split', suffix: FORMAT_D },
+};
+
 type ArmResult = {
-  arm: 'A' | 'B' | 'C'; ok: boolean; error?: string; latencyMs: number; inputTokens: number; outputTokens: number;
+  arm: Arm; ok: boolean; error?: string; latencyMs: number; inputTokens: number; outputTokens: number; cacheRead: number; cacheWrite: number;
   actions: Action[]; droppedText: string[]; note?: string; spoken: string; assembled: string; metaLeakHits: string[]; badIds: string[];
 };
 
@@ -213,44 +236,83 @@ function assemble(actions: Action[]): { spoken: string; assembled: string; badId
   return { spoken: spokenParts.join(' '), assembled: parts.join(' '), badIds };
 }
 
-async function runArm(s: Sample, arm: 'A' | 'B' | 'C'): Promise<ArmResult> {
-  const messages = [...s.history, { role: 'user' as const, content: s.candidateText }];
+function parseJsonActions(text: string): { note?: string; actions: Action[] } {
+  const start = text.indexOf('{'), end = text.lastIndexOf('}');
+  const parsed = JSON.parse(text.slice(start, end + 1)) as { note?: string; actions: Record<string, string>[] };
+  return {
+    note: parsed.note,
+    actions: parsed.actions.map(a =>
+      a.type === 'say' ? { type: 'speak', text: a.text }
+        : a.type === 'reveal_data' ? { type: 'reveal_data', itemId: a.item_id }
+          : a.type === 'show_exhibit' ? { type: 'show_exhibit', exhibitId: a.exhibit_id }
+            : { type: a.type as 'advance_phase' | 'end_case' }),
+  };
+}
+
+async function runArm(s: Sample, arm: Arm): Promise<ArmResult> {
+  const cfg = ARMS[arm];
+  const convo = [...s.history, { role: 'user' as const, content: s.candidateText }];
+  let system: unknown, messages: unknown;
+  if (cfg.layout === 'single') {
+    system = buildSystemPrompt(s.ctx) + (cfg.suffix ? '\n' + cfg.suffix : '');
+    messages = convo;
+  } else if (cfg.layout === 'split') {
+    const { stable, turn } = buildPromptParts(s.ctx);
+    system = [{ type: 'text', text: stable + (cfg.suffix ? '\n' + cfg.suffix : ''), cache_control: { type: 'ephemeral' } }];
+    const msgs = convo.map(m => ({ ...m })) as { role: string; content: unknown }[];
+    msgs[msgs.length - 1].content = [{ type: 'text', text: s.candidateText, cache_control: { type: 'ephemeral' } }];
+    messages = [...msgs, { role: 'system', content: turn }];
+  } else if (cfg.layout === 'system-tail') {
+    // Fixed instructions cached; case state stays in `system`, after them.
+    const { stable, turn } = buildPromptParts(s.ctx);
+    system = [
+      { type: 'text', text: stable + (cfg.suffix ? '\n' + cfg.suffix : ''), cache_control: { type: 'ephemeral' } },
+      { type: 'text', text: turn },
+    ];
+    messages = convo;
+  } else if (cfg.layout === 'split-nocache') {
+    const { stable, turn } = buildPromptParts(s.ctx);
+    system = stable + (cfg.suffix ? '\n' + cfg.suffix : '');
+    messages = [...convo, { role: 'system', content: turn }];
+  } else {
+    // Case state as a second text block in the candidate's message.
+    const { stable, turn } = buildPromptParts(s.ctx);
+    system = [{ type: 'text', text: stable + (cfg.suffix ? '\n' + cfg.suffix : ''), cache_control: { type: 'ephemeral' } }];
+    messages = [...s.history, { role: 'user', content: [
+      { type: 'text', text: s.candidateText, cache_control: { type: 'ephemeral' } },
+      { type: 'text', text: `<case_state>\n${turn}\n</case_state>` },
+    ] }];
+  }
   const t0 = Date.now();
   try {
-    if (arm === 'A') {
-      const r = await client.beta.messages.create({
-        model: INTERVIEWER_MODEL_ID, max_tokens: 1024, system: s.systemPrompt, messages, tools: TOOLS,
-        stop_sequences: INTERVIEWER_STOP_SEQUENCES, thinking: { type: 'between_tools' }, betas: [FALLBACK_BETA], fallbacks: FALLBACKS,
-      } as never) as Anthropic.Beta.BetaMessage;
-      const latencyMs = Date.now() - t0;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const content = r.content as any[];
+    const r = await client.beta.messages.create({
+      model: INTERVIEWER_MODEL_ID, max_tokens: 1024, system, messages,
+      ...(cfg.format === 'tools' ? { tools: TOOLS, stop_sequences: INTERVIEWER_STOP_SEQUENCES } : {}),
+      ...(cfg.format === 'json-strict' ? { output_config: { format: { type: 'json_schema', schema: cfg.schema } } } : {}),
+      thinking: { type: 'between_tools' }, betas: [FALLBACK_BETA], fallbacks: FALLBACKS,
+    } as never) as Anthropic.Beta.BetaMessage;
+    const latencyMs = Date.now() - t0;
+    const usage = { inputTokens: r.usage.input_tokens, outputTokens: r.usage.output_tokens,
+      cacheRead: r.usage.cache_read_input_tokens ?? 0, cacheWrite: r.usage.cache_creation_input_tokens ?? 0 };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const content = r.content as any[];
+    if (cfg.format === 'tools') {
       const actions = actionsFromContent(content);
       const usesSpeak = content.some(b => b.type === 'tool_use' && b.name === 'speak');
       const droppedText = usesSpeak ? content.filter(b => b.type === 'text' && b.text?.trim()).map(b => b.text.trim()) : [];
       const asm = assemble(actions);
-      return { arm, ok: true, latencyMs, inputTokens: r.usage.input_tokens, outputTokens: r.usage.output_tokens, actions, droppedText,
-        ...asm, metaLeakHits: stripMetaLeak(asm.spoken).strippedSentences };
+      return { arm, ok: true, latencyMs, ...usage, actions, droppedText, ...asm, metaLeakHits: stripMetaLeak(asm.spoken).strippedSentences };
     }
-    const r = await client.beta.messages.create({
-      model: INTERVIEWER_MODEL_ID, max_tokens: 1024, system: s.systemPrompt + '\n' + (arm === 'B' ? FORMAT_B : FORMAT_C), messages,
-      thinking: { type: 'between_tools' }, betas: [FALLBACK_BETA], fallbacks: FALLBACKS,
-      output_config: { format: { type: 'json_schema', schema: arm === 'B' ? SCHEMA_B : SCHEMA_C } },
-    } as never) as Anthropic.Beta.BetaMessage;
-    const latencyMs = Date.now() - t0;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const text = (r.content as any[]).filter(b => b.type === 'text').map(b => b.text).join('');
-    const parsed = JSON.parse(text) as { note?: string; actions: Record<string, string>[] };
-    const actions: Action[] = parsed.actions.map(a =>
-      a.type === 'say' ? { type: 'speak', text: a.text }
-        : a.type === 'reveal_data' ? { type: 'reveal_data', itemId: a.item_id }
-          : a.type === 'show_exhibit' ? { type: 'show_exhibit', exhibitId: a.exhibit_id }
-            : { type: a.type as 'advance_phase' | 'end_case' });
-    const asm = assemble(actions);
-    return { arm, ok: true, latencyMs, inputTokens: r.usage.input_tokens, outputTokens: r.usage.output_tokens, actions, droppedText: [],
-      note: parsed.note, ...asm, metaLeakHits: stripMetaLeak(asm.spoken).strippedSentences };
+    const text = content.filter(b => b.type === 'text').map(b => b.text).join('');
+    let parsed: { note?: string; actions: Action[] };
+    try { parsed = parseJsonActions(text); } catch {
+      return { arm, ok: false, error: `parse: ${text.slice(0, 200)}`, latencyMs, ...usage, actions: [], droppedText: [], spoken: '', assembled: '', metaLeakHits: [], badIds: [] };
+    }
+    const asm = assemble(parsed.actions);
+    return { arm, ok: true, latencyMs, ...usage, actions: parsed.actions, droppedText: [], note: parsed.note, ...asm,
+      metaLeakHits: stripMetaLeak(asm.spoken).strippedSentences };
   } catch (e) {
-    return { arm, ok: false, error: String(e).slice(0, 300), latencyMs: Date.now() - t0, inputTokens: 0, outputTokens: 0,
+    return { arm, ok: false, error: String(e).slice(0, 300), latencyMs: Date.now() - t0, inputTokens: 0, outputTokens: 0, cacheRead: 0, cacheWrite: 0,
       actions: [], droppedText: [], spoken: '', assembled: '', metaLeakHits: [], badIds: [] };
   }
 }
@@ -284,7 +346,7 @@ async function judge(s: Sample, r: ArmResult): Promise<Record<string, unknown> |
   const user = `Interviewer's previous line:\n${s.priorInterviewer}\n\nCandidate:\n${s.candidateText}\n\nInterviewer's next turn (as received):\n${r.assembled || '(empty)'}`;
   try {
     const resp = await client.messages.create({
-      model: JUDGE_MODEL, max_tokens: 2000, system: JUDGE_SYSTEM, messages: [{ role: 'user', content: user }],
+      model: JUDGE_MODEL, max_tokens: 4000, system: JUDGE_SYSTEM, messages: [{ role: 'user', content: user }],
       output_config: { effort: 'low', format: { type: 'json_schema', schema: JUDGE_SCHEMA } },
     } as never) as Anthropic.Message;
     judgeIn += resp.usage.input_tokens; judgeOut += resp.usage.output_tokens;
@@ -310,44 +372,76 @@ function seededShuffle<T>(a: T[], seed = 7): T[] {
 
 const pct = (xs: number[], p: number) => { const s = [...xs].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(p * s.length))]; };
 
+function report(rows: (ArmResult & { narratedInLog: boolean; judge: Record<string, unknown> | null })[], arms: Arm[]) {
+  for (const arm of arms) {
+    const rs = rows.filter(x => x.arm === arm);
+    const ok = rs.filter(x => x.ok);
+    const judged = ok.filter(x => x.judge);
+    const flag = (k: string, sub = judged) => sub.filter(x => (x.judge as Record<string, boolean> | null)?.[k]).length;
+    const nar = judged.filter(x => x.narratedInLog);
+    console.log(`\nArm ${arm}: ${ok.length}/${rs.length} ok`
+      + (judged.length ? `\n  narration (judge)      ${flag('process_narration')}/${judged.length}   on log-narrated turns ${flag('process_narration', nar)}/${nar.length}`
+        + `\n  unnatural ${flag('unnatural')}   gives answer ${flag('gives_answer')}   action mismatch ${flag('action_mismatch')}   borderline ${flag('borderline')}` : '')
+      + `\n  meta-leak regex hits   ${ok.filter(x => x.metaLeakHits.length).length}   dropped text outside speak ${ok.filter(x => x.droppedText.length).length}`
+      + `\n  empty spoken ${ok.filter(x => !x.spoken.trim()).length}   bad ids ${ok.filter(x => x.badIds.length).length}`
+      + `\n  latency median ${pct(ok.map(x => x.latencyMs), 0.5)}ms  p95 ${pct(ok.map(x => x.latencyMs), 0.95)}ms   output tokens median ${pct(ok.map(x => x.outputTokens), 0.5)}`
+      + `\n  cache read median ${pct(ok.map(x => x.cacheRead), 0.5)}  uncached input median ${pct(ok.map(x => x.inputTokens), 0.5)}`);
+    for (const x of rs.filter(x => !x.ok).slice(0, 3)) console.log(`  error: ${x.error}`);
+  }
+}
+
+function cost(rows: ArmResult[]) {
+  const g = rows.reduce((c, x) => c + x.inputTokens * 2 + x.cacheRead * 0.2 + x.cacheWrite * 2.5 + x.outputTokens * 10, 0);
+  return (g + judgeIn * 4 + judgeOut * 20) / 1e6;
+}
+
 async function main() {
   const all = loadSamples();
+  const arms = ((args.includes('--arms') ? args[args.indexOf('--arms') + 1] : 'A,B,C').split(',')) as Arm[];
+  const judgeOn = !args.includes('--no-judge');
+  const tag = args.includes('--tag') ? args[args.indexOf('--tag') + 1] : arms.join('-');
+  const promptChars = (s: Sample) => buildSystemPrompt(s.ctx).length + s.history.reduce((m, h) => m + h.content.length, 0) + s.candidateText.length;
+
+  // Sequential mode: every model turn of the named sessions, in order, one
+  // request at a time with the arms interleaved — how the cache is reused live.
+  if (args.includes('--sequential')) {
+    const names = args[args.indexOf('--sequential') + 1].split(',');
+    const seq = all.filter(s => names.some(n => s.session.includes(n))).sort((a, b) => a.session.localeCompare(b.session) || a.turnIndex - b.turnIndex);
+    const estIn = seq.reduce((n, s) => n + promptChars(s) / 3.6, 0);
+    console.log(`sequential: ${seq.length} turns × ${arms.length} arms · est uncached ~$${(arms.length * estIn * 2 / 1e6).toFixed(2)} (cached arms less)`);
+    if (DRY) return;
+    const rows: (ArmResult & { id: string; narratedInLog: boolean; judge: null })[] = [];
+    for (const s of seq) for (const arm of arms) {
+      const r = await runArm(s, arm);
+      rows.push({ id: s.id, narratedInLog: s.narratedInLog, ...r, judge: null });
+      process.stdout.write('.');
+    }
+    writeFileSync(path.join(OUT_DIR, `replay-seq-${tag}.json`), JSON.stringify(rows, null, 2));
+    report(rows, arms);
+    console.log(`\nactual cost ~$${cost(rows).toFixed(2)}`);
+    return;
+  }
+
   const narrated = all.filter(s => s.narratedInLog);
   const ordinary = seededShuffle(all.filter(s => !s.narratedInLog));
   const pick = [...narrated, ...ordinary].slice(0, Math.max(LIMIT, narrated.length));
-  const samples = args.includes("--smoke") ? [narrated[0], ordinary[0]] : pick;
-  const estIn = samples.reduce((n, s) => n + (s.systemPrompt.length + s.history.reduce((m, h) => m + h.content.length, 0) + s.candidateText.length) / 3.6, 0);
-  // 3 arms on Sonnet ($2/$10), ~120 output tokens each; judge on Opus ($4/$20) ~600 in / ~400 out incl. thinking.
-  const estCost = (3 * estIn * 2 + 3 * samples.length * 120 * 10) / 1e6 + (3 * samples.length * (600 * 4 + 400 * 20)) / 1e6;
-  console.log(`${all.length} reconstructable turns · ${narrated.length} narrated in log · sampling ${samples.length} · est ~${Math.round(estIn / samples.length)} input tokens/turn · est cost ~$${estCost.toFixed(2)}`);
-  if (DRY) { writeFileSync(path.join(OUT_DIR, 'replay-sample-prompt.txt'), samples[0].systemPrompt); return; }
+  const samples = args.includes('--smoke') ? [narrated[0], ordinary[0]] : pick;
+  const estIn = samples.reduce((n, s) => n + promptChars(s) / 3.6, 0);
+  const estCost = (arms.length * estIn * 2 + arms.length * samples.length * 120 * 10) / 1e6 + (judgeOn ? arms.length * samples.length * (600 * 4 + 400 * 20) / 1e6 : 0);
+  console.log(`${all.length} reconstructable turns · ${narrated.length} narrated in log · sampling ${samples.length} · arms ${arms.join(',')} · est cost ~$${estCost.toFixed(2)}`);
+  if (DRY) { writeFileSync(path.join(OUT_DIR, 'replay-sample-prompt.txt'), buildSystemPrompt(samples[0].ctx)); return; }
 
   // Warm the JSON-schema compile cache (one-time per schema) so it doesn't skew latency.
-  if (!args.includes('--smoke')) await Promise.all([runArm(samples[0], 'B'), runArm(samples[0], 'C')]);
-  const jobs = samples.flatMap(s => (['A', 'B', 'C'] as const).map(arm => ({ s, arm })));
+  const strict = arms.filter(a => ARMS[a].format === 'json-strict');
+  if (strict.length && !args.includes('--smoke')) await Promise.all(strict.map(a => runArm(samples[0], a)));
+  const jobs = samples.flatMap(s => arms.map(arm => ({ s, arm })));
   const results = await pool(jobs, 10, async j => ({ ...j, r: await runArm(j.s, j.arm) }));
-  const judged = await pool(seededShuffle(results, 11), 10, async x => ({ ...x, j: x.r.ok ? await judge(x.s, x.r) : null }));
+  const judged = await pool(seededShuffle(results, 11), 10, async x => ({ ...x, j: judgeOn && x.r.ok ? await judge(x.s, x.r) : null }));
 
   const rows = judged.map(({ s, r, j }) => ({ id: s.id, narratedInLog: s.narratedInLog, candidate: s.candidateText.slice(0, 400), ...r, judge: j }));
-  writeFileSync(path.join(OUT_DIR, 'replay-results.json'), JSON.stringify(rows, null, 2));
-
-  let genIn = 0, genOut = 0;
-  for (const arm of ['A', 'B', 'C'] as const) {
-    const rs = rows.filter(x => x.arm === arm);
-    const ok = rs.filter(x => x.ok);
-    genIn += rs.reduce((n, x) => n + x.inputTokens, 0); genOut += rs.reduce((n, x) => n + x.outputTokens, 0);
-    const flag = (k: string, sub = ok) => sub.filter(x => (x.judge as Record<string, boolean> | null)?.[k]).length;
-    const nar = ok.filter(x => x.narratedInLog);
-    console.log(`\nArm ${arm}: ${ok.length}/${rs.length} ok`
-      + `\n  narration (judge)      ${flag('process_narration')}/${ok.length}   on log-narrated turns ${flag('process_narration', nar)}/${nar.length}`
-      + `\n  meta-leak regex hits   ${ok.filter(x => x.metaLeakHits.length).length}   dropped text outside speak ${ok.filter(x => x.droppedText.length).length}`
-      + `\n  unnatural ${flag('unnatural')}   gives answer ${flag('gives_answer')}   action mismatch ${flag('action_mismatch')}   borderline ${flag('borderline')}`
-      + `\n  empty spoken ${ok.filter(x => !x.spoken.trim()).length}   bad ids ${ok.filter(x => x.badIds.length).length}`
-      + `\n  latency median ${pct(ok.map(x => x.latencyMs), 0.5)}ms  p95 ${pct(ok.map(x => x.latencyMs), 0.95)}ms   output tokens median ${pct(ok.map(x => x.outputTokens), 0.5)}`);
-    for (const x of rs.filter(x => !x.ok).slice(0, 3)) console.log(`  error: ${x.error}`);
-  }
-  const cost = (genIn * 2 + genOut * 10 + judgeIn * 4 + judgeOut * 20) / 1e6;
-  console.log(`\nactual cost ~$${cost.toFixed(2)} (gen ${genIn}/${genOut}, judge ${judgeIn}/${judgeOut}) · rows in ${path.join(OUT_DIR, 'replay-results.json')}`);
+  writeFileSync(path.join(OUT_DIR, `replay-results-${tag}.json`), JSON.stringify(rows, null, 2));
+  report(rows, arms);
+  console.log(`\nactual cost ~$${cost(rows).toFixed(2)} · rows in ${path.join(OUT_DIR, `replay-results-${tag}.json`)}`);
 }
 
 if (!existsSync(RUNS_ROOT)) throw new Error(`run from the repo root (${RUNS_ROOT} not found)`);

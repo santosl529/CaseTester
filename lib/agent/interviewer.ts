@@ -1,7 +1,7 @@
 import type { Action } from '@/lib/orchestrator/actions';
 import type { Phase } from '@/lib/orchestrator/state-machine';
 import { LEGAL_ACTIONS } from '@/lib/orchestrator/state-machine';
-import { buildSystemPrompt, type PromptContext } from './prompts/system';
+import { buildPromptParts, type PromptContext } from './prompts/system';
 import type { InterviewerModel, ModelMessage, ToolIdValidator } from './models/interface';
 import type { OnUsage } from '@/lib/llm-usage';
 import { resolveExhibit } from '@/lib/orchestrator/exhibits';
@@ -17,7 +17,7 @@ export type InterviewerTurnInput = {
 
 export async function runInterviewerTurn(input: InterviewerTurnInput): Promise<Action[]> {
   const { promptCtx } = input;
-  const systemPrompt = buildSystemPrompt(promptCtx);
+  const { stable: systemPrompt, turn: turnSystem } = buildPromptParts(promptCtx);
 
   const messages: ModelMessage[] = [
     ...input.history,
@@ -44,6 +44,7 @@ export async function runInterviewerTurn(input: InterviewerTurnInput): Promise<A
 
   const actions = await input.model.runTurn({
     systemPrompt,
+    turnSystem,
     history: messages,
     tools: [], // tools are defined inside the model impl
     idValidators,
