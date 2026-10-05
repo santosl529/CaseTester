@@ -7,6 +7,7 @@
 //   B   one JSON object: an ordered action list (output_config.format, no tools); B2 cached
 //   C   B plus a leading short "note" explaining the turn's decision
 //   D2  B2's JSON written by instruction only, no output_config (cached layout)
+//   P   the production path (runInterviewerTurn + AnthropicInterviewerModel)
 //
 // One turn at a time: the conversation after the turn is the logged one, so
 // multi-turn effects (closes, request pile-up) are out of scope. Prompts are
@@ -22,7 +23,8 @@ import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import Anthropic from '@anthropic-ai/sdk';
 import { buildSystemPrompt, buildPromptParts, type PromptContext } from '@/lib/agent/prompts/system';
-import { TOOLS, INTERVIEWER_STOP_SEQUENCES, actionsFromContent } from '@/lib/agent/models/anthropic';
+import { TOOLS, INTERVIEWER_STOP_SEQUENCES, actionsFromContent, AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
+import { runInterviewerTurn } from '@/lib/agent/interviewer';
 import { INTERVIEWER_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { getCaseById } from '@/lib/cases/loader';
 import { createLedger, reveal, revealedValues, unrevealedItems, labelWithPeriod, resolveItemId } from '@/lib/orchestrator/data-ledger';
@@ -199,13 +201,15 @@ Reply with the JSON object only — no text before or after it.`;
 // Arms: output format × prompt layout. "single" = everything in `system`
 // (production before step 3); "split" = cached fixed prefix + per-turn state
 // as a trailing system message (step 3).
-type Arm = 'A' | 'A2' | 'A2nc' | 'A2u' | 'A3' | 'B' | 'B2' | 'C' | 'D2';
-const ARMS: Record<Arm, { format: 'tools' | 'json-strict' | 'json-prompt'; layout: 'single' | 'split' | 'split-nocache' | 'user-append' | 'system-tail'; suffix: string; schema?: object }> = {
+type Arm = 'P' | 'A' | 'A2' | 'A2nc' | 'A2u' | 'A3' | 'B3' | 'D3' | 'B' | 'B2' | 'C' | 'D2';
+const ARMS: Record<Exclude<Arm, 'P'>, { format: 'tools' | 'json-strict' | 'json-prompt'; layout: 'single' | 'split' | 'split-nocache' | 'user-append' | 'system-tail'; suffix: string; schema?: object }> = {
   A: { format: 'tools', layout: 'single', suffix: '' },
   A2: { format: 'tools', layout: 'split', suffix: '' },
   A2nc: { format: 'tools', layout: 'split-nocache', suffix: '' },
   A2u: { format: 'tools', layout: 'user-append', suffix: '' },
   A3: { format: 'tools', layout: 'system-tail', suffix: '' },
+  B3: { format: 'json-strict', layout: 'system-tail', suffix: FORMAT_B, schema: SCHEMA_B },
+  D3: { format: 'json-prompt', layout: 'system-tail', suffix: FORMAT_D },
   B: { format: 'json-strict', layout: 'single', suffix: FORMAT_B, schema: SCHEMA_B },
   B2: { format: 'json-strict', layout: 'split', suffix: FORMAT_B, schema: SCHEMA_B },
   C: { format: 'json-strict', layout: 'single', suffix: FORMAT_C, schema: SCHEMA_C },
@@ -249,7 +253,31 @@ function parseJsonActions(text: string): { note?: string; actions: Action[] } {
   };
 }
 
+// P: the production path itself — runInterviewerTurn with the real model
+// class (JSON output, validation, one regeneration, phase filtering).
+const prodModel = new AnthropicInterviewerModel();
+async function runProd(s: Sample): Promise<ArmResult> {
+  const u = { inputTokens: 0, outputTokens: 0, cacheRead: 0, cacheWrite: 0, calls: 0 };
+  let retried = false;
+  const t0 = Date.now();
+  try {
+    const actions = await runInterviewerTurn({
+      model: prodModel, candidateText: s.candidateText, history: s.history, promptCtx: s.ctx, phase: s.ctx.currentPhase,
+      onUsage: x => { u.inputTokens += x.inputTokens; u.outputTokens += x.outputTokens; u.cacheRead += x.cacheReadTokens ?? 0; u.cacheWrite += x.cacheWriteTokens ?? 0; u.calls++; },
+      onValidation: v => { retried = v.retried; },
+    });
+    const latencyMs = Date.now() - t0;
+    const asm = assemble(actions);
+    return { arm: 'P', ok: true, latencyMs, inputTokens: u.inputTokens, outputTokens: u.outputTokens, cacheRead: u.cacheRead, cacheWrite: u.cacheWrite,
+      actions, droppedText: [], note: retried ? 'retried' : undefined, ...asm, metaLeakHits: stripMetaLeak(asm.spoken).strippedSentences };
+  } catch (e) {
+    return { arm: 'P', ok: false, error: String(e).slice(0, 300), latencyMs: Date.now() - t0, inputTokens: 0, outputTokens: 0, cacheRead: 0, cacheWrite: 0,
+      actions: [], droppedText: [], spoken: '', assembled: '', metaLeakHits: [], badIds: [] };
+  }
+}
+
 async function runArm(s: Sample, arm: Arm): Promise<ArmResult> {
+  if (arm === 'P') return runProd(s);
   const cfg = ARMS[arm];
   const convo = [...s.history, { role: 'user' as const, content: s.candidateText }];
   let system: unknown, messages: unknown;
@@ -385,7 +413,7 @@ function report(rows: (ArmResult & { narratedInLog: boolean; judge: Record<strin
       + `\n  meta-leak regex hits   ${ok.filter(x => x.metaLeakHits.length).length}   dropped text outside speak ${ok.filter(x => x.droppedText.length).length}`
       + `\n  empty spoken ${ok.filter(x => !x.spoken.trim()).length}   bad ids ${ok.filter(x => x.badIds.length).length}`
       + `\n  latency median ${pct(ok.map(x => x.latencyMs), 0.5)}ms  p95 ${pct(ok.map(x => x.latencyMs), 0.95)}ms   output tokens median ${pct(ok.map(x => x.outputTokens), 0.5)}`
-      + `\n  cache read median ${pct(ok.map(x => x.cacheRead), 0.5)}  uncached input median ${pct(ok.map(x => x.inputTokens), 0.5)}`);
+      + `\n  cache read median ${pct(ok.map(x => x.cacheRead), 0.5)}  uncached input median ${pct(ok.map(x => x.inputTokens), 0.5)}   regenerated ${ok.filter(x => x.note === 'retried').length}`);
     for (const x of rs.filter(x => !x.ok).slice(0, 3)) console.log(`  error: ${x.error}`);
   }
 }
@@ -432,7 +460,7 @@ async function main() {
   if (DRY) { writeFileSync(path.join(OUT_DIR, 'replay-sample-prompt.txt'), buildSystemPrompt(samples[0].ctx)); return; }
 
   // Warm the JSON-schema compile cache (one-time per schema) so it doesn't skew latency.
-  const strict = arms.filter(a => ARMS[a].format === 'json-strict');
+  const strict = arms.filter(a => a === 'P' || ARMS[a].format === 'json-strict');
   if (strict.length && !args.includes('--smoke')) await Promise.all(strict.map(a => runArm(samples[0], a)));
   const jobs = samples.flatMap(s => arms.map(arm => ({ s, arm })));
   const results = await pool(jobs, 10, async j => ({ ...j, r: await runArm(j.s, j.arm) }));
