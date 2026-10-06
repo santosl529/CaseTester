@@ -84,14 +84,24 @@ describe('streamTurnSegments', () => {
     expect(got.map(s => s.text)).toEqual(["I don't have transaction volume by store. I'll come back to the bean prices shortly."]);
   });
 
-  it('stops at the first vetoed sentence; the data line is then left to Settle', async () => {
+  it("drops the model's own data talk and keeps streaming — the data line says it", async () => {
     const { got, sink } = collect();
     const out = await run(T({
       say: "Okay. I'll give you the store count.",
       requests: [{ what: 'store count', itemIds: ['stores_count'], explicit: true, respond: 'release' }],
     }), undefined, sink);
+    expect(got.map(s => s.text)).toEqual(['Okay.', expect.stringContaining('200 stores')]);
+    expect(out).toMatchObject({ kind: 'done', bufferSwitch: null, deliveredRevealIds: ['stores_count'] });
+  });
+
+  it('stops at any other vetoed sentence; the data line is then left to Settle', async () => {
+    const { got, sink } = collect();
+    const out = await run(T({
+      say: 'Okay. So the bean cost rose by $7M per year.',
+      requests: [{ what: 'store count', itemIds: ['stores_count'], explicit: true, respond: 'release' }],
+    }), undefined, sink);
     expect(got.map(s => s.text)).toEqual(['Okay.']);
-    expect(out).toMatchObject({ kind: 'done', bufferSwitch: 'data_talk', deliveredRevealIds: [] });
+    expect(out).toMatchObject({ kind: 'done', bufferSwitch: 'provenance', deliveredRevealIds: [] });
   });
 
   it('delivers nothing when the distress verdict is positive', async () => {

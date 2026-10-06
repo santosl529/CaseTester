@@ -28,6 +28,7 @@ import { RUNG_GUIDANCE } from '@/lib/orchestrator/stall';
 import { stageAdministration, endAllowed } from '@/lib/orchestrator/spoken-close';
 import { TOTAL_CASE_MS, type Phase } from '@/lib/orchestrator/state-machine';
 import { CONDUCT_REDIRECT } from '@/lib/agent/prompts/scripts';
+import { DATA_TALK } from '@/lib/orchestrator/stream-turn';
 
 const RUNS_ROOT = 'Case Interview Runs/test runs';
 const BATCHES = (process.env.REPLAY_BATCHES ?? 'batch-7-oct-03,batch-8-oct-03').split(',');
@@ -164,7 +165,7 @@ function buildContext(run: { revealed: { ledgerItemId: string; revealedAtMs: num
 
 type Row = {
   id: string; ok: boolean; error?: string;
-  firstSentenceMs: number | null; declarationsMs: number | null; latencyMs: number;
+  firstSentenceMs: number | null; firstDeliverableMs?: number | null; declarationsMs: number | null; latencyMs: number;
   inputTokens: number; outputTokens: number; cacheRead: number;
   turn?: ModelTurn; retried?: boolean;
 };
@@ -174,7 +175,7 @@ const model = new AnthropicInterviewerModel();
 async function runProd(s: Sample): Promise<Row> {
   const u = { inputTokens: 0, outputTokens: 0, cacheRead: 0 };
   const t0 = Date.now();
-  let firstSentenceMs: number | null = null, declarationsMs: number | null = null, retried = false;
+  let firstSentenceMs: number | null = null, declarationsMs: number | null = null, firstDeliverableMs: number | null = null, retried = false;
   let turn: ModelTurn | undefined;
   try {
     for await (const e of streamInterviewerTurn({
@@ -183,11 +184,15 @@ async function runProd(s: Sample): Promise<Row> {
       onValidation: v => { retried = v.retried; },
     })) {
       if (e.type === 'sentence') firstSentenceMs ??= Date.now() - t0;
+      // First sentence the stream would deliver: a data-talk sentence is
+      // dropped; past the declarations the data line goes out.
+      if (e.type === 'sentence' && !DATA_TALK.test(e.text)) firstDeliverableMs ??= Date.now() - t0;
+      if (e.type === 'field' && e.key === 'rescue_item') firstDeliverableMs ??= Date.now() - t0;
       if (e.type === 'field' && e.key === 'rescue_item') declarationsMs ??= Date.now() - t0;
-      if (e.type === 'restart') { firstSentenceMs = null; declarationsMs = null; }
+      if (e.type === 'restart') { firstSentenceMs = null; declarationsMs = null; firstDeliverableMs = null; }
       if (e.type === 'done') turn = e.turn;
     }
-    return { id: s.id, ok: true, firstSentenceMs, declarationsMs, latencyMs: Date.now() - t0, ...u, turn, retried };
+    return { id: s.id, ok: true, firstSentenceMs, firstDeliverableMs, declarationsMs, latencyMs: Date.now() - t0, ...u, turn, retried };
   } catch (err) {
     return { id: s.id, ok: false, error: String(err).slice(0, 300), firstSentenceMs, declarationsMs, latencyMs: Date.now() - t0, ...u };
   }
@@ -218,6 +223,7 @@ async function main() {
   console.log(`P: ${ok.length}/${rows.length} ok · regenerated ${ok.filter(r => r.retried).length}`);
   show('declarations', ok.map(r => r.declarationsMs));
   show('first sentence', ok.map(r => r.firstSentenceMs));
+  show('first delivered', ok.map(r => r.firstDeliverableMs ?? null));
   show('whole turn', ok.map(r => r.latencyMs));
   console.log(`  output tokens median ${pct(ok.map(r => r.outputTokens), 0.5)} · cache read median ${pct(ok.map(r => r.cacheRead), 0.5)}`);
   console.log(`  moves: ${JSON.stringify(ok.reduce<Record<string, number>>((m, r) => { const k = r.turn?.move ?? '?'; m[k] = (m[k] ?? 0) + 1; return m; }, {}))}`);

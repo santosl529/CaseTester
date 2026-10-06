@@ -42,7 +42,7 @@ export type GateContext = {
 // The model's own words declining, deferring or announcing data — code
 // speaks those lines; a model that writes them doubles or contradicts them
 // (batch 9: Devon t14 "…is available, so I'll give you that").
-const DATA_TALK = /\b(i don'?t have|that'?s not in the information|isn'?t something i have|i'?ll come back to|come back to (that|it)|(is|are) available|i'?ll (give|share|show) you|let me (give|share|show|pull))\b/i;
+export const DATA_TALK = /\b(i don'?t have|that'?s not in the information|isn'?t something i have|i'?ll come back to|come back to (that|it)|(is|are) available|i'?ll (give|share|show) you|let me (give|share|show|pull))\b/i;
 
 // Why a sentence of the model's own words must not be spoken, or null.
 // `inQuestion`: the sentence is (part of) the question field — a question
@@ -160,6 +160,11 @@ export async function streamTurnSegments(
       if (spokenKeys.has(key)) { bufferSwitch = 'duplicate'; return; }
       spokenKeys.add(key);
       const reason = vetoReason(p.text, g);
+      // With "say" written before the declarations, the model sometimes
+      // answers the requests there ("I don't have X, Y or Z"); the data line
+      // says it properly, so that sentence alone is dropped (Settle drops it
+      // too) and streaming goes on. Any other veto stops delivery.
+      if (reason === 'data_talk') return;
       if (reason) { bufferSwitch = reason; return; }
       await send(p.text, []);
       return;

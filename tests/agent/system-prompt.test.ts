@@ -111,7 +111,8 @@ describe('buildSystemPrompt data (Rule 11, decided in code)', () => {
   it('makes the model declare every request instead of giving, declining or postponing data itself', () => {
     expect(p).toContain('You never give, offer, decline or postpone data in your own words');
     expect(p).toContain('Declare every request in "requests"');
-    expect(p).toContain('so it never announces, describes, promises or declines data');
+    expect(p).toContain('It never responds to their data requests');
+    expect(p).toContain('never announces, describes, promises, holds or declines data');
   });
 
   it('lists releasable data with ids and no values', () => {
