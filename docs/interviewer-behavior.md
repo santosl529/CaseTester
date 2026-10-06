@@ -1,4 +1,28 @@
-# Interviewer Behavior Rules (v4.7)
+# Interviewer Behavior Rules (v4.8)
+
+**v4.8 change (6 Oct 2026): one consistent prompt, `say` first, data
+decided releases-first.** The rules are unchanged; their wording to the model
+and three mechanisms changed.
+- **The model-facing prompt states each rule once** and carries a PRIORITY
+  block (see Precedence hierarchy). Contradictions removed: the numbers rule
+  now allows exactly what the provenance audit allows (case prompt, any
+  candidate turn, recompute-derived figures); one list of options for
+  candidate-derived figures (Rule 6); the RECOMPUTE correction names the
+  no-correction default it overrides; the unit-conversion note no longer
+  speaks the method (Rule 4); no case-specific figures in the generic text.
+- **`say` comes first in the turn** — `{say, move, requests, exhibit,
+  rescue_item, question}` — so the opening words stream while the
+  declarations are written. `say` is one neutral acknowledgment; a sentence
+  in it that answers a data request is dropped, not a stream stop.
+- **Releases are decided before deferrals and offers** (Rule 11): a request
+  partly answered by this turn's releases gets no "I'll come back to …"
+  line; what it still holds stays tracked.
+- **No same-turn request classifier on model turns** (Rule 11): the model's
+  declarations replace it; code-written turns and the background pass still
+  classify.
+- **A data request made before the pressure test is answered is deferred**
+  (Rule 7).
+
 
 **v4.7 change (5–6 Oct 2026): Plan decides, the model phrases, the checks
 only veto.** The rules below are unchanged; how they are enforced changed.
@@ -12,7 +36,7 @@ That's not in the information I have." — Derek t12). Now (specs
 `docs/superpowers/specs/2026-10-05-streaming-turn-design.md` and
 `2026-10-06-plan-owns-decisions-design.md`):
 - The interviewer returns one JSON turn, `{move, requests, exhibit,
-  rescue_item, say, question}`. It **declares** what the candidate asked for
+  rescue_item, say, question}` (v4.8: `say` first). It **declares** what the candidate asked for
   (with release-now or later per item) and what its own question does, and
   writes `say` and one `question`. It has no `reveal_data`, `show_exhibit`,
   `advance_phase` or `end_case`.
@@ -234,6 +258,18 @@ resolve by ordering actions within a single turn, not by dropping the
 lower-tier action. Most v3 conflicts were Rule 14's correction machinery
 colliding with rules written before corrections existed; this hierarchy exists
 so the next mechanism added does not require re-auditing every prior rule.
+
+**What the model sees (v4.8).** Scheduling between tiers is done in code
+before the model is called: distress (Tier 0) and conduct preempt the turn;
+the close, grace ask, time warning and recommendation ask (Tier 2) are
+code-written turns; data decisions (Tier 1) are code's. The model's prompt
+therefore needs only a compact order for the notes that reach it — a turn
+note (stall rung, recompute flag, conduct redirect, THIS TURN) > time
+pressure > coverage, pacing and open requests > the default rules — and each
+note names the default it overrides. The numbers and attribution rules
+(Tier 1) are never overridden, except that a recompute flag may give the
+model a figure to say. This matches the tiers: a recompute correction under
+time pressure is compressed, never shed (Rule 15).
 
 Worked conflict resolutions (so different implementers read the hierarchy the
 same way):
@@ -871,7 +907,10 @@ engine had almost no structuring signal.
 
 **Rule (system prompt):** after the candidate presents their opening
 framework, apply exactly one pressure test before revealing any data. One
-probe, not a grilling; then proceed.
+probe, not a grilling; then proceed. A data request made before the probe is
+answered is deferred out loud (v4.8 — the prompt said both "pressure test
+before any data" and "release what was asked this turn"); once the candidate
+answers the probe, the request is earned.
 
 **Anti-tell requirement:** probes are specified as intents with a rotating
 phrase pool, never as fixed strings. Users are repeat customers; a verbatim
@@ -1174,7 +1213,12 @@ synchronous classification adds one Haiku call to ask turns, and a classifier
 false positive can release a ledger item the candidate didn't ask for — at the
 recommendation ask, where early release is least harmful.
 
-**Same-turn resolution (v4.4).** Logging did not stop the failure: batch 2
+**Same-turn resolution (v4.4).** *Model turns, since v4.7/v4.8: the model
+declares each request and code decides (release, refuse, defer, offer), so
+the parallel detection below is gone from model turns (v4.8 — it fed only a
+log-only audit, which disagreed with the declarations on about half of
+Nikhil's batch-10/11 turns with no way to tell which was right).
+Code-written turns still classify synchronously.* Logging did not stop the failure: batch 2
 (29–30 Sep, after the v4.3 fixes) still left 23 requests for held data
 unanswered, against 27 in batch 1, and the typical pattern was the candidate
 asking again and getting the data a turn or two late. The v3.5 review's
@@ -2024,7 +2068,7 @@ warning, and the C5 classifier all exist in code).
 | C4 redirect | 16, 17 | **Fixed in v4.3** — redirect directive + normal case turn; prompt no longer scripts "I'm not able to help with that" (the source of Priya's lines) | Priya's same-message requests dropped |
 | C2 directedness | 17 | **Fixed in v4.3** — quoted text, reported-speech sentences, and conditional generic-you removed before the lexicon; such hits logged as `C2_excluded`, never warned. Other ambiguity still warns (no model tiebreak) | Omar warned for quoting the CEO |
 | Deferral re-injection + force-release at ask | 11 | Built | OPEN DATA REQUESTS hint; force-release fired in 2 runs |
-| Request enforcement (same-turn resolution) | 11 | **Built in v4.4, untested live** — detection in parallel with the interviewer call; ignored held-data requests released at their `releaseWhen` stage or deferred out loud, before the turn is sent (no regeneration) | Review counted 33 unanswered; batch 2 still 23 |
+| Request enforcement (same-turn resolution) | 11 | **v4.8: replaced on model turns by the model's declarations, decided in code (releases first); classifier kept for code-written turns.** Earlier: built in v4.4 — detection in parallel with the interviewer call; ignored held-data requests released at their `releaseWhen` stage or deferred out loud, before the turn is sent (no regeneration) | Review counted 33 unanswered; batch 2 still 23 |
 | Attempt counter + error class state | 14 | **Built in v4.3** for `mathSteps` errors (probe → supply → fast path); not for errors outside the steps; repeated-error-class shortcut not built | Maya: 4 probes on one calculation |
 | Scoring-check source spans | 3 | **Built in v4.3** — `checkMathSteps` uses the same spans, skips steps with never-revealed inputs; the judge sees each span | Per-store check false in 10 of 11 reports (review's count) |
 | Error-claim verifier | 3 | **Built in v4.3** — inside the omission verifier's call, fed span-checked correct figures | Sam's Top Improvement |
@@ -2252,6 +2296,18 @@ Open items from the persona runs:
   ("…closer to 76.8, not 9.6…"). Proposed, not built: `say` first in the
   field order; refusals/deferrals summarized beyond two; first-letter
   lowercasing of `what`; exhibit-handover veto on the question.
+- **Batch 11 (6 Oct; Nikhil on v4.8 prompt + `say` first) — read by hand.**
+  Completed and scored. First speech median 3.27s → 1.65s (p90 3.49 →
+  1.88s); whole turn 3.50 → 3.29s. Per-step timing: distress verdict at
+  0.7–0.95s and the request classifier at 2.3–3.4s were never waited on; the
+  long pole is the model writing the request declarations (1.1–1.6s for eight
+  requests) before the data line and question. 0 invented figures, one
+  goodbye, risk probe and brainstorm administered. Found: a release and a
+  deferral of the same request group in one turn ("COGS is 58% … I'll come
+  back to the cost breakdown shortly", t6, t8 — fixed: releases decided
+  first); the cost breakdown deferred again after the pressure test was
+  answered (t5); a grading acknowledgment ("Okay, the bridge ties out", t10);
+  refusal lists still long.
 
 **Design principle (recorded from v3.2 review):** deterministic backstops keep
 being specified against the typical surface form of a risk (digit numerals,
