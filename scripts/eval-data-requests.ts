@@ -24,12 +24,28 @@ type Labelled = { source: string; text: string; accept: ('E' | 'M' | 'N')[] };
 const cases = JSON.parse(readFileSync('tests/fixtures/data-request-labels.json', 'utf8')) as Labelled[];
 const catalog = getCaseById('prof-001').dataLedger.map(d => ({ id: d.id, label: labelWithPeriod(d) }));
 
+// --model=<id> evaluates another model; latency is per call, 5 at a time.
+const MODEL = process.argv.find(a => a.startsWith('--model='))?.split('=')[1];
+
 async function main() {
   let correct = 0, falseExplicit = 0, missedExplicit = 0, failed = 0, inputTokens = 0, outputTokens = 0;
-  const results = await Promise.all(cases.map(c => classifyDataRequests({
-    candidateText: c.text, interviewerText: null, catalog,
-    onUsage: u => { inputTokens += u.inputTokens; outputTokens += u.outputTokens; },
-  })));
+  const latencies: number[] = [];
+  const results: Awaited<ReturnType<typeof classifyDataRequests>>[] = new Array(cases.length);
+  let next = 0;
+  await Promise.all(Array.from({ length: 5 }, async () => {
+    while (next < cases.length) {
+      const i = next++;
+      const t0 = Date.now();
+      results[i] = await classifyDataRequests({
+        candidateText: cases[i].text, interviewerText: null, catalog, model: MODEL,
+        onUsage: u => { inputTokens += u.inputTokens; outputTokens += u.outputTokens; },
+      });
+      latencies.push(Date.now() - t0);
+    }
+  }));
+  const sorted = [...latencies].sort((a, b) => a - b);
+  const pct = (p: number) => sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))];
+  console.log(`model ${MODEL ?? 'default'} · latency median ${pct(0.5)}ms p90 ${pct(0.9)}ms p95 ${pct(0.95)}ms max ${sorted.at(-1)}ms`);
   results.forEach((detected, i) => {
     const c = cases[i];
     if (detected === null) { failed++; console.log(`FAILED   ${c.source}`); return; }

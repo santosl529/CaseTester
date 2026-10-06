@@ -390,19 +390,23 @@ export async function classifyDataRequests(params: {
   interviewerText: string | null; // null = detection only (same-turn resolution)
   catalog: LedgerCatalogItem[];
   onUsage?: OnUsage; // lib/llm-usage.ts — token reporting for $/case (PRD §13)
+  model?: string;    // eval override; defaults to DATA_REQUEST_MODEL_ID
 }): Promise<DetectedDataRequest[] | null> {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const prompt = buildDataRequestPrompt(params.candidateText, params.interviewerText, params.catalog);
+  const model = params.model ?? DATA_REQUEST_MODEL_ID;
 
   try {
     const response = await client.messages.create({
-      model: DATA_REQUEST_MODEL_ID,
+      model,
       max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }],
-    });
+      // Sonnet 5.5 thinks by default; a classifier runs without it.
+      ...(model === 'claude-sonnet-5-5' ? { thinking: { type: 'between_tools' } } : {}),
+    } as Anthropic.MessageCreateParamsNonStreaming);
     params.onUsage?.({
       component: 'data_request',
-      model: DATA_REQUEST_MODEL_ID,
+      model,
       inputTokens: response.usage.input_tokens,
       outputTokens: response.usage.output_tokens,
     });
