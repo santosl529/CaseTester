@@ -99,15 +99,19 @@ describe('buildSystemPrompt load-shedding (Rule 15)', () => {
 describe('buildSystemPrompt data (Rule 11, decided in code)', () => {
   const p = buildSystemPrompt(ctx({ unrevealedItems: [{ id: 'cogs_pct', label: 'COGS as % of revenue' }] }));
 
-  it('describes the turn format with declarations first', () => {
+  it('describes the turn format with say first', () => {
     expect(p).toContain('YOUR TURN — reply with one JSON object');
     for (const f of ['"move"', '"requests"', '"exhibit"', '"rescue_item"', '"say"', '"question"']) expect(p).toContain(f);
+    const fmt = p.slice(p.indexOf('YOUR TURN'));
+    const at = (f: string) => fmt.indexOf(`- ${f}:`);
+    expect(at('"say"')).toBeLessThan(at('"move"'));
+    expect(at('"rescue_item"')).toBeLessThan(at('"question"'));
   });
 
   it('makes the model declare every request instead of giving, declining or postponing data itself', () => {
     expect(p).toContain('You never give, offer, decline or postpone data in your own words');
     expect(p).toContain('Declare every request in "requests"');
-    expect(p).toContain('"say" never announces, describes, promises or declines data');
+    expect(p).toContain('so it never announces, describes, promises or declines data');
   });
 
   it('lists releasable data with ids and no values', () => {

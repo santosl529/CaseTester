@@ -1,9 +1,9 @@
 // The Stream stage (specs 2026-10-05-streaming-turn §4.3 and 2026-10-06
-// plan-owns-decisions §5). The model's declarations close first; its "say"
-// sentences stream, each delivered only if no veto applies (vetoReason — the
-// same function Settle uses to withhold); the first sentence a veto would
-// withhold stops delivery and the rest is Settle's. When "say" closes, code's
-// data line (releases, exhibit handover, refusals, deferrals, offers —
+// plan-owns-decisions §5). The model's "say" sentences stream first, each
+// delivered only if no veto applies (vetoReason — the same function Settle
+// uses to withhold); the first sentence a veto would withhold stops delivery
+// and the rest is Settle's. Once "say" and the declarations have both closed,
+// code's data line (releases, exhibit handover, refusals, deferrals, offers —
 // turn-data.ts) is delivered. The question is never delivered here: Settle
 // sends it with the tail. Nothing is delivered before the distress verdict
 // (D1). Stream never books a reveal; Settle books what was delivered (D3).
@@ -104,7 +104,11 @@ export type StreamOutcome =
     bufferSwitch: string | null;      // why delivery stopped, if it did
   } & StreamTiming);
 
-type Pending = { kind: 'sentence'; text: string } | { kind: 'say_done' };
+type Pending = { kind: 'sentence'; text: string } | { kind: 'data_line' };
+
+// The declarations code needs for the data line; "say" may close before or
+// after them (say-first schema; a model that keeps the old order still works).
+const DECLARATIONS = ['requests', 'exhibit', 'rescue_item'] as const;
 
 export async function streamTurnSegments(
   events: AsyncIterable<TurnEvent>,
@@ -130,6 +134,8 @@ export async function streamTurnSegments(
   let turn: ModelTurn = NEUTRAL_TURN;
   let validation: TurnValidation | null = null;
   let modelDoneAt: number | null = null;
+  let closed = new Set<string>();
+  let dataLineQueued = false;
 
   const send = async (text: string, revealIds: string[], exhibitId?: string) => {
     try {
@@ -156,7 +162,7 @@ export async function streamTurnSegments(
       await send(p.text, []);
       return;
     }
-    // "say" closed: code's data line.
+    // "say" and the declarations closed: code's data line.
     const d = turnData(plan, fields);
     const lines = renderDataLines(d, `${plan.ctx.sessionId}:${plan.ctx.nextTurnIndex}`);
     if (lines.length > 0 || d.exhibit) await send(lines.join(' '), d.releases.map(r => r.id), d.exhibit?.id);
@@ -173,6 +179,8 @@ export async function streamTurnSegments(
       queue = [];
       spokenKeys.clear();
       fields = { requests: [], exhibit: null, rescueItem: null };
+      closed = new Set();
+      dataLineQueued = false;
       continue;
     }
     if (e.type === 'done') { turn = e.turn; validation = e.validation; modelDoneAt = Date.now(); break; }
@@ -181,7 +189,11 @@ export async function streamTurnSegments(
     else if (e.key === 'requests') fields = { ...fields, requests: toRequests(e.value) };
     else if (e.key === 'exhibit') fields = { ...fields, exhibit: typeof e.value === 'string' ? e.value : null };
     else if (e.key === 'rescue_item') fields = { ...fields, rescueItem: typeof e.value === 'string' ? e.value : null };
-    else if (e.key === 'say') p = { kind: 'say_done' };
+    if (e.type === 'field') closed.add(e.key);
+    if (!p && !dataLineQueued && closed.has('say') && DECLARATIONS.every(k => closed.has(k))) {
+      dataLineQueued = true;
+      p = { kind: 'data_line' };
+    }
     if (!p) continue;
     if (verdict === undefined) { queue.push(p); continue; } // D1: hold until the verdict
     if (isDistressVerdict(verdict)) continue;

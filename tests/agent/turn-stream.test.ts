@@ -73,3 +73,22 @@ describe('TurnStreamParser', () => {
     });
   });
 });
+
+import { resolveRequests } from '@/lib/agent/models/turn-schema';
+
+describe('resolveRequests', () => {
+  const resolve = (id: string) => (id === 'cogs_pct' ? 'cogs_pct' : null);
+
+  it('drops a request whose named ids all fail — never a refusal of held data', () => {
+    expect(resolveRequests([{ what: 'cost split', itemIds: ['cogs_pctt'], explicit: true, respond: 'release' }], resolve)).toEqual([]);
+  });
+
+  it('keeps a request the case has no data for ([] named)', () => {
+    expect(resolveRequests([{ what: 'competitor prices', itemIds: [], explicit: true, respond: 'release' }], resolve))
+      .toEqual([{ what: 'competitor prices', itemIds: [], explicit: true, respond: 'release' }]);
+  });
+
+  it('keeps the ids that resolve', () => {
+    expect(resolveRequests([{ what: 'cost split', itemIds: ['cogs_pct', 'nope'], explicit: true, respond: 'release' }], resolve)[0].itemIds).toEqual(['cogs_pct']);
+  });
+});

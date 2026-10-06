@@ -24,11 +24,12 @@ export class AnthropicInterviewerModel implements InterviewerModel {
     return collectTurn(this.streamTurn(ctx));
   }
 
-  // The turn, streamed (spec 2026-10-06-plan-owns-decisions §4): the
-  // declarations close first, then the say text streams by sentence, then
-  // the question. One regeneration for an unknown id (caught when `requests`
-  // closes, before any speech), an unparseable reply or an empty turn — only
-  // while the caller has delivered nothing.
+  // The turn, streamed (spec 2026-10-06-plan-owns-decisions §4): the say
+  // text streams by sentence first, then the declarations close, then the
+  // question. One regeneration for an unknown id (caught when `requests`
+  // closes), an unparseable reply or an empty turn — only while the caller
+  // has delivered nothing; once "say" is spoken, unknown ids are dropped
+  // (resolveRequests).
   async *streamTurn(ctx: TurnContext): AsyncGenerator<TurnEvent> {
     const messages: Anthropic.Beta.BetaMessageParam[] = ctx.history.map(m => ({ role: m.role, content: m.content }));
     const system = buildSystemBlocks(ctx.systemPrompt, ctx.turnSystem);

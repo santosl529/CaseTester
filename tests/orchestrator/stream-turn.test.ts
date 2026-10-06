@@ -57,6 +57,24 @@ describe('streamTurnSegments', () => {
     expect(out).toMatchObject({ kind: 'done', bufferSwitch: null, deliveredRevealIds: ['stores_count'] });
   });
 
+  it('with say first, holds the data line until the declarations close', async () => {
+    const turn = T({ say: 'Okay.', requests: [{ what: 'store count', itemIds: ['stores_count'], explicit: true, respond: 'release' }] });
+    async function* sayFirst(): AsyncGenerator<TurnEvent> {
+      yield { type: 'sentence', text: 'Okay.' };
+      yield { type: 'field', key: 'say', value: 'Okay.' };
+      yield { type: 'field', key: 'move', value: 'analysis' };
+      yield { type: 'field', key: 'requests', value: [{ what: 'store count', item_ids: ['stores_count'], explicit: true, respond: 'release' }] };
+      yield { type: 'field', key: 'exhibit', value: null };
+      yield { type: 'field', key: 'rescue_item', value: null };
+      yield { type: 'field', key: 'question', value: turn.question };
+      yield { type: 'done', turn, validation: null as never };
+    }
+    const { got, sink } = collect();
+    await streamTurnSegments(sayFirst(), modelPlanFixture({ distress: null }), sink, { isDelivered: { value: false } });
+    expect(got.map(s => s.text)).toEqual(['Okay.', expect.stringContaining('200 stores')]);
+    expect(got[1].revealIds).toEqual(['stores_count']);
+  });
+
   it('renders refusals and deferrals from the declaration', async () => {
     const { got, sink } = collect();
     await run(T({ requests: [

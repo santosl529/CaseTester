@@ -52,19 +52,19 @@ The system closes the case and speaks the closing line.`;
 
 // The turn format — fields in the order they are written.
 const TURN_FORMAT = `YOUR TURN — reply with one JSON object, fields in this order:
+- "say": spoken first, while the system is still preparing the data — a brief acknowledgment or framing, at most two short sentences, no question, or "". It is spoken before anything you release, so it never announces, describes, promises or declines data ("here's the cost data", "I'll give you that", "I don't have that", "that's available").
 - "move": what your question does — "clarify" (scoping questions), "structure" (asking for their approach), "pressure_test" (your one probe on their framework), "analysis" (probing numbers, drivers, logic), "exhibit" (asking them to read an exhibit), "brainstorm" (what else could the client do), "risk" (the biggest risk to their recommendation), "recommendation" (asking for their recommendation), "other".
 - "requests": every request for case information in the candidate's latest message, plus any OPEN DATA REQUEST you now want answered. For each:
-  - "what": a short noun phrase for what was asked — it is spoken in lines like "I don't have ___." or "I'll come back to ___ shortly." (e.g. "transaction volume by store", "the COGS breakdown").
-  - "item_ids": ids from DATA YOU CAN RELEASE, ALREADY RELEASED or EXHIBITS that cover it; [] if the case doesn't have it.
-  - "explicit": true for a direct ask ("Do we have the cost breakdown?", "I'd need to know whether prices changed"); false for data named in passing inside their own plan ("I'd check revenue first — price and cups").
-  - "respond": "release" to give it now; "defer" only when it is genuinely premature — they haven't done the reasoning to earn it yet (e.g. detailed data before they have laid out and defended a structure). When they are on the right thread and ask for what drives the problem, release it.
+  - "what": a short noun phrase for what was asked — it is spoken in lines like "I don't have ___." or "I'll come back to ___ shortly." (e.g. "transaction volume by store", "the cost breakdown").
+  - "item_ids": ids from DATA YOU CAN RELEASE, Revealed data or EXHIBITS that cover it; [] if the case doesn't have it.
+  - "explicit": true for a direct ask ("Do we have the cost breakdown?", "I'd need to know whether prices changed"); false for data named in passing inside their own plan ("I'd check revenue first — price and volume").
+  - "respond": "release" or "defer" (see DATA AND EXHIBITS).
   Empty array when they asked for nothing.
-- "exhibit": an exhibit id to hand over this turn, or null. Never one already on screen.
-- "rescue_item": only when a STALL INTERVENTION Level 3 note below says so — the one data item that moves the case forward; otherwise null.
-- "say": what you say first, before any data — at most two short sentences, or "".
-- "question": the one question that ends your turn.
+- "exhibit": an exhibit id to hand over unasked this turn, or null.
+- "rescue_item": only when a STALL INTERVENTION Level 3 note says so — the one data item that moves the case forward; otherwise null.
+- "question": the one question that ends your turn. It is spoken after the data, so it may build on data you marked "release".
 
-The system speaks the released values, the exhibit handover, and any "I don't have …" or "I'll come back to …" lines between your "say" and your "question". So "say" never announces, describes, promises or declines data ("here's the cost data", "I'll give you that", "I don't have that", "that's available") — the system already does. Your question may build on data you marked "release". Never state a figure that isn't in Revealed data; the values you release are spoken by the system, never by you.`;
+The candidate hears, in order: your "say"; the released values, exhibit handover and any "I don't have …" or "I'll come back to …" lines, all spoken by the system; then your "question". Values are always spoken by the system, never by you.`;
 
 // Deterministic pacing nudge (Rule 8): per-phase budgets from case config
 // (uniform fallback resolved by lib/orchestrator/pacing.ts), not a uniform

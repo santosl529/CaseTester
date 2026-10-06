@@ -3,7 +3,10 @@
 // model's own question does — then the words. Release, refusal, deferral,
 // exhibits, phase and ending are decided and rendered by code (plan-turn.ts,
 // data-decisions.ts); the model never writes a data line. Fields are in the
-// order the stream needs them: declarations close before any speech streams.
+// order the stream needs them: "say" first, so the opening words stream while
+// the declarations are still being written (batch 10: Nikhil's 8–11 requests a
+// turn put 350–580 tokens ahead of the first word), then the declarations,
+// which close before the data line and the question.
 
 export const MOVES = [
   'clarify', 'structure', 'pressure_test', 'analysis', 'exhibit', 'brainstorm', 'risk', 'recommendation', 'other',
@@ -33,6 +36,7 @@ const NULLABLE_STRING = { anyOf: [{ type: 'string' }, { type: 'null' }] };
 export const TURN_SCHEMA = {
   type: 'object',
   properties: {
+    say: { type: 'string' },
     move: { type: 'string', enum: [...MOVES] },
     requests: {
       type: 'array',
@@ -50,10 +54,9 @@ export const TURN_SCHEMA = {
     },
     exhibit: NULLABLE_STRING,
     rescue_item: NULLABLE_STRING,
-    say: { type: 'string' },
     question: { type: 'string' },
   },
-  required: ['move', 'requests', 'exhibit', 'rescue_item', 'say', 'question'],
+  required: ['say', 'move', 'requests', 'exhibit', 'rescue_item', 'question'],
   additionalProperties: false,
 };
 
@@ -110,13 +113,18 @@ export function unknownIds(
   return requests.flatMap(r => r.itemIds).filter(id => resolve(id) === null);
 }
 
-// Ids resolved to canonical ones; unknown ids dropped.
+// Ids resolved to canonical ones; unknown ids dropped. A request that named
+// ids and kept none is dropped too: [] means "the case doesn't have it", and
+// a typo'd id must not become a refusal of data the case holds. (With "say"
+// streamed first, the regeneration that fixes typos is gone once "say" is
+// spoken; the request then goes unanswered this turn, and the candidate's
+// re-ask or the open-request tracking picks it up.)
 export function resolveRequests(
   requests: DeclaredRequest[],
   resolve: (id: string) => string | null,
 ): DeclaredRequest[] {
-  return requests.map(r => ({
-    ...r,
-    itemIds: [...new Set(r.itemIds.map(resolve).filter((x): x is string => x !== null))],
-  }));
+  return requests.flatMap(r => {
+    const itemIds = [...new Set(r.itemIds.map(resolve).filter((x): x is string => x !== null))];
+    return r.itemIds.length > 0 && itemIds.length === 0 ? [] : [{ ...r, itemIds }];
+  });
 }
