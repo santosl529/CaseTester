@@ -1,4 +1,37 @@
-# Interviewer Behavior Rules (v4.6)
+# Interviewer Behavior Rules (v4.7)
+
+**v4.7 change (5–6 Oct 2026): Plan decides, the model phrases, the checks
+only veto.** The rules below are unchanged; how they are enforced changed.
+Batch 9 read by hand found that almost every remaining defect came from two
+authors making one decision: the model released, refused or deferred data,
+showed exhibits, moved the phase and ended the case, and then about six code
+repairs re-decided after the fact and spliced scripted lines into text they
+had not written ("That's not in the information I have. I do have revenue
+figures for the chain, if you want them. … Total revenue is $480M a year.
+That's not in the information I have." — Derek t12). Now (specs
+`docs/superpowers/specs/2026-10-05-streaming-turn-design.md` and
+`2026-10-06-plan-owns-decisions-design.md`):
+- The interviewer returns one JSON turn, `{move, requests, exhibit,
+  rescue_item, say, question}`. It **declares** what the candidate asked for
+  (with release-now or later per item) and what its own question does, and
+  writes `say` and one `question`. It has no `reveal_data`, `show_exhibit`,
+  `advance_phase` or `end_case`.
+- **Code decides and speaks the data** (Rule 11): releases (only explicit
+  asks the case holds, at most three), "I don't have …", "I'll come back to
+  … shortly", offers for passing mentions, exhibits — every line naming what
+  was asked.
+- **Code ends the case and asks for the recommendation** (Rule 12): close,
+  grace ask and time warning are code-written turns with no model call; when
+  coverage is complete and the recommendation was never asked, code supplies
+  the ask.
+- **Phase comes from the declared move** (Rule 8); stall rung 1 is
+  code-written from the stored last question (Rule 13).
+- The checks on the model's words **withhold a sentence or pass it** — they
+  no longer insert or replace text.
+- Turns stream: `say` sentences and code's data line are delivered while the
+  model is still writing; nothing before the distress verdict; a reveal
+  counts only when its segment is delivered (Rule 10).
+
 
 **v4.6 change (batch-2 follow-up): one goodbye, and only when the case
 actually ends (Rule 12).** Maya's batch-2 session said goodbye four times
@@ -857,6 +890,12 @@ varied surface form. Phrase pools live in case config, per intent.
 
 ## 8. Keep the phase machine in sync — silently, never twice in a row
 
+**v4.7 enforcement:** the model no longer advances the phase. It declares what
+its question does (`move`), and code derives the phase from the move, the data
+released, an exhibit shown and its own recommendation ask — forward only
+(`lib/orchestrator/progress.ts`). Stage administration for Rules 9 and 12
+(brainstorm, risk probe, recommendation asks) is read from the recorded moves.
+
 A pilot run completed an entire case while the session sat in CLARIFY.
 
 **Rules:**
@@ -930,6 +969,11 @@ rating value — a rubric/schema change (`lib/scoring/rubric.ts`, report UI).
 # Part II — Data delivery
 
 ## 10. Every figure is delivered with its label, unit, and timeframe — spoken
+
+**v4.7 enforcement:** every figure is spoken by code from the ledger's approved
+wording, between the model's `say` and its question; the model never writes a
+data line. In voice, an item counts as revealed only when the segment carrying
+it is delivered (played).
 
 Runs 2–3: unlabeled read-outs ("58% of revenue... 22%... 14%" with no line
 names; "$6.80" answering a question that named two different possible metrics;
@@ -1013,6 +1057,18 @@ batch 2 (Priya, Ines). Three changes:
 only in a "here's the …" handoff, since a false promise injects a refusal.
 
 ## 11. Data requests: release, refuse, or defer — never ignore; never substitute
+
+**v4.7 enforcement:** the model declares each request (`what`, the catalog ids
+covering it, explicit ask vs passing mention, release now or defer); code
+decides within fixed bounds — only data the case holds and hasn't released,
+only explicit asks (mentions are offered), at most three releases a turn with
+the rest deferred out loud, a rung-3 rescue item only on a rung-3 turn — and
+speaks every outcome, naming what was asked. A declared id the case doesn't
+have triggers one regeneration before anything is spoken. Open requests are
+released by code before any recommendation ask and before the close. The
+same-turn resolution, stale release, offer acceptance and promise recovery
+described below are retired: with one author, there is nothing to repair. A
+parallel Haiku detection is kept as a log-only audit of the declarations.
 
 Run 1 silently swapped different data for the vintage split the candidate
 asked for twice. Runs 2–3 executed the refusal fix well. Run 4 exposed a third
@@ -1224,6 +1280,13 @@ misses.
 
 ## 12. Case close and time-boxing are deterministic
 
+**v4.7 enforcement:** the close, the time warning and the grace ask are turns
+written by code, with no model call; the coverage-complete recommendation ask
+is a model turn whose question code supplies. The case closes when time is up
+(grace ask done or not due), or when the end is allowed and either the
+recommendation is in and the risk probe was asked, or the recommendation was
+refused twice. A goodbye in the model's own words is withheld.
+
 Run 2: "Let's continue — what are your thoughts?" after the final
 recommendation, then a dead end. Run 3: no time warning at all, case ended
 mid-flow.
@@ -1387,6 +1450,10 @@ candidate performance data, never coverageCaveats (see Rule 13, assisted vs.
 covered).
 
 ## 13. Stall ladder — graduated, trigger-driven
+
+**v4.7 enforcement:** rung 1 (restate) is written by code from the question
+the last turn ended on, so its delivery is certain; rungs 2–3 are the model's,
+and a rung-3 data rescue is declared (`rescue_item`) and released by code.
 
 **Silence tolerance first:** thinking time is normal. Do not interrupt for
 30–60s during structuring (candidates are writing). Interrupting a thinking
@@ -1897,12 +1964,12 @@ undefined).** The session is scored, with constraints:
 | 5 | 1–3 sentence turns | word ceiling | length audit → shared exempt-turn whitelist |
 | 6 | Candidate numbers: 4 options | constraint; 6-correct only on orchestrator-confirmed mismatch | provenance audit, action-tiered, 3 valid provenances; covers digit numerals + normalized number words/ranges/multipliers; fuzzy magnitudes log-only; **block tier withholds + regenerates the turn** |
 | 7 | Structure probe, rotating | intent + phrase pools | probe-fired check per session |
-| 8 | Phase sync | phase guide | per-phase budget nudge; silent state repair always permitted; advancedLastTurn gates behavior shift only |
+| 8 | Phase sync | stage guide; declared `move` | **v4.7: phase derived in code from declared moves, releases, exhibits and code asks (forward only)**; per-phase budget nudge; advancedLastTurn gates behavior shift only |
 | 9 | Administer scored phases | phase guide | stage-coverage log → coverageCaveat; **caveated dimension floored at meets_bar or reported not assessed** |
-| 10 | Labeled data read-outs | constraint | speakable-sentence ledger values at case load; non-empty exhibit turns; **revealed = figure actually delivered; promise recovery never refuses data the ledger holds** |
-| 11 | Release, refuse, or defer — never ignore; never substitute | constraint + deferral limits | request detection (soft signal) → deterministic ledger match; non-response log; open deferrals re-injected each turn and force-resolved before the recommendation ask; ledger-exists + unanswered → coverageCaveat; **per-turn blocking deferred until classifier FP rate is measured**; **v4.5: challenges to assumptions about open requested items withheld and replaced by the release** |
-| 12 | Close + time-boxing | CLOSE criterion; ask-before-ladder ordering | warning trigger (**text: 90s window**); **time-up grace ask when no ask was delivered**; close-in-transcript check; **v4.6: goodbye only with a confirmed end; blocked-end closing turn replaced by a coverage probe; wider goodbye detector; `recommendation_received` suppresses repeat asks; input closed after end; QA: one closing turn per session** |
-| 13 | Stall ladder | ladder in prompt; Level 2 cap at synthesis; assisted ≠ covered; **turns classified by content; data requests never clarifying** | silence/no-progress triggers; clarifying-Q budget (question-only turns, verbatim-repeat excluded); **rungs logged at delivery with span; undelivered rungs logged `rung_not_delivered`, not scored; rung reason logged** |
+| 10 | Labeled data read-outs | constraint | speakable-sentence ledger values at case load; **v4.7: every figure spoken by code from the approved wording; revealed = segment delivered** |
+| 11 | Release, refuse, or defer — never ignore; never substitute | declare every request | **v4.7: model declares, code decides and speaks every outcome (bounded: case holds it, explicit ask, ≤3 a turn); decisions logged as the turn's data_request rows; Haiku detection kept as a log-only audit**; open requests re-injected each turn and released before any recommendation ask and the close; ledger-exists + unanswered → coverageCaveat; challenges to assumptions about open requested items withheld |
+| 12 | Close + time-boxing | the system closes; no goodbyes of the model's own | **v4.7: close, time warning and grace ask are code-written turns; coverage-complete ask supplied by code; a model goodbye is withheld**; warning trigger (text: 90s window); time-up grace ask when no ask was delivered; `recommendation_received` suppresses repeat asks; input closed after end; QA: one closing turn per session |
+| 13 | Stall ladder | ladder in prompt; Level 2 cap at synthesis; assisted ≠ covered; turns classified by content; data requests never clarifying; **v4.7: rung 1 code-written from the stored question; rung-3 rescue declared, released by code** | silence/no-progress triggers; clarifying-Q budget (question-only turns, verbatim-repeat excluded); **rungs logged at delivery with span; undelivered rungs logged `rung_not_delivered`, not scored; rung reason logged** |
 | 14 | Math bands + error class + 2-attempt cap | routing boundary (misquote → 6-correct); correction + fast-path scripts | bands, ≥2× magnitude threshold, and class assignment in recompute spec; attempt counter |
 | 15 | Time degradation | priority order | budget-exceeded flag; shed-probe log; case-breaking corrections never shed |
 | 16 | Edge cases | playbook; **redirect-and-continue; support-bot phrasing banned** | per-case flags (injection, derail, error) |
@@ -2159,6 +2226,32 @@ Open items from the persona runs:
   no longer count as a recommendation; "we'll leave it there" / "the case is
   complete" are goodbyes; coverage alone can no longer end the case before
   the recommendation ask (Lena b5, 12.8 min).
+- **Batch 9 (5 Oct; batch-7 personas on the streaming runner, old action
+  list) — read by hand.** 9 scored + Derek terminated by the conduct rules
+  (insults twice — correct). 0 invented figures, 0 data gaps, one goodbye per
+  session, 0 blank turns. Streamed turns delivered their first segment at a
+  median 1.66s vs 2.35s for the whole turn. One streaming bug, fixed: past
+  the 8-action cap, Lena t7's stream delivered three reveals the cap then
+  dropped. Remaining defects: scripted lines colliding (8 turns, e.g. Derek
+  t12, Nikhil t2/t4 "I'll come to that data shortly. That isn't something I
+  have data on."), unrequested releases (Lena t8, Hugo t4, Tobias t12),
+  release narration (Devon t14 "…is available, so I'll give you that"), a
+  probe lost to the narration strip (Tobias t12, "ledger"), a doubled
+  check-in (Maya t16). These motivated v4.7.
+- **Batch 10 (6 Oct; one persona, Nikhil, on v4.7) — read by hand.**
+  Completed and scored; 0 data gaps, 0 invented figures, one code-written
+  close that answered his final request first. No collisions, no unrequested
+  releases, no release narration: every refusal and deferral names what was
+  asked, and deferred items came back with "You asked about this earlier:"
+  (t6, t10). New problems: (1) first speech ~3.3s — the declarations precede
+  `say`, and his 8–11 requests a turn cost 350–580 output tokens before any
+  speech; (2) refusal lists read like a list ("I don't have gross margin by
+  year, EBITDA by year, a store-level P&L …"); (3) the model's capitalization
+  leaks into lines ("Competitor price points"); (4) the question repeated the
+  exhibit handover (t10); (5) t20 garbled and adopted candidate figures
+  ("…closer to 76.8, not 9.6…"). Proposed, not built: `say` first in the
+  field order; refusals/deferrals summarized beyond two; first-letter
+  lowercasing of `what`; exhibit-handover veto on the question.
 
 **Design principle (recorded from v3.2 review):** deterministic backstops keep
 being specified against the typical surface form of a risk (digit numerals,
