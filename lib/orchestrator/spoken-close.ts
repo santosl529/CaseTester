@@ -57,6 +57,7 @@ const REC_ASK =
 
 export function asksBrainstorm(text: string): boolean { return BRAINSTORM_ASK.test(text); }
 export function asksRisk(text: string): boolean { return RISK_ASK.test(text); }
+export function asksRecommendationAsk(text: string): boolean { return REC_ASK.test(text); }
 
 export type StageAdministration = {
   brainstormAsked: boolean;
