@@ -16,6 +16,7 @@ export type InterviewerTurnInput = {
   onValidation?: TurnContext['onValidation'];
   // Streaming: false once the caller has delivered part of the turn.
   canRegenerate?: () => boolean;
+  onMark?: (name: string) => void;
 };
 
 export async function runInterviewerTurn(input: InterviewerTurnInput): Promise<ModelTurn> {
@@ -51,6 +52,7 @@ export async function* streamInterviewerTurn(input: InterviewerTurnInput): Async
     onUsage: input.onUsage,
     onValidation: input.onValidation,
     canRegenerate: input.canRegenerate,
+    onMark: input.onMark,
   };
   console.log('[interviewer] phase:', input.phase);
   yield* input.model.streamTurn ? input.model.streamTurn(ctx) : eventsFromTurn(input.model.runTurn(ctx));

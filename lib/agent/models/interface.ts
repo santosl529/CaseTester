@@ -31,10 +31,13 @@ export type TurnContext = {
   // Streaming: false once the caller has delivered part of this turn — a
   // regeneration after speech would repeat or contradict it.
   canRegenerate?: () => boolean;
+  // Timing marks from inside the model call (request sent, first token, a
+  // regeneration) — lib/orchestrator/turn-timer.ts.
+  onMark?: (name: string) => void;
 };
 
-// The streamed turn: each field as it closes (move, requests, exhibit,
-// rescue_item, then say and question), the say text by sentence as it is
+// The streamed turn: each field as it closes (say, then move, requests,
+// exhibit, rescue_item and question), the say text by sentence as it is
 // written, a restart when the draft is regenerated (anything held from it is
 // discarded), then the final turn.
 export type TurnEvent =

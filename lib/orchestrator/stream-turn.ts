@@ -7,6 +7,7 @@
 // turn-data.ts) is delivered. The question is never delivered here: Settle
 // sends it with the tail. Nothing is delivered before the distress verdict
 // (D1). Stream never books a reveal; Settle books what was delivered (D3).
+import type { TurnTimer } from './turn-timer';
 import type { TurnEvent, TurnValidation } from '@/lib/agent/models/interface';
 import { toRequests, type ModelTurn } from '@/lib/agent/models/turn-schema';
 import { NEUTRAL_TURN } from '@/lib/agent/models/turn-events';
@@ -114,8 +115,9 @@ export async function streamTurnSegments(
   events: AsyncIterable<TurnEvent>,
   plan: ModelPlan,
   sink: SegmentSink,
-  opts: { isDelivered: { value: boolean } },
+  opts: { isDelivered: { value: boolean }; timer?: TurnTimer },
 ): Promise<StreamOutcome> {
+  const mark = (name: string) => opts.timer?.mark(name);
   const { state } = plan;
   const start = Date.now();
   let verdict: DistressVerdict | null | undefined; // undefined: not in yet
@@ -165,7 +167,10 @@ export async function streamTurnSegments(
     // "say" and the declarations closed: code's data line.
     const d = turnData(plan, fields);
     const lines = renderDataLines(d, `${plan.ctx.sessionId}:${plan.ctx.nextTurnIndex}`);
-    if (lines.length > 0 || d.exhibit) await send(lines.join(' '), d.releases.map(r => r.id), d.exhibit?.id);
+    if (lines.length > 0 || d.exhibit) {
+      await send(lines.join(' '), d.releases.map(r => r.id), d.exhibit?.id);
+      mark('data_line_delivered');
+    }
   };
   const flushQueue = async () => {
     const q = queue;
@@ -183,7 +188,9 @@ export async function streamTurnSegments(
       dataLineQueued = false;
       continue;
     }
-    if (e.type === 'done') { turn = e.turn; validation = e.validation; modelDoneAt = Date.now(); break; }
+    if (e.type === 'done') { turn = e.turn; validation = e.validation; modelDoneAt = Date.now(); mark('model_done'); break; }
+    if (e.type === 'sentence') mark('model_first_sentence');
+    else mark(`model_${e.key}_closed`);
     let p: Pending | null = null;
     if (e.type === 'sentence') p = { kind: 'sentence', text: e.text };
     else if (e.key === 'requests') fields = { ...fields, requests: toRequests(e.value) };
@@ -195,7 +202,7 @@ export async function streamTurnSegments(
       p = { kind: 'data_line' };
     }
     if (!p) continue;
-    if (verdict === undefined) { queue.push(p); continue; } // D1: hold until the verdict
+    if (verdict === undefined) { queue.push(p); mark('held_for_distress'); continue; } // D1: hold until the verdict
     if (isDistressVerdict(verdict)) continue;
     await flushQueue();
     await handle(p);

@@ -5,6 +5,7 @@
 // lock (only what follows the already-delivered speech goes out) and one
 // commit. Code-written turns (close, grace ask, time warning, rung 1) arrive
 // here as a turn whose words are code's own and are not vetoed.
+import type { TurnTimer } from './turn-timer';
 import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
 import { eq } from 'drizzle-orm';
@@ -98,6 +99,7 @@ export type ModelOutcome = {
   delivered: string[];              // speech already delivered, in order; [] when nothing streamed
   undeliveredRevealIds?: string[];  // reveals whose segment was not delivered (D3): never booked
   requestsClassified?: boolean;     // false: a code-written turn whose request classification failed
+  timer?: TurnTimer;                // per-step timing (turn-timer.ts)
 };
 
 export type Settled = {
@@ -167,7 +169,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     });
 
   // Log-only audit: the parallel classifier's explicit asks vs the declaration.
-  const detected = await state.detectedRequests;
+  const detected = await (out.timer ? out.timer.time('settle_wait_classifier', state.detectedRequests) : state.detectedRequests);
   if (!codeWritten && detected) {
     const declared = new Set(decisions.requests.filter(x => x.request.explicit).flatMap(x => x.ledgerItemIds));
     const classified = new Set(detected.filter(r => r.explicit).flatMap(r => r.ledgerItemIds));
@@ -225,10 +227,11 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       // Round-3 fix 6: a delivery that rests only on "the turn asked a
       // question" is confirmed by a small model check; it fails open.
       if (delivery?.basis === 'question') {
-        const verdict = await checkHintDelivered({
+        const hintCheck = checkHintDelivered({
           rung: stallDecision.rung, candidateText, interviewerText: spokenText,
           onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId }); },
         });
+        const verdict = await (out.timer ? out.timer.time('hint_check', hintCheck) : hintCheck);
         checks.record('hint_check', verdict !== null && !verdict.hint, 'model check: the question was not a hint', { verdict, span: delivery.span });
         if (verdict && !verdict.hint) rungDeliverySpan = null;
       }
@@ -250,6 +253,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
 
   const persist = async (latency: { firstSegmentMs: number | null; streamed: boolean }) => {
     const persistStartMs = Date.now();
+    out.timer?.mark('persist_start');
     const underTimePressure = isUnderTimePressure(elapsedMs, TOTAL_CASE_MS);
     const loadShedLoggedThisTurn = underTimePressure && !flags.loadShedLogged;
     const advancedThisTurn = nextPhaseValue !== currentPhase && !ended;
@@ -330,11 +334,14 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     // PRD §13: per-turn latency. latencyMs stays the model call (comparable with
     // earlier batches); the rest splits the turn around it.
     const turnEndMs = Date.now();
+    out.timer?.mark('persist_end');
+    const steps = out.timer?.marks;
+    if (out.timer) console.log('[timing]', out.timer.ordered().map(([k, v]) => `${k}=${v}`).join(' '));
     later(() => logEvent('turn_latency', {
       turnIndex: nextTurnIndex + 1, latencyMs: modelLatencyMs, distressWaitMs, apiCalls: turnUsage.apiCalls,
       totalMs: turnEndMs - turnStartMs, preModelMs: modelCallStart - turnStartMs,
       postModelMs: persistStartMs - modelCallStart - modelLatencyMs, persistMs: turnEndMs - persistStartMs,
-      phase: currentPhase, kind, firstSegmentMs: latency.firstSegmentMs, streamed: latency.streamed,
+      phase: currentPhase, kind, firstSegmentMs: latency.firstSegmentMs, streamed: latency.streamed, steps,
     }, { sessionId, userId }));
   };
 

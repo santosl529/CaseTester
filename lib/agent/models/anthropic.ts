@@ -43,7 +43,8 @@ export class AnthropicInterviewerModel implements InterviewerModel {
       const note = retryNote(attempt, ctx.validIds ?? []);
       console.warn('[interviewer-model] regenerating:', note);
       yield { type: 'restart', reason: note };
-      attempt = yield* this.attempt(system, [...messages, { role: 'system', content: note } as unknown as Anthropic.Beta.BetaMessageParam], ctx);
+      ctx.onMark?.('model_regenerate');
+      attempt = yield* this.attempt(system, [...messages, { role: 'system', content: note } as unknown as Anthropic.Beta.BetaMessageParam], ctx, 'retry_');
     }
 
     const turn = attempt.turn && (attempt.turn.say || attempt.turn.question) ? attempt.turn : NEUTRAL_TURN;
@@ -62,11 +63,13 @@ export class AnthropicInterviewerModel implements InterviewerModel {
     system: Anthropic.Beta.BetaTextBlockParam[],
     messages: Anthropic.Beta.BetaMessageParam[],
     ctx: TurnContext,
+    markPrefix = '',
   ): AsyncGenerator<TurnEvent, Attempt> {
     // Thinking off: Sonnet 5.5 rejects {type: "disabled"}; "between_tools"
     // is how it runs without thinking (batch 6: thinking turns took 4.1s).
     // The structured format keeps reasoning out of speech. With the
     // server-side fallback, a declined request re-runs on another model.
+    ctx.onMark?.(`${markPrefix}model_request`);
     const stream = this.client.beta.messages.stream({
       model: this.modelId,
       max_tokens: 1024,
@@ -81,6 +84,7 @@ export class AnthropicInterviewerModel implements InterviewerModel {
     let unknown: string[] = [];
     for await (const ev of stream as AsyncIterable<{ type: string; delta?: { type: string; text?: string } }>) {
       if (ev.type !== 'content_block_delta' || ev.delta?.type !== 'text_delta') continue;
+      ctx.onMark?.(`${markPrefix}model_first_token`);
       for (const p of parser.push(ev.delta.text ?? '')) {
         if (p.type === 'sentence') { yield p; continue; }
         if (p.key === 'requests' && ctx.resolveId) {

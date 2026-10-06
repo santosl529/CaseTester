@@ -1,3 +1,4 @@
+import { TurnTimer } from './turn-timer';
 import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
@@ -64,6 +65,7 @@ async function runTurnBody(
   // a ~2.2s turn in batches 7–8, but the writes after the interviewer row were
   // never timed.
   const turnStartMs = Date.now();
+  const timer = new TurnTimer(turnStartMs);
   // Every read this turn needs takes only the session id: issue them together
   // (they ran one after another).
   const [session, turnRows, exhibitRows, revealedRows, dataRequestEventRows] = await Promise.all([
@@ -78,11 +80,13 @@ async function runTurnBody(
       where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'data_request')),
     }),
   ]);
+  timer.mark('reads_done');
 
   // Plan (plan-turn.ts): everything decided before the model call, no writes.
   const plan = planTurn({ session, turnRows, exhibitRows, revealedRows, dataRequestEventRows }, candidateText, {
     sessionId, now: Date.now(), turnStartMs, later,
   });
+  timer.mark('plan_done');
   if (plan.kind === 'scripted') {
     if (sink && plan.interviewerText) await sink({ text: plan.interviewerText, revealIds: [] }).catch(() => {});
     return commitScripted(plan);
@@ -91,6 +95,9 @@ async function runTurnBody(
   const { ctx, state } = plan;
   const { currentPhase, flags, checks, userId } = ctx;
   const { caseData, ledger, stallDecision } = state;
+  // Checks Plan started beside the model call: when each resolved.
+  timer.watch('distress_verdict', state.distress);
+  timer.watch('request_classifier_done', state.detectedRequests);
 
   console.log('[runner] phase:', currentPhase, 'kind:', state.kind, 'stall rung:', stallDecision.intervene ? stallDecision.rung : 'none');
   // PRD §13: per-turn latency + token usage. A regeneration makes two API
@@ -103,6 +110,7 @@ async function runTurnBody(
   const deliver: SegmentSink = async seg => {
     await (sink ?? (async () => {}))(seg);
     firstSegmentAt ??= Date.now();
+    timer.mark('first_delivered');
     if (seg.exhibitId) exhibitDelivered = true;
   };
   const recordDistress = (distress: DistressVerdict | null) => {
@@ -130,13 +138,13 @@ async function runTurnBody(
     // The message's data requests are answered first, from the synchronous
     // classification (today's ask-turn behaviour); the distress gate still
     // applies.
-    const [distress, detected] = await Promise.all([
+    const [distress, detected] = await timer.time('code_written_checks', Promise.all([
       state.distress,
       classifyDataRequests({
         candidateText, interviewerText: null, catalog: state.catalog,
         onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId }); },
       }),
-    ]);
+    ]));
     recordDistress(distress);
     if (isDistressVerdict(distress)) return offerPause(distress);
     out = {
@@ -151,6 +159,7 @@ async function runTurnBody(
       history: state.history,
       phase: currentPhase,
       canRegenerate: () => !isDelivered.value,
+      onMark: name => timer.mark(name),
       onValidation: v => {
         checks.record('model_turn_validation', v.unknownIds.length > 0 || v.retried || v.unparsed || v.emptyTurn || v.refused,
           v.retried ? 'model reply regenerated' : 'model reply unusable', { ...v });
@@ -186,7 +195,7 @@ async function runTurnBody(
     });
     // Stream (stream-turn.ts): segments go out as they pass, after the
     // distress verdict; the rest of the turn is Settle's.
-    const streamed = await streamTurnSegments(events, plan, deliver, { isDelivered });
+    const streamed = await streamTurnSegments(events, plan, deliver, { isDelivered, timer });
     // Interviewer latency is the model call alone (the whole stream); the wait
     // on the distress verdict past it is logged apart (batch 4 conflated them).
     const modelLatencyMs = streamed.modelDoneAt - modelCallStart;
@@ -205,12 +214,15 @@ async function runTurnBody(
 
   // Settle (settle-turn.ts): compose, book, commit; only the text after what
   // was already delivered goes out.
-  const settled = await settleTurn(plan, out);
+  timer.mark('settle_start');
+  const settled = await settleTurn(plan, { ...out, timer });
+  timer.mark('settle_composed');
   const tailReveals = settled.newReveals.filter(id => !deliveredRevealIds.has(id));
   const tailExhibit = !exhibitDelivered ? settled.exhibitId : undefined;
   if (settled.tail || tailReveals.length > 0 || tailExhibit) {
     try {
       await deliver({ text: settled.tail, revealIds: tailReveals, exhibitId: tailExhibit });
+      timer.mark('tail_delivered');
     } catch {
       out.undeliveredRevealIds?.push(...tailReveals); // D3: not delivered, not booked
     }
