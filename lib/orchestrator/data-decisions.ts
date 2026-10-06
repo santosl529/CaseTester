@@ -73,24 +73,20 @@ export function decideData(p: {
 
   const available = (id: string) => itemById.has(id) && canReveal(p.ledger, id) && !releasing.has(id);
 
-  for (const r of p.requests) {
+  // Two passes: every direct release first, then deferrals and offers, so a
+  // request is never deferred or offered for an item released this same turn
+  // (batch 11, Nikhil t6: "COGS is 58%… I'll come back to the cost breakdown"
+  // — the deferral was declared before the release of one of its items).
+  const decidedAt: { at: number; d: DataDecisions['requests'][number] }[] = [];
+  const later: { at: number; r: DeclaredRequest; ledgerIds: string[] }[] = [];
+  p.requests.forEach((r, at) => {
     const ledgerIds = r.itemIds.filter(id => itemById.has(id));
     const exhibitIds = r.itemIds.filter(id => exhibitById.has(id));
     if (ledgerIds.length === 0 && exhibitIds.length === 0) {
-      if (r.explicit) { refusals.push(r.what); decided.push({ request: r, response: 'refuse', ledgerItemIds: [] }); }
-      continue;
+      if (r.explicit) { refusals.push(r.what); decidedAt.push({ at, d: { request: r, response: 'refuse', ledgerItemIds: [] } }); }
+      return;
     }
-    if (!r.explicit) {
-      const offerable = ledgerIds.filter(id => available(id) && !covered.has(id));
-      if (offerable.length > 0 && r.respond === 'release') offers.push(r.what);
-      decided.push({ request: r, response: 'defer', ledgerItemIds: ledgerIds });
-      continue;
-    }
-    if (r.respond === 'defer') {
-      if (ledgerIds.some(available)) defers.push(r.what);
-      decided.push({ request: r, response: 'defer', ledgerItemIds: ledgerIds });
-      continue;
-    }
+    if (!r.explicit || r.respond === 'defer') { later.push({ at, r, ledgerIds }); return; }
     let heldOver = false;
     for (const id of ledgerIds) {
       if (covered.has(id) || !available(id)) continue;
@@ -99,8 +95,25 @@ export function decideData(p: {
       releasing.add(id);
     }
     if (heldOver) defers.push(r.what);
-    decided.push({ request: r, response: heldOver ? 'defer' : 'release', ledgerItemIds: ledgerIds });
+    decidedAt.push({ at, d: { request: r, response: heldOver ? 'defer' : 'release', ledgerItemIds: ledgerIds } });
+  });
+
+  for (const { at, r, ledgerIds } of later) {
+    // Items still held after this turn's releases; a request partly answered
+    // by them gets no deferral line, but what it still holds stays tracked.
+    const held = ledgerIds.filter(id => !releasing.has(id));
+    const partlyReleased = held.length < ledgerIds.length;
+    if (!r.explicit) {
+      const offerable = held.filter(id => available(id) && !covered.has(id));
+      if (offerable.length > 0 && r.respond === 'release' && !partlyReleased) offers.push(r.what);
+    } else if (held.some(available) && !partlyReleased) {
+      defers.push(r.what);
+    }
+    decidedAt.push({ at, d: held.length === 0 && ledgerIds.length > 0
+      ? { request: r, response: 'release', ledgerItemIds: ledgerIds }
+      : { request: r, response: 'defer', ledgerItemIds: held } });
   }
+  decided.push(...decidedAt.sort((x, y) => x.at - y.at).map(x => x.d));
 
   if (p.rung3 && p.rescueItem && available(p.rescueItem) && !covered.has(p.rescueItem) && releases.length < cap) {
     releases.push({ id: p.rescueItem, value: itemById.get(p.rescueItem)!.value, earlier: false });

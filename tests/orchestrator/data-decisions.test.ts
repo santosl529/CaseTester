@@ -57,6 +57,33 @@ describe('decideData', () => {
     expect(renderDataLines(d, 's')).toEqual([]);
   });
 
+  // Batch 11 (Nikhil t6, t8): "COGS is 58%… I'll come back to the cost
+  // breakdown" — a deferral declared before the release of one of its items.
+  it('says no deferral for a request partly released this turn, in either order', () => {
+    for (const order of ['defer-first', 'release-first']) {
+      const defer = req({ what: 'the cost breakdown', itemIds: ['cogs_pct', 'labor_pct'], respond: 'defer' });
+      const release = req({ what: 'COGS', itemIds: ['cogs_pct'] });
+      const d = decideData(base({ requests: order === 'defer-first' ? [defer, release] : [release, defer] }));
+      expect(d.releases.map(r => r.id)).toEqual(['cogs_pct']);
+      expect(renderDataLines(d, 's')).toEqual(['COGS is 58% of revenue.']);
+      // still held, so still tracked: labor stays a deferred request
+      expect(d.requests.find(x => x.request.what === 'the cost breakdown')).toMatchObject({ response: 'defer', ledgerItemIds: ['labor_pct'] });
+    }
+  });
+
+  it('logs a deferral fully covered by this turn\'s releases as a release', () => {
+    const d = decideData(base({ requests: [req({ what: 'COGS later', itemIds: ['cogs_pct'], respond: 'defer' }), req({ what: 'COGS', itemIds: ['cogs_pct'] })] }));
+    expect(d.requests.map(x => x.response)).toEqual(['release', 'release']);
+  });
+
+  it('offers nothing a direct ask is releasing this turn', () => {
+    const d = decideData(base({ requests: [
+      req({ what: 'the average ticket', itemIds: ['avg_ticket'], explicit: false }),
+      req({ what: 'ticket size', itemIds: ['avg_ticket'] }),
+    ] }));
+    expect(renderDataLines(d, 's')).toEqual(['The average transaction is $6.80.']);
+  });
+
   it('caps releases at three and defers the rest out loud', () => {
     const d = decideData(base({ requests: [
       req({ what: 'stores', itemIds: ['stores_count'] }), req({ what: 'COGS', itemIds: ['cogs_pct'] }),
