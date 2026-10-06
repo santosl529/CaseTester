@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   TIME_WARNING_SCRIPTS, CLOSE_SCRIPTS, OPENING_INVITATIONS, GRACE_ASK_SCRIPTS, pickScript, buildOpeningMessage,
-  asksForRecommendation, hasCloseCue, wordlessRevealLine, DATA_HANDOVER_SCRIPTS } from '@/lib/agent/prompts/scripts';
+  hasCloseCue } from '@/lib/agent/prompts/scripts';
+import { asksRecommendationAsk } from '@/lib/orchestrator/spoken-close';
 
 describe('pickScript', () => {
   it('returns a script from the given pool', () => {
@@ -56,24 +57,9 @@ describe('buildOpeningMessage', () => {
 describe('GRACE_ASK_SCRIPTS (Rule 12 time-up grace ask, v4.3)', () => {
   it('every line reads as a recommendation ask and never as a close', () => {
     for (const s of GRACE_ASK_SCRIPTS) {
-      expect(asksForRecommendation(s), s).toBe(true);
+      expect(asksRecommendationAsk(s), s).toBe(true);
       expect(hasCloseCue(s), s).toBe(false);
     }
-  });
-});
-
-// Batch 6 (Claire, adaptive thinking): the model called show_exhibit with no
-// words and the candidate got the exhibit with a bare "Go on."
-describe('wordlessExhibitLine', () => {
-  it('hands over an exhibit shown with no words', async () => {
-    const { wordlessExhibitLine, EXHIBIT_FRAME_SCRIPTS } = await import('@/lib/agent/prompts/scripts');
-    expect(EXHIBIT_FRAME_SCRIPTS).toContain(wordlessExhibitLine({ spokenText: '', exhibitShown: true, ended: false, seed: 's' }));
-  });
-  it('leaves spoken turns, exhibit-free turns, and the closing turn alone', async () => {
-    const { wordlessExhibitLine } = await import('@/lib/agent/prompts/scripts');
-    expect(wordlessExhibitLine({ spokenText: 'What stands out?', exhibitShown: true, ended: false, seed: 's' })).toBeNull();
-    expect(wordlessExhibitLine({ spokenText: '', exhibitShown: false, ended: false, seed: 's' })).toBeNull();
-    expect(wordlessExhibitLine({ spokenText: '', exhibitShown: true, ended: true, seed: 's' })).toBeNull();
   });
 });
 
@@ -88,18 +74,5 @@ describe('STALE_RELEASE_LEADINS', () => {
       expect(line).not.toMatch(/\bwrap|before we (finish|close|end)\b/i);
       expect(line).not.toMatch(/\d/);
     }
-  });
-});
-
-describe('wordlessRevealLine', () => {
-  const base = { modelWords: '', revealedCount: 2, exhibitShown: false, ended: false, seed: 's:3' };
-  it('hands the floor back when data went out with no words of the model\'s own', () => {
-    expect(DATA_HANDOVER_SCRIPTS).toContain(wordlessRevealLine(base));
-  });
-  it('stays quiet when the model said something, nothing was released, an exhibit went up, or the case ended', () => {
-    expect(wordlessRevealLine({ ...base, modelWords: 'Okay.' })).toBeNull();
-    expect(wordlessRevealLine({ ...base, revealedCount: 0 })).toBeNull();
-    expect(wordlessRevealLine({ ...base, exhibitShown: true })).toBeNull();
-    expect(wordlessRevealLine({ ...base, ended: true })).toBeNull();
   });
 });

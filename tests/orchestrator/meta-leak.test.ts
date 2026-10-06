@@ -107,16 +107,6 @@ describe('Sonnet narration (batch 5)', () => {
   }
 });
 
-describe('exhibit frame scripts', () => {
-  it('survive the meta-leak strip and carry no numerals', async () => {
-    const { EXHIBIT_FRAME_SCRIPTS } = await import('@/lib/agent/prompts/scripts');
-    for (const line of EXHIBIT_FRAME_SCRIPTS) {
-      expect(stripMetaLeak(line).cleaned).toBe(line);
-      expect(line).not.toMatch(/\d/);
-    }
-  });
-});
-
 // Batch 7 smoke (Claire): internal ids spoken — "Available items match:
 // bean_share_of_cogs, bean_price_change, …". No spoken line has a snake_case
 // identifier in it.

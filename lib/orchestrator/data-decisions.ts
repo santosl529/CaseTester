@@ -16,6 +16,16 @@ import { pickScript, STALE_RELEASE_LEADINS } from '@/lib/agent/prompts/scripts';
 
 export const RELEASE_CAP = 3;
 
+// Resolves a declared id to a canonical one. Exact only — an id or a
+// label / title, ignoring case and punctuation: a partial match could release
+// an item nobody asked for ("cogs" is inside two ids).
+export function exactResolver(entries: { id: string; names: string[] }[]): (raw: string) => string | null {
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const byName = new Map<string, string>();
+  for (const e of entries) for (const n of [e.id, ...e.names]) if (norm(n)) byName.set(norm(n), e.id);
+  return raw => byName.get(norm(raw)) ?? null;
+}
+
 export type ExhibitInfo = { id: string; title: string; coversLedgerItems?: string[] };
 
 export type DataDecisions = {

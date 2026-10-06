@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { getCaseById } from '@/lib/cases/loader';
-import { createLedger, revealedValues, reveal, resolveItemId, unrevealedItems } from '@/lib/orchestrator/data-ledger';
+import { createLedger, revealedValues, reveal, unrevealedItems } from '@/lib/orchestrator/data-ledger';
+import { derivePhase } from '@/lib/orchestrator/progress';
 import { auditTurn, auditTurnStyle } from '@/lib/orchestrator/audit';
-import { runInterviewerTurn } from '@/lib/agent/interviewer';
+import { runInterviewerTurn, catalogResolver } from '@/lib/agent/interviewer';
 import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import type { ModelMessage } from '@/lib/agent/models/interface';
 import type { Phase } from '@/lib/orchestrator/state-machine';
@@ -37,44 +38,35 @@ describe('hallucination harness (calls real API — requires ANTHROPIC_API_KEY)'
       for (let i = 0; i < SCRIPTED_TURNS.length; i++) {
         const candidateText = SCRIPTED_TURNS[i];
 
-        const actions = await runInterviewerTurn({
-          model,
-          candidateText,
-          history,
-          phase,
-          promptCtx: {
-            casePrompt: caseData.prompt,
-            currentPhase: phase,
-            revealedValues: revealedValues(ledger),
-            unrevealedItems: unrevealedItems(ledger),
-            exhibits: caseData.exhibits.map(e => ({ id: e.id, title: e.title })),
-            advancedLastTurn: false,
-            elapsedMs: i * 20 * 1000, // simulate ~20s per turn of wall-clock time
-            totalMs: TOTAL_CASE_MS,
-          },
-        });
+        const promptCtx = {
+          casePrompt: caseData.prompt,
+          currentPhase: phase,
+          revealedValues: revealedValues(ledger),
+          unrevealedItems: unrevealedItems(ledger),
+          exhibits: caseData.exhibits.map(e => ({ id: e.id, title: e.title })),
+          advancedLastTurn: false,
+          elapsedMs: i * 20 * 1000, // simulate ~20s per turn of wall-clock time
+          totalMs: TOTAL_CASE_MS,
+        };
+        const turn = await runInterviewerTurn({ model, candidateText, history, phase, promptCtx });
 
-        // Execute actions: if reveal_data, actually reveal; collect spoken text
-        let spokenText = '';
+        // Code delivers data (spec 2026-10-06): book the declared releases so
+        // later turns see them; the model's own words are what is audited.
+        const { resolve } = catalogResolver(promptCtx);
         let dataDeliveryTurn = false;
-        for (const action of actions) {
-          if (action.type === 'speak') {
-            spokenText += action.text + ' ';
-          } else if (action.type === 'reveal_data') {
-            // Resolve id or label like production, then reveal
-            const itemId = resolveItemId(ledger, action.itemId);
-            if (itemId) { try { reveal(ledger, itemId); } catch { /* already revealed */ } }
-            dataDeliveryTurn = true;
-          } else if (action.type === 'show_exhibit') {
-            const exhibit = caseData.exhibits.find(e => e.id === action.exhibitId);
-            if (exhibit) shownExhibitDataText += JSON.stringify(exhibit.data) + ' ';
-            dataDeliveryTurn = true;
-          } else if (action.type === 'advance_phase') {
-            const phases = ['INTRO','CLARIFY','STRUCTURE','ANALYSIS','EXHIBIT','BRAINSTORM','RECOMMENDATION','WRAP','SCORING'] as Phase[];
-            const idx = phases.indexOf(phase);
-            if (idx < phases.length - 1) phase = phases[idx + 1];
-          }
+        let exhibitShown = false;
+        const ids = [
+          ...turn.requests.filter(r => r.explicit && r.respond === 'release').flatMap(r => r.itemIds),
+          ...(turn.exhibit ? [turn.exhibit] : []),
+        ].map(resolve).filter((x): x is string => x !== null);
+        for (const id of ids) {
+          const exhibit = caseData.exhibits.find(e => e.id === id);
+          if (exhibit) { shownExhibitDataText += JSON.stringify(exhibit.data) + ' '; exhibitShown = true; }
+          else { try { reveal(ledger, id); } catch { /* already revealed */ } }
+          dataDeliveryTurn = true;
         }
+        phase = derivePhase(phase, { move: turn.move, releasedReleaseWhen: [], exhibitShown, recAsk: false, close: false });
+        const spokenText = [turn.say, turn.question].filter(Boolean).join(' ');
 
         // Audit: revealed values + case prompt + shown exhibit data + candidate's own words (can be echoed)
         const combinedAllowedText = caseData.prompt + ' ' + shownExhibitDataText + ' ' + SCRIPTED_TURNS.slice(0, i + 1).join(' ');

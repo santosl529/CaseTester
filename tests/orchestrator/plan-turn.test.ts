@@ -55,14 +55,54 @@ describe('planTurn', () => {
     expect(dbUsed).not.toHaveBeenCalled();
   });
 
-  it('buffers late-case turns and streams mid-case ones', () => {
-    for (const phase of ['RECOMMENDATION', 'WRAP'] as const) {
-      const plan = planTurn(readsFixture({ phase }), 'My recommendation is to raise prices.', deps());
-      expect(plan.kind === 'model' && plan.state.buffered).toBe(true);
-    }
-    const timeUp = planTurn(readsFixture({ phase: 'ANALYSIS', elapsedMs: 60 * 60 * 1000 }), 'One more thing.', deps());
-    expect(timeUp.kind === 'model' && timeUp.state.bufferReason).toBe('time_up');
-    const mid = planTurn(readsFixture({ phase: 'STRUCTURE' }), 'Here is my framework.', deps());
-    expect(mid.kind === 'model' && mid.state.buffered).toBe(false);
+});
+
+// Spec 2026-10-06 §6: the ending, time lines, the recommendation ask and
+// stall rung 1 are turn kinds Plan decides.
+describe('planTurn turn kinds', () => {
+  const kindOf = (reads: ReturnType<typeof readsFixture>, text: string) => {
+    const plan = planTurn(reads, text, deps());
+    if (plan.kind !== 'model') throw new Error('expected a model plan');
+    return plan.state.kind;
+  };
+
+  it('a normal mid-case turn calls the model', () => {
+    expect(kindOf(readsFixture({ phase: 'ANALYSIS' }), 'COGS rose from 42 to 58 percent of revenue.')).toBe('model');
+  });
+
+  it('time up with no recommendation ask yet → grace ask; after it → close', () => {
+    const late = 60 * 60 * 1000;
+    expect(kindOf(readsFixture({ phase: 'ANALYSIS', elapsedMs: late }), 'One more thing on costs.')).toBe('grace_ask');
+    expect(kindOf(readsFixture({ phase: 'ANALYSIS', elapsedMs: late, flags: { graceAskFired: true } }), 'Raise prices.')).toBe('close');
+  });
+
+  it('closes once the recommendation is in and the risk probe was asked', () => {
+    const reads = readsFixture({
+      phase: 'RECOMMENDATION', elapsedMs: 17 * 60 * 1000,
+      flags: { moves: { 4: 'brainstorm', 6: 'recommendation', 8: 'risk' }, stall: { recommendationDelivered: true } },
+      extraTurns: [
+        { role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What else could they do?' },
+        { role: 'candidate', text: 'More ideas.' }, { role: 'interviewer', text: 'What do you recommend?' },
+        { role: 'candidate', text: 'My recommendation is to raise menu prices.' }, { role: 'interviewer', text: 'What is the biggest risk?' },
+      ],
+    });
+    expect(kindOf(reads, 'The biggest risk is volume loss; I would pilot it first.')).toBe('close');
+  });
+
+  it('stall rung 1 with a stored question is written by code; without one the model writes it', () => {
+    // Rule 13: the second no-progress turn in a row fires rung 1.
+    const stall = { consecutiveNoProgress: 1, ladderLevel: 0, consecutiveClarify: 0, recommendationDelivered: false, noProgressReasons: ['hedge'] };
+    const withQ = planTurn(readsFixture({ phase: 'STRUCTURE', flags: { stall, lastQuestion: 'Which branch would you start with?' } }), "I'm stuck, sorry.", deps());
+    const noQ = planTurn(readsFixture({ phase: 'STRUCTURE', flags: { stall } }), "I'm stuck, sorry.", deps());
+    if (withQ.kind !== 'model' || noQ.kind !== 'model') throw new Error('expected model plans');
+    expect(withQ.state.stallDecision.rung).toBe(1);
+    expect(withQ.state.kind).toBe('rung1');
+    expect(noQ.state.kind).toBe('model');
+  });
+
+  it('keeps silence check-ins out of the model\'s history', () => {
+    const plan = planTurn(readsFixture({ phase: 'ANALYSIS', extraTurns: [{ role: 'interviewer', text: 'Still with me? Take your time.' }] }), 'Sorry, here.', deps());
+    if (plan.kind !== 'model') throw new Error('expected a model plan');
+    expect(plan.state.history.some(m => m.content.startsWith('Still with me?'))).toBe(false);
   });
 });

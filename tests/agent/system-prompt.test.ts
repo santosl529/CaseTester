@@ -17,173 +17,112 @@ function ctx(overrides: Partial<PromptContext> = {}): PromptContext {
   };
 }
 
-describe('buildSystemPrompt phase pacing', () => {
-  it('includes the phase guide with exit criteria', () => {
+describe('buildSystemPrompt stages and pacing', () => {
+  it('includes the stage guide, tracked from the declared move', () => {
     const prompt = buildSystemPrompt(ctx());
-    expect(prompt).toContain('Phase sequence and when to advance');
-    expect(prompt).toContain('STRUCTURE: candidate presents their framework');
+    expect(prompt).toContain('Interview stages, in order');
+    expect(prompt).toContain('STRUCTURE: the candidate presents their framework');
   });
 
-  it('forbids announcing phase transitions', () => {
-    expect(buildSystemPrompt(ctx())).toContain('NEVER announce transitions');
+  it('forbids announcing stage changes', () => {
+    expect(buildSystemPrompt(ctx())).toContain('never announce them');
   });
 
-  it('forbids the interviewer from delivering feedback/scoring in its own closing turn', () => {
+  it('never grades the candidate and leaves the close to the system', () => {
     const prompt = buildSystemPrompt(ctx());
-    expect(prompt).toContain('do not summarize how the candidate did');
-    expect(prompt).toContain('belongs solely to the separate written report');
+    expect(prompt).toContain('NEVER praise or evaluate a candidate answer');
+    expect(prompt).toContain('Never say goodbye, wrap up');
+    expect(prompt).toContain('The system closes the case');
   });
 
-  it('gates visible behavior shift (not bookkeeping) on the turn after an advance', () => {
+  it('gates the visible behavior shift on the turn after a stage change', () => {
     const prompt = buildSystemPrompt(ctx({ advancedLastTurn: true }));
-    expect(prompt).toContain('You advanced the phase LAST turn');
+    expect(prompt).toContain('The stage moved on LAST turn');
     expect(prompt).toContain('No visible gear-shift');
   });
 
   it('adds a pacing alert when ≥2 phases behind a uniform schedule', () => {
-    // 80% elapsed, still in CLARIFY (index 1 of 8 active phases)
     const prompt = buildSystemPrompt(ctx({ elapsedMs: 0.8 * TOTAL }));
     expect(prompt).toContain('PACING ALERT');
     expect(prompt).toContain('still in CLARIFY');
   });
 
-  it('no pacing alert when on schedule', () => {
-    const prompt = buildSystemPrompt(ctx({ currentPhase: 'ANALYSIS', elapsedMs: 0.4 * TOTAL }));
-    expect(prompt).not.toContain('PACING ALERT');
+  it('no pacing alert when on schedule, or on the turn after a stage change', () => {
+    expect(buildSystemPrompt(ctx({ currentPhase: 'ANALYSIS', elapsedMs: 0.4 * TOTAL }))).not.toContain('PACING ALERT');
+    expect(buildSystemPrompt(ctx({ elapsedMs: 0.8 * TOTAL, advancedLastTurn: true }))).not.toContain('PACING ALERT');
   });
 
-  it('no pacing alert on the turn after an advance (would contradict the block)', () => {
-    const prompt = buildSystemPrompt(ctx({ elapsedMs: 0.8 * TOTAL, advancedLastTurn: true }));
-    expect(prompt).not.toContain('PACING ALERT');
-  });
-
-  it('uses per-phase budgets from case config instead of a uniform schedule (Rule 8)', () => {
-    // STRUCTURE has a long 200s budget; 60% elapsed (180s) is still within it,
-    // even though a uniform 8-way split would have flagged this phase as overrun.
-    const phaseBudgetsMs = {
-      INTRO: 10_000, CLARIFY: 10_000, STRUCTURE: 200_000, ANALYSIS: 20_000,
-      EXHIBIT: 20_000, BRAINSTORM: 20_000, RECOMMENDATION: 10_000, WRAP: 10_000,
-    };
-    const prompt = buildSystemPrompt(ctx({
-      currentPhase: 'STRUCTURE', elapsedMs: 0.6 * TOTAL, phaseBudgetsMs,
-    }));
-    expect(prompt).not.toContain('PACING ALERT');
-  });
-
-  it('fires when the current phase exceeds its own configured budget', () => {
-    const phaseBudgetsMs = {
-      INTRO: 10_000, CLARIFY: 10_000, STRUCTURE: 20_000, ANALYSIS: 20_000,
-      EXHIBIT: 20_000, BRAINSTORM: 20_000, RECOMMENDATION: 10_000, WRAP: 10_000,
-    };
-    const prompt = buildSystemPrompt(ctx({
-      currentPhase: 'STRUCTURE', elapsedMs: 45_000, phaseBudgetsMs, // past INTRO+CLARIFY+STRUCTURE=40s budget
-    }));
+  it('uses per-phase budgets from case config (Rule 8)', () => {
+    const long = { INTRO: 10_000, CLARIFY: 10_000, STRUCTURE: 200_000, ANALYSIS: 20_000, EXHIBIT: 20_000, BRAINSTORM: 20_000, RECOMMENDATION: 10_000, WRAP: 10_000 };
+    expect(buildSystemPrompt(ctx({ currentPhase: 'STRUCTURE', elapsedMs: 0.6 * TOTAL, phaseBudgetsMs: long }))).not.toContain('PACING ALERT');
+    const short = { ...long, STRUCTURE: 20_000 };
+    const prompt = buildSystemPrompt(ctx({ currentPhase: 'STRUCTURE', elapsedMs: 45_000, phaseBudgetsMs: short }));
     expect(prompt).toContain('PACING ALERT');
-    expect(prompt).toContain("budget is used up");
+    expect(prompt).toContain('budget is used up');
   });
 });
 
-describe('buildSystemPrompt recompute hint', () => {
-  it('includes the recompute hint text when provided', () => {
-    const prompt = buildSystemPrompt(ctx({
-      recomputeHint: 'RECOMPUTE FLAG (deterministic, from the candidate\'s message this turn...): test hint',
-    }));
-    expect(prompt).toContain('RECOMPUTE FLAG');
-    expect(prompt).toContain('test hint');
+describe('buildSystemPrompt hints', () => {
+  it('includes the recompute hint only when provided', () => {
+    expect(buildSystemPrompt(ctx({ recomputeHint: 'RECOMPUTE FLAG: test hint' }))).toContain('RECOMPUTE FLAG: test hint');
+    expect(buildSystemPrompt(ctx())).not.toContain('RECOMPUTE FLAG:');
   });
 
-  it('omits any recompute section when not provided', () => {
-    const prompt = buildSystemPrompt(ctx());
-    expect(prompt).not.toContain('RECOMPUTE FLAG');
-  });
-});
-
-describe('buildSystemPrompt stall guidance', () => {
-  it('injects stall guidance and marks it as taking priority this turn', () => {
-    const prompt = buildSystemPrompt(ctx({
-      stallGuidance: 'STALL INTERVENTION — Level 3 (directive rescue). Hand them the branch.',
-    }));
+  it('injects stall guidance as taking priority this turn', () => {
+    const prompt = buildSystemPrompt(ctx({ stallGuidance: 'STALL INTERVENTION — Level 3 (directive rescue). Hand them the branch.' }));
     expect(prompt).toContain('STALL INTERVENTION — Level 3');
     expect(prompt).toContain('takes priority over the demeanor/rigor defaults');
+    expect(buildSystemPrompt(ctx())).not.toContain('STALL INTERVENTION —');
   });
 
-  it('omits stall guidance when not provided', () => {
-    expect(buildSystemPrompt(ctx())).not.toContain('STALL INTERVENTION');
-  });
-});
-
-describe('buildSystemPrompt coverage gating', () => {
-  it('forbids ending and surfaces the steer when mayEnd is false', () => {
-    const prompt = buildSystemPrompt(ctx({
-      mayEnd: false,
-      coverageSteer: 'COVERAGE — these areas are still undertested ...: Quantitative (30/100).',
-    }));
-    expect(prompt).toContain('Do NOT use end_case yet');
-    expect(prompt).toContain('Quantitative (30/100)');
+  it('surfaces the coverage steer', () => {
+    expect(buildSystemPrompt(ctx({ coverageSteer: 'COVERAGE — undertested: Quantitative (30/100).' }))).toContain('Quantitative (30/100)');
   });
 
-  it('permits ending when mayEnd is true', () => {
-    const prompt = buildSystemPrompt(ctx({ mayEnd: true }));
-    expect(prompt).toContain('Use end_case only once the candidate has delivered a committed recommendation');
+  it('carries the turn note (e.g. the system asks for the recommendation)', () => {
+    expect(buildSystemPrompt(ctx({ turnNote: 'THIS TURN: x' }))).toContain('THIS TURN: x');
   });
 });
 
 describe('buildSystemPrompt load-shedding (Rule 15)', () => {
-  it('injects the shed directive in the final stretch', () => {
-    // 60s remaining of 5 min → inside the 90s shed window
+  it('injects the shed directive in the final stretch only', () => {
     const prompt = buildSystemPrompt(ctx({ elapsedMs: TOTAL - 60_000 }));
     expect(prompt).toContain('TIME PRESSURE — SHED OPTIONAL PROBING');
     expect(prompt).toContain('drive the candidate to deliver their final recommendation');
-  });
-
-  it('does not inject the shed directive early in the case', () => {
+    expect(prompt).toContain('declare it with respond "release"');
     expect(buildSystemPrompt(ctx({ elapsedMs: 0.4 * TOTAL }))).not.toContain('SHED OPTIONAL PROBING');
   });
 });
 
-describe('buildSystemPrompt time-up close (Rule 12)', () => {
-  it('once time is up, forbids feedback, corrections, or new analysis in the closing message (live run eca39ec7)', () => {
-    const prompt = buildSystemPrompt(ctx({ elapsedMs: TOTAL + 1000 }));
-    expect(prompt).toContain('Do not add feedback, corrections, or new analysis');
-  });
-});
+// Spec 2026-10-06: the model declares, the system delivers.
+describe('buildSystemPrompt data (Rule 11, decided in code)', () => {
+  const p = buildSystemPrompt(ctx({ unrevealedItems: [{ id: 'cogs_pct', label: 'COGS as % of revenue' }] }));
 
-describe('buildSystemPrompt data requests (Rule 11 v4.1: release, refuse, or defer)', () => {
-  it('requires every data request to be released, refused, or audibly deferred — never ignored', () => {
-    const prompt = buildSystemPrompt(ctx());
-    expect(prompt).toContain('Every data request gets exactly one response: RELEASE, REFUSE, or DEFER');
-    expect(prompt).toContain('Hold that — let\'s come back to it');
-    expect(prompt).toContain('A redirect to your next question with no release, refusal, or deferral is a violation');
+  it('describes the turn format with declarations first', () => {
+    expect(p).toContain('YOUR TURN — reply with one JSON object');
+    for (const f of ['"move"', '"requests"', '"exhibit"', '"rescue_item"', '"say"', '"question"']) expect(p).toContain(f);
   });
 
-  it('no longer permits a silent redirect instead of revealing', () => {
-    expect(buildSystemPrompt(ctx())).not.toContain('You may briefly redirect instead of revealing');
+  it('makes the model declare every request instead of giving, declining or postponing data itself', () => {
+    expect(p).toContain('You never give, decline or postpone data in your own words');
+    expect(p).toContain('declare every one');
+    expect(p).toContain('"say" never announces, describes, promises or declines data');
   });
 
-  it('requires open deferrals to be resolved before asking for the recommendation', () => {
-    expect(buildSystemPrompt(ctx())).toContain('resolve every deferred request — release or refuse — BEFORE you ask for the recommendation');
+  it('lists releasable data with ids and no values', () => {
+    expect(p).toContain('DATA YOU CAN RELEASE');
+    expect(p).toContain('- id: "cogs_pct" — COGS as % of revenue');
   });
 
-  it('under time pressure: answer the open request first, then the recommendation ask; no deferral', () => {
-    const prompt = buildSystemPrompt(ctx({ elapsedMs: TOTAL - 60_000 }));
-    expect(prompt).toContain('answer any open data request (release or refuse) FIRST, then ask for the recommendation, in the same turn');
-    expect(prompt).toContain('Deferral is no longer available');
+  it('has no data, phase or ending actions and no planted vocabulary', () => {
+    for (const s of ['reveal_data', 'show_exhibit', 'advance_phase', 'end_case', 'ledger']) expect(p).not.toContain(s);
   });
 
   it('injects the open-data-requests hint when provided', () => {
-    const prompt = buildSystemPrompt(ctx({ openDataRequestsHint: 'OPEN DATA REQUESTS — test hint' }));
-    expect(prompt).toContain('OPEN DATA REQUESTS — test hint');
-  });
-
-  it('does not add the time-pressure data-request ordering early in the case', () => {
-    expect(buildSystemPrompt(ctx({ elapsedMs: 0.4 * TOTAL }))).not.toContain('Deferral is no longer available');
+    expect(buildSystemPrompt(ctx({ openDataRequestsHint: 'OPEN DATA REQUESTS — test hint' }))).toContain('OPEN DATA REQUESTS — test hint');
   });
 });
 
-// Batch 6, Maya (19:42): under time pressure the interviewer said "Here's the
-// shape, in plain words: raise menu prices… Can you repeat that back to me?"
-// The load-shed directive told it to "hand them the next step directly" — in
-// the recommendation phase, that is the recommendation (Rule 13 synthesis cap).
 describe('synthesis cap in the prompt (Rule 13)', () => {
   it('never lets the time-pressure rescue reach the recommendation', () => {
     const p = buildSystemPrompt(ctx({ currentPhase: 'RECOMMENDATION', elapsedMs: TOTAL - 30_000 }));
@@ -191,21 +130,17 @@ describe('synthesis cap in the prompt (Rule 13)', () => {
     expect(p).toMatch(/never for the recommendation itself/i);
   });
   it('forbids stating the recommendation for the candidate in every phase', () => {
-    const p = buildSystemPrompt(ctx({ currentPhase: 'ANALYSIS' }));
-    expect(p).toMatch(/Never state a recommendation, or which lever to pull, for the candidate/);
+    expect(buildSystemPrompt(ctx({ currentPhase: 'ANALYSIS' }))).toMatch(/Never state a recommendation, or which lever to pull, for the candidate/);
   });
 });
 
-// Batch 7, Maya: the interviewer showed exhibit-a four times and once said "I
-// haven't put an exhibit in front of you yet" — it is never told which
-// exhibits it already showed.
 describe('exhibits already shown', () => {
   it('marks a shown exhibit in the list', () => {
     const p = buildSystemPrompt(ctx({ exhibits: [
       { id: 'exhibit-a', title: 'Cost structure over time', shown: true },
       { id: 'exhibit-b', title: 'Store map' },
     ] }));
-    expect(p).toContain('- id: "exhibit-a" — Cost structure over time (already shown');
+    expect(p).toContain('- id: "exhibit-a" — Cost structure over time (already on the candidate\'s screen');
     expect(p).toContain('- id: "exhibit-b" — Store map\n');
   });
 });
@@ -225,9 +160,9 @@ describe('buildPromptParts — stable prefix vs per-turn state', () => {
     unitCheckHint: 'UNIT-CONVERSION FLAG: y',
     stallGuidance: 'STALL: z',
     coverageSteer: 'COVERAGE: w',
-    mayEnd: false,
     openDataRequestsHint: 'OPEN DATA REQUESTS: v',
     conductRedirectHint: 'CONDUCT (C4): u',
+    turnNote: 'THIS TURN: t',
   });
 
   it('keeps the stable part byte-identical across turns of a case', () => {
@@ -236,9 +171,9 @@ describe('buildPromptParts — stable prefix vs per-turn state', () => {
 
   it('carries every per-turn input in the turn part only', () => {
     const { stable, turn } = buildPromptParts(late);
-    for (const s of ['Current phase: ANALYSIS', 'COGS is 58% of revenue.', 'Bean price change', '(already shown —',
-      'You advanced the phase LAST turn', 'RECOMPUTE FLAG: x', 'UNIT-CONVERSION FLAG: y', 'STALL: z', 'COVERAGE: w',
-      'Do NOT use end_case yet', 'OPEN DATA REQUESTS: v', 'CONDUCT (C4): u', 'under a minute left']) {
+    for (const s of ['Current stage: ANALYSIS', 'COGS is 58% of revenue.', 'Bean price change', '(already on the candidate',
+      'The stage moved on LAST turn', 'RECOMPUTE FLAG: x', 'UNIT-CONVERSION FLAG: y', 'STALL: z', 'COVERAGE: w',
+      'OPEN DATA REQUESTS: v', 'CONDUCT (C4): u', 'THIS TURN: t', 'under a minute left']) {
       expect(turn).toContain(s);
       expect(stable).not.toContain(s);
     }

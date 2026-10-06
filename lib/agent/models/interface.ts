@@ -1,8 +1,15 @@
-import type { ValidationReport } from './json-actions';
-import type { Action } from '@/lib/orchestrator/actions';
+import type { ModelTurn } from './turn-schema';
 import type { OnUsage } from '@/lib/llm-usage';
 
 export type ModelMessage = { role: 'user' | 'assistant'; content: string };
+
+export type TurnValidation = {
+  unknownIds: string[];   // ids the model declared that the case doesn't have
+  emptyTurn: boolean;     // nothing to say and no question
+  retried: boolean;
+  unparsed: boolean;
+  refused: boolean;
+};
 
 export type TurnContext = {
   // Fixed instructions — identical turn to turn, so cacheable.
@@ -11,54 +18,34 @@ export type TurnContext = {
   // system prompt after the cached fixed part.
   turnSystem?: string;
   history: ModelMessage[];
-  tools: ToolDefinition[];
-  // Per-tool id validators. When the model calls a tool whose id doesn't
-  // resolve to a real target, the model impl feeds the error back (with the
-  // valid options) and lets the model correct itself — up to maxToolCorrections
-  // rounds — instead of silently delivering nothing or guessing wrong.
-  idValidators?: Record<string, ToolIdValidator>;
-  maxToolCorrections?: number; // default 2
-  // What the model layer did to the reply (json-actions.ts): dropped actions,
-  // unknown ids, a regeneration. The runner records it as a check.
-  onValidation?: (v: { report: ValidationReport; retried: boolean; unparsed: boolean; refused: boolean }) => void;
+  // Resolves a declared item / exhibit id to a canonical one (tolerant), or
+  // null when the case doesn't have it. An unknown id triggers one
+  // regeneration (a typo would otherwise become a false refusal).
+  resolveId?: (rawId: string) => string | null;
+  validIds?: string[];  // listed back to the model on a miss
+  // What the model layer did to the reply; the runner records it as a check.
+  onValidation?: (v: TurnValidation) => void;
   // Token-usage reporting (lib/llm-usage.ts). Called once per underlying API
-  // call — a correction loop reports each round, so the caller sums.
+  // call — a regeneration reports each round, so the caller sums.
   onUsage?: OnUsage;
-  // Streaming (streamTurn): false once the caller has delivered part of this
-  // turn — a regeneration after speech would repeat or contradict it.
+  // Streaming: false once the caller has delivered part of this turn — a
+  // regeneration after speech would repeat or contradict it.
   canRegenerate?: () => boolean;
 };
 
-// The streamed turn (anthropic.ts streamTurn): complete sentences of the
-// model's spoken text and its actions as they close, a restart when the draft
-// is regenerated (anything held from it is discarded), then the final
-// normalized action list.
+// The streamed turn: each field as it closes (move, requests, exhibit,
+// rescue_item, then say and question), the say text by sentence as it is
+// written, a restart when the draft is regenerated (anything held from it is
+// discarded), then the final turn.
 export type TurnEvent =
-  | { type: 'sentence'; text: string; sayIndex: number }
-  | { type: 'action'; action: Exclude<Action, { type: 'speak' }> }
+  | { type: 'field'; key: 'move' | 'requests' | 'exhibit' | 'rescue_item' | 'say' | 'question'; value: unknown }
+  | { type: 'sentence'; text: string }
   | { type: 'restart'; reason: string }
-  // Nothing after this point may be delivered live (e.g. past the action cap);
-  // the final list in `done` decides the rest.
-  | { type: 'stop'; reason: string }
-  | { type: 'done'; actions: Action[]; report: ValidationReport; retried: boolean; unparsed: boolean; refused: boolean };
-
-// For a tool call carrying an id (reveal_data.item_id, show_exhibit.exhibit_id):
-// resolve the raw id to a canonical one (tolerant), or null if it's not real.
-export type ToolIdValidator = {
-  idKey: string;                                   // where the id lives in the tool input
-  resolve: (rawId: string | undefined) => string | null;
-  validOptions: string[];                          // listed back to the model on a miss
-};
-
-export type ToolDefinition = {
-  name: string;
-  description: string;
-  inputSchema: Record<string, unknown>;
-};
+  | { type: 'done'; turn: ModelTurn; validation: TurnValidation };
 
 export interface InterviewerModel {
-  runTurn(ctx: TurnContext): Promise<Action[]>;
-  // Optional: models without it (test mocks, the replay script's Gemini arm)
-  // are streamed as one burst of their finished turn (turn-events.ts).
+  runTurn(ctx: TurnContext): Promise<ModelTurn>;
+  // Optional: models without it (test mocks, experiments) are streamed as one
+  // burst of their finished turn (turn-events.ts).
   streamTurn?(ctx: TurnContext): AsyncIterable<TurnEvent>;
 }

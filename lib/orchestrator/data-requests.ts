@@ -1,7 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { OnUsage } from '@/lib/llm-usage';
 import type { RequestedUnanswered } from '@/lib/scoring/data-coverage';
-import { PHASES, type Phase } from './state-machine';
 
 // Rule 11 (docs/interviewer-behavior.md v4.1): every candidate data request is
 // released, refused, or audibly deferred — never ignored. Run 4 had two silent
@@ -213,9 +212,9 @@ export function formatOpenRequestsHint(gaps: RequestedUnanswered[]): string | un
   const lines = gaps
     .map(g => `- ${g.label} — asked about "${g.what}"${g.turnIndex === null ? '' : ` (turn ${g.turnIndex})`}`)
     .join('\n');
-  return `OPEN DATA REQUESTS (the candidate asked for these and they are still unreleased):
+  return `OPEN DATA REQUESTS (the candidate asked for these earlier and they are still unreleased):
 ${lines}
-Release each with reveal_data as soon as the candidate has earned it; if one is still genuinely premature, say out loud that you'll come back to it. All of them must be released BEFORE you ask for the recommendation.`;
+Declare each in "requests" with respond "release" as soon as the candidate has earned it. The system releases any still open before it asks for the recommendation.`;
 }
 
 // Which open requests to force-release on a recommendation-ask turn: not
@@ -240,150 +239,10 @@ export function planForcedReleases(
     .map(g => g.ledgerItemId);
 }
 
-// ── Same-turn resolution (Rule 11, v4.4) ────────────────────────────────────
-// Batch 2 (29–30 Sep) still left 23 requests for held data unanswered, and the
-// candidate had to ask again to get them. The candidate message is now
-// classified (detection only) in parallel with the interviewer call, and a
-// request the draft turn ignored is resolved in code before the turn is sent:
-// released if the case has reached the item's releaseWhen stage, otherwise
-// deferred out loud. No regenerated Opus turn, so no added latency beyond the
-// Haiku call when it outlasts the interviewer's.
-
-// Batch 6 (Lena): "Hold both data requests for a moment" was missed and the
-// scripted deferral was stacked on top of the draft's own.
-const RESPONDED_CUE =
-  /\b(come back to|get to (that|it)|circle back|hold (that|this|those|these|both|them|off|on)|park (that|this|those|the)|(in|for) a (moment|minute|bit|second)|shortly|don'?t have|not available|isn'?t available|isn'?t something I have|no data on|which (cut|metric|breakdown)|do you mean)\b/i;
-
-// The draft already released, refused, deferred, or asked which cut — the
-// model handled it; leave the turn alone. Coarse on purpose: a false cue only
-// falls back to the pre-v4.4 behavior (logged, not resolved).
-export function respondsToRequest(spokenText: string): boolean {
-  return RESPONDED_CUE.test(spokenText);
-}
-
-export type SameTurnPlan = {
-  releaseIds: string[];     // explicit asks, stage reached
-  defer: boolean;           // explicit asks held for a later stage
-  offerIds: string[];       // passing mentions, stage reached — offered, not released
-  notYet: boolean;          // passing mentions of items whose stage isn't reached
-  refuseNotInCase: boolean; // explicit ask for data the case doesn't hold (fix #9)
-};
-
-export function planSameTurnResolution(params: {
-  requests: DetectedDataRequest[];
-  revealedIds: Set<string>;         // before and during this turn
-  phase: Phase;                     // the later of the turn's start and end phase
-  releaseWhenById: Map<string, Phase>;
-  spokenText: string;
-  cap?: number;
-}): SameTurnPlan {
-  const { requests, revealedIds, phase, releaseWhenById, spokenText, cap = 2 } = params;
-  const none: SameTurnPlan = { releaseIds: [], defer: false, offerIds: [], notYet: false, refuseNotInCase: false };
-  if (respondsToRequest(spokenText)) return none;
-
-  const reached = (id: string) => PHASES.indexOf(phase) >= PHASES.indexOf(releaseWhenById.get(id)!);
-  const openIds = (rs: DetectedDataRequest[]) => [...new Set(rs.flatMap(r => r.ledgerItemIds))]
-    .filter(id => releaseWhenById.has(id) && !revealedIds.has(id));
-
-  const asks = requests.filter(r => r.explicit);
-  const open = openIds(asks);
-  const releaseIds = open.filter(reached).slice(0, cap);
-  const defer = releaseIds.length < open.length;
-
-  // Batch 6, Maya: "I'd check revenue first — price and cups" released the
-  // average ticket unasked. A passing mention is offered, or met with "not at
-  // this point" — never released.
-  const asked = new Set(open);
-  const mentioned = openIds(requests.filter(r => !r.explicit)).filter(id => !asked.has(id));
-  const offerIds = mentioned.filter(reached);
-  // One line per turn on mentions: an offer covers the rest (batch 7, Destiny:
-  // an offer and "can't share those figures at this stage" side by side).
-  const notYet = !defer && offerIds.length === 0 && mentioned.some(id => !reached(id));
-
-  const refuseNotInCase = asks.some(r => r.ledgerItemIds.length === 0);
-  return { releaseIds, defer, offerIds, notYet, refuseNotInCase };
-}
-
-// The candidate's reply to an offer ("There's data on that if you'd like to
-// see it."): a yes releases what was offered; anything else drops the offer.
-const AFFIRMATIVE = /^\s*(?:yes|yeah|yep|yup|sure|please|ok(?:ay)?,? (?:yes|sure|please)|that would (?:help|be (?:great|helpful|useful))|i'?d (?:like|love) (?:that|it|to see (?:it|that|them))|i would(?:,| like))\b/i;
-
-export function acceptedOffer(params: { candidateText: string; offeredIds: string[]; revealedIds: Set<string> }): string[] {
-  if (params.offeredIds.length === 0 || !AFFIRMATIVE.test(params.candidateText)) return [];
-  return params.offeredIds.filter(id => !params.revealedIds.has(id));
-}
-
-// ── Deterministic reminder release (layer 3, round-3 fix) ──────────────────
-// The OPEN DATA REQUESTS reminder asks the model to release what it missed; in
-// batch 3 it never did (Ben's avg_ticket waited eight turns for the forced
-// release at the recommendation ask). A request from an EARLIER turn that is
-// still unreleased once the case has reached the item's stage is now released
-// by the orchestrator. The current turn's requests stay with same-turn
-// resolution; ask turns stay with the forced release.
-export function planStaleReleases(params: {
-  open: RequestedUnanswered[];
-  revealedIds: Set<string>;
-  phase: Phase;
-  releaseWhenById: Map<string, Phase>;
-  currentTurnIndex: number;
-  cap?: number;
-}): string[] {
-  const { open, revealedIds, phase, releaseWhenById, currentTurnIndex, cap = 2 } = params;
-  const reached = (id: string) => releaseWhenById.has(id) && PHASES.indexOf(phase) >= PHASES.indexOf(releaseWhenById.get(id)!);
-  const seen = new Set<string>();
-  return [...open]
-    .filter(g => g.turnIndex !== null && g.turnIndex < currentTurnIndex)
-    .sort((a, b) => (b.turnIndex ?? 0) - (a.turnIndex ?? 0))
-    .filter(g => !revealedIds.has(g.ledgerItemId) && reached(g.ledgerItemId) && !seen.has(g.ledgerItemId) && seen.add(g.ledgerItemId))
-    .slice(0, cap)
-    .map(g => g.ledgerItemId);
-}
-
-// Released data and the defer line go before the question the draft ends on,
-// so the turn still ends by handing the floor back.
-export function insertBeforeTrailingQuestions(text: string, addition: string): string {
-  const sentences = text.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
-  let i = sentences.length;
-  while (i > 0 && sentences[i - 1].trim().endsWith('?')) i--;
-  return [...sentences.slice(0, i), addition.trim(), ...sentences.slice(i)].join(' ');
-}
-
-// When the orchestrator appends the scripted recommendation ask, a question
-// the model left at the end of its turn is superseded — keeping both stacks two
-// asks and leaves one hanging (live run eca39ec7, 4:40: "What specifically do
-// you want on beans?" … "What's your bottom-line recommendation?"). Drops only
-// the trailing run of question sentences.
-export function dropTrailingQuestions(text: string): string {
-  const sentences = text.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
-  while (sentences.length > 0 && sentences[sentences.length - 1].trim().endsWith('?')) sentences.pop();
-  return sentences.join(' ');
-}
-
-// Assemble the turn so released data always lands BEFORE the recommendation
-// ask (worked conflict resolution "time warning + open data request"):
-// - scripted warning: model text → release → warning
-// - model asked on its own: release inserted just before the first sentence
-//   that asks (or first, if no single sentence matches)
-// With nothing to release, output is exactly the pre-v4.1 behavior.
-export function composeForcedReleaseTurn(params: {
-  spokenText: string;
-  releaseValues: string[];
-  leadIn: string;
-  warningLine?: string;
-  isAskSentence?: (sentence: string) => boolean;
-}): string {
-  const join = (parts: (string | undefined)[]) => parts.map(p => p?.trim()).filter(Boolean).join(' ');
-  const { spokenText, releaseValues, leadIn, warningLine, isAskSentence } = params;
-
-  if (releaseValues.length === 0) return join([spokenText, warningLine]);
-  const release = join([leadIn, ...releaseValues]);
-  if (warningLine) return join([spokenText, release, warningLine]);
-
-  const sentences = spokenText.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
-  const askIdx = isAskSentence ? sentences.findIndex(isAskSentence) : -1;
-  if (askIdx === -1) return join([release, spokenText]);
-  return join([...sentences.slice(0, askIdx), release, ...sentences.slice(askIdx)]);
-}
+// Same-turn resolution, stale releases, offers and the forced-release
+// composition that used to repair the model's turn after the fact now live in
+// Plan: the model declares requests, data-decisions.ts decides and renders
+// (spec 2026-10-06-plan-owns-decisions).
 
 export async function classifyDataRequests(params: {
   candidateText: string;

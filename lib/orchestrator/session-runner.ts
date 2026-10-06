@@ -6,20 +6,23 @@ import { recordSilenceStall, INITIAL_STALL_STATE, type StallState } from './stal
 import {
   evaluateSilence, checkInText, pauseText, INITIAL_SILENCE_STATE, type SilenceAction, type SilenceState,
 } from './silence';
-import { isDistressVerdict } from './distress';
+import { isDistressVerdict, type DistressVerdict } from './distress';
+import { classifyDataRequests, type DetectedDataRequest } from './data-requests';
 import { logEvent } from '@/lib/analytics';
 import { TOTAL_CASE_MS, type Phase } from './state-machine';
 import { streamInterviewerTurn } from '@/lib/agent/interviewer';
 import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
-import { SILENCE_PAUSE_EXPIRED } from '@/lib/agent/prompts/scripts';
-import { planTurn, scriptedOffer } from './plan-turn';
+import { SILENCE_PAUSE_EXPIRED, CLOSE_SCRIPTS, GRACE_ASK_SCRIPTS, TIME_WARNING_SCRIPTS, pickScript } from '@/lib/agent/prompts/scripts';
+import { planTurn, scriptedOffer, type ModelPlan } from './plan-turn';
 import { streamTurnSegments } from './stream-turn';
-import { settleTurn, commitScripted, logSessionEvent, type TurnUsage } from './settle-turn';
+import { settleTurn, commitScripted, logSessionEvent, type TurnUsage, type ModelOutcome } from './settle-turn';
+import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { ConductFlags, SegmentSink, TurnResult } from './turn-types';
 
-// The turn coordinator (spec 2026-10-05-streaming-turn): reads → Plan
-// (plan-turn.ts) → Stream (stream-turn.ts) → Settle (settle-turn.ts) → one
-// commit. runSilence is separate.
+// The turn coordinator (specs 2026-10-05-streaming-turn, 2026-10-06
+// plan-owns-decisions): reads → Plan (plan-turn.ts, which also decides the
+// turn kind) → the model's streamed turn or a code-written one → Settle
+// (settle-turn.ts) → one commit. runSilence is separate.
 
 export type { ExhibitDisplay, TurnResult } from './turn-types';
 
@@ -89,9 +92,9 @@ async function runTurnBody(
   const { currentPhase, flags, checks, userId } = ctx;
   const { caseData, ledger, stallDecision } = state;
 
-  console.log('[runner] phase:', currentPhase, 'stall rung:', stallDecision.intervene ? stallDecision.rung : 'none');
-  // PRD §13: per-turn latency + token usage. The correction loop can make
-  // multiple API calls per turn — onUsage fires per call, so sum here.
+  console.log('[runner] phase:', currentPhase, 'kind:', state.kind, 'stall rung:', stallDecision.intervene ? stallDecision.rung : 'none');
+  // PRD §13: per-turn latency + token usage. A regeneration makes two API
+  // calls — onUsage fires per call, so sum here.
   const turnUsage: TurnUsage = { model: '', inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, apiCalls: 0 };
   // Delivery (D3): the caller's sink, wrapped to time the first segment and
   // note an exhibit already put on screen.
@@ -102,95 +105,144 @@ async function runTurnBody(
     firstSegmentAt ??= Date.now();
     if (seg.exhibitId) exhibitDelivered = true;
   };
-  const isDelivered = { value: false };
-
-  const modelCallStart = Date.now();
-  const events = streamInterviewerTurn({
-    model,
-    candidateText,
-    history: state.history,
-    phase: currentPhase,
-    canRegenerate: () => !isDelivered.value,
-    onValidation: v => {
-      checks.record('action_validation', v.report.dropped.length > 0 || v.retried || v.unparsed,
-        v.retried ? 'model reply regenerated' : 'model actions dropped', {
-          dropped: v.report.dropped.map(d => ({ type: d.action.type, reason: d.reason })),
-          invalidIds: v.report.invalidIds, retried: v.retried, unparsed: v.unparsed, refused: v.refused,
-        });
-    },
-    onUsage: u => {
-      turnUsage.model = u.model;
-      turnUsage.inputTokens += u.inputTokens;
-      turnUsage.outputTokens += u.outputTokens;
-      turnUsage.cacheReadTokens += u.cacheReadTokens ?? 0;
-      turnUsage.cacheWriteTokens += u.cacheWriteTokens ?? 0;
-      turnUsage.apiCalls += 1;
-    },
-    promptCtx: {
-      casePrompt: caseData.prompt,
-      currentPhase,
-      revealedValues: revealedValues(ledger),
-      unrevealedItems: unrevealedItems(ledger),
-      exhibits: caseData.exhibits.map(e => ({ id: e.id, title: e.title, shown: state.shownExhibitIds.has(e.id) })),
-      advancedLastTurn: Boolean(flags.advancedLastTurn),
-      elapsedMs: state.elapsedMs,
-      totalMs: TOTAL_CASE_MS,
-      phaseBudgetsMs: state.phaseBudgetsMs,
-      recomputeHint: [state.recomputeHint, state.verifiedHint].filter(Boolean).join('\n\n') || undefined,
-      unitCheckHint: state.unitCheckHint,
-      stallGuidance: stallDecision.guidance,
-      coverageSteer: state.coverageSteer,
-      mayEnd: state.mayEnd,
-      openDataRequestsHint: state.openDataRequestsHint,
-      conductRedirectHint: state.conductRedirectHint,
-    },
-  });
-  // Stream (stream-turn.ts): segments go out as they pass, after the distress
-  // verdict; the rest of the turn is left to Settle.
-  const streamed = await streamTurnSegments(events, plan, deliver, { isDelivered });
-  // Interviewer latency is the model call alone (the whole stream); the wait
-  // on the distress verdict past it is logged apart (batch 4 conflated them).
-  const modelLatencyMs = streamed.modelDoneAt - modelCallStart;
-  const distress = await state.distress;
-  if (state.repliedToDistressOffer) checks.skip('conduct_model', 'reply to a declined pause offer');
-  else if (distress === null) checks.skip('conduct_model', 'classifier failed — regex floor stands');
-  else checks.record('conduct_model', isDistressVerdict(distress), `C5 by model: ${distress.label}`, { ...distress });
-  if (streamed.kind === 'distress') {
-    console.warn('[runner] C5 by the model layer — draft discarded:', JSON.stringify(streamed.verdict));
-    // The discarded draft still cost an interviewer call ($/case, PRD §13).
+  const recordDistress = (distress: DistressVerdict | null) => {
+    if (state.repliedToDistressOffer) checks.skip('conduct_model', 'reply to a declined pause offer');
+    else if (distress === null) checks.skip('conduct_model', 'classifier failed — regex floor stands');
+    else checks.record('conduct_model', isDistressVerdict(distress), `C5 by model: ${distress.label}`, { ...distress });
+  };
+  const offerPause = async (verdict: DistressVerdict) => {
+    console.warn('[runner] C5 by the model layer — turn discarded:', JSON.stringify(verdict));
     if (turnUsage.apiCalls > 0) {
       later(() => logEvent('llm_usage', { component: 'interviewer', ...turnUsage, discarded: true }, { sessionId, userId }));
     }
-    const offer = scriptedOffer(plan, streamed.verdict.label === 'risk_to_self', { reason: streamed.verdict.reason, label: streamed.verdict.label, layer: 'model' });
-    await deliver({ text: offer.interviewerText, revealIds: [] });
+    const offer = scriptedOffer(plan, verdict.label === 'risk_to_self', { reason: verdict.reason, label: verdict.label, layer: 'model' });
+    await deliver({ text: offer.interviewerText, revealIds: [] }).catch(() => {});
     return commitScripted(offer);
-  }
-  checks.record('stream_buffer_switch', streamed.bufferSwitch !== null && !state.buffered,
-    `streaming stopped: ${streamed.bufferSwitch}`, { reason: streamed.bufferSwitch, delivered: streamed.delivered.length });
-  if (streamed.bufferSwitch && !state.buffered) console.log('[runner] streaming stopped:', streamed.bufferSwitch);
-
-  // Settle (settle-turn.ts): today's post-model pipeline on the full action
-  // list; only the text after what was already delivered goes out.
-  const out = {
-    actions: streamed.actions, modelCallStart, modelLatencyMs, distressWaitMs: streamed.distressWaitMs, turnUsage,
-    delivered: streamed.delivered, undeliveredRevealIds: [...streamed.undeliveredRevealIds],
   };
+
+  let out: ModelOutcome;
+  let streamedCount = 0;
+  let deliveredRevealIds = new Set<string>();
+  const modelCallStart = Date.now();
+
+  if (CODE_WRITTEN_KINDS.has(state.kind)) {
+    // Close, grace ask, time warning, rung 1 (plan-turn.ts): written by code.
+    // The message's data requests are answered first, from the synchronous
+    // classification (today's ask-turn behaviour); the distress gate still
+    // applies.
+    const [distress, detected] = await Promise.all([
+      state.distress,
+      classifyDataRequests({
+        candidateText, interviewerText: null, catalog: state.catalog,
+        onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId }); },
+      }),
+    ]);
+    recordDistress(distress);
+    if (isDistressVerdict(distress)) return offerPause(distress);
+    out = {
+      turn: codeWrittenTurn(plan, detected), validation: null, modelCallStart, modelLatencyMs: 0,
+      distressWaitMs: 0, turnUsage, delivered: [], undeliveredRevealIds: [], requestsClassified: detected !== null,
+    };
+  } else {
+    const isDelivered = { value: false };
+    const events = streamInterviewerTurn({
+      model,
+      candidateText,
+      history: state.history,
+      phase: currentPhase,
+      canRegenerate: () => !isDelivered.value,
+      onValidation: v => {
+        checks.record('model_turn_validation', v.unknownIds.length > 0 || v.retried || v.unparsed || v.emptyTurn || v.refused,
+          v.retried ? 'model reply regenerated' : 'model reply unusable', { ...v });
+      },
+      onUsage: u => {
+        turnUsage.model = u.model;
+        turnUsage.inputTokens += u.inputTokens;
+        turnUsage.outputTokens += u.outputTokens;
+        turnUsage.cacheReadTokens += u.cacheReadTokens ?? 0;
+        turnUsage.cacheWriteTokens += u.cacheWriteTokens ?? 0;
+        turnUsage.apiCalls += 1;
+      },
+      promptCtx: {
+        casePrompt: caseData.prompt,
+        currentPhase,
+        revealedValues: revealedValues(ledger),
+        unrevealedItems: unrevealedItems(ledger),
+        exhibits: caseData.exhibits.map(e => ({ id: e.id, title: e.title, shown: state.shownExhibitIds.has(e.id) })),
+        advancedLastTurn: Boolean(flags.advancedLastTurn),
+        elapsedMs: state.elapsedMs,
+        totalMs: TOTAL_CASE_MS,
+        phaseBudgetsMs: state.phaseBudgetsMs,
+        recomputeHint: [state.recomputeHint, state.verifiedHint].filter(Boolean).join('\n\n') || undefined,
+        unitCheckHint: state.unitCheckHint,
+        stallGuidance: stallDecision.guidance,
+        coverageSteer: state.coverageSteer,
+        openDataRequestsHint: state.openDataRequestsHint,
+        conductRedirectHint: state.conductRedirectHint,
+        turnNote: state.kind === 'rec_ask'
+          ? 'THIS TURN: the system asks the candidate for their recommendation as your question. Write only "say" — a brief neutral acknowledgment of their last message, or "" — declare their requests as usual, and set "question" to "".'
+          : undefined,
+      },
+    });
+    // Stream (stream-turn.ts): segments go out as they pass, after the
+    // distress verdict; the rest of the turn is Settle's.
+    const streamed = await streamTurnSegments(events, plan, deliver, { isDelivered });
+    // Interviewer latency is the model call alone (the whole stream); the wait
+    // on the distress verdict past it is logged apart (batch 4 conflated them).
+    const modelLatencyMs = streamed.modelDoneAt - modelCallStart;
+    recordDistress(await state.distress);
+    if (streamed.kind === 'distress') return offerPause(streamed.verdict);
+    checks.record('stream_buffer_switch', streamed.bufferSwitch !== null,
+      `streaming stopped: ${streamed.bufferSwitch}`, { reason: streamed.bufferSwitch, delivered: streamed.delivered.length });
+    if (streamed.bufferSwitch) console.log('[runner] streaming stopped:', streamed.bufferSwitch);
+    streamedCount = streamed.delivered.length;
+    deliveredRevealIds = new Set(streamed.deliveredRevealIds);
+    out = {
+      turn: streamed.turn, validation: streamed.validation, modelCallStart, modelLatencyMs, distressWaitMs: streamed.distressWaitMs,
+      turnUsage, delivered: streamed.delivered, undeliveredRevealIds: [...streamed.undeliveredRevealIds],
+    };
+  }
+
+  // Settle (settle-turn.ts): compose, book, commit; only the text after what
+  // was already delivered goes out.
   const settled = await settleTurn(plan, out);
-  const delivered = new Set(streamed.deliveredRevealIds);
-  const tailReveals = settled.newReveals.filter(id => !delivered.has(id));
-  const tailExhibit = !exhibitDelivered ? settled.result.exhibit?.id : undefined;
+  const tailReveals = settled.newReveals.filter(id => !deliveredRevealIds.has(id));
+  const tailExhibit = !exhibitDelivered ? settled.exhibitId : undefined;
   if (settled.tail || tailReveals.length > 0 || tailExhibit) {
     try {
       await deliver({ text: settled.tail, revealIds: tailReveals, exhibitId: tailExhibit });
     } catch {
-      out.undeliveredRevealIds.push(...tailReveals); // D3: not delivered, not booked
+      out.undeliveredRevealIds?.push(...tailReveals); // D3: not delivered, not booked
     }
   }
   await settled.persist({
     firstSegmentMs: firstSegmentAt === null ? null : firstSegmentAt - ctx.turnStartMs,
-    streamed: streamed.delivered.length > 0,
+    streamed: streamedCount > 0,
   });
   return settled.result;
+}
+
+const CODE_WRITTEN_KINDS = new Set(['close', 'grace_ask', 'time_warning', 'rung1']);
+
+// A code-written turn as a turn of the interviewer's shape: the message's data
+// requests (answered by Settle's data line) and the scripted line.
+function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null): ModelTurn {
+  const { ctx, state } = plan;
+  const seed = `${ctx.sessionId}:${ctx.nextTurnIndex}`;
+  const requests = (detected ?? [])
+    .filter(r => r.explicit) // a code-written turn answers asks, it doesn't offer
+    .map(r => ({ what: r.what, itemIds: r.ledgerItemIds, explicit: true, respond: 'release' as const }));
+  const question = state.kind === 'close' ? pickScript(CLOSE_SCRIPTS, seed)
+    : state.kind === 'grace_ask' ? pickScript(GRACE_ASK_SCRIPTS, seed)
+      : state.kind === 'time_warning' ? pickScript(TIME_WARNING_SCRIPTS, seed)
+        : `Take your time. The question on the table is ${restate(state.lastQuestion ?? '')}`;
+  return { move: 'other', requests, exhibit: null, rescueItem: null, say: '', question };
+}
+
+// "Which line moved most?" → "which line moved most?" (and no doubled lead-in).
+function restate(q: string): string {
+  const core = q.trim().replace(/^(?:take your time\.\s*)?the question on the table(?: is|:)\s*/i, '');
+  return core.charAt(0).toLowerCase() + core.slice(1);
 }
 
 // Text-mode silence (lib/orchestrator/silence.ts): the channel reports that the
@@ -235,7 +287,8 @@ export async function runSilence(sessionId: string, silentMs: number): Promise<S
     return { action: 'expire', interviewerText: SILENCE_PAUSE_EXPIRED, phase, ended: true, scoringSuppressed: true };
   }
 
-  const interviewerText = decision.action === 'check_in' ? checkInText(lastInterviewer) : pauseText(decision.state.pauseLimitMs ?? 0);
+  const storedQuestion = typeof flags.lastQuestion === 'string' ? flags.lastQuestion : null;
+  const interviewerText = decision.action === 'check_in' ? checkInText(lastInterviewer, storedQuestion) : pauseText(decision.state.pauseLimitMs ?? 0);
 
   await db.insert(sessionTurns).values({ sessionId, turnIndex: nextTurnIndex, role: 'interviewer', text: interviewerText, timestampMs: now });
   // Not an assist: lib/scoring/assists.ts only counts ladder rungs.

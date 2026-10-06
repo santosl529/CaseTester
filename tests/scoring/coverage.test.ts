@@ -71,12 +71,12 @@ describe('canEndCase', () => {
 });
 
 describe('formatCoverageSteer', () => {
-  it('lists undertested dimensions and forbids ending', () => {
+  it('lists undertested dimensions to steer toward (ending is code\'s, spec 2026-10-06)', () => {
     const steer = formatCoverageSteer({ ...full(90), quantitative: 30, judgment: 45 });
     expect(steer).toContain('undertested');
     expect(steer).toContain('Quantitative');
     expect(steer).toContain('30/100');
-    expect(steer).toContain('do NOT end the case yet');
+    expect(steer).not.toContain('end_case');
   });
 
   it('says all tested when every dimension is covered', () => {

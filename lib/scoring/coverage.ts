@@ -50,10 +50,10 @@ export function formatCoverageSteer(coverage: CoverageScores | null, threshold =
   if (!coverage || Object.keys(coverage).length === 0) return '';
   const under = RUBRIC_DIMENSION_KEYS.filter(k => (coverage[k] ?? 0) < threshold);
   if (under.length === 0) {
-    return 'COVERAGE: every rubric area has now been tested. Once the candidate has delivered a committed recommendation, you may wrap with end_case.';
+    return 'COVERAGE: every rubric area has now been tested. Once the recommendation is in, probe its biggest risk once (move "risk"); the system closes the case.';
   }
   const list = under.map(k => `${RUBRIC_DIMENSION_LABELS[k]} (${coverage[k] ?? 0}/100)`).join(', ');
-  return `COVERAGE — these areas are still undertested; steer the conversation toward them when the candidate's thread allows, and do NOT end the case yet: ${list}.`;
+  return `COVERAGE — these areas are still undertested; steer the conversation toward them when the candidate's thread allows: ${list}.`;
 }
 
 // Parse a Haiku coverage response into scores, clamped to 0-100. Null on garbage.

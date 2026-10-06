@@ -10,18 +10,23 @@ import { getCaseById } from '@/lib/cases/loader';
 import { createLedger, reveal, revealedValues, labelWithPeriod } from './data-ledger';
 import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts, checkVerifiedForTurn, formatVerifiedHint, type RecomputeAttempts, type VerifiedFigure } from './recompute';
 import { detectNestedPercentConversion, formatUnitCheckHint } from './unit-check';
-import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure } from './pacing';
+import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
 import { evaluateStall, INITIAL_STALL_STATE, type StallState } from './stall';
-import { resumeOnCandidateTurn, effectiveElapsedMs, INITIAL_SILENCE_STATE, type SilenceState } from './silence';
+import { resumeOnCandidateTurn, effectiveElapsedMs, isSilenceLine, INITIAL_SILENCE_STATE, type SilenceState } from './silence';
 import { classifyConduct, isPauseAccepted, isRiskToSelf } from './conduct';
 import { classifyDistress, type DistressVerdict } from './distress';
 import { logEvent } from '@/lib/analytics';
 import { TOTAL_CASE_MS, type Phase } from './state-machine';
-import { stageAdministration, stageGateOpen, endAllowed } from './spoken-close';
+import { stageGateOpen, endAllowed, recommendationUnresolved } from './spoken-close';
+import { stagesFromTurns, type TurnMove } from './progress';
 import { CheckLog } from './check-log';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
 import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
+
+// What Plan decides a model-turn slot is (spec 2026-10-06 §6). 'model' and
+// 'rec_ask' call the interviewer model; the rest are written by code.
+export type TurnKind = 'model' | 'rec_ask' | 'close' | 'grace_ask' | 'time_warning' | 'rung1';
 
 export type TurnReads = {
   session: typeof sessions.$inferSelect | undefined;
@@ -277,23 +282,41 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Rule 12 v4.6: a received recommendation plus an administered brainstorm
   // and risk probe opens the end gate — coverage the candidate didn't produce
   // after being asked is performance, not session coverage (Rule 13). Maya
-  // c6076209 was blocked twice after a brainstorm she froze on.
-  const stages = stageAdministration(
-    turnRows.filter(t => t.role === 'interviewer').map(t => t.text),
+  // c6076209 was blocked twice after a brainstorm she froze on. Stages come
+  // from the moves recorded at commit (progress.ts), the wording only for
+  // turns recorded before moves existed.
+  const moves = (flags.moves as Record<number, TurnMove> | undefined) ?? {};
+  const stages = stagesFromTurns(
+    turnRows.filter(t => t.role === 'interviewer').map(t => ({ turnIndex: t.turnIndex, text: t.text })),
+    moves,
     recommendationReceived,
   );
   const stageGate = stageGateOpen(stages) && elapsedMs >= COVERAGE_MIN_GUARD_MS;
   const mayEnd = endAllowed({ coverageMayEnd, timeUp, stageGate, stages });
-  const awaitingRecAsk = coverageMayEnd && !mayEnd;
-  const coverageSteer = stageGate && !coverageMayEnd
-    ? 'COVERAGE: the recommendation is in and the brainstorm and risk probe have been run — you may close with end_case.'
-    : awaitingRecAsk
-      ? 'COVERAGE: every rubric area has been tested, but you have not asked for the recommendation yet — ask for it before closing.'
-      : formatCoverageSteer(coverage);
-  checks.record('end_rec_ask_gate', awaitingRecAsk, 'coverage complete but the recommendation was never asked — end held');
+  const awaitingRecAsk = coverageMayEnd && !stages.recommendationAsked && !recommendationReceived;
+  const coverageSteer = formatCoverageSteer(coverage);
+  checks.record('end_rec_ask_gate', awaitingRecAsk, 'coverage complete but the recommendation was never asked — code asks this turn');
   checks.record('end_gate', stageGate && !coverageMayEnd, 'stage gate opened the end (coverage below threshold)', {
     coverageMayEnd, stageGate, ...stages,
   });
+
+  // Turn kind (spec 2026-10-06 §6): the ending, the time lines and the
+  // recommendation ask are decided here, not by the model.
+  const lastQuestion = typeof flags.lastQuestion === 'string' ? flags.lastQuestion : null;
+  const graceDue = shouldGraceAsk({
+    timeUp, graceAskFired: Boolean(flags.graceAskFired),
+    recommendationAsked: stages.recommendationAsked, recommendationDelivered: recommendationReceived,
+  });
+  const closeDue = (timeUp && !graceDue)
+    || (mayEnd && ((recommendationReceived && stages.riskAsked) || recommendationUnresolved(stages)));
+  const kind: TurnKind = closeDue ? 'close'
+    : graceDue ? 'grace_ask'
+      : shouldFireTimeWarning && !recommendationReceived ? 'time_warning'
+        : awaitingRecAsk ? 'rec_ask'
+          : stallDecision.intervene && stallDecision.rung === 1 && lastQuestion ? 'rung1'
+            : 'model';
+  checks.record('turn_kind', kind !== 'model', `turn decided by code: ${kind}`, { kind, timeUp, mayEnd, ...stages });
+
   checks.record('stall', Boolean(stallDecision.intervene), `rung ${stallDecision.rung ?? '-'} decided`, {
     rung: stallDecision.rung ?? null,
     classification: stallDecision.classification,
@@ -303,10 +326,14 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     consecutiveClarify: stallDecision.state.consecutiveClarify,
   });
 
-  const history = turnRows.map(t => ({
-    role: (t.role === 'candidate' ? 'user' : 'assistant') as 'user' | 'assistant',
-    content: t.text,
-  }));
+  // The model sees no silence check-ins or pause lines (D7): they are scripted,
+  // and it copied them into its own turns (batch 4).
+  const history = turnRows
+    .filter(t => !(t.role === 'interviewer' && isSilenceLine(t.text)))
+    .map(t => ({
+      role: (t.role === 'candidate' ? 'user' : 'assistant') as 'user' | 'assistant',
+      content: t.text,
+    }));
 
   // Rule 17-C5 model layer (v4.6): runs in parallel with the interviewer call;
   // a distress verdict discards the draft before anything is delivered (D1).
@@ -327,15 +354,10 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId: session.userId }); },
   });
 
-  // D2: turns where a whole-turn replacement can fire are buffered — the
-  // model's text is decided by the full post-turn pipeline before any of it
-  // is delivered.
-  const bufferReason = timeUp ? 'time_up'
-    : shouldFireTimeWarning && !recommendationReceived ? 'time_warning_due'
-      : mayEnd ? 'end_allowed'
-        : awaitingRecAsk ? 'awaiting_recommendation_ask'
-          : currentPhase === 'RECOMMENDATION' || currentPhase === 'WRAP' ? `phase_${currentPhase.toLowerCase()}`
-            : undefined;
+  // Model turns stream; the per-sentence gates decide (stream-turn.ts). No
+  // whole-turn replacement is left to buffer for — the ending, the time lines
+  // and the recommendation ask are turn kinds decided above.
+  const bufferReason: string | undefined = undefined;
 
   return {
     kind: 'model' as const,
@@ -346,7 +368,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
       derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, unitCheckHint,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
-      conductRedirectHint, history, turnRows, distress, detectedRequests,
+      conductRedirectHint, history, turnRows, distress, detectedRequests, kind, lastQuestion, moves,
       buffered: bufferReason !== undefined, bufferReason,
     },
   };

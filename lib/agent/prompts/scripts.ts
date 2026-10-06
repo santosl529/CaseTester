@@ -19,48 +19,6 @@ export const TIME_WARNING_SCRIPTS = [
   "Time's nearly up. Give me your bottom-line recommendation.",
 ];
 
-// Rule 11 backstop: fired when the interviewer promises a data delivery in
-// speech (data-ledger.ts's promisesReveal) but no ledger item resolves to it
-// — i.e. the candidate asked for a cut that genuinely isn't in the case.
-// Deterministic, not model-composed, so the promise never gets silently
-// swapped for unrelated data (docs/interviewer-behavior.md Rule 11).
-export const REVEAL_REFUSAL_SCRIPTS = [
-  "I don't have that level of detail. What would you do next to narrow it down?",
-  "We don't have that specific cut. How would you approach it with what's available?",
-  "That breakdown isn't something I have. What would you ask for instead?",
-];
-
-// Same backstop as REVEAL_REFUSAL_SCRIPTS, for the exhibit side: fired when
-// the interviewer promises an exhibit (exhibits.ts's promisesExhibit) but
-// none resolves — the case has no exhibit matching what was named, or has
-// zero/multiple exhibits with no single safe fallback. Keeps a broken exhibit
-// promise from reading as a silently dropped delivery.
-export const EXHIBIT_REFUSAL_SCRIPTS = [
-  "I don't have a chart for that. What would you like to look at instead?",
-  "I don't have that exhibit to show you. What data would help most right now?",
-  "That's not something I have a chart for. What would you ask for instead?",
-];
-
-// An exhibit turn with no words to speak: the model's only words were
-// narration, stripped (batch 5: "I'll show the exhibit too and ask for
-// interpretation."), or it called show_exhibit with no text at all (batch 6,
-// adaptive thinking). The exhibit is on screen; hand it over plainly.
-export const EXHIBIT_FRAME_SCRIPTS = [
-  "Take a look at this and tell me what you see.",
-  "Here's the exhibit. What stands out to you?",
-  "Have a look at this. What does it tell you?",
-];
-
-// Rule 11 v4.1 force-resolve: lead-in spoken before ledger data the candidate
-// asked for earlier and never got, released just before the recommendation
-// ask (session-runner.ts). The ledger value follows verbatim and carries its
-// own label (Rule 10), so these stay numeral-free (Rule 6 provenance).
-export const FORCED_RELEASE_LEADINS = [
-  "Before we wrap, on what you asked about earlier:",
-  "One thing you asked for earlier:",
-  "Picking up what you asked about before:",
-];
-
 // Round-3 stale release: an earlier request released by code once its stage
 // is reached, mid-case. Not the forced-release pool — "Before we wrap" there
 // is right only next to the recommendation ask (batch 7: Nikhil heard it at
@@ -69,46 +27,6 @@ export const STALE_RELEASE_LEADINS = [
   'On what you asked about earlier:',
   'Coming back to what you asked for earlier:',
   'You asked about this earlier:',
-];
-
-// Rule 11 same-turn resolution (v4.4): lead-in before ledger data the
-// candidate asked for in this message that the draft turn ignored, and the
-// scripted defer when the item's stage isn't reached yet. Numeral-free (Rule 6).
-export const SAME_TURN_RELEASE_LEADINS = [
-  "On what you asked for:",
-  "You asked about that —",
-  "To your question on the data:",
-];
-
-export const SAME_TURN_DEFER_SCRIPTS = [
-  "On the data you asked for — I'll come to that shortly.",
-  "Hold that request; I'll come back to it shortly.",
-  "I'll come to that data shortly.",
-];
-
-// Batch 6 follow-ups to same-turn resolution. Statements, not questions, so
-// they never stack a second question onto the turn (Rule 5).
-// A passing mention of data the case holds, its stage reached: offered, not
-// released (Maya: "price and cups" released the average ticket unasked).
-export const SAME_TURN_OFFER_SCRIPTS = [
-  "There's data on that if you'd like to see it.",
-  'I have figures on that if you want them.',
-  'I can share the data on that if it would help.',
-];
-
-// A passing mention of data whose stage isn't reached yet.
-export const SAME_TURN_NOT_YET_SCRIPTS = [
-  "I can't give you that data at this point.",
-  "That data isn't something I can share just yet.",
-  "I can't share those figures at this stage.",
-];
-
-// Fix #9: an explicit ask for data the case doesn't hold, ignored by the draft
-// (Tobias b6: whether the bean increase was market-wide).
-export const NOT_IN_CASE_REFUSAL_SCRIPTS = [
-  "That's not in the information I have.",
-  "I don't have data on that.",
-  "That isn't something I have data on.",
 ];
 
 // Rule 12 v4.6: the one goodbye — a single neutral line, no evaluation
@@ -171,15 +89,6 @@ export const DISTRESS_CLOSE =
 export const SILENCE_PAUSE_EXPIRED =
   "We haven't heard back, so we'll end the session here. This one won't be scored — start a new case whenever you're ready.";
 
-// The deterministic time warning (Rule 12) is a BACKSTOP for when the model
-// doesn't warn on its own. A live run showed both firing — the model said
-// "We're nearly out of time. Bring it home..." and the orchestrator then
-// appended "We're near time. What's your bottom-line recommendation?" —
-// a stutter. Suppress the append when the model already signaled time or
-// asked for the recommendation this turn.
-const TIME_CUE = /\b(out of time|near(ly)?\s+time|time'?s\s+(up|nearly)|almost out of time|we'?re (almost )?(out of|near) time|running out of time|wrap (up|it up)|near the end)\b/i;
-const REC_ASK = /\b(bottom.?line recommendation|recommendation to the (ceo|client)|final recommendation|bring it home|what'?s your recommendation|what would you (tell|recommend) the (ceo|client))\b/i;
-
 // Rule 12: does this turn already close the case? Used to guarantee a close
 // line on ending turns that say something else (live run eca39ec7 ended on a
 // bare correction after time-up). "Before we close" is not a close.
@@ -188,37 +97,6 @@ const CLOSE_CUE =
 
 export function hasCloseCue(spokenText: string): boolean {
   return CLOSE_CUE.test(spokenText);
-}
-
-// Recommendation ask only, no bare time cue — used by phase repair
-// (lib/orchestrator/phase-repair.ts): an interviewer asking for the
-// recommendation means the case is in RECOMMENDATION whatever the phase
-// machine says. "We're near time" alone does not.
-export function asksForRecommendation(spokenText: string): boolean {
-  return REC_ASK.test(spokenText);
-}
-
-export function alreadySignaledTimeOrRec(spokenText: string): boolean {
-  return TIME_CUE.test(spokenText) || REC_ASK.test(spokenText);
-}
-
-// Deterministic per-session pick (not Math.random): stable within a session,
-// varies across sessions, and reproducible in tests.
-// A turn that released data with no words of the model's own (replay, JSON
-// format: three releases and nothing said): the values are spoken, then the
-// floor goes back to the candidate.
-export const DATA_HANDOVER_SCRIPTS = [
-  "What do you make of that?",
-  "What does that tell you?",
-  "How does that change your thinking?",
-];
-
-export function wordlessRevealLine(t: { modelWords: string; revealedCount: number; exhibitShown: boolean; ended: boolean; seed: string }): string | null {
-  return !t.modelWords.trim() && t.revealedCount > 0 && !t.exhibitShown && !t.ended ? pickScript(DATA_HANDOVER_SCRIPTS, t.seed) : null;
-}
-
-export function wordlessExhibitLine(t: { spokenText: string; exhibitShown: boolean; ended: boolean; seed: string }): string | null {
-  return !t.spokenText.trim() && t.exhibitShown && !t.ended ? pickScript(EXHIBIT_FRAME_SCRIPTS, t.seed) : null;
 }
 
 export function pickScript(pool: string[], seed: string): string {

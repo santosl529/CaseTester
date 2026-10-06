@@ -2,16 +2,17 @@ import { describe, it, expect, vi } from 'vitest';
 import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import type { TurnContext, TurnEvent } from '@/lib/agent/models/interface';
 
-// streamTurn against a stubbed client stream: sentences and resolved actions
-// as they close; one regeneration only while nothing has been delivered.
+// streamTurn against a stubbed client stream (spec 2026-10-06 §4): fields as
+// they close, say by sentence; one regeneration — caught as soon as
+// `requests` names an unknown id — only while nothing was delivered.
 
-// A fake BetaMessageStream: async-iterates text deltas, then finalMessage().
 function fakeStream(text: string, stop_reason = 'end_turn', chunk = 7) {
   const events = Array.from({ length: Math.ceil(text.length / chunk) }, (_, i) => ({
     type: 'content_block_delta', delta: { type: 'text_delta', text: text.slice(i * chunk, i * chunk + chunk) },
   }));
   return {
     async *[Symbol.asyncIterator]() { for (const e of events) yield e; },
+    abort: vi.fn(),
     finalMessage: async () => ({
       content: [{ type: 'text', text }], stop_reason, stop_details: null,
       usage: { input_tokens: 1, output_tokens: 1, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
@@ -27,14 +28,14 @@ function stubbed(replies: { text: string; stop_reason?: string }[]) {
   return { model, stream };
 }
 
+const turn = (over: Record<string, unknown> = {}) => JSON.stringify({
+  move: 'analysis', requests: [], exhibit: null, rescue_item: null, say: 'Okay.', question: 'What drove it?', ...over,
+});
+
 const ctx = (over: Partial<TurnContext> = {}): TurnContext => ({
-  systemPrompt: 'FIXED',
-  turnSystem: 'STATE',
+  systemPrompt: 'FIXED', turnSystem: 'STATE',
   history: [{ role: 'user', content: 'Can I see the cost breakdown?' }],
-  tools: [],
-  idValidators: {
-    reveal_data: { idKey: 'item_id', resolve: raw => (raw === 'cogs_pct' ? raw : null), validOptions: ['cogs_pct'] },
-  },
+  resolveId: raw => (raw === 'cogs_pct' ? raw : null), validIds: ['cogs_pct'],
   ...over,
 });
 
@@ -45,55 +46,65 @@ async function all(it: AsyncIterable<TurnEvent>) {
 }
 
 describe('AnthropicInterviewerModel.streamTurn', () => {
-  it('streams sentences and resolved actions, then done', async () => {
-    const { model } = stubbed([{ text: '{"actions":[{"type":"say","text":"Okay. Here it is."},{"type":"reveal_data","item_id":"cogs_pct"},{"type":"say","text":"What stands out?"}]}' }]);
-    const ev = await all(model.streamTurn(ctx()));
-    expect(ev.filter(e => e.type !== 'done')).toEqual([
-      { type: 'sentence', text: 'Okay.', sayIndex: 0 },
-      { type: 'sentence', text: 'Here it is.', sayIndex: 0 },
-      { type: 'action', action: { type: 'reveal_data', itemId: 'cogs_pct' } },
-      { type: 'sentence', text: 'What stands out?', sayIndex: 1 },
-    ]);
-    expect(ev.at(-1)).toMatchObject({ type: 'done', retried: false, actions: [
-      { type: 'speak', text: 'Okay. Here it is.' },
-      { type: 'reveal_data', itemId: 'cogs_pct' },
-      { type: 'speak', text: 'What stands out?' },
-    ] });
+  it('sends the turn schema with the cached system blocks and no tools', async () => {
+    const { model, stream } = stubbed([{ text: turn() }]);
+    await all(model.streamTurn(ctx()));
+    const req = stream.mock.calls[0][0];
+    expect(req.output_config.format.type).toBe('json_schema');
+    expect(Object.keys(req.output_config.format.schema.properties)).toEqual(['move', 'requests', 'exhibit', 'rescue_item', 'say', 'question']);
+    expect(req.tools).toBeUndefined();
+    expect(req.system[0].cache_control).toEqual({ type: 'ephemeral' });
+    expect(req.system[1].text).toBe('STATE');
   });
 
-  it('skips an unresolvable id mid-stream and regenerates once', async () => {
+  it('streams the declarations, the say sentences, then the turn', async () => {
+    const { model } = stubbed([{ text: turn({
+      requests: [{ what: 'the cost split', item_ids: ['cogs_pct'], explicit: true, respond: 'release' }],
+      say: 'Okay. Here we go.',
+    }) }]);
+    const ev = await all(model.streamTurn(ctx()));
+    expect(ev.filter(e => e.type === 'sentence')).toEqual([{ type: 'sentence', text: 'Okay.' }, { type: 'sentence', text: 'Here we go.' }]);
+    expect(ev.filter(e => e.type === 'field').map(e => (e as { key: string }).key)).toEqual(['move', 'requests', 'exhibit', 'rescue_item', 'say', 'question']);
+    expect(ev.at(-1)).toMatchObject({ type: 'done', turn: {
+      move: 'analysis', say: 'Okay. Here we go.', question: 'What drove it?',
+      requests: [{ what: 'the cost split', itemIds: ['cogs_pct'], explicit: true, respond: 'release' }],
+    } });
+  });
+
+  it('regenerates when requests name an unknown id, before any speech', async () => {
     const { model, stream } = stubbed([
-      { text: '{"actions":[{"type":"reveal_data","item_id":"bogus"}]}' },
-      { text: '{"actions":[{"type":"reveal_data","item_id":"cogs_pct"}]}' },
+      { text: turn({ requests: [{ what: 'x', item_ids: ['cost_breakdown'], explicit: true, respond: 'release' }] }) },
+      { text: turn({ requests: [{ what: 'x', item_ids: ['cogs_pct'], explicit: true, respond: 'release' }] }) },
     ]);
     const ev = await all(model.streamTurn(ctx()));
     expect(stream).toHaveBeenCalledTimes(2);
-    expect(ev.map(e => e.type)).toEqual(['restart', 'action', 'done']);
+    const restartAt = ev.findIndex(e => e.type === 'restart');
+    expect(restartAt).toBeGreaterThan(-1);
+    expect(ev.slice(0, restartAt).some(e => e.type === 'sentence')).toBe(false);
+    const note = stream.mock.calls[1][0].messages.at(-1);
+    expect(note.role).toBe('system');
+    expect(note.content).toContain('"cost_breakdown"');
+    expect(note.content).toContain('"cogs_pct"');
   });
 
   it('does not regenerate once the caller has delivered something', async () => {
-    const { model, stream } = stubbed([{ text: '{"actions":[{"type":"say","text":"Okay."},{"type":"reveal_data","item_id":"bogus"}]}' }]);
+    const { model, stream } = stubbed([{ text: turn({ requests: [{ what: 'x', item_ids: ['nope'], explicit: true, respond: 'release' }] }) }]);
     const ev = await all(model.streamTurn(ctx({ canRegenerate: () => false })));
     expect(stream).toHaveBeenCalledTimes(1);
-    expect(ev.at(-1)).toMatchObject({ type: 'done', retried: false, actions: [{ type: 'speak', text: 'Okay.' }] });
+    expect(ev.at(-1)).toMatchObject({ type: 'done', validation: { unknownIds: ['nope'], retried: false } });
   });
 
-  it('stops streaming live events at the action cap (normalizeActions drops the rest)', async () => {
-    // Batch 9, Lena t7: 11 actions; the stream delivered three reveals the cap then dropped.
-    const reveals = Array.from({ length: 10 }, () => '{"type":"reveal_data","item_id":"cogs_pct"}');
-    const { model } = stubbed([{ text: `{"actions":[{"type":"say","text":"One."},${reveals.join(',')},{"type":"say","text":"Late."}]}` }]);
+  it('regenerates once on an unparseable reply, at most once', async () => {
+    const { model, stream } = stubbed([{ text: '{"move":"analysis","say":"cut' }, { text: '{"move":' }]);
     const ev = await all(model.streamTurn(ctx()));
-    const stopAt = ev.findIndex(e => e.type === 'stop');
-    expect(stopAt).toBeGreaterThan(-1);
-    expect(ev.slice(0, stopAt).filter(e => e.type === 'action')).toHaveLength(7); // actions 1–7 after the say (0)
-    expect(ev.slice(stopAt + 1).filter(e => e.type === 'sentence' || e.type === 'action')).toEqual([]);
-    expect(ev.filter(e => e.type === 'stop')).toHaveLength(1);
+    expect(stream).toHaveBeenCalledTimes(2);
+    expect(ev.at(-1)).toMatchObject({ type: 'done', turn: { question: 'What would you like to explore next?' }, validation: { unparsed: true, retried: true } });
   });
 
-  it('returns the neutral continuation on a refusal, without regenerating', async () => {
+  it('returns the neutral turn on a refusal, without regenerating', async () => {
     const { model, stream } = stubbed([{ text: '', stop_reason: 'refusal' }]);
     const ev = await all(model.streamTurn(ctx()));
     expect(stream).toHaveBeenCalledTimes(1);
-    expect(ev.at(-1)).toMatchObject({ type: 'done', refused: true, actions: [{ type: 'speak', text: 'I see. What would you like to explore next?' }] });
+    expect(ev.at(-1)).toMatchObject({ type: 'done', validation: { refused: true }, turn: { question: 'What would you like to explore next?' } });
   });
 });

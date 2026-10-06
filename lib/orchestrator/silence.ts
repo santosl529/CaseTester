@@ -91,10 +91,22 @@ export function effectiveElapsedMs(startedAtMs: number, nowMs: number, state: Si
 
 const CHECK_IN = 'Still with me? Take your time.';
 
-export function checkInText(lastInterviewerText: string | null): string {
-  const question = lastInterviewerText?.match(/[^.?!]*\?/g)?.at(-1)?.trim();
+// The check-in restates the pending question. `storedQuestion` is the
+// question field the last turn ended on (flags.lastQuestion); the text
+// fallback serves sessions recorded before it was stored. Batch 9, Maya t16:
+// a question that itself began "The question on the table is…" was wrapped
+// again ("The question on the table: the question on the table is…").
+export function checkInText(lastInterviewerText: string | null, storedQuestion?: string | null): string {
+  const raw = storedQuestion?.trim() || lastInterviewerText?.match(/[^.?!]*\?/g)?.at(-1)?.trim();
+  const question = raw?.replace(/^(?:take your time\.\s*)?the question on the table(?: is|:)\s*/i, '').trim();
   if (!question) return CHECK_IN;
   return `${CHECK_IN} The question on the table: ${question.charAt(0).toLowerCase()}${question.slice(1)}`;
+}
+
+// The scripted silence lines (check-in, pause): the model never sees them in
+// its history (spec 2026-10-06 D7) — it copied them into its own turns.
+export function isSilenceLine(text: string): boolean {
+  return text.startsWith(CHECK_IN) || text.startsWith('Looks like we may have lost you');
 }
 
 export function pauseText(limitMs: number): string {

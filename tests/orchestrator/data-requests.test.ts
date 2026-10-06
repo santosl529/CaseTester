@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   parseDataRequestResponse, buildDataRequestPrompt, toDataRequestEvents,
-  formatOpenRequestsHint, planForcedReleases, composeForcedReleaseTurn,
+  formatOpenRequestsHint, planForcedReleases,
   classifiedMarkerEvent, findUnclassifiedExchanges,
   type LedgerCatalogItem,
 } from '@/lib/orchestrator/data-requests';
@@ -38,7 +38,6 @@ describe('findUnclassifiedExchanges (scoring-time backfill)', () => {
     ])).toEqual([]);
   });
 });
-import { FORCED_RELEASE_LEADINS, alreadySignaledTimeOrRec } from '@/lib/agent/prompts/scripts';
 import { getCaseById } from '@/lib/cases/loader';
 
 const gap = (ledgerItemId: string, label: string, turnIndex: number, what = 'asked') =>
@@ -49,13 +48,14 @@ describe('formatOpenRequestsHint (Rule 11 deferral tracking)', () => {
     expect(formatOpenRequestsHint([])).toBeUndefined();
   });
 
-  it('lists open requests by label and ask, and requires release before the recommendation ask', () => {
+  it('lists open requests by label and ask, to be declared for release once earned', () => {
     const hint = formatOpenRequestsHint([gap('avg_ticket', 'Average transaction value', 4, 'menu price history')])!;
     expect(hint).toContain('OPEN DATA REQUESTS');
     expect(hint).toContain('Average transaction value');
     expect(hint).toContain('menu price history');
     expect(hint).toContain('turn 4');
-    expect(hint).toContain('BEFORE you ask for the recommendation');
+    expect(hint).toContain('respond "release"');
+    expect(hint).toContain('before it asks for the recommendation');
   });
 });
 
@@ -77,47 +77,6 @@ describe('planForcedReleases', () => {
 
   it('defaults to a cap of 2 so a wrap-up turn never becomes a data monologue', () => {
     expect(planForcedReleases([gap('a', 'A', 1), gap('b', 'B', 2), gap('c', 'C', 3)], new Set())).toHaveLength(2);
-  });
-});
-
-describe('composeForcedReleaseTurn (request first, then the recommendation ask)', () => {
-  const values = ['The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase.'];
-  const leadIn = 'Before we wrap, on what you asked about earlier:';
-
-  it('no forced releases: model text plus the scripted warning, unchanged from before', () => {
-    expect(composeForcedReleaseTurn({ spokenText: 'Okay.', releaseValues: [], leadIn, warningLine: "We're near time." }))
-      .toBe("Okay. We're near time.");
-    expect(composeForcedReleaseTurn({ spokenText: 'Okay.', releaseValues: [], leadIn })).toBe('Okay.');
-  });
-
-  it('scripted warning: model text, then the release, then the warning', () => {
-    const out = composeForcedReleaseTurn({
-      spokenText: 'Understood.', releaseValues: values, leadIn,
-      warningLine: "We're near time. What's your bottom-line recommendation to the CEO?",
-    });
-    expect(out).toBe(`Understood. ${leadIn} ${values[0]} We're near time. What's your bottom-line recommendation to the CEO?`);
-  });
-
-  it('model asked itself: the release goes immediately before the sentence that asks', () => {
-    const out = composeForcedReleaseTurn({
-      spokenText: "Okay. We're nearly out of time, so let's land it. What's your recommendation to the CEO?",
-      releaseValues: values, leadIn, isAskSentence: alreadySignaledTimeOrRec,
-    });
-    expect(out).toBe(`Okay. ${leadIn} ${values[0]} We're nearly out of time, so let's land it. What's your recommendation to the CEO?`);
-  });
-
-  it('model asked but no single sentence matches: release goes first', () => {
-    const out = composeForcedReleaseTurn({
-      spokenText: 'Land it for me.', releaseValues: values, leadIn, isAskSentence: () => false,
-    });
-    expect(out).toBe(`${leadIn} ${values[0]} Land it for me.`);
-  });
-});
-
-describe('FORCED_RELEASE_LEADINS', () => {
-  it('is a rotating pool (Rule 7 anti-tell) with no numerals (Rule 6 provenance)', () => {
-    expect(FORCED_RELEASE_LEADINS.length).toBeGreaterThanOrEqual(3);
-    for (const line of FORCED_RELEASE_LEADINS) expect(line).not.toMatch(/\d/);
   });
 });
 

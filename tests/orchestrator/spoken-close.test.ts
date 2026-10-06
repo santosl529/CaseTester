@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
-  isClosingTurn, resolveSpokenClose, stageAdministration, stageGateOpen, chooseBlockedCloseProbe, BLOCKED_CLOSE_PROBES,
+  isClosingTurn, stageAdministration, stageGateOpen, chooseBlockedCloseProbe,
   type StageAdministration,
 } from '@/lib/orchestrator/spoken-close';
-import { CLOSE_SCRIPTS, GRACE_ASK_SCRIPTS, TIME_WARNING_SCRIPTS, asksForRecommendation } from '@/lib/agent/prompts/scripts';
+import { CLOSE_SCRIPTS, GRACE_ASK_SCRIPTS, TIME_WARNING_SCRIPTS } from '@/lib/agent/prompts/scripts';
 
 // Run 1d76e3d9: the model said this at 15:33 of a 20-minute case without
 // calling end_case, and the session looped on goodbyes until time-up.
@@ -85,59 +85,6 @@ describe('stage administration and the end gate', () => {
   });
 });
 
-describe('resolveSpokenClose', () => {
-  it('leaves a turn alone when the end is already confirmed', () => {
-    expect(resolveSpokenClose({ spokenText: DEREK_CLOSE, ended: true, mayEnd: true, stages: NONE_RUN, seed: 's' }))
-      .toEqual({ action: 'none', ended: true, spokenText: DEREK_CLOSE });
-  });
-
-  it('leaves a turn with no close alone', () => {
-    const text = 'Okay. What would you tell the CEO?';
-    expect(resolveSpokenClose({ spokenText: text, ended: false, mayEnd: true, stages: NONE_RUN, seed: 's' }))
-      .toEqual({ action: 'none', ended: false, spokenText: text });
-  });
-
-  it('confirms the end when the interviewer closes and the case may end', () => {
-    expect(resolveSpokenClose({ spokenText: DEREK_CLOSE, ended: false, mayEnd: true, stages: NONE_RUN, seed: 's' }))
-      .toEqual({ action: 'promoted', ended: true, spokenText: DEREK_CLOSE });
-  });
-
-  // Batch 6, Maya 3a3c (20:35): end_case with no words, blocked by the gate —
-  // the blank-turn guard sent a bare "Go on." right after her recommendation.
-  it('asks the missing stage when a blocked end_case came with no words', () => {
-    const stages = { brainstormAsked: true, riskAsked: false, recommendationAsked: true, recommendationAskCount: 3, recommendationReceived: true };
-    const r = resolveSpokenClose({ spokenText: '', ended: false, mayEnd: false, endBlocked: true, stages, seed: 'maya' });
-    expect(r.action).toBe('replaced');
-    expect(r.probe).toBe('risk');
-    expect(BLOCKED_CLOSE_PROBES.risk).toContain(r.spokenText);
-  });
-
-  it('treats a blocked end_case with words but no question as a close', () => {
-    const stages = { ...NONE_RUN, recommendationAsked: true, recommendationAskCount: 1 };
-    const r = resolveSpokenClose({ spokenText: 'Understood.', ended: false, mayEnd: false, endBlocked: true, stages, seed: 's' });
-    expect(r.action).toBe('replaced');
-    expect(r.probe).toBe('brainstorm');
-  });
-
-  it('leaves a blocked end_case alone when the turn already asks a question', () => {
-    const text = 'What would change your mind on that recommendation?';
-    expect(resolveSpokenClose({ spokenText: text, ended: false, mayEnd: false, endBlocked: true, stages: NONE_RUN, seed: 's' }))
-      .toEqual({ action: 'none', ended: false, spokenText: text });
-  });
-
-  it("replaces Maya's blocked 18:08 goodbye — the whole turn — with a risk probe", () => {
-    const stages = { brainstormAsked: true, riskAsked: false, recommendationAsked: true, recommendationAskCount: 1, recommendationReceived: true };
-    const r = resolveSpokenClose({ spokenText: MAYA_18_08, ended: false, mayEnd: false, stages, seed: 'maya' });
-    expect(r.action).toBe('replaced');
-    expect(r.probe).toBe('risk');
-    expect(BLOCKED_CLOSE_PROBES.risk).toContain(r.spokenText);
-    expect(asksForRecommendation(r.spokenText)).toBe(false);
-    expect(isClosingTurn(r.spokenText)).toBe(false);
-  });
-});
-
-// Batch 5, Lena: the coverage agent scored her brainstorm answer as synthesis
-// and the case ended at 12.8 min with no recommendation ask (Rule 9).
 describe('endAllowed', async () => {
   const { endAllowed } = await import('@/lib/orchestrator/spoken-close');
   const noAsk = { ...NONE_RUN, brainstormAsked: true };
