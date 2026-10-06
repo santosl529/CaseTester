@@ -48,13 +48,13 @@ describe('buildSystemPrompt stages and pacing', () => {
   });
 
   it('no pacing alert when on schedule, or on the turn after a stage change', () => {
-    expect(buildSystemPrompt(ctx({ currentPhase: 'ANALYSIS', elapsedMs: 0.4 * TOTAL }))).not.toContain('PACING ALERT');
-    expect(buildSystemPrompt(ctx({ elapsedMs: 0.8 * TOTAL, advancedLastTurn: true }))).not.toContain('PACING ALERT');
+    expect(buildPromptParts(ctx({ currentPhase: 'ANALYSIS', elapsedMs: 0.4 * TOTAL })).turn).not.toContain('PACING ALERT');
+    expect(buildPromptParts(ctx({ elapsedMs: 0.8 * TOTAL, advancedLastTurn: true })).turn).not.toContain('PACING ALERT');
   });
 
   it('uses per-phase budgets from case config (Rule 8)', () => {
     const long = { INTRO: 10_000, CLARIFY: 10_000, STRUCTURE: 200_000, ANALYSIS: 20_000, EXHIBIT: 20_000, BRAINSTORM: 20_000, RECOMMENDATION: 10_000, WRAP: 10_000 };
-    expect(buildSystemPrompt(ctx({ currentPhase: 'STRUCTURE', elapsedMs: 0.6 * TOTAL, phaseBudgetsMs: long }))).not.toContain('PACING ALERT');
+    expect(buildPromptParts(ctx({ currentPhase: 'STRUCTURE', elapsedMs: 0.6 * TOTAL, phaseBudgetsMs: long })).turn).not.toContain('PACING ALERT');
     const short = { ...long, STRUCTURE: 20_000 };
     const prompt = buildSystemPrompt(ctx({ currentPhase: 'STRUCTURE', elapsedMs: 45_000, phaseBudgetsMs: short }));
     expect(prompt).toContain('PACING ALERT');
@@ -68,10 +68,10 @@ describe('buildSystemPrompt hints', () => {
     expect(buildSystemPrompt(ctx())).not.toContain('RECOMPUTE FLAG:');
   });
 
-  it('injects stall guidance as taking priority this turn', () => {
+  it('injects stall guidance, which the PRIORITY list ranks above the defaults', () => {
     const prompt = buildSystemPrompt(ctx({ stallGuidance: 'STALL INTERVENTION — Level 3 (directive rescue). Hand them the branch.' }));
     expect(prompt).toContain('STALL INTERVENTION — Level 3');
-    expect(prompt).toContain('takes priority over the demeanor/rigor defaults');
+    expect(prompt).toMatch(/PRIORITY[^]*1\. A note for this turn — STALL INTERVENTION/);
     expect(buildSystemPrompt(ctx())).not.toContain('STALL INTERVENTION —');
   });
 
@@ -88,9 +88,10 @@ describe('buildSystemPrompt load-shedding (Rule 15)', () => {
   it('injects the shed directive in the final stretch only', () => {
     const prompt = buildSystemPrompt(ctx({ elapsedMs: TOTAL - 60_000 }));
     expect(prompt).toContain('TIME PRESSURE — SHED OPTIONAL PROBING');
-    expect(prompt).toContain('drive the candidate to deliver their final recommendation');
+    expect(prompt).toMatch(/drive the candidate to deliver their final recommendation/i);
+    expect(prompt).toContain('overrides COVERAGE and PACING');
     expect(prompt).toContain('declare it with respond "release"');
-    expect(buildSystemPrompt(ctx({ elapsedMs: 0.4 * TOTAL }))).not.toContain('SHED OPTIONAL PROBING');
+    expect(buildPromptParts(ctx({ elapsedMs: 0.4 * TOTAL })).turn).not.toContain('SHED OPTIONAL PROBING');
   });
 });
 
@@ -104,8 +105,8 @@ describe('buildSystemPrompt data (Rule 11, decided in code)', () => {
   });
 
   it('makes the model declare every request instead of giving, declining or postponing data itself', () => {
-    expect(p).toContain('You never give, decline or postpone data in your own words');
-    expect(p).toContain('declare every one');
+    expect(p).toContain('You never give, offer, decline or postpone data in your own words');
+    expect(p).toContain('Declare every request in "requests"');
     expect(p).toContain('"say" never announces, describes, promises or declines data');
   });
 
@@ -182,5 +183,35 @@ describe('buildPromptParts — stable prefix vs per-turn state', () => {
   it('joins both parts for buildSystemPrompt', () => {
     const { stable, turn } = buildPromptParts(late);
     expect(buildSystemPrompt(late)).toBe(`${stable}\n\n${turn}`);
+  });
+});
+
+// Prompt-consistency pass (2026-10-06): one rule per behaviour, an explicit
+// precedence, and the exceptions the code already grants stated in the rules.
+describe('buildSystemPrompt consistency', () => {
+  const { stable } = buildPromptParts(ctx());
+
+  it('states the precedence of turn notes over defaults', () => {
+    expect(stable).toContain('PRIORITY — when two instructions disagree, the higher one wins');
+    expect(stable).toContain('a committed recommendation beats any further probing or coverage');
+  });
+
+  it('allows the number sources the provenance guard allows', () => {
+    expect(stable).toContain('appears in Revealed data or the case prompt');
+    expect(stable).toContain('was stated by the candidate in this interview');
+    expect(stable).toContain('is given to you by a RECOMPUTE FLAG this turn');
+    expect(stable).not.toContain('most recent message');
+  });
+
+  it('lists the candidate-figure options once, with no competing count', () => {
+    expect(stable).not.toMatch(/only three options|Four options/i);
+  });
+
+  it('carries no case-specific figures in the generic instructions', () => {
+    for (const s of ['42%', '58%', '25% of COGS', 'beans', 'coffee']) expect(stable).not.toContain(s);
+  });
+
+  it('keeps the case prompt itself', () => {
+    expect(buildPromptParts(ctx({ casePrompt: 'Beans cost 42% more.' })).stable).toContain('Beans cost 42% more.');
   });
 });

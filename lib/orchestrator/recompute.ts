@@ -99,7 +99,7 @@ export function formatRecomputeHint(
       lines.push(`- The candidate said ${f.candidateValue} in "${f.span}" and it does not match the value derivable from the data they have. Probe once — "Walk me through that." Do not correct it or say what the right figure is.`);
     } else {
       derivedValues.push(String(f.expected));
-      lines.push(`- The candidate said ${f.candidateValue} in "${f.span}"; the figure derivable from the data they have is ${f.expected}. Correct it now in one flat sentence that quotes their figure — e.g. "It's closer to ${f.expected}, not ${f.candidateValue}. Let's take that and keep going." — then continue. No probe, no consolation.`);
+      lines.push(`- The candidate said ${f.candidateValue} in "${f.span}"; the figure derivable from the data they have is ${f.expected}. This overrides the no-correction rule: correct it in "say", one flat sentence quoting their figure — e.g. "It's closer to ${f.expected}, not ${f.candidateValue}. Let's take that and keep going." — then continue. No probe, no consolation.`);
     }
   }
   if (lines.length === 0) return { hint: '', derivedValues };

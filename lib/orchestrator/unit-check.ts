@@ -21,5 +21,5 @@ export function detectNestedPercentConversion(text: string): boolean {
 }
 
 export function formatUnitCheckHint(): string {
-  return `UNIT-CONVERSION FLAG (deterministic): the candidate is converting a share OF COGS into points/percent of revenue or margin. This is the most common case-math error. Probe the units THIS turn — "points of what?" — and verify with them: (bean share of COGS) × (COGS as a % of revenue) = points of revenue. Do NOT accept the converted figure without that check.`;
+  return `UNIT-CONVERSION FLAG (deterministic): the candidate converted a share OF a cost line into points of revenue or margin, and the result wasn't verified. Probe the units once this turn — "Points of what?" — and let them do the conversion; don't name the method or the right figure.`;
 }

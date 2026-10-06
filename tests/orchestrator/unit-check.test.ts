@@ -20,9 +20,9 @@ describe('detectNestedPercentConversion', () => {
     expect(detectNestedPercentConversion('The margin fell 18 points while revenue grew 15%.')).toBe(false);
   });
 
-  it('hint tells the interviewer to probe units and gives the correct formula', () => {
+  it('hint tells the interviewer to probe units without handing over the method', () => {
     const hint = formatUnitCheckHint();
-    expect(hint).toContain('points of what?');
-    expect(hint).toContain('COGS as a % of revenue');
+    expect(hint).toContain('Points of what?');
+    expect(hint).not.toMatch(/×|COGS as a % of revenue/);
   });
 });

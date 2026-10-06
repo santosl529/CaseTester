@@ -30,7 +30,7 @@ import { TOTAL_CASE_MS, type Phase } from '@/lib/orchestrator/state-machine';
 import { CONDUCT_REDIRECT } from '@/lib/agent/prompts/scripts';
 
 const RUNS_ROOT = 'Case Interview Runs/test runs';
-const BATCHES = ['batch-7-oct-03', 'batch-8-oct-03'];
+const BATCHES = (process.env.REPLAY_BATCHES ?? 'batch-7-oct-03,batch-8-oct-03').split(',');
 const OUT_DIR = process.env.REPLAY_OUT ?? '.';
 
 const args = process.argv.slice(2);
@@ -62,6 +62,7 @@ function loadSamples(): Sample[] {
   for (const batch of BATCHES) {
     for (const dir of readdirSync(path.join(RUNS_ROOT, batch))) {
       const d = path.join(RUNS_ROOT, batch, dir);
+      if (dir.startsWith('.')) continue;
       const files = readdirSync(d);
       const jf = files.find(f => f.endsWith('.json')), lf = files.find(f => f.endsWith('.log'));
       if (!jf || !lf) continue;
