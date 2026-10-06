@@ -4,7 +4,7 @@
 // both are written at commit (settle-turn.ts). The distress and data-request
 // classifiers start here, in parallel with the model call that follows.
 import type { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
-import { classifyDataRequests, formatOpenRequestsHint } from './data-requests';
+import { formatOpenRequestsHint } from './data-requests';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
 import { createLedger, reveal, revealedValues, labelWithPeriod } from './data-ledger';
@@ -344,15 +344,10 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId: session.userId }); },
     });
 
-  // Rule 11 same-turn resolution (v4.4): detect this message's data requests
-  // in parallel with the interviewer call, so the draft can be checked before
-  // it is sent. Never rejects (classifyDataRequests fails open to null).
-  const detectedRequests = classifyDataRequests({
-    candidateText,
-    interviewerText: null,
-    catalog,
-    onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId: session.userId }); },
-  });
+  // No same-turn request classification on model turns (6 Oct): the model
+  // declares the requests and code decides; the classifier here only fed a
+  // log-only audit. Code-written turns classify in the runner, and the
+  // background pass (post-turn.ts) still logs every exchange.
 
   // Model turns stream; the per-sentence gates decide (stream-turn.ts). No
   // whole-turn replacement is left to buffer for — the ending, the time lines
@@ -368,7 +363,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
       derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, unitCheckHint,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
-      conductRedirectHint, history, turnRows, distress, detectedRequests, kind, lastQuestion, moves,
+      conductRedirectHint, history, turnRows, distress, kind, lastQuestion, moves,
       buffered: bufferReason !== undefined, bufferReason,
     },
   };

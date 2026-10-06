@@ -22,7 +22,6 @@ export function modelPlanFixture(opts: {
   );
   if (plan.kind !== 'model') throw new Error('fixture expected a model plan');
   plan.state.distress = new Promise(resolve => setTimeout(() => resolve(opts.distress), opts.distressDelayMs ?? 0));
-  plan.state.detectedRequests = Promise.resolve([]);
   if (opts.buffered !== undefined) plan.state.buffered = opts.buffered;
   if (opts.kind) plan.state.kind = opts.kind;
   return plan;

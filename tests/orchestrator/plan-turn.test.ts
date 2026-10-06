@@ -1,13 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // The Plan stage decides the turn without touching the database: a proxy db
-// records any use; the two classifiers that start in Plan are stubbed.
+// records any use; the distress classifier that starts in Plan is stubbed.
 const dbUsed = vi.fn();
 vi.mock('@/db/client', () => ({
   db: new Proxy({}, { get: (_t, prop) => { dbUsed(String(prop)); return () => { throw new Error(`db.${String(prop)} used in plan`); }; } }),
 }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => [] }));
+const { classifyDataRequests } = vi.hoisted(() => ({ classifyDataRequests: vi.fn(async () => []) }));
+vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests }));
 
 import { planTurn } from '@/lib/orchestrator/plan-turn';
 import { readsFixture } from './fixtures/turn-reads';
@@ -21,6 +22,8 @@ describe('planTurn', () => {
     const plan = planTurn(readsFixture({ phase: 'ANALYSIS' }), 'Can I see the cost breakdown?', deps());
     expect(plan.kind).toBe('model');
     expect(dbUsed).not.toHaveBeenCalled();
+    // The model declares this turn's requests; no same-turn classifier (6 Oct).
+    expect(classifyDataRequests).not.toHaveBeenCalled();
     if (plan.kind === 'model') {
       expect(plan.state.buffered).toBe(false);
       expect(plan.state.history).toHaveLength(3);

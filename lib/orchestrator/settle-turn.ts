@@ -168,16 +168,6 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       refusals: decisions.refusals, defers: decisions.defers, offers: decisions.offers,
     });
 
-  // Log-only audit: the parallel classifier's explicit asks vs the declaration.
-  const detected = await (out.timer ? out.timer.time('settle_wait_classifier', state.detectedRequests) : state.detectedRequests);
-  if (!codeWritten && detected) {
-    const declared = new Set(decisions.requests.filter(x => x.request.explicit).flatMap(x => x.ledgerItemIds));
-    const classified = new Set(detected.filter(r => r.explicit).flatMap(r => r.ledgerItemIds));
-    const onlyDeclared = [...declared].filter(id => !classified.has(id));
-    const onlyClassified = [...classified].filter(id => !declared.has(id));
-    checks.record('request_audit', onlyDeclared.length + onlyClassified.length > 0, 'declared and classified asks disagree (log only)', { onlyDeclared, onlyClassified });
-  }
-
   // Phase and stages (progress.ts).
   const releasedReleaseWhen = [...newReveals, ...exhibitReveals]
     .map(id => ledger.items.find(i => i.id === id)?.releaseWhen as Phase | undefined)

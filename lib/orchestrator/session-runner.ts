@@ -95,9 +95,8 @@ async function runTurnBody(
   const { ctx, state } = plan;
   const { currentPhase, flags, checks, userId } = ctx;
   const { caseData, ledger, stallDecision } = state;
-  // Checks Plan started beside the model call: when each resolved.
+  // The check Plan started beside the model call: when it resolved.
   timer.watch('distress_verdict', state.distress);
-  timer.watch('request_classifier_done', state.detectedRequests);
 
   console.log('[runner] phase:', currentPhase, 'kind:', state.kind, 'stall rung:', stallDecision.intervene ? stallDecision.rung : 'none');
   // PRD §13: per-turn latency + token usage. A regeneration makes two API
