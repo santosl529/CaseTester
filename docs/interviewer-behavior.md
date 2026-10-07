@@ -2018,7 +2018,7 @@ undefined).** The session is scored, with constraints:
 | # | Rule | Prompt | Deterministic backstop |
 |---|---|---|---|
 | — | Precedence hierarchy | global tiebreaker in prompt | n/a (resolves unanticipated collisions) |
-| 1 | No sycophancy | hard constraint | post-turn praise-word lint |
+| 1 | No sycophancy | hard constraint | post-turn praise-word lint; **voice (7 Oct): acknowledgment and thinking filler chosen by code from neutral lists, skipped on conduct-floor flags; `double_ack` withholds a `say` that acknowledges again** |
 | 2 | Structure + live math | phase gate, probe scoping; unit errors addressed, mode per Rule 14; **no valid flag, no correction; quote the actual figure** | ledger recompute hint **with source span + revealed-inputs gate; no unrevealed values in the hint**; probe gated on recompute flag; **v4.5: verified figures carry `recompute_ok` + `work_shown`; doubt probes on verified figures always withheld; explain probes allowed once per figure only when work not shown; one unflagged probe per session for unverifiable figures** |
 | 3 | No fabricated claims | attribution constraint | post-turn claim-vs-transcript audit; report-side: artifact detection → **interviewer-error marking** → evidence audit → omission verifier → **error-claim verifier** → reconciliation (cross-dimension repetition logged); **deterministic checks carry source spans**; **v4.5: answer-key and caveat-text pass strips needs-work items resting on a missing answer-key idea or an unadministered stage** |
 | 4 | ≤1 candidate task; Socratic default | constraint + rescue exception | 2+ question marks → QA flag (soft signal, not a gate) |

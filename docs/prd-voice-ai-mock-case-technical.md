@@ -37,7 +37,7 @@ This is the single most important constraint in the document. It de-risks the ex
 | Background LLM passes | **Claude Haiku 4.5** (`claude-haiku-4-5`) | Live coverage agent and Rule 11 data-request classifier run after the response (`after()`). In parallel with every interviewer call: the C5 distress check (v4.6) — it adds latency only when it outlasts the model's first sentence (batch 11: verdict at 0.7–0.95s, never waited on). Same-turn data-request detection was removed from model turns on 6 Oct (the model declares the requests; it fed only a log-only audit). Synchronous: recommendation-ask turns classify the current message (~1s), and turns where a hint's delivery rests on a question run the hint check — count both against the M2 latency budget. |
 | STT | **Deepgram Flux** (`flux-general-en`, streaming, model end-of-turn) | M0 Phase A (6–7 Oct): Flux over Nova-3 — Nova-3's default 300ms endpointing ended the turn mid-answer on 7/10 long answers, Flux on 3/41 (all at thinking pauses). Behind `STTProvider` (`lib/voice/deepgram.ts`, both adapters). STT mishears case names ("Brew & Bean" → "brewing bean") — keyterms per case are open. |
 | TTS | **Cartesia** (Sonic 3.5, one WebSocket context per interviewer turn) | M0 Phase A: first audio ~125–155ms after a segment. Behind `TTSProvider` (`lib/voice/cartesia.ts`). Free tier exhausted during the spike; the pilot needs Pro (commercial use). Deepgram Aura used for the listening demo (`scripts/voice-demo.ts`) — per-segment REST calls reset the voice between sentences; Cartesia's per-turn context avoids that. |
-| Voice transport / orchestration | **LiveKit Agents** | WebRTC, VAD/endpointing, barge-in. **Caveat:** data-gating lives in OUR orchestrator, not LiveKit's loop — see §8. Spike-pending. |
+| Voice transport / orchestration | **LiveKit Agents** | WebRTC, VAD/endpointing, barge-in. **Caveat:** data-gating lives in OUR orchestrator, not LiveKit's loop — see §8. Not yet tested: M0 Phase B (transport, mic, barge-in) not started. |
 
 **Supabase keys (non-negotiable):**
 - Client-side: `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (publishable key).
@@ -113,7 +113,8 @@ This is the single most important constraint in the document. It de-risks the ex
   /agent
     interviewer.ts        per-turn prompt assembly, catalog id resolver, the streamed turn
     prompts/              system prompt, anti-hallucination, anti-jailbreak
-    models/               InterviewerModel interface + Anthropic impl (Sonnet 5.5; ids in lib/models.ts); turn-schema.ts, turn-stream.ts
+    models/               InterviewerModel interface + Anthropic impl (Sonnet 5.5; ids in lib/models.ts); turn-schema.ts, turn-stream.ts; factory.ts picks the provider (INTERVIEWER_PROVIDER), cerebras.ts kept behind it, unused (7 Oct)
+    opener.ts             Haiku-written opener — experiment, replay arm only, not on the live path (7 Oct)
   /scoring
     judge.ts              Opus rubric evaluation over full transcript
     deterministic.ts      math-tolerance checks, data-leak audit (NOT the LLM)
@@ -128,7 +129,7 @@ This is the single most important constraint in the document. It de-risks the ex
     strong-gate.ts        "strong" only on an evidenced strong-anchor checklist; overall capped
   models.ts               every model id + the server-side fallback setting
   number-words.ts         spoken numbers → digits for the stall signal and math spans
-  /voice                  (M2 only) STTProvider, TTSProvider, LiveKit glue
+  /voice                  STTProvider/TTSProvider (types.ts), Deepgram Flux/Nova-3 (deepgram.ts), Cartesia (cartesia.ts), segment → speech (speak.ts), instant acknowledgment + filler (acknowledge.ts) — M0 Phase A; LiveKit glue is Phase B
   /cases                  case JSON loader + schema validation (zod)
 /cases                    human-authored case content (JSON, version-controlled)
 /db                       drizzle schema + migrations
@@ -415,7 +416,7 @@ The coding agent must not pull these in. Scope creep is the default failure mode
 4. **Scoring engine (Opus + deterministic).** Judge, math checks, report assembly with model answer. **Gate: feedback beats ChatGPT in a blind test on the same answer (product PRD M1 gate).**
 5. **Text case UI + report UI.** Full end-to-end text case in the browser. Transcript view. This is a *complete, usable product* minus voice.
 6. **Content: author 8–12 cases.** Each with keys + reviewer sign-off. Re-run the hallucination harness across all cases → **0 incidents (DoD #2).**
-7. **M0 voice spike (parallelizable from step 1).** Validate LiveKit + Deepgram + Cartesia latency ≤1.5s median AND the orchestrator-owns-the-LLM wiring (§8.3) on the seed case.
+7. **M0 voice spike (parallelizable from step 1).** Validate LiveKit + Deepgram + Cartesia latency ≤1.5s median AND the orchestrator-owns-the-LLM wiring (§8.3) on the seed case. *Status (7 Oct): Phase A done (Flux + Cartesia + the real orchestrator, no transport) — end of speech → real content 2.49s median, so the gate fails on content and passes on first sound (~0.95s) only with the instant acknowledgment (§8.2). Phase B (LiveKit, mic, barge-in, playback-confirmed reveals) not started.*
 8. **Voice layer (M2).** Implement the voice `CandidateChannel` against the proven orchestrator. Barge-in, VAD threshold, text-fallback on failure. **Gate: realism ≥4.0, latency gate held.**
 9. **Analytics + cost instrumentation** wired throughout (do this incrementally, not last — §13).
 10. **Validation pilot** with 5–10 clubs.
