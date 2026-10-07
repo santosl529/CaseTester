@@ -1,0 +1,163 @@
+[live-run] session f0a7a2f3-b4d4-402c-ad25-c2a8b2cd9c82 · Brew & Bean Profitability · persona 9 Derek — the Bulldozer · pace fast
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+How would you like to approach this? Feel free to take a moment to gather your thoughts first.
+
+[candidate · 0:10] Great, let me play this back to make sure I've got it. Brew & Bean, 200 US locations, specialty coffee, revenue up 15% over two years, but net margin collapsed from 24% to 6% — that's an 18-point compression, which is enormous. The key insight right out of the gate is that this is not a demand problem. Revenue is growing, so whatever's happening is on the cost side or in the mix of what they're selling, and I'd bet it's structural rather than cyclical given it's sustained over two full years.
+
+Here's how I'd structure it. First, I'd decompose profit into revenue and cost, and on the revenue side split into price times volume, then look at mix — specialty beverages versus drip coffee versus food attach. My hypothesis is that if same-store traffic is up around 12% and average ticket is roughly flat, they're essentially buying growth, which means they're discounting into volume.
+
+Second, costs. I'd split fixed versus variable and go after COGS, labor, occupancy, and corporate overhead. In specialty coffee, green coffee prices, dairy, and wage inflation are the usual suspects, and all three have moved hard recently.
+
+Third, footprint. Two years of growth at 200 locations suggests they've been opening stores, and new stores drag margin for 12 to 18 months.
+
+Do we have a cost breakdown as a percentage of revenue for both years? And separately, do we have menu-price history — have they actually raised prices at all?
+[runner] phase: INTRO kind: model stall rung: none
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"You’ve laid out a cost and revenue framework.","move":"structure","requests":[{"what":"cost breakdown by year","item_ids":["cogs_pct","labor_pct","overhead_pct"],"explicit":true,"respond":"defer"},{"what":"menu-price history","item_ids":["menu_price_change"],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Before we get into the data, can you walk me through your framework in a structured way, and what would you prioritize?"}
+[timing] reads_done=101 plan_done=115 model_request=117 distress_verdict=783 model_first_token=1338 model_first_sentence=1550 first_delivered=1558 model_say_closed=1558 model_move_closed=1558 model_requests_closed=1809 model_exhibit_closed=1829 model_rescue_item_closed=1863 first_useful_delivered=1864 data_line_delivered=1864 model_question_closed=2074 model_done=2111 settle_start=2111 settle_composed=2125 tail_delivered=2125 persist_start=2125 persist_end=2167
+
+[interviewer · STRUCTURE · 0:13] You’ve laid out a cost and revenue framework. I'll come back to cost breakdown by year and menu-price history shortly. Before we get into the data, can you walk me through your framework in a structured way, and what would you prioritize?
+
+[candidate · 0:24] Absolutely. Let me structure it cleanly into four buckets, in priority order.
+
+Bucket one, cost of goods sold. This is where I'd spend the majority of my time, because in a specialty coffee model COGS is typically the largest variable line and it's the one most exposed to commodity shocks — green coffee, dairy, cups and lids, syrups. If input costs have run ahead of menu prices, you get exactly this pattern: revenue up, margin down. I'd want COGS as a percent of revenue in year one versus year three, and then a decomposition of COGS into its components so I can see which input is driving it.
+
+Bucket two, labor. Store-level labor in coffee is usually the second-largest line, and wage inflation plus any shift toward more labor-intensive handcrafted drinks would compress margin. I'd look at labor hours per transaction and average wage separately.
+
+Bucket three, occupancy and fixed costs. Rent escalators, plus — and this is my leading structural hypothesis — new store openings. If they've expanded the footprint, immature stores carry full rent and full labor against partial revenue. That alone can explain several points of blended margin even if the mature base is healthy.
+
+Bucket four, corporate overhead and below-the-line items — G&A, marketing spend chasing that 15% growth, interest expense if the expansion was debt-financed.
+
+Prioritization: I'd start with COGS and labor since together they're probably 60 to 70 percent of revenue, then test the new-store drag. Can we see the cost breakdown by year?
+[runner] phase: STRUCTURE kind: model stall rung: none
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"You’ve prioritized COGS and labor, with new-store economics as a further hypothesis.","move":"pressure_test","requests":[{"what":"COGS as a percentage of revenue by year","item_ids":["cogs_pct"],"explicit":true,"respond":"defer"},{"what":"Labor as a percentage of revenue by year","item_ids":["labor_pct"],"explicit":true,"respond":"defer"},{"what":"Overhead and rent as a percentage of revenue by year","item_ids":["overhead_pct"],"explicit":true,"respond":"defer"},{"what":"Menu price changes over two years","item_ids":["menu_price_change"],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Is that MECE—what’s missing?"}
+[timing] reads_done=28 plan_done=30 model_request=30 model_first_token=585 model_first_sentence=843 held_for_distress=843 model_say_closed=843 model_move_closed=843 distress_verdict=846 model_requests_closed=1435 model_exhibit_closed=1436 model_rescue_item_closed=1436 first_delivered=1437 first_useful_delivered=1437 data_line_delivered=1437 model_question_closed=1437 model_done=1457 settle_start=1457 settle_composed=1458 tail_delivered=1458 persist_start=1458 persist_end=1492
+
+[interviewer · STRUCTURE · 0:26] You’ve prioritized COGS and labor, with new-store economics as a further hypothesis. I'll come back to COGS as a percentage of revenue by year, Labor as a percentage of revenue by year, Overhead and rent as a percentage of revenue by year and Menu price changes over two years shortly. Is that MECE—what’s missing?
+
+[candidate · 0:34] Fair challenge. Let me stress-test it for gaps.
+
+A few things I'd add. First, revenue quality — I lumped price and volume together, but I should separate organic same-store growth from growth that comes purely from new units. If the 15% is all new stores and same-store revenue is actually flat or declining, that's a completely different diagnosis than if mature stores are growing. So: store count by year, and same-store sales growth.
+
+Second, product and channel mix. A shift from high-margin drip and espresso toward lower-margin food, or toward delivery platforms that take 20 to 30 percent of the ticket, would compress margin without any input cost moving at all. Delivery aggregator commission is a line that often hides inside "other" and I'd want to see it explicitly.
+
+Third, waste and shrink. In coffee, spoilage on dairy and pastries is a real COGS leak and it's operationally fixable, so it's worth isolating.
+
+Fourth, below-the-line items — depreciation from the buildout, interest if expansion was debt-funded, and any one-time impairments or closure costs. Net margin is the metric here, not operating margin, so capital structure matters.
+
+Fifth, competitive and external context — are competitors seeing the same compression? That tells us industry versus company-specific.
+
+So the cleaner structure is: revenue decomposition, variable costs, fixed costs, below-the-line, external. Can I see the cost breakdown now?
+[runner] phase: STRUCTURE kind: model stall rung: none
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"You’ve added revenue quality, mix, and below-the-line costs.","move":"analysis","requests":[{"what":"COGS as a percentage of revenue by year","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"Labor as a percentage of revenue by year","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"Overhead and rent as a percentage of revenue by year","item_ids":["overhead_pct"],"explicit":true,"respond":"release"},{"what":"Menu price changes over two years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"How would you test whether these cost movements explain the margin decline, and what would you examine next?"}
+[timing] reads_done=32 plan_done=34 model_request=34 distress_verdict=598 model_first_token=996 model_first_sentence=997 first_delivered=998 model_say_closed=998 model_move_closed=998 model_requests_closed=1613 model_exhibit_closed=1639 model_rescue_item_closed=1679 first_useful_delivered=1679 data_line_delivered=1679 model_question_closed=2044 model_done=2046 settle_start=2046 settle_composed=2049 tail_delivered=2049 persist_start=2049 persist_end=2094
+
+[interviewer · ANALYSIS · 0:36] You’ve added revenue quality, mix, and below-the-line costs. You asked about this earlier: COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. I'll come back to Menu price changes over two years shortly. How would you test whether these cost movements explain the margin decline, and what would you examine next?
+
+[candidate · 0:47] Let me do the bridge first. COGS moved from 42 to 58 percent of revenue, so that's 16 points of margin gone right there. Overhead moved from 12 to 14, another 2 points. Labor flat at 22, so no contribution. Sixteen plus two is 18 points, and the margin decline is 24 to 6, which is exactly 18 points. So the cost side fully explains the decline — there's no residual, which tells me revenue mix and below-the-line items aren't material drivers. Clean bridge.
+
+So COGS is the whole story, roughly 89 percent of the gap. Now, what's inside it? In a chain this size the split is typically something like green coffee at 40 percent of COGS, dairy around 25, packaging 15, food and pastry the balance. If green coffee is 40 percent of COGS, that's 40 points of revenue sitting in coffee beans alone, and dairy at 25 percent of COGS is another 25 points — so between beans and milk you're carrying 65 points of margin exposure, which is why a commodity spike hits this P&L so violently. That sizing tells me hedging and supplier renegotiation are where the money is.
+
+What I'd examine next: the actual COGS component split by year so I can see which input moved, and whether menu prices were raised to offset. Do we have the component breakdown?
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"You’ve identified a potential COGS driver.","move":"analysis","requests":[{"what":"coffee beans as a share of COGS","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"coffee bean price change","item_ids":["bean_price_change"],"explicit":false,"respond":"release"},{"what":"other input cost changes","item_ids":["non_bean_input_change"],"explicit":false,"respond":"release"},{"what":"menu price changes over two years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Points of what?"}
+[timing] reads_done=33 plan_done=36 model_request=36 distress_verdict=677 model_first_token=702 model_first_sentence=811 first_delivered=813 model_say_closed=813 model_move_closed=827 model_requests_closed=1466 model_exhibit_closed=1488 model_rescue_item_closed=1523 first_useful_delivered=1524 data_line_delivered=1524 model_question_closed=1584 model_done=1600 settle_start=1600 settle_composed=1604 tail_delivered=1604 persist_start=1604 persist_end=1635
+
+[interviewer · EXHIBIT · 0:48] You’ve identified a potential COGS driver. Coming back to what you asked for earlier: Menu prices have not changed in two years. Coffee beans were 25% of COGS two years ago. I can share coffee bean price change and other input cost changes if you'd like. Points of what?
+
+[candidate · 0:58] Points of revenue margin — let me walk through it, because I think the logic holds.
+
+If beans were 25 percent of COGS two years ago, and COGS at that point was 42 percent of revenue, then beans were carrying 25 points of that cost structure. So when bean prices move, you're levering off a 25-point base. That's the exposure I'm sizing. The reason I express it in points rather than in dollars is that everything else in this case is denominated as a percent of revenue — margin, labor, overhead — so I want one common unit to bridge against the 18-point decline. Mixing bases is how you get a bridge that doesn't tie out, and mine ties out exactly, which gives me confidence in the framing.
+
+The bigger insight is the one you just handed me: menu prices have not moved in two years. That is the single most important fact in this case. They've absorbed a full 16 points of COGS inflation with zero pass-through to the customer. Meanwhile revenue grew 15 percent — which, if prices are flat, is entirely volume. So they're selling more units at a structurally broken unit economic.
+
+Yes, please share the bean price change and the other input moves. I want to see whether this is a single-input shock or broad-based inflation, because the remedy is very different in each case.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Understood.","move":"exhibit","requests":[{"what":"coffee bean price change","item_ids":["bean_price_change"],"explicit":true,"respond":"release"},{"what":"other input cost changes","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What do these input cost changes imply for your diagnosis, and how would you test whether your sizing is on the right basis?"}
+[timing] reads_done=33 plan_done=35 model_request=35 model_first_token=618 model_first_sentence=639 held_for_distress=639 model_say_closed=639 distress_verdict=665 model_move_closed=694 model_requests_closed=942 model_exhibit_closed=956 model_rescue_item_closed=988 first_delivered=990 first_useful_delivered=991 data_line_delivered=991 model_question_closed=1282 model_done=1374 settle_start=1374 settle_composed=1377 tail_delivered=1377 persist_start=1377 persist_end=1408
+
+[interviewer · EXHIBIT · 0:59] Understood. Raw coffee bean costs are up 40% over the past two years. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. What do these input cost changes imply for your diagnosis, and how would you test whether your sizing is on the right basis?
+
+[candidate · 1:10] This is broad-based inflation, not a single-input shock — beans up 40, everything else up 37.5, that's essentially uniform. So there's no procurement arbitrage here, no one bad supplier to fire. The entire input basket repriced.
+
+Let me size it on my basis. Beans were 25 points, up 40 percent, so 25 times 1.4 is 35 points — a 10-point increase. The other inputs were the remaining 75 percent of COGS, so 75 points, up 37.5 percent, that's 75 times 1.375 equals roughly 103 points, so about 28 points of increase. Ten plus 28 is 38 points of input inflation. Against an 18-point margin decline, that means they've actually clawed back roughly 20 points somewhere — probably through volume leverage on fixed costs and the 15 percent revenue growth absorbing overhead. So the operating team has partially offset it, which is a more flattering read on management than the headline suggests.
+
+How would I test the basis? I'd tie the component sum back to total COGS and confirm it reconciles to 58 percent of revenue. If the pieces sum to the whole, the basis is right.
+
+Do we have a volume breakdown — transactions per store per day, by year? I want to confirm the 15 percent is units, not mix.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: { "say": "You’ve laid out an input-cost explanation and asked for transaction volume.", "move": "analysis", "requests": [ { "what": "transactions per store per day by year", "item_ids": [], "explicit": true, "respond": "release" } ], "exhibit": null, "rescue_item": null, "question": "Points of what?" }
+[timing] reads_done=32 plan_done=33 model_request=34 model_first_token=569 distress_verdict=664 model_first_sentence=820 first_delivered=820 model_say_closed=820 model_move_closed=826 model_requests_closed=1055 model_exhibit_closed=1082 model_rescue_item_closed=1127 first_useful_delivered=1127 data_line_delivered=1127 model_question_closed=1182 model_done=1231 settle_start=1231 settle_composed=1233 tail_delivered=1233 persist_start=1233 persist_end=1273
+
+[interviewer · EXHIBIT · 1:11] You’ve laid out an input-cost explanation and asked for transaction volume. I don't have transactions per store per day by year. Points of what?
+
+[candidate · 1:21] Points of revenue, consistently. Let me reconcile it the way you're pushing me to.
+
+Start with the old state: COGS at 42 percent of revenue. Beans are 25 percent of that, so in revenue terms beans are 0.25 times 42, which is 10.5 percent of revenue. The other inputs are 75 percent of 42, so 31.5 percent of revenue. Apply the inflation: beans 10.5 times 1.4 is 14.7, other inputs 31.5 times 1.375 is 43.3. Sum is 58 percent of revenue — which lands exactly on the reported 58. So the component sizing reconciles to the whole, which is the test I said I'd run, and it passes.
+
+That said, I'd flag that both framings tell the same directional story: beans are the smaller exposure. The 75 percent bucket is where the damage is, roughly 11.8 points of the 16-point COGS increase versus 4.2 from beans. So if we go chase a coffee hedging program we're solving maybe a quarter of the problem.
+
+Without transaction data I'll assume the 15 percent revenue growth is volume-driven, since prices are flat — that's forced by the data we do have. Where would you like to go next?
+[runner] phase: EXHIBIT kind: rec_ask stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Understood.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":""}
+[timing] reads_done=36 plan_done=38 model_request=38 distress_verdict=716 model_first_token=749 model_first_sentence=771 first_delivered=772 model_say_closed=772 model_move_closed=804 model_requests_closed=816 model_exhibit_closed=842 model_rescue_item_closed=871 model_question_closed=934 model_done=963 settle_start=963 settle_composed=965 first_useful_delivered=965 tail_delivered=965 persist_start=965 persist_end=1019
+
+[interviewer · RECOMMENDATION · 1:22] Understood. What's your recommendation to the client?
+
+[candidate · 1:32] My recommendation is that Brew & Bean must take price immediately — a staged increase of roughly 12 to 15 percent across the menu over three quarters — because they have absorbed two years of 38 percent input inflation with zero pass-through, and no amount of procurement or operational work closes an 18-point gap.
+
+The supporting logic. First, pricing is the only lever large enough. Labor is flat at 22 percent and already lean; overhead moved only 2 points. The entire problem sits in COGS, and inflation is broad-based across every input, so there's no supplier to renegotiate your way out of. Second, specialty coffee demand is famously inelastic — if traffic is up around 12 percent on flat pricing, they have demonstrable pricing power they simply haven't exercised. I'd expect to retain 90 percent of volume on a 12 percent increase. Third, run the math on the pass-through: at 58 percent COGS, a 15 percent price increase drops roughly 15 points straight to the bottom line, because COGS as a percentage of COGS doesn't move — so 15 points of price restores us to roughly 21 percent margin, essentially back to the historical 24.
+
+Risks: competitive response if peers hold price, and brand perception in value-sensitive markets. I'd mitigate by leading with premium SKUs and holding the entry-level drip price.
+
+Next steps: price elasticity testing in two regional markets over six weeks, a bean hedging program for the 25 percent exposure, and a waste audit on dairy.
+[runner] phase: RECOMMENDATION kind: model stall rung: none
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"risk","requests":[],"exhibit":null,"rescue_item":null,"question":"What is the biggest risk in your recommendation, and how would you mitigate it?"}
+[timing] reads_done=32 plan_done=35 model_request=36 distress_verdict=681 model_first_token=1111 model_first_sentence=1140 first_delivered=1143 model_say_closed=1143 model_move_closed=1167 model_requests_closed=1186 model_exhibit_closed=1206 model_rescue_item_closed=1244 model_question_closed=1418 model_done=1419 settle_start=1419 settle_composed=1421 first_useful_delivered=1421 tail_delivered=1421 persist_start=1421 persist_end=1451
+
+[interviewer · RECOMMENDATION · 1:33] Mm-hm. What is the biggest risk in your recommendation, and how would you mitigate it?
+
+[candidate · 1:43] The biggest risk is volume elasticity — specifically that my assumption of retaining 90 percent of volume on a double-digit price increase is wrong, and that we trade margin recovery for traffic collapse.
+
+Here's why it matters disproportionately in this model. Specialty coffee is a habit purchase with high frequency, and the customer is extremely price-aware precisely because they transact four or five times a week. A 15 percent increase on a five-dollar latte is seventy-five cents a visit, which annualizes to real money for a daily customer. If we lose 20 percent of transactions instead of 10, the revenue decline eats most of the margin gain, and worse, we lose fixed-cost absorption on rent and labor — both of which are sticky. At 22 percent labor and 14 percent overhead, that's 36 points of cost that doesn't flex down with traffic. So the downside is asymmetric.
+
+Mitigation, three parts. One, don't take price uniformly — go steep on discretionary add-ons like syrups, alternative milks, and food, where elasticity is lowest, and hold or barely move the entry drip coffee that anchors price perception. Two, pilot in two to three geographically isolated markets for six to eight weeks with matched control stores, and measure transactions, not revenue. Three, pair it with a loyalty program so frequent customers feel they're earning back the increase.
+
+And frankly, the alternative carries more risk. Standing still at 6 percent margin with inputs still inflating means they're one bad quarter from negative.
+[runner] phase: RECOMMENDATION kind: model stall rung: none
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: { "say": "Understood.", "move": "brainstorm", "requests": [], "exhibit": null, "rescue_item": null, "question": "Beyond what we’ve discussed, what else could the client do?" }
+[timing] reads_done=36 plan_done=38 model_request=38 distress_verdict=889 model_first_token=891 model_first_sentence=921 first_delivered=923 model_say_closed=923 model_move_closed=993 model_requests_closed=1006 model_exhibit_closed=1059 model_rescue_item_closed=1076 model_question_closed=1201 model_done=1273 settle_start=1273 settle_composed=1278 first_useful_delivered=1278 tail_delivered=1278 persist_start=1278 persist_end=1370
+
+[interviewer · RECOMMENDATION · 1:45] Understood. Beyond what we’ve discussed, what else could the client do?
+
+[candidate · 1:57] Plenty of levers beyond price. Let me go through them by bucket.
+
+On COGS, the obvious one is portfolio reformulation — shifting mix toward higher-margin products. Drip coffee runs dramatically better margin than handcrafted espresso drinks loaded with dairy. If dairy and the non-bean basket is 75 percent of COGS, that's 75 points of revenue exposure sitting in milk, syrup, packaging and food, so every percentage point of mix we shift away from dairy-heavy drinks is worth real money. A five-point mix shift against a 75-point base is close to four points of margin recovery without touching price at all.
+
+Second, supply chain. Even with broad-based inflation, a 200-unit chain has scale it may not be using — central roasting, direct trade contracts, forward purchasing twelve to eighteen months out, and consolidating distributors.
+
+Third, waste. Dairy spoilage and end-of-day pastry write-offs typically run three to five percent of COGS in this format. That's recoverable with better forecasting and par-level discipline.
+
+Fourth, labor productivity. Labor's flat at 22 percent, but flat isn't optimized — mobile order-ahead, better equipment, and simplified recipes raise throughput per labor hour.
+
+Fifth, format. Smaller footprints, kiosks, drive-thru conversions lower occupancy per transaction.
+
+Sixth, new revenue: packaged beans at retail, subscriptions, catering. High margin, leverages existing brand.
+
+I'd sequence waste and mix first — fastest payback, no customer risk.
+[runner] phase: RECOMMENDATION kind: close stall rung: none
+[timing] reads_done=107 plan_done=109 code_written_checks_start=109 distress_verdict=740 code_written_checks_end=1736 settle_start=1736 settle_composed=1736 first_delivered=1736 first_useful_delivered=1736 tail_delivered=1736 persist_start=1736 persist_end=1773
+
+[interviewer · SCORING · 1:59] That's our time. Thanks for working through this with me — your written report will follow.
+
+[live-run] ended=true scoring=skipped
