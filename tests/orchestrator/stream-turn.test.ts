@@ -50,6 +50,10 @@ describe('vetoReason', () => {
     expect(vetoReason('Okay', g({ acknowledged: true }))).toBe('double_ack');
     expect(vetoReason('A cost-first split.', g({ acknowledged: true }))).toBeNull();
     expect(vetoReason('Understood.', g())).toBeNull();
+    // demo, 7 Oct: two-beat acks and an ack-led comment after the voice's ack
+    expect(vetoReason('Okay, got it.', g({ acknowledged: true }))).toBe('double_ack');
+    expect(vetoReason('Understood, that fills the gaps.', g({ acknowledged: true }))).toBe('double_ack');
+    expect(vetoReason('Okay so the cost side moved.', g({ acknowledged: true }))).toBeNull();
   });
   it('stops a fabricated candidate turn', () => expect(vetoReason('What else?\n\nuser Several levers.', g())).toBe('fabricated_turn'));
 });

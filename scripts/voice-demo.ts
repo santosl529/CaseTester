@@ -21,7 +21,7 @@ import { startSession } from '@/lib/orchestrator/start-session';
 import { runTurn } from '@/lib/orchestrator/session-runner';
 import { runPostTurnBackground } from '@/lib/orchestrator/post-turn';
 import type { Phase } from '@/lib/orchestrator/state-machine';
-import { pickAck, shouldAcknowledge } from '@/lib/voice/acknowledge';
+import { pickAck, shouldAcknowledge, pickFiller, fillerStartMs } from '@/lib/voice/acknowledge';
 
 const flag = (name: string) => process.argv.find(a => a.startsWith(`--${name}=`))?.split('=')[1];
 const RUN = flag('run') ?? 'batch-12-oct-06/00';
@@ -126,6 +126,7 @@ async function main() {
 
   let phase: Phase = 'INTRO';
   let lastAck: string | null = null;
+  let lastFiller: string | null = null;
   const background: Promise<unknown>[] = [];
   const stats: { ackMs: number | null; firstContentMs: number | null }[] = [];
 
@@ -154,15 +155,26 @@ async function main() {
     background.push(runPostTurnBackground({ sessionId, userId: owner.userId, caseId: 'prof-001', phase: phaseBefore, result }));
 
     // Place each segment at delivery time + its TTS first-byte time, after
-    // whatever is already playing.
+    // whatever is already playing. If the first segment is not due shortly
+    // after the acknowledgment ends, a thinking filler plays in the gap.
     const eotOnTrack = speechEnd + ENDPOINT_MS;
+    const tts = await Promise.all(segments.map(seg => aura(seg.text)));
+    const dues = segments.map((seg, k) => eotOnTrack + seg.atMs + tts[k].firstByteMs);
+    const fillAt = ack ? fillerStartMs(now, dues[0] ?? null) : null;
+    if (fillAt != null) {
+      const filler = pickFiller(`${sessionId}:${i}:f`, lastFiller);
+      lastFiller = filler;
+      if (!ackAudio.has(filler)) ackAudio.set(filler, (await aura(filler)).pcm);
+      gap(fillAt - now, 'model not in yet');
+      put(ackAudio.get(filler)!, 'INTERVIEWER', `${filler}   [thinking filler]`);
+    }
     let firstContent: number | null = null;
-    for (const seg of segments) {
-      const tts = await aura(seg.text);
-      const due = eotOnTrack + seg.atMs + tts.firstByteMs;
-      gap(due - now, `waiting on the interviewer (delivered at +${(seg.atMs / 1000).toFixed(2)}s after end-of-turn, TTS first audio ${tts.firstByteMs}ms)`);
+    for (let k = 0; k < segments.length; k++) {
+      const seg = segments[k];
+      const due = dues[k];
+      gap(due - now, `waiting on the interviewer (delivered at +${(seg.atMs / 1000).toFixed(2)}s after end-of-turn, TTS first audio ${tts[k].firstByteMs}ms)`);
       firstContent ??= now - speechEnd;
-      put(tts.pcm, 'INTERVIEWER', seg.text);
+      put(tts[k].pcm, 'INTERVIEWER', seg.text);
     }
     stats.push({ ackMs: ack ? ENDPOINT_MS : null, firstContentMs: firstContent });
     console.log(`[demo] turn ${i + 1}/${lines.length}: ack=${ack ?? '-'} · first content ${firstContent != null ? (firstContent / 1000).toFixed(2) + 's' : '-'} after speech end`);

@@ -42,7 +42,11 @@ export type GateContext = {
 
 // A say sentence that is nothing but an acknowledgment ("Understood.") —
 // doubled when the voice layer already said "Got it." (spike, Tyler t4).
-const BARE_ACK = /^(okay|ok|understood|got it|mm-?hm+|i see|right|sure|alright)[.!]?$/i;
+const ACK_WORD = '(?:okay|ok|understood|got it|mm-?hm+|i see|i follow|right|sure|alright|thanks)';
+// A say sentence that is only acknowledgment words ("Understood.", "Okay, got
+// it.") or opens with one before a comment ("Understood, that fills the
+// gaps." — demo, 7 Oct) — on an acknowledged turn the voice already said it.
+const BARE_ACK = new RegExp(`^${ACK_WORD}(?:[,.!]\\s*${ACK_WORD})*[.!]?$|^${ACK_WORD},\\s`, 'i');
 
 // The model's own words declining, deferring or announcing data — code
 // speaks those lines; a model that writes them doubles or contradicts them
