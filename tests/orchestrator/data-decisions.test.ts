@@ -97,7 +97,7 @@ describe('decideData', () => {
     const d = decideData(base({ requests: [req({ what: 'the cost lines', itemIds: ['cogs_pct', 'labor_pct', 'exhibit-a'] })] }));
     expect(d.exhibit?.id).toBe('exhibit-a');
     expect(d.releases).toEqual([]);
-    expect(renderDataLines(d, 's')).toEqual(['Take a look at this: Cost Structure Over Time.']);
+    expect(renderDataLines(d, 's')).toEqual(["Here's an exhibit: Cost Structure Over Time."]);
   });
 
   it("shows the model's exhibit handover once", () => {

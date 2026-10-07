@@ -220,3 +220,25 @@ describe('buildSystemPrompt consistency', () => {
     expect(buildPromptParts(ctx({ casePrompt: 'Beans cost 42% more.' })).stable).toContain('Beans cost 42% more.');
   });
 });
+
+// Batch 12 (6 Oct): the handover said twice, "Okay" on every turn, and
+// questions built on data that was only offered.
+describe('buildSystemPrompt batch-12 fixes', () => {
+  const { stable } = buildPromptParts(ctx());
+
+  it('has the question ask about a handed-over exhibit, never hand it over again', () => {
+    expect(stable).toContain('never "take a look"');
+    expect(stable).toContain('set "exhibit" to its id');
+  });
+
+  it('keeps say varied, sometimes empty, and never grading', () => {
+    expect(stable).toContain('Vary it');
+    expect(stable).not.toContain('"Okay, a revenue-and-cost split."');
+    expect(stable).toMatch(/never an adjective about their work/i);
+  });
+
+  it('counts "I\'d want X" as a direct ask and keeps questions off offered data', () => {
+    expect(stable).toContain('"I\'d want the cost split"');
+    expect(stable).toContain('Offered data is not released: never build your question on it');
+  });
+});

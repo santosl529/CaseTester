@@ -136,7 +136,7 @@ export function renderDataLines(d: DataDecisions, seed: string): string[] {
   const earlier = d.releases.filter(r => r.earlier);
   if (earlier.length > 0) lines.push(pickScript(STALE_RELEASE_LEADINS, seed));
   for (const r of d.releases) lines.push(r.value);
-  if (d.exhibit) lines.push(`Take a look at this: ${d.exhibit.title}.`);
+  if (d.exhibit) lines.push(`Here's an exhibit: ${d.exhibit.title}.`);
   if (d.refusals.length > 0) lines.push(`I don't have ${joinWhat(d.refusals, 'or')}.`);
   if (d.defers.length > 0) lines.push(`I'll come back to ${joinWhat(d.defers, 'and')} shortly.`);
   if (d.offers.length > 0) lines.push(`I can share ${joinWhat(d.offers, 'and')} if you'd like.`);
