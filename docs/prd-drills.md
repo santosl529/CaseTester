@@ -4,6 +4,7 @@ Oct 5, 2026 · @Matt
 
 > Revision log
 > - 2026-10-05: Saved to the repo. Applied the review fixes (test-out tier, skills with no Level 2 drill, review set size, `case_type` and next-case fallback, desktop-first, QN-3 trap precedence, scope wording, `org_id`, grading model, chart renderer). Drill specs moved into catalog order; their content is unchanged.
+> - 2026-10-06: Matched to the D0 build: table names and new fields, `student_profiles` for `org_id`, the skill-keyed drill map, three percent modes, 3-level rubric ratings in the case payload. Added the rule for skills with only Level 2 drills and two EX-2 tags (`M.indexed_misread`, `M.period_mismatch`).
 
 ## Overview
 
@@ -172,7 +173,7 @@ Students should rarely have to choose what to do: the training home leads with o
 
 ## Skill taxonomy
 
-Taxonomy v1 has 9 skill areas, 29 skills and about 60 mistake tags; it is the one vocabulary shared by the case grader, every drill and the prescription engine.
+Taxonomy v1 has 9 skill areas, 29 skills and 62 mistake tags; it is the one vocabulary shared by the case grader, every drill and the prescription engine.
 
 ### Rules
 
@@ -215,7 +216,7 @@ Taxonomy v1 has 9 skill areas, 29 skills and about 60 mistake tags; it is the on
 | `QN.assumptions` | Makes reasonable estimation assumptions | `M.unreasonable_assumption` | QN-5 |
 | `QN.sanity_check` | Notices when a result is implausible | `M.implausible_accepted`, `M.plausible_rejected` | QN-2, QN-5 |
 | `EX.takeaway` | Finds the insight that matters | `M.trivial_takeaway`, `M.misread_trend`, `M.unsupported_claim` | EX-1, EX-4 |
-| `EX.traps` | Catches units, axes and footnotes | `M.missed_units`, `M.axis_misread`, `M.dual_axis_misread`, `M.missed_footnote` | EX-2 |
+| `EX.traps` | Catches units, axes, footnotes, indexed values and period mismatches | `M.missed_units`, `M.axis_misread`, `M.dual_axis_misread`, `M.missed_footnote`, `M.indexed_misread`, `M.period_mismatch` | EX-2 |
 | `EX.extraction` | Pulls the right number from dense data | `M.wrong_data_point` | EX-3 |
 | `BJ.so_what` | States what a finding means for the client | `M.no_implication`, `M.implication_off_objective` | BJ-1, BJ-3 |
 | `BJ.risks` | Names specific, relevant risks and next steps | `M.generic_risk`, `M.missed_key_risk` | BJ-2 |
@@ -402,7 +403,7 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 
 - **How it works:** The chart contains one planted trap, and the question can only be answered correctly by catching it. Trap types: units (thousands vs millions), truncated axis, dual axis, footnote excluding a segment, indexed vs absolute values, percent vs percentage points, mismatched time periods.
 - **Set and time:** 8 items. 60 / 45 / 30 s.
-- **Scoring:** Auto (single choice or numeric). Each wrong option or trap value is tagged with the trap missed (`M.missed_units`, `M.axis_misread`, `M.dual_axis_misread`, `M.missed_footnote`).
+- **Scoring:** Auto (single choice or numeric). Each wrong option or trap value is tagged with the trap missed: units (`M.missed_units`), truncated axis (`M.axis_misread`), dual axis (`M.dual_axis_misread`), footnote (`M.missed_footnote`), indexed vs absolute values (`M.indexed_misread`), percent vs percentage points (`M.percent_vs_points`) or mismatched time periods (`M.period_mismatch`).
 - **Answer key:** Trap type, correct answer, wrong-answer tags, explanation pointing to the exact chart element.
 - **Item source:** Generator templates per trap type, rendered with the shared chart renderer.
 
@@ -551,7 +552,10 @@ Set score = the average item score. Feedback text for every tag and check comes 
 
 - One shared parser converts student input to a number: commas, `$`, `%`, `k`/`K`, `m`/`M`/`mm`, `b`/`B`/`bn`, and the words thousand, million and billion.
 - Each item stores `tolerance_type` (absolute or relative) and `tolerance_value`. Defaults: exact for integers, ±1% relative otherwise.
-- Each item stores `percent_format`: whether `25` and `0.25` both count for 25%.
+- Each item stores `percent_format`, one of three modes. Percent answers are stored in percent units (25 means 25%).
+  - `none`: not a percent answer; `25%` is read as 0.25.
+  - `percent`: `25` and `25%` both mean 25%; `0.25` means 0.25%.
+  - `percent_or_decimal`: as `percent`, and a bare `0.25` also counts as 25%.
 - Unparseable input is not scored; the student sees "Enter a number" and the timer keeps running.
 
 ### Checklist grading call
@@ -617,10 +621,12 @@ A skill is Mastered after two consecutive Level 2 sets at 80% or higher, at tier
 
 **Skills with no live Level 2 drill.** Some skills are trained only by Level 1 drills: `SY.summary`, `EX.traps` and `CL.next_step` have no Level 2 drill in the catalog, and `BJ.so_what` and `BJ.risks` have none until BJ-3 (P2) ships. These skills start at Level 1, and the Level 1 criteria (2 consecutive Level 1 sets ≥ 80% at T2 or above) grant Recognizes and Mastered together. The skill profile shows them as Mastered with no extra label.
 
+**Skills with no Level 1 drill.** Some skills are trained only by Level 2 drills (for example `QN.arithmetic`, `PS.depth`, `HY.update`, `EX.extraction` and `CL.data_requests`; the `l1` entry in `skill_drills` is null). These skills stay at Level 2 throughout: a set below 50% drops the tier instead of the level, and 2 consecutive Level 2 sets ≥ 80% at T2 or above grant Recognizes and Mastered together.
+
 ### Where a student starts on a skill
 
 1. The first set for a newly prescribed skill is Level 2, tier 2. This is the test-out attempt, and because it is at T2 it counts toward Mastered. Skills with no live Level 2 drill start at Level 1, tier 2 instead.
-2. If that set scores below 50%, the next set drops to Level 1.
+2. If that set scores below 50%, the next set drops to Level 1. Skills with no Level 1 drill stay at Level 2 and drop one tier instead.
 3. If it scores 50–79%, the student repeats Level 2.
 4. If it scores 80% or higher, it counts toward Mastered.
 5. During interview-date mode (7 or fewer days out), Level 1 is never served, except for skills with no live Level 2 drill.
@@ -659,7 +665,7 @@ The transcript-grading agent must emit this payload when a case is graded. The d
   "difficulty_tier": 2,
   "completed_at": "2026-10-05T18:22:00Z",
   "taxonomy_version": "v1",
-  "rubric_scores": {"problem_structuring": 2.5, "quantitative_rigor": 3.0},
+  "rubric_scores": {"structure": "needs_work", "quantitative": "meets_bar"},
   "skills_observed": ["PS.mece", "QN.setup", "SY.answer_first"],
   "findings": [
     {
@@ -673,6 +679,7 @@ The transcript-grading agent must emit this payload when a case is graded. The d
 ```
 
 - `skills_observed` lists every skill the case gave the student a chance to show, whether or not they made mistakes. It is needed to set skills to Validated.
+- `rubric_scores` uses the case grader's format: the 8 dimension keys from `lib/scoring/rubric.ts` (`structure`, `quantitative`, `dataExhibit`, `judgment`, `creativity`, `synthesis`, `communication`, `pushback`), each rated `needs_work`, `meets_bar` or `strong`. Dimensions the grader couldn't rate are left out.
 - `severity` is `minor` or `major`, defined per tag in the taxonomy file.
 - `evidence` must be an exact quote from the transcript. The drills service shows it to the student in the prescription reason.
 - The grader changes needed to emit this payload are deferred; the case grader will be updated later. Until then, drills are built and tested against fixture payloads.
@@ -683,7 +690,7 @@ The transcript-grading agent must emit this payload when a case is graded. The d
 2. Give each skill a priority score: +2 per major finding, +1 per minor finding, +2 if the same skill was flagged in the previous case, +1 if the skill was Mastered or Validated (a regression).
 3. Remove skills with no live drill. Their findings still appear in case feedback.
 4. Take the 3 highest-scoring skills. Ties go to the skill in the lower state, then to the skill whose drill is listed first in the catalog.
-5. For each skill, choose the drill from the tag-to-drill map in config (for example, `M.zeros_error` → QN-3 with a magnitude focus; `M.generic_framework` → PS-3), and the level and tier from the Mastery rules.
+5. For each skill, choose the drill from the skill-keyed drill map in config (`skill_drills`: each skill's Level 1 and Level 2 drill, for example `PS.case_specific` → PS-1 / PS-3), and the level and tier from the Mastery rules. Every tag maps to exactly one skill, so the skill decides the drill. If the finding's tag is listed in `focusable_tags` (for example, `M.zeros_error` → QN-3), the set focuses on that tag.
 6. Write the reason from a template using the tag and the evidence quote: "In your last case you said '…two million divided by fifty dollars.' Breakeven uses contribution per unit, not price."
 
 ### Prescriptions inside drills
@@ -749,13 +756,15 @@ Items come from two sources: code generators for anything numeric (unlimited and
   "sources": [],
   "authorship": {"author_of_record": "...", "drafting_model": "...", "reviewed_by": "...",
                  "reviewed_at": "...", "similarity_check": "passed"},
+  "generator": null,
   "firm_style": null
 }
 ```
 
 - `options` (choice drills): each option has `id`, `text`, `correct`, `tag` (for wrong options) and `feedback`.
-- `numeric` (numeric drills): `answer`, `tolerance_type`, `tolerance_value`, `percent_format`, `trap_values` (each with `value` and `tag`).
+- `numeric` (numeric drills): `answer`, `tolerance_type`, `tolerance_value`, `percent_format` (`none`, `percent` or `percent_or_decimal`), `trap_values` (each with `value` and `tag`). Traps also match with 3% rounding slack, since students round a wrong-method result the same way as a right one.
 - Drill-specific extras live in `extras`: hypothesis families and the update fact (HY-2), driver cards and ranges (QN-5), key categories and target count (CR-1), relevant and irrelevant facts (SY-2).
+- `generator` is null on authored items. On generated items it holds `template_id`, `template_version` and `seed`, and `extras.inputs` holds the structured inputs the answer is computed from.
 - `firm_style` is reserved for future firm-style toggles.
 - Items are versioned. Any edit creates a new version; attempts store the version they used.
 
@@ -810,13 +819,13 @@ QN-1, QN-3, QN-4, EX-2 and EX-3 are fully generated and need no authored pool.
 
 ## Data model
 
-The drills system needs 11 tables (12 with P1 disputes) plus 3 versioned config files; the attempts table is the most important, because it is the item-level record everything else is computed from.
+The drills system needs 12 tables (13 with P1 disputes) plus 3 versioned config files; the `drill_attempts` table is the most important, because it is the item-level record everything else is computed from.
 
 ### Config files (versioned, loaded at startup)
 
 - `taxonomy.vN.json`: skill areas, skills, mistake tags (with severity and skill mapping), deprecations.
 - `drills.vN.json`: per drill: id, name, level, skills, input type, scoring type, set size, time limits per tier, pass bar, priority, live flag.
-- `rules.vN.json`: mastery thresholds, tier step rules, spaced review intervals, prescription weights, tag-to-drill map, case-type-to-skill-area map.
+- `rules.vN.json`: mastery thresholds, tier step rules, spaced review intervals, prescription weights, the skill-keyed drill map (`skill_drills`), focusable tags, case-type-to-skill-area map.
 
 Config files live in the repo and are validated with zod at startup. Changing a value needs a deploy but no code change.
 
@@ -824,11 +833,12 @@ Config files live in the repo and are validated with zod at startup. Changing a 
 
 | Table | Key fields | Notes |
 | --- | --- | --- |
-| `student_drill_settings` | student\_id, time\_multiplier (1, 1.5, 2), interview\_date, skipped\_examples\[\] | Extends the existing student record |
-| `items` | item\_id, version, drill\_id, status (draft, in\_review, live, retired), tier, skills\[\], payload (JSON, per Content system), authorship (JSON), created\_at | Authored items only; generated items are rebuilt from seeds |
-| `item_stats` | item\_id, version, attempts, correct\_rate, avg\_time\_ms, option\_counts (JSON), computed\_at | Refreshed daily |
-| `drill_sets` | set\_id, student\_id, drill\_id, level, tier, source (prescription, continue, specific, review, diagnostic), prescription\_id, focus\_tag, status (in\_progress, grading, completed, expired), set\_score, passed, skill\_scores (JSON), started\_at, completed\_at | One row per set |
-| `attempts` | attempt\_id, set\_id, student\_id, position, item\_id + item\_version **or** template\_id + template\_version + seed, response (JSON), time\_ms, time\_limit\_ms, timed\_out, skipped, score, step\_scores (JSON), mistake\_tags\[\], check\_results (JSON: check\_id, pass, evidence), red\_flags\[\], grading\_status, grader\_prompt\_version, model\_id, submitted\_at | One row per item answered. Never deleted |
+| `student_profiles` | user\_id, org\_id (nullable), created\_at | The student record. The app has no users table, so drills adds this one |
+| `student_drill_settings` | student\_id, time\_multiplier (1, 1.5, 2), interview\_date, skipped\_examples\[\] | Extends `student_profiles` |
+| `drill_items` | item\_id, version, drill\_id, status (draft, in\_review, live, retired), tier, skills\[\], payload (JSON, per Content system), authorship (JSON), created\_at | Authored items only; generated items are rebuilt from seeds |
+| `drill_item_stats` | item\_id, version, attempts, correct\_rate, avg\_time\_ms, option\_counts (JSON), computed\_at | Refreshed daily |
+| `drill_sets` | set\_id, student\_id, drill\_id, level, tier, size, source (prescription, continue, specific, review, diagnostic), prescription\_id, focus\_tag, status (in\_progress, grading, completed, expired), current\_position, current\_served\_at, set\_score, passed, skill\_scores (JSON), taxonomy\_version, started\_at, completed\_at | One row per set. Items are served in order, so the timer for the item in play lives here (`current_served_at`). One in-progress set per student, enforced by a unique index |
+| `drill_attempts` | attempt\_id, set\_id, student\_id, position, idempotency\_key, item\_id + item\_version **or** template\_id + template\_version + seed (enforced by a check constraint), response (JSON), served\_at, time\_ms, time\_limit\_ms, timed\_out, skipped, score, step\_scores (JSON), mistake\_tags\[\], check\_results (JSON: check\_id, pass, evidence), red\_flags\[\], grading\_status, grader\_prompt\_version, model\_id, submitted\_at | One row per item answered. Never deleted |
 | `grading_jobs` | job\_id, set\_id, status, retries, input\_tokens, output\_tokens, cost\_usd, latency\_ms, error, created\_at | One row per AI grading call |
 | `drill_tiers` | student\_id, drill\_id, current\_tier, updated\_at | Current tier per student per drill |
 | `skill_states` | student\_id, skill\_id, state, l1\_passing\_streak, l2\_passing\_streak, last\_skill\_score, last\_practiced\_at, next\_review\_at, updated\_at | Current state per student per skill |
@@ -837,11 +847,11 @@ Config files live in the repo and are validated with zod at startup. Changing a 
 | `prescriptions` | prescription\_id, student\_id, skill\_id, drill\_id, level, tier, focus\_tag, priority, reason\_text, evidence\_quote, source\_type (case, drill), source\_id, status (open, in\_progress, completed, dismissed, superseded), created\_at, closed\_at | Open prescriptions drive Continue Training |
 | `grade_disputes` (P1) | dispute\_id, attempt\_id, student\_comment, status, reviewer\_notes, created\_at | QA queue |
 
-The student's `org_id` (school or club) is a nullable field on the user record, set from the club code at signup. Events read it from there.
+The student's `org_id` (school or club) lives on `student_profiles`. It is set from the club code the first time the student passes the club-code gate (today, when starting a case) and isn't changed afterwards. Events read it from there.
 
 ### Data rules
 
-- Attempts, skill state events and case results are append-only.
+- Attempts, skill state events and case results are append-only. AI-graded fields on an attempt (score, check results, grading status) are filled in once when grading finishes.
 - Student free-text answers are stored as entered and are only sent to the grading model; they are never used to train models without separate consent.
 - All tables carry `taxonomy_version` or a reference to a row that does, so data from different taxonomy versions can be compared.
 
@@ -897,7 +907,7 @@ The shared chart renderer is a frontend component.
 ### Integrity rules
 
 - Answer keys stay on the server until an item is submitted.
-- Time limits are enforced on the server from `served_at` to submission, with a 2-second grace for network delay. Later submissions are marked `timed_out`.
+- Time limits are enforced on the server from `served_at` (recorded on the drill set when the item is fetched) to submission, with a 2-second grace for network delay. Later submissions are marked `timed_out`.
 - Attempt submission is idempotent: a repeated idempotency key returns the original result.
 - An item can only be fetched in order, and only once its previous item has been submitted.
 - Each student can have one set in progress at a time.
@@ -1001,7 +1011,7 @@ The build runs in five phases, D0 to D4. Auto-checked drills ship before AI-grad
 
 ### Open questions
 
-- [ ] **Rubric scale:** The case grader currently rates each dimension on 3 levels (`needs_work`, `meets_bar`, `strong`), not a number. What counts as "meeting the bar" at each difficulty tier, and what form should `rubric_scores` take in the payload? Needed for next-case selection.
+- [ ] **Rubric scale:** Payload format decided: the grader's 3-level ratings. Still open: what counts as "meeting the bar" at each difficulty tier (for example, every dimension `meets_bar` or better)? Needed for next-case selection.
 - [ ] **Grader changes:** How much work is it for the transcript-grading agent to emit skill tags, severity, `skills_observed` and exact evidence quotes? (Deferred: the grader will be updated later.)
 - [ ] **Tag severity:** Which mistake tags are major vs minor? Needs product sign-off before D3.
 - [ ] **Mastery bar:** Are 80% and two consecutive sets the right bar? Validate with pilot data and adjust in config.

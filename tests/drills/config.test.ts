@@ -10,10 +10,10 @@ const raw = () => ({ taxonomy: clone(taxonomyJson), drills: clone(drillsJson), r
 describe('drills config v1 (docs/prd-drills.md)', () => {
   const { taxonomy, drills } = DRILLS_CONFIG;
 
-  it('matches the PRD counts: 9 areas, 29 skills, 60 tags, 25 drills', () => {
+  it('matches the PRD counts: 9 areas, 29 skills, 62 tags, 25 drills', () => {
     expect(taxonomy.areas).toHaveLength(9);
     expect(taxonomy.skills).toHaveLength(29);
-    expect(taxonomy.mistake_tags).toHaveLength(60);
+    expect(taxonomy.mistake_tags).toHaveLength(62);
     expect(taxonomy.system_tags.map(t => t.id).sort()).toEqual(['M.skipped', 'M.timeout']);
     expect(drills.drills).toHaveLength(25);
     expect(drills.drills.filter(d => d.level === 1)).toHaveLength(13);

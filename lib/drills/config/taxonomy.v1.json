@@ -477,6 +477,20 @@
       "deprecated": false
     },
     {
+      "id": "M.indexed_misread",
+      "skill": "EX.traps",
+      "label": "read indexed values as absolute",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.period_mismatch",
+      "skill": "EX.traps",
+      "label": "mismatched time periods",
+      "severity": null,
+      "deprecated": false
+    },
+    {
       "id": "M.wrong_data_point",
       "skill": "EX.extraction",
       "label": "wrong data point",
