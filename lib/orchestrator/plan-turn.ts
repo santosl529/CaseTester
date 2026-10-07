@@ -42,6 +42,9 @@ export type PlanDeps = {
   turnStartMs: number;
   later: TurnCtx['later'];
   acknowledged?: string;   // voice: a backchannel already spoken at end-of-turn
+  // false: no distress classifier call — a re-plan only to compare decisions
+  // (speculative-turn.ts), whose verdict nobody reads.
+  classify?: boolean;
 };
 
 export type ModelPlan = ReturnType<typeof modelPlan>;
@@ -171,7 +174,7 @@ export function planTurn(reads: TurnReads, candidateText: string, deps: PlanDeps
   }
   // assessment.action === 'ignore' (none / C1): proceed with the normal case turn.
 
-  return modelPlan(ctx, reads, { repliedToDistressOffer, conductRedirectHint, silenceState: resumed.state });
+  return modelPlan(ctx, reads, { repliedToDistressOffer, conductRedirectHint, silenceState: resumed.state, classify: deps.classify !== false });
 }
 
 // Rule 17-C5: the scripted pause offer, from either detection layer.
@@ -189,7 +192,7 @@ export function scriptedOffer(plan: ModelPlan, riskToSelf: boolean, payload: Rec
   return scriptedOfferFor(plan.ctx, riskToSelf, payload);
 }
 
-function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOffer: boolean; conductRedirectHint: string | undefined; silenceState: SilenceState }) {
+function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOffer: boolean; conductRedirectHint: string | undefined; silenceState: SilenceState; classify: boolean }) {
   const { session: s, turnRows, exhibitRows, revealedRows, dataRequestEventRows } = reads;
   const session = s!;
   const { sessionId, candidateText, now, currentPhase, flags, checks } = ctx;
@@ -339,7 +342,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
 
   // Rule 17-C5 model layer (v4.6): runs in parallel with the interviewer call;
   // a distress verdict discards the draft before anything is delivered (D1).
-  const distress: Promise<DistressVerdict | null> = repliedToDistressOffer
+  const distress: Promise<DistressVerdict | null> = repliedToDistressOffer || !extra.classify
     ? Promise.resolve(null)
     : classifyDistress({
       candidateText,

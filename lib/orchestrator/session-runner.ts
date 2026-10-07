@@ -1,25 +1,25 @@
 import { TurnTimer } from './turn-timer';
-import { turnNoteFor } from './turn-note';
 import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
-import { revealedValues, unrevealedItems } from './data-ledger';
 import { recordSilenceStall, INITIAL_STALL_STATE, type StallState } from './stall';
 import {
   evaluateSilence, checkInText, pauseText, INITIAL_SILENCE_STATE, type SilenceAction, type SilenceState,
 } from './silence';
 import { isDistressVerdict, type DistressVerdict } from './distress';
 import { classifyDataRequests, type DetectedDataRequest } from './data-requests';
-import { logEvent } from '@/lib/analytics';
-import { TOTAL_CASE_MS, type Phase } from './state-machine';
+import { logEvent, inDraftScope } from '@/lib/analytics';
+import type { Phase } from './state-machine';
 import { streamInterviewerTurn } from '@/lib/agent/interviewer';
 import { createInterviewerModel } from '@/lib/agent/models/factory';
 import { SILENCE_PAUSE_EXPIRED, CLOSE_SCRIPTS, GRACE_ASK_SCRIPTS, TIME_WARNING_SCRIPTS, pickScript } from '@/lib/agent/prompts/scripts';
-import { planTurn, scriptedOffer, type ModelPlan } from './plan-turn';
+import { planTurn, scriptedOffer, type ModelPlan, type TurnReads } from './plan-turn';
+import { planFingerprint, type DraftGate } from './speculation';
+import { promptContextFor } from './prompt-context';
 import { streamTurnSegments } from './stream-turn';
 import { settleTurn, commitScripted, logSessionEvent, type TurnUsage, type ModelOutcome } from './settle-turn';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
-import { isUsefulSegment, type ConductFlags, type SegmentSink, type TurnResult } from './turn-types';
+import { isUsefulSegment, type ConductFlags, type ScriptedPlan, type SegmentSink, type TurnResult } from './turn-types';
 
 // The turn coordinator (specs 2026-10-05-streaming-turn, 2026-10-06
 // plan-owns-decisions): reads → Plan (plan-turn.ts, which also decides the
@@ -51,29 +51,30 @@ export type RunTurnOptions = {
   // (lib/voice/acknowledge.ts). The model is told not to acknowledge again,
   // and the saved interviewer line starts with it.
   acknowledged?: string;
+  // Speculative draft (speculative-turn.ts): every delivery and write waits on
+  // the gate; cancelled, they throw DraftCancelled and deferred work is dropped.
+  gate?: DraftGate;
+  // The plan's fingerprint (speculation.ts), as soon as Plan has run.
+  onPlanFingerprint?: (fingerprint: string) => void;
 };
 
 export async function runTurn(sessionId: string, candidateText: string, opts: RunTurnOptions = {}): Promise<TurnResult> {
   const deferred: (() => Promise<void>)[] = [];
+  const { gate } = opts;
   try {
-    return await runTurnBody(sessionId, candidateText, task => { deferred.push(task); }, opts.onSegment, opts.acknowledged);
+    const run = () => runTurnBody(sessionId, candidateText, task => { deferred.push(task); }, opts);
+    return await (gate ? inDraftScope(gate.id, run) : run());
   } finally {
-    if (opts.defer) for (const task of deferred) opts.defer(task);
-    else await Promise.allSettled(deferred.map(task => task()));
+    // A draft that was never accepted leaves nothing behind.
+    if (!gate || gate.accepted) {
+      if (opts.defer) for (const task of deferred) opts.defer(task);
+      else await Promise.allSettled(deferred.map(task => task()));
+    }
   }
 }
 
-async function runTurnBody(
-  sessionId: string, candidateText: string, later: (task: () => Promise<void>) => void, sink?: SegmentSink,
-  acknowledged?: string,
-): Promise<TurnResult> {
-  // Full-turn timing (latency plan step 1): the model call alone was ~1.9s of
-  // a ~2.2s turn in batches 7–8, but the writes after the interviewer row were
-  // never timed.
-  const turnStartMs = Date.now();
-  const timer = new TurnTimer(turnStartMs);
-  // Every read this turn needs takes only the session id: issue them together
-  // (they ran one after another).
+// The five rows a turn reads, all by session id.
+async function readTurn(sessionId: string): Promise<TurnReads> {
   const [session, turnRows, exhibitRows, revealedRows, dataRequestEventRows] = await Promise.all([
     db.query.sessions.findFirst({ where: eq(sessions.id, sessionId) }),
     db.query.sessionTurns.findMany({
@@ -86,21 +87,50 @@ async function runTurnBody(
       where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'data_request')),
     }),
   ]);
+  return { session, turnRows, exhibitRows, revealedRows, dataRequestEventRows };
+}
+
+// The fingerprint a turn on this text would plan now — no classifier call,
+// nothing written. A speculative draft is accepted only if it still matches.
+export async function planFingerprintNow(sessionId: string, candidateText: string, acknowledged?: string): Promise<string> {
+  const now = Date.now();
+  return planFingerprint(planTurn(await readTurn(sessionId), candidateText, {
+    sessionId, now, turnStartMs: now, later: () => {}, acknowledged, classify: false,
+  }));
+}
+
+async function runTurnBody(
+  sessionId: string, candidateText: string, later: (task: () => Promise<void>) => void, opts: RunTurnOptions,
+): Promise<TurnResult> {
+  const { acknowledged, gate } = opts;
+  // A draft's segments wait for acceptance: a resolved buffer is not delivery.
+  const sink: SegmentSink | undefined = opts.onSegment && gate
+    ? async seg => { await gate.wait(); await opts.onSegment!(seg); }
+    : opts.onSegment;
+  const commit = async (p: ScriptedPlan) => { await gate?.wait(); return commitScripted(p); };
+  // Full-turn timing (latency plan step 1): the model call alone was ~1.9s of
+  // a ~2.2s turn in batches 7–8, but the writes after the interviewer row were
+  // never timed.
+  const turnStartMs = Date.now();
+  const timer = new TurnTimer(turnStartMs);
+  // Every read this turn needs takes only the session id: issued together.
+  const reads = await readTurn(sessionId);
   timer.mark('reads_done');
 
   // Plan (plan-turn.ts): everything decided before the model call, no writes.
-  const plan = planTurn({ session, turnRows, exhibitRows, revealedRows, dataRequestEventRows }, candidateText, {
+  const plan = planTurn(reads, candidateText, {
     sessionId, now: Date.now(), turnStartMs, later, acknowledged,
   });
   timer.mark('plan_done');
+  opts.onPlanFingerprint?.(planFingerprint(plan));
   if (plan.kind === 'scripted') {
     if (sink && plan.interviewerText) await sink({ text: plan.interviewerText, revealIds: [], kind: 'scripted' }).catch(() => {});
-    return commitScripted(plan);
+    return commit(plan);
   }
 
   const { ctx, state } = plan;
-  const { currentPhase, flags, checks, userId } = ctx;
-  const { caseData, ledger, stallDecision } = state;
+  const { currentPhase, checks, userId } = ctx;
+  const { stallDecision } = state;
   // The check Plan started beside the model call: when it resolved.
   timer.watch('distress_verdict', state.distress);
 
@@ -131,7 +161,7 @@ async function runTurnBody(
     }
     const offer = scriptedOffer(plan, verdict.label === 'risk_to_self', { reason: verdict.reason, label: verdict.label, layer: 'model' });
     await deliver({ text: offer.interviewerText, revealIds: [], kind: 'scripted' }).catch(() => {});
-    return commitScripted(offer);
+    return commit(offer);
   };
 
   let out: ModelOutcome;
@@ -178,24 +208,7 @@ async function runTurnBody(
         turnUsage.cacheWriteTokens += u.cacheWriteTokens ?? 0;
         turnUsage.apiCalls += 1;
       },
-      promptCtx: {
-        casePrompt: caseData.prompt,
-        currentPhase,
-        revealedValues: revealedValues(ledger),
-        unrevealedItems: unrevealedItems(ledger),
-        exhibits: caseData.exhibits.map(e => ({ id: e.id, title: e.title, shown: state.shownExhibitIds.has(e.id) })),
-        advancedLastTurn: Boolean(flags.advancedLastTurn),
-        elapsedMs: state.elapsedMs,
-        totalMs: TOTAL_CASE_MS,
-        phaseBudgetsMs: state.phaseBudgetsMs,
-        recomputeHint: [state.recomputeHint, state.verifiedHint].filter(Boolean).join('\n\n') || undefined,
-        unitCheckHint: state.unitCheckHint,
-        stallGuidance: stallDecision.guidance,
-        coverageSteer: state.coverageSteer,
-        openDataRequestsHint: state.openDataRequestsHint,
-        conductRedirectHint: state.conductRedirectHint,
-        turnNote: turnNoteFor(state.kind, ctx.acknowledged),
-      },
+      promptCtx: promptContextFor(plan),
     });
     // Stream (stream-turn.ts): segments go out as they pass, after the
     // distress verdict; the rest of the turn is Settle's.
@@ -231,6 +244,7 @@ async function runTurnBody(
       out.undeliveredRevealIds?.push(...tailReveals); // D3: not delivered, not booked
     }
   }
+  await gate?.wait();
   await settled.persist({
     firstSegmentMs: firstSegmentAt === null ? null : firstSegmentAt - ctx.turnStartMs,
     streamed: streamedCount > 0,
