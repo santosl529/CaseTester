@@ -18,7 +18,7 @@ import path from 'node:path';
 const RUNS_ROOT = 'Case Interview Runs/test runs';
 
 type Marks = Record<string, number>;
-type Row = { marks: Marks; useful: number; declarations: number; sayChars: number; requestChars: number; questionChars: number };
+export type Row = { marks: Marks; useful: number; declarations: number; say: string; sayChars: number; requestChars: number; questionChars: number };
 
 export function usefulMs(marks: Marks): number | null {
   if (marks.first_useful_delivered != null) return marks.first_useful_delivered;
@@ -47,6 +47,7 @@ export function rowsFromLog(log: string): Row[] {
     rows.push({
       marks, useful,
       declarations: turn.requests?.length ?? 0,
+      say: turn.say ?? '',
       sayChars: turn.say?.length ?? 0,
       requestChars: JSON.stringify(turn.requests ?? []).length,
       questionChars: turn.question?.length ?? 0,
@@ -55,7 +56,7 @@ export function rowsFromLog(log: string): Row[] {
   return rows;
 }
 
-function load(batch: string): Row[] {
+export function load(batch: string): Row[] {
   const dir = path.join(RUNS_ROOT, batch);
   return readdirSync(dir).filter(r => !r.startsWith('.')).flatMap(run => {
     const d = path.join(dir, run);
