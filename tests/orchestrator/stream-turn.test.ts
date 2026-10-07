@@ -45,6 +45,12 @@ describe('vetoReason', () => {
     expect(vetoReason('Is that MECE?', g())).toBe('question_in_say');
     expect(vetoReason('Is that MECE?', g(), { inQuestion: true })).toBeNull();
   });
+  it('drops a bare acknowledgment when voice already acknowledged, keeps a restatement', () => {
+    expect(vetoReason('Understood.', g({ acknowledged: true }))).toBe('double_ack');
+    expect(vetoReason('Okay', g({ acknowledged: true }))).toBe('double_ack');
+    expect(vetoReason('A cost-first split.', g({ acknowledged: true }))).toBeNull();
+    expect(vetoReason('Understood.', g())).toBeNull();
+  });
   it('stops a fabricated candidate turn', () => expect(vetoReason('What else?\n\nuser Several levers.', g())).toBe('fabricated_turn'));
 });
 
