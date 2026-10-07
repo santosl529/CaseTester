@@ -40,7 +40,8 @@ export function buildBody(model: string, messages: ChatMessage[], reasoningEffor
     model,
     messages,
     stream: true,
-    max_completion_tokens: 2048,
+    // High reasoning can spend the budget before the JSON closes (replay, 7 Oct).
+    max_completion_tokens: Number(process.env.CEREBRAS_MAX_TOKENS ?? 2048),
     reasoning_effort: reasoningEffort,
     response_format: { type: 'json_schema', json_schema: { name: 'interviewer_turn', strict: true, schema: TURN_SCHEMA } },
   };
