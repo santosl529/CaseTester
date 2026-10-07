@@ -15,7 +15,15 @@ import { TurnStreamParser } from './turn-stream';
 import { collectTurn, NEUTRAL_TURN } from './turn-events';
 import { TURN_KEYS, retryNote, type Attempt } from './anthropic';
 
-const URL = 'https://api.cerebras.ai/v1/chat/completions';
+// The OpenAI-style chat-completions endpoints this adapter speaks to.
+type Endpoint = { url: string; keyEnv: string; label: string; name: string; extraBody?: Record<string, unknown> };
+const CEREBRAS: Endpoint = { url: 'https://api.cerebras.ai/v1/chat/completions', keyEnv: 'CEREBRAS_API_KEY', label: 'cerebras', name: 'Cerebras' };
+// OpenAI (latency screening of GPT-6 Luna / GPT-6.1 Sol, 7 Oct): usage only
+// arrives on the stream when asked for.
+const OPENAI: Endpoint = {
+  url: 'https://api.openai.com/v1/chat/completions', keyEnv: 'OPENAI_API_KEY', label: 'openai', name: 'OpenAI',
+  extraBody: { stream_options: { include_usage: true } },
+};
 
 type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: string };
 type Chunk = {
@@ -35,8 +43,9 @@ export function buildMessages(ctx: Pick<TurnContext, 'systemPrompt' | 'turnSyste
   ];
 }
 
-export function buildBody(model: string, messages: ChatMessage[], reasoningEffort: string) {
+export function buildBody(model: string, messages: ChatMessage[], reasoningEffort: string, extra: Record<string, unknown> = {}) {
   return {
+    ...extra,
     model,
     messages,
     stream: true,
@@ -105,6 +114,7 @@ export class CerebrasInterviewerModel implements InterviewerModel {
     private fetchImpl: typeof fetch = fetch,
     limiter?: RateLimiter,
     private sleep: (ms: number) => Promise<void> = ms => new Promise(r => setTimeout(r, ms)),
+    private endpoint: Endpoint = CEREBRAS,
   ) {
     this.limiter = limiter ?? new RateLimiter(Number(process.env.CEREBRAS_RPM ?? 5));
   }
@@ -117,18 +127,18 @@ export class CerebrasInterviewerModel implements InterviewerModel {
       const waited = await this.limiter.acquire();
       if (waited > 0) {
         ctx.onMark?.(`${markPrefix}model_rate_wait`);
-        console.warn(`[interviewer-model] cerebras rate limit: waited ${waited}ms before sending`);
+        console.warn(`[interviewer-model] ${this.endpoint.label} rate limit: waited ${waited}ms before sending`);
       }
       ctx.onMark?.(`${markPrefix}model_request`);
-      const res = await this.fetchImpl(URL, {
+      const res = await this.fetchImpl(this.endpoint.url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.CEREBRAS_API_KEY ?? ''}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env[this.endpoint.keyEnv] ?? ''}` },
         body: JSON.stringify(body),
         signal,
       });
       if (res.status !== 429 || attempt >= MAX_429_RETRIES) return res;
       const delay = retryDelayMs(res.headers.get('retry-after'), attempt);
-      console.warn(`[interviewer-model] cerebras 429 — retrying in ${delay}ms (attempt ${attempt + 1}/${MAX_429_RETRIES})`);
+      console.warn(`[interviewer-model] ${this.endpoint.label} 429 — retrying in ${delay}ms (attempt ${attempt + 1}/${MAX_429_RETRIES})`);
       await res.body?.cancel();
       await this.sleep(delay);
     }
@@ -162,9 +172,9 @@ export class CerebrasInterviewerModel implements InterviewerModel {
 
   private async *attempt(messages: ChatMessage[], ctx: TurnContext, markPrefix = ''): AsyncGenerator<TurnEvent, Attempt> {
     const abort = new AbortController();
-    const res = await this.post(buildBody(this.modelId, messages, this.reasoningEffort), abort.signal, ctx, markPrefix);
+    const res = await this.post(buildBody(this.modelId, messages, this.reasoningEffort, this.endpoint.extraBody), abort.signal, ctx, markPrefix);
     if (!res.ok || !res.body) {
-      throw new Error(`Cerebras ${res.status}: ${(await res.text()).slice(0, 300)}`);
+      throw new Error(`${this.endpoint.name} ${res.status}: ${(await res.text()).slice(0, 300)}`);
     }
     const parser = new TurnStreamParser();
     const sse = new SseReader();
@@ -203,7 +213,7 @@ export class CerebrasInterviewerModel implements InterviewerModel {
     const cached = usage?.prompt_tokens_details?.cached_tokens ?? 0;
     ctx.onUsage?.({
       component: 'interviewer',
-      model: `cerebras/${this.modelId}`,
+      model: `${this.endpoint.label}/${this.modelId}`,
       inputTokens: (usage?.prompt_tokens ?? 0) - cached,
       outputTokens: usage?.completion_tokens ?? 0,
       cacheReadTokens: cached,
@@ -211,5 +221,14 @@ export class CerebrasInterviewerModel implements InterviewerModel {
     });
     console.log('[interviewer-model] raw response:', parser.text);
     return { turn: parseTurn(parser.text), refused: false, unknown };
+  }
+}
+
+// The same adapter on OpenAI (latency screening, 7 Oct — not a production
+// provider): GPT-6 Luna at reasoning "none", GPT-6.1 Sol at "low" (its
+// lowest). No client-side rate limit; reads OPENAI_API_KEY.
+export class OpenAIInterviewerModel extends CerebrasInterviewerModel {
+  constructor(modelId: string, reasoningEffort: string, fetchImpl: typeof fetch = fetch) {
+    super(modelId, reasoningEffort, fetchImpl, new RateLimiter(Number.POSITIVE_INFINITY), undefined, OPENAI);
   }
 }

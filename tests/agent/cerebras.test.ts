@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SseReader, buildMessages, buildBody, CerebrasInterviewerModel, RateLimiter, retryDelayMs } from '@/lib/agent/models/cerebras';
+import { SseReader, buildMessages, buildBody, CerebrasInterviewerModel, OpenAIInterviewerModel, RateLimiter, retryDelayMs } from '@/lib/agent/models/cerebras';
 import type { TurnContext, TurnEvent } from '@/lib/agent/models/interface';
 
 const ctx = (over: Partial<TurnContext> = {}): TurnContext => ({
@@ -10,11 +10,13 @@ const ctx = (over: Partial<TurnContext> = {}): TurnContext => ({
 });
 
 // A fetch that streams the given JSON turn as SSE chunks of `size` characters.
-function fakeFetch(turns: string[], size = 7): { fetch: typeof fetch; bodies: unknown[] } {
+function fakeFetch(turns: string[], size = 7): { fetch: typeof fetch; bodies: unknown[]; calls: { url: string; auth: string }[] } {
   const bodies: unknown[] = [];
+  const calls: { url: string; auth: string }[] = [];
   let call = 0;
-  const f = (async (_url: string, init: { body: string }) => {
+  const f = (async (url: string, init: { body: string; headers: Record<string, string> }) => {
     bodies.push(JSON.parse(init.body));
+    calls.push({ url, auth: init.headers.Authorization });
     const text = turns[Math.min(call++, turns.length - 1)];
     const parts: string[] = [];
     for (let i = 0; i < text.length; i += size) parts.push(`data: ${JSON.stringify({ choices: [{ delta: { content: text.slice(i, i + size) } }] })}\n\n`);
@@ -22,7 +24,7 @@ function fakeFetch(turns: string[], size = 7): { fetch: typeof fetch; bodies: un
     const enc = new TextEncoder();
     return new Response(new ReadableStream({ start(c) { for (const p of parts) c.enqueue(enc.encode(p)); c.close(); } }), { status: 200 });
   }) as unknown as typeof fetch;
-  return { fetch: f, bodies };
+  return { fetch: f, bodies, calls };
 }
 
 const turn = (over: Record<string, unknown> = {}) => JSON.stringify({
@@ -91,6 +93,26 @@ describe('CerebrasInterviewerModel.streamTurn', () => {
     const ev = await all(m.streamTurn(ctx()));
     expect(ev.at(-1)).toMatchObject({ type: 'done', turn: { say: 'Got it.' } });
     expect(slept).toEqual([2100]);
+  });
+});
+
+describe('OpenAIInterviewerModel (latency screening, 7 Oct)', () => {
+  it('sends the same turn to OpenAI with the OpenAI key, the chosen reasoning effort and usage on the stream', async () => {
+    process.env.OPENAI_API_KEY = 'test-openai-key';
+    const { fetch, bodies, calls } = fakeFetch([turn()]);
+    const usage: unknown[] = [];
+    const ev = await all(new OpenAIInterviewerModel('gpt-6-luna', 'none', fetch).streamTurn(ctx({ onUsage: u => usage.push(u) })));
+    expect(calls[0]).toEqual({ url: 'https://api.openai.com/v1/chat/completions', auth: 'Bearer test-openai-key' });
+    expect(bodies[0]).toMatchObject({ model: 'gpt-6-luna', reasoning_effort: 'none', stream: true, stream_options: { include_usage: true },
+      response_format: { type: 'json_schema', json_schema: { strict: true } } });
+    expect(ev.at(-1)).toMatchObject({ type: 'done', turn: { say: 'Got it.', question: 'What drove it?' } });
+    expect(usage).toMatchObject([{ model: 'openai/gpt-6-luna', inputTokens: 40, cacheReadTokens: 60 }]);
+  });
+
+  it('is not rate-limited client-side', async () => {
+    const { fetch } = fakeFetch([turn()]);
+    const m = new OpenAIInterviewerModel('gpt-6-luna', 'none', fetch);
+    for (let i = 0; i < 8; i++) await all(m.streamTurn(ctx()));   // Cerebras's limiter would wait after 5
   });
 });
 
