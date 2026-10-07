@@ -1,0 +1,207 @@
+{
+  "stt": "deepgram-flux-eager0.5",
+  "run": "batch-12-oct-06/15",
+  "sessionId": "0f2b2465-c2ea-401e-9c1f-0f7a115c28c3",
+  "summary": {
+    "endpointMs": {
+      "median": 956,
+      "p90": 3815
+    },
+    "eagerLeadMs": {
+      "median": 200,
+      "p90": 316
+    },
+    "turnMs": {
+      "median": 1765,
+      "p90": 2133
+    },
+    "ttsMs": {
+      "median": null,
+      "p90": null
+    },
+    "totalMs": {
+      "median": null,
+      "p90": null
+    },
+    "firstHeardMs": {
+      "median": 969,
+      "p90": 3824
+    },
+    "silenceAfterAckMs": {
+      "median": 1760,
+      "p90": 2117
+    },
+    "acked": "8/8",
+    "toFirstSegmentMs": {
+      "median": 2669,
+      "p90": 5361
+    },
+    "estTotalMs": {
+      "median": 2809,
+      "p90": 5501,
+      "note": "first segment + 140ms measured Cartesia first audio"
+    }
+  },
+  "records": [
+    {
+      "turn": 1,
+      "candidateChars": 873,
+      "sttTranscript": "Okay. So the headline is margins collapsing from twenty four percent to six percent while revenue actually grew fifteen percent. That tells me this is very likely a cost problem rather than a demand problem, though I want to confirm revenue quality. I'd structure it in three buckets. First, revenue is the fifteen percent growth coming from new stores, more transactions per store, or higher prices because growth from opening stores can carry a lot of fixed cost with it. Second, costs, split into COGS, coffee beans, milk, cups, and operating costs like labor. rent, utilities, marketing, and corporate overhead, I'd want to see each as a percentage of revenue two years ago versus today, so I can isolate which line moved. Third, anything below the line, interest from debt if they financed expansion, or one time charges. Can I start by asking whether the revenue growth is same store or from new locations?",
+      "interviewerText": "I see. A revenue, cost and below-the-line split. I don't have whether revenue growth is same-store or from new locations. Before any data, is that structure MECE, and which branch would you prioritize first, and why?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 492,
+        "eagerLeadMs": 78,
+        "turnMs": 2133,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "ack": "I see.",
+      "firstHeardMs": 508,
+      "silenceAfterAckMs": 2117,
+      "toFirstSegmentMs": 2625
+    },
+    {
+      "turn": 2,
+      "candidateChars": 873,
+      "sttTranscript": "I think it's broadly me's revenue, operating costs. Below the line covers everything that hits net margin and within costs the COGS versus operating split doesn't overlap. The one place it's fuzzy is store count. New locations affect both revenue and the cost base. So I treat that as a cross cutting driver rather than its own branch. And just make sure I don't double count it. I'd prioritize costs first. Revenue grew fifteen percent and margin fell eighteen points. If this were purely a revenue mix problem, you'd expect growth to be flat or negative. An eighteen point swing on growing revenue almost has to come from costs rising faster than sales. within costs. I'd start with COGS, since coffee and dairy are commodity inputs and have been volatile, then labor, since wage pressure has been real in food service. Do we have a cost breakdown as a percent of revenue for both years?",
+      "interviewerText": "Understood. Costs first, then COGS and labor. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. What do those figures tell you about where the margin went?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 435,
+        "eagerLeadMs": 200,
+        "turnMs": 1765,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "ack": "Understood.",
+      "firstHeardMs": 440,
+      "silenceAfterAckMs": 1760,
+      "toFirstSegmentMs": 2200
+    },
+    {
+      "turn": 3,
+      "candidateChars": 852,
+      "sttTranscript": "Cogs, clearly, labor's flat at twenty two percent and the footprint hasn't changed, so the store base isn't diluting anything. This is all inside the cost of goods, and the magnitude lines up. You said cogs went from about forty four percent to fifty five percent of revenue, so that's roughly an eleven point swing. The margin fell eighteen points. So cogs explains a bit more than half of it on its own. That leaves maybe seven points elsewhere. Rent, utilities, marketing, or something below the line, which I'd come back to, but cogs is the biggest single mover. What I'd want next is a split of cogs into its components. green coffee, dairy, cups and packaging, food items. I want to know whether one input spiked or whether the whole basket rose, because the fix is very different. Also, do we have menu price history? If input costs rose and they never raised prices, that's a pass through problem.",
+      "interviewerText": "Mm-hm. A COGS-led read. Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Menu prices have not changed in two years. You said COGS went from about forty four to fifty five percent of revenue. Check that against the cost figures I gave you, then walk me through how much of the margin decline COGS explains and what's left.",
+      "interruptions": 0,
+      "eagerSignals": 3,
+      "resumed": 2,
+      "latency": {
+        "endpointMs": 956,
+        "eagerLeadMs": 160,
+        "turnMs": 1713,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "ack": "Mm-hm.",
+      "firstHeardMs": 969,
+      "silenceAfterAckMs": 1700,
+      "toFirstSegmentMs": 2669
+    },
+    {
+      "turn": 4,
+      "candidateChars": 785,
+      "sttTranscript": "Points of revenue, percentage of revenue, so they are directly comparable to the margin, which is also a percent of revenue. So two years ago, COGS was about forty four percent of revenue. Today, it's about fifty five percent. That's eleven points of revenue that used to flow down to profit and now get consumed by inputs. Net margin fell from twenty four percent to six percent, an eighteen point drop. Also in points of revenue, so eleven of the eighteen points, roughly sixty one percent sit in COGS, then overhead adds two points, twelve percent to fourteen percent. Labors flat, contributes zero. So I've got thirteen of eighteen points explained, leaving about five points unaccounted for. Rent, utilities, marketing, or interest expense on the COGS mix, beans were twenty five percent of COGS. So the other seventy five percent is dairy, packaging, and food, and that bucket is up thirty seven point five percent. Do we know what beans did over the same period?",
+      "interviewerText": "Got it. Understood. Raw coffee bean costs are up 40% over the past two years. You've said eleven points sit in COGS and five are unaccounted for. Before you apply the bean figure, check the COGS numbers once more against what I gave you, and tell me what base the thirty seven point five percent is measured on.",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 313,
+        "eagerLeadMs": 0,
+        "turnMs": 1907,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "ack": "Got it.",
+      "firstHeardMs": 318,
+      "silenceAfterAckMs": 1902,
+      "toFirstSegmentMs": 2220
+    },
+    {
+      "turn": 5,
+      "candidateChars": 849,
+      "sttTranscript": "Okay. The exhibit confirms the shape, but it's actually worse than I had it. COGS runs forty two percent two years ago, fifty percent last year, and fifty six percent today. So a fourteen point climb, and it's a steady march, not a one year shock. Labor is pinned at twenty two percent all three years. Overhead creeps twelve to fourteen, so the attribution is fourteen points from COGS, two points from overhead. That's sixteen of the eighteen point margin decline. The last two points round out in the profit line. COGS is essentially the whole story. What stands out most is the combination with pricing. beans up forty percent, the other seventy five percent of the basket up thirty seven point five percent. So the whole input basket is up roughly thirty eight percent, and menu prices haven't moved in two years. They've absorbed every dollar of input inflation themselves. Revenue grew fifteen percent purely on volume, which actually made it worse since every incremental cup is sold at a compressed margin.",
+      "interviewerText": "Okay. A cleaner read of the cost lines. You said COGS today is fifty six percent of revenue, but the figure I gave you earlier was different. Check that against the exhibit and the cost data, then tell me how much of the eighteen point decline COGS explains and what remains.",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 3815,
+        "eagerLeadMs": 284,
+        "turnMs": 1546,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "ack": "Okay.",
+      "firstHeardMs": 3824,
+      "silenceAfterAckMs": 1537,
+      "toFirstSegmentMs": 5361
+    },
+    {
+      "turn": 6,
+      "candidateChars": 1115,
+      "sttTranscript": "Let me spread this out across levers on price. The obvious one is raising menu prices. If the basket is up thirty eight percent and they've passed through zero, even a ten to twelve percent price increase recovers a large chunk. They could also do it selectively, raise on the lowest elasticity items, espresso drinks and food rather than across the board. On mix, push customers toward higher margin items, food attach, larger sizes, nondairy upcharges, cold brew, which has lower per cup being cost relative to price, loyalty programs to raise ticket size, on input cost, lock in forward contracts or hedges on green coffee instead of buying spot, renegotiate dairy and packaging with volume commitments, consolidate suppliers across the two hundred stores, reduce portion waste and spoilage, on product, reformulate slightly, adjust dose per shot, cup sizing, cheaper packaging spec on overhead, that two point creep is small but real, corporate headcount, marketing spend efficiency, and longer term, vertical integration on roasting if they aren't already roasting in house. Do we have any sense of price elasticity or competitor pricing?",
+      "interviewerText": "I see. A broad set of levers. I don't have price elasticity and competitor pricing. Of everything you listed, which would you commit to as your recommendation, and why that one first?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 328,
+        "eagerLeadMs": 16,
+        "turnMs": 1949,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "ack": "I see.",
+      "firstHeardMs": 334,
+      "silenceAfterAckMs": 1943,
+      "toFirstSegmentMs": 2277
+    },
+    {
+      "turn": 7,
+      "candidateChars": 999,
+      "sttTranscript": "Raise menu prices. That's the one thing. Why? The entire margin decline sits in COGS, which went from forty two percent to fifty six percent of revenue, and the causes that input costs rose roughly thirty eight percent while menu prices haven't moved in two years. They've been absorbing every cent of inflation. Nothing else closes a fourteen point gap fast enough. Supply renegotiation and waste reduction help at the margin, but take quarters to land, sizing it to recover fourteen points on a fifty six percent COGS base, a price increase of roughly twelve to fourteen percent holds COGS flat in dollars while lifting revenue and would bring margin back toward the high teens. And demand resilient. Volume grew about nineteen percent over the period with no price support, which suggests they have room, what it takes. A pilot in twenty stores across a few markets measure transaction counts for six dash eight weeks, then roll out. Risk is elasticity, which we haven't measured. Specialty coffee is discretionary, so I'd watch volume closely and pair it with loyalty offers to soften the optics.",
+      "interviewerText": "Understood. Understood. A price-led recommendation. You said volume grew about nineteen percent with no price support. Walk me through that figure. Then tell me the biggest risk to your recommendation and what you'd do if it materialized.",
+      "interruptions": 0,
+      "eagerSignals": 2,
+      "resumed": 1,
+      "latency": {
+        "endpointMs": 1451,
+        "eagerLeadMs": 316,
+        "turnMs": 1423,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "ack": "Understood.",
+      "firstHeardMs": 1463,
+      "silenceAfterAckMs": 1411,
+      "toFirstSegmentMs": 2874
+    },
+    {
+      "turn": 8,
+      "candidateChars": 1070,
+      "sttTranscript": "Sure, it falls straight out of the revenue number. Revenue grew about nineteen percent over the two years, and menu prices haven't changed at all, and the store count is fixed to two hundred. So with price constant and footprint constant, every dollar of revenue growth has to come from units sold. Revenue growth equals volume growth, roughly nineteen percent. And since it's the same two hundred stores, it's all same store volume, which is the more encouraging read. They are genuinely selling more cups per location, not just adding doors. Biggest risk that the volume growth isn't demand strength, it's price seeking behavior. If customers have been drifting to brew and bean precisely because competitors raised prices and brew and bean didn't, then they've effectively been buying share with margin, and a twelve to fourteen percent increase hands that traffic right back, that would show up as volume falling more than proportionally, wiping out the revenue gain. That's exactly what the pilot needs to test, not just whether volume dips, but whether it dips hardest in markets where competitors are already priced above us.",
+      "interviewerText": "Mm-hm. Hold on, check that figure. The case says revenue grew fifteen percent, and you said nineteen. Where did nineteen come from, and does the store count of two hundred hold across both periods, or is that something you assumed?",
+      "interruptions": 0,
+      "eagerSignals": 2,
+      "resumed": 1,
+      "latency": {
+        "endpointMs": 1593,
+        "eagerLeadMs": 280,
+        "turnMs": 1545,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "ack": "Mm-hm.",
+      "firstHeardMs": 1597,
+      "silenceAfterAckMs": 1541,
+      "toFirstSegmentMs": 3138
+    }
+  ]
+}

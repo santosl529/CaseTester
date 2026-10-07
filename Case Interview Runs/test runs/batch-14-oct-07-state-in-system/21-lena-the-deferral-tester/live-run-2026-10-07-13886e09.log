@@ -1,0 +1,139 @@
+[live-run] session 13886e09-a82c-4d14-a7e4-af9e37e3bb52 · Brew & Bean Profitability · persona 21 Lena — the Deferral Tester · pace fast
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+Take a moment, then walk me through how you'd approach this.
+
+[candidate · 0:06] Let me take a second to structure this.
+
+So revenue is up 15% but net margin fell from 24% to 6% — that's a huge drop, roughly three-quarters of their margin gone. Since revenue grew, the problem is almost certainly on the cost side, or costs growing much faster than revenue.
+
+I'd break it into two branches. First, revenue: is the 15% growth coming from new stores, more transactions per store, or higher ticket size? That matters because opening stores adds fixed cost. Second, costs: split into COGS — coffee beans, milk, cups — and operating costs like labor, rent, utilities, plus any corporate overhead or marketing.
+
+One thing I'd want early: do we have menu-price history over the two years? Whether they've taken price helps me read both branches.
+
+Then I'd benchmark each cost line as a percent of revenue, two years ago versus today, and see which one moved most. Can we start with the cost breakdown?
+[runner] phase: INTRO kind: model stall rung: none
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"A revenue-and-cost split.","move":"pressure_test","requests":[{"what":"menu price history","item_ids":["menu_price_change"],"explicit":true,"respond":"defer"},{"what":"the cost breakdown","item_ids":["cogs_pct","labor_pct","overhead_pct"],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Before we pull data: is that structure MECE, and which branch would you prioritize first, and why?"}
+[timing] reads_done=119 plan_done=131 model_request=133 distress_verdict=814 model_first_token=1521 model_first_sentence=1524 first_delivered=1531 model_say_closed=1531 model_move_closed=1531 model_requests_closed=1951 model_exhibit_closed=1951 model_rescue_item_closed=1951 data_line_delivered=1951 model_question_closed=2755 model_done=2763 settle_start=2763 settle_composed=2767 tail_delivered=2767 persist_start=2768 persist_end=2806
+
+[interviewer · STRUCTURE · 0:08] A revenue-and-cost split. I'll come back to menu price history and the cost breakdown shortly. Before we pull data: is that structure MECE, and which branch would you prioritize first, and why?
+
+[candidate · 0:14] I think it's close to MECE. Revenue and cost are collectively exhaustive for profit, and within cost I'd make sure the lines don't overlap — so COGS strictly product inputs, labor separate, occupancy separate, and corporate overhead as its own bucket rather than smeared across stores. One gap: I should explicitly separate store-level costs from corporate-level, since 200 locations means growth could be loading up headquarters cost. Let me add that.
+
+I'd prioritize the cost branch first. Revenue grew 15%, so demand isn't collapsing — if the margin fell 18 points on rising revenue, costs have to be the driver. I don't have the price history yet, so I'll assume for now prices held flat, meaning the 15% is volume or store count, and the revenue branch is mostly a sizing question rather than the root cause. If prices did move, I'd revisit that.
+[runner] phase: STRUCTURE kind: model stall rung: none
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"Cost branch first, with store versus corporate split added.","move":"structure","requests":[{"what":"menu price changes over 2 years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"},{"what":"the cost breakdown","item_ids":["cogs_pct","labor_pct","overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"With those in hand, which cost line moved most, and what does that tell you about the root cause?"}
+[timing] reads_done=31 plan_done=37 model_request=38 distress_verdict=742 model_first_token=796 model_first_sentence=1195 first_delivered=1196 model_say_closed=1196 model_move_closed=1196 model_requests_closed=1595 model_exhibit_closed=1595 model_rescue_item_closed=1595 data_line_delivered=1595 model_question_closed=2359 model_done=2367 settle_start=2367 settle_composed=2369 tail_delivered=2369 persist_start=2369 persist_end=2404
+
+[interviewer · ANALYSIS · 0:16] Cost branch first, with store versus corporate split added. Coming back to what you asked for earlier: Menu prices have not changed in two years. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. I'll come back to the cost breakdown shortly. With those in hand, which cost line moved most, and what does that tell you about the root cause?
+
+[candidate · 0:22] COGS is clearly the mover. It went from 42% to 58% of revenue — a 16-point swing — and the total margin fell 18 points, so COGS alone explains roughly 90% of the decline. Labor flat at 22% and prices flat confirms this isn't a wage or discounting story.
+
+And since menu prices haven't changed in two years, revenue per unit is fixed. That means the 16 points can't be hiding behind a price cut — it's genuinely input cost per cup going up, or more input per cup.
+
+So the root cause sits inside COGS, and I'd split it three ways: input prices rising — green coffee and dairy both spiked recently; mix shifting toward lower-margin items like milk-heavy drinks or food; or waste and shrink, meaning they're buying more than they sell.
+
+Do we have a breakdown of COGS by component, and how unit input costs have trended?
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"A COGS-first diagnosis.","move":"analysis","requests":[{"what":"the COGS breakdown by component","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"how unit input costs have trended","item_ids":["bean_price_change","non_bean_input_change"],"explicit":true,"respond":"release"},{"what":"overhead and rent as a percent of revenue","item_ids":["overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"You said COGS explains roughly 90% of the decline. Points of what, exactly, and what accounts for the rest of the margin gap?"}
+[timing] reads_done=32 plan_done=33 model_request=33 distress_verdict=600 model_first_token=1003 model_first_sentence=1404 first_delivered=1405 model_say_closed=1405 model_move_closed=1405 model_requests_closed=2231 model_exhibit_closed=2231 model_rescue_item_closed=2231 data_line_delivered=2231 model_question_closed=2817 model_done=2817 settle_start=2817 settle_composed=2820 tail_delivered=2820 persist_start=2820 persist_end=2855
+
+[interviewer · EXHIBIT · 0:25] A COGS-first diagnosis. Coffee beans were 25% of COGS two years ago. Raw coffee bean costs are up 40% over the past two years. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. I'll come back to overhead and rent as a percent of revenue shortly. You said COGS explains roughly 90% of the decline. Points of what, exactly, and what accounts for the rest of the margin gap?
+
+[candidate · 0:33] Points of net profit margin as a percent of revenue. Margin fell from 24% to 6%, so 18 percentage points of revenue. COGS rose from 42% to 58% of revenue, which is 16 of those 18 points — about 89%. The remaining 2 points have to sit somewhere else: labor's flat, so it's rent, corporate overhead, D&A, or interest. That's what I'd want next.
+
+And the input numbers basically close the COGS story. Beans are 25% of COGS up 40%, the other 75% up 37.5%. Weighted: 0.25 × 40 = 10, plus 0.75 × 37.5 = 28.1, so about 38% cost inflation on inputs. Meanwhile COGS went 42 to 58 of revenue, which is a 38% relative increase. Those match almost exactly.
+
+So this is pure input-cost inflation passed straight through, not waste or mix shift. And with prices flat for two years, Brew & Bean absorbed 100% of it.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Mm-hm, the inflation math ties out.","move":"exhibit","requests":[{"what":"overhead and rent as a percent of revenue","item_ids":["overhead_pct"],"explicit":true,"respond":"release"},{"what":"the cost structure exhibit","item_ids":["exhibit-a"],"explicit":false,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What does the exhibit tell you, and does it change your view of the root cause?"}
+[timing] reads_done=33 plan_done=36 model_request=36 distress_verdict=740 model_first_token=1294 model_first_sentence=1298 first_delivered=1299 model_say_closed=1299 model_move_closed=1731 model_requests_closed=2653 model_exhibit_closed=2653 model_rescue_item_closed=2653 data_line_delivered=2654 model_question_closed=2654 model_done=2657 settle_start=2657 settle_composed=2658 tail_delivered=2658 persist_start=2658 persist_end=2692
+
+[interviewer · EXHIBIT · 0:36] Mm-hm, the inflation math ties out. You asked about this earlier: Overhead is 14% of revenue, up slightly from 12%. What does the exhibit tell you, and does it change your view of the root cause?
+
+[candidate · 0:41] That closes the bridge perfectly. Let me check: today 58 COGS + 22 labor + 14 overhead = 94% of revenue, leaving 6% margin. Two years ago, 42 + 22 + 12 = 76%, leaving 24%. So the full 18-point decline is 16 points COGS plus 2 points overhead, and the cost structure fully accounts for it — nothing unexplained.
+
+It doesn't change my view of the root cause. Overhead rising 2 points is real but secondary — it's about an eighth of the problem, and it may just be corporate cost not scaling with the 15% revenue growth, or new-store support cost. Worth a look, but it's not the story.
+
+The story is still that input costs inflated ~38% and prices haven't moved in two years, so the entire increase hit margin. The fix has to be primarily pricing, with sourcing and overhead as support.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"The bridge closes.","move":"exhibit","requests":[{"what":"the cost structure exhibit","item_ids":["exhibit-a"],"explicit":false,"respond":"release"}],"exhibit":"exhibit-a","rescue_item":null,"question":"Does anything in this exhibit confirm, or complicate, the story you just told?"}
+[timing] reads_done=31 plan_done=33 model_request=34 model_first_token=777 distress_verdict=939 model_first_sentence=1181 first_delivered=1182 model_say_closed=1182 model_move_closed=1182 model_requests_closed=1184 model_exhibit_closed=1579 model_rescue_item_closed=1579 data_line_delivered=1579 model_question_closed=2175 model_done=2178 settle_start=2178 settle_composed=2181 tail_delivered=2181 persist_start=2181 persist_end=2213
+
+[interviewer · EXHIBIT · 0:44] The bridge closes. Here's an exhibit: Brew & Bean Cost Structure Over Time. Does anything in this exhibit confirm, or complicate, the story you just told?
+
+[candidate · 0:50] It confirms it, and adds some urgency. COGS moves 42 → 50 → 58, so a steady 8 points of revenue per year — this isn't a one-off commodity spike that might snap back, it's a sustained two-year climb. Labor is literally flat at 22 all three years, and overhead creeps 12 → 13 → 14, a point a year. Profit falls 24 → 15 → 6, so roughly 9 points annually.
+
+The complication is the trajectory. If COGS adds another 8 points and overhead another 1, next year is 66 + 22 + 15 = 103% of revenue — they'd be losing about 3 points. So they have well under a year before this goes negative.
+
+It also shows management watched this happen across two full years and never took price. That's a decision-making issue, not just a cost issue. Do we know anything about why they held prices — competitive pressure or brand positioning?
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"A straight-line extrapolation to a loss.","move":"brainstorm","requests":[{"what":"why management held prices","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Setting that aside, beyond what we've discussed so far, what else could Brew & Bean do to address this, and which of those ideas would you pursue first?"}
+[timing] reads_done=32 plan_done=33 model_request=34 distress_verdict=670 model_first_token=1507 model_first_sentence=1509 first_delivered=1510 model_say_closed=1510 model_move_closed=1512 model_requests_closed=1915 model_exhibit_closed=1915 model_rescue_item_closed=1915 data_line_delivered=1916 model_question_closed=2186 model_done=2190 settle_start=2190 settle_composed=2192 tail_delivered=2192 persist_start=2192 persist_end=2226
+
+[interviewer · BRAINSTORM · 0:52] A straight-line extrapolation to a loss. I don't have why management held prices. Setting that aside, beyond what we've discussed so far, what else could Brew & Bean do to address this, and which of those ideas would you pursue first?
+
+[candidate · 0:59] Beyond pricing, I'd put levers in three buckets.
+
+On sourcing: lock in forward contracts or hedge green coffee rather than buying spot, consolidate volume across 200 stores for better terms, and look at supplier renegotiation or dual-sourcing origins. Also reformulation — smaller default milk pour, cheaper cup spec — which cuts input per unit without touching the menu board.
+
+On mix: push customers toward higher-margin items. Black coffee and espresso are mostly bean cost; dairy-heavy and food items carry the inflated 75% bucket. Merchandising and bundling can shift mix without a visible price increase.
+
+On overhead: 14% of revenue for a 200-store chain, growing a point a year, suggests corporate isn't scaling. Worth a zero-based review.
+
+I'd pursue pricing first. Prices haven't moved in two years while inputs rose 38%, so there's almost certainly headroom, and it's the only lever fast enough given they're under a year from losses. Sourcing is second — real savings but 6-12 months to land.
+[runner] phase: BRAINSTORM kind: model stall rung: none
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Pricing first, sourcing second.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Anything beyond cost and price levers, say on the revenue side or the customer side, that could help close the gap?"}
+[timing] reads_done=30 plan_done=31 model_request=32 distress_verdict=757 model_first_token=1351 model_first_sentence=1356 first_delivered=1357 model_say_closed=1357 model_move_closed=1358 model_requests_closed=1358 model_exhibit_closed=1358 model_rescue_item_closed=1358 model_question_closed=2246 model_done=2252 settle_start=2252 settle_composed=2255 tail_delivered=2255 persist_start=2255 persist_end=2287
+
+[interviewer · BRAINSTORM · 1:01] Pricing first, sourcing second. Anything beyond cost and price levers, say on the revenue side or the customer side, that could help close the gap?
+
+[candidate · 1:08] Yes, a few. On ticket size, attachment is probably the biggest one — food attach rate on a coffee order, or upsizing. Even if food carries inflated input costs, an incremental item still adds absolute gross profit on a visit they're already paying rent and labor for. Since labor is fixed at 22% and stable, anything that drives revenue per store flows through at a better rate.
+
+On frequency, a loyalty or subscription program — prepaid monthly coffee — lifts visits and gives them cash up front and better demand visibility for sourcing.
+
+On dayparts, if they're coffee-heavy in the morning, afternoon and evening capacity is sitting idle against fixed rent.
+
+And on channel, mobile order-ahead and delivery, plus packaged beans retail, which carry different margin structures.
+
+I'd caveat that I don't know their traffic trend or ticket size — the 15% revenue growth could be all new stores. If per-store traffic is actually declining, that reorders this. Do we have same-store sales?
+[runner] phase: BRAINSTORM kind: model stall rung: none
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Got it.","move":"recommendation","requests":[{"what":"same-store sales","item_ids":["revenue_per_store","stores_count"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"With the case in hand, the CEO is asking for your recommendation. What should Brew & Bean do, and how would you sequence it?"}
+[timing] reads_done=33 plan_done=35 model_request=35 distress_verdict=698 model_first_token=1124 model_first_sentence=1501 first_delivered=1502 model_say_closed=1502 model_move_closed=1502 model_requests_closed=1513 model_exhibit_closed=1546 model_rescue_item_closed=1578 data_line_delivered=1578 model_question_closed=1975 model_done=2105 settle_start=2105 settle_composed=2108 tail_delivered=2108 persist_start=2108 persist_end=2146
+
+[interviewer · RECOMMENDATION · 1:10] Got it. Average revenue per store is $2.4M a year. 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. With the case in hand, the CEO is asking for your recommendation. What should Brew & Bean do, and how would you sequence it?
+
+[candidate · 1:19] My recommendation: Brew & Bean should take price immediately and in stages, backed by sourcing and mix work — they have under a year before they're loss-making.
+
+Three supports. First, this is a pass-through failure, not a demand problem. Footprint is flat at 200 stores and prices are flat, so all 15% of revenue growth is traffic and ticket — customers are coming more, and that's real pricing power they haven't used. Second, the math: revenue is 200 × $2.4M = $480M, profit at 6% is about $29M; every point of margin is $4.8M. Third, inputs rose ~38% and the trend is 8 points a year, so this won't self-correct.
+
+Sizing: costs are 94% of revenue, or $451M. To get back to 24% you'd need revenue of 451/0.76 ≈ $593M, about 24% price. That's too much at once — I'd phase 8-10% now, measure elasticity, then a second step.
+
+Risks: elasticity, and competitors who may have already priced. Next steps: price test in a store subset, and start hedging beans.
+[runner] phase: RECOMMENDATION kind: model stall rung: none
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Understood.","move":"risk","requests":[],"exhibit":null,"rescue_item":null,"question":"You said a first step of 8 to 10 percent, then measure elasticity. What's the biggest risk to this recommendation, and how would you mitigate it?"}
+[timing] reads_done=33 plan_done=35 model_request=35 distress_verdict=651 model_first_token=1342 model_first_sentence=1351 first_delivered=1353 model_say_closed=1353 model_move_closed=1353 model_requests_closed=1353 model_exhibit_closed=1353 model_rescue_item_closed=1353 model_question_closed=2038 model_done=2045 settle_start=2045 settle_composed=2046 tail_delivered=2046 persist_start=2046 persist_end=2079
+
+[interviewer · RECOMMENDATION · 1:21] Understood. You said a first step of 8 to 10 percent, then measure elasticity. What's the biggest risk to this recommendation, and how would you mitigate it?
+
+[candidate · 1:29] The biggest risk is elasticity — that an 8-10% price increase drives enough traffic loss that revenue falls instead of rising. At 6% margin they have almost no cushion to absorb a volume mistake.
+
+Quick sense of the breakeven: at current economics, COGS is 58% of revenue, so contribution per cup is roughly 42% before labor. If I take 10% price with costs per cup unchanged, I can afford to lose volume until the incremental profit goes flat — very roughly in the high-teens percent of transactions. So they have some room, but not unlimited.
+
+Mitigation: don't do it chain-wide. Pilot in 20-30 stores across different market types — urban, suburban, high versus low competitive density — hold the rest as control, and read transactions and ticket weekly for 6-8 weeks. Lead with the least elastic items, specialty espresso drinks where brand matters most, and hold entry-price drip coffee to protect traffic perception. Pair it with the loyalty program so regulars feel they're getting something back rather than just paying more.
+[runner] phase: RECOMMENDATION kind: close stall rung: none
+[timing] reads_done=37 plan_done=38 code_written_checks_start=39 distress_verdict=634 code_written_checks_end=1416 settle_start=1416 settle_composed=1417 first_delivered=1417 tail_delivered=1417 persist_start=1417 persist_end=1455
+
+[interviewer · SCORING · 1:30] That's time. Thanks for working through it — your written report will follow.
+
+[live-run] ended=true scoring=skipped

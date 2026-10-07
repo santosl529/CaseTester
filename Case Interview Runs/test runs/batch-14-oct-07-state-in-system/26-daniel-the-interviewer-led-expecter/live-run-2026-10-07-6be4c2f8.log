@@ -1,0 +1,131 @@
+[live-run] session 6be4c2f8-4e98-4ddf-8afd-7d87cdfaa887 · Brew & Bean Profitability · persona 26 Daniel — the Interviewer-Led Expecter · pace fast
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+Take a moment, then walk me through how you'd approach this.
+
+[candidate · 0:06] Let me take a second to structure this.
+
+So the core puzzle is that revenue is up 15% but net margin fell from 24% to 6% — that's a huge drop, roughly three-quarters of the margin gone. Since revenue grew, the problem is almost certainly on the cost side, or a mix shift where the revenue growth came at much worse economics.
+
+I'd break profit into revenue minus costs. On revenue, I'd want to understand whether growth came from price, volume, or new store openings, and whether mix shifted toward lower-margin items. On costs, I'd split fixed versus variable, then look at the big lines for a coffee chain: cost of goods — beans, milk, cups — labor, rent and occupancy, and corporate overhead. I'd also check whether new locations are dragging the average down.
+
+I'd start on the cost side since that's where the signal points.
+
+What would you like me to look at next?
+[runner] phase: INTRO kind: model stall rung: none
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"A revenue-minus-cost split, starting on costs.","move":"pressure_test","requests":[],"exhibit":null,"rescue_item":null,"question":"You've laid out several branches on both revenue and costs. Which one would you prioritize first, and why?"}
+[timing] reads_done=108 plan_done=120 model_request=121 distress_verdict=696 model_first_token=1557 model_first_sentence=1560 first_delivered=1567 model_say_closed=1567 model_move_closed=1568 model_requests_closed=1568 model_exhibit_closed=1568 model_rescue_item_closed=2385 model_question_closed=2386 model_done=2391 settle_start=2391 settle_composed=2396 tail_delivered=2396 persist_start=2396 persist_end=2429
+
+[interviewer · STRUCTURE · 0:08] A revenue-minus-cost split, starting on costs. You've laid out several branches on both revenue and costs. Which one would you prioritize first, and why?
+
+[candidate · 0:14] I'd prioritize the cost side, and within costs, cost of goods sold first.
+
+Reasoning: revenue grew 15%, so demand isn't the issue — something is eating margin. And the drop is so large, 18 points, that it's likely a line item that's both big and volatile. For a coffee chain, COGS and labor are the two biggest variable lines, and COGS is the one most exposed to external shocks — green coffee and dairy prices have moved a lot. Labor is also a candidate given wage inflation, but it tends to move more gradually.
+
+I'd also want to separate same-store economics from new-store economics, because if they've been opening locations aggressively, immature stores could carry fixed costs without mature volume. But I'd check COGS as a percent of revenue first, since that's a quick read.
+
+What would you like me to look at next?
+[runner] phase: STRUCTURE kind: model stall rung: none
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"A COGS-first read.","move":"analysis","requests":[{"what":"COGS as a percent of revenue","item_ids":["cogs_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What does that tell you, and what would you look at next?"}
+[timing] reads_done=30 plan_done=35 model_request=36 model_first_token=735 distress_verdict=758 model_first_sentence=1132 first_delivered=1132 model_say_closed=1133 model_move_closed=1133 model_requests_closed=1178 model_exhibit_closed=1902 model_rescue_item_closed=1902 data_line_delivered=1902 model_question_closed=1902 model_done=1907 settle_start=1907 settle_composed=1908 tail_delivered=1908 persist_start=1908 persist_end=1943
+
+[interviewer · ANALYSIS · 0:16] A COGS-first read. COGS is 58% of revenue today, up from 42% two years ago. What does that tell you, and what would you look at next?
+
+[candidate · 0:22] That's essentially the whole story. COGS went from 42% to 58% of revenue, a 16-point increase, and total margin fell 18 points — so roughly 16 of those 18 points sit in COGS. The other two points are somewhere else, labor or overhead, but they're secondary.
+
+What it tells me is that the cost of goods sold per dollar of revenue has risen sharply. That can happen three ways: input prices went up, the quantity of input per unit sold went up — waste, spoilage, bigger portions — or the mix shifted toward items that are inherently lower margin, like food or milk-heavy drinks versus plain brewed coffee. It could also be that prices to the customer stayed flat while input costs rose, which is really the same squeeze seen from the revenue side.
+
+Do we have a breakdown of what's inside that COGS line — beans, dairy, packaging, food?
+
+What would you like me to look at next?
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Sixteen of the eighteen points in COGS.","move":"analysis","requests":[{"what":"the COGS breakdown by input","item_ids":["bean_share_of_cogs","non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Given that breakdown, which of your three explanations does it support, and what would you want to check to confirm it?"}
+[timing] reads_done=30 plan_done=31 model_request=31 distress_verdict=691 model_first_token=1453 model_first_sentence=1457 first_delivered=1457 model_say_closed=1457 model_move_closed=1457 model_requests_closed=1877 model_exhibit_closed=1877 model_rescue_item_closed=1877 data_line_delivered=1877 model_question_closed=2586 model_done=2594 settle_start=2595 settle_composed=2596 tail_delivered=2596 persist_start=2596 persist_end=2631
+
+[interviewer · EXHIBIT · 0:24] Sixteen of the eighteen points in COGS. Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Given that breakdown, which of your three explanations does it support, and what would you want to check to confirm it?
+
+[candidate · 0:32] Let me test it with numbers. Two years ago COGS was 42% of revenue. Beans at 25% of that is 10.5 points of revenue; other inputs are the remaining 75%, so 31.5 points.
+
+If other inputs rose 37.5% and nothing else changed, that 31.5 becomes 31.5 × 1.375 = 43.3 points. Add beans at 10.5 and you get 53.8 points. But actual COGS is 58 points — so there's about 4.2 points unexplained. That would mean beans also rose roughly 40% on a 10.5-point base.
+
+So this supports input price inflation across the board, not mix shift and not primarily waste. Both buckets moved.
+
+The one thing I'd want to confirm: have menu prices changed at all over the two years? If input costs rose ~38% and the client held prices flat, that's the real root cause — a failure to pass through. Do we have menu price history?
+
+What would you like me to look at next?
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say": "Beans and other inputs both moved, in your build.", "move": "analysis", "requests": [{"what": "menu price history", "item_ids": ["menu_price_change"], "explicit": true, "respond": "release"}], "exhibit": null, "rescue_item": null, "question": "Putting that against your read of input inflation, what does it say about the root cause, and what would you do about it?"}
+[timing] reads_done=34 plan_done=38 model_request=39 distress_verdict=738 model_first_token=1182 model_first_sentence=1185 first_delivered=1186 model_say_closed=1186 model_move_closed=1187 model_requests_closed=1582 model_exhibit_closed=1582 model_rescue_item_closed=1582 data_line_delivered=1582 model_question_closed=2349 model_done=2354 settle_start=2354 settle_composed=2356 tail_delivered=2356 persist_start=2356 persist_end=2388
+
+[interviewer · EXHIBIT · 0:35] Beans and other inputs both moved, in your build. Menu prices have not changed in two years. Putting that against your read of input inflation, what does it say about the root cause, and what would you do about it?
+
+[candidate · 0:41] That closes it. Root cause: input costs inflated roughly 38% across beans, dairy, packaging and food, and Brew & Bean absorbed all of it because menu prices haven't moved in two years. Revenue grew 15%, which given flat prices must be volume or new stores — so they sold more at progressively worse unit economics.
+
+On the fix: the direct lever is price. Rough math — COGS is 58 points today. If I raise prices by X and volume holds, revenue goes to 100(1+X) and COGS stays at 58 in absolute terms. To get COGS back to 42% of revenue I'd need 58/(1+X) = 42, so 1+X = 1.38, about a 38% increase. That's steep and unrealistic in one move, so I'd phase it and pair it with supply-side action: renegotiate or lock in supplier contracts, hedge coffee, and attack waste and portioning.
+
+Risk is volume loss, so I'd test elasticity in a subset of stores first.
+
+What would you like me to look at next?
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"A price lever, phased, with supply-side work alongside.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Beyond price increases and supplier renegotiation, what else could Brew & Bean do to protect its margin? Give me as many distinct ideas as you can."}
+[timing] reads_done=31 plan_done=33 model_request=34 distress_verdict=688 model_first_token=1325 model_first_sentence=1330 first_delivered=1332 model_say_closed=1332 model_move_closed=1332 model_requests_closed=1332 model_exhibit_closed=1724 model_rescue_item_closed=1724 model_question_closed=1724 model_done=2293 settle_start=2293 settle_composed=2295 tail_delivered=2295 persist_start=2295 persist_end=2333
+
+[interviewer · BRAINSTORM · 0:44] A price lever, phased, with supply-side work alongside. Beyond price increases and supplier renegotiation, what else could Brew & Bean do to protect its margin? Give me as many distinct ideas as you can.
+
+[candidate silent 9s]
+
+[candidate · 0:53] Let me group these.
+
+On cost of goods: reduce portion sizes or standardize them so stores aren't over-pouring; cut waste and spoilage through better demand forecasting; simplify the menu so fewer perishable SKUs; substitute inputs — cheaper packaging, alternative milk sourcing; buy in larger volumes or join a purchasing cooperative; vertical integration on roasting if they don't already roast.
+
+On mix rather than price level: push customers toward higher-margin items — brewed coffee and espresso drinks over food and heavy-dairy drinks; add high-margin add-ons like syrups and extra shots; introduce a premium tier that absorbs cost increases on the customers least price-sensitive.
+
+On revenue per transaction without a list-price change: upsell at the register, bundles, loyalty programs that raise visit frequency, shrink cup sizes at the same price.
+
+On other cost lines: labor scheduling against traffic patterns, renegotiate leases, close or convert underperforming stores.
+
+What would you like me to look at next?
+[runner] phase: BRAINSTORM kind: model stall rung: none
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"A wide set of ideas across cost, mix and revenue per transaction.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"If you were sitting with the CEO right now, what is your recommendation, which of these would you pursue first, and what is the biggest risk to it?"}
+[timing] reads_done=32 plan_done=36 model_request=36 distress_verdict=670 model_first_token=1267 model_first_sentence=1274 first_delivered=1275 model_say_closed=1275 model_move_closed=1275 model_requests_closed=1275 model_exhibit_closed=1298 model_rescue_item_closed=1625 model_question_closed=1700 model_done=2139 settle_start=2139 settle_composed=2143 tail_delivered=2143 persist_start=2143 persist_end=2173
+
+[interviewer · RECOMMENDATION · 0:55] A wide set of ideas across cost, mix and revenue per transaction. If you were sitting with the CEO right now, what is your recommendation, which of these would you pursue first, and what is the biggest risk to it?
+
+[candidate · 1:01] My recommendation: Brew & Bean's margin decline is a pass-through failure, not a demand problem, and the fix is to restore pricing — phased — while attacking input costs in parallel.
+
+The evidence: COGS went from 42% to 58% of revenue, accounting for 16 of the 18 margin points. Inputs rose roughly 38%, and menu prices haven't moved in two years. Revenue still grew 15%, which tells me demand is healthy and there's likely some headroom to price.
+
+First moves: a phased price increase, I'd start around 8–10% tested in a subset of stores to read elasticity, weighted toward the least price-sensitive items. Alongside that, renegotiate supplier contracts and hedge coffee, since those cut the cost base without touching the customer.
+
+Biggest risk: volume loss. If customers have been trained on two years of flat prices, a visible increase could push them to competitors — and because they're specialty, they may already sit at a price premium. That's why I'd pilot rather than roll out nationally.
+
+Next steps: elasticity test, competitor price benchmarking, and a waste audit.
+
+What would you like me to look at next?
+[runner] phase: RECOMMENDATION kind: model stall rung: none
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Understood.","move":"risk","requests":[],"exhibit":null,"rescue_item":null,"question":"You named an 8 to 10 percent starting increase, but you also said that restoring the old COGS ratio would take a much larger one. If the pilot shows volume falls sharply even at 8 to 10 percent, what do you do, and how would you decide?"}
+[timing] reads_done=33 plan_done=36 model_request=36 distress_verdict=680 model_first_token=1321 model_first_sentence=1324 first_delivered=1326 model_say_closed=1326 model_move_closed=1326 model_requests_closed=1326 model_exhibit_closed=1326 model_rescue_item_closed=1326 model_question_closed=2563 model_done=2567 settle_start=2567 settle_composed=2570 tail_delivered=2570 persist_start=2570 persist_end=2602
+
+[interviewer · RECOMMENDATION · 1:04] Understood. You named an 8 to 10 percent starting increase, but you also said that restoring the old COGS ratio would take a much larger one. If the pilot shows volume falls sharply even at 8 to 10 percent, what do you do, and how would you decide?
+
+[candidate · 1:12] If the pilot shows sharp volume loss at 8–10%, that tells me demand is more elastic than I assumed, and price alone can't carry the recovery.
+
+How I'd decide: I'd measure it in contribution terms, not just volume. Say price goes up 10% and volume falls 10%. Revenue is roughly flat at 100 × 1.10 × 0.90 ≈ 99. But COGS falls with volume, 58 × 0.90 ≈ 52. So contribution actually improves from 42 to about 47. So even a one-for-one volume drop is accretive. The break-even is where the volume loss wipes out that gain — I'd solve for it per store and compare against the pilot result.
+
+If the loss is steeper than that break-even, I'd cap price at whatever level is accretive and shift weight to the other levers: supplier renegotiation and hedging, waste and portion control, menu simplification, and mix-shifting toward high-margin drinks. Accept that margin recovers to something below 24% rather than chasing it with price.
+
+What would you like me to look at next?
+[runner] phase: RECOMMENDATION kind: close stall rung: none
+[timing] reads_done=33 plan_done=34 code_written_checks_start=35 distress_verdict=563 code_written_checks_end=563 settle_start=563 settle_composed=563 first_delivered=563 tail_delivered=563 persist_start=563 persist_end=598
+
+[interviewer · SCORING · 1:13] That's our time. Thanks for working through this with me — your written report will follow.
+
+[live-run] ended=true scoring=skipped
