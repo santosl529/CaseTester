@@ -361,6 +361,17 @@ mid-case. No praise words, no evaluative adjectives on candidate answers.
 Acceptable acknowledgments: "Okay." "Go on." "Understood." Evaluation happens
 only in the post-case report.
 
+**Voice: code-spoken acknowledgment and filler (7 Oct, M0 spike).** In voice
+the first sound after the candidate stops is a backchannel chosen by code,
+not the model ("Okay, got it." "Mm-hm, I see." "Understood, okay." "Okay, I
+follow." "Got it, thanks." — never twice running; "Right." excluded because
+after an answer it can sound like "you're right"). If the model's first
+sentence is not in shortly after it, a neutral thinking filler plays ("Hmm,
+let me consider that."). Both are skipped when the conduct floor flags the
+message. The model is told the acknowledgment was spoken, and a `say` that
+only acknowledges again — bare ("Understood.") or opening a comment
+("Understood, that fills the gaps.") — is withheld (`double_ack`).
+
 **Interaction with Part III:** neutral ≠ hostile. Rescue hints (Rule 13) and
 plain corrections (Rules 6, 14) are delivered in the same flat register — no
 consolation, no praise, no apology.
