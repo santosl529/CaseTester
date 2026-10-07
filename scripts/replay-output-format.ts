@@ -31,6 +31,8 @@ import { CONDUCT_REDIRECT } from '@/lib/agent/prompts/scripts';
 import { DATA_TALK, vetoReason } from '@/lib/orchestrator/stream-turn';
 import Anthropic from '@anthropic-ai/sdk';
 import { writeOpener, OPENER_TURN_NOTE, openerGate } from '@/lib/agent/opener';
+import { INTERVIEWER_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
+import { TURN_SCHEMA } from '@/lib/agent/models/turn-schema';
 
 const RUNS_ROOT = 'Case Interview Runs/test runs';
 const BATCHES = (process.env.REPLAY_BATCHES ?? 'batch-7-oct-03,batch-8-oct-03').split(',');
@@ -227,6 +229,55 @@ async function runProd(s: Sample): Promise<Row> {
   }
 }
 
+// ---------- the floor arm ----------
+// REPLAY_ARM=floor: how much of Sonnet's ~1.35s first token is prompt
+// processing. Per sample, one call at a time: the turn as logged (warms the
+// cache), the same turn again, the same prompt with the candidate's message
+// replaced by "Okay.", and a bare request (one-line system prompt, same
+// schema and settings) — the API's own floor.
+async function firstTokenMs(s: Sample, candidateText: string): Promise<number | null> {
+  const t0 = Date.now();
+  let first: number | null = null;
+  for await (const e of streamInterviewerTurn({
+    model, candidateText, history: s.history, promptCtx: s.ctx, phase: s.ctx.currentPhase,
+    onMark: name => { if (name === 'model_first_token') first ??= Date.now() - t0; },
+  })) { if (e.type === 'done') break; }
+  return first;
+}
+
+async function bareFirstTokenMs(): Promise<number | null> {
+  const t0 = Date.now();
+  const stream = anthropic.beta.messages.stream({
+    model: INTERVIEWER_MODEL_ID, max_tokens: 1024,
+    system: 'You are a case interviewer. Reply in the JSON format with a short question.',
+    messages: [{ role: 'user', content: 'Okay.' }],
+    output_config: { format: { type: 'json_schema', schema: TURN_SCHEMA } },
+    thinking: { type: 'between_tools' }, betas: [FALLBACK_BETA], fallbacks: FALLBACKS,
+  } as never);
+  let first: number | null = null;
+  for await (const ev of stream as AsyncIterable<{ type: string }>) {
+    if (ev.type === 'content_block_delta') { first ??= Date.now() - t0; }
+  }
+  return first;
+}
+
+async function runFloor(samples: Sample[]) {
+  const rows: { id: string; turn: number | null; warm: number | null; tiny: number | null; bare: number | null }[] = [];
+  for (const s of samples) {
+    const turn = await firstTokenMs(s, s.candidateText);
+    const warm = await firstTokenMs(s, s.candidateText);
+    const tiny = await firstTokenMs(s, 'Okay.');
+    const bare = await bareFirstTokenMs();
+    rows.push({ id: s.id, turn, warm, tiny, bare });
+    console.log(`  ${s.id}  turn ${turn}  warm ${warm}  tiny ${tiny}  bare ${bare}`);
+  }
+  writeFileSync(path.join(OUT_DIR, 'replay-results-floor.json'), JSON.stringify(rows, null, 2));
+  for (const k of ['turn', 'warm', 'tiny', 'bare'] as const) {
+    const v = rows.map(r => r[k]).filter((x): x is number => x != null);
+    console.log(`first token, ${k.padEnd(5)} median ${pct(v, 0.5)}ms  p90 ${pct(v, 0.9)}ms  (n ${v.length})`);
+  }
+}
+
 async function pool<T, R>(items: T[], n: number, fn: (t: T) => Promise<R>): Promise<R[]> {
   const out: R[] = new Array(items.length); let i = 0;
   await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) { const k = i++; out[k] = await fn(items[k]); } }));
@@ -253,6 +304,7 @@ async function main() {
   const estCost = samples.reduce((n, s) => n + (buildSystemPrompt(s.ctx).length + s.history.reduce((m, h) => m + h.content.length, 0)) / 3.6, 0) * 2 / 1e6;
   console.log(`${all.length} reconstructable turns · sampling ${samples.length} · est cost ~$${estCost.toFixed(2)}`);
   if (DRY) { writeFileSync(path.join(OUT_DIR, 'replay-sample-prompt.txt'), buildSystemPrompt(samples[0].ctx)); return; }
+  if (ARM === 'floor') { await bareFirstTokenMs(); await runFloor(samples); return; }
   await runProd(samples[0]); // warm the schema compile cache
   // REPLAY_CONCURRENCY / REPLAY_SPACING_MS: Cerebras allows 5 requests a
   // minute on pay-as-you-go, so its arm runs one turn at a time, spaced.
