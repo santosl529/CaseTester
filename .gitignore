@@ -46,3 +46,6 @@ next-env.d.ts
 
 # voice spike: synthesized candidate audio fixtures
 .voice-cache/
+
+# voice demo audio (large; regenerate with scripts/voice-demo.ts)
+Case Interview Runs/voice-demos/*.m4a
