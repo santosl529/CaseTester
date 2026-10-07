@@ -8,6 +8,8 @@
 //
 //   npx tsx --env-file=<.env.local> scripts/voice-latency.ts [--stt=flux|nova] [--run=batch-13-oct-06/26] [--limit=N]
 //
+// Flux: --eot=0.7 --eager=0.5 --eot-timeout=5000. Nova: --nova-close=utterance --utterance-end-ms=1000.
+//
 // Needs DEEPGRAM_API_KEY, CARTESIA_API_KEY, ANTHROPIC_API_KEY and the
 // database env. Optional: CARTESIA_VOICE_ID (interviewer),
 // CARTESIA_CANDIDATE_VOICE_ID.
@@ -83,27 +85,42 @@ async function candidateVoiceId(interviewer: string): Promise<string> {
 
 type TurnRecord = {
   turn: number; candidateChars: number; sttTranscript: string; interviewerText: string;
-  eagerSignals: number; resumed: number; latency: TurnLatency; orchestratorSteps?: Record<string, number>;
+  interruptions: number; eagerSignals: number; resumed: number; latency: TurnLatency;
 };
 
-async function speakTurnIn(stt: STTProvider, audio: Uint8Array): Promise<{ speechEndMs: number; eager: TurnSignal | null; final: TurnSignal | null; eagerSignals: number; resumed: number }> {
+type Heard = {
+  speechEndMs: number;
+  final: TurnSignal | null;      // the first end-of-turn at or after speech end
+  eager: TurnSignal | null;      // the eager signal that preceded it, not resumed
+  transcript: string;            // every finalized piece of the answer
+  interruptions: number;         // end-of-turn signals while still speaking
+  eagerSignals: number; resumed: number;
+};
+
+// Streams the whole answer, as a candidate who keeps talking would. An
+// end-of-turn before speech actually ends is an interruption (a live
+// interviewer would have cut in); the turn's real end is the first one after.
+async function speakTurnIn(stt: STTProvider, audio: Uint8Array): Promise<Heard> {
   const session = await stt.open({ encoding: 'pcm_s16le', sampleRate: MIC_RATE });
-  let eager: TurnSignal | null = null;
-  let final: TurnSignal | null = null;
-  let eagerSignals = 0;
-  let resumed = 0;
-  let gotFinal: () => void = () => {};
-  const finalP = new Promise<void>(r => { gotFinal = r; });
-  session.onSignal(s => {
-    if (s.kind === 'eager') { eager = s; eagerSignals++; }
-    else if (s.kind === 'resumed') { eager = null; resumed++; }
-    else if (!final) { final = s; gotFinal(); }
-  });
   const speech = Buffer.concat([silence(LEAD_SILENCE_SEC, MIC_RATE), audio]);
   const start = Date.now();
   const speechEndMs = start + (LEAD_SILENCE_SEC + speechEndSec(audio, MIC_RATE)) * 1000;
+  const pieces: string[] = [];
+  let final: TurnSignal | null = null;
+  let eager: TurnSignal | null = null;
+  let interruptions = 0, eagerSignals = 0, resumed = 0;
+  let gotFinal: () => void = () => {};
+  const finalP = new Promise<void>(r => { gotFinal = r; });
+  session.onSignal(sig => {
+    if (final) return;
+    if (sig.kind === 'eager') { eager = sig; eagerSignals++; return; }
+    if (sig.kind === 'resumed') { eager = null; resumed++; return; }
+    if (sig.transcript) pieces.push(sig.transcript);
+    if (sig.atMs < speechEndMs) { interruptions++; eager = null; return; }
+    final = sig;
+    gotFinal();
+  });
   await streamRealtime(new Uint8Array(speech), MIC_RATE, f => session.push(f));
-  // Room silence after speaking, until the end-of-turn arrives (or give up).
   const trail = (async () => {
     const quiet = silence(0.02, MIC_RATE);
     const until = Date.now() + MAX_TRAIL_SEC * 1000;
@@ -115,11 +132,14 @@ async function speakTurnIn(stt: STTProvider, audio: Uint8Array): Promise<{ speec
   await Promise.race([finalP, trail]);
   await trail;
   await session.close();
-  return { speechEndMs, eager, final, eagerSignals, resumed };
+  return { speechEndMs, final, eager, transcript: pieces.join(' '), interruptions, eagerSignals, resumed };
 }
 
 async function main() {
-  const stt: STTProvider = STT_KIND === 'nova' ? new DeepgramNovaSTT() : new DeepgramFluxSTT();
+  const num = (k: string) => (flag(k) !== undefined ? Number(flag(k)) : undefined);
+  const stt: STTProvider = STT_KIND === 'nova'
+    ? new DeepgramNovaSTT({ closeOn: flag('nova-close') === 'utterance' ? 'utterance_end' : 'speech_final', utteranceEndMs: num('utterance-end-ms') })
+    : new DeepgramFluxSTT({ eotThreshold: num('eot'), eagerEotThreshold: num('eager') ?? 0.5, eotTimeoutMs: num('eot-timeout') });
   const lines = candidateLines().slice(0, LIMIT);
   const interviewerVoice = await defaultVoiceId();
   const candidateVoice = await candidateVoiceId(interviewerVoice);
@@ -142,13 +162,14 @@ async function main() {
     const heard = await speakTurnIn(stt, audio[i]);
     if (!heard.final) { console.warn(`[voice] turn ${i + 1}: no end-of-turn within ${MAX_TRAIL_SEC}s — skipped`); continue; }
     const final = heard.final as TurnSignal;
+    const transcript = heard.transcript || final.transcript;
 
     const utt = await tts.open({ encoding: 'pcm_s16le', sampleRate: TTS_RATE });
     let firstSegmentMs: number | null = null;
     let firstAudioMs: number | null = null;
     utt.onAudio((_pcm, at) => { firstAudioMs ??= at; });
     const phaseBefore = phase;
-    const result = await runTurn(sessionId, final.transcript, {
+    const result = await runTurn(sessionId, transcript, {
       onSegment: speakingSink(utt, () => { firstSegmentMs ??= Date.now(); }),
       defer: task => { background.push(task()); },
     });
@@ -158,10 +179,10 @@ async function main() {
 
     const latency = turnLatency({ speechEndMs: heard.speechEndMs, eagerMs: (heard.eager as TurnSignal | null)?.atMs ?? null, finalMs: final.atMs, firstSegmentMs, firstAudioMs });
     records.push({
-      turn: i + 1, candidateChars: lines[i].length, sttTranscript: final.transcript, interviewerText: result.interviewerText,
-      eagerSignals: heard.eagerSignals, resumed: heard.resumed, latency,
+      turn: i + 1, candidateChars: lines[i].length, sttTranscript: transcript, interviewerText: result.interviewerText,
+      interruptions: heard.interruptions, eagerSignals: heard.eagerSignals, resumed: heard.resumed, latency,
     });
-    console.log(`[voice] t${i + 1} endpoint=${latency.endpointMs}ms eagerLead=${latency.eagerLeadMs ?? '-'}ms turn=${latency.turnMs ?? '-'}ms tts=${latency.ttsMs ?? '-'}ms TOTAL=${latency.totalMs ?? '-'}ms`);
+    console.log(`[voice] t${i + 1} interruptions=${heard.interruptions} endpoint=${latency.endpointMs}ms eagerLead=${latency.eagerLeadMs ?? '-'}ms turn=${latency.turnMs ?? '-'}ms tts=${latency.ttsMs ?? '-'}ms TOTAL=${latency.totalMs ?? '-'}ms`);
     if (result.ended) break;
   }
   tts.close();
@@ -178,6 +199,7 @@ async function main() {
   const summary = Object.fromEntries((['endpointMs', 'eagerLeadMs', 'turnMs', 'ttsMs', 'totalMs'] as const)
     .map(k => [k, { median: med(records.map(r => r.latency[k])), p90: p90(records.map(r => r.latency[k])) }]));
   console.log('\n[voice] summary (ms):', JSON.stringify(summary));
+  console.log(`[voice] interruptions (end-of-turn while still speaking): ${records.reduce((n, r) => n + r.interruptions, 0)} across ${records.length} turns`);
   console.log(`[voice] gate ≤1500ms median total: ${summary.totalMs.median != null && summary.totalMs.median <= 1500 ? 'PASS' : 'FAIL'}`);
 
   mkdirSync(OUT_DIR, { recursive: true });

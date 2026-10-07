@@ -23,7 +23,10 @@ export function fluxSignal(msg: FluxMessage, atMs: number): Signal | null {
 export type FluxOptions = { eotThreshold?: number; eagerEotThreshold?: number; eotTimeoutMs?: number };
 
 export class DeepgramFluxSTT implements STTProvider {
-  readonly name = 'deepgram-flux';
+  get name(): string {
+    const o = this.opts;
+    return `deepgram-flux${o.eotThreshold !== undefined ? `-eot${o.eotThreshold}` : ''}${o.eagerEotThreshold !== undefined ? `-eager${o.eagerEotThreshold}` : ''}`;
+  }
   constructor(private opts: FluxOptions = {}) {}
 
   async open(format: PcmFormat): Promise<STTSession> {
@@ -63,16 +66,18 @@ type NovaMessage = {
   channel?: { alternatives?: { transcript?: string }[] };
 };
 
-// Finalized pieces accumulate until speech_final (VAD endpoint) or an
-// UtteranceEnd (word-gap fallback) closes the turn.
+// Finalized pieces accumulate until the turn closes: on speech_final (VAD
+// endpoint — closes at short sentence pauses) or only on UtteranceEnd (a
+// word gap of utterance_end_ms). An UtteranceEnd always closes a pending turn.
 export class NovaTurnReducer {
   private pieces: string[] = [];
+  constructor(private closeOn: 'speech_final' | 'utterance_end' = 'speech_final') {}
 
   next(msg: NovaMessage, atMs: number): TurnSignal | null {
     if (msg.type === 'Results') {
       const text = (msg.channel?.alternatives?.[0]?.transcript ?? '').trim();
       if (msg.is_final && text) this.pieces.push(text);
-      if (msg.speech_final) return this.close(atMs);
+      if (msg.speech_final && this.closeOn === 'speech_final') return this.close(atMs);
       return null;
     }
     if (msg.type === 'UtteranceEnd') return this.close(atMs);
@@ -87,10 +92,10 @@ export class NovaTurnReducer {
   }
 }
 
-export type NovaOptions = { endpointingMs?: number; utteranceEndMs?: number };
+export type NovaOptions = { endpointingMs?: number; utteranceEndMs?: number; closeOn?: 'speech_final' | 'utterance_end' };
 
 export class DeepgramNovaSTT implements STTProvider {
-  readonly name = 'deepgram-nova-3';
+  get name(): string { return `deepgram-nova-3${this.opts.closeOn === 'utterance_end' ? '-utterance-end' : ''}`; }
   constructor(private opts: NovaOptions = {}) {}
 
   async open(format: PcmFormat): Promise<STTSession> {
@@ -108,7 +113,7 @@ export class DeepgramNovaSTT implements STTProvider {
       utterance_end_ms: this.opts.utteranceEndMs ?? 1000,
       vad_events: 'true',
     });
-    const reducer = new NovaTurnReducer();
+    const reducer = new NovaTurnReducer(this.opts.closeOn);
     let cb: (s: Signal) => void = () => {};
     conn.on('message', (m: unknown) => {
       const s = reducer.next(m as NovaMessage, Date.now());

@@ -24,7 +24,7 @@ export interface STTSession {
 }
 
 export interface STTProvider {
-  readonly name: string;
+  readonly name: string;   // includes the settings, for run records
   open(format: PcmFormat): Promise<STTSession>;
 }
 

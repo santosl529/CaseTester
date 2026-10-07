@@ -80,3 +80,13 @@ describe('turnLatency', () => {
       .toEqual({ endpointMs: 300, eagerLeadMs: null, turnMs: null, ttsMs: null, totalMs: null });
   });
 });
+
+describe('Nova-3 closing on UtteranceEnd only', () => {
+  it('ignores speech_final and closes the whole answer on the word gap', () => {
+    const r = new NovaTurnReducer('utterance_end');
+    const res = (transcript: string) => ({ type: 'Results', is_final: true, speech_final: true, channel: { alternatives: [{ transcript }] } });
+    expect(r.next(res('First point.'), 1)).toBeNull();
+    expect(r.next(res('Second point.'), 2)).toBeNull();
+    expect(r.next({ type: 'UtteranceEnd' }, 3)).toEqual({ kind: 'final', transcript: 'First point. Second point.', atMs: 3 });
+  });
+});
