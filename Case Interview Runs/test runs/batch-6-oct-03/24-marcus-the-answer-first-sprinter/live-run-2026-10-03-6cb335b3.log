@@ -1,0 +1,325 @@
+[live-run] session 6cb335b3-6893-45be-acab-1a0c76143a1d · Brew & Bean Profitability · persona 24 Marcus — the Answer-First Sprinter · pace human
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+How would you like to approach this? Feel free to take a moment to gather your thoughts first.
+
+[candidate · 0:59] Sure — so just to play it back: Brew & Bean, 200 US locations, net margin fell from 24% to 6% over two years while revenue grew 15%. So revenue is up but profit is way down, which means costs have grown much faster than sales. Our goal is root cause plus a fix.
+
+Given revenue grew, I'd start on the cost side rather than the demand side. Let me think about where that margin went.
+[runner] phase: INTRO stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "speak",
+    "input": {
+      "text": "Understood. Take a minute if you need it, then walk me through how you'd structure the cost analysis."
+    }
+  }
+]
+[interviewer] phase: INTRO raw: ["advance_phase","speak"] → filtered: ["advance_phase","speak"]
+
+[interviewer · CLARIFY · 1:01] Understood. Take a minute if you need it, then walk me through how you'd structure the cost analysis.
+
+[candidate · 2:31] Honestly, I think I can skip ahead here — the answer's pretty clearly input costs. Coffee commodity prices and dairy have spiked over the last two years, and wages in food service have gone up a lot too. Revenue grew 15% but margin fell 18 points, which is exactly what you'd see if COGS and labor inflated and prices stayed flat.
+
+So my recommendation: Brew & Bean should raise menu prices. Specialty coffee is a low-elasticity category — people buy their latte regardless. I'd do a staged increase, maybe 7-10% on core drinks, lead with the premium SKUs where willingness to pay is highest, and pair it with a loyalty program so regulars feel cushioned. That alone should recover most of the margin.
+
+Secondary lever would be renegotiating bean contracts and locking in longer-term supplier pricing to stop the bleeding on volatility.
+
+That's where I'd land.
+[runner] phase: CLARIFY stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "thinking"
+  },
+  {
+    "type": "text",
+    "text": "Understood, but I'm not ready for a recommendation yet, because you haven't shown me evidence for the cause. Take a minute, then walk me through the structure you'd use to test where the margin went."
+  }
+]
+[interviewer] phase: CLARIFY raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · CLARIFY · 2:35] Understood, but I'm not ready for a recommendation yet, because you haven't shown me evidence for the cause. Take a minute, then walk me through the structure you'd use to test where the margin went.
+
+[candidate · 4:05] I'd say the structure is kind of implied by the answer. If the cause is input cost inflation, then the test is just: pull COGS as a percent of revenue two years ago versus today, same for labor, and confirm menu prices were roughly flat. If those three things hold, we're done — and I'd be surprised if they didn't.
+
+I don't think it's worth building out a full revenue-minus-cost tree and walking every branch when the pattern already tells us the story. Revenue grew. Margin collapsed. That's a cost problem, and in coffee the two costs that matter are beans and baristas.
+
+Do we have menu price history over those two years? That's the one thing that would confirm it fast.
+
+But either way, my recommendation stands — price increase plus supplier contract renegotiation.
+[runner] phase: CLARIFY stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "thinking"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "menu_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "speak",
+    "input": {
+      "text": "Given that, which cost lines would you pull next, and what would each tell you about where the margin went?"
+    }
+  }
+]
+[interviewer] phase: CLARIFY raw: ["reveal_data","advance_phase","speak"] → filtered: ["reveal_data","advance_phase","speak"]
+[runner] phase repair: {"from":"STRUCTURE","to":"ANALYSIS","reasons":["ledger reveal (releaseWhen ANALYSIS)"]}
+
+[interviewer · ANALYSIS · 4:10] Menu prices have not changed in two years. Given that, which cost lines would you pull next, and what would each tell you about where the margin went?
+
+[candidate · 5:40] Right — prices flat for two years confirms it. That's basically the whole case. If prices held and margin fell 18 points, the gap is cost inflation they never passed through.
+
+If we're pulling lines, I'd look at COGS as a percent of revenue and labor as a percent of revenue, then whatever's left in occupancy. COGS tells us beans and dairy, labor tells us wage pressure, rent tells us lease renewals. But I'd expect the first two to account for almost all of it.
+
+Quick sanity check on the math: revenue up 15%, so if margin went 24 to 6, profit dollars dropped roughly from 24 to 6.9 on a base of 100 going to 115 — about a 70% profit decline. That's a big number, and flat pricing against inflation gets you there.
+
+So I'd still land in the same place: raise prices 7-10%, renegotiate supply contracts. The cost pull is confirmation, not discovery.
+[runner] phase: ANALYSIS stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "thinking"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "cogs_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "labor_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "overhead_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "speak",
+    "input": {
+      "text": "Those are current figures. What would you need to compare them against to see where the margin went?"
+    }
+  }
+]
+[interviewer] phase: ANALYSIS raw: ["reveal_data","reveal_data","reveal_data","speak"] → filtered: ["reveal_data","reveal_data","reveal_data","speak"]
+
+[interviewer · ANALYSIS · 5:47] COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. Those are current figures. What would you need to compare them against to see where the margin went?
+
+[candidate · 7:17] That lines up with what I said — COGS is the whole story. Up 16 points, 42 to 58. Labor flat, overhead up 2. So 16 of the 18 points of margin came out of COGS alone.
+
+Quick check: 42 + 22 + 12 = 76, so 24% margin, matches the starting point. Today: 58 + 22 + 14 = 94, so 6%. Clean.
+
+So we don't really need to compare against anything further — the current figures versus the old ones already give us the answer. It's input costs, exactly as I framed it at the start.
+
+One thing that'd be useful: a split of that COGS line — beans versus dairy versus cups and packaging. That tells us which contracts to attack first.
+
+But the recommendation doesn't change. Prices have been flat for two years while COGS climbed 16 points. Raise prices 7-10%, lock in longer supplier terms.
+[runner] phase: ANALYSIS stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_share_of_cogs"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "non_bean_input_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_price_change"
+    }
+  }
+]
+[interviewer] phase: ANALYSIS raw: ["reveal_data","reveal_data","reveal_data"] → filtered: ["reveal_data","reveal_data","reveal_data"]
+[runner] phase repair: {"from":"ANALYSIS","to":"EXHIBIT","reasons":["ledger reveal (releaseWhen EXHIBIT)"]}
+
+[interviewer · EXHIBIT · 7:21] Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Raw coffee bean costs are up 40% over the past two years.
+
+[candidate · 8:51] Let me run it. Beans were 25% of 42%, so 10.5 points of revenue; other inputs 75%, so 31.5 points. Beans up 40% gives 14.7. Other inputs up 37.5% gives 43.3. Add those: 58.0. That's exactly today's COGS number.
+
+So the entire 16-point move is explained by input price inflation, and it's broad — not just beans. Beans are only about a quarter of the basket, so even a 40% spike there is 4 points of the 16. The other 12 points are dairy, packaging, and food.
+
+Which honestly reinforces my point: you can't contract-negotiate your way out of a 37.5% increase across every input category. The only lever that scales is price. Flat menu for two years against that kind of inflation is the root cause.
+
+So — raise prices 7-10%, renegotiate where you can on the bean side, and that's the plan.
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "thinking"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "speak",
+    "input": {
+      "text": "Okay. You've said 7-10% on menu prices. Walk me through how you got that range, and what it would do to the margin."
+    }
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["advance_phase","speak"] → filtered: ["advance_phase","speak"]
+
+[interviewer · BRAINSTORM · 8:56] Okay. You've said 7-10% on menu prices. Walk me through how you got that range, and what it would do to the margin.
+
+[candidate · 10:26] Honestly, the 7-10% was a judgment call on what customers would absorb without walking, not something I derived. Let me actually run it.
+
+Costs are 94% of revenue. If I raise prices x% and volume holds, cost dollars stay flat, so margin = 1 − 94/(1+x). At 7%: 94/1.07 = 87.9, so margin 12.1%. At 10%: 94/1.1 = 85.5, margin 14.5%.
+
+So my range gets us to roughly 12-14%, not back to 24%. To fully recover, I'd need 94/0.76 = 123.7, a 23.7% price increase. That's a lot more than I assumed, and at that level elasticity stops being a rounding error.
+
+Do we have transaction volume or any elasticity data? Without it I'd assume volume holds flat, which is generous.
+
+But the direction is unchanged — price is the lever, it just has to be bigger or paired with cost work.
+[runner] phase: BRAINSTORM stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "thinking"
+  },
+  {
+    "type": "text",
+    "text": "I don't have elasticity data or a transaction volume breakdown. Beyond price increases and supplier renegotiation, what else could Brew & Bean do to close the remaining gap?"
+  }
+]
+[interviewer] phase: BRAINSTORM raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · BRAINSTORM · 10:31] I don't have elasticity data or a transaction volume breakdown. Beyond price increases and supplier renegotiation, what else could Brew & Bean do to close the remaining gap?
+
+[candidate · 12:01] Fair — I'll assume volume holds, which is generous, and work the remainder.
+
+A few things. Menu mix: shift customers toward higher-margin items. Brewed coffee and espresso have a much lower input load than dairy-heavy drinks, and dairy is in the bucket that drove most of the 12 points. Pushing black coffee, oat alternatives if cheaper, and food attach could move the blended COGS ratio without a headline price change.
+
+Portion and waste control: at 200 locations, standardizing pours and cutting spoilage on dairy and food is real money when inputs are up 37.5%.
+
+Packaging — it's inside that same bucket. Cheaper cups and lids, or a discount for reusables, is a straight cost line.
+
+Overhead is only up 2 points, so I wouldn't spend time there.
+
+But I'd be clear with the CEO: these are supporting moves. Flat prices for two years against this inflation is the cause, and price is the primary fix.
+[runner] phase: BRAINSTORM stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "speak",
+    "input": {
+      "text": "Okay. Pricing is the primary lever in your view. Which of your ideas would you sequence first, and what risk to the business would you watch as you roll them out?"
+    }
+  }
+]
+[interviewer] phase: BRAINSTORM raw: ["advance_phase","speak"] → filtered: ["advance_phase","speak"]
+
+[interviewer · RECOMMENDATION · 12:03] Okay. Pricing is the primary lever in your view. Which of your ideas would you sequence first, and what risk to the business would you watch as you roll them out?
+
+[candidate · 13:33] I'd sequence price first, but staged rather than one 24% jump. Start with a 7-8% increase, which gets us to roughly 12% margin, and run it in a subset of locations — say 20 stores — so we can actually measure volume response, since we don't have elasticity data. That pilot generates the data we're missing. Then a second increase a few quarters later based on what we learn.
+
+In parallel, because they're fast and invisible to customers: waste and portion control, and packaging substitution. Those don't carry demand risk.
+
+Menu mix third — it takes merchandising work and takes longer to show up.
+
+Main risk is volume loss. Specialty coffee has substitutes, and if traffic drops more than a few percent the price increase is self-defeating. Second risk is that input prices mean-revert; if beans fall back we'd be over-priced versus competitors who held. So I'd watch transaction counts weekly and keep the second increase contingent on the pilot.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "thinking"
+  },
+  {
+    "type": "text",
+    "text": "You said a traffic drop of more than a few percent would make the price increase self-defeating. Walk me through how you'd work out that threshold."
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 13:37] You said a traffic drop of more than a few percent would make the price increase self-defeating. Walk me through how you'd work out that threshold.
+
+[candidate · 15:07] Let me set it up. Split costs into variable and fixed. COGS at 58 moves with volume. Labor 22 and overhead 14 are mostly fixed in the short run — stores are staffed and leased regardless. So 36 points fixed.
+
+Take revenue 100 today, profit 6. Now raise price 7% and let v be the volume index. Revenue becomes 107v, COGS 58v, fixed stays 36. Profit = 49v − 36.
+
+To hold today's 6 points of profit: 49v = 42, so v = 0.857. That's a 14% traffic drop before we're worse off than today.
+
+To just break even on profit: 49v = 36, v = 0.735, a 26.5% drop.
+
+So my "few percent" was too conservative — the cushion is more like 14%. Caveat: labor isn't perfectly fixed, you'd flex hours at the margin, which lowers the threshold somewhat. But 14% is the number I'd pilot against.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "speak",
+    "input": {
+      "text": "Understood. Now the CEO is on the line and wants your final recommendation in under a minute. What do you tell them?"
+    }
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["advance_phase","speak"] → filtered: ["advance_phase","speak"]
+
+[interviewer · WRAP · 15:11] Understood. Now the CEO is on the line and wants your final recommendation in under a minute. What do you tell them?
+
+[candidate · 16:41] Brew & Bean's margin problem is almost entirely input cost inflation that you never passed through to customers. COGS went from 42% to 58% of revenue — that's 16 of the 18 points you lost. Labor is flat, overhead is up only 2. And menu prices haven't moved in two years while your input basket rose about 37.5%.
+
+So: raise prices. I'd start at 7-8% across the menu, piloted in roughly 20 stores. That alone takes margin from 6% to about 12%, and the math says you'd need a 14% traffic drop before you're worse off than today — so the downside is well covered. Then a second increase based on what the pilot shows.
+
+Alongside that, waste and portion control on dairy, cheaper packaging, and a push toward lower-input drinks and food attach.
+
+Risks: volume loss, and input prices reverting and leaving you priced above competitors.
+
+Next step is the pilot — it gives us the elasticity data we don't currently have.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "tool_use",
+    "name": "end_case",
+    "input": {}
+  }
+]
+[interviewer] phase: WRAP raw: ["end_case"] → filtered: ["end_case"]
+
+[interviewer · SCORING · 16:43] That's our time. Thanks for working through this with me — your written report will follow.
+[score] backfilled data-request classification for candidate turns: [21]
+[score] reconciliation merged both-sides claims: [{"dimension":"quantitative","wentWell":"The candidate stated an equation before computing, checked the asserted 7-10% range against it, and drew the implication: the range only gets margin to 12-14%, and full recovery needs about 23.7%.","needsWork":"The first price recommendation was a number asserted with no derivation. It overclaimed, and the candidate's own later math disproved it: 7-10% recovers only about a third to a half of the 18-point loss.","merged":"The first price figure (7-10%) was asserted with no derivation and overclaimed, but the candidate later stated an equation, checked the range against it, and correctly concluded that it only gets margin to 12-14%, recovering roughly a third to a half of the 18-point loss, while full recovery needs about 23.7%.","placedIn":"wentWell"},{"dimension":"dataExhibit","wentWell":"The candidate did not stop at beans. They showed beans explain only about 4 of the 16 points and attributed the remaining 12 to dairy, packaging, and food.","needsWork":"The implication drawn from the broad input inflation overreached. It dismissed procurement on the 12 non-bean points instead of directing effort there.","merged":"The candidate went beyond beans to show they explain only about 4 of the 16 COGS points, attributing the remaining 12 to dairy, packaging, and food, but then drew the wrong implication by dismissing procurement on those 12 points instead of directing effort there.","placedIn":"wentWell"},{"dimension":"judgment","wentWell":"The candidate proposed piloting the price increase in a subset of stores to generate the missing elasticity data, which is practical and de-risks the main lever.","needsWork":"Early assumptions were asserted rather than justified. One was low elasticity. The other was that wage inflation was a key driver, which the data later contradicted (labor flat at 22%).","merged":"Early assumptions were asserted rather than justified: low elasticity, and wage inflation as a key driver, which the data later contradicted (labor flat at 22%). The candidate later proposed piloting the price increase in a subset of stores to generate the missing elasticity data, which is practical and de-risks the main lever.","placedIn":"needsWork"},{"dimension":"judgment","wentWell":"The candidate surfaced two real risks with concrete mitigations: weekly transaction tracking and a second increase contingent on the pilot.","needsWork":"The final message dropped the candidate's own labor-flex caveat and overstated how safe the price move is.","merged":"The candidate surfaced two real risks with concrete mitigations (weekly transaction tracking and a second increase contingent on the pilot), but the final message dropped the candidate's own labor-flex caveat and overstated how safe the price move is.","placedIn":"needsWork"},{"dimension":"creativity","wentWell":"When prompted, the candidate prioritized and sequenced the ideas with reasons.","needsWork":"The brainstorm was a flat list with no organizing buckets, such as revenue/price vs. COGS vs. operations.","merged":"When prompted, the candidate prioritized and sequenced the ideas with reasons, but the brainstorm itself was a flat list with no organizing buckets, such as revenue/price vs. COGS vs. operations.","placedIn":"needsWork"},{"dimension":"synthesis","wentWell":"The candidate named risks and a concrete next step tied to the data gap.","needsWork":"The final message did not say how the remaining gap from about 12% back toward 24% gets closed. It also overstated the downside protection, dropping the earlier labor-flex caveat.","merged":"The candidate named risks and a concrete next step tied to the data gap, but the final message overstated the downside protection by dropping the earlier labor-flex caveat, and it did not say how the remaining gap from about 12% back toward 24% gets closed.","placedIn":"wentWell"},{"dimension":"communication","wentWell":"Phrasing was clear, hypothesis-driven, and easy to follow, with little filler.","needsWork":"The same recommendation was restated at nearly every turn before the evidence was in, which read as advocacy rather than analysis.","merged":"Phrasing was clear and easy to follow with little filler, but the candidate restated the same recommendation at nearly every turn before the evidence was in, which read as advocacy rather than hypothesis-driven analysis.","placedIn":"needsWork"},{"dimension":"pushback","wentWell":"When challenged on the 7-10% figure, the candidate admitted it wasn't derived, did the math, and updated. The same happened with the 'few percent' traffic threshold.","needsWork":"Early on, the candidate held rigidly against the interviewer's pushback and twice declined to provide a structure. The hint was never incorporated.","merged":"Early on, the candidate held rigidly against the interviewer's pushback, twice declined to provide a structure, and never incorporated the hint. Later, when challenged on the 7-10% figure and the 'few percent' traffic threshold, the candidate admitted neither was derived, did the math, and updated.","placedIn":"needsWork"}]
+[score] cross-dimension repetition: [{"concept":"Declined to provide a structure / overrode the interviewer's explicit cues and hints","dimensions":["structure","communication","pushback"]},{"concept":"Asserted conclusions, numbers, or assumptions before evidence or derivation (defending the answer rather than testing a hypothesis)","dimensions":["structure","quantitative","judgment","communication","pushback"]},{"concept":"Missing competitive/peer context (whether peers face the same compression or have raised prices)","dimensions":["structure","judgment","communication"]}]
+
+[live-run] ended=true scoring=scored

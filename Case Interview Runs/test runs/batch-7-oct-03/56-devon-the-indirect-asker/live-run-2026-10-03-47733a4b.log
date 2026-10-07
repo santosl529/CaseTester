@@ -1,0 +1,233 @@
+[live-run] session 47733a4b-cbd8-4c94-8590-1d645cb01dd6 · Brew & Bean Profitability · persona 56 Devon — the Indirect Asker · pace human
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+How would you like to approach this? Feel free to take a moment to gather your thoughts first.
+
+[candidate silent 9s]
+
+[candidate · 1:39] Let me lay out how I'd structure this. Since revenue is actually up 15% and margin fell from 24% to 6%, the story is almost certainly on the cost side, so I'd start there and only sanity-check revenue.
+
+On revenue, I'd want to separate price from volume — I'll assume for now that the growth came from more stores or more transactions rather than price increases, since a price-led growth would usually protect margin.
+
+On costs, I'd split fixed versus variable: rent and occupancy, labor, coffee beans and dairy inputs, equipment and depreciation, then corporate overhead and marketing.
+
+The useful thing here would be a breakdown of costs as a percent of revenue for both years, so I can see which line expanded. I'd also want to know whether the store count changed over those two years, because new stores can drag margin while they ramp.
+
+Does that structure work as a starting point?
+[runner] phase: INTRO stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "Before I answer that, is your cost split MECE, and what's missing from your overall structure?"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: INTRO raw: ["speak","advance_phase"] → filtered: ["speak","advance_phase"]
+[runner] same-turn data request resolution: {"released":["stores_count"],"deferred":true,"offered":[],"notYet":false,"refusedNotInCase":false,"phase":"CLARIFY"}
+
+[interviewer · CLARIFY · 1:42] To your question on the data: 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. I'll come to that data shortly. Before I answer that, is your cost split MECE, and what's missing from your overall structure?
+
+[candidate · 3:12] Fair challenge. A couple of gaps.
+
+First, my split blurs COGS and operating expenses. Cleaner would be: COGS — beans, dairy, cups, food items; then store-level operating costs — labor, rent, utilities, maintenance; then corporate SG&A — marketing, HQ salaries, IT; then below-the-line items.
+
+That last bucket is the real omission. We're looking at net margin, not operating margin, so interest expense, taxes, depreciation and any one-time charges all sit in there. If they took on debt or had a writedown, that shows up in net and nowhere else.
+
+On revenue I was also thin. With the footprint flat at 200, that 15% is entirely same-store, which means it's price, traffic, ticket size, or mix — say more food and cold drinks versus drip coffee. Mix matters because those carry different margins.
+
+I'll start by assuming the damage is operating-level rather than financing, but I'd want the P&L lines for both years to confirm.
+[runner] phase: CLARIFY stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "Understood. The cost breakdown you asked for is below. What stands out to you?"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "cogs_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "labor_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "overhead_pct"
+    }
+  }
+]
+[interviewer] phase: CLARIFY raw: ["speak","advance_phase","reveal_data","reveal_data","reveal_data"] → filtered: ["speak","advance_phase","reveal_data","reveal_data","reveal_data"]
+[runner] same-turn data request resolution: {"released":["revenue_total"],"deferred":true,"offered":[],"notYet":false,"refusedNotInCase":false,"phase":"STRUCTURE"}
+[runner] phase repair: {"from":"STRUCTURE","to":"ANALYSIS","reasons":["ledger reveal (releaseWhen ANALYSIS)"]}
+
+[interviewer · ANALYSIS · 3:16] Understood. The cost breakdown you asked for is below. What stands out to you? COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. To your question on the data: Total revenue is $480M a year. I'll come to that data shortly.
+
+[candidate · 4:46] COGS is the whole story. Let me check the arithmetic: today 58 + 22 + 14 = 94, leaving 6% — matches. Two years ago 42 + 22 + 12 = 76, leaving 24% — also matches. So of the 18 points lost, 16 come from COGS and 2 from overhead.
+
+On $480M of revenue, that 16-point swing is about $76.8M a year. That's the prize.
+
+Now, COGS rising as a percent of revenue means either input costs per unit went up, or prices didn't move with them, or the mix shifted toward lower-margin items. I'll assume for the moment that prices have been held flat, because a chain that passed costs through wouldn't see the ratio move this way.
+
+What I'd really like is the COGS line broken into its components — beans, dairy, packaging, food — for both years, so I can see whether this is one input or everything at once.
+[runner] phase: ANALYSIS stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "The arithmetic on the margin bridge ties to the cost figures. I'll come back to the dollar sizing. Since you've assumed prices were held flat, I'll release the price data and the COGS component data."
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "menu_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_share_of_cogs"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "non_bean_input_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: ANALYSIS raw: ["speak","reveal_data","reveal_data","reveal_data","reveal_data","advance_phase"] → filtered: ["speak","reveal_data","reveal_data","reveal_data","reveal_data","advance_phase"]
+[runner] stripped meta-leak from interviewer turn: ["Since you've assumed prices were held flat, I'll release the price data and the COGS component data."]
+
+[interviewer · EXHIBIT · 4:50] The arithmetic on the margin bridge ties to the cost figures. I'll come back to the dollar sizing. Menu prices have not changed in two years. Coffee beans were 25% of COGS two years ago. Raw coffee bean costs are up 40% over the past two years. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.
+
+[candidate · 6:20] Let me run it. Old COGS was 42% of revenue. Beans at 25% of that is 10.5 points of revenue; everything else is 31.5 points.
+
+Beans up 40%: 10.5 × 1.4 = 14.7 points.
+Other inputs up 37.5%: 31.5 × 1.375 = 43.3 points.
+Total: 58.0 points. That reconciles exactly with the 58% you gave, so no volume or mix effect is hiding in there — it's pure input inflation with prices frozen.
+
+What's striking is that beans only explain 4.2 of the 16 points. The other 11.8 come from dairy, packaging and food, because that bucket is three times larger even though the inflation rate is similar. So the instinct to blame coffee prices would misdiagnose this — it's broad-based commodity inflation.
+
+The obvious lever is price, since menu prices haven't moved in two years while inputs ran up nearly 40%. I'd want a sense of how price-sensitive the customer base is before sizing that.
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "Understood. Take the price lever you raised. What would you want to know about the customer base, and how would you size what a price move could recover?"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["speak","advance_phase"] → filtered: ["speak","advance_phase"]
+
+[interviewer · BRAINSTORM · 6:23] Understood. Take the price lever you raised. What would you want to know about the customer base, and how would you size what a price move could recover?
+
+[candidate · 7:53] Sizing first. Costs in dollars are 94% of $480M = $451.2M, and a price increase doesn't move them if volume holds. I'll take it volume holds flat for the moment.
+
+To get back to 24%, revenue needs to be 451.2 / 0.76 = $593.7M, which is a 23.7% price increase. That's a lot to ask of a customer in one go. A more realistic target — say 15% net margin — needs 451.2 / 0.85 = $530.8M, or about a 10.6% increase. That alone recovers roughly $44M of profit.
+
+On the customer base, what matters is elasticity: at a 10% increase, how much traffic walks. Breakeven on a 10.6% price rise with 58% variable COGS — contribution per unit goes from 42 to 52.6 cents on the dollar, so we could lose around 20% of volume before we're worse off. That's a wide cushion.
+
+I'd also want the competitive price points nearby, and whether loyalty members behave differently. Do we have that by location?
+[runner] phase: BRAINSTORM stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "I don't have competitive price points or any loyalty or location-level cut. Beyond price, what else could Brew & Bean do to recover margin?"
+  }
+]
+[interviewer] phase: BRAINSTORM raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · BRAINSTORM · 7:55] I don't have competitive price points or any loyalty or location-level cut. Beyond price, what else could Brew & Bean do to recover margin?
+
+[candidate · 9:25] Fine — I'll work without it and flag elasticity as the key risk.
+
+Three other levers.
+
+Procurement. Inputs are 58 points of revenue, so even modest sourcing wins are large. With 200 stores there should be scale: consolidate vendors, lock in forward contracts or hedges on beans and dairy rather than buying spot, and renegotiate packaging, which is usually the least differentiated line and the easiest to re-bid.
+
+Mix and product. Shift the push toward high-margin items — brewed coffee, espresso drinks without heavy dairy — and reformulate or reprice the dairy-intensive and food items that are dragging. Cheaper substitutes on packaging, smaller cup sizes at the same price, that kind of thing.
+
+Waste and portioning. Specialty coffee typically runs real spoilage on milk and pastries. Tightening par levels and portion control attacks COGS without touching the customer price.
+
+Overhead is the smaller piece — 2 points, about $9.6M — but it's worth asking what grew there, since revenue rose and it should have leveraged down.
+
+What about last year, as a midpoint? It would tell us whether this is still worsening.
+[runner] phase: BRAINSTORM stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "I don't have a midpoint year. The data covers today and two years ago. Given the levers you've laid out, what's your recommendation to the CEO?"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: BRAINSTORM raw: ["speak","advance_phase"] → filtered: ["speak","advance_phase"]
+
+[interviewer · RECOMMENDATION · 9:29] I don't have a midpoint year. The data covers today and two years ago. Given the levers you've laid out, what's your recommendation to the CEO?
+
+[candidate · 10:59] My recommendation: Brew & Bean should put through a staged menu price increase of roughly 10–12%, paired with a procurement reset, and target recovering about 10 to 12 margin points over the next year.
+
+The reasoning. This isn't an operations problem — labor held at 22% and overhead moved only 2 points. Sixteen of the 18 points lost are input inflation that was never passed to the customer, while menu prices sat flat for two years. On $480M, that's roughly $77M of profit sitting on the table.
+
+Price is the fastest lever and the cushion is wide: at a 10.6% increase we could lose about 20% of volume and still break even. Procurement is the durable lever — forward contracts on beans and dairy, re-bid packaging — and it's underexploited at 200 stores.
+
+The main risk is elasticity, which I couldn't test without competitive pricing. So I'd stage it: pilot a 10% increase in a subset of markets, measure traffic for 8–12 weeks, then roll out. Simultaneously, audit waste and run the vendor re-bid, which carry no customer risk.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "Understood."
+  },
+  {
+    "type": "tool_use",
+    "name": "end_case",
+    "input": {}
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak","end_case"] → filtered: ["speak","end_case"]
+
+[interviewer · SCORING · 11:01] That's our time. Thanks for working through this with me — your written report will follow.
+[score] backfilled data-request classification for candidate turns: [13]
+[score] reconciliation merged both-sides claims: [{"dimension":"structure","wentWell":"After the challenge, the candidate rebuilt the cost side into clean COGS / store opex / SG&A / below-the-line buckets and tailored the revenue side to the flat store count.","needsWork":"The opening cost split mixed a fixed/variable lens with a list of line items, so the buckets were not MECE until the interviewer flagged it.","merged":"The opening cost split mixed a fixed/variable lens with a list of line items and was not MECE until the interviewer flagged it, but after the challenge the candidate rebuilt the cost side into clean COGS / store opex / SG&A / below-the-line buckets and tailored the revenue side to the flat store count.","placedIn":"needsWork"},{"dimension":"quantitative","wentWell":"The price sizing laid out the equation first, and the breakeven-volume math was correct (0.42 / 0.526 ≈ 80% of volume retained).","needsWork":"The profit recovered by the 10.6% price increase was understated and never derived. Revenue rises to $530.8M with costs flat at $451.2M, so profit goes from $28.8M to about $79.6M, a gain of roughly $50.8M, not $44M. The candidate appears to have applied 9 points to the old $480M base.","merged":"The price sizing laid out the equation first, and the breakeven-volume math was correct (0.42 / 0.526 ≈ 80% of volume retained). However, the profit recovered by the 10.6% increase was never derived and was understated: revenue rises to $530.8M with costs flat at $451.2M, so profit goes from $28.8M to about $79.6M, a gain of roughly $50.8M rather than $44M.","placedIn":"needsWork"},{"dimension":"judgment","wentWell":"The candidate surfaced elasticity as the key risk and proposed a concrete mitigation: a staged pilot.","needsWork":"The 20% volume cushion only protects today's 6% margin; reaching the 15% target needs essentially no volume loss. Calling it a wide cushion overstates the safety margin.","merged":"The candidate surfaced elasticity as the key risk and proposed a staged pilot as mitigation, but calling the 20% volume cushion wide overstated the safety margin: that cushion only protects today's 6% margin, and reaching the 15% target needs essentially no volume loss.","placedIn":"wentWell"},{"dimension":"creativity","wentWell":"In the recommendation, the candidate prioritized levers by speed, durability, and customer risk.","needsWork":"Within the brainstorm itself, the ideas were not sized or ranked, and the prioritization only appeared in the final recommendation.","merged":"The candidate prioritized levers by speed, durability, and customer risk in the final recommendation, but within the brainstorm itself the ideas were not sized or ranked.","placedIn":"wentWell"},{"dimension":"synthesis","wentWell":"The candidate gave an answer-first recommendation with a specific lever and magnitude.","needsWork":"The 10–12 margin-point target was not linked back to the sizing. Calling $77M 'sitting on the table' implies all of it is recoverable, which the candidate's own 15%-margin target contradicts.","merged":"The candidate gave an answer-first recommendation with a specific lever and magnitude, but the 10–12 margin-point target was not linked back to the sizing. Calling $77M 'sitting on the table' implies all of it is recoverable, which the candidate's own 15%-margin target contradicts.","placedIn":"wentWell"},{"dimension":"communication","wentWell":"The candidate was consistently signposted and top-down from the analysis onward.","needsWork":"The opening was less crisp than later turns: the structure was narrated as loose paragraphs without enumerated buckets.","merged":"The opening was less crisp than later turns, with the structure narrated as loose paragraphs without enumerated buckets. From the analysis onward, the candidate was consistently signposted and top-down.","placedIn":"wentWell"},{"dimension":"pushback","wentWell":"The candidate acknowledged the MECE challenge specifically and updated with explicit reasoning, identifying the net-versus-operating margin gap.","needsWork":"In conceding the structure gaps, the candidate did not also defend what was right in the original approach (the cost-first prioritization), which would show balanced evaluation rather than pure concession.","merged":"The candidate acknowledged the MECE challenge specifically and updated with explicit reasoning, identifying the net-versus-operating margin gap. However, in conceding, the candidate did not also defend what was right in the original approach (the cost-first prioritization), which would have shown balanced evaluation rather than pure concession.","placedIn":"wentWell"}]
+[score] cross-dimension repetition: [{"concept":"Recovery levers (especially procurement savings) were not quantified, so the margin-recovery target was asserted rather than built from sizing","dimensions":["quantitative","creativity","synthesis"]}]
+
+[live-run] ended=true scoring=scored

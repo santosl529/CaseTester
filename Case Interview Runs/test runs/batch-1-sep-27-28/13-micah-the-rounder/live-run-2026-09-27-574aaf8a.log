@@ -1,0 +1,275 @@
+[live-run] session 574aaf8a-c369-4b7b-9dfd-56cbb24bf959 · Brew & Bean Profitability · persona 13 Micah — the Rounder · pace human
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+Take a moment, then walk me through how you'd approach this.
+
+[candidate · 1:30] Let me take a second to structure this.
+
+So margin fell from 24% to 6% — that's an 18-point drop, roughly three quarters of the margin gone — while revenue grew 15%. That combination tells me costs grew much faster than revenue, so I'd lean cost-side first, but I want to confirm revenue quality too.
+
+I'd break it into three buckets. One, revenue: is the 15% growth from new store openings versus same-store sales, and is it price or volume? If they opened a lot of stores, the growth could be masking declining per-store performance. Two, costs: split fixed versus variable — rent, labor, coffee beans and dairy, and any corporate overhead. I'd want to find which line grew fastest as a percent of revenue. Three, anything below the operating line — new debt, one-time charges.
+
+To start: do we have a cost breakdown as a percent of revenue for both years?
+[runner] phase: INTRO stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: INTRO raw: ["speak"] → filtered: ["speak"]
+[runner] auto-advanced INTRO → CLARIFY (model did not advance)
+[runner] style QA flag (soft): ["stacked_questions"]
+
+[interviewer · CLARIFY · 1:32] Before we pull data — is that framework MECE? What's missing?
+
+[candidate · 3:02] Fair challenge. I think the three buckets are collectively exhaustive if I define bucket three properly — but as I said it, it's sloppy in two places.
+
+First, I lumped "costs" into one bucket without a clean cut. Better to split by P&L line: COGS, store-level operating costs like labor and rent, then corporate SG&A. That way each dollar sits in exactly one place and nothing double-counts — right now labor and rent could arguably sit in either.
+
+Second, I left out mix. If they've shifted toward lower-margin items — say more food, less espresso — or toward lower-margin channels like delivery apps that take a cut, that's a margin driver that isn't strictly revenue growth or cost inflation. It's really a revenue-quality issue, so I'd fold it under revenue as price, volume, mix.
+
+And I'd add store maturity: new stores ramping would drag margin without anything being broken.
+
+So: revenue by price/volume/mix, COGS, store opex, corporate overhead, below-the-line. Does that hold?
+[runner] phase: CLARIFY stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "cogs_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "labor_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "overhead_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: CLARIFY raw: ["speak","reveal_data","reveal_data","reveal_data","advance_phase"] → filtered: ["speak","reveal_data","reveal_data","reveal_data","advance_phase"]
+[runner] phase repair: {"from":"STRUCTURE","to":"ANALYSIS","reasons":["ledger reveal (releaseWhen ANALYSIS)"]}
+
+[interviewer · ANALYSIS · 3:06] That holds. Let's get you the cost breakdown as a percent of revenue. Here's what I have: COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%.
+
+[candidate · 4:36] That basically solves it. Let me add it up — COGS up 16 points, overhead up 2, labor flat. That's 18 points of cost increase, and the margin fell exactly 18 points, 24 to 6. So COGS explains roughly 90% of the decline, call it nine tenths, and overhead the rest. I'm rounding but the story doesn't move.
+
+Worth sizing it. If revenue today is R, 16 points of R is the prize. Even recovering half the COGS gap gets us back to mid-teens margin.
+
+So the question becomes what's inside COGS. It's coffee beans, dairy, cups and packaging, food, and possibly wastage. Two broad explanations: input prices rose, or their volume-per-dollar-of-revenue worsened — more waste, worse purchasing terms, mix shift into low-margin food.
+
+Do we have a split of COGS by input, and whether menu prices have moved over the two years?
+[runner] phase: ANALYSIS stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: ANALYSIS raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · ANALYSIS · 4:39] You want to size the prize in dollars — what's total revenue today?
+[data-requests] non-response to available ledger data: {"what":"COGS breakdown by input type (coffee beans, dairy, cups, packaging, food, wastage)","ledgerItemIds":["bean_share_of_cogs","non_bean_input_change"],"interviewerTurnIndex":6,"revealedByNow":false}
+[data-requests] non-response to available ledger data: {"what":"Menu price changes over the two-year period","ledgerItemIds":["menu_price_change"],"interviewerTurnIndex":6,"revealedByNow":false}
+
+[candidate · 7:41] I don't think I have that figure — can we get total revenue today? If not, I'll estimate it.
+
+Rough build: 200 locations, and a specialty coffee shop does somewhere around $1 million a year per store — call it 500 transactions a day at a $6 ticket, that's $3,000 a day, times 350 days is about $1.05 million, so call it $1 million even. Times 200 stores gives roughly $200 million in revenue.
+
+So the COGS gap is 16% of $200 million, about $32 million a year. Overhead adds 2 points, say $4 million. Total prize around $36 million — call it $35 million, I'm rounding hard here.
+
+For scale, current profit at 6% of $200 million is about $12 million. Getting COGS back to 42% would roughly triple that to around $44 million. That's a big enough number to justify going deep on COGS.
+
+Does $200 million sound directionally right, or do you have the actual figure?
+[runner] phase: ANALYSIS stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "revenue_total"
+    }
+  }
+]
+[interviewer] phase: ANALYSIS raw: ["speak","reveal_data"] → filtered: ["speak","reveal_data"]
+
+[interviewer · ANALYSIS · 7:48] Here's the actual figure: Total revenue is $480M a year.
+
+[candidate · 9:18] Good — I was low by more than half. That implies about $2.4 million per store, so either much higher traffic or a bigger ticket than I assumed. Worth noting for later.
+
+Resizing: COGS gap is 16% of $480 million. Ten percent is $48 million, half again is $24 million, so about $72 million — call it $75 million with the rounding. Overhead's 2 points is roughly $10 million. So the total prize is somewhere around $85 million a year.
+
+Current profit is 6% of $480 million, about $29 million. If we clawed COGS back to 42%, profit would go to roughly $100 million, so margin back to about 21%. That's the full-recovery case and probably optimistic, but even recovering a third of the COGS gap is $25 million — it nearly doubles profit.
+
+So COGS is unambiguously where the work is. Can we open up that 58%?
+[runner] phase: ANALYSIS stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_share_of_cogs"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "non_bean_input_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "menu_price_change"
+    }
+  }
+]
+[interviewer] phase: ANALYSIS raw: ["speak","reveal_data","reveal_data","reveal_data"] → filtered: ["speak","reveal_data","reveal_data","reveal_data"]
+[runner] phase repair: {"from":"ANALYSIS","to":"EXHIBIT","reasons":["ledger reveal (releaseWhen EXHIBIT)"]}
+
+[interviewer · EXHIBIT · 9:22] Let me give you what I have on COGS composition and menu pricing. Here's the bean share of COGS, the other input changes, and menu price moves: Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Menu prices have not changed in two years.
+
+[candidate silent 6s]
+
+[candidate · 10:58] Let me work this through, rounding as I go.
+
+Start on the old revenue base of 100. Old COGS 42 points: beans 25% of that is about 10.5, other inputs about 31.5.
+
+Since prices haven't moved, all 15% revenue growth is volume — so volumes are up 15% across the board.
+
+Other inputs: 31.5, times 1.15 for volume, times 1.375 for price. 31.5 × 1.15 is roughly 36, times 1.375 is about 50 points.
+
+Now today's actual COGS: 58% of revenue, and revenue is 115, so 0.58 × 115 ≈ 67 points.
+
+So beans today must be about 67 minus 50, call it 17 points. At flat prices beans would be 10.5 × 1.15 ≈ 12. So beans are running roughly 40% above where volume alone explains — bean prices are up around 40%.
+
+Two conclusions: input inflation across the board, beans worst, and zero price pass-through in two years. That's the root cause.
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · EXHIBIT · 11:01] You inferred bean prices are up around forty percent. Do you want the actual bean price change?
+
+[candidate · 12:31] Yes, please — I'd like to check my inference, because I backed into that number rather than observing it. If the actual bean increase is materially above 40%, some of what I attributed to beans is really waste or mix, and that's a different fix: procurement versus operations.
+
+One related thing I'd want alongside it — do we have a wastage or shrink figure, or spoilage as a percent of COGS? Flat menu prices and rising volumes can hide a store-level yield problem, and I'd hate to sign off on "it's all input inflation" if a few points are actually product being thrown away. If we don't have it, I'll assume waste is stable and treat the whole gap as price.
+
+But go ahead with the bean number — what is it?
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {}
+  }
+]
+[interviewer-model] invalid tool id — asking model to correct [{"type":"tool_result","tool_use_id":"toolu_01TJNmUptwmhMegvVdfwE1Wf","is_error":true,"content":"\"\" is not a valid id for reveal_data. Valid ids: stores_count, revenue_per_store, bean_price_change, avg_ticket. Call reveal_data again using an exact id from that list."}]
+[interviewer-model] raw blocks: [
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_price_change"
+    }
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["reveal_data"] → filtered: ["reveal_data"]
+
+[interviewer · EXHIBIT · 12:36] Raw coffee bean costs are up 40% over the past two years.
+
+[candidate · 14:06] Good — 40% matches my back-out, so the gap is fully explained by input inflation, not hidden waste. That's reassuring; it means the fix is commercial, not a store-level cleanup.
+
+Sizing the pricing lever. Prices have been flat for two years while costs inflated. Today COGS is 58% of $480 million, about $280 million. If we pass through a 10% price increase on flat volume, revenue goes to roughly $528 million, and that $48 million drops almost entirely to the bottom line since costs don't move. Profit goes from about $29 million to about $77 million — margin roughly 15%. Rounding, but that's most of the way back.
+
+The risk is elasticity. If a 10% price rise costs us, say, 5% of volume, we lose 5% of revenue but also 5% of that $280 million COGS, about $14 million back — so the net is still strongly positive. Pricing works unless volume falls a long way.
+
+Do we have any elasticity data, or competitor pricing?
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["speak"] → filtered: ["speak"]
+[runner] phase repair: {"from":"EXHIBIT","to":"BRAINSTORM","reasons":["brainstorm question"]}
+
+[interviewer · BRAINSTORM · 14:08] I don't have elasticity or competitor pricing data. Beyond pricing, what other levers could the client pull to recover margin? Give me a structured set.
+
+[candidate · 17:08] No data, so I'll assume moderate elasticity and flag it as the key test.
+
+Three buckets beyond pricing.
+
+One, procurement. Beans are up 40% and were 25% of COGS — today that's roughly $70 million of spend. Levers: forward contracts or hedging to lock prices, consolidating suppliers for volume discounts, direct-trade sourcing to cut the middleman, and re-specifying blends toward cheaper origins. A 10% procurement win on beans is about $7 million.
+
+Two, mix and product. Push high-margin items — brewed coffee and espresso carry far better margins than dairy-heavy drinks or food. Shifting mix a few points, or upselling sizes, raises effective price without a visible price increase. Also worth testing a lower-cost dairy alternative given dairy sits in that 37.5% inflation bucket.
+
+Three, overhead. It drifted from 12% to 14%, about $10 million on today's revenue. Smaller prize, but it's controllable and doesn't touch the customer.
+
+Labor at 22% has been stable — I'd leave it alone rather than risk service quality.
+[runner] phase: BRAINSTORM stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: BRAINSTORM raw: ["speak"] → filtered: ["speak"]
+[runner] phase repair: {"from":"BRAINSTORM","to":"RECOMMENDATION","reasons":["recommendation ask"]}
+
+[interviewer · RECOMMENDATION · 17:14] You've got price, procurement, mix, and overhead. Which one leads, and what's your recommendation to the CEO?
+
+[candidate · 20:25] Recommendation: lead with price. Brew & Bean hasn't raised menu prices in two years while input costs inflated, and that pass-through gap is the entire margin story.
+
+Why it leads: it's the only lever sized to the problem. A 10% increase on $480 million is roughly $48 million of near-pure profit, taking margin from 6% to about 15%. Procurement, mix, and overhead together are maybe $20 million optimistically, and procurement takes contract cycles to land. Price moves in a quarter.
+
+Supporting: the 18-point margin drop is fully explained — 16 points COGS, 2 overhead — and the COGS move is input inflation, 40% on beans, 37.5% on everything else. No operational breakage to fix. Demand is healthy: volumes are up 15%.
+
+Risk: elasticity is unknown, and that's the whole bet. I'd phase it — 8-10% on espresso drinks first, test in 20 stores across price tiers, measure transaction counts for six weeks before rolling out.
+
+Next steps: that pilot, competitor price benchmarking, and start bean hedging in parallel.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+[runner] spoken close without end_case — promoted
+[runner] time up at 1233973 ms — forcing end_case
+
+[interviewer · SCORING · 21:02] That's time. Thank you for working through this — a full written report with detailed feedback will follow. Nice to meet you, and take care.
+[score] backfilled data-request classification for candidate turns: [3,19]
+[verifier] invalid response, skipping verification: Unexpected token 'L', "Looking at"... is not valid JSON
+[score] reconciliation merged both-sides claims: [{"dimension":"quantitative","wentWell":"The candidate sanity-checked results and tied numbers to business implication, and gracefully corrected the sizing when given actual revenue.","needsWork":"The candidate sized 'the prize' using the 16-point COGS gap valued at revenue (~$72-75M), which is a defensible margin-impact figure, but the elasticity math slightly conflated volume loss with revenue loss without fully carrying the price effect.","merged":"The candidate sanity-checked results, tied numbers to business implication, and gracefully corrected the sizing when given actual revenue, but when sizing 'the prize' the elasticity math slightly conflated volume loss with revenue loss without fully carrying the price effect.","placedIn":"wentWell"}]
+
+[live-run] ended=true scoring=scored

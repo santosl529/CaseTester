@@ -1,0 +1,361 @@
+[live-run] session b5f7c34a-e3a3-428a-9b50-b80b6d0474dc · Brew & Bean Profitability · persona 6 Destiny — the Blank Slate · pace human
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+How would you like to approach this? Feel free to take a moment to gather your thoughts first.
+
+[candidate silent 12s]
+
+[candidate · 0:31] I'm not sure what you mean — do you want me to guess why profits went down?
+[runner] phase: INTRO stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: INTRO raw: ["speak","advance_phase"] → filtered: ["speak","advance_phase"]
+
+[interviewer · CLARIFY · 0:34] No, not a guess. Lay out how you would structure the problem, meaning the areas you'd investigate to find the root cause. Take a minute if you need it, then walk me through your approach.
+
+[candidate silent 20s]
+
+[candidate · 1:09] hmm, I'm not sure. I don't really know where to start.
+[runner] phase: CLARIFY stall rung: 1
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: CLARIFY raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · CLARIFY · 1:12] Take your time. The question on the table is how you would break this profit decline into parts you could investigate, and you're welcome to ask me clarifying questions about the business first.
+
+[candidate silent 9s]
+
+[candidate · 1:37] I'm stuck, sorry. Could you maybe point me at where to look?
+[runner] phase: CLARIFY stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: CLARIFY raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · CLARIFY · 1:39] No need to apologize, but I can't hand you the structure. Start with what profit is made of, and tell me how you'd break it down into its basic components.
+
+[candidate silent 9s]
+
+[candidate · 2:07] hmm. I know profit is money coming in minus money going out, but past that I'm stuck.
+[runner] phase: CLARIFY stall rung: 2
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: CLARIFY raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · CLARIFY · 2:10] Okay, that's the right starting point. Let's simplify: revenue is up, yet margin fell sharply, so what are the two sides of that equation you'd need to look at?
+
+[candidate · 2:28] I guess revenue and costs? But I don't know what to do with that, sorry.
+[runner] phase: CLARIFY stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: CLARIFY raw: ["speak"] → filtered: ["speak"]
+[runner] same-turn data request resolution: {"released":["revenue_total"],"deferred":true,"phase":"CLARIFY"}
+
+[interviewer · CLARIFY · 2:30] Okay. To your question on the data: Total revenue is $480M a year. I'll come to that data shortly. Take costs first: what kinds of costs would a coffee chain like Brew & Bean have, and how would you group them?
+
+[candidate · 2:51] Coffee beans and milk, cups, pastries. Then rent for 200 stores, baristas' wages, utilities, equipment, marketing, maybe corporate overhead.
+[runner] phase: CLARIFY stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: CLARIFY raw: ["speak","advance_phase"] → filtered: ["speak","advance_phase"]
+
+[interviewer · STRUCTURE · 2:54] Okay. You've listed a lot of items there, so how would you group them into a few categories, and which category would you want to look at first?
+
+[candidate · 3:12] Maybe store stuff versus corporate stuff? Honestly I'm not sure which to look at first.
+[runner] phase: STRUCTURE stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: STRUCTURE raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · STRUCTURE · 3:14] Go on. Think about how the costs you listed behave: some rise with every cup sold, others don't. How would you group them on that basis, and what would you want to check on the revenue side too?
+
+[candidate · 3:41] Beans and milk and cups go up with each cup. Rent doesn't. So those two groups, I guess. On revenue side I don't really know what to check.
+[runner] phase: STRUCTURE stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: STRUCTURE raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · STRUCTURE · 3:44] Understood. You have costs that scale with each cup and costs that don't. For revenue, think about what multiplies together to give $480M, and tell me what pieces you'd check.
+
+[candidate · 4:02] Price times number of cups sold, I guess. So maybe they're selling more but charging less?
+[runner] phase: STRUCTURE stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: STRUCTURE raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · STRUCTURE · 4:05] Okay. Put it together for me: lay out the full structure you'd use, revenue pieces and cost groups, and say which branch you'd look at first and why.
+
+[candidate · 4:24] hmm, I can't really pull it together. Could you tell me which one to look at?
+[runner] phase: STRUCTURE stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: STRUCTURE raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · STRUCTURE · 4:26] I won't pick it for you. You have revenue as price times volume, and costs in two groups. Which of those would you check first, and what would make you choose it?
+
+[candidate silent 9s]
+
+[candidate · 4:57] Maybe the costs that go up with each cup? Since revenue grew but profit didn't, that feels like where it's leaking.
+[runner] phase: STRUCTURE stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: STRUCTURE raw: ["speak","advance_phase"] → filtered: ["speak","advance_phase"]
+
+[interviewer · ANALYSIS · 4:59] That's a reasoned choice. Which specific data would you ask for first to test it?
+
+[candidate · 5:25] Could I see the cost breakdown as a percent of revenue, now versus two years ago? And also, did menu prices change over those two years?
+[runner] phase: ANALYSIS stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "cogs_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "labor_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "overhead_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "menu_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: ANALYSIS raw: ["speak","reveal_data","reveal_data","reveal_data","reveal_data","advance_phase"] → filtered: ["speak","reveal_data","reveal_data","reveal_data","reveal_data","advance_phase"]
+
+[interviewer · EXHIBIT · 5:29] I have the cost breakdown for today, but not for two years ago. The menu price change I can give you. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. Menu prices have not changed in two years.
+
+[candidate · 6:44] So COGS jumped 16 points, 42% to 58%. On $480M that's about $77M of extra cost right there. Labor's flat and overhead only moved 2 points, so COGS is almost all of the decline — 24% to 6% is 18 points, and 16 of those are COGS. And since menu prices haven't moved in two years, they haven't passed any of it along. So either the stuff they're buying got more expensive, or they're using more of it per cup, or wasting it. Do we know what's inside that COGS line — like how much is beans versus milk versus pastries?
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_share_of_cogs"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "non_bean_input_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["speak","reveal_data","reveal_data","reveal_data","advance_phase"] → filtered: ["speak","reveal_data","reveal_data","reveal_data","advance_phase"]
+[runner] stripped meta-leak from interviewer turn: ["The candidate asked for the beans vs.","I'll release the two COGS breakdown items.","The candidate's dollar figure is built on 16 points applied to today's revenue, which is a margin-impact quantity, so that is fine."]
+
+[interviewer · BRAINSTORM · 6:48] other inputs breakdown. I'll show the exhibit too and ask for interpretation. Coffee beans were 25% of COGS two years ago. Raw coffee bean costs are up 40% over the past two years. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.
+
+[candidate · 8:00] Let me check if that explains it. Two years ago COGS was 42% of revenue; beans were 25% of that, so 10.5 points of revenue, and other inputs 75%, so 31.5 points.
+
+Beans up 40%: 10.5 × 1.4 = 14.7. Other inputs up 37.5%: 31.5 × 1.375 = 43.3. Add them: 14.7 + 43.3 = 58 points. That's exactly today's 58%.
+
+So input price inflation across the board explains the whole COGS jump — it's not waste or portion sizes. And prices haven't moved at all in two years, so the chain absorbed every bit of it.
+[runner] phase: BRAINSTORM stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: BRAINSTORM raw: ["speak","advance_phase"] → filtered: ["speak","advance_phase"]
+
+[interviewer · RECOMMENDATION · 8:03] Understood. Beyond what we've discussed, what else could Brew & Bean do to reverse this decline?
+
+[candidate · 9:27] Raising prices seems like the obvious one, since they haven't moved in two years and competitors are probably facing the same bean costs. Beyond that — maybe locking in longer contracts with coffee suppliers so they're not exposed to the spot price. They buy for 200 stores, so there should be some buying power there.
+
+Could also look at the menu mix — push drinks that use less of the expensive inputs, or smaller sizes. And overhead crept up 2 points, which isn't the main story but it's still a few million dollars.
+
+Honestly I'd want to know how much they'd lose in customers if they raised prices, but I don't think I have that.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 9:30] Okay. Now give me your recommendation to the CEO: what should Brew & Bean do, in what order, and what would you want to watch for?
+
+[candidate · 11:00] My recommendation is that Brew & Bean raise menu prices, because the whole problem is input cost inflation they never passed through.
+
+The math: COGS went from 42% to 58% of revenue, which is 16 of the 18 points of margin lost. Beans up 40% and other inputs up 37.5% account for that almost exactly. Labor is flat and overhead only moved 2 points.
+
+Order I'd go in: first, a price increase, since it's fastest and prices haven't moved in two years. Second, lock in supplier contracts to stop the bleeding from here. Third, trim the overhead creep and look at menu mix.
+
+Risk is volume — if customers leave, a price rise could backfire. I'd test it in a handful of stores first and watch transaction counts, not just revenue.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 11:03] You recommend raising prices. How large an increase would you take to the CEO, and how would you size it?
+
+[candidate · 12:33] Let me size it. Take $100 of revenue today: COGS 58, labor 22, overhead 14, profit 6. If I raise price p% and volume holds, costs stay flat in dollars at 94.
+
+To get back to a 24% margin: (100 + 100p − 94) / (100 + 100p) = 0.24
+6 + 100p = 24 + 24p
+76p = 18, so p ≈ 24%.
+
+A 24% price hike feels too steep to push through at once — that's a $4 latte going to $5. So I'd probably phase it: something like 8–10% now, see what happens to transaction counts, then a second step if volume holds. That 10% alone gets profit from 6 to about 16 on 110 of revenue, so roughly a 15% margin.
+
+I'd also want them to not rely on price alone — supplier contracts and mix need to carry some of the rest.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 12:35] Okay. Your latte example assumes volume holds, and you mentioned you don't know how customers would react. How would you decide whether the phased approach is the right call versus a single larger increase?
+
+[candidate · 14:05] I'd test it. Pick maybe 20 stores across different markets, do 10% in some and something steeper in others, run it a few months and compare transaction counts against the stores that didn't change. If volume barely moves in the steeper group, go faster everywhere; if it drops, you've only hurt a handful of stores.
+
+A couple of things I'd want to see before deciding — whether competitors have already raised their prices, because if they have, we're under-priced and the risk is lower. And whether a lot of revenue comes from regulars or loyalty members, since those people probably tolerate a rise better than walk-ins.
+
+Honestly, I'd lean phased just because a 24% jump all at once is the kind of thing that makes the news.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+[runner] style QA flag (soft): ["stacked_questions"]
+
+[interviewer · RECOMMENDATION · 14:07] The CEO pushes back: "Customers are already stretched. Why raise prices at all instead of just absorbing this and cutting costs elsewhere?" How do you respond?
+
+[candidate · 15:37] I'd say the math doesn't leave room for it. Absorbing it is what they've already been doing for two years, and that's how 24% turned into 6%. If bean prices keep climbing, the next step is losing money.
+
+And the other cost lines can't cover it. Labor is 22% of revenue and it's been stable — cutting baristas in a specialty chain hurts the service people are paying a premium for. Overhead is 14% and only crept up 2 points; even wiping out that entire creep gets you 2 points back out of 18. There's just no $77M hiding in there.
+
+The other thing I'd point out is that competitors buy the same beans, so they're facing the same pressure. If they've already raised prices, Brew & Bean isn't the one making customers stretched — it's just the one eating it.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 15:39] You said there's no $77M hiding in the other cost lines. Walk me through where that $77M comes from, and whether it's the amount that actually compressed margin.
+
+[candidate · 17:09] The $77M is the 16-point COGS jump applied to today's revenue: 0.16 × $480M = $76.8M. The full margin loss is 18 points, so 0.18 × $480M ≈ $86M, with the extra ~$10M from the overhead creep and rounding.
+
+One caveat I should flag: those are percentages of revenue, and revenue grew 15% over the period. So two years ago revenue was roughly $480M / 1.15 ≈ $417M, and COGS at 42% was about $175M. Today COGS is 0.58 × $480M = $278M. That's $103M more in absolute dollars — but part of that is just selling more cups, not inflation.
+
+So $77M is the right number for "margin compression at today's scale." It's the one that matters for sizing the price fix.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "end_case",
+    "input": {}
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak","end_case"] → filtered: ["speak","end_case"]
+
+[interviewer · SCORING · 17:12] That's our time. Thanks for working through this with me — your written report will follow.
+[score] backfilled data-request classification for candidate turns: [21,35,39]
+[score] reconciliation merged both-sides claims: [{"dimension":"structure","wentWell":"Once prompted, the candidate split costs into variable and fixed groups and decomposed revenue into price times volume, which are the right building blocks.","needsWork":"The candidate could not produce any structure independently and needed repeated interviewer assists, including a Level 2 narrowing hint, just to reach revenue minus costs.","merged":"The candidate could not build a structure independently and needed repeated interviewer assists, including a Level 2 narrowing hint, to reach revenue minus costs. Once prompted, though, the candidate split costs into variable and fixed groups and decomposed revenue into price times volume, which are the right building blocks.","placedIn":"needsWork"},{"dimension":"structure","wentWell":"After being pushed, the candidate gave a reasoned prioritization of the variable-cost branch, tied to the facts of the case.","needsWork":"When asked to assemble the pieces into one framework, the candidate declined and asked the interviewer to choose the branch.","merged":"When asked to assemble the pieces into one framework, the candidate declined and asked the interviewer to choose the branch. After being pushed, the candidate gave a reasoned prioritization of the variable-cost branch, tied to the facts of the case.","placedIn":"needsWork"},{"dimension":"quantitative","wentWell":"The candidate correctly converted shares of COGS into points of revenue (10.5 and 31.5), applied each inflation rate, and checked that the total reconciles exactly to today's 58%.","needsWork":"The candidate did not split the 16-point COGS increase into its bean and non-bean contributions (~4.2 vs ~11.8 points), even though the inputs for that split were already on the table.","merged":"The candidate correctly converted shares of COGS into points of revenue (10.5 and 31.5), applied each inflation rate, and reconciled exactly to today's 58%. However, the candidate did not take the next step of splitting the 16-point increase into its bean and non-bean contributions (~4.2 vs ~11.8 points), even though those inputs were already on the table.","placedIn":"wentWell"},{"dimension":"dataExhibit","wentWell":"The candidate tested the input-price data against those hypotheses and ruled out waste and portion size.","needsWork":"The candidate concluded that inflation was 'across the board' but never stated that beans explain only about a quarter of the jump. The sharper implication is that non-bean inputs are the bigger lever.","merged":"The candidate tested the input-price data against the hypotheses and ruled out waste and portion size. The conclusion stopped at 'across the board' inflation, though, without stating that beans explain only about a quarter of the jump and that non-bean inputs are the bigger lever.","placedIn":"wentWell"},{"dimension":"judgment","wentWell":"The candidate recommended a phased, store-tested price increase with a clear success metric, which is practical and manages the main risk.","needsWork":"The price increase is treated as uniform across the menu. The candidate did not consider varying it by product where demand is less price-sensitive.","merged":"The candidate recommended a phased, store-tested price increase with a clear success metric, which is practical and manages the main risk. However, the increase was treated as uniform across the menu, without varying it by product where demand is less price-sensitive.","placedIn":"wentWell"},{"dimension":"creativity","wentWell":"The candidate produced several distinct levers: pricing, supplier contracts, menu mix and sizes, and overhead.","needsWork":"Most ideas are conventional, and the candidate stopped after four levers with no clearly non-obvious move.","merged":"The candidate produced several distinct levers: pricing, supplier contracts, menu mix and sizes, and overhead. Still, most were conventional, and the brainstorm stopped at four levers with no clearly non-obvious move.","placedIn":"needsWork"},{"dimension":"creativity","wentWell":"The candidate later sequenced the ideas in the recommendation.","needsWork":"The brainstorm was a flat list with no organizing buckets (for example, revenue vs. cost levers, or short-term vs. structural).","merged":"The candidate later sequenced the ideas in the recommendation, but the brainstorm itself was a flat list with no organizing buckets (for example, revenue vs. cost levers, or short-term vs. structural).","placedIn":"needsWork"},{"dimension":"synthesis","wentWell":"The candidate backed the recommendation with evidence from the analysis, gave a sequenced plan, and named the risk and a mitigation.","needsWork":"The recommendation did not size the price increase or state a target margin. That only came out later when the interviewer asked.","merged":"The candidate backed the recommendation with evidence from the analysis, gave a sequenced plan, and named the risk and a mitigation. However, the recommendation did not size the price increase or state a target margin until the interviewer asked.","placedIn":"wentWell"},{"dimension":"communication","wentWell":"In the second half, the candidate communicated answer-first, with clear signposting and step-by-step narration.","needsWork":"The first nine turns were hesitant and apologetic, with no structure or hypothesis, so the opening was hard to follow and stalled the case.","merged":"The first nine turns were hesitant and apologetic, with no structure or hypothesis, which stalled the opening. In the second half, the candidate shifted to answer-first communication with clear signposting and step-by-step narration.","placedIn":"needsWork"},{"dimension":"pushback","wentWell":"The candidate absorbed the price-times-volume and variable-cost hints and reused them to drive the data requests.","needsWork":"In the opening the candidate was passive and repeatedly asked the interviewer to lead, needing a Level 1 anchor and a Level 2 narrowing hint before making progress.","merged":"In the opening, the candidate was passive and repeatedly asked the interviewer to lead, needing a Level 1 anchor and a Level 2 narrowing hint before making progress. Once given, those price-times-volume and variable-cost hints were absorbed and reused to drive the data requests.","placedIn":"needsWork"}]
+[score] cross-dimension repetition: [{"concept":"Did not build the opening structure independently; passive opening that needed interviewer hints and assists to get started","dimensions":["structure","communication","pushback"]},{"concept":"Did not surface that non-bean inputs (dairy, packaging, food) drive roughly three-quarters of the COGS increase, so beans are not the main lever","dimensions":["quantitative","dataExhibit","judgment","creativity"]}]
+
+[live-run] ended=true scoring=scored

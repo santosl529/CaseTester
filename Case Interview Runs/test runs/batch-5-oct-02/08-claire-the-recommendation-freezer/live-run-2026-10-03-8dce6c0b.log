@@ -1,0 +1,462 @@
+[live-run] session 8dce6c0b-abf1-4cae-b227-fe6bf85c3db6 · Brew & Bean Profitability · persona 8 Claire — the Recommendation Freezer · pace human
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+How would you like to approach this? Feel free to take a moment to gather your thoughts first.
+
+[candidate · 1:30] Thanks — let me make sure I have the problem right. Brew & Bean has 200 US locations, revenue is up 15% over two years, but net margin fell from 24% to 6%. We want the root cause and a fix.
+
+Since revenue grew while margin collapsed, the issue is almost certainly cost-side, but I'd confirm revenue quality before assuming that.
+
+My structure has three branches. First, revenue: is the 15% growth from new store openings, same-store traffic, or price? Mix matters a lot. Second, costs: split fixed versus variable — COGS (coffee beans, milk, cups), labor, rent and occupancy, marketing, corporate overhead. I'd index each as a percent of revenue across the two years to find which line expanded. Third, external: commodity prices, wage inflation, competitive pricing pressure.
+
+Can we start with the revenue growth — is it new stores or existing ones?
+[runner] phase: INTRO stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: INTRO raw: ["speak","advance_phase"] → filtered: ["speak","advance_phase"]
+[runner] same-turn data request resolution: {"released":["stores_count"],"deferred":true,"phase":"CLARIFY"}
+
+[interviewer · CLARIFY · 1:33] Okay. To your question on the data: 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. I'll come to that data shortly. Before we go into any data, is that structure MECE — what's missing or overlapping?
+
+[candidate · 3:03] Let me pressure-test it. One gap: I lumped "net profit margin" into revenue and costs, but net margin also moves with non-operating items — interest expense if they took on debt, depreciation from a remodel, or taxes. Those sit below the operating line and I didn't call them out. That's a real omission given margin fell 18 points.
+
+Second, there's some overlap: I listed commodity prices and wage inflation under "external," but they'd show up inside COGS and labor anyway. Cleaner to make the cost branch the structure and treat external factors as drivers underneath each line, not a parallel bucket.
+
+Third, since the footprint is flat at 200 stores, the 15% growth is all same-store — so it's price, traffic, or ticket mix. I should also check whether growth is uniform or concentrated in a few stores masking weakness elsewhere.
+
+So: revenue drivers, operating costs by line, below-the-line items. Does that hold?
+[runner] phase: CLARIFY stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "revenue_per_store"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "speak",
+    "input": {
+      "text": "Which cost line would you look at first, and why?"
+    }
+  }
+]
+[interviewer-model] dropped narration outside speak: "Understood. You asked for average revenue per store earlier, so here it is."
+[interviewer] phase: CLARIFY raw: ["advance_phase","reveal_data","speak"] → filtered: ["advance_phase","reveal_data","speak"]
+[runner] phase repair: {"from":"STRUCTURE","to":"ANALYSIS","reasons":["ledger reveal (releaseWhen ANALYSIS)"]}
+
+[interviewer · ANALYSIS · 3:06] Average revenue per store is $2.4M a year. Which cost line would you look at first, and why?
+
+[candidate · 4:36] I'd start with labor, then COGS — those are the two biggest lines in a coffee chain and the two most likely to have moved.
+
+Reasoning: at $2.4M per store, a typical specialty coffee P&L runs roughly 30% COGS, 30–35% labor, 10% occupancy, with the rest overhead. Rent is usually locked into multi-year leases, so it's unlikely to swing 18 points of margin in two years. Labor, though, is exposed to minimum wage increases, tighter staffing markets, and overtime — and it's the line that scales with hours, not revenue, so if traffic patterns shifted it can decouple from sales.
+
+COGS is my close second because coffee is a traded commodity and bean prices have been volatile.
+
+Do we have the P&L broken out by line as a percent of revenue for both years? That would let me isolate which line expanded rather than guess.
+[runner] phase: ANALYSIS stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "show_exhibit",
+    "input": {
+      "exhibit_id": "exhibit-a"
+    }
+  }
+]
+[interviewer] phase: ANALYSIS raw: ["speak","advance_phase","show_exhibit"] → filtered: ["speak","advance_phase","show_exhibit"]
+
+[interviewer · EXHIBIT · 4:39] I'll release the cost-structure data now.
+
+[candidate · 6:09] This is clean. Labor is flat at 22% across all three years, overhead drifts up just 2 points, and COGS goes 42 → 50 → 58. That's 16 points of the 18-point margin decline sitting in one line. So my instinct on labor was wrong — it's COGS, and it's a steady, linear deterioration, not a one-time shock.
+
+In dollar terms per store: 2 years ago COGS was 42% of $2.4M, but revenue was lower then. Today, 58% of $2.4M is about $1.39M in COGS, and profit is 6% of $2.4M, roughly $144K per store, versus about $500K before on a smaller revenue base.
+
+Two readings: either input costs rose and they didn't pass it through to price, or something inside COGS changed — product mix shifting toward lower-margin items, or waste and spoilage.
+
+Do we have a split of COGS — beans versus milk versus food versus packaging — and any menu-price history over those two years?
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "show_exhibit",
+    "input": {
+      "exhibit_id": "exhibit-a"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_share_of_cogs"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "non_bean_input_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "menu_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_price_change"
+    }
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["speak","show_exhibit","reveal_data","reveal_data","reveal_data","reveal_data"] → filtered: ["speak","show_exhibit","reveal_data","reveal_data","reveal_data","reveal_data"]
+[runner] stripped meta-leak from interviewer turn: ["The candidate references an exhibit and a three-year series (42 → 50 → 58) that I haven't shown."]
+
+[interviewer · EXHIBIT · 6:13] I'll show the exhibit and release the requested data. Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Menu prices have not changed in two years. Raw coffee bean costs are up 40% over the past two years.
+
+[candidate · 7:43] Let me check whether input inflation fully explains it.
+
+Two years ago COGS was 42% of revenue. Beans were 25% of that, so 10.5 points of revenue; other inputs were 75%, so 31.5 points.
+
+Beans up 40%: 10.5 × 1.4 = 14.7 points. Other inputs up 37.5%: 31.5 × 1.375 = 43.3 points. Sum: 14.7 + 43.3 = 58 points — which is exactly today's COGS ratio.
+
+So input cost inflation explains the entire margin decline, with nothing left over for waste, mix shift, or theft. The cost per unit rose and prices held flat, so the whole increase landed on margin.
+
+And since prices haven't changed and there are still 200 stores, the 15% revenue growth is pure volume — they're selling 15% more units at a structurally worse margin.
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["speak","advance_phase"] → filtered: ["speak","advance_phase"]
+
+[interviewer · BRAINSTORM · 7:45] Okay. You said the 15% revenue growth is pure volume. Walk me through how you know that, given the data you have.
+
+[candidate · 9:15] Revenue per store is $2.4M today with 200 stores, so $480M total. Two years ago the footprint was identical at 200 stores, so no growth came from new openings — it's all same-store.
+
+Within same-store growth there are only three levers: price, traffic, and ticket size. Menu prices haven't changed in two years, so price is out. That leaves units — either more customers, or the same customers buying more per visit. Either way it's volume, not price.
+
+One caveat: mix could mimic price. If customers shifted toward more expensive drinks — say cold brew and food instead of drip coffee — revenue per transaction rises without a menu price change. That's technically volume in units but it would show up differently.
+
+So strictly, I know it's not price. To split traffic versus ticket I'd want transaction counts per store for both years. Do we have those?
+[runner] phase: BRAINSTORM stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "avg_ticket"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: BRAINSTORM raw: ["speak","reveal_data","advance_phase"] → filtered: ["speak","reveal_data","advance_phase"]
+[runner] stripped meta-leak from interviewer turn: ["The average transaction value is available, so I'll release it now."]
+
+[interviewer · RECOMMENDATION · 9:18] The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit.
+
+[candidate · 10:48] Helpful. So revenue is up 15% and ticket is up ~10% — 1.15 / 1.10 = 1.045, so transaction count rose only about 4.5%. Traffic is nearly flat; most of the growth is basket size.
+
+And that matters for the margin story: they're selling more items per visit, and those incremental items are food and dairy-based drinks — exactly the inputs up 37.5%. So the mix shift is pushing volume into the categories where cost inflation is worst. Growth is actively diluting margin rather than offsetting it.
+
+Per store, profit went from roughly 24% of about $2.09M, call it $500K, down to 6% of $2.4M, or $144K. Across 200 stores that's roughly $100M of annual profit gone, on higher sales.
+
+So: flat prices, inflating inputs, and a mix tilting toward the worst-margin items.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak","advance_phase"] → filtered: ["speak","advance_phase"]
+
+[interviewer · WRAP · 10:50] Understood. Beyond what we've discussed, what else could the client do to reverse this?
+
+[candidate · 11:03] I don't know, I'd need more data.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: WRAP raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · WRAP · 11:06] Understood, but I'd like to hear your ideas on a business like this one. Take a minute if you need it, then give me a structured set of ways Brew & Bean could protect its margin.
+
+[candidate silent 12s]
+
+[candidate · 11:36] I'm sorry — I don't think I can commit without a more detailed breakdown of COGS.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: WRAP raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · WRAP · 11:39] That detailed breakdown isn't in the information I have, so we work with what's on the table. You've established flat prices, higher input costs, and larger baskets. Pick any one of those three and tell me what you'd do about it.
+
+[candidate silent 14s]
+
+[candidate · 12:04] hmm, I'm not sure.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: WRAP raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · WRAP · 12:06] Let me make it narrower. Prices haven't moved in two years while input costs have. What would you do on pricing, and what risk would you weigh before doing it?
+
+[candidate silent 14s]
+
+[candidate · 12:36] I'd need the COGS split before I'd commit to a pricing move.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: WRAP raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · WRAP · 12:38] You already have the split that matters: beans are up 40% and other inputs are up 37.5%. The CEO is meeting us tomorrow and needs a direction, not a perfect dataset. If you had to put one recommendation in front of the CEO right now, what would it be?
+
+[candidate · 12:48] I'm stuck, sorry.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "end_case",
+    "input": {}
+  }
+]
+[interviewer] phase: WRAP raw: ["speak","advance_phase","end_case"] → filtered: ["speak","end_case"]
+[runner] suppressed early end_case — coverage incomplete: {"judgment":50,"pushback":25,"structure":85,"synthesis":30,"creativity":20,"dataExhibit":85,"quantitative":90,"communication":75}
+
+[interviewer · WRAP · 12:51] Okay, that's fine. We'll leave it there.
+
+[candidate · 13:09] Understood. Thanks for walking through it with me — sorry I couldn't land the close.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "end_case",
+    "input": {}
+  }
+]
+[interviewer] phase: WRAP raw: ["speak","end_case"] → filtered: ["speak","end_case"]
+[runner] suppressed early end_case — coverage incomplete: {"judgment":45,"pushback":30,"structure":92,"synthesis":25,"creativity":15,"dataExhibit":88,"quantitative":85,"communication":88}
+[runner] closing turn without a confirmed end — replaced (recommendation probe)
+
+[interviewer · WRAP · 13:12] Based on what you have, what would you tell the CEO to do?
+
+[candidate · 13:29] I don't know — I'd need a more detailed breakdown of COGS first.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: WRAP raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · WRAP · 13:31] Let me ask it differently. You found that prices have been flat for two years while input costs rose by roughly the same amount across beans and everything else. What is the simplest single action that addresses that gap?
+
+[candidate · 13:47] I'm not sure — I can't commit without a finer COGS breakdown.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: WRAP raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · WRAP · 13:49] Understood. Suppose the client could not get any more data. Name one lever, any lever, that would help margin, and say why.
+
+[candidate · 14:02] I don't really know where to start.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: WRAP raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · WRAP · 14:05] Start with the revenue side of the P&L you already built. Menu prices have not changed in two years. What happens to margin if Brew & Bean moves them?
+
+[candidate silent 11s]
+
+[candidate · 14:34] Mechanically margin improves, but I can't say they should do it without the COGS detail.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: WRAP raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · WRAP · 14:36] Okay. What would you worry about if they did raise prices?
+
+[candidate · 14:52] Traffic loss, mainly. But I can't size it without more detail, sorry.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: WRAP raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · WRAP · 14:54] You found that most of the growth came from larger baskets and only a little from traffic. With that in mind, how worried would you be about the traffic risk?
+
+[candidate · 15:10] Hard to say. I'd still want the COGS split before judging that.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: WRAP raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · WRAP · 15:14] Okay. Putting the COGS split aside, what is your recommendation to the CEO in one or two sentences?
+
+[candidate · 15:29] I don't know — I can't commit without that breakdown.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: WRAP raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · WRAP · 15:31] Understood. Think about the customers already buying more items per visit. Name one thing Brew & Bean could do with its menu or its bundles to protect margin on those items.
+
+[candidate silent 9s]
+
+[candidate · 15:50] I'm not sure.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: WRAP raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · WRAP · 15:52] Okay. Last try: if you were running Brew & Bean, what is the first thing you would do on Monday morning?
+
+[candidate · 16:09] Honestly, I'd go pull the COGS detail first. I can't decide without it.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "end_case",
+    "input": {}
+  }
+]
+[interviewer] phase: WRAP raw: ["speak","end_case"] → filtered: ["speak","end_case"]
+[runner] suppressed early end_case — coverage incomplete: {"judgment":45,"pushback":35,"structure":90,"synthesis":20,"creativity":15,"dataExhibit":95,"quantitative":85,"communication":75}
+
+[interviewer · WRAP · 16:12] Understood. We'll leave the recommendation there, and the case is complete.
+
+[candidate · 16:40] Thanks for your time. I know I didn't get to a recommendation — I kept wanting the COGS breakdown before committing, and I'd rather be straight about that than guess.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "end_case",
+    "input": {}
+  }
+]
+[interviewer] phase: WRAP raw: ["speak","end_case"] → filtered: ["speak","end_case"]
+[runner] suppressed early end_case — coverage incomplete: {"judgment":45,"pushback":30,"structure":85,"synthesis":25,"creativity":15,"dataExhibit":85,"quantitative":90,"communication":75}
+[runner] closing turn without a confirmed end — replaced (risk probe)
+
+[interviewer · WRAP · 16:42] What's the biggest risk to that recommendation, and how would you test for it?
+
+[candidate · 16:57] There isn't a recommendation on the table to stress-test, sorry.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "end_case",
+    "input": {}
+  }
+]
+[interviewer] phase: WRAP raw: ["speak","end_case"] → filtered: ["speak","end_case"]
+
+[interviewer · SCORING · 16:59] That's our time. Thanks for working through this with me — your written report will follow.
+[score] backfilled data-request classification for candidate turns: [15,45,47]
+[score] reconciliation merged both-sides claims: [{"dimension":"structure","wentWell":"When the interviewer challenged the structure, the candidate found its own overlap and gap and rebuilt it more cleanly.","needsWork":"The original 'external' bucket duplicated drivers that already sat inside COGS and labor, so the first structure was not MECE.","merged":"The first structure was not MECE because the 'external' bucket duplicated drivers already inside COGS and labor, but when the interviewer challenged it, the candidate found the overlap and gap and rebuilt the structure more cleanly.","placedIn":"needsWork"},{"dimension":"dataExhibit","wentWell":"The candidate read the cost exhibit line by line, isolated COGS as 16 of the 18 points, and openly updated the earlier labor hypothesis.","needsWork":"The conclusion slightly overreached. Input inflation explains the 16-point COGS increase, not the entire 18-point margin decline; overhead accounts for the other 2 points.","merged":"The candidate read the cost exhibit line by line, isolated COGS as 16 of the 18 points, and openly updated the earlier labor hypothesis. The conclusion then overreached slightly: input inflation explains the 16-point COGS increase, not the entire 18-point margin decline, because overhead accounts for the other 2 points.","placedIn":"wentWell"},{"dimension":"communication","wentWell":"In the first half, the candidate laid out structure before detail and spoke in hypotheses.","needsWork":"In the second half, answers collapsed into one-line non-answers. The candidate did not build on the increasingly specific cues the interviewer offered.","merged":"In the first half, the candidate laid out structure before detail and spoke in hypotheses. In the second half, answers collapsed into one-line non-answers that did not build on the increasingly specific cues the interviewer offered.","placedIn":"needsWork"}]
+[score] cross-dimension repetition: [{"concept":"Stopped at diagnosis and never moved to a recommendation, solutions or practical actions, even when directly asked","dimensions":["structure","judgment","creativity","synthesis","pushback"]}]
+
+[live-run] ended=true scoring=scored

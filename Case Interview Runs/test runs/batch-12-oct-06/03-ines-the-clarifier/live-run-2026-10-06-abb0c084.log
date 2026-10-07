@@ -1,0 +1,219 @@
+[live-run] session abb0c084-a322-4501-862f-7031745d1925 · Brew & Bean Profitability · persona 3 Ines — the Clarifier · pace fast
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+How would you like to approach this? Feel free to take a moment to gather your thoughts first.
+
+[candidate silent 9s]
+
+[candidate · 0:09] Okay, so just to play it back: Brew & Bean has 200 US locations, revenue is up 15% over two years, but net margin fell from 24% to 6% — so profit dollars are down a lot despite growth. The goal is to find the root cause and reverse it.
+
+Before I build a structure, I want to scope it a bit. First question: has the store count changed over those two years? I'm trying to understand whether the 15% revenue growth came from opening new locations or from existing stores selling more — because new-store openings would carry buildout and ramp-up costs that could crush margin on their own.
+[runner] phase: INTRO kind: model stall rung: none
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Okay, a growth-source question.","move":"clarify","requests":[{"what":"the store count over the two years","item_ids":["stores_count"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Anything else you want to scope before you lay out your structure?"}
+[timing] reads_done=101 plan_done=111 model_request=113 distress_verdict=819 model_first_token=859 model_first_sentence=1278 first_delivered=1285 model_say_closed=1285 model_move_closed=1285 model_requests_closed=2189 model_exhibit_closed=2189 model_rescue_item_closed=2189 data_line_delivered=2190 model_question_closed=2190 model_done=2191 settle_start=2191 settle_composed=2196 tail_delivered=2196 persist_start=2196 persist_end=2227
+
+[interviewer · CLARIFY · 0:11] Okay, a growth-source question. 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. Anything else you want to scope before you lay out your structure?
+
+[candidate · 0:15] Good, so that's all same-store growth — the cost problem is inside the existing base, not an expansion story.
+
+Second question: is the 15% revenue growth coming from price or from volume? Specifically, have they raised menu prices over the two years, and roughly what's happened to transaction counts per store? If prices went up and traffic is flat or down, that's a very different story than more customers coming through the door.
+[runner] phase: CLARIFY kind: model stall rung: none
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say": "Okay, price versus volume.", "move": "clarify", "requests": [{"what": "menu price changes over the two years", "item_ids": ["menu_price_change"], "explicit": true, "respond": "release"}, {"what": "transaction counts per store", "item_ids": [], "explicit": true, "respond": "release"}], "exhibit": null, "rescue_item": null, "question": "Anything else you want to scope, or are you ready to walk me through your structure?"}
+[timing] reads_done=60 plan_done=65 model_request=66 distress_verdict=714 model_first_token=1447 model_first_sentence=1451 first_delivered=1451 model_say_closed=1451 model_move_closed=1451 model_requests_closed=1866 model_exhibit_closed=1866 model_rescue_item_closed=1866 data_line_delivered=1867 model_question_closed=1867 model_done=2101 settle_start=2101 settle_composed=2102 tail_delivered=2102 persist_start=2102 persist_end=2135
+
+[interviewer · ANALYSIS · 0:17] Okay, price versus volume. Menu prices have not changed in two years. I don't have transaction counts per store. Anything else you want to scope, or are you ready to walk me through your structure?
+
+[candidate · 0:20] Got it — flat prices, so the 15% is volume or mix. I'll assume traffic and/or ticket size rose.
+
+One more: is the margin decline broad-based across all 200 locations, or concentrated in a subset — say a region or a store format? If it's uniform, I'd look at a system-wide cost driver like coffee bean prices or wages; if it's concentrated, it's more likely a local issue like rent or a few underperforming stores.
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay, a breadth question.","move":"structure","requests":[{"what":"margin decline by region or store format","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"You've done good scoping. Take a minute if you need it, and walk me through how you'd structure this problem."}
+[timing] reads_done=32 plan_done=32 model_request=33 distress_verdict=703 model_first_token=811 model_first_sentence=1154 first_delivered=1154 model_say_closed=1154 model_move_closed=1154 model_requests_closed=1154 model_exhibit_closed=1189 model_rescue_item_closed=1223 data_line_delivered=1223 model_question_closed=1610 model_done=1617 settle_start=1617 settle_composed=1618 tail_delivered=1618 persist_start=1618 persist_end=1648
+
+[interviewer · ANALYSIS · 0:22] Okay, a breadth question. I don't have margin decline by region or store format. You've done good scoping. Take a minute if you need it, and walk me through how you'd structure this problem.
+
+[candidate silent 20s]
+
+[candidate · 0:42] I'll assume it's broad-based since we don't have evidence otherwise.
+
+Here's my structure. Profit = revenue minus costs, and we know revenue is up 15% with flat prices, so the problem is almost certainly on the cost side — costs must be growing much faster than 15%. Quick sanity check: if revenue was 100 and margin 24%, profit was 24 and costs 76. Now revenue is 115 at 6%, so profit is about 6.9 and costs are roughly 108. That's a 42% cost increase against 15% revenue growth. So something is badly outpacing volume.
+
+I'd split costs into COGS — coffee beans, milk, cups, food — and operating costs: store labor, rent and occupancy, utilities, marketing, and corporate overhead. Within each I'd ask whether it's a price-per-unit increase or a volume/efficiency problem.
+
+Do we have a breakdown of costs as a percent of revenue, then versus now?
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay, a revenue-and-cost split.","move":"pressure_test","requests":[{"what":"the cost breakdown as a percent of revenue, then versus now","item_ids":["cogs_pct","labor_pct","overhead_pct"],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Before we pull data, one challenge on your structure: is it MECE, and what's missing? Also, which branch would you prioritize first, and why?"}
+[timing] reads_done=44 plan_done=46 model_request=47 distress_verdict=742 model_first_token=1342 model_first_sentence=1342 first_delivered=1344 model_say_closed=1344 model_move_closed=1344 model_requests_closed=1737 model_exhibit_closed=1737 model_rescue_item_closed=1737 data_line_delivered=1737 model_question_closed=2442 model_done=2444 settle_start=2444 settle_composed=2446 tail_delivered=2446 persist_start=2446 persist_end=2478
+
+[interviewer · ANALYSIS · 0:44] Okay, a revenue-and-cost split. I'll come back to the cost breakdown as a percent of revenue, then versus now shortly. Before we pull data, one challenge on your structure: is it MECE, and what's missing? Also, which branch would you prioritize first, and why?
+
+[candidate · 0:50] Fair challenge. The gap is that I jumped to operating costs, but we're told *net* profit margin. So below the operating line I'm missing interest expense — if they took on debt — depreciation and amortization from store remodels, taxes, and any one-time or impairment charges. That should be a separate branch.
+
+The other thing I'd flag is revenue mix. With prices flat and revenue up 15%, the mix between high-margin drinks and lower-margin food or merchandise could have shifted, and that would show up as COGS rising faster than revenue. So it sits inside COGS but it's a distinct driver from input prices.
+
+On MECE: revenue versus costs is clean; within costs, COGS / operating / below-the-line is clean as long as I don't double-count.
+
+I'd prioritize COGS and store labor first. They're the two largest lines in a coffee chain, they scale with volume, and both have had real input inflation — beans and wages.
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay.","move":"analysis","requests":[{"what":"COGS as a percent of revenue, then versus now","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"labor as a percent of revenue, then versus now","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"overhead and rent as a percent of revenue, then versus now","item_ids":["overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Take a look at those figures. Where does the margin go, and what would you dig into next?"}
+[timing] reads_done=29 plan_done=31 model_request=31 distress_verdict=735 model_first_token=1447 model_first_sentence=1451 first_delivered=1452 model_say_closed=1452 model_move_closed=1452 model_requests_closed=2329 model_exhibit_closed=2329 model_rescue_item_closed=2329 data_line_delivered=2330 model_question_closed=2330 model_done=2552 settle_start=2552 settle_composed=2554 tail_delivered=2554 persist_start=2554 persist_end=2602
+
+[interviewer · ANALYSIS · 0:53] Okay. On what you asked about earlier: COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. Take a look at those figures. Where does the margin go, and what would you dig into next?
+
+[candidate · 0:58] Let me add it up. COGS up 16 points, overhead up 2, labor flat — that's 18 points of margin, and the decline was 24% to 6%, exactly 18 points. So COGS explains about 89% of it and overhead the rest. Labor is a non-issue.
+
+In dollar terms, on revenue of 115, COGS at 58% is about 67 versus 42% of 100, or 42 before — roughly a 60% increase in COGS dollars against 15% revenue growth. That's enormous.
+
+Before I dig in, I want to scope the COGS line. Do we have a split of COGS into its components — coffee beans, dairy, food, packaging? Sixteen points is a lot, and I want to know whether it's one input spiking or everything drifting up together, because that changes the answer completely.
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay, a COGS component split.","move":"analysis","requests":[{"what":"the COGS breakdown by component","item_ids":["bean_share_of_cogs","non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Given those figures, what do they tell you about where the COGS increase is coming from, and what would you check next to confirm it?"}
+[timing] reads_done=29 plan_done=31 model_request=31 distress_verdict=665 model_first_token=1310 model_first_sentence=1314 first_delivered=1316 model_say_closed=1316 model_move_closed=1316 model_requests_closed=1809 model_exhibit_closed=1809 model_rescue_item_closed=1809 data_line_delivered=1810 model_question_closed=1810 model_done=2334 settle_start=2334 settle_composed=2336 tail_delivered=2336 persist_start=2336 persist_end=2368
+
+[interviewer · EXHIBIT · 1:00] Okay, a COGS component split. Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Given those figures, what do they tell you about where the COGS increase is coming from, and what would you check next to confirm it?
+
+[candidate · 1:08] Let me work the dollars. Two years ago COGS was 42, beans 25% of that is 10.5, other inputs 31.5. Other inputs up 37.5% gives 31.5 × 1.375 ≈ 43.3. Total COGS today is about 67, so beans today ≈ 67 − 43.3 ≈ 23.7 — up from 10.5, roughly 126%.
+
+So beans more than doubled while other inputs rose 37.5%. And note volume is up 15%, so some of that 37.5% is just selling more — the real per-unit inflation on other inputs is maybe 1.375/1.15 ≈ 20%. For beans it's 2.26/1.15 ≈ 96% per unit. Beans are the story.
+
+Next I'd check whether that's market price or something client-specific: has the green coffee commodity price roughly doubled, or did Brew & Bean come off a fixed-price supply contract, lose a supplier, or shift to a pricier single-origin sourcing standard?
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay, a market-versus-client-specific question.","move":"analysis","requests":[{"what":"coffee bean price change over two years","item_ids":["bean_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"With that in hand, and given the revenue is roughly 115 on a base of 100, how do you reconcile it with your per-unit bean figure, and what does that tell you the client's real exposure is?"}
+[timing] reads_done=27 plan_done=28 model_request=28 distress_verdict=694 model_first_token=1456 model_first_sentence=1461 first_delivered=1462 model_say_closed=1462 model_move_closed=1462 model_requests_closed=1462 model_exhibit_closed=1899 model_rescue_item_closed=1899 data_line_delivered=1899 model_question_closed=2693 model_done=2698 settle_start=2698 settle_composed=2700 tail_delivered=2700 persist_start=2700 persist_end=2732
+
+[interviewer · EXHIBIT · 1:11] Okay, a market-versus-client-specific question. Raw coffee bean costs are up 40% over the past two years. With that in hand, and given the revenue is roughly 115 on a base of 100, how do you reconcile it with your per-unit bean figure, and what does that tell you the client's real exposure is?
+
+[candidate · 1:21] Let me reconcile. Market beans are up 40%, but our per-unit bean cost is up ~96%. Ratio is 1.96 / 1.40 ≈ 1.40 — so even after stripping out volume growth and commodity inflation, there's another ~40% of per-unit bean cost the market doesn't explain.
+
+So the market is maybe half the problem and client-specific factors are the other half. That's the real exposure: they're paying well above market, and they haven't passed any of it through, since prices have been flat for two years.
+
+Candidates for that 40%: they rolled off a fixed-price or hedged supply contract into spot pricing; they lost scale leverage or switched to a smaller/premium supplier; they tightened sourcing standards to single-origin or certified beans; or there's waste and spoilage — over-pouring, stale brewed coffee dumped — which would show as grams per cup creeping up.
+
+Do we have bean cost per unit sold, or pounds purchased per transaction, over the two years? That would separate a procurement problem from a waste problem.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say": "Okay, a procurement-versus-waste question.", "move": "analysis", "requests": [{"what": "bean cost per unit sold and pounds purchased per transaction", "item_ids": [], "explicit": true, "respond": "release"}], "exhibit": null, "rescue_item": null, "question": "Without that split, here is a different check. You said the market explains about half of the per-unit bean increase and that the rest is client-specific. Walk me through how you got there: which figures did you combine, and are they all on the same footing?"}
+[timing] reads_done=28 plan_done=29 model_request=30 distress_verdict=593 model_first_token=1363 model_first_sentence=1368 first_delivered=1369 model_say_closed=1369 model_move_closed=1369 model_requests_closed=1789 model_exhibit_closed=1789 model_rescue_item_closed=1789 data_line_delivered=1789 model_question_closed=2858 model_done=2864 settle_start=2864 settle_composed=2868 tail_delivered=2868 persist_start=2868 persist_end=2897
+
+[interviewer · EXHIBIT · 1:24] Okay, a procurement-versus-waste question. I don't have bean cost per unit sold and pounds purchased per transaction. Without that split, here is a different check. You said the market explains about half of the per-unit bean increase and that the rest is client-specific. Walk me through how you got there: which figures did you combine, and are they all on the same footing?
+
+[candidate · 1:33] Fair — let me be honest about the joins. I combined four things: COGS 42%→58% of revenue, revenue 100→115, beans at 25% of the old COGS base, and other inputs +37.5%. I backed into today's bean dollars as a residual, which means every error in the other numbers lands on beans.
+
+They're not all on the same footing. The 37.5% on other inputs I treated as total spend, but it may well be a per-unit price figure — if so, my residual is wrong. The 40% market figure is clearly a per-unit commodity price, so to compare it to beans I had to deflate my 126% total growth by the 15% volume increase, which assumes bean volume grew exactly with revenue. If mix shifted toward food, or toward larger drinks, that breaks.
+
+And "half" is loose: 1.96 versus 1.40 is a 40% residual multiplicatively, not 56 points of 96.
+
+Can you tell me whether the 37.5% is total spend or per unit?
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay, you've named the weak joins yourself.","move":"analysis","requests":[{"what":"whether the 37.5% on other inputs is total spend or per unit","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Let's test this a different way. Take the cost structure exhibit. Read it and tell me what it shows, and whether it supports or undercuts your claim that beans are far above market."}
+[timing] reads_done=29 plan_done=31 model_request=31 distress_verdict=522 model_first_token=1903 model_first_sentence=1908 first_delivered=1909 model_say_closed=1909 model_move_closed=1909 model_requests_closed=2351 model_exhibit_closed=2351 model_rescue_item_closed=2351 data_line_delivered=2351 model_question_closed=3271 model_done=3272 settle_start=3272 settle_composed=3276 tail_delivered=3276 persist_start=3276 persist_end=3312
+
+[interviewer · EXHIBIT · 1:37] Okay, you've named the weak joins yourself. I don't have whether the 37.5% on other inputs is total spend or per unit. Let's test this a different way. Take the cost structure exhibit. Read it and tell me what it shows, and whether it supports or undercuts your claim that beans are far above market.
+
+[candidate · 1:43] I don't think an exhibit came through on my end — all I have are the figures you gave me verbally: COGS 58% vs 42%, labor 22% flat, overhead 14% vs 12%, beans at 25% of the old COGS base, other inputs +37.5%, and market beans +40%. If there's a table with more detail, I'm not seeing it.
+
+Working from what I have, I'd say those numbers support the direction but don't prove the magnitude. What they clearly support: COGS is essentially the entire 18-point margin decline, and labor is not the story. What they don't settle is how much of the COGS increase is beans versus other inputs, because I got beans as a residual and the other-inputs figure is ambiguous on total-versus-per-unit.
+
+If the 37.5% were per unit, other inputs grow with volume too and absorb more of the increase, which would shrink the unexplained bean gap — possibly a lot. So I'd hold "beans are above market" as a hypothesis, not a finding.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay.","move":"exhibit","requests":[{"what":"the cost structure exhibit","item_ids":["exhibit-a"],"explicit":false,"respond":"release"}],"exhibit":"exhibit-a","rescue_item":null,"question":"Take a look at it now. What does it show, and does it support or undercut your hypothesis about beans?"}
+[timing] reads_done=28 plan_done=29 model_request=29 distress_verdict=714 model_first_token=1687 model_first_sentence=1687 first_delivered=1688 model_say_closed=1688 model_move_closed=1688 model_requests_closed=1688 model_exhibit_closed=1688 model_rescue_item_closed=2505 data_line_delivered=2505 model_question_closed=2505 model_done=2507 settle_start=2507 settle_composed=2509 tail_delivered=2509 persist_start=2509 persist_end=2541
+
+[interviewer · EXHIBIT · 1:46] Okay. Take a look at this: Brew & Bean Cost Structure Over Time. Take a look at it now. What does it show, and does it support or undercut your hypothesis about beans?
+
+[candidate · 1:52] Now I've got it. Each row sums to 100, so these are percent of revenue, and profit is the residual — 24, 15, 6.
+
+What it shows: COGS rises 8 points a year, perfectly linear, 42 → 50 → 58. Labor is dead flat at 22. Overhead creeps 12 → 13 → 14. So the entire story is COGS, confirmed, and it's a steady grind rather than a shock.
+
+On my hypothesis, I'd say it undercuts it somewhat. A supply-contract expiring or a supplier switch would show as a step change in one year. A smooth, even ramp looks more like commodity drift plus no price pass-through — beans up 40% over two years is itself fairly gradual. It's also consistent with a slow mix shift toward lower-margin food.
+
+So I'd soften to: beans are the largest driver, but the client-specific premium is less certain than I claimed.
+
+Was the 40% bean increase steady year over year, or front- or back-loaded?
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay, a year-by-year pattern question.","move":"analysis","requests":[{"what":"year-by-year pattern of the bean price increase","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Set that aside. You've read the exhibit and softened your hypothesis. In one or two sentences, what is the root cause of the profit decline, and how confident are you in it?"}
+[timing] reads_done=29 plan_done=30 model_request=30 distress_verdict=851 model_first_token=1466 model_first_sentence=1472 first_delivered=1473 model_say_closed=1473 model_move_closed=1473 model_requests_closed=1903 model_exhibit_closed=1903 model_rescue_item_closed=1903 data_line_delivered=1903 model_question_closed=2675 model_done=2687 settle_start=2687 settle_composed=2691 tail_delivered=2691 persist_start=2691 persist_end=2722
+
+[interviewer · EXHIBIT · 1:55] Okay, a year-by-year pattern question. I don't have year-by-year pattern of the bean price increase. Set that aside. You've read the exhibit and softened your hypothesis. In one or two sentences, what is the root cause of the profit decline, and how confident are you in it?
+
+[candidate · 1:58] Root cause: COGS has risen 16 points of revenue — driven mainly by coffee bean and other input inflation — and Brew & Bean has absorbed all of it by holding menu prices flat for two years, so there's been zero pass-through.
+
+Confidence: high on the mechanism — the exhibit is unambiguous that COGS is essentially the whole 18-point decline and labor is irrelevant. Moderate on the composition, because my bean-versus-other-inputs split rests on a residual and an ambiguous 37.5% figure.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Beyond what we've discussed so far, what else could the client do to address this? Give me as many ideas as you can, across any part of the business."}
+[timing] reads_done=43 plan_done=44 model_request=44 distress_verdict=654 model_first_token=1418 model_first_sentence=1420 first_delivered=1421 model_say_closed=1421 model_move_closed=1421 model_requests_closed=1421 model_exhibit_closed=1421 model_rescue_item_closed=1421 model_question_closed=1826 model_done=1828 settle_start=1828 settle_composed=1831 tail_delivered=1831 persist_start=1831 persist_end=1865
+
+[interviewer · BRAINSTORM · 2:00] Okay. Beyond what we've discussed so far, what else could the client do to address this? Give me as many ideas as you can, across any part of the business.
+
+[candidate · 2:08] Beyond pricing, a few buckets.
+
+Procurement: renegotiate or consolidate bean contracts for volume discounts, hedge or lock forward prices, dual-source, extend contract length, and buy less premium grades where the customer won't notice.
+
+Product and mix: reformulate — standardize grams per cup, audit over-pouring, cut brewed-coffee waste by brewing to demand. Push high-margin items: larger sizes, espresso-based drinks where the bean cost per dollar is lowest, and non-coffee items like tea, which has no bean exposure.
+
+Pricing beyond a blanket increase: shrink portions at the same price, charge for add-ons like oat milk and syrups, regional pricing in higher-willingness-to-pay markets, and a loyalty program so increases land softer.
+
+Overhead: it's only 2 points, but corporate headcount, marketing spend, and franchise-versus-company-owned structure are worth a look.
+
+Revenue side: packaged beans at retail, wholesale to offices, catering, drive-thru or mobile ordering to lift throughput on the fixed labor base.
+
+And close underperformers if any stores are below contribution.
+[runner] phase: BRAINSTORM kind: model stall rung: none
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Okay, a broad set of ideas.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"The CEO now needs a decision. What do you recommend Brew & Bean does first, and what is the biggest risk to that recommendation?"}
+[timing] reads_done=39 plan_done=40 model_request=41 distress_verdict=663 model_first_token=1857 model_first_sentence=1863 first_delivered=1864 model_say_closed=1864 model_move_closed=1865 model_requests_closed=1865 model_exhibit_closed=1865 model_rescue_item_closed=1865 model_question_closed=2652 model_done=2667 settle_start=2667 settle_composed=2670 tail_delivered=2670 persist_start=2670 persist_end=2701
+
+[interviewer · RECOMMENDATION · 2:10] Okay, a broad set of ideas. The CEO now needs a decision. What do you recommend Brew & Bean does first, and what is the biggest risk to that recommendation?
+
+[candidate · 2:17] Before I commit, one thing that would change the answer: do we have any read on price elasticity — how customers responded the last time they raised prices, or how Brew & Bean's prices compare to competitors in their markets? Whether they have headroom to pass costs through determines whether I lead with pricing or with procurement.
+[runner] phase: RECOMMENDATION kind: model stall rung: none
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say": "Okay, a price elasticity and competitor price question.", "move": "recommendation", "requests": [{"what": "price elasticity and competitor price comparison", "item_ids": [], "explicit": true, "respond": "release"}], "exhibit": null, "rescue_item": null, "question": "Work with what you have. What do you recommend the client does first, and what is the biggest risk to that recommendation?"}
+[timing] reads_done=42 plan_done=44 model_request=44 distress_verdict=650 model_first_token=1859 model_first_sentence=1935 first_delivered=1937 model_say_closed=1937 model_move_closed=1937 model_requests_closed=2286 model_exhibit_closed=2286 model_rescue_item_closed=2286 data_line_delivered=2286 model_question_closed=2887 model_done=2890 settle_start=2890 settle_composed=2893 tail_delivered=2893 persist_start=2893 persist_end=2986
+
+[interviewer · RECOMMENDATION · 2:20] Okay, a price elasticity and competitor price question. I don't have price elasticity and competitor price comparison. Work with what you have. What do you recommend the client does first, and what is the biggest risk to that recommendation?
+
+[candidate · 2:26] I'll assume specialty coffee has some headroom, since the category is premium and competitors face the same input inflation.
+
+Recommendation: raise menu prices first, roughly 8-10%, phased over two quarters. It's the fastest lever and the only one sized to the problem. Two years of flat prices against 40% bean inflation means they've absorbed the entire increase. On revenue of 115, a 9% increase with no volume loss adds about 10 points of margin — taking them from 6% toward mid-teens — and it requires no supplier renegotiation or operational change.
+
+Run procurement in parallel as the structural fix: consolidate and lock forward bean contracts, and audit grams per cup for waste.
+
+Biggest risk is exactly what I just asked about — elasticity. If traffic is price-sensitive, volume falls and we give back the gain. Mitigate by piloting in 20 stores across a few markets, measuring transaction counts, and leading with size and add-on pricing rather than a blanket increase.
+
+Next steps: the pilot, a competitor price benchmark, and a bean spend diagnostic.
+[runner] phase: RECOMMENDATION kind: model stall rung: none
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Okay. You said a 9% increase with no volume loss adds about 10 points of margin.","move":"risk","requests":[],"exhibit":null,"rescue_item":null,"question":"Suppose the pilot shows transactions falling after the increase. How much volume loss could the client absorb before the price move stops paying off?"}
+[timing] reads_done=38 plan_done=41 model_request=41 distress_verdict=758 model_first_token=1328 model_first_sentence=1731 first_delivered=1732 model_say_closed=1738 model_move_closed=1738 model_requests_closed=1738 model_exhibit_closed=1738 model_rescue_item_closed=1738 model_question_closed=2145 model_done=2768 settle_start=2768 settle_composed=2772 tail_delivered=2772 persist_start=2772 persist_end=2802
+
+[interviewer · RECOMMENDATION · 2:29] Okay. You said a 9% increase with no volume loss adds about 10 points of margin. Suppose the pilot shows transactions falling after the increase. How much volume loss could the client absorb before the price move stops paying off?
+
+[candidate · 2:39] Let me do the breakeven. Treat COGS as the variable cost — 58% of revenue — and labor and overhead as fixed in the near term, since labor's been flat at 22 regardless of the 15% volume growth.
+
+Today on revenue 115: COGS is 67, so contribution is 48, a 42% contribution margin.
+
+Now raise price 9% and lose x% of transactions. Revenue becomes 115 × 1.09 × (1−x) = 125.4(1−x). COGS falls with volume only, since price per cup doesn't change: 67(1−x). Contribution = 58.4(1−x). Set that equal to 48: 1−x = 48/58.4 = 0.823, so x ≈ 17.7%.
+
+So they can lose roughly 17-18% of transactions before the price increase stops paying off. That's a wide cushion — meaningful comfort.
+
+Caveat: labor won't stay fixed if volume drops 18%; they'd cut hours, which widens the cushion further. But brand damage and lost loyalty aren't in this math.
+[runner] phase: RECOMMENDATION kind: close stall rung: none
+[timing] reads_done=35 plan_done=36 code_written_checks_start=37 distress_verdict=795 code_written_checks_end=795 settle_start=795 settle_composed=796 first_delivered=796 tail_delivered=796 persist_start=796 persist_end=829
+
+[interviewer · SCORING · 2:40] That's our time. Thanks for working through this with me — your written report will follow.
+[score] reconciliation merged both-sides claims: [{"dimension":"dataExhibit","wentWell":"You isolated COGS as the driver and read the shape of the trend, using it to test your hypothesis.","needsWork":"Inside COGS, you misattributed the driver to beans. Beans were 25% of COGS (10.5 points of revenue), so a 40% rise adds only ~4.2 of the 16 points. Other inputs up 37.5% add ~11.8, making them the largest driver.","merged":"The candidate correctly isolated COGS as the driver and used the trend's shape to test the hypothesis, but within COGS attributed the rise to beans: beans were only 10.5 points of revenue, so a 40% rise adds ~4.2 of the 16 points, while other inputs up 37.5% add ~11.8 and are the largest driver.","placedIn":"needsWork"},{"dimension":"judgment","wentWell":"You recognized the limits of your own inference and downgraded a claim to a hypothesis.","needsWork":"You over-concluded a commercially implausible claim from a fragile residual: that the client pays far above market for beans.","merged":"The candidate at times recognized the limits of their own inference and downgraded a claim to a hypothesis, but also over-concluded from a fragile residual that the client pays far above market for beans, which is commercially implausible.","placedIn":"needsWork"},{"dimension":"creativity","wentWell":"You organized the brainstorm into clear buckets.","needsWork":"The brainstorm ended as a flat list with no ranking by impact or feasibility.","merged":"The candidate organized the brainstorm into clear buckets, but never ranked the ideas by impact or feasibility, so it ended without a prioritized view.","placedIn":"needsWork"},{"dimension":"synthesis","wentWell":"Your root-cause summary was crisp and calibrated on confidence.","needsWork":"The supporting reasoning leaned on bean inflation rather than the full 16-point COGS rise. It also called pricing 'sized to the problem' when 9% recovers only ~8 of the 18 points lost.","merged":"The candidate's root-cause summary was crisp and calibrated on confidence, but the supporting reasoning leaned on bean inflation rather than the full 16-point COGS rise. It also called pricing 'sized to the problem' when a 9% increase recovers only ~8 of the 18 points lost.","placedIn":"wentWell"},{"dimension":"communication","wentWell":"Your delivery was consistently signposted, with answer-first labels on key outputs.","needsWork":"Some math turns ran long and built bottom-up, burying the conclusion at the end of dense calculation chains.","merged":"The candidate's delivery was consistently signposted, with answer-first labels on key outputs, but some math turns ran long and built bottom-up, burying the conclusion at the end of dense calculation chains.","placedIn":"wentWell"},{"dimension":"pushback","wentWell":"You drove the case with targeted data requests and proposed checks throughout.","needsWork":"When the interviewer probed whether the figures were on the same footing, you named the ambiguity but waited for data instead of testing the alternative reading yourself. That test would have resolved it.","merged":"The candidate drove the case with targeted data requests and proposed checks, but when probed on whether the figures were on the same footing, named the ambiguity and waited for data instead of testing the alternative reading directly, a test that would have resolved it.","placedIn":"wentWell"}]
+[score] cross-dimension repetition: [{"concept":"Misreading the 37.5% figure as total spend rather than a per-unit change, which produced a phantom above-market bean premium, attributed the COGS rise to beans instead of the broader input basket, and scoped the fix and reasoning to beans","dimensions":["quantitative","dataExhibit","judgment","synthesis","pushback"]}]
+
+[live-run] ended=true scoring=scored

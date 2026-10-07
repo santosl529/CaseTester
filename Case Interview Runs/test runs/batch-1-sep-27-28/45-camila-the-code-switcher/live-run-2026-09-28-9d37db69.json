@@ -1,0 +1,1907 @@
+{
+  "session": {
+    "id": "9d37db69-19fe-4252-9511-85d909672eaa",
+    "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+    "caseId": "prof-001",
+    "phase": "SCORING",
+    "elapsedMs": 0,
+    "phaseStartedAt": "2026-09-28T17:09:45.581Z",
+    "status": "completed",
+    "abandonPhase": null,
+    "startedAt": "2026-09-28T16:52:35.030Z",
+    "completedAt": "2026-09-28T17:11:18.082Z",
+    "flagsJsonb": {
+      "stall": {
+        "ladderLevel": 0,
+        "consecutiveClarify": 0,
+        "consecutiveNoProgress": 0,
+        "lastCandidateQuestion": "Let me check myself, but I think 6.9 is right — the exhibit is in percent of revenue, not dollars.\n\nEach column sums to 100: 58 + 22 + 14 + 6. That's percent of *that year's* revenue. Entonces el seis es seis por ciento, no seis dólares.\n\nAnd if I set revenue two years ago at 100, today's revenue is 115. Seis por ciento de ciento quince = 6.9. That's in the same units as the original 24, so the comparison holds: profit fell from 24 to 6.9, about a 71% drop.\n\nThe 6 would only be the dollar figure if revenue had stayed at 100 — but we're told it grew 15%.\n\nSame logic ran through my COGS math: 58% of 115 = 66.7. If I'd used 58 flat, the bean number would come out negative, which is how I'd catch the error.\n\nHave I misread the exhibit? If those columns are absolute dollars rather than percentages, I'd want to redo it.",
+        "recommendationDelivered": true
+      },
+      "conduct": {},
+      "ranLong": false,
+      "silence": {
+        "checkedIn": false,
+        "pausedAtMs": null,
+        "pauseLimitMs": null,
+        "pausedTotalMs": 0,
+        "silenceStartedAtMs": null
+      },
+      "stalled": false,
+      "askedRepeat": false,
+      "pushbackDone": false,
+      "offTopicCount": 0,
+      "loadShedLogged": true,
+      "advancedLastTurn": false,
+      "timeWarningFired": false
+    },
+    "coverageJsonb": {
+      "judgment": 75,
+      "pushback": 70,
+      "structure": 92,
+      "synthesis": 78,
+      "creativity": 60,
+      "dataExhibit": 90,
+      "quantitative": 95,
+      "communication": 88
+    }
+  },
+  "turns": [
+    {
+      "id": "723447fe-3e77-4611-a63e-344c96bb1b66",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 0,
+      "role": "interviewer",
+      "text": "Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?\n\nHow would you like to approach this? Feel free to take a moment to gather your thoughts first.",
+      "timestampMs": 1790614355063,
+      "latencyMs": null
+    },
+    {
+      "id": "efab38d7-08c0-48d1-8308-e5319f0ac075",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 1,
+      "role": "candidate",
+      "text": "Okay, let me make sure I have the picture. Revenue is up 15% over two years, but net margin fell from 24% to 6% — so the problem is almost certainly on the cost side, not demand. And since margin is a percentage, costs must be growing faster than revenue.\n\nQuick sanity check, entonces: if revenue was 100 before, profit was 24. Now revenue is 115 and profit is 115 × 0.06 = 6.9. So absolute profit dropped from 24 to about 6.9 — that's a 70%-plus decline. Costs went from 76 to about 108, so costs grew roughly 42% while revenue grew 15%.\n\nSo I'd structure it as: first, break revenue into price and volume to confirm growth is healthy, not discounting; second, break costs into COGS, labor, occupancy, and corporate overhead, and find which line expanded; third, check whether it's per-store economics or new-store drag.\n\nDoes that sound reasonable? And apologies — I sometimes think through numbers in Spanish, hope that's alright.",
+      "timestampMs": 1790614457341,
+      "latencyMs": null
+    },
+    {
+      "id": "0c1794ee-7c6e-491e-ba8a-69421f863a23",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 2,
+      "role": "interviewer",
+      "text": "That works, and think through it however you like.\n\nYour framework has revenue, costs, and store economics. Is that MECE — what's missing?",
+      "timestampMs": 1790614459891,
+      "latencyMs": 2433
+    },
+    {
+      "id": "ff078224-0622-4248-ac95-0f151d6f83e7",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 3,
+      "role": "candidate",
+      "text": "Fair push. A couple of gaps.\n\nFirst, I anchored on net margin but only built an operating tree. Net profit includes below-the-line items — interest expense, depreciation from any build-out or remodels, taxes. If they levered up to fund growth, entonces los intereses could explain a chunk of that decline without any operating problem at all.\n\nSecond, mix. I said price and volume, but I left out product and channel mix — a shift from high-margin brewed coffee toward low-margin food, or toward delivery apps that take a 20–30% cut, would show revenue growing while margin collapses.\n\nThird, my store-economics point overlaps with costs, so it's not clean. I'd rather say: same-store P&L versus new-store P&L, as a lens on the cost lines rather than a separate branch.\n\nSo: revenue quality, cost structure, mix, below-the-line — and then external factors like commodity prices or wage inflation sitting underneath the cost branch.\n\nWhere would you like me to dig first?",
+      "timestampMs": 1790614550410,
+      "latencyMs": null
+    },
+    {
+      "id": "d216b185-7f06-4d71-b5e8-c2f83813251a",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 4,
+      "role": "interviewer",
+      "text": "Understood. Where would you start, and why?",
+      "timestampMs": 1790614551528,
+      "latencyMs": 999
+    },
+    {
+      "id": "9374a43e-9f83-4013-8024-515f99530299",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 5,
+      "role": "candidate",
+      "text": "I'd start with the cost structure, because the math already tells me costs grew about 42% against 15% revenue growth — that gap is the whole story, so I want to know which line it sits in before I spend time elsewhere.\n\nSpecifically, I'd ask for the cost breakdown as a percent of revenue, two years ago versus today: COGS, store labor, occupancy, corporate overhead, and then below-the-line interest and depreciation. That single table probably isolates the driver in one step.\n\nDo we have that split? And if we have it, I'd love the biggest line broken down one level further — if it's COGS, I'd want coffee beans versus dairy versus food versus packaging, since green coffee is a traded commodity and could have moved independently.\n\nOne more thing I'd want eventually: menu price history. Si no subieron los precios en dos años, entonces cualquier inflación de insumos pega directo al margen. But let's start with the cost table.",
+      "timestampMs": 1790614642005,
+      "latencyMs": null
+    },
+    {
+      "id": "687ac6ad-402f-499f-b729-13e6da35e526",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 6,
+      "role": "interviewer",
+      "text": "I have a cost structure exhibit. Here it is.",
+      "timestampMs": 1790614644580,
+      "latencyMs": 2367
+    },
+    {
+      "id": "9b3917ef-7dbf-4da7-8bda-b35bf338d34e",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 7,
+      "role": "candidate",
+      "text": "Okay, let me read this as percent of revenue.\n\nCOGS: cuarenta y dos, luego cincuenta, ahora cincuenta y ocho. So +8 points, then +8 more — sixteen points total. Labor is flat at 22 across all three years. Overhead goes 12, 13, 14 — solo dos puntos.\n\nEntonces, de los dieciocho puntos de margen perdido, dieciséis vienen de COGS y dos de overhead. COGS is roughly 89% of the decline. Labor contributed nothing, which is actually striking given US wage inflation — suggests they either cut hours or automated, or they're holding headcount flat while volume grows.\n\nSo the whole case is COGS, and it's a steady, linear march — eight points a year, not a one-time shock. That pattern points to either a sustained input cost increase or a structural mix shift, not a single bad contract.\n\nTwo things I need: the COGS breakdown — beans, dairy, food, packaging — and menu price history. Si no han subido precios, el 58% podría ser solo denominador.\n\nDo we have either?",
+      "timestampMs": 1790614735775,
+      "latencyMs": null
+    },
+    {
+      "id": "f1e8281a-27c9-4468-a890-3ebca2c0782b",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 8,
+      "role": "interviewer",
+      "text": "Let me check one thing. You said COGS is 89% of the decline — walk me through that.",
+      "timestampMs": 1790614737075,
+      "latencyMs": 1218
+    },
+    {
+      "id": "79dad452-5e5d-4e9f-876d-64a852930310",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 9,
+      "role": "candidate",
+      "text": "Sure. Profit as a percent of revenue went from 24 to 6, entonces la caída es de dieciocho puntos porcentuales.\n\nNow where did those eighteen points go? Costs have to absorb them, since the three lines plus profit sum to 100 in every column — let me verify: 42 + 22 + 12 + 24 = 100. Y ahora, 58 + 22 + 14 + 6 = 100. Good, it ties.\n\nSo COGS rose 58 − 42 = 16 points. Overhead rose 14 − 12 = 2 points. Labor, cero. Sixteen plus two is eighteen, which matches the profit decline exactly.\n\nEntonces dieciséis sobre dieciocho = 0.888..., so 89%. That's the share of the margin loss attributable to COGS.\n\nOne caveat I should flag: this is all in percentage-of-revenue terms. In absolute dollars COGS grew even more, because revenue itself grew 15%. But for explaining the margin decline, points of revenue is the right unit.",
+      "timestampMs": 1790614827289,
+      "latencyMs": null
+    },
+    {
+      "id": "37a02cf1-33df-46b0-963d-099185d5161b",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 10,
+      "role": "interviewer",
+      "text": "That holds. Here's the COGS breakdown and the menu price history. Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Menu prices have not changed in two years.",
+      "timestampMs": 1790614830356,
+      "latencyMs": 3001
+    },
+    {
+      "id": "48191835-35eb-47e0-9b98-24e827c74f50",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 11,
+      "role": "candidate",
+      "text": "Let me work in absolute dollars with revenue = 100 at the start.\n\nTwo years ago: COGS 42. Beans are 25% of that, entonces 10.5. Everything else is 31.5.\n\nNow: revenue is 115, and COGS is 58% of that — cincuenta y ocho por ciento de ciento quince = 66.7.\n\nOther inputs up 37.5%: 31.5 × 1.375 = 43.3.\n\nSo beans today = 66.7 − 43.3 = 23.4. Versus 10.5 before. Eso es un aumento de ciento veintitrés por ciento — beans more than doubled, and they've gone from 25% of COGS to about 35%.\n\nAnd prices haven't moved in two years. So they absorbed a commodity spike entirely on the P&L. Note that 15% revenue growth is pure volume — which actually made it worse, since every incremental cup carries the inflated input cost.\n\nGreen coffee did spike globally. So this is partly market, partly a pricing failure.",
+      "timestampMs": 1790614920817,
+      "latencyMs": null
+    },
+    {
+      "id": "4084ed30-d31b-4a57-a4f8-d21e9b1340f5",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 12,
+      "role": "interviewer",
+      "text": "Let me pause you on one. You said fifteen percent revenue growth is pure volume — walk me through that.",
+      "timestampMs": 1790614922511,
+      "latencyMs": 1630
+    },
+    {
+      "id": "cc199013-15da-4485-95dd-4ae194139926",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 13,
+      "role": "candidate",
+      "text": "Because menu prices are flat, revenue per unit is unchanged, entonces cualquier crecimiento tiene que venir de unidades vendidas. Revenue = price × volume; si el precio no se mueve, el quince por ciento es volumen.\n\nBut let me caveat that, because I stated it too cleanly. \"Volume\" here is bundled — it could be more transactions per store, or more stores. With 200 locations, if they opened units over two years, part of that 15% is footprint, not same-store traffic. Those have very different implications: new stores carry build-out and depreciation, and might explain the two points of overhead creep.\n\nSecond caveat: mix. Even with flat menu prices, average ticket can rise if customers shift toward pricier drinks or food. So revenue could grow without unit volume growing.\n\nDo we have store count over the two years, and transactions per store? That would let me separate same-store volume from expansion.",
+      "timestampMs": 1790615012675,
+      "latencyMs": null
+    },
+    {
+      "id": "16f1999b-1596-4a14-9fd6-8f498b77d148",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 14,
+      "role": "interviewer",
+      "text": "Here's what I have on both. 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed.",
+      "timestampMs": 1790615014366,
+      "latencyMs": 1631
+    },
+    {
+      "id": "b6941680-a665-42cd-8ed6-46f12e0137ca",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 15,
+      "role": "candidate",
+      "text": "That's clean, then — flat footprint, so the 15% is entirely same-store. Entonces, sin tiendas nuevas, no hay drag de build-out ni depreciación de expansión, and the two points of overhead creep need a different explanation — corporate salaries, maybe marketing.\n\nIt also strengthens the pricing argument considerably. Same-store revenue up 15% on flat prices means traffic is growing — demand is healthy and customers are not price-sensitive enough to walk away. So they have pricing power they simply haven't used.\n\nLet me size it. Today: revenue 115, profit 6.9. To get back to a 24% margin, si los costos se quedan igual, costs are 108.1, entonces necesito ingresos de 108.1 / 0.76 = 142.2. That's a 24% price increase — demasiado, would hit traffic.\n\nMore realistic: a 10% price increase on flat volume adds 11.5 to revenue and drops nearly all of it to profit, taking us from 6.9 to about 18.4 — roughly 15% margin. Half the gap from price alone.\n\nShould I build out the rest of the recommendation?",
+      "timestampMs": 1790615104624,
+      "latencyMs": null
+    },
+    {
+      "id": "527f88d5-4ccc-4558-9711-dfc933961ed4",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 16,
+      "role": "interviewer",
+      "text": "You put profit at 6.9, but the case gave us margin — that's 6, not 6.9. Now walk me through that pricing math again.",
+      "timestampMs": 1790615106690,
+      "latencyMs": 2002
+    },
+    {
+      "id": "61f4b782-3c1b-4584-8703-af7ba7b5396e",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 17,
+      "role": "candidate",
+      "text": "Let me check myself, but I think 6.9 is right — the exhibit is in percent of revenue, not dollars.\n\nEach column sums to 100: 58 + 22 + 14 + 6. That's percent of *that year's* revenue. Entonces el seis es seis por ciento, no seis dólares.\n\nAnd if I set revenue two years ago at 100, today's revenue is 115. Seis por ciento de ciento quince = 6.9. That's in the same units as the original 24, so the comparison holds: profit fell from 24 to 6.9, about a 71% drop.\n\nThe 6 would only be the dollar figure if revenue had stayed at 100 — but we're told it grew 15%.\n\nSame logic ran through my COGS math: 58% of 115 = 66.7. If I'd used 58 flat, the bean number would come out negative, which is how I'd catch the error.\n\nHave I misread the exhibit? If those columns are absolute dollars rather than percentages, I'd want to redo it.",
+      "timestampMs": 1790615196861,
+      "latencyMs": null
+    },
+    {
+      "id": "e0d4a76c-9b82-4126-a1bc-540b726f6b7c",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 18,
+      "role": "interviewer",
+      "text": "Understood. Now the pricing math — walk me through it once more.",
+      "timestampMs": 1790615199627,
+      "latencyMs": 2711
+    },
+    {
+      "id": "94c7bf3e-af4f-4d1a-a181-c872792f79d5",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 19,
+      "role": "candidate",
+      "text": "Sure. Current state, revenue = 115.\n\nCosts in dollars: COGS es cincuenta y ocho por ciento de ciento quince = 66.7. Labor, veintidós por ciento = 25.3. Overhead, catorce por ciento = 16.1. Total = 108.1. Profit = 115 − 108.1 = 6.9. Ties to the 6% margin.\n\nNow a 10% price increase, holding volume flat. Revenue = 115 × 1.10 = 126.5. Key point: costs don't move, because COGS and labor scale with cups served, not with price — the same units cost the same to make. So costs stay 108.1.\n\nProfit = 126.5 − 108.1 = 18.4. Margen = 18.4 / 126.5 = 14.5%.\n\nFor the full 24%: 0.76R = 108.1, entonces R = 142.2, a 23.7% increase. Too aggressive alone.\n\nThe real caveat is my flat-volume assumption. At 10%, some traffic walks. If elasticity costs us 5% of volume, COGS drops proportionally too, so it partially self-corrects — I'd want elasticity data before committing.",
+      "timestampMs": 1790615289887,
+      "latencyMs": null
+    },
+    {
+      "id": "d5fe0b43-b181-474e-a361-6d7f0bdf7800",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 20,
+      "role": "interviewer",
+      "text": "Beyond price, what else could the client do to reverse the margin decline? Give me a structured set of levers.",
+      "timestampMs": 1790615292291,
+      "latencyMs": 2264
+    },
+    {
+      "id": "cd4f3386-606d-4c98-b890-9e7ed5bbb304",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 21,
+      "role": "candidate",
+      "text": "Three buckets, ordered by where the money is.\n\nFirst, COGS, since that's 89% of the problem. Procurement: lock in forward contracts or hedge green coffee rather than buying spot — they clearly ate the spike unhedged. Diversify origins if they're concentrated in one region. Renegotiate dairy and packaging, where they're paying 37.5% more with 200 stores of buying power they may not be using. And reduce waste — spoilage and over-pouring sit in that line.\n\nSecond, mix and revenue quality. Push high-margin items: brewed coffee over dairy-heavy drinks, food attach, loyalty subscriptions. Entonces, si el margen por bebida sube, no necesito tanto precio.\n\nThird, the smaller lines. Overhead crept two points on a flat footprint — that's worth auditing. Labor held flat at 22% while volume grew 15%, so they're already running efficiently; I'd be careful cutting there, since service quality is what supports pricing power.\n\nI'd sequence price and procurement first — fastest, biggest.",
+      "timestampMs": 1790615382498,
+      "latencyMs": null
+    },
+    {
+      "id": "6353b5c3-3e16-4a02-ad97-d646a815d07c",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 22,
+      "role": "interviewer",
+      "text": "What's your recommendation to the CEO?",
+      "timestampMs": 1790615385476,
+      "latencyMs": 1067
+    },
+    {
+      "id": "3c72074b-2f4a-4122-8d1c-000e48a526bf",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 23,
+      "role": "candidate",
+      "text": "My recommendation: raise menu prices around 10% and hedge green coffee — that combination recovers most of the margin, and the case for it is that this is a cost problem, not a demand problem.\n\nSupporting points. Sixteen of the eighteen points of margin loss are COGS, and within that, beans more than doubled — de 10.5 a 23.4 en dólares, from 25% to 35% of COGS. Meanwhile prices haven't moved in two years while same-store revenue grew 15% on a flat 200-store footprint. That's real pricing power they haven't used. A 10% increase takes margin from 6% to roughly 14.5%; procurement savings and mix shift toward brewed coffee close more of the gap.\n\nRisks: elasticity is unknown, so I'd phase the increase and test by market; competitors may not follow; hedging locks you in if beans fall.\n\nNext steps: price elasticity test in two or three markets, a bean sourcing and hedging review, and an overhead audit on those two creeping points.",
+      "timestampMs": 1790615475692,
+      "latencyMs": null
+    },
+    {
+      "id": "86c2a79e-1e8c-4575-8ab6-f3df057e1f4b",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "turnIndex": 24,
+      "role": "interviewer",
+      "text": "That's a complete case. We'll stop there — thank you for working through it.\n\nYou'll get a full written report with detailed feedback; I won't debrief live. Thanks again for your time.",
+      "timestampMs": 1790615477906,
+      "latencyMs": 2059
+    }
+  ],
+  "score": {
+    "id": "a01ab04d-9e1d-431d-9aff-17bc61c7f2f1",
+    "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+    "structureRating": "strong",
+    "structureEvidence": null,
+    "quantitativeRating": "strong",
+    "quantitativeEvidence": null,
+    "dataExhibitRating": "strong",
+    "dataExhibitEvidence": null,
+    "judgmentRating": "strong",
+    "judgmentEvidence": null,
+    "creativityRating": "strong",
+    "creativityEvidence": null,
+    "communicationRating": "strong",
+    "communicationEvidence": null,
+    "synthesisRating": "strong",
+    "synthesisEvidence": null,
+    "pushbackRating": "strong",
+    "pushbackEvidence": null,
+    "overallRating": "strong",
+    "rubricJsonb": {
+      "topFix": "Weight the supply-side diagnosis and recommendation to match the data: non-bean inputs (up 37.5%) are the larger share of the COGS increase, so lead procurement on dairy and packaging alongside bean hedging rather than framing the cost fix primarily as a coffee-bean story.",
+      "judgment": {
+        "rating": "strong",
+        "wentWell": [
+          {
+            "point": "Recognized pricing power from healthy same-store traffic and warned against cutting the lean labor line that supports service quality.",
+            "quotes": [
+              "Same-store revenue up 15% on flat prices means traffic is growing — demand is healthy and customers are not price-sensitive enough to walk away. So they have pricing power they simply haven't used",
+              "they're already running efficiently; I'd be careful cutting there, since service quality is what supports pricing power"
+            ]
+          },
+          {
+            "point": "Sized the naive full-recovery price increase, judged it infeasible, and pivoted to a realistic phased option.",
+            "quotes": [
+              "That's a 24% price increase — demasiado, would hit traffic",
+              "The real caveat is my flat-volume assumption. At 10%, some traffic walks"
+            ]
+          },
+          {
+            "point": "The candidate correctly flagged that beans do not explain the full picture and pointed to broader procurement, but still leaned too heavily on the bean-spike narrative — a sharper diagnosis would weight the non-bean inputs (up 37.5%), which drive the larger share of the COGS increase.",
+            "quotes": [
+              "Renegotiate dairy and packaging, where they're paying 37.5% more with 200 stores of buying power they may not be using",
+              "hedging locks you in if beans fall",
+              "Green coffee did spike globally. So this is partly market, partly a pricing failure"
+            ]
+          }
+        ],
+        "needsWork": [],
+        "missedOpportunities": [
+          {
+            "moment": "After decomposing beans vs. other inputs, the candidate emphasized beans doubling but did not explicitly quantify that the other inputs (dairy/packaging/food) account for the larger dollar share of the COGS increase.",
+            "betterResponse": "Note that beans rose from 10.5 to 23.4 — about 13 points — but other inputs rose from 31.5 to 43.3, nearly 12 points, so this is not primarily a coffee story; procurement has to hit dairy and packaging, not just hedge beans."
+          }
+        ]
+      },
+      "pushback": {
+        "rating": "strong",
+        "wentWell": [
+          {
+            "point": "Held position under the '6 vs 6.9' challenge with explicit unit reasoning rather than caving, while offering to redo if the exhibit was misread.",
+            "quotes": [
+              "Let me check myself, but I think 6.9 is right — the exhibit is in percent of revenue, not dollars",
+              "Have I misread the exhibit? If those columns are absolute dollars rather than percentages, I'd want to redo it"
+            ]
+          },
+          {
+            "point": "Responded to the MECE challenge by specifically identifying gaps and improving the structure without defensiveness.",
+            "quotes": [
+              "Fair push. A couple of gaps",
+              "my store-economics point overlaps with costs, so it's not clean"
+            ]
+          },
+          {
+            "point": "Handled the 'walk me through 89%' and 'pure volume' probes with crisp derivations and appropriate caveats.",
+            "quotes": [
+              "let me verify: 42 + 22 + 12 + 24 = 100",
+              "let me caveat that, because I stated it too cleanly. 'Volume' here is bundled"
+            ]
+          }
+        ],
+        "needsWork": [],
+        "missedOpportunities": []
+      },
+      "structure": {
+        "rating": "strong",
+        "wentWell": [
+          {
+            "point": "Restated the objective and immediately hypothesized the cost side before building the tree, then disaggregated into tailored buckets.",
+            "quotes": [
+              "so the problem is almost certainly on the cost side, not demand",
+              "first, break revenue into price and volume to confirm growth is healthy, not discounting; second, break costs into COGS, labor, occupancy, and corporate overhead, and find which line expanded"
+            ]
+          },
+          {
+            "point": "Proactively self-corrected MECE gaps and improved the structure when challenged, adding below-the-line, mix, and cleaning up overlap.",
+            "quotes": [
+              "my store-economics point overlaps with costs, so it's not clean",
+              "revenue quality, cost structure, mix, below-the-line — and then external factors like commodity prices or wage inflation sitting underneath the cost branch"
+            ]
+          },
+          {
+            "point": "Stated explicit prioritization tied to where the answer likely lives.",
+            "quotes": [
+              "I'd start with the cost structure, because the math already tells me costs grew about 42% against 15% revenue growth — that gap is the whole story, so I want to know which line it sits in before I spend time elsewhere"
+            ]
+          }
+        ],
+        "needsWork": [],
+        "missedOpportunities": [
+          {
+            "moment": "In turn 1 the candidate laid out the framework but did not yet surface competitive context or pricing power as an explicit branch (it only emerged later organically).",
+            "betterResponse": "I'd also want to check competitive context early — are peers seeing the same margin compression, and does the client have pricing power relative to competitors — since that shapes whether the fix is pricing or pure cost."
+          }
+        ]
+      },
+      "synthesis": {
+        "rating": "strong",
+        "wentWell": [
+          {
+            "point": "Led answer-first with a specific recommendation, supported by evidence tied to the analysis, then named risks and next steps concisely.",
+            "quotes": [
+              "My recommendation: raise menu prices around 10% and hedge green coffee — that combination recovers most of the margin, and the case for it is that this is a cost problem, not a demand problem",
+              "Next steps: price elasticity test in two or three markets, a bean sourcing and hedging review, and an overhead audit on those two creeping points"
+            ]
+          },
+          {
+            "point": "Quantified the impact of the primary lever and layered secondary levers to close the gap.",
+            "quotes": [
+              "A 10% increase takes margin from 6% to roughly 14.5%; procurement savings and mix shift toward brewed coffee close more of the gap"
+            ]
+          }
+        ],
+        "needsWork": [
+          {
+            "point": "The recommendation framed procurement mainly as 'hedge green coffee' when the data shows non-bean inputs are the larger driver, so the supply-side fix is somewhat under-scoped relative to the evidence.",
+            "quotes": [
+              "raise menu prices around 10% and hedge green coffee",
+              "within that, beans more than doubled — de 10.5 a 23.4 en dólares, from 25% to 35% of COGS"
+            ]
+          }
+        ],
+        "missedOpportunities": [
+          {
+            "moment": "In the final recommendation the candidate led with hedging beans but did not equally elevate renegotiating dairy and packaging, which the 37.5% figure shows is the bigger cost bucket.",
+            "betterResponse": "Pair the price increase with a full procurement push — multi-year bean contracts plus renegotiated dairy and packaging, since non-bean inputs are up 37.5% and explain the larger share of the COGS increase."
+          }
+        ]
+      },
+      "creativity": {
+        "rating": "strong",
+        "wentWell": [
+          {
+            "point": "Organized the brainstorm into buckets ordered by impact and produced diverse, relevant levers across COGS, revenue mix, and overhead.",
+            "quotes": [
+              "Three buckets, ordered by where the money is",
+              "Procurement: lock in forward contracts or hedge green coffee rather than buying spot... Diversify origins if they're concentrated in one region... And reduce waste — spoilage and over-pouring sit in that line"
+            ]
+          },
+          {
+            "point": "Included non-obvious ideas like mix shift to reduce reliance on price and loyalty subscriptions.",
+            "quotes": [
+              "Push high-margin items: brewed coffee over dairy-heavy drinks, food attach, loyalty subscriptions. Entonces, si el margen por bebida sube, no necesito tanto precio"
+            ]
+          }
+        ],
+        "needsWork": [],
+        "missedOpportunities": [
+          {
+            "moment": "The brainstorm did not surface the model's 'commodity blend' pilot idea for budget-conscious locations as a way to protect volume while managing input cost.",
+            "betterResponse": "One more revenue-protecting lever: pilot a lower-cost commodity blend at budget-sensitive locations so we can take price on specialty SKUs without alienating price-conscious traffic."
+          }
+        ]
+      },
+      "dataExhibit": {
+        "rating": "strong",
+        "wentWell": [
+          {
+            "point": "Oriented on the exhibit units first, then isolated COGS as the driver and characterized the pattern (linear, not one-time).",
+            "quotes": [
+              "Okay, let me read this as percent of revenue",
+              "it's a steady, linear march — eight points a year, not a one-time shock. That pattern points to either a sustained input cost increase or a structural mix shift"
+            ]
+          },
+          {
+            "point": "Extracted a non-obvious insight from flat labor and proposed concrete next data requests with a 'so-what'.",
+            "quotes": [
+              "Labor contributed nothing, which is actually striking given US wage inflation — suggests they either cut hours or automated",
+              "Two things I need: the COGS breakdown — beans, dairy, food, packaging — and menu price history"
+            ]
+          },
+          {
+            "point": "Correctly decomposed the COGS breakdown to show beans more than doubled and grew as a share of COGS.",
+            "quotes": [
+              "So beans today = 66.7 − 43.3 = 23.4. Versus 10.5 before. Eso es un aumento de ciento veintitrés por ciento — beans more than doubled, and they've gone from 25% of COGS to about 35%"
+            ]
+          }
+        ],
+        "needsWork": [],
+        "missedOpportunities": []
+      },
+      "quantitative": {
+        "rating": "strong",
+        "wentWell": [
+          {
+            "point": "Correctly derived margin decline and tied each cost line to the 18-point drop, verifying columns sum to 100.",
+            "quotes": [
+              "let me verify: 42 + 22 + 12 + 24 = 100. Y ahora, 58 + 22 + 14 + 6 = 100. Good, it ties",
+              "COGS rose 58 − 42 = 16 points. Overhead rose 14 − 12 = 2 points. Labor, cero"
+            ]
+          },
+          {
+            "point": "Executed a clean nested-percentage bean decomposition in absolute dollars, avoiding the classic units trap and using a sanity check to guard against error.",
+            "quotes": [
+              "Now: revenue is 115, and COGS is 58% of that — cincuenta y ocho por ciento de ciento quince = 66.7",
+              "If I'd used 58 flat, the bean number would come out negative, which is how I'd catch the error"
+            ]
+          },
+          {
+            "point": "Laid out the pricing math with explicit setup and stated the business implication, correctly noting variable costs don't scale with price.",
+            "quotes": [
+              "costs don't move, because COGS and labor scale with cups served, not with price",
+              "Profit = 126.5 − 108.1 = 18.4. Margen = 18.4 / 126.5 = 14.5%"
+            ]
+          }
+        ],
+        "needsWork": [],
+        "missedOpportunities": []
+      },
+      "communication": {
+        "rating": "strong",
+        "wentWell": [
+          {
+            "point": "Consistently top-down and signposted, stating structure before detail and using hypothesis language.",
+            "quotes": [
+              "So I'd structure it as: first... second... third...",
+              "Three buckets, ordered by where the money is"
+            ]
+          },
+          {
+            "point": "Narrated math steps clearly and flagged caveats in real time, keeping the interviewer able to follow.",
+            "quotes": [
+              "One caveat I should flag: this is all in percentage-of-revenue terms",
+              "But let me caveat that, because I stated it too cleanly"
+            ]
+          }
+        ],
+        "needsWork": [],
+        "missedOpportunities": []
+      },
+      "overallRating": "strong"
+    },
+    "topFix": "Weight the supply-side diagnosis and recommendation to match the data: non-bean inputs (up 37.5%) are the larger share of the COGS increase, so lead procurement on dairy and packaging alongside bean hedging rather than framing the cost fix primarily as a coffee-bean story.",
+    "deterministicJsonb": [
+      {
+        "id": "profit_margin_now",
+        "expected": 6,
+        "mentioned": true,
+        "tolerance": 0.5,
+        "errorClass": "non_issue",
+        "description": "Current profit margin = 100% - COGS% - Labor% - Overhead% = 100 - 58 - 22 - 14",
+        "candidateValue": 6,
+        "withinTolerance": true
+      },
+      {
+        "id": "profit_margin_prior",
+        "expected": 24,
+        "mentioned": true,
+        "tolerance": 0.5,
+        "errorClass": "non_issue",
+        "description": "Prior profit margin = 100% - COGS% - Labor% - Overhead% = 100 - 42 - 22 - 12 = 24",
+        "candidateValue": 24,
+        "withinTolerance": true
+      },
+      {
+        "id": "cogs_dollar_impact",
+        "expected": 76.8,
+        "mentioned": true,
+        "tolerance": 2,
+        "errorClass": "non_issue",
+        "description": "Margin impact of the COGS increase = 16pp × current revenue $480M = $76.8M. This measures the margin compression valued at today's revenue. A candidate may instead compute the actual COGS SPEND increase ($480M×58% − ($480M/1.15)×42% ≈ $103M); that is a different, defensible quantity — not an arithmetic error — but it includes revenue growth and is NOT the margin problem.",
+        "candidateValue": 76,
+        "withinTolerance": true
+      },
+      {
+        "id": "revenue_per_store_check",
+        "expected": 2.4,
+        "mentioned": true,
+        "tolerance": 0.05,
+        "errorClass": "minor",
+        "description": "$480M / 200 stores = $2.4M per store",
+        "candidateValue": 2,
+        "withinTolerance": false
+      }
+    ],
+    "modelAnswerJsonb": {
+      "structure": "Strong structure disaggregates profit = revenue − costs, then breaks revenue into volume × price and costs into COGS / labor / overhead / other. The candidate should hypothesize which bucket is the driver before asking for data. Bonus: asks about competitive context (are peers also seeing this?) and pricing power.",
+      "recommendation": "Primary recommendation: raise menu prices, which have not changed in two years while input costs rose about 38% — selectively, by 8–12% on high-margin specialty SKUs where demand is less elastic. Pair it with procurement across all inputs, not just beans: multi-year bean supply contracts plus renegotiated dairy and packaging supply, since beans explain only about a quarter of the COGS increase. Secondary: pilot a lower-cost 'commodity blend' for budget-conscious locations. Do not recommend blanket cost cuts — labor and overhead are already lean."
+    },
+    "scoringRuntimeMs": 73388,
+    "judgeModel": "claude-opus-4-8",
+    "createdAt": "2026-09-28T17:12:31.590Z"
+  },
+  "events": [
+    {
+      "id": "5794157c-ba85-4bd5-9991-df3a30bba51a",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "requestCount": 0,
+        "interviewerTurnIndex": 2
+      },
+      "createdAt": "2026-09-28T16:54:21.269Z"
+    },
+    {
+      "id": "3d8e00eb-491e-47f4-9998-7ce7592f5604",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "requestCount": 0,
+        "interviewerTurnIndex": 4
+      },
+      "createdAt": "2026-09-28T16:55:52.388Z"
+    },
+    {
+      "id": "47b4057d-18b6-4fd7-b25d-6a7f461b3925",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "release",
+      "turnIndex": 5,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "what": "Cost breakdown as a percent of revenue (COGS, store labor, occupancy, corporate overhead, interest, depreciation) comparing two years ago versus today",
+        "ledgerItemIds": [
+          "cogs_pct",
+          "labor_pct",
+          "overhead_pct"
+        ],
+        "revealedByNow": true,
+        "interviewerTurnIndex": 6
+      },
+      "createdAt": "2026-09-28T16:57:27.681Z"
+    },
+    {
+      "id": "1f015b6e-a982-4689-8fe8-bb3fdb2c15bd",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "none",
+      "turnIndex": 5,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "what": "COGS broken down by component: coffee beans, dairy, food, and packaging",
+        "ledgerItemIds": [
+          "bean_share_of_cogs",
+          "non_bean_input_change"
+        ],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 6
+      },
+      "createdAt": "2026-09-28T16:57:27.681Z"
+    },
+    {
+      "id": "83345049-51b6-48f7-93c5-a84076040f34",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "none",
+      "turnIndex": 5,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "what": "Menu price history over two years",
+        "ledgerItemIds": [
+          "menu_price_change"
+        ],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 6
+      },
+      "createdAt": "2026-09-28T16:57:27.681Z"
+    },
+    {
+      "id": "73b6209a-2b53-4f5b-bc65-543d777781fb",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 5,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "requestCount": 3,
+        "interviewerTurnIndex": 6
+      },
+      "createdAt": "2026-09-28T16:57:27.681Z"
+    },
+    {
+      "id": "8b692b37-0d4c-4130-b76a-b93916784e63",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "none",
+      "turnIndex": 7,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "what": "COGS breakdown by input category (beans, dairy, food, packaging)",
+        "ledgerItemIds": [
+          "bean_share_of_cogs",
+          "non_bean_input_change"
+        ],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 8
+      },
+      "createdAt": "2026-09-28T16:58:58.470Z"
+    },
+    {
+      "id": "a7c6d161-5dcd-451c-afbb-6e06738ca843",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "none",
+      "turnIndex": 7,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "what": "Menu price history over time",
+        "ledgerItemIds": [
+          "menu_price_change"
+        ],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 8
+      },
+      "createdAt": "2026-09-28T16:58:58.470Z"
+    },
+    {
+      "id": "f9c38984-9fd3-4fcf-9059-8ff80accd739",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 7,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "requestCount": 2,
+        "interviewerTurnIndex": 8
+      },
+      "createdAt": "2026-09-28T16:58:58.470Z"
+    },
+    {
+      "id": "1f5e0a8f-f92a-49c3-bd4d-166ef5cb957c",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 9,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "requestCount": 0,
+        "interviewerTurnIndex": 10
+      },
+      "createdAt": "2026-09-28T17:00:31.329Z"
+    },
+    {
+      "id": "56d784c6-1261-4246-9756-fcdbbf2c4ab1",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "requestCount": 0,
+        "interviewerTurnIndex": 12
+      },
+      "createdAt": "2026-09-28T17:02:03.284Z"
+    },
+    {
+      "id": "5ce58b7b-9ee5-4440-830a-f3c52c81c777",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "release",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "what": "Store count over the two-year period",
+        "ledgerItemIds": [
+          "stores_count"
+        ],
+        "revealedByNow": true,
+        "interviewerTurnIndex": 14
+      },
+      "createdAt": "2026-09-28T17:03:35.913Z"
+    },
+    {
+      "id": "42c146a6-3813-4a54-a4a7-a94124c30a94",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "none",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "what": "Transactions per store over the two-year period",
+        "ledgerItemIds": [],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 14
+      },
+      "createdAt": "2026-09-28T17:03:35.913Z"
+    },
+    {
+      "id": "22444737-626d-44e0-be5b-85eb80da5aa5",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "requestCount": 2,
+        "interviewerTurnIndex": 14
+      },
+      "createdAt": "2026-09-28T17:03:35.913Z"
+    },
+    {
+      "id": "819ae63d-d882-4eb7-bcd5-1a6e309bec4c",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 15,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "requestCount": 0,
+        "interviewerTurnIndex": 16
+      },
+      "createdAt": "2026-09-28T17:05:07.580Z"
+    },
+    {
+      "id": "8a50bc3c-bf1c-4b8e-a5fe-73d9665aed4d",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "none",
+      "turnIndex": 17,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "what": "Clarification on whether the exhibit columns are absolute dollars or percentages of revenue",
+        "ledgerItemIds": [],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 18
+      },
+      "createdAt": "2026-09-28T17:06:41.799Z"
+    },
+    {
+      "id": "33f431f7-6d44-4bf9-a5a5-9148e4ad14af",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 17,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "requestCount": 1,
+        "interviewerTurnIndex": 18
+      },
+      "createdAt": "2026-09-28T17:06:41.799Z"
+    },
+    {
+      "id": "75e6a075-1f69-4411-b04a-5a131a5cf0c6",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "none",
+      "turnIndex": 19,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "what": "elasticity data / price sensitivity / volume impact from price increases",
+        "ledgerItemIds": [],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 20
+      },
+      "createdAt": "2026-09-28T17:08:13.411Z"
+    },
+    {
+      "id": "173d5aeb-9bea-4a4f-a50f-ce5313fbe25c",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 19,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "requestCount": 1,
+        "interviewerTurnIndex": 20
+      },
+      "createdAt": "2026-09-28T17:08:13.411Z"
+    },
+    {
+      "id": "1dd69693-d1be-44cb-aad9-846b7049d405",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "release",
+      "turnIndex": 21,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "what": "COGS as a percentage of revenue",
+        "ledgerItemIds": [
+          "cogs_pct"
+        ],
+        "revealedByNow": true,
+        "interviewerTurnIndex": 22
+      },
+      "createdAt": "2026-09-28T17:09:45.456Z"
+    },
+    {
+      "id": "842a05ba-c279-44fb-a5e5-22fcfe4c2d94",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "release",
+      "turnIndex": 21,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "what": "Dairy and packaging cost increases over time",
+        "ledgerItemIds": [
+          "non_bean_input_change"
+        ],
+        "revealedByNow": true,
+        "interviewerTurnIndex": 22
+      },
+      "createdAt": "2026-09-28T17:09:45.456Z"
+    },
+    {
+      "id": "e0b6bd17-a43e-4699-bbee-0023ff2bf92a",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "release",
+      "turnIndex": 21,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "what": "Overhead as a percentage of revenue and trend over time",
+        "ledgerItemIds": [
+          "overhead_pct"
+        ],
+        "revealedByNow": true,
+        "interviewerTurnIndex": 22
+      },
+      "createdAt": "2026-09-28T17:09:45.456Z"
+    },
+    {
+      "id": "d0068a02-129f-4f29-b7ab-1c1313c7f01a",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "release",
+      "turnIndex": 21,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "what": "Labor as a percentage of revenue",
+        "ledgerItemIds": [
+          "labor_pct"
+        ],
+        "revealedByNow": true,
+        "interviewerTurnIndex": 22
+      },
+      "createdAt": "2026-09-28T17:09:45.456Z"
+    },
+    {
+      "id": "d8a0fd96-d7ae-4de6-985f-3fdd53732586",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "release",
+      "turnIndex": 21,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "what": "Volume growth",
+        "ledgerItemIds": [],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 22
+      },
+      "createdAt": "2026-09-28T17:09:45.456Z"
+    },
+    {
+      "id": "009cd660-c487-472c-b041-606a0a0dbb30",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 21,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "requestCount": 5,
+        "interviewerTurnIndex": 22
+      },
+      "createdAt": "2026-09-28T17:09:45.456Z"
+    },
+    {
+      "id": "b4f34162-e3ba-4604-8919-aa0f6a95077b",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "intervention",
+      "subtype": "load_shed",
+      "turnIndex": 23,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "elapsedMs": 1120662,
+        "remainingMs": 79338
+      },
+      "createdAt": "2026-09-28T17:11:18.062Z"
+    },
+    {
+      "id": "6997a803-f97e-47e1-8c7a-67cd17a605c5",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 23,
+      "phase": "SCORING",
+      "payloadJsonb": {
+        "requestCount": 0,
+        "interviewerTurnIndex": 24
+      },
+      "createdAt": "2026-09-28T17:11:19.074Z"
+    }
+  ],
+  "analytics": [
+    {
+      "id": "06df7718-3668-4102-bbe2-96d839447ac2",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "case_start",
+      "payloadJsonb": {
+        "caseId": "prof-001"
+      },
+      "createdAt": "2026-09-28T16:52:35.173Z"
+    },
+    {
+      "id": "7ef254a9-d6db-4887-90ab-32ab8131ea46",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "INTRO",
+        "latencyMs": 2433,
+        "turnIndex": 2
+      },
+      "createdAt": "2026-09-28T16:54:20.061Z"
+    },
+    {
+      "id": "7cf67269-a5d3-4551-b22d-2ad7f29c21b7",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 6009,
+        "outputTokens": 43
+      },
+      "createdAt": "2026-09-28T16:54:20.103Z"
+    },
+    {
+      "id": "f62ed612-377f-45bc-a348-2fa6192b9d49",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "phase_transition",
+      "payloadJsonb": {
+        "to": "CLARIFY",
+        "from": "INTRO"
+      },
+      "createdAt": "2026-09-28T16:54:20.165Z"
+    },
+    {
+      "id": "35d7e457-92ac-4b3f-ba53-b5b3a5c4e4f2",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 894,
+        "outputTokens": 13
+      },
+      "createdAt": "2026-09-28T16:54:21.231Z"
+    },
+    {
+      "id": "43e2142e-d9fb-48cf-b7a0-962bbc03633f",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 689,
+        "outputTokens": 256
+      },
+      "createdAt": "2026-09-28T16:54:24.194Z"
+    },
+    {
+      "id": "37218498-ef89-4a04-9ce0-dfbbcfddddb8",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "CLARIFY",
+        "latencyMs": 999,
+        "turnIndex": 4
+      },
+      "createdAt": "2026-09-28T16:55:51.589Z"
+    },
+    {
+      "id": "4837dd4a-f2ae-448b-b86d-75f5f212bc5c",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 6606,
+        "outputTokens": 15
+      },
+      "createdAt": "2026-09-28T16:55:51.688Z"
+    },
+    {
+      "id": "47b44c56-d3d1-43a9-98c7-6aace7a72b9f",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 854,
+        "outputTokens": 13
+      },
+      "createdAt": "2026-09-28T16:55:52.337Z"
+    },
+    {
+      "id": "96a82b58-ef0c-4411-86ba-519a094da8bd",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 942,
+        "outputTokens": 46
+      },
+      "createdAt": "2026-09-28T16:55:52.611Z"
+    },
+    {
+      "id": "7a008619-d19c-4336-aa62-41a116851ffe",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "phase_repair",
+      "payloadJsonb": {
+        "to": "EXHIBIT",
+        "from": "STRUCTURE",
+        "reasons": [
+          "ledger reveal (releaseWhen ANALYSIS)",
+          "exhibit shown"
+        ]
+      },
+      "createdAt": "2026-09-28T16:57:24.554Z"
+    },
+    {
+      "id": "ed13672c-220f-4c19-a998-3f57b7cbfd79",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "CLARIFY",
+        "latencyMs": 2367,
+        "turnIndex": 6
+      },
+      "createdAt": "2026-09-28T16:57:24.669Z"
+    },
+    {
+      "id": "f235a25f-64e4-48ea-b1c9-a4401e0d34dc",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 6950,
+        "outputTokens": 103
+      },
+      "createdAt": "2026-09-28T16:57:24.827Z"
+    },
+    {
+      "id": "ea3204e3-82c6-43f4-af5a-a889e991db8a",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "via": "exhibit",
+        "phase": "CLARIFY",
+        "itemId": "cogs_pct"
+      },
+      "createdAt": "2026-09-28T16:57:24.917Z"
+    },
+    {
+      "id": "c09c4e32-43dd-4377-81ff-0e11b4ca9c68",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "via": "exhibit",
+        "phase": "CLARIFY",
+        "itemId": "labor_pct"
+      },
+      "createdAt": "2026-09-28T16:57:25.109Z"
+    },
+    {
+      "id": "48a53107-9f3d-48ba-a12a-c10e630c8624",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "via": "exhibit",
+        "phase": "CLARIFY",
+        "itemId": "overhead_pct"
+      },
+      "createdAt": "2026-09-28T16:57:25.263Z"
+    },
+    {
+      "id": "191f2c34-bfa4-42dc-acf0-495ee8d051ae",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "exhibit_shown",
+      "payloadJsonb": {
+        "phase": "CLARIFY",
+        "exhibitId": "exhibit-a"
+      },
+      "createdAt": "2026-09-28T16:57:25.437Z"
+    },
+    {
+      "id": "389e2a8a-c044-42b7-9d79-2ef87cf59315",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "phase_transition",
+      "payloadJsonb": {
+        "to": "EXHIBIT",
+        "from": "CLARIFY"
+      },
+      "createdAt": "2026-09-28T16:57:25.507Z"
+    },
+    {
+      "id": "e888e000-fa07-4cad-8fe4-62e8fa269669",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 840,
+        "outputTokens": 207
+      },
+      "createdAt": "2026-09-28T16:57:27.519Z"
+    },
+    {
+      "id": "b90e88dd-87b9-4a9f-a51b-32efe9dac53c",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 1181,
+        "outputTokens": 256
+      },
+      "createdAt": "2026-09-28T16:57:29.419Z"
+    },
+    {
+      "id": "1531cbac-08d3-4445-bd1d-78d56c347133",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "EXHIBIT",
+        "latencyMs": 1218,
+        "turnIndex": 8
+      },
+      "createdAt": "2026-09-28T16:58:57.135Z"
+    },
+    {
+      "id": "958bd1f3-940b-4ac0-b983-6db0a23a6bec",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 7807,
+        "outputTokens": 30
+      },
+      "createdAt": "2026-09-28T16:58:57.167Z"
+    },
+    {
+      "id": "f8ed94d1-7edc-43c8-abaa-f2b2c4ec434f",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 1481,
+        "outputTokens": 46
+      },
+      "createdAt": "2026-09-28T16:58:58.130Z"
+    },
+    {
+      "id": "7bbcd4d9-e0a9-4c21-ad4d-1b559f287375",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 901,
+        "outputTokens": 124
+      },
+      "createdAt": "2026-09-28T16:58:58.442Z"
+    },
+    {
+      "id": "6d428cfb-3962-486f-98c4-4f34c10447d5",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "EXHIBIT",
+        "latencyMs": 3001,
+        "turnIndex": 10
+      },
+      "createdAt": "2026-09-28T17:00:30.407Z"
+    },
+    {
+      "id": "90f86138-36c8-48f1-9f44-e3c70c758c6f",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 7882,
+        "outputTokens": 191
+      },
+      "createdAt": "2026-09-28T17:00:30.434Z"
+    },
+    {
+      "id": "5f0964ac-3918-4729-a91e-9445fccf0db6",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "phase": "EXHIBIT",
+        "itemId": "bean_share_of_cogs"
+      },
+      "createdAt": "2026-09-28T17:00:30.492Z"
+    },
+    {
+      "id": "142aa737-2da8-424e-971c-95beeea589f4",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "phase": "EXHIBIT",
+        "itemId": "non_bean_input_change"
+      },
+      "createdAt": "2026-09-28T17:00:30.544Z"
+    },
+    {
+      "id": "58ba2204-2fb4-465c-8941-e4f0d853e46e",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "phase": "EXHIBIT",
+        "itemId": "menu_price_change"
+      },
+      "createdAt": "2026-09-28T17:00:30.597Z"
+    },
+    {
+      "id": "0f5141ea-aa60-4673-ae49-046623c05eac",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 937,
+        "outputTokens": 17
+      },
+      "createdAt": "2026-09-28T17:00:31.302Z"
+    },
+    {
+      "id": "2f41ff53-1f89-4d41-aca4-ac413227257e",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 1817,
+        "outputTokens": 256
+      },
+      "createdAt": "2026-09-28T17:00:35.209Z"
+    },
+    {
+      "id": "e7c95927-de6c-4385-8d9f-a7da3586e71a",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "EXHIBIT",
+        "latencyMs": 1630,
+        "turnIndex": 12
+      },
+      "createdAt": "2026-09-28T17:02:02.570Z"
+    },
+    {
+      "id": "b8fdc7a2-1336-4382-b4f1-da9149fd0455",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 8212,
+        "outputTokens": 36
+      },
+      "createdAt": "2026-09-28T17:02:02.596Z"
+    },
+    {
+      "id": "df09472c-45cc-463d-890f-30e1c6918790",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 892,
+        "outputTokens": 13
+      },
+      "createdAt": "2026-09-28T17:02:03.260Z"
+    },
+    {
+      "id": "caa3ed1f-b25b-4baf-9dd1-4b2b8b39c3a2",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 2108,
+        "outputTokens": 256
+      },
+      "createdAt": "2026-09-28T17:02:06.403Z"
+    },
+    {
+      "id": "6b3f24ba-7bf2-4d45-922b-66d40f3d83dd",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "EXHIBIT",
+        "latencyMs": 1631,
+        "turnIndex": 14
+      },
+      "createdAt": "2026-09-28T17:03:34.428Z"
+    },
+    {
+      "id": "8bbb94e6-d829-414c-947d-af6da30b07fe",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 8414,
+        "outputTokens": 65
+      },
+      "createdAt": "2026-09-28T17:03:34.456Z"
+    },
+    {
+      "id": "95e01229-0e6a-40f4-9515-3af3b3387b37",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "phase": "EXHIBIT",
+        "itemId": "stores_count"
+      },
+      "createdAt": "2026-09-28T17:03:34.510Z"
+    },
+    {
+      "id": "54f63d69-1235-43a2-9327-2cd43f3aed4b",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 855,
+        "outputTokens": 102
+      },
+      "createdAt": "2026-09-28T17:03:35.890Z"
+    },
+    {
+      "id": "caefbf47-c401-4290-b2fe-b4b00a91a132",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 2362,
+        "outputTokens": 256
+      },
+      "createdAt": "2026-09-28T17:03:38.538Z"
+    },
+    {
+      "id": "74ba8221-1ada-414f-8b54-6f914131cd09",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "EXHIBIT",
+        "latencyMs": 2002,
+        "turnIndex": 16
+      },
+      "createdAt": "2026-09-28T17:05:06.750Z"
+    },
+    {
+      "id": "dff52416-20d2-479a-bd25-707483e044ed",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 8920,
+        "outputTokens": 55
+      },
+      "createdAt": "2026-09-28T17:05:06.779Z"
+    },
+    {
+      "id": "57454812-f8ba-41e4-b05a-ffd9ecb04fe7",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 922,
+        "outputTokens": 13
+      },
+      "createdAt": "2026-09-28T17:05:07.552Z"
+    },
+    {
+      "id": "6c0efff8-4f56-439e-b1ed-3c8b42534f6a",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 2683,
+        "outputTokens": 256
+      },
+      "createdAt": "2026-09-28T17:05:10.736Z"
+    },
+    {
+      "id": "cdc775a8-d4be-4215-9685-68cc03d21a64",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "EXHIBIT",
+        "latencyMs": 2711,
+        "turnIndex": 18
+      },
+      "createdAt": "2026-09-28T17:06:39.686Z"
+    },
+    {
+      "id": "ac1b6569-a03f-4370-ad90-a472770fbf6f",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 9258,
+        "outputTokens": 22
+      },
+      "createdAt": "2026-09-28T17:06:39.712Z"
+    },
+    {
+      "id": "cb0a0895-3ee4-4504-b09a-f2614b657339",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 2969,
+        "outputTokens": 46
+      },
+      "createdAt": "2026-09-28T17:06:40.703Z"
+    },
+    {
+      "id": "397554e4-9d0c-40f6-ac15-220c395e2c37",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 887,
+        "outputTokens": 44
+      },
+      "createdAt": "2026-09-28T17:06:41.770Z"
+    },
+    {
+      "id": "1c5d3daa-031a-4857-9b5c-679e35869e78",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "EXHIBIT",
+        "latencyMs": 2264,
+        "turnIndex": 20
+      },
+      "createdAt": "2026-09-28T17:08:12.351Z"
+    },
+    {
+      "id": "da41a9c7-4ec1-49c6-bc94-899322941ba5",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 9652,
+        "outputTokens": 62
+      },
+      "createdAt": "2026-09-28T17:08:12.384Z"
+    },
+    {
+      "id": "df93d798-df8b-42cd-b594-fa7bcda31a81",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "phase_transition",
+      "payloadJsonb": {
+        "to": "BRAINSTORM",
+        "from": "EXHIBIT"
+      },
+      "createdAt": "2026-09-28T17:08:12.411Z"
+    },
+    {
+      "id": "c14d5e36-b95a-4952-893c-c9399a671cca",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 948,
+        "outputTokens": 40
+      },
+      "createdAt": "2026-09-28T17:08:13.382Z"
+    },
+    {
+      "id": "ddb3c071-988c-4028-ad43-f8c1669693e9",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 3316,
+        "outputTokens": 256
+      },
+      "createdAt": "2026-09-28T17:08:16.083Z"
+    },
+    {
+      "id": "f5d7c8f6-e2bf-49e1-bcd3-9546a2705bb9",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 858,
+        "outputTokens": 229
+      },
+      "createdAt": "2026-09-28T17:09:45.455Z"
+    },
+    {
+      "id": "22bb2ed0-d1f5-415c-80cb-0f2bd6668ca2",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "phase_repair",
+      "payloadJsonb": {
+        "to": "RECOMMENDATION",
+        "from": "BRAINSTORM",
+        "reasons": [
+          "recommendation ask"
+        ]
+      },
+      "createdAt": "2026-09-28T17:09:45.480Z"
+    },
+    {
+      "id": "bf37f962-f962-4c95-ba35-d6a833f88a77",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "BRAINSTORM",
+        "latencyMs": 1067,
+        "turnIndex": 22
+      },
+      "createdAt": "2026-09-28T17:09:45.534Z"
+    },
+    {
+      "id": "89d516ee-0b0a-4491-91df-9b2c4e8e374e",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 10264,
+        "outputTokens": 15
+      },
+      "createdAt": "2026-09-28T17:09:45.559Z"
+    },
+    {
+      "id": "4a07c7e9-da22-49f6-8959-dedee58ece47",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "phase_transition",
+      "payloadJsonb": {
+        "to": "RECOMMENDATION",
+        "from": "BRAINSTORM"
+      },
+      "createdAt": "2026-09-28T17:09:45.587Z"
+    },
+    {
+      "id": "ba26a27c-e662-437e-9c03-ca0119028b29",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 3573,
+        "outputTokens": 46
+      },
+      "createdAt": "2026-09-28T17:09:46.511Z"
+    },
+    {
+      "id": "ca6043d1-7169-4578-bcb5-87201ebe62fa",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "spoken_close_resolved",
+      "payloadJsonb": {
+        "phase": "RECOMMENDATION",
+        "action": "promoted"
+      },
+      "createdAt": "2026-09-28T17:11:17.910Z"
+    },
+    {
+      "id": "05f88253-25eb-4057-8d6d-3ac9c786ecc0",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "RECOMMENDATION",
+        "latencyMs": 2059,
+        "turnIndex": 24
+      },
+      "createdAt": "2026-09-28T17:11:17.997Z"
+    },
+    {
+      "id": "b2205ec9-b21a-4afb-b189-85816088791b",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 10888,
+        "outputTokens": 58
+      },
+      "createdAt": "2026-09-28T17:11:18.030Z"
+    },
+    {
+      "id": "0639c7ee-0b69-4131-abe2-bd857c99561c",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "case_complete",
+      "payloadJsonb": {
+        "phase": "RECOMMENDATION",
+        "elapsedMs": 1120662
+      },
+      "createdAt": "2026-09-28T17:11:18.087Z"
+    },
+    {
+      "id": "562a96da-8d7a-4463-afc1-df37cf9919a0",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 893,
+        "outputTokens": 13
+      },
+      "createdAt": "2026-09-28T17:11:19.074Z"
+    },
+    {
+      "id": "a05b9d56-7c54-43e6-860c-0c74d816c28b",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "component": "judge",
+        "inputTokens": 11925,
+        "outputTokens": 4222
+      },
+      "createdAt": "2026-09-28T17:12:08.889Z"
+    },
+    {
+      "id": "2db233f0-469b-4e72-955f-3ee68df987a9",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "component": "verifier",
+        "inputTokens": 5848,
+        "outputTokens": 967
+      },
+      "createdAt": "2026-09-28T17:12:20.636Z"
+    },
+    {
+      "id": "b6b49e11-b2d1-4d4c-8e22-6df3e5371157",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "component": "reconcile",
+        "inputTokens": 2532,
+        "outputTokens": 844
+      },
+      "createdAt": "2026-09-28T17:12:31.589Z"
+    },
+    {
+      "id": "37a1c669-43ef-4c9c-b3f5-ee0fa1835d36",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "scoring_complete",
+      "payloadJsonb": {
+        "overallRating": "strong",
+        "scoringRuntimeMs": 73388
+      },
+      "createdAt": "2026-09-28T17:12:31.629Z"
+    },
+    {
+      "id": "bbe34e4c-7a8f-4de8-975a-a2e87a8bba2d",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "scoring_qa",
+      "payloadJsonb": {
+        "artifactTypes": [],
+        "gapClaimDrops": 0,
+        "verifierDrops": 0,
+        "evidenceStrips": 0,
+        "dataRequestGaps": 0,
+        "reconcileMerges": 1,
+        "evidencePointDrops": 0,
+        "transcriptArtifacts": 0,
+        "dataRequestBackfills": 1,
+        "crossDimensionRepeats": 0,
+        "dataRequestsNotInCase": 4
+      },
+      "createdAt": "2026-09-28T17:12:31.657Z"
+    }
+  ],
+  "revealed": [
+    {
+      "id": "2dd85ac6-452a-4898-874e-6d2b650cac95",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "ledgerItemId": "cogs_pct",
+      "revealedAtMs": 1790614642005
+    },
+    {
+      "id": "8a48505d-358d-4d57-9613-06d54347dc75",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "ledgerItemId": "labor_pct",
+      "revealedAtMs": 1790614642005
+    },
+    {
+      "id": "7853a66b-0de6-4821-a6d0-2809027b6221",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "ledgerItemId": "overhead_pct",
+      "revealedAtMs": 1790614642005
+    },
+    {
+      "id": "7bc9173b-e0ad-410c-bb11-b75213e61666",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "ledgerItemId": "bean_share_of_cogs",
+      "revealedAtMs": 1790614827289
+    },
+    {
+      "id": "9eb4d97e-7a5b-4434-ba03-47bd824b5392",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "ledgerItemId": "non_bean_input_change",
+      "revealedAtMs": 1790614827289
+    },
+    {
+      "id": "d2064cde-b851-44db-8d12-3913307ffa70",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "ledgerItemId": "menu_price_change",
+      "revealedAtMs": 1790614827289
+    },
+    {
+      "id": "a6389b1d-3fa6-46aa-b32a-9e7f8432e65c",
+      "sessionId": "9d37db69-19fe-4252-9511-85d909672eaa",
+      "ledgerItemId": "stores_count",
+      "revealedAtMs": 1790615012675
+    }
+  ]
+}

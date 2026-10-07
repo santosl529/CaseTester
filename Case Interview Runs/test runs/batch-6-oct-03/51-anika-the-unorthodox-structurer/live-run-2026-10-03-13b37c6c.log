@@ -1,0 +1,327 @@
+[live-run] session 13b37c6c-d7eb-48f5-ad96-7ab8986c3f56 · Brew & Bean Profitability · persona 51 Anika — the Unorthodox Structurer · pace human
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+Take a minute if you need it, then tell me how you'd structure your approach.
+
+[candidate silent 40s]
+
+[candidate · 2:10] Let me lay out how I want to attack this. Rather than a revenue-and-cost tree, I want to build up from the single customer transaction, because that's the unit a coffee chain actually operates on, and then multiply out to the chain.
+
+Total profit = (price per cup − cost per cup) × cups per store per year × number of stores.
+
+So four buckets, and they're mutually exclusive:
+
+One, price per cup — menu pricing, discounting and loyalty redemptions, mix across drinks and food.
+
+Two, cost per cup — this splits cleanly into costs that scale with the cup, so coffee, milk, cups and lids, the labor minutes to make it; and costs that don't scale with the cup but get allocated across cups — rent, utilities, corporate overhead. That second piece matters because it's where a per-cup number can blow up if volume per store falls.
+
+Three, cups per store — traffic and attach rate.
+
+Four, number of stores — new openings carry drag before they mature.
+
+Revenue is up 15% and margin collapsed, so I'd start on cost per cup.
+[runner] phase: INTRO stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "thinking"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "speak",
+    "input": {
+      "text": "Okay. You said you'd start on cost per cup. Why that branch first, rather than one of the others?"
+    }
+  }
+]
+[interviewer] phase: INTRO raw: ["advance_phase","speak"] → filtered: ["advance_phase","speak"]
+
+[interviewer · CLARIFY · 2:15] Okay. You said you'd start on cost per cup. Why that branch first, rather than one of the others?
+
+[candidate · 3:45] Because of what the revenue growth tells me. Revenue is up 15%, which is price per cup times cups per store times stores. So at the top line the first three buckets are collectively doing fine — something in there is growing. If price per cup had collapsed, I'd expect revenue down, not up, unless volume more than compensated.
+
+Meanwhile margin went 24% to 6%. On a revenue base indexed to 100 growing to 115: profit was 24, now it's 6.9. So absolute profit fell roughly 70% while revenue rose. That means total cost went from 76 to 108 — up about 42% against 15% revenue growth. Cost per unit of output has clearly risen, and that's either cost per cup rising or fixed cost being spread over fewer cups per store.
+
+Do we have a breakdown of the cost base — COGS, labor, occupancy — for both years? Ideally as a percent of revenue so I can see which line moved.
+[runner] phase: CLARIFY stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "thinking"
+  },
+  {
+    "type": "tool_use",
+    "name": "show_exhibit",
+    "input": {
+      "exhibit_id": "exhibit-a"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "speak",
+    "input": {
+      "text": "Okay. Tell me what you see in it, and which line you'd pursue first."
+    }
+  }
+]
+[interviewer] phase: CLARIFY raw: ["show_exhibit","advance_phase","speak"] → filtered: ["show_exhibit","advance_phase","speak"]
+[runner] phase repair: {"from":"STRUCTURE","to":"EXHIBIT","reasons":["ledger reveal (releaseWhen ANALYSIS)","exhibit shown"]}
+
+[interviewer · EXHIBIT · 3:51] Okay. Tell me what you see in it, and which line you'd pursue first.
+
+[candidate · 5:21] COGS is the whole story. As a percent of revenue it goes 42 to 50 to 58 — up 16 points, and the margin fell 18. Labor is dead flat at 22, overhead drifts up 2. So I'm not chasing labor or overhead; they're behaving.
+
+In absolute terms, indexing revenue at 100 then 115: COGS went from 42 to 58% × 115 ≈ 66.7, so up about 59% while revenue grew 15%. That's a real cost increase, not an allocation artifact — and notably it's steady year over year, not a one-time shock.
+
+In my structure that sits squarely in cost per cup, specifically the inputs that scale with the cup: coffee beans, milk, cups and lids. Two drivers: input prices went up, or we're using more input per cup — bigger sizes, more milk-heavy drinks, waste, spoilage.
+
+Do we have COGS split by input category, beans versus dairy versus packaging? And separately, has the menu price moved at all in two years?
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "thinking"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_share_of_cogs"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "non_bean_input_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "menu_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "speak",
+    "input": {
+      "text": "What do you make of those together, and what would you want to know next?"
+    }
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["reveal_data","reveal_data","reveal_data","speak"] → filtered: ["reveal_data","reveal_data","reveal_data","speak"]
+
+[interviewer · EXHIBIT · 5:27] Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Menu prices have not changed in two years. What do you make of those together, and what would you want to know next?
+
+[candidate · 6:57] Let me do it per cup, since prices are flat — revenue up 15% with flat price means cups sold are up 15%.
+
+Index cups at 100 going to 115. COGS per cup two years ago = 42/100 = 0.42. Today COGS = 58% × 115 = 66.7, over 115 cups = 0.58. So cost per cup is up about 38%.
+
+Split it. Beans were 25% of 0.42 = 0.105 per cup; everything else 0.315. If that "everything else" is up 37.5%, it's now 0.315 × 1.375 = 0.433. Subtract from 0.58 and beans are now about 0.147 — roughly 40% up.
+
+So this isn't one rogue input. It's broad input inflation of 38–40% across the board, and we have absorbed every cent of it because menu prices haven't moved in two years. Price per cup is frozen while cost per cup inflates — that's the root cause.
+
+Next I'd want competitor pricing and any read on our price elasticity.
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "thinking"
+  },
+  {
+    "type": "text",
+    "text": "I don't have competitor pricing or any elasticity read. Here's the cost structure over time. Does it change or confirm your read?"
+  },
+  {
+    "type": "tool_use",
+    "name": "show_exhibit",
+    "input": {
+      "exhibit_id": "exhibit-a"
+    }
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["speak","show_exhibit"] → filtered: ["speak","show_exhibit"]
+
+[interviewer · EXHIBIT · 7:05] I don't have competitor pricing or any elasticity read. Here's the cost structure over time. Does it change or confirm your read?
+
+[candidate · 8:35] That's the same exhibit, and it confirms the read rather than changing it. The key thing it shows is the shape: COGS climbs 8 points, then 8 points again, perfectly linear, while labor is pinned at 22 and overhead inches up. That's not an operational failure — if we had a waste problem or a portioning problem, I'd expect it to be lumpy, and I'd expect labor to move too since more waste usually means more rework. A clean linear climb with everything else stable is what sustained input-price inflation looks like.
+
+It also tells me there's no self-correction coming. Two consecutive years, same slope. If I straight-line it, next year COGS is 66% and we're at negative margin.
+
+Without elasticity data I'll assume we have at least some pricing power — specialty coffee, and we've grown volume 15% without touching price, which suggests demand is healthy.
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["reveal_data","advance_phase"] → filtered: ["reveal_data","advance_phase"]
+
+[interviewer · BRAINSTORM · 8:37] Raw coffee bean costs are up 40% over the past two years.
+
+[candidate · 10:07] That matches what I backed into exactly — I derived beans at roughly 40% from the residual, and you're telling me 40%. So the arithmetic holds and the picture is complete.
+
+It also tells me something useful about causation: beans up 40%, everything else up 37.5%. Those are almost the same number. This isn't a Brew & Bean sourcing problem or a bad supplier contract — if it were, one line would spike and the others wouldn't. Broad, even inflation across beans, dairy, packaging and food is a market-wide input shock, which means our competitors are almost certainly facing the same cost curve.
+
+That strengthens the pricing case considerably. If the whole category is absorbing 38–40% input inflation and we've held price for two years, we are very likely priced below where the market has already moved. The risk of raising price is lower than it would be if we were the only one doing it.
+
+So: the problem is a price-per-cup problem, not a cost-per-cup problem we can fix by cutting.
+[runner] phase: BRAINSTORM stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "thinking"
+  },
+  {
+    "type": "text",
+    "text": "Okay. Beyond a price increase, what else could Brew & Bean do to reverse the margin decline? Give me the full set of ideas."
+  }
+]
+[interviewer] phase: BRAINSTORM raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · BRAINSTORM · 10:11] Okay. Beyond a price increase, what else could Brew & Bean do to reverse the margin decline? Give me the full set of ideas.
+
+[candidate · 11:41] Let me run it through my four buckets so it's complete.
+
+Price per cup — beyond a headline increase: raise price on the most inelastic items, espresso drinks rather than drip; shrink discounting and loyalty giveaways, which is a price increase customers feel less; mix-shift by pushing higher-margin items — food attach, larger sizes.
+
+Cost per cup, the scaling part — hedge or lock forward contracts on beans and dairy so we stop taking spot prices; renegotiate or consolidate suppliers for volume terms; reformulate portions and sizes modestly; attack waste and spoilage; cheaper packaging, since lids and cups carry no brand value in a specialty position; substitute within the bean blend where the palate can't detect it.
+
+Cost per cup, the non-scaling part — overhead crept 12 to 14, so there's a couple of points there, and renegotiate rent at renewal.
+
+Cups per store — more volume spreads the fixed 14 points of overhead over more cups. Dayparts, afternoon traffic, catering.
+
+Number of stores — if any locations are below contribution breakeven, close or don't renew them.
+
+Pricing is the only lever sized to an 18-point gap.
+[runner] phase: BRAINSTORM stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "thinking"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "speak",
+    "input": {
+      "text": "You said pricing is the only lever sized to the gap. Walk me through that, including how a price increase would actually flow through to margin."
+    }
+  }
+]
+[interviewer] phase: BRAINSTORM raw: ["advance_phase","speak"] → filtered: ["advance_phase","speak"]
+
+[interviewer · RECOMMENDATION · 11:45] You said pricing is the only lever sized to the gap. Walk me through that, including how a price increase would actually flow through to margin.
+
+[candidate · 13:15] Here's why. Take the current state indexed: revenue 115, COGS 66.7, labor 25.3, overhead 16.1, profit 6.9.
+
+A price increase is nearly pure flow-through. If volume holds, every extra dollar of price adds no COGS, no labor, no overhead — it drops straight to the bottom line. So a 10% price rise takes revenue to 126.5, costs stay 108.1, profit goes 6.9 to 18.4. Margin 14.5%. One price move roughly triples profit.
+
+To fully restore 24%, costs of 108.1 have to equal 76% of revenue, so revenue needs to be 142.2 — about a 23.5% increase. That's steep, so I'd stage it.
+
+Now compare the cost levers. Labor and overhead together are 36% of revenue; cutting 10% off both recovers 3.6 points and damages service. Supplier renegotiation on a market-wide shock might claw back a few percent of COGS — call it 2 points. Neither is close to 18.
+
+And note the asymmetry: a 10% price rise needs volume to fall less than about 9% to be worth it. That's the number I'd test.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "thinking"
+  },
+  {
+    "type": "text",
+    "text": "Walk me through the figure of about 9% volume loss. What costs did you assume move with volume, and which did you hold fixed?"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 13:21] Walk me through the figure of about 9% volume loss. What costs did you assume move with volume, and which did you hold fixed?
+
+[candidate · 14:51] Let me be careful here, because I think I was sloppy.
+
+I treated COGS as variable with volume — that's right, it's beans, dairy, packaging per cup. Labor I held fixed, since it sat at exactly 22% of revenue while volume grew 15%, which actually suggests it's largely fixed baristas-per-store, not per-cup. Overhead fixed by definition.
+
+So contribution per cup today: revenue 115 minus COGS 66.7 = 48.3 of contribution covering 41.4 of fixed cost.
+
+With a 10% price rise and volume factor v: revenue 126.5v, COGS 66.7v, contribution 59.8v. Set that equal to 48.3 and v = 0.81.
+
+So we can lose about 19% of volume before we're worse off, not 9%. I understated it — I think I'd implicitly let labor flex. 19% is the right breakeven, and it's a wide cushion.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "thinking"
+  },
+  {
+    "type": "text",
+    "text": "Walk me through the labor inference. Labor stayed at the same share of revenue while revenue grew, and you read that as labor being fixed. Does that reading hold up?"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 14:55] Walk me through the labor inference. Labor stayed at the same share of revenue while revenue grew, and you read that as labor being fixed. Does that reading hold up?
+
+[candidate silent 7s]
+
+[candidate · 16:32] No, it doesn't hold up. If labor were fixed, revenue growing 15% should have pushed labor's share down from 22 to about 19. Flat share means labor grew in lockstep with revenue, which is the signature of a variable cost, not a fixed one. I had it backwards — overhead is the one that behaved oddly, climbing 12 to 14, which is the opposite of fixed-cost leverage and worth a separate question.
+
+Recalculating with labor variable. Contribution today = 115 − 66.7 − 25.3 = 23. Fixed overhead 16.1. With a 10% price rise, revenue 126.5v, variable costs 92v, contribution 34.5v. Set equal to 23: v = 0.667.
+
+So breakeven volume loss is about 33%. That's an even wider cushion, because variable costs shrink with the lost volume.
+
+The caveat is that labor is probably semi-variable — scheduled in shifts, not per cup. So true breakeven sits between 19% and 33%. Either way, comfortable.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "thinking"
+  },
+  {
+    "type": "text",
+    "text": "Understood. Now give me your recommendation to the CEO: what should Brew & Bean do, and how would you sequence it?"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 16:37] Understood. Now give me your recommendation to the CEO: what should Brew & Bean do, and how would you sequence it?
+
+[candidate · 18:07] Recommendation: raise menu prices. That's the answer — the margin decline is a pricing problem, not a cost problem, and pricing is the only lever sized to the gap.
+
+The logic: COGS went 42 to 58% of revenue over two years, driven by 38–40% input inflation across beans, dairy, packaging and food, while menu prices have not moved once. Labor held at 22% and overhead at 12–14%, so operations aren't broken. We simply absorbed a market-wide cost shock instead of passing it through.
+
+Sequencing. Immediately, a 10% increase weighted toward espresso drinks and food, which triples profit to roughly 14.5% margin if volume holds — and breakeven volume loss is somewhere between 19% and 33%, so there's real cushion. In parallel, cut discounting and loyalty giveaways. Over the next two quarters, test a second increase toward the ~23% needed to restore 24%, and lock forward contracts on beans and dairy to stop the bleeding repeating.
+
+Risks: no competitor pricing and no elasticity read. So I'd pilot in 20 stores, measure transaction counts weekly, and roll out from there. If the category has already repriced, we're late, not early.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "tool_use",
+    "name": "end_case",
+    "input": {}
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["end_case"] → filtered: ["end_case"]
+
+[interviewer · SCORING · 18:10] We'll stop there. Thanks for working through the case — your written report will follow.
+[score] backfilled data-request classification for candidate turns: [21]
+[score] reconciliation merged both-sides claims: [{"dimension":"quantitative","wentWell":"The price flow-through and restore-to-24% math was correct: profit goes 6.9→18.4 (14.5% margin), and roughly a 23.5% price rise is needed, since 108.1/0.76 = 142.2.","needsWork":"A small overstatement: 6.9→18.4 is about 2.7x, not a tripling, and the candidate repeated the claim in the final recommendation.","merged":"The price flow-through and restore-to-24% math was correct: profit goes from 6.9 to 18.4 (14.5% margin), and roughly a 23.5% price rise is needed. However, the candidate described the 6.9→18.4 move as a tripling when it is about 2.7x, and repeated that overstatement in the final recommendation.","placedIn":"needsWork"},{"dimension":"quantitative","wentWell":"The final breakeven was correctly derived with labor treated as variable (34.5v = 23 → v = 0.667), then bounded with a semi-variable caveat.","needsWork":"The first correction rested on a backwards cost-behavior inference. A constant labor share while revenue grows means labor is variable, not fixed. The candidate fixed this only after a second interviewer probe.","merged":"The candidate eventually derived the breakeven correctly with labor treated as variable (34.5v = 23 → v = 0.667) and bounded it with a semi-variable caveat. Getting there took a second interviewer probe, because the first correction rested on a backwards inference: a constant labor share while revenue grows means labor is variable, not fixed.","placedIn":"needsWork"},{"dimension":"dataExhibit","wentWell":"The candidate went inside COGS and did not stop at beans, showing the inflation is broad-based rather than one input.","needsWork":"The candidate never translated the per-cup split into margin points: beans ≈ +4.2 of the 16 COGS points, other inputs ≈ +11.8. That framing would have shown procurement must cover dairy, packaging and food, not just beans.","merged":"The candidate went inside COGS and correctly saw that the inflation is broad-based rather than just beans, but never converted the split into margin points (beans ≈ +4.2 of the 16 COGS points, other inputs ≈ +11.8). That step would have shown that procurement must target dairy, packaging and food, not just beans.","placedIn":"wentWell"},{"dimension":"judgment","wentWell":"The candidate proposed a practical mitigation for pricing risk.","needsWork":"The candidate stacked a 10% increase, cuts to loyalty and discounting, and a second increase toward ~23% without flagging the cumulative traffic and brand risk of a near-quarter price hike, or explaining how the stacked moves would be sequenced in the pilot.","merged":"The candidate proposed a practical mitigation for pricing risk, but then stacked a 10% increase, loyalty and discount cuts, and a second increase toward ~23% without flagging the cumulative traffic and brand risk of a near-quarter price hike. The candidate also did not explain how the stacked moves would be sequenced in the pilot.","placedIn":"needsWork"},{"dimension":"creativity","wentWell":"The candidate prioritized by sizing levers against the 18-point gap.","needsWork":"The non-price ideas were listed but not ranked against each other. The answer was 'pricing only', with no ordering among procurement, mix, waste and footprint levers.","merged":"The candidate prioritized pricing by sizing levers against the 18-point gap, but did not rank the non-price ideas (procurement, mix, waste, footprint) against each other, so the answer collapsed to 'pricing only'.","placedIn":"wentWell"},{"dimension":"communication","wentWell":"Phrasing was hypothesis-driven, with crisp mini-conclusions that build on interviewer cues.","needsWork":"The candidate sometimes stated intermediate answers with more certainty than the analysis supported, which then had to be walked back.","merged":"Phrasing was hypothesis-driven, with crisp mini-conclusions that built on interviewer cues. At times, though, intermediate answers were stated with more certainty than the analysis supported and then had to be walked back.","placedIn":"wentWell"},{"dimension":"pushback","wentWell":"On the labor challenge, the candidate updated with explicit reasoning rather than capitulating, then recomputed and bounded the answer.","needsWork":"After the first probe, the candidate replaced one error with another confidently stated answer instead of testing the new assumption, so it took a second challenge to reach the right number.","merged":"On the labor challenge, the candidate ultimately updated with explicit reasoning rather than capitulating, then recomputed and bounded the answer. After the first probe, however, the candidate replaced one error with another confidently stated figure instead of testing the new assumption, so it took a second challenge to reach the right number.","placedIn":"wentWell"}]
+[score] cross-dimension repetition: [{"concept":"Asserting decision-critical numbers (the breakeven volume loss) without deriving them or testing the underlying cost-behavior assumption (labor treated as fixed despite a flat share as revenue grew)","dimensions":["quantitative","judgment","communication","pushback"]},{"concept":"Procurement and cost fixes must target dairy, packaging and food (about three-quarters of the COGS increase), not just beans","dimensions":["dataExhibit","judgment","creativity"]}]
+
+[live-run] ended=true scoring=scored

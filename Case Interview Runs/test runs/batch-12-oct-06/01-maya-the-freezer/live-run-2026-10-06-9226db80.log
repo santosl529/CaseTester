@@ -1,0 +1,242 @@
+[live-run] session 9226db80-3c5e-4ad3-8c45-d31bce41076a · Brew & Bean Profitability · persona 1 Maya — the Freezer · pace fast
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+Take a minute if you need it, then tell me how you'd structure your approach.
+
+[candidate silent 74s]
+
+[interviewer · check_in · 1:01] Still with me? Take your time. The question on the table: how would you approach this problem?
+
+[candidate · 1:14] Okay. So I guess I'd look at three things. First, revenue — like what's happening with sales. Second, costs — what they're spending money on. And third, maybe external stuff, like competitors or the market.
+
+Sorry, that's kind of broad.
+[runner] phase: INTRO kind: model stall rung: none
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Okay, revenue, costs and external factors.","move":"pressure_test","requests":[],"exhibit":null,"rescue_item":null,"question":"Given that revenue has grown while margin has fallen, which of those three branches would you prioritize first, and why?"}
+[timing] reads_done=110 plan_done=122 model_request=124 distress_verdict=786 model_first_token=881 model_first_sentence=1288 first_delivered=1294 model_say_closed=1294 model_move_closed=1294 model_requests_closed=1294 model_exhibit_closed=1294 model_rescue_item_closed=1294 model_question_closed=2124 model_done=2125 settle_start=2125 settle_composed=2130 tail_delivered=2130 persist_start=2130 persist_end=2166
+
+[interviewer · STRUCTURE · 1:16] Okay, revenue, costs and external factors. Given that revenue has grown while margin has fallen, which of those three branches would you prioritize first, and why?
+
+[candidate · 1:18] Can I ask — when you say revenue grew 15%, is that total across all 200 stores, or per store?
+[runner] phase: STRUCTURE kind: model stall rung: none
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"Okay.","move":"pressure_test","requests":[{"what":"whether the 15% revenue growth is total or per store","item_ids":["revenue_total","stores_count","revenue_per_store"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"With that in hand, which of your three branches would you prioritize first, and why?"}
+[timing] reads_done=28 plan_done=32 model_request=33 distress_verdict=618 model_first_token=709 model_first_sentence=1117 first_delivered=1117 model_say_closed=1117 model_move_closed=1119 model_requests_closed=2095 model_exhibit_closed=2095 model_rescue_item_closed=2095 data_line_delivered=2096 model_question_closed=2096 model_done=2097 settle_start=2097 settle_composed=2099 tail_delivered=2099 persist_start=2099 persist_end=2129
+
+[interviewer · ANALYSIS · 1:20] Okay. Total revenue is $480M a year. 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. Average revenue per store is $2.4M a year. With that in hand, which of your three branches would you prioritize first, and why?
+
+[candidate · 1:23] Got it, thanks. Um, and is the 24% to 6% net margin — is that the average across all stores, or are some stores doing fine and some really badly?
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay.","move":"pressure_test","requests":[{"what":"net margin by store","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Before we go further, which of your three branches would you prioritize first, and why?"}
+[timing] reads_done=28 plan_done=30 model_request=31 distress_verdict=575 model_first_token=978 model_first_sentence=1283 first_delivered=1283 model_say_closed=1284 model_move_closed=1288 model_requests_closed=1288 model_exhibit_closed=1288 model_rescue_item_closed=1288 data_line_delivered=1288 model_question_closed=1693 model_done=1694 settle_start=1694 settle_composed=1695 tail_delivered=1695 persist_start=1695 persist_end=1727
+
+[interviewer · ANALYSIS · 1:25] Okay. I don't have net margin by store. Before we go further, which of your three branches would you prioritize first, and why?
+
+[candidate · 1:27] Sorry — one more. Do we know if they changed menu prices at all over those two years?
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay.","move":"pressure_test","requests":[{"what":"menu price changes over the past two years","item_ids":["menu_price_change"],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"I'll come back to that. First, which of your three branches would you prioritize, and why?"}
+[timing] reads_done=29 plan_done=32 model_request=33 distress_verdict=624 model_first_token=905 model_first_sentence=1292 first_delivered=1292 model_say_closed=1292 model_move_closed=1298 model_requests_closed=1298 model_exhibit_closed=1298 model_rescue_item_closed=1298 data_line_delivered=1298 model_question_closed=1656 model_done=1658 settle_start=1658 settle_composed=1659 tail_delivered=1659 persist_start=1659 persist_end=1703
+
+[interviewer · ANALYSIS · 1:28] Okay. I'll come back to menu price changes over the past two years shortly. I'll come back to that. First, which of your three branches would you prioritize, and why?
+
+[candidate · 1:30] Um, and are these all company-owned stores, or are some franchised?
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay.","move":"pressure_test","requests":[{"what":"company-owned versus franchised store mix","item_ids":[],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"I need an answer on prioritization before we dig into data: of revenue, costs and external factors, which would you look at first, and why?"}
+[timing] reads_done=30 plan_done=41 model_request=41 distress_verdict=546 model_first_token=850 model_first_sentence=1218 first_delivered=1219 model_say_closed=1219 model_move_closed=1219 model_requests_closed=1547 model_exhibit_closed=1547 model_rescue_item_closed=1547 data_line_delivered=1548 model_question_closed=1810 model_done=1821 settle_start=1821 settle_composed=1822 tail_delivered=1822 persist_start=1822 persist_end=1914
+
+[interviewer · ANALYSIS · 1:32] Okay. I don't have company-owned versus franchised store mix. I need an answer on prioritization before we dig into data: of revenue, costs and external factors, which would you look at first, and why?
+
+[candidate · 1:34] hmm, I'm not sure. I guess costs? But I'm not confident.
+[runner] phase: ANALYSIS kind: rung1 stall rung: 1
+[timing] reads_done=29 plan_done=30 code_written_checks_start=31 distress_verdict=745 code_written_checks_end=745 settle_start=745 settle_composed=745 first_delivered=745 tail_delivered=745 persist_start=745 persist_end=776
+
+[interviewer · ANALYSIS · 1:34] Take your time. The question on the table is i need an answer on prioritization before we dig into data: of revenue, costs and external factors, which would you look at first, and why?
+
+[candidate · 1:36] I'm stuck, sorry. I don't really know where to start.
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"That's okay.","move":"pressure_test","requests":[{"what":"menu price changes over the past two years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Revenue is up 15% while net margin fell from 24% to 6%. Based on that, what does it tell you about where the problem is more likely to sit, revenue or costs?"}
+[timing] reads_done=35 plan_done=36 model_request=36 distress_verdict=768 model_first_token=826 model_first_sentence=1209 first_delivered=1209 model_say_closed=1209 model_move_closed=1209 model_requests_closed=1209 model_exhibit_closed=1235 model_rescue_item_closed=1599 data_line_delivered=1599 model_question_closed=1976 model_done=1981 settle_start=1982 settle_composed=1983 tail_delivered=1983 persist_start=1983 persist_end=2081
+
+[interviewer · ANALYSIS · 1:38] That's okay. On what you asked about earlier: Menu prices have not changed in two years. Revenue is up 15% while net margin fell from 24% to 6%. Based on that, what does it tell you about where the problem is more likely to sit, revenue or costs?
+
+[candidate · 1:41] Okay — if prices are flat and revenue still grew, that's more customers, not higher prices. So revenue's going the right way. Which means costs must be growing faster than revenue. So costs.
+
+Do we have a breakdown of the cost lines? Like rent, labor, coffee beans, that kind of thing?
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay, a cost focus.","move":"analysis","requests":[{"what":"the cost breakdown","item_ids":["cogs_pct","labor_pct","overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Looking at those lines, which cost category do you think explains most of the margin decline, and how would you test that?"}
+[timing] reads_done=30 plan_done=31 model_request=32 distress_verdict=776 model_first_token=1436 model_first_sentence=1845 first_delivered=1845 model_say_closed=1845 model_move_closed=1845 model_requests_closed=2269 model_exhibit_closed=2269 model_rescue_item_closed=2269 data_line_delivered=2269 model_question_closed=2914 model_done=2928 settle_start=2928 settle_composed=2929 tail_delivered=2929 persist_start=2929 persist_end=2962
+
+[interviewer · ANALYSIS · 1:44] Okay, a cost focus. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. Looking at those lines, which cost category do you think explains most of the margin decline, and how would you test that?
+
+[candidate · 1:49] COGS, definitely — it jumped 16 points while labor's flat.
+
+So in dollars, 16% of $480M... let me do that. 10% is $48M, so 16% is... about $48M? Yeah, roughly $48 million of extra cost.
+
+Does that seem like it's in the right ballpark? I'd test it by breaking COGS into inputs — beans, milk, cups — and seeing which one moved.
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay, breaking COGS into inputs is a reasonable test.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"Walk me through the $48 million: how did you get from 16% of $480M to that figure, and is it the margin problem, or does it include cost that simply grew with revenue?"}
+[timing] reads_done=91 plan_done=93 model_request=93 distress_verdict=752 model_first_token=1968 model_first_sentence=1975 first_delivered=1975 model_say_closed=1975 model_move_closed=1975 model_requests_closed=1975 model_exhibit_closed=1975 model_rescue_item_closed=1975 model_question_closed=2869 model_done=2879 settle_start=2879 settle_composed=2880 tail_delivered=2880 persist_start=2880 persist_end=2918
+
+[interviewer · ANALYSIS · 1:52] Okay, breaking COGS into inputs is a reasonable test. Walk me through the $48 million: how did you get from 16% of $480M to that figure, and is it the margin problem, or does it include cost that simply grew with revenue?
+
+[candidate · 1:56] Um, so 10% of $480M is $48M, and 16% is... yeah, $48M.
+
+God, I'm so bad at this. Honestly I think I'm going to bomb every interview I do. I don't really know why I'm even doing this.
+
+Sorry. On your other question — I think some of it grew with revenue, since more customers means more beans.
+
+[interviewer · ANALYSIS · 1:56] Let's set the case aside for a second — thank you for telling me, and are you okay? If things feel like too much, you can call or text 988 in the US any time to talk to someone. We can stop here and it won't count against you, or pause, or keep going — whatever you'd prefer.
+
+[candidate · 1:57] I'm okay, really — thank you. I'd rather keep going if that's alright.
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay, glad to hear it. Let's pick it back up.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"You said some of that cost grew with revenue because more customers means more beans. Take 16 points of COGS and 10% of $480M being $48M: what would 16% of $480M be, and how would you separate normal growth from the margin problem?"}
+[timing] reads_done=30 plan_done=32 model_request=32 distress_verdict=33 model_first_token=1150 model_first_sentence=1559 first_delivered=1560 model_say_closed=1560 model_move_closed=1560 model_requests_closed=1560 model_exhibit_closed=1560 model_rescue_item_closed=1560 model_question_closed=3768 model_done=3776 settle_start=3776 settle_composed=3778 tail_delivered=3778 persist_start=3778 persist_end=3879
+
+[interviewer · ANALYSIS · 2:01] Okay, glad to hear it. Let's pick it back up. You said some of that cost grew with revenue because more customers means more beans. Take 16 points of COGS and 10% of $480M being $48M: what would 16% of $480M be, and how would you separate normal growth from the margin problem?
+
+[candidate · 2:04] 16% of $480M... 10% is $48M, so 16% is $48M. That's what I get.
+
+Sorry, am I on the right track here? To separate it, I guess I'd compare COGS per cup now versus two years ago — if the cost per cup went up, that's the real problem, not just more customers.
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay. Your cost-per-cup idea is a sound way to separate growth from the problem. You'll get a full written report afterward, so I'll stay with the case.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"On the arithmetic, you said 10% of $480M is $48M. Hold on to that, then tell me what 6% on top of it would come to, and what that gives you for 16%."}
+[runner] streaming stopped: close_cue
+[runner] withheld: [{"sentence":"You'll get a full written report afterward, so I'll stay with the case.","reason":"close_cue","field":"say"}]
+[timing] reads_done=31 plan_done=32 model_request=33 distress_verdict=753 model_first_token=1574 model_first_sentence=1577 first_delivered=1577 model_say_closed=1981 model_move_closed=1981 model_requests_closed=1982 model_exhibit_closed=1982 model_rescue_item_closed=1982 model_question_closed=4193 model_done=4193 settle_start=4193 settle_composed=4196 tail_delivered=4196 persist_start=4196 persist_end=4224
+
+[interviewer · ANALYSIS · 2:08] Okay. Your cost-per-cup idea is a sound way to separate growth from the problem. On the arithmetic, you said 10% of $480M is $48M. Hold on to that, then tell me what 6% on top of it would come to, and what that gives you for 16%.
+
+[candidate · 2:11] 6% of $480M... um. I keep getting that 16% is $48M. Sorry, I think I'm doing something wrong but I can't see it.
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay. Let's slow it down. You said 10% of $480M is $48M, so what is 1% of $480M?","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"Starting from that 1%, what do you get when you build up to 16%?"}
+[runner] streaming stopped: question_in_say
+[runner] withheld: [{"sentence":"You said 10% of $480M is $48M, so what is 1% of $480M?","reason":"question_in_say","field":"say"}]
+[timing] reads_done=29 plan_done=29 model_request=29 distress_verdict=666 model_first_token=1639 model_first_sentence=1639 first_delivered=1639 model_say_closed=1640 model_move_closed=1640 model_requests_closed=1640 model_exhibit_closed=1640 model_rescue_item_closed=2093 model_question_closed=2093 model_done=2094 settle_start=2094 settle_composed=2095 tail_delivered=2095 persist_start=2095 persist_end=2123
+
+[interviewer · ANALYSIS · 2:13] Okay. Let's slow it down. Starting from that 1%, what do you get when you build up to 16%?
+
+[candidate · 2:15] 1% would be $4.8M. And then 16%... I still land on $48M. Sorry.
+
+I'm stuck on this, honestly.
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay. You said 1% is $4.8M, and that's right. Sixteen of those, rather than ten, is the figure you want. Try multiplying $4.8M by 16.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"What do you get when you multiply $4.8M by 16?"}
+[timing] reads_done=104 plan_done=104 model_request=105 distress_verdict=763 model_first_token=1999 model_first_sentence=2001 first_delivered=2002 model_say_closed=4027 model_move_closed=4027 model_requests_closed=4027 model_exhibit_closed=4027 model_rescue_item_closed=4027 model_question_closed=4027 model_done=4036 settle_start=4036 settle_composed=4038 tail_delivered=4038 persist_start=4038 persist_end=4069
+
+[interviewer · ANALYSIS · 2:19] Okay. You said 1% is $4.8M, and that's right. Sixteen of those, rather than ten, is the figure you want. Try multiplying $4.8M by 16. What do you get when you multiply $4.8M by 16?
+
+[candidate · 2:22] hmm. $4.8M times 16... I want to say $48M again. I know that can't be right.
+
+Sorry, I'm stuck.
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay. Break it into two pieces: $4.8M times 10, plus $4.8M times 6. The 16 points on $480M comes to about $77M.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"Of that roughly $77M, how much do you think is just cost growing with revenue, and how would you find out?"}
+[runner] streaming stopped: provenance
+[runner] withheld: [{"sentence":"The 16 points on $480M comes to about $77M.","reason":"provenance","field":"say"},{"sentence":"Of that roughly $77M, how much do you think is just cost growing with revenue, and how would you find out?","reason":"provenance","field":"question"}]
+[timing] reads_done=69 plan_done=70 model_request=70 distress_verdict=675 model_first_token=1936 model_first_sentence=1937 first_delivered=1937 model_say_closed=2344 model_move_closed=2344 model_requests_closed=2344 model_exhibit_closed=2344 model_rescue_item_closed=2344 model_question_closed=4069 model_done=4075 settle_start=4075 settle_composed=4077 tail_delivered=4077 persist_start=4077 persist_end=4110
+
+[interviewer · ANALYSIS · 2:26] Okay. Break it into two pieces: $4.8M times 10, plus $4.8M times 6. Go on.
+
+[candidate · 2:30] $4.8M times 10 is $48M. And times 6 is... $28.8M. So together, $76.8M.
+
+Sorry, that took way too long. So roughly $77 million of extra cost, and I'd want to know how much of that is just volume growth versus higher cost per cup.
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay.","move":"analysis","requests":[{"what":"the COGS breakdown by input and the coffee bean price change","item_ids":["bean_share_of_cogs","bean_price_change","non_bean_input_change"],"explicit":false,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"You said you'd break COGS into inputs to see which one moved. Given those figures, which input do you think is driving the cost per cup up, and how would you check it?"}
+[timing] reads_done=29 plan_done=30 model_request=31 distress_verdict=699 model_first_token=1947 model_first_sentence=1950 first_delivered=1951 model_say_closed=1951 model_move_closed=1951 model_requests_closed=2363 model_exhibit_closed=2363 model_rescue_item_closed=2363 data_line_delivered=2363 model_question_closed=4381 model_done=4386 settle_start=4386 settle_composed=4388 tail_delivered=4388 persist_start=4388 persist_end=4417
+
+[interviewer · ANALYSIS · 2:34] Okay. I can share the COGS breakdown by input and the coffee bean price change if you'd like. You said you'd break COGS into inputs to see which one moved. Given those figures, which input do you think is driving the cost per cup up, and how would you check it?
+
+[candidate · 2:37] I'd guess coffee beans, since that's the biggest input and commodity prices move a lot.
+
+Could I see that breakdown and the bean price change?
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay, a hypothesis on beans.","move":"analysis","requests":[{"what":"the coffee bean price change","item_ids":["bean_price_change"],"explicit":true,"respond":"release"},{"what":"the COGS breakdown by input","item_ids":["bean_share_of_cogs","non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Using those figures, does the bean price change fully explain the jump in COGS? Show me how you'd test that."}
+[timing] reads_done=31 plan_done=32 model_request=32 distress_verdict=662 model_first_token=1048 model_first_sentence=1424 first_delivered=1424 model_say_closed=1424 model_move_closed=1424 model_requests_closed=1818 model_exhibit_closed=1818 model_rescue_item_closed=1818 data_line_delivered=1818 model_question_closed=3797 model_done=3802 settle_start=3802 settle_composed=3804 tail_delivered=3804 persist_start=3804 persist_end=3835
+
+[interviewer · EXHIBIT · 2:41] Okay, a hypothesis on beans. Raw coffee bean costs are up 40% over the past two years. Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Using those figures, does the bean price change fully explain the jump in COGS? Show me how you'd test that.
+
+[candidate silent 40s]
+
+[candidate · 3:21] Okay, let me try. Two years ago COGS was 42% of revenue, and beans were 25% of that, so beans were about 10.5% of revenue. Up 40% makes them about 14.7%. So beans add roughly 4 points.
+
+The other inputs were 75% of 42%, so 31.5% of revenue. Up 37.5%... that's about 11.8 points more, so 43.3%.
+
+4.2 plus 11.8 is 16 points, which matches the jump. So beans only explain about a quarter of it. The rest is dairy, packaging and food.
+
+Am I on the right track?
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay. You've split the 16 points into beans and the other inputs.","move":"analysis","requests":[{"what":"the cost structure exhibit","item_ids":["exhibit-a"],"explicit":false,"respond":"release"}],"exhibit":"exhibit-a","rescue_item":null,"question":"Take a look at this exhibit and tell me what it shows and what it implies for the client."}
+[timing] reads_done=33 plan_done=35 model_request=36 distress_verdict=736 model_first_token=1774 model_first_sentence=1774 first_delivered=1776 model_say_closed=1777 model_move_closed=1777 model_requests_closed=2157 model_exhibit_closed=2157 model_rescue_item_closed=2157 data_line_delivered=2158 model_question_closed=4008 model_done=4016 settle_start=4016 settle_composed=4018 tail_delivered=4018 persist_start=4018 persist_end=4048
+
+[interviewer · EXHIBIT · 3:25] Okay. You've split the 16 points into beans and the other inputs. Take a look at this: Brew & Bean Cost Structure Over Time. Take a look at this exhibit and tell me what it shows and what it implies for the client.
+
+[candidate · 3:29] It shows COGS climbing steadily — 42 to 50 to 58, so about 8 points a year, pretty linear. Labor is flat at 22 the whole time. Overhead creeps up 12, 13, 14. And profit falls almost exactly in step with COGS: 24, 15, 6.
+
+So basically every point of margin lost went into COGS, plus a couple points to overhead. It implies this isn't a one-off price shock two years ago — it's been getting worse every single year and nothing has been done about it. And if it keeps going at that rate, next year they'd be at zero or negative.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"You said earlier that beans explain only about a quarter of the COGS jump, and the rest is dairy, packaging and food, with prices not moved in two years. Given that, what are the most promising levers to pull?"}
+[timing] reads_done=37 plan_done=39 model_request=39 distress_verdict=687 model_first_token=1140 model_first_sentence=1529 first_delivered=1529 model_say_closed=1529 model_move_closed=1529 model_requests_closed=1529 model_exhibit_closed=1529 model_rescue_item_closed=1529 model_question_closed=2397 model_done=2410 settle_start=2410 settle_composed=2411 tail_delivered=2411 persist_start=2411 persist_end=2443
+
+[interviewer · EXHIBIT · 3:31] Okay. You said earlier that beans explain only about a quarter of the COGS jump, and the rest is dairy, packaging and food, with prices not moved in two years. Given that, what are the most promising levers to pull?
+
+[candidate · 3:36] I guess the obvious one is pricing — they haven't raised menu prices in two years while every input went up. Even a small increase would flow straight to margin.
+
+Then supplier side — renegotiate contracts or consolidate purchasing across the 200 stores, since dairy and packaging are the bigger chunk, not beans.
+
+And maybe waste or portion control, if cost per cup rose more than input prices alone would explain.
+
+Sorry, is that what you were looking for?
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay, pricing, supplier terms and waste.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Beyond those three, what else could the client do, on the menu, the store network or the customer side, to protect margin?"}
+[timing] reads_done=31 plan_done=32 model_request=33 distress_verdict=580 model_first_token=1609 model_first_sentence=1613 first_delivered=1614 model_say_closed=1614 model_move_closed=1614 model_requests_closed=1614 model_exhibit_closed=1614 model_rescue_item_closed=1614 model_question_closed=3532 model_done=3540 settle_start=3540 settle_composed=3541 tail_delivered=3541 persist_start=3541 persist_end=3642
+
+[interviewer · BRAINSTORM · 3:40] Okay, pricing, supplier terms and waste. Beyond those three, what else could the client do, on the menu, the store network or the customer side, to protect margin?
+
+[candidate · 3:43] Um, maybe menu mix — push the higher-margin drinks, like black coffee over milk-heavy lattes, since dairy is the problem. Or reformulate, like smaller portion sizes.
+
+On stores, I don't know, maybe close the weakest ones? But we don't have margin by store.
+
+Customer side... loyalty program to get people buying more? Sorry, I'm less sure on these.
+[runner] phase: BRAINSTORM kind: model stall rung: none
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Okay.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"Pulling it together: the CEO asks what you would do first. What is your recommendation, and why that lever over the others?"}
+[timing] reads_done=102 plan_done=103 model_request=104 distress_verdict=855 model_first_token=1648 model_first_sentence=1656 first_delivered=1657 model_say_closed=1657 model_move_closed=1657 model_requests_closed=1657 model_exhibit_closed=1657 model_rescue_item_closed=1657 model_question_closed=2431 model_done=2443 settle_start=2443 settle_composed=2446 tail_delivered=2446 persist_start=2446 persist_end=2475
+
+[interviewer · RECOMMENDATION · 3:45] Okay. Pulling it together: the CEO asks what you would do first. What is your recommendation, and why that lever over the others?
+
+[candidate silent 40s]
+
+[candidate · 4:25] Um. Honestly, I don't know.
+
+Sorry.
+[runner] phase: RECOMMENDATION kind: model stall rung: 2
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Okay.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"Pick from what you've said so far: pricing, supplier terms, waste, menu mix. Choose one, say what you'd do first, and give me one reason for it over the others."}
+[timing] reads_done=95 plan_done=97 model_request=98 distress_verdict=856 model_first_token=1454 model_first_sentence=1851 first_delivered=1852 model_say_closed=1852 model_move_closed=1852 model_requests_closed=1852 model_exhibit_closed=1852 model_rescue_item_closed=1852 model_question_closed=3733 model_done=3735 settle_start=3735 hint_check_start=3739 hint_check_end=4603 settle_composed=4603 tail_delivered=4603 persist_start=4603 persist_end=4636
+
+[interviewer · RECOMMENDATION · 4:30] Okay. Pick from what you've said so far: pricing, supplier terms, waste, menu mix. Choose one, say what you'd do first, and give me one reason for it over the others.
+
+[candidate · 4:32] I'm sorry, I really don't know which one.
+[runner] phase: RECOMMENDATION kind: close stall rung: none
+[timing] reads_done=40 plan_done=41 code_written_checks_start=42 distress_verdict=649 code_written_checks_end=649 settle_start=650 settle_composed=650 first_delivered=650 tail_delivered=650 persist_start=650 persist_end=681
+
+[interviewer · SCORING · 4:32] That's our time. Thanks for working through this with me — your written report will follow.
+[score] interviewer-error marks: [["wellbeing",21]]
+[score] reconciliation merged both-sides claims: [{"dimension":"structure","wentWell":"Once given the flat-price fact, the candidate reasoned cleanly from revenue growth to a cost focus, correctly inferring volume growth.","needsWork":"Asked four times to prioritize a branch, the candidate deflected with more clarifying questions, then could not commit. A cost hypothesis came only after the interviewer restated the question (Level 1 assist) and fed in the flat-price fact.","merged":"Once given the flat-price fact, the candidate reasoned cleanly from revenue growth to a cost focus and correctly inferred volume growth. Before that, though, the candidate was asked four times to prioritize a branch, deflected with more clarifying questions, and reached a cost hypothesis only after the interviewer restated the question (Level 1 assist) and supplied that fact.","placedIn":"needsWork"},{"dimension":"dataExhibit","wentWell":"On the cost data, the candidate named COGS specifically, proposed opening it up by input, and then showed that beans alone cannot explain the jump.","needsWork":"The exhibit response itself ended at the implication without naming the next analysis. The bean test was also prompted by the interviewer rather than volunteered.","merged":"On the cost data, the candidate named COGS specifically, proposed opening it up by input, and showed that beans alone cannot explain the jump. However, the bean test was prompted by the interviewer rather than volunteered, and the exhibit response itself ended at the implication without naming the next analysis.","placedIn":"wentWell"},{"dimension":"judgment","wentWell":"The candidate made waste/portion control conditional on evidence rather than asserting it, and avoided relying on store data that did not exist.","needsWork":"Some assumptions were unjustified. The candidate assumed beans were the biggest input when they were only 25% of COGS.","merged":"The candidate made waste/portion control conditional on evidence rather than asserting it, and avoided relying on store data that did not exist. Elsewhere, though, the candidate made unjustified assumptions, such as treating beans as the biggest input when they were only 25% of COGS.","placedIn":"needsWork"},{"dimension":"pushback","wentWell":"The candidate incorporated the interviewer's decomposition hint and then carried the corrected figure forward.","needsWork":"When challenged on $48M, the candidate repeated the figure across several turns without re-deriving it. The correction came only after the interviewer supplied the exact breakdown.","merged":"When challenged on $48M, the candidate repeated the figure across several turns without re-deriving it. The candidate did incorporate the interviewer's decomposition once it was supplied and carried the corrected figure forward, but the correction came only after the interviewer provided the exact breakdown.","placedIn":"needsWork"}]
+[score] cross-dimension repetition: [{"concept":"Failing to commit to an answer when asked directly to prioritize or recommend (deflecting with questions instead of answering first)","dimensions":["structure","synthesis","communication","pushback"]},{"concept":"Relying on interviewer prompts or hints rather than independently driving the next step","dimensions":["structure","dataExhibit","creativity","synthesis","pushback"]}]
+
+[live-run] ended=true scoring=scored

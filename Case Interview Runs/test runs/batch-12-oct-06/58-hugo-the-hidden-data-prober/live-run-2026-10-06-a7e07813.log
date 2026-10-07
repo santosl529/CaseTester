@@ -1,0 +1,141 @@
+[live-run] session a7e07813-8243-4880-8751-7514a2d9308f · Brew & Bean Profitability · persona 58 Hugo — the Hidden-Data Prober · pace fast
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+How would you like to approach this? Feel free to take a moment to gather your thoughts first.
+
+[candidate silent 12s]
+
+[candidate · 0:12] Okay. So revenue is up 15% but margin collapsed from 24% to 6% — that's an 18-point drop, which is huge. Since revenue grew, this almost certainly isn't a demand problem; it's costs rising faster than revenue.
+
+My approach: first I'd decompose profit into revenue and costs. On revenue, I'd check price versus volume — whether the 15% growth came from more transactions, higher ticket, or new store openings, because new stores can drag margin while they ramp. On costs, I'd split fixed versus variable: COGS (coffee beans, milk, cups), labor, rent, and then corporate overhead.
+
+Given the size of the drop, my hypothesis is it's concentrated in one or two cost lines — most likely COGS inflation on inputs, or labor.
+
+Can I start with the cost structure? Do we have COGS, labor, rent, and overhead as a percent of revenue for both years?
+[runner] phase: INTRO kind: model stall rung: none
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Okay, a revenue-and-cost split.","move":"pressure_test","requests":[{"what":"COGS, labor, and overhead as a percent of revenue for both years","item_ids":["cogs_pct","labor_pct","overhead_pct"],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Before we get into data, looking at that structure, is it MECE, and what's missing? Which branch would you prioritize first, and why?"}
+[timing] reads_done=170 plan_done=181 model_request=183 distress_verdict=878 model_first_token=988 model_first_sentence=1436 first_delivered=1443 model_say_closed=1443 model_move_closed=1443 model_requests_closed=1783 model_exhibit_closed=1783 model_rescue_item_closed=1783 data_line_delivered=1784 model_question_closed=2535 model_done=2540 settle_start=2540 settle_composed=2545 tail_delivered=2545 persist_start=2545 persist_end=2575
+
+[interviewer · STRUCTURE · 0:15] Okay, a revenue-and-cost split. I'll come back to COGS, labor, and overhead as a percent of revenue for both years shortly. Before we get into data, looking at that structure, is it MECE, and what's missing? Which branch would you prioritize first, and why?
+
+[candidate · 0:21] I think it's close to MECE but not fully. Revenue and cost are exhaustive for profit, and within cost, COGS, labor, rent, and overhead don't overlap — but I left out a few things. Depreciation and amortization, especially if they've been building new stores. Marketing spend, which I'd have buried in overhead but should probably be its own line since it's discretionary. And below the line, interest expense and taxes — net margin is after those, so if they took on debt to fund expansion, that hits net but not operating margin. I should also separate store-level costs from corporate costs.
+
+I'd prioritize the cost branch first. Revenue grew 15%, so the numerator problem is less likely, and an 18-point margin swing is too big to come from mix alone. Within cost, I'd start with the largest line as a percent of revenue, which I'd expect to be COGS or labor.
+
+Is net margin here after interest and taxes, or operating?
+[runner] phase: STRUCTURE kind: model stall rung: none
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"Okay, that's a sensible prioritization.","move":"analysis","requests":[{"what":"COGS as a percent of revenue, both years","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"labor as a percent of revenue, both years","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"overhead and rent as a percent of revenue, both years","item_ids":["overhead_pct"],"explicit":true,"respond":"release"},{"what":"whether net margin is after interest and taxes","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"With those in hand, where does the 18-point drop actually sit, and what does that tell you about your next step?"}
+[timing] reads_done=26 plan_done=31 model_request=31 distress_verdict=736 model_first_token=1520 model_first_sentence=1522 first_delivered=1523 model_say_closed=1523 model_move_closed=1523 model_requests_closed=2320 model_exhibit_closed=2320 model_rescue_item_closed=2320 data_line_delivered=2320 model_question_closed=2659 model_done=2660 settle_start=2660 settle_composed=2662 tail_delivered=2662 persist_start=2662 persist_end=2695
+
+[interviewer · ANALYSIS · 0:23] Okay, that's a sensible prioritization. Coming back to what you asked for earlier: COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. I don't have whether net margin is after interest and taxes. With those in hand, where does the 18-point drop actually sit, and what does that tell you about your next step?
+
+[candidate · 0:29] That accounts for it almost exactly. COGS is up 16 points, overhead up 2, labor flat — 16 plus 2 is 18, which is the entire margin decline. So this is a COGS story with a small overhead tail.
+
+So the question becomes what inside COGS moved. For a coffee chain I'd expect the big buckets to be green coffee, dairy, and packaging/cups, plus food if they sell pastries.
+
+Let me reason about the magnitude. Revenue grew 15%, but COGS as a share went from 42 to 58 — in absolute terms that means COGS dollars grew roughly 1.15 × 58/42, about 1.59, so nearly 60% growth in input spend on 15% more volume. If coffee beans are the dominant line at, say, half of COGS, bean costs alone would have to have roughly doubled to produce that — is that roughly where it landed, a near-doubling in green coffee?
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay.","move":"analysis","requests":[{"what":"coffee bean price change over two years","item_ids":["bean_price_change"],"explicit":true,"respond":"release"},{"what":"coffee beans as a share of COGS","item_ids":["bean_share_of_cogs"],"explicit":false,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"You said bean costs would have to roughly double if beans are half of COGS. Walk me through that math, and tell me what in the data should confirm or break that hypothesis."}
+[timing] reads_done=27 plan_done=29 model_request=29 distress_verdict=783 model_first_token=1396 model_first_sentence=1401 first_delivered=1403 model_say_closed=1403 model_move_closed=1403 model_requests_closed=1827 model_exhibit_closed=1827 model_rescue_item_closed=1827 data_line_delivered=1828 model_question_closed=2226 model_done=2879 settle_start=2879 settle_composed=2881 tail_delivered=2882 persist_start=2882 persist_end=2913
+
+[interviewer · EXHIBIT · 0:32] Okay. Raw coffee bean costs are up 40% over the past two years. I can share coffee beans as a share of COGS if you'd like. You said bean costs would have to roughly double if beans are half of COGS. Walk me through that math, and tell me what in the data should confirm or break that hypothesis.
+
+[candidate · 0:41] Sure. Index base revenue at 100, so COGS is 42. Today revenue is 115 and COGS is 58% of that, so 66.7. That's 42 to 66.7, a 59% increase in COGS dollars.
+
+Volume alone explains 15% of that, so on a per-unit basis input costs are up 66.7 / (42 × 1.15) = 66.7 / 48.3, about 38%. That's where my "doubling" instinct was wrong — I conflated total growth with unit cost growth. Apologies.
+
+Now with beans at +40%: if beans are half of COGS, beans go 21 × 1.15 × 1.4 = 33.8, and the other half flat at 24.2, total 58. But actual is 66.7. So a gap of about 8.7 points remains, meaning non-bean inputs would have to be up roughly 36% too — dairy, cups, food all inflating at nearly bean levels. Is that roughly what the data shows?
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay.","move":"analysis","requests":[{"what":"coffee beans as a share of COGS","item_ids":["bean_share_of_cogs"],"explicit":false,"respond":"release"},{"what":"changes in other input costs such as dairy, packaging and food","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Once you have those, tell me: how much of the COGS increase do the beans explain, and does the rest of it fit your hypothesis? And before that, one check on your last step: you said a gap of about 8.7 points remains. Points of what?"}
+[timing] reads_done=29 plan_done=30 model_request=31 distress_verdict=560 model_first_token=1319 model_first_sentence=1324 first_delivered=1324 model_say_closed=1324 model_move_closed=1324 model_requests_closed=1801 model_exhibit_closed=1801 model_rescue_item_closed=1801 data_line_delivered=1801 model_question_closed=3118 model_done=3125 settle_start=3125 settle_composed=3128 tail_delivered=3128 persist_start=3128 persist_end=3158
+
+[interviewer · EXHIBIT · 0:44] Okay. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. I can share coffee beans as a share of COGS if you'd like. Once you have those, tell me: how much of the COGS increase do the beans explain, and does the rest of it fit your hypothesis? And before that, one check on your last step: you said a gap of about 8.7 points remains. Points of what?
+
+[candidate · 0:52] Points of indexed base revenue — I set base revenue at 100, so COGS went from 42 of those units to 66.7. The 8.7 was the shortfall in those same units between what beans alone explained (58) and actual (66.7). Sloppy phrasing on my part, I should have said index points.
+
+And the answer is that if beans are up 40% and everything else is up 37.5%, the blend is essentially uniform input inflation of about 38% — which is exactly the per-unit figure I derived. So the bean share of COGS barely matters; whatever the mix, I get to roughly the same place. That's actually the key finding: there's no residual. No waste problem, no shrinkage, no mix shift toward low-margin items. It's pure commodity inflation, fully passed through to the P&L.
+
+Which raises the real question — do we have menu price history? Because a 38% input increase with a flat margin should have been offset by price.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay, that clarifies the units.","move":"analysis","requests":[{"what":"menu price history over the past two years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"With that in hand, how does it square with the revenue growth, and what does it tell you about where the problem really sits?"}
+[timing] reads_done=29 plan_done=31 model_request=31 distress_verdict=675 model_first_token=1300 model_first_sentence=1304 first_delivered=1304 model_say_closed=1305 model_move_closed=1305 model_requests_closed=1787 model_exhibit_closed=1787 model_rescue_item_closed=1787 data_line_delivered=1788 model_question_closed=1788 model_done=2355 settle_start=2355 settle_composed=2356 tail_delivered=2356 persist_start=2356 persist_end=2387
+
+[interviewer · EXHIBIT · 0:54] Okay, that clarifies the units. Menu prices have not changed in two years. With that in hand, how does it square with the revenue growth, and what does it tell you about where the problem really sits?
+
+[candidate · 1:01] That reframes the whole case. If prices are flat, then all 15% of revenue growth is volume — more cups, whether from new stores or more traffic per store. So demand is healthy; they've absorbed a 38% input cost increase entirely out of margin by choice.
+
+So the root cause isn't the commodity spike, which is exogenous and industry-wide. It's a pricing failure — two years of no price action in an inflationary input environment.
+
+Let me sanity-check the fix. To restore COGS to 42% of revenue at today's cost base, revenue per unit has to rise by 58/42, about 38% — which is just the input inflation back out. That's a steep increase. But to get net margin back to, say, 15% rather than the full 24, I'd need roughly 9 points of margin, implying something closer to a 12–13% price increase if volume held. Is that roughly the order of magnitude the team has been modeling?
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"I don't have what the team has been modeling, and you said a 12 to 13 percent increase would get you to 15 percent margin. Walk me through that derivation, and tell me what you're assuming about volume response."}
+[timing] reads_done=27 plan_done=28 model_request=28 distress_verdict=564 model_first_token=1446 model_first_sentence=1449 first_delivered=1449 model_say_closed=1449 model_move_closed=1449 model_requests_closed=1450 model_exhibit_closed=1450 model_rescue_item_closed=1450 model_question_closed=2354 model_done=2355 settle_start=2355 settle_composed=2357 tail_delivered=2357 persist_start=2357 persist_end=2387
+
+[interviewer · EXHIBIT · 1:04] Okay. I don't have what the team has been modeling, and you said a 12 to 13 percent increase would get you to 15 percent margin. Walk me through that derivation, and tell me what you're assuming about volume response.
+
+[candidate · 1:13] Let me do it properly rather than eyeball it. Today, on base-100 revenue: revenue 115, COGS 66.7, labor 25.3 (22%), overhead 16.1 (14%) — total cost 108.1, profit 6.9, which is 6% of 115. That ties out.
+
+Now hold volume constant and raise price only. Costs stay at 108.1 in dollars, because no extra cups are sold. For costs to be 85% of revenue, revenue must be 108.1 / 0.85 = 127.2. Against 115, that's a 10.6% price increase — so closer to 11 than my 12–13. I was estimating off the margin gap directly instead of running it through the cost base.
+
+The assumption I'm making, and it's a big one, is zero volume response. That's unlikely to hold. Specialty coffee is habitual and somewhat inelastic, but 11% at once is visible. If elasticity is around -0.5, I'd lose roughly 5% of volume and need a larger increase to compensate.
+
+Do we have any read on price elasticity or competitor pricing?
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay. You've worked that through from the cost base.","move":"brainstorm","requests":[{"what":"price elasticity and competitor pricing","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Setting pricing aside for a moment: beyond a price increase, what else could Brew & Bean do to rebuild its margin?"}
+[timing] reads_done=28 plan_done=29 model_request=30 distress_verdict=783 model_first_token=1226 model_first_sentence=1230 first_delivered=1231 model_say_closed=1232 model_move_closed=1232 model_requests_closed=1747 model_exhibit_closed=1747 model_rescue_item_closed=1747 data_line_delivered=1748 model_question_closed=2278 model_done=2286 settle_start=2286 settle_composed=2288 tail_delivered=2288 persist_start=2288 persist_end=2319
+
+[interviewer · BRAINSTORM · 1:15] Okay. You've worked that through from the cost base. I don't have price elasticity and competitor pricing. Setting pricing aside for a moment: beyond a price increase, what else could Brew & Bean do to rebuild its margin?
+
+[candidate · 1:22] A few other levers, in rough order of how much I'd trust them.
+
+First, procurement. Beans at +40% is the market, but they may be buying spot. Forward contracts or hedging on green coffee, and renegotiating dairy and packaging at 200-store scale, could take some of that back. That's cost-side with no demand risk.
+
+Second, mix. Rather than raising the headline latte price, push higher-margin items — food attachment, larger sizes, cold brew — and lift ticket without changing posted prices. Also reformulation: cheaper milk alternatives, lighter cup stock, portion control on dairy.
+
+Third, overhead. It's up 2 points on 15% more revenue, which means corporate costs grew faster than the business. That's worth 2 points and is the easiest ask.
+
+Fourth, labor is 22% and flat, so it's not the cause, but there may be scheduling efficiency available.
+
+Honestly though, the arithmetic says pricing has to do most of the work — 38% input inflation can't be absorbed by procurement alone.
+[runner] phase: BRAINSTORM kind: model stall rung: none
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Okay.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"The CEO has five minutes and wants your recommendation. What would you tell them to do, and in what order?"}
+[timing] reads_done=29 plan_done=30 model_request=30 distress_verdict=669 model_first_token=1251 model_first_sentence=1256 first_delivered=1257 model_say_closed=1257 model_move_closed=1257 model_requests_closed=1258 model_exhibit_closed=1258 model_rescue_item_closed=1258 model_question_closed=1986 model_done=1991 settle_start=1991 settle_composed=1994 tail_delivered=1994 persist_start=1994 persist_end=2093
+
+[interviewer · RECOMMENDATION · 1:24] Okay. The CEO has five minutes and wants your recommendation. What would you tell them to do, and in what order?
+
+[candidate · 1:32] My recommendation: raise menu prices, starting now, in a staged way — that's the only lever sized to the problem.
+
+The reason: your entire 18-point margin decline is cost inflation you chose not to pass through. COGS went 42 to 58 percent of revenue, and overhead added the other 2 points. Input costs are up about 38 percent per unit across beans, dairy, and packaging — but menu prices haven't moved in two years. Demand is strong; all 15 percent of your revenue growth is volume.
+
+Order of actions. First, an immediate price increase of roughly 10 to 11 percent, which at flat volume restores about 15 percent net margin. I'd phase it — 5 percent now, test, then the rest. Second, in parallel, lock in forward contracts on green coffee and renegotiate dairy and packaging at your 200-store scale. Third, cut the 2 points of overhead creep. Fourth, shift mix toward food and larger formats to lift ticket quietly.
+
+Risks: I don't have elasticity or competitor pricing, so volume response is unknown — that's why I'd stage it and read the data. If beans retreat, you keep the price and the margin.
+[runner] phase: RECOMMENDATION kind: model stall rung: none
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Okay.","move":"risk","requests":[],"exhibit":null,"rescue_item":null,"question":"You named volume response as a risk. Suppose the first 5 percent step costs you more traffic than you expected and competitors don't follow. What's the biggest risk to this recommendation, and how would you know early enough to change course?"}
+[timing] reads_done=90 plan_done=92 model_request=93 distress_verdict=704 model_first_token=1127 model_first_sentence=1445 first_delivered=1446 model_say_closed=1446 model_move_closed=1446 model_requests_closed=1446 model_exhibit_closed=1446 model_rescue_item_closed=1446 model_question_closed=2092 model_done=2098 settle_start=2098 settle_composed=2101 tail_delivered=2101 persist_start=2101 persist_end=2200
+
+[interviewer · RECOMMENDATION · 1:34] Okay. You named volume response as a risk. Suppose the first 5 percent step costs you more traffic than you expected and competitors don't follow. What's the biggest risk to this recommendation, and how would you know early enough to change course?
+
+[candidate · 1:41] The biggest risk is that we're not actually a differentiated brand — that customers are buying convenience and price, not Brew & Bean specifically. If competitors hold and we move alone, we don't just lose 5 percent of transactions, we lose habitual daily customers permanently. That's worse than a margin problem, because reacquiring a lapsed daily visitor is expensive and a price cut later doesn't bring them back.
+
+How I'd know early: I wouldn't roll this out chain-wide. I'd pilot in 20 stores across a few competitive contexts — dense urban with a Starbucks next door, suburban with less competition — and hold matched control stores. Then I'd watch transaction counts weekly, not revenue, because revenue will look fine for a while on the higher price even as traffic erodes. I'd also watch the morning daypart specifically, since that's where habit lives.
+
+My tripwire would be something like transactions down more than 5 percent against control after three weeks — at that point I'd stop and shift weight onto procurement and mix.
+[runner] phase: RECOMMENDATION kind: close stall rung: none
+[timing] reads_done=28 plan_done=29 code_written_checks_start=29 distress_verdict=644 code_written_checks_end=644 settle_start=644 settle_composed=645 first_delivered=645 tail_delivered=645 persist_start=645 persist_end=676
+
+[interviewer · SCORING · 1:42] We'll stop there. Thanks for working through the case — your written report will follow.
+[score] reconciliation merged both-sides claims: [{"dimension":"structure","wentWell":"The candidate gave a clear profit = revenue − cost split, with useful sub-points on each side, including a tailored note on new-store ramp drag.","needsWork":"The 'fixed versus variable' label was announced but never applied, so the cost bucket defaulted to a generic line-item list. There was no bucket for external or competitive context, such as whether peers face the same squeeze or how much pricing power the client has.","merged":"The candidate gave a clear profit = revenue − cost split with useful revenue-side sub-points, including a tailored note on new-store ramp drag. However, the announced 'fixed versus variable' label was never applied, so the cost bucket defaulted to a generic line-item list, and there was no bucket for external or competitive context such as peer margins or pricing power.","placedIn":"needsWork"},{"dimension":"quantitative","wentWell":"The candidate correctly separated total COGS growth from per-unit input inflation, deriving ~38%, and showed that the bean/non-bean blend reconciles with it.","needsWork":"Twice, the candidate floated a number before deriving it, and only corrected it once the interviewer probed. The first was a 'near-doubling' of bean costs, which conflated total spend growth with unit-cost growth. The second was a 12–13% price increase eyeballed off the margin gap; the correct figure is 10.6%.","merged":"The candidate ultimately separated total COGS growth from per-unit input inflation (~38%) and reconciled it with the bean/non-bean blend. But twice the candidate floated a number before deriving it, correcting each only after the interviewer probed: a 'near-doubling' of bean costs that conflated spend growth with unit-cost growth, and a 12–13% price increase eyeballed off the margin gap (the correct figure is 10.6%).","placedIn":"needsWork"},{"dimension":"creativity","wentWell":"The candidate produced several distinct ideas across procurement, mix, reformulation, overhead and labor scheduling.","needsWork":"The ideas were all conventional cost-and-mix levers. None was non-obvious, and nothing went beyond trimming existing lines to new margin sources or ways to strengthen pricing power.","merged":"The candidate produced several distinct ideas across procurement, mix, reformulation, overhead and labor scheduling, but all were conventional cost-and-mix levers, and none reached for new margin sources or ways to strengthen pricing power.","placedIn":"needsWork"},{"dimension":"synthesis","wentWell":"The candidate gave sequenced next steps and named the key risk with its mitigation.","needsWork":"The 'if beans retreat' line was a loose aside. It could have been replaced by a sharper, quantified statement of the downside.","merged":"The candidate gave sequenced next steps and named the key risk with a mitigation, but the downside was left as a loose 'if beans retreat' aside rather than a sharp, quantified statement.","placedIn":"wentWell"}]
+[score] cross-dimension repetition: [{"concept":"Stating numbers before deriving or self-checking them, relying on the interviewer to catch or confirm them","dimensions":["quantitative","communication","pushback"]}]
+
+[live-run] ended=true scoring=scored

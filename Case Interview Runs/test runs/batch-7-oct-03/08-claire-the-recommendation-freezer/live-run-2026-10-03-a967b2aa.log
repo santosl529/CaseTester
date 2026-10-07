@@ -1,0 +1,334 @@
+[live-run] session a967b2aa-0cc4-4359-ba9d-f8b1e344921d · Brew & Bean Profitability · persona 8 Claire — the Recommendation Freezer · pace human
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+How would you like to approach this? Feel free to take a moment to gather your thoughts first.
+
+[candidate · 1:30] Let me take a second to structure.
+
+So revenues are up 15% but net margin fell from 24% to 6% — that's a huge drop, so costs must be growing much faster than revenue. I'd start by confirming the profit equation: profit = (price × volume) − (variable costs + fixed costs).
+
+I'd look at three buckets. First, revenue quality: is the 15% growth coming from new store openings, same-store traffic, or price increases? Growth from new stores can carry heavy ramp-up costs. Second, cost structure: I'd want COGS — coffee beans, dairy, cups — then labor, then rent/occupancy, then corporate overhead, and see which line grew fastest as a percent of revenue. Third, external factors: commodity prices, wage inflation, competition.
+
+To start — do we have a breakdown of costs as a percentage of revenue for both years?
+[runner] phase: INTRO stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "The candidate has presented a framework and asked for data, but I haven't applied my one pressure test yet. I'll apply it first and advance the phase."
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "speak",
+    "input": {
+      "text": "Before I get to the data: you've given me three buckets. Which of them would you prioritize first, and why?"
+    }
+  }
+]
+[interviewer-model] dropped narration outside speak: "The candidate has presented a framework and asked for data, but I haven't applied my one pressure test yet. I'll apply it first and advance the phase."
+[interviewer] phase: INTRO raw: ["advance_phase","speak"] → filtered: ["advance_phase","speak"]
+[runner] same-turn data request resolution: {"released":[],"deferred":true,"offered":[],"notYet":false,"refusedNotInCase":false,"phase":"CLARIFY"}
+
+[interviewer · CLARIFY · 1:33] Before I get to the data: you've given me three buckets. I'll come to that data shortly. Which of them would you prioritize first, and why?
+
+[candidate · 3:03] I'd prioritize the cost structure first. The margin fell 18 points while revenue actually grew, so the problem is almost certainly on the cost side rather than demand — if volume or pricing had collapsed, we'd see revenue decline, and we don't.
+
+Within costs, I'd sequence by size: the biggest lines in a coffee chain are typically COGS and labor, each roughly 25–30% of revenue, then occupancy. An 18-point margin swing is large enough that it likely sits in one or two of those big lines, not in overhead.
+
+Revenue quality is my close second, though — if the 15% growth came from opening new stores, then fixed costs like rent and pre-opening expense would have jumped, and that's really a cost story too. So I'd want to know store count in both years alongside the cost breakdown.
+[runner] phase: CLARIFY stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "Understood. You asked for the cost breakdown for both years and store count, so here they are."
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "cogs_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "labor_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "overhead_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "stores_count"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: CLARIFY raw: ["speak","reveal_data","reveal_data","reveal_data","reveal_data","advance_phase"] → filtered: ["speak","reveal_data","reveal_data","reveal_data","reveal_data","advance_phase"]
+[runner] phase repair: {"from":"STRUCTURE","to":"ANALYSIS","reasons":["ledger reveal (releaseWhen ANALYSIS)"]}
+
+[interviewer · ANALYSIS · 3:07] Understood. You asked for the cost breakdown for both years and store count, so here they are. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed.
+
+[candidate · 4:37] That's clean. Let me check it adds up: COGS up 16 points, overhead up 2 points, labor flat — that's 18 points, which exactly matches the margin decline from 24% to 6%. So COGS is ~90% of the story.
+
+And since store count is flat at 200, the 15% revenue growth is all same-store — either more transactions or higher prices. That actually makes the COGS story worse: if they raised prices, revenue per unit went up and COGS% still climbed 16 points, meaning input costs rose even faster than that.
+
+So the question is what's inside COGS. I'd want it split into coffee beans, dairy, other food, and packaging, and ideally unit cost versus units consumed — a price spike looks very different from waste or over-portioning.
+
+Do we have that COGS split, and do we have menu price history over the two years?
+[runner] phase: ANALYSIS stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "The candidate asked for the COGS split and menu price history. Available items match: bean_share_of_cogs, bean_price_change, non_bean_input_change, menu_price_change. I'll release the COGS-split items and menu price."
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_share_of_cogs"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "non_bean_input_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "menu_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: ANALYSIS raw: ["speak","reveal_data","reveal_data","reveal_data","reveal_data","advance_phase"] → filtered: ["speak","reveal_data","reveal_data","reveal_data","reveal_data","advance_phase"]
+[runner] stripped meta-leak from interviewer turn: ["The candidate asked for the COGS split and menu price history.","I'll release the COGS-split items and menu price."]
+
+[interviewer · EXHIBIT · 4:41] Available items match: bean_share_of_cogs, bean_price_change, non_bean_input_change, menu_price_change. Coffee beans were 25% of COGS two years ago. Raw coffee bean costs are up 40% over the past two years. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Menu prices have not changed in two years.
+
+[candidate · 6:11] Let me test whether input inflation alone explains it. Beans were 25% of COGS and rose 40% → 0.25 × 40% = 10 points. Other inputs were 75% and rose 37.5% → 0.75 × 37.5% = 28.1 points. Total COGS inflation ≈ 38%.
+
+Old COGS was 42% of revenue. Since menu prices are flat, that 42% scales directly with input cost: 42% × 1.38 = 58%. That's exactly where COGS sits today. So input inflation fully explains the 16-point move — there's no waste or portioning problem hiding in there.
+
+And with prices flat and store count flat, the entire 15% revenue growth is volume — they're selling about 15% more units at unchanged prices while each unit costs 38% more to make. So they've essentially absorbed two years of broad commodity inflation without passing any of it through.
+
+Interesting that it's not just beans — the non-bean basket rose almost as much.
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "The candidate's math: 0.25 × 40% = 10 and 0.75 × 37.5% = 28.1, which sum to about 38% inflation in COGS per unit. They then applied that to old COGS of 42% of revenue to reach 58%. But that scaling treats revenue as flat, while revenue grew 15%.\n\nThe conversion needs a check, but the unit flag here concerns the shares of COGS, which they've handled with consistent bases. The cleaner issue is the 42% to 58% step.\n\nWalk me through the step from 42% to 58%. Does multiplying old COGS as a share of revenue by the input inflation figure account for the 15% revenue growth?"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["speak","advance_phase"] → filtered: ["speak","advance_phase"]
+[runner] stripped meta-leak from interviewer turn: ["The candidate's math: 0.25 × 40% = 10 and 0.75 × 37.5% = 28.1, which sum to about 38% inflation in COGS per unit."]
+[runner] timeframe mismatch (log only): [{"sentence":"They then applied that to old COGS of 42% of revenue to reach 58%.","figures":[{"value":42,"itemId":"cogs_pct","period":"prior"},{"value":58,"itemId":"cogs_pct","period":"current"}]}]
+[runner] style audit failed: {"passed":false,"violations":["too_long"],"flags":[],"wordCount":84,"questionCount":1}
+
+[interviewer · BRAINSTORM · 6:16] They then applied that to old COGS of 42% of revenue to reach 58%. But that scaling treats revenue as flat, while revenue grew 15%. The conversion needs a check, but the unit flag here concerns the shares of COGS, which they've handled with consistent bases. The cleaner issue is the 42% to 58% step. Walk me through the step from 42% to 58%. Does multiplying old COGS as a share of revenue by the input inflation figure account for the 15% revenue growth?
+
+[candidate · 7:46] Fair challenge — let me redo it on a per-unit basis rather than on totals.
+
+COGS as a share of revenue is really (unit cost × units) ÷ (price × units). The units cancel, so volume growth drops out entirely — the ratio only moves if unit cost or price moves. Unit cost is up 38%, price is flat, so the ratio goes 42% × 1.38 ÷ 1.00 = 58%. The 15% volume growth doesn't affect it.
+
+Sanity check on totals: if revenue index goes 100 → 115, old COGS at 42% would be 42 → 48.3 at constant unit cost, then × 1.38 = 66.7. And 66.7 ÷ 115 = 58%. Same answer, so it holds either way.
+
+Where volume does matter is absolute profit dollars, not margin — more units at a thinner spread.
+[runner] phase: BRAINSTORM stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "Understood. The derivation holds. Beyond what we've discussed, what could the client do to reverse the margin decline?"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: BRAINSTORM raw: ["speak","advance_phase"] → filtered: ["speak","advance_phase"]
+
+[interviewer · RECOMMENDATION · 7:48] Understood. The derivation holds. Beyond what we've discussed, what could the client do to reverse the margin decline?
+
+[candidate silent 9s]
+
+[candidate · 8:08] Hmm, I'm not sure.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "Take a minute if you need it. Think about the levers on price, on input costs, and on the menu or customer side. What ideas come to mind?"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 8:10] Take a minute if you need it. Think about the levers on price, on input costs, and on the menu or customer side. What ideas come to mind?
+
+[candidate silent 24s]
+
+[candidate · 8:47] I don't know, I'd need more data.
+[runner] phase: RECOMMENDATION stall rung: 1
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "Take your time. The question on the table is what the client could do to reverse the margin decline, and I'm looking for ideas even without more data."
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 8:49] Take your time. The question on the table is what the client could do to reverse the margin decline, and I'm looking for ideas even without more data.
+
+[candidate silent 12s]
+
+[candidate · 9:17] I can't commit without a more detailed breakdown of what's inside COGS.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "Understood, but the CEO needs a direction from us, and a breakdown inside COGS isn't something I have. Using what we know about this client, what's one action you'd put in front of the CEO, and why?"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 9:20] Understood, but the CEO needs a direction from us, and a breakdown inside COGS isn't something I have. Using what we know about this client, what's one action you'd put in front of the CEO, and why?
+
+[candidate silent 14s]
+
+[candidate · 9:44] I'm stuck, sorry.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "That's okay. Start from what you found: prices haven't moved in two years while input costs have risen sharply. What would you do about that?"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 9:46] That's okay. Start from what you found: prices haven't moved in two years while input costs have risen sharply. What would you do about that?
+
+[candidate silent 9s]
+
+[candidate · 10:06] Hmm, I'm not sure.
+[runner] phase: RECOMMENDATION stall rung: 2
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "Let's simplify. Margin per cup depends on what the client charges and what each cup costs to make, so which of those two can the client change?"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 10:08] Let's simplify. Margin per cup depends on what the client charges and what each cup costs to make, so which of those two can the client change?
+
+[candidate · 10:24] Both, in principle. But I can't say which without the COGS detail.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "Okay, both can move. The detail isn't available, so you'll need to work with what we have. Pick one of those two levers and tell me how you would pull it."
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 10:27] Okay, both can move. The detail isn't available, so you'll need to work with what we have. Pick one of those two levers and tell me how you would pull it.
+
+[candidate silent 9s]
+
+[candidate · 10:48] I don't know, I'd need more data.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "You can ask me for a specific piece of data if it would change your answer. Tell me what you'd want to know, and why it would change which lever you pull."
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 10:51] You can ask me for a specific piece of data if it would change your answer. Tell me what you'd want to know, and why it would change which lever you pull.
+
+[candidate · 11:21] A unit-level COGS split — bean, dairy, packaging, food — per cup, with volumes.
+
+Without it I can't tell which input is actually driving the spread, so I can't say which lever to pull.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "I don't have a per-cup split by input or volumes at that level. What I do have is the input cost changes and flat menu prices, so which lever would you pull with that, and what would you tell the CEO?"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 11:25] I don't have a per-cup split by input or volumes at that level. What I do have is the input cost changes and flat menu prices, so which lever would you pull with that, and what would you tell the CEO?
+
+[candidate silent 9s]
+
+[candidate · 11:47] I'm stuck, sorry. I'd need that breakdown first.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "Understood. I'll ask once more: with menu prices unchanged for two years and input costs up, what is your recommendation to the CEO?"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 11:51] Understood. I'll ask once more: with menu prices unchanged for two years and input costs up, what is your recommendation to the CEO?
+
+[candidate · 12:08] I don't know, I'd need more data. I can't commit without the COGS breakdown.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "Understood. We'll stop here, and a full written report will follow."
+  },
+  {
+    "type": "tool_use",
+    "name": "end_case",
+    "input": {}
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak","end_case"] → filtered: ["speak","end_case"]
+
+[interviewer · SCORING · 12:11] That's our time. Thanks for working through this with me — your written report will follow.
+[score] backfilled data-request classification for candidate turns: [23,29]
+[score] reconciliation merged both-sides claims: [{"dimension":"structure","wentWell":"You laid out a recognizable profit-based framework with explicit enumeration and relevant sub-points for a coffee chain, including the specific COGS components.","needsWork":"The third bucket overlaps the second. Commodity prices and wage inflation are drivers of COGS and labor, not a separate category, so the structure is not fully MECE.","merged":"You laid out a recognizable profit-based framework with explicit enumeration and relevant coffee-chain sub-points, including specific COGS components. However, the third bucket overlaps the second: commodity prices and wage inflation drive COGS and labor rather than forming a separate category, so the structure was not fully MECE.","placedIn":"needsWork"},{"dimension":"structure","wentWell":"When asked, you gave a well-reasoned prioritization grounded in the case facts: revenue grew, so the problem is on the cost side.","needsWork":"You restated the situation but not the objective (find the root cause and recommend a reversal). You also did not tie the structure to the decision the CEO must make, and you prioritized only after the interviewer asked.","merged":"When asked, you gave a well-reasoned prioritization grounded in the case facts (revenue grew, so the problem is on the cost side). But you prioritized only after the interviewer prompted you, restated the situation without the objective (find the root cause and recommend a reversal), and did not tie the structure to the decision the CEO must make.","placedIn":"needsWork"},{"dimension":"quantitative","wentWell":"You set up a weighted-average test of input inflation and computed it correctly. The result is roughly 38% COGS inflation, and applying it to the old 42% COGS ratio gives 58%, which matches the data.","needsWork":"The '10 points' and '28.1 points' are contributions to COGS growth, not points of revenue, but you never labeled them that way. Converting them to revenue terms would have made the split explicit: about 4.2 points from beans and about 11.8 from other inputs, out of the 16-point rise.","merged":"You set up and correctly computed a weighted-average test of input inflation (roughly 38%, which takes the 42% COGS ratio to 58%, matching the data). However, you never labeled the '10 points' and '28.1 points' as contributions to COGS growth rather than points of revenue. Converting them would have made the split explicit: about 4.2 points from beans and about 11.8 from other inputs, out of the 16-point rise.","placedIn":"wentWell"},{"dimension":"judgment","wentWell":"Your diagnostic judgment in the analysis was sound: you distinguished an input-price spike from waste or over-portioning and tested which one fit the data.","needsWork":"Your demand for a per-cup COGS split contradicted your own earlier finding that input inflation is broad-based and fully explains the gap. The data you asked for would not have changed the direction of the answer.","merged":"Your diagnostic judgment in the analysis was sound: you distinguished an input-price spike from waste or over-portioning and tested which fit the data. You then undercut that conclusion by demanding a per-cup COGS split, even though you had already found that broad-based input inflation fully explains the gap, so that data would not have changed the direction of the answer.","placedIn":"needsWork"},{"dimension":"synthesis","wentWell":"Your mid-case synthesis after the COGS analysis was crisp and insight-led.","needsWork":"You did not connect your own findings (flat prices, ~38% input inflation) to an answer, so there were no supporting reasons, risks, or next steps.","merged":"Your mid-case synthesis after the COGS analysis was crisp and insight-led, but you never carried those findings (flat prices, ~38% input inflation) through to an answer. As a result, there were no supporting reasons, risks, or next steps.","placedIn":"needsWork"},{"dimension":"communication","wentWell":"You built cleanly on the interviewer's challenge on the math.","needsWork":"In the second half, communication collapsed into repeated non-answers that did not build on the interviewer's cues.","merged":"You built cleanly on the interviewer's challenge on the math. In the second half, though, communication collapsed into repeated non-answers that did not build on the interviewer's cues.","placedIn":"needsWork"},{"dimension":"pushback","wentWell":"On the math challenge, you acknowledged it, held your position, and gave explicit reasoning plus a second-method check. There was no capitulation and no defensiveness.","needsWork":"You kept requesting data the interviewer had said was unavailable, rather than adapting to that feedback.","merged":"On the math challenge, you acknowledged the pushback and held your position with explicit reasoning and a second-method check, without capitulating or getting defensive. Later, however, you kept requesting data the interviewer had said was unavailable instead of adapting to that feedback.","placedIn":"needsWork"}]
+[score] cross-dimension repetition: [{"concept":"No actionable recommendation or levers (pricing/procurement) despite findings that pointed directly to them","dimensions":["judgment","creativity","synthesis","pushback"]},{"concept":"Failed to respond to interviewer hints, suggested buckets, or assists (Level 1/Level 2)","dimensions":["creativity","synthesis","communication","pushback"]}]
+
+[live-run] ended=true scoring=scored
