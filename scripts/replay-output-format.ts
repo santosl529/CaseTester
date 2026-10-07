@@ -33,6 +33,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import { writeOpener, OPENER_TURN_NOTE, openerGate } from '@/lib/agent/opener';
 import { INTERVIEWER_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { TURN_SCHEMA } from '@/lib/agent/models/turn-schema';
+import { stripMetaLeak, rewriteSystemLanguage } from '@/lib/orchestrator/audit';
+import { enforceNumericProvenance } from '@/lib/orchestrator/numeric-provenance';
 
 const RUNS_ROOT = 'Case Interview Runs/test runs';
 const BATCHES = (process.env.REPLAY_BATCHES ?? 'batch-7-oct-03,batch-8-oct-03').split(',');
@@ -291,6 +293,110 @@ async function runFloor(samples: Sample[]) {
   }
 }
 
+// ---------- the compact-prompt A/B ----------
+// REPLAY_ARM=compact-ab: the full prompt (A) against the compact one (B,
+// prompts/system-compact.ts) on identical saved turn states, same model,
+// settings and schema. Per sample: each variant once to warm its cache (its
+// output is the run-to-run noise baseline), then each once measured, the
+// order alternating sample to sample. Primary outcome: first useful segment
+// — the declarations closing on a turn with data (when the stream sends the
+// data line), else the whole turn (Settle sends the question). Diagnostics:
+// first token, full completion, input tokens. Quality: narration / system
+// language, say vetoes, unsourced figures, and request disagreements A vs B
+// against A vs A.
+type VariantRun = {
+  variant: 'full' | 'compact'; firstTokenMs: number | null; firstUsefulMs: number | null; completeMs: number;
+  inputTokens: number; cacheRead: number; cacheWrite: number; outputTokens: number; turn?: ModelTurn; error?: string;
+};
+
+async function runVariant(s: Sample, variant: 'full' | 'compact'): Promise<VariantRun> {
+  const u = { inputTokens: 0, cacheRead: 0, cacheWrite: 0, outputTokens: 0 };
+  const t0 = Date.now();
+  let firstTokenMs: number | null = null, declarationsMs: number | null = null;
+  let turn: ModelTurn | undefined;
+  try {
+    for await (const e of streamInterviewerTurn({
+      model, candidateText: s.candidateText, history: s.history, promptCtx: s.ctx, phase: s.ctx.currentPhase, promptVariant: variant,
+      onMark: name => { if (name === 'model_first_token') firstTokenMs ??= Date.now() - t0; },
+      onUsage: x => { u.inputTokens += x.inputTokens; u.outputTokens += x.outputTokens; u.cacheRead += x.cacheReadTokens ?? 0; u.cacheWrite += x.cacheWriteTokens ?? 0; },
+    })) {
+      if (e.type === 'field' && e.key === 'rescue_item') declarationsMs ??= Date.now() - t0;
+      if (e.type === 'restart') { firstTokenMs = null; declarationsMs = null; }
+      if (e.type === 'done') turn = e.turn;
+    }
+  } catch (err) {
+    return { variant, firstTokenMs, firstUsefulMs: null, completeMs: Date.now() - t0, ...u, error: String(err).slice(0, 200) };
+  }
+  const completeMs = Date.now() - t0;
+  const hasData = !!turn && (turn.requests.length > 0 || !!turn.exhibit || !!turn.rescueItem);
+  return { variant, firstTokenMs, firstUsefulMs: hasData ? declarationsMs : completeMs, completeMs, ...u, turn };
+}
+
+function qualityFlags(s: Sample, t: ModelTurn | undefined): string[] {
+  if (!t) return ['no_turn'];
+  const spoken = [t.say, t.question].filter(Boolean).join(' ');
+  const flags: string[] = [];
+  if (stripMetaLeak(spoken).strippedSentences.length > 0) flags.push('narration');
+  if (rewriteSystemLanguage(spoken).rewrites.length > 0) flags.push('system_language');
+  const allowed = [caseData.prompt, s.candidateText, ...s.history.filter(h => h.role === 'user').map(h => h.content), ...Object.values(s.ctx.revealedValues)];
+  if (enforceNumericProvenance(spoken, allowed).blocked) flags.push('unsourced_figure');
+  if (t.say) {
+    const veto = vetoReason(t.say, { allowedTexts: allowed, verified: [], alreadyProbed: new Set(), flaggedThisTurn: false, openItems: [], phase: s.ctx.currentPhase });
+    if (veto && veto !== 'provenance') flags.push(`say:${veto}`);
+  }
+  if (!t.question.trim()) flags.push('no_question');
+  return flags;
+}
+
+// The data decisions a turn declares, for comparing two outputs.
+const decisions = (t: ModelTurn | undefined) => JSON.stringify((t?.requests ?? [])
+  .map(r => `${[...r.itemIds].sort().join('+')}:${r.respond}:${r.explicit}`).sort().concat(t?.exhibit ? [`exhibit:${t.exhibit}`] : []));
+
+async function runCompactAB(samples: Sample[]) {
+  const pairs: { id: string; phase: string; warm: VariantRun[]; measured: VariantRun[] }[] = [];
+  for (const [i, s] of samples.entries()) {
+    const warm = [await runVariant(s, 'full'), await runVariant(s, 'compact')];
+    const order: ('full' | 'compact')[] = i % 2 === 0 ? ['full', 'compact'] : ['compact', 'full'];
+    const measured: VariantRun[] = [];
+    for (const v of order) measured.push(await runVariant(s, v));
+    pairs.push({ id: s.id, phase: s.ctx.currentPhase, warm, measured });
+    const m = (v: string) => measured.find(r => r.variant === v)!;
+    console.log(`  ${s.id} ${s.ctx.currentPhase.padEnd(14)} useful full ${m('full').firstUsefulMs} compact ${m('compact').firstUsefulMs} · first token ${m('full').firstTokenMs}/${m('compact').firstTokenMs} · input ${m('full').inputTokens + m('full').cacheRead + m('full').cacheWrite}/${m('compact').inputTokens + m('compact').cacheRead + m('compact').cacheWrite}`);
+  }
+  writeFileSync(path.join(OUT_DIR, 'replay-results-compact-ab.json'), JSON.stringify(pairs, null, 2));
+
+  const get = (p: (typeof pairs)[number], set: 'warm' | 'measured', v: string) => p[set].find(r => r.variant === v)!;
+  const ok = pairs.filter(p => !get(p, 'measured', 'full').error && !get(p, 'measured', 'compact').error);
+  const diff = (k: 'firstUsefulMs' | 'firstTokenMs' | 'completeMs') => ok
+    .map(p => { const a = get(p, 'measured', 'full')[k], b = get(p, 'measured', 'compact')[k]; return a != null && b != null ? b - a : null; })
+    .filter((x): x is number => x != null);
+  const showDiff = (name: string, k: 'firstUsefulMs' | 'firstTokenMs' | 'completeMs') => {
+    const d = diff(k);
+    const abs = (v: string) => ok.map(p => get(p, 'measured', v)[k]).filter((x): x is number => x != null);
+    console.log(`  ${name.padEnd(20)} full median ${pct(abs('full'), 0.5)} · compact median ${pct(abs('compact'), 0.5)} · paired diff (compact − full) median ${pct(d, 0.5)}ms, p10 ${pct(d, 0.1)}, p90 ${pct(d, 0.9)} · compact faster on ${d.filter(x => x < 0).length}/${d.length}`);
+  };
+  console.log(`\nCOMPACT A/B — ${ok.length}/${pairs.length} pairs ok`);
+  showDiff('FIRST USEFUL', 'firstUsefulMs');
+  showDiff('first token', 'firstTokenMs');
+  showDiff('full completion', 'completeMs');
+  const inTok = (v: string) => ok.map(p => { const r = get(p, 'measured', v); return r.inputTokens + r.cacheRead + r.cacheWrite; });
+  const uncached = (v: string) => ok.map(p => get(p, 'measured', v).inputTokens);
+  console.log(`  input tokens median full ${pct(inTok('full'), 0.5)} · compact ${pct(inTok('compact'), 0.5)} (uncached ${pct(uncached('full'), 0.5)} · ${pct(uncached('compact'), 0.5)})`);
+  const flagsOf = (v: string) => ok.flatMap(p => [get(p, 'warm', v), get(p, 'measured', v)].flatMap(r => qualityFlags(samples.find(s => s.id === p.id)!, r.turn)));
+  const count = (xs: string[]) => JSON.stringify(xs.reduce<Record<string, number>>((m, x) => { m[x] = (m[x] ?? 0) + 1; return m; }, {}));
+  console.log(`  quality flags over ${ok.length * 2} outputs each — full ${count(flagsOf('full'))} · compact ${count(flagsOf('compact'))}`);
+  const disagree = (a: VariantRun, b: VariantRun) => decisions(a.turn) !== decisions(b.turn);
+  console.log(`  request decisions differ — full vs full (noise) ${ok.filter(p => disagree(get(p, 'warm', 'full'), get(p, 'measured', 'full'))).length}/${ok.length} · compact vs compact ${ok.filter(p => disagree(get(p, 'warm', 'compact'), get(p, 'measured', 'compact'))).length}/${ok.length} · full vs compact ${ok.filter(p => disagree(get(p, 'measured', 'full'), get(p, 'measured', 'compact'))).length}/${ok.length}`);
+  // Side by side for hand reading.
+  const md = ok.map(p => {
+    const s = samples.find(x => x.id === p.id)!;
+    const show = (r: VariantRun) => `say: ${r.turn?.say ?? ''}\nrequests: ${decisions(r.turn)}\nquestion: ${r.turn?.question ?? ''}\nflags: ${qualityFlags(s, r.turn).join(', ') || '-'}`;
+    return `## ${p.id} · ${p.phase}\n**Candidate:** ${s.candidateText}\n\n**Full (measured)**\n${show(get(p, 'measured', 'full'))}\n\n**Full (warm-up)**\n${show(get(p, 'warm', 'full'))}\n\n**Compact (measured)**\n${show(get(p, 'measured', 'compact'))}\n\n**Compact (warm-up)**\n${show(get(p, 'warm', 'compact'))}\n`;
+  }).join('\n');
+  writeFileSync(path.join(OUT_DIR, 'replay-compact-ab.md'), md);
+  console.log(`  wrote ${path.join(OUT_DIR, 'replay-compact-ab.md')} for hand reading`);
+}
+
 async function pool<T, R>(items: T[], n: number, fn: (t: T) => Promise<R>): Promise<R[]> {
   const out: R[] = new Array(items.length); let i = 0;
   await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) { const k = i++; out[k] = await fn(items[k]); } }));
@@ -316,6 +422,26 @@ async function main() {
   }
   const estCost = samples.reduce((n, s) => n + (buildSystemPrompt(s.ctx).length + s.history.reduce((m, h) => m + h.content.length, 0)) / 3.6, 0) * 2 / 1e6;
   console.log(`${all.length} reconstructable turns · sampling ${samples.length} · est cost ~$${estCost.toFixed(2)}`);
+  if (ARM === 'compact-ab') {
+    // Stratified by stage, weighted to where requests and math happen, and
+    // spread over sessions within a stage (the first N are one session's
+    // opening turns).
+    const QUOTA: Partial<Record<Phase, number>> = { INTRO: 1, CLARIFY: 2, STRUCTURE: 2, ANALYSIS: 6, EXHIBIT: 4, BRAINSTORM: 2, RECOMMENDATION: 2, WRAP: 1 };
+    const scale = LIMIT / 20;
+    const spread = Object.entries(QUOTA).flatMap(([phase, n]) => {
+      const pool = all.filter(x => x.ctx.currentPhase === phase);
+      const k = Math.min(pool.length, Math.max(1, Math.round(n! * scale)));
+      const step = pool.length / k;
+      return Array.from({ length: k }, (_, i) => pool[Math.floor(i * step)]);
+    });
+    if (DRY) {
+      console.log(`all turns by stage ${JSON.stringify(all.reduce<Record<string, number>>((m, x) => { m[x.ctx.currentPhase] = (m[x.ctx.currentPhase] ?? 0) + 1; return m; }, {}))}`);
+      console.log(`compact A/B: ${spread.length} samples × 4 calls · stages ${JSON.stringify(spread.reduce<Record<string, number>>((m, x) => { m[x.ctx.currentPhase] = (m[x.ctx.currentPhase] ?? 0) + 1; return m; }, {}))}`);
+      return;
+    }
+    await runCompactAB(spread);
+    return;
+  }
   if (DRY) { writeFileSync(path.join(OUT_DIR, 'replay-sample-prompt.txt'), buildSystemPrompt(samples[0].ctx)); return; }
   if (ARM === 'floor') {
     await bareFirstTokenMs();

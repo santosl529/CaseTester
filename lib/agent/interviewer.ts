@@ -1,5 +1,6 @@
 import type { Phase } from '@/lib/orchestrator/state-machine';
 import { buildPromptParts, type PromptContext } from './prompts/system';
+import { buildCompactPromptParts } from './prompts/system-compact';
 import type { InterviewerModel, ModelMessage, TurnContext, TurnEvent } from './models/interface';
 import type { ModelTurn } from './models/turn-schema';
 import type { OnUsage } from '@/lib/llm-usage';
@@ -17,6 +18,9 @@ export type InterviewerTurnInput = {
   // Streaming: false once the caller has delivered part of the turn.
   canRegenerate?: () => boolean;
   onMark?: (name: string) => void;
+  // Latency A/B arm (scripts/replay-output-format.ts): the compact prompt
+  // (prompts/system-compact.ts). Production passes none — the full prompt.
+  promptVariant?: 'full' | 'compact';
 };
 
 export async function runInterviewerTurn(input: InterviewerTurnInput): Promise<ModelTurn> {
@@ -39,7 +43,8 @@ export function catalogResolver(promptCtx: PromptContext): { resolve: (raw: stri
 // The turn as a stream (spec 2026-10-06-plan-owns-decisions §4).
 export async function* streamInterviewerTurn(input: InterviewerTurnInput): AsyncGenerator<TurnEvent> {
   const { promptCtx } = input;
-  const { stable: systemPrompt, turn: turnSystem } = buildPromptParts(promptCtx);
+  const build = input.promptVariant === 'compact' ? buildCompactPromptParts : buildPromptParts;
+  const { stable: systemPrompt, turn: turnSystem } = build(promptCtx);
   const messages: ModelMessage[] = [...input.history, { role: 'user', content: input.candidateText }];
   const catalog = catalogResolver(promptCtx);
 

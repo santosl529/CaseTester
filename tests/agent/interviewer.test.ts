@@ -28,6 +28,17 @@ describe('runInterviewerTurn', () => {
     expect(seen!.validIds).toEqual(['cogs_pct', 'bean_share_of_cogs', 'stores_count', 'exhibit-a']);
   });
 
+  it('uses the compact prompt only when asked (latency A/B arm), with the same turn state', async () => {
+    const seen: TurnContext[] = [];
+    const model: InterviewerModel = { runTurn: vi.fn(async (c: TurnContext) => { seen.push(c); return TURN; }) };
+    await runInterviewerTurn({ model, candidateText: 'Hello', history: [], promptCtx, phase: 'CLARIFY' });
+    await runInterviewerTurn({ model, candidateText: 'Hello', history: [], promptCtx, phase: 'CLARIFY', promptVariant: 'compact' });
+    expect(seen[0].systemPrompt).toContain('YOUR TURN');
+    expect(seen[1].systemPrompt).toContain('REPLY: one JSON object');
+    expect(seen[1].systemPrompt.length).toBeLessThan(seen[0].systemPrompt.length * 0.6);
+    expect(seen[1].turnSystem).toBe(seen[0].turnSystem);
+  });
+
   it('streams a model without streamTurn as one burst, say by sentence', async () => {
     const model: InterviewerModel = { runTurn: vi.fn(async () => ({ ...TURN, say: 'Okay. Go on.' })) };
     const ev: TurnEvent[] = [];
