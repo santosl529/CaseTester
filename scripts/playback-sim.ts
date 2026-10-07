@@ -15,7 +15,12 @@
 
 import { load, type Row } from './useful-latency';
 import { schedulePlayback, type FillerPolicy, type PlaySegment } from '@/lib/voice/playback';
-import { ACKS, FILLERS, FILLER_DELAY_MS } from '@/lib/voice/acknowledge';
+import { ACKS } from '@/lib/voice/acknowledge';
+
+// The thinking fillers as they were on 7 Oct (removed from the voice path
+// after the demo: they sounded scripted).
+const FILLERS = ['Let me think about that for a second.', 'Give me a moment on that.', 'Hmm, let me consider that.', 'One second while I think that through.'];
+const FILLER_DELAY_MS = 400;
 import { isBareAcknowledgment } from '@/lib/orchestrator/stream-turn';
 
 const CHARS_PER_SEC = 12.5;  // estimate

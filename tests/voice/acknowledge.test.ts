@@ -30,19 +30,3 @@ describe('instant acknowledgment', () => {
     expect(shouldAcknowledge('   ')).toBe(false);
   });
 });
-
-import { FILLERS, FILLER_DELAY_MS, pickFiller, fillerStartMs } from '@/lib/voice/acknowledge';
-
-describe('thinking filler', () => {
-  it('is spoken only when the model is not in before the delay', () => {
-    expect(fillerStartMs(1000, 1200)).toBeNull();                       // model in first
-    expect(fillerStartMs(1000, 1000 + FILLER_DELAY_MS + 1)).toBe(1000 + FILLER_DELAY_MS);
-    expect(fillerStartMs(1000, null)).toBe(1000 + FILLER_DELAY_MS);
-  });
-
-  it('never repeats the last filler, never grades or promises data', () => {
-    let last: string | null = null;
-    for (let i = 0; i < 12; i++) { const f = pickFiller(`s:${i}`, last); expect(f).not.toBe(last); last = f; }
-    for (const f of FILLERS) expect(f).not.toMatch(/good|great|right|data|share|show|answer/i);
-  });
-});
