@@ -3,10 +3,11 @@
 // of the start (M.wrong_base). Zeros errors and other misses come from the
 // shared diagnosis in lib/drills/numeric.ts.
 import 'server-only';
-import { ItemSchema, type Item, type Tier } from '../item-schema';
+import type { Item, Tier } from '../item-schema';
 import { defaultTolerance } from '../numeric';
 import { createRng, type Rng } from '../rng';
-import { generatedItemId, generatorInputs, type Generator } from './types';
+import { generatorInputs, type Generator } from './types';
+import { calculatorFree, fmt, generatedItem, keyAmbiguities, money, pct, redraw } from './util';
 
 const TEMPLATE_ID = 'percent_change';
 const TEMPLATE_VERSION = 1;
@@ -39,65 +40,37 @@ const METRICS = [
   { noun: 'Marketing spend', money: true, plural: false },
 ] as const;
 
-const sigFigs = (n: number) => String(Math.abs(n)).replace('.', '').replace(/^0+/, '').replace(/0+$/, '').length;
-
-function pickValues(rng: Rng, tier: Tier) {
-  // Redraw until the end value is a whole number (and, at T1, round), so the
-  // problem never needs a calculator. Deterministic: the redraws come from the
-  // same seeded stream.
-  for (let attempt = 0; attempt < 1000; attempt++) {
+function generate(seed: number, tier: Tier): Item {
+  const rng: Rng = createRng(seed);
+  return redraw(TEMPLATE_ID, () => {
     const start = rng.pick(START_MANTISSAS[tier]) * rng.pick(SCALES[tier]);
     const percent = rng.pick(PERCENTS[tier]);
     const up = percent > 100 || rng.next() < 0.5;
     const end = start * (1 + (up ? percent : -percent) / 100);
-    if (!Number.isInteger(end) || end <= 0) continue;
-    if (tier === 1 && sigFigs(end) > 2) continue;
-    return { start, end, percent, up };
-  }
-  throw new Error(`${TEMPLATE_ID}: no valid values for tier ${tier}`);
-}
+    if (!Number.isInteger(end) || end <= 0) return null;
+    if (tier === 1 && !calculatorFree({ start, end }, percent)) return null;
 
-const fmt = (n: number, money: boolean) => `${money ? '$' : ''}${n.toLocaleString('en-US')}`;
-const pct = (n: number) => `${Number(n.toFixed(2))}%`;
-
-function generate(seed: number, tier: Tier): Item {
-  const rng = createRng(seed);
-  const { start, end, percent, up } = pickValues(rng, tier);
-  const metric = rng.pick(METRICS);
-  const verb = up ? 'grew' : 'fell';
-  const pronoun = metric.plural ? 'they' : 'it';
-  const question = `By what percent did ${pronoun} ${up ? 'increase' : 'decrease'}?`;
-  const wrongBase = (Math.abs(end - start) / end) * 100;
-
-  return ItemSchema.parse({
-    item_id: generatedItemId(TEMPLATE_ID, TEMPLATE_VERSION, tier, seed),
-    version: TEMPLATE_VERSION,
-    drill_id: 'QN-3',
-    status: 'live',
-    level: 2,
-    tier,
-    skills: ['QN.percentages'],
-    case_type: null,
-    prompt: `${metric.noun} ${verb} from ${fmt(start, metric.money)} to ${fmt(end, metric.money)}. ${question}`,
-    exhibit: null,
-    input: { type: 'numeric' },
-    options: [],
-    numeric: {
+    const numeric = {
       answer: percent,
       ...defaultTolerance(percent),
-      percent_format: 'percent_or_decimal',
-      trap_values: [{ value: wrongBase, tag: 'M.wrong_base' }],
-    },
-    checks: [],
-    red_flags: [],
-    model_answer: null,
-    explanation:
-      `Percent change = (end − start) ÷ start = (${fmt(end, false)} − ${fmt(start, false)}) ÷ ${fmt(start, false)} = ` +
-      `${up ? '' : '−'}${pct(percent)}. Divide by the starting value, not the ending one.`,
-    extras: { inputs: { start, end } },
-    authorship: null,
-    generator: { template_id: TEMPLATE_ID, template_version: TEMPLATE_VERSION, seed },
-    firm_style: null,
+      percent_format: 'percent_or_decimal' as const,
+      trap_values: [{ value: (Math.abs(end - start) / end) * 100, tag: 'M.wrong_base' }],
+    };
+    if (keyAmbiguities(numeric).length) return null;
+
+    const metric = rng.pick(METRICS);
+    const show = (n: number) => (metric.money ? money(n) : fmt(n));
+    const pronoun = metric.plural ? 'they' : 'it';
+    return generatedItem({
+      templateId: TEMPLATE_ID, templateVersion: TEMPLATE_VERSION, drillId: 'QN-3', level: 2, tier, seed,
+      skills: ['QN.percentages'],
+      prompt: `${metric.noun} ${up ? 'grew' : 'fell'} from ${show(start)} to ${show(end)}. By what percent did ${pronoun} ${up ? 'increase' : 'decrease'}?`,
+      numeric,
+      explanation:
+        `Percent change = (end − start) ÷ start = (${fmt(end)} − ${fmt(start)}) ÷ ${fmt(start)} = ` +
+        `${up ? '' : '−'}${pct(percent)}. Divide by the starting value, not the ending one.`,
+      inputs: { start, end },
+    });
   });
 }
 

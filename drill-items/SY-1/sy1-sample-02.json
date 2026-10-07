@@ -1,0 +1,65 @@
+{
+  "item_id": "sy1-sample-02",
+  "version": 1,
+  "drill_id": "SY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence",
+    "SY.summary"
+  ],
+  "case_type": "profitability",
+  "prompt": "Mid-case: you have found that the client's revenue is flat and its COGS rose 25% because bean prices doubled. You have not yet looked at labor costs. Which is the best summary?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "So far: revenue is flat, and profit fell mainly because bean costs doubled, pushing COGS up 25%. Next I'd check labor to make sure it isn't adding to the squeeze.",
+      "correct": true,
+      "feedback": "Right. It summarizes accurately, leads with the finding and states the next step."
+    },
+    {
+      "id": "b",
+      "text": "So far we've found that labor and beans both drove the decline.",
+      "correct": false,
+      "feedback": "Labor hasn't been examined yet.",
+      "tag": "M.inaccurate_summary"
+    },
+    {
+      "id": "c",
+      "text": "We've looked at revenue, which is flat, and costs, where COGS is up 25%, and the store count, and some other things.",
+      "correct": false,
+      "feedback": "Padded and unfocused.",
+      "tag": "M.irrelevant_facts"
+    },
+    {
+      "id": "d",
+      "text": "Costs went up somewhere, so profit fell.",
+      "correct": false,
+      "feedback": "No specific numbers.",
+      "tag": "M.unsupported_recommendation"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "A mid-case summary states what is known with numbers, then the next step. Don't claim findings you haven't tested yet.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Sample item \u2014 replace before launch",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

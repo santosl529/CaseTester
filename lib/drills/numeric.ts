@@ -88,7 +88,25 @@ export type NumericVerdict =
   | { correct: true; value: number }
   | { correct: false; value: number; tag: string };
 
-export const TRAP_ROUNDING_SLACK = 0.03;
+// The ways a student rounds a figure they computed: to 0–2 decimals, or to
+// 2–3 significant figures. 16.6667 → 17, 16.7, 16.67.
+export function roundedForms(x: number): number[] {
+  const forms = new Set<number>([x]);
+  for (const d of [0, 1, 2]) forms.add(Number(x.toFixed(d)));
+  if (x !== 0) for (const s of [2, 3]) forms.add(Number(x.toPrecision(s)));
+  return [...forms];
+}
+
+const sameNumber = (a: number, b: number) => Math.abs(a - b) <= EPSILON * Math.max(1, Math.abs(a), Math.abs(b));
+
+// A reading hits a trap when it's within the item's tolerance of the trap, or
+// is the trap rounded the way students round. Matching on rounded forms, not
+// a percentage band, keeps near neighbors apart: compound growth to 121 and
+// simple growth to 120 are 0.8% apart but never share a rounded form the
+// student would type for the other.
+export function matchesTrap(value: number, trap: number, key: Pick<NumericKey, 'tolerance_type' | 'tolerance_value'>): boolean {
+  return withinTolerance(value, trap, key) || roundedForms(trap).some(r => sameNumber(r, value));
+}
 
 const ZEROS_POWERS = [-9, -8, -7, -6, -5, -4, -3, -2, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -101,14 +119,8 @@ export function scoreNumeric(parsed: Extract<ParsedNumber, { ok: true }>, key: N
   for (const value of readings) {
     if (withinTolerance(value, key.answer, key)) return { correct: true, value };
   }
-  // Students round a wrong-method result the same way they'd round a right
-  // one (16.67 → 17), so traps match with rounding slack on top of the item's
-  // tolerance. Safe because a reading within tolerance of the answer has
-  // already returned, and generator tests keep traps clear of the answer.
-  const trapTolerance = (trap: number) => (v: number) =>
-    withinTolerance(v, trap, key) || withinTolerance(v, trap, { tolerance_type: 'relative', tolerance_value: TRAP_ROUNDING_SLACK });
   for (const value of readings) {
-    const trap = key.trap_values.find(t => trapTolerance(t.value)(value));
+    const trap = key.trap_values.find(t => matchesTrap(value, t.value, key));
     if (trap) return { correct: false, value, tag: trap.tag };
   }
   if (key.answer !== 0) {

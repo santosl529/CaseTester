@@ -71,6 +71,13 @@
       "when": 1791336859000,
       "tag": "0009_drills_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791338983890,
+      "tag": "0010_drills_d1",
+      "breakpoints": true
     }
   ]
 }

@@ -4,7 +4,7 @@
 // rebuilds the same item, and T1 needs no calculator. Shared by every
 // template's test; D1's "zero key errors in 1,000 sampled generated items"
 // gate runs through here.
-import { withinTolerance, TRAP_ROUNDING_SLACK } from '@/lib/drills/numeric';
+import { withinTolerance, roundedForms } from '@/lib/drills/numeric';
 import { ItemSchema, type Tier } from '@/lib/drills/item-schema';
 import { generatorInputs, type Generator } from '@/lib/drills/generators/types';
 
@@ -41,20 +41,32 @@ export function checkGenerator(generator: Generator, seeds: number[], tiers: Tie
         if (!withinTolerance(recomputed, answer, { tolerance_type: 'relative', tolerance_value: 1e-9 })) {
           problems.push(`${where}: key says ${answer}, recompute says ${recomputed}`);
         }
-        // A trap must sit clear of the answer even with the rounding slack
-        // traps match with, or a right answer could be called a mistake.
-        const clear = (a: number, b: number) =>
-          !withinTolerance(a, b, item.numeric!) &&
-          !withinTolerance(a, b, { tolerance_type: 'relative', tolerance_value: 2 * TRAP_ROUNDING_SLACK });
+        // Written independently of the generators' own check
+        // (lib/drills/generators/util.ts), so a bug there can't hide here.
+        // A student who rounds a trap must not land within the answer's
+        // tolerance; a student who rounds the answer must not be told they hit
+        // a trap; and no two traps may share a rounded form.
+        const tol = item.numeric;
         trap_values.forEach((t, i) => {
-          if (!clear(t.value, answer)) problems.push(`${where}: trap ${t.tag}=${t.value} collides with answer ${answer}`);
+          if (roundedForms(t.value).some(r => withinTolerance(r, answer, tol))) {
+            problems.push(`${where}: trap ${t.tag}=${t.value} rounds into the answer ${answer}`);
+          }
+          const answerRoundings = roundedForms(answer).filter(r => !withinTolerance(r, answer, tol));
+          if (answerRoundings.some(r => withinTolerance(r, t.value, tol) || roundedForms(t.value).some(q => Math.abs(q - r) < 1e-9 * Math.max(1, Math.abs(r))))) {
+            problems.push(`${where}: rounding the answer ${answer} hits trap ${t.tag}=${t.value}`);
+          }
           trap_values.slice(i + 1).forEach(u => {
-            if (!clear(t.value, u.value)) problems.push(`${where}: traps ${t.tag} and ${u.tag} collide at ${t.value}`);
+            const shared = roundedForms(t.value).some(a => roundedForms(u.value).some(b => Math.abs(a - b) < 1e-9 * Math.max(1, Math.abs(a))));
+            if (shared && t.tag !== u.tag) problems.push(`${where}: traps ${t.tag}=${t.value} and ${u.tag}=${u.value} share a rounded form`);
           });
         });
+        // T1 is calculator-free: inputs of at most 2 significant figures and an
+        // answer of at most 3 (121, 12.5, 2,400,000).
         if (tier === 1) {
-          const figures = [answer, ...Object.values(generatorInputs(item))];
-          const hard = figures.filter(n => !Number.isInteger(n) || sigFigs(n) > 2);
+          const hard = [
+            ...Object.values(generatorInputs(item)).filter(n => sigFigs(n) > 2),
+            ...(sigFigs(answer) > 3 ? [answer] : []),
+          ];
           if (hard.length) problems.push(`${where}: T1 needs a calculator for ${hard.join(', ')}`);
         }
       }

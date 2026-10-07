@@ -27,13 +27,23 @@ export default function LandingPage() {
     setStep('club');
   }
 
-  function handleClubCode(e: React.FormEvent) {
+  async function handleClubCode(e: React.FormEvent) {
     e.preventDefault();
     if (!clubCode.trim()) {
       setError('Please enter your club code.');
       return;
     }
     setError('');
+    const res = await fetch('/api/club', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clubCode }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error === 'Invalid club code' ? 'Invalid club code. Contact your club president.' : 'Could not check your club code. Please try again.');
+      return;
+    }
     setStep('select');
   }
 
@@ -77,11 +87,18 @@ export default function LandingPage() {
             </form>
           )}
           {step === 'select' && (
-            <div className="space-y-3">
-              <p className="text-sm text-neutral-600">Select a case to practice:</p>
-              <Button onClick={() => startCase('prof-001')} className="w-full" variant="outline">
-                Brew &amp; Bean — Profitability (Medium)
-              </Button>
+            <div className="space-y-5">
+              <section className="space-y-3">
+                <h2 className="text-sm font-medium">Start a case</h2>
+                <Button onClick={() => startCase('prof-001')} className="w-full" variant="outline">
+                  Brew &amp; Bean — Profitability (Medium)
+                </Button>
+              </section>
+              <section className="space-y-2">
+                <h2 className="text-sm font-medium">Drills</h2>
+                <p className="text-sm text-neutral-600">Short exercises on one skill at a time.</p>
+                <Button onClick={() => router.push('/drills')} className="w-full">Practice drills</Button>
+              </section>
             </div>
           )}
         </CardContent>

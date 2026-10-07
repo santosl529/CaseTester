@@ -35,6 +35,10 @@ export const InputSpecSchema = z.object({
   max_words: z.number().int().positive().optional(),
   max_buckets: z.number().int().positive().optional(),
   max_select: z.number().int().positive().optional(),
+  // Multi-step items (QN-4: pick the formula, then calculate). `type` is the
+  // first step's type. Step weights are scoring rules from the drill spec,
+  // not answer data, so they may reach the client.
+  steps: z.array(z.object({ type: InputTypeSchema, weight: z.number().positive().max(1) })).min(2).optional(),
 });
 
 const CheckSchema = z.object({
@@ -91,6 +95,9 @@ export const ItemSchema = z.object({
     similarity_check: z.enum(['passed', 'failed', 'pending']),
   }).nullable(),
   generator: GeneratorRefSchema.nullable(),
+  // The drill's worked example on the intro screen. One reviewed item per
+  // authored drill; never served in a set.
+  is_example: z.boolean().default(false),
   firm_style: z.null(),         // reserved (PRD out of scope: firm-style toggles)
 }).superRefine((item, ctx) => {
   const issue = (message: string, path: (string | number)[] = []) => ctx.addIssue({ code: 'custom', message, path });
@@ -100,6 +107,14 @@ export const ItemSchema = z.object({
   if (item.level !== drill.level) issue(`${drill.id} is a level ${drill.level} drill`, ['level']);
   for (const s of item.skills) if (!drill.skills.includes(s)) issue(`${drill.id} doesn't train ${s}`, ['skills']);
   if (!drill.input_types.includes(item.input.type)) issue(`${drill.id} doesn't take ${item.input.type} input`, ['input', 'type']);
+  if (item.input.steps) {
+    if (item.input.steps[0].type !== item.input.type) issue('input.type must be the first step\'s type', ['input', 'steps']);
+    for (const step of item.input.steps) {
+      if (!drill.input_types.includes(step.type)) issue(`${drill.id} doesn't take ${step.type} input`, ['input', 'steps']);
+    }
+    const total = item.input.steps.reduce((sum, st) => sum + st.weight, 0);
+    if (Math.abs(total - 1) > 1e-6) issue(`Step weights sum to ${total}, not 1`, ['input', 'steps']);
+  }
 
   // Every wrong-answer tag must belong to one of the drill's skills, or the
   // diagnosis would credit a skill the drill doesn't train. Arithmetic
@@ -126,7 +141,12 @@ export const ItemSchema = z.object({
     if (o.tag && !tagOk(o.tag)) issue(`Option ${o.id}: tag ${o.tag} is outside ${drill.id}'s skills`, ['options', i, 'tag']);
   });
 
-  if (item.input.type === 'numeric' && !item.numeric) issue('Numeric items need a numeric key', ['numeric']);
+  const takesNumber = item.input.type === 'numeric' || item.input.steps?.some(st => st.type === 'numeric');
+  if (takesNumber && !item.numeric) issue('Numeric items need a numeric key', ['numeric']);
+  if (item.is_example) {
+    if (item.generator !== null) issue('Only authored items can be the worked example', ['is_example']);
+    if (!item.authorship?.reviewed_by) issue('The worked example must be a reviewed item', ['is_example']);
+  }
   if (item.numeric) {
     item.numeric.trap_values.forEach((t, i) => {
       if (!tagOk(t.tag)) issue(`Trap tag ${t.tag} is outside ${drill.id}'s skills`, ['numeric', 'trap_values', i, 'tag']);

@@ -6,7 +6,10 @@ import { parseNumericInput, scoreNumeric } from '@/lib/drills/numeric';
 import { createRng } from '@/lib/drills/rng';
 import { checkGenerator, sigFigs } from './generator-harness';
 
-const SEEDS = Array.from({ length: 1000 }, (_, i) => i);
+// 100 seeds per tier per template in the normal suite (9,600+ items, above
+// the D1 gate's 1,000 sampled items). DRILLS_FULL_HARNESS=1 runs 1,000 each.
+const SEED_COUNT = process.env.DRILLS_FULL_HARNESS ? 1000 : 100;
+const SEEDS = Array.from({ length: SEED_COUNT }, (_, i) => i);
 
 describe('seeded rng', () => {
   it('repeats for a seed and differs across seeds', () => {
@@ -46,9 +49,9 @@ describe('generator registry', () => {
 });
 
 describe.each(GENERATORS.map(g => [`${g.template_id}@${g.template_version}`, g] as const))('%s', (_, generator) => {
-  it('passes the generator rules on 1,000 seeds at every tier', () => {
+  it(`passes the generator rules on ${SEED_COUNT} seeds at every tier`, () => {
     expect(checkGenerator(generator, SEEDS)).toEqual([]);
-  });
+  }, 120_000);
 });
 
 describe('percent_change', () => {

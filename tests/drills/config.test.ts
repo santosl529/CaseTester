@@ -32,9 +32,10 @@ describe('drills config v1 (docs/prd-drills.md)', () => {
     expect(ai).toEqual(['CL-3', 'CR-1', 'HY-2', 'PS-3', 'SY-2']);
   });
 
-  it('ships every drill not live until its phase', () => {
-    expect(drills.drills.every(d => !d.live)).toBe(true);
-    expect(hasLiveLevel2Drill('QN.percentages')).toBe(false);
+  it("makes only D1's generated drills live; authored drills wait for their pools", () => {
+    expect(drills.drills.filter(d => d.live).map(d => d.id).sort()).toEqual(['EX-2', 'EX-3', 'QN-1', 'QN-3', 'QN-4']);
+    expect(hasLiveLevel2Drill('QN.percentages')).toBe(true);
+    expect(hasLiveLevel2Drill('PS.mece')).toBe(false);
   });
 
   it('is internally consistent', () => {

@@ -1,0 +1,63 @@
+{
+  "item_id": "hy1-sample-02",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "An online retailer's traffic rose 30% this year, but orders were flat. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Something is off with the business.",
+      "correct": false,
+      "feedback": "Too vague to test; say what is off and how you'd check.",
+      "tag": "M.untestable_hypothesis"
+    },
+    {
+      "id": "b",
+      "text": "Conversion fell, possibly because the new traffic is lower-intent; I'd compare conversion by traffic source.",
+      "correct": true,
+      "feedback": "Right. It is directional, uses the facts and names the test."
+    },
+    {
+      "id": "c",
+      "text": "Traffic is up 30% and orders are flat.",
+      "correct": false,
+      "feedback": "That restates the facts.",
+      "tag": "M.restates_facts"
+    },
+    {
+      "id": "d",
+      "text": "The checkout redesign broke conversion, full stop.",
+      "correct": false,
+      "feedback": "Overconfident: it may be true, but it needs testing first.",
+      "tag": "M.overconfident_hypothesis"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Flat orders on higher traffic means conversion fell. The best hypothesis picks a cause and names the cut of data that tests it.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Sample item \u2014 replace before launch",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

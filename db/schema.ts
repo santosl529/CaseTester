@@ -182,6 +182,8 @@ export const drillItems = pgTable('drill_items', {
   version: integer('version').notNull(),
   drillId: text('drill_id').notNull(),
   status: itemStatusEnum('status').notNull().default('draft'),
+  // The drill's worked example (intro screen); never served in a set.
+  isExample: boolean('is_example').notNull().default(false),
   tier: integer('tier').notNull(),
   skills: text('skills').array().notNull(),
   payload: jsonb('payload').notNull(),        // full item incl. answer key — server-only
@@ -231,13 +233,22 @@ export const drillSets = pgTable('drill_sets', {
   size: integer('size').notNull(),
   source: drillSetSourceEnum('source').notNull(),
   prescriptionId: uuid('prescription_id').references(() => prescriptions.id),
+  // The skill the student picked (Practice something specific), which sets
+  // the 70/30 composition on multi-skill drills, and a mistake-tag focus.
+  focusSkill: text('focus_skill'),
   focusTag: text('focus_tag'),
+  // The items, fixed at start: [{ kind: 'generated', template_id,
+  // template_version, seed } | { kind: 'authored', item_id, version }].
+  itemPlan: jsonb('item_plan').notNull().default([]),
   status: drillSetStatusEnum('status').notNull().default('in_progress'),
   // Items are served strictly in order, so the timer for the item in play
   // lives on the set: served_at is set when position `currentPosition` is
   // fetched, and the submit checks it (PRD "Integrity rules").
   currentPosition: integer('current_position').notNull().default(0),
   currentServedAt: timestamp('current_served_at', { withTimezone: true }),
+  // A multi-step item's finished steps (QN-4 step 1), held server-side so the
+  // answer can't change after the correct formula is shown.
+  pendingStep: jsonb('pending_step'),
   setScore: doublePrecision('set_score'),
   passed: boolean('passed'),
   skillScores: jsonb('skill_scores'),

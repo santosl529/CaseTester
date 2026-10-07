@@ -1,0 +1,64 @@
+{
+  "item_id": "ps1-sample-01",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "market_entry",
+  "prompt": "A regional gym chain is deciding whether to launch an at-home fitness subscription. The candidate's framework: (1) Customer demand for at-home fitness, (2) Pricing and willingness to pay, (3) Subscription price points, (4) The chain's capabilities to produce content. What is the flaw?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 2 and 3 overlap: both are about pricing",
+      "correct": true,
+      "feedback": "Right. Willingness to pay and price points test the same question; merge them and free a bucket for competition."
+    },
+    {
+      "id": "b",
+      "text": "Missing: how the subscription affects gym memberships",
+      "correct": false,
+      "feedback": "Cannibalization matters, but the planted flaw is the pricing overlap; with buckets merged, it fits in.",
+      "tag": "M.missing_bucket"
+    },
+    {
+      "id": "c",
+      "text": "Bucket 4 doesn't matter for this decision",
+      "correct": false,
+      "feedback": "Whether the chain can make good content is central to a launch.",
+      "tag": "M.irrelevant_bucket"
+    },
+    {
+      "id": "d",
+      "text": "It is a generic profit tree",
+      "correct": false,
+      "feedback": "The buckets are specific to this launch, not just revenue and costs.",
+      "tag": "M.generic_framework"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Buckets 2 and 3 both cover pricing. A tighter framework: demand, economics (pricing and costs), competition, capabilities.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Sample item \u2014 replace before launch",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -152,7 +152,7 @@
       "pass_bar": 0.8,
       "priority": "P0",
       "item_source": "generated",
-      "live": false
+      "live": true
     },
     {
       "id": "QN-2",
@@ -199,7 +199,7 @@
       "pass_bar": 0.8,
       "priority": "P0",
       "item_source": "generated",
-      "live": false
+      "live": true
     },
     {
       "id": "QN-4",
@@ -224,7 +224,7 @@
       "pass_bar": 0.8,
       "priority": "P0",
       "item_source": "generated",
-      "live": false
+      "live": true
     },
     {
       "id": "QN-5",
@@ -296,7 +296,7 @@
       "pass_bar": 0.8,
       "priority": "P0",
       "item_source": "generated",
-      "live": false
+      "live": true
     },
     {
       "id": "EX-3",
@@ -319,7 +319,7 @@
       "pass_bar": 0.8,
       "priority": "P0",
       "item_source": "generated",
-      "live": false
+      "live": true
     },
     {
       "id": "EX-4",

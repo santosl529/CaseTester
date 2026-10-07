@@ -132,3 +132,28 @@ describe('toPublicItem (answer keys never reach the client)', () => {
     }
   });
 });
+
+// D1 security gate: no generated drill leaks a key field through the public
+// projection, on any template, tier or a spread of seeds.
+describe('toPublicItem across every generated drill', () => {
+  it('never exposes a key field', async () => {
+    const { GENERATORS } = await import('@/lib/drills/generators/registry');
+    const forbidden = ['correct', 'tag', 'feedback', 'numeric', 'checks', 'red_flags', 'model_answer', 'explanation', 'extras', 'authorship', 'generator', 'trap_values', 'answer', 'inputs', 'step_skills'];
+    const keysDeep = (value: unknown, out = new Set<string>()): Set<string> => {
+      if (Array.isArray(value)) value.forEach(v => keysDeep(v, out));
+      else if (value && typeof value === 'object') for (const [k, v] of Object.entries(value)) { out.add(k); keysDeep(v, out); }
+      return out;
+    };
+    for (const g of GENERATORS) {
+      for (const tier of [1, 2, 3] as const) {
+        for (const seed of [0, 1, 2, 3, 4]) {
+          const item = g.generate(seed, tier);
+          const pub = toPublicItem(item);
+          const keys = keysDeep(pub);
+          for (const f of forbidden) expect(keys.has(f), `${g.template_id} t${tier} s${seed}: ${f}`).toBe(false);
+          expect(JSON.stringify(pub)).not.toContain(item.explanation);
+        }
+      }
+    }
+  });
+});

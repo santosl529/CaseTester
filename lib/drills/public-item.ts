@@ -28,6 +28,7 @@ export function toPublicItem(item: Item): PublicItem {
       ...(item.input.max_words !== undefined && { max_words: item.input.max_words }),
       ...(item.input.max_buckets !== undefined && { max_buckets: item.input.max_buckets }),
       ...(item.input.max_select !== undefined && { max_select: item.input.max_select }),
+      ...(item.input.steps && { steps: item.input.steps.map(st => ({ type: st.type, weight: st.weight })) }),
     },
     options: item.options.map(o => ({ id: o.id, text: o.text })),
   };

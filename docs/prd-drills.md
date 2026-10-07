@@ -5,6 +5,7 @@ Oct 5, 2026 · @Matt
 > Revision log
 > - 2026-10-05: Saved to the repo. Applied the review fixes (test-out tier, skills with no Level 2 drill, review set size, `case_type` and next-case fallback, desktop-first, QN-3 trap precedence, scope wording, `org_id`, grading model, chart renderer). Drill specs moved into catalog order; their content is unchanged.
 > - 2026-10-06: Matched to the D0 build: table names and new fields, `student_profiles` for `org_id`, the skill-keyed drill map, three percent modes, 3-level rubric ratings in the case payload. Added the rule for skills with only Level 2 drills and two EX-2 tags (`M.indexed_misread`, `M.period_mismatch`).
+> - 2026-10-06: Matched to the D1 build: endpoint paths, `is_example`, `focus_skill` / `item_plan` / `pending_step` on drill sets, multi-step `input.steps`, rounded-form trap matching, resume and late-answer behavior, and the D1 results-screen action.
 
 ## Overview
 
@@ -130,6 +131,8 @@ Students should rarely have to choose what to do: the training home leads with o
 - When time runs out, the item auto-submits whatever is entered. Empty answers score 0 and log `M.timeout`.
 - **Skip** is allowed; it scores 0 and logs `M.skipped`. Skips are excluded from mistake analysis.
 - Leaving mid-set saves progress. An unfinished set expires after 24 hours; completed attempts are kept.
+- Coming back to a set mid-way (reload, new tab) shows the intro with a **Resume** button. The item's timer keeps running on the server in the meantime.
+- An answer that reaches the server more than 2 seconds after the time limit counts as a timeout: it scores 0 and logs `M.timeout`, even if it is correct. Without this, the server-side timer could be bypassed.
 
 ### Feedback timing
 
@@ -142,7 +145,7 @@ Students should rarely have to choose what to do: the training home leads with o
 - A mistake summary in plain words ("2 of your 3 misses were unit errors").
 - Per-item breakdown. For AI-graded items: each check passed or failed, the quoted evidence from the student's answer, any red flag, and the model answer.
 - Skill state change, if any ("Breakeven: now Mastered").
-- One primary next action (Continue Training) and two secondary ones (Retry this set, Take a case).
+- One primary next action (Continue Training) and two secondary ones (Retry this set, Take a case). Until Continue Training ships in D3, the primary action is **Practice another skill**.
 
 ### Skill profile
 
@@ -741,6 +744,7 @@ Items come from two sources: code generators for anything numeric (unlimited and
   "prompt": "A regional gym chain is considering launching an at-home fitness subscription...",
   "exhibit": null,
   "input": {"type": "structured_buckets", "max_buckets": 5, "max_words": 120},
+  "is_example": false,
   "options": [],
   "numeric": null,
   "checks": [
@@ -762,7 +766,9 @@ Items come from two sources: code generators for anything numeric (unlimited and
 ```
 
 - `options` (choice drills): each option has `id`, `text`, `correct`, `tag` (for wrong options) and `feedback`.
-- `numeric` (numeric drills): `answer`, `tolerance_type`, `tolerance_value`, `percent_format` (`none`, `percent` or `percent_or_decimal`), `trap_values` (each with `value` and `tag`). Traps also match with 3% rounding slack, since students round a wrong-method result the same way as a right one.
+- `input.steps` (multi-step items, for example QN-4): the steps in order, each with an input `type` and its `weight` from the drill spec (QN-4: single choice 0.4, then numeric 0.6). `input.type` is the first step's type. Step weights are scoring rules, not answer data, so they reach the client.
+- `numeric` (numeric drills): `answer`, `tolerance_type`, `tolerance_value`, `percent_format` (`none`, `percent` or `percent_or_decimal`), `trap_values` (each with `value` and `tag`). A trap matches when the student's number is within the item's tolerance of the trap value, or equals the trap value rounded the way students round (to 0–2 decimals, or to 2–3 significant figures). Generator tests reject any item where a rounded trap would land on the answer, a rounded answer would land on a trap, or two traps share a rounded form.
+- `is_example` marks the drill's worked example, shown on the intro screen. One reviewed authored item per drill; it is never served in a set.
 - Drill-specific extras live in `extras`: hypothesis families and the update fact (HY-2), driver cards and ranges (QN-5), key categories and target count (CR-1), relevant and irrelevant facts (SY-2).
 - `generator` is null on authored items. On generated items it holds `template_id`, `template_version` and `seed`, and `extras.inputs` holds the structured inputs the answer is computed from.
 - `firm_style` is reserved for future firm-style toggles.
@@ -835,9 +841,9 @@ Config files live in the repo and are validated with zod at startup. Changing a 
 | --- | --- | --- |
 | `student_profiles` | user\_id, org\_id (nullable), created\_at | The student record. The app has no users table, so drills adds this one |
 | `student_drill_settings` | student\_id, time\_multiplier (1, 1.5, 2), interview\_date, skipped\_examples\[\] | Extends `student_profiles` |
-| `drill_items` | item\_id, version, drill\_id, status (draft, in\_review, live, retired), tier, skills\[\], payload (JSON, per Content system), authorship (JSON), created\_at | Authored items only; generated items are rebuilt from seeds |
+| `drill_items` | item\_id, version, drill\_id, status (draft, in\_review, live, retired), is\_example, tier, skills\[\], payload (JSON, per Content system), authorship (JSON), created\_at | Authored items only; generated items are rebuilt from seeds |
 | `drill_item_stats` | item\_id, version, attempts, correct\_rate, avg\_time\_ms, option\_counts (JSON), computed\_at | Refreshed daily |
-| `drill_sets` | set\_id, student\_id, drill\_id, level, tier, size, source (prescription, continue, specific, review, diagnostic), prescription\_id, focus\_tag, status (in\_progress, grading, completed, expired), current\_position, current\_served\_at, set\_score, passed, skill\_scores (JSON), taxonomy\_version, started\_at, completed\_at | One row per set. Items are served in order, so the timer for the item in play lives here (`current_served_at`). One in-progress set per student, enforced by a unique index |
+| `drill_sets` | set\_id, student\_id, drill\_id, level, tier, size, source (prescription, continue, specific, review, diagnostic), prescription\_id, focus\_skill, focus\_tag, item\_plan (JSON), status (in\_progress, grading, completed, expired), current\_position, current\_served\_at, pending\_step (JSON), set\_score, passed, skill\_scores (JSON), taxonomy\_version, started\_at, completed\_at | One row per set. Items are served in order, so the timer for the item in play lives here (`current_served_at`). `item_plan` fixes the set's items at start. `pending_step` holds a multi-step item's finished steps, so a step can't change after its feedback is shown. One in-progress set per student, enforced by a unique index |
 | `drill_attempts` | attempt\_id, set\_id, student\_id, position, idempotency\_key, item\_id + item\_version **or** template\_id + template\_version + seed (enforced by a check constraint), response (JSON), served\_at, time\_ms, time\_limit\_ms, timed\_out, skipped, score, step\_scores (JSON), mistake\_tags\[\], check\_results (JSON: check\_id, pass, evidence), red\_flags\[\], grading\_status, grader\_prompt\_version, model\_id, submitted\_at | One row per item answered. Never deleted |
 | `grading_jobs` | job\_id, set\_id, status, retries, input\_tokens, output\_tokens, cost\_usd, latency\_ms, error, created\_at | One row per AI grading call |
 | `drill_tiers` | student\_id, drill\_id, current\_tier, updated\_at | Current tier per student per drill |
@@ -882,19 +888,23 @@ The shared chart renderer is a frontend component.
 
 ### Student-facing endpoints
 
+Route handlers live under `/api`. Endpoints marked (D3) or (P1) are not built yet.
+
 | Method and path | Purpose | Returns |
 | --- | --- | --- |
-| `GET /drills/home` | Training home | Continue Training target (drill, reason, estimated minutes), open prescriptions, next-case card, interview mode |
-| `POST /drill-sets` | Start a set. Body: `source` and either `prescription_id`, `skill_id` or nothing (Continue Training) | `set_id`, intro info, total items |
-| `GET /drill-sets/{id}` | Resume a set | Status, current position, completed attempts |
-| `GET /drill-sets/{id}/items/{position}` | Fetch an item. Records `served_at` server-side | Item content and input spec, **never the answer key** |
-| `POST /drill-sets/{id}/attempts` | Submit an answer. Body: position, response, idempotency key | Auto-checked: score, correct answer, feedback. AI-graded: accepted |
-| `POST /drill-sets/{id}/complete` | Finish the set; queues AI grading if needed | Status (`completed` or `grading`) |
-| `GET /drill-sets/{id}/results` | Results screen data. Clients poll every 2 s while status is `grading` | Set score, pass, mistake summary, per-item results, skill state changes, next action |
-| `GET /skills/profile` | Skill profile | States, progress, top mistakes, rubric trends, history |
-| `PATCH /prescriptions/{id}` | Dismiss a prescription | Updated prescription |
-| `PUT /me/drill-settings` | Time multiplier, interview date, example preferences | Updated settings |
-| `POST /attempts/{id}/dispute` (P1) | Dispute a grade | Dispute record |
+| `GET /api/drills/home` (D3) | Training home | Continue Training target (drill, reason, estimated minutes), open prescriptions, next-case card, interview mode |
+| `POST /api/drills/sets` | Start a set. Body: `skill_id` with an optional `level` (Practice something specific), or `drill_id` (Retry this set). Prescription and Continue Training sources arrive in D3 | `set_id` |
+| `GET /api/drills/sets/{id}` | Resume a set | Status, current position, intro info (drill, skills, size, time per item, pass bar, worked example on first view) |
+| `GET /api/drills/sets/{id}/items/{position}` | Fetch an item. Records `served_at` server-side | Item content and input spec, time limit and time remaining, finished steps of a multi-step item. **Never the answer key** |
+| `POST /api/drills/sets/{id}/attempts` | Submit an answer, or one step of a multi-step item. Body: position, step, response, skip, timed_out, idempotency key | Auto-checked: score, correct answer, feedback (or the step's feedback mid-item). AI-graded: accepted |
+| `POST /api/drills/sets/{id}/complete` | Finish the set; queues AI grading if needed | Status (`completed` or `grading`) |
+| `GET /api/drills/sets/{id}/results` | Results screen data. Clients poll every 2 s while status is `grading` | Set score, pass, mistake summary, time against target, tier change, per-item results, skill state changes (D3), next action |
+| `GET /api/skills/profile` (D3) | Skill profile | States, progress, top mistakes, rubric trends, history |
+| `PATCH /api/prescriptions/{id}` (D3) | Dismiss a prescription | Updated prescription |
+| `PUT /api/me/drill-settings` | Time multiplier, interview date (D3), example preferences | Updated settings |
+| `POST /api/attempts/{id}/dispute` (P1) | Dispute a grade | Dispute record |
+
+The club-code check has its own route, `POST /api/club`, called at the club step. It records `org_id` and gates drills; case start still checks the code too.
 
 ### Internal interfaces
 
@@ -907,7 +917,7 @@ The shared chart renderer is a frontend component.
 ### Integrity rules
 
 - Answer keys stay on the server until an item is submitted.
-- Time limits are enforced on the server from `served_at` (recorded on the drill set when the item is fetched) to submission, with a 2-second grace for network delay. Later submissions are marked `timed_out`.
+- Time limits are enforced on the server from `served_at` (recorded on the drill set when the item is fetched) to submission, with a 2-second grace for network delay. Later submissions are marked `timed_out` and score as timeouts (0, `M.timeout`).
 - Attempt submission is idempotent: a repeated idempotency key returns the original result.
 - An item can only be fetched in order, and only once its previous item has been submitted.
 - Each student can have one set in progress at a time.
