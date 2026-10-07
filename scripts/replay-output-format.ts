@@ -35,6 +35,7 @@ import { INTERVIEWER_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { TURN_SCHEMA } from '@/lib/agent/models/turn-schema';
 import { stripMetaLeak, rewriteSystemLanguage } from '@/lib/orchestrator/audit';
 import { OpenAIInterviewerModel } from '@/lib/agent/models/cerebras';
+import { GeminiInterviewerModel } from '@/lib/agent/models/gemini';
 import type { InterviewerModel } from '@/lib/agent/models/interface';
 import { enforceNumericProvenance } from '@/lib/orchestrator/numeric-provenance';
 
@@ -299,7 +300,7 @@ async function runFloor(samples: Sample[]) {
 // REPLAY_ARM=compact-ab: the full prompt against the compact one
 // (prompts/system-compact.ts), Sonnet both. REPLAY_ARM=model-ab: Sonnet
 // against other interviewer models on the same full prompt, schema and
-// guards (REPLAY_MODELS=luna-none,sol-low; OpenAI arms need OPENAI_API_KEY).
+// guards (REPLAY_MODELS=luna-none,sol-none,gemini-low; needs OPENAI_API_KEY, GEMINI_API_KEY; --smoke first).
 // Identical saved turn states; per sample each arm once to warm its cache
 // (its output is the run-to-run noise baseline), then each once measured, the
 // order rotating sample to sample. Primary outcome: first useful segment —
@@ -408,11 +409,24 @@ async function runAB(samples: Sample[], arms: AbArm[], tag: string) {
   console.log(`  wrote ${path.join(OUT_DIR, `replay-${tag}.md`)} for hand reading`);
 }
 
-const OPENAI_ARMS: Record<string, () => InterviewerModel> = {
+// Exact model ids — no substitutions (gpt-6.1-sol has no "none"; gpt-6-sol does).
+const CHALLENGERS: Record<string, () => InterviewerModel> = {
   'luna-none': () => new OpenAIInterviewerModel('gpt-6-luna', 'none'),
   'luna-low': () => new OpenAIInterviewerModel('gpt-6-luna', 'low'),
-  'sol-low': () => new OpenAIInterviewerModel('gpt-6.1-sol', 'low'),
+  'sol-none': () => new OpenAIInterviewerModel('gpt-6-sol', 'none'),
+  'gemini-low': () => new GeminiInterviewerModel('gemini-3.8-flash', 'low'),
 };
+
+// --smoke: one call per arm on one turn — account access, schema accepted,
+// streamed (first token before completion), output printed. Nothing saved.
+async function smoke(s: Sample, arms: AbArm[]) {
+  for (const arm of arms) {
+    const r = await runVariant(s, arm);
+    const streamed = r.firstTokenMs != null && r.firstTokenMs < r.completeMs - 50;
+    console.log(`[smoke] ${arm.name}: ${r.error ? `ERROR ${r.error}` : 'ok'} · first token ${r.firstTokenMs}ms · first useful ${r.firstUsefulMs}ms · complete ${r.completeMs}ms · streamed ${streamed ? 'yes' : 'NO (one chunk)'} · tokens in ${r.inputTokens + r.cacheRead} out ${r.outputTokens}`);
+    if (r.turn) console.log(`[smoke]   ${JSON.stringify(r.turn)}`);
+  }
+}
 
 async function pool<T, R>(items: T[], n: number, fn: (t: T) => Promise<R>): Promise<R[]> {
   const out: R[] = new Array(items.length); let i = 0;
@@ -458,10 +472,11 @@ async function main() {
     }
     const arms: AbArm[] = ARM === 'compact-ab'
       ? [{ name: 'full', model, promptVariant: 'full' }, { name: 'compact', model, promptVariant: 'compact' }]
-      : [{ name: 'sonnet', model, promptVariant: 'full' }, ...(process.env.REPLAY_MODELS ?? 'luna-none,sol-low').split(',').map(n => {
-        if (!OPENAI_ARMS[n]) throw new Error(`unknown REPLAY_MODELS entry ${n} (have ${Object.keys(OPENAI_ARMS).join(', ')})`);
-        return { name: n, model: OPENAI_ARMS[n](), promptVariant: 'full' as const };
+      : [{ name: 'sonnet', model, promptVariant: 'full' }, ...(process.env.REPLAY_MODELS ?? 'luna-none,sol-none,gemini-low').split(',').map(n => {
+        if (!CHALLENGERS[n]) throw new Error(`unknown REPLAY_MODELS entry ${n} (have ${Object.keys(CHALLENGERS).join(', ')})`);
+        return { name: n, model: CHALLENGERS[n](), promptVariant: 'full' as const };
       })];
+    if (args.includes('--smoke')) { await smoke(spread.find(x => x.ctx.currentPhase === 'ANALYSIS') ?? spread[0], arms); return; }
     await runAB(spread, arms, ARM);
     return;
   }
