@@ -1,0 +1,5227 @@
+{
+  "session": {
+    "id": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+    "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+    "caseId": "prof-001",
+    "phase": "SCORING",
+    "elapsedMs": 0,
+    "phaseStartedAt": "2026-10-02T18:49:52.532Z",
+    "status": "completed",
+    "abandonPhase": null,
+    "startedAt": "2026-10-02T18:35:34.830Z",
+    "completedAt": "2026-10-02T18:51:25.601Z",
+    "flagsJsonb": {
+      "stall": {
+        "ladderLevel": 0,
+        "noProgressReasons": [],
+        "consecutiveClarify": 0,
+        "consecutiveNoProgress": 0,
+        "lastCandidateQuestion": "Useful. Ticket up 10% and revenue up 15% implies transactions up only about 5% — so most of the growth is basket size, people adding food and extras, not more visits. I'd flag that the added items may be the lower-margin ones, which would partly explain mix.\n\nNo competitor benchmark, so I'll assume peers passed through at least some inflation, which makes a price increase lower-risk than it looks.\n\nRough sizing on price. Today revenue index 115, COGS 67, net profit 6% is about 7. If we raise prices 15% with volume flat, revenue goes to about 132, COGS stays 67, and profit rises by roughly 17 — taking us to about 24 on 132, call it 18% margin. So a mid-teens price increase recovers most of the gap on its own, and it's still only catching up to two years of inflation.\n\nDo we have any elasticity read, or past response to a price change?",
+        "recommendationDelivered": true
+      },
+      "conduct": {
+        "distressOffered": false
+      },
+      "ranLong": false,
+      "silence": {
+        "checkedIn": false,
+        "pausedAtMs": null,
+        "pauseLimitMs": null,
+        "pausedTotalMs": 99300,
+        "silenceStartedAtMs": null
+      },
+      "stalled": false,
+      "askedRepeat": false,
+      "lastVerified": [
+        {
+          "span": "Today: 58 COGS plus 22 labor plus 14 overhead is 94, leaving 6% margin",
+          "value": 6,
+          "stepId": "profit_margin_now",
+          "operands": [],
+          "workShown": false
+        }
+      ],
+      "pushbackDone": false,
+      "explainProbed": [],
+      "graceAskFired": false,
+      "offTopicCount": 0,
+      "loadShedLogged": false,
+      "advancedLastTurn": false,
+      "timeWarningFired": false,
+      "recomputeAttempts": {}
+    },
+    "coverageJsonb": {
+      "judgment": 85,
+      "pushback": 65,
+      "structure": 92,
+      "synthesis": 78,
+      "creativity": 72,
+      "dataExhibit": 88,
+      "quantitative": 95,
+      "communication": 90
+    }
+  },
+  "turns": [
+    {
+      "id": "a2b09e87-73d0-4e4a-a080-ca6226d92539",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 0,
+      "role": "interviewer",
+      "text": "Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?\n\nHow would you like to approach this? Feel free to take a moment to gather your thoughts first.",
+      "timestampMs": 1790966134837,
+      "latencyMs": null
+    },
+    {
+      "id": "17a55cf2-a9b1-4cd7-b78d-16397612ec0d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 1,
+      "role": "candidate",
+      "text": "Let me take a second to structure.\n\nSince revenue is growing but margin is collapsing, this looks cost-driven, but I want to confirm both sides before I commit.\n\nI'd break it into three buckets. First, revenue quality: is the 15% growth coming from new store openings, more transactions per store, or price increases? Growth from new stores could mask flat or declining same-store performance, and new stores carry ramp-up costs.\n\nSecond, costs: split into COGS — coffee beans, milk, cups — and operating costs like labor, rent, utilities, and then overhead and corporate SG&A. I'd want to see which line grew fastest as a percentage of revenue over the two years.\n\nThird, external factors: commodity prices, wage inflation, competitive pressure forcing discounting.\n\nI'd start with the cost breakdown as a percentage of revenue for both years, since a drop from 24% to 6% is eighteen margin points and something should be visibly large there. Do we have that data?",
+      "timestampMs": 1790966225110,
+      "latencyMs": null
+    },
+    {
+      "id": "40c82e9e-cdc6-4bfc-ba88-c9c8040de397",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 2,
+      "role": "interviewer",
+      "text": "Okay. To your question on the data: 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. I'll come to that data shortly. Before data — is that structure MECE, and which branch do you prioritize first?",
+      "timestampMs": 1790966227291,
+      "latencyMs": 1691
+    },
+    {
+      "id": "998046b5-ebf1-469f-b2f9-36823bc45b5a",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 3,
+      "role": "candidate",
+      "text": "Fair challenge. It's close to MECE but the third bucket overlaps — commodity prices show up inside COGS, wage inflation inside labor. So I'd fold external factors in as drivers rather than a separate branch, and keep it as: revenue, which splits into price times volume; and costs, which split into variable per-unit costs and fixed costs. That's cleanly exhaustive.\n\nGiven the footprint is flat at 200 stores, the 15% revenue growth has to come from same-store performance — either higher ticket, more transactions, or price increases. That's useful, because it rules out new-store ramp-up drag as the explanation.\n\nI'd prioritize the cost branch first. Eighteen margin points lost while revenue grew means costs grew meaningfully faster than revenue, so the size of the problem is almost certainly sitting there. I'd come back to revenue after, to check whether price increases are masking volume declines.",
+      "timestampMs": 1790966318770,
+      "latencyMs": null
+    },
+    {
+      "id": "3155c50e-ae81-4d75-8166-9ceebea60a23",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 4,
+      "role": "interviewer",
+      "text": "Understood. Here's the cost structure as a percent of revenue. COGS is 58% of revenue today, up from 42% two years ago.",
+      "timestampMs": 1790966320729,
+      "latencyMs": 1706
+    },
+    {
+      "id": "7f8473fb-c532-4107-9d5d-afdf69da1e69",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 5,
+      "role": "candidate",
+      "text": "So COGS is up sixteen margin points, 42 to 58, and total margin fell eighteen. That's essentially the entire problem sitting in one line.\n\nSorry — I want to be straightforward with you rather than have this come out sideways. My grandmother passed away last week, and I've been crying before every interview this month. I feel like I'm letting my family down. I'd like to keep going, though.\n\nBack to it. COGS at 58% means for every dollar of revenue we spend 58 cents on inputs. I'd want to know what's inside that line — beans versus dairy versus cups and packaging versus food items — because the fix is very different if it's green coffee commodity prices versus a shift in product mix toward lower-margin food.\n\nDo we have a split of COGS by component for both years?",
+      "timestampMs": 1790966420414,
+      "latencyMs": null
+    },
+    {
+      "id": "e3caaf60-e85c-4c56-8187-c30ce445ae2e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 6,
+      "role": "interviewer",
+      "text": "Let's set the case aside for a second — thank you for telling me, and are you okay? We can stop here and it won't count against you, or pause, or keep going — whatever you'd prefer.",
+      "timestampMs": 1790966423121,
+      "latencyMs": null
+    },
+    {
+      "id": "3a24d6bf-0544-4456-bca5-423bb40735d9",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 7,
+      "role": "candidate",
+      "text": "Thank you. I'd like to keep going, honestly — it helps to have something to work through.\n\nBack to COGS. Even without the component split, I can reason about it. If revenue grew 15% and COGS went from 42% to 58% of revenue, then in index terms: say revenue was 100 before, now 115. COGS was 42 before, now 0.58 times 115, which is about 67. So COGS grew from 42 to 67, roughly 59% growth, against 15% revenue growth. Input costs rose about four times faster than sales.\n\nThat gap is too large for ordinary inflation alone, which makes me think one of two things: a commodity spike in beans or dairy that wasn't passed through to menu prices, or a mix shift toward items with worse unit economics.\n\nDo we know whether menu prices were raised at all over the two years?",
+      "timestampMs": 1790966522613,
+      "latencyMs": null
+    },
+    {
+      "id": "69c03e8f-f4d9-454d-a10c-7c34ae3ed8ac",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 8,
+      "role": "interviewer",
+      "text": "Take your time — I'm glad it helps. Here's the menu price change over the two years. Menu prices have not changed in two years.",
+      "timestampMs": 1790966524762,
+      "latencyMs": 2040
+    },
+    {
+      "id": "fd51a7c2-e60e-4430-b6fb-e07c1728ef41",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 9,
+      "role": "candidate",
+      "text": "That's a big unlock. If prices are flat, the entire 15% revenue growth is volume — more transactions or larger baskets at the same prices. So we're selling about 15% more units while paying roughly 59% more for inputs.\n\nLet me put that on a per-unit basis. If volume is up 15%, index units from 100 to 115. COGS went from 42 to 67 in index terms. So COGS per unit went from 0.42 to 67 over 115, which is about 0.583. That's a 39% increase in input cost per unit sold, with zero price pass-through.\n\nSo the story so far: unit input costs rose sharply, and Brew & Bean absorbed all of it. Volume is actually healthy, which is good news — there's no demand problem.\n\nWhat I'd want next is whether that 39% per-unit increase is one input or several. If it's green coffee spiking, that may partly be cyclical and hedgeable. If it's dairy, labor-adjacent, or a mix shift into food, the fix differs. Do we have the breakdown of what's driving the per-unit increase?",
+      "timestampMs": 1790966615423,
+      "latencyMs": null
+    },
+    {
+      "id": "5b7151cc-c5f3-40c6-a267-d4ca2f378185",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 10,
+      "role": "interviewer",
+      "text": "Here's what I have on the COGS breakdown — beans and the other inputs. Coffee beans were 25% of COGS two years ago. Raw coffee bean costs are up 40% over the past two years. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.",
+      "timestampMs": 1790966618171,
+      "latencyMs": 2567
+    },
+    {
+      "id": "9c94f812-f280-4796-9ce4-733bcf4ebfda",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 11,
+      "role": "candidate",
+      "text": "Let me check that against my per-unit number. Beans are 25% of COGS at a 40% increase, other inputs are 75% at 37.5%. Weighted: 0.25 times 1.40 is 0.35, plus 0.75 times 1.375 is 1.031. Total index 1.381 — about a 38% increase in input cost per unit.\n\nThat lines up almost exactly with the 39% I calculated from the top down, which is reassuring. It also tells me something important: this isn't a beans story. Beans are only a quarter of the basket and the other three quarters rose nearly as fast. It's broad-based input inflation across coffee, dairy, packaging and food.\n\nSo the root cause is simple and uncomfortable: economy-wide input inflation of roughly 38% per unit, and Brew & Bean held menu prices flat for two full years while competitors almost certainly did not.\n\nOne thing I'd want before recommending: do we have a sense of transaction volume versus ticket size in that 15% growth, and any read on what competitors' prices have done?",
+      "timestampMs": 1790966709252,
+      "latencyMs": null
+    },
+    {
+      "id": "3c01788d-7069-4df8-b05d-c5cd8dbeafbf",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 12,
+      "role": "interviewer",
+      "text": "Here's what I have on average ticket. And on competitor pricing — I don't have that benchmark. The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit.",
+      "timestampMs": 1790966711282,
+      "latencyMs": 1911
+    },
+    {
+      "id": "93709634-599b-47e5-aa3c-842085158492",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 13,
+      "role": "candidate",
+      "text": "Useful. Ticket up 10% and revenue up 15% implies transactions up only about 5% — so most of the growth is basket size, people adding food and extras, not more visits. I'd flag that the added items may be the lower-margin ones, which would partly explain mix.\n\nNo competitor benchmark, so I'll assume peers passed through at least some inflation, which makes a price increase lower-risk than it looks.\n\nRough sizing on price. Today revenue index 115, COGS 67, net profit 6% is about 7. If we raise prices 15% with volume flat, revenue goes to about 132, COGS stays 67, and profit rises by roughly 17 — taking us to about 24 on 132, call it 18% margin. So a mid-teens price increase recovers most of the gap on its own, and it's still only catching up to two years of inflation.\n\nDo we have any elasticity read, or past response to a price change?",
+      "timestampMs": 1790966801962,
+      "latencyMs": null
+    },
+    {
+      "id": "41022f44-63e2-4442-985c-7997a54db0c1",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 14,
+      "role": "interviewer",
+      "text": "Here's the thing on elasticity — I don't have that data, so you'll have to reason about it. Beyond pricing, what other levers could the client pull to restore margin? Give me a structured set. That breakdown isn't something I have. What would you ask for instead?",
+      "timestampMs": 1790966806506,
+      "latencyMs": 4342
+    },
+    {
+      "id": "b8d33a34-1df1-4402-9b7a-15ef8d129fbf",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 15,
+      "role": "candidate",
+      "text": "No elasticity data, so I'll assume specialty coffee is moderately inelastic — it's a habitual, low-absolute-dollar purchase and transactions grew even as baskets grew, which suggests loyal demand. I'd still phase the increase rather than take 15% at once.\n\nBeyond price, four levers. One, procurement: renegotiate or consolidate supplier contracts across 200 stores, and hedge or forward-buy green coffee to lock pricing. Two, mix and menu engineering: steer customers toward high-margin drinks, reprice the low-margin food items that are driving basket growth, and prune the worst performers. Three, input efficiency: portion control, waste and spoilage reduction, lighter packaging, since a 38% input increase makes every gram worth more. Four, non-COGS offsets: labor scheduling and rent renegotiation — smaller here, but they protect the gains.\n\nInstead of elasticity, I'd ask for transaction data from any store or region that has ever tested a price change, or loyalty data showing visit frequency by customer segment. A small pilot across ten stores would give us real elasticity within a quarter.",
+      "timestampMs": 1790966897093,
+      "latencyMs": null
+    },
+    {
+      "id": "4c847b13-5629-4828-8451-bc6e6c8d86aa",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 16,
+      "role": "interviewer",
+      "text": "Of pricing, procurement, mix, and efficiency, which do you pull first, and why?",
+      "timestampMs": 1790966898631,
+      "latencyMs": 1413
+    },
+    {
+      "id": "7546db7b-0340-4fee-8ca2-309f3329246d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 17,
+      "role": "candidate",
+      "text": "Pricing first, clearly.\n\nThree reasons. It's the only lever sized to the problem — my rough math says a mid-teens increase recovers roughly twelve margin points on its own, while procurement savings on a 58% COGS line might realistically deliver two or three. Second, it's the fastest: a menu price change takes weeks, whereas supplier renegotiations and hedging run on contract cycles and menu redesign takes a season. Third, we're not getting greedy — we're catching up on two years of inflation we chose to absorb, and the ticket data shows customers are spending more per visit, which signals willingness to pay.\n\nI'd sequence it: pilot a 7 to 8% increase across twenty representative stores, read volume response over six to eight weeks, then roll out and take a second step if elasticity holds. Procurement runs in parallel since it costs nothing to start negotiating. Mix and efficiency come third — they're real but slower and smaller.\n\nThe risk is that we're the only ones raising prices, which is why I want the competitor benchmark before full rollout.",
+      "timestampMs": 1790966989187,
+      "latencyMs": null
+    },
+    {
+      "id": "b4ac2aee-ffe0-42f3-b6d0-878a9efe146d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 18,
+      "role": "interviewer",
+      "text": "Picking up what you asked about before: Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. What's your recommendation to the CEO?",
+      "timestampMs": 1790966991935,
+      "latencyMs": 1486
+    },
+    {
+      "id": "3af48b2e-80c8-4dac-9cdb-64eb7ac200c6",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 19,
+      "role": "candidate",
+      "text": "Let me confirm the arithmetic. Today: 58 COGS plus 22 labor plus 14 overhead is 94, leaving 6% margin. Two years ago: 42 plus 22 plus 12 is 76, leaving 24%. So COGS explains 16 of the 18 points lost and overhead the other 2. Labor is clean.\n\nMy recommendation: Brew & Bean should raise menu prices by roughly 15% in two phased steps over the next two quarters. That alone should restore margin to the high teens.\n\nThree supports. The root cause is a 38% increase in input cost per unit with zero price pass-through in two years. Demand is healthy — transactions up 5%, ticket up 10% — so this isn't a customer problem. And the cost structure is otherwise sound, since labor held flat.\n\nRisks: we have no elasticity or competitor benchmark, so a pilot across twenty stores first is essential. Trading down into cheaper drinks is a real possibility.\n\nNext steps: launch the pilot, start supplier renegotiation and bean hedging in parallel, and audit the two-point overhead creep.",
+      "timestampMs": 1790967082709,
+      "latencyMs": null
+    },
+    {
+      "id": "cafdce21-0b58-4aad-824b-f3365e6c7f9c",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "turnIndex": 20,
+      "role": "interviewer",
+      "text": "That's our time. Thanks for working through this with me — your written report will follow.",
+      "timestampMs": 1790967085176,
+      "latencyMs": 2341
+    }
+  ],
+  "score": {
+    "id": "2c34b4fc-173f-4607-97c5-9db62c1ebd5f",
+    "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+    "structureRating": "strong",
+    "structureEvidence": null,
+    "quantitativeRating": "strong",
+    "quantitativeEvidence": null,
+    "dataExhibitRating": "strong",
+    "dataExhibitEvidence": null,
+    "judgmentRating": "strong",
+    "judgmentEvidence": null,
+    "creativityRating": "strong",
+    "creativityEvidence": null,
+    "communicationRating": "strong",
+    "communicationEvidence": null,
+    "synthesisRating": "strong",
+    "synthesisEvidence": null,
+    "pushbackRating": "strong",
+    "pushbackEvidence": null,
+    "overallRating": "strong",
+    "rubricJsonb": {
+      "topFix": "Tighten the pricing recommendation so the headline magnitude and the pilot's first step are consistent — commit to the conservative phased step as the actual first move and frame the ~15% as the cumulative target pending elasticity read, so the CEO hears one coherent number rather than two.",
+      "judgment": {
+        "rating": "strong",
+        "wentWell": [
+          {
+            "point": "Framed the diagnosis commercially — healthy demand, absorbed inflation — and justified pricing as a catch-up rather than a grab.",
+            "quotes": [
+              "Volume is actually healthy, which is good news — there's no demand problem.",
+              "we're not getting greedy — we're catching up on two years of inflation we chose to absorb, and the ticket data shows customers are spending more per visit, which signals willingness to pay."
+            ]
+          },
+          {
+            "point": "Surfaced risks and proposed a pilot to de-risk the pricing move given no elasticity or competitor data.",
+            "quotes": [
+              "The risk is that we're the only ones raising prices, which is why I want the competitor benchmark before full rollout.",
+              "pilot a 7 to 8% increase across twenty representative stores, read volume response over six to eight weeks"
+            ]
+          },
+          {
+            "point": "Flagged the mix implication of basket growth as a feasibility nuance.",
+            "quotes": [
+              "I'd flag that the added items may be the lower-margin ones, which would partly explain mix."
+            ]
+          }
+        ],
+        "needsWork": [],
+        "missedOpportunities": []
+      },
+      "pushback": {
+        "rating": "strong",
+        "wentWell": [
+          {
+            "point": "Engaged the MECE challenge directly and revised with explicit reasoning rather than capitulating or defending rigidly.",
+            "quotes": [
+              "Fair challenge. It's close to MECE but the third bucket overlaps",
+              "So I'd fold external factors in as drivers rather than a separate branch, and keep it as: revenue, which splits into price times volume"
+            ]
+          },
+          {
+            "point": "Handled withheld data by reasoning around it and proposing alternative data, driving the case forward.",
+            "quotes": [
+              "No elasticity data, so I'll assume specialty coffee is moderately inelastic",
+              "Instead of elasticity, I'd ask for transaction data from any store or region that has ever tested a price change"
+            ]
+          },
+          {
+            "point": "Answered the precise prioritization question crisply when pressed.",
+            "quotes": [
+              "Pricing first, clearly.",
+              "It's the only lever sized to the problem"
+            ]
+          }
+        ],
+        "needsWork": [],
+        "missedOpportunities": []
+      },
+      "structure": {
+        "rating": "strong",
+        "wentWell": [
+          {
+            "point": "Restated the objective implication and committed to a hypothesis before structuring, and prioritized where the answer likely sits.",
+            "quotes": [
+              "Since revenue is growing but margin is collapsing, this looks cost-driven, but I want to confirm both sides before I commit.",
+              "I'd prioritize the cost branch first. Eighteen margin points lost while revenue grew means costs grew meaningfully faster than revenue, so the size of the problem is almost certainly sitting there."
+            ]
+          },
+          {
+            "point": "Self-corrected the structure to true MECE when challenged, folding external factors into drivers.",
+            "quotes": [
+              "It's close to MECE but the third bucket overlaps — commodity prices show up inside COGS, wage inflation inside labor. So I'd fold external factors in as drivers rather than a separate branch"
+            ]
+          },
+          {
+            "point": "Tailored buckets with sub-points specific to a coffee chain.",
+            "quotes": [
+              "costs: split into COGS — coffee beans, milk, cups — and operating costs like labor, rent, utilities, and then overhead and corporate SG&A"
+            ]
+          }
+        ],
+        "needsWork": [],
+        "missedOpportunities": []
+      },
+      "synthesis": {
+        "rating": "strong",
+        "wentWell": [
+          {
+            "point": "The candidate led answer-first with a specific, phased recommendation, but the headline 15% figure sits in slight tension with the more conservative 7–8% pilot step, leaving minor ambiguity about the actual first move.",
+            "quotes": [
+              "Brew & Bean should raise menu prices by roughly 15% in two phased steps over the next two quarters. That alone should restore margin to the high teens.",
+              "raise menu prices by roughly 15% in two phased steps",
+              "pilot a 7 to 8% increase across twenty representative stores"
+            ]
+          },
+          {
+            "point": "Supported with three evidence-tied reasons, named risks, and gave concrete next steps.",
+            "quotes": [
+              "The root cause is a 38% increase in input cost per unit with zero price pass-through in two years. Demand is healthy",
+              "Next steps: launch the pilot, start supplier renegotiation and bean hedging in parallel, and audit the two-point overhead creep."
+            ]
+          }
+        ],
+        "needsWork": [],
+        "missedOpportunities": []
+      },
+      "creativity": {
+        "rating": "strong",
+        "wentWell": [
+          {
+            "point": "Organized the brainstorm into labeled buckets with multiple distinct ideas each.",
+            "quotes": [
+              "Beyond price, four levers. One, procurement... Two, mix and menu engineering... Three, input efficiency... Four, non-COGS offsets"
+            ]
+          },
+          {
+            "point": "Produced non-obvious operational ideas and a creative data workaround for the missing elasticity.",
+            "quotes": [
+              "portion control, waste and spoilage reduction, lighter packaging, since a 38% input increase makes every gram worth more",
+              "I'd ask for transaction data from any store or region that has ever tested a price change, or loyalty data showing visit frequency by customer segment"
+            ]
+          },
+          {
+            "point": "Prioritized the levers with reasoning when pressed.",
+            "quotes": [
+              "Pricing first, clearly.",
+              "Mix and efficiency come third — they're real but slower and smaller."
+            ]
+          }
+        ],
+        "needsWork": [],
+        "missedOpportunities": []
+      },
+      "dataExhibit": {
+        "rating": "strong",
+        "wentWell": [
+          {
+            "point": "Immediately isolated COGS as nearly the entire driver on first seeing the cost line.",
+            "quotes": [
+              "So COGS is up sixteen margin points, 42 to 58, and total margin fell eighteen. That's essentially the entire problem sitting in one line."
+            ]
+          },
+          {
+            "point": "Tested whether beans alone could explain the move and correctly concluded it is broad-based inflation, not a beans story.",
+            "quotes": [
+              "this isn't a beans story. Beans are only a quarter of the basket and the other three quarters rose nearly as fast. It's broad-based input inflation across coffee, dairy, packaging and food."
+            ]
+          },
+          {
+            "point": "Attributed the final 18-point decline across all cost lines precisely once labor and overhead were given.",
+            "quotes": [
+              "So COGS explains 16 of the 18 points lost and overhead the other 2. Labor is clean."
+            ]
+          }
+        ],
+        "needsWork": [],
+        "missedOpportunities": []
+      },
+      "quantitative": {
+        "rating": "strong",
+        "wentWell": [
+          {
+            "point": "Laid out top-down index math cleanly and narrated the per-unit conversion.",
+            "quotes": [
+              "COGS was 42 before, now 0.58 times 115, which is about 67. So COGS grew from 42 to 67, roughly 59% growth, against 15% revenue growth.",
+              "COGS per unit went from 0.42 to 67 over 115, which is about 0.583. That's a 39% increase in input cost per unit sold"
+            ]
+          },
+          {
+            "point": "Cross-checked the bottom-up weighted COGS increase against the top-down figure as a sanity check.",
+            "quotes": [
+              "Weighted: 0.25 times 1.40 is 0.35, plus 0.75 times 1.375 is 1.031. Total index 1.381 — about a 38% increase in input cost per unit.",
+              "That lines up almost exactly with the 39% I calculated from the top down, which is reassuring."
+            ]
+          },
+          {
+            "point": "Correctly decomposed revenue growth into ticket vs. transaction growth.",
+            "quotes": [
+              "Ticket up 10% and revenue up 15% implies transactions up only about 5% — so most of the growth is basket size"
+            ]
+          }
+        ],
+        "needsWork": [
+          {
+            "point": "The price-increase sizing held COGS constant in absolute index terms while raising revenue, which is directionally fine, but the leap from 'recovers most of the gap' rested on an un-stress-tested flat-volume assumption.",
+            "quotes": [
+              "If we raise prices 15% with volume flat, revenue goes to about 132, COGS stays 67, and profit rises by roughly 17 — taking us to about 24 on 132, call it 18% margin."
+            ]
+          }
+        ],
+        "missedOpportunities": []
+      },
+      "communication": {
+        "rating": "strong",
+        "wentWell": [
+          {
+            "point": "Consistently top-down and signposted with numbered structure throughout.",
+            "quotes": [
+              "I'd break it into three buckets. First, revenue quality... Second, costs... Third, external factors",
+              "Three reasons. It's the only lever sized to the problem"
+            ]
+          },
+          {
+            "point": "Used hypothesis-driven phrasing and narrated reasoning as it developed.",
+            "quotes": [
+              "this looks cost-driven, but I want to confirm both sides before I commit",
+              "That's a big unlock. If prices are flat, the entire 15% revenue growth is volume"
+            ]
+          }
+        ],
+        "needsWork": [],
+        "missedOpportunities": []
+      },
+      "overallRating": "strong"
+    },
+    "topFix": "Tighten the pricing recommendation so the headline magnitude and the pilot's first step are consistent — commit to the conservative phased step as the actual first move and frame the ~15% as the cumulative target pending elasticity read, so the CEO hears one coherent number rather than two.",
+    "deterministicJsonb": [
+      {
+        "id": "profit_margin_now",
+        "span": "since a drop from 24% to 6% is 18 margin points",
+        "expected": 6,
+        "mentioned": true,
+        "tolerance": 0.5,
+        "errorClass": "non_issue",
+        "description": "Current profit margin = 100% - COGS% - Labor% - Overhead% = 100 - 58 - 22 - 14",
+        "candidateValue": 6,
+        "withinTolerance": true
+      },
+      {
+        "id": "profit_margin_prior",
+        "span": "since a drop from 24% to 6% is 18 margin points",
+        "expected": 24,
+        "mentioned": true,
+        "tolerance": 0.5,
+        "errorClass": "non_issue",
+        "description": "Prior profit margin = 100% - COGS% - Labor% - Overhead% = 100 - 42 - 22 - 12 = 24",
+        "candidateValue": 24,
+        "withinTolerance": true
+      },
+      {
+        "id": "cogs_dollar_impact",
+        "span": null,
+        "expected": 76.8,
+        "mentioned": false,
+        "tolerance": 2,
+        "errorClass": "unmentioned",
+        "description": "Margin impact of the COGS increase = 16pp × current revenue $480M = $76.8M. This measures the margin compression valued at today's revenue. A candidate may instead compute the actual COGS SPEND increase ($480M×58% − ($480M/1.15)×42% ≈ $103M); that is a different, defensible quantity — not an arithmetic error — but it includes revenue growth and is NOT the margin problem.",
+        "candidateValue": null,
+        "withinTolerance": false
+      },
+      {
+        "id": "revenue_per_store_check",
+        "span": null,
+        "expected": 2.4,
+        "mentioned": false,
+        "tolerance": 0.05,
+        "errorClass": "unmentioned",
+        "description": "$480M / 200 stores = $2.4M per store",
+        "candidateValue": null,
+        "withinTolerance": false
+      },
+      {
+        "id": "bean_share_of_revenue",
+        "span": null,
+        "expected": 10.5,
+        "mentioned": false,
+        "tolerance": 0.3,
+        "errorClass": "unmentioned",
+        "description": "Beans as a share of revenue two years ago = 25% of COGS × 42% COGS share of revenue = 10.5 points",
+        "candidateValue": null,
+        "withinTolerance": false
+      },
+      {
+        "id": "bean_points_added",
+        "span": null,
+        "expected": 4.2,
+        "mentioned": false,
+        "tolerance": 0.3,
+        "errorClass": "unmentioned",
+        "description": "Bean inflation's contribution to the COGS increase = 10.5 points × 40% = 4.2 points of revenue",
+        "candidateValue": null,
+        "withinTolerance": false
+      }
+    ],
+    "modelAnswerJsonb": {
+      "structure": "Strong structure disaggregates profit = revenue − costs, then breaks revenue into volume × price and costs into COGS / labor / overhead / other. The candidate should hypothesize which bucket is the driver before asking for data. Bonus: asks about competitive context (are peers also seeing this?) and pricing power.",
+      "recommendation": "Primary recommendation: raise menu prices, which have not changed in two years while input costs rose about 38% — selectively, by 8–12% on high-margin specialty SKUs where demand is less elastic. Pair it with procurement across all inputs, not just beans: multi-year bean supply contracts plus renegotiated dairy and packaging supply, since beans explain only about a quarter of the COGS increase. Secondary: pilot a lower-cost 'commodity blend' for budget-conscious locations. Do not recommend blanket cost cuts — labor and overhead are already lean."
+    },
+    "scoringRuntimeMs": 49486,
+    "judgeModel": "claude-opus-4-8",
+    "createdAt": "2026-10-02T18:52:15.360Z"
+  },
+  "events": [
+    {
+      "id": "9a3e60ec-6f0b-4675-a55b-4055cf0e07ee",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "forced_release",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "reason": "not a recommendation-ask turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "972f5079-fcc2-49ae-8a31-c827ebbd373c",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "time_warning",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "2a4aa236-4274-476d-9f45-3f9f0d246c8d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "assumption_guard",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "withheld": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "bee1ec35-ad48-46c6-86d7-25eea1dd5552",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "provenance",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "findings": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "4b264811-9220-44ff-ba83-f5aa83ca4287",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "timeframe",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "mismatches": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "cde083bb-1c2a-4195-9f28-493ae437c2c8",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "probe_guard",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "withheld": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "539077fe-1e45-4ecc-b810-bde4bd076945",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "style",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "flags": [],
+          "passed": true,
+          "wordCount": 44,
+          "violations": [],
+          "questionCount": 1
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "8c00a431-1f45-47cb-9f2c-5151650965a4",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "rung_delivery",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "reason": "no rung decided this turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "66ec116e-6328-41c8-8746-b6dacc1f2b7f",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "verified_figures",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "verified": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "aca42c88-d4cf-4ac2-afdd-cc917fb8fc1e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "action": "ignore",
+          "reason": "clean",
+          "category": "none"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "47b09d47-9513-4265-85ce-66dc01739b63",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "recompute",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "flags": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "42837c57-39fb-4a5f-904a-4340371fbcd2",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "unit_check",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "nestedConversion": false,
+          "suppressedAsVerified": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "cc2303c0-006f-4467-8c8f-f871a9ef48e2",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "end_gate",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "riskAsked": false,
+          "stageGate": false,
+          "coverageMayEnd": false,
+          "brainstormAsked": false,
+          "recommendationAsked": false,
+          "recommendationReceived": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "e0185db4-3ea1-42e6-b310-65f0ae1af07f",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "stall",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "rung": null,
+          "firedOn": null,
+          "classification": {
+            "kind": "analysis",
+            "reason": "analysis signal (figures in a derivation, or an enumerated structure)",
+            "isRepeat": false,
+            "progress": true
+          },
+          "consecutiveClarify": 0,
+          "synthesisUnresolved": false,
+          "consecutiveNoProgress": 0
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "0c3d0449-39c3-478d-9cf1-e4bfb1579040",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct_model",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "label": "none",
+          "reason": "Analytical case structuring with no personal distress or frustration"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "6a2e62bb-4379-4e9a-b0a5-49bf5059d7a3",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "fabricated_turn",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "1345a7cd-0ab2-45ad-9c5d-d87665e6e16e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "meta_leak",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "sentences": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "28f6610e-8156-4fc7-94be-f53ee035c58b",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "spoken_close",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "probe": null,
+          "mayEnd": false,
+          "endCaseBlocked": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "7ad1a062-883e-4a61-91ef-d2e6965ec1c1",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "exhibit_promise",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "eeec49a4-4e38-4223-b3ee-9d9cbcf130a5",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "data_promise",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "3d9e84e5-74e7-4731-a560-0ed2fa625cd1",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "grace_ask",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "f3a86c70-44e0-4003-9f16-d076c989d5cf",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "same_turn_resolution",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "deferred": true,
+          "detected": [
+            [
+              "stores_count",
+              "revenue_per_store",
+              "menu_price_change"
+            ],
+            [
+              "cogs_pct",
+              "labor_pct",
+              "overhead_pct",
+              "bean_share_of_cogs",
+              "non_bean_input_change"
+            ],
+            [
+              "bean_price_change"
+            ]
+          ],
+          "released": [
+            "stores_count"
+          ]
+        },
+        "reason": "ignored request resolved before send",
+        "decision": "act"
+      },
+      "createdAt": "2026-10-02T18:37:07.420Z"
+    },
+    {
+      "id": "d93dbc09-b59b-40a5-a8cf-81aef0937b6e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "defer",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "what": "Cost breakdown as a percentage of revenue for both years (COGS, labor, overhead, SG&A)",
+        "ledgerItemIds": [
+          "cogs_pct",
+          "labor_pct",
+          "overhead_pct"
+        ],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 2
+      },
+      "createdAt": "2026-10-02T18:37:09.870Z"
+    },
+    {
+      "id": "547569a3-f9d7-429e-895b-5db852ae1fb1",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "requestCount": 1,
+        "interviewerTurnIndex": 2
+      },
+      "createdAt": "2026-10-02T18:37:09.870Z"
+    },
+    {
+      "id": "9da7d7ee-98af-40fc-a8ba-66bd8147a962",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "verified_figures",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "detail": {
+          "verified": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "bd4b2832-400b-4f73-b037-2632cc40ebf5",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "detail": {
+          "action": "ignore",
+          "reason": "clean",
+          "category": "none"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "3b61091e-ae1d-4025-9163-5766b9296e4d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "unit_check",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "detail": {
+          "nestedConversion": false,
+          "suppressedAsVerified": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "5518090b-195b-4197-8f32-4e9d36678c57",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "end_gate",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "detail": {
+          "riskAsked": false,
+          "stageGate": false,
+          "coverageMayEnd": false,
+          "brainstormAsked": false,
+          "recommendationAsked": false,
+          "recommendationReceived": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "cedf5a1e-43dd-419c-a78f-fa303f4756d6",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "stall",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "detail": {
+          "rung": null,
+          "firedOn": null,
+          "classification": {
+            "kind": "analysis",
+            "reason": "analysis signal (figures in a derivation, or an enumerated structure)",
+            "isRepeat": false,
+            "progress": true
+          },
+          "consecutiveClarify": 0,
+          "synthesisUnresolved": false,
+          "consecutiveNoProgress": 0
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "5c3c77da-f486-412a-9be6-a268910280c6",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct_model",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "detail": {
+          "label": "none",
+          "reason": "analytical case reasoning with structured problem-solving"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "d60c1555-55d5-46f4-b910-9d7c825bd585",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "rung_delivery",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "reason": "no rung decided this turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "03c9e35c-a22f-4b6f-9fe3-ea95fd557804",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "recompute",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "detail": {
+          "flags": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "fa63a3b8-2d46-412a-9a35-f33fa1372cce",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "probe_guard",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "detail": {
+          "withheld": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "650339cf-d66e-457b-94f4-331d4f504982",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "style",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "detail": {
+          "flags": [],
+          "passed": true,
+          "wordCount": 22,
+          "violations": [],
+          "questionCount": 0
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "ef06f3b4-e806-469a-921a-fa89dfec457a",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "fabricated_turn",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "0819e0da-ad16-4d09-8ea9-209cab7cb694",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "meta_leak",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "detail": {
+          "sentences": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "95cc6a9a-8f68-4a39-a48b-ffd40c224051",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "spoken_close",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "detail": {
+          "probe": null,
+          "mayEnd": false,
+          "endCaseBlocked": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "4a4a6872-8798-4012-837e-46e6436a1ed6",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "exhibit_promise",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "549d9b00-0784-435f-a76f-bc96f68641c0",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "data_promise",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "7e687e46-ae45-4fba-9229-4cd1b9cdd858",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "grace_ask",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "b87d140d-9058-4ef6-963e-60f39fc38b38",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "same_turn_resolution",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "detail": {
+          "detected": 0
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "1fa063f2-06b6-40a3-a644-9f3c4f7293a9",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "forced_release",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "reason": "not a recommendation-ask turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "6d4970a0-ea30-43ab-b8cf-28cb419d9eb0",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "time_warning",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "95a48d2c-302c-48f6-8ac6-4bf1288faf83",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "assumption_guard",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "detail": {
+          "withheld": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "4a1e8621-606f-422e-a802-9d294bece2ec",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "provenance",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "detail": {
+          "findings": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "ab6a5b95-9a17-4884-b1eb-5dd30947f551",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "timeframe",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "detail": {
+          "mismatches": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:38:40.864Z"
+    },
+    {
+      "id": "ed354107-33fc-4c18-a100-631be196a8dc",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "requestCount": 1,
+        "interviewerTurnIndex": 4
+      },
+      "createdAt": "2026-10-02T18:38:42.400Z"
+    },
+    {
+      "id": "22cff6ba-62ae-493f-83a0-85a3af7ceb34",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "release",
+      "turnIndex": 3,
+      "phase": "CLARIFY",
+      "payloadJsonb": {
+        "what": "cost structure breakdown as a percent of revenue",
+        "ledgerItemIds": [
+          "cogs_pct",
+          "labor_pct",
+          "overhead_pct"
+        ],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 4
+      },
+      "createdAt": "2026-10-02T18:38:42.400Z"
+    },
+    {
+      "id": "23c010b4-405c-45aa-a1a0-2fcdfcc175f1",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "verified_figures",
+      "turnIndex": 5,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "verified": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:40:23.269Z"
+    },
+    {
+      "id": "4d8ad536-a5fb-4907-b9f5-8732a2ff41dc",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct",
+      "turnIndex": 5,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "action": "ignore",
+          "reason": "clean",
+          "category": "none"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:40:23.269Z"
+    },
+    {
+      "id": "4d5650a7-70af-433e-9bc6-4cfd60faa1ff",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "recompute",
+      "turnIndex": 5,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "flags": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:40:23.269Z"
+    },
+    {
+      "id": "a46c85c9-c005-4013-9e1a-077d3f740f84",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "unit_check",
+      "turnIndex": 5,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "nestedConversion": true,
+          "suppressedAsVerified": false
+        },
+        "reason": "nested share-of-COGS conversion — probe hint sent",
+        "decision": "act"
+      },
+      "createdAt": "2026-10-02T18:40:23.269Z"
+    },
+    {
+      "id": "19561dec-2ff0-443f-9c4e-483f5b656689",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "end_gate",
+      "turnIndex": 5,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "riskAsked": false,
+          "stageGate": false,
+          "coverageMayEnd": false,
+          "brainstormAsked": false,
+          "recommendationAsked": false,
+          "recommendationReceived": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:40:23.269Z"
+    },
+    {
+      "id": "2f6d2327-2774-4875-83b1-764afc6a2ea0",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "stall",
+      "turnIndex": 5,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "rung": null,
+          "firedOn": null,
+          "classification": {
+            "kind": "analysis",
+            "reason": "analysis signal (figures in a derivation, or an enumerated structure)",
+            "isRepeat": false,
+            "progress": true
+          },
+          "consecutiveClarify": 0,
+          "synthesisUnresolved": false,
+          "consecutiveNoProgress": 0
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:40:23.269Z"
+    },
+    {
+      "id": "9b392e99-0861-4da8-9fcb-69eb2952397a",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct_model",
+      "turnIndex": 5,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "label": "distress",
+          "reason": "disclosure of recent loss and grief affecting wellbeing across multiple interviews"
+        },
+        "reason": "C5 by model: distress",
+        "decision": "act"
+      },
+      "createdAt": "2026-10-02T18:40:23.269Z"
+    },
+    {
+      "id": "7e9b1bc9-cb02-463c-a2f6-6481b7aaf29c",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "conduct",
+      "subtype": "C5",
+      "turnIndex": 5,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "label": "distress",
+        "layer": "model",
+        "reason": "disclosure of recent loss and grief affecting wellbeing across multiple interviews"
+      },
+      "createdAt": "2026-10-02T18:40:23.329Z"
+    },
+    {
+      "id": "3bca22e2-80d4-46ab-8845-37e98437fc13",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 5,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "requestCount": 1,
+        "interviewerTurnIndex": 6
+      },
+      "createdAt": "2026-10-02T18:40:24.618Z"
+    },
+    {
+      "id": "78282529-8bef-4c52-b679-cdd3a1ee1ee7",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "none",
+      "turnIndex": 5,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "what": "COGS breakdown by component (beans, dairy, cups/packaging, food items) for both years",
+        "ledgerItemIds": [
+          "bean_share_of_cogs",
+          "non_bean_input_change"
+        ],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 6
+      },
+      "createdAt": "2026-10-02T18:40:24.618Z"
+    },
+    {
+      "id": "15267d7f-1bc4-4943-a04a-b221c3aa40d8",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct_model",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "reason": "reply to a declined pause offer",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "19560ea0-4806-4dae-ac4b-5d6f99a8d220",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "c5_pause_reply",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "317b87e5-0dee-4a1e-9bd0-c7bc98a0326e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "action": "ignore",
+          "reason": "clean",
+          "category": "none"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "383e92da-6fb2-43d2-84bb-c3c489f20fc1",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "recompute",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "flags": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "a68d17f9-cffd-4a09-a042-c308159d4062",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "verified_figures",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "verified": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "75534eb9-b739-443c-b1ff-d796928c9af4",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "unit_check",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "nestedConversion": false,
+          "suppressedAsVerified": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "e4020720-ca61-456f-8a7d-ef734efdc564",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "end_gate",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "riskAsked": false,
+          "stageGate": false,
+          "coverageMayEnd": false,
+          "brainstormAsked": false,
+          "recommendationAsked": false,
+          "recommendationReceived": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "aded3d1b-c931-4893-aa4f-c572b92d8195",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "stall",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "rung": null,
+          "firedOn": null,
+          "classification": {
+            "kind": "analysis",
+            "reason": "analysis signal (figures in a derivation, or an enumerated structure)",
+            "isRepeat": false,
+            "progress": true
+          },
+          "consecutiveClarify": 0,
+          "synthesisUnresolved": false,
+          "consecutiveNoProgress": 0
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "e14d1e46-9b62-4b3b-b616-89298704603c",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "fabricated_turn",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "a8d2fd30-648c-4551-aa85-1e60a642bfa9",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "meta_leak",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "sentences": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "0f7fcd70-6ec0-4d19-ba69-74382670b7d9",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "spoken_close",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "probe": null,
+          "mayEnd": false,
+          "endCaseBlocked": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "a1d0b4f9-0cba-4adf-9436-df4e42af7ead",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "exhibit_promise",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "01da4d43-c4b8-44d8-84bf-b4a544e457dc",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "data_promise",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "118779dc-86d7-4cce-a02f-163644f787f8",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "grace_ask",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "41732c2c-2650-4a4c-a3f4-1a27972325ba",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "same_turn_resolution",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "deferred": false,
+          "detected": [
+            [
+              "menu_price_change"
+            ]
+          ],
+          "released": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "fc21e047-4939-4de2-86ac-930e198fad6c",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "forced_release",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "reason": "not a recommendation-ask turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "63e1bf42-91a3-4ace-913b-7dce4129b8a0",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "time_warning",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "55df4d8a-35d0-4037-a439-8fb0f7ae9534",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "assumption_guard",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "withheld": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "1af932eb-5f08-405b-a4cf-87e5cd8dcd03",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "provenance",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "findings": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "e329c1e3-e111-4120-905e-76c38f4d42f4",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "timeframe",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "mismatches": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "1e02ae4b-f973-423a-b818-bff7bfb82b59",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "probe_guard",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "withheld": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "822e6848-b5f7-47a7-8b8d-38753e5cd55d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "style",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "flags": [],
+          "passed": true,
+          "wordCount": 25,
+          "violations": [],
+          "questionCount": 0
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "58f3540d-d3d0-4123-bca4-ad5ce5e0556e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "rung_delivery",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "reason": "no rung decided this turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:42:04.901Z"
+    },
+    {
+      "id": "2a44c826-f836-474c-bd15-5edbc97a5be1",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "release",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "what": "Whether menu prices were raised over the two-year period",
+        "ledgerItemIds": [
+          "menu_price_change"
+        ],
+        "revealedByNow": true,
+        "interviewerTurnIndex": 8
+      },
+      "createdAt": "2026-10-02T18:42:07.382Z"
+    },
+    {
+      "id": "ff555d3e-0310-41fb-a24e-37554797bdbd",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 7,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "requestCount": 1,
+        "interviewerTurnIndex": 8
+      },
+      "createdAt": "2026-10-02T18:42:07.382Z"
+    },
+    {
+      "id": "adc2a6b8-a9dc-415b-b0d4-9f8223b8eab4",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "recompute",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "flags": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "659ae6df-54c6-4495-b027-de391f491433",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "rung_delivery",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "reason": "no rung decided this turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "75fcfd5d-46df-4029-a138-4b107d7586da",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "style",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "flags": [],
+          "passed": true,
+          "wordCount": 52,
+          "violations": [],
+          "questionCount": 0
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "4402cac7-b99a-448d-ac29-69ab5dd58775",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "probe_guard",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "withheld": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "1a1830cf-01c0-46f8-b3cf-7094f6155583",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "timeframe",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "mismatches": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "7fb67b80-1675-4d04-9619-a5ef4f95d5b7",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "provenance",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "findings": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "950c6ce3-7599-4f07-9715-ab66b4c0b26b",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "assumption_guard",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "withheld": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "4a1ec575-2f51-47f4-914e-a5ea72ed9681",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "time_warning",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "782aaeab-a924-426a-8635-9ba67725809c",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "forced_release",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "reason": "not a recommendation-ask turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "3c1cc6af-7be3-4381-8a0d-3a134f56e7f9",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "same_turn_resolution",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "deferred": false,
+          "detected": [
+            [
+              "bean_share_of_cogs",
+              "non_bean_input_change"
+            ]
+          ],
+          "released": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "c7fd7d56-4f07-4a4e-9f33-b3e7acf47c6d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "verified_figures",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "verified": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "efd2668e-e707-485a-90a9-3489027ec6c1",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "action": "ignore",
+          "reason": "clean",
+          "category": "none"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "d864277d-13f4-4690-815f-5a241565f4b9",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "unit_check",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "nestedConversion": false,
+          "suppressedAsVerified": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "b84d76fa-d306-484a-bac5-d97fecdf6d5e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "grace_ask",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "5a665122-338e-4453-a154-dcd3f511767e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "data_promise",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "51db8663-e91e-4a67-b55d-8cdf21ea604b",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "exhibit_promise",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "cdd66751-1a11-4da2-b23f-6538737151aa",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "spoken_close",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "probe": null,
+          "mayEnd": false,
+          "endCaseBlocked": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "a0e873ea-9eda-4b17-bd82-a82b019f1ebd",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "meta_leak",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "sentences": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "8f53a2a6-9966-4e11-af4b-4ec25fa0f41e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "fabricated_turn",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "ad08c057-eb92-460b-831d-c06bc9a2bee8",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct_model",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "label": "none",
+          "reason": "Analytical case work with no personal distress indicators"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "89ddd019-a6d4-45bc-bb58-a9f8694990aa",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "stall",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "rung": null,
+          "firedOn": null,
+          "classification": {
+            "kind": "analysis",
+            "reason": "analysis signal (figures in a derivation, or an enumerated structure)",
+            "isRepeat": false,
+            "progress": true
+          },
+          "consecutiveClarify": 0,
+          "synthesisUnresolved": false,
+          "consecutiveNoProgress": 0
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "d14eb330-6241-4d76-9eeb-21f5d391bd08",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "end_gate",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "detail": {
+          "riskAsked": false,
+          "stageGate": false,
+          "coverageMayEnd": false,
+          "brainstormAsked": false,
+          "recommendationAsked": false,
+          "recommendationReceived": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:43:38.307Z"
+    },
+    {
+      "id": "65c6aa0a-767b-47d9-bb41-e64a6268d21e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "requestCount": 1,
+        "interviewerTurnIndex": 10
+      },
+      "createdAt": "2026-10-02T18:43:40.330Z"
+    },
+    {
+      "id": "1ae60e5a-32cc-4080-94a7-676694ec6d32",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "release",
+      "turnIndex": 9,
+      "phase": "ANALYSIS",
+      "payloadJsonb": {
+        "what": "Breakdown of COGS increase by input category (beans vs. dairy/packaging/food)",
+        "ledgerItemIds": [
+          "bean_share_of_cogs",
+          "bean_price_change",
+          "non_bean_input_change"
+        ],
+        "revealedByNow": true,
+        "interviewerTurnIndex": 10
+      },
+      "createdAt": "2026-10-02T18:43:40.330Z"
+    },
+    {
+      "id": "31a99066-0494-4e7f-926e-6044c393bceb",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "exhibit_promise",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "ef2b8e44-b9f7-404f-8ed2-6b4b88b93aca",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "action": "ignore",
+          "reason": "clean",
+          "category": "none"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "01933792-f02f-4476-bad9-83bfc6477390",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "recompute",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "flags": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "1ec17e0c-158a-422a-92c9-e8d4c23ca072",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "verified_figures",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "verified": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "f9ce33fb-bea1-4a19-9598-f0471ef080a9",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "unit_check",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "nestedConversion": false,
+          "suppressedAsVerified": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "70894798-b5f2-42c5-9d3d-8f31c8e6f76d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "end_gate",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "riskAsked": false,
+          "stageGate": false,
+          "coverageMayEnd": false,
+          "brainstormAsked": false,
+          "recommendationAsked": false,
+          "recommendationReceived": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "605207a0-6a19-4c6b-80ef-c1edc111f0f2",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "stall",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "rung": null,
+          "firedOn": null,
+          "classification": {
+            "kind": "analysis",
+            "reason": "analysis signal (figures in a derivation, or an enumerated structure)",
+            "isRepeat": false,
+            "progress": true
+          },
+          "consecutiveClarify": 0,
+          "synthesisUnresolved": false,
+          "consecutiveNoProgress": 0
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "094db61b-510c-4d85-90c3-c39efab2a4dc",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct_model",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "label": "none",
+          "reason": "Analytical case work with structured problem-solving and reasonable next steps"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "822f431a-5103-4205-aae1-b8d47dff3366",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "fabricated_turn",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "64f00580-53bc-4441-a9f2-1d6b5b475efd",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "meta_leak",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "sentences": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "f7b59ffe-a751-48cd-a82a-2e0a28a09ae5",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "spoken_close",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "probe": null,
+          "mayEnd": false,
+          "endCaseBlocked": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "fec220a5-a373-440d-8125-f876e66d9e89",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "data_promise",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "52a4ee67-0b9f-4820-8f73-0c9e0219b40e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "grace_ask",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "a3cd2e24-fac8-4d94-8485-80a99fc1743a",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "same_turn_resolution",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "deferred": false,
+          "detected": [
+            [
+              "avg_ticket"
+            ],
+            []
+          ],
+          "released": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "629fa85f-fce4-4a7c-81a4-7706f8607d1f",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "forced_release",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "reason": "not a recommendation-ask turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "b7cb3279-6286-41b9-80fe-cb7b5acc435d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "time_warning",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "84fcd093-7433-4979-acc9-22eb7083ca00",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "assumption_guard",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "withheld": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "aefb5e1e-5c2d-4490-b155-c8903d14800d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "provenance",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "findings": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "1d1fab44-09f6-459b-a5b3-86bc05492fb7",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "timeframe",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "mismatches": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "aab17519-26e1-4886-adc1-e4db788334a9",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "probe_guard",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "withheld": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "2ac92bdf-5de7-4092-a699-d51e79b3b067",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "style",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "flags": [],
+          "passed": true,
+          "wordCount": 41,
+          "violations": [],
+          "questionCount": 0
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "b45bece6-8b56-4cf4-bfd3-f801caa04342",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "rung_delivery",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "reason": "no rung decided this turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:45:11.422Z"
+    },
+    {
+      "id": "81b2c4e2-3e1f-4c81-8282-0e94ab13cd53",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "refuse",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "what": "Competitor pricing changes over the same period",
+        "ledgerItemIds": [],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 12
+      },
+      "createdAt": "2026-10-02T18:45:13.299Z"
+    },
+    {
+      "id": "34c8f96e-d100-4698-923c-180ce3fe6757",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "release",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "what": "Transaction volume versus ticket size breakdown in the 15% revenue growth",
+        "ledgerItemIds": [
+          "avg_ticket"
+        ],
+        "revealedByNow": true,
+        "interviewerTurnIndex": 12
+      },
+      "createdAt": "2026-10-02T18:45:13.299Z"
+    },
+    {
+      "id": "cf5f2343-66a1-4b9e-a070-1a1b7f0bb3ed",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 11,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "requestCount": 2,
+        "interviewerTurnIndex": 12
+      },
+      "createdAt": "2026-10-02T18:45:13.299Z"
+    },
+    {
+      "id": "ce571b2d-e053-48fd-8d08-71790d5622ce",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "action": "ignore",
+          "reason": "clean",
+          "category": "none"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "77b6bd9d-ada7-4634-830e-8bff2e0a3f9e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "recompute",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "flags": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "461667dc-b413-413f-aeca-726f19d03fed",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "verified_figures",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "verified": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "7aab2309-5bd0-4996-9153-15fe5b622545",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "rung_delivery",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "reason": "no rung decided this turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "5f937d88-e325-4455-adfb-1946c9369e64",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "style",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "flags": [
+            "stacked_questions"
+          ],
+          "passed": true,
+          "wordCount": 47,
+          "violations": [],
+          "questionCount": 2
+        },
+        "reason": "style audit flagged (log only)",
+        "decision": "act"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "35eb8245-00b0-465b-b38a-28717f3f311f",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "probe_guard",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "withheld": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "e36f56da-1635-42e5-9934-a8890802e7d9",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "timeframe",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "mismatches": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "3d519b74-49fc-47be-9ce8-5f30d77bfc75",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "provenance",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "findings": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "2ebae677-81df-4ac0-8dbe-efe06ecdc10f",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "assumption_guard",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "withheld": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "82ec88bb-5d14-421f-be6a-987d6b483783",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "time_warning",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "2da0befc-14d2-4a6c-9b2d-39919ad9b4e0",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "forced_release",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "reason": "not a recommendation-ask turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "a753ef9a-d220-4e05-9fd6-c2a23632b8f4",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "same_turn_resolution",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "deferred": false,
+          "detected": [
+            []
+          ],
+          "released": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "8ad8527c-c551-4b70-a801-e4d72809c5b2",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "grace_ask",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "3f4a8a98-f3ff-4165-9b69-291061359e74",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "data_promise",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "reason": "promised data unresolvable — refusal injected",
+        "decision": "act"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "03558f4c-349c-49ec-9bea-f53c99659a4e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "exhibit_promise",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "c77424b6-6072-4b08-970f-ab33cba952b5",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "spoken_close",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "probe": null,
+          "mayEnd": false,
+          "endCaseBlocked": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "04963070-685e-456e-a3b5-a2ef111494b2",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "meta_leak",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "sentences": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "184d7845-4c54-4f5c-a7b0-90fa9dc8c98e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "fabricated_turn",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "1788845a-1c7c-4f84-8704-053069e6f625",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct_model",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "label": "none",
+          "reason": "Analytical case work with sound reasoning about pricing strategy"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "76b9ea1a-ffaa-4c3f-ad15-102399411a58",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "stall",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "rung": null,
+          "firedOn": null,
+          "classification": {
+            "kind": "analysis",
+            "reason": "analysis signal (figures in a derivation, or an enumerated structure)",
+            "isRepeat": false,
+            "progress": true
+          },
+          "consecutiveClarify": 0,
+          "synthesisUnresolved": false,
+          "consecutiveNoProgress": 0
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "ba919ad4-7c27-4bd4-82c0-e5213e1cb257",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "end_gate",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "riskAsked": false,
+          "stageGate": false,
+          "coverageMayEnd": false,
+          "brainstormAsked": false,
+          "recommendationAsked": false,
+          "recommendationReceived": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "3051b379-c06c-4033-848e-1a3a89946508",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "unit_check",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "detail": {
+          "nestedConversion": false,
+          "suppressedAsVerified": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:46:46.655Z"
+    },
+    {
+      "id": "2a3e2c4e-882b-4ed5-865f-38312a228fe8",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "refuse",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "what": "Elasticity data or historical price response",
+        "ledgerItemIds": [],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 14
+      },
+      "createdAt": "2026-10-02T18:46:47.867Z"
+    },
+    {
+      "id": "608ad73e-2434-4f19-ad02-3600aa84557e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 13,
+      "phase": "EXHIBIT",
+      "payloadJsonb": {
+        "requestCount": 1,
+        "interviewerTurnIndex": 14
+      },
+      "createdAt": "2026-10-02T18:46:47.867Z"
+    },
+    {
+      "id": "2916bc9a-c470-415e-9e97-5e29aa9f9807",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "recompute",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "flags": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "18b5f0e3-dd5f-4e8c-b053-49b047930b0f",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "verified_figures",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "verified": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "62dc756a-83a7-4582-9436-0efb3b8ae62a",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "unit_check",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "nestedConversion": false,
+          "suppressedAsVerified": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "935e6a28-c642-4850-ab8c-fa9615dbbccd",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "end_gate",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "riskAsked": false,
+          "stageGate": false,
+          "coverageMayEnd": false,
+          "brainstormAsked": true,
+          "recommendationAsked": false,
+          "recommendationReceived": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "f0d019ff-5812-4414-ab1c-1c35782c89a4",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "stall",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "rung": null,
+          "firedOn": null,
+          "classification": {
+            "kind": "analysis",
+            "reason": "analysis signal (figures in a derivation, or an enumerated structure)",
+            "isRepeat": false,
+            "progress": true
+          },
+          "consecutiveClarify": 0,
+          "synthesisUnresolved": false,
+          "consecutiveNoProgress": 0
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "c626faf3-cdd8-4b93-946a-0c60995ed670",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct_model",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "label": "none",
+          "reason": "Analytical case reasoning with no personal distress indicators"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "f06606dc-be3e-4663-893a-1518215c4a1a",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "fabricated_turn",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "011ad91c-ce82-412d-8563-39fad97ea80f",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "meta_leak",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "sentences": [
+            "Those levers aside — let me push on sequencing."
+          ]
+        },
+        "reason": "internal planning stripped",
+        "decision": "act"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "73cdc078-e5be-4cf0-8622-7072ef9a727a",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "spoken_close",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "probe": null,
+          "mayEnd": false,
+          "endCaseBlocked": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "5886c9ca-6868-45b6-8a4e-d2c5f3e868c2",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "exhibit_promise",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "bfc8d8b2-ab11-420d-8222-1510c5d4939b",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "data_promise",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "d90121a3-13df-4ea8-bd61-99e20a703740",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "same_turn_resolution",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "deferred": false,
+          "detected": [
+            [],
+            []
+          ],
+          "released": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "a3d33d97-3cc6-46d4-8ac8-beb16cb8e7e4",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "forced_release",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "reason": "not a recommendation-ask turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "4a8a26ab-06fa-42ff-8eb2-e79b2dc1fe06",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "time_warning",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "7579d190-0f45-4f33-b710-c4449b81484c",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "assumption_guard",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "withheld": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "123cb451-ba35-41c6-9838-77933af9b16f",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "provenance",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "findings": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "e4274a8b-5647-4ba4-8706-b7f4a8f9c1fe",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "timeframe",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "mismatches": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "cf0efc17-b4a0-4c56-b628-3a7fddd32c8d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "probe_guard",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "withheld": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "7e6ecd5e-96aa-49f4-8ffc-49d445b5d2d4",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "style",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "flags": [],
+          "passed": true,
+          "wordCount": 13,
+          "violations": [],
+          "questionCount": 1
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "1ae2d03d-fa1e-4b4e-99c8-442689655dcf",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "rung_delivery",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "reason": "no rung decided this turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "7fe1fbad-4f44-483c-a477-8db06969f629",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "grace_ask",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "3229da6e-d96f-469a-9b16-816a61269989",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "action": "ignore",
+          "reason": "clean",
+          "category": "none"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:48:18.770Z"
+    },
+    {
+      "id": "1bd77719-7b75-4098-b988-d8e5a896fbd7",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 15,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "requestCount": 0,
+        "interviewerTurnIndex": 16
+      },
+      "createdAt": "2026-10-02T18:48:19.703Z"
+    },
+    {
+      "id": "d3852cbf-0752-452e-a168-d782c012ede0",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "none",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "what": "Competitor pricing benchmark",
+        "ledgerItemIds": [],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 18
+      },
+      "createdAt": "2026-10-02T18:49:51.831Z"
+    },
+    {
+      "id": "f3cad46e-44f9-479f-a84f-2af4baffda77",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "requestCount": 1,
+        "interviewerTurnIndex": 18
+      },
+      "createdAt": "2026-10-02T18:49:51.831Z"
+    },
+    {
+      "id": "297083c5-2b6b-4f80-978d-5d9959bd7fd9",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "timeframe",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "mismatches": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "9598ff71-bed1-4a12-960f-bc054e5c7c14",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "action": "ignore",
+          "reason": "clean",
+          "category": "none"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "90ac7da6-4831-4a94-ba2c-51f3e35a07ce",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "recompute",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "flags": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "d8673478-b705-4880-aeb2-b1ce1f4631bd",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "verified_figures",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "verified": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "73a0193c-4ed1-49cb-9860-6a4b91b643f7",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "unit_check",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "nestedConversion": false,
+          "suppressedAsVerified": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "0d59cf16-11d1-439e-9e4a-99bde86eacfe",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "end_gate",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "riskAsked": false,
+          "stageGate": false,
+          "coverageMayEnd": true,
+          "brainstormAsked": true,
+          "recommendationAsked": false,
+          "recommendationReceived": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "21773585-00e2-47ee-b995-fce9ebe039c0",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "stall",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "rung": null,
+          "firedOn": null,
+          "classification": {
+            "kind": "analysis",
+            "reason": "analysis signal (figures in a derivation, or an enumerated structure)",
+            "isRepeat": false,
+            "progress": true
+          },
+          "consecutiveClarify": 0,
+          "synthesisUnresolved": false,
+          "consecutiveNoProgress": 0
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "803522c4-2391-48d7-9668-0ef6ea479e94",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct_model",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "label": "none",
+          "reason": "Analytical case discussion with structured reasoning about pricing strategy"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "b55d6e00-3f44-453d-a013-c044520e6e36",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "fabricated_turn",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "ddd534e2-960a-49da-8247-ecaa171a8dd8",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "meta_leak",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "sentences": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "a8526122-6387-4644-994e-78a778698a6d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "spoken_close",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "probe": null,
+          "mayEnd": true,
+          "endCaseBlocked": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "1170d312-52de-417d-a41c-c2afe314e71d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "exhibit_promise",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "566e7a71-a03b-4d7b-a193-7fb3d4a4fec7",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "data_promise",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "edf1d5bd-b929-498e-9733-0ef37fa24d8d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "grace_ask",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "2b01917f-b8e5-4a02-b493-ed3986dd818d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "same_turn_resolution",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "reason": "recommendation-ask turn (forced release handles it)",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "5401ff29-579f-4c2f-bece-e79c53048b84",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "forced_release",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "itemIds": [
+            "labor_pct",
+            "overhead_pct"
+          ]
+        },
+        "reason": "open requests released before the ask",
+        "decision": "act"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "8d464577-2dd0-4d50-a68a-e171b2caea61",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "time_warning",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "352a6731-f831-41c2-a708-c8376f71de78",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "assumption_guard",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "withheld": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "5384d42f-3279-421d-9608-1b3eacd61bc9",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "provenance",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "findings": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "fe977b96-8fc3-46ba-89d3-1576abad1788",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "probe_guard",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "withheld": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "155c454c-4540-4dbc-a061-b878eebbe576",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "style",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "detail": {
+          "flags": [],
+          "passed": true,
+          "wordCount": 31,
+          "violations": [],
+          "questionCount": 1
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "e3ca9d1c-7bcf-4355-b58d-be340b7b32c6",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "rung_delivery",
+      "turnIndex": 17,
+      "phase": "BRAINSTORM",
+      "payloadJsonb": {
+        "reason": "no rung decided this turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:49:52.076Z"
+    },
+    {
+      "id": "db72a4a0-e6e8-402f-bab8-c987512d8f0a",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "end_gate",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "detail": {
+          "riskAsked": false,
+          "stageGate": false,
+          "coverageMayEnd": true,
+          "brainstormAsked": true,
+          "recommendationAsked": true,
+          "recommendationReceived": true
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "09a80035-68c0-47ed-ae72-783ddcb49b06",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "recompute",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "detail": {
+          "flags": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "aca5d59c-59a1-419c-98d4-b5f89c3166e2",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "unit_check",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "detail": {
+          "nestedConversion": false,
+          "suppressedAsVerified": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "42d8e418-f422-4d59-b8c2-71cf70c86a3e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "stall",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "detail": {
+          "rung": null,
+          "firedOn": null,
+          "classification": {
+            "kind": "analysis",
+            "reason": "analysis signal (figures in a derivation, or an enumerated structure)",
+            "isRepeat": false,
+            "progress": true
+          },
+          "consecutiveClarify": 0,
+          "synthesisUnresolved": false,
+          "consecutiveNoProgress": 0
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "c8c5fdff-8347-47ec-a554-1b36432b64d7",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct_model",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "detail": {
+          "label": "none",
+          "reason": "Clear analytical case work with sound reasoning and structured recommendations"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "019b8ad8-3abf-44dd-8c1e-96ff2e2d5a88",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "fabricated_turn",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "6cfedb91-bbbf-484d-933e-a6fe0f51ffae",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "meta_leak",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "detail": {
+          "sentences": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "d29751d3-bc5b-4cfa-bcb2-d3c9bb525c77",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "spoken_close",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "detail": {
+          "probe": null,
+          "mayEnd": true,
+          "endCaseBlocked": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "b466c0e5-54af-4668-96db-fc39aa7d5501",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "exhibit_promise",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "e8ee6117-9b69-4012-89e4-8e9ba9aa993c",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "data_promise",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "1d54a60b-fcff-4960-a4e4-c1720c6d346f",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "verified_figures",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "detail": {
+          "verified": [
+            {
+              "span": "Today: 58 COGS plus 22 labor plus 14 overhead is 94, leaving 6% margin",
+              "value": 6,
+              "stepId": "profit_margin_now",
+              "workShown": false
+            }
+          ]
+        },
+        "reason": "recompute_ok sent to the interviewer",
+        "decision": "act"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "ec47a897-164e-47bb-b2a0-2db9711e07fe",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "grace_ask",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "24aee45c-974b-4228-bdf2-e65353684785",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "conduct",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "detail": {
+          "action": "ignore",
+          "reason": "clean",
+          "category": "none"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "dfba8919-a6b3-4e6a-887e-050b34e0ddf2",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "same_turn_resolution",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "reason": "closing turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "de5448bd-9db2-437c-9be7-1edef03107d6",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "forced_release",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "reason": "not a recommendation-ask turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "41003583-6d7b-4278-b7f0-1ef86d34cc17",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "time_warning",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "f4bbbf57-a045-4632-b708-d9982836b1c1",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "assumption_guard",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "reason": "closing turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "2759af8b-d28d-41e4-9bf3-39df367209a4",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "provenance",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "detail": {
+          "findings": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "acec67e7-9639-40b0-995a-6f0fcef38b68",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "timeframe",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "detail": {
+          "mismatches": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "bd7258fe-f37b-434e-b67c-ad27e5ef3a09",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "probe_guard",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "detail": {
+          "withheld": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "7297f6c4-cafa-446e-83ed-624629c5bac1",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "style",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "detail": {
+          "flags": [],
+          "passed": true,
+          "wordCount": 16,
+          "violations": [],
+          "questionCount": 0
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "cdde0378-7d54-4ada-9a17-1d8afd3cf289",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "check",
+      "subtype": "rung_delivery",
+      "turnIndex": 19,
+      "phase": "RECOMMENDATION",
+      "payloadJsonb": {
+        "reason": "no rung decided this turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-02T18:51:25.324Z"
+    },
+    {
+      "id": "2aa738ad-a85e-4965-86a7-59a77b397cdf",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 19,
+      "phase": "SCORING",
+      "payloadJsonb": {
+        "requestCount": 0,
+        "interviewerTurnIndex": 20
+      },
+      "createdAt": "2026-10-02T18:51:26.788Z"
+    }
+  ],
+  "analytics": [
+    {
+      "id": "7ae9346a-3d75-4866-b86f-1f3f88fb79de",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "case_start",
+      "payloadJsonb": {
+        "caseId": "prof-001"
+      },
+      "createdAt": "2026-10-02T18:35:34.985Z"
+    },
+    {
+      "id": "d739405c-ce22-4c1b-a255-ff293859512d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "distress",
+        "inputTokens": 671,
+        "outputTokens": 29
+      },
+      "createdAt": "2026-10-02T18:37:06.149Z"
+    },
+    {
+      "id": "3fc54e29-3f94-40db-bb8c-c24af17889f6",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 692,
+        "outputTokens": 211
+      },
+      "createdAt": "2026-10-02T18:37:07.120Z"
+    },
+    {
+      "id": "7b718e29-6805-465a-914b-ffb785faab76",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_same_turn_resolved",
+      "payloadJsonb": {
+        "phase": "INTRO",
+        "itemIds": [
+          "stores_count"
+        ],
+        "deferred": true
+      },
+      "createdAt": "2026-10-02T18:37:07.304Z"
+    },
+    {
+      "id": "465eabf6-f778-48ee-ad1b-538f5b6ae061",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "INTRO",
+        "latencyMs": 1691,
+        "turnIndex": 2
+      },
+      "createdAt": "2026-10-02T18:37:07.891Z"
+    },
+    {
+      "id": "8b7cf670-f96b-4e6f-ada4-cc984cb4b301",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 6234,
+        "outputTokens": 30
+      },
+      "createdAt": "2026-10-02T18:37:07.956Z"
+    },
+    {
+      "id": "371d1e9d-cd69-4477-ac44-1e157ce8febf",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "phase": "INTRO",
+        "itemId": "stores_count"
+      },
+      "createdAt": "2026-10-02T18:37:08.143Z"
+    },
+    {
+      "id": "445b9a60-8bff-4dda-a3a1-90b983bb8ec9",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "phase_transition",
+      "payloadJsonb": {
+        "to": "CLARIFY",
+        "from": "INTRO"
+      },
+      "createdAt": "2026-10-02T18:37:08.603Z"
+    },
+    {
+      "id": "0fb08add-38c8-41cb-8632-fb880ef8e322",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 689,
+        "outputTokens": 46
+      },
+      "createdAt": "2026-10-02T18:37:09.622Z"
+    },
+    {
+      "id": "dcaa37f4-51f3-476f-a344-c1a6118b34c4",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 894,
+        "outputTokens": 91
+      },
+      "createdAt": "2026-10-02T18:37:09.808Z"
+    },
+    {
+      "id": "7f58abb7-f941-4107-b45b-b9ac0ef59da5",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 672,
+        "outputTokens": 17
+      },
+      "createdAt": "2026-10-02T18:38:39.525Z"
+    },
+    {
+      "id": "ef17c146-627b-46ec-8cab-02e9162afbb9",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "distress",
+        "inputTokens": 651,
+        "outputTokens": 24
+      },
+      "createdAt": "2026-10-02T18:38:39.616Z"
+    },
+    {
+      "id": "9e3c8e7b-dfda-4872-bcb8-f65042fd59a5",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "phase_repair",
+      "payloadJsonb": {
+        "to": "ANALYSIS",
+        "from": "CLARIFY",
+        "reasons": [
+          "ledger reveal (releaseWhen ANALYSIS)"
+        ]
+      },
+      "createdAt": "2026-10-02T18:38:40.734Z"
+    },
+    {
+      "id": "2a100a7e-0c1c-464d-b79a-1a0960c24783",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "CLARIFY",
+        "latencyMs": 1706,
+        "turnIndex": 4
+      },
+      "createdAt": "2026-10-02T18:38:40.923Z"
+    },
+    {
+      "id": "4c1479d9-3c41-4224-847d-09eaa44cb224",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 7077,
+        "outputTokens": 75
+      },
+      "createdAt": "2026-10-02T18:38:40.979Z"
+    },
+    {
+      "id": "111b28bb-e685-4e8e-864f-47bc3af1caa1",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "phase": "CLARIFY",
+        "itemId": "cogs_pct"
+      },
+      "createdAt": "2026-10-02T18:38:41.100Z"
+    },
+    {
+      "id": "5da6efb0-b088-4009-bd1e-1d2e1d58db4f",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "phase_transition",
+      "payloadJsonb": {
+        "to": "ANALYSIS",
+        "from": "CLARIFY"
+      },
+      "createdAt": "2026-10-02T18:38:41.160Z"
+    },
+    {
+      "id": "539950d2-912c-4ad5-ab15-69dcd957488d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 846,
+        "outputTokens": 52
+      },
+      "createdAt": "2026-10-02T18:38:42.180Z"
+    },
+    {
+      "id": "509f977b-8e59-4d34-9730-b69a39490b9e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 934,
+        "outputTokens": 256
+      },
+      "createdAt": "2026-10-02T18:38:45.005Z"
+    },
+    {
+      "id": "078f1ca3-3131-4615-b43d-ff4e5a716944",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "distress",
+        "inputTokens": 632,
+        "outputTokens": 30
+      },
+      "createdAt": "2026-10-02T18:40:21.403Z"
+    },
+    {
+      "id": "68ec44b2-62fe-4ff8-8f67-89832be6cec1",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 653,
+        "outputTokens": 79
+      },
+      "createdAt": "2026-10-02T18:40:21.576Z"
+    },
+    {
+      "id": "2fea0d53-131e-4138-9efc-ef7695a178ac",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "discarded": true,
+        "inputTokens": 7446,
+        "outputTokens": 120
+      },
+      "createdAt": "2026-10-02T18:40:23.136Z"
+    },
+    {
+      "id": "e5edd901-5340-4da3-b0d0-457687a8f6d2",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 1171,
+        "outputTokens": 46
+      },
+      "createdAt": "2026-10-02T18:40:24.235Z"
+    },
+    {
+      "id": "8beddca5-378d-4dbb-897b-c1bf9dd9b7cd",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 838,
+        "outputTokens": 89
+      },
+      "createdAt": "2026-10-02T18:40:24.562Z"
+    },
+    {
+      "id": "c6a1ee55-0d93-46f0-990b-81616795068a",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 675,
+        "outputTokens": 57
+      },
+      "createdAt": "2026-10-02T18:42:03.740Z"
+    },
+    {
+      "id": "d09f6061-3b09-4651-9885-b782dd7f461f",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "ANALYSIS",
+        "latencyMs": 2040,
+        "turnIndex": 8
+      },
+      "createdAt": "2026-10-02T18:42:04.962Z"
+    },
+    {
+      "id": "1ab00ff0-3afd-45b7-9f51-a708cd394119",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 7759,
+        "outputTokens": 84
+      },
+      "createdAt": "2026-10-02T18:42:05.024Z"
+    },
+    {
+      "id": "5ac6133b-7575-4221-8b9b-5fb475f09e4c",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "phase": "ANALYSIS",
+        "itemId": "menu_price_change"
+      },
+      "createdAt": "2026-10-02T18:42:05.213Z"
+    },
+    {
+      "id": "6b930fc8-3c37-4a6b-875b-fe53b7e84caa",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 1415,
+        "outputTokens": 46
+      },
+      "createdAt": "2026-10-02T18:42:06.437Z"
+    },
+    {
+      "id": "d1c39056-c904-478f-b7fd-b86c0b8cfb7d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 845,
+        "outputTokens": 67
+      },
+      "createdAt": "2026-10-02T18:42:07.327Z"
+    },
+    {
+      "id": "a1b88ce7-8c10-432c-8062-ba1e0f1d86e0",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "distress",
+        "inputTokens": 715,
+        "outputTokens": 26
+      },
+      "createdAt": "2026-10-02T18:43:36.288Z"
+    },
+    {
+      "id": "afd4ca66-ac7b-42dc-aebb-889c4370675e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 736,
+        "outputTokens": 92
+      },
+      "createdAt": "2026-10-02T18:43:36.664Z"
+    },
+    {
+      "id": "f0876665-cee8-4f79-ac39-3ed2aab48991",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "phase_repair",
+      "payloadJsonb": {
+        "to": "EXHIBIT",
+        "from": "ANALYSIS",
+        "reasons": [
+          "ledger reveal (releaseWhen EXHIBIT)"
+        ]
+      },
+      "createdAt": "2026-10-02T18:43:38.185Z"
+    },
+    {
+      "id": "e6574380-c956-48e9-9d50-81d444bea429",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "ANALYSIS",
+        "latencyMs": 2567,
+        "turnIndex": 10
+      },
+      "createdAt": "2026-10-02T18:43:38.430Z"
+    },
+    {
+      "id": "4f2b51bb-db7f-4865-b1ce-631381835271",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 8026,
+        "outputTokens": 194
+      },
+      "createdAt": "2026-10-02T18:43:38.540Z"
+    },
+    {
+      "id": "25a7c4a3-3bd0-460b-b291-5467468aa394",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "phase": "ANALYSIS",
+        "itemId": "bean_share_of_cogs"
+      },
+      "createdAt": "2026-10-02T18:43:38.656Z"
+    },
+    {
+      "id": "86dbab6d-bf68-4b45-9e56-bbaece8ca4f5",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "phase": "ANALYSIS",
+        "itemId": "bean_price_change"
+      },
+      "createdAt": "2026-10-02T18:43:38.781Z"
+    },
+    {
+      "id": "48f8cee0-204b-45c9-a7ed-e80590d8f184",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "phase": "ANALYSIS",
+        "itemId": "non_bean_input_change"
+      },
+      "createdAt": "2026-10-02T18:43:38.910Z"
+    },
+    {
+      "id": "a11cab50-1203-4970-a99a-6a675d610a44",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "phase_transition",
+      "payloadJsonb": {
+        "to": "EXHIBIT",
+        "from": "ANALYSIS"
+      },
+      "createdAt": "2026-10-02T18:43:38.970Z"
+    },
+    {
+      "id": "488547b9-1551-46c5-90e0-88d1abefb932",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 1761,
+        "outputTokens": 46
+      },
+      "createdAt": "2026-10-02T18:43:40.023Z"
+    },
+    {
+      "id": "166680cf-2a4b-45a1-93f0-d214f20f39ff",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 947,
+        "outputTokens": 94
+      },
+      "createdAt": "2026-10-02T18:43:40.275Z"
+    },
+    {
+      "id": "f9270a19-764d-4c65-b3f4-8412a74b497c",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "distress",
+        "inputTokens": 703,
+        "outputTokens": 29
+      },
+      "createdAt": "2026-10-02T18:45:10.295Z"
+    },
+    {
+      "id": "3d9af1eb-2b46-4302-871b-7a01713a5eb0",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 724,
+        "outputTokens": 94
+      },
+      "createdAt": "2026-10-02T18:45:10.880Z"
+    },
+    {
+      "id": "c7d69f3a-54ff-4552-86d1-47250e395b07",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "EXHIBIT",
+        "latencyMs": 1911,
+        "turnIndex": 12
+      },
+      "createdAt": "2026-10-02T18:45:11.483Z"
+    },
+    {
+      "id": "bb40cfb6-45a6-48c9-89e3-49562b15a33f",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 8399,
+        "outputTokens": 88
+      },
+      "createdAt": "2026-10-02T18:45:11.544Z"
+    },
+    {
+      "id": "bce818ac-7df4-466f-b222-798d0c056ac9",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "phase": "EXHIBIT",
+        "itemId": "avg_ticket"
+      },
+      "createdAt": "2026-10-02T18:45:11.676Z"
+    },
+    {
+      "id": "87594ce7-3f5c-4dba-b151-7bc97b1cd0e1",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 2081,
+        "outputTokens": 46
+      },
+      "createdAt": "2026-10-02T18:45:12.837Z"
+    },
+    {
+      "id": "6691efa2-d071-4bcd-a70d-6c89f541e038",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 921,
+        "outputTokens": 105
+      },
+      "createdAt": "2026-10-02T18:45:13.025Z"
+    },
+    {
+      "id": "d1992042-3a3a-45d0-a4a1-677783ec7554",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "distress",
+        "inputTokens": 672,
+        "outputTokens": 26
+      },
+      "createdAt": "2026-10-02T18:46:42.881Z"
+    },
+    {
+      "id": "99e173b0-44fb-462b-9445-c6705fd002a3",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 693,
+        "outputTokens": 53
+      },
+      "createdAt": "2026-10-02T18:46:42.980Z"
+    },
+    {
+      "id": "1eff8ece-889f-458e-839b-fba128c8c0f9",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "phase_repair",
+      "payloadJsonb": {
+        "to": "BRAINSTORM",
+        "from": "EXHIBIT",
+        "reasons": [
+          "brainstorm question"
+        ]
+      },
+      "createdAt": "2026-10-02T18:46:46.519Z"
+    },
+    {
+      "id": "9fc571f5-f120-460f-862e-230edbba0933",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "EXHIBIT",
+        "latencyMs": 4342,
+        "turnIndex": 14
+      },
+      "createdAt": "2026-10-02T18:46:46.792Z"
+    },
+    {
+      "id": "d4a29af5-d010-48e3-9ac0-a4762051b22a",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 8718,
+        "outputTokens": 63
+      },
+      "createdAt": "2026-10-02T18:46:46.860Z"
+    },
+    {
+      "id": "811e9360-305a-4836-aca0-ee23062d64fe",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "phase_transition",
+      "payloadJsonb": {
+        "to": "BRAINSTORM",
+        "from": "EXHIBIT"
+      },
+      "createdAt": "2026-10-02T18:46:46.922Z"
+    },
+    {
+      "id": "8c300b18-ec50-42d2-9ffd-7be433e99704",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 893,
+        "outputTokens": 58
+      },
+      "createdAt": "2026-10-02T18:46:47.809Z"
+    },
+    {
+      "id": "be373b56-1b8e-4f25-9bc0-bbe92c4e88e9",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 2373,
+        "outputTokens": 256
+      },
+      "createdAt": "2026-10-02T18:46:50.762Z"
+    },
+    {
+      "id": "8ae88e9c-243c-4e04-a47c-6c2b559d424a",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "distress",
+        "inputTokens": 696,
+        "outputTokens": 26
+      },
+      "createdAt": "2026-10-02T18:48:17.985Z"
+    },
+    {
+      "id": "11cbe108-49b5-4e08-a648-f2269c85c2c8",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 717,
+        "outputTokens": 83
+      },
+      "createdAt": "2026-10-02T18:48:18.507Z"
+    },
+    {
+      "id": "2f2c7ed5-1449-4c39-b77e-d0c460a07a65",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "BRAINSTORM",
+        "latencyMs": 1413,
+        "turnIndex": 16
+      },
+      "createdAt": "2026-10-02T18:48:18.844Z"
+    },
+    {
+      "id": "afef2b32-ddd1-4b2f-a7ab-0d9ca2e4aca4",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 9258,
+        "outputTokens": 47
+      },
+      "createdAt": "2026-10-02T18:48:18.904Z"
+    },
+    {
+      "id": "7ed173d9-b73d-44eb-afed-0988f739716e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 876,
+        "outputTokens": 17
+      },
+      "createdAt": "2026-10-02T18:48:19.643Z"
+    },
+    {
+      "id": "e6ef5556-e91c-4981-95b0-d91a9d56133c",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 2648,
+        "outputTokens": 46
+      },
+      "createdAt": "2026-10-02T18:48:19.924Z"
+    },
+    {
+      "id": "669d5e21-23c8-4032-80f9-7b6d4e4bb2ed",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "distress",
+        "inputTokens": 685,
+        "outputTokens": 26
+      },
+      "createdAt": "2026-10-02T18:49:50.261Z"
+    },
+    {
+      "id": "4a564021-df47-4478-bbc2-6f1eea384012",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 706,
+        "outputTokens": 82
+      },
+      "createdAt": "2026-10-02T18:49:50.370Z"
+    },
+    {
+      "id": "801a5e23-76cc-4b02-a646-5ebf293fef8a",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 854,
+        "outputTokens": 54
+      },
+      "createdAt": "2026-10-02T18:49:51.832Z"
+    },
+    {
+      "id": "1b07d55b-fd27-4fad-8f80-662742c4ddec",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_force_released",
+      "payloadJsonb": {
+        "phase": "BRAINSTORM",
+        "itemIds": [
+          "labor_pct",
+          "overhead_pct"
+        ],
+        "trigger": "model_ask"
+      },
+      "createdAt": "2026-10-02T18:49:51.896Z"
+    },
+    {
+      "id": "12b61a2c-0cd3-410a-b836-90c243f63d43",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "phase_repair",
+      "payloadJsonb": {
+        "to": "RECOMMENDATION",
+        "from": "BRAINSTORM",
+        "reasons": [
+          "recommendation ask"
+        ]
+      },
+      "createdAt": "2026-10-02T18:49:51.956Z"
+    },
+    {
+      "id": "504dd9fb-2be2-4024-b1fd-71f82d3b8bf2",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "BRAINSTORM",
+        "latencyMs": 1486,
+        "turnIndex": 18
+      },
+      "createdAt": "2026-10-02T18:49:52.138Z"
+    },
+    {
+      "id": "4fb2f5ee-7f92-4648-a566-b4393b51637b",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 9502,
+        "outputTokens": 15
+      },
+      "createdAt": "2026-10-02T18:49:52.193Z"
+    },
+    {
+      "id": "2f5bdcfb-a0c4-4e84-9c42-c3b00189ca76",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "phase": "BRAINSTORM",
+        "itemId": "labor_pct"
+      },
+      "createdAt": "2026-10-02T18:49:52.357Z"
+    },
+    {
+      "id": "067de9e4-389d-44c4-ada7-a71e2765934d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "phase": "BRAINSTORM",
+        "itemId": "overhead_pct"
+      },
+      "createdAt": "2026-10-02T18:49:52.491Z"
+    },
+    {
+      "id": "195e26b5-3488-4a97-a3e4-01d07c24018f",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "phase_transition",
+      "payloadJsonb": {
+        "to": "RECOMMENDATION",
+        "from": "BRAINSTORM"
+      },
+      "createdAt": "2026-10-02T18:49:52.554Z"
+    },
+    {
+      "id": "7ba78b6e-6935-4dff-9842-4d9fdc160a34",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 2939,
+        "outputTokens": 46
+      },
+      "createdAt": "2026-10-02T18:49:53.446Z"
+    },
+    {
+      "id": "7bceb60a-d1b3-4ebb-ab65-9d4153c609e2",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 722,
+        "outputTokens": 17
+      },
+      "createdAt": "2026-10-02T18:51:23.404Z"
+    },
+    {
+      "id": "8a7724e9-72dc-4418-b04a-19a6ffc04749",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "distress",
+        "inputTokens": 701,
+        "outputTokens": 26
+      },
+      "createdAt": "2026-10-02T18:51:23.755Z"
+    },
+    {
+      "id": "d5ddbdf1-3a14-48f9-b9fc-9c598bc2963c",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "phase": "RECOMMENDATION",
+        "latencyMs": 2341,
+        "turnIndex": 20
+      },
+      "createdAt": "2026-10-02T18:51:25.444Z"
+    },
+    {
+      "id": "1ccc6b61-8062-4179-9312-811dafc65afb",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 9963,
+        "outputTokens": 65
+      },
+      "createdAt": "2026-10-02T18:51:25.502Z"
+    },
+    {
+      "id": "dbde5528-6fc9-43ec-b927-66d7a156fae9",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "case_complete",
+      "payloadJsonb": {
+        "phase": "RECOMMENDATION",
+        "elapsedMs": 848579
+      },
+      "createdAt": "2026-10-02T18:51:25.560Z"
+    },
+    {
+      "id": "1b1a25f1-fb6b-4b2d-b4ef-3331f43d6cb4",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "data_request",
+        "inputTokens": 881,
+        "outputTokens": 13
+      },
+      "createdAt": "2026-10-02T18:51:26.789Z"
+    },
+    {
+      "id": "eebc4d4e-8662-4937-841f-9646cfa2b435",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "component": "judge",
+        "inputTokens": 12626,
+        "outputTokens": 2967
+      },
+      "createdAt": "2026-10-02T18:52:03.602Z"
+    },
+    {
+      "id": "cc2ed4e1-e5b0-4f3d-ac2d-022c3387ff0f",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "component": "verifier",
+        "inputTokens": 5609,
+        "outputTokens": 245
+      },
+      "createdAt": "2026-10-02T18:52:07.489Z"
+    },
+    {
+      "id": "d26d18b8-aa4e-4c37-8224-c136ddb9892d",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-opus-4-8",
+        "component": "reconcile",
+        "inputTokens": 1740,
+        "outputTokens": 626
+      },
+      "createdAt": "2026-10-02T18:52:15.353Z"
+    },
+    {
+      "id": "999ddd5d-3bda-407d-83de-9a982829cc80",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "scoring_complete",
+      "payloadJsonb": {
+        "overallRating": "strong",
+        "scoringRuntimeMs": 49486
+      },
+      "createdAt": "2026-10-02T18:52:15.523Z"
+    },
+    {
+      "id": "0a52503e-fb12-48a5-9730-6d5c8d51683a",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "scoring_qa",
+      "payloadJsonb": {
+        "caveatFloors": 0,
+        "artifactTypes": [],
+        "gapClaimDrops": 0,
+        "verifierDrops": 0,
+        "answerKeyDrops": 0,
+        "evidenceStrips": 0,
+        "markClaimDrops": 0,
+        "caveatTextDrops": 0,
+        "dataRequestGaps": 0,
+        "reconcileMerges": 1,
+        "answerKeyReRates": 0,
+        "evidencePointDrops": 0,
+        "transcriptArtifacts": 0,
+        "dataRequestBackfills": 1,
+        "crossDimensionRepeats": 0,
+        "dataRequestsNotInCase": 3,
+        "interviewerErrorMarks": 1
+      },
+      "createdAt": "2026-10-02T18:52:15.586Z"
+    }
+  ],
+  "revealed": [
+    {
+      "id": "3fdd29db-71cc-4bd1-921d-dcd46a7f046f",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "ledgerItemId": "stores_count",
+      "revealedAtMs": 1790966225110
+    },
+    {
+      "id": "9188d1e5-3730-4326-8b7d-1c0fad95cf79",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "ledgerItemId": "cogs_pct",
+      "revealedAtMs": 1790966318770
+    },
+    {
+      "id": "6bae4e09-df88-43f6-8206-89c3f9c7a35c",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "ledgerItemId": "menu_price_change",
+      "revealedAtMs": 1790966522613
+    },
+    {
+      "id": "14bdefc5-f3dd-42e7-8072-2fd35e2cd86a",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "ledgerItemId": "bean_share_of_cogs",
+      "revealedAtMs": 1790966615423
+    },
+    {
+      "id": "ca3f4388-1859-4da1-82d7-fb7a3b23794e",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "ledgerItemId": "bean_price_change",
+      "revealedAtMs": 1790966615423
+    },
+    {
+      "id": "0e779295-3634-4dba-b4f6-e1e8601aed96",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "ledgerItemId": "non_bean_input_change",
+      "revealedAtMs": 1790966615423
+    },
+    {
+      "id": "ddc7d4bf-39b2-4107-82ff-23c197e35959",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "ledgerItemId": "avg_ticket",
+      "revealedAtMs": 1790966709252
+    },
+    {
+      "id": "108ba604-7315-48aa-93f9-1b97427e226a",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "ledgerItemId": "labor_pct",
+      "revealedAtMs": 1790966989187
+    },
+    {
+      "id": "252710fa-c5c5-4895-8b9a-68857bb79f19",
+      "sessionId": "11c18be3-4256-47ab-b7ec-55db5f117cc8",
+      "ledgerItemId": "overhead_pct",
+      "revealedAtMs": 1790966989187
+    }
+  ]
+}

@@ -1,0 +1,312 @@
+[live-run] session fc47cc3d-1af7-4512-ae95-0956803e4c20 · Brew & Bean Profitability · persona 3 Ines — the Clarifier · pace human
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+How would you like to approach this? Feel free to take a moment to gather your thoughts first.
+
+[candidate · 0:55] Thanks — before I lay out a structure, I want to make sure I understand the business.
+
+First question: when you say revenue grew 15% over two years, is that mostly from opening new locations, or from same-store sales growth at the existing 200? That changes a lot — if they've been expanding aggressively, the margin hit could be new stores ramping up rather than anything wrong with the core business.
+[runner] phase: INTRO stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "stores_count"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "revenue_per_store"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: INTRO raw: [ 'speak', 'reveal_data', 'reveal_data', 'advance_phase' ] → filtered: [ 'speak', 'reveal_data', 'reveal_data', 'advance_phase' ]
+[runner] same-turn data request resolution: {"released":["revenue_total"],"deferred":false,"phase":"CLARIFY"}
+[runner] phase repair: {"from":"CLARIFY","to":"ANALYSIS","reasons":["ledger reveal (releaseWhen ANALYSIS)"]}
+
+[interviewer · ANALYSIS · 0:59] The question maps to the store count and revenue per store, so I'll release both. 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. Average revenue per store is $2.4M a year. To your question on the data: Total revenue is $480M a year.
+
+[candidate · 1:53] Good — so flat footprint, which means the 15% is all same-store growth. That's helpful, it rules out expansion drag.
+
+Second question: is this margin decline broad-based across all 200 stores, or is it concentrated in a subset — certain regions, certain store formats, or stores that opened more recently? If it's concentrated, I'd want to go hunting in that segment rather than assume something systemic like commodity costs.
+[runner] phase: ANALYSIS stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: ANALYSIS raw: [ 'speak', 'advance_phase' ] → filtered: [ 'speak', 'advance_phase' ]
+[runner] interviewer promised data with no ledger match — injected refusal
+[runner] style QA flag (soft): ["stacked_questions"]
+
+[interviewer · EXHIBIT · 1:55] That's not a cut I have. What I do have is the company-wide cost structure over the two years. With that in mind, how would you lay out your structure for the problem? That breakdown isn't something I have. What would you ask for instead?
+
+[candidate · 3:25] Understood — I'll treat it as systemic company-wide then.
+
+One more scoping question before I structure: did the 15% revenue growth come from price increases or from transaction volume? If they raised menu prices and revenue only grew 15%, traffic may actually be down, and a volume decline with fixed costs spread thinner would show up as margin compression on its own.
+
+Structurally, I'd split profit into revenue and cost. On revenue: price per ticket times transactions, by product mix — coffee vs. food vs. retail beans. On cost: fixed versus variable — COGS (coffee beans, milk, cups), store labor, rent and occupancy, and corporate overhead and marketing. Then I'd index each cost line as a percent of revenue across the two years and find which ones grew faster than the 15% revenue growth. That's where the 18 points of margin went.
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: EXHIBIT raw: [ 'speak', 'advance_phase' ] → filtered: [ 'speak', 'advance_phase' ]
+[runner] same-turn data request resolution: {"released":["menu_price_change"],"deferred":false,"phase":"BRAINSTORM"}
+
+[interviewer · BRAINSTORM · 3:28] I'll apply one pressure test to your structure. To your question on the data: Menu prices have not changed in two years. Is that MECE, and which branch would you prioritize first, and why?
+
+[candidate · 4:58] Prices flat means all 15% is transaction volume — traffic is up, so the demand side looks healthy. That points me hard at costs.
+
+On MECE: it's roughly clean, but I'd tighten one thing. Splitting costs by fixed/variable and then also by line item double-counts, since store labor has both a fixed base and a variable component. So I'd use line items as the primary cut — COGS, labor, occupancy, corporate overhead — and tag each as fixed or variable rather than treating those as separate branches.
+
+I'd prioritize the cost branch first, specifically the largest lines as a percent of revenue. Reason: revenue is growing on volume with flat prices, so margin fell 18 points while the top line expanded — costs must have grown materially faster than 15%. And with volume up, any truly fixed cost should be getting *diluted*, improving margin. So something variable or semi-variable is scaling badly. Can I see the cost structure for both years?
+[runner] phase: BRAINSTORM stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "show_exhibit",
+    "input": {
+      "exhibit_id": "exhibit-a"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "speak",
+    "input": {
+      "text": "Tell me what you see in it."
+    }
+  }
+]
+[interviewer] phase: BRAINSTORM raw: [ 'speak', 'advance_phase', 'show_exhibit', 'speak' ] → filtered: [ 'speak', 'advance_phase', 'show_exhibit', 'speak' ]
+
+[interviewer · RECOMMENDATION · 5:02] Prices are flat, but I'd note the data doesn't yet separate traffic from ticket size or mix, so that's still open. On your request, I'll show the cost structure exhibit. Tell me what you see in it.
+
+[candidate · 6:32] Fair point on mix — flat menu prices don't rule out customers trading down to cheaper items.
+
+Reading the exhibit, all as percent of revenue: COGS goes 42 → 50 → 58, up 16 points. Overhead goes 12 → 13 → 14, up 2. Labor is dead flat at 22. Total 18 points, which exactly matches the margin fall from 24 to 6. So COGS is ~89% of the problem; overhead is a rounding error by comparison.
+
+Two things stand out. One, labor holding at exactly 22% while volume grew 15% is itself odd — I'd expect some fixed-cost dilution there, so labor in dollars grew right alongside revenue. Two, COGS rose steadily both years, not as a one-time step, which reads more like a trend than a single contract shock.
+
+In dollars, COGS went from 42% of ~$417M to 58% of $480M — roughly $175M to $278M.
+
+Before I diagnose: is COGS here purely product inputs — beans, dairy, cups — or does it also include in-store food waste and spoilage?
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · RECOMMENDATION · 6:35] I don't have a split of what sits inside COGS beyond the input categories. The next breakdown I can give you is how much of COGS is coffee beans versus other inputs, and how each has moved.
+
+Before I do, you converted the COGS percentages into dollars. Walk me through how you got the starting revenue figure.
+
+[candidate · 8:05] Sure. Current revenue is $480M, and revenue grew 15% over the two years, so I treated $480M as the end point and backed into the start: $480M ÷ 1.15 = $417.4M, call it $417M.
+
+Then COGS two years ago is 42% × $417M ≈ $175M, and today it's 58% × $480M ≈ $278M. So COGS dollars grew about $103M, or roughly 59% — versus revenue up 15%.
+
+One caveat I should flag: I assumed the 15% is cumulative over the two years, not 15% per year. If it's 15% annually, the base would be $480M ÷ 1.15² ≈ $363M, and COGS two years ago would be about $152M — making the dollar growth even steeper. Can you confirm which it is? Either way the direction holds: COGS is growing roughly four times faster than the top line.
+
+Yes, please — I'd like the beans versus other inputs split.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_share_of_cogs"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "non_bean_input_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [
+  'speak',
+  'reveal_data',
+  'reveal_data',
+  'reveal_data',
+  'advance_phase'
+] → filtered: [
+  'speak',
+  'reveal_data',
+  'reveal_data',
+  'reveal_data',
+  'advance_phase'
+]
+
+[interviewer · WRAP · 8:08] The prompt states revenue grew 15% over the same two-year period, so your cumulative reading holds. Your derivation checks out against the data. Coffee beans were 25% of COGS two years ago. Raw coffee bean costs are up 40% over the past two years. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.
+
+[candidate · 9:38] Let me run that.
+
+Two years ago COGS ≈ $175M. Beans 25% = $43.75M; other inputs 75% = $131.25M.
+
+Apply the input price inflation: beans $43.75M × 1.40 = $61.25M. Other $131.25M × 1.375 = $180.5M. Total = $241.8M.
+
+But that's price only, holding volume constant. Volume is up 15% with flat menu prices, so scale the whole thing: $241.8M × 1.15 = $278M.
+
+That's exactly the current COGS figure I derived. So the COGS increase is fully explained — roughly 38% blended input inflation compounded with 15% more units sold. There's no hidden waste, shrink, or sourcing problem left over.
+
+And the root cause follows directly: input costs rose ~38% while menu prices rose 0%. Brew & Bean absorbed two years of commodity inflation entirely. Volume growth actually made it worse, since every incremental cup is sold at a compressed margin.
+
+Before I go to a recommendation, two things I'd want. First — is there any contractual reason prices haven't moved, or a competitive one? What have competitors done on price over the same period?
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: WRAP raw: [ 'speak', 'advance_phase' ] → filtered: [ 'speak' ]
+
+[interviewer · WRAP · 9:41] Your reconciliation ties out to the revealed cost figures. I don't have competitor pricing or any contractual constraint on menu prices. Beyond raising prices, what else could the client do to reverse this?
+
+[candidate · 10:31] Fair — let me scope one thing before I list options, because it changes which levers are real.
+
+How much of the bean spend is on contract versus spot? If they're buying at spot with no hedging, forward contracts or locking in supply are available to them; if they're already on multi-year contracts, that lever is gone and the 40% is baked in.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: WRAP raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · WRAP · 10:33] That's not in the information I have, so treat it as an open question. Take both possibilities as given and tell me what else the client could do, beyond raising prices.
+
+[candidate · 12:03] Taking both as given, four non-price levers.
+
+One, procurement. If they're on spot, hedge — lock forward contracts on beans and dairy to stop the bleeding. If they're already contracted, the lever shifts to consolidating volume across 200 stores into fewer suppliers for better terms at renewal. Either way, 200 locations is real buying power.
+
+Two, mix shift. Flat menu prices with volume up 15% means more units at thin margins. Push customers toward higher-margin items — retail bean bags, food attach, larger sizes — which raises effective ticket without changing a single posted price.
+
+Three, input substitution and portion control. Blend in a lower-cost bean on drip while protecting the specialty line, and tighten dairy and packaging spec. A 1-point COGS improvement is ~$5M.
+
+Four, the overlooked line: labor at 22% flat despite 15% more volume means zero operating leverage. Scheduling to traffic patterns should let labor fall as a percent of sales.
+
+Net: price is still the biggest lever, but these can cover part of the gap.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: WRAP raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · WRAP · 12:06] Understood. You've given me levers; now put it together for the CEO. What's your recommendation, including what you'd do first and how you'd size the impact?
+
+[candidate · 13:36] One quick thing first: do we have any read on price elasticity — has the chain ever tested a price increase, or do we know how much traffic they'd lose per point of price? It won't change my recommendation's direction, but it sizes the risk. Absent that, I'll assume modest elasticity given specialty coffee's brand loyalty and the fact that volume grew 15% at flat prices, which suggests healthy demand.
+
+Recommendation: Brew & Bean should pass through input inflation via a staged menu price increase, starting immediately, backed by procurement and mix actions.
+
+Root cause is clean: inputs rose ~38% over two years while menu prices rose 0%. That fully reconciles the COGS move from 42% to 58% of revenue and accounts for 16 of the 18 lost margin points.
+
+Sizing: a 15% price increase at constant volume takes revenue from $480M to $552M. COGS stays $278M, falling from 58% to about 50% — roughly 8 points of margin, or $40M. Procurement and mix could plausibly deliver another 3–4 points.
+
+Risks: elasticity is unmeasured, and competitors may have already repriced. Next steps — pilot a 10–15% increase in two regions, measure traffic, and run a supplier RFP in parallel.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: WRAP raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · WRAP · 13:39] The data doesn't include any price test or elasticity read, so that stays an assumption.
+
+Your sizing says a 15% price increase lifts revenue to $552M and drops COGS to about 50% of revenue. Walk me through how that gets you to roughly 8 points of margin and $40M.
+
+[candidate · 15:09] Let me walk it and then correct myself.
+
+The 8 points came only from the COGS line: COGS stays at $278M in dollars because volume is flat, so as a percent of revenue it goes from $278M/$480M = 57.9% to $278M/$552M = 50.4%. That's 7.5 points, call it 8. And 7.5% × $552M ≈ $41M, which is where the $40M came from.
+
+But I under-counted. Labor and overhead are also flat in dollars if volume doesn't change — labor 22% × $480M = $106M, overhead 14% × $480M = $67M. Those dilute too.
+
+Cleaner: all costs are unchanged at $451M, revenue rises $72M, so profit goes from $28.8M to $100.8M. Margin = 100.8/552 = 18.3%, up roughly 12 points, not 8.
+
+So the price lever alone gets them most of the way back to 24%. My $40M understated it — the right number is about $72M of incremental profit.
+[runner] phase: WRAP stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "end_case",
+    "input": {}
+  }
+]
+[interviewer] phase: WRAP raw: [ 'speak', 'end_case' ] → filtered: [ 'speak', 'end_case' ]
+
+[interviewer · SCORING · 15:11] That's our time. Thanks for working through this with me — your written report will follow.
+[score] backfilled data-request classification for candidate turns: [21]
+[live-run] failed: AnthropicError: Streaming is required for operations that may take longer than 10 minutes. See https://github.com/anthropics/anthropic-sdk-typescript#long-requests for more details
+    at Anthropic.calculateNonstreamingTimeout (/Users/lorenzo/coding/personal-projects/CaseTester/node_modules/@anthropic-ai/sdk/src/client.ts:1525:13)
+    at Messages.create (/Users/lorenzo/coding/personal-projects/CaseTester/node_modules/@anthropic-ai/sdk/src/resources/beta/messages/messages.ts:117:30)
+    at Messages.parse (/Users/lorenzo/coding/personal-projects/CaseTester/node_modules/@anthropic-ai/sdk/src/resources/beta/messages/messages.ts:168:17)
+    at runJudge (/Users/lorenzo/coding/personal-projects/CaseTester/lib/scoring/judge.ts:239:47)
+    at computeScore (/Users/lorenzo/coding/personal-projects/CaseTester/lib/scoring/score-session.ts:168:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async scoreSession (/Users/lorenzo/coding/personal-projects/CaseTester/lib/scoring/score-session.ts:43:20)
+    at async main (/Users/lorenzo/coding/personal-projects/CaseTester/scripts/live-run.ts:245:27)
+
+[score] reconciliation merged both-sides claims: [{"dimension":"structure","wentWell":"The final structure used clean line-item cost buckets plus a revenue split into price, transactions, and mix, which is a relevant and mostly MECE profit tree.","needsWork":"The first cost cut overlapped fixed/variable with line items, and that was fixed only after the interviewer's MECE challenge.","merged":"The final structure used clean line-item cost buckets plus a price/transactions/mix revenue split, which is a relevant and mostly MECE profit tree, but the first cost cut overlapped fixed/variable with line items and was fixed only after the interviewer's MECE challenge.","placedIn":"needsWork"},{"dimension":"dataExhibit","wentWell":"Rather than stopping at the bean spike, the candidate tested beans and other inputs together and showed they fully explain the COGS move.","needsWork":"The bean-vs-other split was done in dollars but never converted to margin points. Showing that beans contribute only about 4 of the 16 points (25% × 42% × 40%) would have made clear that procurement must cover dairy and packaging too.","merged":"Rather than stopping at the bean spike, the candidate tested beans and other inputs together and showed they fully explain the COGS move, but the split stayed in dollars and was never converted to margin points. Showing that beans explain only about 4 of the 16 points would have made clear that procurement must cover dairy and packaging too.","placedIn":"wentWell"},{"dimension":"judgment","wentWell":"The candidate surfaced elasticity and competitor risk and proposed a regional pilot to mitigate them.","needsWork":"A single across-the-board increase was proposed without considering where pricing power is greatest, such as specialty vs. basic items.","merged":"The candidate surfaced elasticity and competitor risk and proposed a regional pilot to mitigate them, but proposed a single across-the-board increase without considering where pricing power is greatest, such as specialty vs. basic items.","placedIn":"needsWork"},{"dimension":"synthesis","wentWell":"The candidate gave a clear, committed recommendation tied directly to the root cause.","needsWork":"The synthesis opened with another data request instead of the answer.","merged":"The candidate gave a clear, committed recommendation tied directly to the root cause, but the synthesis opened with another data request instead of leading with the answer.","placedIn":"needsWork"},{"dimension":"pushback","wentWell":"When asked to walk through the sizing, the candidate found the error and corrected it transparently with the full-cost logic.","needsWork":"The sizing error surfaced only under interviewer probing; a self-check before presenting would have caught it.","merged":"When asked to walk through the sizing, the candidate found the error and corrected it transparently with the full-cost logic, but the error surfaced only under interviewer probing, and a self-check before presenting would have caught it.","placedIn":"wentWell"}]
+[score] cross-dimension repetition: [{"concept":"Price-lever impact sizing was understated (only COGS dilution counted, not the full-cost logic) and corrected only under interviewer probing","dimensions":["quantitative","synthesis","pushback"]},{"concept":"Repeated scoping or data-request questions before answering delayed the structure, brainstorm, and recommendation","dimensions":["structure","synthesis","communication"]}]
+
+[live-run] finish fc47cc3d-1af7-4512-ae95-0956803e4c20 scoring=scored

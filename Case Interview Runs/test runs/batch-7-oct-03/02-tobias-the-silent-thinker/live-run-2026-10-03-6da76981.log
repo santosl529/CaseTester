@@ -1,0 +1,215 @@
+[live-run] session 6da76981-84ee-4500-a86e-7340491a6379 · Brew & Bean Profitability · persona 2 Tobias — the Silent Thinker · pace human
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+Take a minute if you need it, then tell me how you'd structure your approach.
+
+[candidate silent 78s]
+
+[interviewer · check_in · 1:01] Still with me? Take your time. The question on the table: how would you approach this problem?
+
+[candidate · 2:48] Since revenue is actually up 15% while margin collapsed from 24% to 6%, the decline has to be driven by costs growing faster than revenue, so I'd weight my structure there — but I want to confirm the revenue side first so we don't miss a mix issue.
+
+Three buckets:
+
+First, revenue quality. Is the 15% growth coming from new store openings, same-store traffic, or price? Growth from new stores can carry heavy upfront costs and drag margin even if each store is healthy.
+
+Second, costs — split fixed versus variable. Variable: coffee beans, dairy, cups, hourly labor. Fixed: rent, salaried staff, corporate overhead, marketing, any D&A from the expansion.
+
+Third, external: commodity prices, wage legislation, competitive pricing pressure.
+
+I'd start by asking which cost lines grew fastest in absolute dollars over the two years. Do we have a cost breakdown as a percent of revenue for both years?
+[runner] phase: INTRO stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "Okay, you've asked for the cost breakdown as a percent of revenue, so I'll release it. Before I do, one question on your structure: is it MECE, and what, if anything, is missing?"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "cogs_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "labor_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "overhead_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: INTRO raw: ["speak","reveal_data","reveal_data","reveal_data","advance_phase","advance_phase"] → filtered: ["speak","reveal_data","reveal_data","reveal_data","advance_phase","advance_phase"]
+[runner] stripped meta-leak from interviewer turn: ["Okay, you've asked for the cost breakdown as a percent of revenue, so I'll release it."]
+[runner] phase repair: {"from":"CLARIFY","to":"ANALYSIS","reasons":["ledger reveal (releaseWhen ANALYSIS)"]}
+
+[interviewer · ANALYSIS · 2:52] Before I do, one question on your structure: is it MECE, and what, if anything, is missing? COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%.
+
+[candidate silent 78s]
+
+[interviewer · check_in · 3:53] Still with me? Take your time. The question on the table: before I do, one question on your structure: is it MECE, and what, if anything, is missing?
+
+[candidate · 5:40] On MECE — the first two buckets are clean, but my third bucket overlaps: commodity prices and wages are causes of the cost lines, not a separate category. I'd restructure it as revenue versus cost, and treat external factors as drivers underneath each rather than a parallel branch. What's missing is store-level versus corporate-level — a problem concentrated in new stores looks very different from a chain-wide one.
+
+On the numbers: COGS up 16 points of revenue, overhead up 2, labor flat. That's 18 points, and margin fell 18 points, so COGS alone explains about 89% of the decline. Everything else is noise.
+
+So the question becomes what's inside COGS. Two possibilities: input cost per unit rose, or price per unit didn't keep up. Do we have the COGS breakdown by component — beans, dairy, packaging — and have menu prices changed in those two years?
+[runner] phase: ANALYSIS stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "The 16 points of COGS over 18 points of margin decline checks out. Both of your requests are things I can give you, so here they are."
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_share_of_cogs"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "menu_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: ANALYSIS raw: ["speak","reveal_data","reveal_data","advance_phase"] → filtered: ["speak","reveal_data","reveal_data","advance_phase"]
+[runner] same-turn data request resolution: {"released":["non_bean_input_change"],"deferred":false,"offered":[],"notYet":false,"refusedNotInCase":false,"phase":"EXHIBIT"}
+
+[interviewer · EXHIBIT · 5:44] The 16 points of COGS over 18 points of margin decline checks out. Both of your requests are things I can give you, so here they are. Coffee beans were 25% of COGS two years ago. Menu prices have not changed in two years. You asked about that — Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.
+
+[candidate silent 78s]
+
+[interviewer · check_in · 6:45] Still with me? Take your time.
+
+[candidate · 8:32] Let me size it. Two years ago COGS was 42% of revenue: beans at 25% of that is 10.5 points, other inputs 31.5 points.
+
+If that 37.5% increase is per-unit, other inputs go to 31.5 × 1.375 = 43.3 points of revenue. Today's COGS is 58, so beans are 58 − 43.3 = 14.7 points, up from 10.5 — a 40% increase. So beans and everything else rose at roughly the same rate. This isn't a coffee-bean story, it's broad input inflation across the whole basket.
+
+And the critical fact is menu prices haven't moved in two years. Revenue grew 15% with flat prices, so that's volume — traffic is healthy. Brew & Bean absorbed 100% of input inflation instead of passing any of it through.
+
+One check: is that 37.5% figure per unit, or total dollars? If it's total dollars, 15% of it is just volume growth and the real inflation is closer to 20%.
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "The 37.5% is the change in other input costs as I have it; I don't have a per-unit versus total-dollar split. Let me give you the other data point you'd want on beans."
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["speak","reveal_data","advance_phase"] → filtered: ["speak","reveal_data","advance_phase"]
+
+[interviewer · BRAINSTORM · 8:35] The 37.5% is the change in other input costs as I have it; I don't have a per-unit versus total-dollar split. Let me give you the other data point you'd want on beans. Raw coffee bean costs are up 40% over the past two years.
+
+[candidate silent 80s]
+
+[interviewer · check_in · 9:36] Still with me? Take your time.
+
+[candidate · 11:25] Good — that 40% matches what I backed into, which gives me confidence the decomposition is right. Beans went from 10.5 to roughly 14.7 points of revenue, and everything else moved at a similar rate. So it's broad commodity and input inflation, not a single bad supplier contract.
+
+Let me size the fix. To get back to 24% margin I need to recover 18 points. If I hold volume and raise prices by x, revenue becomes 1+x while costs stay flat at 94 points. Margin = (1+x − 0.94)/(1+x) = 0.24 implies 1+x = 0.94/0.76 = 1.24. So roughly a 24% price increase — that's a lot to ask of a customer in one move.
+
+Two questions before I recommend. Do we know what competitors have done on price over the same period? And has anyone tested elasticity — what happened to traffic the last time prices moved?
+[runner] phase: BRAINSTORM stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "The price-increase math holds together. Competitor pricing and elasticity testing aren't in the information I have. Setting the price lever aside for a moment, beyond what we've discussed, what else could Brew & Bean do to reverse the margin decline?"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: BRAINSTORM raw: ["speak","advance_phase"] → filtered: ["speak","advance_phase"]
+
+[interviewer · RECOMMENDATION · 11:27] The price-increase math holds together. Competitor pricing and elasticity testing aren't in the information I have. Setting the price lever aside for a moment, beyond what we've discussed, what else could Brew & Bean do to reverse the margin decline?
+
+[candidate · 12:57] Without competitor or elasticity data I'll assume specialty coffee has moderate pricing power, so price is part of the answer but not all 24 points. Other levers, roughly in order of impact:
+
+Procurement. Beans are ~15 points of revenue. With 200 locations there's scale to consolidate suppliers, sign longer fixed-price contracts, or hedge green coffee futures — even a 10% reduction on beans is 1.5 points of margin back.
+
+Waste and portioning. Dairy and food spoil. If yield loss is a few percent of that 43-point block, tightening it is a point or two with no customer impact.
+
+Mix. Push higher-margin items — espresso drinks over food, where food carries dairy and spoilage. Same traffic, better basket margin.
+
+Overhead, up 2 points, is the smallest lever but worth a look.
+
+And price architecture rather than a blunt increase: raise sizes and add-ons, where customers anchor less.
+
+Do we have COGS or margin by product category?
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "That breakdown by product category isn't in the information I have. Given everything you've worked through, what's your recommendation to the CEO?"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 13:01] That breakdown by product category isn't in the information I have. Given everything you've worked through, what's your recommendation to the CEO?
+
+[candidate · 14:31] My recommendation: Brew & Bean's margin problem is almost entirely an input-cost pass-through failure, and the fix is a staged price increase paired with procurement reform — not a cost-cutting program.
+
+Three supports. First, COGS explains roughly 89% of the 18-point decline; labor is flat and overhead moved only 2 points. Second, within COGS, beans rose 40% and other inputs a similar amount — this is broad inflation, not one bad line. Third, menu prices haven't moved in two years while volume grew 15%, so the company absorbed all of it voluntarily. Demand is healthy; that's the asset to work with.
+
+Specifically: phase in roughly 10–12% in price over two or three moves, weighted toward sizes and add-ons, and target the remaining gap through consolidated bean contracts and hedging, plus waste reduction.
+
+Risks: I don't have elasticity or competitor pricing, so a 24% move at once could break traffic. Next steps — test price in a subset of stores, and pull category-level margins to target the increase.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "Understood."
+  },
+  {
+    "type": "tool_use",
+    "name": "end_case",
+    "input": {}
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak","end_case"] → filtered: ["speak","end_case"]
+
+[interviewer · SCORING · 14:33] We'll stop there. Thanks for working through the case — your written report will follow.
+[score] backfilled data-request classification for candidate turns: [15]
+[score] reconciliation merged both-sides claims: [{"dimension":"quantitative","wentWell":"The candidate set up the price-recovery equation before solving it, computed about 24% correctly, and stated what the number means for the business.","needsWork":"The recommended 10–12% price figure was asserted without sizing what it recovers. A 12% increase with flat volume gives a margin of about (1.12−0.94)/1.12 ≈ 16%, roughly 10 of the 18 points. The 'remaining gap' of about 8 points was never quantified against the roughly 1.5 points from procurement and 1–2 points from waste.","merged":"The candidate set up the price-recovery equation before solving it and correctly computed the roughly 24% needed. However, the recommended 10–12% increase was asserted without sizing what it recovers: about 16% margin, or roughly 10 of the 18 points. The remaining ~8-point gap was never quantified against the roughly 1.5 points from procurement and 1–2 points from waste.","placedIn":"wentWell"},{"dimension":"dataExhibit","wentWell":"The candidate did not stop at beans: they showed the bean spike cannot explain the full 16 points and that inflation is broad-based.","needsWork":"Dismissing the 2-point overhead increase as noise overstated the case, since it is about 11% of the decline. The candidate also never stated the split explicitly: about 4.2 points from beans versus about 11.8 from other inputs.","merged":"The candidate did not stop at beans and showed that the bean spike cannot explain the full 16 points, so inflation is broad-based. However, the split was never stated explicitly: about 4.2 points from beans versus about 11.8 from other inputs. Dismissing the 2-point overhead increase as noise also overstated the case, since it is about 11% of the decline.","placedIn":"wentWell"},{"dimension":"creativity","wentWell":"The candidate produced several distinct levers and ordered them by impact.","needsWork":"The ideas came as a flat list with no organizing mini-structure, such as price/mix versus input cost versus operations. Breadth also stayed within cost and price; no revenue or operating-model levers appeared.","merged":"The candidate produced several distinct levers and ordered them by impact, but they came as a flat list with no organizing mini-structure (such as price/mix vs. input cost vs. operations). Breadth also stayed within cost and price, with no revenue or operating-model levers.","placedIn":"needsWork"},{"dimension":"synthesis","wentWell":"Three supports were drawn directly from the analysis, followed by a named risk and concrete next steps.","needsWork":"The recommendation left the size of the 'remaining gap' unstated, so the CEO cannot tell whether the plan restores the 24% margin. The risk was also framed around a 24% one-time move the candidate was not recommending.","merged":"Three supports were drawn directly from the analysis and followed by a named risk and concrete next steps. However, the risk was framed around a 24% one-time move the candidate was not recommending. The size of the remaining gap was also left unstated, so the CEO cannot tell whether the plan restores the 24% margin.","placedIn":"wentWell"},{"dimension":"communication","wentWell":"The candidate used hypothesis-driven phrasing from the first answer onward.","needsWork":"Occasional absolute phrasing overstated the evidence, which can undercut credibility.","merged":"The candidate used hypothesis-driven phrasing from the first answer onward, though occasional absolute phrasing overstated the evidence, which can undercut credibility.","placedIn":"wentWell"}]
+[score] cross-dimension repetition: [{"concept":"Procurement/cost lever aimed at beans rather than the larger 43-point dairy, packaging and food basket","dimensions":["dataExhibit","judgment","quantitative","synthesis","creativity"]},{"concept":"Not sizing each lever's contribution against the 18-point margin gap (remaining gap left unquantified)","dimensions":["quantitative","synthesis","judgment"]}]
+
+[live-run] ended=true scoring=scored

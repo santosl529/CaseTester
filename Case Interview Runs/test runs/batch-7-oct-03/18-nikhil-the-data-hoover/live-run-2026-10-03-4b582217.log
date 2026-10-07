@@ -1,0 +1,239 @@
+[live-run] session 4b582217-e17d-4dd1-ae75-feab04267965 · Brew & Bean Profitability · persona 18 Nikhil — the Data Hoover · pace human
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+Take a moment, then walk me through how you'd approach this.
+
+[candidate · 1:21] Okay, so profit is revenue minus cost, and since revenue grew but margin fell, something on the cost side is moving. Before I frame it, could I get a few data points?
+
+One, the full cost breakdown by line item for both years. Two, revenue split by store versus new store openings. Three, average ticket size. Four, transaction volume per store. Five, the number of stores opened in the last two years. Six, employee headcount and wage rates. Seven, coffee bean commodity prices over the period. Eight, customer satisfaction scores and the Net Promoter Score trend.
+
+That should give me enough to start narrowing down where the leakage is.
+[runner] phase: INTRO stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "I'll take those in turn. Some of them I can give you now, but I'd like to see how you're structuring the problem first, so I'm holding the rest for the moment."
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "stores_count"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "avg_ticket"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "speak",
+    "input": {
+      "text": "Employee headcount, wage rates, transaction volume per store, and the satisfaction and NPS trends are not in the information I have. Take a minute if you need it, then walk me through your framework."
+    }
+  }
+]
+[interviewer-model] dropped narration outside speak: "I'll take those in turn. Some of them I can give you now, but I'd like to see how you're structuring the problem first, so I'm holding the rest for the moment."
+[interviewer] phase: INTRO raw: ["advance_phase","reveal_data","reveal_data","speak"] → filtered: ["advance_phase","reveal_data","reveal_data","speak"]
+[runner] same-turn data request resolution: {"released":["revenue_total"],"deferred":true,"offered":[],"notYet":false,"refusedNotInCase":true,"phase":"CLARIFY"}
+[runner] phase repair: {"from":"CLARIFY","to":"ANALYSIS","reasons":["ledger reveal (releaseWhen ANALYSIS)"]}
+
+[interviewer · ANALYSIS · 1:26] 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit. Employee headcount, wage rates, transaction volume per store, and the satisfaction and NPS trends are not in the information I have. Take a minute if you need it, then walk me through your framework. On what you asked for: Total revenue is $480M a year. On the data you asked for — I'll come to that shortly. That's not in the information I have.
+[data-requests] non-response to available ledger data: {"what":"Revenue split by store versus new store openings","ledgerItemIds":["stores_count","revenue_per_store"],"interviewerTurnIndex":2,"revealedByNow":false,"explicit":true}
+[data-requests] non-response to available ledger data: {"what":"Coffee bean commodity prices over the period","ledgerItemIds":["bean_price_change"],"interviewerTurnIndex":2,"revealedByNow":false,"explicit":true}
+
+[candidate · 2:56] Got it — flat footprint, ticket up 10%, revenue $480M.
+
+Before I lock the framework, can I get a few more things? One, total cost of goods sold for both years. Two, labor cost as a percent of revenue. Three, rent and occupancy costs. Four, marketing spend. Five, the menu price history — have prices changed over the two years? Six, waste or spoilage rates. Seven, the mix of drinks versus food versus merchandise. Eight, the split of company-owned versus franchised locations.
+
+I'd also like store-level square footage and the average lease term if we have it.
+
+Framework-wise, I'd split it into revenue drivers — price and volume — and cost drivers — COGS, labor, occupancy, overhead — and see which line moved most.
+[runner] phase: ANALYSIS stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "The candidate has laid out a revenue-versus-cost framework, so I'll apply one pressure test before releasing data."
+  },
+  {
+    "type": "tool_use",
+    "name": "speak",
+    "input": {
+      "text": "Okay. You've split it into revenue drivers and cost drivers. Is that MECE, and what's missing from it?"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer-model] dropped narration outside speak: "The candidate has laid out a revenue-versus-cost framework, so I'll apply one pressure test before releasing data."
+[interviewer] phase: ANALYSIS raw: ["speak","advance_phase"] → filtered: ["speak","advance_phase"]
+[runner] same-turn data request resolution: {"released":["cogs_pct","labor_pct"],"deferred":true,"offered":[],"notYet":false,"refusedNotInCase":true,"phase":"EXHIBIT"}
+[runner] released earlier open requests: ["overhead_pct","revenue_per_store"]
+
+[interviewer · EXHIBIT · 2:59] Okay. You've split it into revenue drivers and cost drivers. On what you asked for: COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. On the data you asked for — I'll come to that shortly. That's not in the information I have. Before we wrap, on what you asked about earlier: Overhead is 14% of revenue, up slightly from 12%. Average revenue per store is $2.4M a year. Is that MECE, and what's missing from it?
+[data-requests] non-response to available ledger data: {"what":"Menu price history — have prices changed over the two years","ledgerItemIds":["menu_price_change"],"interviewerTurnIndex":4,"revealedByNow":false,"explicit":true}
+
+[candidate · 4:29] COGS jumped 16 points, labor flat, overhead up 2 — so COGS is where it is.
+
+Can I get a few more? One, the split of COGS into beans, dairy, food, cups and packaging. Two, unit input prices for each of those. Three, supplier contract terms and whether any renegotiated. Four, waste and spoilage by category. Five, portion sizes or recipe changes.六— sorry, six, menu prices by item over the two years. Seven, the product mix shift between drinks and food. Eight, freight and distribution costs.
+
+Also inventory turnover and any shrinkage figures if we have them.
+
+On MECE — revenue and cost are collectively exhaustive and don't overlap, so I think it holds. What's missing is probably a mix dimension: cost per unit versus units sold, and product mix within that.
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "The candidate is on the right thread (COGS), and has asked for the bean/COGS split, input prices, and menu prices. I'll release the earned items and advance."
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "menu_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_share_of_cogs"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "non_bean_input_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "speak",
+    "input": {
+      "text": "I don't have waste, supplier contract, freight, or inventory figures. Using what you have now, how much of the COGS increase can you explain?"
+    }
+  }
+]
+[interviewer-model] dropped narration outside speak: "The candidate is on the right thread (COGS), and has asked for the bean/COGS split, input prices, and menu prices. I'll release the earned items and advance."
+[interviewer] phase: EXHIBIT raw: ["reveal_data","reveal_data","reveal_data","reveal_data","advance_phase","speak"] → filtered: ["reveal_data","reveal_data","reveal_data","reveal_data","advance_phase","speak"]
+
+[interviewer · BRAINSTORM · 4:34] Raw coffee bean costs are up 40% over the past two years. Menu prices have not changed in two years. Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. I don't have waste, supplier contract, freight, or inventory figures. Using what you have now, how much of the COGS increase can you explain?
+
+[candidate · 6:04] Let me run it. Two years ago COGS was 42% of revenue. Beans were 25% of that, so 10.5 points of revenue; other inputs were 75%, so 31.5 points.
+
+Beans up 40%: 10.5 × 1.4 = 14.7 points. Other inputs up 37.5%: 31.5 × 1.375 = 43.3 points. Total 58.0 points — which is exactly today's COGS ratio. So input cost inflation explains essentially the entire 16-point move, and since menu prices haven't changed in two years, none of it got passed through.
+
+Can I get a few more things though? One, competitor pricing. Two, price elasticity estimates. Three, hedging policy on beans. Four, regional cost variation. Five, loyalty program penetration. Six, the item-level margin by SKU. Seven, forward commodity curves. Eight, brand perception versus competitors.
+[runner] phase: BRAINSTORM stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "The core driver is quantified, so I'll move us along."
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "speak",
+    "input": {
+      "text": "I don't have competitor pricing, elasticity, hedging, regional, loyalty, SKU margin, forward curve, or brand data. Beyond pricing, what else could Brew & Bean do to reverse this decline?"
+    }
+  }
+]
+[interviewer-model] dropped narration outside speak: "The core driver is quantified, so I'll move us along."
+[interviewer] phase: BRAINSTORM raw: ["advance_phase","speak"] → filtered: ["advance_phase","speak"]
+
+[interviewer · RECOMMENDATION · 6:07] I don't have competitor pricing, elasticity, hedging, regional, loyalty, SKU margin, forward curve, or brand data. Beyond pricing, what else could Brew & Bean do to reverse this decline?
+
+[candidate · 7:37] Fair enough, I'll work without those.
+
+Beyond price, a few levers. One, procurement — renegotiate bean and dairy contracts, consolidate suppliers for volume discounts, or hedge forward so a 40% spike doesn't flow straight through. Two, recipe and portion engineering — slightly smaller pours, cheaper bean blends in milk-heavy drinks where the bean is less detectable. Three, mix shift — push higher-margin items like food and merchandise, which are less exposed to bean inflation. Four, waste reduction, though I don't have spoilage data to size it.
+
+A couple of things I'd still want: a split of COGS by item, and transaction volume per store, since ticket rose 10% but I can't tell if traffic fell.
+
+Realistically though, with input costs up ~38% and prices flat for two years, pricing has to do most of the work — the others are second-order.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "Okay. Putting that together for the CEO, what's your recommendation, and what would you do first?"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 7:41] Okay. Putting that together for the CEO, what's your recommendation, and what would you do first?
+
+[candidate · 9:11] My recommendation: Brew & Bean should raise menu prices, roughly 10–12%, phased in, because input cost inflation is the entire story and none of it has been passed through.
+
+Supporting: COGS went from 42% to 58% of revenue, and the 40% bean increase plus 37.5% other-input increase accounts for all 16 points. Labor is flat, overhead moved only 2 points, and the footprint is unchanged, so this isn't an operating problem. Prices haven't moved in two years while costs rose ~38%.
+
+Risks: volume loss if demand is elastic — ticket is already up 10%, so customers may be near a ceiling. Specialty coffee is usually fairly inelastic, but I'd want competitor pricing to confirm we're not already at the top of the market.
+
+First step: pilot the increase in a subset of stores and measure traffic. In parallel, start supplier renegotiation and a hedging program so we're not re-pricing every year.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "The 10–12% is your estimate and I haven't seen the derivation. Walk me through how you got that range."
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+[runner] same-turn data request resolution: {"released":[],"deferred":false,"offered":[],"notYet":false,"refusedNotInCase":true,"phase":"RECOMMENDATION"}
+
+[interviewer · RECOMMENDATION · 9:13] The 10–12% is your estimate and I haven't seen the derivation. Walk me through how you got that range. That's not in the information I have.
+
+[candidate · 10:43] Honestly, let me redo that — I think I anchored on the 10% ticket increase rather than deriving it.
+
+Take revenue of 100. Costs today: COGS 58, labor 22, overhead 14 = 94, leaving 6 margin. If I raise price by x and costs stay fixed in dollars, margin = (100(1+x) − 94) / (100(1+x)). Setting that to 24%: 100(1+x) − 94 = 24(1+x), so 76(1+x) = 94, x = 23.7%.
+
+Sanity check the other way: to push COGS back from 58% to 42% of revenue, 58/(1+x) = 42, x = 38%. That's higher because it restores the cost ratio rather than the margin.
+
+So the real range is more like 20–25% to fully restore margin, which is a lot to take at once — I'd phase it and lean harder on procurement. My 10–12% was wrong.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text",
+    "text": "Understood. Your recommendation is committed."
+  },
+  {
+    "type": "tool_use",
+    "name": "end_case",
+    "input": {}
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak","end_case"] → filtered: ["speak","end_case"]
+
+[interviewer · SCORING · 10:46] That's time. Thanks for working through it — your written report will follow.
+[score] backfilled data-request classification for candidate turns: [13]
+[score] reconciliation merged both-sides claims: [{"dimension":"structure","wentWell":"The candidate opened with a profit equation and an early hypothesis that the problem sat on the cost side, which correctly prioritized where the answer lived.","needsWork":"The candidate asked for long data lists before giving any structure, so the framework came two turns late and the data requests were not tied to buckets.","merged":"The candidate eventually anchored on a profit equation with an early cost-side hypothesis that correctly prioritized where the answer lived, but first led with long data lists, so the framework came two turns late and the data requests were not tied to buckets.","placedIn":"needsWork"},{"dimension":"quantitative","wentWell":"When challenged, the candidate set up the margin equation explicitly, solved it correctly, and cross-checked it against a cost-ratio approach.","needsWork":"The candidate put a 10–12% price increase into the recommendation without deriving it; the correct figure to restore the 24% margin is about 24%.","merged":"When challenged, the candidate set up the margin equation explicitly, solved it correctly (~24%), and cross-checked it against a cost-ratio approach; before that, however, a 10–12% price increase had gone into the recommendation without any derivation.","placedIn":"needsWork"},{"dimension":"dataExhibit","wentWell":"The candidate read the cost lines systematically and isolated COGS as the driver in a single crisp sentence.","needsWork":"The candidate never split the 16 points into beans (~4.2) and other inputs (~11.8). As a result, the dominant driver (dairy, packaging, food) was never named, and the procurement plan leaned on a bean hedge.","merged":"The candidate read the cost lines systematically and crisply isolated COGS as the driver, but never split the 16 points into beans (~4.2) and other inputs (~11.8), so the dominant driver (dairy, packaging, food) was never named and the procurement plan leaned on a bean hedge.","placedIn":"needsWork"},{"dimension":"judgment","wentWell":"The candidate flagged elasticity risk and mitigated it with a store pilot, and later recognized that a ~24% increase is too large to take at once.","needsWork":"The candidate read the 10% ticket rise as a sign of a price ceiling, but the ticket rose because customers bought more items at flat prices, so it says little about price tolerance.","merged":"The candidate flagged elasticity risk, mitigated it with a store pilot, and later recognized that a ~24% increase is too large to take at once, but misread the 10% ticket rise as a price ceiling when it reflected customers buying more items at flat prices and says little about price tolerance.","placedIn":"needsWork"},{"dimension":"creativity","wentWell":"The candidate generated four distinct lever groups, each with concrete sub-ideas.","needsWork":"There was no overarching mini-structure (for example, cost levers versus revenue levers) framing the brainstorm.","merged":"The candidate generated four distinct lever groups, each with concrete sub-ideas, but without an overarching mini-structure (for example, cost levers versus revenue levers) framing the brainstorm.","placedIn":"needsWork"},{"dimension":"synthesis","wentWell":"The candidate led answer-first with a committed recommendation and backed it with evidence from the analysis.","needsWork":"The headline price magnitude was not supported by any derivation. After correcting it, the candidate did not restate a revised end-to-end recommendation.","merged":"The candidate led answer-first with a committed recommendation backed by evidence from the diagnosis, but the headline price magnitude was not supported by any derivation, and after correcting it the candidate did not restate a revised end-to-end recommendation.","placedIn":"wentWell"},{"dimension":"communication","wentWell":"The candidate's mid-case and closing statements were crisp and answer-first.","needsWork":"Nearly every turn opened or closed with an eight-item data list, which buried the reasoning and was bottom-up rather than structure-first.","merged":"The candidate's mid-case and closing statements were crisp and answer-first, but nearly every other turn opened or closed with an eight-item data list that buried the reasoning and came across as bottom-up rather than structure-first.","placedIn":"needsWork"},{"dimension":"pushback","wentWell":"After updating, the candidate proactively adjusted the plan rather than stopping at the corrected number.","needsWork":"Case leadership leaned on repeated data requests rather than driving forward with hypotheses; the interviewer had to prompt the candidate to use the available data.","merged":"After the price correction, the candidate proactively adjusted the plan, but elsewhere case leadership leaned on repeated data requests rather than hypotheses, and the interviewer had to prompt the candidate to work with the available data.","placedIn":"wentWell"}]
+[score] cross-dimension repetition: [{"concept":"Excessive data requests instead of structure- or hypothesis-driven progress","dimensions":["structure","dataExhibit","communication","pushback"]},{"concept":"Price increase magnitude (10–12%) asserted without derivation","dimensions":["quantitative","judgment","synthesis"]},{"concept":"Non-bean inputs (dairy, packaging, food) as the dominant cost driver not recognized or used","dimensions":["dataExhibit","judgment","creativity","quantitative","pushback"]}]
+
+[live-run] ended=true scoring=scored

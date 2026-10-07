@@ -1,0 +1,534 @@
+[live-run] session 1df7383a-1895-43c2-8684-ca7b59bd722d · Brew & Bean Profitability · persona 1 Maya — the Freezer · pace human
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+Take a moment, then walk me through how you'd approach this.
+
+[candidate silent 70s]
+
+[interviewer · check_in · 1:01] Still with me? Take your time. The question on the table: how would you approach this problem?
+
+[candidate · 1:49] Okay, so... I'd want to look at three big areas. First, revenue — like what's happening with sales. Second, costs, so what they're spending money on. And third, maybe external stuff, like competitors or the market overall.
+
+Sorry, that's pretty broad. Am I on the right track?
+[runner] phase: INTRO stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: INTRO raw: [ 'speak', 'advance_phase', 'advance_phase' ] → filtered: [ 'speak', 'advance_phase', 'advance_phase' ]
+
+[interviewer · CLARIFY · 1:52] I can't tell you that mid-case. Pick the branch you'd prioritize first, and why?
+
+[candidate · 2:13] Can I ask first — when you say revenue grew 15%, is that total chain revenue or per store?
+[runner] phase: CLARIFY stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "stores_count"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "revenue_total"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: CLARIFY raw: [ 'speak', 'reveal_data', 'reveal_data', 'advance_phase' ] → filtered: [ 'speak', 'reveal_data', 'reveal_data', 'advance_phase' ]
+[runner] same-turn data request resolution: {"released":[],"deferred":true,"phase":"STRUCTURE"}
+
+[interviewer · STRUCTURE · 2:16] Since the question is whether the 15% is total or per store, I'll give you the store count and the total revenue so you can work it out. 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. Total revenue is $480M a year. On the data you asked for — I'll come to that shortly.
+
+[candidate · 2:34] Okay, got it. And is the 6% margin net profit, or operating profit before taxes?
+[runner] phase: STRUCTURE stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: STRUCTURE raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · STRUCTURE · 2:36] The case gives it as net profit margin, so treat the 6% as net. Which branch would you prioritize first, and why?
+
+[candidate · 2:53] Do we know if the price per cup changed over the two years?
+[runner] phase: STRUCTURE stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "menu_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "revenue_per_store"
+    }
+  }
+]
+[interviewer] phase: STRUCTURE raw: [ 'speak', 'reveal_data', 'reveal_data' ] → filtered: [ 'speak', 'reveal_data', 'reveal_data' ]
+[runner] stripped meta-leak from interviewer turn: ["The candidate is asking about menu price changes, which is a direct data item."]
+[runner] phase repair: {"from":"STRUCTURE","to":"ANALYSIS","reasons":["ledger reveal (releaseWhen ANALYSIS)"]}
+
+[interviewer · ANALYSIS · 2:56] Release it. Menu prices have not changed in two years. Average revenue per store is $2.4M a year.
+
+[candidate · 3:14] And do we have the cost breakdown — like what the main cost lines are?
+[runner] phase: ANALYSIS stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "show_exhibit",
+    "input": {
+      "exhibit_id": "exhibit-a"
+    }
+  }
+]
+[interviewer] phase: ANALYSIS raw: [ 'speak', 'show_exhibit' ] → filtered: [ 'speak', 'show_exhibit' ]
+[runner] phase repair: {"from":"ANALYSIS","to":"EXHIBIT","reasons":["exhibit shown"]}
+
+[interviewer · EXHIBIT · 3:17] I'll show you the exhibit with the cost structure over time.
+
+[candidate · 3:41] hmm, okay. So COGS went up and the others kind of stayed flat.
+
+I'm... not totally sure what to do with that, sorry.
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: EXHIBIT raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · EXHIBIT · 3:43] Walk me through it with the figures: how much did COGS move as a share of revenue, and how does that compare to the total margin drop?
+
+[candidate · 3:58] I'm stuck, sorry. Can you point me where to start?
+[runner] phase: EXHIBIT stall rung: 1
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: EXHIBIT raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · EXHIBIT · 4:00] Take your time. The question on the table is how the change in COGS compares to the total drop in margin.
+
+[candidate · 4:13] I don't really know where to start. Sorry.
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: EXHIBIT raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · EXHIBIT · 4:16] I won't point you, but I'll narrow it. COGS was 42% of revenue two years ago and is 58% today. How many points is that, and how does it compare to the margin falling from 24% to 6%?
+
+[candidate · 4:46] Okay. 58 minus 42 is 16 points. And margin fell 24 to 6, which is 18 points. So COGS explains most of it.
+
+In dollars, 16% of $480M... that's $7.68M of extra cost.
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: EXHIBIT raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · EXHIBIT · 4:48] Your 16 points and 18 points hold up against the figures. On the dollars, is the $7.68M the margin problem, or does it include cost that would have scaled with revenue growth anyway?
+
+[candidate · 5:18] Um, I think it's the margin problem? 16% of $480M, so $7.68M of cost that wasn't there before.
+
+god I'm so bad at this. Am I on the right track at all?
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: EXHIBIT raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · EXHIBIT · 5:20] I can't grade you mid-case. Two years ago COGS was 42% of a smaller revenue base, so does applying 16 points to today's $480M capture the full margin impact? Walk me through it.
+
+[candidate · 5:45] I still get $7.68M. 16% of $480M.
+
+Honestly I'm going to bomb every interview I do. I don't really know why I'm even doing this.
+
+[interviewer · EXHIBIT · 5:45] Let's set the case aside for a second — thank you for telling me, and are you okay? If things feel like too much, you can call or text 988 in the US any time to talk to someone. We can stop here and it won't count against you, or pause, or keep going — whatever you'd prefer.
+
+[candidate · 6:01] I'm okay, really — I'd rather just keep going. Thank you though.
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: EXHIBIT raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · EXHIBIT · 6:05] Okay. Your 16 points applied to today's revenue is a legitimate way to size the margin impact. Now, COGS is the cost line that moved, and prices didn't change. What would you want to know next to understand why it rose?
+
+[candidate · 6:40] I'd want a split of the COGS line — like how much is coffee beans versus milk versus cups and packaging, and whether any one input's price spiked. Also maybe whether waste or spoilage went up.
+
+Do we have that breakdown?
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_share_of_cogs"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "non_bean_input_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: EXHIBIT raw: [
+  'speak',
+  'reveal_data',
+  'reveal_data',
+  'reveal_data',
+  'advance_phase'
+] → filtered: [
+  'speak',
+  'reveal_data',
+  'reveal_data',
+  'reveal_data',
+  'advance_phase'
+]
+[runner] stripped meta-leak from interviewer turn: ["The candidate is asking for COGS breakdown and input price spikes."]
+
+[interviewer · BRAINSTORM · 6:45] I'll release the bean share, bean price change, and other input changes. Coffee beans were 25% of COGS two years ago. Raw coffee bean costs are up 40% over the past two years. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.
+
+[candidate · 7:41] Okay. So beans were 25% of COGS, and COGS was 42% of revenue. So beans were about 10.5% of revenue, up 40%, so that's about 4.2 points.
+
+The other 75% of COGS is about 31.5% of revenue, up 37.5%, so roughly 11.8 points. Together about 16 points, which matches the move.
+
+So it's basically all input costs across the board, not just beans.
+
+Hmm, I'm not sure what that means for them though.
+[runner] phase: BRAINSTORM stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: BRAINSTORM raw: [ 'speak', 'advance_phase' ] → filtered: [ 'speak', 'advance_phase' ]
+
+[interviewer · RECOMMENDATION · 7:45] Okay. Input costs are up broadly and menu prices haven't moved. Beyond what we've discussed, what else could Brew & Bean do to reverse the margin decline?
+
+[candidate · 8:08] Um... maybe raise prices, since they haven't moved in two years. Or try to negotiate with suppliers.
+
+Hmm, I'm not sure what else.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · RECOMMENDATION · 8:12] Those are two. Think about the cost side, the revenue side, and the customer. What else could they try?
+
+[candidate · 8:32] Maybe change the menu mix toward higher-margin drinks? And... reduce waste, I guess.
+
+Sorry, I'm kind of blanking.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · RECOMMENDATION · 8:35] Okay. Of everything you've listed, which would you put in front of the CEO first, and what's your overall recommendation?
+
+[candidate · 8:46] I don't know. Sorry.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · RECOMMENDATION · 8:49] Take a minute. You've established that input costs rose across the board and prices haven't moved. What's the one action you'd start with, and why?
+
+[candidate silent 80s]
+
+[interviewer · check_in · 9:51] Still with me? Take your time. The question on the table: what's the one action you'd start with, and why?
+
+[candidate · 10:21] I'm sorry, I really don't know.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · RECOMMENDATION · 10:24] Start from what you found: input costs rose across the board, and menu prices haven't moved in two years. If you had to pick one lever from your own list, which would it be?
+
+[candidate · 10:37] I'm sorry — I just don't know.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · RECOMMENDATION · 10:40] Let's try it smaller. Of the four ideas you gave: raising prices, supplier negotiation, shifting menu mix, or cutting waste, which one would you want to test first?
+
+[candidate · 10:54] Hmm. Maybe prices? But I'm honestly not sure.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · RECOMMENDATION · 10:56] Okay, prices. You haven't seen customer data yet, so what would you want to know before the CEO could act on a price increase?
+
+[candidate · 11:26] Um... I guess how customers would react. Like whether they'd stop coming if prices went up.
+
+Maybe transaction volume, to see if traffic's already changing?
+
+Sorry, I don't know if that's enough.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "avg_ticket"
+    }
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak', 'reveal_data' ] → filtered: [ 'speak', 'reveal_data' ]
+
+[interviewer · RECOMMENDATION · 11:28] Transaction volume is a reasonable thing to ask for. The average ticket is the closest figure I have. The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit.
+
+[candidate · 12:09] Okay — if ticket is up 10% but prices didn't change, that's customers buying more per visit. And revenue is up 15%, so transactions are up maybe 5%.
+
+So traffic's still growing, which... maybe means customers aren't that price-sensitive right now?
+
+Sorry, I'm not sure if that's the right read.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak' ] → filtered: [ 'speak' ]
+[runner] style QA flag (soft): ["stacked_questions"]
+
+[interviewer · RECOMMENDATION · 12:12] Walk me through the 5%: how do you get from a 10% ticket increase and 15% revenue growth to that transaction figure? And is growing traffic enough to say customers aren't price-sensitive, given prices haven't moved?
+
+[candidate · 12:59] Um, I just subtracted — 15 minus 10 is 5. I think it should really be dividing, like 1.15 over 1.10, but that's close to 5% anyway.
+
+And no, I guess growing traffic doesn't actually tell us about price sensitivity, since prices never changed. So we've never tested it.
+
+Sorry, I don't know what that means we should do.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · RECOMMENDATION · 13:02] Okay. You've said traffic doesn't tell you about price sensitivity, and the price has never been tested. Put that together with the cost findings: what do you recommend to the CEO, and how would you roll it out?
+
+[candidate · 13:13] I'm sorry, I don't know.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · RECOMMENDATION · 13:17] Try it in three parts: the problem, your first action, and how you'd test it. Start with one sentence on what's driving the margin decline.
+
+[candidate · 13:48] The margin decline is driven by input costs rising across the board — COGS went from 42% to 58% of revenue while prices stayed flat.
+
+But for the recommendation... I'm sorry, I really don't know.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · RECOMMENDATION · 13:51] That's the first part. Now the action: given prices never moved and customers have never been tested, what would you do first, and how would you check that it works?
+
+[candidate · 14:08] Maybe test a price increase in some stores? But honestly, I don't know. Sorry.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · RECOMMENDATION · 14:13] Okay, a price test in some stores. How would you set that test up so the CEO could trust the result?
+
+[candidate · 14:44] Um, pick a set of stores and raise prices there, and compare to stores that didn't. See if transactions drop.
+
+I don't really know how many stores or how much of an increase though. Sorry.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · RECOMMENDATION · 14:49] Understood. Pulling it together, what's your final recommendation to the CEO, in a few sentences?
+
+[candidate · 15:01] I'm sorry — I don't know.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · RECOMMENDATION · 15:05] You've already given most of it: input costs drove the decline, prices never moved, and you'd test a price increase in some stores against others. Say it back to me as a recommendation to the CEO, and add one other lever you'd pursue alongside it.
+
+[candidate · 15:17] I'm sorry, I really don't know.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · RECOMMENDATION · 15:21] Okay. In one or two sentences, start with "I recommend" and use your own words from earlier.
+
+[candidate · 15:33] I'm sorry — I don't know.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "end_case",
+    "input": {}
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak', 'end_case' ] → filtered: [ 'speak', 'end_case' ]
+[runner] suppressed early end_case — coverage incomplete: {"judgment":45,"pushback":40,"structure":65,"synthesis":25,"creativity":50,"dataExhibit":75,"quantitative":72,"communication":35}
+[runner] closing turn without a confirmed end — replaced (risk probe)
+
+[interviewer · RECOMMENDATION · 15:37] What's the biggest risk to that recommendation, and how would you test for it?
+
+[candidate · 15:48] Hmm. I'm not sure. Sorry.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak' ] → filtered: [ 'speak' ]
+
+[interviewer · RECOMMENDATION · 15:51] Okay. Customers leaving after a price increase is one risk you've already raised. What would you watch in the test stores to catch that early?
+
+[candidate · 16:10] Transactions, I guess. If traffic drops in the test stores.
+
+Sorry, I don't know what else.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "end_case",
+    "input": {}
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: [ 'speak', 'end_case' ] → filtered: [ 'speak', 'end_case' ]
+
+[interviewer · SCORING · 16:12] That's time. Thanks for working through it — your written report will follow.
+[score] backfilled data-request classification for candidate turns: [24,41,65]
+[score] interviewer-error marks: [["wellbeing",23]]
+[live-run] failed: AnthropicError: Streaming is required for operations that may take longer than 10 minutes. See https://github.com/anthropics/anthropic-sdk-typescript#long-requests for more details
+    at Anthropic.calculateNonstreamingTimeout (/Users/lorenzo/coding/personal-projects/CaseTester/node_modules/@anthropic-ai/sdk/src/client.ts:1525:13)
+    at Messages.create (/Users/lorenzo/coding/personal-projects/CaseTester/node_modules/@anthropic-ai/sdk/src/resources/beta/messages/messages.ts:117:30)
+    at Messages.parse (/Users/lorenzo/coding/personal-projects/CaseTester/node_modules/@anthropic-ai/sdk/src/resources/beta/messages/messages.ts:168:17)
+    at runJudge (/Users/lorenzo/coding/personal-projects/CaseTester/lib/scoring/judge.ts:239:47)
+    at computeScore (/Users/lorenzo/coding/personal-projects/CaseTester/lib/scoring/score-session.ts:168:27)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async scoreSession (/Users/lorenzo/coding/personal-projects/CaseTester/lib/scoring/score-session.ts:43:20)
+    at async main (/Users/lorenzo/coding/personal-projects/CaseTester/scripts/live-run.ts:245:27)
+
+[score] backfilled data-request classification for candidate turns: [24,41]
+[score] interviewer-error marks: [["wellbeing",23]]
+[score] reconciliation merged both-sides claims: [{"dimension":"structure","wentWell":"The candidate offered a recognizable revenue-vs-costs split and then asked targeted questions on price and cost lines that pointed toward the right buckets.","needsWork":"The framework was a generic three-bucket template with no sub-points (no volume × price, no COGS/labor/overhead split) and no restated objective, and the candidate called it broad.","merged":"The candidate offered a recognizable revenue-vs-costs split and asked targeted questions on price and cost lines, but the framework stayed a generic three-bucket template with no sub-points (no volume × price, no COGS/labor/overhead split) and no restated objective.","placedIn":"needsWork"},{"dimension":"dataExhibit","wentWell":"The candidate correctly isolated COGS as the line that moved and, once guided, showed it explains 16 of the 18 margin points.","needsWork":"The first read of the exhibit was a vague restatement that glossed over overhead's 2-point rise. The candidate could not quantify anything until the interviewer supplied the figures, so the core insight was not reached independently.","merged":"The candidate correctly isolated COGS as the line that moved. However, the first read of the exhibit was a vague restatement that glossed over overhead's 2-point rise, and the candidate showed COGS explains 16 of the 18 margin points only after the interviewer supplied the figures.","placedIn":"needsWork"},{"dimension":"judgment","wentWell":"The candidate correctly recognized that growing traffic says nothing about price sensitivity when prices have never moved. This is a sound commercial insight.","needsWork":"The candidate's first inference from traffic growth overreached before being corrected, which shows a tendency to draw unsupported conclusions.","merged":"The candidate's first inference from traffic growth overreached and had to be corrected. After that, the candidate made a sound commercial point: growing traffic says nothing about price sensitivity when prices have never moved.","placedIn":"needsWork"},{"dimension":"communication","wentWell":"When the candidate did produce analysis, the narration was clear and easy to follow.","needsWork":"Frequent apologies, hedging, and requests for validation undercut otherwise sound points and made the candidate hard to follow as a leader.","merged":"When the candidate did produce analysis, the narration was clear and easy to follow, but frequent apologies, hedging, and requests for validation undercut otherwise sound points and weakened the candidate's presence as a leader.","placedIn":"needsWork"},{"dimension":"pushback","wentWell":"Challenged on the 5% transaction figure and the price-sensitivity read, the candidate updated both with explicit reasoning rather than defending them.","needsWork":"Asked whether the dollar figure was the right margin impact, the candidate repeated it without reasoning or re-checking the arithmetic, so the order-of-magnitude error survived.","merged":"Challenged on the 5% transaction figure and the price-sensitivity read, the candidate updated both with explicit reasoning. When asked whether the dollar figure was the right margin impact, however, the candidate repeated it without re-checking the arithmetic, so the order-of-magnitude error survived.","placedIn":"needsWork"}]
+[score] cross-dimension repetition: [{"concept":"Failure to commit: no stated hypothesis, priority, or recommendation when asked","dimensions":["structure","judgment","creativity","synthesis","communication"]},{"concept":"Heavy reliance on interviewer scaffolding (supplied figures, buckets, narrowed questions, sentence starters) to make progress","dimensions":["quantitative","dataExhibit","creativity","synthesis","pushback"]},{"concept":"Stopping at the analysis without stating the so-what or business implication","dimensions":["quantitative","dataExhibit","communication"]}]
+
+[live-run] finish 1df7383a-1895-43c2-8684-ca7b59bd722d scoring=scored

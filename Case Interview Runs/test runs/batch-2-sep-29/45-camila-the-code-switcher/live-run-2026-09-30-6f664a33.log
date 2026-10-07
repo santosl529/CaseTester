@@ -1,0 +1,222 @@
+[live-run] session 6f664a33-2e88-464e-b2ff-4322c7aa309d · Brew & Bean Profitability · persona 45 Camila — the Code-Switcher · pace human
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+Take a moment, then walk me through how you'd approach this.
+
+[candidate silent 14s]
+
+[candidate · 1:44] Okay, so let me make sure I have the problem right: revenues up 15%, but net margin collapsed from 24% to 6%. So revenue isn't the issue — something on the cost side is growing much faster than revenue. Actually, let me sanity check that with the math. If revenue was 100 before, profit was 24, so costs were 76. Now revenue is 115, profit is 6 point 9, entonces costs are about 108. So costs grew from 76 to 108, that's like 42 percent growth against 15 percent revenue growth. Sorry, I switch to Spanish when I do arithmetic — is that alright?
+
+So my approach: first break costs into COGS versus operating — labor, rent, marketing, corporate overhead. Second, figure out whether it's per-unit cost inflation or new cost structure, like new store openings. Third, check revenue quality — is the 15% from more stores or higher prices?
+
+Do we have a cost breakdown for both years?
+[runner] phase: INTRO stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: INTRO raw: ["speak"] → filtered: ["speak"]
+[runner] auto-advanced INTRO → CLARIFY (model did not advance)
+
+[interviewer · CLARIFY · 1:46] Spanish is fine, whatever helps you compute.
+
+Before data — you laid out several branches. Which do you prioritize first, and why?
+
+[candidate · 3:16] I'd start with the cost breakdown by line item, both years, indexed to revenue. Reason: the gap is 32 points of cost — entonces de setenta y seis a ciento ocho, that's a big absolute jump, and it's very unlikely to be spread evenly. One or two lines are probably driving almost all of it. So finding the biggest mover is the fastest path to the root cause, and it tells me which branch of my tree is even worth exploring.
+
+The one thing I'd check alongside it, almost for free, is the source of the 15% revenue growth — stores versus price versus traffic. Because if they opened a lot of new locations, some cost growth is just the new stores ramping up, and the margin story is mix, not inefficiency. Those two together frame everything else.
+
+So: biggest cost mover first, revenue composition second.
+[runner] phase: CLARIFY stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "show_exhibit",
+    "input": {
+      "exhibit_id": "exhibit-a"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "cogs_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "labor_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "overhead_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: CLARIFY raw: ["speak","show_exhibit","reveal_data","reveal_data","reveal_data","advance_phase"] → filtered: ["speak","show_exhibit","reveal_data","reveal_data","reveal_data","advance_phase"]
+[runner] phase repair: {"from":"STRUCTURE","to":"EXHIBIT","reasons":["ledger reveal (releaseWhen ANALYSIS)","exhibit shown"]}
+
+[interviewer · EXHIBIT · 3:19] Here's the cost structure over time. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%.
+[data-requests] non-response to available ledger data: {"what":"Revenue growth composition: breakdown between new stores, price increases, and traffic/transaction volume","ledgerItemIds":["stores_count","revenue_per_store","avg_ticket","menu_price_change"],"interviewerTurnIndex":4,"revealedByNow":false}
+
+[candidate · 4:49] Okay, this is pretty clean. COGS went from cuarenta y dos a cincuenta y ocho, so dieciséis points of the eighteen point margin loss. Overhead adds two. Labor flat. Entonces, COGS is basically the whole story — 89 percent of the decline.
+
+And it's steady, not a one-time shock: forty-two, fifty, fifty-eight. Eight points a year, both years. That reads like a sustained input cost trend or a pricing problem, not a single event.
+
+Two possibilities I want to separate. One, input costs per unit are rising — coffee beans, dairy, packaging — and they haven't passed it through to price. Two, price is flat or discounted while volume grew, so revenue per unit fell and COGS ratio rises mechanically.
+
+Can I get a split of the COGS line — beans versus dairy versus other inputs? And do we have menu price history over the two years? Either one would let me tell those apart.
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_share_of_cogs"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "non_bean_input_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "menu_price_change"
+    }
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["speak","reveal_data","reveal_data","reveal_data"] → filtered: ["speak","reveal_data","reveal_data","reveal_data"]
+
+[interviewer · EXHIBIT · 4:53] Let me hand you what I have on the COGS breakdown and on pricing. Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Menu prices have not changed in two years.
+
+[candidate · 6:23] Let me work this in absolutes with revenue indexed to 100 two years ago.
+
+COGS then = 42. Beans are 25% of that, entonces diez punto cinco, and other inputs are treinta y uno punto cinco.
+
+Today revenue is 115, COGS is 58 percent of that — cincuenta y ocho por ciento de ciento quince = 66.7.
+
+Other inputs up 37.5 percent: 31.5 × 1.375 = 43.3.
+
+So beans today = 66.7 − 43.3 = 23.4, versus 10.5 before. That's más del doble — roughly 123 percent increase. Beans went from a quarter of COGS to about 35 percent.
+
+So the root cause is a bean price spike, amplified by the fact that menu prices haven't moved in two years. They've absorbed a doubling in their single largest input and 37.5 percent inflation on everything else with zero pass-through. That's the whole 16 points.
+
+One check: is that bean increase price per pound, or are they also wasting more?
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_price_change"
+    }
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["speak","reveal_data"] → filtered: ["speak","reveal_data"]
+
+[interviewer · EXHIBIT · 6:25] Let me give you what I have on bean prices. Here's the bean price change: Raw coffee bean costs are up 40% over the past two years.
+
+[candidate silent 8s]
+
+[candidate · 8:03] That's really useful, because it doesn't fully explain it.
+
+Bean spend went up 123 percent, pero el precio only up 40 percent. Entonces volume: 2.23 divided by 1.40 = 1.59. So pounds of beans consumed are up about 59 percent, while revenue is only up 15 percent. Pounds per dollar of revenue up roughly 38 percent — 1.59 over 1.15.
+
+So there are two distinct problems, and I'd been conflating them. One is external: a 40 percent commodity spike, with no pricing action taken. Two is internal: they're using dramatically more beans per unit sold. That's over-portioning, waste, spoilage, calibration on the grinders, or a mix shift toward higher-dose drinks.
+
+The second one is the more interesting finding because it's controllable without touching price.
+
+Do we know whether drink mix changed — more espresso-based versus brewed? And any data on waste or shrinkage?
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["speak"] → filtered: ["speak"]
+[runner] phase repair: {"from":"EXHIBIT","to":"BRAINSTORM","reasons":["brainstorm question"]}
+
+[interviewer · BRAINSTORM · 8:05] I don't have drink mix or waste and shrinkage data.
+
+You've isolated two drivers. Beyond what we've discussed, what could the client do to reverse the decline? Give me structure.
+
+[candidate · 9:35] I'll bucket it three ways: price, input cost, and consumption efficiency — plus overhead as a smaller fourth.
+
+On price: prices haven't moved in two years while everything inflated. Even a modest increase is high leverage. A 5 percent price increase on revenue of 115 is about 5.75 dropping almost straight to profit, entonces from 6.9 to roughly 12.6 — that nearly doubles profit on its own, assuming volume holds. Specialty coffee is fairly inelastic, but I'd test in a subset of the 200 stores.
+
+On input cost: hedge or forward-contract beans, renegotiate with suppliers at 200-store scale, consider a second origin to reduce exposure to the 40 percent spike.
+
+On consumption: this is the 38 percent efficiency gap. Standardize dosing, scale calibration, portion audits, track waste by store and benchmark — the spread across stores will show how much is recoverable.
+
+On overhead: two points of growth, worth a look but not the priority.
+
+I'd want the waste data to size bucket three.
+[runner] phase: BRAINSTORM stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: BRAINSTORM raw: ["speak"] → filtered: ["speak"]
+[runner] interviewer promised data with no ledger match — injected refusal
+[runner] force-released open data requests before the recommendation ask: ["stores_count","revenue_per_store"]
+[runner] phase repair: {"from":"BRAINSTORM","to":"RECOMMENDATION","reasons":["recommendation ask"]}
+[runner] style QA flag (soft): ["stacked_questions"]
+
+[interviewer · RECOMMENDATION · 9:39] That waste data isn't something I have. The CEO walks in and gives you thirty seconds. Before we wrap, on what you asked about earlier: 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. Average revenue per store is $2.4M a year. What's your recommendation? I don't have that level of detail. What would you do next to narrow it down?
+
+[candidate · 11:09] Flat footprint is a good confirmation — with prices unchanged, the 15 percent revenue growth is all volume. So demand is healthy; this is purely a cost problem.
+
+Recommendation: raise menu prices, and fix bean consumption. Prices have been flat for two years while beans rose 40 percent and other inputs 37.5 percent. Entonces, five por ciento de cuatrocientos ochenta millones — 200 stores at 2.4 million is 480 million revenue — is 24 million, nearly all to the bottom line. Current profit at 6 percent is about 29 million, so that's roughly a 80 percent lift.
+
+Second, beans per dollar of revenue is up about 38 percent. That's internal and fixable — no customer impact.
+
+Risks: volume response to price, and whether beans stay elevated.
+
+Next steps: price test in 20 stores over four weeks; waste and dosing audit comparing the best and worst stores on pounds per transaction; and get forward contracts quoted on beans.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "end_case",
+    "input": {}
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak","end_case"] → filtered: ["speak","end_case"]
+
+[interviewer · SCORING · 11:11] That's a place to leave it. Thank you for working through the case — a full written report with feedback will follow separately.
+[score] backfilled data-request classification for candidate turns: [13]
+[score] requested-but-unanswered ledger data (coverage gap): [{"ledgerItemId":"avg_ticket","label":"Average transaction value","what":"Revenue growth composition: breakdown between new stores, price increases, and traffic/transaction volume","turnIndex":3}]
+[score] interviewer-error marks: [["unanswered_request",4]]
+[verifier] invalid response, skipping verification: Unexpected token 'L', "Let me ver"... is not valid JSON
+
+[live-run] ended=true scoring=scored

@@ -1,0 +1,269 @@
+[live-run] session e082391d-f46b-4f67-b966-b3ce2df953c4 · Brew & Bean Profitability · persona 2 Tobias — the Silent Thinker · pace human
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+Take a minute if you need it, then tell me how you'd structure your approach.
+
+[candidate silent 78s]
+
+[interviewer · check_in · 1:01] Still with me? Take your time. The question on the table: how would you approach this problem?
+
+[candidate · 2:48] Here's how I'd break it down. Since revenue grew 15% but margin fell from 24% to 6%, the problem is almost certainly on the cost side, but I want to confirm revenue quality before I assume that.
+
+So, three buckets.
+
+First, revenue: is the 15% growth coming from new stores, more transactions per store, or higher prices? If it's all new-store growth, same-store revenue could be flat or down, and new stores may be dragging margins while they ramp.
+
+Second, costs, split into COGS — coffee beans, milk, cups, food — and operating costs, which for a coffee chain means store labor, rent, utilities, and then corporate overhead. I'd look at each as a percent of revenue, two years ago versus today, and find which line moved most.
+
+Third, mix: has the product or channel mix shifted toward lower-margin items?
+
+To start, could I get the P&L as a percent of revenue for both years?
+[runner] phase: INTRO stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: INTRO raw: ["speak"] → filtered: ["speak"]
+[runner] auto-advanced INTRO → CLARIFY (model did not advance)
+[runner] same-turn data request resolution: {"released":[],"deferred":true,"phase":"CLARIFY"}
+[runner] style QA flag (soft): ["stacked_questions"]
+
+[interviewer · CLARIFY · 2:50] Hold that request; I'll come back to it shortly. Before I hand you data — is that framework MECE? What's missing?
+
+[candidate silent 72s]
+
+[interviewer · check_in · 3:52] Still with me? Take your time. The question on the table: what's missing?
+
+[candidate · 5:32] Mostly, but not fully. Two issues.
+
+First, overlap: I put "mix" as a third bucket, but mix effects actually show up inside revenue and inside COGS — a shift toward food versus drinks changes both average ticket and ingredient cost. So it isn't mutually exclusive. Cleaner structure is just revenue and cost, with mix treated as a driver cutting across both rather than a sibling bucket.
+
+Second, what's missing: I only decomposed profit arithmetically. I didn't ask why. So I'd add an external layer — competitive intensity, commodity prices for coffee and dairy, wage legislation and minimum wage changes, lease renewals — and an internal decisions layer, meaning what has management actually changed in the last two years: new store openings, a delivery app partnership, menu redesign, remodels.
+
+Net profit margin also sits below the line, so I should check interest expense, depreciation from any build-out, and taxes, not just operating costs. That's a real gap.
+[runner] phase: CLARIFY stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "cogs_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "labor_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "overhead_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: CLARIFY raw: ["speak","reveal_data","reveal_data","reveal_data","advance_phase"] → filtered: ["speak","reveal_data","reveal_data","reveal_data","advance_phase"]
+[runner] phase repair: {"from":"STRUCTURE","to":"ANALYSIS","reasons":["ledger reveal (releaseWhen ANALYSIS)"]}
+
+[interviewer · ANALYSIS · 5:37] Understood. Let's get you the numbers. Here's the P&L as a percent of revenue. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%.
+
+[candidate silent 78s]
+
+[interviewer · check_in · 6:38] Still with me? Take your time.
+
+[candidate · 8:25] That's decisive. COGS moved 16 points, overhead 2, labor flat — so 16 of the 18 points of margin decline sit in COGS. Everything else is noise by comparison.
+
+Quick check: 42 + 22 + 12 = 76, leaving 24% margin, which matches two years ago. Today 58 + 22 + 14 = 94, leaving 6%. Consistent, so the bridge is fully explained.
+
+So the question becomes what's inside COGS. Three possibilities. One, input prices rose — coffee, dairy, packaging. Two, volume of inputs per unit sold rose — larger portions, waste, spoilage, theft, or a change in recipes. Three, mix shifted toward items with structurally worse cost ratios, like food or bottled goods.
+
+Importantly, labor being flat at 22% while revenue grew suggests they didn't lose operating leverage — this is a unit economics problem per cup, not a scale problem.
+
+Can I get COGS split by input category, beans versus dairy versus food versus packaging, for both years?
+[runner] phase: ANALYSIS stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: ANALYSIS raw: ["speak"] → filtered: ["speak"]
+[runner] same-turn data request resolution: {"released":[],"deferred":true,"phase":"ANALYSIS"}
+[runner] style QA flag (soft): ["stacked_questions"]
+
+[interviewer · ANALYSIS · 8:27] I have beans as a share of COGS, and separately the change in other inputs. Hold that request; I'll come back to it shortly. Which do you want first? Which would you pull first, and why?
+
+[candidate · 9:57] Beans first.
+
+Reason: beans are almost certainly the single largest input line for a specialty coffee chain, so if the 16-point COGS swing has one dominant cause, beans is the highest-prior candidate. Pulling it first either explains most of the gap, in which case I focus on sourcing and pricing, or it rules the hypothesis out, which is just as useful because it immediately redirects me to dairy, food, and waste.
+
+It's also the input most exposed to a global commodity market, so it's the one that could plausibly move enough to shift COGS 16 points in two years without anyone at the client making a decision. Dairy and packaging move, but they're smaller and usually less volatile.
+
+One thing I'd want alongside the share: whether the share moved because bean cost per pound rose, or because pounds used per transaction rose. Same share, very different problem — one is procurement, the other is operations.
+[runner] phase: ANALYSIS stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_share_of_cogs"
+    }
+  }
+]
+[interviewer] phase: ANALYSIS raw: ["speak","reveal_data"] → filtered: ["speak","reveal_data"]
+[runner] same-turn data request resolution: {"released":[],"deferred":true,"phase":"ANALYSIS"}
+[runner] phase repair: {"from":"ANALYSIS","to":"EXHIBIT","reasons":["ledger reveal (releaseWhen EXHIBIT)"]}
+
+[interviewer · EXHIBIT · 10:00] Here's the bean share of COGS. Coffee beans were 25% of COGS two years ago. Hold that request; I'll come back to it shortly.
+
+[candidate silent 72s]
+
+[interviewer · check_in · 11:01] Still with me? Take your time.
+
+[candidate · 12:42] Only one data point, so let me work out what it would have to do to matter.
+
+Two years ago: COGS was 42% of revenue, beans 25% of that, so beans were about 10.5% of revenue. Other inputs were roughly 31.5% of revenue.
+
+Today COGS is 58% of revenue. If beans alone drove the entire 16-point increase, beans would have to be 10.5 + 16 = 26.5% of revenue, which is about 46% of today's COGS. That's a massive shift — bean cost per cup would have to roughly 2.5x, holding volume constant.
+
+That's possible if there was a severe commodity spike, but it's a big ask. More likely beans explain part of it and the rest sits in dairy, food, or waste.
+
+So the number I need is today's bean share. If it's near 46%, it's a sourcing story; if it's still near 25%, then beans scaled proportionally and something else entirely is driving the 16 points.
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["speak"] → filtered: ["speak"]
+[runner] recovered promised-but-undelivered reveal_data: bean_price_change
+
+[interviewer · EXHIBIT · 12:44] To settle beans versus the rest, here's the bean price change and the other-input change. Here's the bean price move over the two years: Raw coffee bean costs are up 40% over the past two years.
+[data-requests] non-response to available ledger data: {"what":"Other input cost changes (dairy, food, waste) over two years","ledgerItemIds":["non_bean_input_change"],"interviewerTurnIndex":14,"revealedByNow":false}
+
+[candidate silent 80s]
+
+[interviewer · check_in · 13:46] Still with me? Take your time.
+
+[candidate · 15:34] Good — that lets me size it.
+
+Beans were 10.5% of revenue. A 40% cost increase, holding everything else constant, takes them to 10.5 × 1.4 = 14.7% of revenue. That's a 4.2-point increase.
+
+But COGS rose 16 points. So beans explain roughly 4 of 16, about a quarter. The remaining 11.8 points sit in other inputs — dairy, food, packaging — or in waste and portioning.
+
+That reframes the case. The commodity spike is real but it is not the main story, and it's also the piece the client has least control over.
+
+One thing I want to flag: this calculation assumes menu prices were flat. If Brew & Bean had raised prices in line with input costs, beans wouldn't have moved as a share of revenue at all. The fact that costs are showing up fully in the ratio suggests pricing hasn't kept pace.
+
+Do we have menu price history over the two years?
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["speak"] → filtered: ["speak"]
+[runner] recovered promised-but-undelivered reveal_data: non_bean_input_change
+[runner] same-turn data request resolution: {"released":["menu_price_change"],"deferred":false,"phase":"EXHIBIT"}
+
+[interviewer · EXHIBIT · 15:37] Here's the other-input change. Here's what I have on non-bean inputs: Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. You asked about that — Menu prices have not changed in two years.
+
+[candidate · 17:07] That closes the bridge exactly.
+
+Other inputs were 31.5% of revenue, up 37.5%: 31.5 × 1.375 = 43.3% of revenue, an 11.8-point increase. Beans 14.7, others 43.3, total 58% — matches today's COGS precisely.
+
+So the full 16-point move is input cost inflation, roughly 4 points beans and 12 points everything else. No waste story, no mix story, no portioning story needed. The arithmetic is fully accounted for.
+
+And the root cause isn't really inflation — inflation is the shock. The root cause is that menu prices have been flat for two years while input costs rose roughly 38% blended. Brew & Bean absorbed 100% of the increase. Labor flat at 22% and overhead up only 2 points confirms operations aren't the problem.
+
+The implied question is why pricing was frozen — deliberate share strategy, or just inertia? Do we know anything about competitor pricing moves over the same period?
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "show_exhibit",
+    "input": {
+      "exhibit_id": "exhibit-a"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["speak","show_exhibit","advance_phase"] → filtered: ["speak","show_exhibit","advance_phase"]
+
+[interviewer · BRAINSTORM · 17:10] I don't have competitor pricing. Let me hand you the cost structure summary.
+
+Beyond pricing, what else could the client do to rebuild margin? Give me the full set.
+
+[candidate · 18:40] First, note the trajectory: COGS rose 8 points, then 8 points again, and margin fell 24 to 15 to 6. Straight-line, next year is roughly minus 3%. This is urgent, not a watch item.
+
+On levers beyond headline pricing, four groups.
+
+Pricing refinements: selective increases on low-elasticity items like espresso drinks rather than across the board, resizing cups so the price-per-ounce moves without a visible price change, and bundling food with drinks to lift ticket.
+
+Procurement: lock forward contracts or hedge beans, consolidate suppliers across 200 stores for volume terms, dual-source dairy and packaging, and reformulate — cheaper cup stock, alternative milk blends.
+
+Mix: push customers toward structurally high-margin items, brewed coffee and espresso over milk-heavy and food items, through menu layout and promotions.
+
+Cost structure: overhead drifted up 2 points on 15% revenue growth, which is the opposite of the leverage you'd expect — worth auditing. Also revisit lease terms and audit waste.
+
+Pricing is the only lever big enough to close 18 points alone, though.
+[runner] phase: BRAINSTORM stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: BRAINSTORM raw: ["speak"] → filtered: ["speak"]
+[runner] phase repair: {"from":"BRAINSTORM","to":"RECOMMENDATION","reasons":["recommendation ask"]}
+
+[interviewer · RECOMMENDATION · 18:43] Understood. So give it to me straight. What's your recommendation to the CEO?
+
+[candidate silent 80s]
+
+[interviewer · check_in · 19:45] Still with me? Take your time. The question on the table: what's your recommendation to the CEO?
+
+[candidate · 21:33] Raise menu prices. That's the recommendation, and nothing else closes the gap.
+
+The logic: all 18 points of margin decline trace to COGS, which rose 42% to 58% of revenue. Beans up 40% explain about 4 points, other inputs up 37.5% explain about 12. Labor flat, overhead up 2. Meanwhile menu prices have been frozen for two years, so Brew & Bean absorbed roughly 38% blended input inflation entirely. This is a pricing failure, not an operations failure.
+
+Sizing it: to restore COGS to 42% of revenue at current costs, prices need to rise about 38%. That's too much at once. I'd phase it — roughly 15% now, which on today's numbers recovers around 7 to 8 points of margin, then reassess.
+
+Risks: volume loss if competitors held prices, and brand backlash. Mitigate by starting in a test market and leading with low-elasticity espresso drinks.
+
+Next steps: competitor price benchmarking, an elasticity test across 20 stores, and in parallel start forward-contracting beans.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+[runner] closing turn without a confirmed end — promoted
+[runner] time up at 1293540 ms — forcing end_case
+
+[interviewer · SCORING · 21:36] We'll stop there. Thanks for working through the case — your written report will follow.
+[score] backfilled data-request classification for candidate turns: [23]
+
+[live-run] ended=true scoring=scored

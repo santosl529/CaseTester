@@ -1,0 +1,164 @@
+[live-run] session 00456279-3a29-4919-bae5-30ab58c3ee38 · Brew & Bean Profitability · persona 19 Blake — the Data Ignorer · pace fast
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+Take a moment, then walk me through how you'd approach this.
+
+[candidate · 0:07] Sure. So profit equals revenue minus costs, and since revenue grew 15%, this is almost certainly a cost problem. Let me lay out how I'd think about it.
+
+For a specialty coffee chain, the typical cost structure from what I know of the industry is roughly 30% cost of goods — beans, milk, cups — about 30% labor, around 15% occupancy, so rent, and then maybe 10% in corporate overhead and marketing. That leaves you roughly in the mid-teens to low-twenties on margin, which is consistent with where they started at 24%.
+
+A drop from 24 to 6 is 18 points of margin, which is enormous. Nothing in COGS moves that much, so my prior is this is driven by labor and rent — those are the two lines that have inflated hardest in the US over the past two years. Coffee is a commodity and chains hedge it, so I'd actually deprioritize bean prices.
+
+I'd structure it as: COGS, labor, occupancy, overhead — and I'd bet it resolves in labor.
+[runner] phase: INTRO kind: model stall rung: none
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"A cost-line split, with a hypothesis already attached.","move":"pressure_test","requests":[],"exhibit":null,"rescue_item":null,"question":"You've deprioritized beans and bet on labor before seeing any client data. Is that structure MECE, and what would make you drop that hypothesis?"}
+[timing] reads_done=106 plan_done=117 model_request=119 distress_verdict=802 model_first_token=1445 model_first_sentence=1449 first_delivered=1456 model_say_closed=1456 model_move_closed=1456 model_requests_closed=1457 model_exhibit_closed=1457 model_rescue_item_closed=1457 model_question_closed=1938 model_done=2396 settle_start=2396 settle_composed=2400 tail_delivered=2400 persist_start=2401 persist_end=2446
+
+[interviewer · STRUCTURE · 0:09] A cost-line split, with a hypothesis already attached. You've deprioritized beans and bet on labor before seeing any client data. Is that structure MECE, and what would make you drop that hypothesis?
+
+[candidate · 0:16] It's MECE at the top level — COGS, labor, occupancy, overhead covers every dollar that leaves the business, and nothing double-counts. I'd grant the hypothesis is front-loaded, but I think that's defensible; you want a point of view going in rather than boiling the ocean.
+
+What would make me drop it: if labor as a percent of revenue were flat across the two years, I'd move off it immediately. But I'd be surprised. Minimum wages have stepped up in most major metros, and specialty coffee is staffing-heavy — you need trained baristas, not fast-food labor, so the wage floor pulls the whole scale up. I'd expect labor to have gone from roughly 30% of revenue to something like 38 or 40%, and that alone gets you most of the 18 points.
+
+One thing I would want: has the chain opened new stores in those two years? New units run unprofitable for a while, and that's a labor and rent story too.
+[runner] phase: STRUCTURE kind: model stall rung: none
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say": "Understood.", "move": "analysis", "requests": [{"what": "whether the chain opened new stores", "item_ids": ["stores_count"], "explicit": true, "respond": "release"}], "exhibit": null, "rescue_item": null, "question": "You said labor could go from roughly 30% to 38 or 40% of revenue and get you most of the 18 points. Before we use that, walk me through how that gets you to most of the gap, and what data you'd pull first."}
+[timing] reads_done=37 plan_done=42 model_request=43 distress_verdict=789 model_first_token=829 model_first_sentence=1299 first_delivered=1300 model_say_closed=1300 model_move_closed=1300 model_requests_closed=1301 model_exhibit_closed=1709 model_rescue_item_closed=1709 data_line_delivered=1710 model_question_closed=2448 model_done=2459 settle_start=2459 settle_composed=2462 tail_delivered=2462 persist_start=2462 persist_end=2505
+
+[interviewer · ANALYSIS · 0:18] Understood. 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. You said labor could go from roughly 30% to 38 or 40% of revenue and get you most of the 18 points. Before we use that, walk me through how that gets you to most of the gap, and what data you'd pull first.
+
+[candidate · 0:26] Fair. Let me do it cleanly. Say revenue two years ago was 100, so costs were 76 and profit 24. Revenue today is 115, and at 6% margin profit is about 6.9, so costs are roughly 108. Costs grew from 76 to 108 — about 32 points of revenue-base growth in dollars.
+
+Now labor: 30% of 100 is 30. If labor is 39% of today's revenue, that's 0.39 × 115, about 45. So labor adds 15 of the 32. That's just under half — so, fair, it's not "most," it's the single biggest piece. I'd overstated it.
+
+The rest I'd attribute to occupancy, since rents reset on five-to-ten year leases and a renewal wave lands hard, plus some COGS creep on dairy.
+
+Data I'd pull first: labor dollars by store by year, and wage rate versus hours — I want to know if they're paying more per hour or staffing more hours, because the fixes are different.
+
+Separately, do we have menu price history? Fifteen percent revenue growth on flat store count is either price or traffic, and that changes the read.
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Mm-hm. Your base-100 derivation is clear.","move":"analysis","requests":[{"what":"menu price history","item_ids":["menu_price_change"],"explicit":true,"respond":"release"},{"what":"labor as a percent of revenue, both years","item_ids":["labor_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"With that in hand, what does it tell you about where the margin problem sits, and what would you pull next?"}
+[timing] reads_done=29 plan_done=29 model_request=30 distress_verdict=755 model_first_token=1471 model_first_sentence=1471 first_delivered=1472 model_say_closed=1472 model_move_closed=1472 model_requests_closed=1995 model_exhibit_closed=1995 model_rescue_item_closed=1995 data_line_delivered=1996 model_question_closed=3570 model_done=3571 settle_start=3571 settle_composed=3573 tail_delivered=3573 persist_start=3573 persist_end=3605
+
+[interviewer · ANALYSIS · 0:29] Mm-hm. Your base-100 derivation is clear. Menu prices have not changed in two years. Labor is 22% of revenue, and it’s been stable. With that in hand, what does it tell you about where the margin problem sits, and what would you pull next?
+
+[candidate · 0:37] Okay, labor's out — 22% and stable, so that's not it. Though I'd note 22% is low for specialty coffee; that tells me they're running lean crews, which may become a service-quality issue later.
+
+So it shifts to occupancy, which was my second prior anyway. Rent is the line that moves in step-changes — leases from the expansion era rolling to renewal at market, and in prime retail corridors those renewals come in 30 to 50% above the expiring rate. If occupancy went from 15% of revenue to something like 25%, that's 10 points right there, and dairy and cup costs inflating another few gets you close to the 18.
+
+And prices flat for two years in an inflationary environment is itself a finding — if revenue grew 15% on flat prices and flat store count, that's 15% more volume, so they're selling more drinks at a stale price while input costs climb. Margin per cup is getting crushed.
+
+I'd pull occupancy by store next, split renewed versus unrenewed leases.
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Volume up on flat prices and flat stores.","move":"analysis","requests":[{"what":"overhead and rent as a percent of revenue, both periods","item_ids":["overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Does that confirm or change your occupancy hypothesis, and where does it leave the gap?"}
+[timing] reads_done=30 plan_done=32 model_request=32 distress_verdict=721 model_first_token=923 model_first_sentence=1311 first_delivered=1313 model_say_closed=1313 model_move_closed=1313 model_requests_closed=1695 model_exhibit_closed=1695 model_rescue_item_closed=1695 data_line_delivered=1696 model_question_closed=2326 model_done=2333 settle_start=2333 settle_composed=2335 tail_delivered=2335 persist_start=2335 persist_end=2369
+
+[interviewer · ANALYSIS · 0:40] Volume up on flat prices and flat stores. Overhead is 14% of revenue, up slightly from 12%. Does that confirm or change your occupancy hypothesis, and where does it leave the gap?
+
+[candidate · 0:49] Overhead's a small piece — 12 to 14 is two points, call it noise from corporate build-out, not the story. So it doesn't change the hypothesis, but let me bound the gap.
+
+Today costs are 94% of revenue. Labor 22, overhead 14, so COGS plus occupancy is 58%. Two years ago costs were 76%; if labor was also around 22 and overhead 12, COGS plus occupancy was 42%. So those two lines moved 16 points — that's essentially the entire decline.
+
+I'd still put the weight on occupancy. Forty-two percent for COGS plus rent is already high, and in my experience rent is the line with the step-function behavior; COGS drifts, rent jumps. A renewal wave taking occupancy from 15 to 28 or so would do it.
+
+That said, 58% is a big number, so I can't rule out that beans have spiked. Split COGS and occupancy for me and I'll know which.
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Got it. Your bound of 42 to 58 on COGS plus occupancy rests on your assumption that labor was around 22 earlier, which fits what I gave you.","move":"analysis","requests":[{"what":"the COGS and occupancy split","item_ids":["cogs_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What does that tell you, and what would you check next?"}
+[timing] reads_done=34 plan_done=35 model_request=36 distress_verdict=695 model_first_token=1395 model_first_sentence=1404 first_delivered=1405 model_say_closed=1870 model_move_closed=1870 model_requests_closed=2550 model_exhibit_closed=2550 model_rescue_item_closed=2550 data_line_delivered=2550 model_question_closed=2550 model_done=2556 settle_start=2556 settle_composed=2558 tail_delivered=2558 persist_start=2558 persist_end=2587
+
+[interviewer · ANALYSIS · 0:51] Got it. Your bound of 42 to 58 on COGS plus occupancy rests on your assumption that labor was around 22 earlier, which fits what I gave you. COGS is 58% of revenue today, up from 42% two years ago. What does that tell you, and what would you check next?
+
+[candidate silent 6s]
+
+[candidate · 1:01] That lands on me — I deprioritized beans at the top of the case and that was wrong.
+
+And the arithmetic is tight: 58 COGS plus 22 labor plus 14 overhead is 94, which is the entire cost base. So occupancy is sitting inside one of those lines, probably bundled into COGS or overhead, and my renewal-wave story has nowhere left to live. I should have asked how they define the line rather than assuming a standard split.
+
+So the problem is COGS, 16 points of it. And it fits the price story — prices flat for two years, volume up 15%, so every incremental cup is sold at a stale price against inputs that have moved. Green coffee and dairy have both run hard, and if they're unhedged or on short contracts they'd absorb all of it.
+
+Next I'd split COGS: beans, dairy, packaging, and whatever occupancy or waste is buried in there. I want to know which component moved and whether it's price per pound or waste and shrink.
+[runner] phase: ANALYSIS kind: model stall rung: none
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Understood. You've called it a COGS problem.","move":"analysis","requests":[{"what":"coffee bean price change over two years","item_ids":["bean_price_change"],"explicit":true,"respond":"release"},{"what":"coffee beans as a share of COGS","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"changes in other COGS inputs such as dairy and packaging","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Using those figures, how much of the 16-point COGS increase can you explain, and what does that tell you about the root cause?"}
+[timing] reads_done=31 plan_done=33 model_request=33 distress_verdict=796 model_first_token=1297 model_first_sentence=1300 first_delivered=1300 model_say_closed=1301 model_move_closed=1301 model_requests_closed=2098 model_exhibit_closed=2098 model_rescue_item_closed=2098 data_line_delivered=2098 model_question_closed=2781 model_done=2788 settle_start=2788 settle_composed=2791 tail_delivered=2791 persist_start=2791 persist_end=2822
+
+[interviewer · EXHIBIT · 1:03] Understood. You've called it a COGS problem. Raw coffee bean costs are up 40% over the past two years. Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Using those figures, how much of the 16-point COGS increase can you explain, and what does that tell you about the root cause?
+
+[candidate · 1:11] Let me run it on the old base. COGS was 42% of revenue. Beans were 25% of that — 10.5 points. Everything else is 75% — 31.5 points.
+
+Beans up 40%: 10.5 × 1.4 = 14.7, so +4.2 points.
+Other inputs up 37.5%: 31.5 × 1.375 = 43.3, so +11.8 points.
+
+Total increase: 4.2 + 11.8 = 16.0 points. That's the entire gap, exactly.
+
+So input cost inflation explains 100% of the margin decline, and I had the weighting backwards — beans are only a quarter of the damage. The bigger driver is dairy, packaging, and food, because it's three-quarters of the basket.
+
+And the real root cause isn't the inflation itself, it's that they absorbed all of it. Prices have been flat two years while inputs ran up ~38%. Volume is up 15%, which suggests demand is healthy and they had room to price. They under-priced into a cost shock.
+
+Next I'd check price elasticity and what competitors have done on menu prices.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Right. Your split is clear: the broad non-bean inputs drive most of it, and flat pricing let it hit margin.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Beyond price increases, what else could Brew & Bean do to reverse this decline? Give me as many distinct ideas as you can."}
+[timing] reads_done=28 plan_done=30 model_request=31 distress_verdict=723 model_first_token=1026 model_first_sentence=1373 first_delivered=1374 model_say_closed=1728 model_move_closed=1728 model_requests_closed=1728 model_exhibit_closed=1728 model_rescue_item_closed=1728 model_question_closed=2201 model_done=2201 settle_start=2201 settle_composed=2204 tail_delivered=2204 persist_start=2204 persist_end=2236
+
+[interviewer · BRAINSTORM · 1:14] Right. Your split is clear: the broad non-bean inputs drive most of it, and flat pricing let it hit margin. Beyond price increases, what else could Brew & Bean do to reverse this decline? Give me as many distinct ideas as you can.
+
+[candidate · 1:23] A few buckets.
+
+Pricing beyond a flat increase: selective increases on low-elasticity items like espresso drinks, smaller price moves on food attach, and a size-and-mix play — push customers toward larger sizes and higher-margin drinks where the incremental input cost is small.
+
+Procurement: forward-contract or hedge green coffee rather than buying spot, consolidate dairy to a national contract, and renegotiate packaging on volume — they're buying for 200 stores and 15% more volume, which is leverage they may not be using.
+
+Input substitution: lighter-weight cups and lids, trimming SKUs so they buy deeper on fewer items, and reformulating food items with cheaper inputs.
+
+Waste and shrink: dairy spoils, pastries get thrown out. Tighter par levels and forecasting could take real points out if waste is buried in COGS.
+
+Mix shift: push more food attach and more non-dairy or brewed coffee, which carry different margin profiles.
+
+One I'd flag — plant milk surcharges. Many chains dropped them. Reinstating or raising them targets the exact input that inflated.
+[runner] phase: BRAINSTORM kind: model stall rung: none
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say": "A broad set of levers.", "move": "recommendation", "requests": [], "exhibit": null, "rescue_item": null, "question": "Pulling this together: what is your recommendation to the CEO, which levers would you start with, and why those?"}
+[timing] reads_done=30 plan_done=32 model_request=32 distress_verdict=732 model_first_token=1540 model_first_sentence=1540 first_delivered=1542 model_say_closed=1542 model_move_closed=1542 model_requests_closed=1542 model_exhibit_closed=1542 model_rescue_item_closed=1542 model_question_closed=2591 model_done=2592 settle_start=2592 settle_composed=2594 tail_delivered=2594 persist_start=2594 persist_end=2627
+
+[interviewer · RECOMMENDATION · 1:25] A broad set of levers. Pulling this together: what is your recommendation to the CEO, which levers would you start with, and why those?
+
+[candidate · 1:32] My recommendation: raise prices. Brew & Bean absorbed roughly 38% input inflation with zero price movement, and that alone explains all 16 points of COGS increase and the full margin decline. Pricing is the only lever large enough and fast enough to close it.
+
+Three reasons I'd lead there. One, volume is up 15% on flat prices with a flat footprint — demand is strong and they've been effectively discounting in real terms. Two, a roughly 10% increase across the menu, if volume holds, drops almost entirely to the bottom line and recovers most of the gap. Three, competitors have almost certainly priced up over two years, so they're likely below market, not above it.
+
+I'd pair that with procurement — hedging beans and a consolidated dairy contract — as the structural fix, and waste reduction as the quick operational win.
+
+Risks: elasticity is unknown, and if their volume growth came from being the cheap option, a 10% move could cost traffic. Also 22% labor is thin, so service may already be strained.
+
+Next step: elasticity test in a few markets before chain-wide rollout.
+[runner] phase: RECOMMENDATION kind: model stall rung: none
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Understood.","move":"risk","requests":[],"exhibit":null,"rescue_item":null,"question":"You said a roughly 10 percent increase, if volume holds, recovers most of the gap. Walk me through that. How much of the margin gap does it actually close, and what happens to your recommendation if volume doesn't hold?"}
+[timing] reads_done=33 plan_done=37 model_request=37 distress_verdict=801 model_first_token=1674 model_first_sentence=1676 first_delivered=1677 model_say_closed=1677 model_move_closed=1677 model_requests_closed=1677 model_exhibit_closed=1677 model_rescue_item_closed=1677 model_question_closed=2332 model_done=2334 settle_start=2334 settle_composed=2338 tail_delivered=2338 persist_start=2338 persist_end=2372
+
+[interviewer · RECOMMENDATION · 1:34] Understood. You said a roughly 10 percent increase, if volume holds, recovers most of the gap. Walk me through that. How much of the margin gap does it actually close, and what happens to your recommendation if volume doesn't hold?
+
+[candidate · 1:43] Let me actually run it. Revenue 115, costs 108, profit 6.9.
+
+Ten percent price rise, volume flat: revenue 126.5. Costs don't move with price, so still 108. Profit 18.5, margin 14.6%.
+
+So it closes about 8.6 points of the 18-point gap — roughly half, not most. I overstated it again. To get back to 24% I'd need something closer to a 20% price rise, which I don't think is realistic in one move.
+
+If volume doesn't hold: COGS is variable, so it falls with volume, and that cushions it. Rough check — at 10% price up and 10% volume down, revenue is 126.5 × 0.9 ≈ 114, COGS drops 10% to about 60, labor and overhead partly fixed, call total costs ~100. Profit ~14, still better than 6.9.
+
+So the recommendation holds directionally, but pricing is half the answer. Procurement and waste have to carry the rest.
+[runner] phase: RECOMMENDATION kind: close stall rung: none
+[timing] reads_done=41 plan_done=42 code_written_checks_start=43 distress_verdict=781 code_written_checks_end=781 settle_start=781 settle_composed=782 first_delivered=782 tail_delivered=782 persist_start=782 persist_end=814
+
+[interviewer · SCORING · 1:44] We'll stop there. Thanks for working through the case — your written report will follow.
+[score] reconciliation merged both-sides claims: [{"dimension":"structure","wentWell":"You anchored on the profit equation and gave a MECE cost-line split, attaching a hypothesis to it.","needsWork":"You dropped the revenue side entirely, with no price × volume branch, even though flat menu prices turned out to be the root cause. You only asked about price later, in turn 5.","merged":"You anchored on the profit equation and gave a MECE cost-line split with a hypothesis, but you dropped the revenue side entirely, with no price × volume branch, even though flat menu prices turned out to be the root cause. You only asked about price later, in turn 5.","placedIn":"needsWork"},{"dimension":"quantitative","wentWell":"Your price-increase math was correct (18.5/126.5 ≈ 14.6%), and you used it to correct your own earlier claim.","needsWork":"You repeatedly asserted magnitudes without deriving them, and only checked them when the interviewer prompted (labor 'most of the gap', a 10% price rise 'recovers most of the gap').","merged":"Your price-increase math was correct (18.5/126.5 ≈ 14.6%), and you used it to correct your own earlier claim. But you repeatedly asserted magnitudes without deriving them first (labor 'most of the gap', a 10% price rise 'recovers most of the gap'), and you only checked them when the interviewer prompted.","placedIn":"needsWork"},{"dimension":"dataExhibit","wentWell":"You used the cost-line data systematically to bound where the 16-point change must sit.","needsWork":"For two turns you read the data through an occupancy line that never appeared in it, and only realized late that the three given lines already summed to the full cost base.","merged":"You eventually used the cost-line data systematically to bound where the 16-point change must sit. However, for two turns you read the data through an occupancy line that never appeared in it, and only realized late that the three given lines already summed to the full cost base.","placedIn":"wentWell"},{"dimension":"judgment","wentWell":"Your final recommendation was commercially sound, and you surfaced real risks plus a mitigation.","needsWork":"Your recommendation leaned on unverified assumptions and overclaims.","merged":"Your final recommendation was commercially sound and surfaced real risks plus a mitigation, but it leaned on unverified assumptions and overclaims.","placedIn":"needsWork"},{"dimension":"creativity","wentWell":"You prioritized the levers in the recommendation, separating a lead lever, a structural fix and a quick win.","needsWork":"The mix-shift bucket overlapped with the size-and-mix idea under pricing, and you didn't prioritize within the brainstorm itself.","merged":"You prioritized the levers in the final recommendation, separating a lead lever, a structural fix and a quick win, but you didn't prioritize within the brainstorm itself. The mix-shift bucket also overlapped with the size-and-mix idea under pricing.","placedIn":"wentWell"},{"dimension":"synthesis","wentWell":"You answered first, then gave reasons, risks and a next step concisely.","needsWork":"Two of your three reasons weren't grounded in the analysis: one was an underived claim that you later had to correct, and one was speculation about competitors.","merged":"You answered first, then gave reasons, risks and a next step concisely, but two of your three reasons weren't grounded in the analysis. One was an underived claim you later had to correct, and the other was speculation about competitors.","placedIn":"needsWork"},{"dimension":"communication","wentWell":"Your delivery in the later turns was crisp, signposted and answer-first.","needsWork":"In the opening you gave benchmark detail before the structure, which you only stated at the end of the turn.","merged":"Your delivery in the later turns was crisp, signposted and answer-first. In the opening, however, you gave benchmark detail before the structure and only stated the structure at the end of the turn.","placedIn":"needsWork"},{"dimension":"pushback","wentWell":"You named an explicit disconfirming condition and updated with reasons when challenged.","needsWork":"You were slow to incorporate the interviewer's early challenge on deprioritizing beans, defending labor and then occupancy before conceding.","merged":"You named an explicit disconfirming condition and updated with reasons when challenged, but you were slow to incorporate the interviewer's early challenge on deprioritizing beans, defending labor and then occupancy before conceding.","placedIn":"needsWork"}]
+[score] cross-dimension repetition: [{"concept":"Relying on industry priors over client data / dismissing COGS (beans) before data arrived","dimensions":["structure","judgment","pushback"]},{"concept":"Asserting magnitudes or claims without deriving or verifying them (e.g., 10% price rise 'recovers most of the gap')","dimensions":["quantitative","judgment","synthesis"]}]
+
+[live-run] ended=true scoring=scored

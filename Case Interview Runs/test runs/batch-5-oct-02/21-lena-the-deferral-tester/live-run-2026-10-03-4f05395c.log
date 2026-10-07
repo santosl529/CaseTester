@@ -1,0 +1,238 @@
+[live-run] session 4f05395c-ac40-435e-9695-0b29d6e02073 · Brew & Bean Profitability · persona 21 Lena — the Deferral Tester · pace human
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+Take a minute if you need it, then tell me how you'd structure your approach.
+
+[candidate silent 25s]
+
+[candidate · 1:55] Okay, so the headline is revenue up 15% but margin collapsing from 24% to 6% — that tells me this is almost certainly a cost problem, not a demand problem, though I want to verify that revenue growth isn't coming at a bad price.
+
+I'd structure it as profit = revenue minus costs, and go down both sides.
+
+On revenue: is the 15% growth from more stores, more transactions per store, or higher ticket? New stores could be dragging margin if they're immature.
+
+On costs: split fixed versus variable. Variable would be coffee beans, milk, cups, store labor. Fixed would be rent, corporate overhead, marketing, equipment.
+
+Then I'd benchmark each cost line as a percent of revenue, two years ago versus today, and find which lines expanded.
+
+Before I dig in — do we have menu price history? I'd like to know whether they've raised prices at all over the two years.
+[runner] phase: INTRO stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "menu_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: INTRO raw: ["speak","reveal_data","advance_phase","advance_phase"] → filtered: ["speak","reveal_data","advance_phase","advance_phase"]
+[runner] stripped meta-leak from interviewer turn: ["The candidate has laid out a structure and asked for menu price history, which is available.","I'll release it and advance, then apply the one pressure test next turn."]
+[runner] phase repair: {"from":"CLARIFY","to":"ANALYSIS","reasons":["ledger reveal (releaseWhen ANALYSIS)"]}
+
+[interviewer · ANALYSIS · 1:58] Menu prices have not changed in two years.
+
+[candidate · 3:28] Good — that's actually a big one. Flat prices for two years means they've absorbed any input cost inflation entirely, and it also tells me the 15% revenue growth is all volume: either more stores or more transactions per store, not price.
+
+So the margin story is likely input costs rising against a frozen price point.
+
+Two things I'd want next. First, how did store count change over the two years? If they opened a lot of locations, I want to separate same-store performance from the new-store drag.
+
+Second, the cost breakdown — costs as a percent of revenue then versus now, for COGS, store labor, rent, and corporate overhead. Whichever line expanded the most is where I'd focus.
+
+Do we have that cost split?
+[runner] phase: ANALYSIS stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: ANALYSIS raw: ["speak","advance_phase"] → filtered: ["speak","advance_phase"]
+[runner] same-turn data request resolution: {"released":["stores_count","cogs_pct"],"deferred":true,"phase":"EXHIBIT"}
+
+[interviewer · EXHIBIT · 3:31] I'll apply one pressure test to your structure first, then you'll get data. Your framework splits costs into variable and fixed and revenue into stores, transactions, and ticket. You asked about that — 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. COGS is 58% of revenue today, up from 42% two years ago. Hold that request; I'll come back to it shortly. Which branch would you prioritize first, and why?
+
+[candidate · 5:01] COGS, clearly — and I'd prioritize it hard.
+
+Here's the logic. Footprint is flat at 200 stores, so the 15% revenue growth is same-store volume. Prices haven't moved, so that growth is all transactions or mix, not price. That means revenue per unit is unchanged while COGS per dollar of revenue went from 42% to 58% — a 16 point swing.
+
+To size it: if the total margin decline is 18 points, from 24% to 6%, COGS alone explains 16 of those 18. That's roughly 90% of the problem sitting in one line. Everything else — rent, labor, overhead — accounts for maybe 2 points combined. Not where I'd spend my time.
+
+And because prices are frozen, there's no price offset absorbing the input inflation. The whole increase drops straight to the bottom line.
+
+So inside COGS, I'd want the split: beans, dairy, cups and packaging, food. Do we have that?
+[runner] phase: EXHIBIT stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_share_of_cogs"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "bean_price_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "non_bean_input_change"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "labor_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "reveal_data",
+    "input": {
+      "item_id": "overhead_pct"
+    }
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: EXHIBIT raw: ["speak","reveal_data","reveal_data","reveal_data","reveal_data","reveal_data","advance_phase"] → filtered: ["speak","reveal_data","reveal_data","reveal_data","reveal_data","reveal_data","advance_phase"]
+[runner] stripped meta-leak from interviewer turn: ["The candidate's arithmetic holds against the revealed figures, and they've asked for the COGS split, so I'll release the bean share and the other inputs."]
+
+[interviewer · BRAINSTORM · 5:06] The labor and overhead requests are now earned too, since they've asserted those lines account for little. Coffee beans were 25% of COGS two years ago. Raw coffee bean costs are up 40% over the past two years. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%.
+
+[candidate · 6:36] Let me run the COGS math.
+
+Two years ago COGS was 42% of revenue. Beans at 25% of that = 10.5% of revenue. Everything else — dairy, packaging, food — is 75% = 31.5% of revenue.
+
+Now apply the inflation. Beans up 40%: 10.5 × 1.4 = 14.7% of revenue. Other inputs up 37.5%: 31.5 × 1.375 = 43.3%. Add those: 58.0% of revenue. That ties out exactly to the 58% you gave me, which is a good check — and it only ties because prices are flat, so cost as a percent of revenue moves purely with input prices.
+
+Now the interesting part. Beans added 4.2 points of margin. Other inputs added 11.8 points. So despite the 40% headline on coffee, beans are not the story — dairy, packaging and food are nearly three times the damage, because they're three-quarters of the basket.
+
+Overhead adds 2 more points. 16 plus 2 is 18 — the full decline, fully explained.
+[runner] phase: BRAINSTORM stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "advance_phase",
+    "input": {}
+  }
+]
+[interviewer] phase: BRAINSTORM raw: ["speak","advance_phase"] → filtered: ["speak","advance_phase"]
+
+[interviewer · RECOMMENDATION · 6:38] Okay. The cost drivers are now quantified, so I'll ask the open question. Beyond what we've discussed, what else could Brew & Bean do to reverse this decline?
+
+[candidate · 8:08] The biggest untouched lever is price. Prices have been flat two years while inputs rose ~38%. If costs rise and price doesn't, margin has to absorb all of it — that's mechanically what happened.
+
+Quick sizing: a 10% price increase on flat volume takes COGS from 58% to about 52.7% of revenue, labor from 22% to 20%, overhead 14% to 12.7%. That's roughly 8.5 points of margin back, getting them to around 14-15%. Even if we lose some volume, specialty coffee is fairly inelastic and they've trained customers to expect no increases — there's headroom.
+
+Beyond price: renegotiate dairy and packaging contracts, since that's where 11.8 of the 16 points sit — consolidate suppliers across 200 stores for volume leverage. Hedge or forward-contract beans. Reformulate or right-size portions. Push mix toward higher-margin items — food attach, larger sizes.
+
+Also worth checking overhead, the 2-point creep.
+
+Risk: raising price after two years flat may feel abrupt — I'd phase it, test in a few markets first.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 8:11] Walk me through the 8.5 points. How did you get from a 10% price increase to that figure?
+
+[candidate · 9:41] Sure. Start from today's P&L as a percent of revenue: COGS 58, labor 22, overhead 14. That's 94, leaving the 6% margin. Ties out.
+
+Now raise price 10% with volume held flat. Revenue goes from 100 to 110. None of those cost lines move in dollar terms — I'm selling the same number of cups, same beans, same milk, same staff, same rent. So the dollars stay at 58, 22, and 14, but I'm dividing by 110 instead of 100.
+
+COGS: 58/110 = 52.7%. Labor: 22/110 = 20.0%. Overhead: 14/110 = 12.7%. Total 85.4%, so margin is 14.6% — call it 14.5.
+
+From 6% to 14.5% is 8.5 points. Another way to see it: the 10 points of new revenue are pure incremental margin, and 10/110 = 9.1 points, less a rounding bit.
+
+Key caveat — that's zero volume loss. If I lose 10% of transactions, revenue is flat and I've gained nothing.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 9:43] Understood. You've said specialty coffee is fairly inelastic and that customers have been trained to expect no increases. A skeptical CEO says raising prices will drive customers to competitors and the plan is too risky. How do you respond?
+
+[candidate · 11:13] Fair challenge, and I'd meet it with the breakeven math rather than an assertion.
+
+At today's 58% COGS, each dollar of sales carries about 42 cents of variable contribution before labor and overhead. If I raise price 10%, I can afford to lose a meaningful share of transactions before I'm worse off — roughly, I'd need to lose more than about 19% of volume for the price increase to be net negative on contribution. That's a big drop. Specialty coffee is a habit purchase with high visit frequency and real switching friction — location, app, loyalty, routine.
+
+I'd also point out doing nothing is not the safe option. Inputs have risen 38% in two years with no sign of reversing; at 6% margin, another few points of input inflation puts them underwater.
+
+And I'd de-risk it: phase the increase, 5% then 5%; test in two or three markets first; measure transaction counts weekly against control markets; lead with higher-ticket items rather than the core drip cup.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak"] → filtered: ["speak"]
+
+[interviewer · RECOMMENDATION · 11:16] Walk me through the 19% breakeven figure. What contribution did you use, and how did you get to that volume loss?
+
+[candidate · 12:46] I used COGS as the only variable cost, so contribution margin is 100 minus 58 = 42%. Per unit, think of price as $1.00 and variable cost as $0.58, giving $0.42 of contribution.
+
+Raise price 10%: price is now $1.10, variable cost is unchanged at $0.58 because the cup costs what it costs. New contribution is $0.52 per unit.
+
+Breakeven is where total contribution is unchanged. Old total was 0.42 × Q. New is 0.52 × Q_new. So Q_new/Q = 0.42/0.52 = 0.808. That's a 19.2% allowable volume decline.
+
+One caveat on my own number: I treated labor as fixed, which is defensible in the short run — you're staffing the store regardless — but if labor flexes with volume, true variable cost is higher, contribution is lower, and the breakeven cushion shrinks. I'd want to know how much of that 22% is schedulable hours before I'd commit to 19%.
+[runner] phase: RECOMMENDATION stall rung: none
+[interviewer-model] raw blocks: [
+  {
+    "type": "text"
+  },
+  {
+    "type": "tool_use",
+    "name": "end_case",
+    "input": {}
+  }
+]
+[interviewer] phase: RECOMMENDATION raw: ["speak","end_case"] → filtered: ["speak","end_case"]
+
+[interviewer · SCORING · 12:48] We'll stop there. Thanks for working through the case — your written report will follow.
+[score] backfilled data-request classification for candidate turns: [11,15]
+[score] reconciliation merged both-sides claims: [{"dimension":"structure","wentWell":"The candidate used a recognizable profit tree with sensible revenue sub-drivers and planned to compare cost lines as a percent of revenue over time.","needsWork":"The fixed-versus-variable cost split is a template, not tailored to a coffee chain. It also misses a pricing-power / competitive-context branch, which matters directly for the eventual price lever.","merged":"The candidate used a recognizable profit tree with sensible revenue sub-drivers and planned to compare cost lines as a percent of revenue over time, but the fixed-versus-variable cost split was a template rather than tailored to a coffee chain, and it missed a pricing-power / competitive-context branch that matters directly for the eventual price lever.","placedIn":"needsWork"},{"dimension":"quantitative","wentWell":"The price-increase sizing and the breakeven were set up clearly and computed correctly (58/110, 0.42/0.52 = 19.2%).","needsWork":"The 19% breakeven was first asserted without a derivation, and only explained when the interviewer asked.","merged":"The candidate set up and computed the price-increase sizing and breakeven correctly (58/110, 0.42/0.52 = 19.2%), but first stated the 19% breakeven without a derivation and explained it only when the interviewer asked.","placedIn":"needsWork"},{"dimension":"dataExhibit","wentWell":"The candidate proposed a specific next step to break COGS down further.","needsWork":"After fully reconciling the 18 points, the candidate closed the analysis without a forward-looking so-what or next diagnostic step. For example, which of dairy, packaging, or food drove the 37.5%, and whether that inflation is structural.","merged":"The candidate proposed a next step to break COGS down further, but after fully reconciling the 18 points did not close with a forward-looking so-what, such as which of dairy, packaging, or food drove the 37.5% and whether that inflation is structural.","placedIn":"wentWell"},{"dimension":"judgment","wentWell":"The candidate backed the inelasticity assumption with breakeven logic and qualitative switching-cost reasoning, and flagged the cost of inaction.","needsWork":"The candidate never checked whether competitors had also raised prices. That is the most direct evidence of pricing power, and it is exactly what the CEO's 'customers will go to competitors' objection turns on.","merged":"The candidate backed the inelasticity assumption with breakeven logic and switching-cost reasoning and flagged the cost of inaction, but never checked whether competitors had also raised prices. That is the most direct evidence of pricing power and exactly what the CEO's 'customers will go to competitors' objection turns on.","placedIn":"wentWell"},{"dimension":"creativity","wentWell":"The candidate produced several relevant, distinct levers spanning price, procurement, hedging, portioning, and mix.","needsWork":"The ideas were conventional cost-and-price levers, with no clearly non-obvious idea. The overhead point stayed vague.","merged":"The candidate produced several relevant, distinct levers spanning price, procurement, hedging, portioning, and mix, but they were conventional cost-and-price levers with no clearly non-obvious idea, and the overhead point stayed vague.","placedIn":"needsWork"},{"dimension":"communication","wentWell":"The candidate was consistently top-down: conclusion first, then the logic.","needsWork":"The lever discussion became a run of clipped fragments without signposted grouping, which makes it harder to follow than the rest of the case.","merged":"The candidate was top-down for most of the case, putting the conclusion first and then the logic, but the lever discussion became a run of clipped fragments without signposted grouping, which made it harder to follow than the rest.","placedIn":"wentWell"},{"dimension":"pushback","wentWell":"The candidate met the CEO challenge with quantified reasoning rather than capitulating or getting defensive, and held the position with evidence.","needsWork":"The response did not directly address the competitor element of the CEO's objection, such as what peers facing the same input inflation have done on price.","merged":"The candidate met the CEO challenge with quantified reasoning and held the position with evidence rather than capitulating or getting defensive, but did not directly address the competitor element of the objection, such as what peers facing the same input inflation have done on price.","placedIn":"wentWell"}]
+[score] cross-dimension repetition: [{"concept":"Not checking competitor pricing / pricing power as evidence for the price increase","dimensions":["structure","dataExhibit","judgment","pushback"]},{"concept":"Secondary levers presented as an unorganized, unranked flat list without bucketing or signposting","dimensions":["creativity","synthesis","communication"]}]
+
+[live-run] ended=true scoring=scored
