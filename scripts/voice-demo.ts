@@ -21,7 +21,10 @@ import { startSession } from '@/lib/orchestrator/start-session';
 import { runTurn } from '@/lib/orchestrator/session-runner';
 import { runPostTurnBackground } from '@/lib/orchestrator/post-turn';
 import type { Phase } from '@/lib/orchestrator/state-machine';
-import { pickAck, shouldAcknowledge, pickFiller, fillerStartMs } from '@/lib/voice/acknowledge';
+import { pickAck, shouldAcknowledge, FILLERS, FILLER_DELAY_MS } from '@/lib/voice/acknowledge';
+import { pickScript } from '@/lib/agent/prompts/scripts';
+import { nextPauseSec, trimSilence } from '@/lib/voice/pcm';
+import type { SegmentKind } from '@/lib/orchestrator/turn-types';
 
 const flag = (name: string) => process.argv.find(a => a.startsWith(`--${name}=`))?.split('=')[1];
 const RUN = flag('run') ?? 'batch-12-oct-06/00';
@@ -31,6 +34,17 @@ const CANDIDATE_VOICE = 'Samantha';
 const RATE = 24000;
 const OUT_DIR = 'Case Interview Runs/voice-demos';
 const TMP = '.voice-cache/demo';
+// --fillers=short: ~1s fillers instead of the current ~2s ones. --filler-delay-ms:
+// silence after the acknowledgment before a filler. --yield: the filler stops
+// at its next pause once Sonnet's first segment is due (else it plays out).
+const SHORT_FILLERS = ['Hmm, let me see.', 'Okay, one moment.', 'Let me see.'];
+const FILLER_SET: readonly string[] = flag('fillers') === 'short' ? SHORT_FILLERS : FILLERS;
+const FILLER_DELAY = Number(flag('filler-delay-ms') ?? FILLER_DELAY_MS);
+const YIELD = process.argv.includes('--yield');
+function pickFrom(set: readonly string[], seed: string, last: string | null): string {
+  const first = pickScript([...set], seed);
+  return first !== last ? first : set[(set.indexOf(first) + 1) % set.length];
+}
 
 // ---- audio ----
 
@@ -128,7 +142,7 @@ async function main() {
   let lastAck: string | null = null;
   let lastFiller: string | null = null;
   const background: Promise<unknown>[] = [];
-  const stats: { ackMs: number | null; firstContentMs: number | null }[] = [];
+  const stats: { firstSoundMs: number | null; ackToNextMs: number | null; fillerToSonnetMs: number | null; firstSonnetMs: number | null; firstUsefulMs: number | null }[] = [];
 
   for (let i = 0; i < lines.length; i++) {
     put(sayPcm(lines[i], i), 'CANDIDATE', lines[i]);
@@ -138,46 +152,67 @@ async function main() {
     const ack: string | null = shouldAcknowledge(lines[i]) ? pickAck(`${sessionId}:${i}`, lastAck) : null;
     if (ack) {
       lastAck = ack;
-      if (!ackAudio.has(ack)) ackAudio.set(ack, (await aura(ack)).pcm);
+      if (!ackAudio.has(ack)) ackAudio.set(ack, trimSilence((await aura(ack)).pcm, RATE));
       put(ackAudio.get(ack)!, 'INTERVIEWER', `${ack}   [instant acknowledgment]`);
     }
 
     // The real turn: segments with the moment each was delivered.
     const eot = Date.now();
-    const segments: { text: string; atMs: number }[] = [];
+    const segments: { text: string; kind: SegmentKind; atMs: number }[] = [];
     const phaseBefore = phase;
     const result = await runTurn(sessionId, lines[i], {
       acknowledged: ack ?? undefined,
-      onSegment: async seg => { if (seg.text.trim()) segments.push({ text: seg.text.trim(), atMs: Date.now() - eot }); },
+      onSegment: async seg => { if (seg.text.trim()) segments.push({ text: seg.text.trim(), kind: seg.kind, atMs: Date.now() - eot }); },
       defer: task => { background.push(task()); },
     });
     phase = result.phase;
     background.push(runPostTurnBackground({ sessionId, userId: owner.userId, caseId: 'prof-001', phase: phaseBefore, result }));
 
     // Place each segment at delivery time + its TTS first-byte time, after
-    // whatever is already playing. If the first segment is not due shortly
-    // after the acknowledgment ends, a thinking filler plays in the gap.
+    // whatever is already playing. If no segment is due by FILLER_DELAY after
+    // the acknowledgment ends, a thinking filler plays in the gap; with
+    // --yield it stops at its next pause between words once Sonnet's first
+    // segment is due.
     const eotOnTrack = speechEnd + ENDPOINT_MS;
     const tts = await Promise.all(segments.map(seg => aura(seg.text)));
     const dues = segments.map((seg, k) => eotOnTrack + seg.atMs + tts[k].firstByteMs);
-    const fillAt = ack ? fillerStartMs(now, dues[0] ?? null) : null;
+    const ackEnd = now;
+    const fillAt = ack && (dues[0] ?? Infinity) > now + FILLER_DELAY ? now + FILLER_DELAY : null;
+    let fillerEnd: number | null = null;
     if (fillAt != null) {
-      const filler = pickFiller(`${sessionId}:${i}:f`, lastFiller);
+      const filler = pickFrom(FILLER_SET, `${sessionId}:${i}:f`, lastFiller);
       lastFiller = filler;
-      if (!ackAudio.has(filler)) ackAudio.set(filler, (await aura(filler)).pcm);
+      if (!ackAudio.has(filler)) ackAudio.set(filler, trimSilence((await aura(filler)).pcm, RATE));
+      const fpcm = ackAudio.get(filler)!;
       gap(fillAt - now, 'model not in yet');
-      put(ackAudio.get(filler)!, 'INTERVIEWER', `${filler}   [thinking filler]`);
+      const due = dues[0];
+      if (YIELD && due != null && due < fillAt + ms(fpcm)) {
+        const cutMs = nextPauseSec(fpcm, RATE, (due - fillAt) / 1000) * 1000;
+        put(fpcm.subarray(0, Math.round((cutMs / 1000) * RATE) * 2), 'INTERVIEWER', `${filler}   [thinking filler, stopped at ${(cutMs / 1000).toFixed(2)}s]`);
+      } else {
+        put(fpcm, 'INTERVIEWER', `${filler}   [thinking filler]`);
+      }
+      fillerEnd = now;
     }
-    let firstContent: number | null = null;
+    let firstSonnet: number | null = null, firstUseful: number | null = null;
     for (let k = 0; k < segments.length; k++) {
       const seg = segments[k];
       const due = dues[k];
       gap(due - now, `waiting on the interviewer (delivered at +${(seg.atMs / 1000).toFixed(2)}s after end-of-turn, TTS first audio ${tts[k].firstByteMs}ms)`);
-      firstContent ??= now - speechEnd;
-      put(tts[k].pcm, 'INTERVIEWER', seg.text);
+      firstSonnet ??= now;
+      if (seg.kind !== 'say') firstUseful ??= now;
+      put(tts[k].pcm, 'INTERVIEWER', seg.kind === 'say' ? seg.text : `${seg.text}   [${seg.kind}]`);
     }
-    stats.push({ ackMs: ack ? ENDPOINT_MS : null, firstContentMs: firstContent });
-    console.log(`[demo] turn ${i + 1}/${lines.length}: ack=${ack ?? '-'} · first content ${firstContent != null ? (firstContent / 1000).toFixed(2) + 's' : '-'} after speech end`);
+    const firstSound = ack ? speechEnd + ENDPOINT_MS : firstSonnet;
+    stats.push({
+      firstSoundMs: firstSound != null ? firstSound - speechEnd : null,
+      ackToNextMs: ack ? (fillAt ?? firstSonnet ?? ackEnd) - ackEnd : null,
+      fillerToSonnetMs: fillerEnd != null && firstSonnet != null ? firstSonnet - fillerEnd : null,
+      firstSonnetMs: firstSonnet != null ? firstSonnet - speechEnd : null,
+      firstUsefulMs: firstUseful != null ? firstUseful - speechEnd : null,
+    });
+    const last = stats[stats.length - 1];
+    console.log(`[demo] turn ${i + 1}/${lines.length}: ack=${ack ?? '-'} · filler ${fillAt != null ? 'yes' : 'no'} · ack→next ${last.ackToNextMs ?? '-'}ms · filler→Sonnet ${last.fillerToSonnetMs ?? '-'}ms · first Sonnet ${last.firstSonnetMs != null ? (last.firstSonnetMs / 1000).toFixed(2) + 's' : '-'} · first useful ${last.firstUsefulMs != null ? (last.firstUsefulMs / 1000).toFixed(2) + 's' : '-'}`);
     gap(600);
     if (result.ended) break;
   }
@@ -190,12 +225,23 @@ async function main() {
   writeFileSync(wav, wavFile(new Uint8Array(Buffer.concat(track))));
   execFileSync('afconvert', ['-f', 'm4af', '-d', 'aac', wav, `${base}.m4a`]);
   rmSync(wav);
-  const med = (v: number[]) => [...v].sort((a, b) => a - b)[Math.floor(v.length / 2)];
-  const content = stats.map(s => s.firstContentMs).filter((x): x is number => x != null);
+  const summary = (name: string, xs: (number | null)[]) => {
+    const v = xs.filter((x): x is number => x != null).sort((a, b) => a - b);
+    return v.length ? `${name}: median ${(v[Math.floor(v.length / 2)] / 1000).toFixed(2)}s, max ${(v[v.length - 1] / 1000).toFixed(2)}s (n ${v.length})` : `${name}: -`;
+  };
+  const gaps = [
+    summary('end of speech → first sound', stats.map(s => s.firstSoundMs)),
+    summary('acknowledgment end → next sound', stats.map(s => s.ackToNextMs)),
+    summary('filler end → Sonnet speech', stats.map(s => s.fillerToSonnetMs)),
+    summary('end of speech → first Sonnet speech', stats.map(s => s.firstSonnetMs)),
+    summary('end of speech → first useful (data line / question)', stats.map(s => s.firstUsefulMs)),
+  ];
+  for (const g of gaps) console.log(`[demo] ${g}`);
   writeFileSync(`${base}.txt`, [
     `Voice demo · session ${sessionId} · candidate lines from ${RUN} · interviewer ${VOICE} (Deepgram Aura) · candidate macOS say (${CANDIDATE_VOICE})`,
     `End-of-turn detection simulated at ${ENDPOINT_MS}ms (Flux median, Phase A). Interviewer timing is real: delivery time from the orchestrator + TTS first-byte time.`,
-    `First sound after speech end (acknowledgment): ${ENDPOINT_MS}ms on ${stats.filter(s => s.ackMs != null).length}/${stats.length} turns · first real content: median ${content.length ? (med(content) / 1000).toFixed(2) : '-'}s`,
+    `Fillers: ${flag('fillers') ?? 'current'} · filler delay ${FILLER_DELAY}ms · yield ${YIELD ? 'on' : 'off'}`,
+    ...gaps,
     '', ...cues,
   ].join('\n'));
   console.log(`[demo] wrote ${base}.m4a (${fmt(now)}) and ${base}.txt`);

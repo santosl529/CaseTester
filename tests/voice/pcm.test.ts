@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { frames, durationSec, speechEndSec, silence, streamRealtime } from '@/lib/voice/pcm';
+import { frames, durationSec, speechEndSec, nextPauseSec, trimSilence, silence, streamRealtime } from '@/lib/voice/pcm';
 
 const RATE = 16000;
 
@@ -34,6 +34,23 @@ describe('pcm helpers', () => {
 
   it('treats near-silence as silence', () => {
     expect(speechEndSec(concat(tone(0.5), tone(0.5, 0.005)), RATE)).toBeCloseTo(0.5, 1);
+  });
+
+  it('finds the next pause at or after a time — where a filler can stop between words', () => {
+    // word 0–0.4, pause 0.4–0.5, word 0.5–0.9
+    const clip = concat(tone(0.4), silence(0.1, RATE), tone(0.4));
+    expect(nextPauseSec(clip, RATE, 0.1)).toBeCloseTo(0.4, 1);
+    expect(nextPauseSec(clip, RATE, 0.6)).toBeCloseTo(0.9, 1); // no pause left: the end
+  });
+
+  it('skips the quiet lead-in before the first word when looking for a pause', () => {
+    const clip = concat(silence(0.1, RATE), tone(0.4), silence(0.1, RATE), tone(0.4));
+    expect(nextPauseSec(clip, RATE, 0)).toBeCloseTo(0.5, 1);
+  });
+
+  it('trims the quiet lead-in and tail of a pre-synthesized clip', () => {
+    const clip = concat(silence(0.2, RATE), tone(0.5), silence(0.3, RATE));
+    expect(durationSec(trimSilence(clip, RATE), RATE)).toBeCloseTo(0.5, 1);
   });
 
   it('streams frames on a real-time schedule', async () => {
