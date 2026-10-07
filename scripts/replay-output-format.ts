@@ -261,6 +261,19 @@ async function bareFirstTokenMs(): Promise<number | null> {
   return first;
 }
 
+// FLOOR_CONCURRENT=n: only the turn as logged, n calls at a time — does load
+// (live batches ran ~10 sessions at once) raise first token?
+async function runFloorConcurrent(samples: Sample[], n: number) {
+  // REPLAY_SPACING_MS: idle time before each call (a live turn's gap), to
+  // test whether a connection gone cold between turns costs first token.
+  const idle = Number(process.env.REPLAY_SPACING_MS ?? 0);
+  const v = (await pool(samples, n, async s => {
+    if (idle) await new Promise(r => setTimeout(r, idle));
+    return firstTokenMs(s, s.candidateText);
+  })).filter((x): x is number => x != null);
+  console.log(`first token, turn, ${n} at a time, ${idle}ms idle: median ${pct(v, 0.5)}ms  p90 ${pct(v, 0.9)}ms  (n ${v.length})  [${v.join(' ')}]`);
+}
+
 async function runFloor(samples: Sample[]) {
   const rows: { id: string; turn: number | null; warm: number | null; tiny: number | null; bare: number | null }[] = [];
   for (const s of samples) {
@@ -304,7 +317,12 @@ async function main() {
   const estCost = samples.reduce((n, s) => n + (buildSystemPrompt(s.ctx).length + s.history.reduce((m, h) => m + h.content.length, 0)) / 3.6, 0) * 2 / 1e6;
   console.log(`${all.length} reconstructable turns · sampling ${samples.length} · est cost ~$${estCost.toFixed(2)}`);
   if (DRY) { writeFileSync(path.join(OUT_DIR, 'replay-sample-prompt.txt'), buildSystemPrompt(samples[0].ctx)); return; }
-  if (ARM === 'floor') { await bareFirstTokenMs(); await runFloor(samples); return; }
+  if (ARM === 'floor') {
+    await bareFirstTokenMs();
+    if (process.env.FLOOR_CONCURRENT) await runFloorConcurrent(samples, Number(process.env.FLOOR_CONCURRENT));
+    else await runFloor(samples);
+    return;
+  }
   await runProd(samples[0]); // warm the schema compile cache
   // REPLAY_CONCURRENCY / REPLAY_SPACING_MS: Cerebras allows 5 requests a
   // minute on pay-as-you-go, so its arm runs one turn at a time, spaced.
