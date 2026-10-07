@@ -13,7 +13,7 @@
 
 import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
-import { buildSystemPrompt, type PromptContext } from '@/lib/agent/prompts/system';
+import { buildSystemPrompt, buildPromptParts, type PromptContext } from '@/lib/agent/prompts/system';
 import { createInterviewerModel } from '@/lib/agent/models/factory';
 import { streamInterviewerTurn } from '@/lib/agent/interviewer';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
@@ -531,6 +531,18 @@ async function main() {
       const step = pool.length / k;
       return Array.from({ length: k }, (_, i) => pool[Math.floor(i * step)]);
     });
+    // REPLAY_DUMP_IDS=id,id: the screened samples' reconstructed prompts, as
+    // the challengers saw them — no model calls.
+    if (process.env.REPLAY_DUMP_IDS) {
+      const ids = process.env.REPLAY_DUMP_IDS.split(',');
+      const dump = spread.filter(x => ids.includes(x.id)).map(x => {
+        const { stable, turn } = buildPromptParts(x.ctx);
+        return { id: x.id, session: x.session, turnIndex: x.turnIndex, candidateText: x.candidateText, ctx: x.ctx, turnPrompt: turn, stablePromptChars: stable.length };
+      });
+      writeFileSync(path.join(OUT_DIR, 'replay-prompt-dump.json'), JSON.stringify(dump, null, 2));
+      console.log(`dumped ${dump.length} prompts to ${path.join(OUT_DIR, 'replay-prompt-dump.json')}`);
+      return;
+    }
     if (DRY) {
       console.log(`all turns by stage ${JSON.stringify(all.reduce<Record<string, number>>((m, x) => { m[x.ctx.currentPhase] = (m[x.ctx.currentPhase] ?? 0) + 1; return m; }, {}))}`);
       console.log(`${ARM}: ${spread.length} samples × 2 calls per arm · stages ${JSON.stringify(spread.reduce<Record<string, number>>((m, x) => { m[x.ctx.currentPhase] = (m[x.ctx.currentPhase] ?? 0) + 1; return m; }, {}))}`);
