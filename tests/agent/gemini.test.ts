@@ -14,7 +14,8 @@ const turn = (over: Record<string, unknown> = {}) => JSON.stringify({
 
 // A fetch that streams a thought part, then the JSON turn in `size`-char parts, then usage.
 function fakeFetch(turns: string[], size = 9) {
-  const calls: { url: string; key: string; body: Record<string, any> }[] = [];
+  type Body = { systemInstruction: { parts: { text: string }[] }; contents: { role: string }[]; generationConfig: Record<string, unknown> };
+  const calls: { url: string; key: string; body: Body }[] = [];
   let n = 0;
   const f = (async (url: string, init: { body: string; headers: Record<string, string> }) => {
     calls.push({ url, key: init.headers['x-goog-api-key'], body: JSON.parse(init.body) });
