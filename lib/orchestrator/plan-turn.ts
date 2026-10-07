@@ -41,6 +41,7 @@ export type PlanDeps = {
   now: number;
   turnStartMs: number;
   later: TurnCtx['later'];
+  acknowledged?: string;   // voice: a backchannel already spoken at end-of-turn
 };
 
 export type ModelPlan = ReturnType<typeof modelPlan>;
@@ -59,6 +60,7 @@ export function planTurn(reads: TurnReads, candidateText: string, deps: PlanDeps
   const ctx: TurnCtx = {
     sessionId, userId: session.userId, candidateText, now, turnStartMs: deps.turnStartMs,
     nextTurnIndex, currentPhase, flags, conduct, checks: new CheckLog(), events: [], later: deps.later,
+    acknowledged: deps.acknowledged,
   };
   const later = deps.later;
 

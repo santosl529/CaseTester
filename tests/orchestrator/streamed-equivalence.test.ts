@@ -68,6 +68,16 @@ describe('settleTurn composition', () => {
 
   // Batch 13 (Daniel t10, Jordan t14, Fiona t8): "Here's an exhibit: … Here's
   // the cost structure over time. What does it tell you…?"
+  // Voice: an acknowledgment the voice layer already spoke at end-of-turn.
+  it('records an already-spoken acknowledgment ahead of the turn, outside what is still to be sent', async () => {
+    const plan = modelPlanFixture({ distress: null });
+    plan.ctx.acknowledged = 'Mm-hm.';
+    const s = await settleTurn(plan, outcome(T({ say: '', requests: [STORES] }), []));
+    expect(s.result.interviewerText).toMatch(/^Mm-hm\. 200 stores/);
+    expect(s.spokenText).toMatch(/^200 stores/);
+    expect(s.tail).not.toContain('Mm-hm.');
+  });
+
   it('withholds a handover announcement that opens the question', async () => {
     const s = await settle(T({ question: "Here's the cost structure over time. What does it tell you?" }));
     expect(s.spokenText).toBe('What does it tell you?');

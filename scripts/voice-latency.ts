@@ -28,6 +28,7 @@ import type { Phase } from '@/lib/orchestrator/state-machine';
 import { DeepgramFluxSTT, DeepgramNovaSTT } from '@/lib/voice/deepgram';
 import { CartesiaTTS, cartesiaClient, defaultVoiceId } from '@/lib/voice/cartesia';
 import { speakingSink, turnLatency, type TurnLatency } from '@/lib/voice/speak';
+import { pickAck, shouldAcknowledge } from '@/lib/voice/acknowledge';
 import { silence, speechEndSec, streamRealtime } from '@/lib/voice/pcm';
 import type { STTProvider, TurnSignal } from '@/lib/voice/types';
 
@@ -42,6 +43,9 @@ const FIXTURE_TTS = flag('fixture-tts') ?? 'cartesia';
 const TTS_OFF = flag('tts') === 'none';
 const TTS_EST_MS = 140;
 const SAY_VOICE = 'Samantha';
+// --ack=off: no instant acknowledgment. On, a backchannel synthesized at
+// startup plays at end-of-turn (no synthesis delay), and the turn is told.
+const ACK_ON = flag('ack') !== 'off';
 
 const MIC_RATE = 16000;    // candidate audio into STT
 const TTS_RATE = 24000;    // interviewer audio out of TTS
@@ -117,6 +121,9 @@ async function candidateVoiceId(interviewer: string): Promise<string> {
 type TurnRecord = {
   turn: number; candidateChars: number; sttTranscript: string; interviewerText: string;
   interruptions: number; eagerSignals: number; resumed: number; latency: TurnLatency; toFirstSegmentMs?: number | null;
+  ack: string | null;
+  firstHeardMs: number | null;   // speech end → first interviewer sound (the ack, else first segment + TTS)
+  silenceAfterAckMs: number | null;  // ack → first real segment
 };
 
 type Heard = {
@@ -190,6 +197,7 @@ async function main() {
   const records: TurnRecord[] = [];
   const background: Promise<unknown>[] = [];
   let phase: Phase = 'INTRO';
+  let lastAck: string | null = null;
   for (let i = 0; i < lines.length; i++) {
     const heard = await speakTurnIn(stt, audio[i]);
     if (!heard.final) { console.warn(`[voice] turn ${i + 1}: no end-of-turn within ${MAX_TRAIL_SEC}s — skipped`); continue; }
@@ -204,9 +212,13 @@ async function main() {
     let firstAudioMs: number | null = null;
     utt.onAudio((_pcm, at) => { firstAudioMs ??= at; });
     const phaseBefore = phase;
+    const ack: string | null = ACK_ON && shouldAcknowledge(transcript) ? pickAck(`${sessionId}:${i}`, lastAck) : null;
+    if (ack) lastAck = ack;
+    const ackAtMs = ack ? Date.now() : null;   // pre-synthesized: plays at once
     const result = await runTurn(sessionId, transcript, {
       onSegment: speakingSink(utt, () => { firstSegmentMs ??= Date.now(); }),
       defer: task => { background.push(task()); },
+      acknowledged: ack ?? undefined,
     });
     await utt.end();
     phase = result.phase;
@@ -216,9 +228,15 @@ async function main() {
     records.push({
       turn: i + 1, candidateChars: lines[i].length, sttTranscript: transcript, interviewerText: result.interviewerText,
       interruptions: heard.interruptions, eagerSignals: heard.eagerSignals, resumed: heard.resumed, latency,
+      ack, firstHeardMs: null, silenceAfterAckMs: null,
     });
     const toSegment = firstSegmentMs != null ? (firstSegmentMs as number) - heard.speechEndMs : null;
-    records[records.length - 1].toFirstSegmentMs = toSegment;
+    const rec = records[records.length - 1];
+    rec.toFirstSegmentMs = toSegment;
+    const segAudio = toSegment != null ? toSegment + (TTS_OFF ? TTS_EST_MS : (latency.ttsMs ?? TTS_EST_MS)) : null;
+    rec.firstHeardMs = ackAtMs != null ? ackAtMs - heard.speechEndMs : segAudio;
+    rec.silenceAfterAckMs = ackAtMs != null && firstSegmentMs != null ? (firstSegmentMs as number) - ackAtMs : null;
+    console.log(`[voice] t${i + 1} ack=${ack ?? '-'} firstHeard=${rec.firstHeardMs ?? '-'}ms silenceAfterAck=${rec.silenceAfterAckMs ?? '-'}ms`);
     console.log(`[voice] t${i + 1} toFirstSegment=${toSegment ?? '-'}ms interruptions=${heard.interruptions} endpoint=${latency.endpointMs}ms eagerLead=${latency.eagerLeadMs ?? '-'}ms turn=${latency.turnMs ?? '-'}ms tts=${latency.ttsMs ?? '-'}ms TOTAL=${latency.totalMs ?? '-'}ms`);
     if (result.ended) break;
   }
@@ -237,16 +255,21 @@ async function main() {
     .map(k => [k, { median: med(records.map(r => r.latency[k])), p90: p90(records.map(r => r.latency[k])) }]));
   const seg = records.map(r => r.toFirstSegmentMs ?? null);
   Object.assign(summary, {
+    firstHeardMs: { median: med(records.map(r => r.firstHeardMs)), p90: p90(records.map(r => r.firstHeardMs)) },
+    silenceAfterAckMs: { median: med(records.map(r => r.silenceAfterAckMs)), p90: p90(records.map(r => r.silenceAfterAckMs)) },
+    acked: `${records.filter(r => r.ack).length}/${records.length}`,
     toFirstSegmentMs: { median: med(seg), p90: p90(seg) },
     estTotalMs: { median: med(seg) != null ? med(seg)! + TTS_EST_MS : null, p90: p90(seg) != null ? p90(seg)! + TTS_EST_MS : null, note: `first segment + ${TTS_EST_MS}ms measured Cartesia first audio` },
   });
   console.log('\n[voice] summary (ms):', JSON.stringify(summary));
   console.log(`[voice] interruptions (end-of-turn while still speaking): ${records.reduce((n, r) => n + r.interruptions, 0)} across ${records.length} turns`);
-  const gateMs = TTS_OFF ? (summary as Record<string, { median: number | null }>).estTotalMs.median : summary.totalMs.median;
-  console.log(`[voice] gate ≤1500ms median ${TTS_OFF ? 'estimated ' : ''}total (${gateMs}ms): ${gateMs != null && gateMs <= 1500 ? 'PASS' : 'FAIL'}`);
+  const gateMs = ACK_ON
+    ? (summary as Record<string, { median: number | null }>).firstHeardMs.median
+    : TTS_OFF ? (summary as Record<string, { median: number | null }>).estTotalMs.median : summary.totalMs.median;
+  console.log(`[voice] gate ≤1500ms median ${ACK_ON ? 'first heard (ack)' : TTS_OFF ? 'estimated total' : 'total'} (${gateMs}ms): ${gateMs != null && gateMs <= 1500 ? 'PASS' : 'FAIL'}`);
 
   mkdirSync(OUT_DIR, { recursive: true });
-  const out = path.join(OUT_DIR, `${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}-${stt.name}-${RUN.replace('/', '-')}${TTS_OFF ? '-no-tts' : ''}.json`);
+  const out = path.join(OUT_DIR, `${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}-${stt.name}-${RUN.replace('/', '-')}${TTS_OFF ? '-no-tts' : ''}${ACK_ON ? '-ack' : ''}.json`);
   writeFileSync(out, JSON.stringify({ stt: stt.name, run: RUN, sessionId, summary, records }, null, 2));
   console.log(`[voice] wrote ${out}`);
   process.exit(0);

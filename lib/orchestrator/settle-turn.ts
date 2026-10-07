@@ -51,6 +51,12 @@ export function pendingEventRows(ctx: TurnCtx, events: PendingEvent[]) {
   }));
 }
 
+// What the candidate heard: a voice acknowledgment spoken at end-of-turn, then
+// the turn. Saved and returned as one interviewer line; never re-sent.
+export function heardText(ctx: { acknowledged?: string }, text: string): string {
+  return ctx.acknowledged ? [ctx.acknowledged, text].map(s => s.trim()).filter(Boolean).join(' ') : text;
+}
+
 // A scripted turn (no model call): the candidate turn and the scripted reply,
 // this turn's check decisions, its events, then the session update — the
 // order the early-return paths wrote them in before the Plan stage.
@@ -59,7 +65,7 @@ export async function commitScripted(plan: ScriptedPlan): Promise<TurnResult> {
   const { ctx } = plan;
   await db.insert(sessionTurns).values([
     { sessionId: ctx.sessionId, turnIndex: ctx.nextTurnIndex, role: 'candidate', text: ctx.candidateText, timestampMs: ctx.now },
-    { sessionId: ctx.sessionId, turnIndex: ctx.nextTurnIndex + 1, role: 'interviewer', text: plan.interviewerText, timestampMs: Date.now() },
+    { sessionId: ctx.sessionId, turnIndex: ctx.nextTurnIndex + 1, role: 'interviewer', text: heardText(ctx, plan.interviewerText), timestampMs: Date.now() },
   ]);
   const checkRows = toCheckEventRows(ctx.checks, { sessionId: ctx.sessionId, turnIndex: ctx.nextTurnIndex, phase: ctx.currentPhase });
   if (checkRows.length > 0) await db.insert(sessionEvents).values(checkRows);
@@ -67,7 +73,7 @@ export async function commitScripted(plan: ScriptedPlan): Promise<TurnResult> {
   if (Object.keys(plan.sessionUpdate).length > 0) {
     await db.update(sessions).set(plan.sessionUpdate).where(eq(sessions.id, ctx.sessionId));
   }
-  return plan.result;
+  return ctx.acknowledged ? { ...plan.result, interviewerText: heardText(ctx, plan.result.interviewerText) } : plan.result;
 }
 
 // The prefix lock: the composed text is the turn; the candidate already
@@ -263,7 +269,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     await Promise.all([
       db.insert(sessionTurns).values([
         { sessionId, turnIndex: nextTurnIndex, role: 'candidate', text: candidateText, timestampMs: now },
-        { sessionId, turnIndex: nextTurnIndex + 1, role: 'interviewer', text: spokenText, timestampMs: Date.now(), latencyMs: modelLatencyMs },
+        { sessionId, turnIndex: nextTurnIndex + 1, role: 'interviewer', text: heardText(ctx, spokenText), timestampMs: Date.now(), latencyMs: modelLatencyMs },
       ]),
       (async () => {
         const rows = toCheckEventRows(checks, { sessionId, turnIndex: nextTurnIndex, phase: currentPhase });
@@ -349,7 +355,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
 
   return {
     result: {
-      interviewerText: spokenText,
+      interviewerText: heardText(ctx, spokenText),
       exhibit,
       phase: nextPhaseValue,
       ended,

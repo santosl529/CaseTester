@@ -50,6 +50,9 @@ export type TurnCtx = {
   checks: CheckLog;
   events: PendingEvent[];
   later: (task: () => Promise<void>) => void; // analytics, after the response
+  // Voice: a backchannel the voice layer already spoke when the candidate's
+  // turn ended. The model is told; the saved interviewer line starts with it.
+  acknowledged?: string;
 };
 
 // A turn with no model call (conduct, distress, inactive session): the text

@@ -1,4 +1,5 @@
 import { TurnTimer } from './turn-timer';
+import { turnNoteFor } from './turn-note';
 import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
@@ -46,12 +47,16 @@ export type RunTurnOptions = {
   // Resolves when a segment was delivered, rejects when it was not (D3).
   // Text mode passes none: the TurnResult carries the whole turn.
   onSegment?: SegmentSink;
+  // Voice: a backchannel ("Mm-hm.") already spoken at end-of-turn
+  // (lib/voice/acknowledge.ts). The model is told not to acknowledge again,
+  // and the saved interviewer line starts with it.
+  acknowledged?: string;
 };
 
 export async function runTurn(sessionId: string, candidateText: string, opts: RunTurnOptions = {}): Promise<TurnResult> {
   const deferred: (() => Promise<void>)[] = [];
   try {
-    return await runTurnBody(sessionId, candidateText, task => { deferred.push(task); }, opts.onSegment);
+    return await runTurnBody(sessionId, candidateText, task => { deferred.push(task); }, opts.onSegment, opts.acknowledged);
   } finally {
     if (opts.defer) for (const task of deferred) opts.defer(task);
     else await Promise.allSettled(deferred.map(task => task()));
@@ -60,6 +65,7 @@ export async function runTurn(sessionId: string, candidateText: string, opts: Ru
 
 async function runTurnBody(
   sessionId: string, candidateText: string, later: (task: () => Promise<void>) => void, sink?: SegmentSink,
+  acknowledged?: string,
 ): Promise<TurnResult> {
   // Full-turn timing (latency plan step 1): the model call alone was ~1.9s of
   // a ~2.2s turn in batches 7–8, but the writes after the interviewer row were
@@ -84,7 +90,7 @@ async function runTurnBody(
 
   // Plan (plan-turn.ts): everything decided before the model call, no writes.
   const plan = planTurn({ session, turnRows, exhibitRows, revealedRows, dataRequestEventRows }, candidateText, {
-    sessionId, now: Date.now(), turnStartMs, later,
+    sessionId, now: Date.now(), turnStartMs, later, acknowledged,
   });
   timer.mark('plan_done');
   if (plan.kind === 'scripted') {
@@ -187,9 +193,7 @@ async function runTurnBody(
         coverageSteer: state.coverageSteer,
         openDataRequestsHint: state.openDataRequestsHint,
         conductRedirectHint: state.conductRedirectHint,
-        turnNote: state.kind === 'rec_ask'
-          ? 'THIS TURN: the system asks the candidate for their recommendation as your question. Write only "say" — a brief neutral acknowledgment of their last message, or "" — declare their requests as usual, and set "question" to "".'
-          : undefined,
+        turnNote: turnNoteFor(state.kind, ctx.acknowledged),
       },
     });
     // Stream (stream-turn.ts): segments go out as they pass, after the
