@@ -28,7 +28,9 @@ import { RUNG_GUIDANCE } from '@/lib/orchestrator/stall';
 import { stageAdministration, endAllowed } from '@/lib/orchestrator/spoken-close';
 import { TOTAL_CASE_MS, type Phase } from '@/lib/orchestrator/state-machine';
 import { CONDUCT_REDIRECT } from '@/lib/agent/prompts/scripts';
-import { DATA_TALK } from '@/lib/orchestrator/stream-turn';
+import { DATA_TALK, vetoReason } from '@/lib/orchestrator/stream-turn';
+import Anthropic from '@anthropic-ai/sdk';
+import { writeOpener, OPENER_TURN_NOTE } from '@/lib/agent/opener';
 
 const RUNS_ROOT = 'Case Interview Runs/test runs';
 const BATCHES = (process.env.REPLAY_BATCHES ?? 'batch-7-oct-03,batch-8-oct-03').split(',');
@@ -168,7 +170,13 @@ type Row = {
   firstSentenceMs: number | null; firstDeliverableMs?: number | null; declarationsMs: number | null; latencyMs: number;
   inputTokens: number; outputTokens: number; cacheRead: number;
   turn?: ModelTurn; retried?: boolean;
+  // REPLAY_ARM=haiku-opener: Haiku writes the opening sentence in parallel.
+  opener?: string; openerFirstTokenMs?: number | null; openerDoneMs?: number | null; openerVeto?: string | null;
+  sonnetFirstContentMs?: number | null;
 };
+
+const ARM = process.env.REPLAY_ARM ?? 'prod';
+const anthropic = new Anthropic();
 
 const model = createInterviewerModel();   // INTERVIEWER_PROVIDER=cerebras for the Cerebras arm
 
@@ -177,9 +185,16 @@ async function runProd(s: Sample): Promise<Row> {
   const t0 = Date.now();
   let firstSentenceMs: number | null = null, declarationsMs: number | null = null, firstDeliverableMs: number | null = null, retried = false;
   let turn: ModelTurn | undefined;
+  const openerArm = ARM === 'haiku-opener';
+  const promptCtx = openerArm ? { ...s.ctx, turnNote: [s.ctx.turnNote, OPENER_TURN_NOTE].filter(Boolean).join('\n') } : s.ctx;
+  let openerFirstTokenMs: number | null = null;
+  const openerP = openerArm
+    ? writeOpener({ client: anthropic, lastQuestion: s.priorInterviewer, candidateText: s.candidateText, onFirstToken: () => { openerFirstTokenMs ??= Date.now() - t0; } })
+      .then(text => ({ text, doneMs: Date.now() - t0 }))
+    : null;
   try {
     for await (const e of streamInterviewerTurn({
-      model, candidateText: s.candidateText, history: s.history, promptCtx: s.ctx, phase: s.ctx.currentPhase,
+      model, candidateText: s.candidateText, history: s.history, promptCtx, phase: s.ctx.currentPhase,
       onUsage: x => { u.inputTokens += x.inputTokens; u.outputTokens += x.outputTokens; u.cacheRead += x.cacheReadTokens ?? 0; },
       onValidation: v => { retried = v.retried; },
     })) {
@@ -192,7 +207,20 @@ async function runProd(s: Sample): Promise<Row> {
       if (e.type === 'restart') { firstSentenceMs = null; declarationsMs = null; firstDeliverableMs = null; }
       if (e.type === 'done') turn = e.turn;
     }
-    return { id: s.id, ok: true, firstSentenceMs, firstDeliverableMs, declarationsMs, latencyMs: Date.now() - t0, ...u, turn, retried };
+    const latencyMs = Date.now() - t0;
+    if (!openerP) return { id: s.id, ok: true, firstSentenceMs, firstDeliverableMs, declarationsMs, latencyMs, ...u, turn, retried };
+    const op = await openerP;
+    // The opener through the real say vetoes (no case data in its prompt).
+    const veto = vetoReason(op.text, {
+      allowedTexts: [caseData.prompt, s.candidateText, ...s.history.filter(h => h.role === 'user').map(h => h.content), ...Object.values(s.ctx.revealedValues)],
+      verified: [], alreadyProbed: new Set(), flaggedThisTurn: false, openItems: [], phase: s.ctx.currentPhase,
+    });
+    // Sonnet's first content once the opener has the say slot: its own say if
+    // it wrote one anyway, else the data line, else the question.
+    const hasData = !!turn && (turn.requests.length > 0 || !!turn.exhibit);
+    const sonnetFirstContentMs = turn?.say ? firstDeliverableMs : hasData ? declarationsMs : latencyMs;
+    return { id: s.id, ok: true, firstSentenceMs, firstDeliverableMs, declarationsMs, latencyMs, ...u, turn, retried,
+      opener: op.text, openerFirstTokenMs, openerDoneMs: op.doneMs, openerVeto: veto, sonnetFirstContentMs };
   } catch (err) {
     return { id: s.id, ok: false, error: String(err).slice(0, 300), firstSentenceMs, declarationsMs, latencyMs: Date.now() - t0, ...u };
   }
@@ -241,6 +269,12 @@ async function main() {
     if (v.length) console.log(`  ${name.padEnd(18)} median ${pct(v, 0.5)}ms  p90 ${pct(v, 0.9)}ms  p95 ${pct(v, 0.95)}ms  (n ${v.length})`);
   };
   console.log(`P: ${ok.length}/${rows.length} ok · regenerated ${ok.filter(r => r.retried).length}`);
+  if (ARM === 'haiku-opener') {
+    show('opener done (Haiku)', ok.map(r => r.openerDoneMs ?? null).filter((x): x is number => x != null));
+    show('Sonnet first content', ok.map(r => r.sonnetFirstContentMs ?? null).filter((x): x is number => x != null));
+    show('gap opener→Sonnet', ok.filter(r => r.openerDoneMs != null && r.sonnetFirstContentMs != null).map(r => r.sonnetFirstContentMs! - r.openerDoneMs!));
+    console.log(`  opener vetoed ${ok.filter(r => r.openerVeto).length}/${ok.length} · Sonnet wrote a say anyway ${ok.filter(r => r.turn?.say).length}/${ok.length}`);
+  }
   show('declarations', ok.map(r => r.declarationsMs));
   show('first sentence', ok.map(r => r.firstSentenceMs));
   show('first delivered', ok.map(r => r.firstDeliverableMs ?? null));

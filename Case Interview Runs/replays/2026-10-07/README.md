@@ -19,3 +19,7 @@ Hand reviews: `cerebras-low-hand-review.txt` (all low-reasoning turns with the
 candidate message and Sonnet's logged reply) and
 `cerebras-low-medium-high-side-by-side.txt` (the same 20 turns at each
 setting). Findings: `.superpowers/sdd/progress.md` (7 Oct entries).
+
+| `haiku-opener`, `haiku-opener-nikhil` | Haiku 4.5 writes the opening sentence (no case data in its prompt) in parallel with Sonnet 5.5, which is told to leave `say` empty | current + `REPLAY_ARM=haiku-opener` | 50 / 11 |
+
+Hand review of every opener with the candidate message and Sonnet's turn: `haiku-opener-hand-review.txt`.

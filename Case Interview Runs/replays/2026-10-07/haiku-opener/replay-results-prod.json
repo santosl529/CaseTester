@@ -1,0 +1,1502 @@
+[
+  {
+    "id": "01-maya-the-fr#3",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1042,
+    "declarationsMs": 1042,
+    "latencyMs": 1703,
+    "inputTokens": 895,
+    "outputTokens": 80,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "pressure_test",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "You've named revenue, costs and external factors. Is that MECE, and which branch would you prioritize first, and why?"
+    },
+    "retried": false,
+    "opener": "You'd start with revenue, costs, and external factors.",
+    "openerFirstTokenMs": 369,
+    "openerDoneMs": 623,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1703
+  },
+  {
+    "id": "01-maya-the-fr#5",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1522,
+    "declarationsMs": 1522,
+    "latencyMs": 2427,
+    "inputTokens": 929,
+    "outputTokens": 145,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "clarify",
+      "requests": [
+        {
+          "what": "the split of revenue growth between store count and sales per store",
+          "itemIds": [
+            "stores_count",
+            "revenue_per_store"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Before you go further into that, I still need your answer on the structure. Within revenue and costs, what would you break down, and which branch would you prioritize first?"
+    },
+    "retried": false,
+    "opener": "You're asking about the source of that revenue growth.",
+    "openerFirstTokenMs": 477,
+    "openerDoneMs": 663,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1522
+  },
+  {
+    "id": "01-maya-the-fr#7",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 2199,
+    "declarationsMs": 2199,
+    "latencyMs": 2950,
+    "inputTokens": 1035,
+    "outputTokens": 182,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "pressure_test",
+      "requests": [
+        {
+          "what": "menu price changes over the past two years",
+          "itemIds": [
+            "menu_price_change"
+          ],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "average transaction value",
+          "itemIds": [
+            "avg_ticket"
+          ],
+          "explicit": true,
+          "respond": "defer"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Before I give you more data, I still need an answer on your framework. Your three buckets were revenue, costs, and external factors. Is that MECE, and what's missing?"
+    },
+    "retried": false,
+    "opener": "You're asking whether growth is price or volume.",
+    "openerFirstTokenMs": 449,
+    "openerDoneMs": 622,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 2199
+  },
+  {
+    "id": "01-maya-the-fr#9",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1462,
+    "declarationsMs": 1462,
+    "latencyMs": 1687,
+    "inputTokens": 1144,
+    "outputTokens": 92,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "exhibit",
+      "requests": [
+        {
+          "what": "the cost breakdown",
+          "itemIds": [
+            "exhibit-a"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "What does it tell you?"
+    },
+    "retried": false,
+    "opener": "You want to see the cost breakdown next.",
+    "openerFirstTokenMs": 450,
+    "openerDoneMs": 622,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1462
+  },
+  {
+    "id": "01-maya-the-fr#11",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1420,
+    "declarationsMs": 1420,
+    "latencyMs": 2297,
+    "inputTokens": 1403,
+    "outputTokens": 100,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "exhibit",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "On the exhibit, the cost lines are shown as shares of revenue, the same basis as the figures you've already seen. With that in mind, what does it tell you about where the margin went?"
+    },
+    "retried": false,
+    "opener": "You're asking whether those are percentages or dollars.",
+    "openerFirstTokenMs": 477,
+    "openerDoneMs": 634,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 2297
+  },
+  {
+    "id": "01-maya-the-fr#13",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1271,
+    "declarationsMs": 1271,
+    "latencyMs": 1733,
+    "inputTokens": 1277,
+    "outputTokens": 87,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "analysis",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Let's start with the exhibit on your screen. Which cost line moved the most as a share of revenue, and how does that compare with the margin decline?"
+    },
+    "retried": false,
+    "opener": "You're unsure how to proceed.",
+    "openerFirstTokenMs": 363,
+    "openerDoneMs": 503,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1733
+  },
+  {
+    "id": "01-maya-the-fr#15",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1361,
+    "declarationsMs": 1361,
+    "latencyMs": 1756,
+    "inputTokens": 1439,
+    "outputTokens": 89,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "exhibit",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Take your time. The question on the table is what the cost exhibit on your screen tells you about where the margin went. Start with which line moved most between the two periods."
+    },
+    "retried": false,
+    "opener": "You're stuck without seeing the exhibit.",
+    "openerFirstTokenMs": 356,
+    "openerDoneMs": 491,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1756
+  },
+  {
+    "id": "01-maya-the-fr#17",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1591,
+    "declarationsMs": 1591,
+    "latencyMs": 2437,
+    "inputTokens": 1365,
+    "outputTokens": 93,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "exhibit",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "No need to apologize. Start with the exhibit on your screen: which cost line moved the most over the two years, and how does that compare with the margin decline you were told about?"
+    },
+    "retried": false,
+    "opener": "You're unsure where to begin.",
+    "openerFirstTokenMs": 341,
+    "openerDoneMs": 443,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 2437
+  },
+  {
+    "id": "01-maya-the-fr#19",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1115,
+    "declarationsMs": 1115,
+    "latencyMs": 1919,
+    "inputTokens": 1522,
+    "outputTokens": 78,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "analysis",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "You said COGS went up 16%. Points of what? And what would you want to know next to explain why COGS rose so much?"
+    },
+    "retried": false,
+    "opener": "COGS moved sixteen points, labor flat, overhead two.",
+    "openerFirstTokenMs": 353,
+    "openerDoneMs": 496,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1919
+  },
+  {
+    "id": "01-maya-the-fr#23",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1019,
+    "declarationsMs": 1019,
+    "latencyMs": 1996,
+    "inputTokens": 1779,
+    "outputTokens": 111,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "analysis",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "No need to apologize. Back to where we were: COGS went from 42 to 58 as a share of revenue. Is calling that a 16% increase the same as saying it's 16 points of revenue? Walk me through the difference."
+    },
+    "retried": false,
+    "opener": "You want to continue with the case.",
+    "openerFirstTokenMs": 321,
+    "openerDoneMs": 445,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1996
+  },
+  {
+    "id": "01-maya-the-fr#25",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1545,
+    "declarationsMs": 1545,
+    "latencyMs": 3517,
+    "inputTokens": 1906,
+    "outputTokens": 145,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "the split of COGS by line item",
+          "itemIds": [
+            "bean_share_of_cogs",
+            "non_bean_input_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "On the 42 to 58 you keep calling 16%: that moved 16 points of what, and how does that differ from a 16% increase in COGS?"
+    },
+    "retried": false,
+    "opener": "You think input costs are the main driver.",
+    "openerFirstTokenMs": 359,
+    "openerDoneMs": 463,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1545
+  },
+  {
+    "id": "01-maya-the-fr#27",
+    "ok": true,
+    "firstSentenceMs": 1432,
+    "firstDeliverableMs": 1432,
+    "declarationsMs": 1433,
+    "latencyMs": 1725,
+    "inputTokens": 2088,
+    "outputTokens": 90,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "brainstorm",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood. You'll get a full written report afterward.",
+      "question": "Beyond what we've discussed, what else could Brew & Bean do to protect its margin?"
+    },
+    "retried": false,
+    "opener": "You've isolated bean costs and the other inputs separately.",
+    "openerFirstTokenMs": 328,
+    "openerDoneMs": 575,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1432
+  },
+  {
+    "id": "01-maya-the-fr#29",
+    "ok": true,
+    "firstSentenceMs": 1297,
+    "firstDeliverableMs": 1298,
+    "declarationsMs": 1298,
+    "latencyMs": 3296,
+    "inputTokens": 2417,
+    "outputTokens": 97,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "brainstorm",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Mm-hm.",
+      "question": "You've isolated what's driving COGS. Beyond what we've discussed, what else could Brew & Bean do to get its margin back up?"
+    },
+    "retried": false,
+    "opener": "Beans to 35, other inputs to 103.1, total 138.1.",
+    "openerFirstTokenMs": 553,
+    "openerDoneMs": 785,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1298
+  },
+  {
+    "id": "01-maya-the-fr#31",
+    "ok": true,
+    "firstSentenceMs": 1126,
+    "firstDeliverableMs": 1126,
+    "declarationsMs": 1127,
+    "latencyMs": 2911,
+    "inputTokens": 2466,
+    "outputTokens": 80,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "Given what you've found, what would you recommend to the CEO, and which of those levers would you pull first and why?"
+    },
+    "retried": false,
+    "opener": "Three approaches: pricing, supplier contracts, menu mix.",
+    "openerFirstTokenMs": 345,
+    "openerDoneMs": 518,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1126
+  },
+  {
+    "id": "01-maya-the-fr#33",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1221,
+    "declarationsMs": 1221,
+    "latencyMs": 2047,
+    "inputTokens": 2507,
+    "outputTokens": 96,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Imagine the CEO asks you what to do first. Based on the cost drivers you found, what's your recommendation, and what's the one thing you'd want to know before committing?"
+    },
+    "retried": false,
+    "opener": "You're unable to choose one over the others.",
+    "openerFirstTokenMs": 319,
+    "openerDoneMs": 494,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 2047
+  },
+  {
+    "id": "01-maya-the-fr#36",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1300,
+    "declarationsMs": 1300,
+    "latencyMs": 1729,
+    "inputTokens": 2614,
+    "outputTokens": 69,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Pick whichever one you find most convincing, and tell me what makes it the right first move."
+    },
+    "retried": false,
+    "opener": "You don't know which lever to lead with.",
+    "openerFirstTokenMs": 345,
+    "openerDoneMs": 474,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1729
+  },
+  {
+    "id": "01-maya-the-fr#38",
+    "ok": true,
+    "firstSentenceMs": 1081,
+    "firstDeliverableMs": 1081,
+    "declarationsMs": 1081,
+    "latencyMs": 2952,
+    "inputTokens": 2681,
+    "outputTokens": 98,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "Then let's make it smaller. You told me prices haven't changed in two years while input costs rose sharply. In one sentence, what does that suggest the client should do first?"
+    },
+    "retried": false,
+    "opener": "You don't know which one you'd defend first.",
+    "openerFirstTokenMs": 325,
+    "openerDoneMs": 523,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1081
+  },
+  {
+    "id": "01-maya-the-fr#40",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1116,
+    "declarationsMs": 1116,
+    "latencyMs": 3118,
+    "inputTokens": 2762,
+    "outputTokens": 91,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Say it as a recommendation to the CEO: what would you tell her to do, and what makes you confident it would work? Then tell me the biggest risk to it."
+    },
+    "retried": false,
+    "opener": "You'd raise prices because costs have risen.",
+    "openerFirstTokenMs": 357,
+    "openerDoneMs": 569,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 3118
+  },
+  {
+    "id": "01-maya-the-fr#42",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 3650,
+    "declarationsMs": 3650,
+    "latencyMs": 5344,
+    "inputTokens": 5930,
+    "outputTokens": 108,
+    "cacheRead": 9100,
+    "turn": {
+      "move": "other",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Okay. Is there any point from our discussion you'd like to add or revisit before we finish?"
+    },
+    "retried": true,
+    "opener": "You walked through pricing leverage on margin and volume risk.",
+    "openerFirstTokenMs": 329,
+    "openerDoneMs": 571,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 5344
+  },
+  {
+    "id": "02-tobias-the-#3",
+    "ok": true,
+    "firstSentenceMs": 1171,
+    "firstDeliverableMs": 1171,
+    "declarationsMs": 1616,
+    "latencyMs": 2418,
+    "inputTokens": 1141,
+    "outputTokens": 155,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "pressure_test",
+      "requests": [
+        {
+          "what": "the cost breakdown as a percent of revenue for both years",
+          "itemIds": [
+            "cogs_pct",
+            "labor_pct",
+            "overhead_pct"
+          ],
+          "explicit": true,
+          "respond": "defer"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "A cost-weighted structure.",
+      "question": "Before we pull any data, is that structure MECE? What's missing, or overlapping, across those three buckets?"
+    },
+    "retried": false,
+    "opener": "You'd weight costs first, but check revenue mix before diving in.",
+    "openerFirstTokenMs": 618,
+    "openerDoneMs": 886,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1171
+  },
+  {
+    "id": "02-tobias-the-#6",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 3593,
+    "declarationsMs": 3593,
+    "latencyMs": 4312,
+    "inputTokens": 1524,
+    "outputTokens": 185,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "the COGS breakdown by component",
+          "itemIds": [
+            "bean_share_of_cogs",
+            "non_bean_input_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "menu price changes over the two years",
+          "itemIds": [
+            "menu_price_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Based on what you have, which of your two hypotheses, input costs rising or prices not keeping up, do you test first, and why?"
+    },
+    "retried": false,
+    "opener": "You'd split cost versus revenue, then layer external factors underneath.",
+    "openerFirstTokenMs": 351,
+    "openerDoneMs": 599,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 3593
+  },
+  {
+    "id": "02-tobias-the-#9",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1548,
+    "declarationsMs": 1548,
+    "latencyMs": 1795,
+    "inputTokens": 2164,
+    "outputTokens": 122,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "exhibit",
+      "requests": [
+        {
+          "what": "the cost structure over time exhibit",
+          "itemIds": [
+            "exhibit-a"
+          ],
+          "explicit": false,
+          "respond": "release"
+        }
+      ],
+      "exhibit": "exhibit-a",
+      "rescueItem": null,
+      "say": "",
+      "question": "What does it tell you, and does it change or confirm your read of what's driving the margin decline?"
+    },
+    "retried": false,
+    "opener": "You calculated beans and other inputs both rose roughly forty percent.",
+    "openerFirstTokenMs": 346,
+    "openerDoneMs": 566,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1548
+  },
+  {
+    "id": "02-tobias-the-#12",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1605,
+    "declarationsMs": 1605,
+    "latencyMs": 2244,
+    "inputTokens": 2458,
+    "outputTokens": 127,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "brainstorm",
+      "requests": [
+        {
+          "what": "competitor pricing and price elasticity testing",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Setting price aside for a moment, beyond what we've discussed, what else could Brew & Bean do to close that gap?"
+    },
+    "retried": false,
+    "opener": "You've decomposed the problem and solved for the required price increase.",
+    "openerFirstTokenMs": 339,
+    "openerDoneMs": 549,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1605
+  },
+  {
+    "id": "02-tobias-the-#14",
+    "ok": true,
+    "firstSentenceMs": 1151,
+    "firstDeliverableMs": 1151,
+    "declarationsMs": 1486,
+    "latencyMs": 2093,
+    "inputTokens": 2730,
+    "outputTokens": 116,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "recommendation",
+      "requests": [
+        {
+          "what": "COGS or margin by product category",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Mm-hm.",
+      "question": "The CEO walks in and asks what you'd do, and in what order. What's your recommendation?"
+    },
+    "retried": false,
+    "opener": "Procurement, waste, mix, overhead, and price architecture, then.",
+    "openerFirstTokenMs": 354,
+    "openerDoneMs": 584,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1151
+  },
+  {
+    "id": "02-tobias-the-#16",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1248,
+    "declarationsMs": 1248,
+    "latencyMs": 2443,
+    "inputTokens": 3311,
+    "outputTokens": 118,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "risk",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "You said a 10 to 12 percent price move over a few steps, with procurement and waste closing the remaining gap. How did you get there? And if traffic falls after the price increase, what is the biggest risk to this plan and how would you handle it?"
+    },
+    "retried": false,
+    "opener": "Price increase paired with procurement reform, not cost cuts.",
+    "openerFirstTokenMs": 400,
+    "openerDoneMs": 543,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 2443
+  },
+  {
+    "id": "06-destiny-the#2",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1102,
+    "declarationsMs": 1102,
+    "latencyMs": 1585,
+    "inputTokens": 772,
+    "outputTokens": 94,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "structure",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "No guessing yet. I'd like to hear how you would organize your thinking to find the root cause of the margin decline. Take a minute if you need it. What structure would you use?"
+    },
+    "retried": false,
+    "opener": "You're asking whether to hypothesize causes first.",
+    "openerFirstTokenMs": 320,
+    "openerDoneMs": 543,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1585
+  },
+  {
+    "id": "06-destiny-the#4",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1051,
+    "declarationsMs": 1051,
+    "latencyMs": 1864,
+    "inputTokens": 978,
+    "outputTokens": 86,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "structure",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Take your time. The question on the table is how you would break this profit decline into parts so you can find where it comes from. What would you want to understand first, and why?"
+    },
+    "retried": false,
+    "opener": "You're unsure where to begin.",
+    "openerFirstTokenMs": 341,
+    "openerDoneMs": 525,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1864
+  },
+  {
+    "id": "06-destiny-the#6",
+    "ok": true,
+    "firstSentenceMs": 1097,
+    "firstDeliverableMs": 1097,
+    "declarationsMs": 1097,
+    "latencyMs": 1950,
+    "inputTokens": 931,
+    "outputTokens": 81,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "structure",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "No need to apologize.",
+      "question": "Forget the answer for a moment. What is profit made of, and what would you want to understand first about this client's business?"
+    },
+    "retried": false,
+    "opener": "You're asking me to point you toward the root cause.",
+    "openerFirstTokenMs": 377,
+    "openerDoneMs": 533,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1097
+  },
+  {
+    "id": "06-destiny-the#8",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1137,
+    "declarationsMs": 1137,
+    "latencyMs": 2090,
+    "inputTokens": 1114,
+    "outputTokens": 99,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "structure",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "That's a start. Margin falls when one of those moves the wrong way relative to the other. Revenue has grown, so how would you break the cost side down to find where the pressure might be coming from?"
+    },
+    "retried": false,
+    "opener": "Revenue minus costs, then split each one.",
+    "openerFirstTokenMs": 347,
+    "openerDoneMs": 494,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 2090
+  },
+  {
+    "id": "06-destiny-the#10",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1143,
+    "declarationsMs": 1143,
+    "latencyMs": 1965,
+    "inputTokens": 1351,
+    "outputTokens": 87,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "structure",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Costs first, understood. If you were looking at a coffee chain's costs, what are the main categories you'd expect to see, and how would you break them down?"
+    },
+    "retried": false,
+    "opener": "You'd start with costs, then.",
+    "openerFirstTokenMs": 322,
+    "openerDoneMs": 458,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1965
+  },
+  {
+    "id": "06-destiny-the#12",
+    "ok": true,
+    "firstSentenceMs": 1108,
+    "firstDeliverableMs": 1108,
+    "declarationsMs": 1110,
+    "latencyMs": 1803,
+    "inputTokens": 1479,
+    "outputTokens": 75,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "structure",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Right.",
+      "question": "You've named several cost types. How would you group them into a structure, and which group would you investigate first, and why?"
+    },
+    "retried": false,
+    "opener": "You listed beans, milk, cups, wages, rent, utilities, marketing.",
+    "openerFirstTokenMs": 359,
+    "openerDoneMs": 539,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1108
+  },
+  {
+    "id": "06-destiny-the#14",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1968,
+    "declarationsMs": 1968,
+    "latencyMs": 2805,
+    "inputTokens": 1513,
+    "outputTokens": 145,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "pressure_test",
+      "requests": [
+        {
+          "what": "revenue and costs figures",
+          "itemIds": [
+            "cogs_pct",
+            "labor_pct",
+            "overhead_pct"
+          ],
+          "explicit": true,
+          "respond": "defer"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Is that set of buckets MECE, and is there anything missing? Then tell me why you'd start with people when you haven't seen the numbers."
+    },
+    "retried": false,
+    "opener": "You grouped into ingredients, people, and rent.",
+    "openerFirstTokenMs": 357,
+    "openerDoneMs": 541,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1968
+  },
+  {
+    "id": "06-destiny-the#16",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1424,
+    "declarationsMs": 1424,
+    "latencyMs": 1969,
+    "inputTokens": 1600,
+    "outputTokens": 121,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "the cost breakdown as a share of revenue",
+          "itemIds": [
+            "cogs_pct",
+            "labor_pct",
+            "overhead_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Which of those buckets would you dig into first, and why?"
+    },
+    "retried": false,
+    "opener": "You want the revenue split across those three buckets.",
+    "openerFirstTokenMs": 339,
+    "openerDoneMs": 539,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1424
+  },
+  {
+    "id": "06-destiny-the#18",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1244,
+    "declarationsMs": 1244,
+    "latencyMs": 1558,
+    "inputTokens": 1568,
+    "outputTokens": 94,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "analysis",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "You said the COGS gap is about $77M. Is that the margin problem, or does it include cost that simply grew with revenue? And what would you want to know next about COGS?"
+    },
+    "retried": false,
+    "opener": "COGS moved sixteen points, labor stayed flat.",
+    "openerFirstTokenMs": 387,
+    "openerDoneMs": 519,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1558
+  },
+  {
+    "id": "06-destiny-the#20",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1142,
+    "declarationsMs": 1142,
+    "latencyMs": 2082,
+    "inputTokens": 1721,
+    "outputTokens": 89,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "analysis",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Understood. COGS is the main driver, so what could be pushing it up from 42% to 58% of revenue, and what would you want to look at to find out?"
+    },
+    "retried": false,
+    "opener": "You separated scaling costs from margin degradation.",
+    "openerFirstTokenMs": 345,
+    "openerDoneMs": 495,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 2082
+  },
+  {
+    "id": "06-destiny-the#22",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 2179,
+    "declarationsMs": 2179,
+    "latencyMs": 2700,
+    "inputTokens": 1819,
+    "outputTokens": 225,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "the COGS breakdown by input, with beans as a share of COGS",
+          "itemIds": [
+            "bean_share_of_cogs"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "other input cost changes (dairy, packaging, food)",
+          "itemIds": [
+            "non_bean_input_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "the coffee bean price change",
+          "itemIds": [
+            "bean_price_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "With those in hand, how would you test whether input costs alone explain the COGS jump?"
+    },
+    "retried": false,
+    "opener": "You want to break down COGS components and check commodity pricing.",
+    "openerFirstTokenMs": 329,
+    "openerDoneMs": 580,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 2179
+  },
+  {
+    "id": "06-destiny-the#24",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1570,
+    "declarationsMs": 1570,
+    "latencyMs": 2162,
+    "inputTokens": 2168,
+    "outputTokens": 109,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "menu price history",
+          "itemIds": [
+            "menu_price_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Given that pricing answer, what do you conclude about the root cause of the profit decline?"
+    },
+    "retried": false,
+    "opener": "Broad input inflation, smaller impact from beans.",
+    "openerFirstTokenMs": 429,
+    "openerDoneMs": 565,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1570
+  },
+  {
+    "id": "06-destiny-the#26",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1519,
+    "declarationsMs": 1519,
+    "latencyMs": 2260,
+    "inputTokens": 2312,
+    "outputTokens": 134,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "recommendation",
+      "requests": [
+        {
+          "what": "competitor pricing",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Setting competitors aside, you've sized a price move of roughly 10 to 15 percent. What is your recommendation to the CEO, and what would you be relying on to defend that range?"
+    },
+    "retried": false,
+    "opener": "So you're looking at what competitors did on pricing.",
+    "openerFirstTokenMs": 370,
+    "openerDoneMs": 651,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1519
+  },
+  {
+    "id": "06-destiny-the#28",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 2642,
+    "declarationsMs": 2642,
+    "latencyMs": 3287,
+    "inputTokens": 2521,
+    "outputTokens": 209,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "store count, two years ago versus today",
+          "itemIds": [
+            "stores_count"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "average ticket, two years ago versus today",
+          "itemIds": [
+            "avg_ticket"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "transactions per store",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "What do those figures tell you about where the 15% growth came from, and how does that change your view of the price lever?"
+    },
+    "retried": false,
+    "opener": "You'd check store count, transactions per store, and ticket.",
+    "openerFirstTokenMs": 340,
+    "openerDoneMs": 496,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 2642
+  },
+  {
+    "id": "06-destiny-the#30",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1230,
+    "declarationsMs": 1230,
+    "latencyMs": 2106,
+    "inputTokens": 3036,
+    "outputTokens": 100,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "exhibit",
+      "requests": [],
+      "exhibit": "exhibit-a",
+      "rescueItem": null,
+      "say": "",
+      "question": "Here's an exhibit: the cost structure over time. Before you build further on the mix idea, what does it tell you, and does it support or challenge that hypothesis?"
+    },
+    "retried": false,
+    "opener": "You isolated mix shift within the COGS bucket.",
+    "openerFirstTokenMs": 390,
+    "openerDoneMs": 579,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1230
+  },
+  {
+    "id": "06-destiny-the#32",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1182,
+    "declarationsMs": 1182,
+    "latencyMs": 1866,
+    "inputTokens": 3123,
+    "outputTokens": 74,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Given everything we've covered, what is your recommendation to the CEO, and what would you do first?"
+    },
+    "retried": false,
+    "opener": "Supplier contracts, menu mix, waste, and overhead as levers.",
+    "openerFirstTokenMs": 344,
+    "openerDoneMs": 603,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1866
+  },
+  {
+    "id": "06-destiny-the#34",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1535,
+    "declarationsMs": 1535,
+    "latencyMs": 2324,
+    "inputTokens": 3369,
+    "outputTokens": 81,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Time is getting short. What is your recommendation to the CEO: what should Brew & Bean do, and in what order?"
+    },
+    "retried": false,
+    "opener": "Loyalty program, higher-margin products, off-peak dayparts, then price increases.",
+    "openerFirstTokenMs": 356,
+    "openerDoneMs": 599,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 2324
+  },
+  {
+    "id": "06-destiny-the#36",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 2187,
+    "declarationsMs": 2187,
+    "latencyMs": 3086,
+    "inputTokens": 3852,
+    "outputTokens": 87,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "risk",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "You named demand as a risk. Of everything that could go wrong with this recommendation, which one worries you most, and how would you know early if it were happening?"
+    },
+    "retried": false,
+    "opener": "Raise prices phased in, test first, with supplier locks and waste reduction.",
+    "openerFirstTokenMs": 329,
+    "openerDoneMs": 591,
+    "openerVeto": "synthesis",
+    "sonnetFirstContentMs": 3086
+  },
+  {
+    "id": "06-destiny-the#38",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1208,
+    "declarationsMs": 1208,
+    "latencyMs": 2110,
+    "inputTokens": 4011,
+    "outputTokens": 87,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "risk",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "You've named demand loss as a risk. If transactions fall after the increase, what would you watch to tell whether it's working, and when would you reverse course?"
+    },
+    "retried": false,
+    "opener": "You worked through a 12.5% price increase with fixed costs.",
+    "openerFirstTokenMs": 400,
+    "openerDoneMs": 665,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 2110
+  },
+  {
+    "id": "08-claire-the-#2",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1475,
+    "declarationsMs": 1475,
+    "latencyMs": 2118,
+    "inputTokens": 1076,
+    "outputTokens": 124,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "pressure_test",
+      "requests": [
+        {
+          "what": "the cost breakdown as a percentage of revenue for both years",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "defer"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Before we get to data, is that framework MECE, and which of those branches would you prioritize first, and why?"
+    },
+    "retried": false,
+    "opener": "You'd examine revenue sources, then cost categories, then external factors.",
+    "openerFirstTokenMs": 415,
+    "openerDoneMs": 642,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1475
+  },
+  {
+    "id": "08-claire-the-#4",
+    "ok": true,
+    "firstSentenceMs": 1392,
+    "firstDeliverableMs": 1392,
+    "declarationsMs": 2521,
+    "latencyMs": 3342,
+    "inputTokens": 1693,
+    "outputTokens": 263,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "COGS as a percentage of revenue for both years",
+          "itemIds": [
+            "cogs_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "labor as a percentage of revenue for both years",
+          "itemIds": [
+            "labor_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "overhead and rent as a percentage of revenue for both years",
+          "itemIds": [
+            "overhead_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "store count for both years",
+          "itemIds": [
+            "stores_count"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Right.",
+      "question": "Looking at those figures, where does the margin decline sit, and what would you want to dig into next?"
+    },
+    "retried": false,
+    "opener": "You'd start with cost structure, sequenced by size.",
+    "openerFirstTokenMs": 367,
+    "openerDoneMs": 542,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1392
+  },
+  {
+    "id": "08-claire-the-#6",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 2038,
+    "declarationsMs": 2038,
+    "latencyMs": 2521,
+    "inputTokens": 2052,
+    "outputTokens": 209,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "the COGS split",
+          "itemIds": [
+            "bean_share_of_cogs",
+            "non_bean_input_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "menu price history",
+          "itemIds": [
+            "menu_price_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "coffee bean price change",
+          "itemIds": [
+            "bean_price_change"
+          ],
+          "explicit": false,
+          "respond": "defer"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "With that in hand, what does it tell you about where the COGS increase is coming from, and what would you check next?"
+    },
+    "retried": false,
+    "opener": "COGS breakdown and pricing history requested.",
+    "openerFirstTokenMs": 340,
+    "openerDoneMs": 447,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 2038
+  },
+  {
+    "id": "08-claire-the-#8",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1369,
+    "declarationsMs": 1369,
+    "latencyMs": 2533,
+    "inputTokens": 2259,
+    "outputTokens": 111,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "analysis",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "You scaled COGS at 42% of revenue by the input inflation, and 15% more volume also lifts total costs. Points of what are you measuring here: share of COGS, share of revenue, or share of margin?"
+    },
+    "retried": false,
+    "opener": "Input inflation accounts for the entire sixteen point COGS move.",
+    "openerFirstTokenMs": 328,
+    "openerDoneMs": 555,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 2533
+  },
+  {
+    "id": "08-claire-the-#10",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 1283,
+    "declarationsMs": 1283,
+    "latencyMs": 1879,
+    "inputTokens": 2611,
+    "outputTokens": 70,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "brainstorm",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Beyond what we've discussed so far, what else could the client do to address this?"
+    },
+    "retried": false,
+    "opener": "You showed the ratio isolates price and unit cost.",
+    "openerFirstTokenMs": 361,
+    "openerDoneMs": 625,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1879
+  },
+  {
+    "id": "08-claire-the-#12",
+    "ok": true,
+    "firstSentenceMs": 1425,
+    "firstDeliverableMs": 1425,
+    "declarationsMs": 1461,
+    "latencyMs": 1950,
+    "inputTokens": 2667,
+    "outputTokens": 89,
+    "cacheRead": 4550,
+    "turn": {
+      "move": "brainstorm",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Take a moment.",
+      "question": "Think about the profit equation you laid out at the start. What levers does the client have on each side of it, and which would you pull first?"
+    },
+    "retried": false,
+    "opener": "You're unsure what else could reverse it.",
+    "openerFirstTokenMs": 322,
+    "openerDoneMs": 519,
+    "openerVeto": null,
+    "sonnetFirstContentMs": 1425
+  }
+]

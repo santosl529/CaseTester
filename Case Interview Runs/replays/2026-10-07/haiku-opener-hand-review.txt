@@ -1,0 +1,244 @@
+### 1. 01-maya-the-fr#3
+  CAND: Okay, so... I'd want to look at a few things. First, revenue — like what's happening with sales. Second, costs, so what they're spending money on. And third, maybe external stuff, like competitors or the market overall. Does that seem okay as a starting point?
+  HAIKU: "You'd start with revenue, costs, and external factors."  veto=None
+  SONNET say='' Q: You've named revenue, costs and external factors. Is that MECE, and which branch would you prioritize first, and why?
+### 2. 01-maya-the-fr#5
+  CAND: Can I ask — is the 15% revenue growth from more stores, or more sales per store?
+  HAIKU: "You're asking about the source of that revenue growth."  veto=None
+  SONNET say='' Q: Before you go further into that, I still need your answer on the structure. Within revenue and costs, what would you break down, and which branch would you prioritize first?
+### 3. 01-maya-the-fr#7
+  CAND: Got it, thanks. Is that growth coming from price increases or more customers?
+  HAIKU: "You're asking whether growth is price or volume."  veto=None
+  SONNET say='' Q: Before I give you more data, I still need an answer on your framework. Your three buckets were revenue, costs, and external factors. Is that MECE, and what's missing?
+### 4. 01-maya-the-fr#9
+  CAND: Okay. And on the cost side — do we have a breakdown of their cost structure?
+  HAIKU: 'You want to see the cost breakdown next.'  veto=None
+  SONNET say='' Q: What does it tell you?
+### 5. 01-maya-the-fr#11
+  CAND: Sorry, one more — are those numbers percentages of revenue, or dollars?
+  HAIKU: "You're asking whether those are percentages or dollars."  veto=None
+  SONNET say='' Q: On the exhibit, the cost lines are shown as shares of revenue, the same basis as the figures you've already seen. With that in mind, what does it tell you about where the margin went?
+### 6. 01-maya-the-fr#13
+  CAND: hmm, I'm not sure what to do with that.
+  HAIKU: "You're unsure how to proceed."  veto=None
+  SONNET say='' Q: Let's start with the exhibit on your screen. Which cost line moved the most as a share of revenue, and how does that compare with the margin decline?
+### 7. 01-maya-the-fr#15
+  CAND: I'm stuck, sorry.
+  HAIKU: "You're stuck without seeing the exhibit."  veto=None
+  SONNET say='' Q: Take your time. The question on the table is what the cost exhibit on your screen tells you about where the margin went. Start with which line moved most between the two periods.
+### 8. 01-maya-the-fr#17
+  CAND: I don't really know where to start, sorry.
+  HAIKU: "You're unsure where to begin."  veto=None
+  SONNET say='' Q: No need to apologize. Start with the exhibit on your screen: which cost line moved the most over the two years, and how does that compare with the margin decline you were told about?
+### 9. 01-maya-the-fr#19
+  CAND: Okay — COGS moved the most, 42 to 58. That's a 16% increase. Labor stayed flat at 22, and overhead only went 12 to 14, so 2 points. So basically all of the margin loss, 24 down to 6, is 18 points, and COGS accounts for 16 of that. So it's really a COGS story. 
+  HAIKU: 'COGS moved sixteen points, labor flat, overhead two.'  veto=None
+  SONNET say='' Q: You said COGS went up 16%. Points of what? And what would you want to know next to explain why COGS rose so much?
+### 10. 01-maya-the-fr#23
+  CAND: I'm okay, really — I'd rather keep going. Sorry about that.
+  HAIKU: 'You want to continue with the case.'  veto=None
+  SONNET say='' Q: No need to apologize. Back to where we were: COGS went from 42 to 58 as a share of revenue. Is calling that a 16% increase the same as saying it's 16 points of revenue? Walk me through the difference.
+### 11. 01-maya-the-fr#25
+  CAND: Probably input costs. Do we have a split of COGS by line item — like beans versus dairy versus packaging?  The 42 to 58 is still a 16% increase to me, that's the big driver.
+  HAIKU: 'You think input costs are the main driver.'  veto=None
+  SONNET say='' Q: On the 42 to 58 you keep calling 16%: that moved 16 points of what, and how does that differ from a 16% increase in COGS?
+### 12. 01-maya-the-fr#27
+  CAND: Beans up 40%, and they were 25% of COGS two years ago. So that's part of it, but the other inputs are 75% of COGS and up 37.5%, so those matter more in dollar terms.  But yeah, I still read the 42 to 58 as a 16% increase, that feels like the main thing.  Am I 
+  HAIKU: "You've isolated bean costs and the other inputs separately."  veto=None
+  SONNET say="Understood. You'll get a full written report afterward." Q: Beyond what we've discussed, what else could Brew & Bean do to protect its margin?
+### 13. 01-maya-the-fr#29
+  CAND: Okay. Per 100 of COGS two years ago: beans were 25, up 40%, so 25 × 1.4 = 35. Other inputs were 75, up 37.5%, so 75 × 1.375 = 103.1. Total is 138.1, so COGS is up about 38% in dollar terms.  And revenue is up 15%, so costs are growing way faster than sales. Th
+  HAIKU: 'Beans to 35, other inputs to 103.1, total 138.1.'  veto=None
+  SONNET say='Mm-hm.' Q: You've isolated what's driving COGS. Beyond what we've discussed, what else could Brew & Bean do to get its margin back up?
+### 14. 01-maya-the-fr#31
+  CAND: Umm. Maybe raise prices, since they haven't changed in two years? Or renegotiate supplier contracts, maybe lock in longer-term bean pricing. Possibly change the menu mix toward items with cheaper inputs.  I'm not sure beyond that, sorry.
+  HAIKU: 'Three approaches: pricing, supplier contracts, menu mix.'  veto=None
+  SONNET say='Understood.' Q: Given what you've found, what would you recommend to the CEO, and which of those levers would you pull first and why?
+### 15. 01-maya-the-fr#33
+  CAND: I don't know, sorry. I can't really pick between them.
+  HAIKU: "You're unable to choose one over the others."  veto=None
+  SONNET say='' Q: Imagine the CEO asks you what to do first. Based on the cost drivers you found, what's your recommendation, and what's the one thing you'd want to know before committing?
+### 16. 01-maya-the-fr#36
+  CAND: I'm sorry, I really don't know.
+  HAIKU: "You don't know which lever to lead with."  veto=None
+  SONNET say='' Q: Pick whichever one you find most convincing, and tell me what makes it the right first move.
+### 17. 01-maya-the-fr#38
+  CAND: I'm sorry — I don't know.
+  HAIKU: "You don't know which one you'd defend first."  veto=None
+  SONNET say='Understood.' Q: Then let's make it smaller. You told me prices haven't changed in two years while input costs rose sharply. In one sentence, what does that suggest the client should do first?
+### 18. 01-maya-the-fr#40
+  CAND: Prices, maybe. Since they haven't changed in two years and costs are up.  But I don't really know, sorry.
+  HAIKU: "You'd raise prices because costs have risen."  veto=None
+  SONNET say='' Q: Say it as a recommendation to the CEO: what would you tell her to do, and what makes you confident it would work? Then tell me the biggest risk to it.
+### 19. 01-maya-the-fr#42
+  CAND: If prices go up, revenue per transaction rises and COGS stays the same in dollars, so margin improves. Like if costs are 58 of revenue now, a higher price makes that percentage smaller.  What could go wrong is customers buy less, or go to competitors. Volume c
+  HAIKU: 'You walked through pricing leverage on margin and volume risk.'  veto=None
+  SONNET say='' Q: Okay. Is there any point from our discussion you'd like to add or revisit before we finish?
+### 20. 02-tobias-the-#3
+  CAND: Since revenue is actually up 15% while margin collapsed from 24% to 6%, the decline has to be driven by costs growing faster than revenue, so I'd weight my structure there — but I want to confirm the revenue side first so we don't miss a mix issue.  Three buck
+  HAIKU: "You'd weight costs first, but check revenue mix before diving in."  veto=None
+  SONNET say='A cost-weighted structure.' Q: Before we pull any data, is that structure MECE? What's missing, or overlapping, across those three buckets?
+### 21. 02-tobias-the-#6
+  CAND: On MECE — the first two buckets are clean, but my third bucket overlaps: commodity prices and wages are causes of the cost lines, not a separate category. I'd restructure it as revenue versus cost, and treat external factors as drivers underneath each rather t
+  HAIKU: "You'd split cost versus revenue, then layer external factors underneath."  veto=None
+  SONNET say='' Q: Based on what you have, which of your two hypotheses, input costs rising or prices not keeping up, do you test first, and why?
+### 22. 02-tobias-the-#9
+  CAND: Let me size it. Two years ago COGS was 42% of revenue: beans at 25% of that is 10.5 points, other inputs 31.5 points.  If that 37.5% increase is per-unit, other inputs go to 31.5 × 1.375 = 43.3 points of revenue. Today's COGS is 58, so beans are 58 − 43.3 = 14
+  HAIKU: 'You calculated beans and other inputs both rose roughly forty percent.'  veto=None
+  SONNET say='' Q: What does it tell you, and does it change or confirm your read of what's driving the margin decline?
+### 23. 02-tobias-the-#12
+  CAND: Good — that 40% matches what I backed into, which gives me confidence the decomposition is right. Beans went from 10.5 to roughly 14.7 points of revenue, and everything else moved at a similar rate. So it's broad commodity and input inflation, not a single bad
+  HAIKU: "You've decomposed the problem and solved for the required price increase."  veto=None
+  SONNET say='' Q: Setting price aside for a moment, beyond what we've discussed, what else could Brew & Bean do to close that gap?
+### 24. 02-tobias-the-#14
+  CAND: Without competitor or elasticity data I'll assume specialty coffee has moderate pricing power, so price is part of the answer but not all 24 points. Other levers, roughly in order of impact:  Procurement. Beans are ~15 points of revenue. With 200 locations the
+  HAIKU: 'Procurement, waste, mix, overhead, and price architecture, then.'  veto=None
+  SONNET say='Mm-hm.' Q: The CEO walks in and asks what you'd do, and in what order. What's your recommendation?
+### 25. 02-tobias-the-#16
+  CAND: My recommendation: Brew & Bean's margin problem is almost entirely an input-cost pass-through failure, and the fix is a staged price increase paired with procurement reform — not a cost-cutting program.  Three supports. First, COGS explains roughly 89% of the 
+  HAIKU: 'Price increase paired with procurement reform, not cost cuts.'  veto=None
+  SONNET say='' Q: You said a 10 to 12 percent price move over a few steps, with procurement and waste closing the remaining gap. How did you get there? And if traffic falls after the price increase, what is the biggest
+### 26. 06-destiny-the#2
+  CAND: I'm not sure what you mean — do you want me to guess why profits went down?
+  HAIKU: "You're asking whether to hypothesize causes first."  veto=None
+  SONNET say='' Q: No guessing yet. I'd like to hear how you would organize your thinking to find the root cause of the margin decline. Take a minute if you need it. What structure would you use?
+### 27. 06-destiny-the#4
+  CAND: hmm, I'm not sure. I don't really know where to start.
+  HAIKU: "You're unsure where to begin."  veto=None
+  SONNET say='' Q: Take your time. The question on the table is how you would break this profit decline into parts so you can find where it comes from. What would you want to understand first, and why?
+### 28. 06-destiny-the#6
+  CAND: I'm stuck, sorry. Can you point me at where to look?
+  HAIKU: "You're asking me to point you toward the root cause."  veto=None
+  SONNET say='No need to apologize.' Q: Forget the answer for a moment. What is profit made of, and what would you want to understand first about this client's business?
+### 29. 06-destiny-the#8
+  CAND: revenue and costs, I guess? but I'm not sure what to do with that.
+  HAIKU: 'Revenue minus costs, then split each one.'  veto=None
+  SONNET say='' Q: That's a start. Margin falls when one of those moves the wrong way relative to the other. Revenue has grown, so how would you break the cost side down to find where the pressure might be coming from?
+### 30. 06-destiny-the#10
+  CAND: costs, probably, since revenue went up. but I don't know what to ask about them.
+  HAIKU: "You'd start with costs, then."  veto=None
+  SONNET say='' Q: Costs first, understood. If you were looking at a coffee chain's costs, what are the main categories you'd expect to see, and how would you break them down?
+### 31. 06-destiny-the#12
+  CAND: coffee beans and milk, cups, paying baristas, rent for the stores, utilities, maybe marketing.
+  HAIKU: 'You listed beans, milk, cups, wages, rent, utilities, marketing.'  veto=None
+  SONNET say='Right.' Q: You've named several cost types. How would you group them into a structure, and which group would you investigate first, and why?
+### 32. 06-destiny-the#14
+  CAND: maybe ingredients, people, and the store stuff like rent? I'd look at people first, I think baristas probably cost the most.
+  HAIKU: 'You grouped into ingredients, people, and rent.'  veto=None
+  SONNET say='' Q: Is that set of buckets MECE, and is there anything missing? Then tell me why you'd start with people when you haven't seen the numbers.
+### 33. 06-destiny-the#16
+  CAND: how much of the $480M goes to each bucket? the breakdown.
+  HAIKU: 'You want the revenue split across those three buckets.'  veto=None
+  SONNET say='' Q: Which of those buckets would you dig into first, and why?
+### 34. 06-destiny-the#18
+  CAND: okay so COGS is the problem, not labor like I guessed. 58% minus 42% is 16 points, and 16% of $480M is about $77M. Labor's flat and overhead only moved 2 points, so that's small by comparison.
+  HAIKU: 'COGS moved sixteen points, labor stayed flat.'  veto=None
+  SONNET say='' Q: You said the COGS gap is about $77M. Is that the margin problem, or does it include cost that simply grew with revenue? And what would you want to know next about COGS?
+### 35. 06-destiny-the#20
+  CAND: I think the percentages already handle that. If COGS stayed at 42%, it would have grown with revenue but the margin would be the same. So the 16 points is the part that isn't just scaling. 16% of $480M is $76.8M of extra cost. And margin fell 18 points total, 
+  HAIKU: 'You separated scaling costs from margin degradation.'  veto=None
+  SONNET say='' Q: Understood. COGS is the main driver, so what could be pushing it up from 42% to 58% of revenue, and what would you want to look at to find out?
+### 36. 06-destiny-the#22
+  CAND: what's actually inside COGS? like how much is coffee beans versus milk versus cups. and did bean prices go up?
+  HAIKU: 'You want to break down COGS components and check commodity pricing.'  veto=None
+  SONNET say='' Q: With those in hand, how would you test whether input costs alone explain the COGS jump?
+### 37. 06-destiny-the#24
+  CAND: Let me do it. Two years ago COGS was 42% of revenue. Beans were 25% of that, so 10.5% of revenue; up 40% makes it 14.7%, so +4.2 points. The other 75% is 31.5% of revenue; up 37.5% makes it 43.3%, so +11.8 points. Together that's 58%, which matches.  So it's b
+  HAIKU: 'Broad input inflation, smaller impact from beans.'  veto=None
+  SONNET say='' Q: Given that pricing answer, what do you conclude about the root cause of the profit decline?
+### 38. 06-destiny-the#26
+  CAND: That explains it. Revenue grew 15% with flat prices, so that's volume, not price — they sold more and absorbed every bit of the cost increase.  Rough sizing: to get COGS back from 58% to 42% of revenue, with costs fixed, they'd need revenue to rise by a factor
+  HAIKU: "So you're looking at what competitors did on pricing."  veto=None
+  SONNET say='' Q: Setting competitors aside, you've sized a price move of roughly 10 to 15 percent. What is your recommendation to the CEO, and what would you be relying on to defend that range?
+### 39. 06-destiny-the#28
+  CAND: Right, I jumped. Revenue could have grown because they opened stores, not because each store got busier. Do we know the store count two years ago versus the 200 today? And average ticket — if prices are flat but ticket moved, the mix changed, like people buyin
+  HAIKU: "You'd check store count, transactions per store, and ticket."  veto=None
+  SONNET say='' Q: What do those figures tell you about where the 15% growth came from, and how does that change your view of the price lever?
+### 40. 06-destiny-the#30
+  CAND: Okay, so 200 stores both periods — no new stores. Revenue per store is $2.4M, and 200 × $2.4M = $480M, checks out.  Revenue up 15% with ticket up ~10% means transactions are up only about 5% (1.15 / 1.10 ≈ 1.045). So most of the growth is people buying more pe
+  HAIKU: 'You isolated mix shift within the COGS bucket.'  veto=None
+  SONNET say='' Q: Here's an exhibit: the cost structure over time. Before you build further on the mix idea, what does it tell you, and does it support or challenge that hypothesis?
+### 41. 06-destiny-the#32
+  CAND: A few things. They could lock in bean and dairy costs with longer-term supplier contracts instead of buying at spot — that doesn't fix the level but stops it getting worse. With 200 stores there may also be buying scale they aren't using.  Second, the mix poin
+  HAIKU: 'Supplier contracts, menu mix, waste, and overhead as levers.'  veto=None
+  SONNET say='' Q: Given everything we've covered, what is your recommendation to the CEO, and what would you do first?
+### 42. 06-destiny-the#34
+  CAND: A loyalty program could help — if you're raising prices, giving regulars points or a free drink softens it and keeps traffic from dropping.  New products: they could add higher-margin items, things that aren't bean or dairy heavy. Though I'd want to know margi
+  HAIKU: 'Loyalty program, higher-margin products, off-peak dayparts, then price increases.'  veto=None
+  SONNET say='' Q: Time is getting short. What is your recommendation to the CEO: what should Brew & Bean do, and in what order?
+### 43. 06-destiny-the#36
+  CAND: My recommendation: raise menu prices. That's the root cause — input costs rose about 38-40% over two years and prices haven't moved at all, so the entire increase hit margin.  The math: COGS went from 42% to 58% of revenue, 16 points, about $77M on $480M. Labo
+  HAIKU: 'Raise prices phased in, test first, with supplier locks and waste reduction.'  veto=synthesis
+  SONNET say='' Q: You named demand as a risk. Of everything that could go wrong with this recommendation, which one worries you most, and how would you know early if it were happening?
+### 44. 06-destiny-the#38
+  CAND: Let me do it at 12.5%, holding volume flat. Revenue goes from $480M to $540M. Costs don't change in dollars: COGS $278.4M (58% of 480), labor $105.6M, overhead $67.2M — total $451.2M.  Today profit is 6% of $480M = $28.8M. After, it's $540M − $451.2M = $88.8M,
+  HAIKU: 'You worked through a 12.5% price increase with fixed costs.'  veto=None
+  SONNET say='' Q: You've named demand loss as a risk. If transactions fall after the increase, what would you watch to tell whether it's working, and when would you reverse course?
+### 45. 08-claire-the-#2
+  CAND: Let me take a second to structure.  So revenues are up 15% but net margin fell from 24% to 6% — that's a huge drop, so costs must be growing much faster than revenue. I'd start by confirming the profit equation: profit = (price × volume) − (variable costs + fi
+  HAIKU: "You'd examine revenue sources, then cost categories, then external factors."  veto=None
+  SONNET say='' Q: Before we get to data, is that framework MECE, and which of those branches would you prioritize first, and why?
+### 46. 08-claire-the-#4
+  CAND: I'd prioritize the cost structure first. The margin fell 18 points while revenue actually grew, so the problem is almost certainly on the cost side rather than demand — if volume or pricing had collapsed, we'd see revenue decline, and we don't.  Within costs, 
+  HAIKU: "You'd start with cost structure, sequenced by size."  veto=None
+  SONNET say='Right.' Q: Looking at those figures, where does the margin decline sit, and what would you want to dig into next?
+### 47. 08-claire-the-#6
+  CAND: That's clean. Let me check it adds up: COGS up 16 points, overhead up 2 points, labor flat — that's 18 points, which exactly matches the margin decline from 24% to 6%. So COGS is ~90% of the story.  And since store count is flat at 200, the 15% revenue growth 
+  HAIKU: 'COGS breakdown and pricing history requested.'  veto=None
+  SONNET say='' Q: With that in hand, what does it tell you about where the COGS increase is coming from, and what would you check next?
+### 48. 08-claire-the-#8
+  CAND: Let me test whether input inflation alone explains it. Beans were 25% of COGS and rose 40% → 0.25 × 40% = 10 points. Other inputs were 75% and rose 37.5% → 0.75 × 37.5% = 28.1 points. Total COGS inflation ≈ 38%.  Old COGS was 42% of revenue. Since menu prices 
+  HAIKU: 'Input inflation accounts for the entire sixteen point COGS move.'  veto=None
+  SONNET say='' Q: You scaled COGS at 42% of revenue by the input inflation, and 15% more volume also lifts total costs. Points of what are you measuring here: share of COGS, share of revenue, or share of margin?
+### 49. 08-claire-the-#10
+  CAND: Fair challenge — let me redo it on a per-unit basis rather than on totals.  COGS as a share of revenue is really (unit cost × units) ÷ (price × units). The units cancel, so volume growth drops out entirely — the ratio only moves if unit cost or price moves. Un
+  HAIKU: 'You showed the ratio isolates price and unit cost.'  veto=None
+  SONNET say='' Q: Beyond what we've discussed so far, what else could the client do to address this?
+### 50. 08-claire-the-#12
+  CAND: Hmm, I'm not sure.
+  HAIKU: "You're unsure what else could reverse it."  veto=None
+  SONNET say='Take a moment.' Q: Think about the profit equation you laid out at the start. What levers does the client have on each side of it, and which would you pull first?
+### 1. 18-nikhil-the-#2
+  CAND: Okay, so profit is revenue minus costs, and revenue is up while margin is down, which points at costs. Before I structure it, could I get a few data points?  One, the full cost breakdown by line item for both years. Two, COGS as a percent of revenue. Three, la
+  HAIKU: "You're asking for data before structuring your approach."  veto=None
+  SONNET say='' Q: Before any data, take a minute if you need it and lay out the structure you'd use to find the root cause. How would you organize the problem?
+### 2. 18-nikhil-the-#4
+  CAND: Sure. At a high level I'd split profit into revenue and costs. On revenue, volume times price — store count, transactions per store, average ticket. On costs, fixed versus variable: COGS, labor, rent, marketing, corporate overhead, and then any one-time items 
+  HAIKU: "You'd split profit into revenue and costs, then dig into specifics."  veto=None
+  SONNET say='' Q: You've split revenue and costs, and listed a lot of cost lines. Which branch would you prioritize first, and why?
+### 3. 18-nikhil-the-#6
+  CAND: I think it's broadly MECE — revenue and cost don't overlap, and within cost I've split fixed and variable. There may be a little overlap between corporate overhead and marketing, so I'd fold marketing under overhead.  On where to start, I'd rather let the data
+  HAIKU: "You'd like to see margin and EBITDA data first, then store-level details."  veto=None
+  SONNET say='Mm-hm.' Q: You said you'd let the data point you rather than guess. If you had to commit to one branch of your structure to investigate first, which would it be, and what's your reasoning?
+### 4. 18-nikhil-the-#8
+  CAND: COGS is the branch — it moved 16 points of the 18, and labor is flat, so that's where it is. My hypothesis is input costs rose, most likely green coffee beans or dairy, and menu prices didn't move with them.  To confirm, could I get: one, the COGS split into b
+  HAIKU: 'COGS split, input costs by year, pricing, and volume.'  veto=None
+  SONNET say='Mm-hm.' Q: You said COGS moved sixteen of the eighteen points. Points of what, exactly, and how did you get to that figure?
+### 5. 18-nikhil-the-#10
+  CAND: Both are measured as a percent of revenue, so they're directly comparable. COGS went from 42% to 58% of revenue, that's 16 points. Overhead went 12% to 14%, 2 points. Labor flat at 22%. So 16 plus 2 equals 18, which exactly matches the margin drop from 24% to 
+  HAIKU: 'COGS to revenue moved sixteen points, overhead two points.'  veto=None
+  SONNET say='' Q: What does the exhibit tell you about what drove the COGS increase?
+### 6. 18-nikhil-the-#12
+  CAND: The exhibit shows it's a steady climb, 42 to 50 to 58, about 8 points a year, not a one-time shock. So it's ongoing input inflation, not a single bad contract.  And the math says it isn't just coffee. Beans were 25% of COGS and rose 40%; the other 75% rose 37.
+  HAIKU: 'Broad input cost inflation, mostly unrecovered through pricing.'  veto=None
+  SONNET say='' Q: You said it's broad-based inflation of about 38% on COGS. Walk me through how that squares with COGS going from 42% to 58% of revenue, given revenue also grew over the same period.
+### 7. 18-nikhil-the-#14
+  CAND: They fit almost exactly. Take 42% × 1.381 = 58.0%. That's the observed number. So the entire COGS increase is explained by input inflation with zero price pass-through — nothing else is needed.  And the ticket increase doesn't help, because it came from custom
+  HAIKU: 'So input inflation alone accounts for the COGS ratio shift.'  veto=None
+  SONNET say='Understood.' Q: The client has asked what to do about this. Beyond what we've discussed so far, what else could Brew & Bean do to reverse the margin decline?
+### 8. 18-nikhil-the-#16
+  CAND: Beyond pricing, a few levers. One, procurement — renegotiate or consolidate vendors, lock in longer contracts or hedge beans, explore private label on packaging and food. Two, waste reduction, since spoilage on dairy and food runs straight through COGS. Three,
+  HAIKU: 'Five levers beyond pricing, then eight data requests.'  veto=None
+  SONNET say='' Q: You said overhead moving from 12 to 14 percent is worth $9.6M on $480M. Walk me through that.
+### 9. 18-nikhil-the-#18
+  CAND: Sorry, I was loose there. Overhead at 14% of $480M is $67.2M total. What I meant is the increase: overhead went from 12% to 14%, so 2 points on $480M is $9.6M of annual profit that's leaked out since two years ago. That's the recoverable piece, not the whole l
+  HAIKU: "You're isolating a $9.6M overhead drift and a $77M COGS gap, then requesting eight data points."  veto=None
+  SONNET say='' Q: Understood. The CEO walks in and asks what you'd recommend. What do you tell them?
+### 10. 18-nikhil-the-#20
+  CAND: My recommendation is to raise menu prices — that's the root cause and the fastest fix.  Here's the logic. Margin fell 18 points, from 24% to 6%. COGS accounts for 16 of those, rising 42% to 58% of revenue. Input costs rose 38% across the board — beans up 40%, 
+  HAIKU: "You're recommending a five percent price increase paired with procurement and overhead work."  veto=None
+  SONNET say='Understood.' Q: You named elasticity as the risk. Suppose the pilot shows volume falling and the price increase recovers less than you expected. What's your fallback, and how would you decide?
+### 11. 18-nikhil-the-#22
+  CAND: Biggest risk is that a 5% price increase drives more than 5% volume loss — specialty coffee is discretionary and there's cheap competition. And because COGS is 58% of revenue, I only keep about 42 cents of each lost dollar, so the breakeven on volume decline i
+  HAIKU: "You're setting breakeven at ten percent volume loss and watching profit dollars and repeat visits."  veto=None
+  SONNET say='' Q: You said the breakeven is around ten percent volume loss. Walk me through that calculation.

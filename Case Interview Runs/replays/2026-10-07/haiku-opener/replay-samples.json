@@ -1,0 +1,740 @@
+[
+  {
+    "id": "01-maya-the-fr#3",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "Okay, so... I'd want to look at a few things. First, revenue — like what's happening with sales. Second, costs, so what they're spending money on. And third, maybe external stuff, like competitors or the market overall. Does that seem okay as a starting point?",
+    "priorInterviewer": "Still with me? Take your time. The question on the table: how would you approach this problem?",
+    "revealedLabels": [],
+    "loggedReply": "I won't say whether it's okay, so let's get more specific. Within revenue and costs, what exactly would you break down, and which branch would you look at first?"
+  },
+  {
+    "id": "01-maya-the-fr#5",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "Can I ask — is the 15% revenue growth from more stores, or more sales per store?",
+    "priorInterviewer": "I won't say whether it's okay, so let's get more specific. Within revenue and costs, what exactly would you break down, and which branch would you look at first?",
+    "revealedLabels": [],
+    "loggedReply": "200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. Average revenue per store is $2.4M a year."
+  },
+  {
+    "id": "01-maya-the-fr#7",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "Got it, thanks. Is that growth coming from price increases or more customers?",
+    "priorInterviewer": "200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. Average revenue per store is $2.4M a year.",
+    "revealedLabels": [
+      "Number of stores (covers the current and prior period)",
+      "Average revenue per store (covers the current period)"
+    ],
+    "loggedReply": "Menu prices have not changed in two years. The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit."
+  },
+  {
+    "id": "01-maya-the-fr#9",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "Okay. And on the cost side — do we have a breakdown of their cost structure?",
+    "priorInterviewer": "Menu prices have not changed in two years. The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit.",
+    "revealedLabels": [
+      "Number of stores (covers the current and prior period)",
+      "Average revenue per store (covers the current period)",
+      "Menu price changes over 2 years",
+      "Average transaction value (covers the current and prior period)"
+    ],
+    "loggedReply": "Take a look at this and tell me what you see."
+  },
+  {
+    "id": "01-maya-the-fr#11",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "Sorry, one more — are those numbers percentages of revenue, or dollars?",
+    "priorInterviewer": "Take a look at this and tell me what you see.",
+    "revealedLabels": [
+      "Number of stores (covers the current and prior period)",
+      "Average revenue per store (covers the current period)",
+      "Menu price changes over 2 years",
+      "Average transaction value (covers the current and prior period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)"
+    ],
+    "loggedReply": "Percentages of revenue. Before we wrap, on what you asked about earlier: Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years."
+  },
+  {
+    "id": "01-maya-the-fr#13",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "hmm, I'm not sure what to do with that.",
+    "priorInterviewer": "Percentages of revenue. Before we wrap, on what you asked about earlier: Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.",
+    "revealedLabels": [
+      "Number of stores (covers the current and prior period)",
+      "Average revenue per store (covers the current period)",
+      "Menu price changes over 2 years",
+      "Average transaction value (covers the current and prior period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "I haven't put an exhibit in front of you yet, so let me do that now."
+  },
+  {
+    "id": "01-maya-the-fr#15",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "I'm stuck, sorry.",
+    "priorInterviewer": "I haven't put an exhibit in front of you yet, so let me do that now.",
+    "revealedLabels": [
+      "Number of stores (covers the current and prior period)",
+      "Average revenue per store (covers the current period)",
+      "Menu price changes over 2 years",
+      "Average transaction value (covers the current and prior period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "Take your time. The question on the table is what the cost structure is telling you about why margin fell."
+  },
+  {
+    "id": "01-maya-the-fr#17",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "I don't really know where to start, sorry.",
+    "priorInterviewer": "Take your time. The question on the table is what the cost structure is telling you about why margin fell.",
+    "revealedLabels": [
+      "Number of stores (covers the current and prior period)",
+      "Average revenue per store (covers the current period)",
+      "Menu price changes over 2 years",
+      "Average transaction value (covers the current and prior period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "I'll put the exhibit in front of you now. Tell me which cost lines moved the most between the two periods."
+  },
+  {
+    "id": "01-maya-the-fr#19",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "Okay — COGS moved the most, 42 to 58. That's a 16% increase. Labor stayed flat at 22, and overhead only went 12 to 14, so 2 points. So basically all of the margin loss, 24 down to 6, is 18 points, and COGS accounts for 16 of that. So it's really a COGS story. Am I on the right track here?",
+    "priorInterviewer": "I'll put the exhibit in front of you now. Tell me which cost lines moved the most between the two periods.",
+    "revealedLabels": [
+      "Number of stores (covers the current and prior period)",
+      "Average revenue per store (covers the current period)",
+      "Menu price changes over 2 years",
+      "Average transaction value (covers the current and prior period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "I won't say whether you're on track. You called the COGS move a 16% increase, but then counted it as 16 of the 18 points. Points of what, and what's the difference between those two framings?"
+  },
+  {
+    "id": "01-maya-the-fr#23",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "I'm okay, really — I'd rather keep going. Sorry about that.",
+    "priorInterviewer": "Let's set the case aside for a second — thank you for telling me, and are you okay? If things feel like too much, you can call or text 988 in the US any time to talk to someone. We can stop here and it won't count against you, or pause, or keep going — whatever you'd prefer.",
+    "revealedLabels": [
+      "Number of stores (covers the current and prior period)",
+      "Average revenue per store (covers the current period)",
+      "Menu price changes over 2 years",
+      "Average transaction value (covers the current and prior period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "No apology needed. You said COGS went from 42 to 58 of revenue, and that you counted it as 16 of the 18 points of margin loss. What do you think is driving COGS up?"
+  },
+  {
+    "id": "01-maya-the-fr#25",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "Probably input costs. Do we have a split of COGS by line item — like beans versus dairy versus packaging?\n\nThe 42 to 58 is still a 16% increase to me, that's the big driver.",
+    "priorInterviewer": "No apology needed. You said COGS went from 42 to 58 of revenue, and that you counted it as 16 of the 18 points of margin loss. What do you think is driving COGS up?",
+    "revealedLabels": [
+      "Number of stores (covers the current and prior period)",
+      "Average revenue per store (covers the current period)",
+      "Menu price changes over 2 years",
+      "Average transaction value (covers the current and prior period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "Raw coffee bean costs are up 40% over the past two years. On the 16 you keep returning to: it's 16 points of revenue, not a 16 percent increase. What do you make of the bean price change next to the other input costs?"
+  },
+  {
+    "id": "01-maya-the-fr#27",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "Beans up 40%, and they were 25% of COGS two years ago. So that's part of it, but the other inputs are 75% of COGS and up 37.5%, so those matter more in dollar terms.\n\nBut yeah, I still read the 42 to 58 as a 16% increase, that feels like the main thing.\n\nAm I on the right track at all?",
+    "priorInterviewer": "Raw coffee bean costs are up 40% over the past two years. On the 16 you keep returning to: it's 16 points of revenue, not a 16 percent increase. What do you make of the bean price change next to the other input costs?",
+    "revealedLabels": [
+      "Number of stores (covers the current and prior period)",
+      "Average revenue per store (covers the current period)",
+      "Menu price changes over 2 years",
+      "Average transaction value (covers the current and prior period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Coffee bean price change over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "I don't grade mid-case, so you'll get that in the written report. Your bean and non-bean split makes sense to me as a structure. Per 100 of COGS two years ago, what do beans and the other inputs each add today, and what does that imply for total COGS growth?"
+  },
+  {
+    "id": "01-maya-the-fr#29",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "Okay. Per 100 of COGS two years ago: beans were 25, up 40%, so 25 × 1.4 = 35. Other inputs were 75, up 37.5%, so 75 × 1.375 = 103.1. Total is 138.1, so COGS is up about 38% in dollar terms.\n\nAnd revenue is up 15%, so costs are growing way faster than sales. That tracks with COGS going 42 to 58 of revenue.",
+    "priorInterviewer": "I don't grade mid-case, so you'll get that in the written report. Your bean and non-bean split makes sense to me as a structure. Per 100 of COGS two years ago, what do beans and the other inputs each add today, and what does that imply for total COGS growth?",
+    "revealedLabels": [
+      "Number of stores (covers the current and prior period)",
+      "Average revenue per store (covers the current period)",
+      "Menu price changes over 2 years",
+      "Average transaction value (covers the current and prior period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Coffee bean price change over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "Okay. Now I'd like to hear ideas from you: beyond what we've discussed, what else could Brew & Bean do to address this?"
+  },
+  {
+    "id": "01-maya-the-fr#31",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "Umm. Maybe raise prices, since they haven't changed in two years? Or renegotiate supplier contracts, maybe lock in longer-term bean pricing. Possibly change the menu mix toward items with cheaper inputs.\n\nI'm not sure beyond that, sorry.",
+    "priorInterviewer": "Okay. Now I'd like to hear ideas from you: beyond what we've discussed, what else could Brew & Bean do to address this?",
+    "revealedLabels": [
+      "Number of stores (covers the current and prior period)",
+      "Average revenue per store (covers the current period)",
+      "Menu price changes over 2 years",
+      "Average transaction value (covers the current and prior period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Coffee bean price change over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "Okay. Of those ideas, which would you prioritize, and why?"
+  },
+  {
+    "id": "01-maya-the-fr#33",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "I don't know, sorry. I can't really pick between them.",
+    "priorInterviewer": "Okay. Of those ideas, which would you prioritize, and why?",
+    "revealedLabels": [
+      "Number of stores (covers the current and prior period)",
+      "Average revenue per store (covers the current period)",
+      "Menu price changes over 2 years",
+      "Average transaction value (covers the current and prior period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Coffee bean price change over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "Take a minute if you need it. You've told me the cost pressure is across beans and the other inputs, and that prices haven't moved in two years. Given that, which one lever would you lead with?"
+  },
+  {
+    "id": "01-maya-the-fr#36",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "I'm sorry, I really don't know.",
+    "priorInterviewer": "Still with me? Take your time. The question on the table: given that, which one lever would you lead with?",
+    "revealedLabels": [
+      "Number of stores (covers the current and prior period)",
+      "Average revenue per store (covers the current period)",
+      "Menu price changes over 2 years",
+      "Average transaction value (covers the current and prior period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Coffee bean price change over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "Let's try it from the other side. If the CEO asked you for one action to take first, which of your three ideas would you want to defend to her, even if you're not certain?"
+  },
+  {
+    "id": "01-maya-the-fr#38",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "I'm sorry — I don't know.",
+    "priorInterviewer": "Let's try it from the other side. If the CEO asked you for one action to take first, which of your three ideas would you want to defend to her, even if you're not certain?",
+    "revealedLabels": [
+      "Number of stores (covers the current and prior period)",
+      "Average revenue per store (covers the current period)",
+      "Menu price changes over 2 years",
+      "Average transaction value (covers the current and prior period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Coffee bean price change over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "That's okay. Pick the idea you'd be least uncomfortable defending, and tell me one reason it would help margin."
+  },
+  {
+    "id": "01-maya-the-fr#40",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "Prices, maybe. Since they haven't changed in two years and costs are up.\n\nBut I don't really know, sorry.",
+    "priorInterviewer": "That's okay. Pick the idea you'd be least uncomfortable defending, and tell me one reason it would help margin.",
+    "revealedLabels": [
+      "Number of stores (covers the current and prior period)",
+      "Average revenue per store (covers the current period)",
+      "Menu price changes over 2 years",
+      "Average transaction value (covers the current and prior period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Coffee bean price change over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "Okay. Walk me through how a price increase would affect margin, and what could go wrong with it."
+  },
+  {
+    "id": "01-maya-the-fr#42",
+    "session": "batch-7-oct-03/01-maya-the-freezer",
+    "candidateText": "If prices go up, revenue per transaction rises and COGS stays the same in dollars, so margin improves. Like if costs are 58 of revenue now, a higher price makes that percentage smaller.\n\nWhat could go wrong is customers buy less, or go to competitors. Volume could drop enough to offset the price gain.\n\nThat's all I've got, sorry.",
+    "priorInterviewer": "Okay. Walk me through how a price increase would affect margin, and what could go wrong with it.",
+    "revealedLabels": [
+      "Number of stores (covers the current and prior period)",
+      "Average revenue per store (covers the current period)",
+      "Menu price changes over 2 years",
+      "Average transaction value (covers the current and prior period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Coffee bean price change over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "That's time. Thanks for working through it — your written report will follow."
+  },
+  {
+    "id": "02-tobias-the-#3",
+    "session": "batch-7-oct-03/02-tobias-the-silent-thinker",
+    "candidateText": "Since revenue is actually up 15% while margin collapsed from 24% to 6%, the decline has to be driven by costs growing faster than revenue, so I'd weight my structure there — but I want to confirm the revenue side first so we don't miss a mix issue.\n\nThree buckets:\n\nFirst, revenue quality. Is the 15% growth coming from new store openings, same-store traffic, or price? Growth from new stores can carry heavy upfront costs and drag margin even if each store is healthy.\n\nSecond, costs — split fixed versus variable. Variable: coffee beans, dairy, cups, hourly labor. Fixed: rent, salaried staff, corporate overhead, marketing, any D&A from the expansion.\n\nThird, external: commodity prices, wage legislation, competitive pricing pressure.\n\nI'd start by asking which cost lines grew fastest in absolute dollars over the two years. Do we have a cost breakdown as a percent of revenue for both years?",
+    "priorInterviewer": "Still with me? Take your time. The question on the table: how would you approach this problem?",
+    "revealedLabels": [],
+    "loggedReply": "Before I do, one question on your structure: is it MECE, and what, if anything, is missing? COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%."
+  },
+  {
+    "id": "02-tobias-the-#6",
+    "session": "batch-7-oct-03/02-tobias-the-silent-thinker",
+    "candidateText": "On MECE — the first two buckets are clean, but my third bucket overlaps: commodity prices and wages are causes of the cost lines, not a separate category. I'd restructure it as revenue versus cost, and treat external factors as drivers underneath each rather than a parallel branch. What's missing is store-level versus corporate-level — a problem concentrated in new stores looks very different from a chain-wide one.\n\nOn the numbers: COGS up 16 points of revenue, overhead up 2, labor flat. That's 18 points, and margin fell 18 points, so COGS alone explains about 89% of the decline. Everything else is noise.\n\nSo the question becomes what's inside COGS. Two possibilities: input cost per unit rose, or price per unit didn't keep up. Do we have the COGS breakdown by component — beans, dairy, packaging — and have menu prices changed in those two years?",
+    "priorInterviewer": "Still with me? Take your time. The question on the table: before I do, one question on your structure: is it MECE, and what, if anything, is missing?",
+    "revealedLabels": [
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)"
+    ],
+    "loggedReply": "The 16 points of COGS over 18 points of margin decline checks out. Both of your requests are things I can give you, so here they are. Coffee beans were 25% of COGS two years ago. Menu prices have not changed in two years. You asked about that — Other input costs — dairy, packaging, and food — are up 37.5% over the past two years."
+  },
+  {
+    "id": "02-tobias-the-#9",
+    "session": "batch-7-oct-03/02-tobias-the-silent-thinker",
+    "candidateText": "Let me size it. Two years ago COGS was 42% of revenue: beans at 25% of that is 10.5 points, other inputs 31.5 points.\n\nIf that 37.5% increase is per-unit, other inputs go to 31.5 × 1.375 = 43.3 points of revenue. Today's COGS is 58, so beans are 58 − 43.3 = 14.7 points, up from 10.5 — a 40% increase. So beans and everything else rose at roughly the same rate. This isn't a coffee-bean story, it's broad input inflation across the whole basket.\n\nAnd the critical fact is menu prices haven't moved in two years. Revenue grew 15% with flat prices, so that's volume — traffic is healthy. Brew & Bean absorbed 100% of input inflation instead of passing any of it through.\n\nOne check: is that 37.5% figure per unit, or total dollars? If it's total dollars, 15% of it is just volume growth and the real inflation is closer to 20%.",
+    "priorInterviewer": "Still with me? Take your time.",
+    "revealedLabels": [
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "Menu price changes over 2 years",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "The 37.5% is the change in other input costs as I have it; I don't have a per-unit versus total-dollar split. Let me give you the other data point you'd want on beans. Raw coffee bean costs are up 40% over the past two years."
+  },
+  {
+    "id": "02-tobias-the-#12",
+    "session": "batch-7-oct-03/02-tobias-the-silent-thinker",
+    "candidateText": "Good — that 40% matches what I backed into, which gives me confidence the decomposition is right. Beans went from 10.5 to roughly 14.7 points of revenue, and everything else moved at a similar rate. So it's broad commodity and input inflation, not a single bad supplier contract.\n\nLet me size the fix. To get back to 24% margin I need to recover 18 points. If I hold volume and raise prices by x, revenue becomes 1+x while costs stay flat at 94 points. Margin = (1+x − 0.94)/(1+x) = 0.24 implies 1+x = 0.94/0.76 = 1.24. So roughly a 24% price increase — that's a lot to ask of a customer in one move.\n\nTwo questions before I recommend. Do we know what competitors have done on price over the same period? And has anyone tested elasticity — what happened to traffic the last time prices moved?",
+    "priorInterviewer": "Still with me? Take your time.",
+    "revealedLabels": [
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "Menu price changes over 2 years",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Coffee bean price change over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "The price-increase math holds together. Competitor pricing and elasticity testing aren't in the information I have. Setting the price lever aside for a moment, beyond what we've discussed, what else could Brew & Bean do to reverse the margin decline?"
+  },
+  {
+    "id": "02-tobias-the-#14",
+    "session": "batch-7-oct-03/02-tobias-the-silent-thinker",
+    "candidateText": "Without competitor or elasticity data I'll assume specialty coffee has moderate pricing power, so price is part of the answer but not all 24 points. Other levers, roughly in order of impact:\n\nProcurement. Beans are ~15 points of revenue. With 200 locations there's scale to consolidate suppliers, sign longer fixed-price contracts, or hedge green coffee futures — even a 10% reduction on beans is 1.5 points of margin back.\n\nWaste and portioning. Dairy and food spoil. If yield loss is a few percent of that 43-point block, tightening it is a point or two with no customer impact.\n\nMix. Push higher-margin items — espresso drinks over food, where food carries dairy and spoilage. Same traffic, better basket margin.\n\nOverhead, up 2 points, is the smallest lever but worth a look.\n\nAnd price architecture rather than a blunt increase: raise sizes and add-ons, where customers anchor less.\n\nDo we have COGS or margin by product category?",
+    "priorInterviewer": "The price-increase math holds together. Competitor pricing and elasticity testing aren't in the information I have. Setting the price lever aside for a moment, beyond what we've discussed, what else could Brew & Bean do to reverse the margin decline?",
+    "revealedLabels": [
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "Menu price changes over 2 years",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Coffee bean price change over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "That breakdown by product category isn't in the information I have. Given everything you've worked through, what's your recommendation to the CEO?"
+  },
+  {
+    "id": "02-tobias-the-#16",
+    "session": "batch-7-oct-03/02-tobias-the-silent-thinker",
+    "candidateText": "My recommendation: Brew & Bean's margin problem is almost entirely an input-cost pass-through failure, and the fix is a staged price increase paired with procurement reform — not a cost-cutting program.\n\nThree supports. First, COGS explains roughly 89% of the 18-point decline; labor is flat and overhead moved only 2 points. Second, within COGS, beans rose 40% and other inputs a similar amount — this is broad inflation, not one bad line. Third, menu prices haven't moved in two years while volume grew 15%, so the company absorbed all of it voluntarily. Demand is healthy; that's the asset to work with.\n\nSpecifically: phase in roughly 10–12% in price over two or three moves, weighted toward sizes and add-ons, and target the remaining gap through consolidated bean contracts and hedging, plus waste reduction.\n\nRisks: I don't have elasticity or competitor pricing, so a 24% move at once could break traffic. Next steps — test price in a subset of stores, and pull category-level margins to target the increase.",
+    "priorInterviewer": "That breakdown by product category isn't in the information I have. Given everything you've worked through, what's your recommendation to the CEO?",
+    "revealedLabels": [
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "Menu price changes over 2 years",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Coffee bean price change over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "We'll stop there. Thanks for working through the case — your written report will follow."
+  },
+  {
+    "id": "06-destiny-the#2",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "I'm not sure what you mean — do you want me to guess why profits went down?",
+    "priorInterviewer": "Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?\n\nHow would you like to approach this? Feel free to take a moment to gather your thoughts first.",
+    "revealedLabels": [],
+    "loggedReply": "No guessing. I'd like you to lay out how you would structure the problem to find the root cause. You can ask me clarifying questions first, or take a minute and then walk me through your approach."
+  },
+  {
+    "id": "06-destiny-the#4",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "hmm, I'm not sure. I don't really know where to start.",
+    "priorInterviewer": "No guessing. I'd like you to lay out how you would structure the problem to find the root cause. You can ask me clarifying questions first, or take a minute and then walk me through your approach.",
+    "revealedLabels": [],
+    "loggedReply": "Take your time. The question on the table is how you would break down this profit decline to find its root cause, and you're welcome to ask me any clarifying questions first."
+  },
+  {
+    "id": "06-destiny-the#6",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "I'm stuck, sorry. Can you point me at where to look?",
+    "priorInterviewer": "Take your time. The question on the table is how you would break down this profit decline to find its root cause, and you're welcome to ask me any clarifying questions first.",
+    "revealedLabels": [],
+    "loggedReply": "No need to apologize, but I can't hand you the structure. Start with something simple: profit is the result of what two things, and how might you split the problem using that?"
+  },
+  {
+    "id": "06-destiny-the#8",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "revenue and costs, I guess? but I'm not sure what to do with that.",
+    "priorInterviewer": "No need to apologize, but I can't hand you the structure. Start with something simple: profit is the result of what two things, and how might you split the problem using that?",
+    "revealedLabels": [],
+    "loggedReply": "That's a starting point. I can share the data on that if it would help. I can't share those figures at this stage. Revenue grew while margin fell, so which of those two would you look at first, and what would you want to know about it?"
+  },
+  {
+    "id": "06-destiny-the#10",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "costs, probably, since revenue went up. but I don't know what to ask about them.",
+    "priorInterviewer": "That's a starting point. I can share the data on that if it would help. I can't share those figures at this stage. Revenue grew while margin fell, so which of those two would you look at first, and what would you want to know about it?",
+    "revealedLabels": [],
+    "loggedReply": "Okay, costs it is. Picking up what you asked about before: Total revenue is $480M a year. If you were the CFO of a coffee shop, what are the main things you'd spend money on to run it?"
+  },
+  {
+    "id": "06-destiny-the#12",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "coffee beans and milk, cups, paying baristas, rent for the stores, utilities, maybe marketing.",
+    "priorInterviewer": "Okay, costs it is. Picking up what you asked about before: Total revenue is $480M a year. If you were the CFO of a coffee shop, what are the main things you'd spend money on to run it?",
+    "revealedLabels": [
+      "Total annual revenue (covers the current period)"
+    ],
+    "loggedReply": "Okay. Now take that list and group it into a few buckets, then tell me which bucket you'd want to look at first and why."
+  },
+  {
+    "id": "06-destiny-the#14",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "maybe ingredients, people, and the store stuff like rent? I'd look at people first, I think baristas probably cost the most.",
+    "priorInterviewer": "Okay. Now take that list and group it into a few buckets, then tell me which bucket you'd want to look at first and why.",
+    "revealedLabels": [
+      "Total annual revenue (covers the current period)"
+    ],
+    "loggedReply": "That's a structure: ingredients, people, and store costs. You've said baristas probably cost the most, but nothing so far supports that. What would you want to see to decide which bucket to prioritize?"
+  },
+  {
+    "id": "06-destiny-the#16",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "how much of the $480M goes to each bucket? the breakdown.",
+    "priorInterviewer": "That's a structure: ingredients, people, and store costs. You've said baristas probably cost the most, but nothing so far supports that. What would you want to see to decide which bucket to prioritize?",
+    "revealedLabels": [
+      "Total annual revenue (covers the current period)"
+    ],
+    "loggedReply": "Yes, that's the right data to ask for, and it's earned. I'll give you each bucket as a share of revenue, for both periods. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%."
+  },
+  {
+    "id": "06-destiny-the#18",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "okay so COGS is the problem, not labor like I guessed. 58% minus 42% is 16 points, and 16% of $480M is about $77M. Labor's flat and overhead only moved 2 points, so that's small by comparison.",
+    "priorInterviewer": "Yes, that's the right data to ask for, and it's earned. I'll give you each bucket as a share of revenue, for both periods. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%.",
+    "revealedLabels": [
+      "Total annual revenue (covers the current period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)"
+    ],
+    "loggedReply": "Walk me through that $77M. Is that figure the margin problem, or does it include cost that simply scaled with revenue growth?"
+  },
+  {
+    "id": "06-destiny-the#20",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "I think the percentages already handle that. If COGS stayed at 42%, it would have grown with revenue but the margin would be the same. So the 16 points is the part that isn't just scaling. 16% of $480M is $76.8M of extra cost. And margin fell 18 points total, so COGS explains most of it, overhead the other 2.",
+    "priorInterviewer": "Walk me through that $77M. Is that figure the margin problem, or does it include cost that simply scaled with revenue growth?",
+    "revealedLabels": [
+      "Total annual revenue (covers the current period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)"
+    ],
+    "loggedReply": "Okay. The point change is the margin impact, and the arithmetic holds against what we have. Now that COGS is the area, what would you want to dig into next to understand why it rose?"
+  },
+  {
+    "id": "06-destiny-the#22",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "what's actually inside COGS? like how much is coffee beans versus milk versus cups. and did bean prices go up?",
+    "priorInterviewer": "Okay. The point change is the margin impact, and the arithmetic holds against what we have. Now that COGS is the area, what would you want to dig into next to understand why it rose?",
+    "revealedLabels": [
+      "Total annual revenue (covers the current period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)"
+    ],
+    "loggedReply": "Coffee beans were 25% of COGS two years ago. Raw coffee bean costs are up 40% over the past two years. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years."
+  },
+  {
+    "id": "06-destiny-the#24",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "Let me do it. Two years ago COGS was 42% of revenue. Beans were 25% of that, so 10.5% of revenue; up 40% makes it 14.7%, so +4.2 points. The other 75% is 31.5% of revenue; up 37.5% makes it 43.3%, so +11.8 points. Together that's 58%, which matches.\n\nSo it's broad input inflation, not just beans — beans are actually the smaller piece. Do we have menu price history? If costs rose ~38-40% across the board and they never raised prices, that would explain why it all hit margin.",
+    "priorInterviewer": "Coffee beans were 25% of COGS two years ago. Raw coffee bean costs are up 40% over the past two years. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.",
+    "revealedLabels": [
+      "Total annual revenue (covers the current period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "Coffee bean price change over 2 years (covers the change over the period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)"
+    ],
+    "loggedReply": "Okay. You've asked for menu price history, and that's worth pulling. Menu prices have not changed in two years."
+  },
+  {
+    "id": "06-destiny-the#26",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "That explains it. Revenue grew 15% with flat prices, so that's volume, not price — they sold more and absorbed every bit of the cost increase.\n\nRough sizing: to get COGS back from 58% to 42% of revenue, with costs fixed, they'd need revenue to rise by a factor of 58/42, about 1.38 — so roughly a 38% price increase. That feels way too steep to push through at once. Something smaller, maybe 10-15% phased in, would recover a good chunk.\n\nDo we know anything about what competitors have done with their prices? If everyone's facing the same bean and dairy inflation, Brew & Bean may be the only one who hasn't moved.",
+    "priorInterviewer": "Okay. You've asked for menu price history, and that's worth pulling. Menu prices have not changed in two years.",
+    "revealedLabels": [
+      "Total annual revenue (covers the current period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "Coffee bean price change over 2 years (covers the change over the period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Menu price changes over 2 years"
+    ],
+    "loggedReply": "You've said the 15% growth is volume, with prices flat. That isn't something I have data on. Revenue is also stores times traffic times ticket, so what would you need to check before saying the growth came from more customers rather than something else?"
+  },
+  {
+    "id": "06-destiny-the#28",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "Right, I jumped. Revenue could have grown because they opened stores, not because each store got busier. Do we know the store count two years ago versus the 200 today? And average ticket — if prices are flat but ticket moved, the mix changed, like people buying more food or larger sizes.\n\nSo I'd want: stores, transactions per store, and ticket. That tells me whether this is 200 stores doing more volume or just more stores.",
+    "priorInterviewer": "You've said the 15% growth is volume, with prices flat. That isn't something I have data on. Revenue is also stores times traffic times ticket, so what would you need to check before saying the growth came from more customers rather than something else?",
+    "revealedLabels": [
+      "Total annual revenue (covers the current period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "Coffee bean price change over 2 years (covers the change over the period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Menu price changes over 2 years"
+    ],
+    "loggedReply": "I'm releasing the store count and average ticket. I don't have transactions per store as its own figure, but I do have revenue per store. 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit. Average revenue per store is $2.4M a year."
+  },
+  {
+    "id": "06-destiny-the#30",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "Okay, so 200 stores both periods — no new stores. Revenue per store is $2.4M, and 200 × $2.4M = $480M, checks out.\n\nRevenue up 15% with ticket up ~10% means transactions are up only about 5% (1.15 / 1.10 ≈ 1.045). So most of the growth is people buying more per visit, not more customers.\n\nAnd that matters for COGS: the extra items are probably food and dairy drinks, which is exactly the \"other inputs\" bucket that's up 37.5% and makes up three quarters of COGS. So part of the margin hit may be mix — they're selling more of the stuff that costs the most — on top of pure inflation.",
+    "priorInterviewer": "I'm releasing the store count and average ticket. I don't have transactions per store as its own figure, but I do have revenue per store. 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit. Average revenue per store is $2.4M a year.",
+    "revealedLabels": [
+      "Total annual revenue (covers the current period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "Coffee bean price change over 2 years (covers the change over the period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Menu price changes over 2 years",
+      "Number of stores (covers the current and prior period)",
+      "Average transaction value (covers the current and prior period)",
+      "Average revenue per store (covers the current period)"
+    ],
+    "loggedReply": "Understood. Beyond the pricing question you've raised, what else could Brew & Bean do to protect its margin?"
+  },
+  {
+    "id": "06-destiny-the#32",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "A few things. They could lock in bean and dairy costs with longer-term supplier contracts instead of buying at spot — that doesn't fix the level but stops it getting worse. With 200 stores there may also be buying scale they aren't using.\n\nSecond, the mix point: if the added items per visit are low-margin food, they could reprice those specifically rather than the whole menu, or push higher-margin items.\n\nThird, portion and waste control — if any of the 16 points is spillage or oversized pours, that's recoverable without touching price.\n\nI'd check overhead too, though it's only 2 points, so it's not where I'd spend time.",
+    "priorInterviewer": "Understood. Beyond the pricing question you've raised, what else could Brew & Bean do to protect its margin?",
+    "revealedLabels": [
+      "Total annual revenue (covers the current period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "Coffee bean price change over 2 years (covers the change over the period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Menu price changes over 2 years",
+      "Number of stores (covers the current and prior period)",
+      "Average transaction value (covers the current and prior period)",
+      "Average revenue per store (covers the current period)"
+    ],
+    "loggedReply": "Okay. You've covered cost-side and mix levers. What ideas would you add on the customer and revenue side, such as demand, loyalty, or new products?"
+  },
+  {
+    "id": "06-destiny-the#34",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "A loyalty program could help — if you're raising prices, giving regulars points or a free drink softens it and keeps traffic from dropping.\n\nNew products: they could add higher-margin items, things that aren't bean or dairy heavy. Though I'd want to know margins by product before pushing that.\n\nAlso, transactions were only up ~5%, so there may be room to grow traffic — dayparts outside the morning rush, like afternoon or food-driven visits, since stores are already paid for.\n\nHonestly I'd still start with price. Costs rose ~38% and prices rose zero for two years, so that's the gap.",
+    "priorInterviewer": "Okay. You've covered cost-side and mix levers. What ideas would you add on the customer and revenue side, such as demand, loyalty, or new products?",
+    "revealedLabels": [
+      "Total annual revenue (covers the current period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "Coffee bean price change over 2 years (covers the change over the period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Menu price changes over 2 years",
+      "Number of stores (covers the current and prior period)",
+      "Average transaction value (covers the current and prior period)",
+      "Average revenue per store (covers the current period)"
+    ],
+    "loggedReply": "Okay. Putting the analysis and those ideas together, what's your recommendation to the CEO?"
+  },
+  {
+    "id": "06-destiny-the#36",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "My recommendation: raise menu prices. That's the root cause — input costs rose about 38-40% over two years and prices haven't moved at all, so the entire increase hit margin.\n\nThe math: COGS went from 42% to 58% of revenue, 16 points, about $77M on $480M. Labor was flat and overhead moved 2 points, so COGS is essentially the whole 18-point decline. Beans are only about 4 points of it; dairy, packaging and food are roughly 12.\n\nI'd phase in 10-15% rather than the ~38% that would fully restore the ratio, starting with the food and add-on items, since ticket growth is coming from extra items per visit. Alongside that, lock in supplier contracts and tighten waste.\n\nRisks: demand could fall — transactions only grew 5%, so the base is fragile, and I don't know what competitors have priced. Next steps: test the increase in a subset of the 200 stores and get margin by product before deciding where the increase lands.",
+    "priorInterviewer": "Okay. Putting the analysis and those ideas together, what's your recommendation to the CEO?",
+    "revealedLabels": [
+      "Total annual revenue (covers the current period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "Coffee bean price change over 2 years (covers the change over the period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Menu price changes over 2 years",
+      "Number of stores (covers the current and prior period)",
+      "Average transaction value (covers the current and prior period)",
+      "Average revenue per store (covers the current period)"
+    ],
+    "loggedReply": "You said a 10-15% increase would recover a good chunk. Walk me through how much of the margin decline that actually closes."
+  },
+  {
+    "id": "06-destiny-the#38",
+    "session": "batch-7-oct-03/06-destiny-the-blank-slate",
+    "candidateText": "Let me do it at 12.5%, holding volume flat. Revenue goes from $480M to $540M. Costs don't change in dollars: COGS $278.4M (58% of 480), labor $105.6M, overhead $67.2M — total $451.2M.\n\nToday profit is 6% of $480M = $28.8M. After, it's $540M − $451.2M = $88.8M, or 16.4% of revenue.\n\nSo about 10 of the 18 points come back, not the full gap. To get all the way to 24% you'd need closer to the 38% increase, which I don't think is realistic in one move.\n\nAnd that assumes no volume loss. If transactions drop, say, 5%, you'd give back a chunk of it — which is why I'd test it in a subset of stores first.",
+    "priorInterviewer": "You said a 10-15% increase would recover a good chunk. Walk me through how much of the margin decline that actually closes.",
+    "revealedLabels": [
+      "Total annual revenue (covers the current period)",
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "Coffee bean price change over 2 years (covers the change over the period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Menu price changes over 2 years",
+      "Number of stores (covers the current and prior period)",
+      "Average transaction value (covers the current and prior period)",
+      "Average revenue per store (covers the current period)"
+    ],
+    "loggedReply": "That's our time. Thanks for working through this with me — your written report will follow."
+  },
+  {
+    "id": "08-claire-the-#2",
+    "session": "batch-7-oct-03/08-claire-the-recommendation-freezer",
+    "candidateText": "Let me take a second to structure.\n\nSo revenues are up 15% but net margin fell from 24% to 6% — that's a huge drop, so costs must be growing much faster than revenue. I'd start by confirming the profit equation: profit = (price × volume) − (variable costs + fixed costs).\n\nI'd look at three buckets. First, revenue quality: is the 15% growth coming from new store openings, same-store traffic, or price increases? Growth from new stores can carry heavy ramp-up costs. Second, cost structure: I'd want COGS — coffee beans, dairy, cups — then labor, then rent/occupancy, then corporate overhead, and see which line grew fastest as a percent of revenue. Third, external factors: commodity prices, wage inflation, competition.\n\nTo start — do we have a breakdown of costs as a percentage of revenue for both years?",
+    "priorInterviewer": "Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?\n\nHow would you like to approach this? Feel free to take a moment to gather your thoughts first.",
+    "revealedLabels": [],
+    "loggedReply": "Before I get to the data: you've given me three buckets. I'll come to that data shortly. Which of them would you prioritize first, and why?"
+  },
+  {
+    "id": "08-claire-the-#4",
+    "session": "batch-7-oct-03/08-claire-the-recommendation-freezer",
+    "candidateText": "I'd prioritize the cost structure first. The margin fell 18 points while revenue actually grew, so the problem is almost certainly on the cost side rather than demand — if volume or pricing had collapsed, we'd see revenue decline, and we don't.\n\nWithin costs, I'd sequence by size: the biggest lines in a coffee chain are typically COGS and labor, each roughly 25–30% of revenue, then occupancy. An 18-point margin swing is large enough that it likely sits in one or two of those big lines, not in overhead.\n\nRevenue quality is my close second, though — if the 15% growth came from opening new stores, then fixed costs like rent and pre-opening expense would have jumped, and that's really a cost story too. So I'd want to know store count in both years alongside the cost breakdown.",
+    "priorInterviewer": "Before I get to the data: you've given me three buckets. I'll come to that data shortly. Which of them would you prioritize first, and why?",
+    "revealedLabels": [],
+    "loggedReply": "Understood. You asked for the cost breakdown for both years and store count, so here they are. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed."
+  },
+  {
+    "id": "08-claire-the-#6",
+    "session": "batch-7-oct-03/08-claire-the-recommendation-freezer",
+    "candidateText": "That's clean. Let me check it adds up: COGS up 16 points, overhead up 2 points, labor flat — that's 18 points, which exactly matches the margin decline from 24% to 6%. So COGS is ~90% of the story.\n\nAnd since store count is flat at 200, the 15% revenue growth is all same-store — either more transactions or higher prices. That actually makes the COGS story worse: if they raised prices, revenue per unit went up and COGS% still climbed 16 points, meaning input costs rose even faster than that.\n\nSo the question is what's inside COGS. I'd want it split into coffee beans, dairy, other food, and packaging, and ideally unit cost versus units consumed — a price spike looks very different from waste or over-portioning.\n\nDo we have that COGS split, and do we have menu price history over the two years?",
+    "priorInterviewer": "Understood. You asked for the cost breakdown for both years and store count, so here they are. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed.",
+    "revealedLabels": [
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "Number of stores (covers the current and prior period)"
+    ],
+    "loggedReply": "Available items match: bean_share_of_cogs, bean_price_change, non_bean_input_change, menu_price_change. Coffee beans were 25% of COGS two years ago. Raw coffee bean costs are up 40% over the past two years. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Menu prices have not changed in two years."
+  },
+  {
+    "id": "08-claire-the-#8",
+    "session": "batch-7-oct-03/08-claire-the-recommendation-freezer",
+    "candidateText": "Let me test whether input inflation alone explains it. Beans were 25% of COGS and rose 40% → 0.25 × 40% = 10 points. Other inputs were 75% and rose 37.5% → 0.75 × 37.5% = 28.1 points. Total COGS inflation ≈ 38%.\n\nOld COGS was 42% of revenue. Since menu prices are flat, that 42% scales directly with input cost: 42% × 1.38 = 58%. That's exactly where COGS sits today. So input inflation fully explains the 16-point move — there's no waste or portioning problem hiding in there.\n\nAnd with prices flat and store count flat, the entire 15% revenue growth is volume — they're selling about 15% more units at unchanged prices while each unit costs 38% more to make. So they've essentially absorbed two years of broad commodity inflation without passing any of it through.\n\nInteresting that it's not just beans — the non-bean basket rose almost as much.",
+    "priorInterviewer": "Available items match: bean_share_of_cogs, bean_price_change, non_bean_input_change, menu_price_change. Coffee beans were 25% of COGS two years ago. Raw coffee bean costs are up 40% over the past two years. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Menu prices have not changed in two years.",
+    "revealedLabels": [
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "Number of stores (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "Coffee bean price change over 2 years (covers the change over the period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Menu price changes over 2 years"
+    ],
+    "loggedReply": "They then applied that to old COGS of 42% of revenue to reach 58%. But that scaling treats revenue as flat, while revenue grew 15%. The conversion needs a check, but the unit flag here concerns the shares of COGS, which they've handled with consistent bases. The cleaner issue is the 42% to 58% step. Walk me through the step from 42% to 58%. Does multiplying old COGS as a share of revenue by the input inflation figure account for the 15% revenue growth?"
+  },
+  {
+    "id": "08-claire-the-#10",
+    "session": "batch-7-oct-03/08-claire-the-recommendation-freezer",
+    "candidateText": "Fair challenge — let me redo it on a per-unit basis rather than on totals.\n\nCOGS as a share of revenue is really (unit cost × units) ÷ (price × units). The units cancel, so volume growth drops out entirely — the ratio only moves if unit cost or price moves. Unit cost is up 38%, price is flat, so the ratio goes 42% × 1.38 ÷ 1.00 = 58%. The 15% volume growth doesn't affect it.\n\nSanity check on totals: if revenue index goes 100 → 115, old COGS at 42% would be 42 → 48.3 at constant unit cost, then × 1.38 = 66.7. And 66.7 ÷ 115 = 58%. Same answer, so it holds either way.\n\nWhere volume does matter is absolute profit dollars, not margin — more units at a thinner spread.",
+    "priorInterviewer": "They then applied that to old COGS of 42% of revenue to reach 58%. But that scaling treats revenue as flat, while revenue grew 15%. The conversion needs a check, but the unit flag here concerns the shares of COGS, which they've handled with consistent bases. The cleaner issue is the 42% to 58% step. Walk me through the step from 42% to 58%. Does multiplying old COGS as a share of revenue by the input inflation figure account for the 15% revenue growth?",
+    "revealedLabels": [
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "Number of stores (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "Coffee bean price change over 2 years (covers the change over the period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Menu price changes over 2 years"
+    ],
+    "loggedReply": "Understood. The derivation holds. Beyond what we've discussed, what could the client do to reverse the margin decline?"
+  },
+  {
+    "id": "08-claire-the-#12",
+    "session": "batch-7-oct-03/08-claire-the-recommendation-freezer",
+    "candidateText": "Hmm, I'm not sure.",
+    "priorInterviewer": "Understood. The derivation holds. Beyond what we've discussed, what could the client do to reverse the margin decline?",
+    "revealedLabels": [
+      "COGS as % of revenue (covers the current and prior period)",
+      "Labor as % of revenue (covers the current and prior period)",
+      "Overhead / rent as % of revenue (covers the current and prior period)",
+      "Number of stores (covers the current and prior period)",
+      "COGS breakdown: coffee beans as a share of COGS (covers the prior period)",
+      "Coffee bean price change over 2 years (covers the change over the period)",
+      "COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years (covers the change over the period)",
+      "Menu price changes over 2 years"
+    ],
+    "loggedReply": "Take a minute if you need it. Think about the levers on price, on input costs, and on the menu or customer side. What ideas come to mind?"
+  }
+]
