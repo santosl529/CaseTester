@@ -112,6 +112,10 @@ export const CaseSchema = z.object({
   title: z.string().min(1),
   firmStyle: z.enum(['mckinsey', 'bcg', 'bain', 'generic']).default('mckinsey'),
   difficulty: z.enum(['easy', 'medium', 'hard']),
+  // Drills' next-case picker (docs/prd-drills.md "Picking the next case") maps
+  // case types to skill areas. Optional free text until the 14 case types are
+  // defined; then this becomes a required enum.
+  caseType: z.string().min(1).optional(),
   prompt: z.string().min(50),
   interviewerNotes: z.string(),
   dataLedger: z.array(LedgerItemSchema).min(1),

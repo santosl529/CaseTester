@@ -1,0 +1,604 @@
+{
+  "version": "v1",
+  "drills": [
+    {
+      "id": "PS-1",
+      "name": "Spot the gap",
+      "level": 1,
+      "skills": [
+        "PS.mece",
+        "PS.case_specific"
+      ],
+      "input_types": [
+        "single_choice"
+      ],
+      "scoring": "auto",
+      "set_size": 8,
+      "time_limits_s": [
+        60,
+        45,
+        30
+      ],
+      "pass_bar": 0.8,
+      "priority": "P0",
+      "item_source": "authored",
+      "live": false
+    },
+    {
+      "id": "PS-2",
+      "name": "Clarifying questions",
+      "level": 1,
+      "skills": [
+        "PS.clarifying_questions"
+      ],
+      "input_types": [
+        "multi_select"
+      ],
+      "scoring": "auto",
+      "set_size": 6,
+      "time_limits_s": [
+        60,
+        45,
+        30
+      ],
+      "pass_bar": 0.8,
+      "priority": "P1",
+      "item_source": "authored",
+      "live": false
+    },
+    {
+      "id": "PS-3",
+      "name": "Framework builder",
+      "level": 2,
+      "skills": [
+        "PS.mece",
+        "PS.case_specific",
+        "PS.depth"
+      ],
+      "input_types": [
+        "structured_buckets"
+      ],
+      "scoring": "checklist",
+      "set_size": 4,
+      "time_limits_s": [
+        180,
+        120,
+        90
+      ],
+      "word_caps": {
+        "total": 120,
+        "sub_point": 15
+      },
+      "pass_bar": 0.8,
+      "priority": "P0",
+      "item_source": "authored",
+      "live": false
+    },
+    {
+      "id": "HY-1",
+      "name": "Pick the best hypothesis",
+      "level": 1,
+      "skills": [
+        "HY.form"
+      ],
+      "input_types": [
+        "single_choice"
+      ],
+      "scoring": "auto",
+      "set_size": 8,
+      "time_limits_s": [
+        60,
+        45,
+        30
+      ],
+      "pass_bar": 0.8,
+      "priority": "P0",
+      "item_source": "authored",
+      "live": false
+    },
+    {
+      "id": "HY-2",
+      "name": "Initial hypothesis",
+      "level": 2,
+      "skills": [
+        "HY.form",
+        "HY.update"
+      ],
+      "input_types": [
+        "free_text",
+        "single_choice"
+      ],
+      "scoring": "checklist_auto",
+      "set_size": 4,
+      "time_limits_s": null,
+      "stage_time_limits_s": {
+        "form": [
+          90,
+          75,
+          60
+        ],
+        "update": [
+          60,
+          45,
+          35
+        ]
+      },
+      "word_caps": {
+        "form": 50,
+        "update": 30
+      },
+      "pass_bar": 0.8,
+      "priority": "P0",
+      "item_source": "authored",
+      "live": false
+    },
+    {
+      "id": "QN-1",
+      "name": "Setup only",
+      "level": 1,
+      "skills": [
+        "QN.setup"
+      ],
+      "input_types": [
+        "single_choice"
+      ],
+      "scoring": "auto",
+      "set_size": 10,
+      "time_limits_s": [
+        40,
+        30,
+        20
+      ],
+      "pass_bar": 0.8,
+      "priority": "P0",
+      "item_source": "generated",
+      "live": false
+    },
+    {
+      "id": "QN-2",
+      "name": "Sanity check",
+      "level": 1,
+      "skills": [
+        "QN.sanity_check"
+      ],
+      "input_types": [
+        "single_choice"
+      ],
+      "scoring": "auto",
+      "set_size": 10,
+      "time_limits_s": [
+        30,
+        20,
+        15
+      ],
+      "pass_bar": 0.8,
+      "priority": "P1",
+      "item_source": "mixed",
+      "live": false
+    },
+    {
+      "id": "QN-3",
+      "name": "Mental math",
+      "level": 2,
+      "skills": [
+        "QN.arithmetic",
+        "QN.magnitude",
+        "QN.percentages",
+        "QN.growth"
+      ],
+      "input_types": [
+        "numeric"
+      ],
+      "scoring": "auto",
+      "set_size": 10,
+      "time_limits_s": [
+        30,
+        20,
+        12
+      ],
+      "pass_bar": 0.8,
+      "priority": "P0",
+      "item_source": "generated",
+      "live": false
+    },
+    {
+      "id": "QN-4",
+      "name": "Consulting math",
+      "level": 2,
+      "skills": [
+        "QN.setup",
+        "QN.arithmetic",
+        "QN.magnitude"
+      ],
+      "input_types": [
+        "single_choice",
+        "numeric"
+      ],
+      "scoring": "auto",
+      "set_size": 6,
+      "time_limits_s": [
+        90,
+        60,
+        45
+      ],
+      "pass_bar": 0.8,
+      "priority": "P0",
+      "item_source": "generated",
+      "live": false
+    },
+    {
+      "id": "QN-5",
+      "name": "Market sizing",
+      "level": 2,
+      "skills": [
+        "QN.sizing_structure",
+        "QN.assumptions",
+        "QN.arithmetic",
+        "QN.sanity_check"
+      ],
+      "input_types": [
+        "multi_select",
+        "numeric",
+        "single_choice"
+      ],
+      "scoring": "auto",
+      "set_size": 3,
+      "time_limits_s": [
+        300,
+        240,
+        180
+      ],
+      "pass_bar": 0.8,
+      "priority": "P0",
+      "item_source": "authored",
+      "live": false
+    },
+    {
+      "id": "EX-1",
+      "name": "Chart read",
+      "level": 1,
+      "skills": [
+        "EX.takeaway"
+      ],
+      "input_types": [
+        "single_choice"
+      ],
+      "scoring": "auto",
+      "set_size": 8,
+      "time_limits_s": [
+        45,
+        35,
+        25
+      ],
+      "pass_bar": 0.8,
+      "priority": "P0",
+      "item_source": "authored",
+      "live": false
+    },
+    {
+      "id": "EX-2",
+      "name": "Exhibit traps",
+      "level": 1,
+      "skills": [
+        "EX.traps"
+      ],
+      "input_types": [
+        "single_choice",
+        "numeric"
+      ],
+      "scoring": "auto",
+      "set_size": 8,
+      "time_limits_s": [
+        60,
+        45,
+        30
+      ],
+      "pass_bar": 0.8,
+      "priority": "P0",
+      "item_source": "generated",
+      "live": false
+    },
+    {
+      "id": "EX-3",
+      "name": "Needle in the table",
+      "level": 2,
+      "skills": [
+        "EX.extraction",
+        "QN.arithmetic"
+      ],
+      "input_types": [
+        "numeric"
+      ],
+      "scoring": "auto",
+      "set_size": 6,
+      "time_limits_s": [
+        90,
+        60,
+        45
+      ],
+      "pass_bar": 0.8,
+      "priority": "P0",
+      "item_source": "generated",
+      "live": false
+    },
+    {
+      "id": "EX-4",
+      "name": "Written chart takeaway",
+      "level": 2,
+      "skills": [
+        "EX.takeaway"
+      ],
+      "input_types": [
+        "free_text"
+      ],
+      "scoring": "checklist",
+      "set_size": 6,
+      "time_limits_s": [
+        60,
+        45,
+        35
+      ],
+      "word_caps": {
+        "total": 40
+      },
+      "pass_bar": 0.8,
+      "priority": "P2",
+      "item_source": "authored",
+      "live": false
+    },
+    {
+      "id": "BJ-1",
+      "name": "\"So what?\"",
+      "level": 1,
+      "skills": [
+        "BJ.so_what"
+      ],
+      "input_types": [
+        "single_choice"
+      ],
+      "scoring": "auto",
+      "set_size": 8,
+      "time_limits_s": [
+        45,
+        35,
+        25
+      ],
+      "pass_bar": 0.8,
+      "priority": "P1",
+      "item_source": "authored",
+      "live": false
+    },
+    {
+      "id": "BJ-2",
+      "name": "Risks and next steps",
+      "level": 1,
+      "skills": [
+        "BJ.risks"
+      ],
+      "input_types": [
+        "multi_select"
+      ],
+      "scoring": "auto",
+      "set_size": 6,
+      "time_limits_s": [
+        60,
+        45,
+        35
+      ],
+      "pass_bar": 0.8,
+      "priority": "P1",
+      "item_source": "authored",
+      "live": false
+    },
+    {
+      "id": "BJ-3",
+      "name": "Written \"So what?\"",
+      "level": 2,
+      "skills": [
+        "BJ.so_what"
+      ],
+      "input_types": [
+        "free_text"
+      ],
+      "scoring": "checklist",
+      "set_size": null,
+      "time_limits_s": null,
+      "word_caps": {
+        "total": 40
+      },
+      "pass_bar": 0.8,
+      "priority": "P2",
+      "item_source": "authored",
+      "live": false
+    },
+    {
+      "id": "CR-1",
+      "name": "Bucketed brainstorm",
+      "level": 2,
+      "skills": [
+        "CR.volume",
+        "CR.structure"
+      ],
+      "input_types": [
+        "grouped_ideas"
+      ],
+      "scoring": "checklist",
+      "set_size": 3,
+      "time_limits_s": [
+        90,
+        75,
+        60
+      ],
+      "word_caps": {
+        "idea": 12
+      },
+      "pass_bar": 0.8,
+      "priority": "P1",
+      "item_source": "authored",
+      "live": false
+    },
+    {
+      "id": "SY-1",
+      "name": "Pick the best summary",
+      "level": 1,
+      "skills": [
+        "SY.answer_first",
+        "SY.evidence",
+        "SY.summary"
+      ],
+      "input_types": [
+        "single_choice"
+      ],
+      "scoring": "auto",
+      "set_size": 8,
+      "time_limits_s": [
+        60,
+        45,
+        35
+      ],
+      "pass_bar": 0.8,
+      "priority": "P0",
+      "item_source": "authored",
+      "live": false
+    },
+    {
+      "id": "SY-2",
+      "name": "60-second recommendation",
+      "level": 2,
+      "skills": [
+        "SY.answer_first",
+        "SY.evidence",
+        "SY.complete"
+      ],
+      "input_types": [
+        "free_text"
+      ],
+      "scoring": "checklist",
+      "set_size": 3,
+      "time_limits_s": [
+        180,
+        120,
+        90
+      ],
+      "word_caps": {
+        "total": 120
+      },
+      "pass_bar": 0.8,
+      "priority": "P0",
+      "item_source": "authored",
+      "live": false
+    },
+    {
+      "id": "CM-1",
+      "name": "Pick the answer-first version",
+      "level": 1,
+      "skills": [
+        "CM.concise"
+      ],
+      "input_types": [
+        "single_choice"
+      ],
+      "scoring": "auto",
+      "set_size": 8,
+      "time_limits_s": [
+        45,
+        35,
+        25
+      ],
+      "pass_bar": 0.8,
+      "priority": "P2",
+      "item_source": "authored",
+      "live": false
+    },
+    {
+      "id": "CM-2",
+      "name": "Answer-first rewrite",
+      "level": 2,
+      "skills": [
+        "CM.concise"
+      ],
+      "input_types": [
+        "free_text"
+      ],
+      "scoring": "checklist_auto",
+      "set_size": null,
+      "time_limits_s": null,
+      "word_caps": {
+        "total": 50
+      },
+      "pass_bar": 0.8,
+      "priority": "P2",
+      "item_source": "authored",
+      "live": false
+    },
+    {
+      "id": "CL-1",
+      "name": "What's next?",
+      "level": 1,
+      "skills": [
+        "CL.next_step"
+      ],
+      "input_types": [
+        "single_choice"
+      ],
+      "scoring": "auto",
+      "set_size": 8,
+      "time_limits_s": [
+        45,
+        35,
+        25
+      ],
+      "pass_bar": 0.8,
+      "priority": "P0",
+      "item_source": "authored",
+      "live": false
+    },
+    {
+      "id": "CL-2",
+      "name": "Hold or fold",
+      "level": 1,
+      "skills": [
+        "CL.pushback"
+      ],
+      "input_types": [
+        "single_choice"
+      ],
+      "scoring": "auto",
+      "set_size": 8,
+      "time_limits_s": [
+        60,
+        45,
+        35
+      ],
+      "pass_bar": 0.8,
+      "priority": "P1",
+      "item_source": "authored",
+      "live": false
+    },
+    {
+      "id": "CL-3",
+      "name": "What do you need to know?",
+      "level": 2,
+      "skills": [
+        "CL.data_requests"
+      ],
+      "input_types": [
+        "free_text"
+      ],
+      "scoring": "checklist",
+      "set_size": 4,
+      "time_limits_s": [
+        90,
+        75,
+        60
+      ],
+      "word_caps": {
+        "total": 60
+      },
+      "pass_bar": 0.8,
+      "priority": "P0",
+      "item_source": "authored",
+      "live": false
+    }
+  ]
+}

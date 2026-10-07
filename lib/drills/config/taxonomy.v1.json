@@ -1,0 +1,658 @@
+{
+  "version": "v1",
+  "areas": [
+    {
+      "code": "PS",
+      "name": "Problem Structuring",
+      "rubric_dimension": "structure"
+    },
+    {
+      "code": "HY",
+      "name": "Hypothesis",
+      "rubric_dimension": "structure"
+    },
+    {
+      "code": "QN",
+      "name": "Quantitative Rigor",
+      "rubric_dimension": "quantitative"
+    },
+    {
+      "code": "EX",
+      "name": "Exhibit Interpretation",
+      "rubric_dimension": "dataExhibit"
+    },
+    {
+      "code": "BJ",
+      "name": "Business Judgment",
+      "rubric_dimension": "judgment"
+    },
+    {
+      "code": "CR",
+      "name": "Creativity",
+      "rubric_dimension": "creativity"
+    },
+    {
+      "code": "SY",
+      "name": "Synthesis",
+      "rubric_dimension": "synthesis"
+    },
+    {
+      "code": "CM",
+      "name": "Communication",
+      "rubric_dimension": "communication"
+    },
+    {
+      "code": "CL",
+      "name": "Case Leadership",
+      "rubric_dimension": "pushback"
+    }
+  ],
+  "skills": [
+    {
+      "id": "PS.mece",
+      "area": "PS",
+      "name": "MECE structure",
+      "description": "Buckets don't overlap and nothing major is missing"
+    },
+    {
+      "id": "PS.case_specific",
+      "area": "PS",
+      "name": "Case-specific structure",
+      "description": "Structure fits this case, not a canned framework"
+    },
+    {
+      "id": "PS.depth",
+      "area": "PS",
+      "name": "Structure depth",
+      "description": "Each bucket has concrete sub-points"
+    },
+    {
+      "id": "PS.clarifying_questions",
+      "area": "PS",
+      "name": "Clarifying questions",
+      "description": "Asks the few questions that matter"
+    },
+    {
+      "id": "HY.form",
+      "area": "HY",
+      "name": "Forming a hypothesis",
+      "description": "States a directional, evidence-based, testable, tentative hypothesis"
+    },
+    {
+      "id": "HY.update",
+      "area": "HY",
+      "name": "Updating a hypothesis",
+      "description": "Changes the hypothesis when data contradicts it, keeps it when data supports it"
+    },
+    {
+      "id": "QN.arithmetic",
+      "area": "QN",
+      "name": "Arithmetic",
+      "description": "Basic operations done correctly"
+    },
+    {
+      "id": "QN.magnitude",
+      "area": "QN",
+      "name": "Zeros and units",
+      "description": "Zeros and units handled correctly"
+    },
+    {
+      "id": "QN.percentages",
+      "area": "QN",
+      "name": "Percentages",
+      "description": "Percent change, percent of, percentage points"
+    },
+    {
+      "id": "QN.growth",
+      "area": "QN",
+      "name": "Growth",
+      "description": "Growth rates and compounding"
+    },
+    {
+      "id": "QN.setup",
+      "area": "QN",
+      "name": "Math setup",
+      "description": "Chooses the right formula before calculating"
+    },
+    {
+      "id": "QN.sizing_structure",
+      "area": "QN",
+      "name": "Sizing structure",
+      "description": "Builds a complete driver chain for an estimate"
+    },
+    {
+      "id": "QN.assumptions",
+      "area": "QN",
+      "name": "Sizing assumptions",
+      "description": "Makes reasonable estimation assumptions"
+    },
+    {
+      "id": "QN.sanity_check",
+      "area": "QN",
+      "name": "Sanity checking",
+      "description": "Notices when a result is implausible"
+    },
+    {
+      "id": "EX.takeaway",
+      "area": "EX",
+      "name": "Chart takeaway",
+      "description": "Finds the insight that matters"
+    },
+    {
+      "id": "EX.traps",
+      "area": "EX",
+      "name": "Exhibit traps",
+      "description": "Catches units, axes and footnotes"
+    },
+    {
+      "id": "EX.extraction",
+      "area": "EX",
+      "name": "Data extraction",
+      "description": "Pulls the right number from dense data"
+    },
+    {
+      "id": "BJ.so_what",
+      "area": "BJ",
+      "name": "So what",
+      "description": "States what a finding means for the client"
+    },
+    {
+      "id": "BJ.risks",
+      "area": "BJ",
+      "name": "Risks and next steps",
+      "description": "Names specific, relevant risks and next steps"
+    },
+    {
+      "id": "CR.volume",
+      "area": "CR",
+      "name": "Idea volume",
+      "description": "Generates enough distinct ideas"
+    },
+    {
+      "id": "CR.structure",
+      "area": "CR",
+      "name": "Idea structure",
+      "description": "Groups ideas into clear, non-overlapping categories"
+    },
+    {
+      "id": "SY.answer_first",
+      "area": "SY",
+      "name": "Answer first",
+      "description": "Leads with a clear recommendation"
+    },
+    {
+      "id": "SY.evidence",
+      "area": "SY",
+      "name": "Supporting evidence",
+      "description": "Supports it with the right facts and numbers"
+    },
+    {
+      "id": "SY.complete",
+      "area": "SY",
+      "name": "Complete recommendation",
+      "description": "Includes a risk and a next step"
+    },
+    {
+      "id": "SY.summary",
+      "area": "SY",
+      "name": "Mid-case summary",
+      "description": "Summarizes progress accurately mid-case"
+    },
+    {
+      "id": "CM.concise",
+      "area": "CM",
+      "name": "Concise delivery",
+      "description": "Says it briefly, conclusion first"
+    },
+    {
+      "id": "CL.next_step",
+      "area": "CL",
+      "name": "Driving next steps",
+      "description": "Proposes a logical next step without being prompted"
+    },
+    {
+      "id": "CL.data_requests",
+      "area": "CL",
+      "name": "Data requests",
+      "description": "Asks for specific, prioritized data"
+    },
+    {
+      "id": "CL.pushback",
+      "area": "CL",
+      "name": "Handling pushback",
+      "description": "Holds when right, updates when wrong, uses evidence"
+    }
+  ],
+  "mistake_tags": [
+    {
+      "id": "M.overlapping_buckets",
+      "skill": "PS.mece",
+      "label": "overlapping buckets",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.missing_bucket",
+      "skill": "PS.mece",
+      "label": "missing bucket",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.generic_framework",
+      "skill": "PS.case_specific",
+      "label": "generic framework",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.irrelevant_bucket",
+      "skill": "PS.case_specific",
+      "label": "irrelevant bucket",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.shallow_structure",
+      "skill": "PS.depth",
+      "label": "shallow structure",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.low_value_question",
+      "skill": "PS.clarifying_questions",
+      "label": "low-value question",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.missed_key_question",
+      "skill": "PS.clarifying_questions",
+      "label": "missed key question",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.too_many_questions",
+      "skill": "PS.clarifying_questions",
+      "label": "too many questions",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.no_hypothesis",
+      "skill": "HY.form",
+      "label": "no hypothesis",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.restates_facts",
+      "skill": "HY.form",
+      "label": "restated the facts",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.shotgun_hypotheses",
+      "skill": "HY.form",
+      "label": "shotgun hypotheses",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.overconfident_hypothesis",
+      "skill": "HY.form",
+      "label": "overconfident hypothesis",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.untestable_hypothesis",
+      "skill": "HY.form",
+      "label": "untestable hypothesis",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.ignores_facts",
+      "skill": "HY.form",
+      "label": "ignored the facts",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.sticky_hypothesis",
+      "skill": "HY.update",
+      "label": "sticky hypothesis",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.dropped_supported_hypothesis",
+      "skill": "HY.update",
+      "label": "dropped a supported hypothesis",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.arithmetic_error",
+      "skill": "QN.arithmetic",
+      "label": "arithmetic error",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.zeros_error",
+      "skill": "QN.magnitude",
+      "label": "zeros error",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.unit_error",
+      "skill": "QN.magnitude",
+      "label": "unit error",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.wrong_base",
+      "skill": "QN.percentages",
+      "label": "wrong base",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.percent_vs_points",
+      "skill": "QN.percentages",
+      "label": "percent vs percentage points",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.growth_error",
+      "skill": "QN.growth",
+      "label": "growth error",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.wrong_formula",
+      "skill": "QN.setup",
+      "label": "wrong formula",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.missing_term",
+      "skill": "QN.setup",
+      "label": "missing term",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.missing_driver",
+      "skill": "QN.sizing_structure",
+      "label": "missing driver",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.double_counting",
+      "skill": "QN.sizing_structure",
+      "label": "double counting",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.unreasonable_assumption",
+      "skill": "QN.assumptions",
+      "label": "unreasonable assumption",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.implausible_accepted",
+      "skill": "QN.sanity_check",
+      "label": "accepted an implausible result",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.plausible_rejected",
+      "skill": "QN.sanity_check",
+      "label": "rejected a plausible result",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.trivial_takeaway",
+      "skill": "EX.takeaway",
+      "label": "trivial takeaway",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.misread_trend",
+      "skill": "EX.takeaway",
+      "label": "misread trend",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.unsupported_claim",
+      "skill": "EX.takeaway",
+      "label": "unsupported claim",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.missed_units",
+      "skill": "EX.traps",
+      "label": "missed units",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.axis_misread",
+      "skill": "EX.traps",
+      "label": "axis misread",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.dual_axis_misread",
+      "skill": "EX.traps",
+      "label": "dual-axis misread",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.missed_footnote",
+      "skill": "EX.traps",
+      "label": "missed footnote",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.wrong_data_point",
+      "skill": "EX.extraction",
+      "label": "wrong data point",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.no_implication",
+      "skill": "BJ.so_what",
+      "label": "no implication",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.implication_off_objective",
+      "skill": "BJ.so_what",
+      "label": "implication off the objective",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.generic_risk",
+      "skill": "BJ.risks",
+      "label": "generic risk",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.missed_key_risk",
+      "skill": "BJ.risks",
+      "label": "missed key risk",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.too_few_ideas",
+      "skill": "CR.volume",
+      "label": "too few ideas",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.unstructured_ideas",
+      "skill": "CR.structure",
+      "label": "unstructured ideas",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.overlapping_idea_groups",
+      "skill": "CR.structure",
+      "label": "overlapping idea groups",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.buried_recommendation",
+      "skill": "SY.answer_first",
+      "label": "buried recommendation",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.hedged_recommendation",
+      "skill": "SY.answer_first",
+      "label": "hedged recommendation",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.unsupported_recommendation",
+      "skill": "SY.evidence",
+      "label": "unsupported recommendation",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.irrelevant_facts",
+      "skill": "SY.evidence",
+      "label": "irrelevant facts",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.missing_risk_or_next_step",
+      "skill": "SY.complete",
+      "label": "missing risk or next step",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.inaccurate_summary",
+      "skill": "SY.summary",
+      "label": "inaccurate summary",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.rambling",
+      "skill": "CM.concise",
+      "label": "rambling",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.over_word_limit",
+      "skill": "CM.concise",
+      "label": "over the word limit",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.waited_for_interviewer",
+      "skill": "CL.next_step",
+      "label": "waited for the interviewer",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.illogical_next_step",
+      "skill": "CL.next_step",
+      "label": "illogical next step",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.vague_data_request",
+      "skill": "CL.data_requests",
+      "label": "vague data request",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.laundry_list",
+      "skill": "CL.data_requests",
+      "label": "laundry list",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.premature_solution",
+      "skill": "CL.data_requests",
+      "label": "premature solution",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.caved_to_invalid_pushback",
+      "skill": "CL.pushback",
+      "label": "caved to invalid pushback",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.ignored_valid_pushback",
+      "skill": "CL.pushback",
+      "label": "ignored valid pushback",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.no_evidence_in_defense",
+      "skill": "CL.pushback",
+      "label": "no evidence in defense",
+      "severity": null,
+      "deprecated": false
+    }
+  ],
+  "system_tags": [
+    {
+      "id": "M.timeout",
+      "label": "ran out of time"
+    },
+    {
+      "id": "M.skipped",
+      "label": "skipped"
+    }
+  ]
+}

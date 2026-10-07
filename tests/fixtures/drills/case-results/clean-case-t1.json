@@ -1,0 +1,12 @@
+{
+  "case_attempt_id": "ca_9a03",
+  "student_id": "6f1c2a7e-3b4d-4e5f-8a9b-0c1d2e3f4a5b",
+  "case_id": "prof-001",
+  "case_type": null,
+  "difficulty_tier": 1,
+  "completed_at": "2026-10-06T09:05:00-04:00",
+  "taxonomy_version": "v1",
+  "rubric_scores": {},
+  "skills_observed": ["QN.percentages", "EX.takeaway"],
+  "findings": []
+}

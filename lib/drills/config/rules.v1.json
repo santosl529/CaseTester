@@ -1,0 +1,201 @@
+{
+  "version": "v1",
+  "pass_bar": 0.8,
+  "mastery": {
+    "passing_score": 0.8,
+    "consecutive_sets": 2,
+    "min_counting_tier": 2,
+    "min_items_or_checks_per_skill": 3
+  },
+  "test_out": {
+    "level": 2,
+    "tier": 2,
+    "drop_to_level1_below": 0.5
+  },
+  "tiers": {
+    "start": 1,
+    "min": 1,
+    "max": 3,
+    "up_at_or_above": 0.8,
+    "down_below": 0.5
+  },
+  "spaced_review": {
+    "eligible_after_days": 14,
+    "size_fraction": 0.5,
+    "full_size_at_or_below": 4,
+    "reset_at_or_above": 0.8,
+    "demote_below": 0.6,
+    "retry_after_days": 7
+  },
+  "interview_mode": {
+    "intense_within_days": 7,
+    "review_only_within_days": 2,
+    "suggest_case_every_n_sets": 2
+  },
+  "continue_training": {
+    "resume_window_hours": 24,
+    "next_case_after_sets": 3
+  },
+  "sets": {
+    "expire_after_hours": 24,
+    "one_in_progress_per_student": true
+  },
+  "timing": {
+    "grace_ms": 2000,
+    "time_multipliers": [
+      1,
+      1.5,
+      2
+    ]
+  },
+  "prescriptions": {
+    "max_per_case": 3,
+    "weights": {
+      "major": 2,
+      "minor": 1,
+      "repeat_previous_case": 2,
+      "regression": 1
+    },
+    "in_drill_priority": 1,
+    "focus_when_tag_share_at_least": 0.4,
+    "focus_item_share": 0.7
+  },
+  "serving": {
+    "authored_repeat_days": 60
+  },
+  "item_health": {
+    "min_attempts": 50,
+    "pull_below_correct_rate": 0.15,
+    "too_easy_above": 0.95,
+    "retier": {
+      "t1_at_or_above": 0.7,
+      "t2_at_or_above": 0.4
+    }
+  },
+  "skill_drills": {
+    "PS.mece": {
+      "l1": "PS-1",
+      "l2": "PS-3"
+    },
+    "PS.case_specific": {
+      "l1": "PS-1",
+      "l2": "PS-3"
+    },
+    "PS.depth": {
+      "l1": null,
+      "l2": "PS-3"
+    },
+    "PS.clarifying_questions": {
+      "l1": "PS-2",
+      "l2": null
+    },
+    "HY.form": {
+      "l1": "HY-1",
+      "l2": "HY-2"
+    },
+    "HY.update": {
+      "l1": null,
+      "l2": "HY-2"
+    },
+    "QN.arithmetic": {
+      "l1": null,
+      "l2": "QN-3"
+    },
+    "QN.magnitude": {
+      "l1": null,
+      "l2": "QN-3"
+    },
+    "QN.percentages": {
+      "l1": null,
+      "l2": "QN-3"
+    },
+    "QN.growth": {
+      "l1": null,
+      "l2": "QN-3"
+    },
+    "QN.setup": {
+      "l1": "QN-1",
+      "l2": "QN-4"
+    },
+    "QN.sizing_structure": {
+      "l1": null,
+      "l2": "QN-5"
+    },
+    "QN.assumptions": {
+      "l1": null,
+      "l2": "QN-5"
+    },
+    "QN.sanity_check": {
+      "l1": "QN-2",
+      "l2": "QN-5"
+    },
+    "EX.takeaway": {
+      "l1": "EX-1",
+      "l2": "EX-4"
+    },
+    "EX.traps": {
+      "l1": "EX-2",
+      "l2": null
+    },
+    "EX.extraction": {
+      "l1": null,
+      "l2": "EX-3"
+    },
+    "BJ.so_what": {
+      "l1": "BJ-1",
+      "l2": "BJ-3"
+    },
+    "BJ.risks": {
+      "l1": "BJ-2",
+      "l2": null
+    },
+    "CR.volume": {
+      "l1": null,
+      "l2": "CR-1"
+    },
+    "CR.structure": {
+      "l1": null,
+      "l2": "CR-1"
+    },
+    "SY.answer_first": {
+      "l1": "SY-1",
+      "l2": "SY-2"
+    },
+    "SY.evidence": {
+      "l1": "SY-1",
+      "l2": "SY-2"
+    },
+    "SY.complete": {
+      "l1": null,
+      "l2": "SY-2"
+    },
+    "SY.summary": {
+      "l1": "SY-1",
+      "l2": null
+    },
+    "CM.concise": {
+      "l1": "CM-1",
+      "l2": "CM-2"
+    },
+    "CL.next_step": {
+      "l1": "CL-1",
+      "l2": null
+    },
+    "CL.data_requests": {
+      "l1": null,
+      "l2": "CL-3"
+    },
+    "CL.pushback": {
+      "l1": "CL-2",
+      "l2": null
+    }
+  },
+  "focusable_tags": {
+    "M.zeros_error": "QN-3",
+    "M.wrong_base": "QN-3",
+    "M.percent_vs_points": "QN-3",
+    "M.growth_error": "QN-3",
+    "M.arithmetic_error": "QN-3"
+  },
+  "case_type_to_skill_area": {}
+}

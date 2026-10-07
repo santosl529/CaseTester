@@ -389,7 +389,7 @@ The coding agent must not pull these in. Scope creep is the default failure mode
 - Mobile-native app (desktop web only).
 - Monetization / paywall / billing logic (free during validation).
 - On-the-fly AI-generated cases (all cases human-authored).
-- Drills, peer matching, B2B2C dashboards (separate workstreams).
+- Drills, peer matching, B2B2C dashboards (separate workstreams). Drills now has its own spec, `docs/prd-drills.md`, built in parallel from 2026-10-05.
 - Speech-to-speech black-box API (rejected — loses the data-gating control FR-4 requires).
 - Per-turn scoring (scoring is end-of-case only, for latency).
 
