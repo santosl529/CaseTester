@@ -1,12 +1,17 @@
 // Cartesia TTS adapter (M0 spike). One WebSocket context per interviewer
 // turn: segments are pushed as continuations as the orchestrator delivers
 // them, so prosody carries across sentences, and raw PCM streams back. The
-// client reads CARTESIA_API_KEY from the environment.
+// SDK does not read its key from the environment, so CARTESIA_API_KEY is
+// passed in (cartesiaClient).
 import Cartesia from '@cartesia/cartesia-js';
 import type { RawOutputFormat } from '@cartesia/cartesia-js/resources/tts';
 import type { PcmFormat, TTSProvider, TTSUtterance } from './types';
 
 export const CARTESIA_MODEL = 'sonic-3.5';
+
+export function cartesiaClient(): Cartesia {
+  return new Cartesia({ apiKey: process.env.CARTESIA_API_KEY });
+}
 
 type WsResponse = { type: string; data?: string };
 
@@ -25,7 +30,7 @@ export function continuation(text: string): string {
 
 export class CartesiaTTS implements TTSProvider {
   readonly name = 'cartesia';
-  private client = new Cartesia();
+  private client = cartesiaClient();
   private ws: Awaited<ReturnType<Cartesia['tts']['websocket']>> | null = null;
 
   constructor(private voiceId: string, private model: string = CARTESIA_MODEL) {}
@@ -99,7 +104,7 @@ export class CartesiaTTS implements TTSProvider {
 export async function defaultVoiceId(): Promise<string> {
   const configured = process.env.CARTESIA_VOICE_ID;
   if (configured) return configured;
-  const client = new Cartesia();
+  const client = cartesiaClient();
   for await (const v of client.voices.list({ limit: 50 } as never)) {
     const voice = v as { id: string; language?: string };
     if (!voice.language || voice.language === 'en') return voice.id;

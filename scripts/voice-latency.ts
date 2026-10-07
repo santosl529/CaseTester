@@ -16,7 +16,6 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { desc } from 'drizzle-orm';
-import Cartesia from '@cartesia/cartesia-js';
 import { db } from '@/db/client';
 import { sessions } from '@/db/schema';
 import { startSession } from '@/lib/orchestrator/start-session';
@@ -24,7 +23,7 @@ import { runTurn } from '@/lib/orchestrator/session-runner';
 import { runPostTurnBackground } from '@/lib/orchestrator/post-turn';
 import type { Phase } from '@/lib/orchestrator/state-machine';
 import { DeepgramFluxSTT, DeepgramNovaSTT } from '@/lib/voice/deepgram';
-import { CartesiaTTS, defaultVoiceId } from '@/lib/voice/cartesia';
+import { CartesiaTTS, cartesiaClient, defaultVoiceId } from '@/lib/voice/cartesia';
 import { speakingSink, turnLatency, type TurnLatency } from '@/lib/voice/speak';
 import { silence, speechEndSec, streamRealtime } from '@/lib/voice/pcm';
 import type { STTProvider, TurnSignal } from '@/lib/voice/types';
@@ -72,7 +71,7 @@ async function fixture(text: string, voiceId: string): Promise<Uint8Array> {
 
 async function candidateVoiceId(interviewer: string): Promise<string> {
   if (process.env.CARTESIA_CANDIDATE_VOICE_ID) return process.env.CARTESIA_CANDIDATE_VOICE_ID;
-  const client = new Cartesia();
+  const client = cartesiaClient();
   for await (const v of client.voices.list({ limit: 50 } as never)) {
     const voice = v as { id: string; language?: string };
     if (voice.id !== interviewer && (!voice.language || voice.language === 'en')) return voice.id;
