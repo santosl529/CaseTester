@@ -1,0 +1,179 @@
+{
+  "stt": "deepgram-flux",
+  "run": "batch-13-oct-06/26",
+  "sessionId": "f2d436aa-50a4-4d43-81ec-83c0aea5ec51",
+  "summary": {
+    "endpointMs": {
+      "median": 152,
+      "p90": 1372
+    },
+    "eagerLeadMs": {
+      "median": null,
+      "p90": null
+    },
+    "turnMs": {
+      "median": 2277,
+      "p90": 36434
+    },
+    "ttsMs": {
+      "median": 136,
+      "p90": 153
+    },
+    "totalMs": {
+      "median": 2134,
+      "p90": 3512
+    }
+  },
+  "records": [
+    {
+      "turn": 1,
+      "candidateChars": 868,
+      "sttTranscript": "Thanks. So to make sure I have it, Brew and Bean, two hundred US locations, net margin fell from twenty four percent to six percent over two years while revenue grew fifteen percent. We want the root cause and a way to reverse it. Since revenue is up but margin is down sharply, my instinct is that costs have grown faster than revenue, but I'd wanna confirm both sides. I'd structure it in three buckets. First, revenue quality. Is the fifteen percent growth coming from new stores, more transactions per store, or price? Growth from new store openings could carry start up costs and drag margin. Second, costs, split fixed versus variable. Cags like coffee beans and milk, labor, rent and occupancy, and corporate overhead. Third, external factors, commodity prices, wage inflation, competition. I'd start with the cost side since that's where the eighteen point swing most likely sits. What would you like me to look at next?",
+      "interviewerText": "A three-bucket structure, cost side first. Is that structure MECE, and what's missing from it?",
+      "eagerSignals": 0,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 255,
+        "eagerLeadMs": null,
+        "turnMs": 2277,
+        "ttsMs": 153,
+        "totalMs": 2685
+      }
+    },
+    {
+      "turn": 2,
+      "candidateChars": 937,
+      "sttTranscript": "Fair push. It's roughly Meese but not fully clean. My third bucket, external factors, overlaps with the first two since commodity prices show up inside cogs and wage inflation shows up inside labor. So that's a driver, not a separate branch. I'd fold externals in as a y layer under each cost line rather than a parallel bucket. What's missing? I said net profit margin, but I only structured operating items. Below the operating line, I should also check interest expense. If they finance new store openings with debt, plus depreciation and amortization on those builds, taxes, and any one time charges like impairments or lease write offs. Any of those could move net margin without touching operations at all. I'd also add revenue mix explicitly, channel and product mix. Since a shift toward lower margin items like food or packaged goods would dilute margin even with revenue growth. What would you like me to look at next?",
+      "interviewerText": "Understood. With the structure settled, you said you'd start on the cost side. Which specific data would you pull first, and why that before anything else?",
+      "eagerSignals": 0,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 180,
+        "eagerLeadMs": null,
+        "turnMs": 1559,
+        "ttsMs": 142,
+        "totalMs": 1881
+      }
+    },
+    {
+      "turn": 3,
+      "candidateChars": 849,
+      "sttTranscript": "I test the operating cost structure as a whole first, and within that, the largest line, which for a coffee chain is usually either cogs or store labor, each plausibly twenty five, thirty five percent of revenue, a line that big only needs to move a few points to explain a chunk of an eighteen point swing, whereas corporate overhead would need an implausibly large jump. The data I'd asked for, the p and l for both years, with each cost line expressed as a percentage of revenue, cogs, store labor, rent and occupancy, marketing, corporate g and a, and d and a. Comparing the percentages across the two years isolates, which line grew faster than revenue, so I'm not fooled by absolute dollars rising to because revenue rose fifteen percent. Once I see which percentage move most, I'd go one level deeper into that line. Do we have that p and l breakdown?",
+      "interviewerText": "A percent-of-revenue comparison across both years. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. Which line explains the swing, and what would you look at next?",
+      "eagerSignals": 0,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": -1690,
+        "eagerLeadMs": null,
+        "turnMs": 3697,
+        "ttsMs": 127,
+        "totalMs": 2134
+      }
+    },
+    {
+      "turn": 4,
+      "candidateChars": 782,
+      "sttTranscript": "Let me add these up. Two years ago, Kaggs forty two plus Labour, twenty two plus overhead twelve equals seventy six percent of revenue, leaving twenty four percent. That matches the old margin exactly. Today, fifty eight plus twenty two plus fourteen equals ninety four percent, leaving six percent. So the PNL closes cleanly on both ends. Of the eighteen point decline, Kaggs accounts for sixteen points and overhead for two. Labor is flat at twenty two percent, so I'd set it aside. COGS is overwhelmingly the story. It's about eighty nine percent of the problem. So that's the line I'd go deeper on. Going deeper, COGS as a percent of revenue can rise two ways. Input cost per unit went up or price per unit came down, or mix shifted toward lower margin products. Do we have a split of that cogs line by input and separately has menu pricing changed at all over the two years?",
+      "interviewerText": "The P&L closes on both ends. Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Menu prices have not changed in two years. What do those figures tell you about what's driving the COGS increase?",
+      "eagerSignals": 0,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": -1564,
+        "eagerLeadMs": null,
+        "turnMs": 3495,
+        "ttsMs": 141,
+        "totalMs": 2072
+      }
+    },
+    {
+      "turn": 5,
+      "candidateChars": 833,
+      "sttTranscript": "Let me work it per revenue dollar. Two years ago, Cags was forty two percent of revenue, beans were twenty five percent of that, so ten point five points of revenue, and everything else was thirty one point five points. Other inputs up thirty seven point five percent, thirty one point five, one point three seven five, equal sign forty three point three points of revenue today. Total Cags today is fifty eight, so beans must be fifty eight, forty three point three, equal sign, fourteen point seven points, up from ten point five. That's a forty percent increase. So the story is input cost inflation across the board, roughly thirty seven, forty percent on both beans and non bean inputs, and crucially menu prices haven't moved in two years. They've absorbed every dollar of it. That's the root cause. A pricing failure as much as a cost shock since a chain with pricing power normally passes some through. What I'd test next, if you'd like. Whether the fifteen percent revenue growth is volume or new stores, and what competitors have done on price. What would you like me to look at next?",
+      "interviewerText": "Understood. You've said menu prices haven't moved and that Brew & Bean has absorbed the cost increase. Before we talk about levers: if the client raised prices to restore margin, what would you need to believe, and what could go wrong?",
+      "eagerSignals": 0,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 316,
+        "eagerLeadMs": null,
+        "turnMs": 1514,
+        "ttsMs": 125,
+        "totalMs": 1955
+      }
+    },
+    {
+      "turn": 6,
+      "candidateChars": 851,
+      "sttTranscript": "The exhibit confirms the read and adds a trajectory. Cogs moves forty two fifty fifty eight, so eight points each year, steady and linear, not a one time shock. Overhead creeps twelve, thirteen, fourteen, one point a year. Labor is flat at twenty two throughout. Profit falls twenty four fifteen, six, nine points a year, and eight of those nine come from cogs each year, two things that are new. First, this isn't a single bad year or a one off contract reset. It's a persistent ongoing squeeze, which suggests the pressure is still active and the margin would go negative in roughly eight months at this rate if nothing changes. Second, the linearity makes man management in action look structural. They watch nine points of margin disappear twice and still didn't move price. So it confirms tags and inflexible pricing as the root cause and adds urgency. What would you like me to look at next?",
+      "interviewerText": "Understood. You said margin would go negative in roughly eight months at this rate. Walk me through how you got that.",
+      "eagerSignals": 0,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 54,
+        "eagerLeadMs": null,
+        "turnMs": 1524,
+        "ttsMs": 134,
+        "totalMs": 1712
+      }
+    },
+    {
+      "turn": 7,
+      "candidateChars": 751,
+      "sttTranscript": "Sure. Profit margin is falling about nine points a year, twenty four to fifteen to six. Current margin is six points. So six divided by nine equals two thirds of a year, which is about eight months until margin hits zero. I should flag two caveats on that. First, it's a straight line extrapolation of a two point trend, so it assumes input costs keep rising at the same pace, which I wouldn't take as given. Commodity cycles can flatten or reverse. Second, it's a margin figure, not cash. Net margin crossing zero isn't the same as running out of cash since DNA is non cash, and the timing depends on their balance sheet and any debt service. So I treat eight months as a directional urgency marker rather than a hard deadline. What would you like me to look at next?",
+      "interviewerText": "Understood. Beyond what we've discussed, what else could Brew & Bean do to reverse the margin decline? Give me as many distinct ideas as you can, beyond just raising prices.",
+      "eagerSignals": 0,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 121,
+        "eagerLeadMs": null,
+        "turnMs": 2035,
+        "ttsMs": 129,
+        "totalMs": 2285
+      }
+    },
+    {
+      "turn": 8,
+      "candidateChars": 1109,
+      "sttTranscript": "Let me group them so I don't just list randomly. On price, beyond a straight increase, selective increases on low elasticity items like espresso drinks, a size and price ladder, loyalty pricing so frequent customers feel less of it, and bundling food with coffee at a blended margin. On input cost, renegotiate or consolidate bean suppliers for volume terms, forward contract or hedge beans to stop the annual ratchet, dual source dairy, cut packaging spec or push reusable cups, and reduce waste and spoilage. In coffee, milk waste and brewed coffee dump rates can be material. On mix, push higher margin items, brew drip, packaged beans, merchandise, and prune low margin SKUs on overhead, which added two points, corporate headcount, marketing efficiency, and whether new store support costs are being absorbed centrally. On footprint, close or renegotiate underperforming leases and reconsider the pace of new openings. On throughput, labor is flat at twenty two percent, so scheduling to peak hours or mobile ordering could lift sales per store without adding cost. What would you like me to look at next?",
+      "interviewerText": "A structured set of levers across price, input cost, mix, overhead, footprint and throughput. Say the CEO asks what to do first. Which levers do you recommend, in what order, and what would you tell them in two sentences?",
+      "eagerSignals": 0,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 152,
+        "eagerLeadMs": null,
+        "turnMs": 3219,
+        "ttsMs": 141,
+        "totalMs": 3512
+      }
+    },
+    {
+      "turn": 9,
+      "candidateChars": 1137,
+      "sttTranscript": "My recommendation, raise menu prices starting now and in a staged way because the margin decline is a pricing failure more than a cost failure. The evidence of the eighteen point margin decline, sixteen points sit in cogs and two in overhead. Labor is flat at twenty two percent. Input costs rose roughly thirty seven to forty percent across both beans and non bean inputs, and menu prices have not moved in two years. The company absorbed all of it. At nine points of margin a year, they're roughly eight months from zero. Order of actions. First, immediate selective price increases on lower elasticity drinks. This is the only lever that matches the size and speed of the problem. Second, in parallel, lock input costs through supplier renegotiation and forward contracts on beans so the ratchet stops. Third, mix shift and waste reduction for a few points. Fourth, trim the two points of overhead. Risks, price elasticity is unknown, and competitors may have already raised prices, which would make this easier or not, which makes volume loss real. Next steps, elasticity test in a subset of the two hundred stores and a competitor price benchmark before a chain wide rollout.",
+      "interviewerText": "Understood. You named elasticity and competitor pricing as risks. Of everything that could go wrong with this plan, which is the single biggest risk, and how would you mitigate it?",
+      "eagerSignals": 0,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 1372,
+        "eagerLeadMs": null,
+        "turnMs": 1485,
+        "ttsMs": 136,
+        "totalMs": 2993
+      }
+    },
+    {
+      "turn": 10,
+      "candidateChars": 1054,
+      "sttTranscript": "If elasticity is high, the price lever partly breaks, so I'd wanna size it before abandoning it. At fifty eight percent tags, contribution margin is about forty two cents on the dollar. A ten percent price increase adds roughly ten points of revenue at essentially no added cost, so it would take a fairly large volume loss to wipe that out. But it's not unlimited, and high sensitivity means I'd cap the increase rather than take it all at once. How I'd adapt?",
+      "interviewerText": "That's our time. Thanks for working through this with me — your written report will follow.",
+      "eagerSignals": 0,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": -35526,
+        "eagerLeadMs": null,
+        "turnMs": 36434,
+        "ttsMs": 129,
+        "totalMs": 1037
+      }
+    }
+  ]
+}

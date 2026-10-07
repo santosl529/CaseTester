@@ -1,0 +1,429 @@
+{
+  "stt": "deepgram-flux-eager0.5",
+  "run": "batch-12-oct-06/01",
+  "sessionId": "7cbe5879-792b-4cc9-abd4-8f295f9cc952",
+  "summary": {
+    "endpointMs": {
+      "median": 956,
+      "p90": 1375
+    },
+    "eagerLeadMs": {
+      "median": 240,
+      "p90": 400
+    },
+    "turnMs": {
+      "median": 1520,
+      "p90": 2066
+    },
+    "ttsMs": {
+      "median": null,
+      "p90": null
+    },
+    "totalMs": {
+      "median": null,
+      "p90": null
+    },
+    "toFirstSegmentMs": {
+      "median": 2353,
+      "p90": 3181
+    },
+    "estTotalMs": {
+      "median": 2493,
+      "p90": 3321,
+      "note": "first segment + 140ms measured Cartesia first audio"
+    }
+  },
+  "records": [
+    {
+      "turn": 1,
+      "candidateChars": 236,
+      "sttTranscript": "Okay. So I guess I'd look at three things. First, revenue. Like, what's happening with sales? Second, costs. What they're spending money on. And third, maybe external stuff, like competitors or the market. Sorry. That's kind of broad.",
+      "interviewerText": "Revenue, costs, and external factors. Given that revenue has grown while profit margin has collapsed, which of those branches would you prioritize first, and why?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 1131,
+        "eagerLeadMs": 240,
+        "turnMs": 2050,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 3181
+    },
+    {
+      "turn": 2,
+      "candidateChars": 93,
+      "sttTranscript": "Can I ask when you say revenue grew fifteen percent, is that total across all two hundred stores or per store?",
+      "interviewerText": "I'll come back to whether the 15% revenue growth is total or per store shortly. Before we get to that, I asked which branch you'd prioritize first and why. What's your answer?",
+      "interruptions": 0,
+      "eagerSignals": 3,
+      "resumed": 2,
+      "latency": {
+        "endpointMs": 288,
+        "eagerLeadMs": 16,
+        "turnMs": 1876,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 2164
+    },
+    {
+      "turn": 3,
+      "candidateChars": 145,
+      "sttTranscript": "Got it. Thanks. Um, and is the twenty four percent to six percent net margin, is that the average across all stores? Or are some stores doing fine and some really badly?",
+      "interviewerText": "Right. I don't have the margin spread across stores. I'll come back to total versus per-store revenue growth shortly. Before any data, I need your answer to my question. Revenue, costs, or external factors: which branch do you take first, and why?",
+      "interruptions": 1,
+      "eagerSignals": 3,
+      "resumed": 1,
+      "latency": {
+        "endpointMs": 196,
+        "eagerLeadMs": 3,
+        "turnMs": 1269,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 1465
+    },
+    {
+      "turn": 4,
+      "candidateChars": 85,
+      "sttTranscript": "Sorry. One more. Do we know if they changed menu prices at all over those two years?",
+      "interviewerText": "I'll come back to menu price changes over the two years shortly. I'll hold your data questions until I hear your answer. Revenue, costs, or external factors: which branch do you prioritize first, and why?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 632,
+        "eagerLeadMs": 241,
+        "turnMs": 1203,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 1835
+    },
+    {
+      "turn": 5,
+      "candidateChars": 67,
+      "sttTranscript": "And are these all company owned stores, or are some franchised?",
+      "interviewerText": "I don't have the ownership mix of company-owned versus franchised stores. That's the fourth data question in a row, and I still don't have an answer on prioritization. Of revenue, costs, or external factors, which do you take first, and what's your reasoning?",
+      "interruptions": 0,
+      "eagerSignals": 2,
+      "resumed": 1,
+      "latency": {
+        "endpointMs": 467,
+        "eagerLeadMs": 11,
+        "turnMs": 1160,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 1627
+    },
+    {
+      "turn": 6,
+      "candidateChars": 56,
+      "sttTranscript": "I'm not sure. I guess costs, but I'm not confident.",
+      "interviewerText": "Costs first. On what you asked about earlier: Total revenue is $480M a year. 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. Menu prices have not changed in two years. What in the situation makes costs the most likely place to look, and how would you break costs down to find the driver?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 1131,
+        "eagerLeadMs": 80,
+        "turnMs": 1222,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 2353
+    },
+    {
+      "turn": 7,
+      "candidateChars": 53,
+      "sttTranscript": "I'm stuck. Sorry. I don't really know where to start.",
+      "interviewerText": "Take your time. The question on the table is what in the situation makes costs the most likely place to look, and how would you break costs down to find the driver?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 1354,
+        "eagerLeadMs": 359,
+        "turnMs": 642,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 1996
+    },
+    {
+      "turn": 8,
+      "candidateChars": 285,
+      "sttTranscript": "Okay. If prices are flat and revenue still grew, that's more customers, not higher prices. So revenues going the right way, which means costs must be growing faster than revenue. So costs. Do we have a breakdown of the cost lines? Like rent, labor, coffee beans, that kind of thing?",
+      "interviewerText": "That logic holds together. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. Which cost line stands out, and what would you want to understand next about it?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 717,
+        "eagerLeadMs": 241,
+        "turnMs": 1494,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 2211
+    },
+    {
+      "turn": 9,
+      "candidateChars": 325,
+      "sttTranscript": "Cogs, definitely, it jumped sixteen points while labor's flat. So in dollars, sixteen percent of four hundred eighty million dollars. Let me do that. Ten percent is forty eight million dollars. So sixteen percent is about forty eight million dollars? Yeah. Roughly forty eight million dollars of extra cost. Does that seem like it's in the right ballpark? I tested by breaking cogs into inputs, beans, milk, cups, and seeing which one moved.",
+      "interviewerText": "COGS is the line that stands out. Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Before you use that dollar figure, walk me through it. Is that the margin problem, or does it include cost that simply grew with revenue?",
+      "interruptions": 1,
+      "eagerSignals": 2,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 1412,
+        "eagerLeadMs": 241,
+        "turnMs": 1968,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 3380
+    },
+    {
+      "turn": 10,
+      "candidateChars": 292,
+      "sttTranscript": "So ten percent of four hundred eighty million dollars is forty eight million dollars, and sixteen percent is yeah. Forty eight million dollars. God. I'm so bad at this. Honestly, I think I'm going to bomb every interview I do. I don't really know why I'm even doing this. Sorry. On your other question, I think some of it grew with revenue, since more customers means more beans.",
+      "interviewerText": "Let's set the case aside for a second — thank you for telling me, and are you okay? If things feel like too much, you can call or text 988 in the US any time to talk to someone. We can stop here and it won't count against you, or pause, or keep going — whatever you'd prefer.",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 1296,
+        "eagerLeadMs": 359,
+        "turnMs": 49,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 1345
+    },
+    {
+      "turn": 11,
+      "candidateChars": 70,
+      "sttTranscript": "I'm okay, really. Thank you. I'd rather keep going if that's alright.",
+      "interviewerText": "Understood. Let's pick it back up. Here's an exhibit: Brew & Bean Cost Structure Over Time. You've said some of that cost grew with revenue. What does it tell you, and what would you size as the actual margin problem?",
+      "interruptions": 0,
+      "eagerSignals": 2,
+      "resumed": 1,
+      "latency": {
+        "endpointMs": 613,
+        "eagerLeadMs": 321,
+        "turnMs": 1150,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 1763
+    },
+    {
+      "turn": 12,
+      "candidateChars": 256,
+      "sttTranscript": "Sixteen percent of four hundred eighty million dollars, ten percent is forty eight million dollars, so sixteen percent is forty eight million dollars. That's what I get. Sorry. Am I on the right track here to separate it? I guess I'd compare cogs per cup now versus two years ago. If the cost per cup went up, that's the real problem. Not just more customers.",
+      "interviewerText": "Comparing cost per cup is a sound way to separate volume from price. I'll leave your forty-eight million figure aside for now. The exhibit is on your screen. Read it for me: which components of the cost structure drove the change, and what does that tell you about where to dig next?",
+      "interruptions": 0,
+      "eagerSignals": 4,
+      "resumed": 3,
+      "latency": {
+        "endpointMs": 956,
+        "eagerLeadMs": 160,
+        "turnMs": 1932,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 2888
+    },
+    {
+      "turn": 13,
+      "candidateChars": 112,
+      "sttTranscript": "Six percent of four hundred eighty million dollars, um, I keep getting that sixteen percent is forty eight million dollars. Sorry. I think I'm doing something wrong, but I can't see it.",
+      "interviewerText": "Today's revenue is $480M, and COGS rose from 42% to 58% of revenue. What revenue was the 42% measured against two years ago, and how does that change what you're comparing?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 1375,
+        "eagerLeadMs": 307,
+        "turnMs": 2497,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 3872
+    },
+    {
+      "turn": 14,
+      "candidateChars": 93,
+      "sttTranscript": "One percent would be four point eight million dollars, and then sixteen percent, I still land on forty eight million dollars. Sorry. I'm stuck on this, honestly.",
+      "interviewerText": "Let's step back from the arithmetic. Ten percent of the revenue, not sixteen. When you work out sixteen percent, which multiple of $4.8M is that, and does it match what you got for ten percent?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 855,
+        "eagerLeadMs": 400,
+        "turnMs": 1314,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 2169
+    },
+    {
+      "turn": 15,
+      "candidateChars": 95,
+      "sttTranscript": "Four point eight million dollars times sixteen. I want to say forty eight million dollars again. I know that can't be right. Sorry. I'm stuck.",
+      "interviewerText": "Four point eight million times sixteen. Split sixteen into ten plus six. What do those two pieces add up to?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 1274,
+        "eagerLeadMs": 320,
+        "turnMs": 1462,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 2736
+    },
+    {
+      "turn": 16,
+      "candidateChars": 228,
+      "sttTranscript": "Four point eight million dollars times ten is forty eight million dollars, and times six is twenty eight point eight million dollars. So together, seventy six point eight million dollars. Sorry. That took way too long. So roughly seventy seven million dollars of extra cost, and I'd want to know how much of that is just volume growth versus higher cost per cup.",
+      "interviewerText": "Right, seventy-six point eight million, and you're separating volume from cost per cup. That figure applies today's 480 million revenue to a sixteen point gap. Two years ago, revenue was lower. Is that the margin problem, or does it include normal growth? How would you size it properly?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 1016,
+        "eagerLeadMs": 240,
+        "turnMs": 1604,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 2620
+    },
+    {
+      "turn": 17,
+      "candidateChars": 142,
+      "sttTranscript": "I guess coffee beans, since that's the biggest input then commodity prices move a lot. Could I see that breakdown and the bean price change?",
+      "interviewerText": "Beans as the biggest input is your hypothesis, and the exhibit is where to test it. Raw coffee bean costs are up 40% over the past two years. The cost breakdown is the exhibit on your screen. Read it against your bean hypothesis: which components moved the most, and does the bean price data back up beans as the driver?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 586,
+        "eagerLeadMs": 239,
+        "turnMs": 1523,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 2109
+    },
+    {
+      "turn": 18,
+      "candidateChars": 456,
+      "sttTranscript": "Okay. Let me try. Two years ago, COGS was forty two percent of revenue, and beans were twenty five percent of that. So beans were about ten point five percent of revenue, up forty percent makes them about fourteen point seven percent. So beans add roughly four points. The other inputs were seventy five percent of forty two percent, so thirty one point five percent of revenue, up thirty seven point five percent. That's about eleven point eight points more, so forty three point three percent. Four point two plus eleven point eight is sixteen points, which matches the jump. So beans only explain about a quarter of it. The rest is Terry, packaging and food. Am I on the right track?",
+      "interviewerText": "Beans about a quarter, the other inputs the rest. Dairy, packaging and food. The CEO asks you in one sentence what is driving the profit decline. What do you tell them, and what is the first lever you'd pull?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 735,
+        "eagerLeadMs": 440,
+        "turnMs": 1855,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 2590
+    },
+    {
+      "turn": 19,
+      "candidateChars": 525,
+      "sttTranscript": "It shows Cobbs climbing steadily forty two to fifty to fifty eight, so about eight points a year. Pretty linear. Labor is flat at twenty two the whole time. Overhead creeps up twelve, thirteen, fourteen, and profit falls almost exactly in step with Cobbs twenty four, fifteen, six. So basically, every point of margin lost went into Cobbs, plus a couple points to overhead. It implies this isn't a one off price shock two years ago. It's been getting worse every single year and nothing has been done about it. And if it keeps going at that rate, next year, they'd be at zero or negative. ,",
+      "interviewerText": "Mm-hm. A steady annual slide, not a one-off shock. You said it's been getting worse every single year and nothing has been done about it. What in the data you have supports that nothing has been done, and what would you want to know before you tell the CEO that?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 798,
+        "eagerLeadMs": 81,
+        "turnMs": 2066,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 2864
+    },
+    {
+      "turn": 20,
+      "candidateChars": 458,
+      "sttTranscript": "I guess the obvious one is pricing. They haven't raised menu prices in two years while every input went up, even a small increase would flow straight to margin, then supplier side, renegotiate contracts or consolidate purchasing across the two hundred stores, since terrier and packaging are the bigger chunk, not beans, and maybe waste or portion control if cost per cut rose more than input prices alone would explain. Sorry. Is that what you were looking for?",
+      "interviewerText": "Pricing, supplier terms, waste. Beyond those, what else could the client do to protect margin, including things outside the cost lines we've looked at?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 155,
+        "eagerLeadMs": 0,
+        "turnMs": 2149,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 2304
+    },
+    {
+      "turn": 21,
+      "candidateChars": 348,
+      "sttTranscript": "Um, maybe menu mix, push the higher margin drinks, like black coffee over milk heavy lattes, since dairy is the problem, or reformulate, like smaller portion sizes on stores. I don't know. Maybe close the weakest ones, but we don't have margin by store. Customer side, loyalty program to get people buying more? Sorry. I'm less sure on these.",
+      "interviewerText": "Menu mix, reformulation, store closures, loyalty. Pulling it together: what is your recommendation to the CEO, which lever first, and why?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 1093,
+        "eagerLeadMs": 161,
+        "turnMs": 1733,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 2826
+    },
+    {
+      "turn": 22,
+      "candidateChars": 35,
+      "sttTranscript": "Um, honestly, I don't know. Sorry.",
+      "interviewerText": "Understood. Let's simplify. Margin falls when price falls or when cost rises. Prices haven't moved, so look at what you found on costs. Of the levers you named, which one acts most directly on that, and what would you tell the CEO to do first?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 1092,
+        "eagerLeadMs": 158,
+        "turnMs": 1520,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 2612
+    },
+    {
+      "turn": 23,
+      "candidateChars": 41,
+      "sttTranscript": "I'm sorry. I really don't know which one.",
+      "interviewerText": "We'll stop there. Thanks for working through the case — your written report will follow.",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 1893,
+        "eagerLeadMs": 920,
+        "turnMs": 623,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 2516
+    }
+  ]
+}

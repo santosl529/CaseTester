@@ -1,0 +1,72 @@
+{
+  "stt": "deepgram-flux-eager0.5",
+  "run": "batch-12-oct-06/01",
+  "sessionId": "dfb65330-40be-44ce-b021-b6448554e229",
+  "summary": {
+    "endpointMs": {
+      "median": 1216,
+      "p90": 1216
+    },
+    "eagerLeadMs": {
+      "median": 282,
+      "p90": 282
+    },
+    "turnMs": {
+      "median": 2194,
+      "p90": 2194
+    },
+    "ttsMs": {
+      "median": null,
+      "p90": null
+    },
+    "totalMs": {
+      "median": null,
+      "p90": null
+    },
+    "toFirstSegmentMs": {
+      "median": 3410,
+      "p90": 3410
+    },
+    "estTotalMs": {
+      "median": 3550,
+      "p90": 3550,
+      "note": "first segment + 140ms measured Cartesia first audio"
+    }
+  },
+  "records": [
+    {
+      "turn": 1,
+      "candidateChars": 236,
+      "sttTranscript": "Okay. So I guess I'd look at three things. First, revenue. Like, what's happening with sales? Second, costs. What they're spending money on. And third, maybe external stuff, like competitors or the market. Sorry. That's kind of broad.",
+      "interviewerText": "Revenue, costs, and external factors. Which of those three would you prioritize first, and why?",
+      "interruptions": 0,
+      "eagerSignals": 1,
+      "resumed": 0,
+      "latency": {
+        "endpointMs": 1216,
+        "eagerLeadMs": 282,
+        "turnMs": 2194,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 3410
+    },
+    {
+      "turn": 2,
+      "candidateChars": 93,
+      "sttTranscript": "Can I ask when you say revenue grew fifteen percent, is that total across all two hundred stores or per store?",
+      "interviewerText": "I'll come back to whether the 15% revenue growth is total or per store shortly. Before I answer that, you've given me a three-part structure. Which branch would you prioritize first, and why?",
+      "interruptions": 0,
+      "eagerSignals": 3,
+      "resumed": 2,
+      "latency": {
+        "endpointMs": 374,
+        "eagerLeadMs": 19,
+        "turnMs": 1519,
+        "ttsMs": null,
+        "totalMs": null
+      },
+      "toFirstSegmentMs": 1893
+    }
+  ]
+}
