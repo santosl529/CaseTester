@@ -66,6 +66,9 @@ const MAX_PAUSE_MS = 600_000;
 const PERSONA: Persona | null = flag('persona') ? getPersona(Number(flag('persona'))) : null;
 
 const BATCH = flag('batch');
+// --no-score: transcripts and timing only (no Opus scoring) — for A/B runs on
+// the interviewer; --finish=<sessionId> can score the session later.
+const NO_SCORE = process.argv.includes('--no-score');
 if (PERSONA && !BATCH) throw new Error('--persona runs need --batch=NAME (the "test runs/" subfolder)');
 
 // "Maya — the Freezer" (id 1) → test runs/<batch>/01-maya-the-freezer
@@ -248,7 +251,7 @@ async function main() {
   // judge and the transcript files were never written.
   let scoring: { status: string };
   try {
-    scoring = ended ? await scoreSession({ sessionId, userId }) : { status: 'not_completed' };
+    scoring = !ended ? { status: 'not_completed' } : NO_SCORE ? { status: 'skipped' } : await scoreSession({ sessionId, userId });
   } catch (err) {
     console.error('[live-run] scoring failed:', err instanceof Error ? err.message : err);
     scoring = { status: 'failed' };

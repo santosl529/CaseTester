@@ -14,10 +14,12 @@ type Attempt = { turn: ModelTurn | null; refused: boolean; unknown: string[] };
 export class AnthropicInterviewerModel implements InterviewerModel {
   private client: Anthropic;
   private modelId: string;
+  private layout: PromptLayout;
 
-  constructor(modelId: string = INTERVIEWER_MODEL_ID) {
+  constructor(modelId: string = INTERVIEWER_MODEL_ID, layout: PromptLayout = promptLayoutFromEnv()) {
     this.client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     this.modelId = modelId;
+    this.layout = layout;
   }
 
   async runTurn(ctx: TurnContext): Promise<ModelTurn> {
@@ -31,11 +33,10 @@ export class AnthropicInterviewerModel implements InterviewerModel {
   // has delivered nothing; once "say" is spoken, unknown ids are dropped
   // (resolveRequests).
   async *streamTurn(ctx: TurnContext): AsyncGenerator<TurnEvent> {
-    const messages: Anthropic.Beta.BetaMessageParam[] = ctx.history.map(m => ({ role: m.role, content: m.content }));
-    const system = buildSystemBlocks(ctx.systemPrompt, ctx.turnSystem);
+    const first = buildRequest(ctx, this.layout);
     const canRegenerate = () => ctx.canRegenerate?.() ?? true;
 
-    let attempt = yield* this.attempt(system, messages, ctx);
+    let attempt = yield* this.attempt(first.system, first.messages, ctx);
     let retried = false;
     const needsRetry = (a: Attempt) => !a.refused && (a.turn === null || a.unknown.length > 0 || (!a.turn.say && !a.turn.question));
     if (needsRetry(attempt) && canRegenerate()) {
@@ -44,7 +45,8 @@ export class AnthropicInterviewerModel implements InterviewerModel {
       console.warn('[interviewer-model] regenerating:', note);
       yield { type: 'restart', reason: note };
       ctx.onMark?.('model_regenerate');
-      attempt = yield* this.attempt(system, [...messages, { role: 'system', content: note } as unknown as Anthropic.Beta.BetaMessageParam], ctx, 'retry_');
+      const retry = buildRequest(ctx, this.layout, note);
+      attempt = yield* this.attempt(retry.system, retry.messages, ctx, 'retry_');
     }
 
     const turn = attempt.turn && (attempt.turn.say || attempt.turn.question) ? attempt.turn : NEUTRAL_TURN;
@@ -123,6 +125,45 @@ function retryNote(a: Attempt, validIds: string[]): string {
   }
   if (a.turn === null) return 'Your previous draft of this turn was not a complete JSON object. Write the whole turn again as one JSON object.';
   return 'Your previous draft had nothing to say and no question. Write the whole turn again as one JSON object.';
+}
+
+// Where the per-turn case state goes (A/B, 7 Oct):
+// - 'state-in-system' (default): fixed instructions (cached), then the state
+//   as a second system block — ahead of the history, so the history is never
+//   cached and is resent in full every turn.
+// - 'cached-history': fixed instructions (cached); the history cached
+//   incrementally (a breakpoint on the last earlier message, so each turn
+//   reads the previous turn's prefix); the state after the candidate's
+//   message as a mid-conversation system message (Sonnet 5.5). The batch-8
+//   replay that measured this order at +310ms ran each turn cold, so it could
+//   not see the cache benefit.
+export type PromptLayout = 'state-in-system' | 'cached-history';
+
+export function promptLayoutFromEnv(): PromptLayout {
+  return process.env.INTERVIEWER_PROMPT_LAYOUT === 'cached-history' ? 'cached-history' : 'state-in-system';
+}
+
+type Request = { system: Anthropic.Beta.BetaTextBlockParam[]; messages: Anthropic.Beta.BetaMessageParam[] };
+const systemMessage = (text: string) => ({ role: 'system', content: text }) as unknown as Anthropic.Beta.BetaMessageParam;
+
+export function buildRequest(ctx: Pick<TurnContext, 'systemPrompt' | 'turnSystem' | 'history'>, layout: PromptLayout, retry?: string): Request {
+  const history: Anthropic.Beta.BetaMessageParam[] = ctx.history.map(m => ({ role: m.role, content: m.content }));
+  if (layout === 'state-in-system') {
+    return {
+      system: buildSystemBlocks(ctx.systemPrompt, ctx.turnSystem),
+      messages: retry ? [...history, systemMessage(retry)] : history,
+    };
+  }
+  // Breakpoint on the message before the candidate's current one.
+  const marked = history.map((m, i) => i === history.length - 2 && typeof m.content === 'string'
+    ? { role: m.role, content: [{ type: 'text' as const, text: m.content, cache_control: { type: 'ephemeral' as const } }] }
+    : m);
+  // One system message after the candidate's turn: two in a row are not allowed.
+  const state = [ctx.turnSystem, retry].filter(Boolean).join('\n\n');
+  return {
+    system: buildSystemBlocks(ctx.systemPrompt),
+    messages: state ? [...marked, systemMessage(state)] : marked,
+  };
 }
 
 // System prompt with prompt caching (latency plan step 3). The breakpoint on
