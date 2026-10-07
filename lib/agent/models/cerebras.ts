@@ -65,12 +65,74 @@ export class SseReader {
   }
 }
 
+// Requests per rolling minute, enforced before sending (pay-as-you-go allows
+// 5; CEREBRAS_RPM overrides). `now`/`sleep` are injectable for tests.
+export class RateLimiter {
+  private sent: number[] = [];
+  constructor(
+    private perMinute: number,
+    private now: () => number = Date.now,
+    private sleep: (ms: number) => Promise<void> = ms => new Promise(r => setTimeout(r, ms)),
+  ) {}
+
+  async acquire(): Promise<number> {
+    let waited = 0;
+    for (;;) {
+      const t = this.now();
+      this.sent = this.sent.filter(x => t - x < 60_000);
+      if (this.sent.length < this.perMinute) { this.sent.push(t); return waited; }
+      const wait = this.sent[0] + 60_000 - t + 50;
+      waited += wait;
+      await this.sleep(wait);
+    }
+  }
+}
+
+// How long to wait after a 429: the retry-after header (seconds) if present,
+// else exponential backoff from 5s.
+export function retryDelayMs(retryAfter: string | null, attempt: number): number {
+  const s = retryAfter ? Number(retryAfter) : NaN;
+  return Number.isFinite(s) && s >= 0 ? s * 1000 + 100 : 5000 * 2 ** attempt;
+}
+
+const MAX_429_RETRIES = 3;
+
 export class CerebrasInterviewerModel implements InterviewerModel {
+  private limiter: RateLimiter;
   constructor(
     private modelId: string = CEREBRAS_INTERVIEWER_MODEL_ID,
     private reasoningEffort: string = process.env.CEREBRAS_REASONING_EFFORT ?? 'low',
     private fetchImpl: typeof fetch = fetch,
-  ) {}
+    limiter?: RateLimiter,
+    private sleep: (ms: number) => Promise<void> = ms => new Promise(r => setTimeout(r, ms)),
+  ) {
+    this.limiter = limiter ?? new RateLimiter(Number(process.env.CEREBRAS_RPM ?? 5));
+  }
+
+  // One request, under the rate limit; a 429 waits and retries. A wait shows
+  // up in the turn's timing (model_rate_wait) — it is latency the candidate
+  // would feel.
+  private async post(body: unknown, signal: AbortSignal, ctx: TurnContext, markPrefix: string): Promise<Response> {
+    for (let attempt = 0; ; attempt++) {
+      const waited = await this.limiter.acquire();
+      if (waited > 0) {
+        ctx.onMark?.(`${markPrefix}model_rate_wait`);
+        console.warn(`[interviewer-model] cerebras rate limit: waited ${waited}ms before sending`);
+      }
+      ctx.onMark?.(`${markPrefix}model_request`);
+      const res = await this.fetchImpl(URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.CEREBRAS_API_KEY ?? ''}` },
+        body: JSON.stringify(body),
+        signal,
+      });
+      if (res.status !== 429 || attempt >= MAX_429_RETRIES) return res;
+      const delay = retryDelayMs(res.headers.get('retry-after'), attempt);
+      console.warn(`[interviewer-model] cerebras 429 — retrying in ${delay}ms (attempt ${attempt + 1}/${MAX_429_RETRIES})`);
+      await res.body?.cancel();
+      await this.sleep(delay);
+    }
+  }
 
   async runTurn(ctx: TurnContext): Promise<ModelTurn> {
     return collectTurn(this.streamTurn(ctx));
@@ -100,13 +162,7 @@ export class CerebrasInterviewerModel implements InterviewerModel {
 
   private async *attempt(messages: ChatMessage[], ctx: TurnContext, markPrefix = ''): AsyncGenerator<TurnEvent, Attempt> {
     const abort = new AbortController();
-    ctx.onMark?.(`${markPrefix}model_request`);
-    const res = await this.fetchImpl(URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.CEREBRAS_API_KEY ?? ''}` },
-      body: JSON.stringify(buildBody(this.modelId, messages, this.reasoningEffort)),
-      signal: abort.signal,
-    });
+    const res = await this.post(buildBody(this.modelId, messages, this.reasoningEffort), abort.signal, ctx, markPrefix);
     if (!res.ok || !res.body) {
       throw new Error(`Cerebras ${res.status}: ${(await res.text()).slice(0, 300)}`);
     }

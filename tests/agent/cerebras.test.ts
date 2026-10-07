@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SseReader, buildMessages, buildBody, CerebrasInterviewerModel } from '@/lib/agent/models/cerebras';
+import { SseReader, buildMessages, buildBody, CerebrasInterviewerModel, RateLimiter, retryDelayMs } from '@/lib/agent/models/cerebras';
 import type { TurnContext, TurnEvent } from '@/lib/agent/models/interface';
 
 const ctx = (over: Partial<TurnContext> = {}): TurnContext => ({
@@ -74,8 +74,39 @@ describe('CerebrasInterviewerModel.streamTurn', () => {
     expect(ev.at(-1)).toMatchObject({ type: 'done', validation: { retried: true } });
   });
 
-  it('throws a readable error on an HTTP failure', async () => {
-    const f = (async () => new Response('rate limited', { status: 429 })) as unknown as typeof fetch;
-    await expect(all(new CerebrasInterviewerModel('gpt-oss-120b', 'low', f).streamTurn(ctx()))).rejects.toThrow('Cerebras 429');
+  it('retries a 429 up to three times, then throws a readable error', async () => {
+    let calls = 0;
+    const f = (async () => { calls++; return new Response('rate limited', { status: 429 }); }) as unknown as typeof fetch;
+    const m = new CerebrasInterviewerModel('gpt-oss-120b', 'low', f, new RateLimiter(100), async () => {});
+    await expect(all(m.streamTurn(ctx()))).rejects.toThrow('Cerebras 429');
+    expect(calls).toBe(4);
+  });
+
+  it('recovers when a retry after a 429 succeeds', async () => {
+    const ok = fakeFetch([turn()]).fetch;
+    let calls = 0;
+    const f = (async (u: string, init: RequestInit) => (++calls === 1 ? new Response('busy', { status: 429, headers: { 'retry-after': '2' } }) : ok(u, init))) as unknown as typeof fetch;
+    const slept: number[] = [];
+    const m = new CerebrasInterviewerModel('gpt-oss-120b', 'low', f, new RateLimiter(100), async ms => { slept.push(ms); });
+    const ev = await all(m.streamTurn(ctx()));
+    expect(ev.at(-1)).toMatchObject({ type: 'done', turn: { say: 'Got it.' } });
+    expect(slept).toEqual([2100]);
+  });
+});
+
+describe('RateLimiter', () => {
+  it('lets five through, then waits for the oldest to leave the minute', async () => {
+    let t = 0;
+    const waits: number[] = [];
+    const lim = new RateLimiter(5, () => t, async ms => { waits.push(ms); t += ms; });
+    for (let i = 0; i < 5; i++) { expect(await lim.acquire()).toBe(0); t += 1000; }
+    expect(await lim.acquire()).toBe(55_050);
+    expect(waits).toEqual([55_050]);
+  });
+
+  it('retry delay: retry-after seconds, else exponential from 5s', () => {
+    expect(retryDelayMs('3', 0)).toBe(3100);
+    expect(retryDelayMs(null, 0)).toBe(5000);
+    expect(retryDelayMs(null, 2)).toBe(20_000);
   });
 });
