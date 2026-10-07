@@ -209,11 +209,31 @@ const pct = (xs: number[], p: number) => { const s = [...xs].sort((a, b) => a - 
 async function main() {
   const all = loadSamples();
   const samples = all.slice(0, LIMIT);
+  // --dump-samples: write the sampled inputs (and the logged interviewer reply
+  // that followed each) for hand review, without calling any model.
+  if (args.includes('--dump-samples')) {
+    writeFileSync(path.join(OUT_DIR, 'replay-samples.json'), JSON.stringify(samples.map(s => {
+      const [batch, dir] = s.session.split('/');
+      const d = path.join(RUNS_ROOT, batch, dir);
+      const run = JSON.parse(readFileSync(path.join(d, readdirSync(d).find(f => f.endsWith('.json'))!), 'utf8')) as { turns: Turn[] };
+      return { id: s.id, session: s.session, candidateText: s.candidateText, priorInterviewer: s.priorInterviewer,
+        revealedLabels: s.revealedLabels, loggedReply: run.turns.find(t => t.turnIndex === s.turnIndex)?.text ?? '' };
+    }), null, 2));
+    return;
+  }
   const estCost = samples.reduce((n, s) => n + (buildSystemPrompt(s.ctx).length + s.history.reduce((m, h) => m + h.content.length, 0)) / 3.6, 0) * 2 / 1e6;
   console.log(`${all.length} reconstructable turns · sampling ${samples.length} · est cost ~$${estCost.toFixed(2)}`);
   if (DRY) { writeFileSync(path.join(OUT_DIR, 'replay-sample-prompt.txt'), buildSystemPrompt(samples[0].ctx)); return; }
   await runProd(samples[0]); // warm the schema compile cache
-  const rows = await pool(samples, 5, runProd);
+  // REPLAY_CONCURRENCY / REPLAY_SPACING_MS: Cerebras allows 5 requests a
+  // minute on pay-as-you-go, so its arm runs one turn at a time, spaced.
+  const concurrency = Number(process.env.REPLAY_CONCURRENCY ?? 5);
+  const spacingMs = Number(process.env.REPLAY_SPACING_MS ?? 0);
+  const rows = await pool(samples, concurrency, async s => {
+    const r = await runProd(s);
+    if (spacingMs) await new Promise(res => setTimeout(res, spacingMs));
+    return r;
+  });
   writeFileSync(path.join(OUT_DIR, 'replay-results-prod.json'), JSON.stringify(rows, null, 2));
   const ok = rows.filter(r => r.ok);
   const show = (name: string, xs: (number | null)[]) => {
