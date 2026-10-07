@@ -22,6 +22,12 @@ and three mechanisms changed.
   classify.
 - **A data request made before the pressure test is answered is deferred**
   (Rule 7).
+- **After batches 12–13:** code announces an exhibit as "Here's an exhibit:
+  …" and a handover statement that opens the question ("Here's the cost
+  structure over time.") is withheld when the question has another sentence;
+  `say` is varied (no stock "Okay."), may be empty, and carries no adjective
+  about the candidate's work; "I'd want X" counts as a direct ask, and a
+  question never builds on data that was only offered.
 
 
 **v4.7 change (5–6 Oct 2026): Plan decides, the model phrases, the checks
@@ -2308,6 +2314,31 @@ Open items from the persona runs:
   first); the cost breakdown deferred again after the pressure test was
   answered (t5); a grading acknowledgment ("Okay, the bridge ties out", t10);
   refusal lists still long.
+- **Batch 12 (6 Oct; 10 runs — default candidate, Maya, Tobias, Ines,
+  Claire, Derek, Tyler, Lena, Devon, Hugo) — read by hand.** First speech
+  median 1.45s (p90 1.87s; batch 9: 1.75s / 2.82s); the model's first token
+  (1.36s) is the whole wait. 0 invented figures; one goodbye each; Derek
+  terminated (C2); Lena's early ask deferred, then released after the probe.
+  Defects: the exhibit handover said twice (8/10 runs); questions built on
+  data that was only offered (6); grading in `say` (5); compound questions
+  (~10); the release cap splitting a request and still deferring it out loud
+  (Tyler t3); the rung-1 restate quoting a statement (Maya t13); "I'll come
+  back to that." inside the question (Maya t9); the report line for "how am I
+  doing" vetoed as a goodbye (Maya t24); an exhibit referenced, never handed
+  over (Ines t18); Tyler's misquotes of released data never reset; Derek's
+  unit probe repeated three turns; Maya's arithmetic error probed six turns
+  with no figure supplied (Rule 14 cap; recompute does not cover this sizing).
+- **Batch 13 (6 Oct; 10 never-run personas — Daniel, Connor, Blake, Sofia,
+  Jordan, Amara, Wei, Arjun, Eliza, Fiona) — read by hand, after the
+  batch-12 fixes.** First speech median 1.43s (p90 1.97s). "Okay" openers
+  98/102 → 0/83; empty `say` 2/83; questions on offered-only data 6 → 0;
+  exhibit announced twice 3/9 exhibit turns (fixed after: handover statement
+  withheld from the question). Arjun's eight injection attempts each got a
+  one-clause redirect, nothing leaked; Sofia's misquote got the Rule 6 reset.
+  Still open: grading in `say` (~6, "Your derivation is clear", "That's a
+  solid list"); compound questions; Rule 14 cap (Jordan's 38-vs-16 probed
+  four turns and carried into his sizing); a pushback that contained the
+  answer (Jordan t12).
 
 **Design principle (recorded from v3.2 review):** deterministic backstops keep
 being specified against the typical surface form of a risk (digit numerals,
