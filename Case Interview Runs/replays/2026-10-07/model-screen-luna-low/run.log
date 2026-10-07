@@ -1,0 +1,42 @@
+180 reconstructable turns · sampling 20 · est cost ~$0.18
+  01-maya-the-fr#3 INTRO          useful sonnet 3991 · luna-low 2431/2421
+  01-maya-the-fr#5 CLARIFY        useful sonnet 1492 · luna-low 3591/4228
+  56-devon-the-i#4 CLARIFY        useful sonnet 2279 · luna-low 3045/3324
+  06-destiny-the#14 STRUCTURE      useful sonnet 2122 · luna-low 1711/2194
+  58-hugo-the-hi#6 STRUCTURE      useful sonnet 1656 · luna-low 3498/3495
+  01-maya-the-fr#7 ANALYSIS       useful sonnet 1739 · luna-low 1769/1713
+  06-destiny-the#20 ANALYSIS       useful sonnet 2043 · luna-low 3652/3492
+  09-derek-the-b#10 ANALYSIS       useful sonnet 2269 · luna-low 3035/2782
+  40-jasmine-the#8 ANALYSIS       useful sonnet 2030 · luna-low 3753/3804
+  58-hugo-the-hi#8 ANALYSIS       useful sonnet 2389 · luna-low 3264/2252
+  40-jasmine-the#6 ANALYSIS       useful sonnet 1864 · luna-low 2859/2800
+  01-maya-the-fr#9 EXHIBIT        useful sonnet 1880 · luna-low 2888/2750
+  08-claire-the-#8 EXHIBIT        useful sonnet 1956 · luna-low 3047/2392
+  58-hugo-the-hi#12 EXHIBIT        useful sonnet 1605 · luna-low 3962/2476
+  "say": "Mm-hm.",
+  "move": "exhibit",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Since both figures are shares of revenue, how would you describe the change from 42% to 58%?"
+}
+  01-maya-the-fr#27 EXHIBIT        useful sonnet 3552 · luna-low 1615/2716
+  01-maya-the-fr#23 BRAINSTORM     useful sonnet 3950 · luna-low 2866/1834
+  56-devon-the-i#10 BRAINSTORM     useful sonnet 1707 · luna-low 2620/2439
+  01-maya-the-fr#31 RECOMMENDATION useful sonnet 2998 · luna-low 1581/1450
+  58-hugo-the-hi#16 RECOMMENDATION useful sonnet 2129 · luna-low 1566/1842
+  01-maya-the-fr#33 WRAP           useful sonnet 2427 · luna-low 2064/2197
+
+MODEL-AB (screening) — 20 turns · sonnet once per turn, challengers twice (mean)
+  [sonnet] firstUsefulMs median 2122 p90 3950
+  [sonnet] firstTokenMs median 1297 p90 1611
+  [sonnet] completeMs median 2205 p90 3950
+  [sonnet] quality flags over 20 outputs: {} · errors 0
+  [luna-low] 0 errored calls of 40
+    FIRST USEFUL  mean-of-2 median 2758 p90 3779 · minus sonnet: median 764ms (p10 -1482, p90 1841), faster on 7/20
+    first token   mean-of-2 median 2490 p90 3381 · minus sonnet: median 1141ms (p10 289, p90 2081), faster on 1/20
+    completion    mean-of-2 median 2830 p90 3949 · minus sonnet: median 534ms (p10 -1482, p90 1757), faster on 8/20
+    tokens per call median in 4297 (cached 3363) out 249
+    quality flags over 40 outputs: {}
+    request decisions differ — its two runs 4/20 · vs sonnet 18/40 outputs
+  wrote Case Interview Runs/replays/2026-10-07/model-screen-luna-low/replay-model-ab.md and replay-results-model-ab.json

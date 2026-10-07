@@ -1,0 +1,1732 @@
+[
+  {
+    "id": "01-maya-the-fr#3",
+    "phase": "INTRO",
+    "logged": "I won't say whether it's okay, so let's get more specific. Within revenue and costs, what exactly would you break down, and which branch would you look at first?",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 3211,
+      "firstUsefulMs": 3991,
+      "completeMs": 4593,
+      "inputTokens": 841,
+      "cacheRead": 0,
+      "cacheWrite": 4550,
+      "outputTokens": 118,
+      "turn": {
+        "move": "pressure_test",
+        "requests": [
+          {
+            "what": "revenue data",
+            "itemIds": [
+              "revenue_total"
+            ],
+            "explicit": false,
+            "respond": "defer"
+          }
+        ],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "A three-part split.",
+        "question": "Is that structure MECE — what's missing, and which branch would you prioritize first, and why?"
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2266,
+          "firstUsefulMs": 2431,
+          "completeMs": 2431,
+          "inputTokens": 3369,
+          "cacheRead": 0,
+          "cacheWrite": 0,
+          "outputTokens": 120,
+          "turn": {
+            "move": "pressure_test",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Mm-hm.",
+            "question": "Is that MECE — what's missing?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2119,
+          "firstUsefulMs": 2421,
+          "completeMs": 2421,
+          "inputTokens": 389,
+          "cacheRead": 2980,
+          "cacheWrite": 0,
+          "outputTokens": 105,
+          "turn": {
+            "move": "pressure_test",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "You’ve split it across revenue, costs, and the market.",
+            "question": "Is that MECE — what might be missing?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "01-maya-the-fr#5",
+    "phase": "CLARIFY",
+    "logged": "200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. Average revenue per store is $2.4M a year.",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 754,
+      "firstUsefulMs": 1492,
+      "completeMs": 2038,
+      "inputTokens": 875,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 118,
+      "turn": {
+        "move": "clarify",
+        "requests": [
+          {
+            "what": "the split of revenue growth between store count and sales per store",
+            "itemIds": [
+              "stores_count",
+              "revenue_per_store"
+            ],
+            "explicit": true,
+            "respond": "release"
+          }
+        ],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "",
+        "question": "Before you go further, which branch would you prioritize, and why?"
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 3290,
+          "firstUsefulMs": 3591,
+          "completeMs": 3828,
+          "inputTokens": 429,
+          "cacheRead": 2980,
+          "cacheWrite": 0,
+          "outputTokens": 195,
+          "turn": {
+            "move": "pressure_test",
+            "requests": [
+              {
+                "what": "source of revenue growth",
+                "itemIds": [
+                  "stores_count",
+                  "revenue_per_store"
+                ],
+                "explicit": true,
+                "respond": "defer"
+              }
+            ],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "Within revenue and costs, what specifically would you break down, and which branch would you prioritize first?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 3967,
+          "firstUsefulMs": 4228,
+          "completeMs": 4443,
+          "inputTokens": 359,
+          "cacheRead": 3050,
+          "cacheWrite": 0,
+          "outputTokens": 271,
+          "turn": {
+            "move": "structure",
+            "requests": [
+              {
+                "what": "store growth versus sales per store",
+                "itemIds": [
+                  "stores_count",
+                  "revenue_per_store"
+                ],
+                "explicit": true,
+                "respond": "defer"
+              }
+            ],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "Before we get into the data, how would you break down revenue and costs, and which area would you prioritize first?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "56-devon-the-i#4",
+    "phase": "CLARIFY",
+    "logged": "Understood. The cost breakdown you asked for is below. What stands out to you? COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. To your question on the data: Total revenue is $480M a year. I'll come to that data shortly.",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 1458,
+      "firstUsefulMs": 2279,
+      "completeMs": 2521,
+      "inputTokens": 1698,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 222,
+      "turn": {
+        "move": "analysis",
+        "requests": [
+          {
+            "what": "COGS as a percent of revenue, both years",
+            "itemIds": [
+              "cogs_pct"
+            ],
+            "explicit": true,
+            "respond": "release"
+          },
+          {
+            "what": "labor as a percent of revenue, both years",
+            "itemIds": [
+              "labor_pct"
+            ],
+            "explicit": true,
+            "respond": "release"
+          },
+          {
+            "what": "overhead and rent as a percent of revenue, both years",
+            "itemIds": [
+              "overhead_pct"
+            ],
+            "explicit": true,
+            "respond": "release"
+          }
+        ],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "Understood.",
+        "question": "Which of these lines moved most, and what does that tell you about where you'd dig next?"
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2500,
+          "firstUsefulMs": 3045,
+          "completeMs": 3256,
+          "inputTokens": 1145,
+          "cacheRead": 2783,
+          "cacheWrite": 0,
+          "outputTokens": 305,
+          "turn": {
+            "move": "analysis",
+            "requests": [
+              {
+                "what": "COGS as a percentage of revenue",
+                "itemIds": [
+                  "cogs_pct"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "labor as a percentage of revenue",
+                "itemIds": [
+                  "labor_pct"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "overhead and rent as a percentage of revenue",
+                "itemIds": [
+                  "overhead_pct"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "below-the-line P&L items",
+                "itemIds": [],
+                "explicit": true,
+                "respond": "release"
+              }
+            ],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "Given the cost figures, where would you focus next to identify the driver of the margin decline?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2736,
+          "firstUsefulMs": 3324,
+          "completeMs": 3461,
+          "inputTokens": 571,
+          "cacheRead": 3357,
+          "cacheWrite": 0,
+          "outputTokens": 359,
+          "turn": {
+            "move": "analysis",
+            "requests": [
+              {
+                "what": "COGS as a percentage of revenue",
+                "itemIds": [
+                  "cogs_pct"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "labor as a percentage of revenue",
+                "itemIds": [
+                  "labor_pct"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "overhead and rent as a percentage of revenue",
+                "itemIds": [
+                  "overhead_pct"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "other P&L lines for both years",
+                "itemIds": [],
+                "explicit": true,
+                "respond": "release"
+              }
+            ],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "What do these cost figures suggest about the source of the margin decline?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "06-destiny-the#14",
+    "phase": "STRUCTURE",
+    "logged": "That's a structure: ingredients, people, and store costs. You've said baristas probably cost the most, but nothing so far supports that. What would you want to see to decide which bucket to prioritize?",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 1233,
+      "firstUsefulMs": 2122,
+      "completeMs": 2122,
+      "inputTokens": 1459,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 98,
+      "turn": {
+        "move": "pressure_test",
+        "requests": [],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "Three cost buckets.",
+        "question": "Is that grouping complete, with nothing missing? And you said baristas probably cost the most, so how would you check that before deciding where to dig?"
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 1455,
+          "firstUsefulMs": 1711,
+          "completeMs": 1711,
+          "inputTokens": 1080,
+          "cacheRead": 2783,
+          "cacheWrite": 0,
+          "outputTokens": 130,
+          "turn": {
+            "move": "pressure_test",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Mm-hm.",
+            "question": "Is that MECE—what might be missing from your breakdown?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 1877,
+          "firstUsefulMs": 2194,
+          "completeMs": 2194,
+          "inputTokens": 500,
+          "cacheRead": 3363,
+          "cacheWrite": 0,
+          "outputTokens": 181,
+          "turn": {
+            "move": "pressure_test",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "You’ve grouped costs and prioritized labor.",
+            "question": "Is that MECE—what’s missing?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "58-hugo-the-hi#6",
+    "phase": "STRUCTURE",
+    "logged": "Your profit math is coherent, and the cost breakdown is earned now. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%.",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 1339,
+      "firstUsefulMs": 1656,
+      "completeMs": 1901,
+      "inputTokens": 1928,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 146,
+      "turn": {
+        "move": "analysis",
+        "requests": [
+          {
+            "what": "the cost breakdown as a percentage of revenue for both years",
+            "itemIds": [
+              "cogs_pct",
+              "labor_pct",
+              "overhead_pct"
+            ],
+            "explicit": true,
+            "respond": "release"
+          }
+        ],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "Understood.",
+        "question": "With those numbers in front of you, which line is driving the decline, and what would you want to understand next about it?"
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2915,
+          "firstUsefulMs": 3498,
+          "completeMs": 3697,
+          "inputTokens": 1314,
+          "cacheRead": 2783,
+          "cacheWrite": 0,
+          "outputTokens": 352,
+          "turn": {
+            "move": "analysis",
+            "requests": [
+              {
+                "what": "COGS as a percentage of revenue in both years",
+                "itemIds": [
+                  "cogs_pct"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "labor as a percentage of revenue in both years",
+                "itemIds": [
+                  "labor_pct"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "overhead and rent as a percentage of revenue in both years",
+                "itemIds": [
+                  "overhead_pct"
+                ],
+                "explicit": true,
+                "respond": "release"
+              }
+            ],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "What do these cost changes tell you about the margin decline, and how would you quantify each line’s contribution?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2989,
+          "firstUsefulMs": 3495,
+          "completeMs": 3619,
+          "inputTokens": 516,
+          "cacheRead": 3581,
+          "cacheWrite": 0,
+          "outputTokens": 304,
+          "turn": {
+            "move": "analysis",
+            "requests": [
+              {
+                "what": "COGS as a percentage of revenue",
+                "itemIds": [
+                  "cogs_pct"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "labor as a percentage of revenue",
+                "itemIds": [
+                  "labor_pct"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "overhead and rent as a percentage of revenue",
+                "itemIds": [
+                  "overhead_pct"
+                ],
+                "explicit": true,
+                "respond": "release"
+              }
+            ],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "What do these cost figures tell you about the source of the margin decline?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "01-maya-the-fr#7",
+    "phase": "ANALYSIS",
+    "logged": "Menu prices have not changed in two years. The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit.",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 958,
+      "firstUsefulMs": 1739,
+      "completeMs": 2056,
+      "inputTokens": 981,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 150,
+      "turn": {
+        "move": "pressure_test",
+        "requests": [
+          {
+            "what": "the split of revenue growth between price and customer volume",
+            "itemIds": [
+              "menu_price_change",
+              "avg_ticket"
+            ],
+            "explicit": true,
+            "respond": "defer"
+          }
+        ],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "",
+        "question": "Before I get into that, I'd like to hear your full structure. Within revenue and costs, what would you break down, and which branch would you prioritize first and why?"
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 1410,
+          "firstUsefulMs": 1769,
+          "completeMs": 1917,
+          "inputTokens": 435,
+          "cacheRead": 3050,
+          "cacheWrite": 0,
+          "outputTokens": 199,
+          "turn": {
+            "move": "analysis",
+            "requests": [
+              {
+                "what": "average transaction value",
+                "itemIds": [
+                  "avg_ticket"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "menu price changes",
+                "itemIds": [
+                  "menu_price_change"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "customer or transaction volume",
+                "itemIds": [],
+                "explicit": true,
+                "respond": "release"
+              }
+            ],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "Given those figures, what can you infer about the source of revenue growth?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 1432,
+          "firstUsefulMs": 1713,
+          "completeMs": 1873,
+          "inputTokens": 370,
+          "cacheRead": 3115,
+          "cacheWrite": 0,
+          "outputTokens": 196,
+          "turn": {
+            "move": "analysis",
+            "requests": [
+              {
+                "what": "average transaction value",
+                "itemIds": [
+                  "avg_ticket"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "menu price changes",
+                "itemIds": [
+                  "menu_price_change"
+                ],
+                "explicit": true,
+                "respond": "release"
+              }
+            ],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "Based on those figures, what can you infer about whether revenue growth came from price or customer volume?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "06-destiny-the#20",
+    "phase": "ANALYSIS",
+    "logged": "Okay. The point change is the margin impact, and the arithmetic holds against what we have. Now that COGS is the area, what would you want to dig into next to understand why it rose?",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 1297,
+      "firstUsefulMs": 2043,
+      "completeMs": 2043,
+      "inputTokens": 1667,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 94,
+      "turn": {
+        "move": "analysis",
+        "requests": [],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "Understood.",
+        "question": "COGS is the lead suspect. What could be pushing it up from 42% to 58% of revenue, and what would you want to look at to find out which it is?"
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 3280,
+          "firstUsefulMs": 3652,
+          "completeMs": 3652,
+          "inputTokens": 700,
+          "cacheRead": 3363,
+          "cacheWrite": 0,
+          "outputTokens": 322,
+          "turn": {
+            "move": "analysis",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "What would you investigate next to understand why COGS rose as a share of revenue?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 3189,
+          "firstUsefulMs": 3492,
+          "completeMs": 3492,
+          "inputTokens": 352,
+          "cacheRead": 3711,
+          "cacheWrite": 0,
+          "outputTokens": 322,
+          "turn": {
+            "move": "analysis",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "What would you investigate next to explain why COGS rose, and what data would you request?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "09-derek-the-b#10",
+    "phase": "ANALYSIS",
+    "logged": "Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Margin points are measured against revenue, since margin is profit over revenue. Using the share you have, which period's COGS does it pair with, and what does it come to in points of revenue?",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 1477,
+      "firstUsefulMs": 2269,
+      "completeMs": 3073,
+      "inputTokens": 3687,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 195,
+      "turn": {
+        "move": "analysis",
+        "requests": [
+          {
+            "what": "coffee beans as a share of COGS",
+            "itemIds": [
+              "bean_share_of_cogs"
+            ],
+            "explicit": true,
+            "respond": "release"
+          },
+          {
+            "what": "other input cost changes (dairy, packaging, food) over two years",
+            "itemIds": [
+              "non_bean_input_change"
+            ],
+            "explicit": true,
+            "respond": "release"
+          }
+        ],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "Understood.",
+        "question": "Using those, what share of the margin decline do beans actually explain, expressed in points of revenue? Walk me through the conversion."
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2672,
+          "firstUsefulMs": 3035,
+          "completeMs": 3268,
+          "inputTokens": 2517,
+          "cacheRead": 2783,
+          "cacheWrite": 0,
+          "outputTokens": 287,
+          "turn": {
+            "move": "analysis",
+            "requests": [
+              {
+                "what": "coffee beans as a share of COGS",
+                "itemIds": [
+                  "bean_share_of_cogs"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "other input cost changes",
+                "itemIds": [
+                  "non_bean_input_change"
+                ],
+                "explicit": true,
+                "respond": "release"
+              }
+            ],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "Using those figures, how would you quantify the contribution of bean costs and other inputs to the margin decline?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2308,
+          "firstUsefulMs": 2782,
+          "completeMs": 3024,
+          "inputTokens": 526,
+          "cacheRead": 4774,
+          "cacheWrite": 0,
+          "outputTokens": 304,
+          "turn": {
+            "move": "analysis",
+            "requests": [
+              {
+                "what": "coffee beans as a share of COGS",
+                "itemIds": [
+                  "bean_share_of_cogs"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "changes in other COGS inputs",
+                "itemIds": [
+                  "non_bean_input_change"
+                ],
+                "explicit": true,
+                "respond": "release"
+              }
+            ],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "You’re keeping the 25-point figure as your working estimate.",
+            "question": "Using these figures, how would you quantify the margin impact of beans and other inputs, and what can you conclude about the main driver?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "40-jasmine-the#8",
+    "phase": "ANALYSIS",
+    "logged": "Okay. You haven't yet confirmed the COGS driver, which is what you said the next step was. Which specific data would you want to confirm what is driving the COGS increase, and why?",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 1611,
+      "firstUsefulMs": 2030,
+      "completeMs": 2396,
+      "inputTokens": 2248,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 175,
+      "turn": {
+        "move": "brainstorm",
+        "requests": [
+          {
+            "what": "coffee beans as a share of COGS",
+            "itemIds": [
+              "bean_share_of_cogs"
+            ],
+            "explicit": true,
+            "respond": "release"
+          },
+          {
+            "what": "other input cost changes in COGS",
+            "itemIds": [
+              "non_bean_input_change"
+            ],
+            "explicit": true,
+            "respond": "release"
+          }
+        ],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "Understood.",
+        "question": "Setting pricing aside, what else could Brew & Bean do to recover its margin?"
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 3362,
+          "firstUsefulMs": 3753,
+          "completeMs": 3887,
+          "inputTokens": 1557,
+          "cacheRead": 2783,
+          "cacheWrite": 0,
+          "outputTokens": 343,
+          "turn": {
+            "move": "exhibit",
+            "requests": [
+              {
+                "what": "COGS breakdown into coffee beans",
+                "itemIds": [
+                  "bean_share_of_cogs"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "other input cost changes",
+                "itemIds": [
+                  "non_bean_input_change"
+                ],
+                "explicit": true,
+                "respond": "release"
+              }
+            ],
+            "exhibit": "exhibit-a",
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "What does the exhibit tell you about the drivers of the margin decline?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 3399,
+          "firstUsefulMs": 3804,
+          "completeMs": 4011,
+          "inputTokens": 515,
+          "cacheRead": 3825,
+          "cacheWrite": 0,
+          "outputTokens": 381,
+          "turn": {
+            "move": "risk",
+            "requests": [
+              {
+                "what": "coffee beans as a share of COGS",
+                "itemIds": [
+                  "bean_share_of_cogs"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "other input cost changes",
+                "itemIds": [
+                  "non_bean_input_change"
+                ],
+                "explicit": true,
+                "respond": "release"
+              }
+            ],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "How would you test and manage the risk that a price increase reduces transaction volume more than you assumed?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "58-hugo-the-hi#8",
+    "phase": "ANALYSIS",
+    "logged": "I'll take your COGS dollar math as you showed it. The 30% dairy share and the roughly 25% bean increase are your assumptions, and the milk tripling and 25% figures don't follow from anything we've established. Walk me through how you got from a 30% dairy share to milk having to triple, and what you'd need to know to replace that assumption with data. Hold that request; I'll come back to it shortly.",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 1357,
+      "firstUsefulMs": 2389,
+      "completeMs": 2389,
+      "inputTokens": 2184,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 111,
+      "turn": {
+        "move": "analysis",
+        "requests": [],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "Mm-hm.",
+        "question": "You said milk would have to have roughly tripled and coffee would need about twenty-five percent increases on top. Points of what? Walk me through how you got from the COGS jump to those input price changes."
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2716,
+          "firstUsefulMs": 3264,
+          "completeMs": 3349,
+          "inputTokens": 716,
+          "cacheRead": 3581,
+          "cacheWrite": 0,
+          "outputTokens": 340,
+          "turn": {
+            "move": "analysis",
+            "requests": [
+              {
+                "what": "coffee bean price change",
+                "itemIds": [
+                  "bean_price_change"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "coffee beans’ share of COGS",
+                "itemIds": [
+                  "bean_share_of_cogs"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "other input cost changes",
+                "itemIds": [
+                  "non_bean_input_change"
+                ],
+                "explicit": true,
+                "respond": "release"
+              }
+            ],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "You’ve narrowed it to input prices or mix.",
+            "question": "Points of what?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 1823,
+          "firstUsefulMs": 2252,
+          "completeMs": 2319,
+          "inputTokens": 417,
+          "cacheRead": 3880,
+          "cacheWrite": 0,
+          "outputTokens": 254,
+          "turn": {
+            "move": "analysis",
+            "requests": [
+              {
+                "what": "coffee bean price change",
+                "itemIds": [
+                  "bean_price_change"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "coffee beans' share of COGS",
+                "itemIds": [
+                  "bean_share_of_cogs"
+                ],
+                "explicit": true,
+                "respond": "release"
+              },
+              {
+                "what": "other input cost changes",
+                "itemIds": [
+                  "non_bean_input_change"
+                ],
+                "explicit": true,
+                "respond": "release"
+              }
+            ],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Mm-hm.",
+            "question": "Points of what?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "40-jasmine-the#6",
+    "phase": "ANALYSIS",
+    "logged": "Several pieces of that need checking. You said 16 points on $480M of revenue is about $77M of annual profit. Walk me through that.",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 804,
+      "firstUsefulMs": 1864,
+      "completeMs": 1864,
+      "inputTokens": 2182,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 88,
+      "turn": {
+        "move": "analysis",
+        "requests": [],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "Understood.",
+        "question": "You sized the COGS problem at about $77M a year. Is that the margin problem, or does it include cost that simply grew with revenue?"
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2471,
+          "firstUsefulMs": 2859,
+          "completeMs": 2859,
+          "inputTokens": 1491,
+          "cacheRead": 2783,
+          "cacheWrite": 0,
+          "outputTokens": 253,
+          "turn": {
+            "move": "risk",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood. Let's stay with this case.",
+            "question": "Which risk to your recommendation is most significant, and how would you mitigate it?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2564,
+          "firstUsefulMs": 2800,
+          "completeMs": 2800,
+          "inputTokens": 520,
+          "cacheRead": 3754,
+          "cacheWrite": 0,
+          "outputTokens": 249,
+          "turn": {
+            "move": "risk",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "Which of those risks is most material, and how would you mitigate it?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "01-maya-the-fr#9",
+    "phase": "EXHIBIT",
+    "logged": "Take a look at this and tell me what you see.",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 817,
+      "firstUsefulMs": 1880,
+      "completeMs": 1881,
+      "inputTokens": 1090,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 95,
+      "turn": {
+        "move": "exhibit",
+        "requests": [
+          {
+            "what": "the cost breakdown",
+            "itemIds": [
+              "exhibit-a"
+            ],
+            "explicit": true,
+            "respond": "release"
+          }
+        ],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "Right.",
+        "question": "What does it tell you?"
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2605,
+          "firstUsefulMs": 2888,
+          "completeMs": 3013,
+          "inputTokens": 465,
+          "cacheRead": 3115,
+          "cacheWrite": 0,
+          "outputTokens": 270,
+          "turn": {
+            "move": "exhibit",
+            "requests": [
+              {
+                "what": "cost structure breakdown",
+                "itemIds": [
+                  "cogs_pct",
+                  "labor_pct",
+                  "overhead_pct",
+                  "exhibit-a"
+                ],
+                "explicit": true,
+                "respond": "release"
+              }
+            ],
+            "exhibit": "exhibit-a",
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "What does the exhibit tell you about the drivers of the profit decline?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2464,
+          "firstUsefulMs": 2750,
+          "completeMs": 2857,
+          "inputTokens": 388,
+          "cacheRead": 3192,
+          "cacheWrite": 0,
+          "outputTokens": 270,
+          "turn": {
+            "move": "exhibit",
+            "requests": [
+              {
+                "what": "cost structure breakdown",
+                "itemIds": [
+                  "cogs_pct",
+                  "labor_pct",
+                  "overhead_pct",
+                  "exhibit-a"
+                ],
+                "explicit": true,
+                "respond": "release"
+              }
+            ],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "What does the cost breakdown tell you?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "08-claire-the-#8",
+    "phase": "EXHIBIT",
+    "logged": "They then applied that to old COGS of 42% of revenue to reach 58%. But that scaling treats revenue as flat, while revenue grew 15%. The conversion needs a check, but the unit flag here concerns the shares of COGS, which they've handled with consistent bases. The cleaner issue is the 42% to 58% step. Walk me through the step from 42% to 58%. Does multiplying old COGS as a share of revenue by the input inflation figure account for the 15% revenue growth?",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 1385,
+      "firstUsefulMs": 1956,
+      "completeMs": 1956,
+      "inputTokens": 2205,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 113,
+      "turn": {
+        "move": "analysis",
+        "requests": [],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "Mm-hm.",
+        "question": "You said the 42% scales with input costs and lands at 58%. One thing to pin down: your 10 points and 28.1 points, points of what? Walk me through how those sit against revenue and COGS."
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2940,
+          "firstUsefulMs": 3047,
+          "completeMs": 3155,
+          "inputTokens": 1536,
+          "cacheRead": 2783,
+          "cacheWrite": 0,
+          "outputTokens": 369,
+          "turn": {
+            "move": "exhibit",
+            "requests": [],
+            "exhibit": "exhibit-a",
+            "rescueItem": null,
+            "say": "Mm-hm.",
+            "question": "Points of what, and what does the exhibit tell you?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2111,
+          "firstUsefulMs": 2392,
+          "completeMs": 2392,
+          "inputTokens": 398,
+          "cacheRead": 3921,
+          "cacheWrite": 0,
+          "outputTokens": 233,
+          "turn": {
+            "move": "analysis",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Mm-hm.",
+            "question": "Those ten and twenty-eight points—points of what?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "58-hugo-the-hi#12",
+    "phase": "EXHIBIT",
+    "logged": "Your arithmetic is shown and consistent with the figures. You've asked for menu price history, and that's the right thing to confirm. Menu prices have not changed in two years.",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 889,
+      "firstUsefulMs": 1605,
+      "completeMs": 2161,
+      "inputTokens": 2903,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 127,
+      "turn": {
+        "move": "analysis",
+        "requests": [
+          {
+            "what": "menu price history",
+            "itemIds": [
+              "menu_price_change"
+            ],
+            "explicit": true,
+            "respond": "release"
+          }
+        ],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "Your reconciliation matches the cost figures.",
+        "question": "With that in hand, how does it change your read of the cause, and what does it tell you about where to look next?"
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 3784,
+          "firstUsefulMs": 3962,
+          "completeMs": 4184,
+          "inputTokens": 961,
+          "cacheRead": 3880,
+          "cacheWrite": 0,
+          "outputTokens": 344,
+          "turn": {
+            "move": "exhibit",
+            "requests": [
+              {
+                "what": "menu price changes",
+                "itemIds": [
+                  "menu_price_change"
+                ],
+                "explicit": true,
+                "respond": "release"
+              }
+            ],
+            "exhibit": "exhibit-a",
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "What does the exhibit tell you about the cost changes, and how does the menu price history affect your conclusion?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2156,
+          "firstUsefulMs": 2476,
+          "completeMs": 2685,
+          "inputTokens": 334,
+          "cacheRead": 4507,
+          "cacheWrite": 0,
+          "outputTokens": 283,
+          "turn": {
+            "move": "exhibit",
+            "requests": [
+              {
+                "what": "menu price changes",
+                "itemIds": [
+                  "menu_price_change"
+                ],
+                "explicit": true,
+                "respond": "release"
+              }
+            ],
+            "exhibit": "exhibit-a",
+            "rescueItem": null,
+            "say": "You’ve tied the input-cost changes to the COGS ratio.",
+            "question": "What does the exhibit tell you, and does it support your conclusion about what drove the margin decline?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "01-maya-the-fr#27",
+    "phase": "EXHIBIT",
+    "logged": "You're right that both are percentages of revenue. So the move from 42 to 58 is sixteen points of revenue, and your earlier line was that it explains sixteen of the eighteen points of margin drop. Now, what inside COGS would you want to dig into to understand why it rose?",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 847,
+      "firstUsefulMs": 3552,
+      "completeMs": 3552,
+      "inputTokens": 2161,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 111,
+      "turn": {
+        "move": "analysis",
+        "requests": [],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "You're right that both are shares of revenue.",
+        "question": "So the sixteen is points of revenue, not growth in COGS itself. With that in mind, what does it mean for the margin, and what would you want to understand next about why COGS moved?"
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 1299,
+          "firstUsefulMs": 1615,
+          "completeMs": 1615,
+          "inputTokens": 1665,
+          "cacheRead": 2783,
+          "cacheWrite": 0,
+          "outputTokens": 154,
+          "turn": {
+            "move": "exhibit",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Mm-hm.",
+            "question": "Since both figures are percentages of revenue, how would you describe the change from 42% to 58%?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2319,
+          "firstUsefulMs": 2716,
+          "completeMs": 2716,
+          "inputTokens": 380,
+          "cacheRead": 4068,
+          "cacheWrite": 0,
+          "outputTokens": 208,
+          "turn": {
+            "move": "exhibit",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Mm-hm.",
+            "question": "Since both figures are shares of revenue, how would you describe the change from 42% to 58%?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "01-maya-the-fr#23",
+    "phase": "BRAINSTORM",
+    "logged": "No apology needed. You said COGS went from 42 to 58 of revenue, and that you counted it as 16 of the 18 points of margin loss. What do you think is driving COGS up?",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 1362,
+      "firstUsefulMs": 3950,
+      "completeMs": 3950,
+      "inputTokens": 1725,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 116,
+      "turn": {
+        "move": "analysis",
+        "requests": [],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "No need to apologize.",
+        "question": "You said COGS accounts for 16 of the 18 points of margin loss, and that's points of revenue. Now the nature of the increase: what could be driving COGS up from 42 to 58 percent of revenue?"
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2592,
+          "firstUsefulMs": 2866,
+          "completeMs": 2866,
+          "inputTokens": 927,
+          "cacheRead": 3192,
+          "cacheWrite": 0,
+          "outputTokens": 109,
+          "turn": {
+            "move": "brainstorm",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "Beyond the cost drivers we've discussed, what else could Brew & Bean do to improve profitability?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 1563,
+          "firstUsefulMs": 1834,
+          "completeMs": 1834,
+          "inputTokens": 379,
+          "cacheRead": 3740,
+          "cacheWrite": 0,
+          "outputTokens": 130,
+          "turn": {
+            "move": "brainstorm",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "Beyond what we've discussed, what else could the client do to improve profitability?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "56-devon-the-i#10",
+    "phase": "BRAINSTORM",
+    "logged": "I don't have competitive price points or any loyalty or location-level cut. Beyond price, what else could Brew & Bean do to recover margin?",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 1083,
+      "firstUsefulMs": 1707,
+      "completeMs": 2205,
+      "inputTokens": 2611,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 117,
+      "turn": {
+        "move": "brainstorm",
+        "requests": [
+          {
+            "what": "competitive price points and loyalty behavior by location",
+            "itemIds": [],
+            "explicit": true,
+            "respond": "release"
+          }
+        ],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "Right.",
+        "question": "Beyond price, what else could Brew & Bean do to rebuild its margin?"
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2351,
+          "firstUsefulMs": 2620,
+          "completeMs": 2847,
+          "inputTokens": 1266,
+          "cacheRead": 3357,
+          "cacheWrite": 0,
+          "outputTokens": 230,
+          "turn": {
+            "move": "brainstorm",
+            "requests": [
+              {
+                "what": "competitive price points and loyalty-member behavior by location",
+                "itemIds": [],
+                "explicit": true,
+                "respond": "release"
+              }
+            ],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Mm-hm.",
+            "question": "Beyond the price changes you’ve discussed, what else could Brew & Bean do to reverse the profit decline?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 2211,
+          "firstUsefulMs": 2439,
+          "completeMs": 2630,
+          "inputTokens": 334,
+          "cacheRead": 4289,
+          "cacheWrite": 0,
+          "outputTokens": 225,
+          "turn": {
+            "move": "brainstorm",
+            "requests": [
+              {
+                "what": "competitive price points and loyalty behavior by location",
+                "itemIds": [],
+                "explicit": true,
+                "respond": "release"
+              }
+            ],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Mm-hm.",
+            "question": "Beyond the price lever you’ve discussed, what else could Brew & Bean do to reverse the margin decline?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "01-maya-the-fr#31",
+    "phase": "RECOMMENDATION",
+    "logged": "Okay. Of those ideas, which would you prioritize, and why?",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 869,
+      "firstUsefulMs": 2998,
+      "completeMs": 2998,
+      "inputTokens": 2412,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 75,
+      "turn": {
+        "move": "recommendation",
+        "requests": [],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "Understood.",
+        "question": "Given all of that, what would you recommend to the CEO, and which lever would you pull first?"
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 1184,
+          "firstUsefulMs": 1581,
+          "completeMs": 1581,
+          "inputTokens": 918,
+          "cacheRead": 3740,
+          "cacheWrite": 0,
+          "outputTokens": 114,
+          "turn": {
+            "move": "recommendation",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "You’ve identified several possible actions.",
+            "question": "What would you recommend to the CEO, and what is the main evidence behind your recommendation?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 1131,
+          "firstUsefulMs": 1450,
+          "completeMs": 1450,
+          "inputTokens": 374,
+          "cacheRead": 4284,
+          "cacheWrite": 0,
+          "outputTokens": 103,
+          "turn": {
+            "move": "recommendation",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "You’ve outlined several possible levers.",
+            "question": "What would you recommend to the CEO, and how would you prioritize those actions?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "58-hugo-the-hi#16",
+    "phase": "RECOMMENDATION",
+    "logged": "Okay. Of everything you've laid out, which would you put in front of the CEO first, and what would you want to see before committing to it?",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 1414,
+      "firstUsefulMs": 2129,
+      "completeMs": 2129,
+      "inputTokens": 3705,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 87,
+      "turn": {
+        "move": "risk",
+        "requests": [],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "Understood.",
+        "question": "You recommended a price increase as the main lever. What's the biggest risk to that recommendation, and how would you mitigate it?"
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 1269,
+          "firstUsefulMs": 1566,
+          "completeMs": 1566,
+          "inputTokens": 878,
+          "cacheRead": 4507,
+          "cacheWrite": 0,
+          "outputTokens": 112,
+          "turn": {
+            "move": "risk",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "What is the biggest risk to your recommendation, and how would you mitigate it?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 1564,
+          "firstUsefulMs": 1842,
+          "completeMs": 1842,
+          "inputTokens": 332,
+          "cacheRead": 5053,
+          "cacheWrite": 0,
+          "outputTokens": 92,
+          "turn": {
+            "move": "risk",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "What is the biggest risk to your recommendation, and how would you mitigate it?"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "01-maya-the-fr#33",
+    "phase": "WRAP",
+    "logged": "Take a minute if you need it. You've told me the cost pressure is across beans and the other inputs, and that prices haven't moved in two years. Given that, which one lever would you lead with?",
+    "base": {
+      "variant": "sonnet",
+      "firstTokenMs": 1129,
+      "firstUsefulMs": 2427,
+      "completeMs": 2427,
+      "inputTokens": 2453,
+      "cacheRead": 4550,
+      "cacheWrite": 0,
+      "outputTokens": 122,
+      "turn": {
+        "move": "recommendation",
+        "requests": [],
+        "exhibit": null,
+        "rescueItem": null,
+        "say": "Understood. You have what you need from the cost data: the input cost growth you worked out, and the fact that prices haven't moved in two years.",
+        "question": "If you were presenting to the CEO right now, what would you recommend Brew & Bean do first, and what's your reason?"
+      }
+    },
+    "runs": {
+      "luna-low": [
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 1810,
+          "firstUsefulMs": 2064,
+          "completeMs": 2064,
+          "inputTokens": 414,
+          "cacheRead": 4284,
+          "cacheWrite": 0,
+          "outputTokens": 151,
+          "turn": {
+            "move": "recommendation",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "What would you recommend Brew & Bean do to reverse the margin decline?"
+          }
+        },
+        {
+          "variant": "luna-low",
+          "firstTokenMs": 1843,
+          "firstUsefulMs": 2197,
+          "completeMs": 2197,
+          "inputTokens": 372,
+          "cacheRead": 4326,
+          "cacheWrite": 0,
+          "outputTokens": 145,
+          "turn": {
+            "move": "recommendation",
+            "requests": [],
+            "exhibit": null,
+            "rescueItem": null,
+            "say": "Understood.",
+            "question": "What would you recommend Brew & Bean do, and how would you support that recommendation?"
+          }
+        }
+      ]
+    }
+  }
+]
