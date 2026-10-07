@@ -1,0 +1,696 @@
+{
+  "session": {
+    "id": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+    "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+    "caseId": "prof-001",
+    "phase": "ANALYSIS",
+    "elapsedMs": 0,
+    "phaseStartedAt": "2026-10-07T23:53:25.276Z",
+    "status": "active",
+    "abandonPhase": null,
+    "startedAt": "2026-10-07T23:53:16.210Z",
+    "completedAt": null,
+    "flagsJsonb": {
+      "moves": {
+        "2": "clarify"
+      },
+      "stall": {
+        "ladderLevel": 0,
+        "noProgressReasons": [],
+        "consecutiveClarify": 0,
+        "consecutiveNoProgress": 0,
+        "lastCandidateQuestion": "Okay, so margin fell from 24% to 6% while revenue grew 15% — so something on the cost side. Before I frame it, could I get some data?\n\nI'd like: one, the full cost breakdown by line item for both years; two, revenue split by store versus wholesale; three, average ticket size; four, transaction volume per store per day; five, headcount and average wage by role; six, the number of new store openings in the period; seven, customer satisfaction or NPS scores; eight, the CEO's compensation structure.\n\nThat would give me a picture. Do we have any of those?",
+        "recommendationDelivered": false
+      },
+      "conduct": {},
+      "ranLong": false,
+      "silence": {
+        "checkedIn": false,
+        "pausedAtMs": null,
+        "pauseLimitMs": null,
+        "pausedTotalMs": 0,
+        "silenceStartedAtMs": null
+      },
+      "stalled": false,
+      "askedRepeat": false,
+      "lastQuestion": "Before we get into data, please lay out your structured approach to diagnosing the margin decline.",
+      "lastVerified": [],
+      "pushbackDone": false,
+      "explainProbed": [],
+      "graceAskFired": false,
+      "offTopicCount": 0,
+      "loadShedLogged": false,
+      "advancedLastTurn": true,
+      "timeWarningFired": false,
+      "recomputeAttempts": {}
+    },
+    "coverageJsonb": null
+  },
+  "turns": [
+    {
+      "id": "a9fee5e8-4560-4ac6-9ddc-431e7b964d82",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "turnIndex": 0,
+      "role": "interviewer",
+      "text": "Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?\n\nTake a moment, then walk me through how you'd approach this.",
+      "timestampMs": 1791417196378,
+      "latencyMs": null
+    },
+    {
+      "id": "fc591d2f-dd4f-4da7-b6b9-5a8180362900",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "turnIndex": 1,
+      "role": "candidate",
+      "text": "Okay, so margin fell from 24% to 6% while revenue grew 15% — so something on the cost side. Before I frame it, could I get some data?\n\nI'd like: one, the full cost breakdown by line item for both years; two, revenue split by store versus wholesale; three, average ticket size; four, transaction volume per store per day; five, headcount and average wage by role; six, the number of new store openings in the period; seven, customer satisfaction or NPS scores; eight, the CEO's compensation structure.\n\nThat would give me a picture. Do we have any of those?",
+      "timestampMs": 1791417202231,
+      "latencyMs": null
+    },
+    {
+      "id": "7280389f-2ee3-483d-98d9-42d93e956368",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "turnIndex": 2,
+      "role": "interviewer",
+      "text": "Understood. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. I don't have revenue split by store versus wholesale, transaction volume per store per day, headcount and average wage by role, new store openings, customer satisfaction or NPS scores or CEO compensation structure. I'll come back to average ticket size shortly. Before we get into data, please lay out your structured approach to diagnosing the margin decline.",
+      "timestampMs": 1791417205275,
+      "latencyMs": 3025
+    }
+  ],
+  "events": [
+    {
+      "id": "df05a5dd-cf9a-4676-9178-c4717fe55d9a",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "check",
+      "subtype": "stream_prefix_mismatch",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "delivered": [
+            "Understood.",
+            "COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. I don't have revenue split by store versus wholesale, transaction volume per store per day, headcount and average wage by role, new store openings, customer satisfaction or NPS scores or CEO compensation structure. I'll come back to average ticket size shortly."
+          ]
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-07T23:53:25.292Z"
+    },
+    {
+      "id": "d0e97ab9-5d72-4e73-ae12-ed483b3ae829",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "check",
+      "subtype": "conduct",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "action": "ignore",
+          "reason": "clean",
+          "category": "none"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-07T23:53:25.292Z"
+    },
+    {
+      "id": "1099eae3-1720-4280-8ba8-d3f1b930f19a",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "check",
+      "subtype": "stall",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "rung": null,
+          "firedOn": null,
+          "classification": {
+            "kind": "analysis",
+            "reason": "analysis signal (figures in a derivation, or an enumerated structure)",
+            "isRepeat": false,
+            "progress": true
+          },
+          "consecutiveClarify": 0,
+          "synthesisUnresolved": false,
+          "consecutiveNoProgress": 0
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-07T23:53:25.292Z"
+    },
+    {
+      "id": "ee46df63-1c93-4b16-96d6-c7bce6c15ab2",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "check",
+      "subtype": "model_turn_validation",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "refused": false,
+          "retried": false,
+          "unparsed": false,
+          "emptyTurn": false,
+          "unknownIds": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-07T23:53:25.292Z"
+    },
+    {
+      "id": "564c1abd-b71e-492b-8c8e-eaf083e1da8a",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "check",
+      "subtype": "conduct_model",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "label": "none",
+          "reason": "Analytical case work with structured data requests"
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-07T23:53:25.292Z"
+    },
+    {
+      "id": "2fa07a53-d181-4449-a2f5-081b90783b28",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "check",
+      "subtype": "stream_buffer_switch",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "reason": null,
+          "delivered": 2
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-07T23:53:25.292Z"
+    },
+    {
+      "id": "4b7b4dde-c1ec-4129-bf85-e70a0651789d",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "check",
+      "subtype": "vetoes",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "withheld": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-07T23:53:25.292Z"
+    },
+    {
+      "id": "d4c39393-c455-498d-bba9-70a7c398aeb2",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "check",
+      "subtype": "data_decisions",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "defers": [
+            "average ticket size"
+          ],
+          "offers": [],
+          "exhibit": null,
+          "refusals": [
+            "revenue split by store versus wholesale",
+            "transaction volume per store per day",
+            "headcount and average wage by role",
+            "new store openings",
+            "customer satisfaction or NPS scores",
+            "CEO compensation structure"
+          ],
+          "releases": [
+            "cogs_pct",
+            "labor_pct",
+            "overhead_pct"
+          ]
+        },
+        "reason": "data decided by code",
+        "decision": "act"
+      },
+      "createdAt": "2026-10-07T23:53:25.292Z"
+    },
+    {
+      "id": "9cefab1c-281e-4c22-a004-b05586a81d0c",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "check",
+      "subtype": "timeframe",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "mismatches": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-07T23:53:25.292Z"
+    },
+    {
+      "id": "194df0b5-820e-4ab3-9d7a-8db1f0bf3374",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "check",
+      "subtype": "style",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "flags": [],
+          "passed": true,
+          "wordCount": 88,
+          "violations": [],
+          "questionCount": 0
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-07T23:53:25.292Z"
+    },
+    {
+      "id": "d8104d44-31da-4ea3-a3bb-e2438b7d278b",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "check",
+      "subtype": "rung_delivery",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "reason": "no rung decided this turn",
+        "decision": "skip"
+      },
+      "createdAt": "2026-10-07T23:53:25.292Z"
+    },
+    {
+      "id": "10562578-5e46-47d7-828a-50e33b4b0b9f",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "check",
+      "subtype": "recompute",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "flags": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-07T23:53:25.292Z"
+    },
+    {
+      "id": "4dc50899-137d-4295-8d8d-309ff47cb7a0",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "check",
+      "subtype": "verified_figures",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "verified": []
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-07T23:53:25.292Z"
+    },
+    {
+      "id": "f61eee8d-1e9d-424b-83f5-32826ad46c35",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "check",
+      "subtype": "unit_check",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "nestedConversion": false,
+          "suppressedAsVerified": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-07T23:53:25.292Z"
+    },
+    {
+      "id": "9aa382ec-9f5f-4cb0-986e-c2c390a7a408",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "check",
+      "subtype": "end_rec_ask_gate",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-07T23:53:25.292Z"
+    },
+    {
+      "id": "c57e555c-a90a-4286-80f5-d0afee48a80f",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "check",
+      "subtype": "end_gate",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "riskAsked": false,
+          "stageGate": false,
+          "coverageMayEnd": false,
+          "brainstormAsked": false,
+          "recommendationAsked": false,
+          "recommendationAskCount": 0,
+          "recommendationReceived": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-07T23:53:25.292Z"
+    },
+    {
+      "id": "16a87e50-41d2-492a-87c3-6a9938dec0a8",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "check",
+      "subtype": "turn_kind",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "detail": {
+          "kind": "model",
+          "mayEnd": false,
+          "timeUp": false,
+          "riskAsked": false,
+          "brainstormAsked": false,
+          "recommendationAsked": false,
+          "recommendationAskCount": 0,
+          "recommendationReceived": false
+        },
+        "decision": "pass"
+      },
+      "createdAt": "2026-10-07T23:53:25.292Z"
+    },
+    {
+      "id": "6b5cf3f8-73b9-4726-a509-ccc139d3be7f",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "data_request",
+      "subtype": "refuse",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "what": "revenue split by store versus wholesale",
+        "explicit": true,
+        "ledgerItemIds": [],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 2
+      },
+      "createdAt": "2026-10-07T23:53:25.293Z"
+    },
+    {
+      "id": "9298bd40-1227-49ca-a68a-b650c04545c9",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "data_request",
+      "subtype": "release",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "what": "cost breakdown by line item",
+        "explicit": true,
+        "ledgerItemIds": [
+          "cogs_pct",
+          "labor_pct",
+          "overhead_pct"
+        ],
+        "revealedByNow": true,
+        "interviewerTurnIndex": 2
+      },
+      "createdAt": "2026-10-07T23:53:25.293Z"
+    },
+    {
+      "id": "3c8db1a0-1d37-4f82-bc1f-1cefba8511e7",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "data_request",
+      "subtype": "refuse",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "what": "new store openings",
+        "explicit": true,
+        "ledgerItemIds": [],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 2
+      },
+      "createdAt": "2026-10-07T23:53:25.293Z"
+    },
+    {
+      "id": "722df6d0-80dc-47dc-885b-e9b732285cd6",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "data_request",
+      "subtype": "refuse",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "what": "CEO compensation structure",
+        "explicit": true,
+        "ledgerItemIds": [],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 2
+      },
+      "createdAt": "2026-10-07T23:53:25.293Z"
+    },
+    {
+      "id": "8bd619cd-d110-48c9-928b-0f59f202dc49",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "data_request",
+      "subtype": "defer",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "what": "average ticket size",
+        "explicit": true,
+        "ledgerItemIds": [
+          "avg_ticket"
+        ],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 2
+      },
+      "createdAt": "2026-10-07T23:53:25.293Z"
+    },
+    {
+      "id": "7a59064b-f545-491b-8830-3fc55bc1c8ff",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "data_request",
+      "subtype": "classified",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "requestCount": 8,
+        "interviewerTurnIndex": 2
+      },
+      "createdAt": "2026-10-07T23:53:25.293Z"
+    },
+    {
+      "id": "c627617e-c2d9-449f-9628-3d04e8e2d82e",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "data_request",
+      "subtype": "refuse",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "what": "transaction volume per store per day",
+        "explicit": true,
+        "ledgerItemIds": [],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 2
+      },
+      "createdAt": "2026-10-07T23:53:25.293Z"
+    },
+    {
+      "id": "be80a2ba-7280-4af5-bc78-263c8e4bf679",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "data_request",
+      "subtype": "refuse",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "what": "customer satisfaction or NPS scores",
+        "explicit": true,
+        "ledgerItemIds": [],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 2
+      },
+      "createdAt": "2026-10-07T23:53:25.293Z"
+    },
+    {
+      "id": "e9961de8-69a6-41fe-a0b8-457f4b6599a8",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "category": "data_request",
+      "subtype": "refuse",
+      "turnIndex": 1,
+      "phase": "INTRO",
+      "payloadJsonb": {
+        "what": "headcount and average wage by role",
+        "explicit": true,
+        "ledgerItemIds": [],
+        "revealedByNow": false,
+        "interviewerTurnIndex": 2
+      },
+      "createdAt": "2026-10-07T23:53:25.293Z"
+    }
+  ],
+  "analytics": [
+    {
+      "id": "ae8d9d85-2798-439e-8788-41113dbedec1",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "case_start",
+      "payloadJsonb": {
+        "caseId": "prof-001"
+      },
+      "createdAt": "2026-10-07T23:53:16.432Z"
+    },
+    {
+      "id": "2b6d9e46-ac23-425a-b6e3-fe90e620d2f0",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5",
+        "component": "distress",
+        "inputTokens": 587,
+        "outputTokens": 24
+      },
+      "createdAt": "2026-10-07T23:53:22.888Z"
+    },
+    {
+      "id": "e464c1cb-4042-40c4-9787-8ff0f71619d3",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "phase": "INTRO",
+        "itemId": "overhead_pct"
+      },
+      "createdAt": "2026-10-07T23:53:25.349Z"
+    },
+    {
+      "id": "23cad439-36f8-4ba7-be77-373ef0b25be5",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "openai/gpt-6-luna",
+        "apiCalls": 1,
+        "component": "interviewer",
+        "inputTokens": 3379,
+        "outputTokens": 229,
+        "cacheReadTokens": 0,
+        "cacheWriteTokens": 0
+      },
+      "createdAt": "2026-10-07T23:53:25.349Z"
+    },
+    {
+      "id": "62c76a6f-7366-455c-8e3f-b544bc55d693",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "phase_transition",
+      "payloadJsonb": {
+        "to": "ANALYSIS",
+        "from": "INTRO"
+      },
+      "createdAt": "2026-10-07T23:53:25.350Z"
+    },
+    {
+      "id": "5e0d4fba-cead-4f7e-bf32-a15caea84139",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "phase": "INTRO",
+        "itemId": "cogs_pct"
+      },
+      "createdAt": "2026-10-07T23:53:25.350Z"
+    },
+    {
+      "id": "11a109f1-5a20-4ef7-97ef-8f4a3da9b121",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "data_revealed",
+      "payloadJsonb": {
+        "phase": "INTRO",
+        "itemId": "labor_pct"
+      },
+      "createdAt": "2026-10-07T23:53:25.351Z"
+    },
+    {
+      "id": "cb49bc3b-3a9d-4c33-aa21-0974127ba0a9",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "turn_latency",
+      "payloadJsonb": {
+        "kind": "model",
+        "phase": "INTRO",
+        "steps": {
+          "plan_done": 340,
+          "model_done": 3365,
+          "reads_done": 328,
+          "persist_end": 3430,
+          "settle_start": 3365,
+          "model_request": 341,
+          "persist_start": 3372,
+          "tail_delivered": 3372,
+          "first_delivered": 1988,
+          "settle_composed": 3372,
+          "distress_verdict": 974,
+          "model_say_closed": 1988,
+          "model_first_token": 1936,
+          "model_move_closed": 2010,
+          "data_line_delivered": 2985,
+          "model_exhibit_closed": 2956,
+          "model_first_sentence": 1981,
+          "model_question_closed": 3361,
+          "model_requests_closed": 2939,
+          "first_useful_delivered": 2985,
+          "model_rescue_item_closed": 2984
+        },
+        "totalMs": 3430,
+        "apiCalls": 1,
+        "streamed": true,
+        "latencyMs": 3025,
+        "persistMs": 58,
+        "turnIndex": 2,
+        "preModelMs": 340,
+        "postModelMs": 7,
+        "distressWaitMs": 0,
+        "firstSegmentMs": 1988
+      },
+      "createdAt": "2026-10-07T23:53:25.418Z"
+    },
+    {
+      "id": "61aee9e6-5d91-44d8-93ae-c769058ba0a7",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "userId": "a86e6194-d87c-4c78-b6c2-d25aa1eddbdd",
+      "eventType": "llm_usage",
+      "payloadJsonb": {
+        "model": "claude-haiku-4-5-20251001",
+        "component": "coverage",
+        "inputTokens": 661,
+        "outputTokens": 256
+      },
+      "createdAt": "2026-10-07T23:53:28.771Z"
+    }
+  ],
+  "revealed": [
+    {
+      "id": "bb24b114-6cb6-4c4c-94eb-fb533e0d2f3d",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "ledgerItemId": "cogs_pct",
+      "revealedAtMs": 1791417202231
+    },
+    {
+      "id": "328a34a0-b837-4ac7-b666-bdd79774ebcf",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "ledgerItemId": "labor_pct",
+      "revealedAtMs": 1791417202231
+    },
+    {
+      "id": "dd541106-1068-4b24-a76e-61f640c5e3af",
+      "sessionId": "ce012e6c-b8ae-4de5-b846-102b73e5003b",
+      "ledgerItemId": "overhead_pct",
+      "revealedAtMs": 1791417202231
+    }
+  ]
+}

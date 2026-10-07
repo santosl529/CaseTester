@@ -1,0 +1,19 @@
+[live-run] session ce012e6c-b8ae-4de5-b846-102b73e5003b · Brew & Bean Profitability · persona 18 Nikhil — the Data Hoover · pace fast
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+Take a moment, then walk me through how you'd approach this.
+
+[candidate · 0:05] Okay, so margin fell from 24% to 6% while revenue grew 15% — so something on the cost side. Before I frame it, could I get some data?
+
+I'd like: one, the full cost breakdown by line item for both years; two, revenue split by store versus wholesale; three, average ticket size; four, transaction volume per store per day; five, headcount and average wage by role; six, the number of new store openings in the period; seven, customer satisfaction or NPS scores; eight, the CEO's compensation structure.
+
+That would give me a picture. Do we have any of those?
+[runner] phase: INTRO kind: model stall rung: none
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Understood.","move":"clarify","requests":[{"what":"cost breakdown by line item","item_ids":["cogs_pct","labor_pct","overhead_pct"],"explicit":true,"respond":"release"},{"what":"revenue split by store versus wholesale","item_ids":[],"explicit":true,"respond":"release"},{"what":"average ticket size","item_ids":["avg_ticket"],"explicit":true,"respond":"release"},{"what":"transaction volume per store per day","item_ids":[],"explicit":true,"respond":"release"},{"what":"headcount and average wage by role","item_ids":[],"explicit":true,"respond":"release"},{"what":"new store openings","item_ids":[],"explicit":true,"respond":"release"},{"what":"customer satisfaction or NPS scores","item_ids":[],"explicit":true,"respond":"release"},{"what":"CEO compensation structure","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Before we get into data, please lay out your structured approach to diagnosing the margin decline."}
+[timing] reads_done=328 plan_done=340 model_request=341 distress_verdict=974 model_first_token=1936 model_first_sentence=1981 first_delivered=1988 model_say_closed=1988 model_move_closed=2010 model_requests_closed=2939 model_exhibit_closed=2956 model_rescue_item_closed=2984 first_useful_delivered=2985 data_line_delivered=2985 model_question_closed=3361 model_done=3365 settle_start=3365 settle_composed=3372 tail_delivered=3372 persist_start=3372 persist_end=3430
+
+[interviewer · ANALYSIS · 0:09] Understood. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. I don't have revenue split by store versus wholesale, transaction volume per store per day, headcount and average wage by role, new store openings, customer satisfaction or NPS scores or CEO compensation structure. I'll come back to average ticket size shortly. Before we get into data, please lay out your structured approach to diagnosing the margin decline.
+
+[live-run] ended=false scoring=not_completed

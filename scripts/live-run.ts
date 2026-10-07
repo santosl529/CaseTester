@@ -48,7 +48,8 @@ import { renderReportPdf } from '@/app/api/report/[sessionId]/pdf/render';
 import { getPersona, type Persona } from './personas';
 
 const CANDIDATE_MODEL = 'claude-opus-5';
-const MAX_TURNS = 60; // human pacing on a 20-minute clock can exceed 30 turns
+// human pacing on a 20-minute clock can exceed 30 turns; --max-turns=N for a smoke run
+const MAX_TURNS = Number(process.argv.find(a => a.startsWith('--max-turns='))?.split('=')[1] ?? 60);
 const MAX_WALL_MS = 30 * 60_000; // the case clock is 20 minutes; this only guards a hang
 const RUNS_DIR = path.resolve('Case Interview Runs');
 

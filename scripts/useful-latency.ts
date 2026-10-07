@@ -74,6 +74,7 @@ const mp = (xs: (number | undefined)[]) => {
 function table(rows: Row[]) {
   const cols: [string, (r: Row) => number | undefined][] = [
     ['first token', r => r.marks.model_first_token],
+    ['first speech', r => r.marks.first_delivered],
     ['say closed', r => r.marks.model_say_closed],
     ['declarations closed', r => r.marks.model_rescue_item_closed],
     ['FIRST USEFUL', r => r.useful],
