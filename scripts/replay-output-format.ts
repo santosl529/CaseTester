@@ -30,7 +30,7 @@ import { TOTAL_CASE_MS, type Phase } from '@/lib/orchestrator/state-machine';
 import { CONDUCT_REDIRECT } from '@/lib/agent/prompts/scripts';
 import { DATA_TALK, vetoReason } from '@/lib/orchestrator/stream-turn';
 import Anthropic from '@anthropic-ai/sdk';
-import { writeOpener, OPENER_TURN_NOTE } from '@/lib/agent/opener';
+import { writeOpener, OPENER_TURN_NOTE, openerGate } from '@/lib/agent/opener';
 
 const RUNS_ROOT = 'Case Interview Runs/test runs';
 const BATCHES = (process.env.REPLAY_BATCHES ?? 'batch-7-oct-03,batch-8-oct-03').split(',');
@@ -211,14 +211,15 @@ async function runProd(s: Sample): Promise<Row> {
     if (!openerP) return { id: s.id, ok: true, firstSentenceMs, firstDeliverableMs, declarationsMs, latencyMs, ...u, turn, retried };
     const op = await openerP;
     // The opener through the real say vetoes (no case data in its prompt).
-    const veto = vetoReason(op.text, {
+    const veto = openerGate(op.text) ?? vetoReason(op.text, {
       allowedTexts: [caseData.prompt, s.candidateText, ...s.history.filter(h => h.role === 'user').map(h => h.content), ...Object.values(s.ctx.revealedValues)],
       verified: [], alreadyProbed: new Set(), flaggedThisTurn: false, openItems: [], phase: s.ctx.currentPhase,
     });
-    // Sonnet's first content once the opener has the say slot: its own say if
-    // it wrote one anyway, else the data line, else the question.
+    // Sonnet's first content once the opener has the say slot. v2: code drops
+    // Sonnet's say when an opener is spoken, so it is the data line, else the
+    // question.
     const hasData = !!turn && (turn.requests.length > 0 || !!turn.exhibit);
-    const sonnetFirstContentMs = turn?.say ? firstDeliverableMs : hasData ? declarationsMs : latencyMs;
+    const sonnetFirstContentMs = hasData ? declarationsMs : latencyMs;
     return { id: s.id, ok: true, firstSentenceMs, firstDeliverableMs, declarationsMs, latencyMs, ...u, turn, retried,
       opener: op.text, openerFirstTokenMs, openerDoneMs: op.doneMs, openerVeto: veto, sonnetFirstContentMs };
   } catch (err) {
@@ -273,7 +274,8 @@ async function main() {
     show('opener done (Haiku)', ok.map(r => r.openerDoneMs ?? null).filter((x): x is number => x != null));
     show('Sonnet first content', ok.map(r => r.sonnetFirstContentMs ?? null).filter((x): x is number => x != null));
     show('gap opener→Sonnet', ok.filter(r => r.openerDoneMs != null && r.sonnetFirstContentMs != null).map(r => r.sonnetFirstContentMs! - r.openerDoneMs!));
-    console.log(`  opener vetoed ${ok.filter(r => r.openerVeto).length}/${ok.length} · Sonnet wrote a say anyway ${ok.filter(r => r.turn?.say).length}/${ok.length}`);
+    const vetoes = ok.filter(r => r.openerVeto).map(r => r.openerVeto);
+    console.log(`  opener dropped ${vetoes.length}/${ok.length} (${[...new Set(vetoes)].map(v => `${v} ${vetoes.filter(x => x === v).length}`).join(', ') || '-'}) · Sonnet say dropped by code ${ok.filter(r => r.turn?.say).length}/${ok.length}`);
   }
   show('declarations', ok.map(r => r.declarationsMs));
   show('first sentence', ok.map(r => r.firstSentenceMs));

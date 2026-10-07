@@ -23,3 +23,6 @@ setting). Findings: `.superpowers/sdd/progress.md` (7 Oct entries).
 | `haiku-opener`, `haiku-opener-nikhil` | Haiku 4.5 writes the opening sentence (no case data in its prompt) in parallel with Sonnet 5.5, which is told to leave `say` empty | current + `REPLAY_ARM=haiku-opener` | 50 / 11 |
 
 Hand review of every opener with the candidate message and Sonnet's turn: `haiku-opener-hand-review.txt`.
+| `haiku-opener2`, `haiku-opener2-nikhil` | Opener v2: names only the kind of move, no figures (code gate), Sonnet's say dropped by code, Sonnet told not to restate | current + `REPLAY_ARM=haiku-opener` | 50 / 11 |
+
+Hand review of v2: `haiku-opener2-hand-review.txt`.
