@@ -1,0 +1,111 @@
+180 reconstructable turns · sampling 50 · est cost ~$0.46
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Got it.","move":"structure","requests":[],"exhibit":null,"rescue_item":null,"question":"Please outline the framework you’d use to dissect the profit decline."}
+[interviewer] phase: INTRO
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"Got it.","move":"structure","requests":[{"what":"total annual revenue","item_ids":["revenue_total"],"explicit":true,"respond":"release"},{"what":"store count for current and prior period","item_ids":["stores_count"],"explicit":true,"respond":"release"},{"what":"average revenue per store","item_ids":["revenue_per_store"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Please outline your analytical framework for tackling this case."}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Got it.", "move":"analysis","requests":[{"what":"average transaction value","item_ids":["avg_ticket"],"explicit":true,"respond":"release"},{"what":"total annual revenue","item_ids":["revenue_total"],"explicit":false,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Which driver would you prioritize investigating first, price or volume, and why?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Understood.","move":"analysis","requests":[{"what":"COGS % of revenue","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"Labor % of revenue","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"Overhead % of revenue","item_ids":["overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What do those percentages tell you about the profit decline?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Got it.", "move":"exhibit", "requests":[{"what":"COGS breakdown: coffee beans as a share of COGS","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"COGS breakdown: other input cost changes","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Looking at the cost structure exhibit, what insights do you draw from it?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Got it.", "move":"exhibit","requests":[],"exhibit":null,"rescue_item":null,"question":"What does Exhibit‑A tell you about the drivers of the margin decline?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Take your time. The question on the table is to identify the root cause of the profit decline and recommend how to reverse it.","move":"other","requests":[],"exhibit":null,"rescue_item":null,"question":"What’s your next step?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay.", "move":"exhibit", "requests":[], "exhibit":null, "rescue_item":null, "question":"Looking at the cost‑structure exhibit, what insights do you draw about the drivers of the margin decline?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Understood.","move":"analysis","requests":[{"what":"coffee bean price change over the period","item_ids":["bean_price_change"],"explicit":true,"respond":"release"},{"what":"total annual revenue","item_ids":["revenue_total"],"explicit":false,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"What part of the COGS increase is due to coffee bean price changes versus other input cost increases?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Understood.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Beyond the cost drivers we’ve identified, what other initiatives could Brew & Bean pursue to improve profitability?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Understood.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Beyond the cost drivers we've identified, what other actions could Brew & Bean pursue to restore profitability?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Understood.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Beyond the cost drivers we’ve discussed, what other initiatives could Brew & Bean pursue to improve profitability?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Beyond the cost drivers we’ve discussed, what other initiatives could Brew & Bean pursue to improve profitability?"}
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Understood.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"Based on your analysis, what would you recommend Brew & Bean do to restore profitability?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"Understood.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"Based on our discussion, what specific recommendation would you give Brew & Bean to improve its margin?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"Okay.", "move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"Based on our discussion, what would you recommend Brew & Bean do to restore profitability?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"Understood.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"Based on our discussion, what would you recommend Brew & Bean do to improve margins?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"Understood.", "move":"recommendation", "requests":[], "exhibit":null, "rescue_item":null, "question":"Based on our discussion, what recommendation would you give Brew & Bean to improve its margin?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say": "Understood.", "move": "recommendation", "requests": [], "exhibit": null, "rescue_item": null, "question": "Based on our discussion, what specific recommendation would you give to Brew & Bean to improve margin, and how would you prioritize its implementation?"}
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Okay.","move":"structure","requests":[],"exhibit":null,"rescue_item":null,"question":"Please outline the framework you would use to tackle this problem."}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Understood.","move":"analysis","requests":[{"what":"bean price change over 2 years","item_ids":["bean_price_change"],"explicit":true,"respond":"release"},{"what":"menu price changes over 2 years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"},{"what":"coffee beans share of COGS","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"other input cost changes (dairy, packaging, food) over 2 years","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Looking at the COGS component data, what do you see as the primary driver of the increase?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Got it.","move":"exhibit","requests":[],"exhibit":"exhibit-a","rescue_item":null,"question":"What does this exhibit tell you?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Got it.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Beyond the pricing options we’ve discussed, what other actions could Brew & Bean take to restore profitability?"}
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"","move":"recommendation","requests":[{"what":"COGS or margin by product category","item_ids":[],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Based on our discussion, what recommendation would you make to the client to restore profitability?"}
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Understood.","move":"risk","requests":[],"exhibit":null,"rescue_item":null,"question":"What do you see as the biggest risk to implementing your recommended price increase and procurement changes?"}
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"clarify","requests":[{"what":"scope of analysis","item_ids":[],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Do you have any constraints on the type of analysis you’d like us to focus on, such as cost drivers versus pricing?"}
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"Take your time. The question on the table is to identify why Brew & Bean’s profit margin fell from 24% to 6% despite revenue growth, and to recommend how to reverse it.","move":"clarify","requests":[],"exhibit":null,"rescue_item":null,"question":"Do you have any clarifying questions before you outline your approach?"}
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"Okay.", "move":"clarify", "requests":[],"exhibit":null,"rescue_item":null,"question":"What clarification would help you frame your analysis of the profit decline?"}
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"Understood.","move":"clarify","requests":[],"exhibit":null,"rescue_item":null,"question":"What are the two ways a margin can fall?"}
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"Understood.", "move":"structure", "requests":[],"exhibit":null,"rescue_item":null,"question":"Please outline how you would break down the profit decline – what main buckets and sub‑components would you examine?"}
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"Understood.","move":"structure","requests":[],"exhibit":null,"rescue_item":null,"question":"Please outline the framework you would use to analyse the profit decline."}
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"Okay.","move":"pressure_test","requests":[],"exhibit":null,"rescue_item":null,"question":"Is that framework MECE, or is anything missing?"}
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"Right.", "move":"pressure_test","requests":[],"exhibit":null,"rescue_item":null,"question":"Is that framework MECE, and what might be missing?"}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"pressure_test","requests":[],"exhibit":null,"rescue_item":null,"question":"Is that framework MECE — what, if anything, is missing?"}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Understood.","move":"analysis","requests":[{"what":"coffee bean share of COGS","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"change in other input costs (dairy, packaging, food) over the period","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What does the change in those inputs tell you about the source of the COGS increase?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay.", "move":"analysis","requests":[{"what":"bean price change over 2 years","item_ids":["bean_price_change"],"explicit":true,"respond":"release"},{"what":"coffee beans share of COGS in prior period","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"other input cost changes over 2 years","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":"exhibit-a","rescue_item":null,"question":"Based on those inputs, which component of COGS would you prioritize investigating further and why?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Okay.", "move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Beyond the input cost increases we've identified, what other initiatives could Brew & Bean pursue to restore profitability?"}
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Understood.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"Based on what we've uncovered, what would you recommend to the client to restore profitability, and what do you see as the biggest risk to that recommendation?"}
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Okay.", "move":"recommendation", "requests":[], "exhibit":null, "rescue_item":null, "question":"Based on what we’ve uncovered, what would you recommend to the client to restore profitability?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"Understood.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"Based on your analysis, what would you recommend to Brew & Bean to restore profitability?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"Understood.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"Based on your analysis, what concrete recommendation would you give Brew & Bean to restore its profit margin?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"Understood.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"Based on our discussion, what would you recommend Brew & Bean do to restore its margin, and what do you see as the biggest risk to that recommendation?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"Understood.","move":"risk","requests":[],"exhibit":null,"rescue_item":null,"question":"What do you see as the biggest risk to implementing the price increase you recommend?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"Understood.","move":"risk","requests":[],"exhibit":null,"rescue_item":null,"question":"What do you see as the biggest risk to implementing a 10‑15% price increase across the menu?"}
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Okay.","move":"structure","requests":[],"exhibit":null,"rescue_item":null,"question":"Please outline your framework for diagnosing the profit decline."}
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"Got it.","move":"structure","requests":[{"what":"COGS as % of revenue","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"Labor as % of revenue","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"Overhead / rent as % of revenue","item_ids":["overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Please outline the framework you would use to analyze the profit decline."}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay.","move":"analysis","requests":[{"what":"coffee bean share of COGS","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"other input cost changes","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"},{"what":"menu price changes over the period","item_ids":["menu_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What do those figures suggest about the drivers of the COGS increase?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Got it.","move":"exhibit","requests":[],"exhibit":"exhibit-a","rescue_item":null,"question":"What does this exhibit tell you about the cost drivers?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Got it.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Beyond the cost‐inflation issue we've identified, what other initiatives could the client pursue to improve profitability?"}
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Okay.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"Based on our analysis, what concrete steps would you recommend Brew & Bean take to restore profitability?"}
+P: 49/50 ok · regenerated 0
+  declarations       median 265ms  p90 558ms  p95 850ms  (n 49)
+  first sentence     median 233ms  p90 537ms  p95 840ms  (n 47)
+  first delivered    median 233ms  p90 537ms  p95 840ms  (n 49)
+  whole turn         median 282ms  p90 655ms  p95 1183ms  (n 49)
+  output tokens median 93 · cache read median 3584
+  moves: {"structure":6,"analysis":7,"exhibit":5,"other":1,"brainstorm":7,"recommendation":13,"risk":3,"clarify":4,"pressure_test":3}
+  error: Error: Cerebras 429: {"message":"Requests per minute limit exceeded - too many requests sent.","type":"too_many_requests_error","param":"quota","code":"request_quota_exceeded"}
+actual cost ~$0.08

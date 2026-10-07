@@ -1,0 +1,808 @@
+[
+  {
+    "id": "18-nikhil-the-#2",
+    "ok": true,
+    "firstSentenceMs": 2669,
+    "declarationsMs": 2667,
+    "latencyMs": 2917,
+    "inputTokens": 919,
+    "outputTokens": 432,
+    "cacheRead": 5264,
+    "turn": {
+      "move": "structure",
+      "requests": [
+        {
+          "what": "the full cost breakdown by line item for both years",
+          "itemIds": [
+            "cogs_pct",
+            "labor_pct",
+            "overhead_pct"
+          ],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "COGS as a percent of revenue",
+          "itemIds": [
+            "cogs_pct"
+          ],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "labor costs per store",
+          "itemIds": [
+            "labor_pct"
+          ],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "rent and occupancy costs",
+          "itemIds": [
+            "overhead_pct"
+          ],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "the number of stores two years ago versus today",
+          "itemIds": [
+            "stores_count"
+          ],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "average customer wait time",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "employee turnover rate",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "the revenue mix between drinks, food, and retail beans",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "Before we get into data, lay out your structure: how would you organize this problem, and where would you look first?"
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#4",
+    "ok": true,
+    "firstSentenceMs": 4153,
+    "declarationsMs": 4153,
+    "latencyMs": 4762,
+    "inputTokens": 1513,
+    "outputTokens": 650,
+    "cacheRead": 5264,
+    "turn": {
+      "move": "pressure_test",
+      "requests": [
+        {
+          "what": "the full cost breakdown by line item for both years",
+          "itemIds": [
+            "cogs_pct",
+            "labor_pct",
+            "overhead_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "COGS as a percent of revenue",
+          "itemIds": [
+            "cogs_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "labor costs per store",
+          "itemIds": [
+            "labor_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "rent and occupancy costs",
+          "itemIds": [
+            "overhead_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "the number of stores two years ago versus today",
+          "itemIds": [
+            "stores_count"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "average ticket size by year",
+          "itemIds": [
+            "avg_ticket"
+          ],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "transactions per store per day",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "coffee bean commodity prices over the two years",
+          "itemIds": [
+            "bean_price_change"
+          ],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "menu price changes by year",
+          "itemIds": [
+            "menu_price_change"
+          ],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "wage rates per hour by market",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "marketing spend",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "same-store sales growth",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "capex on new store openings",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "defer"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "Your structure splits revenue into volume and price, and costs into fixed versus variable. Is that MECE, and which branch would you prioritize first, and why?"
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#6",
+    "ok": true,
+    "firstSentenceMs": 3496,
+    "declarationsMs": 3496,
+    "latencyMs": 4010,
+    "inputTokens": 1995,
+    "outputTokens": 632,
+    "cacheRead": 5264,
+    "turn": {
+      "move": "pressure_test",
+      "requests": [
+        {
+          "what": "gross margin by year",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "EBITDA by year",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "a store-level P&L for a typical location",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "number of employees per store",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "delivery and third-party app fees",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "packaging and cup costs",
+          "itemIds": [
+            "non_bean_input_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "utilities per store",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "the franchise versus company-owned split",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "a split of the single largest cost line into its components",
+          "itemIds": [
+            "bean_share_of_cogs"
+          ],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "COGS as a percent of revenue",
+          "itemIds": [
+            "cogs_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "labor as a percent of revenue",
+          "itemIds": [
+            "labor_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "overhead and rent as a percent of revenue",
+          "itemIds": [
+            "overhead_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "number of stores two years ago versus today",
+          "itemIds": [
+            "stores_count"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "You've said you'd let the data point you rather than guess, but if you had to commit to a first hypothesis for where the margin went, which branch would you test first, and why?"
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#8",
+    "ok": true,
+    "firstSentenceMs": 3002,
+    "declarationsMs": 2939,
+    "latencyMs": 3366,
+    "inputTokens": 2597,
+    "outputTokens": 472,
+    "cacheRead": 5264,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "the COGS split into beans, dairy, food, and packaging",
+          "itemIds": [
+            "bean_share_of_cogs",
+            "non_bean_input_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "bean cost per pound by year",
+          "itemIds": [
+            "bean_price_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "dairy cost per gallon by year",
+          "itemIds": [
+            "non_bean_input_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "waste and spoilage rate",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "supplier contract terms and hedges",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "menu price changes by year",
+          "itemIds": [
+            "menu_price_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "average ticket by year",
+          "itemIds": [
+            "avg_ticket"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "units sold by year",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "the number of stores two years ago versus today",
+          "itemIds": [
+            "stores_count"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "You said COGS moved 16 points of the 18. Walk me through how you got that figure."
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#10",
+    "ok": true,
+    "firstSentenceMs": 3721,
+    "declarationsMs": 3719,
+    "latencyMs": 4092,
+    "inputTokens": 2966,
+    "outputTokens": 428,
+    "cacheRead": 5264,
+    "turn": {
+      "move": "exhibit",
+      "requests": [
+        {
+          "what": "menu price changes by year",
+          "itemIds": [
+            "menu_price_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "average ticket by year",
+          "itemIds": [
+            "avg_ticket"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "revenue in absolute dollars for both years",
+          "itemIds": [
+            "revenue_total"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "store count both years",
+          "itemIds": [
+            "stores_count"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "beans as a percent of COGS today",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "dairy as a share of COGS",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "cost per cup",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "price increases tried and customer response",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": "exhibit-a",
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "Take a look at this exhibit on the cost structure over time. What does it tell you, and what would you want to dig into next?"
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#12",
+    "ok": true,
+    "firstSentenceMs": 2805,
+    "declarationsMs": 2805,
+    "latencyMs": 3596,
+    "inputTokens": 3383,
+    "outputTokens": 385,
+    "cacheRead": 5264,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "revenue in absolute dollars for both years",
+          "itemIds": [
+            "revenue_total"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "competitor pricing",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "price elasticity estimates",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "customer loyalty data",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "regional cost variation",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "2024 bean futures",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "vendor concentration",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "private-label options",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "Your weighted calculation starts from beans being a quarter of COGS and rising 40%. Walk me through how that translates into points of revenue, and into the margin."
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#14",
+    "ok": true,
+    "firstSentenceMs": 2425,
+    "declarationsMs": 2425,
+    "latencyMs": 2777,
+    "inputTokens": 3550,
+    "outputTokens": 365,
+    "cacheRead": 5264,
+    "turn": {
+      "move": "brainstorm",
+      "requests": [
+        {
+          "what": "items per transaction both years",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "transaction count",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "revenue two years ago",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "gross profit dollars",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "store-level breakeven",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "discount and promo spend",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "loyalty program economics",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "menu engineering data",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "Beyond what we've discussed, what else could the client do to address this?"
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#16",
+    "ok": true,
+    "firstSentenceMs": 3438,
+    "declarationsMs": 3438,
+    "latencyMs": 3957,
+    "inputTokens": 4066,
+    "outputTokens": 357,
+    "cacheRead": 5264,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "current COGS dollars",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "an overhead breakdown",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "waste rate",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "item-level margins",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "supplier contract lengths",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "brand premium data",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "peer margin benchmarks",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "pilot test capability",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay. You described the overhead creep as worth $9.6M on $480M.",
+      "question": "Walk me through how you got that figure."
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#18",
+    "ok": true,
+    "firstSentenceMs": 2822,
+    "declarationsMs": 2822,
+    "latencyMs": 3563,
+    "inputTokens": 4335,
+    "outputTokens": 358,
+    "cacheRead": 5264,
+    "turn": {
+      "move": "recommendation",
+      "requests": [
+        {
+          "what": "what's inside overhead, corporate versus store-level",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "corporate headcount",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "tech or systems spend",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "new initiatives launched in the last two years",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "G&A per store",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "rent escalators",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "insurance costs",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "D&A",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "Say the CEO walks in now and asks for your recommendation. What do you tell them?"
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#20",
+    "ok": true,
+    "firstSentenceMs": 1568,
+    "declarationsMs": 1568,
+    "latencyMs": 2186,
+    "inputTokens": 5064,
+    "outputTokens": 120,
+    "cacheRead": 5264,
+    "turn": {
+      "move": "risk",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "You named elasticity as a risk and proposed a pilot. If the pilot shows transactions falling enough that a price increase alone doesn't close the gap, what would you do, and what is the biggest risk to your overall recommendation?"
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#22",
+    "ok": true,
+    "firstSentenceMs": 2237,
+    "declarationsMs": 1770,
+    "latencyMs": 2573,
+    "inputTokens": 5188,
+    "outputTokens": 250,
+    "cacheRead": 5264,
+    "turn": {
+      "move": "risk",
+      "requests": [
+        {
+          "what": "historical response to prior price moves",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "competitor price points",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "transaction counts by store",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "regional demographics",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Before we go on, I need to retract my last turn: the figures I gave there were mine, not case data, so please disregard them.",
+      "question": "You said the breakeven is roughly 10% volume loss. Walk me through that calculation step by step."
+    },
+    "retried": false
+  }
+]

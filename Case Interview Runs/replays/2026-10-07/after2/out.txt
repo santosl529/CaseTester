@@ -1,0 +1,111 @@
+180 reconstructable turns · sampling 50 · est cost ~$0.43
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Okay, revenue, costs and external factors.","move":"pressure_test","requests":[],"exhibit":null,"rescue_item":null,"question":"Is that MECE, and which of those three would you prioritize first, and why?"}
+[interviewer] phase: INTRO
+[interviewer] phase: CLARIFY
+[interviewer] phase: ANALYSIS
+[interviewer] phase: EXHIBIT
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay.","move":"exhibit","requests":[{"what":"the cost structure breakdown over time","item_ids":["exhibit-a"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Take a look at it and tell me what you see, and where you'd dig first."}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay, revenue, costs and external factors.","move":"pressure_test","requests":[],"exhibit":null,"rescue_item":null,"question":"Before we go further: is that structure MECE, and which of those branches would you prioritize first, and why?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay.","move":"exhibit","requests":[],"exhibit":null,"rescue_item":null,"question":"Look at the exhibit on your screen. Check how each cost line is labeled, then tell me what it shows and where you'd focus."}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay.","move":"analysis","requests":[{"what":"menu price changes and average transaction value","item_ids":["menu_price_change","avg_ticket"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"With that in hand, what does it tell you about where the margin problem sits, and what would you look at next?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay.","move":"pressure_test","requests":[{"what":"the number of stores, current and prior period","item_ids":["stores_count"],"explicit":true,"respond":"defer"},{"what":"average revenue per store","item_ids":["revenue_per_store"],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"That's a fair question, but I'd like your approach on the table first. Within revenue and costs, what would you break down, and which branch would you look at first?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Okay.","move":"exhibit","requests":[],"exhibit":null,"rescue_item":null,"question":"Start with the exhibit on your screen: which cost line moved the most over the two years, and by how many points of revenue?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Okay.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"You said COGS went from 42 to 58 and called that a 16% increase. Sixteen of what, exactly? And once you've settled that, what would you want to understand inside COGS?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Take your time.","move":"exhibit","requests":[],"exhibit":null,"rescue_item":null,"question":"The question on the table: looking at the cost structure exhibit, which cost line has changed the most over the two years, and what does that tell you about where the margin went?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"That's okay. Start with the exhibit on your screen and what moved between the two periods.","move":"exhibit","requests":[],"exhibit":null,"rescue_item":null,"question":"Looking at the cost lines, which one changed the most, and by how much?"}
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Okay. No need to apologize.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"Back to the numbers: 42 to 58 is a 16-point move in COGS as a share of revenue, and a different thing from a 16% increase in COGS. Which of those two is the right way to say what happened to margin here, and why?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"Okay.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"Pulling it together: if you were presenting to the CEO now, what would you recommend, and why?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"I won't grade it, and you'll get a full written report afterward. Your read that the other inputs matter more because they were the larger share is a sound line of reasoning.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Setting the 16 aside for now, beyond what we've discussed, what else could Brew & Bean do to reverse the margin decline?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"Okay.","move":"analysis","requests":[{"what":"the COGS split by line item","item_ids":["bean_share_of_cogs","non_bean_input_change","bean_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"On your 16% versus 16 points: if COGS were 42 and became 58, is it a 16% increase, or something else? What base are you measuring against?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"Okay.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Beyond what we've discussed, what else could Brew & Bean do to address this margin decline? Take a minute and give me as many ideas as you can."}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"That's fine.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"Let's make it concrete: the client's CEO asks what to do first. From what you found, input costs grew much faster than revenue, and prices haven't changed. What's your recommendation, and what's the main reason behind it?"}
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Okay.","move":"risk","requests":[],"exhibit":null,"rescue_item":null,"question":"If you were presenting this to the CEO now, what would you recommend she do about the margin decline, and what's the one risk you'd flag to her?"}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"Forget certainty for a moment. Of the three ideas you gave, which one do you think moves margin the most, and what's your reason, even if it's a guess?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"Suppose the CEO asks what to do first. Using what you found about the cost increase, which one lever would you pull, and what's your reasoning?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say": "Okay.", "move": "risk", "requests": [], "exhibit": null, "rescue_item": null, "question": "If Brew & Bean raised prices, what's the biggest risk to that working, and how would you check it?"}
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Okay, three buckets and a cost-first starting point.","move":"pressure_test","requests":[{"what":"the cost breakdown as a percent of revenue for both years","item_ids":[],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Before we pull data: is that structure MECE, and what's missing? Your second bucket splits costs by fixed versus variable, while your first and third mix revenue and external factors."}
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say": "Okay, COGS as the main driver.", "move": "analysis", "requests": [{"what": "the COGS breakdown by component", "item_ids": ["bean_share_of_cogs", "non_bean_input_change"], "explicit": true, "respond": "release"}, {"what": "menu price changes over the period", "item_ids": ["menu_price_change"], "explicit": true, "respond": "release"}], "exhibit": null, "rescue_item": null, "question": "Once you've looked at those, what does it tell you about the root cause, and what would you check next?"}
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Understood. I don't have competitor pricing or elasticity data, so work with what we've established.","move":"brainstorm","requests":[{"what":"competitor pricing over the same period","item_ids":[],"explicit":true,"respond":"release"},{"what":"price elasticity or past price test results","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Beyond a price increase, what else could Brew & Bean do to close the gap? Give me as many ideas as you can, across different parts of the business."}
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"Okay.","move":"analysis","requests":[{"what":"coffee bean price change over two years","item_ids":["bean_price_change"],"explicit":false,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"You asked whether the 37.5% is per unit or total dollars, and that's your call to make from here. How would you pin that down, and does your read that beans and everything else rose at the same rate hold up against that figure?"}
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"Okay, a staged price increase with procurement reform.","move":"risk","requests":[],"exhibit":null,"rescue_item":null,"question":"What do you see as the single biggest risk to this recommendation, and how would you mitigate it?"}
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"Margin by product category isn't something I have. Let's bring it together.","move":"recommendation","requests":[{"what":"COGS or margin by product category","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"The CEO asks what you'd do. What is your recommendation, and how would you sequence the levers?"}
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"No, not a guess.","move":"structure","requests":[],"exhibit":null,"rescue_item":null,"question":"Take a minute if you need it, then walk me through how you would structure the problem to find the root cause of the margin decline: what areas would you look at, and in what order?"}
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"Take your time.","move":"structure","requests":[],"exhibit":null,"rescue_item":null,"question":"The question on the table is how you would break down this profit decline to find its root cause. What are the main areas you would want to look at, and in what order?"}
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"Okay, revenue and costs.","move":"structure","requests":[],"exhibit":null,"rescue_item":null,"question":"Given that revenue grew over this period while the margin fell, what would that tell you about where to focus, and how would you break that part of the problem down further?"}
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"No need to apologize. I won't point you to an area, but I can narrow the question.","move":"structure","requests":[],"exhibit":null,"rescue_item":null,"question":"Profit is the result of two things for any business. What are they, and how might you use them to organize your approach here?"}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay, ingredients and supplies, staff, and occupancy and overhead.","move":"structure","requests":[],"exhibit":null,"rescue_item":null,"question":"Before we pull any numbers, how would you organize those into a structure for finding which cost drove the margin decline? Take a minute if you need it."}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay, costs first.","move":"structure","requests":[],"exhibit":null,"rescue_item":null,"question":"For a coffee chain, what are the main buckets of cost you'd expect to see, and which of them do you think could grow faster than revenue?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay, three cost buckets.","move":"pressure_test","requests":[],"exhibit":null,"rescue_item":null,"question":"You said you'd look at people first because baristas probably cost the most. Is that a reason to start there, or a guess? And looking at your three buckets plus revenue, is anything missing?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Okay, a cost breakdown by bucket.","move":"analysis","requests":[{"what":"the cost breakdown by bucket","item_ids":["cogs_pct","labor_pct","overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Looking at those, which bucket do you focus on first, and what would you want to know next about it?"}
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Okay, so COGS is where the margin moved.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"You sized the gap at about $77M. Is that the margin problem, or does it include cost that simply grew with revenue? Walk me through it."}
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Okay, the 16 points and the 18-point decline reconcile with what you were given.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"COGS is the driver. What are the possible reasons it jumped so far as a share of revenue, and which would you test first?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"Okay, a COGS breakdown and bean prices.","move":"analysis","requests":[{"what":"the COGS breakdown by input, with coffee beans as a share of COGS","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"the change in coffee bean prices","item_ids":["bean_price_change"],"explicit":true,"respond":"release"},{"what":"other input cost changes such as dairy and packaging","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Given those figures, what do they tell you about whether input prices alone explain the rise in COGS?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"Okay, so input costs rose broadly and you're asking about pricing.","move":"analysis","requests":[{"what":"menu price changes over two years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Given that, what does it tell you about where the root cause sits, and what else would you want to check before settling on it?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"Okay. Competitor pricing isn't something I have for this case.","move":"recommendation","requests":[{"what":"competitor pricing","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"You've sized the gap and floated a phased price increase. Pull it together for the CEO: what do you recommend, and what's the biggest risk to it?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"Okay.","move":"analysis","requests":[{"what":"store count, now and two years ago","item_ids":["stores_count"],"explicit":true,"respond":"release"},{"what":"average ticket, now and two years ago","item_ids":["avg_ticket"],"explicit":true,"respond":"release"},{"what":"transactions per store","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Given that, what do you make of where the 15% revenue growth came from, and how does it change your view of the profit problem?"}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"Okay.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"We're running short on time. Pull it together for the CEO: what do you recommend, and why?"}
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Okay. You've said part of the hit may be mix on top of inflation, and that's a hypothesis I haven't seen evidence for yet.","move":"exhibit","requests":[{"what":"the cost structure exhibit","item_ids":["exhibit-a"],"explicit":false,"respond":"release"}],"exhibit":"exhibit-a","rescue_item":null,"question":"Take a look at this exhibit. What does it tell you about how the cost structure has changed, and does it support or challenge what you just said?"}
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"Okay.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"The CEO walks in now and asks for your recommendation. What do you tell them, and what would you have them do first?"}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay.","move":"risk","requests":[],"exhibit":null,"rescue_item":null,"question":"You named demand as a risk. Of everything that could go wrong with this plan, which is the biggest, and how would you know early if it were happening?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay, a revenue, cost and external split.","move":"pressure_test","requests":[{"what":"the cost breakdown as a percentage of revenue for both years","item_ids":["cogs_pct","labor_pct","overhead_pct"],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Before we get into data, is that structure MECE, and what's missing from it?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Okay.","move":"other","requests":[],"exhibit":null,"rescue_item":null,"question":"One last check on your volume caveat: with prices rising and ticket growth coming from extra items per visit, what would you watch in the first test stores to know if the price increase is hurting demand?"}
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say": "Okay.", "move": "analysis", "requests": [{"what": "the cost breakdown as a percentage of revenue for both years", "item_ids": ["cogs_pct", "labor_pct", "overhead_pct"], "explicit": true, "respond": "release"}, {"what": "store count for both years", "item_ids": ["stores_count"], "explicit": true, "respond": "release"}], "exhibit": null, "rescue_item": null, "question": "Looking at that data, what does it tell you, and where would you dig next?"}
+[interviewer-model] raw response: {"say":"Okay, COGS as the focus, with a split and price history.","move":"analysis","requests":[{"what":"the COGS breakdown, with coffee beans as a share of COGS","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"menu price changes over the two years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"With those in hand, what would you compute next to separate a price effect on inputs from a volume or waste effect?"}
+[interviewer-model] raw response: {"say":"Okay.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"You said the old 42% scales by the inflation and lands on 58%. Points of what, though: if volume is up 15%, does COGS as a share of revenue scale by the input inflation alone, or is something else in that conversion? Walk me through it."}
+[interviewer-model] raw response: {"say":"Take a moment.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Think about what you found: costs rose, prices didn't. Across the whole business, what are the different kinds of levers the client could pull, even rough ideas?"}
+[interviewer-model] raw response: {"say":"Okay, that holds.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Beyond what we've discussed, what else could Brew & Bean do about this?"}
+P: 50/50 ok · regenerated 0
+  declarations       median 1457ms  p90 2097ms  p95 2105ms  (n 50)
+  first sentence     median 1276ms  p90 1656ms  p95 1736ms  (n 50)
+  first delivered    median 1276ms  p90 1656ms  p95 1736ms  (n 50)
+  whole turn         median 2268ms  p90 3022ms  p95 3292ms  (n 50)
+  output tokens median 106 · cache read median 4264
+  moves: {"pressure_test":5,"analysis":15,"exhibit":6,"brainstorm":5,"recommendation":8,"risk":4,"structure":6,"other":1}
+actual cost ~$0.30

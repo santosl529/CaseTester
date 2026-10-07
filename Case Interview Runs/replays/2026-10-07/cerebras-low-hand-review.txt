@@ -1,0 +1,348 @@
+### 01-maya-the-fr#5 [batch-7-oct-03]  revealed=0
+  CAND: Can I ask — is the 15% revenue growth from more stores, or more sales per store?
+  SONNET(logged): 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. Average revenue per store is $2.4M a year.
+  CER say: 'Got it.' | move: structure | ex: None | rescue: None
+     req: total annual revenue ['revenue_total'] explicit release
+     req: store count for current and prior period ['stores_count'] explicit release
+     req: average revenue per store ['revenue_per_store'] explicit release
+  CER question: Please outline your analytical framework for tackling this case.
+### 01-maya-the-fr#7 [batch-7-oct-03]  revealed=2
+  CAND: Got it, thanks. Is that growth coming from price increases or more customers?
+  SONNET(logged): Menu prices have not changed in two years. The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit.
+  CER say: 'Got it.' | move: analysis | ex: None | rescue: None
+     req: average transaction value ['avg_ticket'] explicit release
+     req: total annual revenue ['revenue_total'] passing release
+  CER question: Which driver would you prioritize investigating first, price or volume, and why?
+### 01-maya-the-fr#9 [batch-7-oct-03]  revealed=4
+  CAND: Okay. And on the cost side — do we have a breakdown of their cost structure?
+  SONNET(logged): Take a look at this and tell me what you see.
+  CER say: 'Understood.' | move: analysis | ex: None | rescue: None
+     req: COGS % of revenue ['cogs_pct'] explicit release
+     req: Labor % of revenue ['labor_pct'] explicit release
+     req: Overhead % of revenue ['overhead_pct'] explicit release
+  CER question: What do those percentages tell you about the profit decline?
+### 01-maya-the-fr#11 [batch-7-oct-03]  revealed=7
+  CAND: Sorry, one more — are those numbers percentages of revenue, or dollars?
+  SONNET(logged): Percentages of revenue. Before we wrap, on what you asked about earlier: Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.
+  CER say: 'Got it.' | move: exhibit | ex: None | rescue: None
+     req: COGS breakdown: coffee beans as a share of COGS ['bean_share_of_cogs'] explicit release
+     req: COGS breakdown: other input cost changes ['non_bean_input_change'] explicit release
+  CER question: Looking at the cost structure exhibit, what insights do you draw from it?
+### 01-maya-the-fr#13 [batch-7-oct-03]  revealed=9
+  CAND: hmm, I'm not sure what to do with that.
+  SONNET(logged): I haven't put an exhibit in front of you yet, so let me do that now.
+  CER say: 'Got it.' | move: exhibit | ex: None | rescue: None
+  CER question: What does Exhibit‑A tell you about the drivers of the margin decline?
+### 01-maya-the-fr#15 [batch-7-oct-03]  revealed=9
+  CAND: I'm stuck, sorry.
+  SONNET(logged): Take your time. The question on the table is what the cost structure is telling you about why margin fell.
+  CER say: 'Take your time. The question on the table is to identify the root cause of the profit decline and recommend how to reverse it.' | move: other | ex: None | rescue: None
+  CER question: What’s your next step?
+### 01-maya-the-fr#17 [batch-7-oct-03]  revealed=9
+  CAND: I don't really know where to start, sorry.
+  SONNET(logged): I'll put the exhibit in front of you now. Tell me which cost lines moved the most between the two periods.
+  CER say: 'Okay.' | move: exhibit | ex: None | rescue: None
+  CER question: Looking at the cost‑structure exhibit, what insights do you draw about the drivers of the margin decline?
+### 01-maya-the-fr#19 [batch-7-oct-03]  revealed=9
+  CAND: Okay — COGS moved the most, 42 to 58. That's a 16% increase. Labor stayed flat at 22, and overhead only went 12 to 14, so 2 points. So basically all of the margin loss, 24 down to 6, is 18 points, and COGS accounts for 16 of that. So it's really a COGS story. Am I on the right track here?
+  SONNET(logged): I won't say whether you're on track. You called the COGS move a 16% increase, but then counted it as 16 of the 18 points. Points of what, and what's the difference between those two framings?
+  CER say: 'Understood.' | move: analysis | ex: None | rescue: None
+     req: coffee bean price change over the period ['bean_price_change'] explicit release
+     req: total annual revenue ['revenue_total'] passing defer
+  CER question: What part of the COGS increase is due to coffee bean price changes versus other input cost increases?
+### 01-maya-the-fr#23 [batch-7-oct-03]  revealed=9
+  CAND: I'm okay, really — I'd rather keep going. Sorry about that.
+  SONNET(logged): No apology needed. You said COGS went from 42 to 58 of revenue, and that you counted it as 16 of the 18 points of margin loss. What do you think is driving COGS up?
+  CER say: 'Understood.' | move: brainstorm | ex: None | rescue: None
+  CER question: Beyond the cost drivers we’ve identified, what other initiatives could Brew & Bean pursue to improve profitability?
+### 01-maya-the-fr#25 [batch-7-oct-03]  revealed=9
+  CAND: Probably input costs. Do we have a split of COGS by line item — like beans versus dairy versus packaging?  The 42 to 58 is still a 16% increase to me, that's the big driver.
+  SONNET(logged): Raw coffee bean costs are up 40% over the past two years. On the 16 you keep returning to: it's 16 points of revenue, not a 16 percent increase. What do you make of the bean price change next to the other input costs?
+  CER say: 'Understood.' | move: brainstorm | ex: None | rescue: None
+  CER question: Beyond the cost drivers we've identified, what other actions could Brew & Bean pursue to restore profitability?
+### 01-maya-the-fr#27 [batch-7-oct-03]  revealed=10
+  CAND: Beans up 40%, and they were 25% of COGS two years ago. So that's part of it, but the other inputs are 75% of COGS and up 37.5%, so those matter more in dollar terms.  But yeah, I still read the 42 to 58 as a 16% increase, that feels like the main thing.  Am I on the right track at all?
+  SONNET(logged): I don't grade mid-case, so you'll get that in the written report. Your bean and non-bean split makes sense to me as a structure. Per 100 of COGS two years ago, what do beans and the other inputs each add today, and what does that imply for total COGS growth?
+  CER say: 'Understood.' | move: brainstorm | ex: None | rescue: None
+  CER question: Beyond the cost drivers we’ve discussed, what other initiatives could Brew & Bean pursue to improve profitability?
+### 01-maya-the-fr#29 [batch-7-oct-03]  revealed=10
+  CAND: Okay. Per 100 of COGS two years ago: beans were 25, up 40%, so 25 × 1.4 = 35. Other inputs were 75, up 37.5%, so 75 × 1.375 = 103.1. Total is 138.1, so COGS is up about 38% in dollar terms.  And revenue is up 15%, so costs are growing way faster than sales. That tracks with COGS going 42 to 58 of revenue.
+  SONNET(logged): Okay. Now I'd like to hear ideas from you: beyond what we've discussed, what else could Brew & Bean do to address this?
+  CER say: '' | move: brainstorm | ex: None | rescue: None
+  CER question: Beyond the cost drivers we’ve discussed, what other initiatives could Brew & Bean pursue to improve profitability?
+### 01-maya-the-fr#31 [batch-7-oct-03]  revealed=10
+  CAND: Umm. Maybe raise prices, since they haven't changed in two years? Or renegotiate supplier contracts, maybe lock in longer-term bean pricing. Possibly change the menu mix toward items with cheaper inputs.  I'm not sure beyond that, sorry.
+  SONNET(logged): Okay. Of those ideas, which would you prioritize, and why?
+  CER say: 'Understood.' | move: recommendation | ex: None | rescue: None
+  CER question: Based on your analysis, what would you recommend Brew & Bean do to restore profitability?
+### 01-maya-the-fr#33 [batch-7-oct-03]  revealed=10
+  CAND: I don't know, sorry. I can't really pick between them.
+  SONNET(logged): Take a minute if you need it. You've told me the cost pressure is across beans and the other inputs, and that prices haven't moved in two years. Given that, which one lever would you lead with?
+  CER say: 'Understood.' | move: recommendation | ex: None | rescue: None
+  CER question: Based on our discussion, what specific recommendation would you give Brew & Bean to improve its margin?
+### 01-maya-the-fr#36 [batch-7-oct-03]  revealed=10
+  CAND: I'm sorry, I really don't know.
+  SONNET(logged): Let's try it from the other side. If the CEO asked you for one action to take first, which of your three ideas would you want to defend to her, even if you're not certain?
+  CER say: 'Okay.' | move: recommendation | ex: None | rescue: None
+  CER question: Based on our discussion, what would you recommend Brew & Bean do to restore profitability?
+### 01-maya-the-fr#38 [batch-7-oct-03]  revealed=10
+  CAND: I'm sorry — I don't know.
+  SONNET(logged): That's okay. Pick the idea you'd be least uncomfortable defending, and tell me one reason it would help margin.
+  CER say: 'Understood.' | move: recommendation | ex: None | rescue: None
+  CER question: Based on our discussion, what would you recommend Brew & Bean do to improve margins?
+### 01-maya-the-fr#40 [batch-7-oct-03]  revealed=10
+  CAND: Prices, maybe. Since they haven't changed in two years and costs are up.  But I don't really know, sorry.
+  SONNET(logged): Okay. Walk me through how a price increase would affect margin, and what could go wrong with it.
+  CER say: 'Understood.' | move: recommendation | ex: None | rescue: None
+  CER question: Based on our discussion, what recommendation would you give Brew & Bean to improve its margin?
+### 01-maya-the-fr#42 [batch-7-oct-03]  revealed=10
+  CAND: If prices go up, revenue per transaction rises and COGS stays the same in dollars, so margin improves. Like if costs are 58 of revenue now, a higher price makes that percentage smaller.  What could go wrong is customers buy less, or go to competitors. Volume could drop enough to offset the price gain.  That's all I've got, sorry.
+  SONNET(logged): That's time. Thanks for working through it — your written report will follow.
+  CER say: 'Understood.' | move: recommendation | ex: None | rescue: None
+  CER question: Based on our discussion, what specific recommendation would you give to Brew & Bean to improve margin, and how would you prioritize its implementation?
+### 02-tobias-the-#3 [batch-7-oct-03]  revealed=0
+  CAND: Since revenue is actually up 15% while margin collapsed from 24% to 6%, the decline has to be driven by costs growing faster than revenue, so I'd weight my structure there — but I want to confirm the revenue side first so we don't miss a mix issue.  Three buckets:  First, revenue quality. Is the 15% growth coming from new store openings, same-store traffic, or price? Growth fro
+  SONNET(logged): Before I do, one question on your structure: is it MECE, and what, if anything, is missing? COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%.
+  CER say: 'Okay.' | move: structure | ex: None | rescue: None
+  CER question: Please outline the framework you would use to tackle this problem.
+### 02-tobias-the-#6 [batch-7-oct-03]  revealed=3
+  CAND: On MECE — the first two buckets are clean, but my third bucket overlaps: commodity prices and wages are causes of the cost lines, not a separate category. I'd restructure it as revenue versus cost, and treat external factors as drivers underneath each rather than a parallel branch. What's missing is store-level versus corporate-level — a problem concentrated in new stores looks
+  SONNET(logged): The 16 points of COGS over 18 points of margin decline checks out. Both of your requests are things I can give you, so here they are. Coffee beans were 25% of COGS two years ago. Menu prices have not changed in two years. You asked about that — Other input cos
+  CER say: 'Understood.' | move: analysis | ex: None | rescue: None
+     req: bean price change over 2 years ['bean_price_change'] explicit release
+     req: menu price changes over 2 years ['menu_price_change'] explicit release
+     req: coffee beans share of COGS ['bean_share_of_cogs'] explicit release
+     req: other input cost changes (dairy, packaging, food) over 2 years ['non_bean_input_change'] explicit release
+  CER question: Looking at the COGS component data, what do you see as the primary driver of the increase?
+### 02-tobias-the-#9 [batch-7-oct-03]  revealed=6
+  CAND: Let me size it. Two years ago COGS was 42% of revenue: beans at 25% of that is 10.5 points, other inputs 31.5 points.  If that 37.5% increase is per-unit, other inputs go to 31.5 × 1.375 = 43.3 points of revenue. Today's COGS is 58, so beans are 58 − 43.3 = 14.7 points, up from 10.5 — a 40% increase. So beans and everything else rose at roughly the same rate. This isn't a coffe
+  SONNET(logged): The 37.5% is the change in other input costs as I have it; I don't have a per-unit versus total-dollar split. Let me give you the other data point you'd want on beans. Raw coffee bean costs are up 40% over the past two years.
+  CER say: 'Got it.' | move: exhibit | ex: exhibit-a | rescue: None
+  CER question: What does this exhibit tell you?
+### 02-tobias-the-#12 [batch-7-oct-03]  revealed=7
+  CAND: Good — that 40% matches what I backed into, which gives me confidence the decomposition is right. Beans went from 10.5 to roughly 14.7 points of revenue, and everything else moved at a similar rate. So it's broad commodity and input inflation, not a single bad supplier contract.  Let me size the fix. To get back to 24% margin I need to recover 18 points. If I hold volume and ra
+  SONNET(logged): The price-increase math holds together. Competitor pricing and elasticity testing aren't in the information I have. Setting the price lever aside for a moment, beyond what we've discussed, what else could Brew & Bean do to reverse the margin decline?
+  CER say: 'Got it.' | move: brainstorm | ex: None | rescue: None
+  CER question: Beyond the pricing options we’ve discussed, what other actions could Brew & Bean take to restore profitability?
+### 02-tobias-the-#14 [batch-7-oct-03]  revealed=7
+  CAND: Without competitor or elasticity data I'll assume specialty coffee has moderate pricing power, so price is part of the answer but not all 24 points. Other levers, roughly in order of impact:  Procurement. Beans are ~15 points of revenue. With 200 locations there's scale to consolidate suppliers, sign longer fixed-price contracts, or hedge green coffee futures — even a 10% reduc
+  SONNET(logged): That breakdown by product category isn't in the information I have. Given everything you've worked through, what's your recommendation to the CEO?
+  CER say: '' | move: recommendation | ex: None | rescue: None
+     req: COGS or margin by product category [] explicit defer
+  CER question: Based on our discussion, what recommendation would you make to the client to restore profitability?
+### 02-tobias-the-#16 [batch-7-oct-03]  revealed=7
+  CAND: My recommendation: Brew & Bean's margin problem is almost entirely an input-cost pass-through failure, and the fix is a staged price increase paired with procurement reform — not a cost-cutting program.  Three supports. First, COGS explains roughly 89% of the 18-point decline; labor is flat and overhead moved only 2 points. Second, within COGS, beans rose 40% and other inputs a
+  SONNET(logged): We'll stop there. Thanks for working through the case — your written report will follow.
+  CER say: 'Understood.' | move: risk | ex: None | rescue: None
+  CER question: What do you see as the biggest risk to implementing your recommended price increase and procurement changes?
+### 06-destiny-the#2 [batch-7-oct-03]  revealed=0
+  CAND: I'm not sure what you mean — do you want me to guess why profits went down?
+  SONNET(logged): No guessing. I'd like you to lay out how you would structure the problem to find the root cause. You can ask me clarifying questions first, or take a minute and then walk me through your approach.
+  CER say: 'Mm-hm.' | move: clarify | ex: None | rescue: None
+     req: scope of analysis [] explicit defer
+  CER question: Do you have any constraints on the type of analysis you’d like us to focus on, such as cost drivers versus pricing?
+### 06-destiny-the#4 [batch-7-oct-03]  revealed=0
+  CAND: hmm, I'm not sure. I don't really know where to start.
+  SONNET(logged): Take your time. The question on the table is how you would break down this profit decline to find its root cause, and you're welcome to ask me any clarifying questions first.
+  CER say: 'Take your time. The question on the table is to identify why Brew\u202f&\u202fBean’s profit margin fell from 24% to 6% despite revenue growth, and to recommend how to reverse it.' | move: clarify | ex: None | rescue: None
+  CER question: Do you have any clarifying questions before you outline your approach?
+### 06-destiny-the#6 [batch-7-oct-03]  revealed=0
+  CAND: I'm stuck, sorry. Can you point me at where to look?
+  SONNET(logged): No need to apologize, but I can't hand you the structure. Start with something simple: profit is the result of what two things, and how might you split the problem using that?
+  CER say: 'Okay.' | move: clarify | ex: None | rescue: None
+  CER question: What clarification would help you frame your analysis of the profit decline?
+### 06-destiny-the#8 [batch-7-oct-03]  revealed=0
+  CAND: revenue and costs, I guess? but I'm not sure what to do with that.
+  SONNET(logged): That's a starting point. I can share the data on that if it would help. I can't share those figures at this stage. Revenue grew while margin fell, so which of those two would you look at first, and what would you want to know about it?
+  CER say: 'Understood.' | move: clarify | ex: None | rescue: None
+  CER question: What are the two ways a margin can fall?
+### 06-destiny-the#10 [batch-7-oct-03]  revealed=0
+  CAND: costs, probably, since revenue went up. but I don't know what to ask about them.
+  SONNET(logged): Okay, costs it is. Picking up what you asked about before: Total revenue is $480M a year. If you were the CFO of a coffee shop, what are the main things you'd spend money on to run it?
+  CER say: 'Understood.' | move: structure | ex: None | rescue: None
+  CER question: Please outline how you would break down the profit decline – what main buckets and sub‑components would you examine?
+### 06-destiny-the#12 [batch-7-oct-03]  revealed=1
+  CAND: coffee beans and milk, cups, paying baristas, rent for the stores, utilities, maybe marketing.
+  SONNET(logged): Okay. Now take that list and group it into a few buckets, then tell me which bucket you'd want to look at first and why.
+  CER say: 'Understood.' | move: structure | ex: None | rescue: None
+  CER question: Please outline the framework you would use to analyse the profit decline.
+### 06-destiny-the#14 [batch-7-oct-03]  revealed=1
+  CAND: maybe ingredients, people, and the store stuff like rent? I'd look at people first, I think baristas probably cost the most.
+  SONNET(logged): That's a structure: ingredients, people, and store costs. You've said baristas probably cost the most, but nothing so far supports that. What would you want to see to decide which bucket to prioritize?
+  CER say: 'Okay.' | move: pressure_test | ex: None | rescue: None
+  CER question: Is that framework MECE, or is anything missing?
+### 06-destiny-the#16 [batch-7-oct-03]  revealed=1
+  CAND: how much of the $480M goes to each bucket? the breakdown.
+  SONNET(logged): Yes, that's the right data to ask for, and it's earned. I'll give you each bucket as a share of revenue, for both periods. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up sl
+  CER say: 'Right.' | move: pressure_test | ex: None | rescue: None
+  CER question: Is that framework MECE, and what might be missing?
+### 06-destiny-the#18 [batch-7-oct-03]  revealed=4
+  CAND: okay so COGS is the problem, not labor like I guessed. 58% minus 42% is 16 points, and 16% of $480M is about $77M. Labor's flat and overhead only moved 2 points, so that's small by comparison.
+  SONNET(logged): Walk me through that $77M. Is that figure the margin problem, or does it include cost that simply scaled with revenue growth?
+  CER say: 'Mm-hm.' | move: pressure_test | ex: None | rescue: None
+  CER question: Is that framework MECE — what, if anything, is missing?
+### 06-destiny-the#20 [batch-7-oct-03]  revealed=4
+  CAND: I think the percentages already handle that. If COGS stayed at 42%, it would have grown with revenue but the margin would be the same. So the 16 points is the part that isn't just scaling. 16% of $480M is $76.8M of extra cost. And margin fell 18 points total, so COGS explains most of it, overhead the other 2.
+  SONNET(logged): Okay. The point change is the margin impact, and the arithmetic holds against what we have. Now that COGS is the area, what would you want to dig into next to understand why it rose?
+  CER say: 'Understood.' | move: analysis | ex: None | rescue: None
+     req: coffee bean share of COGS ['bean_share_of_cogs'] explicit release
+     req: change in other input costs (dairy, packaging, food) over the period ['non_bean_input_change'] explicit release
+  CER question: What does the change in those inputs tell you about the source of the COGS increase?
+### 06-destiny-the#22 [batch-7-oct-03]  revealed=4
+  CAND: what's actually inside COGS? like how much is coffee beans versus milk versus cups. and did bean prices go up?
+  SONNET(logged): Coffee beans were 25% of COGS two years ago. Raw coffee bean costs are up 40% over the past two years. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.
+  CER say: 'Okay.' | move: analysis | ex: exhibit-a | rescue: None
+     req: bean price change over 2 years ['bean_price_change'] explicit release
+     req: coffee beans share of COGS in prior period ['bean_share_of_cogs'] explicit release
+     req: other input cost changes over 2 years ['non_bean_input_change'] explicit release
+  CER question: Based on those inputs, which component of COGS would you prioritize investigating further and why?
+### 06-destiny-the#24 [batch-7-oct-03]  revealed=7
+  CAND: Let me do it. Two years ago COGS was 42% of revenue. Beans were 25% of that, so 10.5% of revenue; up 40% makes it 14.7%, so +4.2 points. The other 75% is 31.5% of revenue; up 37.5% makes it 43.3%, so +11.8 points. Together that's 58%, which matches.  So it's broad input inflation, not just beans — beans are actually the smaller piece. Do we have menu price history? If costs ros
+  SONNET(logged): Okay. You've asked for menu price history, and that's worth pulling. Menu prices have not changed in two years.
+  CER say: 'Okay.' | move: brainstorm | ex: None | rescue: None
+  CER question: Beyond the input cost increases we've identified, what other initiatives could Brew & Bean pursue to restore profitability?
+### 06-destiny-the#26 [batch-7-oct-03]  revealed=8
+  CAND: That explains it. Revenue grew 15% with flat prices, so that's volume, not price — they sold more and absorbed every bit of the cost increase.  Rough sizing: to get COGS back from 58% to 42% of revenue, with costs fixed, they'd need revenue to rise by a factor of 58/42, about 1.38 — so roughly a 38% price increase. That feels way too steep to push through at once. Something sma
+  SONNET(logged): You've said the 15% growth is volume, with prices flat. That isn't something I have data on. Revenue is also stores times traffic times ticket, so what would you need to check before saying the growth came from more customers rather than something else?
+  CER say: 'Understood.' | move: recommendation | ex: None | rescue: None
+  CER question: Based on what we've uncovered, what would you recommend to the client to restore profitability, and what do you see as the biggest risk to that recommendation?
+### 06-destiny-the#28 [batch-7-oct-03]  revealed=8
+  CAND: Right, I jumped. Revenue could have grown because they opened stores, not because each store got busier. Do we know the store count two years ago versus the 200 today? And average ticket — if prices are flat but ticket moved, the mix changed, like people buying more food or larger sizes.  So I'd want: stores, transactions per store, and ticket. That tells me whether this is 200
+  SONNET(logged): I'm releasing the store count and average ticket. I don't have transactions per store as its own figure, but I do have revenue per store. 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. The average transaction is $6.80,
+  CER say: 'Okay.' | move: recommendation | ex: None | rescue: None
+  CER question: Based on what we’ve uncovered, what would you recommend to the client to restore profitability?
+### 06-destiny-the#30 [batch-7-oct-03]  revealed=11
+  CAND: Okay, so 200 stores both periods — no new stores. Revenue per store is $2.4M, and 200 × $2.4M = $480M, checks out.  Revenue up 15% with ticket up ~10% means transactions are up only about 5% (1.15 / 1.10 ≈ 1.045). So most of the growth is people buying more per visit, not more customers.  And that matters for COGS: the extra items are probably food and dairy drinks, which is ex
+  SONNET(logged): Understood. Beyond the pricing question you've raised, what else could Brew & Bean do to protect its margin?
+  CER say: 'Understood.' | move: recommendation | ex: None | rescue: None
+  CER question: Based on your analysis, what would you recommend to Brew & Bean to restore profitability?
+### 06-destiny-the#32 [batch-7-oct-03]  revealed=11
+  CAND: A few things. They could lock in bean and dairy costs with longer-term supplier contracts instead of buying at spot — that doesn't fix the level but stops it getting worse. With 200 stores there may also be buying scale they aren't using.  Second, the mix point: if the added items per visit are low-margin food, they could reprice those specifically rather than the whole menu, o
+  SONNET(logged): Okay. You've covered cost-side and mix levers. What ideas would you add on the customer and revenue side, such as demand, loyalty, or new products?
+  CER say: 'Understood.' | move: recommendation | ex: None | rescue: None
+  CER question: Based on your analysis, what concrete recommendation would you give Brew & Bean to restore its profit margin?
+### 06-destiny-the#34 [batch-7-oct-03]  revealed=11
+  CAND: A loyalty program could help — if you're raising prices, giving regulars points or a free drink softens it and keeps traffic from dropping.  New products: they could add higher-margin items, things that aren't bean or dairy heavy. Though I'd want to know margins by product before pushing that.  Also, transactions were only up ~5%, so there may be room to grow traffic — dayparts
+  SONNET(logged): Okay. Putting the analysis and those ideas together, what's your recommendation to the CEO?
+  CER say: 'Understood.' | move: recommendation | ex: None | rescue: None
+  CER question: Based on our discussion, what would you recommend Brew & Bean do to restore its margin, and what do you see as the biggest risk to that recommendation?
+### 06-destiny-the#36 [batch-7-oct-03]  revealed=11
+  CAND: My recommendation: raise menu prices. That's the root cause — input costs rose about 38-40% over two years and prices haven't moved at all, so the entire increase hit margin.  The math: COGS went from 42% to 58% of revenue, 16 points, about $77M on $480M. Labor was flat and overhead moved 2 points, so COGS is essentially the whole 18-point decline. Beans are only about 4 points
+  SONNET(logged): You said a 10-15% increase would recover a good chunk. Walk me through how much of the margin decline that actually closes.
+  CER say: 'Understood.' | move: risk | ex: None | rescue: None
+  CER question: What do you see as the biggest risk to implementing the price increase you recommend?
+### 06-destiny-the#38 [batch-7-oct-03]  revealed=11
+  CAND: Let me do it at 12.5%, holding volume flat. Revenue goes from $480M to $540M. Costs don't change in dollars: COGS $278.4M (58% of 480), labor $105.6M, overhead $67.2M — total $451.2M.  Today profit is 6% of $480M = $28.8M. After, it's $540M − $451.2M = $88.8M, or 16.4% of revenue.  So about 10 of the 18 points come back, not the full gap. To get all the way to 24% you'd need cl
+  SONNET(logged): That's our time. Thanks for working through this with me — your written report will follow.
+  CER say: 'Understood.' | move: risk | ex: None | rescue: None
+  CER question: What do you see as the biggest risk to implementing a 10‑15% price increase across the menu?
+### 08-claire-the-#2 [batch-7-oct-03]  revealed=0
+  CAND: Let me take a second to structure.  So revenues are up 15% but net margin fell from 24% to 6% — that's a huge drop, so costs must be growing much faster than revenue. I'd start by confirming the profit equation: profit = (price × volume) − (variable costs + fixed costs).  I'd look at three buckets. First, revenue quality: is the 15% growth coming from new store openings, same-s
+  SONNET(logged): Before I get to the data: you've given me three buckets. I'll come to that data shortly. Which of them would you prioritize first, and why?
+  CER say: 'Okay.' | move: structure | ex: None | rescue: None
+  CER question: Please outline your framework for diagnosing the profit decline.
+### 08-claire-the-#4 [batch-7-oct-03]  revealed=0
+  CAND: I'd prioritize the cost structure first. The margin fell 18 points while revenue actually grew, so the problem is almost certainly on the cost side rather than demand — if volume or pricing had collapsed, we'd see revenue decline, and we don't.  Within costs, I'd sequence by size: the biggest lines in a coffee chain are typically COGS and labor, each roughly 25–30% of revenue, 
+  SONNET(logged): Understood. You asked for the cost breakdown for both years and store count, so here they are. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. 200 stores 
+  CER say: 'Got it.' | move: structure | ex: None | rescue: None
+     req: COGS as % of revenue ['cogs_pct'] explicit release
+     req: Labor as % of revenue ['labor_pct'] explicit release
+     req: Overhead / rent as % of revenue ['overhead_pct'] explicit release
+  CER question: Please outline the framework you would use to analyze the profit decline.
+### 08-claire-the-#6 [batch-7-oct-03]  revealed=4
+  CAND: That's clean. Let me check it adds up: COGS up 16 points, overhead up 2 points, labor flat — that's 18 points, which exactly matches the margin decline from 24% to 6%. So COGS is ~90% of the story.  And since store count is flat at 200, the 15% revenue growth is all same-store — either more transactions or higher prices. That actually makes the COGS story worse: if they raised 
+  SONNET(logged): Available items match: bean_share_of_cogs, bean_price_change, non_bean_input_change, menu_price_change. Coffee beans were 25% of COGS two years ago. Raw coffee bean costs are up 40% over the past two years. Other input costs — dairy, packaging, and food — are 
+  CER say: 'Okay.' | move: analysis | ex: None | rescue: None
+     req: coffee bean share of COGS ['bean_share_of_cogs'] explicit release
+     req: other input cost changes ['non_bean_input_change'] explicit release
+     req: menu price changes over the period ['menu_price_change'] explicit release
+  CER question: What do those figures suggest about the drivers of the COGS increase?
+### 08-claire-the-#8 [batch-7-oct-03]  revealed=8
+  CAND: Let me test whether input inflation alone explains it. Beans were 25% of COGS and rose 40% → 0.25 × 40% = 10 points. Other inputs were 75% and rose 37.5% → 0.75 × 37.5% = 28.1 points. Total COGS inflation ≈ 38%.  Old COGS was 42% of revenue. Since menu prices are flat, that 42% scales directly with input cost: 42% × 1.38 = 58%. That's exactly where COGS sits today. So input inf
+  SONNET(logged): They then applied that to old COGS of 42% of revenue to reach 58%. But that scaling treats revenue as flat, while revenue grew 15%. The conversion needs a check, but the unit flag here concerns the shares of COGS, which they've handled with consistent bases. T
+  CER say: 'Got it.' | move: exhibit | ex: exhibit-a | rescue: None
+  CER question: What does this exhibit tell you about the cost drivers?
+### 08-claire-the-#10 [batch-7-oct-03]  revealed=8
+  CAND: Fair challenge — let me redo it on a per-unit basis rather than on totals.  COGS as a share of revenue is really (unit cost × units) ÷ (price × units). The units cancel, so volume growth drops out entirely — the ratio only moves if unit cost or price moves. Unit cost is up 38%, price is flat, so the ratio goes 42% × 1.38 ÷ 1.00 = 58%. The 15% volume growth doesn't affect it.  S
+  SONNET(logged): Understood. The derivation holds. Beyond what we've discussed, what could the client do to reverse the margin decline?
+  CER say: 'Got it.' | move: brainstorm | ex: None | rescue: None
+  CER question: Beyond the cost‐inflation issue we've identified, what other initiatives could the client pursue to improve profitability?
+### 08-claire-the-#12 [batch-7-oct-03]  revealed=8
+  CAND: Hmm, I'm not sure.
+  SONNET(logged): Take a minute if you need it. Think about the levers on price, on input costs, and on the menu or customer side. What ideas come to mind?
+  CER say: 'Okay.' | move: recommendation | ex: None | rescue: None
+  CER question: Based on our analysis, what concrete steps would you recommend Brew & Bean take to restore profitability?
+### 18-nikhil-the-#4 [batch-10-oct-06]  revealed=0
+  CAND: Sure. At a high level I'd split profit into revenue and costs. On revenue, volume times price — store count, transactions per store, average ticket. On costs, fixed versus variable: COGS, labor, rent, marketing, corporate overhead, and then any one-time items like new store buildouts or impairments.  To actually drive that, could I get a few more things? One, average ticket siz
+  SONNET(logged): Okay. I don't have transactions per store per day, wage rates per hour by market, marketing spend, same-store sales growth or capex on new store openings. I'll come back to average ticket size by year, coffee bean commodity prices over the two years and menu p
+  CER say: 'Okay.' | move: pressure_test | ex: None | rescue: None
+  CER question: Is that framework MECE, and is anything missing?
+### 18-nikhil-the-#6 [batch-10-oct-06]  revealed=0
+  CAND: I think it's broadly MECE — revenue and cost don't overlap, and within cost I've split fixed and variable. There may be a little overlap between corporate overhead and marketing, so I'd fold marketing under overhead.  On where to start, I'd rather let the data point me there than guess. Could I get a few more items? One, gross margin by year. Two, EBITDA by year. Three, store-l
+  SONNET(logged): Okay. You asked about this earlier: COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. I don't have gross margin by year, EBITDA by year, a store-level P&L f
+  CER say: 'Got it.' | move: analysis | ex: None | rescue: None
+     req: COGS as percent of revenue ['cogs_pct'] explicit release
+     req: Labor as percent of revenue ['labor_pct'] explicit release
+     req: Overhead / rent as percent of revenue ['overhead_pct'] explicit release
+     req: Number of stores ['stores_count'] explicit release
+     req: Menu price changes over 2 years ['menu_price_change'] explicit release
+     req: Average transaction value ['avg_ticket'] explicit release
+     req: Coffee bean price change over 2 years ['bean_price_change'] explicit release
+  CER question: Based on the cost percentages and price changes, which cost component appears to have widened the most and could be driving the margin decline?
+### 18-nikhil-the-#8 [batch-10-oct-06]  revealed=3
+  CAND: COGS is the branch — it moved 16 points of the 18, and labor is flat, so that's where it is. My hypothesis is input costs rose, most likely green coffee beans or dairy, and menu prices didn't move with them.  To confirm, could I get: one, the COGS split into beans, dairy, food, and packaging. Two, bean cost per pound by year. Three, dairy cost per gallon by year. Four, waste an
+  SONNET(logged): Okay. Coming back to what you asked for earlier: Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Raw coffee bean costs are up 40% over the past two years. I don't have waste an
+  CER say: 'Understood.' | move: analysis | ex: None | rescue: None
+     req: number of stores ['stores_count'] explicit release
+     req: menu price changes over 2 years ['menu_price_change'] explicit release
+     req: average transaction value ['avg_ticket'] explicit release
+     req: coffee bean price change over 2 years ['bean_price_change'] explicit release
+     req: COGS split into beans as share of COGS ['bean_share_of_cogs'] explicit release
+     req: COGS breakdown other input cost changes ['non_bean_input_change'] explicit release
+  CER question: When you say COGS moved 16 points of margin, points of what?
+### 18-nikhil-the-#10 [batch-10-oct-06]  revealed=6
+  CAND: Both are measured as a percent of revenue, so they're directly comparable. COGS went from 42% to 58% of revenue, that's 16 points. Overhead went 12% to 14%, 2 points. Labor flat at 22%. So 16 plus 2 equals 18, which exactly matches the margin drop from 24% to 6%. The pieces reconcile, so nothing's hiding elsewhere.  Could I also get: one, menu price changes by year. Two, averag
+  SONNET(logged): Okay. On what you asked about earlier: Menu prices have not changed in two years. The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit. 200 stores today — and it was 200 stores 
+  CER say: 'Got it.' | move: exhibit | ex: exhibit-a | rescue: None
+     req: store count ['stores_count'] explicit release
+     req: menu price changes ['menu_price_change'] explicit release
+     req: average ticket ['avg_ticket'] explicit release
+  CER question: Looking at the cost‑structure exhibit, what does it tell you about the drivers of the margin decline?
+### 18-nikhil-the-#12 [batch-10-oct-06]  revealed=9
+  CAND: The exhibit shows it's a steady climb, 42 to 50 to 58, about 8 points a year, not a one-time shock. So it's ongoing input inflation, not a single bad contract.  And the math says it isn't just coffee. Beans were 25% of COGS and rose 40%; the other 75% rose 37.5%. Weighted: 0.25 × 40% + 0.75 × 37.5% = 10% + 28.1% = 38.1% overall COGS inflation. So it's broad-based across beans, 
+  SONNET(logged): Okay. You asked about this earlier: Total revenue is $480M a year. I don't have competitor pricing, price elasticity estimates, customer loyalty data, regional cost variation, 2024 bean futures, vendor concentration or private-label options. You say the 38.1% 
+  CER say: 'Okay.' | move: analysis | ex: None | rescue: None
+  CER question: When you say the COGS increase accounts for 16 points of margin, those points are of what—revenue or profit?
+### 18-nikhil-the-#14 [batch-10-oct-06]  revealed=10
+  CAND: They fit almost exactly. Take 42% × 1.381 = 58.0%. That's the observed number. So the entire COGS increase is explained by input inflation with zero price pass-through — nothing else is needed.  And the ticket increase doesn't help, because it came from customers buying more items, not paying more per item. More items means proportionally more cost, so revenue and COGS scale to
+  SONNET(logged): Okay. I don't have items per transaction both years, transaction count, revenue two years ago, gross profit dollars, store-level breakeven, discount and promo spend, loyalty program economics or menu engineering data. Beyond what we've discussed so far, what e
+  CER say: 'Got it.' | move: brainstorm | ex: None | rescue: None
+  CER question: Beyond the cost inflation we’ve identified, what other actions could Brew & Bean pursue to restore profitability?
+### 18-nikhil-the-#16 [batch-10-oct-06]  revealed=10
+  CAND: Beyond pricing, a few levers. One, procurement — renegotiate or consolidate vendors, lock in longer contracts or hedge beans, explore private label on packaging and food. Two, waste reduction, since spoilage on dairy and food runs straight through COGS. Three, mix shift — push higher-margin items like brewed coffee and retail beans over milk-heavy drinks. Four, portion and reci
+  SONNET(logged): Okay. I don't have current COGS dollars, overhead breakdown, waste rate, item-level margins, supplier contract lengths, brand premium data, peer margin benchmarks or pilot test capability. You said overhead is worth $9.6M on $480M. Walk me through that.
+  CER say: 'Mm-hm.' | move: brainstorm | ex: None | rescue: None
+  CER question: Walk me through that calculation of the $9.6M overhead cost.
+### 18-nikhil-the-#18 [batch-10-oct-06]  revealed=10
+  CAND: Sorry, I was loose there. Overhead at 14% of $480M is $67.2M total. What I meant is the increase: overhead went from 12% to 14%, so 2 points on $480M is $9.6M of annual profit that's leaked out since two years ago. That's the recoverable piece, not the whole line.  For scale, COGS at 58% is $278.4M, and had it stayed at 42% it'd be $201.6M — so roughly $77M of the gap sits ther
+  SONNET(logged): Okay. I don't have what's inside overhead, corporate headcount, tech or systems spend, new initiatives launched in the last two years, G&A per store, rent escalators, insurance costs or D&A. The CEO walks in and asks for your recommendation in a couple of minu
+  CER say: 'Okay.' | move: brainstorm | ex: None | rescue: None
+     req: overhead breakdown [] explicit defer
+     req: headcount at corporate [] explicit defer
+     req: tech or systems spend [] explicit defer
+     req: new initiatives launched in the last two years [] explicit defer
+     req: G&A per store [] explicit defer
+     req: rent escalators [] explicit defer
+     req: insurance costs [] explicit defer
+     req: D&A [] explicit defer
+  CER question: Beyond what we've discussed, what else could Brew & Bean do to improve margins?
+### 18-nikhil-the-#20 [batch-10-oct-06]  revealed=10
+  CAND: My recommendation is to raise menu prices — that's the root cause and the fastest fix.  Here's the logic. Margin fell 18 points, from 24% to 6%. COGS accounts for 16 of those, rising 42% to 58% of revenue. Input costs rose 38% across the board — beans up 40%, everything else up 37.5% — and 42% × 1.381 gets you to 58%, so inflation explains the decline entirely. Meanwhile menu p
+  SONNET(logged): Okay. The COGS gap you sized earlier is closer to 76.8, not 9.6 for the overhead piece, so let's take that figure and keep going: the overhead creep is worth 9.6M, and the COGS gap is 76.8M. You named elasticity as a risk and proposed a pilot. What is the bigg
+  CER say: 'Okay.' | move: analysis | ex: None | rescue: None
+  CER question: Walk me through how you arrived at the $9.6 million figure for the overhead increase.
+### 18-nikhil-the-#22 [batch-10-oct-06]  revealed=10
+  CAND: Biggest risk is that a 5% price increase drives more than 5% volume loss — specialty coffee is discretionary and there's cheap competition. And because COGS is 58% of revenue, I only keep about 42 cents of each lost dollar, so the breakeven on volume decline is roughly 5% ÷ ... actually it's contribution-based: I'd lose 42% margin on departing transactions and gain 5 points on 
+  SONNET(logged): Average revenue per store is $2.4M a year. I don't have Competitor price points or Regional demographics. That's time. Thanks for working through it — your written report will follow.
+  CER say: 'Understood.' | move: other | ex: None | rescue: None
+  CER question: 

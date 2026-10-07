@@ -1,0 +1,1233 @@
+[
+  {
+    "id": "01-maya-the-fr#3",
+    "ok": false,
+    "error": "Error: Cerebras 429: {\"message\":\"Requests per minute limit exceeded - too many requests sent.\",\"type\":\"too_many_requests_error\",\"param\":\"quota\",\"code\":\"request_quota_exceeded\"}",
+    "firstSentenceMs": null,
+    "declarationsMs": null,
+    "latencyMs": 50,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "cacheRead": 0
+  },
+  {
+    "id": "01-maya-the-fr#5",
+    "ok": true,
+    "firstSentenceMs": 265,
+    "firstDeliverableMs": 265,
+    "declarationsMs": 294,
+    "latencyMs": 300,
+    "inputTokens": 49,
+    "outputTokens": 301,
+    "cacheRead": 3584,
+    "turn": {
+      "move": "structure",
+      "requests": [
+        {
+          "what": "total annual revenue",
+          "itemIds": [
+            "revenue_total"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "store count for current and prior period",
+          "itemIds": [
+            "stores_count"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "average revenue per store",
+          "itemIds": [
+            "revenue_per_store"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Got it.",
+      "question": "Please outline your analytical framework for tackling this case."
+    },
+    "retried": false
+  },
+  {
+    "id": "01-maya-the-fr#7",
+    "ok": true,
+    "firstSentenceMs": 537,
+    "firstDeliverableMs": 537,
+    "declarationsMs": 558,
+    "latencyMs": 567,
+    "inputTokens": 3704,
+    "outputTokens": 366,
+    "cacheRead": 0,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "average transaction value",
+          "itemIds": [
+            "avg_ticket"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "total annual revenue",
+          "itemIds": [
+            "revenue_total"
+          ],
+          "explicit": false,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Got it.",
+      "question": "Which driver would you prioritize investigating first, price or volume, and why?"
+    },
+    "retried": false
+  },
+  {
+    "id": "01-maya-the-fr#9",
+    "ok": true,
+    "firstSentenceMs": 189,
+    "firstDeliverableMs": 189,
+    "declarationsMs": 219,
+    "latencyMs": 229,
+    "inputTokens": 466,
+    "outputTokens": 188,
+    "cacheRead": 3328,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "COGS % of revenue",
+          "itemIds": [
+            "cogs_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "Labor % of revenue",
+          "itemIds": [
+            "labor_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "Overhead % of revenue",
+          "itemIds": [
+            "overhead_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "What do those percentages tell you about the profit decline?"
+    },
+    "retried": false
+  },
+  {
+    "id": "01-maya-the-fr#11",
+    "ok": true,
+    "firstSentenceMs": 233,
+    "firstDeliverableMs": 233,
+    "declarationsMs": 265,
+    "latencyMs": 281,
+    "inputTokens": 6,
+    "outputTokens": 213,
+    "cacheRead": 3968,
+    "turn": {
+      "move": "exhibit",
+      "requests": [
+        {
+          "what": "COGS breakdown: coffee beans as a share of COGS",
+          "itemIds": [
+            "bean_share_of_cogs"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "COGS breakdown: other input cost changes",
+          "itemIds": [
+            "non_bean_input_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Got it.",
+      "question": "Looking at the cost structure exhibit, what insights do you draw from it?"
+    },
+    "retried": false
+  },
+  {
+    "id": "01-maya-the-fr#13",
+    "ok": true,
+    "firstSentenceMs": 202,
+    "firstDeliverableMs": 202,
+    "declarationsMs": 227,
+    "latencyMs": 248,
+    "inputTokens": 569,
+    "outputTokens": 103,
+    "cacheRead": 3328,
+    "turn": {
+      "move": "exhibit",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Got it.",
+      "question": "What does Exhibit‑A tell you about the drivers of the margin decline?"
+    },
+    "retried": false
+  },
+  {
+    "id": "01-maya-the-fr#15",
+    "ok": true,
+    "firstSentenceMs": 840,
+    "firstDeliverableMs": 840,
+    "declarationsMs": 850,
+    "latencyMs": 854,
+    "inputTokens": 560,
+    "outputTokens": 92,
+    "cacheRead": 3456,
+    "turn": {
+      "move": "other",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Take your time. The question on the table is to identify the root cause of the profit decline and recommend how to reverse it.",
+      "question": "What’s your next step?"
+    },
+    "retried": false
+  },
+  {
+    "id": "01-maya-the-fr#17",
+    "ok": true,
+    "firstSentenceMs": 1248,
+    "firstDeliverableMs": 1248,
+    "declarationsMs": 1248,
+    "latencyMs": 1251,
+    "inputTokens": 388,
+    "outputTokens": 120,
+    "cacheRead": 3584,
+    "turn": {
+      "move": "exhibit",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "Looking at the cost‑structure exhibit, what insights do you draw about the drivers of the margin decline?"
+    },
+    "retried": false
+  },
+  {
+    "id": "01-maya-the-fr#19",
+    "ok": true,
+    "firstSentenceMs": 311,
+    "firstDeliverableMs": 311,
+    "declarationsMs": 336,
+    "latencyMs": 349,
+    "inputTokens": 513,
+    "outputTokens": 205,
+    "cacheRead": 3584,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "coffee bean price change over the period",
+          "itemIds": [
+            "bean_price_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "total annual revenue",
+          "itemIds": [
+            "revenue_total"
+          ],
+          "explicit": false,
+          "respond": "defer"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "What part of the COGS increase is due to coffee bean price changes versus other input cost increases?"
+    },
+    "retried": false
+  },
+  {
+    "id": "01-maya-the-fr#23",
+    "ok": true,
+    "firstSentenceMs": 417,
+    "firstDeliverableMs": 417,
+    "declarationsMs": 432,
+    "latencyMs": 460,
+    "inputTokens": 586,
+    "outputTokens": 89,
+    "cacheRead": 3712,
+    "turn": {
+      "move": "brainstorm",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "Beyond the cost drivers we’ve identified, what other initiatives could Brew & Bean pursue to improve profitability?"
+    },
+    "retried": false
+  },
+  {
+    "id": "01-maya-the-fr#25",
+    "ok": true,
+    "firstSentenceMs": 411,
+    "firstDeliverableMs": 411,
+    "declarationsMs": 414,
+    "latencyMs": 432,
+    "inputTokens": 1072,
+    "outputTokens": 83,
+    "cacheRead": 3328,
+    "turn": {
+      "move": "brainstorm",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "Beyond the cost drivers we've identified, what other actions could Brew & Bean pursue to restore profitability?"
+    },
+    "retried": false
+  },
+  {
+    "id": "01-maya-the-fr#27",
+    "ok": true,
+    "firstSentenceMs": 164,
+    "firstDeliverableMs": 164,
+    "declarationsMs": 172,
+    "latencyMs": 189,
+    "inputTokens": 706,
+    "outputTokens": 77,
+    "cacheRead": 3840,
+    "turn": {
+      "move": "brainstorm",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "Beyond the cost drivers we’ve discussed, what other initiatives could Brew & Bean pursue to improve profitability?"
+    },
+    "retried": false
+  },
+  {
+    "id": "01-maya-the-fr#29",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 219,
+    "declarationsMs": 219,
+    "latencyMs": 241,
+    "inputTokens": 696,
+    "outputTokens": 173,
+    "cacheRead": 4096,
+    "turn": {
+      "move": "brainstorm",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Beyond the cost drivers we’ve discussed, what other initiatives could Brew & Bean pursue to improve profitability?"
+    },
+    "retried": false
+  },
+  {
+    "id": "01-maya-the-fr#31",
+    "ok": true,
+    "firstSentenceMs": 211,
+    "firstDeliverableMs": 211,
+    "declarationsMs": 221,
+    "latencyMs": 237,
+    "inputTokens": 465,
+    "outputTokens": 74,
+    "cacheRead": 4352,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "Based on your analysis, what would you recommend Brew & Bean do to restore profitability?"
+    },
+    "retried": false
+  },
+  {
+    "id": "01-maya-the-fr#33",
+    "ok": true,
+    "firstSentenceMs": 257,
+    "firstDeliverableMs": 257,
+    "declarationsMs": 269,
+    "latencyMs": 282,
+    "inputTokens": 4852,
+    "outputTokens": 84,
+    "cacheRead": 0,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "Based on our discussion, what specific recommendation would you give Brew & Bean to improve its margin?"
+    },
+    "retried": false
+  },
+  {
+    "id": "01-maya-the-fr#36",
+    "ok": true,
+    "firstSentenceMs": 281,
+    "firstDeliverableMs": 281,
+    "declarationsMs": 299,
+    "latencyMs": 309,
+    "inputTokens": 591,
+    "outputTokens": 87,
+    "cacheRead": 4352,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "Based on our discussion, what would you recommend Brew & Bean do to restore profitability?"
+    },
+    "retried": false
+  },
+  {
+    "id": "01-maya-the-fr#38",
+    "ok": true,
+    "firstSentenceMs": 341,
+    "firstDeliverableMs": 341,
+    "declarationsMs": 345,
+    "latencyMs": 358,
+    "inputTokens": 519,
+    "outputTokens": 90,
+    "cacheRead": 4480,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "Based on our discussion, what would you recommend Brew & Bean do to improve margins?"
+    },
+    "retried": false
+  },
+  {
+    "id": "01-maya-the-fr#40",
+    "ok": true,
+    "firstSentenceMs": 188,
+    "firstDeliverableMs": 188,
+    "declarationsMs": 193,
+    "latencyMs": 206,
+    "inputTokens": 1087,
+    "outputTokens": 95,
+    "cacheRead": 3968,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "Based on our discussion, what recommendation would you give Brew & Bean to improve its margin?"
+    },
+    "retried": false
+  },
+  {
+    "id": "01-maya-the-fr#42",
+    "ok": true,
+    "firstSentenceMs": 226,
+    "firstDeliverableMs": 226,
+    "declarationsMs": 249,
+    "latencyMs": 285,
+    "inputTokens": 575,
+    "outputTokens": 116,
+    "cacheRead": 4608,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "Based on our discussion, what specific recommendation would you give to Brew & Bean to improve margin, and how would you prioritize its implementation?"
+    },
+    "retried": false
+  },
+  {
+    "id": "02-tobias-the-#3",
+    "ok": true,
+    "firstSentenceMs": 296,
+    "firstDeliverableMs": 296,
+    "declarationsMs": 330,
+    "latencyMs": 337,
+    "inputTokens": 667,
+    "outputTokens": 94,
+    "cacheRead": 3072,
+    "turn": {
+      "move": "structure",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "Please outline the framework you would use to tackle this problem."
+    },
+    "retried": false
+  },
+  {
+    "id": "02-tobias-the-#6",
+    "ok": true,
+    "firstSentenceMs": 381,
+    "firstDeliverableMs": 381,
+    "declarationsMs": 428,
+    "latencyMs": 437,
+    "inputTokens": 687,
+    "outputTokens": 342,
+    "cacheRead": 3328,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "bean price change over 2 years",
+          "itemIds": [
+            "bean_price_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "menu price changes over 2 years",
+          "itemIds": [
+            "menu_price_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "coffee beans share of COGS",
+          "itemIds": [
+            "bean_share_of_cogs"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "other input cost changes (dairy, packaging, food) over 2 years",
+          "itemIds": [
+            "non_bean_input_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "Looking at the COGS component data, what do you see as the primary driver of the increase?"
+    },
+    "retried": false
+  },
+  {
+    "id": "02-tobias-the-#9",
+    "ok": true,
+    "firstSentenceMs": 214,
+    "firstDeliverableMs": 214,
+    "declarationsMs": 222,
+    "latencyMs": 226,
+    "inputTokens": 1424,
+    "outputTokens": 99,
+    "cacheRead": 3072,
+    "turn": {
+      "move": "exhibit",
+      "requests": [],
+      "exhibit": "exhibit-a",
+      "rescueItem": null,
+      "say": "Got it.",
+      "question": "What does this exhibit tell you?"
+    },
+    "retried": false
+  },
+  {
+    "id": "02-tobias-the-#12",
+    "ok": true,
+    "firstSentenceMs": 296,
+    "firstDeliverableMs": 296,
+    "declarationsMs": 306,
+    "latencyMs": 328,
+    "inputTokens": 746,
+    "outputTokens": 155,
+    "cacheRead": 3968,
+    "turn": {
+      "move": "brainstorm",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Got it.",
+      "question": "Beyond the pricing options we’ve discussed, what other actions could Brew & Bean take to restore profitability?"
+    },
+    "retried": false
+  },
+  {
+    "id": "02-tobias-the-#14",
+    "ok": true,
+    "firstSentenceMs": null,
+    "firstDeliverableMs": 296,
+    "declarationsMs": 296,
+    "latencyMs": 299,
+    "inputTokens": 650,
+    "outputTokens": 233,
+    "cacheRead": 4224,
+    "turn": {
+      "move": "recommendation",
+      "requests": [
+        {
+          "what": "COGS or margin by product category",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "defer"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "",
+      "question": "Based on our discussion, what recommendation would you make to the client to restore profitability?"
+    },
+    "retried": false
+  },
+  {
+    "id": "02-tobias-the-#16",
+    "ok": true,
+    "firstSentenceMs": 263,
+    "firstDeliverableMs": 263,
+    "declarationsMs": 270,
+    "latencyMs": 292,
+    "inputTokens": 778,
+    "outputTokens": 78,
+    "cacheRead": 4480,
+    "turn": {
+      "move": "risk",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "What do you see as the biggest risk to implementing your recommended price increase and procurement changes?"
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#2",
+    "ok": true,
+    "firstSentenceMs": 188,
+    "firstDeliverableMs": 188,
+    "declarationsMs": 209,
+    "latencyMs": 226,
+    "inputTokens": 435,
+    "outputTokens": 92,
+    "cacheRead": 3072,
+    "turn": {
+      "move": "clarify",
+      "requests": [
+        {
+          "what": "scope of analysis",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "defer"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Mm-hm.",
+      "question": "Do you have any constraints on the type of analysis you’d like us to focus on, such as cost drivers versus pricing?"
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#4",
+    "ok": true,
+    "firstSentenceMs": 167,
+    "firstDeliverableMs": 167,
+    "declarationsMs": 192,
+    "latencyMs": 202,
+    "inputTokens": 590,
+    "outputTokens": 109,
+    "cacheRead": 3072,
+    "turn": {
+      "move": "clarify",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Take your time. The question on the table is to identify why Brew & Bean’s profit margin fell from 24% to 6% despite revenue growth, and to recommend how to reverse it.",
+      "question": "Do you have any clarifying questions before you outline your approach?"
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#6",
+    "ok": true,
+    "firstSentenceMs": 418,
+    "firstDeliverableMs": 418,
+    "declarationsMs": 434,
+    "latencyMs": 449,
+    "inputTokens": 436,
+    "outputTokens": 69,
+    "cacheRead": 3200,
+    "turn": {
+      "move": "clarify",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "What clarification would help you frame your analysis of the profit decline?"
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#8",
+    "ok": true,
+    "firstSentenceMs": 224,
+    "firstDeliverableMs": 224,
+    "declarationsMs": 242,
+    "latencyMs": 1183,
+    "inputTokens": 563,
+    "outputTokens": 76,
+    "cacheRead": 3200,
+    "turn": {
+      "move": "clarify",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "What are the two ways a margin can fall?"
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#10",
+    "ok": true,
+    "firstSentenceMs": 202,
+    "firstDeliverableMs": 202,
+    "declarationsMs": 213,
+    "latencyMs": 233,
+    "inputTokens": 876,
+    "outputTokens": 136,
+    "cacheRead": 3072,
+    "turn": {
+      "move": "structure",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "Please outline how you would break down the profit decline – what main buckets and sub‑components would you examine?"
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#12",
+    "ok": true,
+    "firstSentenceMs": 163,
+    "firstDeliverableMs": 163,
+    "declarationsMs": 180,
+    "latencyMs": 184,
+    "inputTokens": 709,
+    "outputTokens": 63,
+    "cacheRead": 3328,
+    "turn": {
+      "move": "structure",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "Please outline the framework you would use to analyse the profit decline."
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#14",
+    "ok": true,
+    "firstSentenceMs": 216,
+    "firstDeliverableMs": 216,
+    "declarationsMs": 225,
+    "latencyMs": 234,
+    "inputTokens": 611,
+    "outputTokens": 104,
+    "cacheRead": 3456,
+    "turn": {
+      "move": "pressure_test",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "Is that framework MECE, or is anything missing?"
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#16",
+    "ok": true,
+    "firstSentenceMs": 450,
+    "firstDeliverableMs": 450,
+    "declarationsMs": 454,
+    "latencyMs": 469,
+    "inputTokens": 677,
+    "outputTokens": 91,
+    "cacheRead": 3456,
+    "turn": {
+      "move": "pressure_test",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Right.",
+      "question": "Is that framework MECE, and what might be missing?"
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#18",
+    "ok": true,
+    "firstSentenceMs": 171,
+    "firstDeliverableMs": 171,
+    "declarationsMs": 176,
+    "latencyMs": 185,
+    "inputTokens": 547,
+    "outputTokens": 76,
+    "cacheRead": 3584,
+    "turn": {
+      "move": "pressure_test",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Mm-hm.",
+      "question": "Is that framework MECE — what, if anything, is missing?"
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#20",
+    "ok": true,
+    "firstSentenceMs": 190,
+    "firstDeliverableMs": 190,
+    "declarationsMs": 226,
+    "latencyMs": 237,
+    "inputTokens": 540,
+    "outputTokens": 177,
+    "cacheRead": 3712,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "coffee bean share of COGS",
+          "itemIds": [
+            "bean_share_of_cogs"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "change in other input costs (dairy, packaging, food) over the period",
+          "itemIds": [
+            "non_bean_input_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "What does the change in those inputs tell you about the source of the COGS increase?"
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#22",
+    "ok": true,
+    "firstSentenceMs": 192,
+    "firstDeliverableMs": 192,
+    "declarationsMs": 229,
+    "latencyMs": 246,
+    "inputTokens": 491,
+    "outputTokens": 189,
+    "cacheRead": 3840,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "bean price change over 2 years",
+          "itemIds": [
+            "bean_price_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "coffee beans share of COGS in prior period",
+          "itemIds": [
+            "bean_share_of_cogs"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "other input cost changes over 2 years",
+          "itemIds": [
+            "non_bean_input_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": "exhibit-a",
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "Based on those inputs, which component of COGS would you prioritize investigating further and why?"
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#24",
+    "ok": true,
+    "firstSentenceMs": 385,
+    "firstDeliverableMs": 385,
+    "declarationsMs": 409,
+    "latencyMs": 442,
+    "inputTokens": 631,
+    "outputTokens": 80,
+    "cacheRead": 3968,
+    "turn": {
+      "move": "brainstorm",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "Beyond the input cost increases we've identified, what other initiatives could Brew & Bean pursue to restore profitability?"
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#26",
+    "ok": true,
+    "firstSentenceMs": 332,
+    "firstDeliverableMs": 332,
+    "declarationsMs": 365,
+    "latencyMs": 391,
+    "inputTokens": 600,
+    "outputTokens": 81,
+    "cacheRead": 4096,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "Based on what we've uncovered, what would you recommend to the client to restore profitability, and what do you see as the biggest risk to that recommendation?"
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#28",
+    "ok": true,
+    "firstSentenceMs": 230,
+    "firstDeliverableMs": 230,
+    "declarationsMs": 254,
+    "latencyMs": 279,
+    "inputTokens": 497,
+    "outputTokens": 83,
+    "cacheRead": 4352,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "Based on what we’ve uncovered, what would you recommend to the client to restore profitability?"
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#30",
+    "ok": true,
+    "firstSentenceMs": 3887,
+    "firstDeliverableMs": 3887,
+    "declarationsMs": 3896,
+    "latencyMs": 3921,
+    "inputTokens": 765,
+    "outputTokens": 80,
+    "cacheRead": 4480,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "Based on your analysis, what would you recommend to Brew & Bean to restore profitability?"
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#32",
+    "ok": true,
+    "firstSentenceMs": 167,
+    "firstDeliverableMs": 167,
+    "declarationsMs": 176,
+    "latencyMs": 188,
+    "inputTokens": 560,
+    "outputTokens": 91,
+    "cacheRead": 4736,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "Based on your analysis, what concrete recommendation would you give Brew & Bean to restore its profit margin?"
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#34",
+    "ok": true,
+    "firstSentenceMs": 254,
+    "firstDeliverableMs": 254,
+    "declarationsMs": 260,
+    "latencyMs": 277,
+    "inputTokens": 597,
+    "outputTokens": 93,
+    "cacheRead": 4864,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "Based on our discussion, what would you recommend Brew & Bean do to restore its margin, and what do you see as the biggest risk to that recommendation?"
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#36",
+    "ok": true,
+    "firstSentenceMs": 206,
+    "firstDeliverableMs": 206,
+    "declarationsMs": 216,
+    "latencyMs": 231,
+    "inputTokens": 680,
+    "outputTokens": 80,
+    "cacheRead": 5120,
+    "turn": {
+      "move": "risk",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "What do you see as the biggest risk to implementing the price increase you recommend?"
+    },
+    "retried": false
+  },
+  {
+    "id": "06-destiny-the#38",
+    "ok": true,
+    "firstSentenceMs": 273,
+    "firstDeliverableMs": 273,
+    "declarationsMs": 286,
+    "latencyMs": 298,
+    "inputTokens": 2612,
+    "outputTokens": 99,
+    "cacheRead": 3328,
+    "turn": {
+      "move": "risk",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "What do you see as the biggest risk to implementing a 10‑15% price increase across the menu?"
+    },
+    "retried": false
+  },
+  {
+    "id": "08-claire-the-#2",
+    "ok": true,
+    "firstSentenceMs": 614,
+    "firstDeliverableMs": 614,
+    "declarationsMs": 628,
+    "latencyMs": 655,
+    "inputTokens": 632,
+    "outputTokens": 71,
+    "cacheRead": 3072,
+    "turn": {
+      "move": "structure",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "Please outline your framework for diagnosing the profit decline."
+    },
+    "retried": false
+  },
+  {
+    "id": "08-claire-the-#4",
+    "ok": true,
+    "firstSentenceMs": 223,
+    "firstDeliverableMs": 223,
+    "declarationsMs": 272,
+    "latencyMs": 281,
+    "inputTokens": 910,
+    "outputTokens": 232,
+    "cacheRead": 3200,
+    "turn": {
+      "move": "structure",
+      "requests": [
+        {
+          "what": "COGS as % of revenue",
+          "itemIds": [
+            "cogs_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "Labor as % of revenue",
+          "itemIds": [
+            "labor_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "Overhead / rent as % of revenue",
+          "itemIds": [
+            "overhead_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Got it.",
+      "question": "Please outline the framework you would use to analyze the profit decline."
+    },
+    "retried": false
+  },
+  {
+    "id": "08-claire-the-#6",
+    "ok": true,
+    "firstSentenceMs": 238,
+    "firstDeliverableMs": 238,
+    "declarationsMs": 273,
+    "latencyMs": 287,
+    "inputTokens": 942,
+    "outputTokens": 179,
+    "cacheRead": 3456,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "coffee bean share of COGS",
+          "itemIds": [
+            "bean_share_of_cogs"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "other input cost changes",
+          "itemIds": [
+            "non_bean_input_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "menu price changes over the period",
+          "itemIds": [
+            "menu_price_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "What do those figures suggest about the drivers of the COGS increase?"
+    },
+    "retried": false
+  },
+  {
+    "id": "08-claire-the-#8",
+    "ok": true,
+    "firstSentenceMs": 223,
+    "firstDeliverableMs": 223,
+    "declarationsMs": 233,
+    "latencyMs": 244,
+    "inputTokens": 1466,
+    "outputTokens": 122,
+    "cacheRead": 3072,
+    "turn": {
+      "move": "exhibit",
+      "requests": [],
+      "exhibit": "exhibit-a",
+      "rescueItem": null,
+      "say": "Got it.",
+      "question": "What does this exhibit tell you about the cost drivers?"
+    },
+    "retried": false
+  },
+  {
+    "id": "08-claire-the-#10",
+    "ok": true,
+    "firstSentenceMs": 162,
+    "firstDeliverableMs": 162,
+    "declarationsMs": 167,
+    "latencyMs": 191,
+    "inputTokens": 700,
+    "outputTokens": 79,
+    "cacheRead": 4096,
+    "turn": {
+      "move": "brainstorm",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Got it.",
+      "question": "Beyond the cost‐inflation issue we've identified, what other initiatives could the client pursue to improve profitability?"
+    },
+    "retried": false
+  },
+  {
+    "id": "08-claire-the-#12",
+    "ok": true,
+    "firstSentenceMs": 193,
+    "firstDeliverableMs": 193,
+    "declarationsMs": 203,
+    "latencyMs": 211,
+    "inputTokens": 1124,
+    "outputTokens": 76,
+    "cacheRead": 3712,
+    "turn": {
+      "move": "recommendation",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "Based on our analysis, what concrete steps would you recommend Brew & Bean take to restore profitability?"
+    },
+    "retried": false
+  }
+]

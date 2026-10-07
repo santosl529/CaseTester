@@ -1,0 +1,33 @@
+11 reconstructable turns · sampling 11 · est cost ~$0.12
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Okay.","move":"structure","requests":[{"what":"full cost breakdown by line item for both years","item_ids":[],"explicit":true,"respond":"defer"},{"what":"COGS as percent of revenue","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"labor costs per store","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"rent and occupancy costs","item_ids":["overhead_pct"],"explicit":true,"respond":"release"},{"what":"number of stores two years ago versus today","item_ids":["stores_count"],"explicit":true,"respond":"release"},{"what":"average customer wait time","item_ids":[],"explicit":true,"respond":"defer"},{"what":"employee turnover rate","item_ids":[],"explicit":true,"respond":"defer"},{"what":"mix of revenue between drinks, food, and retail beans","item_ids":[],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Please outline the framework you would use to diagnose the profit decline."}
+[interviewer] phase: INTRO
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"Okay.", "move":"pressure_test","requests":[],"exhibit":null,"rescue_item":null,"question":"Is that framework MECE, and is anything missing?"}
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"Got it.","move":"analysis","requests":[{"what":"COGS as percent of revenue","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"Labor as percent of revenue","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"Overhead / rent as percent of revenue","item_ids":["overhead_pct"],"explicit":true,"respond":"release"},{"what":"Number of stores","item_ids":["stores_count"],"explicit":true,"respond":"release"},{"what":"Menu price changes over 2 years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"},{"what":"Average transaction value","item_ids":["avg_ticket"],"explicit":true,"respond":"release"},{"what":"Coffee bean price change over 2 years","item_ids":["bean_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Based on the cost percentages and price changes, which cost component appears to have widened the most and could be driving the margin decline?"}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Understood.","move":"analysis","requests":[{"what":"number of stores","item_ids":["stores_count"],"explicit":true,"respond":"release"},{"what":"menu price changes over 2 years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"},{"what":"average transaction value","item_ids":["avg_ticket"],"explicit":true,"respond":"release"},{"what":"coffee bean price change over 2 years","item_ids":["bean_price_change"],"explicit":true,"respond":"release"},{"what":"COGS split into beans as share of COGS","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"COGS breakdown other input cost changes","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"When you say COGS moved 16 points of margin, points of what?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Got it.","move":"exhibit","requests":[{"what":"store count","item_ids":["stores_count"],"explicit":true,"respond":"release"},{"what":"menu price changes","item_ids":["menu_price_change"],"explicit":true,"respond":"release"},{"what":"average ticket","item_ids":["avg_ticket"],"explicit":true,"respond":"release"}],"exhibit":"exhibit-a","rescue_item":null,"question":"Looking at the cost‑structure exhibit, what does it tell you about the drivers of the margin decline?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Okay.", "move":"analysis", "requests":[],"exhibit":null,"rescue_item":null,"question":"When you say the COGS increase accounts for 16 points of margin, those points are of what—revenue or profit?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Got it.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Beyond the cost inflation we’ve identified, what other actions could Brew & Bean pursue to restore profitability?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Walk me through that calculation of the $9.6M overhead cost."}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say": "Okay.", "move": "brainstorm", "requests": [{"what": "overhead breakdown", "item_ids": [], "explicit": true, "respond": "defer"}, {"what": "headcount at corporate", "item_ids": [], "explicit": true, "respond": "defer"}, {"what": "tech or systems spend", "item_ids": [], "explicit": true, "respond": "defer"}, {"what": "new initiatives launched in the last two years", "item_ids": [], "explicit": true, "respond": "defer"}, {"what": "G&A per store", "item_ids": [], "explicit": true, "respond": "defer"}, {"what": "rent escalators", "item_ids": [], "explicit": true, "respond": "defer"}, {"what": "insurance costs", "item_ids": [], "explicit": true, "respond": "defer"}, {"what": "D&A", "item_ids": [], "explicit": true, "respond": "defer"}], "exhibit": null, "rescue_item": null, "question": "Beyond what we've discussed, what else could Brew & Bean do to improve margins?"}
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Okay.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"Walk me through how you arrived at the $9.6 million figure for the overhead increase."}
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Understood.", "move":"other", "requests":[], "exhibit":null, "rescue_item":null, "question":""}
+P: 10/11 ok · regenerated 0
+  declarations       median 371ms  p90 6399ms  p95 6399ms  (n 10)
+  first sentence     median 323ms  p90 6399ms  p95 6399ms  (n 10)
+  first delivered    median 323ms  p90 6399ms  p95 6399ms  (n 10)
+  whole turn         median 379ms  p90 6406ms  p95 6406ms  (n 10)
+  output tokens median 257 · cache read median 4352
+  moves: {"pressure_test":1,"analysis":4,"exhibit":1,"brainstorm":3,"other":1}
+  error: Error: Cerebras 429: {"message":"Requests per minute limit exceeded - too many requests sent.","type":"too_many_requests_error","param":"quota","code":"request_quota_exceeded"}
+actual cost ~$0.02

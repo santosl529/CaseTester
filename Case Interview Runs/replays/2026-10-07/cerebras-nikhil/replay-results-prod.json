@@ -1,0 +1,393 @@
+[
+  {
+    "id": "18-nikhil-the-#2",
+    "ok": false,
+    "error": "Error: Cerebras 429: {\"message\":\"Requests per minute limit exceeded - too many requests sent.\",\"type\":\"too_many_requests_error\",\"param\":\"quota\",\"code\":\"request_quota_exceeded\"}",
+    "firstSentenceMs": null,
+    "declarationsMs": null,
+    "latencyMs": 66,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "cacheRead": 0
+  },
+  {
+    "id": "18-nikhil-the-#4",
+    "ok": true,
+    "firstSentenceMs": 212,
+    "firstDeliverableMs": 212,
+    "declarationsMs": 223,
+    "latencyMs": 237,
+    "inputTokens": 858,
+    "outputTokens": 111,
+    "cacheRead": 3200,
+    "turn": {
+      "move": "pressure_test",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "Is that framework MECE, and is anything missing?"
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#6",
+    "ok": true,
+    "firstSentenceMs": 249,
+    "firstDeliverableMs": 249,
+    "declarationsMs": 304,
+    "latencyMs": 326,
+    "inputTokens": 936,
+    "outputTokens": 338,
+    "cacheRead": 3456,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "COGS as percent of revenue",
+          "itemIds": [
+            "cogs_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "Labor as percent of revenue",
+          "itemIds": [
+            "labor_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "Overhead / rent as percent of revenue",
+          "itemIds": [
+            "overhead_pct"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "Number of stores",
+          "itemIds": [
+            "stores_count"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "Menu price changes over 2 years",
+          "itemIds": [
+            "menu_price_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "Average transaction value",
+          "itemIds": [
+            "avg_ticket"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "Coffee bean price change over 2 years",
+          "itemIds": [
+            "bean_price_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Got it.",
+      "question": "Based on the cost percentages and price changes, which cost component appears to have widened the most and could be driving the margin decline?"
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#8",
+    "ok": true,
+    "firstSentenceMs": 268,
+    "firstDeliverableMs": 268,
+    "declarationsMs": 354,
+    "latencyMs": 355,
+    "inputTokens": 1079,
+    "outputTokens": 257,
+    "cacheRead": 3712,
+    "turn": {
+      "move": "analysis",
+      "requests": [
+        {
+          "what": "number of stores",
+          "itemIds": [
+            "stores_count"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "menu price changes over 2 years",
+          "itemIds": [
+            "menu_price_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "average transaction value",
+          "itemIds": [
+            "avg_ticket"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "coffee bean price change over 2 years",
+          "itemIds": [
+            "bean_price_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "COGS split into beans as share of COGS",
+          "itemIds": [
+            "bean_share_of_cogs"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "COGS breakdown other input cost changes",
+          "itemIds": [
+            "non_bean_input_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": "When you say COGS moved 16 points of margin, points of what?"
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#10",
+    "ok": true,
+    "firstSentenceMs": 307,
+    "firstDeliverableMs": 307,
+    "declarationsMs": 336,
+    "latencyMs": 346,
+    "inputTokens": 987,
+    "outputTokens": 295,
+    "cacheRead": 4096,
+    "turn": {
+      "move": "exhibit",
+      "requests": [
+        {
+          "what": "store count",
+          "itemIds": [
+            "stores_count"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "menu price changes",
+          "itemIds": [
+            "menu_price_change"
+          ],
+          "explicit": true,
+          "respond": "release"
+        },
+        {
+          "what": "average ticket",
+          "itemIds": [
+            "avg_ticket"
+          ],
+          "explicit": true,
+          "respond": "release"
+        }
+      ],
+      "exhibit": "exhibit-a",
+      "rescueItem": null,
+      "say": "Got it.",
+      "question": "Looking at the cost‑structure exhibit, what does it tell you about the drivers of the margin decline?"
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#12",
+    "ok": true,
+    "firstSentenceMs": 6399,
+    "firstDeliverableMs": 6399,
+    "declarationsMs": 6399,
+    "latencyMs": 6406,
+    "inputTokens": 986,
+    "outputTokens": 122,
+    "cacheRead": 4352,
+    "turn": {
+      "move": "analysis",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "When you say the COGS increase accounts for 16 points of margin, those points are of what—revenue or profit?"
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#14",
+    "ok": true,
+    "firstSentenceMs": 207,
+    "firstDeliverableMs": 207,
+    "declarationsMs": 226,
+    "latencyMs": 232,
+    "inputTokens": 746,
+    "outputTokens": 107,
+    "cacheRead": 4736,
+    "turn": {
+      "move": "brainstorm",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Got it.",
+      "question": "Beyond the cost inflation we’ve identified, what other actions could Brew & Bean pursue to restore profitability?"
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#16",
+    "ok": true,
+    "firstSentenceMs": 692,
+    "firstDeliverableMs": 692,
+    "declarationsMs": 693,
+    "latencyMs": 720,
+    "inputTokens": 833,
+    "outputTokens": 132,
+    "cacheRead": 4992,
+    "turn": {
+      "move": "brainstorm",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Mm-hm.",
+      "question": "Walk me through that calculation of the $9.6M overhead cost."
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#18",
+    "ok": true,
+    "firstSentenceMs": 323,
+    "firstDeliverableMs": 323,
+    "declarationsMs": 387,
+    "latencyMs": 396,
+    "inputTokens": 2942,
+    "outputTokens": 411,
+    "cacheRead": 3072,
+    "turn": {
+      "move": "brainstorm",
+      "requests": [
+        {
+          "what": "overhead breakdown",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "headcount at corporate",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "tech or systems spend",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "new initiatives launched in the last two years",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "G&A per store",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "rent escalators",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "insurance costs",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "defer"
+        },
+        {
+          "what": "D&A",
+          "itemIds": [],
+          "explicit": true,
+          "respond": "defer"
+        }
+      ],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "Beyond what we've discussed, what else could Brew & Bean do to improve margins?"
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#20",
+    "ok": true,
+    "firstSentenceMs": 354,
+    "firstDeliverableMs": 354,
+    "declarationsMs": 371,
+    "latencyMs": 379,
+    "inputTokens": 894,
+    "outputTokens": 235,
+    "cacheRead": 5632,
+    "turn": {
+      "move": "analysis",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Okay.",
+      "question": "Walk me through how you arrived at the $9.6 million figure for the overhead increase."
+    },
+    "retried": false
+  },
+  {
+    "id": "18-nikhil-the-#22",
+    "ok": true,
+    "firstSentenceMs": 581,
+    "firstDeliverableMs": 581,
+    "declarationsMs": 591,
+    "latencyMs": 594,
+    "inputTokens": 709,
+    "outputTokens": 401,
+    "cacheRead": 5888,
+    "turn": {
+      "move": "other",
+      "requests": [],
+      "exhibit": null,
+      "rescueItem": null,
+      "say": "Understood.",
+      "question": ""
+    },
+    "retried": false
+  }
+]

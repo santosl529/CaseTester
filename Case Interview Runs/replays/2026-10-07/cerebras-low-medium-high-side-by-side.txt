@@ -1,0 +1,140 @@
+### 1. 01-maya-the-fr#3 (batch-7-oct-03/01-maya-the-freezer)  revealed=0
+  CANDIDATE: Okay, so... I'd want to look at a few things. First, revenue — like what's happening with sales. Second, costs, so what they're spending money on. And third, maybe external stuff, like competitors or the market overall. Does that seem okay as a starting point?
+  SONNET (logged in the original run): I won't say whether it's okay, so let's get more specific. Within revenue and costs, what exactly would you break down, and which branch would you look at first?
+  CEREBRAS LOW : ERROR
+  CEREBRAS MED : say='Okay.' move=structure ex=None | req=[] | Q: Please outline the framework you’d use to analyze the profit decline.
+  CEREBRAS HIGH: say='Okay.' move=structure ex=None | req=[] | Q: Take a minute if you need it, then walk me through the framework you’d use to analyze Brew & Bean’s profit decline.
+
+### 2. 01-maya-the-fr#5 (batch-7-oct-03/01-maya-the-freezer)  revealed=0
+  CANDIDATE: Can I ask — is the 15% revenue growth from more stores, or more sales per store?
+  SONNET (logged in the original run): 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. Average revenue per store is $2.4M a year.
+  CEREBRAS LOW : say='Got it.' move=structure ex=None | req=[total annual revenue['revenue_total']:release; store count for current and prior period['stores_count']:release; average revenue per store['revenue_per_store']:release] | Q: Please outline your analytical framework for tackling this case.
+  CEREBRAS MED : say='Got it.' move=clarify ex=None | req=[store count for current and prior period['stores_count']:release; average revenue per store for current and prior period['revenue_per_store']:release] | Q: Based on the store count and average revenue per store, which factor appears to be driving the 15% revenue growth?
+  CEREBRAS HIGH: say='Understood.' move=clarify ex=None | req=[stores count['stores_count']:release; average revenue per store['revenue_per_store']:release] | Q: Based on the figures, which driver—store count or per‑store sales—appears to have contributed more to the 15 % revenue growth?
+
+### 3. 01-maya-the-fr#7 (batch-7-oct-03/01-maya-the-freezer)  revealed=2
+  CANDIDATE: Got it, thanks. Is that growth coming from price increases or more customers?
+  SONNET (logged in the original run): Menu prices have not changed in two years. The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit.
+  CEREBRAS LOW : say='Got it.' move=analysis ex=None | req=[average transaction value['avg_ticket']:release; total annual revenue['revenue_total'](passing):release] | Q: Which driver would you prioritize investigating first, price or volume, and why?
+  CEREBRAS MED : say='Understood.' move=analysis ex=None | req=[total annual revenue['revenue_total']:release; average transaction value['avg_ticket']:release] | Q: Based on the average ticket and total revenue figures, what does that indicate about the sources of revenue growth?
+  CEREBRAS HIGH: say='Got it.' move=analysis ex=None | req=[average transaction value['avg_ticket']:release; menu price changes['menu_price_change']:release] | Q: Based on the average ticket and price changes, what do you infer about the source of the revenue growth?
+
+### 4. 01-maya-the-fr#9 (batch-7-oct-03/01-maya-the-freezer)  revealed=4
+  CANDIDATE: Okay. And on the cost side — do we have a breakdown of their cost structure?
+  SONNET (logged in the original run): Take a look at this and tell me what you see.
+  CEREBRAS LOW : say='Understood.' move=analysis ex=None | req=[COGS % of revenue['cogs_pct']:release; Labor % of revenue['labor_pct']:release; Overhead % of revenue['overhead_pct']:release] | Q: What do those percentages tell you about the profit decline?
+  CEREBRAS MED : say='Got it.' move=exhibit ex=exhibit-a | req=[cost structure breakdown[]:release] | Q: What does it tell you?
+  CEREBRAS HIGH: say='Okay.' move=pressure_test ex=None | req=[cost breakdown['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_price_change', 'bean_share_of_cogs', 'non_bean_input_change']:defer] | Q: Which branch would you prioritize first, revenue or cost, and why?
+
+### 5. 01-maya-the-fr#11 (batch-7-oct-03/01-maya-the-freezer)  revealed=7
+  CANDIDATE: Sorry, one more — are those numbers percentages of revenue, or dollars?
+  SONNET (logged in the original run): Percentages of revenue. Before we wrap, on what you asked about earlier: Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.
+  CEREBRAS LOW : say='Got it.' move=exhibit ex=None | req=[COGS breakdown: coffee beans as a share of COGS['bean_share_of_cogs']:release; COGS breakdown: other input cost changes['non_bean_input_change']:release] | Q: Looking at the cost structure exhibit, what insights do you draw from it?
+  CEREBRAS MED : say='They’re percentages of revenue.' move=exhibit ex=None | req=[coffee beans as a share of COGS['bean_share_of_cogs']:release; other input cost changes (dairy, packaging, food) over 2 years['non_bean_input_change']:release] | Q: Based on this cost structure, what do you see as the main contributors to the margin erosion?
+  CEREBRAS HIGH: say='They are percentages of revenue.' move=exhibit ex=None | req=[COGS breakdown: coffee beans as a share of COGS['bean_share_of_cogs']:release; COGS breakdown: other input cost changes (dairy, packaging, food)['non_bean_input_change']:release] | Q: What does the exhibit tell you about the drivers of the profit decline?
+
+### 6. 01-maya-the-fr#13 (batch-7-oct-03/01-maya-the-freezer)  revealed=9
+  CANDIDATE: hmm, I'm not sure what to do with that.
+  SONNET (logged in the original run): I haven't put an exhibit in front of you yet, so let me do that now.
+  CEREBRAS LOW : say='Got it.' move=exhibit ex=None | req=[] | Q: What does Exhibit‑A tell you about the drivers of the margin decline?
+  CEREBRAS MED : say='Got it.' move=exhibit ex=None | req=[] | Q: Looking at the cost structure exhibit, what stands out to you?
+  CEREBRAS HIGH: say='Got it.' move=exhibit ex=None | req=[] | Q: Looking at the cost structure exhibit, what do you see as the main contributors to the margin decline?
+
+### 7. 01-maya-the-fr#15 (batch-7-oct-03/01-maya-the-freezer)  revealed=9
+  CANDIDATE: I'm stuck, sorry.
+  SONNET (logged in the original run): Take your time. The question on the table is what the cost structure is telling you about why margin fell.
+  CEREBRAS LOW : say='Take your time. The question on the table is to identify the root cause of the profit decline and recommend how to reverse it.' move=other ex=None | req=[] | Q: What’s your next step?
+  CEREBRAS MED : say='Take your time.' move=other ex=None | req=[] | Q: Do you need any clarification on the question?
+  CEREBRAS HIGH: say='Take your time. The question on the table is: How would you approach identifying the root cause of the profit decline and recommending how to reverse it?' move=other ex=None | req=[] | Q: 
+
+### 8. 01-maya-the-fr#17 (batch-7-oct-03/01-maya-the-freezer)  revealed=9
+  CANDIDATE: I don't really know where to start, sorry.
+  SONNET (logged in the original run): I'll put the exhibit in front of you now. Tell me which cost lines moved the most between the two periods.
+  CEREBRAS LOW : say='Okay.' move=exhibit ex=None | req=[] | Q: Looking at the cost‑structure exhibit, what insights do you draw about the drivers of the margin decline?
+  CEREBRAS MED : say='Okay.' move=exhibit ex=None | req=[] | Q: Looking at the cost structure exhibit, what insights do you draw about the drivers of the margin decline?
+  CEREBRAS HIGH: say='Got it.' move=exhibit ex=None | req=[] | Q: Looking at exhibit‑a, what do you see as the main factors behind the margin decline?
+
+### 9. 01-maya-the-fr#19 (batch-7-oct-03/01-maya-the-freezer)  revealed=9
+  CANDIDATE: Okay — COGS moved the most, 42 to 58. That's a 16% increase. Labor stayed flat at 22, and overhead only went 12 to 14, so 2 points. So basically all of the margin loss, 24 down to 6, is 18 points, and COGS accounts for 16 of that. So it's really a COGS story. Am I on the right track here?
+  SONNET (logged in the original run): I won't say whether you're on track. You called the COGS move a 16% increase, but then counted it as 16 of the 18 points. Points of what, and what's the difference between those two framings?
+  CEREBRAS LOW : say='Understood.' move=analysis ex=None | req=[coffee bean price change over the period['bean_price_change']:release; total annual revenue['revenue_total'](passing):defer] | Q: What part of the COGS increase is due to coffee bean price changes versus other input cost increases?
+  CEREBRAS MED : say='Got it.' move=analysis ex=None | req=[] | Q: What components within COGS grew the most, and which of those would you examine first to explain the margin decline?
+  CEREBRAS HIGH: say='Got it.' move=analysis ex=None | req=[] | Q: Which component of COGS do you think contributed most to its increase?
+
+### 10. 01-maya-the-fr#23 (batch-7-oct-03/01-maya-the-freezer)  revealed=9
+  CANDIDATE: I'm okay, really — I'd rather keep going. Sorry about that.
+  SONNET (logged in the original run): No apology needed. You said COGS went from 42 to 58 of revenue, and that you counted it as 16 of the 18 points of margin loss. What do you think is driving COGS up?
+  CEREBRAS LOW : say='Understood.' move=brainstorm ex=None | req=[] | Q: Beyond the cost drivers we’ve identified, what other initiatives could Brew & Bean pursue to improve profitability?
+  CEREBRAS MED : say='Understood.' move=brainstorm ex=None | req=[] | Q: Beyond what we've discussed, what other initiatives could Brew & Bean pursue to improve profitability?
+  CEREBRAS HIGH: say='Got it.' move=brainstorm ex=None | req=[] | Q: Beyond the cost drivers we’ve discussed, what other actions could Brew & Bean take to improve profitability?
+
+### 11. 01-maya-the-fr#25 (batch-7-oct-03/01-maya-the-freezer)  revealed=9
+  CANDIDATE: Probably input costs. Do we have a split of COGS by line item — like beans versus dairy versus packaging?  The 42 to 58 is still a 16% increase to me, that's the big driver.
+  SONNET (logged in the original run): Raw coffee bean costs are up 40% over the past two years. On the 16 you keep returning to: it's 16 points of revenue, not a 16 percent increase. What do you make of the bean price change next to the other input costs?
+  CEREBRAS LOW : say='Understood.' move=brainstorm ex=None | req=[] | Q: Beyond the cost drivers we've identified, what other actions could Brew & Bean pursue to restore profitability?
+  CEREBRAS MED : say='Got it.' move=brainstorm ex=None | req=[coffee bean price change over 2 years['bean_price_change']:release; total annual revenue['revenue_total']:release] | Q: Beyond what we've discussed, what else could the client do to improve margin?
+  CEREBRAS HIGH: ERROR
+
+### 12. 01-maya-the-fr#27 (batch-7-oct-03/01-maya-the-freezer)  revealed=10
+  CANDIDATE: Beans up 40%, and they were 25% of COGS two years ago. So that's part of it, but the other inputs are 75% of COGS and up 37.5%, so those matter more in dollar terms.  But yeah, I still read the 42 to 58 as a 16% increase, that feels like the main thing.  Am I on the right track at all?
+  SONNET (logged in the original run): I don't grade mid-case, so you'll get that in the written report. Your bean and non-bean split makes sense to me as a structure. Per 100 of COGS two years ago, what do beans and the other inputs each add today, and what does that imply for total COGS growth?
+  CEREBRAS LOW : say='Understood.' move=brainstorm ex=None | req=[] | Q: Beyond the cost drivers we’ve discussed, what other initiatives could Brew & Bean pursue to improve profitability?
+  CEREBRAS MED : say='Understood.' move=brainstorm ex=None | req=[COGS breakdown by line item[]:defer] | Q: Beyond what we've discussed, what other actions could the client take to improve profitability?
+  CEREBRAS HIGH: say='Understood.' move=brainstorm ex=None | req=[] | Q: Beyond what we've discussed, what other actions could the client take to improve profitability?
+
+### 13. 01-maya-the-fr#29 (batch-7-oct-03/01-maya-the-freezer)  revealed=10
+  CANDIDATE: Okay. Per 100 of COGS two years ago: beans were 25, up 40%, so 25 × 1.4 = 35. Other inputs were 75, up 37.5%, so 75 × 1.375 = 103.1. Total is 138.1, so COGS is up about 38% in dollar terms.  And revenue is up 15%, so costs are growing way faster than sales. That tracks with COGS going 42 to 58 of revenue.
+  SONNET (logged in the original run): Okay. Now I'd like to hear ideas from you: beyond what we've discussed, what else could Brew & Bean do to address this?
+  CEREBRAS LOW : say='' move=brainstorm ex=None | req=[] | Q: Beyond the cost drivers we’ve discussed, what other initiatives could Brew & Bean pursue to improve profitability?
+  CEREBRAS MED : say='Understood.' move=analysis ex=None | req=[] | Q: Points of what?
+  CEREBRAS HIGH: say='Understood.' move=brainstorm ex=None | req=[] | Q: You noted a 16‑point increase; points of what? And beyond the cost drivers we’ve identified, what other levers could the client pull to improve margin?
+
+### 14. 01-maya-the-fr#31 (batch-7-oct-03/01-maya-the-freezer)  revealed=10
+  CANDIDATE: Umm. Maybe raise prices, since they haven't changed in two years? Or renegotiate supplier contracts, maybe lock in longer-term bean pricing. Possibly change the menu mix toward items with cheaper inputs.  I'm not sure beyond that, sorry.
+  SONNET (logged in the original run): Okay. Of those ideas, which would you prioritize, and why?
+  CEREBRAS LOW : say='Understood.' move=recommendation ex=None | req=[] | Q: Based on your analysis, what would you recommend Brew & Bean do to restore profitability?
+  CEREBRAS MED : say='Understood.' move=recommendation ex=None | req=[] | Q: Based on our discussion, what specific recommendation would you give Brew & Bean to restore profitability?
+  CEREBRAS HIGH: say='Understood.' move=recommendation ex=None | req=[] | Q: Based on your analysis, what concrete recommendation would you give Brew & Bean to restore its profit margin?
+
+### 15. 01-maya-the-fr#33 (batch-7-oct-03/01-maya-the-freezer)  revealed=10
+  CANDIDATE: I don't know, sorry. I can't really pick between them.
+  SONNET (logged in the original run): Take a minute if you need it. You've told me the cost pressure is across beans and the other inputs, and that prices haven't moved in two years. Given that, which one lever would you lead with?
+  CEREBRAS LOW : say='Understood.' move=recommendation ex=None | req=[] | Q: Based on our discussion, what specific recommendation would you give Brew & Bean to improve its margin?
+  CEREBRAS MED : say='Understood.' move=recommendation ex=None | req=[] | Q: What would you recommend Brew & Bean do to improve margin?
+  CEREBRAS HIGH: say='Okay.' move=recommendation ex=None | req=[] | Q: Based on the analysis, what is your recommendation to improve Brew & Bean’s profit margin?
+
+### 16. 01-maya-the-fr#36 (batch-7-oct-03/01-maya-the-freezer)  revealed=10
+  CANDIDATE: I'm sorry, I really don't know.
+  SONNET (logged in the original run): Let's try it from the other side. If the CEO asked you for one action to take first, which of your three ideas would you want to defend to her, even if you're not certain?
+  CEREBRAS LOW : say='Okay.' move=recommendation ex=None | req=[] | Q: Based on our discussion, what would you recommend Brew & Bean do to restore profitability?
+  CEREBRAS MED : say='Understood.' move=recommendation ex=None | req=[] | Q: Based on what we've discussed, what would you recommend to Brew & Bean to restore profitability?
+  CEREBRAS HIGH: say='Okay.' move=recommendation ex=None | req=[] | Q: Based on our discussion, what recommendation would you give Brew & Bean to improve its margin?
+
+### 17. 01-maya-the-fr#38 (batch-7-oct-03/01-maya-the-freezer)  revealed=10
+  CANDIDATE: I'm sorry — I don't know.
+  SONNET (logged in the original run): That's okay. Pick the idea you'd be least uncomfortable defending, and tell me one reason it would help margin.
+  CEREBRAS LOW : say='Understood.' move=recommendation ex=None | req=[] | Q: Based on our discussion, what would you recommend Brew & Bean do to improve margins?
+  CEREBRAS MED : say='Understood.' move=recommendation ex=None | req=[] | Q: Based on our discussion, what recommendation would you make to Brew & Bean to improve its margin?
+  CEREBRAS HIGH: say='Understood.' move=recommendation ex=None | req=[] | Q: Based on our discussion, what specific recommendation would you give Brew & Bean to restore profitability?
+
+### 18. 01-maya-the-fr#40 (batch-7-oct-03/01-maya-the-freezer)  revealed=10
+  CANDIDATE: Prices, maybe. Since they haven't changed in two years and costs are up.  But I don't really know, sorry.
+  SONNET (logged in the original run): Okay. Walk me through how a price increase would affect margin, and what could go wrong with it.
+  CEREBRAS LOW : say='Understood.' move=recommendation ex=None | req=[] | Q: Based on our discussion, what recommendation would you give Brew & Bean to improve its margin?
+  CEREBRAS MED : say='Understood.' move=recommendation ex=None | req=[] | Q: What would you recommend the client do to improve margins?
+  CEREBRAS HIGH: say='Okay.' move=recommendation ex=None | req=[] | Q: Based on what we've discussed, what specific recommendation would you give Brew & Bean to restore its profit margin?
+
+### 19. 01-maya-the-fr#42 (batch-7-oct-03/01-maya-the-freezer)  revealed=10
+  CANDIDATE: If prices go up, revenue per transaction rises and COGS stays the same in dollars, so margin improves. Like if costs are 58 of revenue now, a higher price makes that percentage smaller.  What could go wrong is customers buy less, or go to competitors. Volume could drop enough to offset the price gain.  That's all I've got, sorry.
+  SONNET (logged in the original run): That's time. Thanks for working through it — your written report will follow.
+  CEREBRAS LOW : say='Understood.' move=recommendation ex=None | req=[] | Q: Based on our discussion, what specific recommendation would you give to Brew & Bean to improve margin, and how would you prioritize its implementation?
+  CEREBRAS MED : say='Okay.' move=other ex=None | req=[] | Q: 
+  CEREBRAS HIGH: say='Okay.' move=other ex=None | req=[] | Q: Do you have any final thoughts you’d like to share?
+
+### 20. 02-tobias-the-#3 (batch-7-oct-03/02-tobias-the-silent-thinker)  revealed=0
+  CANDIDATE: Since revenue is actually up 15% while margin collapsed from 24% to 6%, the decline has to be driven by costs growing faster than revenue, so I'd weight my structure there — but I want to confirm the revenue side first so we don't miss a mix issue.  Three buckets:  First, revenue quality. Is the 15% growth coming from new store openings, same-store traffic, or price? Growth from new stores can carry heavy upfront costs and drag margin even if each store is healthy.  Second, costs — split fixed versus variable. Variable: coffee beans, dairy, cups, hourly labor. Fixed: rent, salaried staff, corporate overhead, marketing, any D&A from the expansion.  Third, external: commodity prices, wage legislation, competitive pricing pressure.  I'd start by asking which cost lines grew fastest in absolute dollars over the two years. Do we have a cost breakdown as a percent of revenue for both years?
+  SONNET (logged in the original run): Before I do, one question on your structure: is it MECE, and what, if anything, is missing? COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%.
+  CEREBRAS LOW : say='Okay.' move=structure ex=None | req=[] | Q: Please outline the framework you would use to tackle this problem.
+  CEREBRAS MED : say='Understood.' move=structure ex=None | req=[cost breakdown as percent of revenue for both years['cogs_pct', 'labor_pct', 'overhead_pct']:defer] | Q: Please walk me through the framework you’ll use to diagnose the profit decline.
+  CEREBRAS HIGH: say='Understood.' move=structure ex=None | req=[cost breakdown as percent of revenue['cogs_pct', 'labor_pct', 'overhead_pct']:defer] | Q: Please outline the framework you would use to analyze the profit decline.
+
