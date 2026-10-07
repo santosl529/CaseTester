@@ -7,9 +7,9 @@ import { collectTurn, NEUTRAL_TURN } from './turn-events';
 
 export { INTERVIEWER_MODEL_ID } from '@/lib/models';
 
-const TURN_KEYS = new Set(['move', 'requests', 'exhibit', 'rescue_item', 'say', 'question']);
+export const TURN_KEYS = new Set(['move', 'requests', 'exhibit', 'rescue_item', 'say', 'question']);
 
-type Attempt = { turn: ModelTurn | null; refused: boolean; unknown: string[] };
+export type Attempt = { turn: ModelTurn | null; refused: boolean; unknown: string[] };
 
 export class AnthropicInterviewerModel implements InterviewerModel {
   private client: Anthropic;
@@ -119,7 +119,7 @@ export class AnthropicInterviewerModel implements InterviewerModel {
 }
 
 // Unknown ids first: a draft aborted at `requests` is also unparseable.
-function retryNote(a: Attempt, validIds: string[]): string {
+export function retryNote(a: Attempt, validIds: string[]): string {
   if (a.unknown.length > 0) {
     return `Your previous draft named ids the case doesn't have: ${a.unknown.map(i => `"${i}"`).join(', ')}. Write the whole turn again; use only these ids in item_ids: ${validIds.map(i => `"${i}"`).join(', ') || 'none'}. If the case doesn't have what was asked for, leave item_ids empty.`;
   }

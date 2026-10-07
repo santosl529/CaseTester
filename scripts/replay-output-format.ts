@@ -14,7 +14,7 @@
 import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { buildSystemPrompt, type PromptContext } from '@/lib/agent/prompts/system';
-import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
+import { createInterviewerModel } from '@/lib/agent/models/factory';
 import { streamInterviewerTurn } from '@/lib/agent/interviewer';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import { getCaseById } from '@/lib/cases/loader';
@@ -170,7 +170,7 @@ type Row = {
   turn?: ModelTurn; retried?: boolean;
 };
 
-const model = new AnthropicInterviewerModel();
+const model = createInterviewerModel();   // INTERVIEWER_PROVIDER=cerebras for the Cerebras arm
 
 async function runProd(s: Sample): Promise<Row> {
   const u = { inputTokens: 0, outputTokens: 0, cacheRead: 0 };
@@ -228,7 +228,10 @@ async function main() {
   console.log(`  output tokens median ${pct(ok.map(r => r.outputTokens), 0.5)} · cache read median ${pct(ok.map(r => r.cacheRead), 0.5)}`);
   console.log(`  moves: ${JSON.stringify(ok.reduce<Record<string, number>>((m, r) => { const k = r.turn?.move ?? '?'; m[k] = (m[k] ?? 0) + 1; return m; }, {}))}`);
   for (const r of rows.filter(r => !r.ok).slice(0, 3)) console.log(`  error: ${r.error}`);
-  const cost = ok.reduce((c, r) => c + r.inputTokens * 2 + r.cacheRead * 0.2 + r.outputTokens * 10, 0) / 1e6;
+  // $/M tokens: Sonnet 5.5 $2 in / $0.20 cached / $10 out; Cerebras gpt-oss-120b
+  // $0.35 in / $0.75 out (cached input not discounted here: conservative).
+  const rates = process.env.INTERVIEWER_PROVIDER === 'cerebras' ? { in: 0.35, cached: 0.35, out: 0.75 } : { in: 2, cached: 0.2, out: 10 };
+  const cost = ok.reduce((c, r) => c + r.inputTokens * rates.in + r.cacheRead * rates.cached + r.outputTokens * rates.out, 0) / 1e6;
   console.log(`actual cost ~$${cost.toFixed(2)}`);
 }
 

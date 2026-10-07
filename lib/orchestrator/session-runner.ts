@@ -13,7 +13,7 @@ import { classifyDataRequests, type DetectedDataRequest } from './data-requests'
 import { logEvent } from '@/lib/analytics';
 import { TOTAL_CASE_MS, type Phase } from './state-machine';
 import { streamInterviewerTurn } from '@/lib/agent/interviewer';
-import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
+import { createInterviewerModel } from '@/lib/agent/models/factory';
 import { SILENCE_PAUSE_EXPIRED, CLOSE_SCRIPTS, GRACE_ASK_SCRIPTS, TIME_WARNING_SCRIPTS, pickScript } from '@/lib/agent/prompts/scripts';
 import { planTurn, scriptedOffer, type ModelPlan } from './plan-turn';
 import { streamTurnSegments } from './stream-turn';
@@ -28,7 +28,7 @@ import type { ConductFlags, SegmentSink, TurnResult } from './turn-types';
 
 export type { ExhibitDisplay, TurnResult } from './turn-types';
 
-const model = new AnthropicInterviewerModel();
+const model = createInterviewerModel();
 
 export type SilenceResult = {
   action: SilenceAction;

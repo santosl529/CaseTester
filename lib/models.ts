@@ -20,3 +20,11 @@ export const SCORING_MODEL_ID = 'claude-opus-5-5';
 // — not Bedrock/Vertex/Foundry. Requires the beta messages endpoint.
 export const FALLBACK_BETA = 'server-side-fallback-2026-07-01' as const;
 export const FALLBACKS = 'default' as const;
+
+// Interviewer on Cerebras (experiment, 7 Oct 2026): OpenAI's open-weight
+// gpt-oss-120b on wafer-scale hardware — first token ~0.15–0.25s and
+// ~1,500+ tokens/s reported, against Sonnet's ~1.3s first token on our prompt.
+// Chosen over Qwen/GLM (Chinese-developed). Selected with
+// INTERVIEWER_PROVIDER=cerebras; Sonnet stays the default until a hand-read
+// replay shows it holds the interviewer rules.
+export const CEREBRAS_INTERVIEWER_MODEL_ID = 'gpt-oss-120b';
