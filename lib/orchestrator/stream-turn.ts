@@ -12,7 +12,7 @@ import type { TurnEvent, TurnValidation } from '@/lib/agent/models/interface';
 import { toRequests, type ModelTurn } from '@/lib/agent/models/turn-schema';
 import { NEUTRAL_TURN } from '@/lib/agent/models/turn-events';
 import type { ModelPlan } from './plan-turn';
-import type { SegmentSink } from './turn-types';
+import type { SegmentKind, SegmentSink } from './turn-types';
 import type { Phase } from './state-machine';
 import type { VerifiedFigure } from './recompute';
 import type { OpenRequestItem } from './assumption-guard';
@@ -160,9 +160,9 @@ export async function streamTurnSegments(
   let closed = new Set<string>();
   let dataLineQueued = false;
 
-  const send = async (text: string, revealIds: string[], exhibitId?: string) => {
+  const send = async (kind: SegmentKind, text: string, revealIds: string[], exhibitId?: string) => {
     try {
-      await sink({ text, revealIds, exhibitId });
+      await sink({ text, revealIds, exhibitId, kind });
     } catch {
       undeliveredRevealIds.push(...revealIds);
       bufferSwitch ??= 'sink_rejected';
@@ -187,14 +187,14 @@ export async function streamTurnSegments(
       // too) and streaming goes on. Any other veto stops delivery.
       if (reason === 'data_talk' || reason === 'double_ack') return;
       if (reason) { bufferSwitch = reason; return; }
-      await send(p.text, []);
+      await send('say', p.text, []);
       return;
     }
     // "say" and the declarations closed: code's data line.
     const d = turnData(plan, fields);
     const lines = renderDataLines(d, `${plan.ctx.sessionId}:${plan.ctx.nextTurnIndex}`);
     if (lines.length > 0 || d.exhibit) {
-      await send(lines.join(' '), d.releases.map(r => r.id), d.exhibit?.id);
+      await send('data', lines.join(' '), d.releases.map(r => r.id), d.exhibit?.id);
       mark('data_line_delivered');
     }
   };

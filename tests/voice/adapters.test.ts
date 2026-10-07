@@ -57,15 +57,15 @@ describe('speakingSink', () => {
     const pushed: string[] = [];
     const utt: TTSUtterance = { push: async t => { pushed.push(t); }, end: async () => {}, cancel: async () => {}, onAudio: () => {} };
     const sink = speakingSink(utt);
-    await sink({ text: 'Understood.', revealIds: [] });
-    await sink({ text: '  ', revealIds: [] });
-    await sink({ text: 'COGS is 58% of revenue.', revealIds: ['cogs_pct'] });
+    await sink({ text: 'Understood.', revealIds: [], kind: 'say' });
+    await sink({ text: '  ', revealIds: [], kind: 'data' });
+    await sink({ text: 'COGS is 58% of revenue.', revealIds: ['cogs_pct'], kind: 'data' });
     expect(pushed).toEqual(['Understood.', 'COGS is 58% of revenue.']);
   });
 
   it('rejects when speech fails, so the reveal is not booked', async () => {
     const utt: TTSUtterance = { push: async () => { throw new Error('tts down'); }, end: async () => {}, cancel: async () => {}, onAudio: () => {} };
-    await expect(speakingSink(utt)({ text: 'COGS is 58%.', revealIds: ['cogs_pct'] })).rejects.toThrow();
+    await expect(speakingSink(utt)({ text: 'COGS is 58%.', revealIds: ['cogs_pct'], kind: 'data' })).rejects.toThrow();
   });
 });
 

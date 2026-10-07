@@ -8,7 +8,7 @@ import { vetoReason, streamTurnSegments, type GateContext } from '@/lib/orchestr
 import { eventsFromTurn } from '@/lib/agent/models/turn-events';
 import type { TurnEvent } from '@/lib/agent/models/interface';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
-import type { Segment } from '@/lib/orchestrator/turn-types';
+import { isUsefulSegment, type Segment } from '@/lib/orchestrator/turn-types';
 import { modelPlanFixture } from './fixtures/model-plan';
 
 const g = (over: Partial<GateContext> = {}): GateContext => ({
@@ -65,6 +65,13 @@ describe('streamTurnSegments', () => {
     expect(got.map(s => s.text)).toEqual(['Okay.', expect.stringContaining('200 stores')]);
     expect(got[1].revealIds).toEqual(['stores_count']);
     expect(out).toMatchObject({ kind: 'done', bufferSwitch: null, deliveredRevealIds: ['stores_count'] });
+  });
+
+  it('marks say sentences as say and the data line as data', async () => {
+    const { got, sink } = collect();
+    await run(T({ say: 'Okay.', requests: [{ what: 'store count', itemIds: ['stores_count'], explicit: true, respond: 'release' }] }), undefined, sink);
+    expect(got.map(s => s.kind)).toEqual(['say', 'data']);
+    expect(got.map(isUsefulSegment)).toEqual([false, true]);
   });
 
   it('with say first, holds the data line until the declarations close', async () => {

@@ -68,6 +68,17 @@ export type ScriptedPlan = {
 
 // One delivered piece of the interviewer's turn (D3: reveals are booked when
 // the segment carrying them is delivered).
-export type Segment = { text: string; revealIds: string[]; exhibitId?: string };
+// `kind`: "say" (the model's opening sentence), "data" (code's data line),
+// "tail" (Settle's rest: the question, and anything Stream left), "scripted"
+// (a turn written by code: close, distress offer).
+export type SegmentKind = 'say' | 'data' | 'tail' | 'scripted';
+export type Segment = { text: string; revealIds: string[]; exhibitId?: string; kind: SegmentKind };
+
+// Useful content (latency step 1, 7 Oct): anything past "say", which is now a
+// neutral acknowledgment — the candidate's wait is to the data line or the
+// question, not to the first sound.
+export function isUsefulSegment(s: Pick<Segment, 'kind'>): boolean {
+  return s.kind !== 'say';
+}
 // Resolves when the segment was delivered; rejects when it was not.
 export type SegmentSink = (s: Segment) => Promise<void>;

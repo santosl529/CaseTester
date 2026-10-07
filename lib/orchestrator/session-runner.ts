@@ -19,7 +19,7 @@ import { planTurn, scriptedOffer, type ModelPlan } from './plan-turn';
 import { streamTurnSegments } from './stream-turn';
 import { settleTurn, commitScripted, logSessionEvent, type TurnUsage, type ModelOutcome } from './settle-turn';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
-import type { ConductFlags, SegmentSink, TurnResult } from './turn-types';
+import { isUsefulSegment, type ConductFlags, type SegmentSink, type TurnResult } from './turn-types';
 
 // The turn coordinator (specs 2026-10-05-streaming-turn, 2026-10-06
 // plan-owns-decisions): reads → Plan (plan-turn.ts, which also decides the
@@ -94,7 +94,7 @@ async function runTurnBody(
   });
   timer.mark('plan_done');
   if (plan.kind === 'scripted') {
-    if (sink && plan.interviewerText) await sink({ text: plan.interviewerText, revealIds: [] }).catch(() => {});
+    if (sink && plan.interviewerText) await sink({ text: plan.interviewerText, revealIds: [], kind: 'scripted' }).catch(() => {});
     return commitScripted(plan);
   }
 
@@ -109,13 +109,14 @@ async function runTurnBody(
   // calls — onUsage fires per call, so sum here.
   const turnUsage: TurnUsage = { model: '', inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, apiCalls: 0 };
   // Delivery (D3): the caller's sink, wrapped to time the first segment and
-  // note an exhibit already put on screen.
+  // the first useful one (past "say"), and note an exhibit already on screen.
   let firstSegmentAt: number | null = null;
   let exhibitDelivered = false;
   const deliver: SegmentSink = async seg => {
     await (sink ?? (async () => {}))(seg);
     firstSegmentAt ??= Date.now();
     timer.mark('first_delivered');
+    if (isUsefulSegment(seg)) timer.mark('first_useful_delivered');
     if (seg.exhibitId) exhibitDelivered = true;
   };
   const recordDistress = (distress: DistressVerdict | null) => {
@@ -129,7 +130,7 @@ async function runTurnBody(
       later(() => logEvent('llm_usage', { component: 'interviewer', ...turnUsage, discarded: true }, { sessionId, userId }));
     }
     const offer = scriptedOffer(plan, verdict.label === 'risk_to_self', { reason: verdict.reason, label: verdict.label, layer: 'model' });
-    await deliver({ text: offer.interviewerText, revealIds: [] }).catch(() => {});
+    await deliver({ text: offer.interviewerText, revealIds: [], kind: 'scripted' }).catch(() => {});
     return commitScripted(offer);
   };
 
@@ -224,7 +225,7 @@ async function runTurnBody(
   const tailExhibit = !exhibitDelivered ? settled.exhibitId : undefined;
   if (settled.tail || tailReveals.length > 0 || tailExhibit) {
     try {
-      await deliver({ text: settled.tail, revealIds: tailReveals, exhibitId: tailExhibit });
+      await deliver({ text: settled.tail, revealIds: tailReveals, exhibitId: tailExhibit, kind: 'tail' });
       timer.mark('tail_delivered');
     } catch {
       out.undeliveredRevealIds?.push(...tailReveals); // D3: not delivered, not booked
