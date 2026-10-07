@@ -66,6 +66,25 @@ describe('settleTurn composition', () => {
     expect(s.spokenText).toBe('Okay. What drove it?');
   });
 
+  // Batch 13 (Daniel t10, Jordan t14, Fiona t8): "Here's an exhibit: … Here's
+  // the cost structure over time. What does it tell you…?"
+  it('withholds a handover announcement that opens the question', async () => {
+    const s = await settle(T({ question: "Here's the cost structure over time. What does it tell you?" }));
+    expect(s.spokenText).toBe('What does it tell you?');
+    const t = await settle(T({ question: 'Take a look at this exhibit. Which line moved most?' }));
+    expect(t.spokenText).toBe('Which line moved most?');
+  });
+
+  it('keeps a handover sentence that is the whole question', async () => {
+    const s = await settle(T({ question: 'Take a look at this exhibit and tell me what it shows.' }));
+    expect(s.spokenText).toBe('Take a look at this exhibit and tell me what it shows.');
+  });
+
+  it('keeps a question that merely mentions here', async () => {
+    const s = await settle(T({ question: "Here's what I'd ask: which line moved most?" }));
+    expect(s.spokenText).toBe("Here's what I'd ask: which line moved most?");
+  });
+
   it('a vetoed question becomes "Go on."', async () => {
     const s = await settle(T({ question: "That's our time, thanks for working through it." }));
     expect(s.spokenText).toBe('Go on.');

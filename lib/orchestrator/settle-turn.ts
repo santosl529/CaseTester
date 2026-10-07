@@ -26,7 +26,7 @@ import { BLOCKED_CLOSE_PROBES } from './spoken-close';
 import { renderDataLines, decisionRows } from './data-decisions';
 import { derivePhase, type TurnMove } from './progress';
 import { turnData } from './turn-data';
-import { vetoReason, gateContext } from './stream-turn';
+import { vetoReason, gateContext, isHandoverAnnouncement } from './stream-turn';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { TurnValidation } from '@/lib/agent/models/interface';
 import type { ModelPlan } from './plan-turn';
@@ -132,11 +132,23 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
 
   // The model's words, vetoed sentence by sentence (never rewritten).
   const withheld: { sentence: string; reason: string; field: 'say' | 'question' }[] = [];
-  const keep = (text: string, field: 'say' | 'question') => sentencesOf(text).filter(s => {
-    const reason = vetoReason(s, g, { inQuestion: field === 'question' });
-    if (reason) withheld.push({ sentence: s, reason, field });
-    return reason === null;
-  }).join(' ');
+  const keep = (text: string, field: 'say' | 'question') => {
+    let kept = sentencesOf(text).filter(s => {
+      const reason = vetoReason(s, g, { inQuestion: field === 'question' });
+      if (reason) withheld.push({ sentence: s, reason, field });
+      return reason === null;
+    });
+    // A handover announcement in the question goes when the question has
+    // something else to say (isHandoverAnnouncement).
+    if (field === 'question' && kept.some(s => !isHandoverAnnouncement(s))) {
+      kept = kept.filter(s => {
+        if (!isHandoverAnnouncement(s)) return true;
+        withheld.push({ sentence: s, reason: 'handover_in_question', field });
+        return false;
+      });
+    }
+    return kept.join(' ');
+  };
   const say = codeWritten ? turn.say : keep(turn.say, 'say');
   let question = codeWritten ? turn.question : keep(turn.question, 'question');
   if (kind === 'rec_ask') question = pickScript([...BLOCKED_CLOSE_PROBES.recommendation], seed);

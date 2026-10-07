@@ -44,6 +44,16 @@ export type GateContext = {
 // (batch 9: Devon t14 "…is available, so I'll give you that").
 export const DATA_TALK = /\b(i don'?t have|that'?s not in the information|isn'?t something i have|i'?ll come back to|come back to (that|it)|(is|are) available|i'?ll (give|share|show) you|let me (give|share|show|pull))\b/i;
 
+// A statement in the question that hands something over ("Here's the cost
+// structure over time.", "Take a look at this exhibit.") — code already
+// announced the exhibit or data (batch 13: Daniel t10, Jordan t14, Fiona t8).
+// Withheld only when another sentence of the question is left (Settle).
+const HANDOVER_OPENER = /^(here'?s|here is|take a look|let me (show|bring|put|pull))\b/i;
+export function isHandoverAnnouncement(sentence: string): boolean {
+  const s = sentence.trim();
+  return !s.endsWith('?') && !s.includes(':') && HANDOVER_OPENER.test(s);
+}
+
 // Why a sentence of the model's own words must not be spoken, or null.
 // `inQuestion`: the sentence is (part of) the question field — a question
 // there is expected; in "say" it is not.
