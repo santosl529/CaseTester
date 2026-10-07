@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0005",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "market_entry",
+  "prompt": "A US snack brand launched in the UK a year ago. Trial was strong, with 20% of shoppers buying once, but only 5% bought again. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "The product may not fit UK tastes, since trial was high but repeat was low.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd look at repeat rates by flavor and at consumer feedback."
+    },
+    {
+      "id": "b",
+      "text": "It could be taste, price, pack size, shelf placement, competition or awareness.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "UK consumers simply don't like the flavors, so the brand should pull out.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "UK consumers are different.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Strong trial with weak repeat suggests the product disappoints after the first purchase. Repeat by flavor and feedback test that directly.",
+  "extras": {
+    "distractor_flaws": {
+      "M.shotgun_hypotheses": "It could be taste, price, pack size, shelf placement, competition or awareness.",
+      "M.overconfident_hypothesis": "UK consumers simply don't like the flavors, so the brand should pull out.",
+      "M.untestable_hypothesis": "UK consumers are different."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

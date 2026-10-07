@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0017",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "cost_reduction",
+  "prompt": "A call center's cost per call rose 20%, while wages stayed the same. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Calls are likely taking longer, perhaps due to a new system or more complex issues.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd check average handle time by call type."
+    },
+    {
+      "id": "b",
+      "text": "It could be call length, staffing levels, overtime, systems, training or call mix.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "The new phone system is slowing agents down, so it should be replaced.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "The call center is inefficient.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "With flat wages, cost per call rises when calls take longer or agents sit idle. Handle time by call type tests the first.",
+  "extras": {
+    "distractor_flaws": {
+      "M.shotgun_hypotheses": "It could be call length, staffing levels, overtime, systems, training or call mix.",
+      "M.overconfident_hypothesis": "The new phone system is slowing agents down, so it should be replaced.",
+      "M.untestable_hypothesis": "The call center is inefficient."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

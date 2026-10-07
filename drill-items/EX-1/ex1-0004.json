@@ -1,0 +1,99 @@
+{
+  "item_id": "ex1-0004",
+  "version": 1,
+  "drill_id": "EX-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "cost_reduction",
+  "prompt": "The client's costs are rising and it wants to know where to look first. Which takeaway matters most?",
+  "exhibit": {
+    "type": "stacked_bar",
+    "title": "Operating costs by type ($M)",
+    "categories": [
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "series": [
+      {
+        "name": "Labor",
+        "values": [
+          50,
+          52,
+          54
+        ]
+      },
+      {
+        "name": "Materials",
+        "values": [
+          30,
+          38,
+          48
+        ]
+      },
+      {
+        "name": "Overhead",
+        "values": [
+          20,
+          20,
+          20
+        ]
+      }
+    ]
+  },
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Overhead has stayed at 20 every year",
+      "correct": false,
+      "tag": "M.trivial_takeaway",
+      "feedback": "True, but it doesn't answer the client's question."
+    },
+    {
+      "id": "b",
+      "text": "Labor is the fastest-growing cost",
+      "correct": false,
+      "tag": "M.misread_trend",
+      "feedback": "That misreads the chart: Labor grew 8% (50 to 54); materials grew 60%."
+    },
+    {
+      "id": "c",
+      "text": "Supplier price increases caused the materials rise",
+      "correct": false,
+      "tag": "M.unsupported_claim",
+      "feedback": "The chart doesn't show this. It may be true, but there is no data here to support it."
+    },
+    {
+      "id": "d",
+      "text": "Materials drive most of the cost increase",
+      "correct": true,
+      "feedback": "Right. Total cost rose 22 (100 to 122); materials account for 18 of it (30 to 48)."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Materials drive most of the cost increase. Total cost rose 22 (100 to 122); materials account for 18 of it (30 to 48).",
+  "extras": {
+    "proof": "Total cost rose 22 (100 to 122); materials account for 18 of it (30 to 48)."
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

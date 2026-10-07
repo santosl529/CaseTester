@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0003",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "profitability",
+  "prompt": "A regional grocery chain's profits fell 15% over two years. The candidate's framework: (1) Revenue: number of shoppers and spend per visit; (2) Costs: cost of goods, labor and rent; (3) Shopper traffic trends by store. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Missing: competitor activity",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Competitor effects show up through traffic and spend inside revenue, so they don't need their own branch here."
+    },
+    {
+      "id": "b",
+      "text": "Bucket 2 is irrelevant to a profit decline",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Costs are half of profit. They are central to this question."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 3 overlaps with bucket 1",
+      "correct": true,
+      "feedback": "Right. Traffic is already inside revenue. A separate bucket double counts it."
+    },
+    {
+      "id": "d",
+      "text": "A revenue-and-cost tree is too generic for this question",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "A profit tree fits a profitability question. The flaw is the duplicated traffic bucket."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Traffic is a driver of revenue, so bucket 3 repeats part of bucket 1. Keep revenue (traffic, spend per visit) and costs, and analyze traffic inside revenue.",
+  "extras": {
+    "flaw_type": "overlap",
+    "corrected_framework": "Revenue (traffic × spend per visit, by store and category); costs (COGS, labor, rent, other)"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

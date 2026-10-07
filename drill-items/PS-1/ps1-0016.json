@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0016",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "new_product_launch",
+  "prompt": "A toothpaste maker is deciding whether to launch a subscription for refillable toothpaste tablets. The candidate's framework: (1) Consumer demand for refillable tablets; (2) Pricing compared with regular toothpaste; (3) Competitors already selling tablets. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 3 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Demand and competitors are separate."
+    },
+    {
+      "id": "b",
+      "text": "Bucket 3 doesn't matter for a new format",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Existing tablet brands set expectations on price and product."
+    },
+    {
+      "id": "c",
+      "text": "It is a generic launch framework",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The buckets are specific to tablets. The flaw is the missing economics."
+    },
+    {
+      "id": "d",
+      "text": "Missing: the costs and economics of a subscription business",
+      "correct": true,
+      "feedback": "Right. Nothing covers production, packaging, shipping and customer acquisition costs, which decide whether a subscription pays."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Demand, pricing and competition are covered, but nothing tells us whether the subscription makes money after fulfillment and acquisition costs.",
+  "extras": {
+    "flaw_type": "missing",
+    "corrected_framework": "Demand; pricing; competition; economics (production, fulfillment, acquisition, churn)"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

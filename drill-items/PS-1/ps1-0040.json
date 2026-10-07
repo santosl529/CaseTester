@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0040",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "industry_analysis",
+  "prompt": "An investor wants to know whether the electric scooter rental industry is attractive. The candidate's framework: (1) Revenue: price and volume; (2) Fixed costs; (3) Variable costs. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 2 and 3 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Fixed and variable costs don't overlap. The structure is the issue."
+    },
+    {
+      "id": "b",
+      "text": "Missing: depreciation of scooters",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Adding a cost line doesn't fix the mismatch."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 2 doesn't matter",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Costs matter. The issue is the generic framework."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic profit tree; it doesn't assess the industry's structure or outlook",
+      "correct": true,
+      "feedback": "Right. Industry attractiveness needs market growth, competition, unit economics and regulation."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Whether an industry is attractive depends on growth, competition, economics per ride and regulation, not one company's revenue and costs.",
+  "extras": {
+    "flaw_type": "generic",
+    "corrected_framework": "Market size and growth; competition and pricing power; unit economics per ride; regulation and city permits"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

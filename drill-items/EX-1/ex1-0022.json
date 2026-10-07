@@ -1,0 +1,107 @@
+{
+  "item_id": "ex1-0022",
+  "version": 1,
+  "drill_id": "EX-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "profitability",
+  "prompt": "The client's chain profit fell, and it wants to know where. Which takeaway matters most?",
+  "exhibit": {
+    "type": "table",
+    "title": "Store results, 2025 ($k)",
+    "table": {
+      "columns": [
+        "Store",
+        "Revenue",
+        "Rent",
+        "Staff",
+        "Profit"
+      ],
+      "rows": [
+        [
+          "Store 1",
+          "900",
+          "100",
+          "300",
+          "200"
+        ],
+        [
+          "Store 2",
+          "850",
+          "120",
+          "290",
+          "160"
+        ],
+        [
+          "Store 3",
+          "600",
+          "250",
+          "280",
+          "-150"
+        ],
+        [
+          "Store 4",
+          "920",
+          "110",
+          "310",
+          "210"
+        ]
+      ]
+    }
+  },
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Store 4 has the highest revenue",
+      "correct": false,
+      "tag": "M.trivial_takeaway",
+      "feedback": "True, but it doesn't answer the client's question."
+    },
+    {
+      "id": "b",
+      "text": "Store 3 loses money, mainly because of its rent",
+      "correct": true,
+      "feedback": "Right. Store 3 loses $150k on $600k of revenue and pays $250k rent, against $100–120k at the others."
+    },
+    {
+      "id": "c",
+      "text": "Store 2 has the highest rent",
+      "correct": false,
+      "tag": "M.misread_trend",
+      "feedback": "That misreads the chart: Store 2 pays 120; Store 3 pays 250."
+    },
+    {
+      "id": "d",
+      "text": "Store 3's lease expires soon",
+      "correct": false,
+      "tag": "M.unsupported_claim",
+      "feedback": "The chart doesn't show this. It may be true, but there is no data here to support it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Store 3 loses money, mainly because of its rent. Store 3 loses $150k on $600k of revenue and pays $250k rent, against $100–120k at the others.",
+  "extras": {
+    "proof": "Store 3 loses $150k on $600k of revenue and pays $250k rent, against $100–120k at the others."
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

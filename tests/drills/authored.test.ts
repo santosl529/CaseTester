@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { loadAuthoredItems, parseAuthoredItems } from '@/lib/drills/authored';
+import { lengthCueProblems, loadAuthoredItems, parseAuthoredItems } from '@/lib/drills/authored';
 import { getDrill } from '@/lib/drills/config';
 
 describe('authored drill items (/drill-items)', () => {
@@ -10,8 +10,8 @@ describe('authored drill items (/drill-items)', () => {
     for (const item of items) expect(getDrill(item.drill_id).item_source).not.toBe('generated');
   });
 
-  it('ships only draft samples until reviewed content replaces them', () => {
-    for (const item of items.filter(i => i.item_id.includes('-sample-'))) expect(item.status).toBe('draft');
+  it('never makes an unreviewed item live', () => {
+    for (const item of items.filter(i => !i.authorship?.reviewed_by)) expect(item.status, item.item_id).toBe('draft');
   });
 
   const sample = () => structuredClone(items.find(i => i.drill_id === 'PS-1')!);
@@ -40,5 +40,16 @@ describe('authored drill items (/drill-items)', () => {
 
   it('rejects an unreviewed worked example', () => {
     expect(() => parseAuthoredItems([{ file: file('PS-1', 'e'), raw: { ...sample(), is_example: true } }])).toThrow(/must be a reviewed item/);
+  });
+
+  it('gives no answer away through option length', () => {
+    expect(lengthCueProblems(items)).toEqual([]);
+  });
+
+  it('flags a pool where the right answer is usually the longest', () => {
+    const pool = items.filter(i => i.drill_id === 'PS-1').map(i => ({
+      ...i, options: i.options.map(o => (o.correct ? { ...o, text: `${o.text} — and this is the much longer, fully explained answer` } : o)),
+    }));
+    expect(lengthCueProblems(pool)).toEqual([expect.stringMatching(/^PS-1: the right answer is the longest option in 40 of 40 items/)]);
   });
 });

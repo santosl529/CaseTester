@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0039",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "public_sector",
+  "prompt": "A state's unemployment office processes claims in 21 days on average, against a 10-day target. Claims volume is flat, but staff fell 30%. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Processing takes 21 days against a 10-day target, with flat volume and 30% fewer staff.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "It could be staffing, IT systems, fraud checks, rules, training or volume.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "Lower staffing is likely the main cause of the delays.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare claims processed per caseworker and backlog growth since the cuts."
+    },
+    {
+      "id": "d",
+      "text": "The office is slow.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "With flat volume, a 30% staff cut is a likely cause. Output per caseworker tests whether capacity explains the delay.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "Processing takes 21 days against a 10-day target, with flat volume and 30% fewer staff.",
+      "M.shotgun_hypotheses": "It could be staffing, IT systems, fraud checks, rules, training or volume.",
+      "M.untestable_hypothesis": "The office is slow."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

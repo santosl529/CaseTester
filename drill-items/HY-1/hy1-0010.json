@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0010",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "A coffee chain's morning sales are up 5%, but afternoon sales are down 20%. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Morning sales rose 5% and afternoon sales fell 20%.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "Afternoon customers may have shifted to other options, perhaps cheaper iced drinks nearby.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd check afternoon transactions by product and store location."
+    },
+    {
+      "id": "c",
+      "text": "Remote work killed the afternoon office crowd, so afternoon hours should be cut.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "Afternoons aren't working for the chain.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "A decline concentrated in the afternoon points to a cause specific to that time. The hypothesis commits to one and says how to test it.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "Morning sales rose 5% and afternoon sales fell 20%.",
+      "M.overconfident_hypothesis": "Remote work killed the afternoon office crowd, so afternoon hours should be cut.",
+      "M.untestable_hypothesis": "Afternoons aren't working for the chain."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0013",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "pricing",
+  "prompt": "A city transit agency is considering raising fares by 20%. The candidate's framework: (1) Extra revenue per rider; (2) Operating costs of the system; (3) Effects on low-income riders. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Missing: how ridership would change at the higher fare",
+      "correct": true,
+      "feedback": "Right. A fare rise changes how many people ride. Without ridership, the revenue math is wrong."
+    },
+    {
+      "id": "b",
+      "text": "Buckets 1 and 2 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Revenue per rider and operating costs are separate."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 2 doesn't matter for a fare decision",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Costs show how much the agency needs to recover."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic profit tree, not a pricing framework",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "Revenue and cost both matter here. What is missing is the volume effect."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Revenue = fare × riders. A fare increase needs a view on how many riders leave, plus the public-policy effects.",
+  "extras": {
+    "flaw_type": "missing",
+    "corrected_framework": "Fare change × ridership response; operating costs; policy and equity effects"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

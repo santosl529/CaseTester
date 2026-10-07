@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0010",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "investment_decision",
+  "prompt": "A bakery chain is deciding whether to buy a second industrial oven line. The candidate's framework: (1) Extra demand the oven would serve; (2) Cost of the oven and installation; (3) Running costs: energy, labor and maintenance; (4) Upfront investment needed. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Missing: running costs",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Running costs are bucket 3."
+    },
+    {
+      "id": "b",
+      "text": "Buckets 2 and 4 overlap",
+      "correct": true,
+      "feedback": "Right. Merge them and add the payback or return compared with the bakery's hurdle."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 1 doesn't matter: the oven is about efficiency",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Extra demand is what pays for the oven, so bucket 1 is central."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic investment checklist",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The buckets fit this oven decision. The flaw is the duplicated investment bucket."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The oven's cost is the upfront investment. A complete version: extra demand and revenue, upfront cost, running costs, and payback against the hurdle.",
+  "extras": {
+    "flaw_type": "overlap",
+    "corrected_framework": "Extra demand and revenue; upfront cost; running costs; payback vs hurdle"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,63 @@
+{
+  "item_id": "cl1-0038",
+  "version": 1,
+  "drill_id": "CL-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "turnaround",
+  "prompt": "Objective: turn around a struggling department store chain. What you've learned: the chain loses money in 40 of its 100 stores. Latest finding: the losing stores are mostly in malls with falling traffic. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Count the loss-making stores before moving on",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That has already been answered. Build on what you know."
+    },
+    {
+      "id": "b",
+      "text": "Size the economics of closing the mall stores",
+      "correct": true,
+      "feedback": "Right. The losses are concentrated, so the next step is the economics of exiting those stores."
+    },
+    {
+      "id": "c",
+      "text": "Look at the chain's logo to understand the client better",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That is off the objective. It won't help answer the client's question."
+    },
+    {
+      "id": "d",
+      "text": "Recommend closing all 100 stores",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That jumps to a solution before the analysis supports it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The losses are concentrated, so the next step is the economics of exiting those stores.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

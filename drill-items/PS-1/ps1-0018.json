@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0018",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "cost_reduction",
+  "prompt": "A software company wants to cut costs by 15%. The candidate's framework: (1) Employee costs: engineering, sales and support; (2) Office rent; (3) Marketing and events. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 2 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Staff and rent don't overlap."
+    },
+    {
+      "id": "b",
+      "text": "Missing: cloud hosting and software tools",
+      "correct": true,
+      "feedback": "Right. For a software company, cloud and tool spend is often the second-largest cost line."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 2 doesn't matter for a software company",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Rent is a real cost, even if smaller than staff."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic cost tree",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "Staff and rent are relevant here. The flaw is a missing cost line."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "A software cost base is mostly people, cloud infrastructure, third-party tools, marketing and facilities. Infrastructure and tools are missing.",
+  "extras": {
+    "flaw_type": "missing",
+    "corrected_framework": "People; cloud and infrastructure; third-party tools; marketing; facilities"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

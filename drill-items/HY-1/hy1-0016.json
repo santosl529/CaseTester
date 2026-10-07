@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0016",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "new_product_launch",
+  "prompt": "A beverage company's new energy drink sells well in convenience stores but poorly in supermarkets, where it has half the shelf space of rivals. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Sales are strong in convenience stores and weak in supermarkets, where shelf space is half of rivals'.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "It could be shelf space, price, promotions, shopper type or competitor deals.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "Supermarket shoppers don't drink energy drinks, so the company should stop selling there.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "Limited supermarket visibility is likely holding back sales.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare sales per store against shelf space and placement."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The fact pattern points at shelf space. Sales per store against shelf space and placement tests it.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "Sales are strong in convenience stores and weak in supermarkets, where shelf space is half of rivals'.",
+      "M.shotgun_hypotheses": "It could be shelf space, price, promotions, shopper type or competitor deals.",
+      "M.overconfident_hypothesis": "Supermarket shoppers don't drink energy drinks, so the company should stop selling there."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0011",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "market_entry",
+  "prompt": "A European e-bike maker is deciding whether to enter the US market. The candidate's framework: (1) US demand for e-bikes; (2) Competitors and their market shares; (3) Costs of distribution, marketing and import duties. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 2 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Demand and competitors are separate questions."
+    },
+    {
+      "id": "b",
+      "text": "Bucket 3 doesn't matter for entry",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Distribution, marketing and duties decide whether entry pays."
+    },
+    {
+      "id": "c",
+      "text": "Missing: whether the client can win in the US",
+      "correct": true,
+      "feedback": "Right. The framework sizes the market and costs but never asks whether this client can compete there."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic profit tree",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "These are market-entry buckets, not a revenue-and-cost tree. What is missing is the client's ability to win."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Entry needs market attractiveness, competition, economics and the client's ability to win. Here the last one is missing.",
+  "extras": {
+    "flaw_type": "missing",
+    "corrected_framework": "US demand; competition; economics of entry; the client's ability to win (brand, channels, product fit)"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

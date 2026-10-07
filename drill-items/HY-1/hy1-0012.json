@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0012",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "market_entry",
+  "prompt": "A bank opened 10 branches in a new city. Accounts opened per branch are 40% below plan, while foot traffic is on plan. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Accounts per branch are 40% below plan while foot traffic is on plan.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "It could be products, staff training, pricing, competition or branch locations.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "Branch staff are poorly trained; retraining them will fix it.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "Visitors aren't converting, possibly because the products don't fit local needs.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare conversion by product and by customer segment."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Traffic on plan with accounts below plan means conversion is the gap. The hypothesis names a cause and a test.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "Accounts per branch are 40% below plan while foot traffic is on plan.",
+      "M.shotgun_hypotheses": "It could be products, staff training, pricing, competition or branch locations.",
+      "M.overconfident_hypothesis": "Branch staff are poorly trained; retraining them will fix it."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0002",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "pricing",
+  "prompt": "A software company wants to set the price for a new analytics add-on. The candidate's framework: (1) Value the add-on creates for customers; (2) Customers' willingness to pay; (3) Competitor pricing for similar tools; (4) Cost to build and support the add-on. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Missing: the cost to build the add-on",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Cost is bucket 4. The flaw is buckets 1 and 2 covering the same question."
+    },
+    {
+      "id": "b",
+      "text": "Buckets 1 and 2 overlap",
+      "correct": true,
+      "feedback": "Right. Value to the customer and willingness to pay are the same lens. Merge them into customer value and add how the add-on fits the existing price tiers."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 3 doesn't matter, since the add-on is new",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Customers compare against similar tools, so competitor prices anchor what they will pay."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic profitability framework, not a pricing one",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "Value, competition and cost are the standard pricing lenses here. The issue is the overlap."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Value created and willingness to pay measure the same thing. Better: customer value, competitor alternatives, cost floor, and fit with the current price tiers (cannibalization).",
+  "extras": {
+    "flaw_type": "overlap",
+    "corrected_framework": "Customer value (incl. willingness to pay); competitor alternatives; cost floor; fit with existing tiers and cannibalization"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

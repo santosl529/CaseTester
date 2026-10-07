@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0004",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "A meal-kit company wants to double revenue in three years. The candidate's framework: (1) Grow the existing customer base; (2) Increase order frequency and basket size; (3) Launch new products such as ready-to-eat meals; (4) Increase revenue per customer. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Missing: new customer acquisition",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Growing the customer base is bucket 1, which covers acquisition."
+    },
+    {
+      "id": "b",
+      "text": "Bucket 3 doesn't matter for doubling revenue",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "New products can be a major growth lever, so bucket 3 belongs."
+    },
+    {
+      "id": "c",
+      "text": "It is a generic growth list, not specific to meal kits",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The levers are tailored to a subscription food business. The issue is the overlap."
+    },
+    {
+      "id": "d",
+      "text": "Bucket 4 overlaps with bucket 2",
+      "correct": true,
+      "feedback": "Right. Revenue per customer is the sum of frequency and basket size, so bucket 4 repeats bucket 2."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Revenue per customer = order frequency × basket size, so buckets 2 and 4 repeat each other. Better: more customers, more revenue per customer, new products, new channels or geographies.",
+  "extras": {
+    "flaw_type": "overlap",
+    "corrected_framework": "More customers; more revenue per customer (frequency, basket); new products; new channels or markets"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

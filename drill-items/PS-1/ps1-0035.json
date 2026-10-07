@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0035",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "operations",
+  "prompt": "A pizza delivery chain wants to cut average delivery time from 40 to 30 minutes. The candidate's framework: (1) Revenue: price and volume; (2) Fixed costs; (3) Variable costs. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 2 and 3 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Fixed and variable costs don't overlap. The structure itself is wrong for the question."
+    },
+    {
+      "id": "b",
+      "text": "Missing: delivery driver costs",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Adding a cost line doesn't fix the mismatch."
+    },
+    {
+      "id": "c",
+      "text": "It is a generic profit tree; it doesn't follow the steps that add delivery time",
+      "correct": true,
+      "feedback": "Right. Break the 40 minutes into stages: order taking, cooking, waiting for a driver, and driving."
+    },
+    {
+      "id": "d",
+      "text": "Bucket 1 doesn't matter",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "The issue is not one bucket. The whole framework doesn't address time."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "A time problem needs a process breakdown, not a profit tree.",
+  "extras": {
+    "flaw_type": "generic",
+    "corrected_framework": "Order taking; prep and cooking; wait for a driver; drive time"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

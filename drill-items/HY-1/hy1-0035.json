@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0035",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "A client estimates the city's market for coffee shops at $40M. Its own three stores make $3M, and it believes it has 25% share. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "The market is estimated at $40M, the client makes $3M, and it believes it has 25% share.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "It could be the market size, the share estimate, the store count or missing competitors.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "The market estimate is likely too high or the share too low, since $3M is only 7.5% of $40M.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd recheck the market size from the bottom up."
+    },
+    {
+      "id": "d",
+      "text": "The numbers don't add up.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "$3M of $40M is 7.5%, not 25%. A good hypothesis says which number is likely off and how to check it.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "The market is estimated at $40M, the client makes $3M, and it believes it has 25% share.",
+      "M.shotgun_hypotheses": "It could be the market size, the share estimate, the store count or missing competitors.",
+      "M.untestable_hypothesis": "The numbers don't add up."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

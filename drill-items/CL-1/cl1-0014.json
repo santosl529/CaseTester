@@ -1,0 +1,63 @@
+{
+  "item_id": "cl1-0014",
+  "version": 1,
+  "drill_id": "CL-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "operations",
+  "prompt": "Objective: cut checkout wait times at a grocery chain. What you've learned: wait times average 9 minutes at peak hours. Latest finding: only half the checkouts are staffed at peak. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Measure the average wait time before moving on",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That has already been answered. Build on what you know."
+    },
+    {
+      "id": "b",
+      "text": "Estimate the effect of staffing more checkouts at peak",
+      "correct": true,
+      "feedback": "Right. Understaffing at peak is the likely cause. Next is sizing what more staffing would do."
+    },
+    {
+      "id": "c",
+      "text": "Look at the chain's produce suppliers to understand the client better",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That is off the objective. It won't help answer the client's question."
+    },
+    {
+      "id": "d",
+      "text": "Recommend installing self-checkouts everywhere",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That jumps to a solution before the analysis supports it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Understaffing at peak is the likely cause. Next is sizing what more staffing would do.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

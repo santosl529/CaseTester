@@ -1,0 +1,105 @@
+{
+  "item_id": "ex1-0006",
+  "version": 1,
+  "drill_id": "EX-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "operations",
+  "prompt": "The client wants to know why its company-wide on-time delivery rate fell this year. Which takeaway matters most?",
+  "exhibit": {
+    "type": "line",
+    "title": "On-time delivery rate by region",
+    "categories": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun"
+    ],
+    "series": [
+      {
+        "name": "North",
+        "values": [
+          95,
+          94,
+          95,
+          96,
+          95,
+          95
+        ]
+      },
+      {
+        "name": "South",
+        "values": [
+          94,
+          93,
+          88,
+          84,
+          80,
+          78
+        ]
+      }
+    ],
+    "y_axis": {
+      "format": {
+        "suffix": "%"
+      }
+    }
+  },
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "The North stayed above 93% every month",
+      "correct": false,
+      "tag": "M.trivial_takeaway",
+      "feedback": "True, but it doesn't answer the client's question."
+    },
+    {
+      "id": "b",
+      "text": "The decline is concentrated in the South",
+      "correct": true,
+      "feedback": "Right. The South fell from 94% to 78%; the North stayed between 94% and 96%."
+    },
+    {
+      "id": "c",
+      "text": "Both regions declined at the same rate",
+      "correct": false,
+      "tag": "M.misread_trend",
+      "feedback": "That misreads the chart: The North held at 94–96%; only the South fell."
+    },
+    {
+      "id": "d",
+      "text": "The South's decline is due to a driver shortage",
+      "correct": false,
+      "tag": "M.unsupported_claim",
+      "feedback": "The chart doesn't show this. It may be true, but there is no data here to support it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The decline is concentrated in the South. The South fell from 94% to 78%; the North stayed between 94% and 96%.",
+  "extras": {
+    "proof": "The South fell from 94% to 78%; the North stayed between 94% and 96%."
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,94 @@
+{
+  "item_id": "ex1-0032",
+  "version": 1,
+  "drill_id": "EX-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "market_entry",
+  "prompt": "The client is deciding which segment of the market to enter. Which takeaway matters most?",
+  "exhibit": {
+    "type": "line",
+    "title": "Market size by segment ($B)",
+    "categories": [
+      "2022",
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "series": [
+      {
+        "name": "Premium",
+        "values": [
+          20,
+          24,
+          29,
+          35
+        ]
+      },
+      {
+        "name": "Budget",
+        "values": [
+          80,
+          78,
+          77,
+          75
+        ]
+      }
+    ]
+  },
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Budget was $80B in 2022",
+      "correct": false,
+      "tag": "M.trivial_takeaway",
+      "feedback": "True, but it doesn't answer the client's question."
+    },
+    {
+      "id": "b",
+      "text": "Premium is already larger than budget",
+      "correct": false,
+      "tag": "M.misread_trend",
+      "feedback": "That misreads the chart: Premium is $35B; budget is $75B."
+    },
+    {
+      "id": "c",
+      "text": "Premium has higher margins, so it is the more profitable segment",
+      "correct": false,
+      "tag": "M.unsupported_claim",
+      "feedback": "The chart doesn't show this. It may be true, but there is no data here to support it."
+    },
+    {
+      "id": "d",
+      "text": "Premium is growing fast while budget shrinks",
+      "correct": true,
+      "feedback": "Right. Premium grew 75% in three years (20 to 35); budget fell from 80 to 75."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Premium is growing fast while budget shrinks. Premium grew 75% in three years (20 to 35); budget fell from 80 to 75.",
+  "extras": {
+    "proof": "Premium grew 75% in three years (20 to 35); budget fell from 80 to 75."
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0002",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "An online retailer's website traffic rose 30% this year, but orders were flat. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Traffic is up 30% and orders are flat.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "Conversion has likely fallen because the new traffic is lower-intent.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare conversion rates by traffic source."
+    },
+    {
+      "id": "c",
+      "text": "The new social media ads are bringing in the wrong visitors, and that is the whole story.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "The website isn't performing the way it should.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "More visits with the same orders means conversion fell. A good hypothesis picks the likeliest cause and the cut of data that tests it.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "Traffic is up 30% and orders are flat.",
+      "M.overconfident_hypothesis": "The new social media ads are bringing in the wrong visitors, and that is the whole story.",
+      "M.untestable_hypothesis": "The website isn't performing the way it should."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

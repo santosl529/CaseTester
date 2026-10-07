@@ -1,0 +1,70 @@
+{
+  "item_id": "sy1-0031",
+  "version": 1,
+  "drill_id": "SY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence",
+    "SY.summary"
+  ],
+  "case_type": "profitability",
+  "prompt": "Mid-case: The client's profit fell 20%. You've found that revenue is flat and that COGS rose 25% because bean prices doubled. You haven't looked at labor costs yet. Which is the best summary?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "So far: both beans and labor drove the decline, and revenue fell too. Next I'd look at pricing.",
+      "correct": false,
+      "tag": "M.inaccurate_summary",
+      "feedback": "This claims findings the analysis hasn't shown. Summarize only what you've established."
+    },
+    {
+      "id": "b",
+      "text": "So far: revenue is flat, and profit fell mainly because bean prices doubled, pushing COGS up 25%. The client also opened two stores in 2019. Next I'd check labor to see if it adds to the squeeze.",
+      "correct": false,
+      "tag": "M.irrelevant_facts",
+      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+    },
+    {
+      "id": "c",
+      "text": "So far: revenue is flat, and profit fell mainly because bean prices doubled, pushing COGS up 25%. We haven't yet looked at labor costs, so next I'd check labor to see if it adds to the squeeze.",
+      "correct": true,
+      "feedback": "Right. It states what is known, with numbers, then what is still open and what comes next."
+    },
+    {
+      "id": "d",
+      "text": "So far: costs went up, which hurt profit. Next I'd check labor to see if it adds to the squeeze.",
+      "correct": false,
+      "tag": "M.unsupported_recommendation",
+      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Revenue is flat, and profit fell mainly because bean prices doubled, pushing COGS up 25%. A good mid-case summary states what is known with numbers and what comes next, without claiming findings that haven't been tested.",
+  "extras": {
+    "answer_type": "summary",
+    "irrelevant_facts": [
+      "The client also opened two stores in 2019."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

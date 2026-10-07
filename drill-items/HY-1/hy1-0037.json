@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0037",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "turnaround",
+  "prompt": "A regional airline has lost money for three years. Its planes fly 70% full, while the industry average is 82%. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Low seat utilization is likely the main drag.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare load factors and profit by route to find the routes losing money."
+    },
+    {
+      "id": "b",
+      "text": "It could be load factor, fares, fuel, labor, fleet age or the route network.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "The airline flies too many routes and must cut a third of them.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "The airline is in a tough industry.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "A 12-point gap in load factor is a large cost disadvantage. Profit by route shows where it comes from.",
+  "extras": {
+    "distractor_flaws": {
+      "M.shotgun_hypotheses": "It could be load factor, fares, fuel, labor, fleet age or the route network.",
+      "M.overconfident_hypothesis": "The airline flies too many routes and must cut a third of them.",
+      "M.untestable_hypothesis": "The airline is in a tough industry."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

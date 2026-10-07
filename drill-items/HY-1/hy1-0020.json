@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0020",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "m_and_a",
+  "prompt": "A company bought a competitor two years ago, expecting $20M a year in cost savings. Savings so far are $8M a year, and the two IT systems still run separately. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Expected savings were $20M a year, actual savings are $8M, and the IT systems are separate.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "It could be IT, culture, overlapping roles, supplier contracts, leadership or the original estimate.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "IT integration is the only problem, so the company should spend whatever it takes to merge the systems.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "Unmerged IT and operations are likely blocking most of the expected savings.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd map the planned savings by source against what has been delivered."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Separate IT systems usually mean duplicated processes and costs. Mapping planned against delivered savings shows how much IT explains.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "Expected savings were $20M a year, actual savings are $8M, and the IT systems are separate.",
+      "M.shotgun_hypotheses": "It could be IT, culture, overlapping roles, supplier contracts, leadership or the original estimate.",
+      "M.overconfident_hypothesis": "IT integration is the only problem, so the company should spend whatever it takes to merge the systems."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

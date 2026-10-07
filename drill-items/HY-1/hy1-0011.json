@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0011",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "operations",
+  "prompt": "A factory's output per shift fell 12% after it installed new packing machines. Machine downtime is reported as normal. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Output per shift fell 12% after new machines were installed, and downtime is normal.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "It could be training, machine settings, materials, staffing, scheduling or measurement.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "Workers may not be fully trained on the new machines, slowing changeovers.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare output by operator and by time since installation."
+    },
+    {
+      "id": "d",
+      "text": "The new machines changed something.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Normal downtime suggests the machines run, but output is lower. Training is a likely cause that output by operator can test.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "Output per shift fell 12% after new machines were installed, and downtime is normal.",
+      "M.shotgun_hypotheses": "It could be training, machine settings, materials, staffing, scheduling or measurement.",
+      "M.untestable_hypothesis": "The new machines changed something."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,63 @@
+{
+  "item_id": "cl1-0037",
+  "version": 1,
+  "drill_id": "CL-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "cost_reduction",
+  "prompt": "Objective: cut a call center's cost per call. What you've learned: wages are flat. Latest finding: average call length rose from 6 to 9 minutes. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Find which call types got longer",
+      "correct": true,
+      "feedback": "Right. Longer calls drive cost, so the next step is finding which calls got longer."
+    },
+    {
+      "id": "b",
+      "text": "Check whether wages changed",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That has already been answered. Build on what you know."
+    },
+    {
+      "id": "c",
+      "text": "Look at the office's furniture",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That is off the objective. It won't help answer the client's question."
+    },
+    {
+      "id": "d",
+      "text": "Recommend hiring cheaper agents",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That jumps to a solution before the analysis supports it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Longer calls drive cost, so the next step is finding which calls got longer.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0038",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "m_and_a",
+  "prompt": "A company's stock fell 15% after it announced a deal to buy a rival for $2B. Analysts estimate the rival is worth $1.5B on its own. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "The stock fell 15% after a $2B deal for a rival worth $1.5B.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "Investors likely think the company overpaid relative to realistic synergies.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare the $500M premium with an estimate of the synergies."
+    },
+    {
+      "id": "c",
+      "text": "The company overpaid, so it should cancel the deal.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "Investors didn't like the deal.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The deal pays a $500M premium. Whether synergies justify it tests the overpayment hypothesis.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "The stock fell 15% after a $2B deal for a rival worth $1.5B.",
+      "M.overconfident_hypothesis": "The company overpaid, so it should cancel the deal.",
+      "M.untestable_hypothesis": "Investors didn't like the deal."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

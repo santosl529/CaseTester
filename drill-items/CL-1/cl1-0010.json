@@ -1,0 +1,63 @@
+{
+  "item_id": "cl1-0010",
+  "version": 1,
+  "drill_id": "CL-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "competitive_response",
+  "prompt": "Objective: respond to a rival that cut prices 20%. What you've learned: we've lost 4% of customers in three months. Latest finding: the customers who left were mostly small accounts. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Count how many customers left again to double-check",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That has already been answered. Build on what you know."
+    },
+    {
+      "id": "b",
+      "text": "Check what the lost accounts were worth and who is at risk next",
+      "correct": true,
+      "feedback": "Right. We know who is leaving. Next is what they are worth and whether the losses will spread to bigger accounts."
+    },
+    {
+      "id": "c",
+      "text": "Look at the rival's office design, since it could affect the answer",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That is off the objective. It won't help answer the client's question."
+    },
+    {
+      "id": "d",
+      "text": "Recommend matching the 20% price cut",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That jumps to a solution before the analysis supports it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "We know who is leaving. Next is what they are worth and whether the losses will spread to bigger accounts.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

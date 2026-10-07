@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0022",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "public_sector",
+  "prompt": "A city's bus ridership fell 15% in two years while the population grew 3%. Average trip times rose 20%. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Ridership fell 15%, the population grew 3%, and trip times rose 20%.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "Slower trips are likely pushing riders to other options.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare ridership changes on routes where trip times rose most and least."
+    },
+    {
+      "id": "c",
+      "text": "Slow buses caused the decline, so the city should add bus lanes everywhere.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "People don't like the buses anymore.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Trip times rose sharply, a likely cause. Comparing routes by how much they slowed tests whether speed explains the drop.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "Ridership fell 15%, the population grew 3%, and trip times rose 20%.",
+      "M.overconfident_hypothesis": "Slow buses caused the decline, so the city should add bus lanes everywhere.",
+      "M.untestable_hypothesis": "People don't like the buses anymore."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

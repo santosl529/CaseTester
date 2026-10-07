@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0007",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "cost_reduction",
+  "prompt": "An airline wants to cut operating costs by 10%. The candidate's framework: (1) Fuel costs; (2) Labor costs: pilots, crew and ground staff; (3) Aircraft ownership and maintenance; (4) Crew scheduling and staffing levels. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Missing: fuel costs",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Fuel is bucket 1."
+    },
+    {
+      "id": "b",
+      "text": "Bucket 3 is irrelevant to a cost cut",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Aircraft ownership and maintenance are among an airline's largest costs."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 4 overlaps with bucket 2",
+      "correct": true,
+      "feedback": "Right. Staffing levels are a lever inside labor cost. Use the slot for airport fees and other costs."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic cost tree rather than airline-specific",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The buckets are airline cost lines. The flaw is that bucket 4 repeats labor."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Staffing levels and scheduling are how labor cost is managed, so bucket 4 repeats bucket 2. A complete cost tree: fuel, labor, aircraft, airport and navigation fees, and overhead.",
+  "extras": {
+    "flaw_type": "overlap",
+    "corrected_framework": "Fuel; labor; aircraft ownership and maintenance; airport and navigation fees; overhead"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

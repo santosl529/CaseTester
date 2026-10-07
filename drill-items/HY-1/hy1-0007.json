@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0007",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "cost_reduction",
+  "prompt": "A hospital's supply costs rose 18% in two years while patient volumes were flat. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Supply costs are up 18% with flat patient volumes.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "It could be prices, usage per patient, waste, a different patient mix, new procedures or theft.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "Prices paid per item have likely risen, perhaps from buying off-contract.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare unit prices for the top supplies against contract prices."
+    },
+    {
+      "id": "d",
+      "text": "The hospital has a supply problem.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "With flat volumes, cost growth comes from price or usage per patient. The hypothesis picks one and names the comparison that tests it.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "Supply costs are up 18% with flat patient volumes.",
+      "M.shotgun_hypotheses": "It could be prices, usage per patient, waste, a different patient mix, new procedures or theft.",
+      "M.untestable_hypothesis": "The hospital has a supply problem."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

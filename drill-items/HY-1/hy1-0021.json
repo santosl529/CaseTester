@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0021",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "profitability",
+  "prompt": "A dental practice's patient visits grew 8%, but profit fell 10%. It hired two hygienists last year. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "The new hygienists likely added cost faster than they added visits.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare visits per hygienist before and after the hires."
+    },
+    {
+      "id": "b",
+      "text": "It could be staffing, insurance payments, supplies, rent or the mix of procedures.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "The practice hired too many hygienists, so it should let one go.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "The practice's costs are a problem.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Adding staff with modest volume growth often hurts profit. Visits per hygienist tests whether capacity is idle.",
+  "extras": {
+    "distractor_flaws": {
+      "M.shotgun_hypotheses": "It could be staffing, insurance payments, supplies, rent or the mix of procedures.",
+      "M.overconfident_hypothesis": "The practice hired too many hygienists, so it should let one go.",
+      "M.untestable_hypothesis": "The practice's costs are a problem."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

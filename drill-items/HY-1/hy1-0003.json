@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0003",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "profitability",
+  "prompt": "A gym chain's membership grew 10% last year, but revenue grew only 2%. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Members grew 10% while revenue grew 2%.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "It could be discounts, a shift to cheaper plans, fewer personal-training sales, more churn or billing errors.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "Average revenue per member likely fell, perhaps because growth came from discounted plans.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare revenue per member by plan type."
+    },
+    {
+      "id": "d",
+      "text": "The gym's pricing strategy has some issues.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Revenue growing slower than members means revenue per member fell. Plan mix is the likeliest driver and is easy to test.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "Members grew 10% while revenue grew 2%.",
+      "M.shotgun_hypotheses": "It could be discounts, a shift to cheaper plans, fewer personal-training sales, more churn or billing errors.",
+      "M.untestable_hypothesis": "The gym's pricing strategy has some issues."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

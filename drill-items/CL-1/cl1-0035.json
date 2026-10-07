@@ -1,0 +1,63 @@
+{
+  "item_id": "cl1-0035",
+  "version": 1,
+  "drill_id": "CL-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "public_sector",
+  "prompt": "Objective: increase a city's recycling rate. What you've learned: the city recycles 30% of waste. Latest finding: one neighborhood recycles only 10%. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Re-check the city's recycling rate before moving on",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That has already been answered. Build on what you know."
+    },
+    {
+      "id": "b",
+      "text": "Look at the city's parks budget to understand the client better",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That is off the objective. It won't help answer the client's question."
+    },
+    {
+      "id": "c",
+      "text": "Find out why that neighborhood recycles less",
+      "correct": true,
+      "feedback": "Right. One neighborhood stands out, so the next step is understanding why."
+    },
+    {
+      "id": "d",
+      "text": "Recommend fines for not recycling",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That jumps to a solution before the analysis supports it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "One neighborhood stands out, so the next step is understanding why.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

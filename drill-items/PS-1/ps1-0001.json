@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0001",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "market_entry",
+  "prompt": "A national coffee chain is deciding whether to open cafés in airports. The candidate's framework: (1) Airport traveler demand and spending; (2) Competition from existing airport food outlets; (3) Lease and operating costs at airports; (4) Rent and revenue-sharing terms with the airport. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 3 and 4 overlap",
+      "correct": true,
+      "feedback": "Right. Both buckets cover what the airport charges. Merge them and use the space for whether the chain can operate in airports."
+    },
+    {
+      "id": "b",
+      "text": "Missing: whether the brand appeals to travelers",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Brand appeal sits inside traveler demand (bucket 1). The flaw is that buckets 3 and 4 both cover airport charges."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 2 doesn't matter, since travelers have few options",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Competing outlets decide how much of the traffic the chain can win, so bucket 2 matters."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic profit tree rather than airport-specific",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "Every bucket is specific to airports. The flaw is the overlap between buckets 3 and 4."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Buckets 3 and 4 both describe what the airport charges. A MECE version: traveler demand, competition, airport economics (lease, revenue share, staffing), and the chain's ability to operate in airports.",
+  "extras": {
+    "flaw_type": "overlap",
+    "corrected_framework": "Traveler demand; competition; airport economics (lease, revenue share, staffing); ability to operate in airports"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

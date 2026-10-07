@@ -1,0 +1,63 @@
+{
+  "item_id": "cl1-0002",
+  "version": 1,
+  "drill_id": "CL-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "market_entry",
+  "prompt": "Objective: decide whether a beverage company should enter the energy-drink market. What you've learned: the market is $2B and growing 8% a year. Latest finding: the market looks attractive on size and growth. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Re-check the market size estimate",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That has already been answered. Build on what you know."
+    },
+    {
+      "id": "b",
+      "text": "Assess competitors and whether the client could win share",
+      "correct": true,
+      "feedback": "Right. Size and growth say the market is attractive. Next comes whether this client can compete."
+    },
+    {
+      "id": "c",
+      "text": "Look at the client's office locations",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That is off the objective. It won't help answer the client's question."
+    },
+    {
+      "id": "d",
+      "text": "Recommend entering now, since the market is large and growing",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That jumps to a solution before the analysis supports it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Size and growth say the market is attractive. Next comes whether this client can compete.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

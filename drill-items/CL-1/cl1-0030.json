@@ -1,0 +1,63 @@
+{
+  "item_id": "cl1-0030",
+  "version": 1,
+  "drill_id": "CL-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "market_entry",
+  "prompt": "Objective: decide whether a US grocery chain should enter Mexico. What you've learned: the market is large and growing. Latest finding: local customers prefer small, frequent shopping trips at neighborhood stores. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Re-check the market's growth in more detail",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That has already been answered. Build on what you know."
+    },
+    {
+      "id": "b",
+      "text": "Test whether the large-store format fits Mexico",
+      "correct": true,
+      "feedback": "Right. Shopping habits challenge the client's format, so format fit comes next."
+    },
+    {
+      "id": "c",
+      "text": "Look at the client's US advertising for more context on the business",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That is off the objective. It won't help answer the client's question."
+    },
+    {
+      "id": "d",
+      "text": "Recommend opening large stores in Mexico City",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That jumps to a solution before the analysis supports it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Shopping habits challenge the client's format, so format fit comes next.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

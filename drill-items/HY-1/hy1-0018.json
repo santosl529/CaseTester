@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0018",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "A meal-kit company acquires customers at $90 each. Half cancel within two months, and the average customer orders four boxes with $25 margin each. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Acquisition costs $90, half of customers cancel in two months, and customers order four boxes at $25 margin.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "Customers likely churn before paying back their acquisition cost.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare lifetime margin per customer with the $90 by acquisition channel."
+    },
+    {
+      "id": "c",
+      "text": "The company is spending too much on ads, so marketing should be cut in half.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "The business model needs work.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Four boxes at $25 is $100 of margin against $90 to acquire, barely profitable. Lifetime margin by channel shows where acquisition doesn't pay back.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "Acquisition costs $90, half of customers cancel in two months, and customers order four boxes at $25 margin.",
+      "M.overconfident_hypothesis": "The company is spending too much on ads, so marketing should be cut in half.",
+      "M.untestable_hypothesis": "The business model needs work."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

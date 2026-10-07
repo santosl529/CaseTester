@@ -1,0 +1,70 @@
+{
+  "item_id": "sy1-0030",
+  "version": 1,
+  "drill_id": "SY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence",
+    "SY.summary"
+  ],
+  "case_type": "industry_analysis",
+  "prompt": "The client asks: \"Should we invest in the home fitness equipment industry?\" Fact sheet: industry sales fell 30% in each of the last two years; inventories are high; prices are falling 10% a year; the major players' margins fell from 20% to 2%; home workouts were popular on social media. Which is the best recommendation?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Sales have fallen 30% in each of the last two years, prices are falling 10% a year, and the major players' margins have dropped from 20% to 2%. The main risk is that we miss the bottom of the cycle. Putting it together, don't invest in the industry now.",
+      "correct": false,
+      "tag": "M.buried_recommendation",
+      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+    },
+    {
+      "id": "b",
+      "text": "Don't invest in the industry now. Sales have fallen 30% in each of the last two years, prices are falling 10% a year, and the major players' margins have dropped from 20% to 2%. The main risk is that we miss the bottom of the cycle, so the next step is to watch for inventories to clear and margins to recover before revisiting.",
+      "correct": true,
+      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+    },
+    {
+      "id": "c",
+      "text": "Don't invest in the industry now. Home workouts were popular on social media. Sales have fallen 30% in each of the last two years, prices are falling 10% a year, and the major players' margins have dropped from 20% to 2%.",
+      "correct": false,
+      "tag": "M.irrelevant_facts",
+      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+    },
+    {
+      "id": "d",
+      "text": "Don't invest in the industry now. The industry is past its peak.",
+      "correct": false,
+      "tag": "M.unsupported_recommendation",
+      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Don't invest in the industry now. Sales have fallen 30% in each of the last two years, prices are falling 10% a year, and the major players' margins have dropped from 20% to 2%. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "extras": {
+    "answer_type": "recommendation",
+    "irrelevant_facts": [
+      "Home workouts were popular on social media."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

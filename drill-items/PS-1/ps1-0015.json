@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0015",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "m_and_a",
+  "prompt": "A beverage company is considering acquiring a fast-growing kombucha brand. The candidate's framework: (1) Size and growth of the kombucha market; (2) The brand's position and growth; (3) Synergies in distribution and production. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 2 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "The market and the brand's position within it are different questions."
+    },
+    {
+      "id": "b",
+      "text": "Bucket 3 doesn't matter for a small brand",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Distribution synergies are often the main reason a large beverage company buys a small brand."
+    },
+    {
+      "id": "c",
+      "text": "Missing: the price and the return on the deal",
+      "correct": true,
+      "feedback": "Right. The framework says whether the target is attractive, never whether the deal makes sense at the asking price."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic acquisition framework",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The buckets are specific to this target. The missing piece is deal value."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "An acquisition is a yes only if the value of the target plus synergies beats the price. Price and return are missing.",
+  "extras": {
+    "flaw_type": "missing",
+    "corrected_framework": "Market; target position; synergies; valuation vs price and return"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

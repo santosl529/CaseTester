@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0015",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "profitability",
+  "prompt": "A car wash's revenue fell 15% last year. The number of cars washed was flat. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Revenue fell 15% while car count stayed flat.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "It could be prices, wash mix, discounts, memberships or payment issues.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "Revenue per car likely fell, perhaps as customers chose the basic wash over premium.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd check the mix of wash types over time."
+    },
+    {
+      "id": "d",
+      "text": "Something about revenue changed.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Flat volume with falling revenue means revenue per car fell. Wash mix is a likely, testable cause.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "Revenue fell 15% while car count stayed flat.",
+      "M.shotgun_hypotheses": "It could be prices, wash mix, discounts, memberships or payment issues.",
+      "M.untestable_hypothesis": "Something about revenue changed."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0032",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "investment_decision",
+  "prompt": "A manufacturer's new plant runs at 55% of capacity a year after opening. Demand forecasts had assumed 85%. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "The plant runs at 55% of capacity against an 85% forecast.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "It could be demand, production problems, staffing, pricing or the forecast itself.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "The forecasting team got it wrong, and that is the only reason.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "Demand likely fell short of forecast, perhaps because the forecast assumed new customers who didn't come.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare forecast and actual orders by customer."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Low utilization means demand or production fell short. Orders by customer against forecast tells which.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "The plant runs at 55% of capacity against an 85% forecast.",
+      "M.shotgun_hypotheses": "It could be demand, production problems, staffing, pricing or the forecast itself.",
+      "M.overconfident_hypothesis": "The forecasting team got it wrong, and that is the only reason."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

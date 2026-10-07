@@ -1,0 +1,100 @@
+{
+  "item_id": "ex1-0007",
+  "version": 1,
+  "drill_id": "EX-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "m_and_a",
+  "prompt": "The client wants to acquire a target that is both growing fast and profitable. Which takeaway matters most?",
+  "exhibit": {
+    "type": "table",
+    "title": "Acquisition candidates",
+    "table": {
+      "columns": [
+        "Company",
+        "Revenue ($M)",
+        "Annual growth",
+        "EBITDA margin",
+        "Asking price ($M)"
+      ],
+      "rows": [
+        [
+          "A",
+          "120",
+          "5%",
+          "20%",
+          "300"
+        ],
+        [
+          "B",
+          "80",
+          "25%",
+          "18%",
+          "250"
+        ],
+        [
+          "C",
+          "150",
+          "2%",
+          "12%",
+          "220"
+        ]
+      ]
+    }
+  },
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Company C has the largest revenue",
+      "correct": false,
+      "tag": "M.trivial_takeaway",
+      "feedback": "True, but it doesn't answer the client's question."
+    },
+    {
+      "id": "b",
+      "text": "Company A is growing fastest",
+      "correct": false,
+      "tag": "M.misread_trend",
+      "feedback": "That misreads the chart: A grows 5%; B grows 25%."
+    },
+    {
+      "id": "c",
+      "text": "Only Company B is both growing fast and profitable",
+      "correct": true,
+      "feedback": "Right. B grows 25% a year at an 18% margin; A grows 5% and C grows 2% with a 12% margin."
+    },
+    {
+      "id": "d",
+      "text": "Company B has the strongest management team",
+      "correct": false,
+      "tag": "M.unsupported_claim",
+      "feedback": "The chart doesn't show this. It may be true, but there is no data here to support it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Only Company B is both growing fast and profitable. B grows 25% a year at an 18% margin; A grows 5% and C grows 2% with a 12% margin.",
+  "extras": {
+    "proof": "B grows 25% a year at an 18% margin; A grows 5% and C grows 2% with a 12% margin."
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

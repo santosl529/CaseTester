@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0039",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "turnaround",
+  "prompt": "A struggling department store chain hires the team to plan a turnaround. The candidate's framework: (1) Strengths; (2) Weaknesses; (3) Opportunities; (4) Threats. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 2 and 4 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Weaknesses and threats differ. The issue is that SWOT doesn't fit."
+    },
+    {
+      "id": "b",
+      "text": "Missing: a cash bucket",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Cash matters, but adding it doesn't make a SWOT a turnaround plan."
+    },
+    {
+      "id": "c",
+      "text": "It is a SWOT, which doesn't diagnose why performance fell or set priorities",
+      "correct": true,
+      "feedback": "Right. A turnaround needs a diagnosis of profit and cash, then stabilization and growth options."
+    },
+    {
+      "id": "d",
+      "text": "Bucket 3 doesn't matter in a turnaround",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "The flaw is the canned framework, not one bucket."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Turnarounds start with where money is lost and how long cash lasts, then act on stores, costs and the offer.",
+  "extras": {
+    "flaw_type": "generic",
+    "corrected_framework": "Diagnosis (sales, margins, costs by store and category); cash runway; quick fixes; longer-term repositioning"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

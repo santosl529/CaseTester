@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0027",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "operations",
+  "prompt": "A warehouse is shipping orders 30% slower than last year. The candidate's framework: (1) Order volume and mix; (2) Picking and packing speed; (3) Shipping and carrier pickup schedules; (4) The warehouse's building age and architectural style. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 2 and 3 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Packing inside the warehouse and carrier pickup are separate stages."
+    },
+    {
+      "id": "b",
+      "text": "Missing: picking and packing speed",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "That is bucket 2."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 4 doesn't matter",
+      "correct": true,
+      "feedback": "Right. Layout might matter, but style doesn't. Replace it with staffing and equipment capacity."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic operations framework",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The buckets follow the warehouse flow. The flaw is bucket 4."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Slower shipping comes from volume, process speed, capacity and outbound logistics. Building style isn't a driver.",
+  "extras": {
+    "flaw_type": "irrelevant",
+    "corrected_framework": "Volume and mix; picking and packing; staffing and equipment capacity; outbound logistics"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

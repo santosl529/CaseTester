@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0025",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "pricing",
+  "prompt": "A software company moved from a one-time license of $1,200 to a $40-a-month subscription. New customers rose 50%, but first-year revenue per customer fell 60%. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "The lower entry price is likely attracting more customers, and the subscription will pay off if they stay over 30 months.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd model retention by cohort."
+    },
+    {
+      "id": "b",
+      "text": "It could be price, retention, sales, marketing or product changes.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "The subscription switch was a mistake and the company should go back to licenses.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "Customers are responding to the new model.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "$40 a month equals the $1,200 license after 30 months. The switch pays off if retention is long enough, which cohort data can show.",
+  "extras": {
+    "distractor_flaws": {
+      "M.shotgun_hypotheses": "It could be price, retention, sales, marketing or product changes.",
+      "M.overconfident_hypothesis": "The subscription switch was a mistake and the company should go back to licenses.",
+      "M.untestable_hypothesis": "Customers are responding to the new model."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

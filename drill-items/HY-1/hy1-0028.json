@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0028",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "profitability",
+  "prompt": "A hospital's revenue per patient fell 9% while patient numbers held steady. The share of patients on government insurance rose from 30% to 45%. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Revenue per patient fell 9%, and government-insured patients rose from 30% to 45%.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "It could be the payer mix, coding, services offered, length of stay or billing.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "Government insurance is the problem, so the hospital should limit those patients.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "The shift toward government insurance, which pays less, likely explains most of the decline.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare revenue per patient by payer type."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "A 15-point payer mix shift toward lower payers can explain a 9% drop. Revenue per patient by payer tests it.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "Revenue per patient fell 9%, and government-insured patients rose from 30% to 45%.",
+      "M.shotgun_hypotheses": "It could be the payer mix, coding, services offered, length of stay or billing.",
+      "M.overconfident_hypothesis": "Government insurance is the problem, so the hospital should limit those patients."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

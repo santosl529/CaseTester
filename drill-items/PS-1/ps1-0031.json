@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0031",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "market_entry",
+  "prompt": "A US pet insurance company is deciding whether to enter Germany. The candidate's framework: (1) Revenue: price and volume; (2) Fixed costs; (3) Variable costs. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 2 and 3 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Fixed and variable costs don't overlap."
+    },
+    {
+      "id": "b",
+      "text": "Missing: marketing costs",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Adding a cost line doesn't fix a structure that can't answer an entry question."
+    },
+    {
+      "id": "c",
+      "text": "It is a generic profit tree that doesn't test the market, competition or ability to win in Germany",
+      "correct": true,
+      "feedback": "Right. Revenue and costs alone can't answer an entry question. Use market, competition, economics and ability to win."
+    },
+    {
+      "id": "d",
+      "text": "Bucket 2 doesn't matter for entry",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Costs do matter. The issue is that the structure is too generic."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "A profit tree fits a profitability problem, not an entry decision. Entry needs market attractiveness, competition, entry economics and the client's ability to win.",
+  "extras": {
+    "flaw_type": "generic",
+    "corrected_framework": "German pet insurance market; competition; entry economics; ability to win (distribution, regulation, brand)"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,63 @@
+{
+  "item_id": "cl1-0027",
+  "version": 1,
+  "drill_id": "CL-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "cost_reduction",
+  "prompt": "Objective: cut a hospital's supply costs. What you've learned: supply costs rose 18% with flat patient volume. Latest finding: prices paid for the top 20 items are 15% above contract prices. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Check patient volumes in more detail",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That has already been answered. Build on what you know."
+    },
+    {
+      "id": "b",
+      "text": "Look at the hospital's parking revenue for more context on the business",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That is off the objective. It won't help answer the client's question."
+    },
+    {
+      "id": "c",
+      "text": "Find out why purchases are off-contract",
+      "correct": true,
+      "feedback": "Right. The gap between paid and contract prices is the lever. Next is why it happens and what it is worth."
+    },
+    {
+      "id": "d",
+      "text": "Recommend switching to a new supplier",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That jumps to a solution before the analysis supports it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The gap between paid and contract prices is the lever. Next is why it happens and what it is worth.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

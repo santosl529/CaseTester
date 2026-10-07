@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0001",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "profitability",
+  "prompt": "A sandwich chain's revenue is flat, but its profit fell 20%. Food costs rose from 30% to 38% of revenue. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Ingredient prices have likely risen faster than menu prices.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd check cost per sandwich by ingredient over the last two years."
+    },
+    {
+      "id": "b",
+      "text": "It could be ingredient prices, waste, theft, menu mix or supplier contracts.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "Supplier price hikes caused the drop, so the chain should renegotiate its contracts.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "Something has gone wrong on the cost side of the business.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Food cost rising 8 points of revenue explains most of the profit drop. The hypothesis names a likely cause (ingredient prices outpacing menu prices) and the data to test it.",
+  "extras": {
+    "distractor_flaws": {
+      "M.shotgun_hypotheses": "It could be ingredient prices, waste, theft, menu mix or supplier contracts.",
+      "M.overconfident_hypothesis": "Supplier price hikes caused the drop, so the chain should renegotiate its contracts.",
+      "M.untestable_hypothesis": "Something has gone wrong on the cost side of the business."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

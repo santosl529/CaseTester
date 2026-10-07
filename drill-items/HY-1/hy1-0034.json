@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0034",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "cost_reduction",
+  "prompt": "A university's energy costs rose 25% in a year, while energy prices rose 10%. It opened two new buildings. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Energy costs rose 25% while prices rose 10%, and two buildings opened.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "The new buildings likely account for most of the extra usage.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare energy use per square foot by building."
+    },
+    {
+      "id": "c",
+      "text": "The new buildings are inefficient and need to be retrofitted.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "The university uses too much energy.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Usage rose about 15% beyond prices, and new buildings add area. Use per square foot by building tests it.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "Energy costs rose 25% while prices rose 10%, and two buildings opened.",
+      "M.overconfident_hypothesis": "The new buildings are inefficient and need to be retrofitted.",
+      "M.untestable_hypothesis": "The university uses too much energy."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

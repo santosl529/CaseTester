@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0031",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "operations",
+  "prompt": "An e-commerce warehouse's error rate on orders tripled after it hired 40 seasonal workers. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Errors tripled after 40 seasonal workers were hired.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "It could be new staff, training, volume, labeling, layout or the software.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "New seasonal staff are likely making more picking errors.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare error rates by worker tenure."
+    },
+    {
+      "id": "d",
+      "text": "Quality has slipped.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The timing points to the new hires. Error rates by tenure test it.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "Errors tripled after 40 seasonal workers were hired.",
+      "M.shotgun_hypotheses": "It could be new staff, training, volume, labeling, layout or the software.",
+      "M.untestable_hypothesis": "Quality has slipped."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

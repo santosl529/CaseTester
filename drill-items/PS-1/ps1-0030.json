@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0030",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "competitive_response",
+  "prompt": "A grocery delivery app saw a new rival offer free delivery in its biggest city. The candidate's framework: (1) How many customers are switching; (2) The rival's economics: can it sustain free delivery?; (3) The client's response options; (4) The rival founders' education backgrounds. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 2 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Customer switching and the rival's economics are separate."
+    },
+    {
+      "id": "b",
+      "text": "Bucket 4 doesn't matter",
+      "correct": true,
+      "feedback": "Right. Replace it with the cost and impact of each response option."
+    },
+    {
+      "id": "c",
+      "text": "Missing: the client's response options",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Response options are bucket 3."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic competitor framework",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The buckets fit this threat. The flaw is bucket 4."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Whether to respond depends on customer impact, the rival's staying power and the economics of each option. The founders' education doesn't matter.",
+  "extras": {
+    "flaw_type": "irrelevant",
+    "corrected_framework": "Customer impact; rival's staying power; response options; economics of each option"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

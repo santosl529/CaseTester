@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0019",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "public_sector",
+  "prompt": "A state government wants to raise its high school graduation rate from 78% to 85%. The candidate's framework: (1) School-level factors: teacher quality and class sizes; (2) Student-level factors: attendance and academic performance; (3) Programs the state already funds. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 2 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "School and student factors are different units of analysis."
+    },
+    {
+      "id": "b",
+      "text": "Bucket 1 doesn't matter, since dropouts are a student choice",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Teaching and class size affect whether students stay."
+    },
+    {
+      "id": "c",
+      "text": "Missing: factors outside school, such as family income, health and the need to work",
+      "correct": true,
+      "feedback": "Right. Out-of-school factors drive many dropouts, and neither bucket covers them."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic education framework",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The buckets fit graduation. The flaw is the missing out-of-school bucket."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Dropouts come from school, student and out-of-school factors. The third group, plus the programs available to act on each, is missing.",
+  "extras": {
+    "flaw_type": "missing",
+    "corrected_framework": "School factors; student factors; out-of-school factors; available programs and their cost"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0006",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "new_product_launch",
+  "prompt": "A sportswear brand is deciding whether to launch a line of smart running shoes with built-in sensors. The candidate's framework: (1) Runner demand for sensor-equipped shoes; (2) Price runners would pay; (3) Manufacturing and sensor costs; (4) Customer interest in smart running gear. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Missing: manufacturing costs",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Manufacturing and sensor costs are bucket 3."
+    },
+    {
+      "id": "b",
+      "text": "Buckets 1 and 4 overlap",
+      "correct": true,
+      "feedback": "Right. Interest in smart gear is demand. Replace bucket 4 with competition from watches and fitness trackers."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 2 doesn't matter until after launch",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Price decides whether the line is profitable, so it matters before launch."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic launch framework, not specific to smart shoes",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The buckets are specific to sensor shoes. The flaw is buckets 1 and 4 repeating each other."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Demand and customer interest are the same question. Better: demand, pricing, costs, competition from wearables, and the brand's ability to build electronics.",
+  "extras": {
+    "flaw_type": "overlap",
+    "corrected_framework": "Demand; pricing; costs; competition (watches, trackers); capabilities in electronics"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0014",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "A boutique hotel group wants to grow profit by 30%. The candidate's framework: (1) Raise room rates; (2) Increase occupancy; (3) Cut operating costs. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 2 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Rate and occupancy are different drivers."
+    },
+    {
+      "id": "b",
+      "text": "Missing: growth beyond the existing hotels, such as new properties or other services",
+      "correct": true,
+      "feedback": "Right. Rates and occupancy only grow the current hotels. New properties, food and events are missing."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 1 doesn't matter, since rates are set by the market",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Rate is a major lever, even if the market constrains it."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic revenue tree",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "Rate and occupancy are hotel-specific. The flaw is missing growth levers."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Growth comes from existing rooms (rate, occupancy), other revenue (food, events), new hotels and costs. Only the first is here.",
+  "extras": {
+    "flaw_type": "missing",
+    "corrected_framework": "Existing rooms (rate, occupancy); other revenue (food, events); new properties; cost efficiency"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

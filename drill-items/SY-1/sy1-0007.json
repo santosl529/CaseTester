@@ -1,0 +1,70 @@
+{
+  "item_id": "sy1-0007",
+  "version": 1,
+  "drill_id": "SY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence",
+    "SY.summary"
+  ],
+  "case_type": "cost_reduction",
+  "prompt": "The client asks: \"Which cost-cutting option should we pursue first?\" Fact sheet: renegotiating suppliers saves $8M a year and takes 6 months; closing two plants saves $15M a year, takes 2 years and costs $20M up front; cutting marketing saves $5M but risks sales; the target is $10M of savings this year; the company has 5,000 employees. Which is the best recommendation?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "It saves $8M within 6 months with no up-front cost, most of this year's $10M target; plant closures save more but take 2 years and cost $20M up front. The main risk is that suppliers push back and savings come in below $8M. Putting it together, start with supplier renegotiation.",
+      "correct": false,
+      "tag": "M.buried_recommendation",
+      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+    },
+    {
+      "id": "b",
+      "text": "On one hand, it saves $8M within 6 months with no up-front cost, most of this year's $10M target; plant closures save more but take 2 years and cost $20M up front. On the other hand, there is the risk that suppliers push back and savings come in below $8M. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "correct": false,
+      "tag": "M.hedged_recommendation",
+      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+    },
+    {
+      "id": "c",
+      "text": "Start with supplier renegotiation. It saves $8M within 6 months with no up-front cost, most of this year's $10M target; plant closures save more but take 2 years and cost $20M up front. The main risk is that suppliers push back and savings come in below $8M, so the next step is to start supplier talks now and plan plant consolidation as a second phase.",
+      "correct": true,
+      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+    },
+    {
+      "id": "d",
+      "text": "Start with supplier renegotiation. Supplier renegotiation is the least disruptive option.",
+      "correct": false,
+      "tag": "M.unsupported_recommendation",
+      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Start with supplier renegotiation. It saves $8M within 6 months with no up-front cost, most of this year's $10M target; plant closures save more but take 2 years and cost $20M up front. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "extras": {
+    "answer_type": "recommendation",
+    "irrelevant_facts": [
+      "The company has 5,000 employees."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

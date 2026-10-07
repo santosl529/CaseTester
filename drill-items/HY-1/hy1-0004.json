@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0004",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "operations",
+  "prompt": "A delivery company's on-time rate fell from 96% to 88% in six months. Order volume rose 25% over the same period. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "On-time delivery fell from 96% to 88% while volume rose 25%.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "It could be traffic, drivers, the routing software, weather, the warehouse or the volume increase.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "The company needs more drivers; the volume increase is definitely the cause.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "Capacity likely hasn't kept up with volume, so routes are overloaded.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare on-time rates by route against stops per driver."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Volume rose 25% while on-time performance fell, which points to capacity. Testing on-time rates against driver load confirms or rejects it.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "On-time delivery fell from 96% to 88% while volume rose 25%.",
+      "M.shotgun_hypotheses": "It could be traffic, drivers, the routing software, weather, the warehouse or the volume increase.",
+      "M.overconfident_hypothesis": "The company needs more drivers; the volume increase is definitely the cause."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

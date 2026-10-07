@@ -1,0 +1,70 @@
+{
+  "item_id": "sy1-0012",
+  "version": 1,
+  "drill_id": "SY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence",
+    "SY.summary"
+  ],
+  "case_type": "market_entry",
+  "prompt": "The client asks: \"Should we open restaurants in Texas?\" Fact sheet: the Texas market is worth $2B and growing 6% a year; the top three players hold 20% share; each restaurant costs $1.5M and pays back in 3 years; our hurdle is a 4-year payback; we run 50 restaurants in California; one of our managers grew up in Texas. Which is the best recommendation?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "The $2B market is growing 6% a year, the top three players hold only 20%, and each restaurant pays back in 3 years against a 4-year hurdle. The main risk is that our California supply chain doesn't stretch to Texas. Putting it together, enter Texas.",
+      "correct": false,
+      "tag": "M.buried_recommendation",
+      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+    },
+    {
+      "id": "b",
+      "text": "On one hand, the $2B market is growing 6% a year, the top three players hold only 20%, and each restaurant pays back in 3 years against a 4-year hurdle. On the other hand, there is the risk that our California supply chain doesn't stretch to Texas. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "correct": false,
+      "tag": "M.hedged_recommendation",
+      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+    },
+    {
+      "id": "c",
+      "text": "Enter Texas. One of our managers grew up in Texas. The $2B market is growing 6% a year, the top three players hold only 20%, and each restaurant pays back in 3 years against a 4-year hurdle.",
+      "correct": false,
+      "tag": "M.irrelevant_facts",
+      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+    },
+    {
+      "id": "d",
+      "text": "Enter Texas. The $2B market is growing 6% a year, the top three players hold only 20%, and each restaurant pays back in 3 years against a 4-year hurdle. The main risk is that our California supply chain doesn't stretch to Texas, so the next step is to open 5 restaurants in one city and confirm the 3-year payback.",
+      "correct": true,
+      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Enter Texas. The $2B market is growing 6% a year, the top three players hold only 20%, and each restaurant pays back in 3 years against a 4-year hurdle. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "extras": {
+    "answer_type": "recommendation",
+    "irrelevant_facts": [
+      "One of our managers grew up in Texas."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

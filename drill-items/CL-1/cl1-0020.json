@@ -1,0 +1,63 @@
+{
+  "item_id": "cl1-0020",
+  "version": 1,
+  "drill_id": "CL-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "m_and_a",
+  "prompt": "Objective: decide whether a retailer should buy an online competitor. What you've learned: the competitor's sales grow 30% a year. Latest finding: it loses $20M a year. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Check the competitor's growth rate",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That has already been answered. Build on what you know."
+    },
+    {
+      "id": "b",
+      "text": "Ask the interviewer what they would like to look at next",
+      "correct": false,
+      "tag": "M.waited_for_interviewer",
+      "feedback": "Drive the case: propose the next step yourself rather than waiting to be told."
+    },
+    {
+      "id": "c",
+      "text": "Recommend buying it, since it's growing fast",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That jumps to a solution before the analysis supports it."
+    },
+    {
+      "id": "d",
+      "text": "Check whether each order makes money",
+      "correct": true,
+      "feedback": "Right. Fast growth with losses raises the key question: does each order make money?"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Fast growth with losses raises the key question: does each order make money?",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

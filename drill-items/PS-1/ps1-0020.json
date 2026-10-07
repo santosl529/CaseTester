@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0020",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "A client wants to estimate the annual market for dog walking services in a large city. The candidate's framework: (1) Number of households in the city; (2) Share of households with a dog; (3) Price per walk. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 2 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Households and the share with a dog are separate drivers that multiply."
+    },
+    {
+      "id": "b",
+      "text": "Bucket 3 doesn't matter for market size",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "The market is in dollars, so price is essential."
+    },
+    {
+      "id": "c",
+      "text": "It is a generic sizing approach",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The drivers fit dog walking. The flaw is missing drivers."
+    },
+    {
+      "id": "d",
+      "text": "Missing: how many dog owners use a walker, and how often",
+      "correct": true,
+      "feedback": "Right. Dog-owning households × price skips the share that pays for walks and the number of walks a year."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Market = dog-owning households × share that hire walkers × walks per year × price per walk. Two drivers are missing.",
+  "extras": {
+    "flaw_type": "missing",
+    "corrected_framework": "Dog-owning households × share using walkers × walks per year × price per walk"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

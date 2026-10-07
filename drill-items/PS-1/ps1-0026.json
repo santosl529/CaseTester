@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0026",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "new_product_launch",
+  "prompt": "A snack company is deciding whether to launch a high-protein chip. The candidate's framework: (1) Consumer demand for high-protein snacks; (2) Competing protein snacks; (3) Cost to make and distribute the chip; (4) The CEO's favorite flavors. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 2 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Demand and competition are separate."
+    },
+    {
+      "id": "b",
+      "text": "Bucket 4 doesn't matter",
+      "correct": true,
+      "feedback": "Right. Replace it with the launch economics: price, margin and expected volume."
+    },
+    {
+      "id": "c",
+      "text": "Missing: competing products",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Competition is bucket 2."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic launch framework",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The buckets fit a snack launch. The flaw is bucket 4."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Flavor choices should come from consumers, not the CEO. A launch framework covers demand, competition, economics and the ability to execute.",
+  "extras": {
+    "flaw_type": "irrelevant",
+    "corrected_framework": "Demand; competition; economics (price, margin, volume); ability to execute"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

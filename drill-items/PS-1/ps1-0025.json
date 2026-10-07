@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0025",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "cost_reduction",
+  "prompt": "A hotel chain wants to reduce operating costs. The candidate's framework: (1) Staff costs; (2) Energy and utilities; (3) Supplies and laundry; (4) Guest satisfaction scores from last year. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Bucket 4 doesn't matter as a cost bucket",
+      "correct": true,
+      "feedback": "Right. Satisfaction is a check on any cut, not a source of savings. Replace it with maintenance and other costs."
+    },
+    {
+      "id": "b",
+      "text": "Buckets 2 and 3 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Utilities and supplies are separate cost lines."
+    },
+    {
+      "id": "c",
+      "text": "Missing: staff costs",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Staff costs are bucket 1."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic cost tree",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The cost lines fit a hotel. The flaw is bucket 4."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Cost buckets should be costs: staff, utilities, supplies, maintenance, overhead. Guest satisfaction is a constraint on the cuts.",
+  "extras": {
+    "flaw_type": "irrelevant",
+    "corrected_framework": "Staff; utilities; supplies and laundry; maintenance; overhead (with satisfaction as a constraint)"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

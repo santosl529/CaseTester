@@ -1,0 +1,70 @@
+{
+  "item_id": "sy1-0040",
+  "version": 1,
+  "drill_id": "SY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence",
+    "SY.summary"
+  ],
+  "case_type": "investment_decision",
+  "prompt": "Mid-case: The client is deciding whether to buy a delivery van. You've found that it costs $40,000 and would save $10,000 a year in courier fees. You haven't looked at running costs. Which is the best summary?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "So far: the van pays back in 4 years including all its costs. Next I'd choose a model.",
+      "correct": false,
+      "tag": "M.inaccurate_summary",
+      "feedback": "This claims findings the analysis hasn't shown. Summarize only what you've established."
+    },
+    {
+      "id": "b",
+      "text": "So far: the van costs $40,000 and saves $10,000 a year in courier fees, a 4-year payback before running costs. The van comes in three colors. Next I'd add running costs to see if the payback still works.",
+      "correct": false,
+      "tag": "M.irrelevant_facts",
+      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+    },
+    {
+      "id": "c",
+      "text": "So far: the van would save money on couriers. Next I'd add running costs to see if the payback still works.",
+      "correct": false,
+      "tag": "M.unsupported_recommendation",
+      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+    },
+    {
+      "id": "d",
+      "text": "So far: the van costs $40,000 and saves $10,000 a year in courier fees, a 4-year payback before running costs. We haven't yet looked at running costs such as fuel, insurance and a driver, so next I'd add running costs to see if the payback still works.",
+      "correct": true,
+      "feedback": "Right. It states what is known, with numbers, then what is still open and what comes next."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The van costs $40,000 and saves $10,000 a year in courier fees, a 4-year payback before running costs. A good mid-case summary states what is known with numbers and what comes next, without claiming findings that haven't been tested.",
+  "extras": {
+    "answer_type": "summary",
+    "irrelevant_facts": [
+      "The van comes in three colors."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

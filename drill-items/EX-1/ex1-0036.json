@@ -1,0 +1,85 @@
+{
+  "item_id": "ex1-0036",
+  "version": 1,
+  "drill_id": "EX-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "The client wants to know which channel brings in the most new customers. Which takeaway matters most?",
+  "exhibit": {
+    "type": "bar",
+    "title": "New customers by channel (thousands)",
+    "categories": [
+      "Search",
+      "Social",
+      "Referral",
+      "TV"
+    ],
+    "series": [
+      {
+        "name": "Customers",
+        "values": [
+          40,
+          25,
+          30,
+          5
+        ]
+      }
+    ]
+  },
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "TV brings in 5k customers",
+      "correct": false,
+      "tag": "M.trivial_takeaway",
+      "feedback": "True, but it doesn't answer the client's question."
+    },
+    {
+      "id": "b",
+      "text": "Social brings in more customers than referral",
+      "correct": false,
+      "tag": "M.misread_trend",
+      "feedback": "That misreads the chart: Social brings 25k; referral brings 30k."
+    },
+    {
+      "id": "c",
+      "text": "Referral customers are the most loyal",
+      "correct": false,
+      "tag": "M.unsupported_claim",
+      "feedback": "The chart doesn't show this. It may be true, but there is no data here to support it."
+    },
+    {
+      "id": "d",
+      "text": "Search brings in the most new customers",
+      "correct": true,
+      "feedback": "Right. Search 40k, referral 30k, social 25k, TV 5k."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Search brings in the most new customers. Search 40k, referral 30k, social 25k, TV 5k.",
+  "extras": {
+    "proof": "Search 40k, referral 30k, social 25k, TV 5k."
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

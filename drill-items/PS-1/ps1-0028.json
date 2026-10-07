@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0028",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "m_and_a",
+  "prompt": "A hospital network is deciding whether to acquire a smaller rural hospital. The candidate's framework: (1) The rural hospital's finances and patient volumes; (2) Fit with the network's services and referrals; (3) Regulatory approval risk; (4) The color scheme of the rural hospital's branding. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 2 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "The target's finances and its fit with the network are different questions."
+    },
+    {
+      "id": "b",
+      "text": "Missing: regulatory approval",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Regulatory risk is bucket 3."
+    },
+    {
+      "id": "c",
+      "text": "It is a generic acquisition framework",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The buckets are specific to hospitals. The flaw is bucket 4."
+    },
+    {
+      "id": "d",
+      "text": "Bucket 4 doesn't matter",
+      "correct": true,
+      "feedback": "Right. Replace it with integration costs and the price."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "A hospital acquisition turns on finances, strategic fit, regulation, and price and integration. Branding colors are trivial.",
+  "extras": {
+    "flaw_type": "irrelevant",
+    "corrected_framework": "Target finances; strategic fit; regulatory risk; price and integration costs"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

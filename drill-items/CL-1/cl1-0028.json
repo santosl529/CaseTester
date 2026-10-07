@@ -1,0 +1,63 @@
+{
+  "item_id": "cl1-0028",
+  "version": 1,
+  "drill_id": "CL-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "profitability",
+  "prompt": "Objective: find why a car wash's revenue fell 15%. What you've learned: the number of cars washed is flat. Latest finding: customers have shifted from the premium wash to the basic wash. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Ask the interviewer what they would like to look at next",
+      "correct": false,
+      "tag": "M.waited_for_interviewer",
+      "feedback": "Drive the case: propose the next step yourself rather than waiting to be told."
+    },
+    {
+      "id": "b",
+      "text": "Look at the car wash's signage colors, since it could affect the answer",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That is off the objective. It won't help answer the client's question."
+    },
+    {
+      "id": "c",
+      "text": "Recommend dropping the basic wash",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That jumps to a solution before the analysis supports it."
+    },
+    {
+      "id": "d",
+      "text": "Find out why customers are trading down",
+      "correct": true,
+      "feedback": "Right. The mix shift explains revenue. Next is why it happened."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The mix shift explains revenue. Next is why it happened.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

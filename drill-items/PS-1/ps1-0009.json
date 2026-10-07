@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0009",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "competitive_response",
+  "prompt": "A national bank is losing young customers to a mobile-only bank and wants to respond. The candidate's framework: (1) Why young customers are switching; (2) What the mobile bank offers that the client doesn't; (3) The client's options to respond; (4) Features that attract young customers to the rival. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 2 and 4 overlap",
+      "correct": true,
+      "feedback": "Right. The rival's offer and the features that attract customers are the same analysis. Use the slot for the cost and impact of each response."
+    },
+    {
+      "id": "b",
+      "text": "Missing: why customers are switching",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "That is bucket 1."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 3 doesn't matter until the cause is known",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Options to respond are where the answer lands, so the bucket belongs."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic competitor analysis",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The buckets are specific to this threat. The flaw is the overlap."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The rival's offer and its attractive features are one bucket. Better: why customers switch, what the rival offers, response options, and the economics of each option.",
+  "extras": {
+    "flaw_type": "overlap",
+    "corrected_framework": "Why customers switch; the rival's offer; response options; economics of each option"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

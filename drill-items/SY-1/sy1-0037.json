@@ -1,0 +1,70 @@
+{
+  "item_id": "sy1-0037",
+  "version": 1,
+  "drill_id": "SY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence",
+    "SY.summary"
+  ],
+  "case_type": "m_and_a",
+  "prompt": "Mid-case: The client is evaluating an acquisition priced at $300M. You've valued the target at $250M on its own and found $40M of cost synergies. You haven't assessed integration risks. Which is the best summary?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "So far: the target is worth about $250M on its own, and $40M of synergies brings it to $290M, still $10M below the $300M price. We haven't yet looked at integration risks, so next I'd assess integration risks and whether revenue synergies could close the gap.",
+      "correct": true,
+      "feedback": "Right. It states what is known, with numbers, then what is still open and what comes next."
+    },
+    {
+      "id": "b",
+      "text": "So far: the target is worth more than the $300M price once synergies are added. Next I'd plan the integration.",
+      "correct": false,
+      "tag": "M.inaccurate_summary",
+      "feedback": "This claims findings the analysis hasn't shown. Summarize only what you've established."
+    },
+    {
+      "id": "c",
+      "text": "So far: the target is worth about $250M on its own, and $40M of synergies brings it to $290M, still $10M below the $300M price. The target was founded by two engineers. Next I'd assess integration risks and whether revenue synergies could close the gap.",
+      "correct": false,
+      "tag": "M.irrelevant_facts",
+      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+    },
+    {
+      "id": "d",
+      "text": "So far: the price looks a little high compared with the value. Next I'd assess integration risks and whether revenue synergies could close the gap.",
+      "correct": false,
+      "tag": "M.unsupported_recommendation",
+      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The target is worth about $250M on its own, and $40M of synergies brings it to $290M, still $10M below the $300M price. A good mid-case summary states what is known with numbers and what comes next, without claiming findings that haven't been tested.",
+  "extras": {
+    "answer_type": "summary",
+    "irrelevant_facts": [
+      "The target was founded by two engineers."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0034",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "A B2B payroll software company wants to grow revenue 50% in three years. The candidate's framework: (1) Company; (2) Customers; (3) Competitors. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 2 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Company and customers are separate Cs. The issue is that the 3Cs don't give growth levers."
+    },
+    {
+      "id": "b",
+      "text": "It is the 3Cs, which lists perspectives but no growth levers",
+      "correct": true,
+      "feedback": "Right. A growth question needs levers: more customers, more revenue per customer, new products, new segments or geographies."
+    },
+    {
+      "id": "c",
+      "text": "Missing: a bucket for collaborators",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "A fourth C doesn't fix the problem. The structure doesn't fit."
+    },
+    {
+      "id": "d",
+      "text": "Bucket 3 doesn't matter for growth",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Competitors matter. The issue is that the framework is generic."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The 3Cs describe a situation but don't organize how revenue grows. Start from levers.",
+  "extras": {
+    "flaw_type": "generic",
+    "corrected_framework": "New customers; revenue per customer (upsell, pricing); new products; new segments and geographies"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0017",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "operations",
+  "prompt": "A furniture maker's on-time delivery rate fell from 95% to 80%. The candidate's framework: (1) Order planning and scheduling; (2) Production delays in the factory; (3) Shipping and carrier delays. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Missing: delays before production, such as late materials from suppliers",
+      "correct": true,
+      "feedback": "Right. Late raw materials are a common cause, and they sit outside both buckets."
+    },
+    {
+      "id": "b",
+      "text": "Buckets 2 and 3 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Factory and shipping delays happen at different stages."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 3 doesn't matter, since carriers are outside the client's control",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Carrier delays still make deliveries late, so they belong."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic operations framework",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The buckets follow this supply chain. The flaw is a missing stage."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Follow the order from start to finish: order intake, materials, production, shipping. The upstream stages are missing.",
+  "extras": {
+    "flaw_type": "missing",
+    "corrected_framework": "Order intake and planning; supplier materials; production; shipping and delivery"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

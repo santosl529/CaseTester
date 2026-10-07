@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0012",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "profitability",
+  "prompt": "A chain of fitness studios has seen profits fall for two years. The candidate's framework: (1) Membership revenue: members × average fee; (2) Other revenue: retail and personal training; (3) Fixed costs: rent and equipment. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 2 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Revenue and fixed costs don't overlap."
+    },
+    {
+      "id": "b",
+      "text": "Bucket 2 doesn't matter, since retail is a small share",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Other revenue can still move profit, so it belongs."
+    },
+    {
+      "id": "c",
+      "text": "A revenue-and-cost tree is too generic here",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "A profit tree fits a profitability question. The flaw is the missing cost line."
+    },
+    {
+      "id": "d",
+      "text": "Missing: variable and staffing costs such as instructor pay",
+      "correct": true,
+      "feedback": "Right. Instructor pay grows with classes, and it is often the biggest studio cost. A cost bucket with only rent and equipment misses it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Profit = revenue − all costs. Instructor pay and other variable costs are missing, and they are a large share of studio costs.",
+  "extras": {
+    "flaw_type": "missing",
+    "corrected_framework": "Revenue (members × fee, other income); fixed costs (rent, equipment); variable costs (instructors, utilities, marketing)"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

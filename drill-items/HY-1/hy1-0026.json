@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0026",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "cost_reduction",
+  "prompt": "A trucking company's fuel cost per mile rose 12%, while diesel prices rose 4%. Its fleet's average age went from 4 to 7 years. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Fuel cost per mile rose 12% while diesel rose 4%, and the fleet aged from 4 to 7 years.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "Older trucks are likely using more fuel per mile.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare miles per gallon by truck age."
+    },
+    {
+      "id": "c",
+      "text": "The aging fleet is the cause, so the company should replace every truck older than five years.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "Fuel costs are too high.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Fuel cost rose 8 points faster than prices, so efficiency fell. Fleet age is a likely cause, and mileage by truck age tests it.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "Fuel cost per mile rose 12% while diesel rose 4%, and the fleet aged from 4 to 7 years.",
+      "M.overconfident_hypothesis": "The aging fleet is the cause, so the company should replace every truck older than five years.",
+      "M.untestable_hypothesis": "Fuel costs are too high."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

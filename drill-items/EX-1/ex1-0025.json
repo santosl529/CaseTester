@@ -1,0 +1,96 @@
+{
+  "item_id": "ex1-0025",
+  "version": 1,
+  "drill_id": "EX-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "public_sector",
+  "prompt": "The state wants to know why its overall graduation rate fell. Which takeaway matters most?",
+  "exhibit": {
+    "type": "grouped_bar",
+    "title": "Graduation rate by district",
+    "categories": [
+      "District A",
+      "District B",
+      "District C"
+    ],
+    "series": [
+      {
+        "name": "2020",
+        "values": [
+          85,
+          80,
+          78
+        ]
+      },
+      {
+        "name": "2025",
+        "values": [
+          86,
+          81,
+          64
+        ]
+      }
+    ],
+    "y_axis": {
+      "format": {
+        "suffix": "%"
+      }
+    }
+  },
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "The drop comes from District C",
+      "correct": true,
+      "feedback": "Right. C fell 14 points (78% to 64%); A and B each rose 1 point."
+    },
+    {
+      "id": "b",
+      "text": "District A has the highest graduation rate",
+      "correct": false,
+      "tag": "M.trivial_takeaway",
+      "feedback": "True, but it doesn't answer the client's question."
+    },
+    {
+      "id": "c",
+      "text": "All three districts declined",
+      "correct": false,
+      "tag": "M.misread_trend",
+      "feedback": "That misreads the chart: A and B each rose 1 point; only C fell."
+    },
+    {
+      "id": "d",
+      "text": "District C lost funding",
+      "correct": false,
+      "tag": "M.unsupported_claim",
+      "feedback": "The chart doesn't show this. It may be true, but there is no data here to support it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The drop comes from District C. C fell 14 points (78% to 64%); A and B each rose 1 point.",
+  "extras": {
+    "proof": "C fell 14 points (78% to 64%); A and B each rose 1 point."
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

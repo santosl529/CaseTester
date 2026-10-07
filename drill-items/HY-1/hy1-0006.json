@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0006",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "pricing",
+  "prompt": "A streaming service raised its price by 15%. Subscribers fell by 3% in the following quarter. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "The price went up 15% and subscribers fell 3%.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "Demand is likely fairly price-insensitive, so the increase probably raised revenue.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd check revenue and cancellations by plan before and after."
+    },
+    {
+      "id": "c",
+      "text": "The price rise was a success, so the service should raise prices again.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "Pricing had some effect on customers.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "A 15% price rise with a 3% subscriber loss suggests revenue rose about 11%. The hypothesis commits to that and names the data to confirm it.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "The price went up 15% and subscribers fell 3%.",
+      "M.overconfident_hypothesis": "The price rise was a success, so the service should raise prices again.",
+      "M.untestable_hypothesis": "Pricing had some effect on customers."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,63 @@
+{
+  "item_id": "cl1-0016",
+  "version": 1,
+  "drill_id": "CL-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "Objective: grow a coffee chain's afternoon sales. What you've learned: afternoon sales fell 20% while mornings grew. Latest finding: a competitor nearby started selling cheap iced drinks in the afternoon. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Ask the interviewer what they would like to look at next",
+      "correct": false,
+      "tag": "M.waited_for_interviewer",
+      "feedback": "Drive the case: propose the next step yourself rather than waiting to be told."
+    },
+    {
+      "id": "b",
+      "text": "Look at the chain's furniture, since it could affect the answer",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That is off the objective. It won't help answer the client's question."
+    },
+    {
+      "id": "c",
+      "text": "Recommend closing in the afternoons",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That jumps to a solution before the analysis supports it."
+    },
+    {
+      "id": "d",
+      "text": "Compare the afternoon offer with the competitor's",
+      "correct": true,
+      "feedback": "Right. The likely cause is a competitor's afternoon offer, so comparing offers is next."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The likely cause is a competitor's afternoon offer, so comparing offers is next.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

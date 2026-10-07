@@ -1,0 +1,99 @@
+{
+  "item_id": "ex1-0021",
+  "version": 1,
+  "drill_id": "EX-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "investment_decision",
+  "prompt": "The client is deciding whether to build a third plant. Which takeaway matters most?",
+  "exhibit": {
+    "type": "line",
+    "title": "Plant utilization",
+    "categories": [
+      "2022",
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "series": [
+      {
+        "name": "Plant A",
+        "values": [
+          95,
+          97,
+          98,
+          98
+        ]
+      },
+      {
+        "name": "Plant B",
+        "values": [
+          60,
+          62,
+          61,
+          63
+        ]
+      }
+    ],
+    "y_axis": {
+      "format": {
+        "suffix": "%"
+      }
+    }
+  },
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Plant B has plenty of spare capacity",
+      "correct": true,
+      "feedback": "Right. Plant A is at 98%, but Plant B runs at about 60%."
+    },
+    {
+      "id": "b",
+      "text": "Plant A ran at 95% in 2022",
+      "correct": false,
+      "tag": "M.trivial_takeaway",
+      "feedback": "True, but it doesn't answer the client's question."
+    },
+    {
+      "id": "c",
+      "text": "Both plants are near full capacity",
+      "correct": false,
+      "tag": "M.misread_trend",
+      "feedback": "That misreads the chart: Plant B runs at 60–63%."
+    },
+    {
+      "id": "d",
+      "text": "Plant B has quality problems, which is why it runs below capacity",
+      "correct": false,
+      "tag": "M.unsupported_claim",
+      "feedback": "The chart doesn't show this. It may be true, but there is no data here to support it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Plant B has plenty of spare capacity. Plant A is at 98%, but Plant B runs at about 60%.",
+  "extras": {
+    "proof": "Plant A is at 98%, but Plant B runs at about 60%."
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

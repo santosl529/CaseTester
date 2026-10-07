@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0033",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "profitability",
+  "prompt": "A bookstore's sales of books rose 4%, but its total sales fell 6%. Last year, gifts and toys made up 30% of sales. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Gift and toy sales likely fell sharply.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd check sales by category over the two years."
+    },
+    {
+      "id": "b",
+      "text": "It could be gifts, toys, prices, foot traffic, online competition or the season.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists several causes without committing to the most likely one."
+    },
+    {
+      "id": "c",
+      "text": "Toy sales collapsed because of online retailers, so the store should drop toys.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "Some categories underperformed.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "If books rose 4% and the total fell 6%, the other 30% must have fallen about 30%. Sales by category confirms it.",
+  "extras": {
+    "distractor_flaws": {
+      "M.shotgun_hypotheses": "It could be gifts, toys, prices, foot traffic, online competition or the season.",
+      "M.overconfident_hypothesis": "Toy sales collapsed because of online retailers, so the store should drop toys.",
+      "M.untestable_hypothesis": "Some categories underperformed."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

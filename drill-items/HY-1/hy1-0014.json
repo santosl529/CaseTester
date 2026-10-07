@@ -1,0 +1,69 @@
+{
+  "item_id": "hy1-0014",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "turnaround",
+  "prompt": "A clothing retailer's inventory has grown 35% in a year while sales fell 5%. Markdowns doubled. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Inventory grew 35%, sales fell 5% and markdowns doubled.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "Buying likely hasn't adjusted to lower demand, leaving excess stock to clear.",
+      "correct": true,
+      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare purchase orders with sales by category."
+    },
+    {
+      "id": "c",
+      "text": "The buying team ordered the wrong styles, which caused everything.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "The retailer has an inventory issue.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Inventory rising while sales fall points to buying not tracking demand. Orders vs sales by category tests it.",
+  "extras": {
+    "distractor_flaws": {
+      "M.restates_facts": "Inventory grew 35%, sales fell 5% and markdowns doubled.",
+      "M.overconfident_hypothesis": "The buying team ordered the wrong styles, which caused everything.",
+      "M.untestable_hypothesis": "The retailer has an inventory issue."
+    }
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

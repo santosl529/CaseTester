@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0036",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "m_and_a",
+  "prompt": "A media company is deciding whether to buy a popular podcast network. The candidate's framework: (1) Product; (2) Price; (3) Place; (4) Promotion. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 4 overlap and should be merged",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Product and promotion are distinct. The issue is that the 4Ps don't fit."
+    },
+    {
+      "id": "b",
+      "text": "Missing: a people bucket",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Adding a P doesn't fit the framework to the question."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 3 doesn't matter for podcasts",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "The flaw is the canned framework, not one bucket."
+    },
+    {
+      "id": "d",
+      "text": "It is the marketing 4Ps, which doesn't evaluate an acquisition",
+      "correct": true,
+      "feedback": "Right. An acquisition needs the market, the target, synergies, and price and return."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The 4Ps are for marketing a product. An acquisition decision needs a deal framework.",
+  "extras": {
+    "flaw_type": "generic",
+    "corrected_framework": "Podcast market; target's audience and finances; synergies (ad sales, content); valuation vs price"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

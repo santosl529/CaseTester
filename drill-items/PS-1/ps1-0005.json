@@ -1,0 +1,67 @@
+{
+  "item_id": "ps1-0005",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "m_and_a",
+  "prompt": "A private equity firm is deciding whether to buy a chain of veterinary clinics. The candidate's framework: (1) Attractiveness of the vet clinic market; (2) The target's financial performance; (3) Synergies with the firm's other pet businesses; (4) The target's revenue growth and margins. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 2 and 4 overlap",
+      "correct": true,
+      "feedback": "Right. Bucket 4 is a subset of bucket 2. Merge them and add the deal terms: price, financing and exit."
+    },
+    {
+      "id": "b",
+      "text": "Missing: the attractiveness of the vet market",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Market attractiveness is bucket 1."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 3 is irrelevant to a private equity deal",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Synergies with portfolio companies can justify a higher price, so they matter."
+    },
+    {
+      "id": "d",
+      "text": "It is a generic acquisition checklist",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The buckets are specific to this target. The flaw is the overlap between 2 and 4."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Financial performance already includes growth and margins. A cleaner structure: market, target performance, synergies, and deal economics (price, financing, exit).",
+  "extras": {
+    "flaw_type": "overlap",
+    "corrected_framework": "Market attractiveness; target performance; synergies; deal economics (price, financing, exit)"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}
