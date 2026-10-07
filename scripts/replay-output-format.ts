@@ -409,6 +409,72 @@ async function runAB(samples: Sample[], arms: AbArm[], tag: string) {
   console.log(`  wrote ${path.join(OUT_DIR, `replay-${tag}.md`)} for hand reading`);
 }
 
+// The interviewer reply actually logged on this turn (historical Sonnet) —
+// supporting quality evidence beside the fresh outputs.
+function loggedReply(s: Sample): string {
+  const [batch, dir] = s.session.split('/');
+  const d = path.join(RUNS_ROOT, batch, dir);
+  const run = JSON.parse(readFileSync(path.join(d, readdirSync(d).find(f => f.endsWith('.json'))!), 'utf8')) as { turns: Turn[] };
+  return run.turns.find(t => t.turnIndex === s.turnIndex)?.text ?? '';
+}
+
+// REPLAY_ARM=model-ab (screening, not a benchmark): per turn, the baseline
+// once and each challenger twice, interleaved — round 1 every arm in an order
+// rotated turn to turn, round 2 the challengers again, rotated. Each
+// challenger's two-run mean is compared with that turn's fresh baseline.
+async function runScreen(samples: Sample[], base: AbArm, challengers: AbArm[], tag: string) {
+  type Row = { id: string; phase: string; logged: string; base: VariantRun; runs: Record<string, VariantRun[]> };
+  const rows: Row[] = [];
+  for (const [i, s] of samples.entries()) {
+    const rot = <T,>(xs: T[], k: number) => xs.map((_, j) => xs[(j + k) % xs.length]);
+    const round1 = rot([base, ...challengers], i), round2 = rot(challengers, i + 1);
+    const runs: Record<string, VariantRun[]> = Object.fromEntries(challengers.map(c => [c.name, []]));
+    let baseRun: VariantRun | undefined;
+    for (const arm of [...round1, ...round2]) {
+      const r = await runVariant(s, arm);
+      if (arm === base) baseRun = r; else runs[arm.name].push(r);
+    }
+    rows.push({ id: s.id, phase: s.ctx.currentPhase, logged: loggedReply(s), base: baseRun!, runs });
+    console.log(`  ${s.id} ${s.ctx.currentPhase.padEnd(14)} useful ${base.name} ${baseRun!.firstUsefulMs ?? 'ERR'} · ${challengers.map(c => `${c.name} ${runs[c.name].map(r => r.firstUsefulMs ?? 'ERR').join('/')}`).join(' · ')}`);
+  }
+  writeFileSync(path.join(OUT_DIR, `replay-results-${tag}.json`), JSON.stringify(rows, null, 2));
+
+  type K = 'firstUsefulMs' | 'firstTokenMs' | 'completeMs';
+  const mean = (rs: VariantRun[], k: K) => { const v = rs.map(r => r[k]).filter((x): x is number => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  console.log(`\n${tag.toUpperCase()} (screening) — ${rows.length} turns · ${base.name} once per turn, challengers twice (mean)`);
+  const baseOk = rows.filter(r => !r.base.error);
+  for (const k of ['firstUsefulMs', 'firstTokenMs', 'completeMs'] as K[]) {
+    console.log(`  [${base.name}] ${k} median ${pct(baseOk.map(r => r.base[k]).filter((x): x is number => x != null), 0.5)} p90 ${pct(baseOk.map(r => r.base[k]).filter((x): x is number => x != null), 0.9)}`);
+  }
+  const baseFlags = baseOk.flatMap(r => qualityFlags(samples.find(x => x.id === r.id)!, r.base.turn));
+  console.log(`  [${base.name}] quality flags over ${baseOk.length} outputs: ${JSON.stringify(baseFlags.reduce<Record<string, number>>((m, x) => { m[x] = (m[x] ?? 0) + 1; return m; }, {}))} · errors ${rows.length - baseOk.length}`);
+  for (const c of challengers) {
+    const errs = rows.reduce((n, r) => n + r.runs[c.name].filter(x => x.error).length, 0);
+    console.log(`  [${c.name}] ${errs} errored calls of ${rows.length * 2}`);
+    for (const [name, k] of [['FIRST USEFUL', 'firstUsefulMs'], ['first token', 'firstTokenMs'], ['completion', 'completeMs']] as [string, K][]) {
+      const pairs = rows.map(r => ({ b: r.base[k], c: mean(r.runs[c.name], k) })).filter((x): x is { b: number; c: number } => x.b != null && x.c != null);
+      const d = pairs.map(x => x.c - x.b);
+      console.log(`    ${name.padEnd(13)} mean-of-2 median ${pct(pairs.map(x => Math.round(x.c)), 0.5)} p90 ${pct(pairs.map(x => Math.round(x.c)), 0.9)} · minus ${base.name}: median ${Math.round(pct(d, 0.5))}ms (p10 ${Math.round(pct(d, 0.1))}, p90 ${Math.round(pct(d, 0.9))}), faster on ${d.filter(x => x < 0).length}/${d.length}`);
+    }
+    const all = rows.flatMap(r => r.runs[c.name].filter(x => !x.error));
+    console.log(`    tokens per call median in ${pct(all.map(r => r.inputTokens + r.cacheRead), 0.5)} (cached ${pct(all.map(r => r.cacheRead), 0.5)}) out ${pct(all.map(r => r.outputTokens), 0.5)}`);
+    const flags = rows.flatMap(r => r.runs[c.name].flatMap(x => qualityFlags(samples.find(y => y.id === r.id)!, x.turn)));
+    console.log(`    quality flags over ${rows.length * 2} outputs: ${JSON.stringify(flags.reduce<Record<string, number>>((m, x) => { m[x] = (m[x] ?? 0) + 1; return m; }, {}))}`);
+    const ok2 = rows.filter(r => r.runs[c.name].length === 2 && r.runs[c.name].every(x => !x.error) && !r.base.error);
+    const runToRun = ok2.filter(r => decisions(r.runs[c.name][0].turn) !== decisions(r.runs[c.name][1].turn)).length;
+    const vsBase = ok2.reduce((n, r) => n + r.runs[c.name].filter(x => decisions(x.turn) !== decisions(r.base.turn)).length, 0);
+    console.log(`    request decisions differ — its two runs ${runToRun}/${ok2.length} · vs ${base.name} ${vsBase}/${ok2.length * 2} outputs`);
+  }
+  const show = (s: Sample, r: VariantRun) => r.error ? `ERROR ${r.error}` : `say: ${r.turn?.say ?? ''}\nrequests: ${decisions(r.turn)}\nquestion: ${r.turn?.question ?? ''}\nflags: ${qualityFlags(s, r.turn).join(', ') || '-'} · useful ${r.firstUsefulMs}ms`;
+  const md = rows.map(r => {
+    const s = samples.find(x => x.id === r.id)!;
+    return `## ${r.id} · ${r.phase}\n**Candidate:** ${s.candidateText}\n\n**Logged Sonnet reply (historical):** ${r.logged}\n\n**${base.name} (fresh)**\n${show(s, r.base)}\n\n` +
+      challengers.map(c => r.runs[c.name].map((x, k) => `**${c.name} run ${k + 1}**\n${show(s, x)}\n`).join('\n')).join('\n');
+  }).join('\n');
+  writeFileSync(path.join(OUT_DIR, `replay-${tag}.md`), md);
+  console.log(`  wrote ${path.join(OUT_DIR, `replay-${tag}.md`)} and replay-results-${tag}.json`);
+}
+
 // Exact model ids — no substitutions (gpt-6.1-sol has no "none"; gpt-6-sol does).
 const CHALLENGERS: Record<string, () => InterviewerModel> = {
   'luna-none': () => new OpenAIInterviewerModel('gpt-6-luna', 'none'),
@@ -477,6 +543,7 @@ async function main() {
         return { name: n, model: CHALLENGERS[n](), promptVariant: 'full' as const };
       })];
     if (args.includes('--smoke')) { await smoke(spread.find(x => x.ctx.currentPhase === 'ANALYSIS') ?? spread[0], arms); return; }
+    if (ARM === 'model-ab') { await runScreen(spread, arms[0], arms.slice(1), ARM); return; }
     await runAB(spread, arms, ARM);
     return;
   }

@@ -1,0 +1,507 @@
+180 reconstructable turns · sampling 20 · est cost ~$0.18
+  "say": "Understood.",
+  "move": "pressure_test",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Which of those areas would you prioritize investigating first, and why?"
+}
+  "say": "Understood.",
+  "move": "pressure_test",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Which of those areas would you prioritize investigating first, and why?"
+}
+  01-maya-the-fr#3 INTRO          useful sonnet 5411 · luna-none 1557/1349 · sol-none 2218/1796 · gemini-low 1461/1753
+  "say": "Understood.",
+  "move": "structure",
+  "requests": [
+    {
+      "what": "store count growth versus sales per store",
+      "item_ids": ["stores_count", "revenue_per_store"],
+      "explicit": true,
+      "respond": "defer"
+    }
+  ],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Before we get into the data, which branch of your framework do you prioritize, and why?"
+}
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [
+    {
+      "what": "store count and revenue per store",
+      "item_ids": ["stores_count", "revenue_per_store"],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "How does that inform where you focus your investigation?"
+}
+  01-maya-the-fr#5 CLARIFY        useful sonnet 2176 · luna-none 841/758 · sol-none 3207/1281 · gemini-low 2140/2547
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [
+    {
+      "what": "the cost breakdown as a percent of revenue",
+      "item_ids": ["cogs_pct", "labor_pct", "overhead_pct"],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": "exhibit-a",
+  "rescue_item": null,
+  "question": "What does the breakdown show you?"
+}
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [
+    {
+      "what": "the cost breakdown as a percent of revenue",
+      "item_ids": ["cogs_pct", "labor_pct", "overhead_pct"],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": "exhibit-a",
+  "rescue_item": null,
+  "question": "What does the cost breakdown tell you about where the margin went?"
+}
+  56-devon-the-i#4 CLARIFY        useful sonnet 2397 · luna-none 996/871 · sol-none 2224/1991 · gemini-low 2166/2018
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [
+    {
+      "what": "the cost breakdown",
+      "item_ids": ["cogs_pct", "labor_pct", "overhead_pct", "exhibit-a"],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": "exhibit-a",
+  "rescue_item": null,
+  "question": "What does the breakdown show you about your hypothesis?"
+}
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [
+    {
+      "what": "the cost breakdown",
+      "item_ids": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+      ],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Looking at those figures, what do you see?"
+}
+  06-destiny-the#14 STRUCTURE      useful sonnet 1965 · luna-none 763/1511 · sol-none 1540/1514 · gemini-low 1957/24572
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [
+    {
+      "what": "the cost breakdown as a percentage of revenue",
+      "item_ids": ["cogs_pct", "labor_pct", "overhead_pct"],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": "exhibit-a",
+  "rescue_item": null,
+  "question": "What does the cost breakdown tell you about the main drivers of the margin drop?"
+}
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [
+    {
+      "what": "the cost breakdown as a percentage of revenue",
+      "item_ids": ["cogs_pct", "labor_pct", "overhead_pct"],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "What does that breakdown tell you about where the margin went?"
+}
+  58-hugo-the-hi#6 STRUCTURE      useful sonnet 1765 · luna-none 1179/1303 · sol-none 1595/1639 · gemini-low 2128/2322
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [
+    {
+      "what": "menu price changes and transaction data",
+      "item_ids": ["menu_price_change", "avg_ticket"],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "How does that inform where we look next?"
+}
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [
+    {
+      "what": "menu price changes and average ticket",
+      "item_ids": ["menu_price_change", "avg_ticket"],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "What does that tell you about the revenue side?"
+}
+  01-maya-the-fr#7 ANALYSIS       useful sonnet 1345 · luna-none 852/720 · sol-none 1289/1687 · gemini-low 2662/2007
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Now that we've isolated COGS as the primary driver, how would you break down that 16-point increase to find the root cause?"
+}
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Now that you've isolated COGS as the primary driver, how would you break that down further?"
+}
+  "say": "Mm-hm.",
+  "move": "analysis",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "How would you break down what drove the increase in COGS?"
+}
+  06-destiny-the#20 ANALYSIS       useful sonnet 1887 · luna-none 984/867 · sol-none 1163/1242 · gemini-low 1871/2597
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [
+    {
+      "what": "the COGS breakdown",
+      "item_ids": [
+        "bean_share_of_cogs",
+        "non_bean_input_change"
+      ],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Looking at the input data, what was the primary driver of the COGS increase?"
+}
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [
+    {
+      "what": "the COGS breakdown",
+      "item_ids": [
+        "bean_share_of_cogs",
+        "non_bean_input_change"
+      ],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "What does that tell you about the driver of the COGS increase?"
+}
+  09-derek-the-b#10 ANALYSIS       useful sonnet 1990 · luna-none 850/980 · sol-none 1486/1700 · gemini-low 2001/1960
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [
+    {
+      "what": "COGS breakdown and input cost changes",
+      "item_ids": ["bean_share_of_cogs", "bean_price_change", "non_bean_input_change"],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "What does this tell you about the driver of the margin decline?"
+}
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [
+    {
+      "what": "COGS breakdown by input and cost changes over the two years",
+      "item_ids": ["bean_share_of_cogs", "non_bean_input_change", "bean_price_change"],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Looking at how those input costs moved, what does that tell you about the main driver behind the COGS increase?"
+}
+  40-jasmine-the#8 ANALYSIS       useful sonnet 1958 · luna-none 916/844 · sol-none 1318/1540 · gemini-low 4764/3652
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [
+    {
+      "what": "input price changes and COGS breakdown",
+      "item_ids": ["bean_price_change", "bean_share_of_cogs", "non_bean_input_change"],
+      "explicit": false,
+      "respond": "release"
+    }
+  ],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Points of what?"
+}
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [
+    {
+      "what": "input price changes and coffee beans share of COGS",
+      "item_ids": ["bean_price_change", "bean_share_of_cogs", "non_bean_input_change"],
+      "explicit": false,
+      "respond": "defer"
+    }
+  ],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Points of what?"
+}
+  58-hugo-the-hi#8 ANALYSIS       useful sonnet 2390 · luna-none 820/935 · sol-none 1334/1581 · gemini-low 1997/2334
+  "say": "Let's keep to the case.",
+  "move": "risk",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "What is the single biggest risk to taking price across all locations, and how would you mitigate it?"
+}
+  "say": "Let's keep to the case.",
+  "move": "risk",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "What is the single biggest risk to raising menu prices by that amount, and how would you mitigate it?"
+}
+  40-jasmine-the#6 ANALYSIS       useful sonnet 1737 · luna-none 762/804 · sol-none 1452/1390 · gemini-low 2317/1793
+  "say": "Understood.",
+  "move": "exhibit",
+  "requests": [
+    {
+      "what": "cost breakdown",
+      "item_ids": ["exhibit-a"],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": "exhibit-a",
+  "rescue_item": null,
+  "question": "What does this tell you about what is driving the margin decline?"
+}
+  "say": "Understood.",
+  "move": "exhibit",
+  "requests": [
+    {
+      "what": "the cost structure breakdown",
+      "item_ids": ["exhibit-a"],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "What does this tell you about what is driving the margin compression?"
+}
+  01-maya-the-fr#9 EXHIBIT        useful sonnet 1770 · luna-none 732/989 · sol-none 3627/1186 · gemini-low 2169/2281
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Points of what?"
+}
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Points of what?"
+}
+  08-claire-the-#8 EXHIBIT        useful sonnet 2582 · luna-none 859/950 · sol-none 1245/1098 · gemini-low 1931/3531
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [
+    {
+      "what": "menu price changes over two years",
+      "item_ids": ["menu_price_change"],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Given that confirmation, what does this tell you about how the client should address the margin decline?"
+}
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [
+    {
+      "what": "menu price changes over two years",
+      "item_ids": ["menu_price_change"],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "If menu prices were held flat, what price increase would restore their original margin?"
+}
+  58-hugo-the-hi#12 EXHIBIT        useful sonnet 1598 · luna-none 800/993 · sol-none 1332/1379 · gemini-low 1686/2032
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "If COGS went from 42 percent of revenue to 58 percent of revenue, that is an increase of 16 percentage points of revenue. Now, looking at the inputs within COGS, what is driving that increase?"
+}
+  "say": "No need to apologize.",
+  "move": "exhibit",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "If COGS was 42 dollars out of every hundred dollars of revenue before, and 58 dollars out of every hundred now, how would you describe the difference?"
+}
+  "say": "Understood.",
+  "move": "analysis",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "If COGS went from 42% of revenue to 58% of revenue, is that change sixteen percentage points of revenue, or did COGS grow sixteen percent?"
+}
+  01-maya-the-fr#27 EXHIBIT        useful sonnet 3112 · luna-none 1050/1097 · sol-none 1249/1876 · gemini-low 2171/3033
+  "say": "Understood.",
+  "move": "brainstorm",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Beyond what we've discussed with COGS, what else could the client do to reverse this profit decline?"
+}
+  "say": "Understood.",
+  "move": "brainstorm",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Beyond what we've discussed with COGS and input costs, what else could the client do to reverse this margin decline?"
+}
+  01-maya-the-fr#23 BRAINSTORM     useful sonnet 3629 · luna-none 868/962 · sol-none 1485/1226 · gemini-low 2410/2161
+  "say": "Got it.",
+  "move": "brainstorm",
+  "requests": [
+    {
+      "what": "competitive price points and customer data by location",
+      "item_ids": [],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Beyond price increases, what else could the client do to reverse the profit decline?"
+}
+  "say": "Understood.",
+  "move": "brainstorm",
+  "requests": [
+    {
+      "what": "competitive pricing and loyalty data by location",
+      "item_ids": [],
+      "explicit": true,
+      "respond": "release"
+    }
+  ],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Beyond a direct menu price increase, what other levers could the client pull to reverse this margin decline?"
+}
+  56-devon-the-i#10 BRAINSTORM     useful sonnet 1576 · luna-none 1159/748 · sol-none 1192/1185 · gemini-low 1909/2222
+  "say": "Understood.",
+  "move": "recommendation",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "The CEO is waiting for our readout; what would you recommend to them?"
+}
+  "say": "Understood.",
+  "move": "recommendation",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "The CEO is waiting for our readout — what is your recommendation to reverse the profit decline?"
+}
+  01-maya-the-fr#31 RECOMMENDATION useful sonnet 2792 · luna-none 869/819 · sol-none 1402/1500 · gemini-low 1493/2008
+  "say": "Understood.",
+  "move": "risk",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "What is the biggest risk to your proposed price increase, and how would you mitigate it?"
+}
+  "say": "Understood.",
+  "move": "risk",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "What is the single biggest risk to your overall recommendation, and how would you mitigate it?"
+}
+  58-hugo-the-hi#16 RECOMMENDATION useful sonnet 2066 · luna-none 824/927 · sol-none 1433/1730 · gemini-low 3271/1358
+  "say": "Understood.",
+  "move": "recommendation",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "The CEO is waiting for our readout. What is your final recommendation to reverse the profit decline?"
+}
+  "say": "Understood.",
+  "move": "recommendation",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "The CEO is waiting for our readout. What is your recommendation to reverse the profit decline?"
+}
+  01-maya-the-fr#33 WRAP           useful sonnet 2967 · luna-none 957/984 · sol-none 1417/1310 · gemini-low 1508/7027
+
+MODEL-AB (screening) — 20 turns · sonnet once per turn, challengers twice (mean)
+  [sonnet] firstUsefulMs median 2066 p90 3629
+  [sonnet] firstTokenMs median 1235 p90 2050
+  [sonnet] completeMs median 2330 p90 3629
+  [sonnet] quality flags over 20 outputs: {} · errors 0
+  [luna-none] 0 errored calls of 40
+    FIRST USEFUL  mean-of-2 median 915 p90 1241 · minus sonnet: median -1078ms (p10 -2038, p90 -559), faster on 20/20
+    first token   mean-of-2 median 613 p90 868 · minus sonnet: median -492ms (p10 -1188, p90 -105), faster on 20/20
+    completion    mean-of-2 median 985 p90 1453 · minus sonnet: median -1190ms (p10 -2038, p90 -729), faster on 20/20
+    tokens per call median in 4297 (cached 3363) out 65
+    quality flags over 40 outputs: {}
+    request decisions differ — its two runs 6/20 · vs sonnet 13/40 outputs
+  [sol-none] 0 errored calls of 40
+    FIRST USEFUL  mean-of-2 median 1488 p90 2244 · minus sonnet: median -438ms (p10 -1603, p90 143), faster on 17/20
+    first token   mean-of-2 median 918 p90 1741 · minus sonnet: median -307ms (p10 -911, p90 943), faster on 13/20
+    completion    mean-of-2 median 1744 p90 2467 · minus sonnet: median -586ms (p10 -1603, p90 283), faster on 17/20
+    tokens per call median in 4297 (cached 3363) out 83
+    quality flags over 40 outputs: {}
+    request decisions differ — its two runs 5/20 · vs sonnet 17/40 outputs
+  [gemini-low] 0 errored calls of 40
+    FIRST USEFUL  mean-of-2 median 2234 p90 4268 · minus sonnet: median 261ms (p10 -1041, p90 2250), faster on 7/20
+    first token   mean-of-2 median 1782 p90 3864 · minus sonnet: median 815ms (p10 130, p90 2121), faster on 1/20
+    completion    mean-of-2 median 2286 p90 4315 · minus sonnet: median 247ms (p10 -1041, p90 1985), faster on 9/20
+    tokens per call median in 4299 (cached 0) out 115
+    quality flags over 40 outputs: {}
+    request decisions differ — its two runs 5/20 · vs sonnet 15/40 outputs
+  wrote Case Interview Runs/replays/2026-10-07/model-screen/replay-model-ab.md and replay-results-model-ab.json
