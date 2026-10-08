@@ -112,7 +112,7 @@ export function planTurn(reads: TurnReads, candidateText: string, deps: PlanDeps
       later(() => logEvent('case_abandoned', { reason: 'distress_pause_accepted', phase: currentPhase },
         { sessionId, userId: session.userId }));
       return {
-        kind: 'scripted', ctx, interviewerText: DISTRESS_CLOSE,
+        kind: 'scripted', ctx, interviewerText: DISTRESS_CLOSE, delivery: 'decided',
         sessionUpdate: {
           status: 'abandoned', // Rule 19: excluded from scoring, NOT failed/incomplete
           completedAt: new Date(),
@@ -136,7 +136,7 @@ export function planTurn(reads: TurnReads, candidateText: string, deps: PlanDeps
     later(() => logEvent('case_abandoned', { reason: assessment.reason, category: assessment.category, phase: currentPhase },
       { sessionId, userId: session.userId }));
     return {
-      kind: 'scripted', ctx, interviewerText: CONDUCT_TERMINATION,
+      kind: 'scripted', ctx, interviewerText: CONDUCT_TERMINATION, delivery: 'decided',
       sessionUpdate: {
         status: 'terminated', // Rule 18: no score, no debrief
         completedAt: new Date(),
@@ -149,7 +149,7 @@ export function planTurn(reads: TurnReads, candidateText: string, deps: PlanDeps
   if (assessment.action === 'warn') {
     ctx.events.push({ category: 'conduct', subtype: assessment.category, payload: { reason: assessment.reason } });
     return {
-      kind: 'scripted', ctx, interviewerText: CONDUCT_WARNING,
+      kind: 'scripted', ctx, interviewerText: CONDUCT_WARNING, delivery: 'required',
       sessionUpdate: { flagsJsonb: { ...flags, conduct: { ...conduct, warnings: (conduct.warnings ?? 0) + 1 } } },
       result: { interviewerText: CONDUCT_WARNING, phase: currentPhase, ended: false, auditPassed: true },
     };
@@ -184,7 +184,7 @@ export function scriptedOfferFor(ctx: TurnCtx, riskToSelf: boolean, payload: Rec
   const offer = distressOfferText(riskToSelf);
   ctx.events.push({ category: 'conduct', subtype: 'C5', payload });
   return {
-    kind: 'scripted', ctx, interviewerText: offer,
+    kind: 'scripted', ctx, interviewerText: offer, delivery: 'required',
     sessionUpdate: { flagsJsonb: { ...ctx.flags, conduct: { ...ctx.conduct, distressOffered: true, distressOfferedAtMs: Date.now() } } },
     result: { interviewerText: offer, phase: ctx.currentPhase, ended: false, auditPassed: true },
   };

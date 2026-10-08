@@ -19,7 +19,10 @@ import { promptContextFor } from './prompt-context';
 import { streamTurnSegments } from './stream-turn';
 import { settleTurn, commitScripted, logSessionEvent, type TurnUsage, type ModelOutcome } from './settle-turn';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
-import { isUsefulSegment, type ConductFlags, type ScriptedPlan, type SegmentSink, type TurnResult } from './turn-types';
+import {
+  isUsefulSegment, isCancelledTurn, TurnCancelled,
+  type ConductFlags, type HeardReport, type ScriptedPlan, type SegmentSink, type TurnResult,
+} from './turn-types';
 
 // The turn coordinator (specs 2026-10-05-streaming-turn, 2026-10-06
 // plan-owns-decisions): reads → Plan (plan-turn.ts, which also decides the
@@ -56,17 +59,30 @@ export type RunTurnOptions = {
   gate?: DraftGate;
   // The plan's fingerprint (speculation.ts), as soon as Plan has run.
   onPlanFingerprint?: (fingerprint: string) => void;
+  // Voice: what the candidate actually got of this turn (spec
+  // 2026-10-08-voice-phase-b §5). Called once everything is handed to
+  // onSegment and before anything is written — scripted turns too; resolves
+  // when playback ended or was cut. A report with nothing heard cancels the
+  // turn (TurnCancelled, nothing written). Text mode passes none.
+  heard?: () => Promise<HeardReport>;
+  // Voice: the turn's TurnTimer marks, just before runTurn returns or throws
+  // TurnCancelled (the voice layer's per-turn timing record).
+  onTiming?: (marks: Record<string, number>) => void;
 };
 
 export async function runTurn(sessionId: string, candidateText: string, opts: RunTurnOptions = {}): Promise<TurnResult> {
   const deferred: (() => Promise<void>)[] = [];
   const { gate } = opts;
+  let cancelled = false;
   try {
     const run = () => runTurnBody(sessionId, candidateText, task => { deferred.push(task); }, opts);
     return await (gate ? inDraftScope(gate.id, run) : run());
+  } catch (e) {
+    if (e instanceof TurnCancelled) cancelled = true;
+    throw e;
   } finally {
-    // A draft that was never accepted leaves nothing behind.
-    if (!gate || gate.accepted) {
+    // A draft that was never accepted, or a voice turn nobody heard, leaves nothing behind.
+    if (!cancelled && (!gate || gate.accepted)) {
       if (opts.defer) for (const task of deferred) opts.defer(task);
       else await Promise.allSettled(deferred.map(task => task()));
     }
@@ -107,7 +123,19 @@ async function runTurnBody(
   const sink: SegmentSink | undefined = opts.onSegment && gate
     ? async seg => { await gate.wait(); await opts.onSegment!(seg); }
     : opts.onSegment;
-  const commit = async (p: ScriptedPlan) => { await gate?.wait(); return commitScripted(p); };
+  const commit = async (p: ScriptedPlan, report: HeardReport | null) => { await gate?.wait(); return commitScripted(p, report); };
+  // Voice (§5.2): what was heard, once everything is handed over. Nothing
+  // heard cancels the turn — except a decided scripted line, which stands.
+  const hear = async (scripted?: ScriptedPlan): Promise<HeardReport | null> => {
+    const report = opts.heard ? await opts.heard() : null;
+    timer.mark('heard_resolved');
+    if (report && isCancelledTurn(report) && scripted?.delivery !== 'decided') {
+      opts.onTiming?.({ ...timer.marks });
+      throw new TurnCancelled();
+    }
+    return report;
+  };
+  const done = <T>(value: T): T => { opts.onTiming?.({ ...timer.marks }); return value; };
   // Full-turn timing (latency plan step 1): the model call alone was ~1.9s of
   // a ~2.2s turn in batches 7–8, but the writes after the interviewer row were
   // never timed.
@@ -124,8 +152,9 @@ async function runTurnBody(
   timer.mark('plan_done');
   opts.onPlanFingerprint?.(planFingerprint(plan));
   if (plan.kind === 'scripted') {
-    if (sink && plan.interviewerText) await sink({ text: plan.interviewerText, revealIds: [], kind: 'scripted' }).catch(() => {});
-    return commit(plan);
+    if (!plan.interviewerText) return done(await commit(plan, null)); // inactive session: nothing said
+    if (sink) await sink({ text: plan.interviewerText, revealIds: [], kind: 'scripted' }).catch(() => {});
+    return done(await commit(plan, await hear(plan)));
   }
 
   const { ctx, state } = plan;
@@ -161,7 +190,7 @@ async function runTurnBody(
     }
     const offer = scriptedOffer(plan, verdict.label === 'risk_to_self', { reason: verdict.reason, label: verdict.label, layer: 'model' });
     await deliver({ text: offer.interviewerText, revealIds: [], kind: 'scripted' }).catch(() => {});
-    return commit(offer);
+    return done(await commit(offer, await hear(offer)));
   };
 
   let out: ModelOutcome;
@@ -247,12 +276,12 @@ async function runTurnBody(
       out.undeliveredRevealIds?.push(...tailReveals); // D3: not delivered, not booked
     }
   }
+  const report = await hear();
   await gate?.wait();
-  await settled.persist({
+  return done(await settled.persist({
     firstSegmentMs: firstSegmentAt === null ? null : firstSegmentAt - ctx.turnStartMs,
     streamed: streamedCount > 0,
-  });
-  return settled.result;
+  }, report));
 }
 
 const CODE_WRITTEN_KINDS = new Set(['close', 'grace_ask', 'time_warning', 'rung1']);

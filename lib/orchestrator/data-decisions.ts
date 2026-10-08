@@ -130,17 +130,25 @@ const joinWhat = (whats: string[], conj: 'and' | 'or') => {
 };
 
 // The spoken data lines, in order: releases (earlier asks under one lead-in),
-// the exhibit handover, refusals, deferrals, offers.
-export function renderDataLines(d: DataDecisions, seed: string): string[] {
-  const lines: string[] = [];
+// the exhibit handover, refusals, deferrals, offers — each with what it
+// carries, so voice bookkeeping can tell which sentence a release is in
+// (spec 2026-10-08-voice-phase-b §5.3).
+export type DataLinePart = { kind: 'leadin' | 'release' | 'exhibit' | 'refusals' | 'defers' | 'offers'; ids: string[]; text: string };
+
+export function renderDataLineParts(d: DataDecisions, seed: string): DataLinePart[] {
+  const parts: DataLinePart[] = [];
   const earlier = d.releases.filter(r => r.earlier);
-  if (earlier.length > 0) lines.push(pickScript(STALE_RELEASE_LEADINS, seed));
-  for (const r of d.releases) lines.push(r.value);
-  if (d.exhibit) lines.push(`Here's an exhibit: ${d.exhibit.title}.`);
-  if (d.refusals.length > 0) lines.push(`I don't have ${joinWhat(d.refusals, 'or')}.`);
-  if (d.defers.length > 0) lines.push(`I'll come back to ${joinWhat(d.defers, 'and')} shortly.`);
-  if (d.offers.length > 0) lines.push(`I can share ${joinWhat(d.offers, 'and')} if you'd like.`);
-  return lines;
+  if (earlier.length > 0) parts.push({ kind: 'leadin', ids: [], text: pickScript(STALE_RELEASE_LEADINS, seed) });
+  for (const r of d.releases) parts.push({ kind: 'release', ids: [r.id], text: r.value });
+  if (d.exhibit) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: `Here's an exhibit: ${d.exhibit.title}.` });
+  if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: `I don't have ${joinWhat(d.refusals, 'or')}.` });
+  if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: `I'll come back to ${joinWhat(d.defers, 'and')} shortly.` });
+  if (d.offers.length > 0) parts.push({ kind: 'offers', ids: [], text: `I can share ${joinWhat(d.offers, 'and')} if you'd like.` });
+  return parts;
+}
+
+export function renderDataLines(d: DataDecisions, seed: string): string[] {
+  return renderDataLineParts(d, seed).map(p => p.text);
 }
 
 // The turn's data_request rows (scoring reads these shapes; spec §9).

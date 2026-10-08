@@ -26,14 +26,15 @@ import { TOTAL_CASE_MS, type Phase } from './state-machine';
 import { toCheckEventRows } from './check-log';
 import { pickScript } from '@/lib/agent/prompts/scripts';
 import { BLOCKED_CLOSE_PROBES } from './spoken-close';
-import { renderDataLines, decisionRows } from './data-decisions';
+import { renderDataLineParts, decisionRows } from './data-decisions';
+import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
 import { turnData, pressureTestSatisfiedNow } from './turn-data';
 import { vetoReason, gateContext, isHandoverAnnouncement } from './stream-turn';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { TurnValidation } from '@/lib/agent/models/interface';
 import type { ModelPlan } from './plan-turn';
-import type { ExhibitDisplay, PendingEvent, ScriptedPlan, TurnCtx, TurnResult } from './turn-types';
+import type { ExhibitDisplay, HeardReport, PendingEvent, ScriptedPlan, TurnCtx, TurnResult } from './turn-types';
 
 export async function logSessionEvent(
   sessionId: string,
@@ -63,19 +64,36 @@ export function heardText(ctx: { acknowledged?: string }, text: string): string 
 // A scripted turn (no model call): the candidate turn and the scripted reply,
 // this turn's check decisions, its events, then the session update — the
 // order the early-return paths wrote them in before the Plan stage.
-export async function commitScripted(plan: ScriptedPlan): Promise<TurnResult> {
+// Voice (spec 2026-10-08-voice-phase-b §5.6): the saved line is what was
+// heard; a `required` line's state change stands only if the line was heard
+// in full, a `decided` one's regardless; a session ended meanwhile (End) is
+// not touched.
+export async function commitScripted(plan: ScriptedPlan, heard: HeardReport | null = null): Promise<TurnResult> {
   if (plan.noPersist) return plan.result;
   const { ctx } = plan;
+  const spoken = heard ? heard.segments.map(s => s.text.slice(0, s.heardChars).trim()).filter(Boolean).join(' ') : plan.interviewerText;
+  const scripted = heard?.segments.filter(s => s.kind === 'scripted') ?? [];
+  const lineHeard = !heard || (scripted.length > 0 && scripted.every(s => s.heardChars >= s.text.trim().length));
+  const applies = lineHeard || plan.delivery === 'decided';
+  if (heard && !lineHeard) {
+    ctx.checks.record('scripted_not_delivered', true,
+      applies ? 'cut before the end — decided, so it stands' : 'cut before the end — not counted', {
+        delivery: plan.delivery ?? 'required', line: plan.interviewerText, heard: spoken,
+      });
+  }
+  const live = heard ? (await db.query.sessions.findFirst({ where: eq(sessions.id, ctx.sessionId) }))?.status === 'active' : true;
+  const saved = heardText(ctx, spoken);
   await db.insert(sessionTurns).values([
     { sessionId: ctx.sessionId, turnIndex: ctx.nextTurnIndex, role: 'candidate', text: ctx.candidateText, timestampMs: ctx.now },
-    { sessionId: ctx.sessionId, turnIndex: ctx.nextTurnIndex + 1, role: 'interviewer', text: heardText(ctx, plan.interviewerText), timestampMs: Date.now() },
+    ...(saved ? [{ sessionId: ctx.sessionId, turnIndex: ctx.nextTurnIndex + 1, role: 'interviewer' as const, text: saved, timestampMs: Date.now() }] : []),
   ]);
   const checkRows = toCheckEventRows(ctx.checks, { sessionId: ctx.sessionId, turnIndex: ctx.nextTurnIndex, phase: ctx.currentPhase });
   if (checkRows.length > 0) await db.insert(sessionEvents).values(checkRows);
   if (ctx.events.length > 0) await db.insert(sessionEvents).values(pendingEventRows(ctx, ctx.events));
-  if (Object.keys(plan.sessionUpdate).length > 0) {
+  if (applies && live && Object.keys(plan.sessionUpdate).length > 0) {
     await db.update(sessions).set(plan.sessionUpdate).where(eq(sessions.id, ctx.sessionId));
   }
+  if (heard) return { ...plan.result, interviewerText: saved, ended: applies && plan.result.ended };
   return ctx.acknowledged ? { ...plan.result, interviewerText: heardText(ctx, plan.result.interviewerText) } : plan.result;
 }
 
@@ -118,7 +136,9 @@ export type Settled = {
   prefixMismatch: boolean;
   newReveals: string[];
   exhibitId?: string;
-  persist: (latency: { firstSegmentMs: number | null; streamed: boolean }) => Promise<void>;
+  // Voice: `heard` (spec 2026-10-08-voice-phase-b §5) decides what is booked,
+  // saved and changed; the result returned is the turn as heard.
+  persist: (latency: { firstSegmentMs: number | null; streamed: boolean }, heard?: HeardReport | null) => Promise<TurnResult>;
 };
 
 const CODE_WRITTEN = new Set(['close', 'grace_ask', 'time_warning', 'rung1']);
@@ -136,9 +156,10 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
 
   // Data: the same decisions Stream delivered from (the pressure test's
   // verdict for this turn first — the gate depends on it).
-  const satisfiedNow = await pressureTestSatisfiedNow(plan);
+  const satisfiedNow = await (out.timer ? out.timer.time('pt_judge_settle', pressureTestSatisfiedNow(plan)) : pressureTestSatisfiedNow(plan));
   const decisions = turnData(plan, turn);
-  const dataLines = renderDataLines(decisions, seed);
+  const dataParts = renderDataLineParts(decisions, seed);
+  const dataLines = dataParts.map(p => p.text);
   const g = gateContext(plan, decisions.releases.map(r => r.value));
 
   // The model's words, vetoed sentence by sentence (never rewritten).
@@ -188,7 +209,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
         // The probe tests a structure; with none on the table, ask for it first (once).
         // No verdict (timeout, error) is not "no structure": code asks nothing this
         // turn, spends no fallback, and the check runs again next turn.
-        const verdict = pt.structureGiven ? null : await state.structureVerdict;
+        const verdict = pt.structureGiven ? null : await (out.timer ? out.timer.time('structure_judge', state.structureVerdict) : state.structureVerdict);
         pt.structureGiven = pt.structureGiven || Boolean(verdict?.given);
         if (!pt.structureGiven && verdict === null) {
           ptAction = 'structure_unknown';
@@ -241,12 +262,12 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     });
 
   // Phase and stages (progress.ts).
-  const releasedReleaseWhen = [...newReveals, ...exhibitReveals]
+  const releaseWhenOf = (ids: string[]) => ids
     .map(id => ledger.items.find(i => i.id === id)?.releaseWhen as Phase | undefined)
     .filter((p): p is Phase => p !== undefined);
   const nextPhaseValue = derivePhase(currentPhase, {
     move: codeWritten || kind === 'rec_ask' ? undefined : turn.move,
-    releasedReleaseWhen, exhibitShown: exhibit !== undefined,
+    releasedReleaseWhen: releaseWhenOf([...newReveals, ...exhibitReveals]), exhibitShown: exhibit !== undefined,
     recAsk: ASKS_RECOMMENDATION.has(kind), close: ended,
   });
   const turnMove: TurnMove | undefined = ASKS_RECOMMENDATION.has(kind) ? 'code_rec_ask' : codeWritten ? undefined : turn.move;
@@ -314,17 +335,70 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
 
   const requestsClassified = out.requestsClassified ?? true;
 
-  const persist = async (latency: { firstSegmentMs: number | null; streamed: boolean }) => {
+  const result: TurnResult = {
+    interviewerText: heardText(ctx, spokenText),
+    exhibit,
+    phase: nextPhaseValue,
+    ended,
+    auditPassed: auditResult.passed,
+    dataRequestsClassified: requestsClassified,
+  };
+
+  const persist = async (latency: { firstSegmentMs: number | null; streamed: boolean }, heard: HeardReport | null = null): Promise<TurnResult> => {
     const persistStartMs = Date.now();
     out.timer?.mark('persist_start');
+    // Voice (spec 2026-10-08-voice-phase-b §5.3–5.4): book, save and change
+    // only what the candidate got. Without a report every value below is the
+    // composed one (text mode unchanged).
+    const h = applyHeard(heard, { spokenText, question, newReveals, dataParts, exhibitId: exhibit?.id });
+    const qHeard = h.questionHeard;
+    const bookedReveals = h.bookedReveals;
+    const exhibitSaved = h.exhibitBooked ? exhibit : undefined;
+    const exhibitRevealsSaved = exhibitSaved ? exhibitReveals : [];
+    const endedSaved = ended && qHeard;
+    const turnMoveSaved = qHeard ? turnMove : undefined;
+    const movesSaved = heard ? { ...state.moves, ...(turnMoveSaved ? { [nextTurnIndex + 1]: turnMoveSaved } : {}) } : moves;
+    const phaseSaved = heard ? derivePhase(currentPhase, {
+      move: codeWritten || kind === 'rec_ask' || !qHeard ? undefined : turn.move,
+      releasedReleaseWhen: releaseWhenOf([...bookedReveals, ...exhibitRevealsSaved]), exhibitShown: exhibitSaved !== undefined,
+      recAsk: ASKS_RECOMMENDATION.has(kind) && qHeard, close: endedSaved,
+    }) : nextPhaseValue;
+    const lastQuestionSaved = qHeard ? lastQuestion : state.lastQuestion;
+    const ptSaved = qHeard ? pt : unheardQuestionPressureTest(ptPrev, pt);
+    let stallSaved = stallState;
+    let rungSpanSaved = rungDeliverySpan;
+    if (rungSpanSaved && !h.heardContains(rungSpanSaved)) {
+      rungSpanSaved = null;
+      stallSaved = revertUndeliveredRung(stallState, priorStall);
+    }
+    const probeSaved = heard ? withholdProbesOnVerified(h.savedText, {
+      verified: [...verifiedNow, ...verifiedPrev], alreadyProbed: explainProbedBefore,
+      flaggedThisTurn: recomputeFlags.length > 0 || unitCheckHint !== undefined,
+    }) : probe;
+    const unbooked = new Set([...h.droppedReveals, ...(exhibitSaved ? [] : exhibitReveals)]);
+    const revealedIdsSaved = new Set(Object.keys(revealedValues(ledger)).filter(id => !unbooked.has(id)));
+    if (heard) {
+      const held = [
+        !qHeard && question ? 'question' : null, ended && !endedSaved ? 'close' : null,
+        rungDeliverySpan && !rungSpanSaved ? 'rung' : null, exhibit && !exhibitSaved ? 'exhibit' : null,
+      ].filter(Boolean);
+      checks.record('voice_heard', heard.interrupted || held.length > 0 || h.droppedReveals.length > 0,
+        'only what the candidate got is booked and changed', {
+          interrupted: heard.interrupted, droppedReveals: h.droppedReveals, held,
+          playback: heard.segments.map(x => ({ kind: x.kind, playback: x.playback, heardChars: x.heardChars, exhibitShown: x.exhibitShown })),
+        });
+    }
+    // A session ended elsewhere while this turn played (End) is not revived (§5.8).
+    const live = heard ? (await db.query.sessions.findFirst({ where: eq(sessions.id, sessionId) }))?.status === 'active' : true;
+    const savedLine = heardText(ctx, h.savedText);
     const underTimePressure = isUnderTimePressure(elapsedMs, TOTAL_CASE_MS);
     const loadShedLoggedThisTurn = underTimePressure && !flags.loadShedLogged;
-    const advancedThisTurn = nextPhaseValue !== currentPhase && !ended;
-    const revealedRowsNew = [...newReveals, ...exhibitReveals].map(itemId => ({ sessionId, ledgerItemId: itemId, revealedAtMs: now }));
+    const advancedThisTurn = phaseSaved !== currentPhase && !endedSaved;
+    const revealedRowsNew = [...bookedReveals, ...exhibitRevealsSaved].map(itemId => ({ sessionId, ledgerItemId: itemId, revealedAtMs: now }));
     await Promise.all([
       db.insert(sessionTurns).values([
         { sessionId, turnIndex: nextTurnIndex, role: 'candidate', text: candidateText, timestampMs: now },
-        { sessionId, turnIndex: nextTurnIndex + 1, role: 'interviewer', text: heardText(ctx, spokenText), timestampMs: Date.now(), latencyMs: modelLatencyMs },
+        { sessionId, turnIndex: nextTurnIndex + 1, role: 'interviewer', text: savedLine, timestampMs: Date.now(), latencyMs: modelLatencyMs },
       ]),
       (async () => {
         const rows = toCheckEventRows(checks, { sessionId, turnIndex: nextTurnIndex, phase: currentPhase });
@@ -336,19 +410,19 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       requestsClassified
         ? logDataRequestClassification({
           sessionId, phase: currentPhase,
-          requests: decisionRows(decisions),
+          requests: heardRequestRows(decisionRows(decisions), h),
           candidateTurnIndex: nextTurnIndex, interviewerTurnIndex: nextTurnIndex + 1,
-          revealedIds: new Set(Object.keys(revealedValues(ledger))),
+          revealedIds: revealedIdsSaved,
         }).then(() => undefined)
         : Promise.resolve(),
       revealedRowsNew.length > 0 ? db.insert(revealedData).values(revealedRowsNew) : Promise.resolve(),
-      exhibit ? db.insert(exhibitsShown).values({ sessionId, exhibitId: exhibit.id, shownAtMs: now }) : Promise.resolve(),
+      exhibitSaved ? db.insert(exhibitsShown).values({ sessionId, exhibitId: exhibitSaved.id, shownAtMs: now }) : Promise.resolve(),
       // Rule 13: log the assist event (scoring input — "assisted ≠ covered") —
       // only a delivered rung is an assist; an undelivered decision is logged
       // apart and never reaches the judge (v4.5).
       stallDecision.intervene && stallDecision.rung
-        ? logSessionEvent(sessionId, 'intervention', rungDeliverySpan ? rungName(stallDecision.rung) : 'rung_not_delivered', nextTurnIndex, currentPhase, {
-          level: stallDecision.rung, firedOn: stallDecision.firedOn ?? [], span: rungDeliverySpan,
+        ? logSessionEvent(sessionId, 'intervention', rungSpanSaved ? rungName(stallDecision.rung) : 'rung_not_delivered', nextTurnIndex, currentPhase, {
+          level: stallDecision.rung, firedOn: stallDecision.firedOn ?? [], span: rungSpanSaved,
         })
         : Promise.resolve(),
       stallDecision.synthesisUnresolved
@@ -358,27 +432,27 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       loadShedLoggedThisTurn
         ? logSessionEvent(sessionId, 'intervention', 'load_shed', nextTurnIndex, currentPhase, { elapsedMs, remainingMs: TOTAL_CASE_MS - elapsedMs })
         : Promise.resolve(),
-      kind === 'grace_ask' ? logSessionEvent(sessionId, 'intervention', 'grace_ask', nextTurnIndex, currentPhase, { elapsedMs }) : Promise.resolve(),
-      db.update(sessions)
+      kind === 'grace_ask' && qHeard ? logSessionEvent(sessionId, 'intervention', 'grace_ask', nextTurnIndex, currentPhase, { elapsedMs }) : Promise.resolve(),
+      !live ? Promise.resolve() : db.update(sessions)
         .set({
-          phase: nextPhaseValue,
-          status: ended ? 'completed' : 'active',
-          completedAt: ended ? new Date() : undefined,
+          phase: phaseSaved,
+          status: endedSaved ? 'completed' : 'active',
+          completedAt: endedSaved ? new Date() : undefined,
           phaseStartedAt: advancedThisTurn ? new Date() : undefined,
           flagsJsonb: {
             ...flags,
             conduct,
-            stall: stallState,
+            stall: stallSaved,
             advancedLastTurn: advancedThisTurn,
-            timeWarningFired: Boolean(flags.timeWarningFired) || kind === 'time_warning',
-            graceAskFired: Boolean(flags.graceAskFired) || kind === 'grace_ask',
+            timeWarningFired: Boolean(flags.timeWarningFired) || (kind === 'time_warning' && qHeard),
+            graceAskFired: Boolean(flags.graceAskFired) || (kind === 'grace_ask' && qHeard),
             recomputeAttempts,
             lastVerified: verifiedNow,
-            explainProbed: [...explainProbedBefore, ...probe.explainProbed],
+            explainProbed: [...explainProbedBefore, ...probeSaved.explainProbed],
             loadShedLogged: Boolean(flags.loadShedLogged) || loadShedLoggedThisTurn,
-            moves,
-            lastQuestion,
-            pressureTest: pt,
+            moves: movesSaved,
+            lastQuestion: lastQuestionSaved,
+            pressureTest: ptSaved,
           },
         })
         .where(eq(sessions.id, sessionId)),
@@ -386,14 +460,14 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
 
     // PRD §13: token usage and product analytics, after the response.
     if (turnUsage.apiCalls > 0) later(() => logEvent('llm_usage', { component: 'interviewer', ...turnUsage }, { sessionId, userId }));
-    for (const itemId of newReveals) later(() => logEvent('data_revealed', { itemId, phase: currentPhase }, { sessionId, userId }));
-    for (const itemId of exhibitReveals) later(() => logEvent('data_revealed', { itemId, phase: currentPhase, via: 'exhibit' }, { sessionId, userId }));
-    if (exhibit) {
-      const exhibitId = exhibit.id;
+    for (const itemId of bookedReveals) later(() => logEvent('data_revealed', { itemId, phase: currentPhase }, { sessionId, userId }));
+    for (const itemId of exhibitRevealsSaved) later(() => logEvent('data_revealed', { itemId, phase: currentPhase, via: 'exhibit' }, { sessionId, userId }));
+    if (exhibitSaved) {
+      const exhibitId = exhibitSaved.id;
       later(() => logEvent('exhibit_shown', { exhibitId, phase: currentPhase }, { sessionId, userId }));
     }
-    if (advancedThisTurn) later(() => logEvent('phase_transition', { from: currentPhase, to: nextPhaseValue }, { sessionId, userId }));
-    if (ended) later(() => logEvent('case_complete', { phase: currentPhase, elapsedMs }, { sessionId, userId }));
+    if (advancedThisTurn) later(() => logEvent('phase_transition', { from: currentPhase, to: phaseSaved }, { sessionId, userId }));
+    if (endedSaved) later(() => logEvent('case_complete', { phase: currentPhase, elapsedMs }, { sessionId, userId }));
 
     // PRD §13: per-turn latency. latencyMs stays the model call (comparable with
     // earlier batches); the rest splits the turn around it.
@@ -407,17 +481,11 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       postModelMs: persistStartMs - modelCallStart - modelLatencyMs, persistMs: turnEndMs - persistStartMs,
       phase: currentPhase, kind, firstSegmentMs: latency.firstSegmentMs, streamed: latency.streamed, steps,
     }, { sessionId, userId }));
+    return heard ? { ...result, interviewerText: savedLine, exhibit: exhibitSaved, phase: phaseSaved, ended: endedSaved } : result;
   };
 
   return {
-    result: {
-      interviewerText: heardText(ctx, spokenText),
-      exhibit,
-      phase: nextPhaseValue,
-      ended,
-      auditPassed: auditResult.passed,
-      dataRequestsClassified: requestsClassified,
-    },
+    result,
     spokenText, tail, prefixMismatch: mismatch, newReveals, exhibitId: exhibit?.id, persist,
   };
 }

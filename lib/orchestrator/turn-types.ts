@@ -64,6 +64,11 @@ export type ScriptedPlan = {
   result: TurnResult;
   sessionUpdate: Partial<typeof sessions.$inferInsert>;
   noPersist?: boolean; // inactive session: nothing is written (Rule 18)
+  // Voice (spec 2026-10-08-voice-phase-b §5.6): what a cut line does.
+  // required — the state change stands only if the line was heard in full
+  // (offers, warnings); decided — it stands regardless, because it rests on
+  // the candidate's words (termination, the close after an accepted pause).
+  delivery?: 'required' | 'decided';
 };
 
 // One delivered piece of the interviewer's turn (D3: reveals are booked when
@@ -82,3 +87,23 @@ export function isUsefulSegment(s: Pick<Segment, 'kind'>): boolean {
 }
 // Resolves when the segment was delivered; rejects when it was not.
 export type SegmentSink = (s: Segment) => Promise<void>;
+
+// Voice playback of one accepted segment (spec 2026-10-08-voice-phase-b §5).
+// playback and heardChars are estimates from the voice layer's playout clock:
+// heardChars is how much of `text` was heard, at a word boundary; played = all
+// of it, partial = some, unplayed = none. exhibitShown is the browser's
+// confirmation that the segment's exhibit rendered — the only confirmed fact.
+export type SegmentPlayback = 'played' | 'partial' | 'unplayed';
+export type HeardSegment = Segment & { playback: SegmentPlayback; heardChars: number; exhibitShown: boolean };
+// What the candidate got of one turn: every accepted segment, in order.
+export type HeardReport = { segments: HeardSegment[]; interrupted: boolean };
+
+// A cut before anything of the turn was heard or shown: the turn is dropped
+// whole — no writes, no deferred work — and the voice layer carries the
+// candidate's text into the next turn (§5.5).
+export class TurnCancelled extends Error {
+  constructor() { super('turn cancelled: cut before any of it was heard'); this.name = 'TurnCancelled'; }
+}
+export function isCancelledTurn(r: HeardReport): boolean {
+  return r.interrupted && r.segments.every(s => s.heardChars === 0 && !s.exhibitShown);
+}

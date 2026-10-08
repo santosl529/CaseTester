@@ -35,6 +35,9 @@ export type DetectedDataRequest = {
   what: string;                  // short description of what was asked for
   ledgerItemIds: string[];       // closed-catalog matches — every ledger item the request covers; [] if none
   response: RequestResponse;     // how the very next interviewer turn handled it
+  // Voice: the answer the turn composed when the candidate didn't hear it
+  // (response is then 'none'; spec 2026-10-08-voice-phase-b §5.3).
+  unheardResponse?: RequestResponse;
   // A direct ask (true) or a passing mention of data inside a plan or a
   // clarifying question (false). Batch 6, Maya: "I'd check revenue first —
   // price and cups" released the average ticket unasked. A mention gets an
@@ -151,6 +154,7 @@ export function toDataRequestEvents(
       interviewerTurnIndex: ctx.interviewerTurnIndex,
       revealedByNow: r.ledgerItemIds.length > 0 && r.ledgerItemIds.every(id => ctx.revealedIds.has(id)),
       explicit: r.explicit,
+      ...(r.unheardResponse ? { unheardResponse: r.unheardResponse } : {}),
     },
   }));
 }
