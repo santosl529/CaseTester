@@ -16,7 +16,7 @@ import { promptContextFor } from '@/lib/orchestrator/prompt-context';
 import type { Phase } from '@/lib/orchestrator/state-machine';
 import { readsFixture } from './fixtures/turn-reads';
 
-const PT = (state: 'not_asked' | 'awaiting' | 'satisfied') => ({ pressureTest: { state, askedAt: 2, intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0 } });
+const PT = (state: 'not_asked' | 'awaiting' | 'satisfied') => ({ pressureTest: { state, askedAt: 2, intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
 function plan(phase: Phase, flags: Record<string, unknown> = {}): ModelPlan {
   const p = planTurn(readsFixture({ phase, flags }), 'Could I get the cost breakdown for both years?',
     { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });

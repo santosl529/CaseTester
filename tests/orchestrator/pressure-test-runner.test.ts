@@ -56,9 +56,11 @@ vi.mock('@/lib/agent/models/factory', async () => {
 });
 const judgeQueue: ({ answered: boolean } | null)[] = [];
 const judgeInputs: string[][] = [];
+let structureGiven: boolean | null = true;   // the structure check's scripted verdict
 vi.mock('@/lib/orchestrator/pressure-test', async orig => ({
   ...(await orig<object>()),
   judgeProbeAnswer: async (p: { replies: string[] }) => { judgeInputs.push(p.replies); return judgeQueue.length ? judgeQueue.shift()! : null; },
+  judgeStructureGiven: async () => (structureGiven === null ? null : { given: structureGiven, reason: '' }),
 }));
 
 const { runTurn } = await import('@/lib/orchestrator/session-runner');
@@ -74,7 +76,7 @@ async function turn(candidate: string, ...model: ModelTurn[]) {
   return r.interviewerText;
 }
 
-beforeEach(() => { modelQueue.length = 0; modelCalls.length = 0; judgeQueue.length = 0; judgeInputs.length = 0; });
+beforeEach(() => { modelQueue.length = 0; modelCalls.length = 0; judgeQueue.length = 0; judgeInputs.length = 0; structureGiven = true; });
 
 describe('pressure-test state', () => {
   it('is asked when the delivered question is a probe, whatever the move label says', async () => {
@@ -90,7 +92,7 @@ describe('pressure-test state', () => {
   });
 
   it('stays awaiting on an acknowledgment-only or data-only reply; gated data stays held', async () => {
-    resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0 } });
+    resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
     judgeQueue.push({ answered: false });
     const heard = await turn('Probably something is missing, yeah. Could I get the cost breakdown?', T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'Which part of the structure would you add to?' }));
     expect(pt()?.state).toBe('awaiting');
@@ -99,7 +101,7 @@ describe('pressure-test state', () => {
   });
 
   it('is satisfied by a partial answer to a compound probe, and the held data is then released', async () => {
-    resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE, and which branch first?', intents: ['mece', 'prioritize'], reasks: 0, codeAsked: false, gatedTurns: 0 } });
+    resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE, and which branch first?', intents: ['mece', 'prioritize'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
     judgeQueue.push({ answered: true });
     await turn('It misses below-the-line costs like interest. Can I see the cost breakdown?', T({ requests: [ask(['cogs_pct', 'labor_pct', 'overhead_pct'], 'the cost breakdown')], question: 'What do those tell you?' }));
     expect(pt()?.state).toBe('satisfied');
@@ -107,7 +109,7 @@ describe('pressure-test state', () => {
   });
 
   it('recovers after a judge timeout: the next judgement reads every reply since the question', async () => {
-    resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0 } });
+    resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
     judgeQueue.push(null); // timeout
     await turn('It misses interest and taxes. Can I see the cost breakdown?', T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'Go on.' }));
     expect(pt()?.state).toBe('awaiting');
@@ -139,7 +141,7 @@ describe('the gate keeps existing exceptions', () => {
 
 describe('fulfilment after the pressure test', () => {
   it('releases pending requests up to the cap and keeps the rest pending for the next turn', async () => {
-    resetStore('STRUCTURE', { pressureTest: { state: 'satisfied', askedAt: 2, intents: ['mece'], satisfiedAt: 1, reasks: 0, codeAsked: false, gatedTurns: 0 } });
+    resetStore('STRUCTURE', { pressureTest: { state: 'satisfied', askedAt: 2, intents: ['mece'], satisfiedAt: 1, reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
     // Five items deferred earlier.
     for (const id of ['cogs_pct', 'labor_pct', 'overhead_pct', 'avg_ticket', 'menu_price_change']) {
       store.events.push({ category: 'data_request', subtype: 'defer', turnIndex: 1, payloadJsonb: { what: id, explicit: true, ledgerItemIds: [id], revealedByNow: false, interviewerTurnIndex: 2 } });
@@ -153,14 +155,14 @@ describe('fulfilment after the pressure test', () => {
 
 describe('bounded fallbacks', () => {
   it('replaces a duplicate probe after the test is satisfied, without mentioning figures when none went out', async () => {
-    resetStore('STRUCTURE', { pressureTest: { state: 'satisfied', askedAt: 2, intents: ['mece'], satisfiedAt: 1, reasks: 0, codeAsked: false, gatedTurns: 0 } });
+    resetStore('STRUCTURE', { pressureTest: { state: 'satisfied', askedAt: 2, intents: ['mece'], satisfiedAt: 1, reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
     const heard = await turn('I covered that.', T({ move: 'pressure_test', question: 'Is that MECE — what’s missing?' }));
     expect(heard).not.toMatch(/MECE|missing/i);
     expect(heard).not.toMatch(/figure|number/i);
   });
 
   it('across several failing turns: one re-ask, then plain questions; never satisfied by escape; no repeated promise', async () => {
-    resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0 } });
+    resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
     const heard: string[] = [];
     for (let i = 0; i < 4; i++) {
       judgeQueue.push({ answered: false });
@@ -184,8 +186,39 @@ describe('bounded fallbacks', () => {
     expect(pt()).toMatchObject({ state: 'awaiting', codeAsked: true });
   });
 
+  it('with no structure on the table, asks for the structure once instead of the probe, and holds the data', async () => {
+    resetStore('STRUCTURE');
+    structureGiven = false;
+    const heard: string[] = [];
+    for (let i = 0; i < 4; i++) {
+      heard.push(await turn('Could I get the cost breakdown?', T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'What else would you want?' })));
+    }
+    expect(heard.filter(h => /Before we (get into|go further into) the data, .*structure/.test(h))).toHaveLength(1);
+    expect(heard.some(h => /might be missing|which branch|break this structure/.test(h))).toBe(false);
+    expect(pt()).toMatchObject({ state: 'not_asked', codeAsked: false, structureAsked: true });
+    expect(revealed()).not.toContain('cogs_pct');
+  });
+
+  it('asks the probe itself, once, as soon as a structure has been given', async () => {
+    resetStore('STRUCTURE');
+    structureGiven = false;
+    for (let i = 0; i < 2; i++) await turn('Could I get the cost breakdown?', T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'What else would you want?' }));
+    structureGiven = true;
+    const heard: string[] = [];
+    for (let i = 0; i < 3; i++) heard.push(await turn('I would split profit into revenue and costs. Could I get the cost breakdown?', T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'What else would you want?' })));
+    expect(heard.filter(h => /Before we get into the data/.test(h))).toHaveLength(1);
+    expect(pt()).toMatchObject({ state: 'awaiting', codeAsked: true, structureGiven: true });
+  });
+
+  it('a structure check that fails (no verdict) counts as no structure', async () => {
+    resetStore('STRUCTURE');
+    structureGiven = null;
+    for (let i = 0; i < 3; i++) await turn('Could I get the cost breakdown?', T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'What else would you want?' }));
+    expect(pt()).toMatchObject({ state: 'not_asked', codeAsked: false });
+  });
+
   it('a detector false positive missed twice adds no release and no promise', async () => {
-    resetStore('ANALYSIS', { pressureTest: { state: 'satisfied', askedAt: 2, intents: ['mece'], satisfiedAt: 1, reasks: 0, codeAsked: false, gatedTurns: 0 } });
+    resetStore('ANALYSIS', { pressureTest: { state: 'satisfied', askedAt: 2, intents: ['mece'], satisfiedAt: 1, reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
     const heard = await turn("To distinguish the rest, I'd want a bridge: hold volume constant and reprice each input.", T({ question: 'Walk me through it.' }), T({ question: 'Walk me through it.' }));
     expect(modelCalls).toHaveLength(2);               // guard B regenerated once
     expect(revealed()).toEqual([]);

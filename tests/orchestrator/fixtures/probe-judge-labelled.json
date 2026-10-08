@@ -1,0 +1,281 @@
+{
+ "probeAnswers": [
+  {
+   "id": "loop-t5",
+   "probe": "Is that MECE — what might be missing?",
+   "reply": "Probably something's missing, yeah. Let me add to the list rather than guess.\n\nOne, revenue per store per year so I can separate same-store growth from new-store growth. Two, gross margin by product category — drinks versus food versus packaged beans. Three, the mix shift across those categories over two years. Four, waste or spoilage rates. Five, discounting and promotional activity as a percent of gross sales. Six, delivery platform commissions if they're on DoorDash or Uber Eats. Seven, training and turnover costs. Eight, depreciation and amortization by year, and whether new store buildouts are being capitalized or expensed.\n\nAlso, going back to something I asked earlier — do we have the menu price history? Whether prices moved at all over the two years matters for whether the 15% revenue growth is price or volume.",
+   "answered": false,
+   "source": "prefix loop-1 t5",
+   "borderline": false
+  },
+  {
+   "id": "loop-t7",
+   "probe": "Is that MECE — what might be missing?",
+   "reply": "Honestly I'd rather let the data point me than pick a branch blind. A few more things would settle it.\n\nOne, operating margin by vintage — stores open more than two years versus newly opened. Two, headcount at corporate versus in-store. Three, the year-over-year change in each cost line in absolute dollars, not just percentages. Four, any change in the number of SKUs on the menu. Five, average hours of operation per store. Six, equipment leasing versus ownership. Seven, insurance and workers' comp expense. Eight, franchise versus company-owned split across the 200 locations.\n\nI'll assume for now that prices were roughly flat since I haven't gotten the price history, which would make the 15% growth volume-driven — likely from new stores. But I'd want the vintage data to confirm.",
+   "answered": false,
+   "source": "prefix loop-1 t7",
+   "borderline": false
+  },
+  {
+   "id": "loop-t9",
+   "probe": "Is that MECE — what might be missing?",
+   "reply": "Fair, though I'd want to avoid committing to a branch and then finding out the data doesn't support it.\n\nLet me narrow with a few more. One, COGS dollars in year one versus year three. Two, labor dollars in year one versus year three. Three, rent dollars in year one versus year three. Four, SG&A dollars in year one versus year three. Five, which of those four grew fastest in percentage terms. Six, whether any line grew faster than the 15% revenue growth. Seven, revenue in absolute dollars for both years. Eight, net profit in absolute dollars for both years.\n\nIf one cost line is clearly outgrowing revenue, that's the branch — I just don't want to name it before I can see which one it is.",
+   "answered": false,
+   "source": "prefix loop-1 t9",
+   "borderline": false
+  },
+  {
+   "id": "loop-t11",
+   "probe": "Is that MECE — what might be missing?",
+   "reply": "Probably not fully. Let me add what I think is outstanding.\n\nOne, interest expense and debt load, since margin is net not operating. Two, effective tax rate by year. Three, any FX exposure if beans are imported. Four, shrinkage or theft. Five, gift card breakage. Six, credit card processing fees as a percent of sales. Seven, packaging and cup costs. Eight, the capex schedule for the new stores and the payback period assumed.\n\nAnd one I'd still like from earlier — the split inside the biggest cost line, whatever that turns out to be. If COGS is the largest bucket, knowing how much is green coffee versus dairy versus food versus packaging would tell me whether this is a commodity problem or a mix problem.\n\nI'll keep going either way.",
+   "answered": false,
+   "source": "prefix loop-1 t11",
+   "borderline": false
+  },
+  {
+   "id": "loop-t15",
+   "probe": "Is that MECE — what might be missing?",
+   "reply": "Cost side, as I said. If you want me narrower than that, I'd lean COGS, but I'd be guessing — it could just as easily be labor or new-store drag below the gross line.\n\nWhat would settle it: one, COGS as a percent of revenue in year one versus year three. Two, labor as a percent of revenue in year one versus year three. Three, rent as a percent. Four, SG&A as a percent. Five, which of those four moved the most in percentage points. Six, the dollar value of the single largest cost increase. Seven, whether that increase sits above or below the gross profit line. Eight, store count in each year.\n\nWhichever line moved most in percentage points of revenue — that's the branch I'd take first.",
+   "answered": false,
+   "source": "prefix loop-1 t15",
+   "borderline": true
+  },
+  {
+   "id": "loop-t17",
+   "probe": "Is that MECE — what might be missing?",
+   "reply": "Cost side alone probably isn't MECE, no — revenue quality could be hiding something even with 15% growth. Let me list what's missing.\n\nOne, revenue mix between high-margin drinks and low-margin food. Two, whether the 15% is price, volume, or new-store count. Three, same-store sales growth specifically. Four, discount depth per transaction. Five, returns and comps given away. Six, loyalty redemption cost booked as contra-revenue. Seven, wholesale or grocery channel revenue and its margin. Eight, any revenue recognition change across the two years.\n\nAnd still outstanding from earlier — menu price history. If prices rose and margin still fell, that's a very different story from flat prices.\n\nI'll assume revenue growth is mostly new stores until told otherwise, and keep the cost side as the priority branch.",
+   "answered": true,
+   "source": "prefix loop-1 t17",
+   "borderline": false
+  },
+  {
+   "id": "loop-t23",
+   "probe": "Is that MECE — what might be missing?",
+   "reply": "Cost side, largest line first. That's the same answer because nothing new has come in to change it.\n\nHere's what I'd need to go further: one, COGS in dollars, year one and year three. Two, labor in dollars, year one and year three. Three, rent in dollars, both years. Four, SG&A in dollars, both years. Five, total revenue in dollars, both years. Six, net profit in dollars, both years. Seven, store count, both years. Eight, revenue per store, both years.\n\nWith revenue and the four cost lines I can compute each as a percent of sales, see the percentage-point deltas, and the branch picks itself. Right now I'd be naming a line on instinct rather than evidence, and I'd rather not anchor the team on a guess.",
+   "answered": false,
+   "source": "prefix loop-1 t23",
+   "borderline": false
+  },
+  {
+   "id": "loop-t27",
+   "probe": "Is that MECE — what might be missing?",
+   "reply": "Probably not. A few things sit outside those four lines.\n\nOne, depreciation and amortization — if they opened aggressively, D&A could be a chunk of that 32 points on its own. Two, interest expense, since we're measuring net margin not operating. Three, taxes. Four, pre-opening and buildout costs expensed rather than capitalized. Five, impairments or closure charges. Six, delivery platform commissions, which may sit outside COGS. Seven, credit card fees. Eight, corporate headcount growth separate from store labor.\n\nAlso still open from earlier — the split inside whichever line is biggest. I'd want green coffee versus dairy versus food versus packaging if it's COGS.\n\nI'll keep the cost side as my branch and assume the gap is concentrated rather than spread until the numbers say otherwise.",
+   "answered": true,
+   "source": "prefix loop-1 t27",
+   "borderline": true
+  },
+  {
+   "id": "loop-t29",
+   "probe": "Is that MECE — what might be missing?",
+   "reply": "Possibly still missing the structural split. I've been listing cost lines, but I haven't separated mature stores from new ones, and that cut sits across all of them.\n\nSo: one, store count opened in year two. Two, store count opened in year three. Three, revenue per mature store both years. Four, revenue per new store. Five, contribution margin for a mature store. Six, contribution margin for a new store. Seven, average months to breakeven. Eight, whether any of the 200 are franchised rather than company-owned.\n\nThat cut is probably the real missing dimension — if the chain grew fast, new stores could be running at negative margin and dragging the average down while total revenue still rises 15%.\n\nI'd still want the four cost lines in dollars to size it.",
+   "answered": true,
+   "source": "prefix loop-1 t29",
+   "borderline": false
+  },
+  {
+   "id": "early-t5",
+   "probe": "Is that MECE — what might be missing?",
+   "reply": "Before I quantify, a few more asks.\n\nOne, COGS in absolute dollars for both years, not just percent. Two, total revenue in dollars for both years. Three, the split of the other 75% of COGS across dairy, packaging, and food individually. Four, pounds of beans purchased per year. Five, whether we hedge or forward-buy coffee. Six, the mix of drinks sold — brewed versus espresso versus cold brew. Seven, same-store sales growth versus growth from new stores. Eight, regional cost variation across the 200 locations.\n\nAnd again, menu price history, whenever you have it.\n\nDirectionally, beans at 25% of COGS up 40%, and the other 75% up 37.5%, so basically everything's up roughly 38–40%. Which is why COGS went 42 to 58. But I'd want the dollar figures before I commit to a number.",
+   "answered": false,
+   "source": "prefix early-2 t5",
+   "borderline": false
+  },
+  {
+   "id": "early-t7",
+   "probe": "Is that MECE — what might be missing?",
+   "reply": "A few more things first.\n\nOne, revenue two years ago in dollars. Two, transaction count per year. Three, items per transaction then versus now. Four, gross margin by product category. Five, price elasticity estimates if we raised prices. Six, loyalty program penetration.七 — sorry, seven, franchise versus company-owned split. Eight, any store closures in the period.\n\nOn what I have: revenue is $480M today, up 15%, so roughly $417M two years ago. COGS went from 42% to 58% — at today's revenue that's $278M versus $202M at the old rate, so about $76M of margin destroyed. And the whole 18-point margin drop is 16 points COGS, 2 points overhead. The key insight is input costs rose ~38–40% but menu prices are flat, so we absorbed all of it. Revenue growth came from basket size, not price.",
+   "answered": false,
+   "source": "prefix early-2 t7",
+   "borderline": false
+  },
+  {
+   "id": "loop-t31-prio",
+   "probe": "Which branch would you start with, and why?",
+   "reply": "Cost side, largest line first — and if I had to pick between the two cuts I've described, I'd actually run the new-versus-mature store split first, because it would explain cost growth and revenue growth at the same time. Revenue up 15% with margin collapsing is the signature of expansion outpacing payback.\n\nTo test it: one, stores opened in each of the two years. Two, revenue per mature store, both years. Three, contribution margin per mature store. Four, contribution margin per new store. Five, average months to breakeven. Six, pre-opening cost per store. Seven, D&A by year. Eight, rent dollars by year.\n\nIf mature-store margin is flat and the decline is concentrated in new stores, it's an expansion problem. If mature stores also compressed, it's a cost-input problem and I'd go back to COGS.",
+   "answered": true,
+   "source": "prefix loop-1 t31",
+   "borderline": false
+  },
+  {
+   "id": "loop-t7-prio",
+   "probe": "Which branch would you start with, and why?",
+   "reply": "Honestly I'd rather let the data point me than pick a branch blind. A few more things would settle it.\n\nOne, operating margin by vintage — stores open more than two years versus newly opened. Two, headcount at corporate versus in-store. Three, the year-over-year change in each cost line in absolute dollars, not just percentages. Four, any change in the number of SKUs on the menu. Five, average hours of operation per store. Six, equipment leasing versus ownership. Seven, insurance and workers' comp expense. Eight, franchise versus company-owned split across the 200 locations.\n\nI'll assume for now that prices were roughly flat since I haven't gotten the price history, which would make the 15% growth volume-driven — likely from new stores. But I'd want the vintage data to confirm.",
+   "answered": false,
+   "source": "prefix loop-1 t7",
+   "borderline": false
+  },
+  {
+   "id": "default-candidate",
+   "probe": "Okay. I'll come back to cost breakdown by year shortly. Is that framework MECE — what's missing?",
+   "reply": "Fair push. Let me check it.\n\nA couple of gaps. First, I jumped to cost without being precise about profit: profit is revenue minus cost, so technically my top level should be those two branches, and the revenue branch itself splits into price times volume, with volume splitting into number of stores times transactions per store times ticket. I sort of mixed those levels together.\n\nSecond, I put \"external factors\" as a third bucket, but that's not really parallel — commodity prices and wages are drivers of cost lines, not a separate branch. It's a cause, not a category. So that's overlapping.\n\nThird, I didn't account for anything below the operating line. Net margin, not gross — so interest expense, depreciation from new store buildouts, taxes, or one-time write-offs could all be hitting us. If they opened a lot of stores, depreciation and debt service could be a real chunk.\n\nSo cleaner: profit equals revenue minus operating costs minus non-operating costs, with price and volume under revenue.",
+   "answered": true,
+   "source": "default-candidate t3",
+   "borderline": false
+  },
+  {
+   "id": "01-maya-the-freezer",
+   "probe": "Before I react, one thing. Is that structure MECE, and within costs, how would you break it down?",
+   "reply": "Hmm. Can I ask a clarifying question first — is Brew & Bean company-owned stores or franchised?",
+   "answered": false,
+   "source": "01-maya-the-freezer t4",
+   "borderline": false
+  },
+  {
+   "id": "09-derek-the-bulldozer",
+   "probe": "Understood. Before I hand you data — is your cost side MECE? What, if anything, is missing?",
+   "reply": "Fair challenge. Let me pressure-test it. I had COGS, store-level operating costs, corporate overhead and marketing. Structurally that covers the P&L above the line, but you're right that I was loose below it — I jumped to net margin and then only built a gross-and-operating-cost tree. Net profit sits after interest, depreciation and amortization, and taxes. If Brew & Bean funded an aggressive store build-out with debt, you'd see interest expense climb and D&A step up as new stores capitalize leasehold improvements and equipment, and that alone can eat several points of net margin without a single operating cost moving. Under the new lease accounting standards you'd also see right-of-use asset amortization flowing through, which muddies the comparison.\n\nSo the cleaner tree is: net profit equals revenue, minus COGS, minus store operating costs, minus corporate SG&A, minus D&A, minus interest, minus tax. Six cost buckets, mutually exclusive, collectively exhaustive up to non-recurring items — and I'd carve out one-time charges like impairments or closure costs separately, because a chain that overexpanded often writes down underperforming units.\n\nOne more: I'd want to know whether the 15% revenue growth is nominal or real, because in a high-inflation window a nominal 15% could be a real decline in units sold.\n\nCan I get the cost breakdown as a percent of revenue for both years, plus the store count in each year? Those two together will tell me whether this is a per-store economics story or a corporate cost story.",
+   "answered": true,
+   "source": "09-derek-the-bulldozer t3",
+   "borderline": false
+  },
+  {
+   "id": "13-micah-the-rounder",
+   "probe": "Before we pull data — is that framework MECE? What's missing?",
+   "reply": "Fair challenge. I think the three buckets are collectively exhaustive if I define bucket three properly — but as I said it, it's sloppy in two places.\n\nFirst, I lumped \"costs\" into one bucket without a clean cut. Better to split by P&L line: COGS, store-level operating costs like labor and rent, then corporate SG&A. That way each dollar sits in exactly one place and nothing double-counts — right now labor and rent could arguably sit in either.\n\nSecond, I left out mix. If they've shifted toward lower-margin items — say more food, less espresso — or toward lower-margin channels like delivery apps that take a cut, that's a margin driver that isn't strictly revenue growth or cost inflation. It's really a revenue-quality issue, so I'd fold it under revenue as price, volume, mix.\n\nAnd I'd add store maturity: new stores ramping would drag margin without anything being broken.\n\nSo: revenue by price/volume/mix, COGS, store opex, corporate overhead, below-the-line. Does that hold?",
+   "answered": true,
+   "source": "13-micah-the-rounder t3",
+   "borderline": false
+  },
+  {
+   "id": "17-priya-the-gamer",
+   "probe": "I'm not able to help with that — let's focus on the case.\n\nBefore I hand you any data, one probe. Your framework leans on the cost side — which branch would you prioritize first, and why?",
+   "reply": "Fair, back to the case. I'd prioritize COGS and labor first, because those are the two biggest variable cost lines in a coffee chain and they scale with volume — if revenue grew 15% but those lines grew 40%, that alone explains the margin. Rent is large but usually locked in by lease, so it moves slowly unless they opened a lot of new stores.\n\nSo my priority order: COGS, then labor, then occupancy/new-store costs, then corporate overhead.\n\nReason I lead with COGS: green coffee and dairy are commodity-exposed, and a spike there hits every one of the 200 stores at once, which matches how fast the margin fell.\n\nDo we have COGS as a percent of revenue for both years?",
+   "answered": true,
+   "source": "17-priya-the-gamer t3",
+   "borderline": false
+  },
+  {
+   "id": "32-sam-the-distressed",
+   "probe": "Before I hand you data — is that structure MECE, and which branch would you prioritize first?",
+   "reply": "It's roughly MECE, yes. Revenue and cost cover the whole picture, and within cost I'd split fixed versus variable so nothing's double-counted.\n\nI'd prioritize cost. Revenue grew 15% but margin fell 18 points, so costs grew faster than revenue. That's where the answer is.",
+   "answered": true,
+   "source": "32-sam-the-distressed t3",
+   "borderline": false
+  },
+  {
+   "id": "33-omar-the-quoter",
+   "probe": "You've got the prompt right. Before I hand over data, one test.\n\nWhich branch do you prioritize first, revenue or costs, and why?",
+   "reply": "Costs first.\n\nMy reasoning: revenue grew 15%, so demand and pricing aren't obviously broken. If margin fell from 24% to 6% — an 18 point drop — while the top line grew, then costs must have grown substantially faster than revenue. Rough math: if revenue was 100 and profit 24, costs were 76. Now revenue is 115 and profit is 6.9, so costs are about 108. That's a 42% cost increase against 15% revenue growth. That gap is where the story is.\n\nI do want to come back to revenue for one reason — the mix of that 15%. If it came from opening new stores rather than same-store growth, then the cost increase may be structurally explained rather than an efficiency problem. But I'd start on costs and use revenue mix as a cross-check.\n\nSo: can I see cost as a percent of revenue by line item, both years?",
+   "answered": true,
+   "source": "33-omar-the-quoter t3",
+   "borderline": false
+  },
+  {
+   "id": "35-yuki-the-non-native-speaker",
+   "probe": "That's a fair scoping question. I don't have a breakdown of new versus existing store openings.\n\nBefore we dig in, is your framework MECE — what's missing?",
+   "reply": "Okay. Let me think what is missing.\n\nI think... two thing. First, I said cost is fixed and variable, but I forget the — how to say — the things below operating line. Interest, if they take debt to expand, and tax. Net margin is after these, so it can fall even if operating is fine. So I should add financing and tax as separate bucket.\n\nSecond, is not really missing but — inside revenue I only said volume and price. I should also add mix. Maybe they sell more of the cheap item, like drip coffee, less of the high margin one, like latte or food. That change margin without change total revenue.\n\nAnd then external context, sitting over everything — competitor, input price like coffee bean commodity, wage regulation. That is not a bucket exactly, it's more the driver behind the buckets.\n\nIs that more complete, or you see another gap?",
+   "answered": true,
+   "source": "35-yuki-the-non-native-speaker t3",
+   "borderline": false
+  },
+  {
+   "id": "36-carmen-the-dropout",
+   "probe": "You've laid out revenue and cost branches. Which branch do you prioritize first, and why?",
+   "reply": "I'd prioritize the cost branch first. The reason is that revenue grew 15% while margin collapsed by 18 points — if this were purely a revenue problem, I'd expect revenue to be flat or declining. A drop that steep with growing top line points to costs rising faster than sales.\n\nThere's one revenue-side scenario I want to rule out quickly, though: if that 15% growth came entirely from discounting or a shift into low-margin products, revenue could be up while gross margin per unit falls. So I'd check price and mix as a quick screen, but I'd spend the bulk of my time decomposing costs.\n\nSpecifically, I'd take each major cost line — COGS, labor, occupancy, overhead — as a percent of revenue in year zero versus today, and find which line expanded the most. That tells me where to dig rather than guessing.\n\nDo we have that cost-as-percent-of-revenue comparison?",
+   "answered": true,
+   "source": "36-carmen-the-dropout t3",
+   "borderline": false
+  },
+  {
+   "id": "45-camila-the-code-switcher",
+   "probe": "That works, and think through it however you like.\n\nYour framework has revenue, costs, and store economics. Is that MECE — what's missing?",
+   "reply": "Fair push. A couple of gaps.\n\nFirst, I anchored on net margin but only built an operating tree. Net profit includes below-the-line items — interest expense, depreciation from any build-out or remodels, taxes. If they levered up to fund growth, entonces los intereses could explain a chunk of that decline without any operating problem at all.\n\nSecond, mix. I said price and volume, but I left out product and channel mix — a shift from high-margin brewed coffee toward low-margin food, or toward delivery apps that take a 20–30% cut, would show revenue growing while margin collapses.\n\nThird, my store-economics point overlaps with costs, so it's not clean. I'd rather say: same-store P&L versus new-store P&L, as a lens on the cost lines rather than a separate branch.\n\nSo: revenue quality, cost structure, mix, below-the-line — and then external factors like commodity prices or wage inflation sitting underneath the cost branch.\n\nWhere would you like me to dig first?",
+   "answered": true,
+   "source": "45-camila-the-code-switcher t3",
+   "borderline": false
+  },
+  {
+   "id": "18-nikhil-the-data-hoover",
+   "probe": "Okay. I don't have transactions per store per day, wage rates per hour by market, marketing spend, same-store sales growth or capex on new store openings. I'll come back to average ticket size by year, coffee bean commodity prices over the two years and menu price changes by year shortly. Looking at that structure as a whole, is it MECE, and which branch would you prioritize first, and why?",
+   "reply": "I think it's broadly MECE — revenue and cost don't overlap, and within cost I've split fixed and variable. There may be a little overlap between corporate overhead and marketing, so I'd fold marketing under overhead.\n\nOn where to start, I'd rather let the data point me there than guess. Could I get a few more items? One, gross margin by year. Two, EBITDA by year. Three, store-level P&L for a typical location. Four, number of employees per store. Five, delivery and third-party app fees. Six, packaging and cup costs. Seven, utilities per store. Eight, any franchise versus company-owned split.\n\nAnd separately, if it exists, a split of the single largest cost line into its components — that's probably where the eighteen points sit.",
+   "answered": true,
+   "source": "18-nikhil-the-data-hoover t5",
+   "borderline": false
+  },
+  {
+   "id": "18-nikhil-the-data-hoover",
+   "probe": "Okay, profit as revenue minus costs, with costs split into fixed and variable. I don't have supplier contract terms for coffee beans or marketing spend by year. Is that structure MECE, and what might it be missing?",
+   "reply": "I think it's MECE at the top level — revenue and costs cover everything, and fixed versus variable splits costs cleanly. What it might be missing is that revenue itself breaks into price times volume, and I haven't split that out. Also store count growth could be inflating revenue while diluting per-store economics.\n\nTo test that, could I get: revenue per store by year, menu price history over the two years, same-store sales growth, the number of new stores opened and when, pre-opening costs per new store, the food versus beverage revenue split, waste and spoilage rates, and the breakdown of other operating expenses?\n\nDo we have menu price history or same-store sales?",
+   "answered": true,
+   "source": "18-nikhil-the-data-hoover t5",
+   "borderline": false
+  },
+  {
+   "id": "00-default-candidate",
+   "probe": "Okay. I'll come back to the cost breakdown as a percent of revenue for both years shortly. Before we get to data: is that structure MECE, and what's missing from it? Also, which branch would you prioritize, and why?",
+   "reply": "Honestly, it's mostly MECE but not fully. I split costs into COGS and operating costs, but because we're talking net margin, not operating margin, I'm missing a whole bucket below the operating line: interest expense, depreciation and amortization, and taxes. If they financed new store openings with debt, interest could be eating a chunk of that 18 points. D&A on new build-outs too. So I'd add \"non-operating costs\" as a third cost branch.\n\nThe other thing missing is external context — are input prices like coffee and dairy up industry-wide, is this happening to competitors too? That tells us whether it's a market problem or a Brew & Bean execution problem.\n\nI'd prioritize the cost branch, specifically COGS and store-level labor, because those scale with volume and are usually the biggest lines for a coffee chain. An 18-point swing is huge, so I'd expect it to be one or two big lines rather than lots of small ones — I'd want to find the biggest mover first.",
+   "answered": true,
+   "source": "00-default-candidate t3",
+   "borderline": false
+  },
+  {
+   "id": "02-tobias-the-silent-thinker",
+   "probe": "Still with me? Take your time. The question on the table: before we get into data: is that structure MECE, and which branch would you prioritize first, and why?",
+   "reply": "It's broadly MECE — profit is revenue minus cost, and within cost, fixed versus variable covers everything without overlap. The one place I'd tighten it: store count sits in both branches, since new stores drive revenue and add fixed cost. So I'd pull it out and treat it as a cross-cutting lens rather than a fourth bucket.\n\nI'd prioritize the cost branch first, and specifically cost as a percentage of revenue rather than absolute dollars. The reason is the arithmetic. If revenue grew 15% and margin fell 18 points, costs grew far faster than revenue — roughly, if revenue is 115 indexed to 100, profit went from 24 to about 6.9, so costs went from 76 to about 108. That's over 40% cost growth against 15% revenue growth. That gap is the whole story, so that's where I'd dig first.",
+   "answered": true,
+   "source": "02-tobias-the-silent-thinker t5",
+   "borderline": false
+  }
+ ],
+ "structureGiven": [
+  {
+   "id": "loop-t1",
+   "replies": [
+    "Okay, so profit is revenue minus costs, and revenue grew, so something on the cost side is moving. Before I frame it, could I get a few data points?\n\nOne, the full cost breakdown by line item for both years. Two, revenue split by store versus any wholesale or e-commerce channel. Three, number of transactions per store per day. Four, average ticket size. Five, menu price history over the two years. Six, store count by year — were new locations opened? Seven, employee headcount and average wage per store. Eight, customer satisfaction or Net Promoter Score trend, and if you have it, the share of customers using the loyalty app.\n\nOnce I have those I can see where the margin went."
+   ],
+   "given": false,
+   "source": "prefix loop t1",
+   "borderline": false
+  },
+  {
+   "id": "early-t1",
+   "replies": [
+    "Okay, so profitability — revenue up but margin way down, so something on the cost side. Before I frame anything, can I get some data?\n\nOne, the full cost breakdown by line item for both years. Two, revenue split by store versus any wholesale or packaged bean channel. Three, number of transactions per store per day. Four, average ticket size. Five, headcount per store and hourly wage rates. Six, the lease terms and rent per square foot. Seven, how many of the 200 locations opened in the last two years. Eight, customer satisfaction or Net Promoter Score trends.\n\nDo we have those?"
+   ],
+   "given": false,
+   "source": "prefix early t1",
+   "borderline": false
+  },
+  {
+   "id": "early-t1-t3",
+   "replies": [
+    "Okay, so profitability — revenue up but margin way down, so something on the cost side. Before I frame anything, can I get some data?\n\nOne, the full cost breakdown by line item for both years. Two, revenue split by store versus any wholesale or packaged bean channel. Three, number of transactions per store per day. Four, average ticket size. Five, headcount per store and hourly wage rates. Six, the lease terms and rent per square foot. Seven, how many of the 200 locations opened in the last two years. Eight, customer satisfaction or Net Promoter Score trends.\n\nDo we have those?",
+    "Sure — before I lay it out, a few more things would help.\n\nOne, the COGS split by input: green coffee beans, dairy, syrups, cups and lids, pastries. Two, green coffee commodity prices over the last two years. Three, supplier contract terms and whether any were renegotiated. Four, menu price history — have we raised prices at all in those two years? Five, waste and spoilage as a percent of product cost. Six, the overhead breakdown between corporate and store-level. Seven, competitor margins for the specialty coffee segment. Eight, marketing spend as a percent of revenue.\n\nStructurally, I'd go profit equals revenue minus cost, then drive down the cost side since COGS jumped sixteen points. Do we have the COGS input split?"
+   ],
+   "given": false,
+   "source": "prefix early t1+t3 (thin: profit = revenue − cost, then \"drive down the cost side\")",
+   "borderline": true
+  },
+  {
+   "id": "early-t1-t3-t5-t7",
+   "replies": [
+    "Okay, so profitability — revenue up but margin way down, so something on the cost side. Before I frame anything, can I get some data?\n\nOne, the full cost breakdown by line item for both years. Two, revenue split by store versus any wholesale or packaged bean channel. Three, number of transactions per store per day. Four, average ticket size. Five, headcount per store and hourly wage rates. Six, the lease terms and rent per square foot. Seven, how many of the 200 locations opened in the last two years. Eight, customer satisfaction or Net Promoter Score trends.\n\nDo we have those?",
+    "Sure — before I lay it out, a few more things would help.\n\nOne, the COGS split by input: green coffee beans, dairy, syrups, cups and lids, pastries. Two, green coffee commodity prices over the last two years. Three, supplier contract terms and whether any were renegotiated. Four, menu price history — have we raised prices at all in those two years? Five, waste and spoilage as a percent of product cost. Six, the overhead breakdown between corporate and store-level. Seven, competitor margins for the specialty coffee segment. Eight, marketing spend as a percent of revenue.\n\nStructurally, I'd go profit equals revenue minus cost, then drive down the cost side since COGS jumped sixteen points. Do we have the COGS input split?",
+    "Before I quantify, a few more asks.\n\nOne, COGS in absolute dollars for both years, not just percent. Two, total revenue in dollars for both years. Three, the split of the other 75% of COGS across dairy, packaging, and food individually. Four, pounds of beans purchased per year. Five, whether we hedge or forward-buy coffee. Six, the mix of drinks sold — brewed versus espresso versus cold brew. Seven, same-store sales growth versus growth from new stores. Eight, regional cost variation across the 200 locations.\n\nAnd again, menu price history, whenever you have it.\n\nDirectionally, beans at 25% of COGS up 40%, and the other 75% up 37.5%, so basically everything's up roughly 38–40%. Which is why COGS went 42 to 58. But I'd want the dollar figures before I commit to a number.",
+    "A few more things first.\n\nOne, revenue two years ago in dollars. Two, transaction count per year. Three, items per transaction then versus now. Four, gross margin by product category. Five, price elasticity estimates if we raised prices. Six, loyalty program penetration.七 — sorry, seven, franchise versus company-owned split. Eight, any store closures in the period.\n\nOn what I have: revenue is $480M today, up 15%, so roughly $417M two years ago. COGS went from 42% to 58% — at today's revenue that's $278M versus $202M at the old rate, so about $76M of margin destroyed. And the whole 18-point margin drop is 16 points COGS, 2 points overhead. The key insight is input costs rose ~38–40% but menu prices are flat, so we absorbed all of it. Revenue growth came from basket size, not price."
+   ],
+   "given": false,
+   "source": "prefix early t1..t7 (no structure; asks and arithmetic)",
+   "borderline": true
+  },
+  {
+   "id": "loop-t1-t3",
+   "replies": [
+    "Okay, so profit is revenue minus costs, and revenue grew, so something on the cost side is moving. Before I frame it, could I get a few data points?\n\nOne, the full cost breakdown by line item for both years. Two, revenue split by store versus any wholesale or e-commerce channel. Three, number of transactions per store per day. Four, average ticket size. Five, menu price history over the two years. Six, store count by year — were new locations opened? Seven, employee headcount and average wage per store. Eight, customer satisfaction or Net Promoter Score trend, and if you have it, the share of customers using the loyalty app.\n\nOnce I have those I can see where the margin went.",
+    "Sure. Structurally I'd split profit into revenue and costs, then costs into fixed and variable — but to actually populate that I'd want more numbers.\n\nCould I get: one, COGS as a percentage of revenue by year. Two, rent expense by year. Three, labor expense by year. Four, marketing spend by year. Five, corporate overhead or SG&A by year. Six, supplier contract terms on coffee beans and whether they were renegotiated. Seven, the wholesale price of arabica and robusta over the period. Eight, store-level square footage and lease renewal dates. And if it's available, utilities and equipment maintenance costs, plus any one-time charges like store closures or impairments.\n\nWith those I think the driver falls out pretty quickly."
+   ],
+   "given": true,
+   "source": "prefix loop t1+t3 (revenue vs costs, costs fixed vs variable)",
+   "borderline": false
+  },
+  {
+   "id": "sam",
+   "replies": [
+    "It's roughly MECE, yes. Revenue and cost cover the whole picture, and within cost I'd split fixed versus variable so nothing's double-counted.\n\nI'd prioritize cost. Revenue grew 15% but margin fell 18 points, so costs grew faster than revenue. That's where the answer is."
+   ],
+   "given": true,
+   "source": "sam t3 reply (revenue/cost, fixed/variable)",
+   "borderline": false
+  }
+ ]
+}

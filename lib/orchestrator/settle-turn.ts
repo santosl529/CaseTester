@@ -17,7 +17,7 @@ import { withholdProbesOnVerified } from './probe-guard';
 import { checkTimeframes } from './timeframe-check';
 import { checkHintDelivered } from './hint-check';
 
-import { probeIntents, pickFallbackQuestion, reaskProbe, CODE_PROBES, EARLY_PHASES, type PressureTestState } from './pressure-test';
+import { probeIntents, pickFallbackQuestion, reaskProbe, CODE_PROBES, CODE_STRUCTURE_ASKS, EARLY_PHASES, type PressureTestState } from './pressure-test';
 import { requestSentences } from './request-signal';
 import { isUnderTimePressure } from './pacing';
 import { rungName, classifyRungDelivery, revertUndeliveredRung } from './stall';
@@ -184,10 +184,18 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       else { question = pickFallbackQuestion({ figuresDelivered: decisions.releases.length > 0, seed, last: state.lastQuestion ?? null }); ptAction = 'replaced_duplicate'; }
     } else if (ptPrev.state === 'not_asked') {
       pt.gatedTurns = decisions.gatedIds.length > 0 ? ptPrev.gatedTurns + 1 : 0;
-      if (!isProbe(question) && pt.gatedTurns >= 2 && !pt.codeAsked) {
-        question = pickScript([...CODE_PROBES], seed);
-        pt.codeAsked = true;
-        ptAction = 'code_asked';
+      if (!isProbe(question) && pt.gatedTurns >= 2) {
+        // The probe tests a structure; with none on the table, ask for it first (once).
+        pt.structureGiven = pt.structureGiven || Boolean((await state.structureVerdict)?.given);
+        if (pt.structureGiven && !pt.codeAsked) {
+          question = pickScript([...CODE_PROBES], seed);
+          pt.codeAsked = true;
+          ptAction = 'code_asked';
+        } else if (!pt.structureGiven && !pt.structureAsked) {
+          question = pickScript([...CODE_STRUCTURE_ASKS], seed);
+          pt.structureAsked = true;
+          ptAction = 'code_asked_structure';
+        }
       }
     }
   }
