@@ -16,6 +16,9 @@ import { changeFigures } from './numeric-provenance';
 import { withholdProbesOnVerified } from './probe-guard';
 import { checkTimeframes } from './timeframe-check';
 import { checkHintDelivered } from './hint-check';
+
+import { probeIntents, pickFallbackQuestion, reaskProbe, CODE_PROBES, EARLY_PHASES, type PressureTestState } from './pressure-test';
+import { requestSentences } from './request-signal';
 import { isUnderTimePressure } from './pacing';
 import { rungName, classifyRungDelivery, revertUndeliveredRung } from './stall';
 import { logEvent } from '@/lib/analytics';
@@ -25,7 +28,7 @@ import { pickScript } from '@/lib/agent/prompts/scripts';
 import { BLOCKED_CLOSE_PROBES } from './spoken-close';
 import { renderDataLines, decisionRows } from './data-decisions';
 import { derivePhase, type TurnMove } from './progress';
-import { turnData } from './turn-data';
+import { turnData, pressureTestSatisfiedNow } from './turn-data';
 import { vetoReason, gateContext, isHandoverAnnouncement } from './stream-turn';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { TurnValidation } from '@/lib/agent/models/interface';
@@ -34,7 +37,7 @@ import type { ExhibitDisplay, PendingEvent, ScriptedPlan, TurnCtx, TurnResult } 
 
 export async function logSessionEvent(
   sessionId: string,
-  category: 'intervention' | 'conduct',
+  category: 'intervention' | 'conduct' | 'request_signal',
   subtype: string,
   turnIndex: number,
   phase: Phase,
@@ -131,7 +134,9 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   const codeWritten = CODE_WRITTEN.has(kind);
   const ended = kind === 'close';
 
-  // Data: the same decisions Stream delivered from.
+  // Data: the same decisions Stream delivered from (the pressure test's
+  // verdict for this turn first — the gate depends on it).
+  const satisfiedNow = await pressureTestSatisfiedNow(plan);
   const decisions = turnData(plan, turn);
   const dataLines = renderDataLines(decisions, seed);
   const g = gateContext(plan, decisions.releases.map(r => r.value));
@@ -160,6 +165,42 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   if (kind === 'rec_ask') question = pickScript([...BLOCKED_CLOSE_PROBES.recommendation], seed);
   const questionFallback = !codeWritten && kind !== 'rec_ask' && !question;
   if (questionFallback) question = 'Go on.';
+
+  // Pressure test (spec 2026-10-07-pressure-test-and-request-guards): code
+  // owns the state and the bounded fallbacks — a duplicate probe is replaced
+  // (one re-ask while awaiting, then plain questions), and a test the model
+  // never asks while requested data is held is asked by code, once.
+  const ptPrev = state.pressureTest;
+  const pt: PressureTestState = { ...ptPrev };
+  let ptAction: string | null = null;
+  const early = EARLY_PHASES.includes(currentPhase);
+  const isProbe = (q: string) => probeIntents(q).length > 0 && (early || turn.move === 'pressure_test');
+  if (!codeWritten && kind !== 'rec_ask') {
+    if (ptPrev.state !== 'not_asked' && isProbe(question) && satisfiedNow) {
+      question = pickFallbackQuestion({ figuresDelivered: decisions.releases.length > 0, seed, last: state.lastQuestion ?? null });
+      ptAction = 'replaced_duplicate';
+    } else if (ptPrev.state === 'awaiting' && isProbe(question)) {
+      if (pt.reasks < 1) { question = reaskProbe(ptPrev.intents); pt.reasks += 1; ptAction = 'reask'; }
+      else { question = pickFallbackQuestion({ figuresDelivered: decisions.releases.length > 0, seed, last: state.lastQuestion ?? null }); ptAction = 'replaced_duplicate'; }
+    } else if (ptPrev.state === 'not_asked') {
+      pt.gatedTurns = decisions.gatedIds.length > 0 ? ptPrev.gatedTurns + 1 : 0;
+      if (!isProbe(question) && pt.gatedTurns >= 2 && !pt.codeAsked) {
+        question = pickScript([...CODE_PROBES], seed);
+        pt.codeAsked = true;
+        ptAction = 'code_asked';
+      }
+    }
+  }
+  if (pt.state === 'not_asked' && probeIntents(question).length > 0 && (early || ptAction === 'code_asked')) {
+    Object.assign(pt, { state: 'awaiting', askedAt: nextTurnIndex + 1, probe: question, intents: probeIntents(question) });
+  } else if (pt.state === 'awaiting' && satisfiedNow) {
+    Object.assign(pt, { state: 'satisfied', satisfiedAt: nextTurnIndex });
+  }
+  checks.record('pressure_test', ptAction !== null || pt.state !== ptPrev.state, ptAction ?? `state ${ptPrev.state} → ${pt.state}`,
+    { from: ptPrev.state, to: pt.state, action: ptAction, gated: decisions.gatedIds, verdict: await state.probeVerdict });
+  if (state.requestCues.length > 0) {
+    ctx.events.push({ category: 'request_signal', subtype: 'explicit_ask', payload: { cues: state.requestCues, sentences: requestSentences(candidateText), resolvedIds: [] } });
+  }
   checks.record('vetoes', withheld.length > 0, 'sentences of the model\'s own withheld', { withheld });
   if (withheld.length > 0) console.warn('[runner] withheld:', JSON.stringify(withheld));
 
@@ -214,8 +255,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   const auditResult = auditTurn(spokenText, revealedValues(ledger), allowedTexts.join(' '));
   const timeframeMismatches = checkTimeframes(spokenText, caseData.dataLedger.filter(d => ledger.revealed.has(d.id)));
   checks.record('timeframe', timeframeMismatches.length > 0, 'cross-period arithmetic (log only)', { mismatches: timeframeMismatches });
-  checks.record('pressure_test_repeat', Boolean(state.pressureTestDone) && turn.move === 'pressure_test',
-    'a second pressure test after the first was answered (log only)', { move: turn.move });
+
   const styleResult = auditTurnStyle(spokenText, {
     lengthExempt: newReveals.length > 0 || exhibit !== undefined || stallDecision.rung === 3 || codeWritten,
   });
@@ -325,6 +365,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
             loadShedLogged: Boolean(flags.loadShedLogged) || loadShedLoggedThisTurn,
             moves,
             lastQuestion,
+            pressureTest: pt,
           },
         })
         .where(eq(sessions.id, sessionId)),

@@ -123,7 +123,7 @@ export const scores = pgTable('scores', {
 export const sessionEvents = pgTable('session_events', {
   id: uuid('id').primaryKey().defaultRandom(),
   sessionId: uuid('session_id').notNull().references(() => sessions.id),
-  category: text('category').notNull(),   // 'intervention' | 'conduct' | 'data_request' | 'check'
+  category: text('category').notNull(),   // 'intervention' | 'conduct' | 'data_request' | 'check' | 'request_signal'
   subtype: text('subtype').notNull(),     // e.g. 'restate_anchor', 'C2', 'C5'
   turnIndex: integer('turn_index'),
   phase: phaseEnum('phase'),

@@ -31,7 +31,7 @@ export type ConductFlags = { warnings?: number; distressOffered?: boolean; distr
 
 // A session event decided during the turn, written at commit.
 export type PendingEvent = {
-  category: 'intervention' | 'conduct';
+  category: 'intervention' | 'conduct' | 'request_signal';
   subtype: string;
   payload: Record<string, unknown>;
 };

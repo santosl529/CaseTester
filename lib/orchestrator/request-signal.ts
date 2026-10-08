@@ -18,3 +18,9 @@ const CUES: [label: string, pattern: RegExp][] = [
 export function explicitRequestCues(text: string): string[] {
   return CUES.filter(([, re]) => re.test(text)).map(([label]) => label);
 }
+
+// The sentences that carry an explicit ask — kept with the request_signal
+// event so the candidate's own words are preserved. Never mapped to data here.
+export function requestSentences(text: string): string[] {
+  return text.split(/(?<=[.?!])\s+/).filter(s => explicitRequestCues(s).length > 0).map(s => s.trim()).slice(0, 8);
+}

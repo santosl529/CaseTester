@@ -27,7 +27,7 @@ import { hasCloseCue } from '@/lib/agent/prompts/scripts';
 import { handoffSentences } from './data-ledger';
 import { promisesExhibit } from './exhibits';
 import { revealedValues } from './data-ledger';
-import { turnData } from './turn-data';
+import { turnData, pressureTestSatisfiedNow } from './turn-data';
 import { renderDataLines } from './data-decisions';
 
 export type GateContext = {
@@ -196,7 +196,9 @@ export async function streamTurnSegments(
       await send('say', p.text, []);
       return;
     }
-    // "say" and the declarations closed: code's data line.
+    // "say" and the declarations closed: code's data line — once the
+    // pressure test's verdict for this turn is in (the gate depends on it).
+    await pressureTestSatisfiedNow(plan);
     const d = turnData(plan, fields);
     const lines = renderDataLines(d, `${plan.ctx.sessionId}:${plan.ctx.nextTurnIndex}`);
     if (lines.length > 0 || d.exhibit) {

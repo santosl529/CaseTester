@@ -5,12 +5,15 @@ import type { Phase } from './state-machine';
 
 const EARLY: Phase[] = ['INTRO', 'CLARIFY', 'STRUCTURE'];
 
-export function turnNoteFor(kind: TurnKind, acknowledged?: string, opts: { pressureTestDone?: boolean; phase?: Phase } = {}): string | undefined {
+export function turnNoteFor(kind: TurnKind, acknowledged?: string, opts: { pressureTest?: 'not_asked' | 'awaiting' | 'satisfied'; phase?: Phase } = {}): string | undefined {
   const notes: string[] = [];
   // Guard A (7 Oct, batch 17): Luna asked the pressure test fourteen turns
   // running while the candidate's data waited. Shown only while the case is
   // still in the early stages.
-  if (opts.pressureTestDone && opts.phase && EARLY.includes(opts.phase)) {
+  if (opts.pressureTest === 'awaiting' && opts.phase && EARLY.includes(opts.phase)) {
+    notes.push('THIS TURN: your pressure test on the structure is waiting for an answer, and the analysis data waits for it. Don\'t ask a different probe; if the candidate hasn\'t answered it, ask them to.');
+  }
+  if (opts.pressureTest === 'satisfied' && opts.phase && EARLY.includes(opts.phase)) {
     notes.push('THIS TURN: your pressure test on the structure has been asked and answered. Don\'t ask another one — no "Is that MECE?" or "Which branch would you prioritize?" — move into the analysis. Requests are no longer premature: declare what they ask for with respond "release".');
   }
   if (kind === 'rec_ask') {

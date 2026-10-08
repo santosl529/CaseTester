@@ -17,6 +17,7 @@ import { resumeOnCandidateTurn, effectiveElapsedMs, isSilenceLine, INITIAL_SILEN
 import { classifyConduct, isPauseAccepted, isRiskToSelf } from './conduct';
 import { classifyDistress, type DistressVerdict } from './distress';
 import { explicitRequestCues } from './request-signal';
+import { judgeProbeAnswer, INITIAL_PRESSURE_TEST, type PressureTestState } from './pressure-test';
 import { logEvent } from '@/lib/analytics';
 import { TOTAL_CASE_MS, type Phase } from './state-machine';
 import { stageGateOpen, endAllowed, recommendationUnresolved } from './spoken-close';
@@ -292,9 +293,19 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // from the moves recorded at commit (progress.ts), the wording only for
   // turns recorded before moves existed.
   const moves = (flags.moves as Record<number, TurnMove> | undefined) ?? {};
-  // Guard A (7 Oct): a pressure test already asked — the candidate's message
-  // now is (or follows) the answer. Requests stop being premature.
-  const pressureTestDone = Object.values(moves).includes('pressure_test');
+  // Pressure-test state (spec 2026-10-07-pressure-test-and-request-guards):
+  // code's, persisted. While it awaits an answer, a judge reads every reply
+  // since the question (started here, beside the distress check; read before
+  // the data line). A judge failure leaves it awaiting.
+  const pressureTest: PressureTestState = { ...INITIAL_PRESSURE_TEST, ...(flags.pressureTest as Partial<PressureTestState> | undefined) };
+  const probeVerdict: Promise<{ answered: boolean; reason: string } | null> = pressureTest.state === 'awaiting' && extra.classify
+    ? judgeProbeAnswer({
+      probe: pressureTest.probe ?? '',
+      replies: [...turnRows.filter(t => t.role === 'candidate' && t.turnIndex > (pressureTest.askedAt ?? -1)).map(t => t.text), candidateText],
+      onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId: session.userId }); },
+    })
+    : Promise.resolve(null);
+  probeVerdict.catch(() => {});
   // Guard B (7 Oct): explicit data asks by phrasing, before the brainstorm
   // only — later, "I'd want…" is usually a next step, not a question.
   const requestCues = (['INTRO', 'CLARIFY', 'STRUCTURE', 'ANALYSIS', 'EXHIBIT'] as Phase[]).includes(currentPhase)
@@ -376,7 +387,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
       derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, unitCheckHint,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
-      conductRedirectHint, history, turnRows, distress, kind, lastQuestion, moves, pressureTestDone, requestCues,
+      conductRedirectHint, history, turnRows, distress, kind, lastQuestion, moves, pressureTest, probeVerdict, ptSatisfiedNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,
     },
   };
