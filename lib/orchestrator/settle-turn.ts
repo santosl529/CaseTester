@@ -186,8 +186,13 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       pt.gatedTurns = decisions.gatedIds.length > 0 ? ptPrev.gatedTurns + 1 : 0;
       if (!isProbe(question) && pt.gatedTurns >= 2) {
         // The probe tests a structure; with none on the table, ask for it first (once).
-        pt.structureGiven = pt.structureGiven || Boolean((await state.structureVerdict)?.given);
-        if (pt.structureGiven && !pt.codeAsked) {
+        // No verdict (timeout, error) is not "no structure": code asks nothing this
+        // turn, spends no fallback, and the check runs again next turn.
+        const verdict = pt.structureGiven ? null : await state.structureVerdict;
+        pt.structureGiven = pt.structureGiven || Boolean(verdict?.given);
+        if (!pt.structureGiven && verdict === null) {
+          ptAction = 'structure_unknown';
+        } else if (pt.structureGiven && !pt.codeAsked) {
           question = pickScript([...CODE_PROBES], seed);
           pt.codeAsked = true;
           ptAction = 'code_asked';

@@ -28,9 +28,10 @@
    "id": "loop-t11",
    "probe": "Is that MECE — what might be missing?",
    "reply": "Probably not fully. Let me add what I think is outstanding.\n\nOne, interest expense and debt load, since margin is net not operating. Two, effective tax rate by year. Three, any FX exposure if beans are imported. Four, shrinkage or theft. Five, gift card breakage. Six, credit card processing fees as a percent of sales. Seven, packaging and cup costs. Eight, the capex schedule for the new stores and the payback period assumed.\n\nAnd one I'd still like from earlier — the split inside the biggest cost line, whatever that turns out to be. If COGS is the largest bucket, knowing how much is green coffee versus dairy versus food versus packaging would tell me whether this is a commodity problem or a mix problem.\n\nI'll keep going either way.",
-   "answered": false,
+   "answered": true,
    "source": "prefix loop-1 t11",
-   "borderline": false
+   "borderline": true,
+   "note": "\"Probably not fully\" + below-the-line omissions (net vs operating), same content as t27 in list form (8 Oct review)"
   },
   {
    "id": "loop-t15",
@@ -38,7 +39,8 @@
    "reply": "Cost side, as I said. If you want me narrower than that, I'd lean COGS, but I'd be guessing — it could just as easily be labor or new-store drag below the gross line.\n\nWhat would settle it: one, COGS as a percent of revenue in year one versus year three. Two, labor as a percent of revenue in year one versus year three. Three, rent as a percent. Four, SG&A as a percent. Five, which of those four moved the most in percentage points. Six, the dollar value of the single largest cost increase. Seven, whether that increase sits above or below the gross profit line. Eight, store count in each year.\n\nWhichever line moved most in percentage points of revenue — that's the branch I'd take first.",
    "answered": false,
    "source": "prefix loop-1 t15",
-   "borderline": true
+   "borderline": false,
+   "note": "picks a branch; the recorded question asked MECE / what is missing — not answered (8 Oct review)"
   },
   {
    "id": "loop-t17",
@@ -62,7 +64,8 @@
    "reply": "Probably not. A few things sit outside those four lines.\n\nOne, depreciation and amortization — if they opened aggressively, D&A could be a chunk of that 32 points on its own. Two, interest expense, since we're measuring net margin not operating. Three, taxes. Four, pre-opening and buildout costs expensed rather than capitalized. Five, impairments or closure charges. Six, delivery platform commissions, which may sit outside COGS. Seven, credit card fees. Eight, corporate headcount growth separate from store labor.\n\nAlso still open from earlier — the split inside whichever line is biggest. I'd want green coffee versus dairy versus food versus packaging if it's COGS.\n\nI'll keep the cost side as my branch and assume the gap is concentrated rather than spread until the numbers say otherwise.",
    "answered": true,
    "source": "prefix loop-1 t27",
-   "borderline": true
+   "borderline": false,
+   "note": "\"a few things sit outside those four lines\" + named structural omissions (8 Oct review)"
   },
   {
    "id": "loop-t29",
@@ -193,7 +196,7 @@
    "borderline": false
   },
   {
-   "id": "18-nikhil-the-data-hoover",
+   "id": "18-nikhil-the-data-hoover-2",
    "probe": "Okay, profit as revenue minus costs, with costs split into fixed and variable. I don't have supplier contract terms for coffee beans or marketing spend by year. Is that structure MECE, and what might it be missing?",
    "reply": "I think it's MECE at the top level — revenue and costs cover everything, and fixed versus variable splits costs cleanly. What it might be missing is that revenue itself breaks into price times volume, and I haven't split that out. Also store count growth could be inflating revenue while diluting per-store economics.\n\nTo test that, could I get: revenue per store by year, menu price history over the two years, same-store sales growth, the number of new stores opened and when, pre-opening costs per new store, the food versus beverage revenue split, waste and spoilage rates, and the breakdown of other operating expenses?\n\nDo we have menu price history or same-store sales?",
    "answered": true,
@@ -242,9 +245,10 @@
     "Okay, so profitability — revenue up but margin way down, so something on the cost side. Before I frame anything, can I get some data?\n\nOne, the full cost breakdown by line item for both years. Two, revenue split by store versus any wholesale or packaged bean channel. Three, number of transactions per store per day. Four, average ticket size. Five, headcount per store and hourly wage rates. Six, the lease terms and rent per square foot. Seven, how many of the 200 locations opened in the last two years. Eight, customer satisfaction or Net Promoter Score trends.\n\nDo we have those?",
     "Sure — before I lay it out, a few more things would help.\n\nOne, the COGS split by input: green coffee beans, dairy, syrups, cups and lids, pastries. Two, green coffee commodity prices over the last two years. Three, supplier contract terms and whether any were renegotiated. Four, menu price history — have we raised prices at all in those two years? Five, waste and spoilage as a percent of product cost. Six, the overhead breakdown between corporate and store-level. Seven, competitor margins for the specialty coffee segment. Eight, marketing spend as a percent of revenue.\n\nStructurally, I'd go profit equals revenue minus cost, then drive down the cost side since COGS jumped sixteen points. Do we have the COGS input split?"
    ],
-   "given": false,
+   "given": true,
    "source": "prefix early t1+t3 (thin: profit = revenue − cost, then \"drive down the cost side\")",
-   "borderline": true
+   "borderline": false,
+   "note": "t3 offers \"profit = revenue minus cost, then drive down the cost side\" as the approach: a weak structure the pressure test can expose (8 Oct review); cumulative histories containing t3 are true"
   },
   {
    "id": "early-t1-t3-t5-t7",
@@ -254,9 +258,10 @@
     "Before I quantify, a few more asks.\n\nOne, COGS in absolute dollars for both years, not just percent. Two, total revenue in dollars for both years. Three, the split of the other 75% of COGS across dairy, packaging, and food individually. Four, pounds of beans purchased per year. Five, whether we hedge or forward-buy coffee. Six, the mix of drinks sold — brewed versus espresso versus cold brew. Seven, same-store sales growth versus growth from new stores. Eight, regional cost variation across the 200 locations.\n\nAnd again, menu price history, whenever you have it.\n\nDirectionally, beans at 25% of COGS up 40%, and the other 75% up 37.5%, so basically everything's up roughly 38–40%. Which is why COGS went 42 to 58. But I'd want the dollar figures before I commit to a number.",
     "A few more things first.\n\nOne, revenue two years ago in dollars. Two, transaction count per year. Three, items per transaction then versus now. Four, gross margin by product category. Five, price elasticity estimates if we raised prices. Six, loyalty program penetration.七 — sorry, seven, franchise versus company-owned split. Eight, any store closures in the period.\n\nOn what I have: revenue is $480M today, up 15%, so roughly $417M two years ago. COGS went from 42% to 58% — at today's revenue that's $278M versus $202M at the old rate, so about $76M of margin destroyed. And the whole 18-point margin drop is 16 points COGS, 2 points overhead. The key insight is input costs rose ~38–40% but menu prices are flat, so we absorbed all of it. Revenue growth came from basket size, not price."
    ],
-   "given": false,
+   "given": true,
    "source": "prefix early t1..t7 (no structure; asks and arithmetic)",
-   "borderline": true
+   "borderline": false,
+   "note": "t3 offers \"profit = revenue minus cost, then drive down the cost side\" as the approach: a weak structure the pressure test can expose (8 Oct review); cumulative histories containing t3 are true"
   },
   {
    "id": "loop-t1-t3",

@@ -106,6 +106,13 @@ describe('the structure check', () => {
     expect(p).toMatch(/restate/i);
   });
 
+  it('counts a thin structure offered as the approach (it is the pressure test\'s job to expose it), not a hypothesis before framing', () => {
+    const p = buildStructureJudgePrompt(['x']);
+    expect(p).toMatch(/weak structure/i);
+    expect(p).toMatch(/before (they|the candidate) (frame|structure)/i);
+    expect(p).not.toMatch(/bare identity .* is not enough/i);
+  });
+
   it('parses a verdict and rejects junk', () => {
     expect(parseStructureJudge('{"given":true,"reason":"revenue vs cost"}')).toEqual({ given: true, reason: 'revenue vs cost' });
     expect(parseStructureJudge('{"given":"yes"}')).toBeNull();

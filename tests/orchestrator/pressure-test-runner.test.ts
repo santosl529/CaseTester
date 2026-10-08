@@ -210,11 +210,20 @@ describe('bounded fallbacks', () => {
     expect(pt()).toMatchObject({ state: 'awaiting', codeAsked: true, structureGiven: true });
   });
 
-  it('a structure check that fails (no verdict) counts as no structure', async () => {
+  it('a structure check that fails (no verdict) is not "no structure": code asks nothing that turn and spends no fallback', async () => {
     resetStore('STRUCTURE');
     structureGiven = null;
-    for (let i = 0; i < 3; i++) await turn('Could I get the cost breakdown?', T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'What else would you want?' }));
-    expect(pt()).toMatchObject({ state: 'not_asked', codeAsked: false });
+    const heard: string[] = [];
+    for (let i = 0; i < 3; i++) heard.push(await turn('Could I get the cost breakdown?', T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'What else would you want?' })));
+    expect(heard.some(h => /structure|might be missing|which branch|break this/.test(h))).toBe(false);
+    expect(heard.every(h => /what else would you want\?/i.test(h))).toBe(true);
+    expect(pt()).toMatchObject({ state: 'not_asked', codeAsked: false, structureAsked: false, structureGiven: false });
+    expect(revealed()).not.toContain('cogs_pct');
+    // A later real verdict still gets its one fallback.
+    structureGiven = false;
+    const next = await turn('Could I get the cost breakdown?', T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'What else would you want?' }));
+    expect(next).toMatch(/Before we (get into|go further into) the data, .*structure/);
+    expect(pt()).toMatchObject({ structureAsked: true });
   });
 
   it('a detector false positive missed twice adds no release and no promise', async () => {
