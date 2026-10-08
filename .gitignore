@@ -43,3 +43,4 @@ next-env.d.ts
 
 # generated drill review page (npm run drills:review)
 /drill-review.html
+/drill-screenshots/

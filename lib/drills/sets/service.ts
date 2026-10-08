@@ -171,6 +171,7 @@ function answerText(item: Item): string {
 
 export function formatNumericAnswer(item: Item): string {
   const key = item.numeric!;
+  if (item.extras.asks === 'points') return `${fmt(key.answer)} percentage ${key.answer === 1 ? 'point' : 'points'}`;
   return key.percent_format === 'none' ? fmt(key.answer) : `${fmt(key.answer)}%`;
 }
 

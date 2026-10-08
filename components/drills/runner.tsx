@@ -165,7 +165,7 @@ export function DrillRunner({ view }: { view: RunnerView }) {
           <h1 className="text-xl font-semibold">{view.drill.name}</h1>
           <p className="text-sm text-muted-foreground">
             Trains {view.skills.map(s => s.name).join(', ')}.
-            {view.focus_skill && ` You chose to practice ${view.focus_skill}.`}
+            {view.focus_skill && view.skills.length > 1 && ` You chose to practice ${view.focus_skill}.`}
           </p>
         </div>
         <ul className="grid grid-cols-3 gap-3 text-sm">

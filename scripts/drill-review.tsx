@@ -105,7 +105,7 @@ function main() {
 <title>Drill item review</title>
 <style>
   :root { --bg:#f7f7f5; --card:#fff; --fg:#1d1d1b; --muted:#6b6b66; --border:#e2e2dc; --ok:#1f7a4a; --ok-bg:#e8f4ec; --tag:#8a4b0f; --tag-bg:#fbf0e3;
-          --chart-1:#2f6fb5; --chart-2:#2f9e6b; --chart-3:#c9822b; --chart-4:#8b5fbf; --chart-5:#c4515a; --destructive:#c4515a; }
+ }
   @media (prefers-color-scheme: dark) { :root { --bg:#161615; --card:#1f1f1d; --fg:#ecebe6; --muted:#a3a29b; --border:#34342f; --ok:#6fcf97; --ok-bg:#1d3326; --tag:#f0b46b; --tag-bg:#3a2a17; } }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }

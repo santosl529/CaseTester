@@ -7,9 +7,12 @@ import { formatValue, type ChartSpec, type ValueFormat } from '@/lib/drills/char
 
 const WIDTH = 640;
 const HEIGHT = 360;
-const COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)'];
-const UP = 'var(--chart-2)';
-const DOWN = 'var(--destructive)';
+// Drill charts carry their own palette rather than the app theme's chart
+// colors, which are near-gray and fail non-text contrast (WCAG 1.4.11). Each
+// color is at least 3:1 against white.
+const COLORS = ['#2f6fb5', '#c9822b', '#2f8f62', '#8b5fbf', '#c4515a'];
+const UP = '#2f8f62';
+const DOWN = '#c4515a';
 
 const TYPE_NAMES: Record<ChartSpec['type'], string> = {
   bar: 'Bar chart',

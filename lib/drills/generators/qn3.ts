@@ -19,10 +19,12 @@ const PERCENT_OF: Record<Tier, readonly number[]> = {
   2: [15, 30, 35, 40, 60, 75],
   3: [7.5, 12.5, 17.5, 37.5, 45, 65],
 };
+// Each context has a largest believable value: a chain has hundreds or
+// thousands of stores, not half a million.
 const PERCENT_OF_CONTEXTS = [
-  (p: number, x: number) => `The client has ${fmt(x)} stores, and ${pct(p)} of them are franchised. How many stores are franchised?`,
-  (p: number, x: number) => `A market is worth ${money(x)}. The client holds a ${pct(p)} share. What are the client's sales?`,
-  (p: number, x: number) => `What is ${pct(p)} of ${fmt(x)}?`,
+  { max: 10_000, text: (p: number, x: number) => `The client has ${fmt(x)} stores, and ${pct(p)} of them are franchised. How many stores are franchised?` },
+  { max: Infinity, text: (p: number, x: number) => `A market is worth ${money(x)}. The client holds a ${pct(p)} share. What are the client's sales?` },
+  { max: Infinity, text: (p: number, x: number) => `What is ${pct(p)} of ${fmt(x)}?` },
 ];
 
 export const percentOf: Generator = {
@@ -36,11 +38,11 @@ export const percentOf: Generator = {
       const answer = (p * x) / 100;
       if (tier < 3 && !Number.isInteger(answer)) return null;
       if (tier === 1 && !calculatorFree({ p, x }, answer)) return null;
-      const context = rng.pick(PERCENT_OF_CONTEXTS);
+      const context = rng.pick(PERCENT_OF_CONTEXTS.filter(c => x <= c.max));
       return generatedItem({
         templateId: 'percent_of', templateVersion: 1, drillId: 'QN-3', level: 2, tier, seed,
         skills: ['QN.percentages'],
-        prompt: context(p, x),
+        prompt: context.text(p, x),
         numeric: { answer, ...(Number.isInteger(answer) ? defaultTolerance(answer) : ONE_PERCENT), percent_format: 'none', trap_values: [] },
         explanation: `${pct(p)} of ${fmt(x)} = ${fmt(x)} × ${p} ÷ 100 = ${fmt(answer)}.`,
         inputs: { p, x },

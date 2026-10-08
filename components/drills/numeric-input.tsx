@@ -13,7 +13,7 @@ export function NumericInput({ value, onChange, onSubmit, label }: {
   const parsed = value.trim() ? parseNumericInput(value) : null;
   return (
     <div className="space-y-1">
-      <label htmlFor={id} className="text-sm font-medium">{label}</label>
+      <label htmlFor={id} className="block text-sm font-medium">{label}</label>
       <Input
         id={id} value={value} autoFocus inputMode="decimal" autoComplete="off" className="max-w-xs font-mono"
         aria-describedby={`${id}-hint`} aria-invalid={parsed?.ok === false || undefined}
