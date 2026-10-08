@@ -1,0 +1,181 @@
+{
+ "about": "Hand-labelled set for the hint check (lib/orchestrator/hint-check.ts): every rung 2–3 decision in the saved runs (deduped) plus 4 synthetic items for the cases the prompt names (data only, moved on, unrelated question, a plain narrowing). Labels follow the prompt's rung meanings. Labelled 8 Oct before any model saw them.",
+ "items": [
+  {
+   "id": "batch-12-oct-06/01-maya-the-@t44",
+   "rung": 2,
+   "candidateText": "Um. Honestly, I don't know.\n\nSorry.",
+   "interviewerText": "Okay. Pick from what you've said so far: pricing, supplier terms, waste, menu mix. Choose one, say what you'd do first, and give me one reason for it over the others.",
+   "hint": true,
+   "synthetic": false
+  },
+  {
+   "id": "batch-16-oct-07-ttft/01-maya-the-@t40",
+   "rung": 2,
+   "candidateText": "I'm sorry, I really don't know.",
+   "interviewerText": "Let's simplify. Take two of your own levers: raising menu prices and renegotiating supplier contracts. Which of those two does more to close the gap, and what would you ask the CEO to do about it?",
+   "hint": true,
+   "synthetic": false
+  },
+  {
+   "id": "batch-3-oct-02/01-maya-the-@t58",
+   "rung": 2,
+   "candidateText": "I don't know. Sorry.",
+   "interviewerText": "Based on what you have, what would you tell the CEO to do?",
+   "hint": false,
+   "synthetic": false,
+   "note": "re-asks the same recommendation question; no narrowing"
+  },
+  {
+   "id": "batch-3-oct-02/01-maya-the-@t62",
+   "rung": 2,
+   "candidateText": "I don't know. I'm sorry.",
+   "interviewerText": "What's your recommendation to the client?",
+   "hint": false,
+   "synthetic": false,
+   "note": "re-asks"
+  },
+  {
+   "id": "batch-3-oct-02/01-maya-the-@t66",
+   "rung": 2,
+   "candidateText": "I don't know. Sorry.",
+   "interviewerText": "Pull it together — what's your recommendation to the CEO?",
+   "hint": false,
+   "synthetic": false,
+   "note": "re-asks"
+  },
+  {
+   "id": "batch-3-oct-02/01-maya-the-@t76",
+   "rung": 2,
+   "candidateText": "I don't know. I'm sorry.",
+   "interviewerText": "Based on what you have, what would you tell the CEO to do?",
+   "hint": false,
+   "synthetic": false,
+   "note": "re-asks"
+  },
+  {
+   "id": "batch-3-oct-02/01-maya-the-@t80",
+   "rung": 2,
+   "candidateText": "I don't know. Sorry.",
+   "interviewerText": "What's your recommendation to the client?",
+   "hint": false,
+   "synthetic": false,
+   "note": "re-asks"
+  },
+  {
+   "id": "batch-3-oct-02/01-maya-the-@t92",
+   "rung": 2,
+   "candidateText": "I'm sorry. I don't know.",
+   "interviewerText": "That's our time. Thanks for working through this with me — your written report will follow.",
+   "hint": false,
+   "synthetic": false,
+   "note": "closes the case"
+  },
+  {
+   "id": "batch-5-oct-02/06-destiny-t@t7",
+   "rung": 2,
+   "candidateText": "hmm. I know profit is money coming in minus money going out, but past that I'm stuck.",
+   "interviewerText": "Okay, that's the right starting point. Let's simplify: revenue is up, yet margin fell sharply, so what are the two sides of that equation you'd need to look at?",
+   "hint": true,
+   "synthetic": false
+  },
+  {
+   "id": "batch-6-oct-03/01-maya-the-@t17",
+   "rung": 2,
+   "candidateText": "god I'm so bad at this. I really don't know.",
+   "interviewerText": "Let's simplify. Margin is profit as a share of revenue, so what are the two ways that margin can fall?",
+   "hint": true,
+   "synthetic": false
+  },
+  {
+   "id": "batch-6-oct-03/08-claire-th@t19",
+   "rung": 2,
+   "candidateText": "Hmm. I don't think I can call that without more detail.",
+   "interviewerText": "Let's simplify. A margin can fall in two ways: costs rise, or revenue per unit falls behind. Which of those two is the client's lever to act on right now, and what is one move there?",
+   "hint": true,
+   "synthetic": false,
+   "note": "narrows; names the two ways (part answer) but still a sub-question"
+  },
+  {
+   "id": "batch-7-oct-03/06-destiny-t@t7",
+   "rung": 2,
+   "candidateText": "revenue and costs, I guess? but I'm not sure what to do with that.",
+   "interviewerText": "That's a starting point. I can share the data on that if it would help. I can't share those figures at this stage. Revenue grew while margin fell, so which of those two would you look at first, and what would you want to know about it?",
+   "hint": true,
+   "synthetic": false,
+   "note": "borderline: garbled offer/refusal lines, then a narrowing question"
+  },
+  {
+   "id": "batch-7-oct-03/08-claire-th@t19",
+   "rung": 2,
+   "candidateText": "Hmm, I'm not sure.",
+   "interviewerText": "Let's simplify. Margin per cup depends on what the client charges and what each cup costs to make, so which of those two can the client change?",
+   "hint": true,
+   "synthetic": false
+  },
+  {
+   "id": "batch-8-oct-03/06-destiny-t@t7",
+   "rung": 2,
+   "candidateText": "Hmm. Revenue and costs, I guess? But I'm not sure what to do with that.",
+   "interviewerText": "Okay, revenue and costs. Revenue grew 15% while margin fell sharply, so what does that tell you about where to look, and which part of costs would you want to break down first?",
+   "hint": true,
+   "synthetic": false
+  },
+  {
+   "id": "batch-9-oct-05/06-destiny-t@t7",
+   "rung": 2,
+   "candidateText": "hmm... revenue and profit? I'm not sure, sorry.",
+   "interviewerText": "Let's simplify. Profit is what's left after something comes out of revenue. What are the two ways a profit margin can fall?",
+   "hint": true,
+   "synthetic": false
+  },
+  {
+   "id": "batch-9-oct-05/06-destiny-t@t11",
+   "rung": 3,
+   "candidateText": "hmm, I want to say expenses? But I'm not sure how that helps.",
+   "interviewerText": "Yes, expenses. Revenue has grown, so the pressure is on the cost side, and that's where we'll look. Here's the cost data. COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%. Which of these costs moved the most?",
+   "hint": true,
+   "synthetic": false
+  },
+  {
+   "id": "batch-9-oct-05/08-claire-th@t33",
+   "rung": 2,
+   "candidateText": "I don't know. I can't commit without that cost breakdown.",
+   "interviewerText": "Let's simplify. Margin is revenue less costs, so there are two basic ways to fix a squeeze like this. What are they?",
+   "hint": true,
+   "synthetic": false
+  },
+  {
+   "id": "syn-data-only",
+   "rung": 2,
+   "candidateText": "I don't know where to go from here.",
+   "interviewerText": "COGS is 58% of revenue today, up from 42% two years ago.",
+   "hint": false,
+   "synthetic": true
+  },
+  {
+   "id": "syn-moves-on",
+   "rung": 2,
+   "candidateText": "I'm stuck, sorry.",
+   "interviewerText": "Let's move on. What risks would you flag to the CEO?",
+   "hint": false,
+   "synthetic": true
+  },
+  {
+   "id": "syn-unrelated",
+   "rung": 3,
+   "candidateText": "I'm not sure which line to look at.",
+   "interviewerText": "How many stores does the client have?",
+   "hint": false,
+   "synthetic": true
+  },
+  {
+   "id": "syn-narrow",
+   "rung": 2,
+   "candidateText": "I don't really know how to break this down.",
+   "interviewerText": "Fair enough. Think about it as price times volume on one side, and cost per cup on the other — which side moved?",
+   "hint": true,
+   "synthetic": true
+  }
+ ]
+}

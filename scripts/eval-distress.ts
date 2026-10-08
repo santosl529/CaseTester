@@ -4,13 +4,16 @@
 // Prints both layers so lexicon gaps are visible. Exits 1 on any model miss
 // or false fire.
 //
-//   npx tsx --env-file=.env.local scripts/eval-distress.ts
+//   LLM_BUDGET_USD=0.05 npx tsx --env-file=.env.local scripts/eval-distress.ts [--model=<id>]
 
 import { classifyDistress, isDistressVerdict } from '@/lib/orchestrator/distress';
 import { classifyConduct } from '@/lib/orchestrator/conduct';
 import { requireRunBudget } from '@/lib/llm-budget';
 
 type Case = { text: string; expect: 'c5' | 'not_c5' };
+
+// --model=<id> runs another model through the production call (lib/models.ts settings).
+const MODEL = process.argv.find(a => a.startsWith('--model='))?.split('=')[1];
 
 const CORPUS: Case[] = [
   // distress — outside the case, phrased away from the lexicon
@@ -48,7 +51,7 @@ async function main() {
   const budget = requireRunBudget('eval-distress');
   process.on('exit', () => console.log(`[budget] ${budget.summary()}`));
   let failures = 0;
-  const results = await Promise.all(CORPUS.map(async c => ({ c, verdict: await classifyDistress({ candidateText: c.text }) })));
+  const results = await Promise.all(CORPUS.map(async c => ({ c, verdict: await classifyDistress({ candidateText: c.text, model: MODEL }) })));
   for (const { c, verdict } of results) {
     const model = isDistressVerdict(verdict);
     const regex = classifyConduct(c.text, 0).category === 'C5';
@@ -58,7 +61,7 @@ async function main() {
   }
   const c5 = CORPUS.filter(c => c.expect === 'c5').length;
   const regexCaught = CORPUS.filter(c => c.expect === 'c5' && classifyConduct(c.text, 0).category === 'C5').length;
-  console.log(`\nmodel failures: ${failures}/${CORPUS.length} · regex alone caught ${regexCaught}/${c5} distress messages`);
+  console.log(`\nmodel ${MODEL ?? 'default'} · failures: ${failures}/${CORPUS.length} · regex alone caught ${regexCaught}/${c5} distress messages`);
   process.exit(failures > 0 ? 1 : 0);
 }
 
