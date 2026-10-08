@@ -1,6 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { RUBRIC_DIMENSION_KEYS, RUBRIC_DIMENSION_LABELS, type RubricDimensionKey } from './rubric';
 import type { OnUsage } from '@/lib/llm-usage';
+import { anthropicClient } from '@/lib/anthropic-client';
 
 // Live coverage tracker (a SEPARATE, cheaper agent from the end-of-case judge).
 // It answers one question each turn: how much EVIDENCE do we have to score each
@@ -83,7 +83,7 @@ export async function assessCoverage(
   transcript: TranscriptTurn[],
   onUsage?: OnUsage, // lib/llm-usage.ts — token reporting for $/case (PRD §13)
 ): Promise<CoverageScores | null> {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const client = anthropicClient();
 
   const transcriptText = transcript
     .map(t => `[${t.role.toUpperCase()}]: ${t.text}`)

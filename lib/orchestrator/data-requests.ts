@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { OnUsage } from '@/lib/llm-usage';
 import type { RequestedUnanswered } from '@/lib/scoring/data-coverage';
+import { anthropicClient } from '@/lib/anthropic-client';
 
 // Rule 11 (docs/interviewer-behavior.md v4.1): every candidate data request is
 // released, refused, or audibly deferred — never ignored. Run 4 had two silent
@@ -251,7 +252,7 @@ export async function classifyDataRequests(params: {
   onUsage?: OnUsage; // lib/llm-usage.ts — token reporting for $/case (PRD §13)
   model?: string;    // eval override; defaults to DATA_REQUEST_MODEL_ID
 }): Promise<DetectedDataRequest[] | null> {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const client = anthropicClient();
   const prompt = buildDataRequestPrompt(params.candidateText, params.interviewerText, params.catalog);
   const model = params.model ?? DATA_REQUEST_MODEL_ID;
 

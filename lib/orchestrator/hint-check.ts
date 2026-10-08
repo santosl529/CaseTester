@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { OnUsage } from '@/lib/llm-usage';
 import type { LadderRung } from './stall';
+import { anthropicClient } from '@/lib/anthropic-client';
 
 // Round-3 fix 6: was the recorded hint really a hint? After batch 3 a rung
 // counts as delivered when the sent turn asks the candidate something (Maya's
@@ -53,7 +54,7 @@ export async function checkHintDelivered(params: {
   interviewerText: string;
   onUsage?: OnUsage;
 }): Promise<{ hint: boolean; reason: string } | null> {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const client = anthropicClient();
   try {
     const response = await client.messages.create({
       model: HINT_CHECK_MODEL_ID,

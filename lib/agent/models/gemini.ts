@@ -14,6 +14,8 @@ import { TurnStreamParser } from './turn-stream';
 import { collectTurn, NEUTRAL_TURN } from './turn-events';
 import { TURN_KEYS, retryNote, type Attempt } from './anthropic';
 import { SseReader } from './cerebras';
+import { activeRunBudget } from '@/lib/llm-budget';
+import { UnpricedModelError } from '@/lib/llm-pricing';
 
 type GeminiChunk = {
   candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] } }[];
@@ -45,6 +47,8 @@ export class GeminiInterviewerModel implements InterviewerModel {
   }
 
   async *streamTurn(ctx: TurnContext): AsyncGenerator<TurnEvent> {
+    // Not metered and no verified price: refused under a run budget (lib/llm-budget.ts).
+    if (activeRunBudget()) throw new UnpricedModelError(this.modelId);
     const canRegenerate = () => ctx.canRegenerate?.() ?? true;
     let attempt = yield* this.attempt(ctx);
     let retried = false;

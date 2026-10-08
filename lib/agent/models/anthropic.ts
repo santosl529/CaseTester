@@ -4,6 +4,7 @@ import { INTERVIEWER_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { TURN_SCHEMA, parseTurn, toRequests, unknownIds, type ModelTurn } from './turn-schema';
 import { TurnStreamParser } from './turn-stream';
 import { collectTurn, NEUTRAL_TURN } from './turn-events';
+import { anthropicClient } from '@/lib/anthropic-client';
 
 export { INTERVIEWER_MODEL_ID } from '@/lib/models';
 
@@ -29,7 +30,7 @@ export class AnthropicInterviewerModel implements InterviewerModel {
   private options: AnthropicRequestOptions;
 
   constructor(modelId: string = INTERVIEWER_MODEL_ID, layout: PromptLayout = promptLayoutFromEnv(), options: AnthropicRequestOptions = {}) {
-    this.client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    this.client = anthropicClient();
     this.modelId = modelId;
     this.layout = layout;
     this.options = options;

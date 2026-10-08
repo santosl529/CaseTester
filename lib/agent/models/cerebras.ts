@@ -14,6 +14,8 @@ import { TURN_SCHEMA, parseTurn, toRequests, unknownIds, type ModelTurn } from '
 import { TurnStreamParser } from './turn-stream';
 import { collectTurn, NEUTRAL_TURN } from './turn-events';
 import { TURN_KEYS, retryNote, type Attempt } from './anthropic';
+import { activeRunBudget } from '@/lib/llm-budget';
+import { UnpricedModelError } from '@/lib/llm-pricing';
 
 // The OpenAI-style chat-completions endpoints this adapter speaks to.
 type Endpoint = { url: string; keyEnv: string; label: string; name: string; extraBody?: Record<string, unknown> };
@@ -149,6 +151,8 @@ export class CerebrasInterviewerModel implements InterviewerModel {
   }
 
   async *streamTurn(ctx: TurnContext): AsyncGenerator<TurnEvent> {
+    // Not metered and no verified price: refused under a run budget (lib/llm-budget.ts).
+    if (activeRunBudget()) throw new UnpricedModelError(this.modelId);
     const canRegenerate = () => ctx.canRegenerate?.() ?? true;
     let attempt = yield* this.attempt(buildMessages(ctx), ctx);
     let retried = false;

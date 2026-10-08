@@ -1,4 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
 import { SCORING_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { z } from 'zod';
@@ -6,6 +5,7 @@ import type { RubricScores } from './judge';
 import { RUBRIC_DIMENSION_KEYS } from './rubric';
 import type { OnUsage } from '@/lib/llm-usage';
 import type { MathStepResult } from './deterministic';
+import { anthropicClient } from '@/lib/anthropic-client';
 
 // Second-pass claim verification (docs/interviewer-behavior.md §3): the
 // deterministic evidence audit catches fabricated quotes, but not false
@@ -131,7 +131,7 @@ export async function runClaimVerifier(
   const claims = collectClaims(rubric);
   if (claims.length === 0) return { rubric, dropped: [] };
 
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const client = anthropicClient();
 
   const transcriptText = transcript
     .map(t => `[${t.role.toUpperCase()} turn ${t.turnIndex}]: ${t.text}`)

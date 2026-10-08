@@ -8,6 +8,7 @@
 
 import { classifyDistress, isDistressVerdict } from '@/lib/orchestrator/distress';
 import { classifyConduct } from '@/lib/orchestrator/conduct';
+import { requireRunBudget } from '@/lib/llm-budget';
 
 type Case = { text: string; expect: 'c5' | 'not_c5' };
 
@@ -44,6 +45,8 @@ const CORPUS: Case[] = [
 ];
 
 async function main() {
+  const budget = requireRunBudget('eval-distress');
+  process.on('exit', () => console.log(`[budget] ${budget.summary()}`));
   let failures = 0;
   const results = await Promise.all(CORPUS.map(async c => ({ c, verdict: await classifyDistress({ candidateText: c.text }) })));
   for (const { c, verdict } of results) {

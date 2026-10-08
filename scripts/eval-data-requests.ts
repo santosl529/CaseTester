@@ -18,6 +18,7 @@ import { readFileSync } from 'node:fs';
 import { classifyDataRequests } from '@/lib/orchestrator/data-requests';
 import { labelWithPeriod } from '@/lib/orchestrator/data-ledger';
 import { getCaseById } from '@/lib/cases/loader';
+import { requireRunBudget } from '@/lib/llm-budget';
 
 type Labelled = { source: string; text: string; accept: ('E' | 'M' | 'N')[] };
 
@@ -28,6 +29,8 @@ const catalog = getCaseById('prof-001').dataLedger.map(d => ({ id: d.id, label: 
 const MODEL = process.argv.find(a => a.startsWith('--model='))?.split('=')[1];
 
 async function main() {
+  const budget = requireRunBudget('eval-data-requests');
+  process.on('exit', () => console.log(`[budget] ${budget.summary()}`));
   let correct = 0, falseExplicit = 0, missedExplicit = 0, failed = 0, inputTokens = 0, outputTokens = 0;
   const latencies: number[] = [];
   const results: Awaited<ReturnType<typeof classifyDataRequests>>[] = new Array(cases.length);
@@ -56,8 +59,7 @@ async function main() {
     const asks = detected.map(r => `${r.explicit ? 'E' : 'M'}:${r.what}${r.ledgerItemIds.length ? ` [${r.ledgerItemIds.join(',')}]` : ''}`).join(' | ');
     console.log(`${kind} ${c.source} (want ${c.accept.join('/')}, got ${got}) — ${asks || 'no requests'}\n         ${c.text.slice(0, 200).replace(/\s+/g, ' ')}`);
   });
-  const cost = (inputTokens * 1 + outputTokens * 5) / 1e6;
-  console.log(`\n${correct}/${cases.length} correct · false explicit ${falseExplicit} · missed explicit ${missedExplicit} · failed ${failed} · ~$${cost.toFixed(3)}`);
+  console.log(`\n${correct}/${cases.length} correct · false explicit ${falseExplicit} · missed explicit ${missedExplicit} · failed ${failed} · tokens in ${inputTokens} out ${outputTokens}`);
 }
 
 main();

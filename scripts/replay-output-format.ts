@@ -29,7 +29,6 @@ import { stageAdministration, endAllowed } from '@/lib/orchestrator/spoken-close
 import { TOTAL_CASE_MS, type Phase } from '@/lib/orchestrator/state-machine';
 import { CONDUCT_REDIRECT } from '@/lib/agent/prompts/scripts';
 import { DATA_TALK, vetoReason } from '@/lib/orchestrator/stream-turn';
-import Anthropic from '@anthropic-ai/sdk';
 import { writeOpener, OPENER_TURN_NOTE, openerGate } from '@/lib/agent/opener';
 import { INTERVIEWER_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { TURN_SCHEMA } from '@/lib/agent/models/turn-schema';
@@ -40,6 +39,8 @@ import type { InterviewerModel } from '@/lib/agent/models/interface';
 import { enforceNumericProvenance } from '@/lib/orchestrator/numeric-provenance';
 import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
 import { explicitRequestCues } from '@/lib/orchestrator/request-signal';
+import { anthropicClient } from '@/lib/anthropic-client';
+import { requireRunBudget, activeRunBudget } from '@/lib/llm-budget';
 
 const RUNS_ROOT = 'Case Interview Runs/test runs';
 const BATCHES = (process.env.REPLAY_BATCHES ?? 'batch-7-oct-03,batch-8-oct-03').split(',');
@@ -185,7 +186,7 @@ type Row = {
 };
 
 const ARM = process.env.REPLAY_ARM ?? 'prod';
-const anthropic = new Anthropic();
+const anthropic = anthropicClient();
 
 const model = createInterviewerModel();   // INTERVIEWER_PROVIDER=cerebras for the Cerebras arm
 
@@ -457,8 +458,9 @@ async function runScreen(samples: Sample[], base: AbArm, challengers: AbArm[], t
     console.log(`  [${base.name}] ${k} median ${pct(baseOk.map(r => r.base[k]).filter((x): x is number => x != null), 0.5)} p90 ${pct(baseOk.map(r => r.base[k]).filter((x): x is number => x != null), 0.9)}`);
   }
   const regenLine = (rs: VariantRun[]) => `guard B active on ${rs.filter(r => r.guardB).length}, regenerated ${rs.filter(r => r.regenerated).length}`;
-  console.log(`  [${base.name}] ${regenLine(rows.map(r => r.base))} · spend $${rows.reduce((c, r) => c + runCost(base.name, r.base), 0).toFixed(3)}`);
-  for (const c of challengers) console.log(`  [${c.name}] ${regenLine(rows.flatMap(r => r.runs[c.name]))} · spend $${rows.reduce((t, r) => t + r.runs[c.name].reduce((u, x) => u + runCost(c.name, x), 0), 0).toFixed(3)}`);
+  console.log(`  [${base.name}] ${regenLine(rows.map(r => r.base))}`);
+  for (const c of challengers) console.log(`  [${c.name}] ${regenLine(rows.flatMap(r => r.runs[c.name]))}`);
+  console.log(`  [budget] ${activeRunBudget()?.summary()}`);
   const baseFlags = baseOk.flatMap(r => qualityFlags(samples.find(x => x.id === r.id)!, r.base.turn));
   console.log(`  [${base.name}] quality flags over ${baseOk.length} outputs: ${JSON.stringify(baseFlags.reduce<Record<string, number>>((m, x) => { m[x] = (m[x] ?? 0) + 1; return m; }, {}))} · errors ${rows.length - baseOk.length}`);
   for (const c of challengers) {
@@ -499,12 +501,6 @@ const CHALLENGERS: Record<string, () => InterviewerModel> = {
   'haiku55-none-medium': () => new AnthropicInterviewerModel('claude-haiku-5-5', 'state-in-system', { thinking: 'disabled', effort: 'medium', fallbacks: false }),
 };
 
-// $/MTok by arm for the spend line: input, cache read, 5-minute cache write, output.
-const ARM_RATES: Record<string, { in: number; read: number; write: number; out: number }> = {
-  sonnet: { in: 2, read: 0.1, write: 2.5, out: 10 },
-  'haiku55-none-medium': { in: 0.1, read: 0.01, write: 0.125, out: 0.5 },
-};
-const runCost = (arm: string, r: VariantRun) => { const k = ARM_RATES[arm]; return k ? (r.inputTokens * k.in + r.cacheRead * k.read + r.cacheWrite * k.write + r.outputTokens * k.out) / 1e6 : 0; };
 
 // --smoke: one call per arm on one turn — account access, schema accepted,
 // streamed (first token before completion), output printed. Nothing saved.
@@ -541,7 +537,7 @@ async function main() {
     return;
   }
   const estCost = samples.reduce((n, s) => n + (buildSystemPrompt(s.ctx).length + s.history.reduce((m, h) => m + h.content.length, 0)) / 3.6, 0) * 2 / 1e6;
-  console.log(`${all.length} reconstructable turns · sampling ${samples.length} · est cost ~$${estCost.toFixed(2)}`);
+  console.log(`${all.length} reconstructable turns · sampling ${samples.length} · rough Sonnet input estimate ~$${estCost.toFixed(2)} (the run budget meters actual spend)`);
   if (ARM === 'compact-ab' || ARM === 'model-ab') {
     // Stratified by stage, weighted to where requests and math happen, and
     // spread over sessions within a stage (the first N are one session's
@@ -589,12 +585,14 @@ async function main() {
         if (!CHALLENGERS[n]) throw new Error(`unknown REPLAY_MODELS entry ${n} (have ${Object.keys(CHALLENGERS).join(', ')})`);
         return { name: n, model: CHALLENGERS[n](), promptVariant: 'full' as const };
       })];
+    requireRunBudget('replay-output-format');
     if (args.includes('--smoke')) { await smoke(spread.find(x => x.ctx.currentPhase === 'ANALYSIS') ?? spread[0], arms); return; }
     if (ARM === 'model-ab') { await runScreen(spread, arms[0], arms.slice(1), ARM); return; }
     await runAB(spread, arms, ARM);
     return;
   }
   if (DRY) { writeFileSync(path.join(OUT_DIR, 'replay-sample-prompt.txt'), buildSystemPrompt(samples[0].ctx)); return; }
+  requireRunBudget('replay-output-format');
   if (ARM === 'floor') {
     await bareFirstTokenMs();
     if (process.env.FLOOR_CONCURRENT) await runFloorConcurrent(samples, Number(process.env.FLOOR_CONCURRENT));
@@ -632,11 +630,7 @@ async function main() {
   console.log(`  output tokens median ${pct(ok.map(r => r.outputTokens), 0.5)} · cache read median ${pct(ok.map(r => r.cacheRead), 0.5)}`);
   console.log(`  moves: ${JSON.stringify(ok.reduce<Record<string, number>>((m, r) => { const k = r.turn?.move ?? '?'; m[k] = (m[k] ?? 0) + 1; return m; }, {}))}`);
   for (const r of rows.filter(r => !r.ok).slice(0, 3)) console.log(`  error: ${r.error}`);
-  // $/M tokens: Sonnet 5.5 $2 in / $0.20 cached / $10 out; Cerebras gpt-oss-120b
-  // $0.35 in / $0.75 out (cached input not discounted here: conservative).
-  const rates = process.env.INTERVIEWER_PROVIDER === 'cerebras' ? { in: 0.35, cached: 0.35, out: 0.75 } : { in: 2, cached: 0.2, out: 10 };
-  const cost = ok.reduce((c, r) => c + r.inputTokens * rates.in + r.cacheRead * rates.cached + r.outputTokens * rates.out, 0) / 1e6;
-  console.log(`actual cost ~$${cost.toFixed(2)}`);
+  console.log(`[budget] ${activeRunBudget()?.summary()}`);
 }
 
 if (!existsSync(RUNS_ROOT)) throw new Error(`run from the repo root (${RUNS_ROOT} not found)`);

@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { OnUsage } from '@/lib/llm-usage';
+import { anthropicClient } from '@/lib/anthropic-client';
 
 // Rule 17-C5 model layer (docs/interviewer-behavior.md v4.6, round-2 fix 1).
 // The regex lexicon in conduct.ts caught Sam only because her phrasing was
@@ -64,7 +65,7 @@ export async function classifyDistress(params: {
   candidateText: string;
   onUsage?: OnUsage;
 }): Promise<DistressVerdict | null> {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const client = anthropicClient();
   try {
     const response = await client.messages.create({
       model: DISTRESS_MODEL_ID,

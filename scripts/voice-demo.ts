@@ -24,6 +24,7 @@ import type { Phase } from '@/lib/orchestrator/state-machine';
 import { pickAck, shouldAcknowledge } from '@/lib/voice/acknowledge';
 import { trimSilence } from '@/lib/voice/pcm';
 import type { SegmentKind } from '@/lib/orchestrator/turn-types';
+import { requireRunBudget } from '@/lib/llm-budget';
 
 const flag = (name: string) => process.argv.find(a => a.startsWith(`--${name}=`))?.split('=')[1];
 const RUN = flag('run') ?? 'batch-12-oct-06/00';
@@ -101,6 +102,8 @@ function candidateLines(): string[] {
 const fmt = (t: number) => `${Math.floor(t / 60000)}:${String(Math.floor((t % 60000) / 1000)).padStart(2, '0')}.${String(Math.floor((t % 1000) / 100))}`;
 
 async function main() {
+  const budget = requireRunBudget('voice-demo');
+  process.on('exit', () => console.log(`[budget] ${budget.summary()}`));
   const lines = candidateLines();
   const owner = await db.query.sessions.findFirst({ orderBy: [desc(sessions.startedAt)] });
   if (!owner) throw new Error('No existing session to borrow a user id from.');

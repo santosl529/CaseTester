@@ -47,6 +47,9 @@ import { RUBRIC_DIMENSION_KEYS, RUBRIC_DIMENSION_LABELS } from '@/lib/scoring/ru
 import type { RubricScores } from '@/lib/scoring/judge';
 import { renderReportPdf } from '@/app/api/report/[sessionId]/pdf/render';
 import { getPersona, type Persona } from './personas';
+import { anthropicClient } from '@/lib/anthropic-client';
+import { requireRunBudget, BudgetExceededError } from '@/lib/llm-budget';
+import { costOf, isPriced } from '@/lib/llm-pricing';
 
 const CANDIDATE_MODEL = 'claude-opus-5';
 // human pacing on a 20-minute clock can exceed 30 turns; --max-turns=N for a smoke run
@@ -141,7 +144,12 @@ type Line = { role: 'interviewer' | 'candidate'; text: string };
 
 // The simulator's own spend, which the app's llm_usage events don't see —
 // reported beside them so a run's cost is complete.
-const candidateUsage = { calls: 0, input: 0, output: 0, models: new Set<string>() };
+const candidateUsage = { calls: 0, input: 0, output: 0, usd: 0, models: new Set<string>() };
+
+// Every run has a cap (LLM_BUDGET_USD; LLM_BUDGET_FILE shares it across a
+// batch's parallel runs). Every Anthropic call — app, background, scoring,
+// simulator — is metered against it; the run stops once it is reached.
+const BUDGET = requireRunBudget('live-run');
 
 // --script=<run dir>: the candidate's lines, in order, from a saved run instead
 // of the simulator (no Opus cost) — reproduces a known conversation through
@@ -223,6 +231,10 @@ async function candidateReply(client: Anthropic, transcript: Line[]): Promise<st
   candidateUsage.calls += 1;
   candidateUsage.input += response.usage.input_tokens + (response.usage.cache_creation_input_tokens ?? 0) + (response.usage.cache_read_input_tokens ?? 0);
   candidateUsage.output += response.usage.output_tokens;
+  candidateUsage.usd += costOf({
+    model: response.model, inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens,
+    cacheReadTokens: response.usage.cache_read_input_tokens ?? 0, cacheWriteTokens: response.usage.cache_creation_input_tokens ?? 0,
+  });
   candidateUsage.models.add(response.model);
   if (response.stop_reason === 'refusal') throw new Error('candidate simulator refused');
   const text = response.content
@@ -256,7 +268,7 @@ async function main() {
   if (!owner) throw new Error('No existing session to borrow a user id from — start one through the app first.');
   const userId = owner.userId;
 
-  const client = new Anthropic();
+  const client = anthropicClient();
   const { sessionId, openingText } = await startSession(userId, caseId);
   if (flag('seed')) await seedSession(sessionId);
   console.log(`[live-run] session ${sessionId} · ${caseData.title}${PERSONA ? ` · persona ${PERSONA.id} ${PERSONA.name}` : ''} · pace ${PACE}`);
@@ -267,62 +279,71 @@ async function main() {
   const startedAt = Date.now();
   let phase: Phase = 'INTRO';
   let ended = false;
+  let budgetStopped = false;
 
-  for (let turn = 0; turn < MAX_TURNS && Date.now() - startedAt < MAX_WALL_MS; turn++) {
-    // The interviewer's turn just landed: the candidate's silence starts now.
-    const replyStartedAt = Date.now();
-    const { text: candidateText, pauseMs } = takePause(await candidateReply(client, transcript));
-    if (SCRIPT_DIR && !candidateText) { console.log('[live-run] script finished'); break; }
-    if (pauseMs) console.log(`\n[candidate silent ${pauseMs / 1000}s]`);
-    let abandoned = false;
-    for (const threshold of [SILENCE_CHECK_IN_MS, SILENCE_PAUSE_MS, SILENCE_PAUSE_MS + SILENCE_PAUSE_MAX_MS]) {
-      if (pauseMs < threshold) break;
-      // Report the silence actually measured, a beat past the threshold: the
-      // server bounds it by its own clock, and an exact-threshold report lost
-      // the 180s pause to millisecond jitter (run 88288c97).
-      await sleep(replyStartedAt + threshold + 1000 - Date.now());
-      const silence = await runSilence(sessionId, Date.now() - replyStartedAt);
-      if (silence.interviewerText) {
-        transcript.push({ role: 'interviewer', text: silence.interviewerText });
-        console.log(`\n[interviewer · ${silence.action} · ${clock(Date.now() - startedAt)}] ${silence.interviewerText}`);
+  try {
+    for (let turn = 0; turn < MAX_TURNS && Date.now() - startedAt < MAX_WALL_MS; turn++) {
+      // The interviewer's turn just landed: the candidate's silence starts now.
+      const replyStartedAt = Date.now();
+      const { text: candidateText, pauseMs } = takePause(await candidateReply(client, transcript));
+      if (SCRIPT_DIR && !candidateText) { console.log('[live-run] script finished'); break; }
+      if (pauseMs) console.log(`\n[candidate silent ${pauseMs / 1000}s]`);
+      let abandoned = false;
+      for (const threshold of [SILENCE_CHECK_IN_MS, SILENCE_PAUSE_MS, SILENCE_PAUSE_MS + SILENCE_PAUSE_MAX_MS]) {
+        if (pauseMs < threshold) break;
+        // Report the silence actually measured, a beat past the threshold: the
+        // server bounds it by its own clock, and an exact-threshold report lost
+        // the 180s pause to millisecond jitter (run 88288c97).
+        await sleep(replyStartedAt + threshold + 1000 - Date.now());
+        const silence = await runSilence(sessionId, Date.now() - replyStartedAt);
+        if (silence.interviewerText) {
+          transcript.push({ role: 'interviewer', text: silence.interviewerText });
+          console.log(`\n[interviewer · ${silence.action} · ${clock(Date.now() - startedAt)}] ${silence.interviewerText}`);
+        }
+        if (silence.ended) {
+          abandoned = true;
+          break;
+        }
       }
-      if (silence.ended) {
-        abandoned = true;
+      if (abandoned) break; // expired pause: session abandoned, unscored
+      // The simulator's own latency counts toward the pause and the think + type time.
+      await sleep(replyStartedAt + pauseMs + (PACE === 'human' ? humanDelayMs(candidateText) : 0) - Date.now());
+      transcript.push({ role: 'candidate', text: candidateText });
+      console.log(`\n[candidate · ${clock(Date.now() - startedAt)}] ${candidateText}`);
+
+      const phaseBeforeTurn = phase;
+      // Analytics writes run in the background, as after() runs them in the route.
+      const result = await runTurn(sessionId, candidateText, { defer: task => { background.push(task()); } });
+      // What the candidate sees: the spoken text, plus the exhibit the app would
+      // render in its side panel. The DB transcript is unaffected.
+      transcript.push({
+        role: 'interviewer',
+        text: result.exhibit ? `${result.interviewerText}\n\n${exhibitAsText(result.exhibit)}` : result.interviewerText,
+      });
+      console.log(`\n[interviewer · ${result.phase} · ${clock(Date.now() - startedAt)}] ${result.interviewerText}`);
+      phase = result.phase;
+
+      background.push(runPostTurnBackground({ sessionId, userId, caseId, phase: phaseBeforeTurn, result }));
+      if (result.ended) {
+        ended = true;
         break;
       }
+      if (!result.interviewerText) throw new Error('interviewer returned an empty turn');
+      if (BUDGET.exceeded) { budgetStopped = true; break; }
     }
-    if (abandoned) break; // expired pause: session abandoned, unscored
-    // The simulator's own latency counts toward the pause and the think + type time.
-    await sleep(replyStartedAt + pauseMs + (PACE === 'human' ? humanDelayMs(candidateText) : 0) - Date.now());
-    transcript.push({ role: 'candidate', text: candidateText });
-    console.log(`\n[candidate · ${clock(Date.now() - startedAt)}] ${candidateText}`);
-
-    const phaseBeforeTurn = phase;
-    // Analytics writes run in the background, as after() runs them in the route.
-    const result = await runTurn(sessionId, candidateText, { defer: task => { background.push(task()); } });
-    // What the candidate sees: the spoken text, plus the exhibit the app would
-    // render in its side panel. The DB transcript is unaffected.
-    transcript.push({
-      role: 'interviewer',
-      text: result.exhibit ? `${result.interviewerText}\n\n${exhibitAsText(result.exhibit)}` : result.interviewerText,
-    });
-    console.log(`\n[interviewer · ${result.phase} · ${clock(Date.now() - startedAt)}] ${result.interviewerText}`);
-    phase = result.phase;
-
-    background.push(runPostTurnBackground({ sessionId, userId, caseId, phase: phaseBeforeTurn, result }));
-    if (result.ended) {
-      ended = true;
-      break;
-    }
-    if (!result.interviewerText) throw new Error('interviewer returned an empty turn');
+  } catch (err) {
+    // A refused call (the cap was reached mid-turn) stops the run; the records are still written.
+    if (!(err instanceof BudgetExceededError)) throw err;
+    budgetStopped = true;
   }
   await Promise.allSettled(background);
+  if (budgetStopped) console.warn(`[live-run] RUN BUDGET REACHED — run stopped: ${BUDGET.summary()}`);
 
   // A scoring failure must not lose the run: batch 4 (2 Oct) threw in the
   // judge and the transcript files were never written.
   let scoring: { status: string };
   try {
-    scoring = !ended ? { status: 'not_completed' } : NO_SCORE ? { status: 'skipped' } : await scoreSession({ sessionId, userId });
+    scoring = budgetStopped ? { status: 'budget_stopped' } : !ended ? { status: 'not_completed' } : NO_SCORE ? { status: 'skipped' } : await scoreSession({ sessionId, userId });
   } catch (err) {
     console.error('[live-run] scoring failed:', err instanceof Error ? err.message : err);
     scoring = { status: 'failed' };
@@ -368,26 +389,19 @@ async function writeArtifacts(sessionId: string, caseTitle: string) {
   const interventions = events.filter(e => e.category === 'intervention');
   const scoringQa = analytics.find(a => a.eventType === 'scoring_qa')?.payloadJsonb as Record<string, unknown> | undefined;
   const forced = analytics.filter(a => a.eventType === 'data_force_released').map(a => a.payloadJsonb);
-  // List price per million tokens, uncached, by model id (the app sets no
-  // cache_control). Unknown ids fall back to Opus 4.8 pricing.
-  const PRICE_PER_MTOK: Record<string, [number, number]> = {
-    'claude-opus-5-5': [4, 20], 'claude-opus-5': [5, 25], 'claude-opus-4-8': [5, 25],
-    'claude-sonnet-5-5': [2, 10], 'claude-sonnet-5': [2, 10],
-    'claude-haiku-4-5': [1, 5], 'claude-haiku-4-5-20251001': [1, 5],
-  };
-  const usd = (model: string, input: number, output: number) => {
-    const [i, o] = PRICE_PER_MTOK[model] ?? [5, 25];
-    return (input * i + output * o) / 1e6;
-  };
-  const usage = new Map<string, { calls: number; input: number; output: number; cost: number }>();
+  // Priced from lib/llm-pricing.ts with cache reads and writes; an unpriced
+  // model id is shown as UNPRICED and the total marked incomplete — never $0.
+  const usage = new Map<string, { calls: number; input: number; output: number; cost: number; unpriced: boolean }>();
   for (const a of analytics.filter(x => x.eventType === 'llm_usage')) {
-    const p = a.payloadJsonb as { component?: string; model?: string; inputTokens?: number; outputTokens?: number; apiCalls?: number };
+    const p = a.payloadJsonb as { component?: string; model?: string; inputTokens?: number; outputTokens?: number; cacheReadTokens?: number; cacheWriteTokens?: number; apiCalls?: number };
     const key = `${p.component ?? 'unknown'} (${p.model ?? '?'})`;
-    const u = usage.get(key) ?? { calls: 0, input: 0, output: 0, cost: 0 };
+    const u = usage.get(key) ?? { calls: 0, input: 0, output: 0, cost: 0, unpriced: false };
     u.calls += p.apiCalls ?? 1;
-    u.input += p.inputTokens ?? 0;
+    u.input += (p.inputTokens ?? 0) + (p.cacheReadTokens ?? 0) + (p.cacheWriteTokens ?? 0);
     u.output += p.outputTokens ?? 0;
-    u.cost += usd(p.model ?? '', p.inputTokens ?? 0, p.outputTokens ?? 0);
+    if (isPriced(p.model ?? '')) {
+      u.cost += costOf({ model: p.model!, inputTokens: p.inputTokens ?? 0, outputTokens: p.outputTokens ?? 0, cacheReadTokens: p.cacheReadTokens ?? 0, cacheWriteTokens: p.cacheWriteTokens ?? 0 });
+    } else u.unpriced = true;
     usage.set(key, u);
   }
 
@@ -428,14 +442,16 @@ async function writeArtifacts(sessionId: string, caseTitle: string) {
   md.push('');
 
   let appUsd = 0;
-  md.push('## LLM usage', '', '| Component | Calls | Input tokens | Output tokens | Est. USD |', '|---|---|---|---|---|');
+  const unpriced = [...usage].filter(([, u]) => u.unpriced).map(([k]) => k);
+  md.push('## LLM usage', '', '| Component | Calls | Input tokens (incl. cache) | Output tokens | USD |', '|---|---|---|---|---|');
   for (const [k, u] of usage) {
     appUsd += u.cost;
-    md.push(`| ${k} | ${u.calls} | ${u.input} | ${u.output} | $${u.cost.toFixed(3)} |`);
+    md.push(`| ${k} | ${u.calls} | ${u.input} | ${u.output} | ${u.unpriced ? '**UNPRICED**' : `$${u.cost.toFixed(3)}`} |`);
   }
-  const simUsd = usd(CANDIDATE_MODEL, candidateUsage.input, candidateUsage.output);
+  const simUsd = candidateUsage.usd;
   md.push(`| candidate simulator (${[...candidateUsage.models].join(', ')}) | ${candidateUsage.calls} | ${candidateUsage.input} | ${candidateUsage.output} | $${simUsd.toFixed(3)} |`);
-  md.push('', `- App cost (interviewer + scoring): **$${appUsd.toFixed(2)}** · with simulator: **$${(appUsd + simUsd).toFixed(2)}** · list prices, uncached`);
+  md.push('', `- App cost (interviewer, background, scoring; from llm_usage): **$${appUsd.toFixed(2)}**${unpriced.length ? ` **INCOMPLETE — unpriced: ${unpriced.join(', ')}**` : ''} · with simulator: **$${(appUsd + simUsd).toFixed(2)}** · list prices, cache included`);
+  md.push(`- Metered (every Anthropic call this process made, incl. aborted streams): ${BUDGET.summary()}`);
   md.push(`- Wall time: ${clock(Date.now() - startMs)}`, '');
 
   if (score) {

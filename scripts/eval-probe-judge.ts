@@ -12,11 +12,12 @@
 // keeps PROBE_JUDGE_MODEL_ID. Haiku 5.5: thinking explicitly disabled (it is on
 // by default and would eat the 120-token budget), effort medium; no sampling
 // params; no server-side fallback (Haiku 5.5 has none).
-import Anthropic from '@anthropic-ai/sdk';
 import { writeFileSync } from 'node:fs';
 import dev from '@/tests/orchestrator/fixtures/probe-judge-labelled.json';
 import heldout from '@/tests/orchestrator/fixtures/probe-judge-heldout.json';
 import { judgeProbeAnswer, judgeStructureGiven } from '@/lib/orchestrator/pressure-test';
+import { anthropicClient } from '@/lib/anthropic-client';
+import { requireRunBudget } from '@/lib/llm-budget';
 
 const arg = (k: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.split('=')[1];
 const MODEL = arg('model') ?? 'claude-haiku-4-5';
@@ -24,11 +25,8 @@ const SET = arg('set') ?? 'both';
 const OUT = arg('out');
 const TIMEOUT_MS = 20000;   // eval only; production is 3s — latency is reported against it
 
-// $/MTok (≤100k-token prompts for Haiku 5.5).
-const RATES: Record<string, { in: number; out: number }> = { 'claude-haiku-4-5': { in: 1, out: 5 }, 'claude-haiku-5-5': { in: 0.1, out: 0.5 } };
-if (!RATES[MODEL]) throw new Error(`unknown --model ${MODEL}`);
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const client = anthropicClient();
 let inTok = 0, outTok = 0;
 const latencies: number[] = [];
 const stops: Record<string, number> = {};
@@ -50,6 +48,7 @@ type Fixture = { probeAnswers: { id: string; probe: string; reply: string; answe
 const sets: [string, Fixture][] = ([['dev', dev], ['heldout', heldout]] as [string, Fixture][]).filter(([n]) => SET === 'both' || SET === n);
 
 async function main() {
+  const budget = requireRunBudget('eval-probe-judge');
   const tasks: (() => Promise<void>)[] = sets.flatMap(([set, f]) => [
     ...f.probeAnswers.map(c => async () => {
       const v = await judgeProbeAnswer({ probe: c.probe, replies: [c.reply], timeoutMs: TIMEOUT_MS }, call);
@@ -66,7 +65,7 @@ async function main() {
 
   const pct = (xs: number[], p: number) => { const s = [...xs].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(p * s.length))]; };
   console.log(`model ${MODEL} · ${rows.length} judgements · latency median ${pct(latencies, 0.5)}ms p90 ${pct(latencies, 0.9)}ms max ${Math.max(...latencies)}ms · over 3s ${latencies.filter(x => x > 3000).length} · stop ${JSON.stringify(stops)}`);
-  console.log(`tokens in ${inTok} out ${outTok} · cost $${((inTok * RATES[MODEL].in + outTok * RATES[MODEL].out) / 1e6).toFixed(4)}`);
+  console.log(`tokens in ${inTok} out ${outTok} · ${budget.summary()}`);
   for (const [set] of sets) for (const check of ['probe', 'structure']) {
     const r = rows.filter(x => x.set === set && x.check === check);
     const clear = r.filter(x => !x.borderline), bl = r.filter(x => x.borderline);

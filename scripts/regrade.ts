@@ -14,6 +14,7 @@ import path from 'node:path';
 import { computeScore } from '@/lib/scoring/score-session';
 import { RUBRIC_DIMENSION_KEYS } from '@/lib/scoring/rubric';
 import type { RubricScores } from '@/lib/scoring/judge';
+import { requireRunBudget } from '@/lib/llm-budget';
 
 const batch = process.argv[2];
 const repeat = Number(process.argv.find(a => a.startsWith('--repeat='))?.split('=')[1] ?? 1);
@@ -24,6 +25,8 @@ const line = (rubric: RubricScores) =>
   `${short(rubric.overallRating)} | ${RUBRIC_DIMENSION_KEYS.map(k => short(rubric[k]?.rating, rubric[k]?.notAssessed)).join(' ')}`;
 
 async function main() {
+  const budget = requireRunBudget('regrade');
+  process.on('exit', () => console.log(`[budget] ${budget.summary()}`));
   const root = path.join('Case Interview Runs/test runs', batch);
   console.log(`overall | ${RUBRIC_DIMENSION_KEYS.join(' ')}\n`);
   for (const dir of readdirSync(root).sort()) {

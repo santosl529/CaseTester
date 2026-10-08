@@ -31,6 +31,7 @@ import { speakingSink, turnLatency, type TurnLatency } from '@/lib/voice/speak';
 import { pickAck, shouldAcknowledge } from '@/lib/voice/acknowledge';
 import { silence, speechEndSec, streamRealtime } from '@/lib/voice/pcm';
 import type { STTProvider, TurnSignal } from '@/lib/voice/types';
+import { requireRunBudget } from '@/lib/llm-budget';
 
 const flag = (name: string) => process.argv.find(a => a.startsWith(`--${name}=`))?.split('=')[1];
 const STT_KIND = flag('stt') ?? 'flux';
@@ -174,6 +175,8 @@ async function speakTurnIn(stt: STTProvider, audio: Uint8Array): Promise<Heard> 
 }
 
 async function main() {
+  const budget = requireRunBudget('voice-latency');
+  process.on('exit', () => console.log(`[budget] ${budget.summary()}`));
   const num = (k: string) => (flag(k) !== undefined ? Number(flag(k)) : undefined);
   const stt: STTProvider = STT_KIND === 'nova'
     ? new DeepgramNovaSTT({ closeOn: flag('nova-close') === 'utterance' ? 'utterance_end' : 'speech_final', utteranceEndMs: num('utterance-end-ms') })

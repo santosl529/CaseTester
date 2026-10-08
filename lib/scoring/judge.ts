@@ -1,4 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
 import { SCORING_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { z } from 'zod';
@@ -7,6 +6,7 @@ import { RUBRIC_PROMPT_TEXT, RUBRIC_DIMENSION_KEYS, CANDIDATE_REFERENCE_RULE, ST
 import type { MathStepResult } from './deterministic';
 import type { DataCoverage } from './data-coverage';
 import type { OnUsage } from '@/lib/llm-usage';
+import { anthropicClient } from '@/lib/anthropic-client';
 
 export type { Rating };
 
@@ -161,7 +161,7 @@ export async function runJudge(
   interviewerMarksSection = '', // Rule 3/17-C5 v4.3 (lib/scoring/interviewer-errors.ts)
   onUsage?: OnUsage, // lib/llm-usage.ts — token reporting for $/case (PRD §13)
 ): Promise<RubricScores> {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const client = anthropicClient();
 
   const transcriptText = transcript
     .map(t => `[${t.role.toUpperCase()} turn ${t.turnIndex}]: ${t.text}`)

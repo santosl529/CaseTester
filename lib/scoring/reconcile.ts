@@ -6,6 +6,7 @@ import { fallbackTopFix } from './verifier';
 import type { DataCoverage, RequestedNotInCase, RequestedUnanswered } from './data-coverage';
 import type { OnUsage } from '@/lib/llm-usage';
 import { SCORING_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
+import { anthropicClient } from '@/lib/anthropic-client';
 
 // Dimension reconciliation (docs/interviewer-behavior.md Rule 3 v4.1;
 // docs/scoring-qa.md §4) — the LAST report pass, after the verifier, because
@@ -253,7 +254,7 @@ export async function runReconciliation(
 
   const items = collectReconcileItems(rubric);
   try {
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const client = anthropicClient();
     // Opus 5.5: thinking always on (adaptive); effort set explicitly.
     const response = await client.beta.messages.stream({
       model: RECONCILE_MODEL_ID,

@@ -4,11 +4,11 @@
 // read from the delivered question text, satisfied from a judge of the
 // candidate's reply — never from a move label, and never from the next
 // message merely arriving.
-import Anthropic from '@anthropic-ai/sdk';
 import type { OnUsage } from '@/lib/llm-usage';
 import type { DataLedger } from './data-ledger';
 import { PHASES, type Phase } from './state-machine';
 import { pickScript } from '@/lib/agent/prompts/scripts';
+import { anthropicClient } from '@/lib/anthropic-client';
 
 export type ProbeIntent = 'mece' | 'prioritize' | 'robustness';
 
@@ -77,7 +77,7 @@ type JudgeCall = (prompt: string, onUsage?: OnUsage) => Promise<string>;
 const DEFAULT_JUDGE_COMPONENT = 'probe_judge' as const;
 
 const haikuCall = async (prompt: string, onUsage?: OnUsage, component: 'probe_judge' | 'structure_judge' = DEFAULT_JUDGE_COMPONENT): Promise<string> => {
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const client = anthropicClient();
   const r = await client.messages.create({ model: PROBE_JUDGE_MODEL_ID, max_tokens: 120, messages: [{ role: 'user', content: prompt }] });
   onUsage?.({ component, model: PROBE_JUDGE_MODEL_ID, inputTokens: r.usage.input_tokens, outputTokens: r.usage.output_tokens });
   return r.content.map(b => (b.type === 'text' ? b.text : '')).join('');
