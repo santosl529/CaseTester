@@ -427,11 +427,11 @@
     "Great, thanks. Before I frame anything, could I get some data?\n\nFirst, the full cost breakdown — COGS, labor, rent, other — for both years. Second, revenue by location versus total. Third, the number of locations two years ago versus today. Fourth, average ticket size. Fifth, transaction volume per store per day. Sixth, employee headcount and average wage. Seventh, customer satisfaction or NPS scores over the period. Eighth, market share versus competitors like Starbucks and local independents.\n\nThat should give me a picture of what's moving. Do we have any of those?",
     "Sure. Before we structure it, a few more things that'd help me shape it — could I get the supplier contract terms for coffee beans, the lease renewal schedule across the 200 stores, marketing spend by year, any new product launches in the last two years, the mix of company-owned versus franchised locations, delivery app commission rates, store-level hours of operation, and any capex on equipment or renovations?\n\nStructurally, I'd start with profit equals revenue minus costs. Revenue's up 15%, so the pressure is almost certainly on the cost side — I'd want to split costs into fixed and variable and see which line grew faster than revenue. Then within that, isolate the biggest mover.\n\nDo we have the supplier contract terms or the marketing spend?"
    ],
-   "given": false,
+   "given": true,
    "source": "batch-11-oct-06/18-nikhil-the-data-hoover@t4",
    "borderline": false,
    "synthetic": false,
-   "note": "data asks; \"before we structure it\""
+   "note": "LABEL CORRECTED after the first Haiku 5.5 run (8 Oct): message 2 ends with \"Structurally, I'd start with profit equals revenue minus costs … split costs into fixed and variable\" — the labeller read only a truncated preview. Not a judgement call."
   },
   {
    "id": "ho-18-nikhil-the-data-hoover-t4-batch-11-first1",
