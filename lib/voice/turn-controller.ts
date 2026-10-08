@@ -262,7 +262,7 @@ export class VoiceTurnController {
     const useful = !t.opening && isUsefulSegment(seg);
     const scripted = seg.kind === 'scripted';
     this.d.playout.open(e.id, {
-      text: seg.text, interruptible: !scripted,
+      text: seg.text, interruptible: !scripted, trimLeadingSilence: true,   // TTS pads ~150ms of lead-in
       onStart: at => {
         this.d.trace?.('segment_start', { seq: t.seq, kind: seg.kind, text: seg.text, at });
         t.firstSoundAt ??= at;

@@ -13,6 +13,12 @@ import type { Word } from './types';
 
 export const HEARD_MARGIN_MS = 150;   // network + jitter buffer
 export const FRAME_MS = 20;
+// TTS lead-in trimming (Cartesia pads every clip with ~110–175ms of silence;
+// smoke recording, 8 Oct): audio before the first 5ms window above this RMS
+// is dropped, keeping LEAD_PAD_MS so the onset isn't clipped.
+const LEAD_RMS = 0.02;
+const LEAD_PAD_MS = 20;
+const LEAD_GIVE_UP_MS = 600;   // no onset this far in: play it as it is
 
 export interface FrameSink { capture(frame: Int16Array): Promise<void>; clear(): void }
 export interface Clock { now(): number; at(ms: number, fn: () => void): () => void }
@@ -62,6 +68,7 @@ type Seg = {
   words: Word[] | null; audioMs: number; startAt: number | null; endAt: number | null;
   captioned: number;   // tokens whose caption is scheduled
   oddByte: number | null;   // half a sample left over from the last chunk
+  trimLead: boolean; lead: Int16Array | null; trimmedMs: number;
 };
 
 export class Playout {
@@ -81,8 +88,12 @@ export class Playout {
     private taps: { frame?: (frame: Int16Array, playAtMs: number) => void; cut?: (atMs: number) => void } = {},
   ) {}
 
-  open(id: string, o: { text: string; interruptible: boolean; onStart?: (atMs: number) => void; onHeard?: (heardChars: number, atMs: number) => void }): void {
-    const s: Seg = { id, ...o, chunks: [], finished: false, failed: false, cut: false, words: null, audioMs: 0, startAt: null, endAt: null, captioned: 0, oddByte: null };
+  open(id: string, o: { text: string; interruptible: boolean; trimLeadingSilence?: boolean; onStart?: (atMs: number) => void; onHeard?: (heardChars: number, atMs: number) => void }): void {
+    const { trimLeadingSilence, ...rest } = o;
+    const s: Seg = {
+      id, ...rest, chunks: [], finished: false, failed: false, cut: false, words: null, audioMs: 0, startAt: null, endAt: null,
+      captioned: 0, oddByte: null, trimLead: Boolean(trimLeadingSilence), lead: null, trimmedMs: 0,
+    };
     this.segs.push(s);
     this.byId.set(id, s);
     this.kick();
@@ -97,10 +108,43 @@ export class Playout {
     s.oddByte = joined.length % 2 === 1 ? joined[joined.length - 1] : null;
     const bytes = joined.slice(0, joined.length - (joined.length % 2));
     if (bytes.length === 0) return;
-    const v = new Int16Array(bytes.buffer, bytes.byteOffset, bytes.length / 2);
+    let v: Int16Array<ArrayBufferLike> = new Int16Array(bytes.buffer, bytes.byteOffset, bytes.length / 2);
+    if (s.trimLead) {
+      const lead: Int16Array<ArrayBufferLike> = s.lead ? new Int16Array([...s.lead, ...v]) : v;
+      const onset = this.onset(lead);
+      if (onset === null && (lead.length / this.sampleRate) * 1000 < LEAD_GIVE_UP_MS) { s.lead = lead; return; }
+      const keep = onset === null ? 0 : Math.max(0, onset - Math.round((this.sampleRate * LEAD_PAD_MS) / 1000));
+      s.trimmedMs = (keep / this.sampleRate) * 1000;
+      s.trimLead = false;
+      s.lead = null;
+      v = lead.subarray(keep);
+      if (s.words) this.scheduleCaptions(s);
+    }
+    this.queue(s, v);
+  }
+
+  private queue(s: Seg, v: Int16Array<ArrayBufferLike>): void {
+    if (v.length === 0) return;
     s.chunks.push(v);
     s.audioMs += (v.length / this.sampleRate) * 1000;
     this.kick();
+  }
+
+  // The first sample of the first 5ms window above LEAD_RMS, or null.
+  private onset(pcm: Int16Array): number | null {
+    const win = Math.max(1, Math.round(this.sampleRate * 0.005));
+    for (let i = 0; i + win <= pcm.length; i += win) {
+      let sum = 0;
+      for (let j = i; j < i + win; j++) sum += (pcm[j] / 32768) ** 2;
+      if (Math.sqrt(sum / win) > LEAD_RMS) return i;
+    }
+    return null;
+  }
+
+  // Audio held back while looking for the onset goes out as it is.
+  private flushLead(s: Seg): void {
+    if (s.lead) { const lead = s.lead; s.lead = null; this.queue(s, lead); }
+    s.trimLead = false;
   }
 
   words(id: string, ws: Word[]): void {
@@ -113,6 +157,7 @@ export class Playout {
   finish(id: string): void {
     const s = this.byId.get(id);
     if (!s || s.cut) return;
+    this.flushLead(s);
     s.finished = true;
     this.scheduleCaptions(s);
     this.kick();
@@ -123,6 +168,7 @@ export class Playout {
   fail(id: string): void {
     const s = this.byId.get(id);
     if (!s || s.cut) return;
+    this.flushLead(s);
     s.failed = true;
     s.finished = true;
     this.kick();
@@ -166,8 +212,12 @@ export class Playout {
     return out;
   }
 
+  // Word times are from the TTS clip's start; the lead-in we trimmed moves them earlier.
   private timeline(s: Seg): Token[] {
-    return tokenTimeline(s.text, s.words, s.audioMs, s.finished && !s.failed);
+    const words = s.words && s.trimmedMs > 0
+      ? s.words.map(w => ({ ...w, startMs: Math.max(0, w.startMs - s.trimmedMs), endMs: Math.max(0, w.endMs - s.trimmedMs) }))
+      : s.words;
+    return tokenTimeline(s.text, words, s.audioMs, s.finished && !s.failed);
   }
 
   // At a cut, or (cutAt null) now: a segment that has finished playing
@@ -234,7 +284,7 @@ export class Playout {
 
   // Each token's caption at the moment it counts as heard.
   private scheduleCaptions(s: Seg): void {
-    if (s.startAt === null || s.cut || !s.onHeard) return;
+    if (s.startAt === null || s.cut || !s.onHeard || s.trimLead) return;
     const tl = this.timeline(s);
     for (let i = s.captioned; i < tl.length; i++) {
       const t = tl[i];

@@ -7,6 +7,7 @@ import { FakeTTS } from '@/lib/voice/fake-tts';
 import { VoiceTurnController, EXHIBIT_CONFIRM_MS, type ControllerDeps, type RunTurnFn } from '@/lib/voice/turn-controller';
 import { TurnCancelled, isCancelledTurn, type HeardReport, type Segment } from '@/lib/orchestrator/turn-types';
 import type { ServerMessage } from '@/lib/voice/protocol';
+import type { TTSProvider } from '@/lib/voice/types';
 import { fakeClock, sink } from './helpers/playout-fakes';
 
 const RATE = 24000;
@@ -170,6 +171,31 @@ describe('trace (recording)', () => {
     h.c.onStt(speech('wait sorry'));
     await h.advance(2000);
     expect(trace).toEqual(['final', 'turn_start', 'ack_start', 'segment_start', 'backchannel', 'cut', 'turn_end']);
+  });
+});
+
+describe('TTS lead-in', () => {
+  it('starts a segment’s sound within 20ms of its start, though the TTS pads 150ms of silence', async () => {
+    const padded: TTSProvider = {
+      name: 'padded',
+      open: async () => {
+        let onAudio: (pcm: Uint8Array, at: number) => void = () => {};
+        return {
+          push: async () => {
+            const s = new Int16Array([...new Int16Array(RATE * 0.15), ...new Int16Array(RATE * 0.3).fill(5000)]);
+            onAudio(new Uint8Array(s.buffer), 0);
+          },
+          end: async () => {}, cancel: async () => {}, onAudio: cb => { onAudio = cb; },
+        };
+      },
+    };
+    const { clock, advance } = fakeClock();
+    const firstLoud: number[] = [];
+    const playout = new Playout(sink(), clock, RATE, { frame: (f, at) => { if (!firstLoud.length && f.some(x => x !== 0)) firstLoud.push(at); } });
+    const h = harness([[seg('tail', 'Go on.')]], { ...noAck, tts: padded, playout, clock, now: () => clock.now() });
+    await h.c.ready(''); h.c.onStt(final('Hello'));
+    await advance(1000);
+    expect(firstLoud[0] - 1000).toBeLessThanOrEqual(20);
   });
 });
 

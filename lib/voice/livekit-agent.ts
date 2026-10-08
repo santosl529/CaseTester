@@ -27,7 +27,7 @@ import { CartesiaTTS, defaultVoiceId } from './cartesia';
 import { FakeTTS } from './fake-tts';
 import { ACKS } from './acknowledge';
 import { Playout } from './playout';
-import { SpeechEndTracker } from './pcm';
+import { SpeechEndTracker, trimSilence } from './pcm';
 import { TtsCharBudget, RunCharCap, monthlyLedgerFile, ttsRunCap } from './tts-budget';
 import { VoiceTurnController } from './turn-controller';
 import { DATA_TOPIC, parseClientMessage, type ServerMessage } from './protocol';
@@ -46,7 +46,9 @@ async function loadAcks(tts: TTSProvider, voice: string, take: (n: number) => bo
   const acks = new Map<string, Uint8Array>();
   for (const ack of ACKS) {
     const file = path.join('.voice-cache/acks', `${tts.name}-${voice}-${createHash('sha1').update(ack).digest('hex').slice(0, 10)}.pcm`);
-    if (existsSync(file)) { acks.set(ack, new Uint8Array(readFileSync(file))); continue; }
+    // Trimmed at both ends as loaded: the TTS pads ~0.1–0.2s of silence each side,
+    // which delays the first sound and lengthens the gap after the ack.
+    if (existsSync(file)) { acks.set(ack, trimSilence(new Uint8Array(readFileSync(file)), OUT_RATE)); continue; }
     if (!take(ack.length)) break;
     const utt = await tts.open({ encoding: 'pcm_s16le', sampleRate: OUT_RATE });
     const parts: Uint8Array[] = [];
@@ -56,7 +58,7 @@ async function loadAcks(tts: TTSProvider, voice: string, take: (n: number) => bo
     const pcm = Buffer.concat(parts);
     mkdirSync(path.dirname(file), { recursive: true });
     writeFileSync(file, pcm);
-    acks.set(ack, new Uint8Array(pcm));
+    acks.set(ack, trimSilence(new Uint8Array(pcm), OUT_RATE));
   }
   return acks;
 }

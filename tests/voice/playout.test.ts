@@ -165,6 +165,36 @@ describe('Playout', () => {
     expect(cuts).toEqual([1030]);
   });
 
+  it('trims TTS lead-in silence (keeping 20ms) and shifts word times to match', async () => {
+    const { clock, advance } = fakeClock();
+    const got: number[] = [];
+    const rec: FrameSink = { async capture(f) { got.push(...Array.from(f)); }, clear() {} };
+    const p = new Playout(rec, clock, RATE);
+    const silent = new Int16Array(RATE * 0.15);                      // Cartesia's ~150ms lead-in
+    const voice = new Int16Array(RATE * 0.4).map((_, i) => (i % 2 ? 4000 : -4000));
+    const pcm = new Uint8Array(new Int16Array([...silent, ...voice]).buffer);
+    p.open('a', { text: 'Hello there.', interruptible: true, trimLeadingSilence: true });
+    p.push('a', pcm.slice(0, 2000)); p.push('a', pcm.slice(2000)); p.finish('a');   // the lead-in split across chunks
+    p.words('a', [{ word: 'Hello', startMs: 150, endMs: 350 }, { word: 'there.', startMs: 350, endMs: 550 }]);
+    await advance(1000);
+    expect(got.length).toBe(Math.round(RATE * 0.42));                   // 130ms of silence dropped
+    expect(got.slice(RATE * 0.02).every(x => x !== 0)).toBe(true);
+    // "Hello" ended 350ms into the original audio = 220ms into what played.
+    const tl = p.classify('a');
+    expect(tl).toEqual({ playback: 'played', heardChars: 12 });
+  });
+
+  it('places words by the trimmed timeline when cut', async () => {
+    const { clock, advance } = fakeClock();
+    const p = new Playout(sink(), clock, RATE);
+    const pcm = new Uint8Array(new Int16Array([...new Int16Array(RATE * 0.15), ...new Int16Array(RATE * 0.4).fill(4000)]).buffer);
+    p.open('a', { text: 'Hello there.', interruptible: true, trimLeadingSilence: true });
+    p.push('a', pcm); p.finish('a');
+    p.words('a', [{ word: 'Hello', startMs: 150, endMs: 350 }, { word: 'there.', startMs: 350, endMs: 550 }]);
+    await advance(220 + HEARD_MARGIN_MS + 10);                       // "Hello" has ended and been heard
+    expect(p.interrupt(clock.now()).get('a')).toEqual({ playback: 'partial', heardChars: 5 });
+  });
+
   it('whenIdle resolves at once on a cut', async () => {
     const { clock } = fakeClock();
     const p = new Playout(sink(), clock, RATE);
