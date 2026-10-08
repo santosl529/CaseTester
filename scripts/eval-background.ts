@@ -28,8 +28,8 @@ import { checkHintDelivered, buildHintCheckPrompt } from '@/lib/orchestrator/hin
 import { assessCoverage, isCoverageComplete, COVERAGE_THRESHOLD, type CoverageScores } from '@/lib/scoring/coverage';
 import { labelWithPeriod } from '@/lib/orchestrator/data-ledger';
 import { getCaseById } from '@/lib/cases/loader';
-import { costOf } from '@/lib/llm-pricing';
-import { requireRunBudget } from '@/lib/llm-budget';
+import { costOf, assertPriced } from '@/lib/llm-pricing';
+import { requireRunBudget, BudgetExceededError } from '@/lib/llm-budget';
 import type { LadderRung } from '@/lib/orchestrator/stall';
 
 const arg = (k: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3);
@@ -225,19 +225,19 @@ function report(items: Item[], results: Record<string, unknown[][]>) {
       console.log(`  [${m}] below-threshold set changes across its own repeats on ${unstable}/${items.length} points · repeat |Δ| median ${pct(spreadPts, 0.5)} p90 ${pct(spreadPts, 0.9)}`);
     }
     for (const m of rest) {
-      let gate = 0, steer = 0; const deltas: number[] = [];
+      let gate = 0, steer = 0, n = 0; const deltas: number[] = [];
       items.forEach((it, i) => {
         const x = scoresOf(a, i)[0], ys = scoresOf(m, i);
         for (const y of ys) {
-          if (!x || !y) continue;
+          if (!x || !y) continue;   // a failed call is reported above, not counted as a disagreement
+          n++;
           if (isCoverageComplete(x) === isCoverageComplete(y)) gate++;
           if (below(x) === below(y)) steer++;
           for (const k of Object.keys(x)) deltas.push(Math.abs((x as Record<string, number>)[k] - ((y as Record<string, number>)[k] ?? 0)));
         }
         console.log(`    ${it.id}: ${a} below [${below(x)}] · ${m} below ${ys.map(y => `[${below(y)}]`).join(' ')}`);
       });
-      const n = items.length * (results[m][0]?.length ?? 1);
-      console.log(`  [${m}] vs ${a}: same end-gate decision ${gate}/${n} · same below-threshold set (steer) ${steer}/${n} · per-dimension |Δ| median ${pct(deltas, 0.5)} p90 ${pct(deltas, 0.9)}`);
+      console.log(`  [${m}] vs ${a} (pairs where both answered): same end-gate decision ${gate}/${n} · same below-threshold set (steer) ${steer}/${n} · per-dimension |Δ| median ${pct(deltas, 0.5)} p90 ${pct(deltas, 0.9)}`);
     }
   }
 }
@@ -252,6 +252,7 @@ async function main() {
   }, 0), 0);
   console.log(`${ROLE}: ${items.length} items · ${MODELS.map(m => `${m.id}×${m.repeats}`).join(', ')} · estimated $${est.toFixed(3)} (chars/4 tokens, ×1.35 for Haiku 5.5)`);
   if (DRY) return;
+  MODELS.forEach(m => assertPriced(m.id));   // fail fast: the classifiers fail open/closed and would hide a refusal as a null
   const budget = requireRunBudget(`eval-background ${ROLE}`);
   const results: Record<string, unknown[][]> = {};
   const latencies: Record<string, number[]> = {};
@@ -263,6 +264,8 @@ async function main() {
         const t0 = Date.now();
         try { reps.push(await it.call(m.id)); } catch (err) { console.error(`  ${it.id}: ${err instanceof Error ? err.message : err}`); reps.push(null); if (budget.exceeded) throw err; }
         latencies[m.id].push(Date.now() - t0);
+        // The classifiers swallow errors, so a refused call shows up only here.
+        if (budget.exceeded) throw new BudgetExceededError(budget.spentUsd, budget.capUsd);
       }
       return reps;
     });

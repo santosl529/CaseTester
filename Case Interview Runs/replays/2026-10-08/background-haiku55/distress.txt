@@ -1,0 +1,23 @@
+distress: 271 items · claude-haiku-5-5×2 · estimated $0.055 (chars/4 tokens, ×1.35 for Haiku 5.5)
+[budget] eval-background distress: cap $0.50 shared via /Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/streaming-turn/Case Interview Runs/replays/2026-10-08/background-haiku55/budget-ledger.jsonl · already spent $0.1066
+[claude-haiku-5-5] latency median 659ms p90 929ms max 1429ms
+
+[claude-haiku-5-5] 271 items × 2 · no verdict / error 0
+  [claude-haiku-5-5] vs 4.5 logged label: same 512/542 · fires where 4.5 did not 0 · misses 4.5's fire 0 · any label difference 30 · items unstable across repeats 0
+    batch-12-oct-06/01-maya-the-freezer@t14: base case_frustration got none/none — I'm stuck, sorry. I don't really know where to start.
+    batch-12-oct-06/01-maya-the-freezer@t26: base case_frustration got none/none — 6% of $480M... um. I keep getting that 16% is $48M. Sorry, I think I'm doing something wrong but I can't see it.
+    batch-13-oct-06/19-blake-the-data-ignorer@t11: base case_frustration got none/none — That lands on me — I deprioritized beans at the top of the case and that was wrong. And the arithmetic is tight: 58 COGS plus 22 labor plus 14 overhead is 94, which is the entire cost base. So occupancy is sitting insid
+    batch-5-oct-02/01-maya-the-freezer@t24: base case_frustration got none/none — Um. 16% of revenue and 2% of revenue, so COGS went up 16% and overhead 2%. I'm stuck, sorry. I don't really know how else to say it.
+    batch-5-oct-02/01-maya-the-freezer@t38: base case_frustration got none/none — 16 plus 2, so 18 points. That's what I get. Sorry — I don't know. I don't think I can give you a recommendation.
+    batch-5-oct-02/01-maya-the-freezer@t42: base case_frustration got none/none — Input costs went up and they never raised prices, so it all hit margin. But as an actual recommendation... I don't know. Sorry, I can't get there.
+    batch-5-oct-02/01-maya-the-freezer@t48: base case_frustration got none/none — Okay. Costs are 94% of revenue, so 0.94 times 480 is 451.2 million in dollars. If costs stay fixed and we want 24% margin, costs would be 76% of new revenue. So 451.2 divided by 0.76 is about 593.7 million. That's a 24%
+    batch-5-oct-02/08-claire-the-recommendation-freezer@t23: base case_frustration got none/none — I'm stuck, sorry.
+    batch-6-oct-03/01-maya-the-freezer@t57: base case_frustration got none/none — Raise menu prices, because they've been flat for two years while beans and other inputs went up almost 40%. At the same time, renegotiate with suppliers and push more of the higher-margin items. And test the price increa
+    batch-6-oct-03/01-maya-the-freezer@t59: base case_frustration got none/none — That's really all I have. I think the diagnosis part made sense to me once you pushed — the COGS line was clearly the problem. I just couldn't turn it into advice. Thanks for being patient with me. I should probably do 
+    batch-8-oct-03/01-maya-the-freezer@t14: base case_frustration got none/none — COGS went up. Labor stayed the same I think. Sorry, I'm a bit stuck on what that means.
+    batch-8-oct-03/01-maya-the-freezer@t36: base case_frustration got none/none — Um, maybe cheaper suppliers for beans. Or smaller portions I guess. I'm not really coming up with much, sorry.
+    batch-9-oct-05/01-maya-the-freezer@t43: base case_frustration got none/none — I guess cheaper suppliers for dairy and packaging too. Revenue side... I'm stuck, sorry.
+    batch-9-oct-05/01-maya-the-freezer@t59: base case_frustration got none/none — Starting base is revenue at 100, COGS at 58. If I raise prices 16%, revenue becomes 116 and costs stay the same in dollars, so the extra 16 flows to profit, 6 plus 16 is 22, close to the 24. But I think that's not quite
+    batch-9-oct-05/01-maya-the-freezer@t63: base case_frustration got none/none — Maybe phase it — a smaller price increase first, like 8-10%, see how volume holds, then another step later. And at the same time work the supplier side, renegotiate beans and dairy, so you don't need the full 24 from pri
+
+[budget] spent $0.1638 of $0.50 — this process: claude-haiku-5-5 542 calls $0.0572

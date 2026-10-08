@@ -1,0 +1,173 @@
+[
+ {
+  "id": "batch-14-oct-07-cached-history/21-lena-the-deferral-tester@t15",
+  "ms": 642,
+  "stop": "end_turn",
+  "out": 10,
+  "parsed": true,
+  "head": "{\"requests\":[]}",
+  "tail": "{\"requests\":[]}"
+ },
+ {
+  "id": "batch-14-oct-07-state-in-system/03-ines-the-clarifier@t23",
+  "ms": 741,
+  "stop": "end_turn",
+  "out": 71,
+  "parsed": true,
+  "head": "{\"requests\":[{\"what\":\"Competitor price benchmarks (candidate's stated next step, not a request to the interviewer)\",\"ledgerItemIds\":[],\"explicit\":false,\"respons",
+  "tail": "[{\"what\":\"Competitor price benchmarks (candidate's stated next step, not a request to the interviewer)\",\"ledgerItemIds\":[],\"explicit\":false,\"response\":\"none\"}]}"
+ },
+ {
+  "id": "batch-13-oct-06/10-sofia-the-unit-confuser@t13",
+  "ms": 751,
+  "stop": "end_turn",
+  "out": 85,
+  "parsed": true,
+  "head": "{\"requests\":[{\"what\":\"The split of the 'other inputs' bucket inside COGS (specifically whether dairy is the largest piece)\",\"ledgerItemIds\":[\"non_bean_input_cha",
+  "tail": "er inputs' bucket inside COGS (specifically whether dairy is the largest piece)\",\"ledgerItemIds\":[\"non_bean_input_change\"],\"explicit\":false,\"response\":\"none\"}]}"
+ },
+ {
+  "id": "batch-12-oct-06/00-default-candidate@t9",
+  "ms": 771,
+  "stop": "end_turn",
+  "out": 90,
+  "parsed": true,
+  "head": "{\"requests\":[{\"what\":\"Whether transaction volume has held up\",\"ledgerItemIds\":[],\"explicit\":true,\"response\":\"none\"},{\"what\":\"Competitor pricing\",\"ledgerItemIds\"",
+  "tail": "n volume has held up\",\"ledgerItemIds\":[],\"explicit\":true,\"response\":\"none\"},{\"what\":\"Competitor pricing\",\"ledgerItemIds\":[],\"explicit\":true,\"response\":\"none\"}]}"
+ },
+ {
+  "id": "batch-13-oct-06/19-blake-the-data-ignorer@t17",
+  "ms": 765,
+  "stop": "end_turn",
+  "out": 10,
+  "parsed": true,
+  "head": "{\"requests\":[]}",
+  "tail": "{\"requests\":[]}"
+ },
+ {
+  "id": "batch-12-oct-06/01-maya-the-freezer@t40",
+  "ms": 881,
+  "stop": "end_turn",
+  "out": 10,
+  "parsed": true,
+  "head": "{\"requests\":[]}",
+  "tail": "{\"requests\":[]}"
+ },
+ {
+  "id": "batch-14-oct-07-cached-history/03-ines-the-clarifier@t23",
+  "ms": 927,
+  "stop": "end_turn",
+  "out": 108,
+  "parsed": true,
+  "head": "{\"requests\":[{\"what\":\"Breakdown of COGS and whether the cost lines and their change support the 18-point margin decline (cost split and input price changes)\",\"l",
+  "tail": "in decline (cost split and input price changes)\",\"ledgerItemIds\":[\"cogs_pct\",\"bean_share_of_cogs\",\"non_bean_input_change\"],\"explicit\":false,\"response\":\"none\"}]}"
+ },
+ {
+  "id": "batch-13-oct-06/25-eliza-the-rambler@t11",
+  "ms": 1040,
+  "stop": "end_turn",
+  "out": 139,
+  "parsed": true,
+  "head": "{\"requests\":[{\"what\":\"Whether the candidate has the breakdown of the 16-point COGS increase into dairy, packaging, and food versus coffee beans, implied by 'the",
+  "tail": "y sits' in dairy, packaging, and food (11.8 of 16 points).\",\"ledgerItemIds\":[\"non_bean_input_change\",\"bean_share_of_cogs\"],\"explicit\":false,\"response\":\"none\"}]}"
+ },
+ {
+  "id": "batch-12-oct-06/15-tyler-the-misquoter@t9",
+  "ms": 1148,
+  "stop": "end_turn",
+  "out": 148,
+  "parsed": false,
+  "head": "Looking at the candidate turn, there are no explicit data requests. The candidate states figures they already have (COGS trajectory, labor, overhead, bean price",
+  "tail": "data already received, not asking for more. The interviewer's next turn is an open-ended brainstorming question, not a response to any request.\n\n{\"requests\":[]}"
+ },
+ {
+  "id": "batch-17-oct-07-luna/18-nikhil-the-data-hoover@t31",
+  "ms": 1438,
+  "stop": "end_turn",
+  "out": 354,
+  "parsed": true,
+  "head": "{\"requests\":[{\"what\":\"Stores opened in each of the two years\",\"ledgerItemIds\":[\"stores_count\"],\"explicit\":false,\"response\":\"none\"},{\"what\":\"Revenue per mature s",
+  "tail": "ar\",\"ledgerItemIds\":[],\"explicit\":false,\"response\":\"none\"},{\"what\":\"Rent dollars by year\",\"ledgerItemIds\":[\"overhead_pct\"],\"explicit\":false,\"response\":\"none\"}]}"
+ },
+ {
+  "id": "batch-16-oct-07-ttft/01-maya-the-freezer@t2",
+  "ms": 1522,
+  "stop": "end_turn",
+  "out": 249,
+  "parsed": false,
+  "head": "Analyzing the candidate turn:\n\n- \"I'd want to look at, um, three things. First, revenue — like how much they're making and from what.\" This is a plan, not a req",
+  "tail": "ed.\n\nNo data requests were made. The interviewer's turn asks the candidate to test the structure, and no information was requested or provided.\n\n{\"requests\":[]}"
+ },
+ {
+  "id": "batch-17-oct-07-luna/20-connor-the-exhibit-skimmer@t25",
+  "ms": 1681,
+  "stop": "end_turn",
+  "out": 287,
+  "parsed": false,
+  "head": "Scanning the candidate turn for data requests:\n\n- \"Pricing... I'd move on pricing immediately\" and \"the cleanest driver we've confirmed is raw coffee beans\" are",
+  "tail": "or information from the interviewer in this turn. The interviewer's next turn is also a new question about risk, not a response to any request.\n\n{\"requests\":[]}"
+ },
+ {
+  "id": "batch-17-oct-07-luna/09-derek-the-bulldozer@t13",
+  "ms": 1796,
+  "stop": "end_turn",
+  "out": 219,
+  "parsed": false,
+  "head": "Analysis of the candidate turn:\n\n- \"Without transaction data I'll assume the 15 percent revenue growth is volume-driven\" is a stated assumption, not a request.\n",
+  "tail": "ssuming around it. That is a passing reference, not a request for the information.\n\nNo data requests were made, so the requests array is empty.\n\n{\"requests\":[]}"
+ },
+ {
+  "id": "batch-13-oct-06/26-daniel-the-interviewer-led-expecter@t9",
+  "ms": 1854,
+  "stop": "end_turn",
+  "out": 309,
+  "parsed": false,
+  "head": "Looking at the candidate turn, the only candidate statements that could be data requests are:\n- \"What I'd test next, if you'd like: whether the 15% revenue grow",
+  "tail": " 42%, beans 25%, 37.5% input increase, 15% growth), which is excluded.\n\nSince the candidate made no explicit data request, the output is empty.\n\n{\"requests\":[]}"
+ },
+ {
+  "id": "batch-12-oct-06/08-claire-the-recommendation-freezer@t3",
+  "ms": 1995,
+  "stop": "end_turn",
+  "out": 327,
+  "parsed": false,
+  "head": "Analyzing the candidate turn for data requests:\n\nThe candidate's statements are mostly structural (MECE framing, proposed branches, prioritization). \"I'd priori",
+  "tail": "Because no data request was made, the interviewer's next turn, which volunteers cost-line figures unprompted, is not a response to any request.\n\n{\"requests\":[]}"
+ },
+ {
+  "id": "batch-17-oct-07-luna/56-devon-the-indirect-asker@t7",
+  "ms": 2351,
+  "stop": "end_turn",
+  "out": 457,
+  "parsed": false,
+  "head": "Analyzing the candidate turn for data requests:\n\nThe candidate says \"let's just take the cost breakdown as a percent of revenue, both years.\" This is a request ",
+  "tail": "s a percent of revenue for both periods (COGS, labor, overhead)\",\"ledgerItemIds\":[\"cogs_pct\",\"labor_pct\",\"overhead_pct\"],\"explicit\":true,\"response\":\"release\"}]}"
+ },
+ {
+  "id": "batch-12-oct-06/56-devon-the-indirect-asker@t3",
+  "ms": 2402,
+  "stop": "end_turn",
+  "out": 430,
+  "parsed": false,
+  "head": "Analyzing the candidate turn for data requests:\n\n1. \"I'd add a cut by store cohort — mature versus recently opened.\" This is a stated need for store-level data ",
+  "tail": "terviewer's next turn asks what specific data the candidate would request first, which is a prompt for a future request, not a response to one.\n\n{\"requests\":[]}"
+ },
+ {
+  "id": "batch-17-oct-07-luna/18-nikhil-the-data-hoover@t51",
+  "ms": 2637,
+  "stop": "end_turn",
+  "out": 475,
+  "parsed": false,
+  "head": "Looking at the candidate turn, the candidate makes one explicit data request: \"I'd also want to know whether the 2-point rise is a cost increase or just a denom",
+  "tail": "real overhead cost increase or a denominator effect (overhead dollars vs. revenue growth)\",\"ledgerItemIds\":[\"overhead_pct\"],\"explicit\":true,\"response\":\"none\"}]}"
+ },
+ {
+  "id": "batch-17-oct-07-luna/09-derek-the-bulldozer@t7",
+  "ms": 3080,
+  "stop": "end_turn",
+  "out": 570,
+  "parsed": false,
+  "head": "Two data requests are present.\n\n1. The candidate asks \"what's inside [COGS]?\" and then \"Do we have the component breakdown?\" This is an explicit question asking",
+  "tail": "\":\"clarify\"},{\"what\":\"Whether menu prices were raised to offset the COGS increase\",\"ledgerItemIds\":[\"menu_price_change\"],\"explicit\":true,\"response\":\"release\"}]}"
+ }
+]

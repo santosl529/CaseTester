@@ -15,6 +15,7 @@ import dev from '@/tests/orchestrator/fixtures/probe-judge-labelled.json';
 import heldout from '@/tests/orchestrator/fixtures/probe-judge-heldout.json';
 import { judgeProbeAnswer, judgeStructureGiven, judgeCallsFor } from '@/lib/orchestrator/pressure-test';
 import { requireRunBudget } from '@/lib/llm-budget';
+import { assertPriced } from '@/lib/llm-pricing';
 
 const arg = (k: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.split('=')[1];
 const MODEL = arg('model') ?? 'claude-haiku-4-5';
@@ -23,6 +24,9 @@ const OUT = arg('out');
 const TIMEOUT_MS = 20000;   // eval only; production is 3s — latency is reported against it
 
 
+// Fail fast on a bad id: the judge fails closed, so a refused call would
+// otherwise read as a silent "no verdict".
+assertPriced(MODEL);
 const calls = judgeCallsFor(MODEL);
 let inTok = 0, outTok = 0;
 const latencies: number[] = [];

@@ -1,0 +1,399 @@
+{
+ "role": "hint_check",
+ "models": [
+  {
+   "id": "claude-haiku-4-5",
+   "repeats": 2
+  },
+  {
+   "id": "claude-haiku-5-5",
+   "repeats": 2
+  }
+ ],
+ "latencies": {
+  "claude-haiku-4-5": [
+   647,
+   676,
+   698,
+   770,
+   840,
+   966,
+   639,
+   673,
+   688,
+   652,
+   702,
+   747,
+   668,
+   614,
+   699,
+   733,
+   901,
+   713,
+   582,
+   686,
+   653,
+   696,
+   712,
+   700,
+   682,
+   819,
+   721,
+   657,
+   740,
+   680,
+   698,
+   746,
+   770,
+   556,
+   783,
+   579,
+   805,
+   691,
+   760,
+   514,
+   719,
+   756
+  ],
+  "claude-haiku-5-5": [
+   624,
+   637,
+   660,
+   950,
+   952,
+   1047,
+   624,
+   650,
+   638,
+   559,
+   652,
+   984,
+   1064,
+   1096,
+   943,
+   640,
+   607,
+   602,
+   1020,
+   607,
+   954,
+   913,
+   661,
+   601,
+   850,
+   741,
+   885,
+   843,
+   1520,
+   663,
+   950,
+   608,
+   885,
+   835,
+   906,
+   608,
+   633,
+   648,
+   993,
+   1002,
+   1201,
+   710
+  ]
+ },
+ "items": [
+  {
+   "id": "batch-12-oct-06/01-maya-the-@t44",
+   "baseline": true,
+   "results": {
+    "claude-haiku-4-5": [
+     true,
+     true
+    ],
+    "claude-haiku-5-5": [
+     false,
+     false
+    ]
+   }
+  },
+  {
+   "id": "batch-16-oct-07-ttft/01-maya-the-@t40",
+   "baseline": true,
+   "results": {
+    "claude-haiku-4-5": [
+     true,
+     true
+    ],
+    "claude-haiku-5-5": [
+     false,
+     false
+    ]
+   }
+  },
+  {
+   "id": "batch-3-oct-02/01-maya-the-@t58",
+   "baseline": false,
+   "results": {
+    "claude-haiku-4-5": [
+     false,
+     false
+    ],
+    "claude-haiku-5-5": [
+     false,
+     false
+    ]
+   }
+  },
+  {
+   "id": "batch-3-oct-02/01-maya-the-@t62",
+   "baseline": false,
+   "results": {
+    "claude-haiku-4-5": [
+     false,
+     false
+    ],
+    "claude-haiku-5-5": [
+     false,
+     false
+    ]
+   }
+  },
+  {
+   "id": "batch-3-oct-02/01-maya-the-@t66",
+   "baseline": false,
+   "results": {
+    "claude-haiku-4-5": [
+     false,
+     false
+    ],
+    "claude-haiku-5-5": [
+     false,
+     false
+    ]
+   }
+  },
+  {
+   "id": "batch-3-oct-02/01-maya-the-@t76",
+   "baseline": false,
+   "results": {
+    "claude-haiku-4-5": [
+     false,
+     false
+    ],
+    "claude-haiku-5-5": [
+     false,
+     false
+    ]
+   }
+  },
+  {
+   "id": "batch-3-oct-02/01-maya-the-@t80",
+   "baseline": false,
+   "results": {
+    "claude-haiku-4-5": [
+     false,
+     false
+    ],
+    "claude-haiku-5-5": [
+     false,
+     false
+    ]
+   }
+  },
+  {
+   "id": "batch-3-oct-02/01-maya-the-@t92",
+   "baseline": false,
+   "results": {
+    "claude-haiku-4-5": [
+     false,
+     false
+    ],
+    "claude-haiku-5-5": [
+     false,
+     false
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/06-destiny-t@t7",
+   "baseline": true,
+   "results": {
+    "claude-haiku-4-5": [
+     true,
+     true
+    ],
+    "claude-haiku-5-5": [
+     true,
+     true
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/01-maya-the-@t17",
+   "baseline": true,
+   "results": {
+    "claude-haiku-4-5": [
+     true,
+     true
+    ],
+    "claude-haiku-5-5": [
+     true,
+     true
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/08-claire-th@t19",
+   "baseline": true,
+   "results": {
+    "claude-haiku-4-5": [
+     true,
+     true
+    ],
+    "claude-haiku-5-5": [
+     true,
+     true
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/06-destiny-t@t7",
+   "baseline": true,
+   "results": {
+    "claude-haiku-4-5": [
+     true,
+     true
+    ],
+    "claude-haiku-5-5": [
+     true,
+     true
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/08-claire-th@t19",
+   "baseline": true,
+   "results": {
+    "claude-haiku-4-5": [
+     true,
+     true
+    ],
+    "claude-haiku-5-5": [
+     true,
+     true
+    ]
+   }
+  },
+  {
+   "id": "batch-8-oct-03/06-destiny-t@t7",
+   "baseline": true,
+   "results": {
+    "claude-haiku-4-5": [
+     true,
+     true
+    ],
+    "claude-haiku-5-5": [
+     true,
+     true
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/06-destiny-t@t7",
+   "baseline": true,
+   "results": {
+    "claude-haiku-4-5": [
+     true,
+     true
+    ],
+    "claude-haiku-5-5": [
+     true,
+     true
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/06-destiny-t@t11",
+   "baseline": true,
+   "results": {
+    "claude-haiku-4-5": [
+     true,
+     true
+    ],
+    "claude-haiku-5-5": [
+     true,
+     true
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/08-claire-th@t33",
+   "baseline": true,
+   "results": {
+    "claude-haiku-4-5": [
+     true,
+     true
+    ],
+    "claude-haiku-5-5": [
+     true,
+     true
+    ]
+   }
+  },
+  {
+   "id": "syn-data-only",
+   "baseline": false,
+   "results": {
+    "claude-haiku-4-5": [
+     false,
+     false
+    ],
+    "claude-haiku-5-5": [
+     false,
+     false
+    ]
+   }
+  },
+  {
+   "id": "syn-moves-on",
+   "baseline": false,
+   "results": {
+    "claude-haiku-4-5": [
+     false,
+     false
+    ],
+    "claude-haiku-5-5": [
+     false,
+     false
+    ]
+   }
+  },
+  {
+   "id": "syn-unrelated",
+   "baseline": false,
+   "results": {
+    "claude-haiku-4-5": [
+     false,
+     false
+    ],
+    "claude-haiku-5-5": [
+     false,
+     false
+    ]
+   }
+  },
+  {
+   "id": "syn-narrow",
+   "baseline": true,
+   "results": {
+    "claude-haiku-4-5": [
+     true,
+     true
+    ],
+    "claude-haiku-5-5": [
+     true,
+     true
+    ]
+   }
+  }
+ ]
+}

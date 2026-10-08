@@ -41,4 +41,14 @@ Estimates (chars/4 tokens, ×1.35 for Haiku 5.5; measured where marked): probe_j
 Per role, a short result table and the hand-read disagreements go to `Case Interview Runs/replays/2026-10-08/background-haiku55/`. Roles that pass are proposed for migration (one line each in `lib/models.ts`); Lorenzo decides. Then one guarded live smoke run (budgeted) with the migrated roles before any batch. A role that fails stays on 4.5 with the reason recorded.
 
 ## 7. Status (8 Oct)
-Built: §2 settings helper and per-role overrides (production requests unchanged, tested per role), §3 accounting and budget (tested, mutation-checked), §4 harnesses and the hint-check labelled set. Not run — awaiting approval of §5's cost.
+Built: §2 settings helper and per-role overrides (production requests unchanged, tested per role), §3 accounting and budget (tested, mutation-checked), §4 harnesses and the hint-check labelled set. Run 8 Oct (approved).
+
+## 8. Results (8 Oct; `Case Interview Runs/replays/2026-10-08/background-haiku55/results.md`; metered $0.344 of the $0.50 cap)
+- **Pressure-test judges — pass.** False unlocks 0.7 per pass (5.5) vs 2.0 (4.5); one consistent false rejection (5.5); no-verdicts 0; p90 < 1s.
+- **Distress — pass.** Corpus 26/26 both; 271 real messages: no new fires, none missed; only `case_frustration` → `none` on 15 messages (label not used downstream); p90 0.93s.
+- **Hint check — fail.** Two narrowing hints judged "no hint" in both runs (38/42 vs 42/42); stays on 4.5.
+- **Data-request classifier — fail as configured.** With thinking disabled Haiku 5.5 sometimes writes its analysis before the JSON (26/160 unparseable); candidate fix: a JSON-schema structured output for this role on 5.5, then re-run.
+- **Coverage — not a drop-in.** End-gate decision identical; the mid-case steer differs (5.5 scores early evidence much lower, so it lists communication, judgment and creativity as undertested earlier). Decide whether that is wanted; then an interviewer-in-the-loop check.
+- Harness lessons: the classifiers fail open/closed, so a refused call reads as a null — the harnesses now fail fast on an unpriced id and stop at the cap; a budget refusal inside fetch is retried twice by the SDK (≈1.3s, no spend).
+
+**Proposed:** migrate the pressure-test judges and distress (two lines in `lib/models.ts`) after a budgeted live smoke run; keep the hint check on 4.5; fix and re-check the data-request classifier; decide on coverage.

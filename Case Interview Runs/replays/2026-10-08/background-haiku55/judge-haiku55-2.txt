@@ -1,0 +1,13 @@
+[budget] eval-probe-judge: cap $0.50 shared via /Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/streaming-turn/Case Interview Runs/replays/2026-10-08/background-haiku55/budget-ledger.jsonl · already spent $0.0078
+model claude-haiku-5-5 · 80 judgements · latency median 713ms p90 959ms max 1164ms · over 3s 0 
+tokens in 53144 out 4921 · spent $0.0155 of $0.50 — this process: claude-haiku-5-5 80 calls $0.0078
+
+dev · probe-answer judge: clear 26/26 · false unlocks 0/9 · false rejections 0/17 · no verdict 0 | borderline 1/1
+
+dev · structure check: clear 6/6 · false unlocks 0/2 · false rejections 0/4 · no verdict 0
+
+heldout · probe-answer judge: clear 27/29 · false unlocks 1/15 · false rejections 1/14 · no verdict 0 | borderline 2/2
+  FALSE REJECTION ho-18-nikhil-the-data-hoover-t13-batch-17 — Candidate declines to choose a branch and only requests data; no statement about the structure itself (missing, overlapping, or priority) was made.
+  FALSE UNLOCK (synthetic) syn-missing-data-points — Reply 1 makes a substantive statement about the structure itself, saying it is probably missing specific branches (gross margin by product, delivery mix, marketing spend, capex schedule), which answers the question's 'what might be missing' part.
+
+heldout · structure check: clear 16/16 · false unlocks 0/7 · false rejections 0/9 · no verdict 0

@@ -1,0 +1,3267 @@
+{
+ "role": "distress",
+ "models": [
+  {
+   "id": "claude-haiku-5-5",
+   "repeats": 2
+  }
+ ],
+ "latencies": {
+  "claude-haiku-5-5": [
+   763,
+   781,
+   824,
+   846,
+   905,
+   913,
+   658,
+   666,
+   608,
+   666,
+   634,
+   729,
+   619,
+   671,
+   602,
+   637,
+   1047,
+   830,
+   739,
+   696,
+   657,
+   688,
+   857,
+   628,
+   640,
+   639,
+   1020,
+   704,
+   658,
+   661,
+   642,
+   662,
+   676,
+   870,
+   619,
+   642,
+   629,
+   657,
+   837,
+   857,
+   636,
+   663,
+   595,
+   640,
+   804,
+   903,
+   618,
+   602,
+   634,
+   613,
+   1073,
+   648,
+   623,
+   629,
+   651,
+   685,
+   655,
+   626,
+   626,
+   624,
+   1204,
+   643,
+   653,
+   624,
+   802,
+   846,
+   634,
+   634,
+   647,
+   681,
+   591,
+   691,
+   854,
+   631,
+   637,
+   626,
+   898,
+   618,
+   649,
+   601,
+   594,
+   680,
+   613,
+   872,
+   647,
+   619,
+   627,
+   676,
+   627,
+   701,
+   632,
+   632,
+   698,
+   642,
+   619,
+   622,
+   588,
+   650,
+   992,
+   589,
+   601,
+   626,
+   908,
+   940,
+   620,
+   608,
+   881,
+   1030,
+   605,
+   991,
+   838,
+   874,
+   1304,
+   962,
+   693,
+   669,
+   635,
+   652,
+   840,
+   831,
+   648,
+   633,
+   849,
+   655,
+   728,
+   699,
+   893,
+   738,
+   609,
+   714,
+   964,
+   583,
+   622,
+   632,
+   636,
+   669,
+   781,
+   645,
+   699,
+   697,
+   641,
+   677,
+   664,
+   654,
+   748,
+   631,
+   642,
+   918,
+   644,
+   679,
+   678,
+   760,
+   1069,
+   849,
+   618,
+   638,
+   907,
+   662,
+   598,
+   656,
+   1080,
+   945,
+   881,
+   668,
+   697,
+   640,
+   591,
+   943,
+   718,
+   980,
+   606,
+   654,
+   618,
+   638,
+   678,
+   632,
+   739,
+   638,
+   950,
+   625,
+   600,
+   808,
+   931,
+   673,
+   913,
+   670,
+   814,
+   618,
+   754,
+   882,
+   894,
+   727,
+   638,
+   604,
+   797,
+   910,
+   587,
+   625,
+   686,
+   815,
+   826,
+   740,
+   739,
+   837,
+   654,
+   808,
+   935,
+   632,
+   644,
+   616,
+   678,
+   602,
+   635,
+   637,
+   654,
+   636,
+   654,
+   591,
+   648,
+   645,
+   617,
+   682,
+   897,
+   611,
+   1043,
+   624,
+   626,
+   842,
+   631,
+   742,
+   654,
+   956,
+   653,
+   604,
+   849,
+   887,
+   650,
+   671,
+   699,
+   694,
+   632,
+   1005,
+   630,
+   870,
+   635,
+   622,
+   636,
+   708,
+   756,
+   655,
+   679,
+   998,
+   648,
+   612,
+   613,
+   710,
+   672,
+   626,
+   619,
+   658,
+   622,
+   639,
+   648,
+   654,
+   671,
+   636,
+   625,
+   714,
+   581,
+   593,
+   713,
+   577,
+   656,
+   658,
+   637,
+   615,
+   582,
+   622,
+   730,
+   698,
+   636,
+   669,
+   662,
+   675,
+   687,
+   659,
+   614,
+   924,
+   655,
+   828,
+   660,
+   564,
+   585,
+   615,
+   633,
+   635,
+   610,
+   971,
+   824,
+   580,
+   691,
+   612,
+   641,
+   634,
+   609,
+   898,
+   567,
+   585,
+   645,
+   668,
+   590,
+   699,
+   935,
+   548,
+   613,
+   765,
+   886,
+   645,
+   620,
+   678,
+   642,
+   1039,
+   593,
+   605,
+   855,
+   651,
+   596,
+   604,
+   609,
+   645,
+   639,
+   1040,
+   1059,
+   610,
+   639,
+   579,
+   889,
+   990,
+   576,
+   670,
+   721,
+   623,
+   1429,
+   899,
+   686,
+   627,
+   1024,
+   673,
+   861,
+   586,
+   660,
+   678,
+   917,
+   660,
+   601,
+   597,
+   755,
+   953,
+   928,
+   588,
+   934,
+   857,
+   942,
+   877,
+   652,
+   676,
+   851,
+   893,
+   671,
+   630,
+   880,
+   954,
+   664,
+   656,
+   660,
+   617,
+   615,
+   648,
+   653,
+   589,
+   650,
+   766,
+   622,
+   654,
+   633,
+   807,
+   661,
+   709,
+   712,
+   919,
+   663,
+   662,
+   644,
+   623,
+   804,
+   807,
+   1064,
+   783,
+   831,
+   806,
+   1030,
+   604,
+   597,
+   857,
+   667,
+   647,
+   533,
+   865,
+   575,
+   634,
+   637,
+   935,
+   622,
+   938,
+   755,
+   640,
+   598,
+   591,
+   635,
+   913,
+   596,
+   651,
+   608,
+   674,
+   997,
+   633,
+   656,
+   868,
+   716,
+   616,
+   624,
+   945,
+   634,
+   629,
+   636,
+   828,
+   620,
+   646,
+   643,
+   626,
+   604,
+   688,
+   617,
+   660,
+   685,
+   706,
+   674,
+   582,
+   920,
+   732,
+   696,
+   1080,
+   594,
+   889,
+   676,
+   826,
+   669,
+   629,
+   906,
+   701,
+   1156,
+   902,
+   653,
+   659,
+   660,
+   580,
+   628,
+   622,
+   1017,
+   929,
+   658,
+   589,
+   952,
+   992,
+   882,
+   876,
+   623,
+   912,
+   628,
+   877,
+   887,
+   613,
+   878,
+   749,
+   643,
+   531,
+   791,
+   647,
+   877,
+   859,
+   636,
+   819,
+   973,
+   661,
+   921,
+   651,
+   940,
+   574,
+   909,
+   928,
+   573,
+   851,
+   621,
+   988,
+   655,
+   650,
+   652,
+   635,
+   860,
+   590,
+   637,
+   950,
+   628,
+   650,
+   675,
+   661,
+   636,
+   600,
+   610,
+   616,
+   585,
+   640,
+   600,
+   649,
+   1004,
+   614,
+   685,
+   621,
+   951,
+   596,
+   823,
+   971,
+   738,
+   585,
+   649,
+   874,
+   923,
+   671,
+   680,
+   880,
+   667,
+   947
+  ]
+ },
+ "items": [
+  {
+   "id": "batch-12-oct-06/01-maya-the-freezer@t14",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/01-maya-the-freezer@t26",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/01-maya-the-freezer@t28",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "case_frustration",
+     "case_frustration"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/01-maya-the-freezer@t30",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "case_frustration",
+     "case_frustration"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/19-blake-the-data-ignorer@t11",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-16-oct-07-ttft/01-maya-the-freezer@t22",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "case_frustration",
+     "case_frustration"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/01-maya-the-freezer@t24",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/01-maya-the-freezer@t38",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/01-maya-the-freezer@t42",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/01-maya-the-freezer@t48",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/08-claire-the-recommendation-freezer@t23",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/01-maya-the-freezer@t17",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "case_frustration",
+     "case_frustration"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/01-maya-the-freezer@t53",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "case_frustration",
+     "case_frustration"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/01-maya-the-freezer@t57",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/01-maya-the-freezer@t59",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-8-oct-03/01-maya-the-freezer@t14",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-8-oct-03/01-maya-the-freezer@t36",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/01-maya-the-freezer@t43",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/01-maya-the-freezer@t47",
+   "baseline": "distress",
+   "results": {
+    "claude-haiku-5-5": [
+     "distress",
+     "distress"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/01-maya-the-freezer@t59",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/01-maya-the-freezer@t63",
+   "baseline": "case_frustration",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-10-oct-06/18-nikhil-the-data-hoover@t1",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-10-oct-06/18-nikhil-the-data-hoover@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-10-oct-06/18-nikhil-the-data-hoover@t15",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-11-oct-06/18-nikhil-the-data-hoover@t1",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-11-oct-06/18-nikhil-the-data-hoover@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-11-oct-06/18-nikhil-the-data-hoover@t15",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-11-oct-06/18-nikhil-the-data-hoover@t23",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/00-default-candidate@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/00-default-candidate@t13",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/01-maya-the-freezer@t6",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/01-maya-the-freezer@t16",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/01-maya-the-freezer@t34",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/01-maya-the-freezer@t40",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/02-tobias-the-silent-thinker@t2",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/02-tobias-the-silent-thinker@t12",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/02-tobias-the-silent-thinker@t20",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/03-ines-the-clarifier@t5",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/03-ines-the-clarifier@t13",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/03-ines-the-clarifier@t21",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/03-ines-the-clarifier@t29",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/08-claire-the-recommendation-freezer@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/08-claire-the-recommendation-freezer@t11",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/08-claire-the-recommendation-freezer@t19",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/09-derek-the-bulldozer@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/09-derek-the-bulldozer@t13",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/15-tyler-the-misquoter@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/15-tyler-the-misquoter@t11",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/21-lena-the-deferral-tester@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/21-lena-the-deferral-tester@t9",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/21-lena-the-deferral-tester@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/56-devon-the-indirect-asker@t5",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/56-devon-the-indirect-asker@t13",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/56-devon-the-indirect-asker@t19",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/58-hugo-the-hidden-data-prober@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/58-hugo-the-hidden-data-prober@t15",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/10-sofia-the-unit-confuser@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/10-sofia-the-unit-confuser@t9",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/10-sofia-the-unit-confuser@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/12-wei-the-precisionist@t5",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/12-wei-the-precisionist@t13",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/14-jordan-the-order-of-magnitude-exaggerator@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/14-jordan-the-order-of-magnitude-exaggerator@t11",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/14-jordan-the-order-of-magnitude-exaggerator@t19",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/16-amara-the-self-corrector@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/16-amara-the-self-corrector@t9",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/16-amara-the-self-corrector@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/19-blake-the-data-ignorer@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/19-blake-the-data-ignorer@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/20-connor-the-exhibit-skimmer@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/20-connor-the-exhibit-skimmer@t11",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/25-eliza-the-rambler@t1",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/25-eliza-the-rambler@t9",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/25-eliza-the-rambler@t15",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/26-daniel-the-interviewer-led-expecter@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/26-daniel-the-interviewer-led-expecter@t15",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/31-arjun-the-jailbreaker@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/31-arjun-the-jailbreaker@t9",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/53-fiona-the-hypothesis-reverser@t1",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/53-fiona-the-hypothesis-reverser@t9",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/53-fiona-the-hypothesis-reverser@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/03-ines-the-clarifier@t5",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/03-ines-the-clarifier@t13",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/03-ines-the-clarifier@t21",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/15-tyler-the-misquoter@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/15-tyler-the-misquoter@t9",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/15-tyler-the-misquoter@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/21-lena-the-deferral-tester@t5",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/21-lena-the-deferral-tester@t13",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/26-daniel-the-interviewer-led-expecter@t1",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/26-daniel-the-interviewer-led-expecter@t9",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/26-daniel-the-interviewer-led-expecter@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/03-ines-the-clarifier@t1",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/03-ines-the-clarifier@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/03-ines-the-clarifier@t15",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/03-ines-the-clarifier@t23",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/15-tyler-the-misquoter@t5",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/15-tyler-the-misquoter@t11",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/21-lena-the-deferral-tester@t1",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/21-lena-the-deferral-tester@t9",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/21-lena-the-deferral-tester@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/26-daniel-the-interviewer-led-expecter@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/26-daniel-the-interviewer-led-expecter@t11",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-15-oct-07-cerebras-high/00-default-candidate@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-15-oct-07-cerebras-high/00-default-candidate@t11",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-15-oct-07-cerebras-high/00-default-candidate@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-16-oct-07-ttft/01-maya-the-freezer@t4",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-16-oct-07-ttft/01-maya-the-freezer@t12",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-16-oct-07-ttft/01-maya-the-freezer@t24",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-16-oct-07-ttft/01-maya-the-freezer@t30",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-16-oct-07-ttft/01-maya-the-freezer@t38",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/09-derek-the-bulldozer@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/09-derek-the-bulldozer@t11",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/09-derek-the-bulldozer@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/14-jordan-the-order-of-magnitude-exaggerator@t5",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/14-jordan-the-order-of-magnitude-exaggerator@t13",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/14-jordan-the-order-of-magnitude-exaggerator@t21",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/18-nikhil-the-data-hoover@t1",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/18-nikhil-the-data-hoover@t9",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/18-nikhil-the-data-hoover@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/18-nikhil-the-data-hoover@t25",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/18-nikhil-the-data-hoover@t31",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/18-nikhil-the-data-hoover@t39",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/18-nikhil-the-data-hoover@t47",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/18-nikhil-the-data-hoover@t55",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/20-connor-the-exhibit-skimmer@t1",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/20-connor-the-exhibit-skimmer@t9",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/20-connor-the-exhibit-skimmer@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/20-connor-the-exhibit-skimmer@t25",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/56-devon-the-indirect-asker@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/56-devon-the-indirect-asker@t11",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/56-devon-the-indirect-asker@t19",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/58-hugo-the-hidden-data-prober@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/58-hugo-the-hidden-data-prober@t9",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/58-hugo-the-hidden-data-prober@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/01-maya-the-freezer@t8",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/01-maya-the-freezer@t20",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/01-maya-the-freezer@t28",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/01-maya-the-freezer@t36",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/01-maya-the-freezer@t50",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/02-tobias-the-silent-thinker@t2",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/02-tobias-the-silent-thinker@t10",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/02-tobias-the-silent-thinker@t19",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/03-ines-the-clarifier@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/03-ines-the-clarifier@t15",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/06-destiny-the-blank-slate@t1",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/06-destiny-the-blank-slate@t9",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/06-destiny-the-blank-slate@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/06-destiny-the-blank-slate@t23",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/06-destiny-the-blank-slate@t31",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/06-destiny-the-blank-slate@t39",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/08-claire-the-recommendation-freezer@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/08-claire-the-recommendation-freezer@t13",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/08-claire-the-recommendation-freezer@t25",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/08-claire-the-recommendation-freezer@t33",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/08-claire-the-recommendation-freezer@t41",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/08-claire-the-recommendation-freezer@t47",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/09-derek-the-bulldozer@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/09-derek-the-bulldozer@t15",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/18-nikhil-the-data-hoover@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/18-nikhil-the-data-hoover@t9",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/18-nikhil-the-data-hoover@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/21-lena-the-deferral-tester@t5",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/21-lena-the-deferral-tester@t13",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/56-devon-the-indirect-asker@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/56-devon-the-indirect-asker@t11",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/57-marisol-the-context-confuser@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/57-marisol-the-context-confuser@t11",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-5-oct-02/57-marisol-the-context-confuser@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/01-maya-the-freezer@t6",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/01-maya-the-freezer@t21",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/01-maya-the-freezer@t33",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/01-maya-the-freezer@t39",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/01-maya-the-freezer@t49",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/02-tobias-the-silent-thinker@t5",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/02-tobias-the-silent-thinker@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/08-claire-the-recommendation-freezer@t1",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/08-claire-the-recommendation-freezer@t11",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/08-claire-the-recommendation-freezer@t19",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/08-claire-the-recommendation-freezer@t29",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/08-claire-the-recommendation-freezer@t37",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/15-tyler-the-misquoter@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/15-tyler-the-misquoter@t15",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/21-lena-the-deferral-tester@t5",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/21-lena-the-deferral-tester@t11",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/24-marcus-the-answer-first-sprinter@t5",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/24-marcus-the-answer-first-sprinter@t13",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/24-marcus-the-answer-first-sprinter@t21",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/44-naomi-the-auditor@t5",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/44-naomi-the-auditor@t13",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/51-anika-the-unorthodox-structurer@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/51-anika-the-unorthodox-structurer@t15",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/51-anika-the-unorthodox-structurer@t21",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/58-hugo-the-hidden-data-prober@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/58-hugo-the-hidden-data-prober@t15",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/60-caleb-the-defensible-dissenter@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-6-oct-03/60-caleb-the-defensible-dissenter@t13",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/01-maya-the-freezer@t2",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/01-maya-the-freezer@t10",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/01-maya-the-freezer@t24",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/01-maya-the-freezer@t30",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/01-maya-the-freezer@t41",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/02-tobias-the-silent-thinker@t11",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/06-destiny-the-blank-slate@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/06-destiny-the-blank-slate@t13",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/06-destiny-the-blank-slate@t21",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/06-destiny-the-blank-slate@t29",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/06-destiny-the-blank-slate@t37",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/08-claire-the-recommendation-freezer@t5",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/08-claire-the-recommendation-freezer@t15",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/08-claire-the-recommendation-freezer@t29",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/09-derek-the-bulldozer@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/09-derek-the-bulldozer@t13",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/09-derek-the-bulldozer@t21",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/18-nikhil-the-data-hoover@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/21-lena-the-deferral-tester@t1",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/21-lena-the-deferral-tester@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/21-lena-the-deferral-tester@t15",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/40-jasmine-the-early-finisher@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/40-jasmine-the-early-finisher@t15",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/56-devon-the-indirect-asker@t1",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/56-devon-the-indirect-asker@t9",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/58-hugo-the-hidden-data-prober@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/58-hugo-the-hidden-data-prober@t11",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-7-oct-03/58-hugo-the-hidden-data-prober@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-8-oct-03/01-maya-the-freezer@t6",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-8-oct-03/01-maya-the-freezer@t18",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-8-oct-03/01-maya-the-freezer@t30",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-8-oct-03/01-maya-the-freezer@t38",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-8-oct-03/01-maya-the-freezer@t47",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-8-oct-03/01-maya-the-freezer@t55",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-8-oct-03/06-destiny-the-blank-slate@t9",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-8-oct-03/06-destiny-the-blank-slate@t15",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-8-oct-03/06-destiny-the-blank-slate@t23",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-8-oct-03/08-claire-the-recommendation-freezer@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-8-oct-03/08-claire-the-recommendation-freezer@t11",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-8-oct-03/08-claire-the-recommendation-freezer@t19",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-8-oct-03/40-jasmine-the-early-finisher@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-8-oct-03/40-jasmine-the-early-finisher@t15",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-8-oct-03/40-jasmine-the-early-finisher@t23",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/01-maya-the-freezer@t4",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/01-maya-the-freezer@t12",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/01-maya-the-freezer@t29",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/01-maya-the-freezer@t37",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/01-maya-the-freezer@t45",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/01-maya-the-freezer@t57",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/02-tobias-the-silent-thinker@t8",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/02-tobias-the-silent-thinker@t19",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/06-destiny-the-blank-slate@t9",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/06-destiny-the-blank-slate@t17",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/06-destiny-the-blank-slate@t25",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/08-claire-the-recommendation-freezer@t1",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/08-claire-the-recommendation-freezer@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/08-claire-the-recommendation-freezer@t19",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/08-claire-the-recommendation-freezer@t31",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/09-derek-the-bulldozer@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/09-derek-the-bulldozer@t9",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/18-nikhil-the-data-hoover@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/18-nikhil-the-data-hoover@t11",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/18-nikhil-the-data-hoover@t19",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/18-nikhil-the-data-hoover@t25",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/21-lena-the-deferral-tester@t5",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/21-lena-the-deferral-tester@t13",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/40-jasmine-the-early-finisher@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/40-jasmine-the-early-finisher@t13",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/40-jasmine-the-early-finisher@t21",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/56-devon-the-indirect-asker@t7",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/56-devon-the-indirect-asker@t15",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/58-hugo-the-hidden-data-prober@t5",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "batch-9-oct-05/58-hugo-the-hidden-data-prober@t13",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  },
+  {
+   "id": "prefix-oct-07-early-1/18-nikhil-the-data-hoover@t3",
+   "baseline": "none",
+   "results": {
+    "claude-haiku-5-5": [
+     "none",
+     "none"
+    ]
+   }
+  }
+ ]
+}

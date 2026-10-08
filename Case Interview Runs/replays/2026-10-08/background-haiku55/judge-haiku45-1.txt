@@ -1,0 +1,13 @@
+[budget] eval-probe-judge: cap $0.50 shared via /Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/streaming-turn/Case Interview Runs/replays/2026-10-08/background-haiku55/budget-ledger.jsonl · already spent $0.0155
+model claude-haiku-4-5 · 80 judgements · latency median 759ms p90 1043ms max 1115ms · over 3s 0 
+tokens in 38140 out 3117 · spent $0.0693 of $0.50 — this process: claude-haiku-4-5-20251001 80 calls $0.0537
+
+dev · probe-answer judge: clear 25/26 · false unlocks 1/9 · false rejections 0/17 · no verdict 0 | borderline 1/1
+  FALSE UNLOCK loop-t15 — Identifies cost side as missing, proposes data to determine which cost bucket to prioritize first, and commits to a branch-selection logic based on percentage-point movement
+
+dev · structure check: clear 6/6 · false unlocks 0/2 · false rejections 0/4 · no verdict 0
+
+heldout · probe-answer judge: clear 28/29 · false unlocks 1/15 · false rejections 0/14 · no verdict 0 | borderline 2/2
+  FALSE UNLOCK (synthetic) syn-missing-data-points — Candidate identifies specific missing data points (gross margin by product, delivery mix, marketing spend, capex schedule) as gaps in their structure
+
+heldout · structure check: clear 16/16 · false unlocks 0/7 · false rejections 0/9 · no verdict 0

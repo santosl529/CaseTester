@@ -1,0 +1,1246 @@
+{
+ "role": "coverage",
+ "models": [
+  {
+   "id": "claude-haiku-4-5-20251001",
+   "repeats": 2
+  },
+  {
+   "id": "claude-haiku-5-5",
+   "repeats": 2
+  }
+ ],
+ "latencies": {
+  "claude-haiku-4-5-20251001": [
+   752,
+   767,
+   801,
+   819,
+   844,
+   847,
+   751,
+   741,
+   706,
+   711,
+   703,
+   790,
+   773,
+   738,
+   658,
+   650,
+   726,
+   762,
+   714,
+   683,
+   676,
+   679,
+   685,
+   745,
+   3491,
+   3541,
+   730,
+   3570,
+   706,
+   723,
+   734,
+   693,
+   727,
+   709,
+   789,
+   749,
+   708,
+   822,
+   703,
+   708,
+   750,
+   833,
+   725,
+   741,
+   3452,
+   3575,
+   697,
+   735
+  ],
+  "claude-haiku-5-5": [
+   620,
+   625,
+   630,
+   643,
+   648,
+   651,
+   608,
+   604,
+   640,
+   651,
+   656,
+   663,
+   658,
+   645,
+   613,
+   668,
+   637,
+   642,
+   625,
+   647,
+   650,
+   638,
+   657,
+   688,
+   627,
+   707,
+   645,
+   654,
+   907,
+   1119,
+   642,
+   644,
+   679,
+   667,
+   935,
+   620,
+   633,
+   622,
+   1057,
+   940,
+   675,
+   642,
+   615,
+   652,
+   586,
+   749,
+   975,
+   652
+  ]
+ },
+ "items": [
+  {
+   "id": "batch-12-oct-06/00-default-candidate@25%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 85,
+      "quantitative": 0,
+      "dataExhibit": 0,
+      "judgment": 75,
+      "creativity": 45,
+      "synthesis": 0,
+      "communication": 90,
+      "pushback": 0
+     },
+     {
+      "structure": 75,
+      "quantitative": 0,
+      "dataExhibit": 0,
+      "judgment": 70,
+      "creativity": 35,
+      "synthesis": 0,
+      "communication": 85,
+      "pushback": 0
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 80,
+      "quantitative": 10,
+      "dataExhibit": 0,
+      "judgment": 45,
+      "creativity": 5,
+      "synthesis": 0,
+      "communication": 55,
+      "pushback": 35
+     },
+     {
+      "structure": 70,
+      "quantitative": 10,
+      "dataExhibit": 5,
+      "judgment": 45,
+      "creativity": 10,
+      "synthesis": 5,
+      "communication": 40,
+      "pushback": 35
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/00-default-candidate@60%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 85,
+      "quantitative": 90,
+      "dataExhibit": 85,
+      "judgment": 80,
+      "creativity": 55,
+      "synthesis": 70,
+      "communication": 90,
+      "pushback": 0
+     },
+     {
+      "structure": 85,
+      "quantitative": 90,
+      "dataExhibit": 85,
+      "judgment": 80,
+      "creativity": 50,
+      "synthesis": 60,
+      "communication": 85,
+      "pushback": 0
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 85,
+      "quantitative": 85,
+      "dataExhibit": 80,
+      "judgment": 70,
+      "creativity": 25,
+      "synthesis": 40,
+      "communication": 60,
+      "pushback": 35
+     },
+     {
+      "structure": 85,
+      "quantitative": 85,
+      "dataExhibit": 70,
+      "judgment": 70,
+      "creativity": 30,
+      "synthesis": 40,
+      "communication": 65,
+      "pushback": 35
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/00-default-candidate@100%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 90,
+      "quantitative": 85,
+      "dataExhibit": 80,
+      "judgment": 75,
+      "creativity": 70,
+      "synthesis": 85,
+      "communication": 88,
+      "pushback": 65
+     },
+     {
+      "structure": 90,
+      "quantitative": 85,
+      "dataExhibit": 80,
+      "judgment": 85,
+      "creativity": 75,
+      "synthesis": 90,
+      "communication": 88,
+      "pushback": 70
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 88,
+      "quantitative": 92,
+      "dataExhibit": 80,
+      "judgment": 85,
+      "creativity": 62,
+      "synthesis": 85,
+      "communication": 78,
+      "pushback": 70
+     },
+     {
+      "structure": 85,
+      "quantitative": 90,
+      "dataExhibit": 80,
+      "judgment": 85,
+      "creativity": 65,
+      "synthesis": 85,
+      "communication": 80,
+      "pushback": 60
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/03-ines-the-clarifier@25%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 85,
+      "quantitative": 90,
+      "dataExhibit": 0,
+      "judgment": 75,
+      "creativity": 50,
+      "synthesis": 15,
+      "communication": 85,
+      "pushback": 0
+     },
+     {
+      "structure": 85,
+      "quantitative": 90,
+      "dataExhibit": 0,
+      "judgment": 75,
+      "creativity": 50,
+      "synthesis": 0,
+      "communication": 85,
+      "pushback": 0
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 55,
+      "quantitative": 45,
+      "dataExhibit": 10,
+      "judgment": 30,
+      "creativity": 0,
+      "synthesis": 0,
+      "communication": 45,
+      "pushback": 20
+     },
+     {
+      "structure": 45,
+      "quantitative": 35,
+      "dataExhibit": 10,
+      "judgment": 15,
+      "creativity": 0,
+      "synthesis": 0,
+      "communication": 40,
+      "pushback": 10
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/03-ines-the-clarifier@60%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 85,
+      "quantitative": 75,
+      "dataExhibit": 45,
+      "judgment": 70,
+      "creativity": 60,
+      "synthesis": 40,
+      "communication": 80,
+      "pushback": 85
+     },
+     {
+      "structure": 85,
+      "quantitative": 75,
+      "dataExhibit": 45,
+      "judgment": 70,
+      "creativity": 60,
+      "synthesis": 35,
+      "communication": 80,
+      "pushback": 90
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 85,
+      "quantitative": 85,
+      "dataExhibit": 45,
+      "judgment": 60,
+      "creativity": 15,
+      "synthesis": 20,
+      "communication": 70,
+      "pushback": 75
+     },
+     {
+      "structure": 80,
+      "quantitative": 85,
+      "dataExhibit": 45,
+      "judgment": 60,
+      "creativity": 15,
+      "synthesis": 20,
+      "communication": 65,
+      "pushback": 70
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/03-ines-the-clarifier@100%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 85,
+      "quantitative": 80,
+      "dataExhibit": 75,
+      "judgment": 70,
+      "creativity": 75,
+      "synthesis": 80,
+      "communication": 85,
+      "pushback": 65
+     },
+     {
+      "structure": 85,
+      "quantitative": 75,
+      "dataExhibit": 80,
+      "judgment": 78,
+      "creativity": 72,
+      "synthesis": 82,
+      "communication": 88,
+      "pushback": 92
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 95,
+      "quantitative": 95,
+      "dataExhibit": 85,
+      "judgment": 90,
+      "creativity": 90,
+      "synthesis": 90,
+      "communication": 85,
+      "pushback": 90
+     },
+     {
+      "structure": 85,
+      "quantitative": 95,
+      "dataExhibit": 90,
+      "judgment": 90,
+      "creativity": 80,
+      "synthesis": 85,
+      "communication": 80,
+      "pushback": 90
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/21-lena-the-deferral-tester@25%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     null,
+     {
+      "structure": 85,
+      "quantitative": 15,
+      "dataExhibit": 0,
+      "judgment": 75,
+      "creativity": 60,
+      "synthesis": 20,
+      "communication": 90,
+      "pushback": 70
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 82,
+      "quantitative": 8,
+      "dataExhibit": 5,
+      "judgment": 30,
+      "creativity": 6,
+      "synthesis": 0,
+      "communication": 45,
+      "pushback": 40
+     },
+     {
+      "structure": 80,
+      "quantitative": 15,
+      "dataExhibit": 5,
+      "judgment": 35,
+      "creativity": 20,
+      "synthesis": 5,
+      "communication": 55,
+      "pushback": 50
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/21-lena-the-deferral-tester@60%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     null,
+     {
+      "structure": 85,
+      "quantitative": 90,
+      "dataExhibit": 0,
+      "judgment": 75,
+      "creativity": 60,
+      "synthesis": 50,
+      "communication": 88,
+      "pushback": 70
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 85,
+      "quantitative": 85,
+      "dataExhibit": 30,
+      "judgment": 55,
+      "creativity": 20,
+      "synthesis": 25,
+      "communication": 60,
+      "pushback": 60
+     },
+     {
+      "structure": 85,
+      "quantitative": 90,
+      "dataExhibit": 30,
+      "judgment": 55,
+      "creativity": 25,
+      "synthesis": 30,
+      "communication": 60,
+      "pushback": 60
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/21-lena-the-deferral-tester@100%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 95,
+      "quantitative": 90,
+      "dataExhibit": 85,
+      "judgment": 80,
+      "creativity": 75,
+      "synthesis": 90,
+      "communication": 88,
+      "pushback": 85
+     },
+     {
+      "structure": 95,
+      "quantitative": 90,
+      "dataExhibit": 85,
+      "judgment": 85,
+      "creativity": 75,
+      "synthesis": 90,
+      "communication": 90,
+      "pushback": 80
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 85,
+      "quantitative": 95,
+      "dataExhibit": 80,
+      "judgment": 85,
+      "creativity": 80,
+      "synthesis": 85,
+      "communication": 75,
+      "pushback": 80
+     },
+     {
+      "structure": 88,
+      "quantitative": 95,
+      "dataExhibit": 85,
+      "judgment": 85,
+      "creativity": 80,
+      "synthesis": 85,
+      "communication": 75,
+      "pushback": 80
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/10-sofia-the-unit-confuser@25%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     null,
+     null
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 78,
+      "quantitative": 30,
+      "dataExhibit": 25,
+      "judgment": 20,
+      "creativity": 5,
+      "synthesis": 0,
+      "communication": 45,
+      "pushback": 25
+     },
+     {
+      "structure": 85,
+      "quantitative": 25,
+      "dataExhibit": 15,
+      "judgment": 20,
+      "creativity": 5,
+      "synthesis": 0,
+      "communication": 40,
+      "pushback": 10
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/10-sofia-the-unit-confuser@60%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 85,
+      "quantitative": 70,
+      "dataExhibit": 80,
+      "judgment": 60,
+      "creativity": 35,
+      "synthesis": 30,
+      "communication": 75,
+      "pushback": 65
+     },
+     {
+      "structure": 85,
+      "quantitative": 70,
+      "dataExhibit": 80,
+      "judgment": 60,
+      "creativity": 35,
+      "synthesis": 40,
+      "communication": 75,
+      "pushback": 65
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 85,
+      "quantitative": 85,
+      "dataExhibit": 70,
+      "judgment": 45,
+      "creativity": 20,
+      "synthesis": 15,
+      "communication": 55,
+      "pushback": 60
+     },
+     {
+      "structure": 85,
+      "quantitative": 85,
+      "dataExhibit": 70,
+      "judgment": 45,
+      "creativity": 20,
+      "synthesis": 15,
+      "communication": 55,
+      "pushback": 65
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/10-sofia-the-unit-confuser@100%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 92,
+      "quantitative": 75,
+      "dataExhibit": 85,
+      "judgment": 88,
+      "creativity": 82,
+      "synthesis": 90,
+      "pushback": 78
+     },
+     {
+      "structure": 90,
+      "quantitative": 75,
+      "dataExhibit": 85,
+      "judgment": 80,
+      "creativity": 75,
+      "synthesis": 85,
+      "communication": 80,
+      "pushback": 70
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 92,
+      "quantitative": 95,
+      "dataExhibit": 85,
+      "judgment": 88,
+      "creativity": 80,
+      "synthesis": 85,
+      "communication": 80,
+      "pushback": 90
+     },
+     {
+      "structure": 92,
+      "quantitative": 95,
+      "dataExhibit": 85,
+      "judgment": 88,
+      "creativity": 80,
+      "synthesis": 85,
+      "communication": 80,
+      "pushback": 90
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/19-blake-the-data-ignorer@25%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 85,
+      "quantitative": 75,
+      "dataExhibit": 0,
+      "judgment": 80,
+      "creativity": 35,
+      "synthesis": 20,
+      "communication": 85,
+      "pushback": 70
+     },
+     {
+      "structure": 85,
+      "quantitative": 75,
+      "dataExhibit": 0,
+      "judgment": 80,
+      "creativity": 45,
+      "synthesis": 30,
+      "communication": 80,
+      "pushback": 75
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 70,
+      "quantitative": 45,
+      "dataExhibit": 5,
+      "judgment": 45,
+      "creativity": 5,
+      "synthesis": 5,
+      "communication": 50,
+      "pushback": 40
+     },
+     {
+      "structure": 55,
+      "quantitative": 45,
+      "dataExhibit": 5,
+      "judgment": 45,
+      "creativity": 5,
+      "synthesis": 5,
+      "communication": 40,
+      "pushback": 35
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/19-blake-the-data-ignorer@60%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 85,
+      "quantitative": 90,
+      "dataExhibit": 75,
+      "judgment": 70,
+      "creativity": 35,
+      "synthesis": 45,
+      "communication": 80,
+      "pushback": 60
+     },
+     {
+      "structure": 85,
+      "quantitative": 90,
+      "dataExhibit": 75,
+      "judgment": 70,
+      "creativity": 45,
+      "synthesis": 50,
+      "communication": 85,
+      "pushback": 60
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 85,
+      "quantitative": 85,
+      "dataExhibit": 65,
+      "judgment": 70,
+      "creativity": 20,
+      "synthesis": 35,
+      "communication": 60,
+      "pushback": 75
+     },
+     {
+      "structure": 85,
+      "quantitative": 85,
+      "dataExhibit": 70,
+      "judgment": 70,
+      "creativity": 15,
+      "synthesis": 40,
+      "communication": 65,
+      "pushback": 85
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/19-blake-the-data-ignorer@100%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 85,
+      "quantitative": 90,
+      "dataExhibit": 95,
+      "judgment": 75,
+      "creativity": 70,
+      "synthesis": 80,
+      "communication": 85,
+      "pushback": 65
+     },
+     {
+      "structure": 85,
+      "quantitative": 90,
+      "dataExhibit": 80,
+      "judgment": 75,
+      "creativity": 70,
+      "synthesis": 75,
+      "communication": 80,
+      "pushback": 65
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 85,
+      "quantitative": 95,
+      "dataExhibit": 85,
+      "judgment": 85,
+      "creativity": 80,
+      "synthesis": 85,
+      "communication": 75,
+      "pushback": 90
+     },
+     {
+      "structure": 85,
+      "quantitative": 95,
+      "dataExhibit": 90,
+      "judgment": 85,
+      "creativity": 80,
+      "synthesis": 85,
+      "communication": 70,
+      "pushback": 90
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/26-daniel-the-interviewer-led-expecter@25%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 85,
+      "quantitative": 0,
+      "dataExhibit": 0,
+      "judgment": 70,
+      "creativity": 55,
+      "synthesis": 0,
+      "communication": 90,
+      "pushback": 85
+     },
+     {
+      "structure": 85,
+      "quantitative": 0,
+      "dataExhibit": 0,
+      "judgment": 70,
+      "creativity": 55,
+      "synthesis": 0,
+      "communication": 80,
+      "pushback": 90
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 78,
+      "quantitative": 8,
+      "dataExhibit": 0,
+      "judgment": 12,
+      "creativity": 5,
+      "synthesis": 0,
+      "communication": 45,
+      "pushback": 40
+     },
+     {
+      "structure": 72,
+      "quantitative": 8,
+      "dataExhibit": 0,
+      "judgment": 12,
+      "creativity": 5,
+      "synthesis": 0,
+      "communication": 45,
+      "pushback": 40
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/26-daniel-the-interviewer-led-expecter@60%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 85,
+      "quantitative": 75,
+      "dataExhibit": 80,
+      "judgment": 70,
+      "creativity": 35,
+      "synthesis": 60,
+      "communication": 88,
+      "pushback": 65
+     },
+     null
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 85,
+      "quantitative": 80,
+      "dataExhibit": 80,
+      "judgment": 60,
+      "creativity": 15,
+      "synthesis": 35,
+      "communication": 70,
+      "pushback": 45
+     },
+     {
+      "structure": 85,
+      "quantitative": 80,
+      "dataExhibit": 80,
+      "judgment": 55,
+      "creativity": 10,
+      "synthesis": 25,
+      "communication": 60,
+      "pushback": 35
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/26-daniel-the-interviewer-led-expecter@100%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 95,
+      "quantitative": 90,
+      "dataExhibit": 85,
+      "judgment": 80,
+      "creativity": 75,
+      "synthesis": 90,
+      "communication": 92,
+      "pushback": 88
+     },
+     {
+      "structure": 95,
+      "quantitative": 90,
+      "dataExhibit": 85,
+      "judgment": 80,
+      "creativity": 75,
+      "synthesis": 90,
+      "communication": 92,
+      "pushback": 88
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 92,
+      "quantitative": 90,
+      "dataExhibit": 88,
+      "judgment": 85,
+      "creativity": 80,
+      "synthesis": 85,
+      "communication": 82,
+      "pushback": 88
+     },
+     {
+      "structure": 92,
+      "quantitative": 90,
+      "dataExhibit": 90,
+      "judgment": 88,
+      "creativity": 80,
+      "synthesis": 85,
+      "communication": 80,
+      "pushback": 85
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/15-tyler-the-misquoter@25%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 85,
+      "quantitative": 75,
+      "dataExhibit": 80,
+      "judgment": 70,
+      "creativity": 40,
+      "synthesis": 30,
+      "communication": 85,
+      "pushback": 0
+     },
+     {
+      "structure": 85,
+      "quantitative": 75,
+      "dataExhibit": 80,
+      "judgment": 70,
+      "creativity": 35,
+      "synthesis": 30,
+      "communication": 85,
+      "pushback": 0
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 80,
+      "quantitative": 45,
+      "dataExhibit": 40,
+      "judgment": 25,
+      "creativity": 0,
+      "synthesis": 0,
+      "communication": 45,
+      "pushback": 10
+     },
+     {
+      "structure": 82,
+      "quantitative": 45,
+      "dataExhibit": 40,
+      "judgment": 30,
+      "creativity": 5,
+      "synthesis": 10,
+      "communication": 55,
+      "pushback": 10
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/15-tyler-the-misquoter@60%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 90,
+      "quantitative": 85,
+      "dataExhibit": 80,
+      "judgment": 70,
+      "creativity": 45,
+      "synthesis": 35,
+      "communication": 85,
+      "pushback": 75
+     },
+     {
+      "structure": 90,
+      "quantitative": 85,
+      "dataExhibit": 80,
+      "judgment": 70,
+      "creativity": 40,
+      "synthesis": 30,
+      "communication": 85,
+      "pushback": 75
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 80,
+      "quantitative": 85,
+      "dataExhibit": 75,
+      "judgment": 45,
+      "creativity": 10,
+      "synthesis": 20,
+      "communication": 55,
+      "pushback": 70
+     },
+     {
+      "structure": 85,
+      "quantitative": 85,
+      "dataExhibit": 75,
+      "judgment": 45,
+      "creativity": 10,
+      "synthesis": 20,
+      "communication": 55,
+      "pushback": 70
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/15-tyler-the-misquoter@100%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 95,
+      "quantitative": 90,
+      "dataExhibit": 85,
+      "judgment": 88,
+      "creativity": 82,
+      "synthesis": 90,
+      "communication": 92,
+      "pushback": 85
+     },
+     {
+      "structure": 90,
+      "quantitative": 85,
+      "dataExhibit": 88,
+      "judgment": 82,
+      "creativity": 78,
+      "synthesis": 90,
+      "communication": 92,
+      "pushback": 85
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 92,
+      "quantitative": 95,
+      "dataExhibit": 90,
+      "judgment": 88,
+      "creativity": 85,
+      "synthesis": 85,
+      "communication": 70,
+      "pushback": 88
+     },
+     {
+      "structure": 92,
+      "quantitative": 95,
+      "dataExhibit": 90,
+      "judgment": 90,
+      "creativity": 88,
+      "synthesis": 88,
+      "communication": 82,
+      "pushback": 90
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/03-ines-the-clarifier@25%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 35,
+      "quantitative": 15,
+      "dataExhibit": 20,
+      "judgment": 65,
+      "creativity": 0,
+      "synthesis": 0,
+      "communication": 75,
+      "pushback": 0
+     },
+     {
+      "structure": 35,
+      "quantitative": 15,
+      "dataExhibit": 25,
+      "judgment": 60,
+      "creativity": 20,
+      "synthesis": 0,
+      "communication": 75,
+      "pushback": 0
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 5,
+      "quantitative": 10,
+      "dataExhibit": 10,
+      "judgment": 12,
+      "creativity": 0,
+      "synthesis": 0,
+      "communication": 25,
+      "pushback": 5
+     },
+     {
+      "structure": 5,
+      "quantitative": 10,
+      "dataExhibit": 15,
+      "judgment": 15,
+      "creativity": 0,
+      "synthesis": 0,
+      "communication": 25,
+      "pushback": 10
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/03-ines-the-clarifier@60%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 90,
+      "quantitative": 85,
+      "dataExhibit": 90,
+      "judgment": 75,
+      "creativity": 40,
+      "synthesis": 60,
+      "communication": 95,
+      "pushback": 65
+     },
+     {
+      "structure": 90,
+      "quantitative": 95,
+      "dataExhibit": 85,
+      "judgment": 75,
+      "creativity": 45,
+      "synthesis": 60,
+      "communication": 90,
+      "pushback": 35
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 85,
+      "quantitative": 80,
+      "dataExhibit": 70,
+      "judgment": 45,
+      "creativity": 10,
+      "synthesis": 10,
+      "communication": 55,
+      "pushback": 35
+     },
+     {
+      "structure": 85,
+      "quantitative": 80,
+      "dataExhibit": 65,
+      "judgment": 45,
+      "creativity": 10,
+      "synthesis": 10,
+      "communication": 55,
+      "pushback": 40
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/03-ines-the-clarifier@100%",
+   "results": {
+    "claude-haiku-4-5-20251001": [
+     {
+      "structure": 95,
+      "quantitative": 90,
+      "dataExhibit": 85,
+      "judgment": 88,
+      "creativity": 75,
+      "synthesis": 92,
+      "pushback": 78
+     },
+     {
+      "structure": 92,
+      "quantitative": 88,
+      "dataExhibit": 85,
+      "judgment": 82,
+      "creativity": 72,
+      "synthesis": 88,
+      "communication": 90,
+      "pushback": 78
+     }
+    ],
+    "claude-haiku-5-5": [
+     {
+      "structure": 90,
+      "quantitative": 90,
+      "dataExhibit": 80,
+      "judgment": 85,
+      "creativity": 75,
+      "synthesis": 80,
+      "communication": 80,
+      "pushback": 75
+     },
+     {
+      "structure": 88,
+      "quantitative": 85,
+      "dataExhibit": 80,
+      "judgment": 82,
+      "creativity": 78,
+      "synthesis": 80,
+      "communication": 75,
+      "pushback": 72
+     }
+    ]
+   }
+  }
+ ]
+}

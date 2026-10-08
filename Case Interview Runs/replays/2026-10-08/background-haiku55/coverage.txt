@@ -1,0 +1,37 @@
+coverage: 24 items · claude-haiku-4-5-20251001×2, claude-haiku-5-5×2 · estimated $0.164 (chars/4 tokens, ×1.35 for Haiku 5.5)
+[budget] eval-background coverage: cap $0.50 shared via /Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/streaming-turn/Case Interview Runs/replays/2026-10-08/background-haiku55/budget-ledger.jsonl · already spent $0.2042
+[claude-haiku-4-5-20251001] latency median 738ms p90 3452ms max 3575ms
+[claude-haiku-5-5] latency median 648ms p90 935ms max 1119ms
+
+[claude-haiku-4-5-20251001] 24 items × 2 · no verdict / error 5
+
+[claude-haiku-5-5] 24 items × 2 · no verdict / error 0
+  [claude-haiku-4-5-20251001] below-threshold set changes across its own repeats on 4/24 points · repeat |Δ| median 0 p90 8
+  [claude-haiku-5-5] below-threshold set changes across its own repeats on 2/24 points · repeat |Δ| median 0 p90 10
+    batch-12-oct-06/00-default-candidate@25%: claude-haiku-4-5-20251001 below [creativity,dataExhibit,pushback,quantitative,synthesis] · claude-haiku-5-5 below [communication,creativity,dataExhibit,judgment,pushback,quantitative,synthesis] [communication,creativity,dataExhibit,judgment,pushback,quantitative,synthesis]
+    batch-12-oct-06/00-default-candidate@60%: claude-haiku-4-5-20251001 below [creativity,pushback] · claude-haiku-5-5 below [creativity,pushback,synthesis] [creativity,pushback,synthesis]
+    batch-12-oct-06/00-default-candidate@100%: claude-haiku-4-5-20251001 below [] · claude-haiku-5-5 below [] []
+    batch-12-oct-06/03-ines-the-clarifier@25%: claude-haiku-4-5-20251001 below [creativity,dataExhibit,pushback,synthesis] · claude-haiku-5-5 below [communication,creativity,dataExhibit,judgment,pushback,quantitative,structure,synthesis] [communication,creativity,dataExhibit,judgment,pushback,quantitative,structure,synthesis]
+    batch-12-oct-06/03-ines-the-clarifier@60%: claude-haiku-4-5-20251001 below [dataExhibit,synthesis] · claude-haiku-5-5 below [creativity,dataExhibit,synthesis] [creativity,dataExhibit,synthesis]
+    batch-12-oct-06/03-ines-the-clarifier@100%: claude-haiku-4-5-20251001 below [] · claude-haiku-5-5 below [] []
+    batch-12-oct-06/21-lena-the-deferral-tester@25%: claude-haiku-4-5-20251001 below [ERROR] · claude-haiku-5-5 below [communication,creativity,dataExhibit,judgment,pushback,quantitative,synthesis] [communication,creativity,dataExhibit,judgment,pushback,quantitative,synthesis]
+    batch-12-oct-06/21-lena-the-deferral-tester@60%: claude-haiku-4-5-20251001 below [ERROR] · claude-haiku-5-5 below [creativity,dataExhibit,judgment,synthesis] [creativity,dataExhibit,judgment,synthesis]
+    batch-12-oct-06/21-lena-the-deferral-tester@100%: claude-haiku-4-5-20251001 below [] · claude-haiku-5-5 below [] []
+    batch-13-oct-06/10-sofia-the-unit-confuser@25%: claude-haiku-4-5-20251001 below [ERROR] · claude-haiku-5-5 below [communication,creativity,dataExhibit,judgment,pushback,quantitative,synthesis] [communication,creativity,dataExhibit,judgment,pushback,quantitative,synthesis]
+    batch-13-oct-06/10-sofia-the-unit-confuser@60%: claude-haiku-4-5-20251001 below [creativity,synthesis] · claude-haiku-5-5 below [communication,creativity,judgment,synthesis] [communication,creativity,judgment,synthesis]
+    batch-13-oct-06/10-sofia-the-unit-confuser@100%: claude-haiku-4-5-20251001 below [] · claude-haiku-5-5 below [] []
+    batch-13-oct-06/19-blake-the-data-ignorer@25%: claude-haiku-4-5-20251001 below [creativity,dataExhibit,synthesis] · claude-haiku-5-5 below [communication,creativity,dataExhibit,judgment,pushback,quantitative,synthesis] [communication,creativity,dataExhibit,judgment,pushback,quantitative,structure,synthesis]
+    batch-13-oct-06/19-blake-the-data-ignorer@60%: claude-haiku-4-5-20251001 below [creativity,synthesis] · claude-haiku-5-5 below [creativity,synthesis] [creativity,synthesis]
+    batch-13-oct-06/19-blake-the-data-ignorer@100%: claude-haiku-4-5-20251001 below [] · claude-haiku-5-5 below [] []
+    batch-13-oct-06/26-daniel-the-interviewer-led-expecter@25%: claude-haiku-4-5-20251001 below [creativity,dataExhibit,quantitative,synthesis] · claude-haiku-5-5 below [communication,creativity,dataExhibit,judgment,pushback,quantitative,synthesis] [communication,creativity,dataExhibit,judgment,pushback,quantitative,synthesis]
+    batch-13-oct-06/26-daniel-the-interviewer-led-expecter@60%: claude-haiku-4-5-20251001 below [creativity] · claude-haiku-5-5 below [creativity,pushback,synthesis] [creativity,judgment,pushback,synthesis]
+    batch-13-oct-06/26-daniel-the-interviewer-led-expecter@100%: claude-haiku-4-5-20251001 below [] · claude-haiku-5-5 below [] []
+    batch-14-oct-07-cached-history/15-tyler-the-misquoter@25%: claude-haiku-4-5-20251001 below [creativity,pushback,synthesis] · claude-haiku-5-5 below [communication,creativity,dataExhibit,judgment,pushback,quantitative,synthesis] [communication,creativity,dataExhibit,judgment,pushback,quantitative,synthesis]
+    batch-14-oct-07-cached-history/15-tyler-the-misquoter@60%: claude-haiku-4-5-20251001 below [creativity,synthesis] · claude-haiku-5-5 below [communication,creativity,judgment,synthesis] [communication,creativity,judgment,synthesis]
+    batch-14-oct-07-cached-history/15-tyler-the-misquoter@100%: claude-haiku-4-5-20251001 below [] · claude-haiku-5-5 below [] []
+    batch-14-oct-07-state-in-system/03-ines-the-clarifier@25%: claude-haiku-4-5-20251001 below [creativity,dataExhibit,pushback,quantitative,structure,synthesis] · claude-haiku-5-5 below [communication,creativity,dataExhibit,judgment,pushback,quantitative,structure,synthesis] [communication,creativity,dataExhibit,judgment,pushback,quantitative,structure,synthesis]
+    batch-14-oct-07-state-in-system/03-ines-the-clarifier@60%: claude-haiku-4-5-20251001 below [creativity] · claude-haiku-5-5 below [communication,creativity,judgment,pushback,synthesis] [communication,creativity,judgment,pushback,synthesis]
+    batch-14-oct-07-state-in-system/03-ines-the-clarifier@100%: claude-haiku-4-5-20251001 below [] · claude-haiku-5-5 below [] []
+  [claude-haiku-5-5] vs claude-haiku-4-5-20251001: same end-gate decision 38/48 · same below-threshold set (steer) 18/48 · per-dimension |Δ| median 10 p90 40
+
+[budget] spent $0.3440 of $0.50 — this process: claude-haiku-4-5-20251001 48 calls $0.1233; claude-haiku-5-5 48 calls $0.0165

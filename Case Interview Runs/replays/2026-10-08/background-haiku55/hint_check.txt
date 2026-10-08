@@ -1,0 +1,14 @@
+hint_check: 21 items · claude-haiku-4-5×2, claude-haiku-5-5×2 · estimated $0.017 (chars/4 tokens, ×1.35 for Haiku 5.5)
+[budget] eval-background hint_check: cap $0.50 shared via /Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/streaming-turn/Case Interview Runs/replays/2026-10-08/background-haiku55/budget-ledger.jsonl · already spent $0.0693
+[claude-haiku-4-5] latency median 699ms p90 805ms max 966ms
+[claude-haiku-5-5] latency median 835ms p90 1047ms max 1520ms
+
+[claude-haiku-4-5] 21 items × 2 · no verdict / error 0
+
+[claude-haiku-5-5] 21 items × 2 · no verdict / error 0
+  [claude-haiku-4-5] vs hand label: same 42/42 · false "hint" (ladder advances wrongly) 0 · false "no hint" 0 · any label difference 0 · items unstable across repeats 0
+  [claude-haiku-5-5] vs hand label: same 38/42 · false "hint" (ladder advances wrongly) 0 · false "no hint" 4 · any label difference 4 · items unstable across repeats 0
+    batch-12-oct-06/01-maya-the-@t44: base true got false/false — CANDIDATE: Um. Honestly, I don't know. Sorry. INTERVIEWER: Okay. Pick from what you've said so far: pricing, supplier terms, waste, menu mix. Choose one, say what you'd do first, and give me one reason for it over the o
+    batch-16-oct-07-ttft/01-maya-the-@t40: base true got false/false — CANDIDATE: I'm sorry, I really don't know. INTERVIEWER: Let's simplify. Take two of your own levers: raising menu prices and renegotiating supplier contracts. Which of those two does more to close the gap, and what would
+
+[budget] spent $0.0881 of $0.50 — this process: claude-haiku-4-5-20251001 42 calls $0.0163; claude-haiku-5-5 42 calls $0.0026
