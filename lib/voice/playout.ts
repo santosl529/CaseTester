@@ -61,6 +61,7 @@ type Seg = {
   chunks: Int16Array[]; finished: boolean; failed: boolean; cut: boolean;
   words: Word[] | null; audioMs: number; startAt: number | null; endAt: number | null;
   captioned: number;   // tokens whose caption is scheduled
+  oddByte: number | null;   // half a sample left over from the last chunk
 };
 
 export class Playout {
@@ -76,7 +77,7 @@ export class Playout {
   constructor(private sink: FrameSink, private clock: Clock, private sampleRate: number) {}
 
   open(id: string, o: { text: string; interruptible: boolean; onStart?: (atMs: number) => void; onHeard?: (heardChars: number, atMs: number) => void }): void {
-    const s: Seg = { id, ...o, chunks: [], finished: false, failed: false, cut: false, words: null, audioMs: 0, startAt: null, endAt: null, captioned: 0 };
+    const s: Seg = { id, ...o, chunks: [], finished: false, failed: false, cut: false, words: null, audioMs: 0, startAt: null, endAt: null, captioned: 0, oddByte: null };
     this.segs.push(s);
     this.byId.set(id, s);
     this.kick();
@@ -85,7 +86,12 @@ export class Playout {
   push(id: string, pcm: Uint8Array): void {
     const s = this.byId.get(id);
     if (!s || s.cut || s.finished) return;
-    const bytes = pcm.slice(0, pcm.length - (pcm.length % 2));
+    // TTS chunks can split a 16-bit sample: carry the odd byte to the next
+    // chunk, or every later sample is byte-shifted (heard as buzzing).
+    const joined = s.oddByte === null ? pcm : new Uint8Array([s.oddByte, ...pcm]);
+    s.oddByte = joined.length % 2 === 1 ? joined[joined.length - 1] : null;
+    const bytes = joined.slice(0, joined.length - (joined.length % 2));
+    if (bytes.length === 0) return;
     const v = new Int16Array(bytes.buffer, bytes.byteOffset, bytes.length / 2);
     s.chunks.push(v);
     s.audioMs += (v.length / this.sampleRate) * 1000;

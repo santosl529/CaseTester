@@ -4,6 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { Playout, HEARD_MARGIN_MS, tokenTimeline, heardCharsAt } from '@/lib/voice/playout';
 import { fakeClock, sink } from './helpers/playout-fakes';
+import type { FrameSink } from '@/lib/voice/playout';
 
 const RATE = 24000;
 const pcmMs = (ms: number) => new Uint8Array((RATE * ms / 1000) * 2);
@@ -138,6 +139,18 @@ describe('Playout', () => {
     expect(p.classify('a')).toEqual({ playback: 'partial', heardChars: 9 });
     await advance(400);                              // played to the end
     expect(p.classify('a')).toEqual({ playback: 'played', heardChars: 21 });
+  });
+
+  it('keeps samples intact when TTS chunks split a sample between them', async () => {
+    const { clock, advance } = fakeClock();
+    const frames: number[] = [];
+    const rec: FrameSink = { async capture(f) { frames.push(...Array.from(f)); }, clear() {} };
+    const p = new Playout(rec, clock, RATE);
+    const bytes = new Uint8Array(new Int16Array([1000, -2000, 3000]).buffer);
+    p.open('a', { text: 'x', interruptible: true });
+    p.push('a', bytes.slice(0, 3)); p.push('a', bytes.slice(3, 6)); p.finish('a');
+    await advance(100);
+    expect(frames).toEqual([1000, -2000, 3000]);
   });
 
   it('whenIdle resolves at once on a cut', async () => {
