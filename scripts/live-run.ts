@@ -29,7 +29,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { and, desc, eq } from 'drizzle-orm';
 import { db } from '@/db/client';
@@ -142,7 +142,20 @@ type Line = { role: 'interviewer' | 'candidate'; text: string };
 // reported beside them so a run's cost is complete.
 const candidateUsage = { calls: 0, input: 0, output: 0, models: new Set<string>() };
 
+// --script=<run dir>: the candidate's lines, in order, from a saved run instead
+// of the simulator (no Opus cost) — reproduces a known conversation through
+// the real runner. The run ends when the script does.
+const SCRIPT_DIR = flag('script');
+const scriptedLines: string[] = SCRIPT_DIR ? (() => {
+  const file = readdirSync(SCRIPT_DIR).find(f => f.endsWith('.json'));
+  if (!file) throw new Error(`no run record in ${SCRIPT_DIR}`);
+  const run = JSON.parse(readFileSync(path.join(SCRIPT_DIR, file), 'utf8')) as { turns: { turnIndex: number; role: string; text: string }[] };
+  return run.turns.filter(t => t.role === 'candidate').sort((a, b) => a.turnIndex - b.turnIndex).map(t => t.text);
+})() : [];
+let scriptedAt = 0;
+
 async function candidateReply(client: Anthropic, transcript: Line[]): Promise<string> {
+  if (SCRIPT_DIR) return scriptedLines[scriptedAt++] ?? '';
   const response = await client.beta.messages.create({
     model: CANDIDATE_MODEL,
     max_tokens: 4096,
@@ -203,6 +216,7 @@ async function main() {
     // The interviewer's turn just landed: the candidate's silence starts now.
     const replyStartedAt = Date.now();
     const { text: candidateText, pauseMs } = takePause(await candidateReply(client, transcript));
+    if (SCRIPT_DIR && !candidateText) { console.log('[live-run] script finished'); break; }
     if (pauseMs) console.log(`\n[candidate silent ${pauseMs / 1000}s]`);
     let abandoned = false;
     for (const threshold of [SILENCE_CHECK_IN_MS, SILENCE_PAUSE_MS, SILENCE_PAUSE_MS + SILENCE_PAUSE_MAX_MS]) {
