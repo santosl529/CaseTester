@@ -153,6 +153,18 @@ describe('Playout', () => {
     expect(frames).toEqual([1000, -2000, 3000]);
   });
 
+  it('reports each frame with its play time, and each cut, to an optional tap (recording)', async () => {
+    const { clock, advance } = fakeClock();
+    const frames: [number, number][] = [];
+    const cuts: number[] = [];
+    const p = new Playout(sink(), clock, RATE, { frame: (f, at) => frames.push([f.length, at]), cut: at => cuts.push(at) });
+    p.open('a', { text: 'x', interruptible: true }); p.push('a', pcmMs(40)); p.finish('a');
+    await advance(30);
+    p.interrupt(clock.now());
+    expect(frames).toEqual([[480, 1000], [480, 1020]]);
+    expect(cuts).toEqual([1030]);
+  });
+
   it('whenIdle resolves at once on a cut', async () => {
     const { clock } = fakeClock();
     const p = new Playout(sink(), clock, RATE);

@@ -74,7 +74,12 @@ export class Playout {
   private pumping = false;
   private idleWaiters: (() => void)[] = [];
 
-  constructor(private sink: FrameSink, private clock: Clock, private sampleRate: number) {}
+  // taps: optional observers (session recording) — each frame at its play
+  // time, and each cut.
+  constructor(
+    private sink: FrameSink, private clock: Clock, private sampleRate: number,
+    private taps: { frame?: (frame: Int16Array, playAtMs: number) => void; cut?: (atMs: number) => void } = {},
+  ) {}
 
   open(id: string, o: { text: string; interruptible: boolean; onStart?: (atMs: number) => void; onHeard?: (heardChars: number, atMs: number) => void }): void {
     const s: Seg = { id, ...o, chunks: [], finished: false, failed: false, cut: false, words: null, audioMs: 0, startAt: null, endAt: null, captioned: 0, oddByte: null };
@@ -147,6 +152,7 @@ export class Playout {
   interrupt(atMs: number): Map<string, Outcome> {
     this.gen++;
     this.sink.clear();
+    this.taps.cut?.(atMs);
     for (const cancel of this.timers.splice(0)) cancel();
     this.wake?.(); this.wake = null;
     const out = new Map<string, Outcome>();
@@ -201,6 +207,7 @@ export class Playout {
           const playAt = Math.max(this.clock.now(), this.cursor);
           if (s.startAt === null) this.begin(s, playAt);
           this.cursor = playAt + (frame.length / this.sampleRate) * 1000;
+          this.taps.frame?.(frame, playAt);
           await this.sink.capture(frame);
         }
       }

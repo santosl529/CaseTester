@@ -160,6 +160,19 @@ describe('a turn cut while it waits for the previous one', () => {
   });
 });
 
+describe('trace (recording)', () => {
+  it('reports the turn-taking decisions in order', async () => {
+    const trace: string[] = [];
+    const h = harness([[seg('data', 'There are 120 stores in total.'), seg('tail', 'Where would you start?')]], { trace: (type: string) => trace.push(type) });
+    await h.c.ready(''); h.c.onStt(final('How many stores?'));
+    await h.advance(ACK_MS + 200);
+    h.c.onStt(speech('mhm')); h.c.onStt(final('mhm'));
+    h.c.onStt(speech('wait sorry'));
+    await h.advance(2000);
+    expect(trace).toEqual(['final', 'turn_start', 'ack_start', 'segment_start', 'backchannel', 'cut', 'turn_end']);
+  });
+});
+
 describe('cancelled turns: nothing of them was heard (§5.5)', () => {
   it('speech during the wait cancels the turn and carries its text into the next one', async () => {
     const h = harness([[], [seg('tail', 'Go on.')]]);

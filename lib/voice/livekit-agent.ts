@@ -33,6 +33,7 @@ import { VoiceTurnController } from './turn-controller';
 import { DATA_TOPIC, parseClientMessage, type ServerMessage } from './protocol';
 import { summarize, type TurnRecord } from './records';
 import { LiveKitSink } from './livekit-media';
+import { SessionRecorder } from './recorder';
 import { findCandidateTrack, pickCandidateTrack, realClock } from './room-rules';
 import type { SttEvent, TTSProvider } from './types';
 
@@ -75,6 +76,9 @@ export default defineAgent({
     const fake = runCap === null;
     const caseData = getCaseById(session.caseId);
 
+    // Opt-in session recording for turn-taking review (VOICE_RECORD=1): mic,
+    // interviewer audio and events, local under .voice-cache/recordings.
+    const rec = process.env.VOICE_RECORD === '1' ? new SessionRecorder(Date.now(), { candidateRate: IN_RATE, interviewerRate: OUT_RATE }) : null;
     await ctx.connect();
     const room = ctx.room;
 
@@ -84,7 +88,10 @@ export default defineAgent({
     const vad = new SpeechEndTracker();
     const stt = await new DeepgramFluxSTT({ eotThreshold: 0.7, eagerEotThreshold: 0.5 }).open({ encoding: 'pcm_s16le', sampleRate: IN_RATE });
     let onStt: (s: SttEvent) => void = () => {};   // the controller, once it exists
-    stt.onSignal(sig => onStt(sig));
+    stt.onSignal(sig => {
+      rec?.event('stt', sig.kind === 'resumed' ? { kind: sig.kind } : { kind: sig.kind, transcript: sig.transcript, ...(sig.kind === 'speech' ? { words: sig.words } : {}) });
+      onStt(sig);
+    });
     let micSid: string | null = null;
     const listen = (t: RemoteTrack, sid: string) => {
       micSid = sid;
@@ -93,7 +100,9 @@ export default defineAgent({
         for (;;) {
           const { value: frame, done } = await reader.read();
           if (done || !frame) break;
-          vad.push(frame.data, Date.now());
+          const now = Date.now();
+          vad.push(frame.data, now);
+          rec?.candidate(frame.data, now);
           stt.push(new Uint8Array(frame.data.buffer, frame.data.byteOffset, frame.data.byteLength));
         }
       })();
@@ -113,7 +122,8 @@ export default defineAgent({
     const source = new AudioSource(OUT_RATE, 1);
     const track = LocalAudioTrack.createAudioTrack('interviewer', source);
     await room.localParticipant!.publishTrack(track, new TrackPublishOptions({ source: TrackSource.SOURCE_MICROPHONE }));
-    const playout = new Playout(new LiveKitSink(source, OUT_RATE), realClock, OUT_RATE);
+    const playout = new Playout(new LiveKitSink(source, OUT_RATE), realClock, OUT_RATE,
+      rec ? { frame: (f, at) => rec.interviewer(f, at), cut: at => rec.interviewerCut(at) } : {});
 
     // TTS: Cartesia (run cap + monthly ledger) or the free tone.
     const voice = fake ? 'tone' : await defaultVoiceId();
@@ -152,6 +162,7 @@ export default defineAgent({
       send, record, speechEndAt: () => vad.lastVoicedAt,
       ttsAllow, canStartTurn: () => fake || ledger.canStartTurn(),
       bargeMinWords: num('VOICE_BARGE_MIN_WORDS', 2), sessionSeed: session.id,
+      trace: rec ? (type, data) => rec.event(type, data) : undefined,
     });
 
     onStt = sig => controller.onStt(sig);
@@ -187,6 +198,11 @@ export default defineAgent({
       if (tts instanceof CartesiaTTS) tts.close();
       const summary = { why, ...summarize(records), ttsCharsThisRun: run?.used ?? 0, ttsCharsThisMonth: ledger.used };
       appendFileSync(recFile, JSON.stringify({ summary }) + '\n');
+      if (rec) {
+        const dir = path.join('.voice-cache/recordings', `${session.id}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`);
+        rec.flush(dir);
+        console.log('[voice] recording saved:', dir, '— review with: npx tsx scripts/voice-review.ts', dir);
+      }
       console.log('[voice] session summary', JSON.stringify(summary));
       ctx.shutdown(why);
     };

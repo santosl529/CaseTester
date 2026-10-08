@@ -42,6 +42,8 @@ export type ControllerDeps = {
   canStartTurn: () => boolean;                   // the ledger's reserve
   bargeMinWords: number;
   sessionSeed: string;
+  // Optional: the turn-taking decisions as they happen (session recording).
+  trace?: (type: string, data?: Record<string, unknown>) => void;
 };
 
 type Entry = {
@@ -160,13 +162,14 @@ export class VoiceTurnController {
     const t = this.live;
     const scripted = this.d.playout.hasPendingNonInterruptible();
     if (t && t.cutAt === null && !scripted) {
-      if (this.state === 'speaking') { t.backchannels++; return; }  // §5.7: no barge-in, so a backchannel
+      if (this.state === 'speaking') { t.backchannels++; this.d.trace?.('backchannel', { seq: t.seq, text: transcript }); return; }  // §5.7: no barge-in, so a backchannel
       if (this.state === 'thinking') this.cut(t, 'barge');         // a continuation before anything was heard
     }
     const carry = this.carry;
     this.carry = null;
     const text = join(carry?.text ?? null, transcript);
     if (!text) return;
+    this.d.trace?.('final', { text: transcript, carried: carry?.text ?? null });
     if (!this.d.canStartTurn()) { this.end('tts_cap', true); return; }
     this.startTurn(text, { carried: carry !== null, replaces: carry?.seq ?? null, finalAt: atMs });
   }
@@ -176,6 +179,7 @@ export class VoiceTurnController {
     t.carried = o.carried;
     t.replaces = o.replaces;
     t.speechEndAt = this.d.speechEndAt();
+    this.d.trace?.('turn_start', { seq: t.seq, text, speechEndAt: t.speechEndAt });
     this.d.send({ type: 'caption', who: 'candidate', turnSeq: t.seq, text, final: true, ...(o.replaces !== null ? { replaces: o.replaces } : {}) });
     if (!this.d.playout.hasPendingNonInterruptible()) {
       this.setState('thinking', t.seq);
@@ -209,7 +213,7 @@ export class VoiceTurnController {
     this.lastAck = ack;
     t.ack = ack;
     const id = `${t.seq}:ack`;
-    this.d.playout.open(id, { text: ack, interruptible: true, onStart: at => { t.firstSoundAt ??= at; } });
+    this.d.playout.open(id, { text: ack, interruptible: true, onStart: at => { t.firstSoundAt ??= at; this.d.trace?.('ack_start', { seq: t.seq, ack, at }); } });
     this.d.playout.push(id, pcm);
     this.d.playout.finish(id);
   }
@@ -260,6 +264,7 @@ export class VoiceTurnController {
     this.d.playout.open(e.id, {
       text: seg.text, interruptible: !scripted,
       onStart: at => {
+        this.d.trace?.('segment_start', { seq: t.seq, kind: seg.kind, text: seg.text, at });
         t.firstSoundAt ??= at;
         if (useful) t.firstUsefulAt ??= at;
         if (this.live === t && this.state === 'thinking') this.setState('speaking', t.seq);
@@ -342,6 +347,7 @@ export class VoiceTurnController {
     t.cutAt = at;
     t.cutKind = kind;
     t.cutOutcome = this.d.playout.interrupt(at);
+    this.d.trace?.('cut', { seq: t.seq, kind, at, heard: t.entries.map(e => ({ kind: e.seg.kind, ...t.cutOutcome!.get(e.id) })) });
     for (const e of t.entries) e.cancel();
     const nothing = t.entries.every(e => (t.cutOutcome!.get(e.id)?.heardChars ?? 0) === 0 && e.exhibitSentAt === null);
     if (nothing && t.text && !t.opening) {
@@ -389,6 +395,7 @@ export class VoiceTurnController {
       segments: (t.report?.segments ?? []).map(s => ({ kind: s.kind, playback: s.playback, heardChars: s.heardChars, exhibitShown: s.exhibitShown })),
     };
     this.d.record(rec);
+    this.d.trace?.('turn_end', { seq: t.seq, cancelled, interrupted: rec.interrupted, firstSoundMs: rec.firstSoundMs, firstUsefulMs: rec.firstUsefulMs });
     this.d.send({ type: 'latency', turnSeq: t.seq, firstSoundMs: rec.firstSoundMs, firstUsefulMs: rec.firstUsefulMs });
   }
 }
