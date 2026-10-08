@@ -169,6 +169,14 @@ Plan adopted (with the reviewer's adjustments): measure useful-content timing �
 
 - **M0 Phase B Task 3 done (8 Oct, $0; `6f26ed8`):** `lib/voice/turn-controller.ts` handles barge-in (≥1 word while thinking, ≥2 while speaking), cancel + carry with a merged candidate caption (`replaces`), backchannels, scripted lines (barge-in proof; a final during one is queued as the next turn; a late one after a cut is still played), exhibit confirm/withdraw (heard() waits up to 1.5s), `audio_blocked` (cut without carry; re-run after `ready`), End, captions on the heard cursor, per-turn records. Also `protocol.ts`, `records.ts`, `tts-budget.ts`. Two real bugs were found by tests and fixed: `Playout.classify` judged a still-playing segment as finished; and an answer given while the runner was still saving a turn was dropped as a backchannel (the controller now listens once the audio is over). 1008 tests pass; typecheck and lint clean; 17 controller mutants checked. **Next:** Task 4 (LiveKit worker + token/end routes); needs `npm install --save @livekit/rtc-node@^1.1.0` (your OK) and `VOICE_DEV=1` in `.env.local`.
 
+- **M0 Phase B Task 4 done (8 Oct, $0; `922a029`):**
+  - **What was built:** `@livekit/rtc-node` added as a direct dependency (your OK). `scripts/voice-agent.ts` runs the worker, with explicit dispatch as `case-interviewer`. `lib/voice/livekit-agent.ts` is the job: owner mic → Flux + speech-end tracker; interviewer track; controller; ack cache; JSONL records + summary in `Case Interview Runs/voice-live/`; `ready`/`audio_blocked`/`exhibit_shown`/`timing` handling; End/time limit. Also the token route (owner + active check; one dispatch per room; https derived from the wss URL; secrets server-only), the End route (active → abandoned), and a per-run Cartesia cap (`VOICE_TTS_RUN_CAP`, required unless `VOICE_TTS=fake`).
+  - **Checked free:** the worker registers with the LiveKit Cloud project; a dispatched job loads the whole module graph in its forked process and refuses an unknown session before joining a room.
+  - **Tests and build:** 1021 tests pass; typecheck, lint and production build clean. No secrets or case keys in `.next/static`.
+  - **From the worktree:** `VOICE_ENV_FILE=../../../.env.local VOICE_TTS=fake npm run voice:agent`.
+
+  **Next:** Task 5 (voice page + first live smoke on the fake voice — paid, ≈$0.15, needs go-ahead).
+
 ### Where things stand (8 Oct) — read this first in a new session
 - **Branch `voice-spike`** (worktree `.claude/worktrees/streaming-turn`), not pushed. Production interviewer: **Sonnet 5.5**. Prompt unchanged since 6 Oct apart from turn notes.
 - **Latency work (7 Oct):** target = first useful content (data line or question). Filler removed; speculation built, disabled; end-of-turn kept at 0.7/0.5 pending human recordings; compact prompt flat; Sonnet's first token has resisted every optimization tested. Details: PRD §8.2, §8.5.

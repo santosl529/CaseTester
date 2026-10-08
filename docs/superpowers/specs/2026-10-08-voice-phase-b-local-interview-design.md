@@ -290,8 +290,11 @@ VOICE_DEV=1
 Each test, two terminals:
 ```
 VOICE_TTS=fake npm run voice:agent             # registers the worker with your Cloud project; paid runs set VOICE_TTS_RUN_CAP and LLM_BUDGET_USD instead of VOICE_TTS=fake
+# from the voice-spike worktree, prefix VOICE_ENV_FILE=../../../.env.local (the worktree has no .env.local)
 npm run dev
 ```
+`npm run voice:agent` uses the agents CLI's `dev` mode, which prints a deprecation notice (`lk agent dev`) but works in 1.9.1.
+
 Latency note: media now goes browser → LiveKit Cloud edge → agent on your machine and back, which is the real network path, not a loopback. That's closer to production; the client cross-check (§7) shows the added lag.
 
 ## 13. Risks / open
