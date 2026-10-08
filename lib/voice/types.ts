@@ -16,10 +16,18 @@ export type TurnSignal = {
   atMs: number;            // wall clock when the signal arrived
 };
 
+// The candidate is speaking (Flux StartOfTurn / Update): the barge-in input
+// (spec 2026-10-08-voice-phase-b §5.7). `words` counts the transcript so far.
+export type SpeechSignal = { kind: 'speech'; transcript: string; words: number; atMs: number };
+export type SttEvent = TurnSignal | SpeechSignal | { kind: 'resumed'; atMs: number };
+
+// One spoken word of a TTS utterance, in ms from the utterance's first audio.
+export type Word = { word: string; startMs: number; endMs: number };
+
 export interface STTSession {
   push(pcm: Uint8Array): void;
-  // A turn signal, or a TurnResumed after an eager one (speech continued).
-  onSignal(cb: (s: TurnSignal | { kind: 'resumed'; atMs: number }) => void): void;
+  // A turn signal, speech in progress, or a TurnResumed after an eager one.
+  onSignal(cb: (s: SttEvent) => void): void;
   close(): Promise<void>;
 }
 
@@ -36,9 +44,11 @@ export interface TTSUtterance {
   end(): Promise<void>;          // no more text; resolves when all audio is in
   cancel(): Promise<void>;       // barge-in
   onAudio(cb: (pcm: Uint8Array, atMs: number) => void): void;
+  // Word timestamps, when the utterance was opened with { timestamps: true }.
+  onWords?(cb: (words: Word[]) => void): void;
 }
 
 export interface TTSProvider {
   readonly name: string;
-  open(format: PcmFormat): Promise<TTSUtterance>;
+  open(format: PcmFormat, opts?: { timestamps?: boolean }): Promise<TTSUtterance>;
 }

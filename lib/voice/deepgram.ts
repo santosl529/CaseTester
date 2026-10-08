@@ -3,9 +3,9 @@
 // end of speech from VAD endpointing). The client reads DEEPGRAM_API_KEY from
 // the environment. Message parsing is pure so it is tested without a socket.
 import { DeepgramClient } from '@deepgram/sdk';
-import type { PcmFormat, STTProvider, STTSession, TurnSignal } from './types';
+import type { PcmFormat, STTProvider, STTSession, SttEvent, TurnSignal } from './types';
 
-type Signal = TurnSignal | { kind: 'resumed'; atMs: number };
+type Signal = SttEvent;
 
 // ---- Flux --------------------------------------------------------------
 
@@ -14,6 +14,9 @@ type FluxMessage = { type?: string; event?: string; transcript?: string };
 export function fluxSignal(msg: FluxMessage, atMs: number): Signal | null {
   if (msg.type !== 'TurnInfo') return null;
   const transcript = (msg.transcript ?? '').trim();
+  if (msg.event === 'StartOfTurn' || msg.event === 'Update') {
+    return { kind: 'speech', transcript, words: transcript ? transcript.split(/\s+/).length : 0, atMs };
+  }
   if (msg.event === 'EagerEndOfTurn') return { kind: 'eager', transcript, atMs };
   if (msg.event === 'EndOfTurn') return { kind: 'final', transcript, atMs };
   if (msg.event === 'TurnResumed') return { kind: 'resumed', atMs };

@@ -151,7 +151,7 @@ async function speakTurnIn(stt: STTProvider, audio: Uint8Array): Promise<Heard> 
   let gotFinal: () => void = () => {};
   const finalP = new Promise<void>(r => { gotFinal = r; });
   session.onSignal(sig => {
-    if (final) return;
+    if (final || sig.kind === 'speech') return; // speech-in-progress signals are Phase B's barge-in input
     if (sig.kind === 'eager') { eager = sig; eagerSignals++; return; }
     if (sig.kind === 'resumed') { eager = null; resumed++; return; }
     if (sig.transcript) pieces.push(sig.transcript);

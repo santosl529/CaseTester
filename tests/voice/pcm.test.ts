@@ -62,3 +62,14 @@ describe('pcm helpers', () => {
     expect(pushedAt).toEqual([0, 20, 40, 60, 80]);
   });
 });
+
+import { SpeechEndTracker } from '@/lib/voice/pcm';
+describe('SpeechEndTracker', () => {
+  it('keeps the time of the last voiced frame', () => {
+    const t = new SpeechEndTracker();
+    const loud = new Int16Array(320).fill(8000), quiet = new Int16Array(320);
+    expect(t.lastVoicedAt).toBeNull();
+    t.push(loud, 100); t.push(quiet, 120); t.push(loud, 140); t.push(quiet, 160);
+    expect(t.lastVoicedAt).toBe(140);
+  });
+});

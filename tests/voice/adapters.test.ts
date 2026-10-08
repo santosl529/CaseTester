@@ -15,8 +15,8 @@ describe('Deepgram Flux signals', () => {
     expect(fluxSignal({ type: 'TurnInfo', event: 'TurnResumed' }, 7)).toEqual({ kind: 'resumed', atMs: 7 });
   });
 
-  it('ignores updates and other messages', () => {
-    expect(fluxSignal({ type: 'TurnInfo', event: 'Update', transcript: 'C' }, 1)).toBeNull();
+  it('ignores other messages', () => {
+    expect(fluxSignal({ type: 'TurnInfo', event: 'SomethingElse', transcript: 'C' }, 1)).toBeNull();
     expect(fluxSignal({ type: 'Connected' }, 1)).toBeNull();
   });
 });

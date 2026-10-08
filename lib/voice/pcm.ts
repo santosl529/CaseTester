@@ -88,3 +88,17 @@ export function trimSilence(pcm: Uint8Array, sampleRate: number, threshold = 0.0
   const last = Math.round(speechEndSec(pcm, sampleRate, threshold) * sampleRate);
   return pcm.subarray(first * 2, last * 2);
 }
+
+// The candidate's last voiced mic frame (spec 2026-10-08-voice-phase-b §7,
+// speechEndAt): RMS over each pushed frame against speechEndSec's threshold.
+export class SpeechEndTracker {
+  private last: number | null = null;
+  constructor(private threshold = 0.02) {}
+  push(pcm: Int16Array, atMs: number): void {
+    if (pcm.length === 0) return;
+    let sum = 0;
+    for (let i = 0; i < pcm.length; i++) sum += (pcm[i] / 32768) ** 2;
+    if (Math.sqrt(sum / pcm.length) > this.threshold) this.last = atMs;
+  }
+  get lastVoicedAt(): number | null { return this.last; }
+}

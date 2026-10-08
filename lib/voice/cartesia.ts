@@ -5,7 +5,7 @@
 // passed in (cartesiaClient).
 import Cartesia from '@cartesia/cartesia-js';
 import type { RawOutputFormat } from '@cartesia/cartesia-js/resources/tts';
-import type { PcmFormat, TTSProvider, TTSUtterance } from './types';
+import type { PcmFormat, TTSProvider, TTSUtterance, Word } from './types';
 
 export const CARTESIA_MODEL = 'sonic-3.5';
 
@@ -14,6 +14,12 @@ export function cartesiaClient(): Cartesia {
 }
 
 type WsResponse = { type: string; data?: string };
+type WordTimestamps = { words: string[]; start: number[]; end: number[] };
+
+// Cartesia word timestamps (seconds, from the context's first audio) as Words.
+export function toWords(wt: WordTimestamps): Word[] {
+  return wt.words.map((word, i) => ({ word, startMs: Math.round(wt.start[i] * 1000), endMs: Math.round(wt.end[i] * 1000) }));
+}
 
 // Base64 chunk → PCM bytes; null for anything that isn't audio.
 export function chunkAudio(r: WsResponse): Uint8Array | null {
@@ -41,14 +47,16 @@ export class CartesiaTTS implements TTSProvider {
     this.ws ??= await this.client.tts.websocket();
   }
 
-  async open(format: PcmFormat): Promise<TTSUtterance> {
+  async open(format: PcmFormat, opts: { timestamps?: boolean } = {}): Promise<TTSUtterance> {
     await this.connect();
     const ctx = this.ws!.context({
       model_id: this.model,
       voice: { mode: 'id', id: this.voiceId },
       output_format: { container: 'raw', encoding: format.encoding, sample_rate: format.sampleRate as RawOutputFormat['sample_rate'] },
+      ...(opts.timestamps ? { add_timestamps: true } : {}),
     });
     let onAudio: (pcm: Uint8Array, atMs: number) => void = () => {};
+    let onWords: (words: Word[]) => void = () => {};
     let waiters: (() => void)[] = [];
     let started = false;
     let pushed = false;
@@ -58,6 +66,8 @@ export class CartesiaTTS implements TTSProvider {
     const pump = async () => {
       try {
         for await (const r of ctx.receive()) {
+          const ts = r as WsResponse & { word_timestamps?: WordTimestamps };
+          if (ts.type === 'timestamps' && ts.word_timestamps) onWords(toWords(ts.word_timestamps));
           const pcm = chunkAudio(r as WsResponse);
           if (pcm) {
             onAudio(pcm, Date.now());
@@ -91,6 +101,7 @@ export class CartesiaTTS implements TTSProvider {
         await ctx.cancel();
       },
       onAudio: cb => { onAudio = cb; },
+      onWords: cb => { onWords = cb; },
     };
   }
 

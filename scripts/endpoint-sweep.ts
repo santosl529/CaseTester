@@ -80,6 +80,7 @@ async function hear(stt: DeepgramFluxSTT, audio: Uint8Array): Promise<{ signals:
   const speechEndMs = start + (LEAD_SEC + speechEndSec(audio, RATE)) * 1000;
   let done = false;
   session.onSignal(s => {
+    if (s.kind === 'speech') return; // barge-in input (Phase B); the sweep scores turn ends only
     signals.push(s.kind === 'resumed' ? { kind: 'resumed', atMs: s.atMs } : { kind: s.kind, atMs: s.atMs, transcript: s.transcript });
     if (s.kind === 'final' && s.atMs >= speechEndMs) done = true;
   });
