@@ -29,8 +29,8 @@ export const FALLBACKS = 'default' as const;
 // replay shows it holds the interviewer rules.
 export const CEREBRAS_INTERVIEWER_MODEL_ID = 'gpt-oss-120b';
 
-// Background classifiers, by role (8 Oct). Production stays on Haiku 4.5 until
-// a role's regression check against Haiku 5.5 passes (spec
+// Background classifiers, by role (8 Oct). A role moves from Haiku 4.5 to 5.5
+// only after its regression check against Haiku 5.5 passes (spec
 // 2026-10-08-haiku-5-5-background-migration.md); migrating a role is changing
 // its line here. Each classifier also takes an explicit `model` so the
 // regression harnesses can call it on fixed inputs without switching anything.
@@ -38,9 +38,13 @@ export const CEREBRAS_INTERVIEWER_MODEL_ID = 'gpt-oss-120b';
 export const BACKGROUND_MODEL_ID = {
   coverage: 'claude-haiku-4-5-20251001',
   data_request: 'claude-haiku-4-5',
-  distress: 'claude-haiku-4-5',
-  hint_check: 'claude-haiku-4-5',
-  probe_judge: 'claude-haiku-4-5',   // the pressure-test answer judge and the structure check
+  // Switched 8 Oct after its regression check (corpus 26/26; 271 real messages:
+  // no new or missed distress fires; p90 0.93s).
+  distress: 'claude-haiku-5-5',
+  hint_check: 'claude-haiku-4-5',    // stays: missed 2 narrowing hints in its check (8 Oct)
+  // The pressure-test answer judge and the structure check. Switched 8 Oct:
+  // false unlocks 0.7 per pass vs 4.5's 2.0; one consistent false rejection.
+  probe_judge: 'claude-haiku-5-5',
 } as const;
 
 // Request settings for a background call on `model`. Haiku 5.5 (verified

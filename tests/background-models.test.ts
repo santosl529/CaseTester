@@ -39,20 +39,25 @@ const ROLES: [string, Run, number][] = [
 beforeEach(() => { calls.length = 0; });
 
 describe('background classifiers', () => {
-  it('production defaults are Haiku 4.5, as before', () => {
+  it('production: judges and distress on Haiku 5.5 (switched 8 Oct after their checks); the rest on Haiku 4.5', () => {
     expect(BACKGROUND_MODEL_ID).toEqual({
-      coverage: 'claude-haiku-4-5-20251001', data_request: 'claude-haiku-4-5', distress: 'claude-haiku-4-5',
-      hint_check: 'claude-haiku-4-5', probe_judge: 'claude-haiku-4-5',
+      coverage: 'claude-haiku-4-5-20251001', data_request: 'claude-haiku-4-5', distress: 'claude-haiku-5-5',
+      hint_check: 'claude-haiku-4-5', probe_judge: 'claude-haiku-5-5',
     });
   });
 
   for (const [role, run, maxTokens] of ROLES) {
-    it(`${role}: default request unchanged; Haiku 5.5 gets thinking disabled, effort medium, scaled max_tokens`, async () => {
+    it(`${role}: default request is its production model's; Haiku 5.5 gets thinking disabled, effort medium, scaled max_tokens`, async () => {
       await run();
-      expect(calls[0].model).toMatch(/^claude-haiku-4-5/);
-      expect(calls[0].max_tokens).toBe(maxTokens);
-      expect(calls[0]).not.toHaveProperty('thinking');
-      expect(calls[0]).not.toHaveProperty('output_config');
+      const prod = BACKGROUND_MODEL_ID[(role === 'structure_judge' ? 'probe_judge' : role) as keyof typeof BACKGROUND_MODEL_ID];
+      expect(calls[0].model).toBe(prod);
+      if (prod.startsWith('claude-haiku-4-5')) {
+        expect(calls[0].max_tokens).toBe(maxTokens);
+        expect(calls[0]).not.toHaveProperty('thinking');
+        expect(calls[0]).not.toHaveProperty('output_config');
+      } else {
+        expect(calls[0]).toMatchObject({ thinking: { type: 'disabled' }, output_config: { effort: 'medium' } });
+      }
       await run('claude-haiku-5-5');
       expect(calls[1]).toMatchObject({ model: 'claude-haiku-5-5', thinking: { type: 'disabled' }, output_config: { effort: 'medium' }, max_tokens: Math.ceil(maxTokens * 1.3) });
       for (const k of ['temperature', 'top_p', 'top_k', 'fallbacks', 'betas']) expect(calls[1]).not.toHaveProperty(k);
