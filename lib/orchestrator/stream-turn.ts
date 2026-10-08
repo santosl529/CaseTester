@@ -162,6 +162,9 @@ export async function streamTurnSegments(
   let modelDoneAt: number | null = null;
   let closed = new Set<string>();
   let dataLineQueued = false;
+  // Guard B (7 Oct): on an explicit ask, say waits for the declarations so a
+  // regeneration (interviewer.ts) can still happen with nothing delivered.
+  const holdForRequests = state.requestCues.length > 0;
 
   const send = async (kind: SegmentKind, text: string, revealIds: string[], exhibitId?: string) => {
     try {
@@ -226,12 +229,16 @@ export async function streamTurnSegments(
     else if (e.key === 'exhibit') fields = { ...fields, exhibit: typeof e.value === 'string' ? e.value : null };
     else if (e.key === 'rescue_item') fields = { ...fields, rescueItem: typeof e.value === 'string' ? e.value : null };
     if (e.type === 'field') closed.add(e.key);
+    // Guard B: held say sentences go out once the requests have closed (a
+    // regeneration before then drops them with the draft).
+    if (holdForRequests && e.type === 'field' && e.key === 'requests' && verdict !== undefined && !isDistressVerdict(verdict)) await flushQueue();
     if (!p && !dataLineQueued && closed.has('say') && DECLARATIONS.every(k => closed.has(k))) {
       dataLineQueued = true;
       p = { kind: 'data_line' };
     }
     if (!p) continue;
     if (verdict === undefined) { queue.push(p); mark('held_for_distress'); continue; } // D1: hold until the verdict
+    if (p.kind === 'sentence' && holdForRequests && !closed.has('requests')) { queue.push(p); mark('held_for_requests'); continue; }
     if (isDistressVerdict(verdict)) continue;
     await flushQueue();
     await handle(p);

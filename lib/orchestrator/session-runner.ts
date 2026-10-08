@@ -196,6 +196,9 @@ async function runTurnBody(
       phase: currentPhase,
       canRegenerate: () => !isDelivered.value,
       onMark: name => timer.mark(name),
+      requireRequests: state.requestCues.length > 0,
+      onRequestGuard: r => checks.record('request_guard', r.regenerated,
+        'explicit ask, no request declared — turn written again', { cues: state.requestCues }),
       onValidation: v => {
         checks.record('model_turn_validation', v.unknownIds.length > 0 || v.retried || v.unparsed || v.emptyTurn || v.refused,
           v.retried ? 'model reply regenerated' : 'model reply unusable', { ...v });

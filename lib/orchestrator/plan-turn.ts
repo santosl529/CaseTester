@@ -16,6 +16,7 @@ import { evaluateStall, INITIAL_STALL_STATE, type StallState } from './stall';
 import { resumeOnCandidateTurn, effectiveElapsedMs, isSilenceLine, INITIAL_SILENCE_STATE, type SilenceState } from './silence';
 import { classifyConduct, isPauseAccepted, isRiskToSelf } from './conduct';
 import { classifyDistress, type DistressVerdict } from './distress';
+import { explicitRequestCues } from './request-signal';
 import { logEvent } from '@/lib/analytics';
 import { TOTAL_CASE_MS, type Phase } from './state-machine';
 import { stageGateOpen, endAllowed, recommendationUnresolved } from './spoken-close';
@@ -294,6 +295,10 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Guard A (7 Oct): a pressure test already asked — the candidate's message
   // now is (or follows) the answer. Requests stop being premature.
   const pressureTestDone = Object.values(moves).includes('pressure_test');
+  // Guard B (7 Oct): explicit data asks by phrasing, before the brainstorm
+  // only — later, "I'd want…" is usually a next step, not a question.
+  const requestCues = (['INTRO', 'CLARIFY', 'STRUCTURE', 'ANALYSIS', 'EXHIBIT'] as Phase[]).includes(currentPhase)
+    ? explicitRequestCues(candidateText) : [];
   const stages = stagesFromTurns(
     turnRows.filter(t => t.role === 'interviewer').map(t => ({ turnIndex: t.turnIndex, text: t.text })),
     moves,
@@ -371,7 +376,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
       derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, unitCheckHint,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
-      conductRedirectHint, history, turnRows, distress, kind, lastQuestion, moves, pressureTestDone,
+      conductRedirectHint, history, turnRows, distress, kind, lastQuestion, moves, pressureTestDone, requestCues,
       buffered: bufferReason !== undefined, bufferReason,
     },
   };

@@ -21,7 +21,14 @@ export type InterviewerTurnInput = {
   // Latency A/B arm (scripts/replay-output-format.ts): the compact prompt
   // (prompts/system-compact.ts). Production passes none — the full prompt.
   promptVariant?: 'full' | 'compact';
+  // Guard B (7 Oct): the candidate plainly asked for data (request-signal.ts).
+  // If the model's requests close empty, the turn is written once more with
+  // REQUEST_GUARD_NOTE — the caller holds "say" so nothing is delivered yet.
+  requireRequests?: boolean;
+  onRequestGuard?: (r: { regenerated: boolean }) => void;
 };
+
+export const REQUEST_GUARD_NOTE = "THIS TURN: the candidate's message may ask for case data. Check it and declare every request in \"requests\"; if there truly is none, leave requests empty.";
 
 export async function runInterviewerTurn(input: InterviewerTurnInput): Promise<ModelTurn> {
   return collectTurn(streamInterviewerTurn(input));
@@ -60,5 +67,23 @@ export async function* streamInterviewerTurn(input: InterviewerTurnInput): Async
     onMark: input.onMark,
   };
   console.log('[interviewer] phase:', input.phase);
-  yield* input.model.streamTurn ? input.model.streamTurn(ctx) : eventsFromTurn(input.model.runTurn(ctx));
+  const run = (c: TurnContext) => (input.model.streamTurn ? input.model.streamTurn(c) : eventsFromTurn(input.model.runTurn(c)));
+  if (!input.requireRequests) { yield* run(ctx); return; }
+
+  // Guard B: stop at an empty requests field while a regeneration is still
+  // possible (breaking out aborts the model's stream), then write it again.
+  let regenerate = false;
+  for await (const e of run(ctx)) {
+    if (e.type === 'field' && e.key === 'requests' && Array.isArray(e.value) && e.value.length === 0 && (input.canRegenerate?.() ?? true)) {
+      regenerate = true;
+      break;
+    }
+    yield e;
+  }
+  input.onRequestGuard?.({ regenerated: regenerate });
+  if (!regenerate) return;
+  console.warn('[interviewer] request guard: explicit ask, no request declared — regenerating');
+  input.onMark?.('request_guard_regenerate');
+  yield { type: 'restart', reason: REQUEST_GUARD_NOTE };
+  yield* run({ ...ctx, turnSystem: [ctx.turnSystem, REQUEST_GUARD_NOTE].filter(Boolean).join('\n\n') });
 }
