@@ -17,6 +17,13 @@ describe('createInterviewerModel', () => {
     expect((m as unknown as { modelId: string; reasoningEffort: string }).modelId).toBe('gpt-6-luna');
     expect((m as unknown as { modelId: string; reasoningEffort: string }).reasoningEffort).toBe('none');
   });
+  it('runs Haiku 5.5 with thinking disabled, effort medium, no fallbacks only when asked (screening)', () => {
+    const m = createInterviewerModel('anthropic-haiku55-none-medium') as unknown as { modelId: string; options: unknown };
+    expect(m).toBeInstanceOf(AnthropicInterviewerModel);
+    expect(m.modelId).toBe('claude-haiku-5-5');
+    expect(m.options).toEqual({ thinking: 'disabled', effort: 'medium', fallbacks: false });
+    expect((createInterviewerModel(undefined) as unknown as { modelId: string }).modelId).toBe('claude-sonnet-5-5');
+  });
   it('refuses an unknown provider rather than silently using Sonnet', () => {
     expect(() => createInterviewerModel('openai-sol')).toThrow(/unknown INTERVIEWER_PROVIDER/);
   });
