@@ -33,8 +33,8 @@ import { VoiceTurnController } from './turn-controller';
 import { DATA_TOPIC, parseClientMessage, type ServerMessage } from './protocol';
 import { summarize, type TurnRecord } from './records';
 import { LiveKitSink } from './livekit-media';
-import { pickCandidateTrack, realClock } from './room-rules';
-import type { TTSProvider } from './types';
+import { findCandidateTrack, pickCandidateTrack, realClock } from './room-rules';
+import type { SttEvent, TTSProvider } from './types';
 
 const OUT_RATE = 24000;   // Cartesia out
 const IN_RATE = 16000;    // Flux in
@@ -77,6 +77,33 @@ export default defineAgent({
 
     await ctx.connect();
     const room = ctx.room;
+
+    // The owner's mic → Flux + the speech-end tracker, wired before anything
+    // slow: the browser's track can be subscribed while the rest is set up,
+    // and a missed TrackSubscribed meant nothing was ever transcribed (smoke, 8 Oct).
+    const vad = new SpeechEndTracker();
+    const stt = await new DeepgramFluxSTT({ eotThreshold: 0.7, eagerEotThreshold: 0.5 }).open({ encoding: 'pcm_s16le', sampleRate: IN_RATE });
+    let onStt: (s: SttEvent) => void = () => {};   // the controller, once it exists
+    stt.onSignal(sig => onStt(sig));
+    let micSid: string | null = null;
+    const listen = (t: RemoteTrack, sid: string) => {
+      micSid = sid;
+      void (async () => {
+        const reader = new AudioStream(t, { sampleRate: IN_RATE, numChannels: 1 }).getReader();
+        for (;;) {
+          const { value: frame, done } = await reader.read();
+          if (done || !frame) break;
+          vad.push(frame.data, Date.now());
+          stt.push(new Uint8Array(frame.data.buffer, frame.data.byteOffset, frame.data.byteLength));
+        }
+      })();
+    };
+    room.on(RoomEvent.TrackSubscribed, (t: RemoteTrack, pub: RemoteTrackPublication, p: RemoteParticipant) => {
+      if (t.kind !== TrackKind.KIND_AUDIO || !pub.sid || pub.sid === micSid || !pickCandidateTrack(session.userId, micSid, p.identity, pub.sid)) return;
+      listen(t, pub.sid);
+    });
+    const already = findCandidateTrack(room.remoteParticipants.values(), session.userId, k => k === TrackKind.KIND_AUDIO);
+    if (already?.track && already.sid && micSid === null) listen(already.track as RemoteTrack, already.sid);
     const enc = new TextEncoder();
     const send = (m: ServerMessage) => {
       void room.localParticipant?.publishData(enc.encode(JSON.stringify(m)), { reliable: true, topic: DATA_TOPIC }).catch(() => {});
@@ -110,7 +137,6 @@ export default defineAgent({
     // Turns through the real orchestrator; post-turn passes as the turn route runs them.
     const background: Promise<unknown>[] = [];
     let phase = session.phase as Phase;
-    const vad = new SpeechEndTracker();
     const exhibits = new Map<string, ExhibitDisplay>(caseData.exhibits.map(e =>
       [e.id, { id: e.id, title: e.title, chartType: e.chartType, data: e.data as Record<string, unknown>[] }]));
     const controller = new VoiceTurnController({
@@ -128,23 +154,7 @@ export default defineAgent({
       bargeMinWords: num('VOICE_BARGE_MIN_WORDS', 2), sessionSeed: session.id,
     });
 
-    // The owner's mic → Flux + the speech-end tracker.
-    const stt = await new DeepgramFluxSTT({ eotThreshold: 0.7, eagerEotThreshold: 0.5 }).open({ encoding: 'pcm_s16le', sampleRate: IN_RATE });
-    stt.onSignal(s => controller.onStt(s));
-    let micSid: string | null = null;
-    room.on(RoomEvent.TrackSubscribed, (t: RemoteTrack, pub: RemoteTrackPublication, p: RemoteParticipant) => {
-      if (t.kind !== TrackKind.KIND_AUDIO || !pub.sid || !pickCandidateTrack(session.userId, micSid, p.identity, pub.sid)) return;
-      micSid = pub.sid;
-      void (async () => {
-        const reader = new AudioStream(t, { sampleRate: IN_RATE, numChannels: 1 }).getReader();
-        for (;;) {
-          const { value: frame, done } = await reader.read();
-          if (done || !frame) break;
-          vad.push(frame.data, Date.now());
-          stt.push(new Uint8Array(frame.data.buffer, frame.data.byteOffset, frame.data.byteLength));
-        }
-      })();
-    });
+    onStt = sig => controller.onStt(sig);
 
     // The browser's back-channel: ready / audio_blocked / exhibit_shown / timing.
     const turnRows = await db.query.sessionTurns.findMany({ where: eq(sessionTurns.sessionId, session.id), orderBy: [asc(sessionTurns.turnIndex)] });
