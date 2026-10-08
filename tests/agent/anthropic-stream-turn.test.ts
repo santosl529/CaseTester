@@ -20,8 +20,7 @@ function fakeStream(text: string, stop_reason = 'end_turn', chunk = 7) {
   };
 }
 
-function stubbed(replies: { text: string; stop_reason?: string }[]) {
-  const model = new AnthropicInterviewerModel('test-model');
+function stubbed(replies: { text: string; stop_reason?: string }[], model = new AnthropicInterviewerModel('test-model')) {
   const stream = vi.fn();
   for (const r of replies) stream.mockReturnValueOnce(fakeStream(r.text, r.stop_reason));
   (model as unknown as { client: unknown }).client = { beta: { messages: { stream } } };
@@ -55,6 +54,28 @@ describe('AnthropicInterviewerModel.streamTurn', () => {
     expect(req.tools).toBeUndefined();
     expect(req.system[0].cache_control).toEqual({ type: 'ephemeral' });
     expect(req.system[1].text).toBe('STATE');
+  });
+
+  it('by default sends production\'s request settings: between_tools, no effort, server-side fallbacks', async () => {
+    const { model, stream } = stubbed([{ text: turn() }]);
+    await all(model.streamTurn(ctx()));
+    const req = stream.mock.calls[0][0];
+    expect(req.thinking).toEqual({ type: 'between_tools' });
+    expect(req.output_config.effort).toBeUndefined();
+    expect(req.betas).toEqual(['server-side-fallback-2026-07-01']);
+    expect(req.fallbacks).toBe('default');
+    expect(req.temperature).toBeUndefined();
+  });
+
+  it('Haiku 5.5 options: thinking disabled, effort medium, no fallbacks', async () => {
+    const { model, stream } = stubbed([{ text: turn() }], new AnthropicInterviewerModel('claude-haiku-5-5', 'state-in-system', { thinking: 'disabled', effort: 'medium', fallbacks: false }));
+    await all(model.streamTurn(ctx()));
+    const req = stream.mock.calls[0][0];
+    expect(req.model).toBe('claude-haiku-5-5');
+    expect(req.thinking).toEqual({ type: 'disabled' });
+    expect(req.output_config).toMatchObject({ effort: 'medium', format: { type: 'json_schema' } });
+    expect(req.betas).toBeUndefined();
+    expect(req.fallbacks).toBeUndefined();
   });
 
   it('streams the say sentences, the declarations, then the turn', async () => {

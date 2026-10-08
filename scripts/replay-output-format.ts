@@ -11,7 +11,7 @@
 //   npx tsx --env-file=.env.local scripts/replay-output-format.ts --dry
 //   npx tsx --env-file=.env.local scripts/replay-output-format.ts --limit 50
 
-import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, writeFileSync, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { buildSystemPrompt, buildPromptParts, type PromptContext } from '@/lib/agent/prompts/system';
 import { createInterviewerModel } from '@/lib/agent/models/factory';
@@ -38,6 +38,8 @@ import { OpenAIInterviewerModel } from '@/lib/agent/models/cerebras';
 import { GeminiInterviewerModel } from '@/lib/agent/models/gemini';
 import type { InterviewerModel } from '@/lib/agent/models/interface';
 import { enforceNumericProvenance } from '@/lib/orchestrator/numeric-provenance';
+import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
+import { explicitRequestCues } from '@/lib/orchestrator/request-signal';
 
 const RUNS_ROOT = 'Case Interview Runs/test runs';
 const BATCHES = (process.env.REPLAY_BATCHES ?? 'batch-7-oct-03,batch-8-oct-03').split(',');
@@ -67,12 +69,12 @@ function logGroups(log: string): { narrated: boolean }[] {
   }));
 }
 
-function loadSamples(): Sample[] {
+function loadSamples(batches: string[] = BATCHES): Sample[] {
   const out: Sample[] = [];
-  for (const batch of BATCHES) {
+  for (const batch of batches) {
     for (const dir of readdirSync(path.join(RUNS_ROOT, batch))) {
       const d = path.join(RUNS_ROOT, batch, dir);
-      if (dir.startsWith('.')) continue;
+      if (dir.startsWith('.') || !statSync(d).isDirectory()) continue;
       const files = readdirSync(d);
       const jf = files.find(f => f.endsWith('.json')), lf = files.find(f => f.endsWith('.log'));
       if (!jf || !lf) continue;
@@ -313,16 +315,24 @@ type AbArm = { name: string; model: InterviewerModel; promptVariant: 'full' | 'c
 type VariantRun = {
   variant: string; firstTokenMs: number | null; firstUsefulMs: number | null; completeMs: number;
   inputTokens: number; cacheRead: number; cacheWrite: number; outputTokens: number; turn?: ModelTurn; error?: string;
+  guardB?: boolean; regenerated?: boolean;
 };
+
+// Guard B as production applies it (plan-turn.ts): explicit asks by phrasing,
+// INTRO–EXHIBIT only. A regenerated turn's time counts from the first request.
+const GUARD_B_PHASES: Phase[] = ['INTRO', 'CLARIFY', 'STRUCTURE', 'ANALYSIS', 'EXHIBIT'];
+const guardB = (s: Sample) => process.env.REPLAY_GUARD_B !== '0' && GUARD_B_PHASES.includes(s.ctx.currentPhase) && explicitRequestCues(s.candidateText).length > 0;
 
 async function runVariant(s: Sample, arm: AbArm): Promise<VariantRun> {
   const u = { inputTokens: 0, cacheRead: 0, cacheWrite: 0, outputTokens: 0 };
   const t0 = Date.now();
   let firstTokenMs: number | null = null, declarationsMs: number | null = null;
   let turn: ModelTurn | undefined;
+  let regenerated = false;
   try {
     for await (const e of streamInterviewerTurn({
       model: arm.model, candidateText: s.candidateText, history: s.history, promptCtx: s.ctx, phase: s.ctx.currentPhase, promptVariant: arm.promptVariant,
+      requireRequests: guardB(s), onRequestGuard: r => { regenerated ||= r.regenerated; },
       onMark: name => { if (name === 'model_first_token') firstTokenMs ??= Date.now() - t0; },
       onUsage: x => { u.inputTokens += x.inputTokens; u.outputTokens += x.outputTokens; u.cacheRead += x.cacheReadTokens ?? 0; u.cacheWrite += x.cacheWriteTokens ?? 0; },
     })) {
@@ -331,11 +341,11 @@ async function runVariant(s: Sample, arm: AbArm): Promise<VariantRun> {
       if (e.type === 'done') turn = e.turn;
     }
   } catch (err) {
-    return { variant: arm.name, firstTokenMs, firstUsefulMs: null, completeMs: Date.now() - t0, ...u, error: String(err).slice(0, 200) };
+    return { variant: arm.name, firstTokenMs, firstUsefulMs: null, completeMs: Date.now() - t0, ...u, error: String(err).slice(0, 200), guardB: guardB(s), regenerated };
   }
   const completeMs = Date.now() - t0;
   const hasData = !!turn && (turn.requests.length > 0 || !!turn.exhibit || !!turn.rescueItem);
-  return { variant: arm.name, firstTokenMs, firstUsefulMs: hasData ? declarationsMs : completeMs, completeMs, ...u, turn };
+  return { variant: arm.name, firstTokenMs, firstUsefulMs: hasData ? declarationsMs : completeMs, completeMs, ...u, turn, guardB: guardB(s), regenerated };
 }
 
 function qualityFlags(s: Sample, t: ModelTurn | undefined): string[] {
@@ -446,6 +456,9 @@ async function runScreen(samples: Sample[], base: AbArm, challengers: AbArm[], t
   for (const k of ['firstUsefulMs', 'firstTokenMs', 'completeMs'] as K[]) {
     console.log(`  [${base.name}] ${k} median ${pct(baseOk.map(r => r.base[k]).filter((x): x is number => x != null), 0.5)} p90 ${pct(baseOk.map(r => r.base[k]).filter((x): x is number => x != null), 0.9)}`);
   }
+  const regenLine = (rs: VariantRun[]) => `guard B active on ${rs.filter(r => r.guardB).length}, regenerated ${rs.filter(r => r.regenerated).length}`;
+  console.log(`  [${base.name}] ${regenLine(rows.map(r => r.base))} · spend $${rows.reduce((c, r) => c + runCost(base.name, r.base), 0).toFixed(3)}`);
+  for (const c of challengers) console.log(`  [${c.name}] ${regenLine(rows.flatMap(r => r.runs[c.name]))} · spend $${rows.reduce((t, r) => t + r.runs[c.name].reduce((u, x) => u + runCost(c.name, x), 0), 0).toFixed(3)}`);
   const baseFlags = baseOk.flatMap(r => qualityFlags(samples.find(x => x.id === r.id)!, r.base.turn));
   console.log(`  [${base.name}] quality flags over ${baseOk.length} outputs: ${JSON.stringify(baseFlags.reduce<Record<string, number>>((m, x) => { m[x] = (m[x] ?? 0) + 1; return m; }, {}))} · errors ${rows.length - baseOk.length}`);
   for (const c of challengers) {
@@ -465,7 +478,7 @@ async function runScreen(samples: Sample[], base: AbArm, challengers: AbArm[], t
     const vsBase = ok2.reduce((n, r) => n + r.runs[c.name].filter(x => decisions(x.turn) !== decisions(r.base.turn)).length, 0);
     console.log(`    request decisions differ — its two runs ${runToRun}/${ok2.length} · vs ${base.name} ${vsBase}/${ok2.length * 2} outputs`);
   }
-  const show = (s: Sample, r: VariantRun) => r.error ? `ERROR ${r.error}` : `say: ${r.turn?.say ?? ''}\nrequests: ${decisions(r.turn)}\nquestion: ${r.turn?.question ?? ''}\nflags: ${qualityFlags(s, r.turn).join(', ') || '-'} · useful ${r.firstUsefulMs}ms`;
+  const show = (s: Sample, r: VariantRun) => r.error ? `ERROR ${r.error}` : `say: ${r.turn?.say ?? ''}\nrequests: ${decisions(r.turn)}\nquestion: ${r.turn?.question ?? ''}\nflags: ${qualityFlags(s, r.turn).join(', ') || '-'} · useful ${r.firstUsefulMs}ms${r.regenerated ? ' · GUARD B REGENERATED' : ''}`;
   const md = rows.map(r => {
     const s = samples.find(x => x.id === r.id)!;
     return `## ${r.id} · ${r.phase}\n**Candidate:** ${s.candidateText}\n\n**Logged Sonnet reply (historical):** ${r.logged}\n\n**${base.name} (fresh)**\n${show(s, r.base)}\n\n` +
@@ -481,7 +494,17 @@ const CHALLENGERS: Record<string, () => InterviewerModel> = {
   'luna-low': () => new OpenAIInterviewerModel('gpt-6-luna', 'low'),
   'sol-none': () => new OpenAIInterviewerModel('gpt-6-sol', 'none'),
   'gemini-low': () => new GeminiInterviewerModel('gemini-3.8-flash', 'low'),
+  // Haiku 5.5 (8 Oct): thinking explicitly disabled, effort medium (its default),
+  // no fallbacks (it has no server-side fallback). Not between_tools.
+  'haiku55-none-medium': () => new AnthropicInterviewerModel('claude-haiku-5-5', 'state-in-system', { thinking: 'disabled', effort: 'medium', fallbacks: false }),
 };
+
+// $/MTok by arm for the spend line: input, cache read, 5-minute cache write, output.
+const ARM_RATES: Record<string, { in: number; read: number; write: number; out: number }> = {
+  sonnet: { in: 2, read: 0.1, write: 2.5, out: 10 },
+  'haiku55-none-medium': { in: 0.1, read: 0.01, write: 0.125, out: 0.5 },
+};
+const runCost = (arm: string, r: VariantRun) => { const k = ARM_RATES[arm]; return k ? (r.inputTokens * k.in + r.cacheRead * k.read + r.cacheWrite * k.write + r.outputTokens * k.out) / 1e6 : 0; };
 
 // --smoke: one call per arm on one turn — account access, schema accepted,
 // streamed (first token before completion), output printed. Nothing saved.
@@ -531,6 +554,17 @@ async function main() {
       const step = pool.length / k;
       return Array.from({ length: k }, (_, i) => pool[Math.floor(i * step)]);
     });
+    // REPLAY_EXTRA_BATCHES: request-heavy turns appended after the stratified
+    // set (which stays identical to earlier screens) — candidate messages with
+    // three or more enumerated asks before the brainstorm, REPLAY_EXTRA_N of
+    // them spread over the pool.
+    if (process.env.REPLAY_EXTRA_BATCHES) {
+      const listItems = (t: string) => (t.match(/\b(one|two|three|four|five|first|second|third|fourth|fifth),/gi) ?? []).length;
+      const pool = loadSamples(process.env.REPLAY_EXTRA_BATCHES.split(',')).filter(x => GUARD_B_PHASES.includes(x.ctx.currentPhase) && listItems(x.candidateText) >= 3);
+      const n = Math.min(pool.length, Number(process.env.REPLAY_EXTRA_N ?? 6));
+      const step = pool.length / Math.max(1, n);
+      spread.push(...Array.from({ length: n }, (_, i) => pool[Math.floor(i * step)]));
+    }
     // REPLAY_DUMP_IDS=id,id: the screened samples' reconstructed prompts, as
     // the challengers saw them — no model calls.
     if (process.env.REPLAY_DUMP_IDS) {
@@ -545,6 +579,7 @@ async function main() {
     }
     if (DRY) {
       console.log(`all turns by stage ${JSON.stringify(all.reduce<Record<string, number>>((m, x) => { m[x.ctx.currentPhase] = (m[x.ctx.currentPhase] ?? 0) + 1; return m; }, {}))}`);
+      console.log(spread.map(x => `${x.id} ${x.session.split('/')[0]} ${x.ctx.currentPhase} guardB=${guardB(x)}`).join('\n'));
       console.log(`${ARM}: ${spread.length} samples × 2 calls per arm · stages ${JSON.stringify(spread.reduce<Record<string, number>>((m, x) => { m[x.ctx.currentPhase] = (m[x.ctx.currentPhase] ?? 0) + 1; return m; }, {}))}`);
       return;
     }

@@ -11,15 +11,28 @@ export const TURN_KEYS = new Set(['move', 'requests', 'exhibit', 'rescue_item', 
 
 export type Attempt = { turn: ModelTurn | null; refused: boolean; unknown: string[] };
 
+// Request settings that differ by model. The defaults are production's Sonnet
+// 5.5 request, unchanged. Experiment (8 Oct): Haiku 5.5 runs with thinking
+// 'disabled' (accepted at effort high or below; it rejects 'between_tools'),
+// effort 'medium' (its default), and no fallbacks (Haiku 5.5 has no
+// server-side fallback).
+export type AnthropicRequestOptions = {
+  thinking?: 'between_tools' | 'disabled';
+  effort?: 'low' | 'medium' | 'high';
+  fallbacks?: boolean;
+};
+
 export class AnthropicInterviewerModel implements InterviewerModel {
   private client: Anthropic;
   private modelId: string;
   private layout: PromptLayout;
+  private options: AnthropicRequestOptions;
 
-  constructor(modelId: string = INTERVIEWER_MODEL_ID, layout: PromptLayout = promptLayoutFromEnv()) {
+  constructor(modelId: string = INTERVIEWER_MODEL_ID, layout: PromptLayout = promptLayoutFromEnv(), options: AnthropicRequestOptions = {}) {
     this.client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     this.modelId = modelId;
     this.layout = layout;
+    this.options = options;
   }
 
   async runTurn(ctx: TurnContext): Promise<ModelTurn> {
@@ -72,15 +85,15 @@ export class AnthropicInterviewerModel implements InterviewerModel {
     // The structured format keeps reasoning out of speech. With the
     // server-side fallback, a declined request re-runs on another model.
     ctx.onMark?.(`${markPrefix}model_request`);
+    const { thinking = 'between_tools', effort, fallbacks = true } = this.options;
     const stream = this.client.beta.messages.stream({
       model: this.modelId,
       max_tokens: 1024,
       system,
       messages,
-      output_config: { format: { type: 'json_schema', schema: TURN_SCHEMA } },
-      thinking: { type: 'between_tools' },
-      betas: [FALLBACK_BETA],
-      fallbacks: FALLBACKS,
+      output_config: { format: { type: 'json_schema', schema: TURN_SCHEMA }, ...(effort ? { effort } : {}) },
+      thinking: { type: thinking },
+      ...(fallbacks ? { betas: [FALLBACK_BETA], fallbacks: FALLBACKS } : {}),
     });
     const parser = new TurnStreamParser();
     let unknown: string[] = [];
