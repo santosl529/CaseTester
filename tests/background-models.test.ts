@@ -63,4 +63,15 @@ describe('background classifiers', () => {
       for (const k of ['temperature', 'top_p', 'top_k', 'fallbacks', 'betas']) expect(calls[1]).not.toHaveProperty(k);
     });
   }
+
+  it('data_request on Haiku 5.5 enforces its JSON shape; on 4.5 no format is sent', async () => {
+    const catalog = [{ id: 'cogs_pct', label: 'COGS' }];
+    await classifyDataRequests({ candidateText: 'x', interviewerText: 'y', catalog, model: 'claude-haiku-5-5' });
+    const schema = (calls[0].output_config as { format: { type: string; schema: { properties: { requests: { items: { required: string[]; properties: { ledgerItemIds: { items: { enum: string[] } } } } } } } } }).format;
+    expect(schema.type).toBe('json_schema');
+    expect(schema.schema.properties.requests.items.required).toEqual(['what', 'ledgerItemIds', 'explicit', 'response']);
+    expect(schema.schema.properties.requests.items.properties.ledgerItemIds.items.enum).toEqual(['cogs_pct']);
+    await classifyDataRequests({ candidateText: 'x', interviewerText: 'y', catalog, model: 'claude-haiku-4-5' });
+    expect(calls[1]).not.toHaveProperty('output_config');
+  });
 });

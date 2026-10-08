@@ -246,6 +246,23 @@ export function planForcedReleases(
 // Plan: the model declares requests, data-decisions.ts decides and renders
 // (spec 2026-10-06-plan-owns-decisions).
 
+// The reply's shape as a JSON schema (enforced on Haiku 5.5 — lib/models.ts
+// backgroundRequest); ledger ids limited to the case catalog.
+export function dataRequestSchema(detectOnly: boolean, catalog: LedgerCatalogItem[]): Record<string, unknown> {
+  const fields: Record<string, unknown> = {
+    what: { type: 'string' },
+    ledgerItemIds: { type: 'array', items: catalog.length > 0 ? { type: 'string', enum: catalog.map(c => c.id) } : { type: 'string' } },
+    explicit: { type: 'boolean' },
+    ...(detectOnly ? {} : { response: { type: 'string', enum: [...REQUEST_RESPONSES] } }),
+  };
+  return {
+    type: 'object', additionalProperties: false, required: ['requests'],
+    properties: {
+      requests: { type: 'array', items: { type: 'object', additionalProperties: false, required: Object.keys(fields), properties: fields } },
+    },
+  };
+}
+
 export async function classifyDataRequests(params: {
   candidateText: string;
   interviewerText: string | null; // null = detection only (same-turn resolution)
@@ -260,7 +277,7 @@ export async function classifyDataRequests(params: {
   try {
     const response = await client.messages.create({
       model,
-      ...backgroundRequest(model, 1024),
+      ...backgroundRequest(model, 1024, { jsonSchema: dataRequestSchema(params.interviewerText === null, params.catalog) }),
       messages: [{ role: 'user', content: prompt }],
     } as Anthropic.MessageCreateParamsNonStreaming);
     params.onUsage?.({

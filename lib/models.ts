@@ -54,9 +54,17 @@ export const BACKGROUND_MODEL_ID = {
 // max_tokens scaled for its tokenizer (~30% more tokens for the same text);
 // no sampling params, no prefill, and no server-side fallback (it has none).
 // Sonnet 5.5 rejects disabled thinking; between_tools is its off switch.
-export function backgroundRequest(model: string, maxTokens: number):
-  { max_tokens: number; thinking?: { type: 'disabled' } | { type: 'between_tools' }; output_config?: { effort: 'medium' } } {
-  if (model === 'claude-haiku-5-5') return { max_tokens: Math.ceil(maxTokens * 1.3), thinking: { type: 'disabled' }, output_config: { effort: 'medium' } };
+// jsonSchema (Haiku 5.5 only): enforce the reply's JSON with structured
+// output — with thinking disabled Haiku 5.5 sometimes writes its analysis
+// before the JSON (data-request check, 8 Oct: 26/160 unparseable).
+export function backgroundRequest(model: string, maxTokens: number, opts: { jsonSchema?: Record<string, unknown> } = {}):
+  { max_tokens: number; thinking?: { type: 'disabled' } | { type: 'between_tools' }; output_config?: { effort: 'medium'; format?: { type: 'json_schema'; schema: Record<string, unknown> } } } {
+  if (model === 'claude-haiku-5-5') {
+    return {
+      max_tokens: Math.ceil(maxTokens * 1.3), thinking: { type: 'disabled' },
+      output_config: { effort: 'medium', ...(opts.jsonSchema ? { format: { type: 'json_schema' as const, schema: opts.jsonSchema } } : {}) },
+    };
+  }
   if (model === 'claude-sonnet-5-5') return { max_tokens: maxTokens, thinking: { type: 'between_tools' } };
   return { max_tokens: maxTokens };
 }
