@@ -39,3 +39,17 @@ State transitions (asked by text not label; label-only doesn't ask; acknowledgme
 
 ## 6. Live check
 Saved-prefix replays: a fresh session seeded with the original run's turns, moves, revealed data, request events and `pressureTest` state up to the failure point (Nikhil loop at t5; early release at t1), then the original candidate lines, Luna, several runs. Report the properties per run, first useful content for normal / regenerated / fallback turns, and actual spend.
+
+## 7. Status (8 Oct) — built, live-checked, two defects open
+
+**Incorporated after review (7 Oct):** existing policy exceptions unchanged; no "I'll come back to …" for an ask the code couldn't map to case data (it might not exist) — only items the case holds are ever deferred out loud; a gate deferral already promised once is held silently; every fallback is bounded per session (code-asked probe once, re-ask once; replacement questions rotate and never repeat the last question); after a judge timeout the next judgement reads every reply since the question (recovery).
+
+**Built (commit 72a95e0; tests `tests/orchestrator/pressure-test.test.ts`, `pressure-test-runner.test.ts`, `pressure-test-guard.test.ts`; 901 tests pass):** everything in §1–§4 except as amended above. Request persistence uses `request_signal` events (category `request_signal`, sentences kept, `resolvedIds: []` — no mapping is attempted yet). Guard B (`requireRequests` in `lib/agent/interviewer.ts`, say held in Stream) unchanged.
+
+**Live check (8 Oct, `live-run --seed/--seed-through --script`, Luna, 6 runs, ≈$0.25; `Case Interview Runs/test runs/prefix-oct-07-*`, `scripts/guard-check.ts`):** the loop did not recur (3/3), no gated data released before satisfaction (6/6), no probe heard twice, guard B regenerated twice with requests declared on the second attempt. First useful content: normal turns 1.2–1.6s median (loop runs), 1.6–2.8s (request-heavy early runs); regenerated / fallback turns 2.0–3.9s.
+
+**Defects (not fixed):**
+1. **Judge too lenient.** It counts lists of data requests as answers ("names multiple missing data points") — clearly wrong on prefix-early-2 t8 (eight asks, nothing about the structure), borderline on the three loop t5 replies ("Probably something's missing, yeah. Let me add to the list…" + data asks). Fix: the prompt must say only statements about the structure itself count ("my structure misses X", "I'd add X as a branch", "I'd start with X because…"); requests for data never count, even when they imply missing dimensions. Validate on a hand-labelled set before relying on it (those 12 replies + clear answers from earlier runs; ≈$0.02 Haiku).
+2. **Code-asked probe with no structure.** prefix-early-1 t8 asked "which branch would you start with" though the candidate had only asked for data. Fix: code asks the probe only once a structure has been given; otherwise it asks for the structure, once. Data stays gated (Rule 7).
+
+**Next:** fix 1 and 2 test-first → re-run the six prefix checks (≈$0.25) → the paired Luna-vs-Sonnet evaluation (≈$9; turn-level delivered faults and whole-interview failures reported separately). Rule 14 and the stall check stay separate work.
