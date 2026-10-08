@@ -1,0 +1,109 @@
+Voice demo · session 895bb741-d15a-4cd8-b82a-580b107dfdb8 · interviewer model anthropic-haiku55-none-medium · candidate lines from batch-12-oct-06/00 · interviewer voice aura-2-orion-en (Deepgram Aura) · candidate macOS say (Samantha)
+End-of-turn detection simulated at 700ms (Flux median, Phase A). Interviewer timing is real: delivery time from the orchestrator + TTS first-byte time.
+end of speech → first sound: median 0.70s, max 0.70s (n 8)
+silence, acknowledgment end → interviewer-model speech: median 0.19s, max 0.76s (n 8)
+end of speech → first interviewer-model speech: median 2.16s, max 2.90s (n 8)
+end of speech → first useful (data line / question): median 2.16s, max 6.26s (n 8)
+
+0:00.0  INTERVIEWER Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+Take a minute if you need it, then tell me how you'd structure your approach.
+0:28.7  CANDIDATE   Let me make sure I have the objective right: revenue is up 15% over two years, but net margin fell from 24% to 6% — so we're looking for a cost problem, or a mix problem, more than a demand problem. Goal is to find the root cause and reverse it.
+
+Here's how I'd structure it. Since revenue grew, I'd start on the cost side and only come back to revenue quality if costs don't explain it.
+
+First, I'd split costs into COGS — coffee beans, milk, cups, food — and operating costs: store labor, rent/occupancy, corporate overhead, marketing. I'd want to see which line grew fastest as a percentage of revenue over the two years.
+
+Second, I'd look at whether this is all stores or concentrated — new locations versus mature ones, since 15% growth might mean they opened stores that aren't profitable yet.
+
+Third, on revenue, I'd check whether the 15% came from price, volume, or new stores, because growth driven purely by store count can mask declining unit economics.
+
+Do we have a cost breakdown as a percent of revenue for both years?
+1:34.1  (silence)   0.70s — end-of-turn detection (simulated Flux)
+1:34.8  INTERVIEWER Mm-hm, I see.   [instant acknowledgment]
+1:36.3  (silence)   0.74s — waiting on the interviewer (delivered at +2.09s after end-of-turn, TTS first audio 108ms)
+1:37.0  INTERVIEWER A cost-first split, then revenue quality.
+1:40.4  INTERVIEWER I'll come back to cost breakdown as a percent of revenue for both years shortly.   [data]
+1:45.1  INTERVIEWER Is that split MECE, and what's missing from it?   [tail]
+1:48.4  CANDIDATE   Honestly, it's mostly MECE but not fully. I split costs into COGS and operating costs, but because we're talking net margin, not operating margin, I'm missing a whole bucket below the operating line: interest expense, depreciation and amortization, and taxes. If they financed new store openings with debt, interest could be eating a chunk of that 18 points. D&A on new build-outs too. So I'd add "non-operating costs" as a third cost branch.
+
+The other thing missing is external context — are input prices like coffee and dairy up industry-wide, is this happening to competitors too? That tells us whether it's a market problem or a Brew & Bean execution problem.
+
+I'd prioritize the cost branch, specifically COGS and store-level labor, because those scale with volume and are usually the biggest lines for a coffee chain. An 18-point swing is huge, so I'd expect it to be one or two big lines rather than lots of small ones — I'd want to find the biggest mover first.
+2:45.9  (silence)   0.70s — end-of-turn detection (simulated Flux)
+2:46.6  INTERVIEWER Understood, okay.   [instant acknowledgment]
+2:47.7  (silence)   0.76s — waiting on the interviewer (delivered at +1.76s after end-of-turn, TTS first audio 116ms)
+2:48.4  INTERVIEWER You asked about this earlier: COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable. Overhead is 14% of revenue, up slightly from 12%.   [data]
+3:04.2  INTERVIEWER You've named the cost lines. Which one would you expect to be the biggest mover, and what would you check first to confirm it?   [tail]
+3:11.0  CANDIDATE   COGS is clearly the driver. Let me check it adds up: two years ago 42 + 22 + 12 = 76% of revenue in costs, leaving 24% — that matches the old margin. Today 58 + 22 + 14 = 94%, leaving 6%. So of the 18-point decline, 16 points come from COGS and 2 from overhead. COGS is basically the entire story.
+
+Next I'd want to break COGS open. For a coffee chain I'd expect: green coffee beans, dairy, food items, and packaging/cups. I'd want each as a percent of revenue across both years to see which component moved.
+
+Two hypotheses I'd test. One, input prices rose — coffee and dairy are volatile commodities, so is this a market-wide spike and are they hedged or buying spot? Two, mix shifted — maybe they pushed more food or higher-cost specialty drinks with worse margins.
+
+And the other side: have menu prices moved at all in two years? If input costs rose and they held prices flat, that alone explains it.
+
+Do we have the COGS breakdown by component?
+4:16.4  (silence)   0.70s — end-of-turn detection (simulated Flux)
+4:17.1  INTERVIEWER Okay, I follow.   [instant acknowledgment]
+4:18.4  (silence)   0.19s — waiting on the interviewer (delivered at +1.15s after end-of-turn, TTS first audio 386ms)
+4:18.6  INTERVIEWER Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Menu prices have not changed in two years. I'll come back to coffee bean price change over two years shortly.   [data]
+4:36.7  INTERVIEWER Those are the component figures. Before we go further, walk me through how you got from 16 points of COGS to the 58% and 42% split, and what the breakdown tells you about which input drove it.   [tail]
+4:49.0  CANDIDATE   Let me do the math. Two years ago COGS was 42% of revenue. Beans at 25% of that is 10.5 points of revenue; everything else is 31.5 points.
+
+Non-bean inputs up 37.5%: 31.5 × 1.375 = 43.3 points of revenue. Since menu prices haven't moved, revenue per unit is flat, so I can compare these directly.
+
+Today COGS is 58 points. So beans must be 58 − 43.3 = 14.7 points, versus 10.5 before — that's about a 40% increase.
+
+So the conclusion is broad-based input cost inflation, roughly 37–40% across beans, dairy, packaging, and food, with essentially zero pass-through to customers. The real root cause isn't any single commodity — it's that they've absorbed two years of inflation and held menu prices flat. That's a pricing failure as much as a cost failure.
+
+To confirm, I'd check: are competitors' prices up over the same period? Is this inflation market-wide or supplier-specific? And are they on spot pricing with no hedges or contracts?
+5:57.9  (silence)   0.70s — end-of-turn detection (simulated Flux)
+5:58.6  INTERVIEWER Got it, thanks.   [instant acknowledgment]
+6:00.0  INTERVIEWER Here's an exhibit: Brew & Bean Cost Structure Over Time. I can share coffee bean price change over two years if you'd like.   [data]
+6:07.7  INTERVIEWER Does it support your conclusion that absorbed inflation with flat pricing is the root cause, and what would you need to see to rule out a mix shift?   [tail]
+6:16.8  CANDIDATE   What I see is a very linear deterioration. COGS went 42 → 50 → 58, so a steady 8 points per year, and profit went 24 → 15 → 6, down about 9 points a year. Labor is dead flat at 22 the whole time, and overhead creeps up 1 point a year — so overhead is real but minor, about 2 of the 18 points.
+
+This confirms the diagnosis rather than changing it. The key read for me is that this isn't a one-time shock — if it were a single bad crop year or one supplier renegotiation, I'd expect a jump and then a plateau. A steady 8 points a year looks like sustained inflation that they've just never responded to. Two full years of absorbing it.
+
+It also suggests urgency: if the trend continues another year, COGS goes to 66 and they're underwater. So the pricing fix can't be incremental.
+
+One thing I'd still want: has transaction volume held up, and do we know competitor pricing?
+7:10.6  (silence)   0.70s — end-of-turn detection (simulated Flux)
+7:11.3  INTERVIEWER Okay, got it.   [instant acknowledgment]
+7:12.2  (silence)   0.06s — waiting on the interviewer (delivered at +0.77s after end-of-turn, TTS first audio 165ms)
+7:12.2  INTERVIEWER You asked about this earlier: Raw coffee bean costs are up 40% over the past two years. The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit.   [data]
+7:31.2  INTERVIEWER Given that volume and average ticket, would you still push a price increase now, and what would you expect it to do to traffic?   [tail]
+7:38.6  CANDIDATE   Beyond price, I'd group it into three buckets.
+
+On cost, I'd look at procurement: are they buying spot with no hedging or long-term contracts? With 200 locations they should have real scale leverage — consolidating suppliers or locking in forward contracts on beans and dairy could take several points off. I'd also look at waste and portion control, since in food service spoilage and inconsistent pours can be a meaningful chunk of COGS. And packaging is usually the easiest line to re-spec cheaply without the customer noticing.
+
+On mix, shift the menu toward higher-margin items — push drinks where the input cost is low relative to price, and de-emphasize or reprice the items that got hit hardest by inflation. Substituting ingredients where quality isn't the selling point is an option too, though risky for a specialty brand.
+
+On revenue, raising ticket size through add-ons or a loyalty program gets you more revenue per transaction without a headline price increase, which is less likely to drive customers away.
+
+Overhead's only 2 points, so I'd treat that as secondary.
+8:40.3  (silence)   0.70s — end-of-turn detection (simulated Flux)
+8:41.0  INTERVIEWER Mm-hm, I see.   [instant acknowledgment]
+8:42.4  INTERVIEWER Of those levers, which one would you commit to first, and what would it do to the 6% margin over the next year?   [tail]
+8:50.6  CANDIDATE   My recommendation: Brew & Bean's margin problem is a pass-through problem, not a cost-control problem — they've absorbed roughly 38–40% input inflation across beans, dairy, packaging and food while holding menu prices flat for two years. The fix has to lead with pricing.
+
+Three supporting points. First, COGS explains 16 of the 18 points of margin decline; labor is flat and overhead is only 2 points, so there's no other lever of comparable size. Second, the trend is linear, 8 points a year, so it's sustained inflation, not a shock that will self-correct. Third, at that rate they're near breakeven within a year, so incremental action won't close the gap.
+
+In order: immediately raise menu prices, phased and skewed toward the items hit hardest by inflation. In parallel, use 200-store scale to renegotiate supply contracts and hedge beans and dairy. Then mix and waste work over the next two quarters.
+
+Main risk is volume loss on price. I'd test increases in a subset of stores first and benchmark competitor pricing before a national rollout.
+9:54.9  (silence)   0.70s — end-of-turn detection (simulated Flux)
+9:55.6  INTERVIEWER Understood, okay.   [instant acknowledgment]
+9:56.7  (silence)   0.30s — waiting on the interviewer (delivered at +1.31s after end-of-turn, TTS first audio 113ms)
+9:57.0  INTERVIEWER Your pricing fix assumes customers absorb the increase, but transaction counts are unknown to us here. If the price rise cost more traffic than it recovers, which of your levers would you pull next, and in what order?   [tail]
+10:09.7  CANDIDATE   I'd make it an elasticity question, and I'd want the breakeven threshold defined before the pilot runs so we're not rationalizing results after.
+
+Rough math: at a 58% COGS and 6% margin, contribution margin per dollar of revenue is about 42% before fixed costs. If we raise price 10% with volume flat, that's roughly 10 points of revenue dropping almost straight to the bottom line, since unit costs don't change. I'd need the breakeven volume loss — something like 10% price up, we can afford to lose roughly a fifth of volume before we're worse off. I'd want to confirm that with actual unit economics, but the point is the cushion is fairly large.
+
+So: if pilot volume loss is well under breakeven, proceed and roll out. If it's close, adjust — smaller increases, or concentrate them on less price-sensitive items like specialty drinks and food rather than drip coffee.
+
+If volume craters, that tells us they're not actually differentiated and price is the purchase driver. Then I'd shift weight to procurement and waste, and revisit the brand positioning separately.
+11:15.0  (silence)   0.70s — end-of-turn detection (simulated Flux)
+11:15.7  INTERVIEWER Okay, I follow.   [instant acknowledgment]
+11:17.0  INTERVIEWER I don't have Actual unit economics and contribution margin details to confirm breakeven volume loss calculation. We'll stop there. Thanks for working through the case — your written report will follow.   [tail]

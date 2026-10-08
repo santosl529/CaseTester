@@ -34,6 +34,9 @@ const CANDIDATE_VOICE = 'Samantha';
 const RATE = 24000;
 const OUT_DIR = 'Case Interview Runs/voice-demos';
 const TMP = '.voice-cache/demo';
+// The interviewer model the runner uses (lib/agent/models/factory.ts); named in
+// the file name and cue sheet so a demo is never mistaken for another model's.
+const INTERVIEWER = process.env.INTERVIEWER_PROVIDER || 'sonnet-5-5';
 
 // ---- audio ----
 
@@ -108,7 +111,7 @@ async function main() {
   const owner = await db.query.sessions.findFirst({ orderBy: [desc(sessions.startedAt)] });
   if (!owner) throw new Error('No existing session to borrow a user id from.');
   const { sessionId, openingText } = await startSession(owner.userId, 'prof-001');
-  console.log(`[demo] session ${sessionId} · ${lines.length} candidate lines from ${RUN} · interviewer ${VOICE} · end-of-turn gap ${ENDPOINT_MS}ms`);
+  console.log(`[demo] session ${sessionId} · interviewer model ${INTERVIEWER} · ${lines.length} candidate lines from ${RUN} · voice ${VOICE} · end-of-turn gap ${ENDPOINT_MS}ms`);
 
   const track: Uint8Array[] = [];
   let now = 0;   // ms into the recording
@@ -132,7 +135,7 @@ async function main() {
   let phase: Phase = 'INTRO';
   let lastAck: string | null = null;
   const background: Promise<unknown>[] = [];
-  const stats: { firstSoundMs: number | null; ackToSonnetMs: number | null; firstSonnetMs: number | null; firstUsefulMs: number | null }[] = [];
+  const stats: { firstSoundMs: number | null; ackToModelMs: number | null; firstModelMs: number | null; firstUsefulMs: number | null }[] = [];
 
   for (let i = 0; i < lines.length; i++) {
     put(sayPcm(lines[i], i), 'CANDIDATE', lines[i]);
@@ -164,24 +167,24 @@ async function main() {
     const tts = await Promise.all(segments.map(seg => aura(seg.text)));
     const dues = segments.map((seg, k) => eotOnTrack + seg.atMs + tts[k].firstByteMs);
     const ackEnd = now;
-    let firstSonnet: number | null = null, firstUseful: number | null = null;
+    let firstModel: number | null = null, firstUseful: number | null = null;
     for (let k = 0; k < segments.length; k++) {
       const seg = segments[k];
       const due = dues[k];
       gap(due - now, `waiting on the interviewer (delivered at +${(seg.atMs / 1000).toFixed(2)}s after end-of-turn, TTS first audio ${tts[k].firstByteMs}ms)`);
-      firstSonnet ??= now;
+      firstModel ??= now;
       if (seg.kind !== 'say') firstUseful ??= now;
       put(tts[k].pcm, 'INTERVIEWER', seg.kind === 'say' ? seg.text : `${seg.text}   [${seg.kind}]`);
     }
-    const firstSound = ack ? speechEnd + ENDPOINT_MS : firstSonnet;
+    const firstSound = ack ? speechEnd + ENDPOINT_MS : firstModel;
     stats.push({
       firstSoundMs: firstSound != null ? firstSound - speechEnd : null,
-      ackToSonnetMs: ack && firstSonnet != null ? Math.max(0, firstSonnet - ackEnd) : null,
-      firstSonnetMs: firstSonnet != null ? firstSonnet - speechEnd : null,
+      ackToModelMs: ack && firstModel != null ? Math.max(0, firstModel - ackEnd) : null,
+      firstModelMs: firstModel != null ? firstModel - speechEnd : null,
       firstUsefulMs: firstUseful != null ? firstUseful - speechEnd : null,
     });
     const last = stats[stats.length - 1];
-    console.log(`[demo] turn ${i + 1}/${lines.length}: ack=${ack ?? '-'} · silence ack→Sonnet ${last.ackToSonnetMs ?? '-'}ms · first Sonnet ${last.firstSonnetMs != null ? (last.firstSonnetMs / 1000).toFixed(2) + 's' : '-'} · first useful ${last.firstUsefulMs != null ? (last.firstUsefulMs / 1000).toFixed(2) + 's' : '-'}`);
+    console.log(`[demo] turn ${i + 1}/${lines.length}: ack=${ack ?? '-'} · silence ack→model ${last.ackToModelMs ?? '-'}ms · first model speech ${last.firstModelMs != null ? (last.firstModelMs / 1000).toFixed(2) + 's' : '-'} · first useful ${last.firstUsefulMs != null ? (last.firstUsefulMs / 1000).toFixed(2) + 's' : '-'}`);
     gap(600);
     if (result.ended) break;
   }
@@ -189,7 +192,7 @@ async function main() {
 
   mkdirSync(OUT_DIR, { recursive: true });
   const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
-  const base = path.join(OUT_DIR, `${stamp}-${RUN.replace('/', '-')}`);
+  const base = path.join(OUT_DIR, `${stamp}-${RUN.replace('/', '-')}${INTERVIEWER === 'sonnet-5-5' ? '' : `-${INTERVIEWER}`}`);
   const wav = `${base}.wav`;
   writeFileSync(wav, wavFile(new Uint8Array(Buffer.concat(track))));
   execFileSync('afconvert', ['-f', 'm4af', '-d', 'aac', wav, `${base}.m4a`]);
@@ -200,13 +203,13 @@ async function main() {
   };
   const gaps = [
     summary('end of speech → first sound', stats.map(s => s.firstSoundMs)),
-    summary('silence, acknowledgment end → Sonnet speech', stats.map(s => s.ackToSonnetMs)),
-    summary('end of speech → first Sonnet speech', stats.map(s => s.firstSonnetMs)),
+    summary('silence, acknowledgment end → interviewer-model speech', stats.map(s => s.ackToModelMs)),
+    summary('end of speech → first interviewer-model speech', stats.map(s => s.firstModelMs)),
     summary('end of speech → first useful (data line / question)', stats.map(s => s.firstUsefulMs)),
   ];
   for (const g of gaps) console.log(`[demo] ${g}`);
   writeFileSync(`${base}.txt`, [
-    `Voice demo · session ${sessionId} · candidate lines from ${RUN} · interviewer ${VOICE} (Deepgram Aura) · candidate macOS say (${CANDIDATE_VOICE})`,
+    `Voice demo · session ${sessionId} · interviewer model ${INTERVIEWER} · candidate lines from ${RUN} · interviewer voice ${VOICE} (Deepgram Aura) · candidate macOS say (${CANDIDATE_VOICE})`,
     `End-of-turn detection simulated at ${ENDPOINT_MS}ms (Flux median, Phase A). Interviewer timing is real: delivery time from the orchestrator + TTS first-byte time.`,
     ...gaps,
     '', ...cues,
