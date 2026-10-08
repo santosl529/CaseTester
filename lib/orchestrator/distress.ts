@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { OnUsage } from '@/lib/llm-usage';
 import { anthropicClient } from '@/lib/anthropic-client';
+import { BACKGROUND_MODEL_ID, backgroundRequest } from '@/lib/models';
 
 // Rule 17-C5 model layer (docs/interviewer-behavior.md v4.6, round-2 fix 1).
 // The regex lexicon in conduct.ts caught Sam only because her phrasing was
@@ -12,7 +13,7 @@ import { anthropicClient } from '@/lib/anthropic-client';
 //
 // Fails open to null (the regex result stands), and never sees case data.
 
-export const DISTRESS_MODEL_ID = 'claude-haiku-4-5';
+export const DISTRESS_MODEL_ID = BACKGROUND_MODEL_ID.distress;
 
 export const DISTRESS_LABELS = ['none', 'case_frustration', 'distress', 'risk_to_self'] as const;
 export type DistressLabel = (typeof DISTRESS_LABELS)[number];
@@ -64,17 +65,19 @@ export function isDistressVerdict(v: DistressVerdict | null): v is DistressVerdi
 export async function classifyDistress(params: {
   candidateText: string;
   onUsage?: OnUsage;
+  model?: string;   // regression harness override; production uses DISTRESS_MODEL_ID
 }): Promise<DistressVerdict | null> {
+  const model = params.model ?? DISTRESS_MODEL_ID;
   const client = anthropicClient();
   try {
     const response = await client.messages.create({
-      model: DISTRESS_MODEL_ID,
-      max_tokens: 128,
+      model,
+      ...backgroundRequest(model, 128),
       messages: [{ role: 'user', content: buildDistressPrompt(params.candidateText) }],
     });
     params.onUsage?.({
       component: 'distress',
-      model: DISTRESS_MODEL_ID,
+      model,
       inputTokens: response.usage.input_tokens,
       outputTokens: response.usage.output_tokens,
     });

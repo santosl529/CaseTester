@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { OnUsage } from '@/lib/llm-usage';
 import type { LadderRung } from './stall';
 import { anthropicClient } from '@/lib/anthropic-client';
+import { BACKGROUND_MODEL_ID, backgroundRequest } from '@/lib/models';
 
 // Round-3 fix 6: was the recorded hint really a hint? After batch 3 a rung
 // counts as delivered when the sent turn asks the candidate something (Maya's
@@ -11,7 +12,7 @@ import { anthropicClient } from '@/lib/anthropic-client';
 // reads the turn and confirms it. Runs only on those turns; fails open to the
 // heuristic (null).
 
-export const HINT_CHECK_MODEL_ID = 'claude-haiku-4-5';
+export const HINT_CHECK_MODEL_ID = BACKGROUND_MODEL_ID.hint_check;
 
 const RUNG_MEANING: Record<LadderRung, string> = {
   1: 'restates or re-anchors the question the candidate is stuck on (e.g. "Take your time — the question is why margins fell")',
@@ -53,15 +54,17 @@ export async function checkHintDelivered(params: {
   candidateText: string;
   interviewerText: string;
   onUsage?: OnUsage;
+  model?: string;   // regression harness override
 }): Promise<{ hint: boolean; reason: string } | null> {
+  const model = params.model ?? HINT_CHECK_MODEL_ID;
   const client = anthropicClient();
   try {
     const response = await client.messages.create({
-      model: HINT_CHECK_MODEL_ID,
-      max_tokens: 96,
+      model,
+      ...backgroundRequest(model, 96),
       messages: [{ role: 'user', content: buildHintCheckPrompt(params.rung, params.candidateText, params.interviewerText) }],
     });
-    params.onUsage?.({ component: 'hint_check', model: HINT_CHECK_MODEL_ID, inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens });
+    params.onUsage?.({ component: 'hint_check', model, inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens });
     const text = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
     return text ? parseHintCheck(text.text) : null;
   } catch (err) {

@@ -1,6 +1,7 @@
 import { RUBRIC_DIMENSION_KEYS, RUBRIC_DIMENSION_LABELS, type RubricDimensionKey } from './rubric';
 import type { OnUsage } from '@/lib/llm-usage';
 import { anthropicClient } from '@/lib/anthropic-client';
+import { BACKGROUND_MODEL_ID, backgroundRequest } from '@/lib/models';
 
 // Live coverage tracker (a SEPARATE, cheaper agent from the end-of-case judge).
 // It answers one question each turn: how much EVIDENCE do we have to score each
@@ -18,7 +19,7 @@ export const COVERAGE_THRESHOLD = 60;          // per-dimension evidence needed 
 export const COVERAGE_MIN_GUARD_MS = 60_000;   // never end this early even if coverage claims complete
 export const COVERAGE_TIME_FLOOR_FRACTION = 0.8; // fallback floor when no coverage signal is available
 
-const COVERAGE_MODEL_ID = 'claude-haiku-4-5-20251001';
+const COVERAGE_MODEL_ID = BACKGROUND_MODEL_ID.coverage;
 
 export type CoverageScores = Partial<Record<RubricDimensionKey, number>>;
 
@@ -82,6 +83,7 @@ type TranscriptTurn = { role: string; text: string };
 export async function assessCoverage(
   transcript: TranscriptTurn[],
   onUsage?: OnUsage, // lib/llm-usage.ts — token reporting for $/case (PRD §13)
+  model: string = COVERAGE_MODEL_ID, // regression harness override
 ): Promise<CoverageScores | null> {
   const client = anthropicClient();
 
@@ -111,17 +113,18 @@ Respond with ONLY this JSON (each value 0-100):
 
   try {
     const response = await client.messages.create({
-      model: COVERAGE_MODEL_ID,
-      max_tokens: 256,
+      model,
+      ...backgroundRequest(model, 256),
       messages: [{ role: 'user', content: prompt }],
     });
     onUsage?.({
       component: 'coverage',
-      model: COVERAGE_MODEL_ID,
+      model,
       inputTokens: response.usage.input_tokens,
       outputTokens: response.usage.output_tokens,
     });
-    const raw = (response.content[0] as { type: 'text'; text: string }).text;
+    // By type, not position (a thinking block can come first on newer models).
+    const raw = response.content.find(b => b.type === 'text')?.text ?? '';
     return parseCoverageResponse(raw);
   } catch (err) {
     console.error('[coverage] assess failed:', err instanceof Error ? err.message : err);

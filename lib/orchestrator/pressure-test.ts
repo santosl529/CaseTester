@@ -9,6 +9,7 @@ import type { DataLedger } from './data-ledger';
 import { PHASES, type Phase } from './state-machine';
 import { pickScript } from '@/lib/agent/prompts/scripts';
 import { anthropicClient } from '@/lib/anthropic-client';
+import { BACKGROUND_MODEL_ID, backgroundRequest } from '@/lib/models';
 
 export type ProbeIntent = 'mece' | 'prioritize' | 'robustness';
 
@@ -43,7 +44,7 @@ export const EARLY_PHASES: Phase[] = ['INTRO', 'CLARIFY', 'STRUCTURE'];
 
 // ---- the judge (Haiku, beside the distress check; fails closed) ----
 
-export const PROBE_JUDGE_MODEL_ID = 'claude-haiku-4-5';
+export const PROBE_JUDGE_MODEL_ID = BACKGROUND_MODEL_ID.probe_judge;
 const JUDGE_TIMEOUT_MS = 3000;
 
 export function buildProbeJudgePrompt(probe: string, replies: string[]): string {
@@ -76,12 +77,18 @@ export function parseProbeJudge(raw: string): { answered: boolean; reason: strin
 type JudgeCall = (prompt: string, onUsage?: OnUsage) => Promise<string>;
 const DEFAULT_JUDGE_COMPONENT = 'probe_judge' as const;
 
-const haikuCall = async (prompt: string, onUsage?: OnUsage, component: 'probe_judge' | 'structure_judge' = DEFAULT_JUDGE_COMPONENT): Promise<string> => {
+const haikuCall = async (prompt: string, onUsage?: OnUsage, component: 'probe_judge' | 'structure_judge' = DEFAULT_JUDGE_COMPONENT, model: string = PROBE_JUDGE_MODEL_ID): Promise<string> => {
   const client = anthropicClient();
-  const r = await client.messages.create({ model: PROBE_JUDGE_MODEL_ID, max_tokens: 120, messages: [{ role: 'user', content: prompt }] });
-  onUsage?.({ component, model: PROBE_JUDGE_MODEL_ID, inputTokens: r.usage.input_tokens, outputTokens: r.usage.output_tokens });
+  const r = await client.messages.create({ model, ...backgroundRequest(model, 120), messages: [{ role: 'user', content: prompt }] });
+  onUsage?.({ component, model, inputTokens: r.usage.input_tokens, outputTokens: r.usage.output_tokens });
   return r.content.map(b => (b.type === 'text' ? b.text : '')).join('');
 };
+
+// The production call on another model, for the regression harness.
+export const judgeCallsFor = (model: string): { probe: JudgeCall; structure: JudgeCall } => ({
+  probe: (prompt, onUsage) => haikuCall(prompt, onUsage, 'probe_judge', model),
+  structure: (prompt, onUsage) => haikuCall(prompt, onUsage, 'structure_judge', model),
+});
 
 // null = no verdict (failure or timeout): the state stays awaiting, and the
 // next judgement reads every reply since the question, so nothing is lost.

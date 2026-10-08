@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { OnUsage } from '@/lib/llm-usage';
 import type { RequestedUnanswered } from '@/lib/scoring/data-coverage';
 import { anthropicClient } from '@/lib/anthropic-client';
+import { BACKGROUND_MODEL_ID, backgroundRequest } from '@/lib/models';
 
 // Rule 11 (docs/interviewer-behavior.md v4.1): every candidate data request is
 // released, refused, or audibly deferred — never ignored. Run 4 had two silent
@@ -23,7 +24,7 @@ import { anthropicClient } from '@/lib/anthropic-client';
 // The classifier sees ledger ids + LABELS only, never values: values are
 // server-only and reveal-gated (FR-4), and the label is all a mapping needs.
 
-export const DATA_REQUEST_MODEL_ID = 'claude-haiku-4-5';
+export const DATA_REQUEST_MODEL_ID = BACKGROUND_MODEL_ID.data_request;
 
 export const REQUEST_RESPONSES = ['release', 'refuse', 'defer', 'clarify', 'none'] as const;
 export type RequestResponse = (typeof REQUEST_RESPONSES)[number];
@@ -259,10 +260,8 @@ export async function classifyDataRequests(params: {
   try {
     const response = await client.messages.create({
       model,
-      max_tokens: 1024,
+      ...backgroundRequest(model, 1024),
       messages: [{ role: 'user', content: prompt }],
-      // Sonnet 5.5 thinks by default; a classifier runs without it.
-      ...(model === 'claude-sonnet-5-5' ? { thinking: { type: 'between_tools' } } : {}),
     } as Anthropic.MessageCreateParamsNonStreaming);
     params.onUsage?.({
       component: 'data_request',

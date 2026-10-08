@@ -28,3 +28,31 @@ export const FALLBACKS = 'default' as const;
 // INTERVIEWER_PROVIDER=cerebras; Sonnet stays the default until a hand-read
 // replay shows it holds the interviewer rules.
 export const CEREBRAS_INTERVIEWER_MODEL_ID = 'gpt-oss-120b';
+
+// Background classifiers, by role (8 Oct). Production stays on Haiku 4.5 until
+// a role's regression check against Haiku 5.5 passes (spec
+// 2026-10-08-haiku-5-5-background-migration.md); migrating a role is changing
+// its line here. Each classifier also takes an explicit `model` so the
+// regression harnesses can call it on fixed inputs without switching anything.
+// The opener (lib/agent/opener.ts) is an unused experiment and is not listed.
+export const BACKGROUND_MODEL_ID = {
+  coverage: 'claude-haiku-4-5-20251001',
+  data_request: 'claude-haiku-4-5',
+  distress: 'claude-haiku-4-5',
+  hint_check: 'claude-haiku-4-5',
+  probe_judge: 'claude-haiku-4-5',   // the pressure-test answer judge and the structure check
+} as const;
+
+// Request settings for a background call on `model`. Haiku 5.5 (verified
+// against its migration guide and the effort docs, 8 Oct): thinking is on by
+// default, so it is disabled explicitly (accepted at effort high or below; it
+// would otherwise spend the small max_tokens); effort medium, its default;
+// max_tokens scaled for its tokenizer (~30% more tokens for the same text);
+// no sampling params, no prefill, and no server-side fallback (it has none).
+// Sonnet 5.5 rejects disabled thinking; between_tools is its off switch.
+export function backgroundRequest(model: string, maxTokens: number):
+  { max_tokens: number; thinking?: { type: 'disabled' } | { type: 'between_tools' }; output_config?: { effort: 'medium' } } {
+  if (model === 'claude-haiku-5-5') return { max_tokens: Math.ceil(maxTokens * 1.3), thinking: { type: 'disabled' }, output_config: { effort: 'medium' } };
+  if (model === 'claude-sonnet-5-5') return { max_tokens: maxTokens, thinking: { type: 'between_tools' } };
+  return { max_tokens: maxTokens };
+}
