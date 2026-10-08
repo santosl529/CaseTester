@@ -1159,7 +1159,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 ### Task 4: LiveKit agent, token and end routes
 
-**Prerequisites (user):** the exact commands are in spec §12: `npm install --save @livekit/rtc-node@^1.1.0` (already installed as a peer of `@livekit/agents`; this records it in package.json), `brew install livekit`, the dev-server `LIVEKIT_*` lines in `.env.local`, and `livekit-server --dev --bind 127.0.0.1`. No paid API calls in this task.
+**Prerequisites (user):** spec §12 has the commands: `npm install --save @livekit/rtc-node@^1.1.0` (already installed as a peer of `@livekit/agents`; this records it in package.json). LiveKit Cloud credentials are already in `.env.local` (`wss://` URL), so there is no local server and no `brew install`. No paid API calls in this task. A worker registering with Cloud uses no participant minutes until a session starts.
 
 **Files:**
 - Modify: `package.json` (dependency + `voice:agent` script), `.env.example`
@@ -1187,7 +1187,7 @@ cli.runApp(new WorkerOptions({ agent: path.resolve('lib/voice/livekit-agent.ts')
 ```
 Create a temporary `lib/voice/livekit-agent.ts` with `export default defineAgent({ entry: async ctx => { console.log('[voice-agent] job', ctx.job.metadata); } });` (import `defineAgent` from `@livekit/agents`). Add the script:
 `"voice:agent": "INTERVIEWER_PROVIDER=anthropic-haiku55-none-medium LLM_BUDGET_USD=${LLM_BUDGET_USD:-1.00} tsx --env-file=.env.local scripts/voice-agent.ts dev"`.
-Run `livekit-server --dev` in one terminal, then `npm run voice:agent`.
+Run `npm run voice:agent` (it registers with your LiveKit Cloud project).
 Expected: the worker logs that it registered with the server. **If job processes fail to load the `.ts` agent or its `@/` imports**, switch to the §3 fallback: `scripts/voice-agent.ts` connects with `new Room().connect(url, token)` for a room passed on its command line, and the token route spawns nothing (you start the agent by hand per session). Report the outcome before continuing.
 
 - [ ] **Step 2: Failing tests for media helpers and routes**
@@ -1421,10 +1421,10 @@ Before relying on them, check these names against the installed `.d.ts` files: `
 - [ ] **Step 7: `.env.example` additions**
 
 ```
-# Voice M0 Phase B (localhost). livekit-server --dev defaults:
-LIVEKIT_URL=ws://localhost:7880
-LIVEKIT_API_KEY=devkey
-LIVEKIT_API_SECRET=secret
+# Voice M0 Phase B. LiveKit Cloud project (wss:// URL from the project settings; key/secret server-only):
+LIVEKIT_URL=wss://your-project.livekit.cloud
+LIVEKIT_API_KEY=
+LIVEKIT_API_SECRET=
 VOICE_DEV=1                    # show the voice link on the case page
 VOICE_TTS=fake                 # fake | (unset = Cartesia)
 VOICE_TTS_CHAR_CAP=90000       # monthly Cartesia characters (Pro = 100K)
@@ -1436,7 +1436,7 @@ VOICE_MAX_SESSION_MIN=25
 - [ ] **Step 8: Verify (free)**
 
 Run: `npm run typecheck && npm test && npm run lint && npm run build`
-Then, with `livekit-server --dev` running, `VOICE_TTS=fake npm run voice:agent` should register with no errors. No session is started, so nothing is billed.
+Then `VOICE_TTS=fake npm run voice:agent` should register with your Cloud project with no errors. No session is started, so nothing is billed.
 
 - [ ] **Step 9: Commit**
 
@@ -1529,10 +1529,9 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 - [ ] **Step 6: Live smoke on fake TTS — PAID, ask first**
 
-Estimate to give the user: ~3 short sessions × (Flux ~2–3 min ≈ $0.02 + Haiku turns ≈ $0.02) ≈ **$0.15**, with `LLM_BUDGET_USD=0.50`. With go-ahead, run three terminals:
-1. `livekit-server --dev`
-2. `VOICE_TTS=fake npm run voice:agent`
-3. `npm run dev`
+Estimate to give the user: ~3 short sessions × (Flux ~2–3 min ≈ $0.02 + Haiku turns ≈ $0.02) ≈ **$0.15**, with `LLM_BUDGET_USD=0.50`. LiveKit Cloud minutes are within the free Build plan (spec §9). With go-ahead, run two terminals:
+1. `VOICE_TTS=fake npm run voice:agent`
+2. `npm run dev`
 
 Then sign in, start prof-001 with a club code, open `/case/<id>/voice` with headphones on, and run ~5 turns. Check:
 - you hear the tone (the "voice") and captions advance word by word;

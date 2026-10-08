@@ -25,7 +25,7 @@ TTS vendor change, any subscription purchase.
 
 | Item | Choice |
 |---|---|
-| Transport | LiveKit, local `livekit-server --dev` (free, no cloud account) |
+| Transport | LiveKit Cloud project (yours: `wss://` URL + key/secret already in `.env.local`); the app and agent run on localhost. A local `livekit-server --dev` remains a fallback, not needed. |
 | STT / TTS | Existing adapters: Deepgram Flux (`DeepgramFluxSTT`, eot 0.7 / eager 0.5) and Cartesia (`CartesiaTTS`, Sonic 3.5) |
 | Interviewer | Claude Haiku 5.5 via `INTERVIEWER_PROVIDER=anthropic-haiku55-none-medium`, set **only in the voice agent process**. Text routes and production default stay Sonnet 5.5. Known Haiku faults from the 8 Oct screen (grading in `say`, unasked releases) are expected, not this phase's problem. |
 | Background checks | Unchanged mixed set (`BACKGROUND_MODEL_ID`): distress + pressure-test judges on Haiku 5.5; coverage, data-request, hint check on Haiku 4.5 |
@@ -226,7 +226,7 @@ Interviewer speech per full interview, from 43 saved runs (batches 11–17 + 8 O
   cost ≈ $0.11 each, mostly the coverage classifier on Haiku 4.5. The 8-turn voice demo cost
   $0.021. So ≈ $0.05–0.15 per interview.
 - Scoring (optional): ≈ $0.45 per scored interview (Opus 5.5, batch 4).
-- LiveKit: $0 (local dev server).
+- LiveKit Cloud, Build plan (checked 8 Oct, livekit.com/pricing): 5,000 WebRTC participant minutes/month free, then $0.0005/min; 1,000 agent-session minutes (for LiveKit-hosted agents; ours is self-hosted and joins as a participant — I haven't verified how Cloud meters it). One interview ≈ 2 participants × ~25 min ≈ 50 min, so the whole test is <10% of the free minutes.
 
 **Test spend estimate (asked for before each paid step):**
 - Development smoke on fake TTS (Tasks 4–5): ~10 short sessions × (Flux ~$0.015 + LLM ~$0.02)
@@ -277,24 +277,22 @@ owner's first audio track and ignores any other participant (e.g. a second tab).
 
 ## 12. Local environment (exact commands)
 
+LiveKit Cloud is already set up in `.env.local` as `LIVEKIT_URL` (the project's `wss://…livekit.cloud` URL), `LIVEKIT_API_KEY` and `LIVEKIT_API_SECRET`. Both the browser and the agent use the `wss://` URL. The token route derives the `https://` API URL from it for agent dispatch. All three stay server-only: the browser gets only the URL and a short-lived token. No local LiveKit server is needed.
+
 Run once, with your OK (Task 4):
 ```
 npm install --save @livekit/rtc-node@^1.1.0   # already in node_modules at 1.1.0 as a peer of @livekit/agents 1.9.1; this only records it in package.json
-brew install livekit                          # LiveKit server binary (livekit-server)
 ```
-Add to `.env.local` (you, not me; values are the dev server's fixed defaults):
+Add to `.env.local` (you):
 ```
-LIVEKIT_URL=ws://localhost:7880
-LIVEKIT_API_KEY=devkey
-LIVEKIT_API_SECRET=secret
 VOICE_DEV=1
 ```
-Each test, three terminals:
+Each test, two terminals:
 ```
-livekit-server --dev --bind 127.0.0.1          # dev keys devkey/secret, ws://localhost:7880, local only
-VOICE_TTS=fake npm run voice:agent             # free development; paid runs set VOICE_TTS_RUN_CAP and LLM_BUDGET_USD instead of VOICE_TTS=fake
+VOICE_TTS=fake npm run voice:agent             # registers the worker with your Cloud project; paid runs set VOICE_TTS_RUN_CAP and LLM_BUDGET_USD instead of VOICE_TTS=fake
 npm run dev
 ```
+Latency note: media now goes browser → LiveKit Cloud edge → agent on your machine and back, which is the real network path, not a loopback. That's closer to production; the client cross-check (§7) shows the added lag.
 
 ## 13. Risks / open
 
