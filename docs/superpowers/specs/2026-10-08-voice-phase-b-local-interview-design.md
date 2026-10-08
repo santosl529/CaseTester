@@ -129,12 +129,12 @@ A new check `voice_heard` logs the playback per segment, dropped reveals, withdr
   - **`required`** (distress / risk-to-self offer, conduct warning): its state change (`distressOffered`, `warnings + 1`) is committed only if the line was heard in full. Partly heard → the candidate row and the heard words are saved, the state change is not, and the check `scripted_not_delivered` is logged. Not heard at all → cancelled (§5.5). The next turn plans afresh, so the regex/model checks fire again on the candidate's next message.
   - **`decided`** (conduct termination, distress close after an accepted pause): the session-ending update is committed whether or not the line was heard, because it rests on the candidate's words, not on delivery. The heard words are saved, and a `scripted_not_delivered` check is logged if the line was cut.
 - A late model-layer distress offer, arriving after the same turn was interrupted, is still accepted and played. It is `required`, so it counts only if heard in full.
-- A risk-to-self line is also put on screen in full when it starts. It carries no case figures, so this is outside §5.3, and it stays visible if the audio fails.
+- Every scripted line is also put on screen in full when it starts. The voice layer can't tell a risk-to-self offer from the other scripted lines, and none of them carries case figures, so this stays within §5.3. The resources stay visible if the audio fails. (Task 3 ruling; this broadens the original risk-to-self-only rule.)
 
 **5.7 Barge-in trigger.**
 - While `thinking` (ack playing or waiting, nothing of the turn heard): any Flux `StartOfTurn`/`Update` with ≥ 1 word → cancel (§5.5).
 - While `speaking` a non-scripted segment: ≥ `VOICE_BARGE_MIN_WORDS` words (default 2).
-- A final that arrives while a non-scripted segment is playing, with no barge-in, is a backchannel: dropped and logged.
+- A final that arrives while a non-scripted segment is playing, with no barge-in, is a backchannel: dropped and logged. Once the turn's audio is over, the controller is `listening` again, even if the runner is still saving the turn, so an answer given in that window is never dropped.
 - On a barge-in, in order: record `cutAt`; clear the `AudioSource` queue; cancel Cartesia contexts and caption/exhibit timers; reject further non-scripted segments; resolve `heard` (after exhibit confirmations, §5.2); set state `listening`.
 - The opening (already persisted by `startSession`) is replayed on join, interruptible and unbooked.
 
