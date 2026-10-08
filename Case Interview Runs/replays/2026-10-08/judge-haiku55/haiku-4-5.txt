@@ -1,0 +1,12 @@
+model claude-haiku-4-5 · 80 judgements · latency median 748ms p90 1082ms max 1395ms · over 3s 0 · stop {"end_turn":80}
+tokens in 38140 out 3274 · cost $0.0545
+
+dev · probe-answer judge: clear 25/26 · false unlocks 1/9 · false rejections 0/17 · no verdict 0 | borderline 1/1
+  FALSE UNLOCK loop-t15 — Candidate states cost side is missing, identifies specific sub-branches (COGS, labor, rent, SG&A), and commits to a decision rule ('whichever line moved most...that's the branch I'd take first')
+
+dev · structure check: clear 6/6 · false unlocks 0/2 · false rejections 0/4 · no verdict 0
+
+heldout · probe-answer judge: clear 28/29 · false unlocks 1/15 · false rejections 0/14 · no verdict 0 | borderline 2/2
+  FALSE UNLOCK (synthetic) syn-missing-data-points — candidate identified specific missing data points and structural gaps
+
+heldout · structure check: clear 16/16 · false unlocks 0/7 · false rejections 0/9 · no verdict 0

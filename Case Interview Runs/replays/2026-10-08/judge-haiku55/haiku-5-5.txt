@@ -1,0 +1,12 @@
+model claude-haiku-5-5 · 80 judgements · latency median 686ms p90 944ms max 1150ms · over 3s 0 · stop {"end_turn":80}
+tokens in 53144 out 4770 · cost $0.0077
+
+dev · probe-answer judge: clear 26/26 · false unlocks 0/9 · false rejections 0/17 · no verdict 0 | borderline 1/1
+
+dev · structure check: clear 6/6 · false unlocks 0/2 · false rejections 0/4 · no verdict 0
+
+heldout · probe-answer judge: clear 28/29 · false unlocks 0/15 · false rejections 1/14 · no verdict 0 | borderline 2/2
+  FALSE REJECTION ho-18-nikhil-the-data-hoover-t13-batch-17 — Candidate asks for data and declines to name a branch; no statement about the structure itself
+
+heldout · structure check: clear 15/16 · false unlocks 1/8 · false rejections 0/8 · no verdict 0
+  FALSE UNLOCK ho-18-nikhil-the-data-hoover-t4-batch-11-first2 — Message 2 offers a structure: profit = revenue minus costs, with costs split into fixed and variable and the biggest mover isolated.
