@@ -27,6 +27,8 @@ const MAX_CAPTIONS = 8;
 
 export function applyMessage(v: VoiceView, m: ServerMessage): VoiceView {
   switch (m.type) {
+    case 'hello':
+      return v;
     case 'state':
       return v.phase === 'ended' ? v : { ...v, phase: m.state, stateTurnSeq: m.turnSeq };
     case 'caption': {

@@ -187,5 +187,11 @@ export default defineAgent({
     room.on(RoomEvent.ParticipantDisconnected, (p: RemoteParticipant) => {
       if (p.identity === session.userId) void finish('candidate_left');
     });
+    // Listening now: announce it, so a `ready` the browser sent before we
+    // joined is sent again (and again if the owner joins after us).
+    send({ type: 'hello' });
+    room.on(RoomEvent.ParticipantConnected, (p: RemoteParticipant) => {
+      if (p.identity === session.userId) send({ type: 'hello' });
+    });
   },
 });

@@ -44,6 +44,10 @@ describe('voice view', () => {
     expect(run([{ type: 'ended', reason: 'time_limit', scoringSuppressed: true }]).canScore).toBe(false);
   });
 
+  it('a hello from the agent changes nothing on screen', () => {
+    expect(run([{ type: 'hello' }])).toEqual(initialView);
+  });
+
   it('tracks the state, the last latency and errors', () => {
     const v = run([
       { type: 'state', state: 'thinking', turnSeq: 2 },

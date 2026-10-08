@@ -91,7 +91,14 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     const dec = new TextDecoder();
     room.on(RoomEvent.DataReceived, (payload, _p, _k, topic) => {
       if (topic !== DATA_TOPIC) return;
-      try { dispatch(JSON.parse(dec.decode(payload)) as ServerMessage); } catch { /* not ours */ }
+      let m: ServerMessage;
+      try { m = JSON.parse(dec.decode(payload)) as ServerMessage; } catch { return; }
+      // The agent may join after us: its hello is when our `ready` can arrive.
+      if (m.type === 'hello') {
+        if (room.canPlaybackAudio) send({ type: 'ready' });
+        else setNeedsClick(true);
+      }
+      dispatch(m);
     });
     room.on(RoomEvent.TrackSubscribed, (track: RemoteTrack) => {
       if (track.kind !== Track.Kind.Audio) return;

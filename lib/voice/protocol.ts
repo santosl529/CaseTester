@@ -9,6 +9,9 @@ export const DATA_TOPIC = 'case';
 export type VoiceState = 'waiting' | 'listening' | 'thinking' | 'speaking' | 'ended';
 
 export type ServerMessage =
+  // The agent is in the room and listening for `ready` — sent whenever it
+  // (re)joins, because a `ready` sent before it joined is lost (§5.1).
+  | { type: 'hello' }
   | { type: 'state'; state: VoiceState; turnSeq: number }
   // Interviewer captions show only heard words; a candidate caption with
   // `replaces` supersedes a cancelled turn's (its text was carried).
