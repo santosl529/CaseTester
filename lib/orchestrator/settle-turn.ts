@@ -214,6 +214,8 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   const auditResult = auditTurn(spokenText, revealedValues(ledger), allowedTexts.join(' '));
   const timeframeMismatches = checkTimeframes(spokenText, caseData.dataLedger.filter(d => ledger.revealed.has(d.id)));
   checks.record('timeframe', timeframeMismatches.length > 0, 'cross-period arithmetic (log only)', { mismatches: timeframeMismatches });
+  checks.record('pressure_test_repeat', Boolean(state.pressureTestDone) && turn.move === 'pressure_test',
+    'a second pressure test after the first was answered (log only)', { move: turn.move });
   const styleResult = auditTurnStyle(spokenText, {
     lengthExempt: newReveals.length > 0 || exhibit !== undefined || stallDecision.rung === 3 || codeWritten,
   });

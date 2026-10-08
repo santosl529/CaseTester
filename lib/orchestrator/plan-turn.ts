@@ -291,6 +291,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // from the moves recorded at commit (progress.ts), the wording only for
   // turns recorded before moves existed.
   const moves = (flags.moves as Record<number, TurnMove> | undefined) ?? {};
+  // Guard A (7 Oct): a pressure test already asked — the candidate's message
+  // now is (or follows) the answer. Requests stop being premature.
+  const pressureTestDone = Object.values(moves).includes('pressure_test');
   const stages = stagesFromTurns(
     turnRows.filter(t => t.role === 'interviewer').map(t => ({ turnIndex: t.turnIndex, text: t.text })),
     moves,
@@ -368,7 +371,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
       derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, unitCheckHint,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
-      conductRedirectHint, history, turnRows, distress, kind, lastQuestion, moves,
+      conductRedirectHint, history, turnRows, distress, kind, lastQuestion, moves, pressureTestDone,
       buffered: bufferReason !== undefined, bufferReason,
     },
   };

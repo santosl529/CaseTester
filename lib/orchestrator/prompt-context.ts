@@ -26,6 +26,6 @@ export function promptContextFor(plan: ModelPlan): PromptContext {
     coverageSteer: state.coverageSteer,
     openDataRequestsHint: state.openDataRequestsHint,
     conductRedirectHint: state.conductRedirectHint,
-    turnNote: turnNoteFor(state.kind, ctx.acknowledged),
+    turnNote: turnNoteFor(state.kind, ctx.acknowledged, { pressureTestDone: state.pressureTestDone, phase: ctx.currentPhase }),
   };
 }

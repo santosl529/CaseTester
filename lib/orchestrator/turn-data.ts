@@ -25,7 +25,11 @@ const FORCES_OPEN = new Set(['rec_ask', 'grace_ask', 'time_warning']);
 export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>): DataDecisions {
   const { ctx, state } = plan;
   const resolve = caseResolver(plan);
-  const requests: DeclaredRequest[] = resolveRequests(turn.requests, resolve);
+  // Guard A (7 Oct): deferral is only for a premature request — before the
+  // pressure test is answered. After it, a declared deferral is released (or
+  // refused, when the case doesn't hold the data).
+  const requests: DeclaredRequest[] = resolveRequests(turn.requests, resolve)
+    .map(r => (state.pressureTestDone && r.respond === 'defer' ? { ...r, respond: 'release' as const } : r));
   if (FORCES_OPEN.has(state.kind)) {
     const declared = new Set(requests.flatMap(r => r.itemIds));
     const revealed = new Set(Object.keys(revealedValues(state.ledger)));

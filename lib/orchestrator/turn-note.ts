@@ -1,9 +1,18 @@
 // The per-turn note at the end of the prompt (THIS TURN). Kept here so the
 // voice acknowledgment and the recommendation ask compose in one place.
 import type { TurnKind } from './plan-turn';
+import type { Phase } from './state-machine';
 
-export function turnNoteFor(kind: TurnKind, acknowledged?: string): string | undefined {
+const EARLY: Phase[] = ['INTRO', 'CLARIFY', 'STRUCTURE'];
+
+export function turnNoteFor(kind: TurnKind, acknowledged?: string, opts: { pressureTestDone?: boolean; phase?: Phase } = {}): string | undefined {
   const notes: string[] = [];
+  // Guard A (7 Oct, batch 17): Luna asked the pressure test fourteen turns
+  // running while the candidate's data waited. Shown only while the case is
+  // still in the early stages.
+  if (opts.pressureTestDone && opts.phase && EARLY.includes(opts.phase)) {
+    notes.push('THIS TURN: your pressure test on the structure has been asked and answered. Don\'t ask another one — no "Is that MECE?" or "Which branch would you prioritize?" — move into the analysis. Requests are no longer premature: declare what they ask for with respond "release".');
+  }
   if (kind === 'rec_ask') {
     notes.push('THIS TURN: the system asks the candidate for their recommendation as your question. Write only "say" — a brief neutral acknowledgment of their last message, or "" — declare their requests as usual, and set "question" to "".');
   }
