@@ -40,7 +40,7 @@ State transitions (asked by text not label; label-only doesn't ask; acknowledgme
 ## 6. Live check
 Saved-prefix replays: a fresh session seeded with the original run's turns, moves, revealed data, request events and `pressureTest` state up to the failure point (Nikhil loop at t5; early release at t1), then the original candidate lines, Luna, several runs. Report the properties per run, first useful content for normal / regenerated / fallback turns, and actual spend.
 
-## 7. Status (8 Oct) — built, live-checked, two defects open
+## 7. Status (8 Oct, morning) — built, live-checked, two defects open (both fixed since — §8)
 
 **Incorporated after review (7 Oct):** existing policy exceptions unchanged; no "I'll come back to …" for an ask the code couldn't map to case data (it might not exist) — only items the case holds are ever deferred out loud; a gate deferral already promised once is held silently; every fallback is bounded per session (code-asked probe once, re-ask once; replacement questions rotate and never repeat the last question); after a judge timeout the next judgement reads every reply since the question (recovery).
 
@@ -52,4 +52,17 @@ Saved-prefix replays: a fresh session seeded with the original run's turns, move
 1. **Judge too lenient.** It counts lists of data requests as answers ("names multiple missing data points") — clearly wrong on prefix-early-2 t8 (eight asks, nothing about the structure), borderline on the three loop t5 replies ("Probably something's missing, yeah. Let me add to the list…" + data asks). Fix: the prompt must say only statements about the structure itself count ("my structure misses X", "I'd add X as a branch", "I'd start with X because…"); requests for data never count, even when they imply missing dimensions. Validate on a hand-labelled set before relying on it (those 12 replies + clear answers from earlier runs; ≈$0.02 Haiku).
 2. **Code-asked probe with no structure.** prefix-early-1 t8 asked "which branch would you start with" though the candidate had only asked for data. Fix: code asks the probe only once a structure has been given; otherwise it asks for the structure, once. Data stays gated (Rule 7).
 
-**Next:** fix 1 and 2 test-first → re-run the six prefix checks (≈$0.25) → the paired Luna-vs-Sonnet evaluation (≈$9; turn-level delivered faults and whole-interview failures reported separately). Rule 14 and the stall check stay separate work.
+**Next (as of the morning of 8 Oct):** fix 1 and 2 test-first → re-run the six prefix checks (≈$0.25) → the paired Luna-vs-Sonnet evaluation (≈$9; turn-level delivered faults and whole-interview failures reported separately). Rule 14 and the stall check stay separate work.
+
+## 8. Update (8 Oct, later) — both defects fixed; judge evaluated
+
+**Fixed (commits `47e66e7`, `986389d`; tests in `pressure-test.test.ts`, `pressure-test-runner.test.ts`):**
+1. *Judge too lenient* — the answer judge counts only statements about the structure ("my structure misses X", "I'd add X as a branch", "I'd start with X because…", what would break it); requests for data never count, even when they imply missing dimensions.
+2. *Code-asked probe with no structure* — a structure check (Haiku, `structure_judge`, run only when code could ask) gates it: with a structure on the table code asks the probe (once); without one it asks for the structure (once). A thin structure offered as the approach counts ("revenue minus costs, go after costs first" — weak, and exposing it is the pressure test's job); an observation or hypothesis made before framing does not.
+3. *New:* a structure-check timeout or error is not "no structure" — code asks nothing that turn, spends no fallback, logs `structure_unknown`, and the check runs again next turn.
+
+**Labels and sets:** dev set `tests/orchestrator/fixtures/probe-judge-labelled.json` reviewed (loop-t15 not answered — choosing COGS doesn't answer the MECE question; loop-t27 answered; loop-t11 answered, borderline; the early t3 histories = structure given; unique ids). Frozen held-out set `probe-judge-heldout.json` (31 probe replies, 16 structure histories; 11 synthetic hard negatives; one label corrected after a truncated read, noted in the file). `scripts/eval-probe-judge.ts` reports false unlocks, false rejections and no-verdicts separately, per set.
+
+**Judge results (one pass each):** Haiku 4.5 (production) — false unlocks 1/9 dev (loop-t15), 1/15 held-out (a synthetic data list), false rejections 0, structure 22/22, 748ms median. Haiku 5.5 — false unlocks 0, one false rejection (held-out), structure 22/22, 686ms. **Live (six prefix checks, Haiku 5.5 interviewer):** the production judge unlocked on the loop-t5 data list in 1/3 runs (it passed offline — the verdict varies run to run) and on loop-t15 in the other 2/3 after five correct holds. Gate properties held in all six: no gated data released before satisfaction, no loop, guard B never needed. The judge's remaining false unlocks are the open item; moving it to Haiku 5.5 is covered by `2026-10-08-haiku-5-5-background-migration.md`.
+
+**Still open:** the paired Luna-vs-Sonnet evaluation (paused; re-estimate it with coverage priced correctly — ~$0.16 per 30-turn run on Haiku 4.5); Rule 14 and the stall check (separate work).
