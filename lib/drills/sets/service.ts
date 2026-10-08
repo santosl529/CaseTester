@@ -6,7 +6,7 @@
 // one set in progress at a time.
 import 'server-only';
 import { randomUUID } from 'crypto';
-import { and, asc, desc, eq, inArray, lt, max } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, lt, max, sql } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { drillAttempts, drillItems, drillSets, drillTiers, studentDrillSettings } from '@/db/schema';
 import { DRILLS_CONFIG, TAXONOMY_VERSION, getDrill, type Drill } from '../config';
@@ -218,7 +218,13 @@ export async function setView(studentId: string, setId: string) {
 // -------------------------------------------------------- fetch an item
 
 export async function fetchItem(studentId: string, setId: string, position: number) {
-  const set = await loadSet(studentId, setId);
+  if (!z.uuid().safeParse(setId).success) throw new DrillError('not_found', 404, 'Set not found');
+  const [row] = await db.select({ set: drillSets, timeMultiplier: studentDrillSettings.timeMultiplier })
+    .from(drillSets)
+    .leftJoin(studentDrillSettings, eq(studentDrillSettings.studentId, drillSets.studentId))
+    .where(and(eq(drillSets.id, setId), eq(drillSets.studentId, studentId)));
+  if (!row) throw new DrillError('not_found', 404, 'Set not found');
+  const { set } = row;
   if (set.status !== 'in_progress') throw new DrillError('set_closed', 409, `This set is ${set.status}`);
   if (position !== set.currentPosition) {
     throw new DrillError('out_of_order', 409, 'Items are served in order', { position: set.currentPosition });
@@ -230,17 +236,15 @@ export async function fetchItem(studentId: string, setId: string, position: numb
   if (!servedAt) {
     const now = new Date();
     const [updated] = await db.update(drillSets).set({ currentServedAt: now })
-      .where(and(eq(drillSets.id, set.id), eq(drillSets.currentPosition, position)))
+      .where(and(eq(drillSets.id, set.id), eq(drillSets.currentPosition, position), isNull(drillSets.currentServedAt)))
       .returning({ servedAt: drillSets.currentServedAt });
     servedAt = updated?.servedAt ?? now;
-    const ref = planOf(set)[position];
-    await logDrillEvent(studentId, 'drill_item_served', { set_id: set.id, position, item_ref: ref });
+    if (updated) void logDrillEvent(studentId, 'drill_item_served', { set_id: set.id, position, item_ref: planOf(set)[position] });
   }
 
   const drill = getDrill(set.drillId);
   const item = await resolveItem(planOf(set)[position], set.tier as Tier);
-  const settings = await settingsFor(studentId);
-  const limit = timeLimitMs(drill, set.tier as Tier, settings.timeMultiplier);
+  const limit = timeLimitMs(drill, set.tier as Tier, row.timeMultiplier ?? 1);
   const pending = set.pendingStep as PendingStep | null;
   return {
     position, size: set.size,
@@ -320,86 +324,119 @@ const resultOf = (row: typeof drillAttempts.$inferSelect): ItemResult => ({
   timed_out: row.timedOut,
 });
 
-export async function submitAttempt(studentId: string, setId: string, body: z.infer<typeof SubmitSchema>):
+// One read, one write (PRD: auto-checked feedback < 300 ms p95). The read
+// fetches the set, the student's time multiplier and any earlier attempt with
+// this idempotency key in a single query. The write is a single statement:
+// it advances the set only if it is still on this item, and inserts the
+// attempt only if that update happened, so two racing submits can't both
+// land. If the write loses a race, re-reading returns the original result
+// (same key) or an out-of-order error (different key).
+const textArray = (values: string[]) =>
+  values.length ? sql`ARRAY[${sql.join(values.map(v => sql`${v}`), sql`, `)}]::text[]` : sql`'{}'::text[]`;
+
+export async function submitAttempt(studentId: string, setId: string, body: z.infer<typeof SubmitSchema>, retried = false):
   Promise<ItemFeedback | { done: false; step: StepFeedback; next_step: number }> {
-  const outcome = await db.transaction(async tx => {
-    const [set] = await tx.select().from(drillSets)
-      .where(and(eq(drillSets.id, setId), eq(drillSets.studentId, studentId))).for('update');
-    if (!set) throw new DrillError('not_found', 404, 'Set not found');
+  if (!z.uuid().safeParse(setId).success) throw new DrillError('not_found', 404, 'Set not found');
+  const [row] = await db.select({ set: drillSets, timeMultiplier: studentDrillSettings.timeMultiplier, prior: drillAttempts })
+    .from(drillSets)
+    .leftJoin(studentDrillSettings, eq(studentDrillSettings.studentId, drillSets.studentId))
+    .leftJoin(drillAttempts, and(eq(drillAttempts.setId, drillSets.id), eq(drillAttempts.idempotencyKey, body.idempotency_key)))
+    .where(and(eq(drillSets.id, setId), eq(drillSets.studentId, studentId)));
+  if (!row) throw new DrillError('not_found', 404, 'Set not found');
+  const { set, prior } = row;
 
-    // A repeated key returns the original result.
-    const [prior] = await tx.select().from(drillAttempts)
-      .where(and(eq(drillAttempts.setId, set.id), eq(drillAttempts.idempotencyKey, body.idempotency_key)));
-    if (prior) {
-      const priorItem = await resolveItem(planOf(set)[prior.position], set.tier as Tier);
-      return { kind: 'final' as const, feedback: itemFeedback(priorItem, resultOf(prior)), event: null };
+  // A repeated key returns the original result.
+  if (prior) return itemFeedback(await resolveItem(planOf(set)[prior.position], set.tier as Tier), resultOf(prior));
+
+  if (set.status !== 'in_progress') throw new DrillError('set_closed', 409, `This set is ${set.status}`);
+  if (body.position !== set.currentPosition) throw new DrillError('out_of_order', 409, 'Answer the current item', { position: set.currentPosition });
+  if (!set.currentServedAt) throw new DrillError('not_served', 409, 'Fetch the item first');
+  const position = set.currentPosition;
+  const servedAt = set.currentServedAt;
+  const item = await resolveItem(planOf(set)[position], set.tier as Tier);
+
+  const pending = (set.pendingStep as PendingStep | null) ?? { steps: [], keys: [] };
+  const steps = itemSteps(item);
+  if (pending.keys.includes(body.idempotency_key)) {
+    const i = pending.keys.indexOf(body.idempotency_key);
+    return { done: false, step: stepFeedback(item, i, pending.steps[i]), next_step: pending.steps.length };
+  }
+
+  const drill = getDrill(set.drillId);
+  const limit = timeLimitMs(drill, set.tier as Tier, row.timeMultiplier ?? 1);
+  const elapsed = Date.now() - servedAt.getTime();
+  // Past the limit plus the network grace, the answer doesn't count.
+  const late = elapsed > limit + rules.timing.grace_ms;
+  const timedOut = body.timed_out || elapsed > limit;
+  const retry = () => {
+    if (retried) throw new DrillError('conflict', 409, 'This item changed; reload it', { position });
+    return submitAttempt(studentId, setId, body, true);
+  };
+
+  let result: ItemResult;
+  let done: StepResult[] = pending.steps;
+  if (body.skip) {
+    result = scoreItem(item, { skipped: true, timedOut, steps: [] });
+  } else {
+    const index = pending.steps.length;
+    if (body.step !== index) throw new DrillError('wrong_step', 409, `Submit step ${index}`, { step: index });
+    const response: StepResponse = late || !body.response ? { type: 'empty' } : body.response;
+    try {
+      done = [...pending.steps, scoreStep(item, index, response, timedOut)];
+    } catch (e) {
+      if (e instanceof ScoringError) throw new DrillError(e.code, 422, e.message);
+      throw e;
     }
-
-    if (set.status !== 'in_progress') throw new DrillError('set_closed', 409, `This set is ${set.status}`);
-    if (body.position !== set.currentPosition) throw new DrillError('out_of_order', 409, 'Answer the current item', { position: set.currentPosition });
-    if (!set.currentServedAt) throw new DrillError('not_served', 409, 'Fetch the item first');
-    const item = await resolveItem(planOf(set)[set.currentPosition], set.tier as Tier);
-
-    const pending = (set.pendingStep as PendingStep | null) ?? { steps: [], keys: [] };
-    const steps = itemSteps(item);
-    if (pending.keys.includes(body.idempotency_key)) {
-      const i = pending.keys.indexOf(body.idempotency_key);
-      return { kind: 'step' as const, step: stepFeedback(item, i, pending.steps[i]), next: pending.steps.length };
+    if (done.length < steps.length && !timedOut) {
+      // Save the finished step, unless another request changed it first.
+      const saved = await db.update(drillSets)
+        .set({ pendingStep: { steps: done, keys: [...pending.keys, body.idempotency_key] } })
+        .where(and(eq(drillSets.id, set.id), eq(drillSets.currentPosition, position),
+          set.pendingStep === null ? isNull(drillSets.pendingStep) : sql`${drillSets.pendingStep} = ${JSON.stringify(set.pendingStep)}::jsonb`))
+        .returning({ id: drillSets.id });
+      if (saved.length === 0) return retry();
+      return { done: false, step: stepFeedback(item, index, done[index]), next_step: done.length };
     }
+    // Time ran out mid-item: the remaining steps score 0 as timeouts.
+    for (let i = done.length; i < steps.length; i++) done.push(scoreStep(item, i, { type: 'empty' }, true));
+    result = scoreItem(item, { skipped: false, timedOut, steps: done });
+  }
 
-    const drill = getDrill(set.drillId);
-    const settings = await settingsFor(studentId);
-    const limit = timeLimitMs(drill, set.tier as Tier, settings.timeMultiplier);
-    const elapsed = Date.now() - set.currentServedAt.getTime();
-    // Past the limit plus the network grace, the answer doesn't count.
-    const late = elapsed > limit + rules.timing.grace_ms;
-    const timedOut = body.timed_out || elapsed > limit;
+  const ref = planOf(set)[position];
+  const [itemId, itemVersion, templateId, templateVersion, seed] = ref.kind === 'authored'
+    ? [ref.item_id, ref.version, null, null, null]
+    : [null, null, ref.template_id, ref.template_version, ref.seed];
+  let inserted: { id: string }[];
+  try {
+    inserted = (await db.execute<{ id: string }>(sql`
+      with advanced as (
+        update ${drillSets}
+        set current_position = current_position + 1, current_served_at = null, pending_step = null
+        where id = ${set.id} and current_position = ${position} and status = 'in_progress'
+        returning id
+      )
+      insert into ${drillAttempts} (
+        set_id, student_id, position, idempotency_key, item_id, item_version, template_id, template_version, seed,
+        response, served_at, time_ms, time_limit_ms, timed_out, skipped, score, step_scores, mistake_tags, grading_status
+      )
+      select advanced.id, ${studentId}, ${position}, ${body.idempotency_key}, ${itemId}, ${itemVersion}, ${templateId}, ${templateVersion}, ${seed},
+        ${JSON.stringify({ steps: done.map(s => s.response), skip: body.skip })}::jsonb, ${servedAt.toISOString()}::timestamptz,
+        ${elapsed}, ${limit}, ${result.timed_out}, ${result.skipped}, ${result.score},
+        ${JSON.stringify(result.steps)}::jsonb, ${textArray(result.mistake_tags)}, 'not_needed'
+      from advanced
+      returning id
+    `)) as unknown as { id: string }[];
+  } catch (e) {
+    // The same key landed in a concurrent request: replay its result.
+    if ((e as { cause?: { code?: string } }).cause?.code === '23505' || (e as { code?: string }).code === '23505') return retry();
+    throw e;
+  }
+  if (inserted.length === 0) return retry();
 
-    let result: ItemResult;
-    let done: StepResult[] = pending.steps;
-    if (body.skip) {
-      result = scoreItem(item, { skipped: true, timedOut, steps: [] });
-    } else {
-      const index = pending.steps.length;
-      if (body.step !== index) throw new DrillError('wrong_step', 409, `Submit step ${index}`, { step: index });
-      const response: StepResponse = late || !body.response ? { type: 'empty' } : body.response;
-      try {
-        done = [...pending.steps, scoreStep(item, index, response, timedOut)];
-      } catch (e) {
-        if (e instanceof ScoringError) throw new DrillError(e.code, 422, e.message);
-        throw e;
-      }
-      if (done.length < steps.length && !timedOut) {
-        await tx.update(drillSets).set({ pendingStep: { steps: done, keys: [...pending.keys, body.idempotency_key] } }).where(eq(drillSets.id, set.id));
-        return { kind: 'step' as const, step: stepFeedback(item, index, done[index]), next: done.length };
-      }
-      // Time ran out mid-item: the remaining steps score 0 as timeouts.
-      for (let i = done.length; i < steps.length; i++) done.push(scoreStep(item, i, { type: 'empty' }, true));
-      result = scoreItem(item, { skipped: false, timedOut, steps: done });
-    }
-
-    const ref = planOf(set)[set.currentPosition];
-    const [attempt] = await tx.insert(drillAttempts).values({
-      setId: set.id, studentId, position: set.currentPosition, idempotencyKey: body.idempotency_key,
-      ...(ref.kind === 'authored'
-        ? { itemId: ref.item_id, itemVersion: ref.version }
-        : { templateId: ref.template_id, templateVersion: ref.template_version, seed: ref.seed }),
-      response: { steps: done.map(s => s.response), skip: body.skip },
-      servedAt: set.currentServedAt, timeMs: elapsed, timeLimitMs: limit,
-      timedOut: result.timed_out, skipped: result.skipped, score: result.score,
-      stepScores: result.steps, mistakeTags: result.mistake_tags, gradingStatus: 'not_needed',
-    }).returning({ id: drillAttempts.id });
-    await tx.update(drillSets).set({ currentPosition: set.currentPosition + 1, currentServedAt: null, pendingStep: null })
-      .where(eq(drillSets.id, set.id));
-    return {
-      kind: 'final' as const, feedback: itemFeedback(item, result),
-      event: { attempt_id: attempt.id, score: result.score, time_ms: elapsed, timed_out: result.timed_out, skipped: result.skipped, mistake_tags: result.mistake_tags },
-    };
+  void logDrillEvent(studentId, 'drill_attempt_submitted', {
+    attempt_id: inserted[0].id, score: result.score, time_ms: elapsed, timed_out: result.timed_out, skipped: result.skipped, mistake_tags: result.mistake_tags,
   });
-
-  if (outcome.kind === 'step') return { done: false, step: outcome.step, next_step: outcome.next };
-  if (outcome.event) await logDrillEvent(studentId, 'drill_attempt_submitted', outcome.event);
-  return outcome.feedback;
+  return itemFeedback(item, result);
 }
 
 // ------------------------------------------------------------ complete a set

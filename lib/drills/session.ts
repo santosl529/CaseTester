@@ -9,9 +9,11 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 export async function studentOrRedirect(): Promise<string> {
   const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/');
-  const [profile] = await db.select({ userId: studentProfiles.userId }).from(studentProfiles).where(eq(studentProfiles.userId, user.id));
+  // Verified locally, like lib/drills/http.ts.
+  const { data } = await supabase.auth.getClaims();
+  const userId = data?.claims?.sub;
+  if (!userId) redirect('/');
+  const [profile] = await db.select({ userId: studentProfiles.userId }).from(studentProfiles).where(eq(studentProfiles.userId, userId));
   if (!profile) redirect('/');
-  return user.id;
+  return userId;
 }

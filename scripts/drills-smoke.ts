@@ -81,6 +81,24 @@ async function runDrill(drillId: string, skillId: string, level: 1 | 2) {
       await db.update(drillSets).set({ currentServedAt: new Date(Date.now() - 10 * 60_000) }).where(eq(drillSets.id, set_id));
       const res = await submitAttempt(student, set_id, { position: p, idempotency_key: `k-${p}`, step: 0, response: answer(0), skip: false, timed_out: false });
       check(res.done === true && res.timed_out && res.score === 0 && res.mistakes.some(m => m.tag === 'M.timeout'), `${drillId}: late answer not a timeout`);
+    } else if (p === 3 && steps === 1) {
+      // Racing submits: the same key twice gives one result; a different key
+      // at the same moment must not also land.
+      const body = (key: string) => ({ position: p, idempotency_key: key, step: 0, response: answer(0), skip: false, timed_out: false });
+      const [a, b, c] = await Promise.allSettled([
+        submitAttempt(student, set_id, body(`race-${p}-a`)),
+        submitAttempt(student, set_id, body(`race-${p}-a`)),
+        submitAttempt(student, set_id, body(`race-${p}-b`)),
+      ]);
+      const ok = [a, b, c].filter(r => r.status === 'fulfilled');
+      const keyA = [a, b].filter(r => r.status === 'fulfilled') as PromiseFulfilledResult<unknown>[];
+      check(keyA.length === 2 && JSON.stringify(keyA[0].value) === JSON.stringify(keyA[1].value), `${drillId}: same-key race gave different results`);
+      check(ok.length <= 3, `${drillId}: race`);
+      const rows = await db.select({ id: drillAttempts.id }).from(drillAttempts).where(eq(drillAttempts.setId, set_id));
+      check(rows.length === p + 1, `${drillId}: racing submits stored ${rows.length - p} attempts for one item`);
+      if (c.status === 'fulfilled' && a.status === 'fulfilled') failures.push(`${drillId}: both keys landed on one item`);
+      const won = keyA[0]?.value as { done?: boolean; score?: number } | undefined;
+      expected += c.status === 'fulfilled' ? (c.value as { score: number }).score : won?.score ?? 0;
     } else {
       // A wrong first step where there is one; otherwise right answers.
       let last;

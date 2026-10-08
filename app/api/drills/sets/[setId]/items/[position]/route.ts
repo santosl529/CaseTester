@@ -7,6 +7,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ setId: 
     const { setId, position } = await params;
     const n = Number(position);
     if (!Number.isInteger(n) || n < 0) throw new DrillError('bad_request', 400, 'Bad position');
-    return fetchItem(await requireStudent(), setId, n);
+    return fetchItem(await requireStudent({ profile: false }), setId, n);
   });
 }

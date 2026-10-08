@@ -3,6 +3,7 @@
 // carries the student, their org, the taxonomy version and the app version.
 // Logging never fails a student's request.
 import 'server-only';
+import { after } from 'next/server';
 import { eq } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { studentProfiles } from '@/db/schema';
@@ -15,7 +16,20 @@ export type DrillEvent =
 
 const APP_VERSION = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'dev';
 
-export async function logDrillEvent(studentId: string, type: DrillEvent, props: Record<string, unknown>): Promise<void> {
+// Inside a request, the event is written after the response is sent (Next's
+// after()), so logging adds no latency for the student. Outside one (scripts),
+// it is written straight away.
+export function logDrillEvent(studentId: string, type: DrillEvent, props: Record<string, unknown>): Promise<void> {
+  const write = () => writeDrillEvent(studentId, type, props);
+  try {
+    after(write);
+    return Promise.resolve();
+  } catch {
+    return write();
+  }
+}
+
+async function writeDrillEvent(studentId: string, type: DrillEvent, props: Record<string, unknown>): Promise<void> {
   try {
     const [profile] = await db.select({ orgId: studentProfiles.orgId }).from(studentProfiles).where(eq(studentProfiles.userId, studentId));
     await logEvent(type, {
