@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { db } from '@/db/client';
 import { sessions, sessionTurns } from '@/db/schema';
 import { eq, asc, and } from 'drizzle-orm';
@@ -37,7 +38,12 @@ export default async function CasePage({ params }: { params: Promise<{ sessionId
   return (
     <main className="h-screen flex flex-col max-w-2xl mx-auto">
       <header className="border-b px-4 py-3">
-        <div className="text-sm font-medium text-neutral-700">Case Interview — {session.phase} phase</div>
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-medium text-neutral-700">Case Interview — {session.phase} phase</div>
+          {process.env.VOICE_DEV === '1' && session.status === 'active' && (
+            <Link href={`/case/${sessionId}/voice`} className="text-xs text-neutral-500 underline">Voice (dev)</Link>
+          )}
+        </div>
         {casePrompt && (
           <details className="mt-1">
             <summary className="text-xs text-neutral-500 cursor-pointer select-none">Case prompt</summary>
