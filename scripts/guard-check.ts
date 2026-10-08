@@ -10,6 +10,9 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { explicitRequestCues } from '@/lib/orchestrator/request-signal';
+import { probeIntents, isGatedItem } from '@/lib/orchestrator/pressure-test';
+import { createLedger } from '@/lib/orchestrator/data-ledger';
+import { getCaseById } from '@/lib/cases/loader';
 import { usefulMs, parseTiming } from './useful-latency';
 
 type Ev = { category: string; subtype: string; turnIndex: number | null; phase: string; payloadJsonb: Record<string, unknown> };
@@ -33,30 +36,36 @@ const lat = run.analytics.filter(a => a.eventType === 'turn_latency').sort((a, b
 const moves = run.session.flagsJsonb.moves ?? {};
 const declaredCount = (raw?: string) => { try { return raw ? (JSON.parse(raw).requests ?? []).length : null; } catch { return null; } };
 
-let ptAskedAt: number | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ledger = createLedger(getCaseById('prof-001').dataLedger as any);
 const rows: string[] = [];
 const releasesBeforePT: string[] = [];
-const ptRepeats: number[] = [];
-const guardTurns: { t: number; regenerated: boolean; secondDeclared: number | null; useful: number | null }[] = [];
-const normalUseful: number[] = [];
+const probesHeard: number[] = [];
+const fallbacks: string[] = [];
+const lat3: Record<'normal' | 'regenerated' | 'fallback', number[]> = { normal: [], regenerated: [], fallback: [] };
+const guardTurns: { t: number; regenerated: boolean; secondDeclared: number | null }[] = [];
 
 lat.forEach((a, k) => {
   const t = a.payloadJsonb.turnIndex;
   const g = groups[k];
   const cand = run.turns.find(x => x.turnIndex === t - 1 && x.role === 'candidate')?.text ?? '';
+  const heard = run.turns.find(x => x.turnIndex === t && x.role === 'interviewer')?.text ?? '';
   const cues = explicitRequestCues(cand);
   const ev = run.events.filter(e => e.turnIndex === t - 1);
   const dd = ev.find(e => e.subtype === 'data_decisions')?.payloadJsonb.detail as { releases?: string[]; defers?: string[]; refusals?: string[]; offers?: string[] } | undefined;
   const guard = ev.find(e => e.subtype === 'request_guard');
   const regenerated = guard?.payloadJsonb.decision === 'act';
-  const ptDone = ptAskedAt !== null && ptAskedAt < t;
+  const ptEv = ev.find(e => e.subtype === 'pressure_test')?.payloadJsonb.detail as { from?: string; to?: string; action?: string | null } | undefined;
+  const from = ptEv?.from ?? '-', to = ptEv?.to ?? '-';
   const marks = g?.timing ? parseTiming(g.timing) : {};
   const useful = g?.timing ? usefulMs(marks) : null;
-  if (!ptDone && (dd?.releases?.length ?? 0) > 0) releasesBeforePT.push(`t${t}: ${dd!.releases!.join(', ')}`);
-  if (moves[String(t)] === 'pressure_test') { if (ptAskedAt !== null) ptRepeats.push(t); else ptAskedAt = t; }
-  if (guard) guardTurns.push({ t, regenerated, secondDeclared: regenerated ? declaredCount(g?.raws.at(-1)) : null, useful });
-  else if (g?.raws.length && useful != null) normalUseful.push(useful);
-  rows.push(`t${String(t).padEnd(3)} ${String(moves[String(t)] ?? 'code').padEnd(14)} PT ${ptDone ? 'done' : ptAskedAt === t ? 'ASKED' : 'pending'}` +
+  const gatedReleased = (dd?.releases ?? []).filter(id => isGatedItem(ledger, id));
+  if (to !== 'satisfied' && gatedReleased.length) releasesBeforePT.push(`t${t}: ${gatedReleased.join(', ')}`);
+  if (probeIntents(heard).length > 0) probesHeard.push(t);
+  if (ptEv?.action) fallbacks.push(`t${t} ${ptEv.action}`);
+  if (guard) guardTurns.push({ t, regenerated, secondDeclared: regenerated ? declaredCount(g?.raws.at(-1)) : null });
+  if (useful != null && g?.raws.length) lat3[ptEv?.action ? 'fallback' : regenerated ? 'regenerated' : 'normal'].push(useful);
+  rows.push(`t${String(t).padEnd(3)} ${String(moves[String(t)] ?? 'code').padEnd(14)} PT ${from}→${to}${ptEv?.action ? ` [${ptEv.action}]` : ''}` +
     ` · cues ${cues.length ? cues.join('+') : '-'}${guard ? ` · guardB ${regenerated ? 'REGEN' : 'ok'}` : ''}` +
     ` · declared ${g?.raws.map(declaredCount).join('→') ?? '-'}` +
     ` · rel ${dd?.releases?.length ?? 0} def ${dd?.defers?.length ?? 0} ref ${dd?.refusals?.length ?? 0} off ${dd?.offers?.length ?? 0}` +
@@ -73,9 +82,9 @@ const classified = run.events.filter(e => e.subtype === 'classified').map(e => `
 const pct = (v: number[], p: number) => { const s = [...v].sort((a, b) => a - b); return s.length ? s[Math.min(s.length - 1, Math.floor(p * s.length))] : '-'; };
 console.log(`# ${path.basename(path.dirname(dir))}/${path.basename(dir)}`);
 console.log(rows.join('\n'));
-console.log(`\nPressure test first asked at t${ptAskedAt ?? '-'} · repeated at ${ptRepeats.length ? ptRepeats.map(t => `t${t}`).join(', ') : 'none'}`);
-console.log(`Releases before the pressure test was answered: ${releasesBeforePT.length ? releasesBeforePT.join(' | ') : 'none'}`);
+console.log(`\nProbes heard by the candidate: ${probesHeard.map(t => `t${t}`).join(', ') || 'none'} · fallbacks: ${fallbacks.join(', ') || 'none'}`);
+console.log(`Gated data released before the pressure test was satisfied: ${releasesBeforePT.length ? releasesBeforePT.join(' | ') : 'none'}`);
 console.log(`Deferred and never released: ${neverFulfilled.length ? neverFulfilled.join(', ') : 'none'}`);
 console.log(`Guard B: fired on ${guardTurns.length} turns, regenerated ${guardTurns.filter(g => g.regenerated).length} (second attempt declared: ${guardTurns.filter(g => g.regenerated).map(g => g.secondDeclared).join(', ') || '-'})`);
-console.log(`First useful content — normal turns median ${pct(normalUseful, 0.5)} p90 ${pct(normalUseful, 0.9)} (n ${normalUseful.length}) · guard-armed, no regen: ${guardTurns.filter(g => !g.regenerated).map(g => g.useful).join(', ') || '-'} · regenerated: ${guardTurns.filter(g => g.regenerated).map(g => g.useful).join(', ') || '-'}`);
+console.log(`First useful content (ms) — normal median ${pct(lat3.normal, 0.5)} p90 ${pct(lat3.normal, 0.9)} (n ${lat3.normal.length}) · regenerated ${lat3.regenerated.join(', ') || '-'} · fallback ${lat3.fallback.join(', ') || '-'}`);
 console.log(`Background classifier request counts: ${classified.join(' ')}`);

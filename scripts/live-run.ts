@@ -33,7 +33,8 @@ import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { and, desc, eq } from 'drizzle-orm';
 import { db } from '@/db/client';
-import { sessions, sessionTurns, sessionEvents, scores, analyticsEvents, revealedData } from '@/db/schema';
+import { sessions, sessionTurns, sessionEvents, scores, analyticsEvents, revealedData, exhibitsShown } from '@/db/schema';
+import { probeIntents, judgeProbeAnswer, EARLY_PHASES, INITIAL_PRESSURE_TEST, type PressureTestState } from '@/lib/orchestrator/pressure-test';
 import { summarizeCheckEvents } from '@/lib/orchestrator/check-log';
 import { getCaseById } from '@/lib/cases/loader';
 import { startSession } from '@/lib/orchestrator/start-session';
@@ -154,6 +155,60 @@ const scriptedLines: string[] = SCRIPT_DIR ? (() => {
 })() : [];
 let scriptedAt = 0;
 
+// --seed=<run dir> --seed-through=<interviewer turn index>: start the fresh
+// session from a saved run's state at that turn — its turns (timestamps
+// shifted to now), phase, case clock, recorded moves, revealed data, exhibits
+// shown and data-request events, with the pressure-test state rebuilt by
+// today's rules from those turns — then script the candidate's later lines.
+// Reproduces a known failure point through the real runner.
+async function seedSession(sessionId: string): Promise<void> {
+  const dir = flag('seed')!;
+  const through = Number(flag('seed-through'));
+  type Src = {
+    session: { startedAt: string; flagsJsonb: { moves?: Record<string, string> } };
+    turns: { turnIndex: number; role: string; text: string; timestampMs: number }[];
+    events: { category: string; subtype: string; turnIndex: number | null; phase: string; payloadJsonb: Record<string, unknown> }[];
+    revealed: { ledgerItemId: string; revealedAtMs: number }[];
+    analytics: { eventType: string; createdAt: string; payloadJsonb: Record<string, unknown> }[];
+  };
+  const src = JSON.parse(readFileSync(path.join(dir, readdirSync(dir).find(f => f.endsWith('.json'))!), 'utf8')) as Src;
+  const cut = src.turns.find(t => t.turnIndex === through);
+  if (!cut || cut.role !== 'interviewer') throw new Error(`--seed-through must name an interviewer turn (got ${through})`);
+  const shift = Date.now() - cut.timestampMs;
+  const phaseAt = (t: number) => src.events.find(e => e.category === 'check' && e.turnIndex === t)?.phase as Phase | undefined;
+  const turns = src.turns.filter(t => t.turnIndex > 0 && t.turnIndex <= through);
+  if (turns.length) await db.insert(sessionTurns).values(turns.map(t => ({ sessionId, turnIndex: t.turnIndex, role: t.role, text: t.text, timestampMs: t.timestampMs + shift })));
+  const revealed = src.revealed.filter(r => r.revealedAtMs <= cut.timestampMs);
+  if (revealed.length) await db.insert(revealedData).values(revealed.map(r => ({ sessionId, ledgerItemId: r.ledgerItemId, revealedAtMs: r.revealedAtMs + shift })));
+  const shown = src.analytics.filter(a => a.eventType === 'exhibit_shown' && new Date(a.createdAt).getTime() <= cut.timestampMs);
+  if (shown.length) await db.insert(exhibitsShown).values(shown.map(a => ({ sessionId, exhibitId: a.payloadJsonb.exhibitId as string, shownAtMs: new Date(a.createdAt).getTime() + shift })));
+  const events = src.events.filter(e => e.category === 'data_request' && (e.payloadJsonb.interviewerTurnIndex as number) <= through);
+  if (events.length) await db.insert(sessionEvents).values(events.map(e => ({ sessionId, category: e.category, subtype: e.subtype, turnIndex: e.turnIndex, phase: e.phase as Phase, payloadJsonb: e.payloadJsonb })));
+
+  // Pressure-test state by today's rules: the first early-stage probe in a
+  // seeded interviewer turn, judged on any seeded replies after it.
+  const pt: PressureTestState = { ...INITIAL_PRESSURE_TEST };
+  for (const t of turns.filter(t => t.role === 'interviewer')) {
+    const phase = phaseAt(t.turnIndex - 1) ?? 'STRUCTURE';
+    if (pt.state === 'not_asked' && EARLY_PHASES.includes(phase) && probeIntents(t.text).length > 0) {
+      Object.assign(pt, { state: 'awaiting', askedAt: t.turnIndex, probe: t.text, intents: probeIntents(t.text) });
+    }
+  }
+  const replies = turns.filter(t => t.role === 'candidate' && t.turnIndex > (pt.askedAt ?? Infinity)).map(t => t.text);
+  if (pt.state === 'awaiting' && replies.length) {
+    const v = await judgeProbeAnswer({ probe: pt.probe!, replies });
+    if (v?.answered) Object.assign(pt, { state: 'satisfied', satisfiedAt: turns.filter(t => t.role === 'candidate').at(-1)!.turnIndex });
+  }
+  const moves = Object.fromEntries(Object.entries(src.session.flagsJsonb.moves ?? {}).filter(([k]) => Number(k) <= through));
+  const startedAt = new Date(Date.now() - (cut.timestampMs - new Date(src.session.startedAt).getTime()));
+  await db.update(sessions).set({
+    phase: phaseAt(through + 1) ?? phaseAt(through - 1) ?? 'STRUCTURE', startedAt, phaseStartedAt: startedAt,
+    flagsJsonb: { moves, pressureTest: pt, lastQuestion: cut.text },
+  }).where(eq(sessions.id, sessionId));
+  scriptedAt = src.turns.filter(t => t.role === 'candidate' && t.turnIndex <= through).length;
+  console.log(`[live-run] seeded from ${dir} through t${through}: ${turns.length} turns, ${revealed.length} revealed, ${events.length} request events, pressure test ${pt.state}`);
+}
+
 async function candidateReply(client: Anthropic, transcript: Line[]): Promise<string> {
   if (SCRIPT_DIR) return scriptedLines[scriptedAt++] ?? '';
   const response = await client.beta.messages.create({
@@ -203,6 +258,7 @@ async function main() {
 
   const client = new Anthropic();
   const { sessionId, openingText } = await startSession(userId, caseId);
+  if (flag('seed')) await seedSession(sessionId);
   console.log(`[live-run] session ${sessionId} · ${caseData.title}${PERSONA ? ` · persona ${PERSONA.id} ${PERSONA.name}` : ''} · pace ${PACE}`);
   console.log(`\n[interviewer · INTRO] ${openingText}`);
 
