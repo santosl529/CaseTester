@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx db/migrate.ts"
+    "db:migrate": "tsx db/migrate.ts",
+    "voice:agent": "INTERVIEWER_PROVIDER=anthropic-haiku55-none-medium LLM_BUDGET_USD=${LLM_BUDGET_USD:-1.00} tsx --env-file=${VOICE_ENV_FILE:-.env.local} scripts/voice-agent.ts dev"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
@@ -24,6 +25,7 @@
     "@livekit/agents-plugin-livekit": "^1.9.1",
     "@livekit/agents-plugin-silero": "^1.9.1",
     "@livekit/components-react": "^2.9.24",
+    "@livekit/rtc-node": "^1.1.0",
     "@react-pdf/renderer": "^4.5.1",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",

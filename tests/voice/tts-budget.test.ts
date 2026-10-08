@@ -19,3 +19,20 @@ it('keeps a monthly character count on disk and refuses past the cap and the res
 it('names one ledger per calendar month', () => {
   expect(monthlyLedgerFile(new Date('2026-10-08T12:00:00Z'))).toBe('.voice-cache/tts-chars-2026-10.json');
 });
+
+import { ttsRunCap, RunCharCap } from '@/lib/voice/tts-budget';
+
+it('requires a per-run character cap for real TTS, not for the fake one', () => {
+  expect(ttsRunCap({ VOICE_TTS: 'fake' })).toBeNull();
+  expect(() => ttsRunCap({})).toThrow(/VOICE_TTS_RUN_CAP/);
+  expect(() => ttsRunCap({ VOICE_TTS_RUN_CAP: '0' })).toThrow(/VOICE_TTS_RUN_CAP/);
+  expect(ttsRunCap({ VOICE_TTS_RUN_CAP: '15000' })).toBe(15000);
+});
+
+it('a run cap refuses synthesis past it', () => {
+  const cap = new RunCharCap(100);
+  expect(cap.take(60)).toBe(true);
+  expect(cap.take(50)).toBe(false);
+  expect(cap.take(40)).toBe(true);
+  expect(cap.used).toBe(100);
+});

@@ -25,3 +25,22 @@ export class TtsCharBudget {
 }
 
 export const monthlyLedgerFile = (d = new Date()) => `.voice-cache/tts-chars-${d.toISOString().slice(0, 7)}.json`;
+
+// Each paid run's own character cap (spec §9): required whenever the TTS is
+// real — the plan upgrade is not a test budget. null for the fake TTS.
+export function ttsRunCap(env: Record<string, string | undefined>): number | null {
+  if (env.VOICE_TTS === 'fake') return null;
+  const cap = Number(env.VOICE_TTS_RUN_CAP);
+  if (!(cap > 0)) throw new Error('real TTS spends characters: set VOICE_TTS_RUN_CAP (characters for this run), or VOICE_TTS=fake');
+  return cap;
+}
+
+export class RunCharCap {
+  used = 0;
+  constructor(private cap: number) {}
+  take(chars: number): boolean {
+    if (this.used + chars > this.cap) return false;
+    this.used += chars;
+    return true;
+  }
+}
