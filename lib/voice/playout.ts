@@ -158,11 +158,14 @@ export class Playout {
     return tokenTimeline(s.text, s.words, s.audioMs, s.finished && !s.failed);
   }
 
+  // At a cut, or (cutAt null) now: a segment that has finished playing
+  // uncut counts as played — its last words are on their way to the ear.
   private outcome(s: Seg, cutAt: number | null): Outcome {
-    if (s.startAt === null || (cutAt !== null && s.startAt >= cutAt)) return { playback: 'unplayed', heardChars: 0 };
-    const limit = cutAt === null ? Infinity : cutAt - HEARD_MARGIN_MS;
+    const at = cutAt ?? this.clock.now();
+    if (s.startAt === null || s.startAt >= at) return { playback: 'unplayed', heardChars: 0 };
+    const limit = at - HEARD_MARGIN_MS;
     const total = s.text.trim() ? s.text.length : 0;
-    if (!s.failed && s.endAt !== null && s.endAt <= limit) return { playback: 'played', heardChars: total };
+    if (!s.failed && s.endAt !== null && s.endAt <= (cutAt === null ? at : limit)) return { playback: 'played', heardChars: total };
     const heardMs = Math.max(0, Math.min(limit, s.endAt ?? limit) - s.startAt);
     const heardChars = heardCharsAt(this.timeline(s), heardMs);
     return { playback: total > 0 && heardChars >= s.text.trimEnd().length ? 'played' : 'partial', heardChars };

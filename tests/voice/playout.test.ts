@@ -2,29 +2,11 @@
 // per segment, the heard cursor (play end + HEARD_MARGIN_MS), heardChars, and
 // captions that never run ahead of what counts as heard.
 import { describe, it, expect } from 'vitest';
-import { Playout, HEARD_MARGIN_MS, tokenTimeline, heardCharsAt, type Clock, type FrameSink } from '@/lib/voice/playout';
+import { Playout, HEARD_MARGIN_MS, tokenTimeline, heardCharsAt } from '@/lib/voice/playout';
+import { fakeClock, sink } from './helpers/playout-fakes';
 
 const RATE = 24000;
 const pcmMs = (ms: number) => new Uint8Array((RATE * ms / 1000) * 2);
-
-export function fakeClock(start = 1000) {
-  let t = start;
-  const timers: { at: number; fn: () => void; dead: boolean }[] = [];
-  const clock: Clock = { now: () => t, at: (at, fn) => { const x = { at, fn, dead: false }; timers.push(x); return () => { x.dead = true; }; } };
-  const advance = async (ms: number) => {
-    const end = t + ms;
-    for (;;) {
-      await new Promise(r => setTimeout(r, 0));
-      const due = timers.filter(x => !x.dead && x.at <= end).sort((a, b) => a.at - b.at)[0];
-      if (!due) break;
-      t = Math.max(t, due.at); due.dead = true; due.fn();
-    }
-    t = end;
-    await new Promise(r => setTimeout(r, 0));
-  };
-  return { clock, advance };
-}
-export const sink = (): FrameSink & { cleared: number } => ({ cleared: 0, async capture() {}, clear() { this.cleared++; } });
 
 describe('tokenTimeline / heardCharsAt', () => {
   const text = 'There are 120 stores.';
@@ -145,6 +127,17 @@ describe('Playout', () => {
     await advance(500);
     expect(p.classify('a')).toEqual({ playback: 'unplayed', heardChars: 0 });
     expect(p.classify('b').playback).toBe('partial');
+  });
+
+  it('classify judges a segment still playing at the current time, not as finished', async () => {
+    const { clock, advance } = fakeClock();
+    const p = new Playout(sink(), clock, RATE);
+    p.open('a', { text: 'There are 120 stores.', interruptible: true }); p.push('a', pcmMs(1000)); p.finish('a');
+    p.words('a', [{ word: 'There', startMs: 0, endMs: 200 }, { word: 'are', startMs: 200, endMs: 350 }, { word: '120', startMs: 350, endMs: 800 }, { word: 'stores.', startMs: 800, endMs: 1000 }]);
+    await advance(700);                              // heard cursor 550ms in
+    expect(p.classify('a')).toEqual({ playback: 'partial', heardChars: 9 });
+    await advance(400);                              // played to the end
+    expect(p.classify('a')).toEqual({ playback: 'played', heardChars: 21 });
   });
 
   it('whenIdle resolves at once on a cut', async () => {
