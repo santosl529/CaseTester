@@ -148,6 +148,16 @@ function Plot({ spec }: { spec: ChartSpec }) {
     });
   }
 
+  // Legend entries sit side by side, each as wide as its label (about 6.5px a
+  // character at 12px), so long dual-axis labels don't run into each other.
+  let legendX = margin.left;
+  const legendEntries = spec.series.map(s => {
+    const label = `${s.name}${dual ? ` (${s.axis} axis)` : ''}`;
+    const entry = { name: s.name, label, x: legendX };
+    legendX += 18 + label.length * 6.5 + 20;
+    return entry;
+  });
+
   const leftFmt = seriesFormat(spec, 'left');
   const rightFmt = seriesFormat(spec, 'right');
   return (
@@ -202,10 +212,10 @@ function Plot({ spec }: { spec: ChartSpec }) {
       {spec.categories.map((c, i) => (
         <text key={`c${i}`} x={bandX(i) + band / 2} y={bottom + 18} textAnchor="middle" fontSize={12} fill="currentColor">{c}</text>
       ))}
-      {legend && spec.series.map((s, i) => (
-        <g key={`k${i}`} transform={`translate(${margin.left + i * 150} ${HEIGHT - 22})`}>
-          <rect width={12} height={12} y={-10} fill={colorOf(s.name)} />
-          <text x={18} fontSize={12} fill="currentColor">{s.name}{dual ? ` (${s.axis} axis)` : ''}</text>
+      {legend && legendEntries.map(({ name, label, x }, i) => (
+        <g key={`k${i}`} transform={`translate(${x} ${HEIGHT - 22})`}>
+          <rect width={12} height={12} y={-10} fill={colorOf(name)} />
+          <text x={18} fontSize={12} fill="currentColor">{label}</text>
         </g>
       ))}
     </svg>

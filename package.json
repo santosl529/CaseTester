@@ -13,7 +13,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx db/migrate.ts",
     "db:seed-drill-items": "tsx --conditions=react-server --env-file=.env.local scripts/seed-drill-items.ts",
-    "drills:smoke": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke.ts"
+    "drills:smoke": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke.ts",
+    "drills:review": "tsx scripts/drill-review.tsx"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
