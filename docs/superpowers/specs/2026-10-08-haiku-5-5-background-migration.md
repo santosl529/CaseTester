@@ -52,3 +52,9 @@ Built: §2 settings helper and per-role overrides (production requests unchanged
 - Harness lessons: the classifiers fail open/closed, so a refused call reads as a null — the harnesses now fail fast on an unpriced id and stop at the cap; a budget refusal inside fetch is retried twice by the SDK (≈1.3s, no spend).
 
 **Proposed:** migrate the pressure-test judges and distress (two lines in `lib/models.ts`) after a budgeted live smoke run; keep the hint check on 4.5; fix and re-check the data-request classifier; decide on coverage.
+
+## 9. Switch and follow-up (8 Oct, later; `Case Interview Runs/replays/2026-10-08/background-haiku55-2/results.md`; metered $0.126 of a $0.30 cap)
+- **Switched:** pressure-test judges and distress → Haiku 5.5 (`lib/models.ts`, commit a7baeba). Hint check and coverage stay on 4.5 (Lorenzo, 8 Oct).
+- **Data-request classifier with enforced JSON (structured output on 5.5): not switched.** Parsing 0/160 failures and latency p90 1.96s pass; accuracy fails — on 45 hand-read disagreements 4.5 is better on 21, 5.5 on 9: 5.5 records plans as explicit asks, widens asks to extra ledger items and maps asks for data the case lacks onto items it has, which would let code fulfil requests nobody made. 5.5 does catch enumerated request lists 4.5 misses (Nikhil) — relevant to the request-persistence work.
+- **Smoke (Sonnet interviewer):** distress fired on Leah's disclosure and nowhere else; the answer judge held two data-list replies; no no-verdicts; the distress verdict never delayed a turn.
+- **Remaining judge errors (5.5):** one false unlock on a synthetic data list phrased as a gap (2 of 3 passes); one false rejection of a branch-pick-with-reason followed by data asks (3 of 3). Structure check error-free offline; not exercised in the smoke.

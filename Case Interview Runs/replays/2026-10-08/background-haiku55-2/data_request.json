@@ -1,0 +1,3065 @@
+{
+ "role": "data_request",
+ "models": [
+  {
+   "id": "claude-haiku-5-5",
+   "repeats": 2
+  }
+ ],
+ "latencies": {
+  "claude-haiku-5-5": [
+   2220,
+   2255,
+   2243,
+   2249,
+   3001,
+   1115,
+   3544,
+   1332,
+   1399,
+   1432,
+   1198,
+   962,
+   1908,
+   1459,
+   1438,
+   1498,
+   790,
+   933,
+   1232,
+   1340,
+   1327,
+   1379,
+   1079,
+   1370,
+   1099,
+   1480,
+   1298,
+   1368,
+   1554,
+   1451,
+   1422,
+   1499,
+   1638,
+   1352,
+   1418,
+   1213,
+   843,
+   1010,
+   1543,
+   1441,
+   1243,
+   1599,
+   1627,
+   1369,
+   1435,
+   1477,
+   1597,
+   1818,
+   1038,
+   1710,
+   1378,
+   1419,
+   1027,
+   1381,
+   1461,
+   1303,
+   984,
+   928,
+   1391,
+   1413,
+   1272,
+   1022,
+   1358,
+   902,
+   1322,
+   1427,
+   1214,
+   1419,
+   1401,
+   1317,
+   1542,
+   2292,
+   2020,
+   1342,
+   1373,
+   1768,
+   1461,
+   2354,
+   1964,
+   1414,
+   1502,
+   1384,
+   1577,
+   1209,
+   1214,
+   841,
+   1422,
+   1355,
+   1382,
+   1274,
+   1205,
+   1173,
+   1357,
+   1364,
+   1169,
+   1188,
+   1332,
+   1119,
+   1283,
+   1379,
+   1515,
+   1190,
+   1080,
+   1309,
+   795,
+   1337,
+   1392,
+   652,
+   1234,
+   1200,
+   1275,
+   964,
+   1405,
+   715,
+   739,
+   1404,
+   1570,
+   1443,
+   1396,
+   1459,
+   2139,
+   2509,
+   1360,
+   1338,
+   1355,
+   1418,
+   1044,
+   1291,
+   1205,
+   1670,
+   1293,
+   1355,
+   782,
+   757,
+   1372,
+   1301,
+   1192,
+   680,
+   1250,
+   1513,
+   1321,
+   1521,
+   1582,
+   832,
+   807,
+   1325,
+   2469,
+   856,
+   1555,
+   1648,
+   1246,
+   1961,
+   1123,
+   1361,
+   1308,
+   1382,
+   2251,
+   1173,
+   1994,
+   1455
+  ]
+ },
+ "items": [
+  {
+   "id": "batch-12-oct-06/00-default-candidate@t1",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct"
+    ],
+    "responses": [
+     "cogs_pct+labor_pct+overhead_pct:defer"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "cogs_pct",
+       "labor_pct",
+       "overhead_pct"
+      ],
+      "responses": [
+       "cogs_pct+labor_pct+overhead_pct:defer"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "cogs_pct",
+       "labor_pct",
+       "overhead_pct"
+      ],
+      "responses": [
+       "cogs_pct+labor_pct+overhead_pct:defer"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/01-maya-the-freezer@t4",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [
+     "revenue_per_store",
+     "revenue_total",
+     "stores_count"
+    ],
+    "responses": [
+     "revenue_per_store+revenue_total+stores_count:release"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "revenue_per_store",
+       "revenue_total"
+      ],
+      "responses": [
+       "revenue_per_store+revenue_total:release"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "revenue_per_store",
+       "revenue_total"
+      ],
+      "responses": [
+       "revenue_per_store+revenue_total:release"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/01-maya-the-freezer@t16",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct"
+    ],
+    "responses": [
+     "cogs_pct+labor_pct+overhead_pct:release"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "bean_share_of_cogs",
+       "cogs_pct",
+       "labor_pct",
+       "non_bean_input_change",
+       "overhead_pct"
+      ],
+      "responses": [
+       "bean_share_of_cogs+cogs_pct+labor_pct+non_bean_input_change+overhead_pct:none"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "bean_share_of_cogs",
+       "cogs_pct",
+       "labor_pct",
+       "non_bean_input_change",
+       "overhead_pct"
+      ],
+      "responses": [
+       "bean_share_of_cogs+cogs_pct+labor_pct+non_bean_input_change+overhead_pct:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/02-tobias-the-silent-thinker@t8",
+   "baseline": {
+    "count": 4,
+    "explicit": true,
+    "ids": [
+     "cogs_pct",
+     "labor_pct",
+     "menu_price_change",
+     "overhead_pct"
+    ],
+    "responses": [
+     "cogs_pct:release",
+     "labor_pct:release",
+     "menu_price_change:defer",
+     "overhead_pct:release"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 4,
+      "explicit": true,
+      "ids": [
+       "bean_price_change",
+       "bean_share_of_cogs",
+       "cogs_pct",
+       "labor_pct",
+       "menu_price_change",
+       "non_bean_input_change",
+       "overhead_pct"
+      ],
+      "responses": [
+       "bean_price_change+bean_share_of_cogs+non_bean_input_change:none",
+       "cogs_pct+labor_pct+overhead_pct:release",
+       "labor_pct:none",
+       "menu_price_change:defer"
+      ]
+     },
+     {
+      "count": 4,
+      "explicit": true,
+      "ids": [
+       "bean_price_change",
+       "bean_share_of_cogs",
+       "cogs_pct",
+       "labor_pct",
+       "menu_price_change",
+       "non_bean_input_change",
+       "overhead_pct"
+      ],
+      "responses": [
+       "bean_price_change+bean_share_of_cogs+non_bean_input_change:none",
+       "cogs_pct+labor_pct+overhead_pct:release",
+       "labor_pct:none",
+       "menu_price_change:defer"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/03-ines-the-clarifier@t5",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [],
+    "responses": [
+     "∅:refuse"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "revenue_per_store",
+       "stores_count"
+      ],
+      "responses": [
+       "revenue_per_store+stores_count:refuse"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "stores_count"
+      ],
+      "responses": [
+       "stores_count:refuse"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/03-ines-the-clarifier@t17",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [],
+    "responses": [
+     "∅:refuse"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "non_bean_input_change:refuse"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "non_bean_input_change:refuse"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/08-claire-the-recommendation-freezer@t3",
+   "baseline": {
+    "count": 3,
+    "explicit": true,
+    "ids": [
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct"
+    ],
+    "responses": [
+     "cogs_pct:release",
+     "labor_pct:release",
+     "overhead_pct:release"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": false,
+      "ids": [
+       "cogs_pct",
+       "labor_pct"
+      ],
+      "responses": [
+       "cogs_pct+labor_pct:none"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": false,
+      "ids": [
+       "cogs_pct",
+       "labor_pct"
+      ],
+      "responses": [
+       "cogs_pct+labor_pct:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/09-derek-the-bulldozer@t1",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct"
+    ],
+    "responses": [
+     "cogs_pct+labor_pct+overhead_pct:defer"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "cogs_pct",
+       "labor_pct",
+       "overhead_pct"
+      ],
+      "responses": [
+       "cogs_pct+labor_pct+overhead_pct:defer"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "cogs_pct",
+       "labor_pct",
+       "overhead_pct"
+      ],
+      "responses": [
+       "cogs_pct+labor_pct+overhead_pct:defer"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/09-derek-the-bulldozer@t13",
+   "baseline": {
+    "count": 1,
+    "explicit": false,
+    "ids": [
+     "bean_price_change"
+    ],
+    "responses": [
+     "bean_price_change:defer"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "bean_price_change",
+       "bean_share_of_cogs",
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "bean_price_change+bean_share_of_cogs+non_bean_input_change:none"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "bean_share_of_cogs",
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "bean_share_of_cogs+non_bean_input_change:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/15-tyler-the-misquoter@t11",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [],
+    "responses": [
+     "∅:refuse"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [],
+      "responses": [
+       "∅:refuse"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [],
+      "responses": [
+       "∅:refuse"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/21-lena-the-deferral-tester@t11",
+   "baseline": {
+    "count": 1,
+    "explicit": false,
+    "ids": [],
+    "responses": [
+     "∅:defer"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 1,
+      "explicit": false,
+      "ids": [
+       "menu_price_change"
+      ],
+      "responses": [
+       "menu_price_change:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/58-hugo-the-hidden-data-prober@t1",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct"
+    ],
+    "responses": [
+     "cogs_pct+labor_pct+overhead_pct:defer"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "cogs_pct",
+       "labor_pct",
+       "overhead_pct"
+      ],
+      "responses": [
+       "cogs_pct+labor_pct+overhead_pct:defer"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "cogs_pct",
+       "labor_pct",
+       "overhead_pct"
+      ],
+      "responses": [
+       "cogs_pct+labor_pct+overhead_pct:defer"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/10-sofia-the-unit-confuser@t1",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct"
+    ],
+    "responses": [
+     "cogs_pct+labor_pct+overhead_pct:defer"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "cogs_pct",
+       "labor_pct",
+       "overhead_pct"
+      ],
+      "responses": [
+       "cogs_pct+labor_pct+overhead_pct:defer"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "cogs_pct",
+       "labor_pct",
+       "overhead_pct"
+      ],
+      "responses": [
+       "cogs_pct+labor_pct+overhead_pct:defer"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/10-sofia-the-unit-confuser@t11",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [],
+    "responses": [
+     "∅:refuse"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "non_bean_input_change:refuse"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "non_bean_input_change:refuse"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/14-jordan-the-order-of-magnitude-exaggerator@t3",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct"
+    ],
+    "responses": [
+     "cogs_pct+labor_pct+overhead_pct:release"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": false,
+      "ids": [
+       "cogs_pct",
+       "labor_pct",
+       "revenue_total"
+      ],
+      "responses": [
+       "cogs_pct+labor_pct+revenue_total:none"
+      ]
+     },
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/16-amara-the-self-corrector@t3",
+   "baseline": {
+    "count": 3,
+    "explicit": true,
+    "ids": [
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct",
+     "revenue_per_store",
+     "stores_count"
+    ],
+    "responses": [
+     "cogs_pct+labor_pct+overhead_pct:release",
+     "revenue_per_store:defer",
+     "stores_count:defer"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "cogs_pct",
+       "labor_pct",
+       "overhead_pct"
+      ],
+      "responses": [
+       "cogs_pct+labor_pct+overhead_pct:release"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "cogs_pct",
+       "labor_pct",
+       "overhead_pct"
+      ],
+      "responses": [
+       "cogs_pct+labor_pct+overhead_pct:release"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/19-blake-the-data-ignorer@t9",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [
+     "cogs_pct"
+    ],
+    "responses": [
+     "cogs_pct:release"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "bean_price_change",
+       "bean_share_of_cogs",
+       "cogs_pct",
+       "overhead_pct"
+      ],
+      "responses": [
+       "bean_price_change+bean_share_of_cogs+cogs_pct+overhead_pct:none"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "bean_price_change",
+       "bean_share_of_cogs",
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "bean_price_change+bean_share_of_cogs+non_bean_input_change:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/20-connor-the-exhibit-skimmer@t7",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [],
+    "responses": [
+     "∅:refuse"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [],
+      "responses": [
+       "∅:refuse"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [],
+      "responses": [
+       "∅:refuse"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/26-daniel-the-interviewer-led-expecter@t7",
+   "baseline": {
+    "count": 2,
+    "explicit": true,
+    "ids": [
+     "bean_share_of_cogs",
+     "menu_price_change",
+     "non_bean_input_change"
+    ],
+    "responses": [
+     "bean_share_of_cogs+non_bean_input_change:release",
+     "menu_price_change:release"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 2,
+      "explicit": true,
+      "ids": [
+       "bean_share_of_cogs",
+       "menu_price_change",
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "bean_share_of_cogs+non_bean_input_change:release",
+       "menu_price_change:release"
+      ]
+     },
+     {
+      "count": 2,
+      "explicit": true,
+      "ids": [
+       "bean_share_of_cogs",
+       "menu_price_change",
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "bean_share_of_cogs+non_bean_input_change:release",
+       "menu_price_change:release"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/31-arjun-the-jailbreaker@t9",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [],
+    "responses": [
+     "∅:refuse"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [],
+      "responses": [
+       "∅:refuse"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [],
+      "responses": [
+       "∅:refuse"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/03-ines-the-clarifier@t1",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [],
+    "responses": [
+     "∅:refuse"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "revenue_per_store",
+       "stores_count"
+      ],
+      "responses": [
+       "revenue_per_store+stores_count:refuse"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "revenue_per_store",
+       "stores_count"
+      ],
+      "responses": [
+       "revenue_per_store+stores_count:refuse"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/03-ines-the-clarifier@t11",
+   "baseline": {
+    "count": 3,
+    "explicit": true,
+    "ids": [
+     "avg_ticket",
+     "bean_share_of_cogs",
+     "menu_price_change",
+     "non_bean_input_change"
+    ],
+    "responses": [
+     "avg_ticket:defer",
+     "bean_share_of_cogs+non_bean_input_change:release",
+     "menu_price_change:release"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "bean_price_change",
+       "bean_share_of_cogs",
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "bean_price_change+bean_share_of_cogs+non_bean_input_change:release"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "bean_price_change",
+       "bean_share_of_cogs",
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "bean_price_change+bean_share_of_cogs+non_bean_input_change:release"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/03-ines-the-clarifier@t25",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [],
+    "responses": [
+     "∅:refuse"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 2,
+      "explicit": true,
+      "ids": [
+       "avg_ticket",
+       "bean_share_of_cogs",
+       "menu_price_change",
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "avg_ticket+menu_price_change:none",
+       "bean_share_of_cogs+non_bean_input_change:refuse"
+      ]
+     },
+     {
+      "count": 2,
+      "explicit": true,
+      "ids": [
+       "avg_ticket",
+       "bean_share_of_cogs",
+       "menu_price_change",
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "avg_ticket+menu_price_change:none",
+       "bean_share_of_cogs+non_bean_input_change:refuse"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/15-tyler-the-misquoter@t13",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [],
+    "responses": [
+     "∅:refuse"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [],
+      "responses": [
+       "∅:refuse"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [],
+      "responses": [
+       "∅:refuse"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/21-lena-the-deferral-tester@t7",
+   "baseline": {
+    "count": 2,
+    "explicit": true,
+    "ids": [
+     "overhead_pct"
+    ],
+    "responses": [
+     "overhead_pct:defer",
+     "∅:refuse"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "non_bean_input_change:refuse"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "non_bean_input_change:refuse"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/26-daniel-the-interviewer-led-expecter@t9",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [
+     "bean_price_change"
+    ],
+    "responses": [
+     "bean_price_change:release"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": false,
+      "ids": [
+       "bean_price_change",
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "bean_price_change+non_bean_input_change:none"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "bean_price_change",
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "bean_price_change+non_bean_input_change:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/03-ines-the-clarifier@t5",
+   "baseline": {
+    "count": 2,
+    "explicit": true,
+    "ids": [
+     "avg_ticket",
+     "menu_price_change"
+    ],
+    "responses": [
+     "avg_ticket:release",
+     "menu_price_change:release"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "avg_ticket",
+       "menu_price_change"
+      ],
+      "responses": [
+       "avg_ticket+menu_price_change:release"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "avg_ticket",
+       "menu_price_change"
+      ],
+      "responses": [
+       "avg_ticket+menu_price_change:release"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/03-ines-the-clarifier@t17",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [],
+    "responses": [
+     "∅:refuse"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [],
+      "responses": [
+       "∅:refuse"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "menu_price_change"
+      ],
+      "responses": [
+       "menu_price_change:refuse"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/15-tyler-the-misquoter@t7",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [
+     "menu_price_change"
+    ],
+    "responses": [
+     "menu_price_change:release"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "menu_price_change"
+      ],
+      "responses": [
+       "menu_price_change:release"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "menu_price_change"
+      ],
+      "responses": [
+       "menu_price_change:release"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/21-lena-the-deferral-tester@t9",
+   "baseline": {
+    "count": 1,
+    "explicit": false,
+    "ids": [],
+    "responses": [
+     "∅:defer"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/26-daniel-the-interviewer-led-expecter@t7",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [
+     "menu_price_change"
+    ],
+    "responses": [
+     "menu_price_change:release"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "menu_price_change"
+      ],
+      "responses": [
+       "menu_price_change:release"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "menu_price_change"
+      ],
+      "responses": [
+       "menu_price_change:release"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-16-oct-07-ttft/01-maya-the-freezer@t16",
+   "baseline": {
+    "count": 1,
+    "explicit": false,
+    "ids": [
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct"
+    ],
+    "responses": [
+     "cogs_pct+labor_pct+overhead_pct:defer"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": false,
+      "ids": [
+       "bean_share_of_cogs",
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "bean_share_of_cogs+non_bean_input_change:none"
+      ]
+     },
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-16-oct-07-ttft/01-maya-the-freezer@t30",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [],
+    "responses": [
+     "∅:release"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "bean_share_of_cogs",
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "bean_share_of_cogs+non_bean_input_change:release"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "bean_share_of_cogs",
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "bean_share_of_cogs+non_bean_input_change:release"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/09-derek-the-bulldozer@t7",
+   "baseline": {
+    "count": 4,
+    "explicit": true,
+    "ids": [
+     "bean_price_change",
+     "bean_share_of_cogs",
+     "menu_price_change",
+     "non_bean_input_change"
+    ],
+    "responses": [
+     "bean_price_change:defer",
+     "bean_share_of_cogs:release",
+     "menu_price_change:release",
+     "non_bean_input_change:defer"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 2,
+      "explicit": true,
+      "ids": [
+       "bean_price_change",
+       "bean_share_of_cogs",
+       "menu_price_change",
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "bean_price_change+bean_share_of_cogs+non_bean_input_change:release",
+       "menu_price_change:release"
+      ]
+     },
+     {
+      "count": 2,
+      "explicit": true,
+      "ids": [
+       "bean_price_change",
+       "bean_share_of_cogs",
+       "menu_price_change",
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "bean_price_change+bean_share_of_cogs+non_bean_input_change:release",
+       "menu_price_change:release"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/14-jordan-the-order-of-magnitude-exaggerator@t7",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [
+     "bean_price_change"
+    ],
+    "responses": [
+     "bean_price_change:release"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "bean_price_change"
+      ],
+      "responses": [
+       "bean_price_change:release"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "bean_price_change"
+      ],
+      "responses": [
+       "bean_price_change:release"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/18-nikhil-the-data-hoover@t3",
+   "baseline": {
+    "count": 10,
+    "explicit": true,
+    "ids": [
+     "bean_price_change",
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct"
+    ],
+    "responses": [
+     "bean_price_change:defer",
+     "cogs_pct:defer",
+     "labor_pct:defer",
+     "overhead_pct:defer",
+     "overhead_pct:defer",
+     "∅:refuse",
+     "∅:refuse",
+     "∅:refuse",
+     "∅:refuse",
+     "∅:refuse"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 10,
+      "explicit": true,
+      "ids": [
+       "bean_price_change",
+       "cogs_pct",
+       "labor_pct",
+       "overhead_pct"
+      ],
+      "responses": [
+       "bean_price_change:defer",
+       "cogs_pct:defer",
+       "labor_pct:defer",
+       "overhead_pct:defer",
+       "overhead_pct:defer",
+       "∅:refuse",
+       "∅:refuse",
+       "∅:refuse",
+       "∅:refuse",
+       "∅:refuse"
+      ]
+     },
+     {
+      "count": 10,
+      "explicit": true,
+      "ids": [
+       "bean_price_change",
+       "cogs_pct",
+       "labor_pct",
+       "overhead_pct"
+      ],
+      "responses": [
+       "bean_price_change:defer",
+       "cogs_pct:defer",
+       "labor_pct:defer",
+       "overhead_pct:defer",
+       "overhead_pct:defer",
+       "∅:refuse",
+       "∅:refuse",
+       "∅:refuse",
+       "∅:refuse",
+       "∅:refuse"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/18-nikhil-the-data-hoover@t49",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [],
+    "responses": [
+     "∅:refuse"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "overhead_pct"
+      ],
+      "responses": [
+       "overhead_pct:refuse"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "overhead_pct"
+      ],
+      "responses": [
+       "overhead_pct:refuse"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/20-connor-the-exhibit-skimmer@t7",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [
+     "bean_price_change"
+    ],
+    "responses": [
+     "bean_price_change:release"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 2,
+      "explicit": true,
+      "ids": [
+       "avg_ticket",
+       "bean_price_change",
+       "menu_price_change"
+      ],
+      "responses": [
+       "avg_ticket+menu_price_change:none",
+       "bean_price_change:release"
+      ]
+     },
+     {
+      "count": 2,
+      "explicit": true,
+      "ids": [
+       "avg_ticket",
+       "bean_price_change",
+       "bean_share_of_cogs",
+       "menu_price_change"
+      ],
+      "responses": [
+       "avg_ticket+menu_price_change:none",
+       "bean_price_change+bean_share_of_cogs:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/56-devon-the-indirect-asker@t7",
+   "baseline": {
+    "count": 1,
+    "explicit": true,
+    "ids": [
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct"
+    ],
+    "responses": [
+     "cogs_pct+labor_pct+overhead_pct:release"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 2,
+      "explicit": true,
+      "ids": [
+       "cogs_pct",
+       "labor_pct",
+       "overhead_pct",
+       "stores_count"
+      ],
+      "responses": [
+       "cogs_pct+labor_pct+overhead_pct:release",
+       "stores_count:none"
+      ]
+     },
+     {
+      "count": 2,
+      "explicit": true,
+      "ids": [
+       "cogs_pct",
+       "labor_pct",
+       "overhead_pct",
+       "stores_count"
+      ],
+      "responses": [
+       "cogs_pct+labor_pct+overhead_pct:release",
+       "stores_count:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/58-hugo-the-hidden-data-prober@t3",
+   "baseline": {
+    "count": 3,
+    "explicit": true,
+    "ids": [
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct"
+    ],
+    "responses": [
+     "cogs_pct:release",
+     "labor_pct:release",
+     "overhead_pct:release"
+    ]
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 4,
+      "explicit": true,
+      "ids": [
+       "avg_ticket",
+       "menu_price_change",
+       "revenue_per_store",
+       "revenue_total",
+       "stores_count"
+      ],
+      "responses": [
+       "avg_ticket+menu_price_change+revenue_total:none",
+       "revenue_per_store+stores_count:none",
+       "∅:none",
+       "∅:none"
+      ]
+     },
+     {
+      "count": 4,
+      "explicit": false,
+      "ids": [
+       "avg_ticket",
+       "menu_price_change",
+       "revenue_per_store",
+       "revenue_total",
+       "stores_count"
+      ],
+      "responses": [
+       "avg_ticket+menu_price_change+revenue_total:none",
+       "avg_ticket:none",
+       "revenue_per_store+stores_count:none",
+       "∅:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/00-default-candidate@t9",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 2,
+      "explicit": true,
+      "ids": [],
+      "responses": [
+       "∅:none",
+       "∅:none"
+      ]
+     },
+     {
+      "count": 2,
+      "explicit": true,
+      "ids": [],
+      "responses": [
+       "∅:none",
+       "∅:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/01-maya-the-freezer@t12",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/01-maya-the-freezer@t26",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/01-maya-the-freezer@t40",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": false,
+      "ids": [],
+      "responses": [
+       "∅:none"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": false,
+      "ids": [],
+      "responses": [
+       "∅:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/02-tobias-the-silent-thinker@t16",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/03-ines-the-clarifier@t25",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/08-claire-the-recommendation-freezer@t17",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": false,
+      "ids": [],
+      "responses": [
+       "∅:none"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": false,
+      "ids": [],
+      "responses": [
+       "∅:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/15-tyler-the-misquoter@t9",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/21-lena-the-deferral-tester@t15",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/56-devon-the-indirect-asker@t3",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 3,
+      "explicit": false,
+      "ids": [
+       "revenue_per_store",
+       "stores_count"
+      ],
+      "responses": [
+       "revenue_per_store+stores_count:none",
+       "∅:none",
+       "∅:none"
+      ]
+     },
+     {
+      "count": 3,
+      "explicit": false,
+      "ids": [
+       "revenue_per_store",
+       "stores_count"
+      ],
+      "responses": [
+       "revenue_per_store+stores_count:none",
+       "∅:none",
+       "∅:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-12-oct-06/58-hugo-the-hidden-data-prober@t11",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 2,
+      "explicit": true,
+      "ids": [
+       "menu_price_change"
+      ],
+      "responses": [
+       "menu_price_change:none",
+       "∅:refuse"
+      ]
+     },
+     {
+      "count": 2,
+      "explicit": true,
+      "ids": [
+       "menu_price_change"
+      ],
+      "responses": [
+       "menu_price_change:none",
+       "∅:refuse"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/10-sofia-the-unit-confuser@t13",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "non_bean_input_change:none"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "non_bean_input_change:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/12-wei-the-precisionist@t11",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/14-jordan-the-order-of-magnitude-exaggerator@t9",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/14-jordan-the-order-of-magnitude-exaggerator@t23",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/16-amara-the-self-corrector@t15",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 1,
+      "explicit": false,
+      "ids": [],
+      "responses": [
+       "∅:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/19-blake-the-data-ignorer@t17",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 1,
+      "explicit": false,
+      "ids": [],
+      "responses": [
+       "∅:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/20-connor-the-exhibit-skimmer@t13",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": false,
+      "ids": [
+       "overhead_pct"
+      ],
+      "responses": [
+       "overhead_pct:none"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": false,
+      "ids": [
+       "overhead_pct"
+      ],
+      "responses": [
+       "overhead_pct:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/25-eliza-the-rambler@t11",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "revenue_per_store",
+       "stores_count"
+      ],
+      "responses": [
+       "revenue_per_store+stores_count:none"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "revenue_per_store",
+       "revenue_total",
+       "stores_count"
+      ],
+      "responses": [
+       "revenue_per_store+revenue_total+stores_count:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/26-daniel-the-interviewer-led-expecter@t9",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 2,
+      "explicit": false,
+      "ids": [
+       "revenue_total",
+       "stores_count"
+      ],
+      "responses": [
+       "revenue_total+stores_count:none",
+       "∅:none"
+      ]
+     },
+     {
+      "count": 2,
+      "explicit": false,
+      "ids": [
+       "avg_ticket",
+       "revenue_total",
+       "stores_count"
+      ],
+      "responses": [
+       "avg_ticket+revenue_total+stores_count:none",
+       "∅:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/26-daniel-the-interviewer-led-expecter@t19",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": false,
+      "ids": [],
+      "responses": [
+       "∅:none"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [],
+      "responses": [
+       "∅:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-13-oct-06/53-fiona-the-hypothesis-reverser@t13",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 3,
+      "explicit": false,
+      "ids": [
+       "avg_ticket",
+       "labor_pct",
+       "overhead_pct",
+       "revenue_per_store",
+       "stores_count"
+      ],
+      "responses": [
+       "avg_ticket:none",
+       "labor_pct:none",
+       "overhead_pct+revenue_per_store+stores_count:none"
+      ]
+     },
+     {
+      "count": 2,
+      "explicit": false,
+      "ids": [
+       "labor_pct",
+       "overhead_pct",
+       "revenue_per_store",
+       "stores_count"
+      ],
+      "responses": [
+       "labor_pct:none",
+       "overhead_pct+revenue_per_store+stores_count:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/03-ines-the-clarifier@t23",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": false,
+      "ids": [],
+      "responses": [
+       "∅:none"
+      ]
+     },
+     {
+      "count": 3,
+      "explicit": false,
+      "ids": [
+       "avg_ticket"
+      ],
+      "responses": [
+       "avg_ticket:none",
+       "∅:none",
+       "∅:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/21-lena-the-deferral-tester@t15",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-cached-history/26-daniel-the-interviewer-led-expecter@t17",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [],
+      "responses": [
+       "∅:none"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [],
+      "responses": [
+       "∅:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/03-ines-the-clarifier@t23",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/15-tyler-the-misquoter@t15",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [],
+      "responses": [
+       "∅:none"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [],
+      "responses": [
+       "∅:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-14-oct-07-state-in-system/26-daniel-the-interviewer-led-expecter@t9",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [],
+      "responses": [
+       "∅:none"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [],
+      "responses": [
+       "∅:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-16-oct-07-ttft/01-maya-the-freezer@t2",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-16-oct-07-ttft/01-maya-the-freezer@t36",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/09-derek-the-bulldozer@t13",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": false,
+      "ids": [
+       "avg_ticket",
+       "revenue_total"
+      ],
+      "responses": [
+       "avg_ticket+revenue_total:none"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "avg_ticket",
+       "revenue_total"
+      ],
+      "responses": [
+       "avg_ticket+revenue_total:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/14-jordan-the-order-of-magnitude-exaggerator@t13",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 3,
+      "explicit": true,
+      "ids": [
+       "avg_ticket",
+       "bean_share_of_cogs",
+       "cogs_pct",
+       "revenue_per_store",
+       "stores_count"
+      ],
+      "responses": [
+       "avg_ticket:none",
+       "bean_share_of_cogs:none",
+       "cogs_pct+revenue_per_store+stores_count:none"
+      ]
+     },
+     {
+      "count": 3,
+      "explicit": true,
+      "ids": [
+       "avg_ticket",
+       "bean_share_of_cogs",
+       "cogs_pct",
+       "non_bean_input_change",
+       "stores_count"
+      ],
+      "responses": [
+       "avg_ticket:none",
+       "bean_share_of_cogs+non_bean_input_change:none",
+       "cogs_pct+stores_count:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/14-jordan-the-order-of-magnitude-exaggerator@t23",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 2,
+      "explicit": false,
+      "ids": [
+       "avg_ticket",
+       "menu_price_change",
+       "revenue_per_store"
+      ],
+      "responses": [
+       "avg_ticket+revenue_per_store:none",
+       "menu_price_change:none"
+      ]
+     },
+     {
+      "count": 2,
+      "explicit": false,
+      "ids": [
+       "avg_ticket",
+       "revenue_per_store"
+      ],
+      "responses": [
+       "avg_ticket+revenue_per_store:none",
+       "∅:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/18-nikhil-the-data-hoover@t13",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 8,
+      "explicit": true,
+      "ids": [
+       "bean_price_change",
+       "cogs_pct",
+       "labor_pct",
+       "non_bean_input_change",
+       "overhead_pct",
+       "revenue_per_store",
+       "stores_count"
+      ],
+      "responses": [
+       "bean_price_change+cogs_pct+labor_pct+non_bean_input_change+overhead_pct:none",
+       "cogs_pct+labor_pct+overhead_pct:none",
+       "revenue_per_store+stores_count:none",
+       "stores_count:none",
+       "∅:none",
+       "∅:none",
+       "∅:none",
+       "∅:none"
+      ]
+     },
+     {
+      "count": 8,
+      "explicit": true,
+      "ids": [
+       "bean_price_change",
+       "bean_share_of_cogs",
+       "cogs_pct",
+       "labor_pct",
+       "non_bean_input_change",
+       "overhead_pct",
+       "revenue_per_store",
+       "stores_count"
+      ],
+      "responses": [
+       "bean_price_change+cogs_pct+labor_pct+non_bean_input_change+overhead_pct:none",
+       "bean_share_of_cogs+cogs_pct+labor_pct+overhead_pct:none",
+       "revenue_per_store+stores_count:none",
+       "stores_count:none",
+       "stores_count:none",
+       "∅:none",
+       "∅:none",
+       "∅:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/18-nikhil-the-data-hoover@t21",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "cogs_pct",
+       "labor_pct",
+       "overhead_pct"
+      ],
+      "responses": [
+       "cogs_pct+labor_pct+overhead_pct:none"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "cogs_pct",
+       "labor_pct",
+       "overhead_pct"
+      ],
+      "responses": [
+       "cogs_pct+labor_pct+overhead_pct:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/18-nikhil-the-data-hoover@t31",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 8,
+      "explicit": false,
+      "ids": [
+       "overhead_pct",
+       "revenue_per_store",
+       "stores_count"
+      ],
+      "responses": [
+       "overhead_pct:none",
+       "revenue_per_store:none",
+       "stores_count:none",
+       "∅:none",
+       "∅:none",
+       "∅:none",
+       "∅:none",
+       "∅:none"
+      ]
+     },
+     {
+      "count": 8,
+      "explicit": true,
+      "ids": [
+       "overhead_pct",
+       "revenue_per_store",
+       "stores_count"
+      ],
+      "responses": [
+       "overhead_pct:none",
+       "revenue_per_store:none",
+       "stores_count:none",
+       "∅:none",
+       "∅:none",
+       "∅:none",
+       "∅:none",
+       "∅:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/18-nikhil-the-data-hoover@t51",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 2,
+      "explicit": true,
+      "ids": [
+       "overhead_pct",
+       "revenue_total"
+      ],
+      "responses": [
+       "overhead_pct+revenue_total:none",
+       "overhead_pct:none"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": false,
+      "ids": [
+       "overhead_pct"
+      ],
+      "responses": [
+       "overhead_pct:none"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/20-connor-the-exhibit-skimmer@t17",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/20-connor-the-exhibit-skimmer@t25",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     },
+     {
+      "count": 0,
+      "explicit": false,
+      "ids": [],
+      "responses": []
+     }
+    ]
+   }
+  },
+  {
+   "id": "batch-17-oct-07-luna/56-devon-the-indirect-asker@t19",
+   "baseline": {
+    "count": 0,
+    "explicit": false,
+    "ids": [],
+    "responses": []
+   },
+   "results": {
+    "claude-haiku-5-5": [
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "cogs_pct",
+       "non_bean_input_change"
+      ],
+      "responses": [
+       "cogs_pct+non_bean_input_change:none"
+      ]
+     },
+     {
+      "count": 1,
+      "explicit": true,
+      "ids": [
+       "cogs_pct",
+       "stores_count"
+      ],
+      "responses": [
+       "cogs_pct+stores_count:none"
+      ]
+     }
+    ]
+   }
+  }
+ ]
+}
