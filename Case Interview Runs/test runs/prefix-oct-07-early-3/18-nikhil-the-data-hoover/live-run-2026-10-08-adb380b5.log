@@ -1,0 +1,59 @@
+[live-run] seeded from Case Interview Runs/test runs/smoke-oct-07-guards/18-nikhil-the-data-hoover/ through t0: 0 turns, 0 revealed, 0 request events, pressure test not_asked
+[live-run] session adb380b5-b9ef-41da-8987-8fa1d45d14ab · Brew & Bean Profitability · persona 18 Nikhil — the Data Hoover · pace fast
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+Take a moment, then walk me through how you'd approach this.
+
+[candidate · 0:00] Okay, so profitability — revenue up but margin way down, so something on the cost side. Before I frame anything, can I get some data?
+
+One, the full cost breakdown by line item for both years. Two, revenue split by store versus any wholesale or packaged bean channel. Three, number of transactions per store per day. Four, average ticket size. Five, headcount per store and hourly wage rates. Six, the lease terms and rent per square foot. Seven, how many of the 200 locations opened in the last two years. Eight, customer satisfaction or Net Promoter Score trends.
+
+Do we have those?
+[runner] phase: INTRO kind: model stall rung: none
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Understood.","move":"clarify","requests":[{"what":"full cost breakdown by line item for both years","item_ids":["cogs_pct","labor_pct","overhead_pct"],"explicit":true,"respond":"release"},{"what":"revenue split by store and wholesale or packaged beans","item_ids":[],"explicit":true,"respond":"release"},{"what":"transactions per store per day","item_ids":[],"explicit":true,"respond":"release"},{"what":"average ticket size","item_ids":["avg_ticket"],"explicit":true,"respond":"release"},{"what":"headcount per store and hourly wage rates","item_ids":[],"explicit":true,"respond":"release"},{"what":"lease terms and rent per square foot","item_ids":[],"explicit":true,"respond":"release"},{"what":"locations opened in the last two years","item_ids":["stores_count"],"explicit":true,"respond":"release"},{"what":"customer satisfaction or Net Promoter Score trends","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Before we look at data, how would you structure the problem?"}
+[timing] reads_done=101 plan_done=122 model_request=123 distress_verdict=902 model_first_token=1620 model_first_sentence=1637 held_for_requests=1637 model_say_closed=1637 model_move_closed=1665 model_requests_closed=2538 first_delivered=2546 model_exhibit_closed=2547 model_rescue_item_closed=2565 first_useful_delivered=2566 data_line_delivered=2566 model_question_closed=2653 model_done=2708 settle_start=2708 settle_composed=2715 tail_delivered=2715 persist_start=2715 persist_end=2817
+
+[interviewer · CLARIFY · 0:03] Understood. 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. I don't have revenue split by store and wholesale or packaged beans, transactions per store per day, headcount per store and hourly wage rates, lease terms and rent per square foot or customer satisfaction or Net Promoter Score trends. I'll come back to full cost breakdown by line item for both years and average ticket size shortly. Before we look at data, how would you structure the problem?
+
+[candidate · 0:03] Sure — before I lay it out, a few more things would help.
+
+One, the COGS split by input: green coffee beans, dairy, syrups, cups and lids, pastries. Two, green coffee commodity prices over the last two years. Three, supplier contract terms and whether any were renegotiated. Four, menu price history — have we raised prices at all in those two years? Five, waste and spoilage as a percent of product cost. Six, the overhead breakdown between corporate and store-level. Seven, competitor margins for the specialty coffee segment. Eight, marketing spend as a percent of revenue.
+
+Structurally, I'd go profit equals revenue minus cost, then drive down the cost side since COGS jumped sixteen points. Do we have the COGS input split?
+[runner] phase: CLARIFY kind: model stall rung: none
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"structure","requests":[{"what":"COGS as a share of revenue","item_ids":["cogs_pct"],"explicit":true,"respond":"defer"},{"what":"Labor as a share of revenue","item_ids":["labor_pct"],"explicit":true,"respond":"defer"},{"what":"Overhead and rent as a share of revenue","item_ids":["overhead_pct"],"explicit":true,"respond":"defer"},{"what":"Average transaction value","item_ids":["avg_ticket"],"explicit":true,"respond":"defer"},{"what":"COGS split by input","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"defer"},{"what":"Coffee bean price changes","item_ids":["bean_price_change"],"explicit":true,"respond":"defer"},{"what":"Supplier contract terms and renegotiations","item_ids":[],"explicit":true,"respond":"defer"},{"what":"Menu price changes","item_ids":["menu_price_change"],"explicit":true,"respond":"defer"},{"what":"Waste and spoilage","item_ids":[],"explicit":true,"respond":"defer"},{"what":"Corporate and store-level overhead breakdown","item_ids":["overhead_pct"],"explicit":true,"respond":"defer"},{"what":"Competitor margins","item_ids":[],"explicit":true,"respond":"defer"},{"what":"Marketing spend as a share of revenue","item_ids":[],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Please lay out your structure for diagnosing the profit decline."}
+[timing] reads_done=104 plan_done=109 model_request=109 model_first_token=690 model_first_sentence=714 held_for_distress=714 model_say_closed=714 model_move_closed=752 distress_verdict=868 model_requests_closed=2109 first_delivered=2110 model_exhibit_closed=2117 model_rescue_item_closed=2160 first_useful_delivered=2161 data_line_delivered=2161 model_question_closed=2309 model_done=2326 settle_start=2326 settle_composed=2329 tail_delivered=2329 persist_start=2329 persist_end=2362
+
+[interviewer · STRUCTURE · 0:05] Mm-hm. I don't have Supplier contract terms and renegotiations, Waste and spoilage, Competitor margins or Marketing spend as a share of revenue. I'll come back to COGS as a share of revenue, Labor as a share of revenue, Overhead and rent as a share of revenue, Average transaction value, COGS split by input, Coffee bean price changes, Menu price changes and Corporate and store-level overhead breakdown shortly. Please lay out your structure for diagnosing the profit decline.
+
+[candidate · 0:05] Before I quantify, a few more asks.
+
+One, COGS in absolute dollars for both years, not just percent. Two, total revenue in dollars for both years. Three, the split of the other 75% of COGS across dairy, packaging, and food individually. Four, pounds of beans purchased per year. Five, whether we hedge or forward-buy coffee. Six, the mix of drinks sold — brewed versus espresso versus cold brew. Seven, same-store sales growth versus growth from new stores. Eight, regional cost variation across the 200 locations.
+
+And again, menu price history, whenever you have it.
+
+Directionally, beans at 25% of COGS up 40%, and the other 75% up 37.5%, so basically everything's up roughly 38–40%. Which is why COGS went 42 to 58. But I'd want the dollar figures before I commit to a number.
+[runner] phase: STRUCTURE kind: model stall rung: none
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"You’re linking the input cost increases to the margin decline.","move":"structure","requests":[{"what":"absolute COGS for both years","item_ids":[],"explicit":true,"respond":"release"},{"what":"total revenue for both years","item_ids":["revenue_total"],"explicit":true,"respond":"release"},{"what":"dairy, packaging, and food split of COGS","item_ids":[],"explicit":true,"respond":"release"},{"what":"annual pounds of beans purchased","item_ids":[],"explicit":true,"respond":"release"},{"what":"coffee hedging or forward-buying","item_ids":[],"explicit":true,"respond":"release"},{"what":"drink mix","item_ids":[],"explicit":true,"respond":"release"},{"what":"same-store sales versus new-store growth","item_ids":[],"explicit":true,"respond":"release"},{"what":"regional cost variation","item_ids":[],"explicit":true,"respond":"release"},{"what":"menu price history","item_ids":["menu_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Before we go further, please lay out your structured approach to diagnosing the profit decline."}
+[timing] reads_done=31 plan_done=32 model_request=33 distress_verdict=695 model_first_token=700 model_first_sentence=823 held_for_requests=823 model_say_closed=823 model_move_closed=824 model_requests_closed=1787 first_delivered=1798 model_exhibit_closed=1800 model_rescue_item_closed=1837 first_useful_delivered=1837 data_line_delivered=1837 model_question_closed=2013 model_done=2038 settle_start=2038 settle_composed=2039 tail_delivered=2040 persist_start=2040 persist_end=2072
+
+[interviewer · STRUCTURE · 0:07] You’re linking the input cost increases to the margin decline. Total revenue is $480M a year. I don't have absolute COGS for both years, dairy, packaging, and food split of COGS, annual pounds of beans purchased, coffee hedging or forward-buying, drink mix, same-store sales versus new-store growth or regional cost variation. Before we go further, please lay out your structured approach to diagnosing the profit decline.
+
+[candidate · 0:07] A few more things first.
+
+One, revenue two years ago in dollars. Two, transaction count per year. Three, items per transaction then versus now. Four, gross margin by product category. Five, price elasticity estimates if we raised prices. Six, loyalty program penetration.七 — sorry, seven, franchise versus company-owned split. Eight, any store closures in the period.
+
+On what I have: revenue is $480M today, up 15%, so roughly $417M two years ago. COGS went from 42% to 58% — at today's revenue that's $278M versus $202M at the old rate, so about $76M of margin destroyed. And the whole 18-point margin drop is 16 points COGS, 2 points overhead. The key insight is input costs rose ~38–40% but menu prices are flat, so we absorbed all of it. Revenue growth came from basket size, not price.
+[runner] phase: STRUCTURE kind: model stall rung: none
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"structure","requests":[],"exhibit":null,"rescue_item":null,"question":"Please lay out your structured approach to diagnosing the profit decline before we examine the data."}
+[timing] reads_done=28 plan_done=31 model_request=31 model_first_token=648 distress_verdict=678 model_first_sentence=680 first_delivered=680 model_say_closed=680 model_move_closed=697 model_requests_closed=716 model_exhibit_closed=737 model_rescue_item_closed=764 model_question_closed=875 model_done=918 settle_start=918 settle_composed=919 first_useful_delivered=919 tail_delivered=919 persist_start=919 persist_end=952
+
+[interviewer · STRUCTURE · 0:08] Mm-hm. Please lay out your structured approach to diagnosing the profit decline before we examine the data.
+[live-run] script finished
+
+[live-run] ended=false scoring=not_completed

@@ -1,0 +1,184 @@
+[live-run] seeded from Case Interview Runs/test runs/batch-17-oct-07-luna/18-nikhil-the-data-hoover through t4: 4 turns, 0 revealed, 21 request events, pressure test awaiting
+[live-run] session 4c920af2-e941-4a74-8a36-2f886a9bd224 · Brew & Bean Profitability · persona 18 Nikhil — the Data Hoover · pace fast
+
+[interviewer · INTRO] Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?
+
+Take a minute if you need it, then tell me how you'd structure your approach.
+
+[candidate · 0:00] Probably something's missing, yeah. Let me add to the list rather than guess.
+
+One, revenue per store per year so I can separate same-store growth from new-store growth. Two, gross margin by product category — drinks versus food versus packaged beans. Three, the mix shift across those categories over two years. Four, waste or spoilage rates. Five, discounting and promotional activity as a percent of gross sales. Six, delivery platform commissions if they're on DoorDash or Uber Eats. Seven, training and turnover costs. Eight, depreciation and amortization by year, and whether new store buildouts are being capitalized or expensed.
+
+Also, going back to something I asked earlier — do we have the menu price history? Whether prices moved at all over the two years matters for whether the 15% revenue growth is price or volume.
+[runner] phase: STRUCTURE kind: model stall rung: none
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"pressure_test","requests":[{"what":"menu price history","item_ids":["menu_price_change"],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Before adding more data requests, is your structure MECE—what might be missing?"}
+[timing] reads_done=100 plan_done=121 model_request=122 distress_verdict=802 model_first_token=1895 model_first_sentence=1928 held_for_requests=1928 model_say_closed=1928 model_move_closed=1950 model_requests_closed=2075 first_delivered=2084 model_exhibit_closed=2091 model_rescue_item_closed=2163 first_useful_delivered=2166 data_line_delivered=2166 model_question_closed=2323 model_done=2378 settle_start=2378 settle_composed=2393 tail_delivered=2393 persist_start=2393 persist_end=2533
+
+[interviewer · EXHIBIT · 0:03] Mm-hm. Coming back to what you asked for earlier: Menu prices have not changed in two years. Raw coffee bean costs are up 40% over the past two years. COGS is 58% of revenue today, up from 42% two years ago. What do you take from those numbers?
+
+[candidate · 0:03] Honestly I'd rather let the data point me than pick a branch blind. A few more things would settle it.
+
+One, operating margin by vintage — stores open more than two years versus newly opened. Two, headcount at corporate versus in-store. Three, the year-over-year change in each cost line in absolute dollars, not just percentages. Four, any change in the number of SKUs on the menu. Five, average hours of operation per store. Six, equipment leasing versus ownership. Seven, insurance and workers' comp expense. Eight, franchise versus company-owned split across the 200 locations.
+
+I'll assume for now that prices were roughly flat since I haven't gotten the price history, which would make the 15% growth volume-driven — likely from new stores. But I'd want the vintage data to confirm.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"You’re requesting additional operating data and making a volume-growth assumption.","move":"analysis","requests":[{"what":"operating margin by store vintage","item_ids":[],"explicit":true,"respond":"release"},{"what":"corporate versus in-store headcount","item_ids":[],"explicit":true,"respond":"release"},{"what":"year-over-year cost changes in absolute dollars","item_ids":[],"explicit":true,"respond":"release"},{"what":"menu SKU count changes","item_ids":[],"explicit":true,"respond":"release"},{"what":"store operating hours","item_ids":[],"explicit":true,"respond":"release"},{"what":"equipment leasing versus ownership","item_ids":[],"explicit":true,"respond":"release"},{"what":"insurance and workers’ compensation expense","item_ids":[],"explicit":true,"respond":"release"},{"what":"franchise versus company-owned store split","item_ids":["stores_count"],"explicit":true,"respond":"release"},{"what":"labor as a percentage of revenue","item_ids":["labor_pct"],"explicit":false,"respond":"release"},{"what":"overhead and rent as a percentage of revenue","item_ids":["overhead_pct"],"explicit":false,"respond":"release"},{"what":"total annual revenue","item_ids":["revenue_total"],"explicit":false,"respond":"release"},{"what":"average revenue per store","item_ids":["revenue_per_store"],"explicit":false,"respond":"release"},{"what":"average transaction value","item_ids":["avg_ticket"],"explicit":false,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"How do the cost figures you have support the claim that revenue growth was volume-driven, and what do you conclude is driving the margin decline?"}
+[timing] reads_done=101 plan_done=107 model_request=108 distress_verdict=678 model_first_token=786 model_first_sentence=931 held_for_requests=931 model_say_closed=931 model_move_closed=948 model_requests_closed=2378 first_delivered=2380 model_exhibit_closed=2386 model_rescue_item_closed=2420 first_useful_delivered=2421 data_line_delivered=2421 model_question_closed=2684 model_done=2737 settle_start=2737 settle_composed=2739 tail_delivered=2739 persist_start=2739 persist_end=2778
+
+[interviewer · EXHIBIT · 0:05] You’re requesting additional operating data and making a volume-growth assumption. On what you asked about earlier: 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. I don't have operating margin by store vintage, corporate versus in-store headcount, year-over-year cost changes in absolute dollars, menu SKU count changes, store operating hours, equipment leasing versus ownership or insurance and workers’ compensation expense. I can share labor as a percentage of revenue, overhead and rent as a percentage of revenue, total annual revenue, average revenue per store and average transaction value if you'd like. How do the cost figures you have support the claim that revenue growth was volume-driven, and what do you conclude is driving the margin decline?
+
+[candidate · 0:05] Fair, though I'd want to avoid committing to a branch and then finding out the data doesn't support it.
+
+Let me narrow with a few more. One, COGS dollars in year one versus year three. Two, labor dollars in year one versus year three. Three, rent dollars in year one versus year three. Four, SG&A dollars in year one versus year three. Five, which of those four grew fastest in percentage terms. Six, whether any line grew faster than the 15% revenue growth. Seven, revenue in absolute dollars for both years. Eight, net profit in absolute dollars for both years.
+
+If one cost line is clearly outgrowing revenue, that's the branch — I just don't want to name it before I can see which one it is.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"You’re asking for absolute cost figures and which line grew fastest.","move":"analysis","requests":[{"what":"COGS dollars by year","item_ids":[],"explicit":true,"respond":"release"},{"what":"labor dollars by year","item_ids":[],"explicit":true,"respond":"release"},{"what":"rent dollars by year","item_ids":[],"explicit":true,"respond":"release"},{"what":"SG&A dollars by year","item_ids":[],"explicit":true,"respond":"release"},{"what":"cost line growth rates","item_ids":["exhibit-a"],"explicit":true,"respond":"release"},{"what":"revenue in absolute dollars by year","item_ids":["revenue_total"],"explicit":true,"respond":"release"},{"what":"net profit in absolute dollars by year","item_ids":[],"explicit":true,"respond":"release"},{"what":"labor as a percentage of revenue","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"overhead and rent as a percentage of revenue","item_ids":["overhead_pct"],"explicit":true,"respond":"release"},{"what":"total annual revenue","item_ids":["revenue_total"],"explicit":true,"respond":"release"},{"what":"average revenue per store","item_ids":["revenue_per_store"],"explicit":true,"respond":"release"},{"what":"average transaction value","item_ids":["avg_ticket"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Given that same-store footprint and menu prices were flat while coffee bean costs rose and COGS increased as a share of revenue, what is your current hypothesis for the margin decline, and what would you recommend to address it?"}
+[timing] reads_done=35 plan_done=37 model_request=37 distress_verdict=717 model_first_token=739 model_first_sentence=838 first_delivered=839 model_say_closed=839 model_move_closed=851 model_requests_closed=2017 model_exhibit_closed=2029 model_rescue_item_closed=2060 first_useful_delivered=2061 data_line_delivered=2061 model_question_closed=2510 model_done=2567 settle_start=2567 settle_composed=2570 tail_delivered=2570 persist_start=2570 persist_end=2600
+
+[interviewer · EXHIBIT · 0:08] You’re asking for absolute cost figures and which line grew fastest. You asked about this earlier: Total revenue is $480M a year. Average revenue per store is $2.4M a year. The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit. Here's an exhibit: Brew & Bean Cost Structure Over Time. I don't have COGS dollars by year, labor dollars by year, rent dollars by year, SG&A dollars by year or net profit in absolute dollars by year. Given that same-store footprint and menu prices were flat while coffee bean costs rose and COGS increased as a share of revenue, what is your current hypothesis for the margin decline, and what would you recommend to address it?
+
+[candidate · 0:08] Probably not fully. Let me add what I think is outstanding.
+
+One, interest expense and debt load, since margin is net not operating. Two, effective tax rate by year. Three, any FX exposure if beans are imported. Four, shrinkage or theft. Five, gift card breakage. Six, credit card processing fees as a percent of sales. Seven, packaging and cup costs. Eight, the capex schedule for the new stores and the payback period assumed.
+
+And one I'd still like from earlier — the split inside the biggest cost line, whatever that turns out to be. If COGS is the largest bucket, knowing how much is green coffee versus dairy versus food versus packaging would tell me whether this is a commodity problem or a mix problem.
+
+I'll keep going either way.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"exhibit","requests":[{"what":"split of COGS between coffee beans and other inputs","item_ids":["bean_share_of_cogs","non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What does the cost structure exhibit tell you, and how does the COGS breakdown affect your hypothesis?"}
+[timing] reads_done=67 plan_done=71 model_request=71 distress_verdict=667 model_first_token=1041 model_first_sentence=1047 first_delivered=1049 model_say_closed=1049 model_move_closed=1057 model_requests_closed=1269 model_exhibit_closed=1285 model_rescue_item_closed=1297 first_useful_delivered=1297 data_line_delivered=1297 model_question_closed=1479 model_done=1540 settle_start=1540 settle_composed=1542 tail_delivered=1542 persist_start=1542 persist_end=1577
+
+[interviewer · EXHIBIT · 0:09] Mm-hm. Coffee beans were 25% of COGS two years ago. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. What does the cost structure exhibit tell you, and how does the COGS breakdown affect your hypothesis?
+
+[candidate · 0:09] I'd say the cost side over the revenue side, since revenue grew 15% and margin still fell eighteen points — but which cost line, I can't call yet.
+
+To get there: one, the four main cost lines ranked by size in year three. Two, the same ranked by growth rate. Three, gross margin versus operating margin by year, so I can tell whether it's above or below the gross line. Four, whether the margin decline was gradual or stepped in one year. Five, same-store margin versus chain-wide margin. Six, the number of stores opened in each of the two years. Seven, average time to breakeven for a new store. Eight, whether any markets were exited.
+
+Give me those and I'll name the branch.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"You’re looking to rank the cost drivers and locate the margin decline.","move":"exhibit","requests":[{"what":"cost lines ranked by size and growth","item_ids":[],"explicit":true,"respond":"release"},{"what":"gross and operating margins by year","item_ids":[],"explicit":true,"respond":"release"},{"what":"timing of the margin decline","item_ids":[],"explicit":true,"respond":"release"},{"what":"same-store versus chain-wide margin","item_ids":[],"explicit":true,"respond":"release"},{"what":"store openings, new-store breakeven and market exits","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What does the cost structure exhibit tell you, and what is your current diagnosis?"}
+[timing] reads_done=47 plan_done=49 model_request=50 distress_verdict=619 model_first_token=1270 model_first_sentence=1396 first_delivered=1397 model_say_closed=1397 model_move_closed=1424 model_requests_closed=2044 model_exhibit_closed=2059 model_rescue_item_closed=2091 first_useful_delivered=2091 data_line_delivered=2091 model_question_closed=2215 model_done=2237 settle_start=2237 settle_composed=2238 tail_delivered=2238 persist_start=2238 persist_end=2269
+
+[interviewer · EXHIBIT · 0:12] You’re looking to rank the cost drivers and locate the margin decline. I don't have cost lines ranked by size and growth, gross and operating margins by year, timing of the margin decline, same-store versus chain-wide margin or store openings, new-store breakeven and market exits. What does the cost structure exhibit tell you, and what is your current diagnosis?
+
+[candidate · 0:12] Cost side, as I said. If you want me narrower than that, I'd lean COGS, but I'd be guessing — it could just as easily be labor or new-store drag below the gross line.
+
+What would settle it: one, COGS as a percent of revenue in year one versus year three. Two, labor as a percent of revenue in year one versus year three. Three, rent as a percent. Four, SG&A as a percent. Five, which of those four moved the most in percentage points. Six, the dollar value of the single largest cost increase. Seven, whether that increase sits above or below the gross profit line. Eight, store count in each year.
+
+Whichever line moved most in percentage points of revenue — that's the branch I'd take first.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"You’re focusing on the largest percentage-point movement.","move":"exhibit","requests":[{"what":"COGS as a percentage of revenue","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"labor as a percentage of revenue","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"rent as a percentage of revenue","item_ids":[],"explicit":true,"respond":"release"},{"what":"SG&A as a percentage of revenue","item_ids":["overhead_pct"],"explicit":true,"respond":"release"},{"what":"cost increase in dollars","item_ids":[],"explicit":true,"respond":"release"},{"what":"store count by year","item_ids":["stores_count"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What does the cost structure exhibit tell you about the main driver of the margin decline, and what is your diagnosis?"}
+[timing] reads_done=38 plan_done=39 model_request=39 distress_verdict=683 model_first_token=1133 model_first_sentence=1254 first_delivered=1255 model_say_closed=1255 model_move_closed=1317 model_requests_closed=1936 model_exhibit_closed=1977 model_rescue_item_closed=2007 first_useful_delivered=2007 data_line_delivered=2007 model_question_closed=2179 model_done=2198 settle_start=2198 settle_composed=2200 tail_delivered=2200 persist_start=2200 persist_end=2230
+
+[interviewer · EXHIBIT · 0:14] You’re focusing on the largest percentage-point movement. I don't have rent as a percentage of revenue or cost increase in dollars. What does the cost structure exhibit tell you about the main driver of the margin decline, and what is your diagnosis?
+
+[candidate · 0:14] Cost side alone probably isn't MECE, no — revenue quality could be hiding something even with 15% growth. Let me list what's missing.
+
+One, revenue mix between high-margin drinks and low-margin food. Two, whether the 15% is price, volume, or new-store count. Three, same-store sales growth specifically. Four, discount depth per transaction. Five, returns and comps given away. Six, loyalty redemption cost booked as contra-revenue. Seven, wholesale or grocery channel revenue and its margin. Eight, any revenue recognition change across the two years.
+
+And still outstanding from earlier — menu price history. If prices rose and margin still fell, that's a very different story from flat prices.
+
+I'll assume revenue growth is mostly new stores until told otherwise, and keep the cost side as the priority branch.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Understood.","move":"exhibit","requests":[{"what":"menu price history","item_ids":["menu_price_change"],"explicit":true,"respond":"release"},{"what":"revenue mix, growth drivers and recognition","item_ids":[],"explicit":true,"respond":"release"},{"what":"discounts, returns and loyalty redemption costs","item_ids":[],"explicit":true,"respond":"release"},{"what":"channel revenue and margin","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What does the cost structure exhibit tell you about the margin decline, and how does it change your hypothesis?"}
+[timing] reads_done=38 plan_done=40 model_request=40 distress_verdict=615 model_first_token=746 model_first_sentence=760 first_delivered=762 model_say_closed=762 model_move_closed=811 model_requests_closed=1314 model_exhibit_closed=1339 model_rescue_item_closed=1372 first_useful_delivered=1372 data_line_delivered=1372 model_question_closed=1515 model_done=1536 settle_start=1536 settle_composed=1538 tail_delivered=1538 persist_start=1538 persist_end=1575
+
+[interviewer · EXHIBIT · 0:16] Understood. I don't have revenue mix, growth drivers and recognition, discounts, returns and loyalty redemption costs or channel revenue and margin. What does the cost structure exhibit tell you about the margin decline, and how does it change your hypothesis?
+
+[candidate · 0:16] Cost side, and within it I'd start with the largest line — but I still don't know which that is, so I'm picking by size rather than by hypothesis.
+
+Can I get: one, the four cost lines in dollars for year three. Two, the same for year one. Three, the percentage-point change in each as a share of revenue. Four, the single biggest mover. Five, that mover's internal composition. Six, whether it's fixed or variable. Seven, whether it scales with store count or with volume. Eight, whether management has already acted on it.
+
+My reasoning is just arithmetic — revenue up 15%, margin down eighteen points, so costs grew materially faster than revenue. Whichever line carries most of that gap is where I'd go first. I need the four numbers to point at it.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"You’re asking for the cost-line arithmetic.","move":"exhibit","requests":[{"what":"cost-line figures and composition","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What does the cost structure exhibit show about which line is driving the margin decline, and can you quantify its contribution?"}
+[timing] reads_done=42 plan_done=44 model_request=44 distress_verdict=673 model_first_token=1275 model_first_sentence=1349 held_for_requests=1349 model_say_closed=1349 model_move_closed=1374 model_requests_closed=1553 first_delivered=1554 model_exhibit_closed=1566 model_rescue_item_closed=1595 first_useful_delivered=1595 data_line_delivered=1595 model_question_closed=1784 model_done=1835 settle_start=1835 settle_composed=1837 tail_delivered=1837 persist_start=1837 persist_end=1868
+
+[interviewer · EXHIBIT · 0:17] You’re asking for the cost-line arithmetic. I don't have cost-line figures and composition. What does the cost structure exhibit show about which line is driving the margin decline, and can you quantify its contribution?
+
+[candidate · 0:17] Cost side — I've said that, and I'll stand on it. Within cost, I'd take the largest line first, because an eighteen-point margin swing is too big to come from a small bucket.
+
+To actually name it: one, COGS dollars both years. Two, labor dollars both years. Three, rent dollars both years. Four, SG&A dollars both years. Five, which grew fastest. Six, which grew most in absolute dollars. Seven, which exceeded 15% growth. Eight, whether more than one did.
+
+If only one line outgrew revenue, that's my branch and I'd go straight into its drivers. If two or three did, I'd suspect something systemic — a rapid expansion program loading fixed costs ahead of revenue — and I'd restructure around new versus mature stores instead.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"You’re asking for cost-line comparisons.","move":"exhibit","requests":[{"what":"cost-line figures and growth comparisons","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What does the cost structure exhibit tell you about the main driver of the margin decline, and what action would you prioritize?"}
+[timing] reads_done=42 plan_done=44 model_request=44 distress_verdict=643 model_first_token=750 model_first_sentence=826 first_delivered=827 model_say_closed=827 model_move_closed=857 model_requests_closed=975 model_exhibit_closed=986 model_rescue_item_closed=1016 first_useful_delivered=1016 data_line_delivered=1016 model_question_closed=1175 model_done=1186 settle_start=1186 settle_composed=1188 tail_delivered=1188 persist_start=1188 persist_end=1218
+
+[interviewer · EXHIBIT · 0:19] You’re asking for cost-line comparisons. I don't have cost-line figures and growth comparisons. What does the cost structure exhibit tell you about the main driver of the margin decline, and what action would you prioritize?
+
+[candidate · 0:19] Cost side, largest line first. That's the same answer because nothing new has come in to change it.
+
+Here's what I'd need to go further: one, COGS in dollars, year one and year three. Two, labor in dollars, year one and year three. Three, rent in dollars, both years. Four, SG&A in dollars, both years. Five, total revenue in dollars, both years. Six, net profit in dollars, both years. Seven, store count, both years. Eight, revenue per store, both years.
+
+With revenue and the four cost lines I can compute each as a percent of sales, see the percentage-point deltas, and the branch picks itself. Right now I'd be naming a line on instinct rather than evidence, and I'd rather not anchor the team on a guess.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"You want to ground the diagnosis in the figures.","move":"exhibit","requests":[{"what":"cost-line and revenue figures by year","item_ids":["exhibit-a","cogs_pct","labor_pct","overhead_pct","revenue_total","revenue_per_store","stores_count"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Using the cost structure exhibit and the figures already available, quantify the main source of margin pressure and tell me what you would recommend."}
+[timing] reads_done=41 plan_done=53 model_request=53 distress_verdict=684 model_first_token=784 model_first_sentence=880 first_delivered=880 model_say_closed=880 model_move_closed=923 model_requests_closed=1205 model_exhibit_closed=1227 model_rescue_item_closed=1256 model_question_closed=1592 model_done=1622 settle_start=1622 settle_composed=1624 first_useful_delivered=1624 tail_delivered=1624 persist_start=1624 persist_end=1654
+
+[interviewer · EXHIBIT · 0:20] You want to ground the diagnosis in the figures. Using the cost structure exhibit and the figures already available, quantify the main source of margin pressure and tell me what you would recommend.
+
+[candidate · 0:20] Cost side, largest line first. I'll keep giving you that answer until something changes it.
+
+And the "why" is just the arithmetic you gave me: revenue up 15%, net margin down from 24% to 6%. If revenue were 100 in year one, profit was 24. In year three revenue is 115, profit is 6.9. So costs went from 76 to 108 — up about 42% while revenue rose 15%. That's roughly 32 points of revenue absorbed by cost growth. No small line does that.
+
+So: COGS dollars both years, labor dollars both years, rent both years, SG&A both years, store count both years, revenue per store both years, which line grew fastest, which grew most in dollars. The one carrying most of that 32 points is my branch.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"You’ve quantified the overall gap.","move":"exhibit","requests":[],"exhibit":null,"rescue_item":null,"question":"What does the cost structure exhibit show about the main source of margin pressure, and how does that affect your diagnosis?"}
+[timing] reads_done=38 plan_done=40 model_request=40 distress_verdict=637 model_first_token=972 model_first_sentence=1035 first_delivered=1037 model_say_closed=1037 model_move_closed=1070 model_requests_closed=1083 model_exhibit_closed=1111 model_rescue_item_closed=1142 model_question_closed=1309 model_done=1335 settle_start=1335 settle_composed=1339 first_useful_delivered=1339 tail_delivered=1339 persist_start=1339 persist_end=1370
+
+[interviewer · EXHIBIT · 0:22] You’ve quantified the overall gap. What does the cost structure exhibit show about the main source of margin pressure, and how does that affect your diagnosis?
+
+[candidate · 0:22] Probably not. A few things sit outside those four lines.
+
+One, depreciation and amortization — if they opened aggressively, D&A could be a chunk of that 32 points on its own. Two, interest expense, since we're measuring net margin not operating. Three, taxes. Four, pre-opening and buildout costs expensed rather than capitalized. Five, impairments or closure charges. Six, delivery platform commissions, which may sit outside COGS. Seven, credit card fees. Eight, corporate headcount growth separate from store labor.
+
+Also still open from earlier — the split inside whichever line is biggest. I'd want green coffee versus dairy versus food versus packaging if it's COGS.
+
+I'll keep the cost side as my branch and assume the gap is concentrated rather than spread until the numbers say otherwise.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"exhibit","requests":[],"exhibit":null,"rescue_item":null,"question":"What does the cost structure exhibit tell you about the main source of margin pressure, and how does the COGS breakdown shape your hypothesis?"}
+[timing] reads_done=40 plan_done=42 model_request=43 distress_verdict=626 model_first_token=1235 model_first_sentence=1277 first_delivered=1278 model_say_closed=1278 model_move_closed=1346 model_requests_closed=1354 model_exhibit_closed=1358 model_rescue_item_closed=1368 model_question_closed=1546 model_done=1594 settle_start=1594 settle_composed=1597 first_useful_delivered=1597 tail_delivered=1597 persist_start=1597 persist_end=1639
+
+[interviewer · EXHIBIT · 0:23] Mm-hm. What does the cost structure exhibit tell you about the main source of margin pressure, and how does the COGS breakdown shape your hypothesis?
+
+[candidate · 0:23] Possibly still missing the structural split. I've been listing cost lines, but I haven't separated mature stores from new ones, and that cut sits across all of them.
+
+So: one, store count opened in year two. Two, store count opened in year three. Three, revenue per mature store both years. Four, revenue per new store. Five, contribution margin for a mature store. Six, contribution margin for a new store. Seven, average months to breakeven. Eight, whether any of the 200 are franchised rather than company-owned.
+
+That cut is probably the real missing dimension — if the chain grew fast, new stores could be running at negative margin and dragging the average down while total revenue still rises 15%.
+
+I'd still want the four cost lines in dollars to size it.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"You’re considering whether store maturity could explain the margin pressure.","move":"exhibit","requests":[{"what":"store openings, mature and new store economics, breakeven time, and franchise mix","item_ids":[],"explicit":true,"respond":"release"},{"what":"cost-line figures and composition","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What does the cost structure exhibit show about the main source of margin pressure, and what does that imply for your diagnosis?"}
+[timing] reads_done=60 plan_done=62 model_request=63 distress_verdict=649 model_first_token=881 model_first_sentence=1059 first_delivered=1061 model_say_closed=1061 model_move_closed=1066 model_requests_closed=1434 model_exhibit_closed=1451 model_rescue_item_closed=1483 first_useful_delivered=1484 data_line_delivered=1484 model_question_closed=1598 model_done=1633 settle_start=1633 settle_composed=1636 tail_delivered=1636 persist_start=1636 persist_end=1664
+
+[interviewer · EXHIBIT · 0:25] You’re considering whether store maturity could explain the margin pressure. I don't have store openings, mature and new store economics, breakeven time, and franchise mix or cost-line figures and composition. What does the cost structure exhibit show about the main source of margin pressure, and what does that imply for your diagnosis?
+
+[candidate · 0:25] Cost side, largest line first — and if I had to pick between the two cuts I've described, I'd actually run the new-versus-mature store split first, because it would explain cost growth and revenue growth at the same time. Revenue up 15% with margin collapsing is the signature of expansion outpacing payback.
+
+To test it: one, stores opened in each of the two years. Two, revenue per mature store, both years. Three, contribution margin per mature store. Four, contribution margin per new store. Five, average months to breakeven. Six, pre-opening cost per store. Seven, D&A by year. Eight, rent dollars by year.
+
+If mature-store margin is flat and the decline is concentrated in new stores, it's an expansion problem. If mature stores also compressed, it's a cost-input problem and I'd go back to COGS.
+[runner] phase: EXHIBIT kind: model stall rung: none
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"You’re testing whether expansion or input costs explain the decline.","move":"exhibit","requests":[{"what":"store openings, store economics, pre-opening costs, depreciation and rent","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What does the cost structure exhibit show about the main source of margin pressure, and what does that imply for your diagnosis?"}
+[timing] reads_done=48 plan_done=50 model_request=50 distress_verdict=605 model_first_token=777 model_first_sentence=868 first_delivered=870 model_say_closed=870 model_move_closed=889 model_requests_closed=1057 model_exhibit_closed=1072 model_rescue_item_closed=1122 first_useful_delivered=1122 data_line_delivered=1122 model_question_closed=1255 model_done=1297 settle_start=1297 settle_composed=1300 tail_delivered=1300 persist_start=1300 persist_end=1330
+
+[interviewer · EXHIBIT · 0:26] You’re testing whether expansion or input costs explain the decline. I don't have store openings, store economics, pre-opening costs, depreciation and rent. What does the cost structure exhibit show about the main source of margin pressure, and what does that imply for your diagnosis?
+
+[live-run] ended=false scoring=not_completed
