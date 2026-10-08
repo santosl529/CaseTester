@@ -14,12 +14,12 @@
 
 - No voice library import from `lib/orchestrator`, `lib/agent`, `lib/scoring` (existing ESLint boundary rule). New orchestrator types (`HeardReport`) live in `lib/orchestrator`; `lib/voice` implements them.
 - Text mode is unchanged: every new `runTurn`/`persist` behavior applies only when `heard` is passed.
-- Under-booking is allowed, over-booking is not: a ledger item is booked only if its segment was **played**; an exhibit if its segment **started**.
+- Spec §5 (revised 8 Oct) is binding: every case figure in a saved line belongs to a booked item (a release is booked if any figure of it was heard); exhibits are booked only on browser confirmation; delivery-dependent state follows the §5.4 table; scripted lines follow `required` / `decided`.
 - Interviewer in the voice agent only: `INTERVIEWER_PROVIDER=anthropic-haiku55-none-medium`. Background models unchanged (`BACKGROUND_MODEL_ID`).
 - Speculation stays disabled; eager signals are logged only.
 - `HEARD_MARGIN_MS = 150`, `FRAME_MS = 20`, barge-in minimum words while speaking `VOICE_BARGE_MIN_WORDS` default 2 (≥1 while thinking), `VOICE_TTS_CHAR_CAP` default 90,000 per calendar month, reserve 2,000, `VOICE_MAX_SESSION_MIN` default 25, `LLM_BUDGET_USD` required (script default $1.00).
 - Flux settings unchanged: eot 0.7 / eager 0.5, 16 kHz linear16 in. Cartesia/TTS out 24 kHz mono s16le.
-- No subscription purchase, no TTS vendor change. Any paid run needs the user's go-ahead with an estimate (spec §9).
+- No subscription purchase (Cartesia is already upgraded), no TTS vendor change. Every paid run needs the user's go-ahead with its own estimate and caps (`LLM_BUDGET_USD`, `VOICE_TTS_RUN_CAP`, session count; spec §9). The upgrade is not a test budget.
 - Never read `.env.local`; scripts load it with `--env-file`.
 - Commit after each task with passing typecheck, tests, lint. End commit messages with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 
@@ -33,376 +33,56 @@
 
 ---
 
-### Task 1: Orchestrator — heard-aware turns
+### Task 1: Orchestrator — heard-aware turns (revised 8 Oct with spec §5)
 
 **Files:**
-- Modify: `lib/orchestrator/turn-types.ts` (append types)
-- Create: `lib/orchestrator/heard.ts`
-- Modify: `lib/orchestrator/session-runner.ts` (`RunTurnOptions`, `runTurn`, `runTurnBody` tail)
-- Modify: `lib/orchestrator/settle-turn.ts` (`Settled.persist`, persist body, the `result` object, timer marks at the `pressureTestSatisfiedNow` and `structureVerdict` awaits)
-- Modify: `lib/orchestrator/stream-turn.ts:201` (timer mark)
-- Test: `tests/orchestrator/heard.test.ts`, `tests/orchestrator/heard-runner.test.ts`
+- Modify: `lib/orchestrator/turn-types.ts` (`SegmentPlayback`, `HeardSegment` with `heardChars` + `exhibitShown`, `HeardReport`, `TurnCancelled`, `isCancelledTurn`, `ScriptedPlan.delivery`)
+- Modify: `lib/orchestrator/data-decisions.ts` (`DataLinePart`, `renderDataLineParts`; `renderDataLines` = its texts)
+- Modify: `lib/orchestrator/data-requests.ts` (`DetectedDataRequest.unheardResponse`, carried into the row payload)
+- Create: `lib/orchestrator/heard.ts` (`applyHeard`, `heardRequestRows`, `unheardQuestionPressureTest`)
+- Modify: `lib/orchestrator/plan-turn.ts` (`delivery: 'decided'` on termination and the distress close; `'required'` on warnings and offers)
+- Modify: `lib/orchestrator/session-runner.ts` (`heard`, `onTiming`; `heard` on every path that speaks, scripted included; `TurnCancelled` unless the scripted line is `decided`; a cancelled turn drops deferred work)
+- Modify: `lib/orchestrator/settle-turn.ts` (`commitScripted(plan, heard)` per §5.6; `persist(latency, heard)` per the §5.4 table, returning the turn as heard; status re-check; `pt_judge_settle` / `structure_judge` marks)
+- Modify: `lib/orchestrator/stream-turn.ts` (`pt_judge` mark)
+- Test: `tests/orchestrator/heard.test.ts` (16, pure), `tests/orchestrator/heard-runner.test.ts` (14, through the real runner with the in-memory store)
 
-**Interfaces:**
-- Produces (turn-types.ts):
-  ```ts
-  export type SegmentPlayback = 'played' | 'partial' | 'unplayed';
-  export type HeardSegment = Segment & { playback: SegmentPlayback; heardText: string };
-  export type HeardReport = { segments: HeardSegment[]; interrupted: boolean };
-  export class TurnCancelled extends Error {}
-  export function isCancelledTurn(r: HeardReport): boolean;
-  ```
-- Produces (session-runner.ts): `RunTurnOptions.heard?: () => Promise<HeardReport>`, `RunTurnOptions.onTiming?: (marks: Record<string, number>) => void`. `runTurn` rejects with `TurnCancelled` when `isCancelledTurn(report)`.
-- Produces (heard.ts): `applyHeard(report, composed) → HeardOutcome`, `unheardQuestionPressureTest(prev, next) → PressureTestState`.
-- Produces timer marks: `pt_judge_start/_end` (Stream), `pt_judge_settle_start/_end`, `structure_judge_start/_end` (Settle), `heard_resolved`.
-
-- [ ] **Step 1: Write the failing pure tests**
-
-`tests/orchestrator/heard.test.ts`:
+**Interfaces (produced):**
 ```ts
-import { describe, it, expect } from 'vitest';
-import { applyHeard, unheardQuestionPressureTest } from '@/lib/orchestrator/heard';
-import { isCancelledTurn, type HeardReport, type HeardSegment } from '@/lib/orchestrator/turn-types';
-import { INITIAL_PRESSURE_TEST } from '@/lib/orchestrator/pressure-test';
-
-const seg = (o: Partial<HeardSegment>): HeardSegment =>
-  ({ text: '', revealIds: [], kind: 'say', playback: 'played', heardText: o.text ?? '', ...o });
-const composed = { spokenText: 'Fair point. There are 120 stores. Where would you start?', question: 'Where would you start?', newReveals: ['stores_count'], exhibitId: undefined as string | undefined };
-
-describe('applyHeard', () => {
-  it('is the identity without a report (text mode)', () => {
-    const h = applyHeard(null, composed);
-    expect(h).toMatchObject({ savedText: composed.spokenText, bookedReveals: ['stores_count'], droppedReveals: [], questionHeard: true });
-  });
-
-  it('books a reveal only when its segment was played', () => {
-    const report: HeardReport = { interrupted: true, segments: [
-      seg({ kind: 'say', text: 'Fair point.' }),
-      seg({ kind: 'data', text: 'There are 120 stores.', revealIds: ['stores_count'], playback: 'partial', heardText: 'There are 120' }),
-      seg({ kind: 'tail', text: 'Where would you start?', playback: 'unplayed', heardText: '' }),
-    ] };
-    const h = applyHeard(report, composed);
-    expect(h.bookedReveals).toEqual([]);
-    expect(h.droppedReveals).toEqual(['stores_count']);
-    expect(h.savedText).toBe('Fair point. There are 120');
-    expect(h.questionHeard).toBe(false);
-  });
-
-  it('books an exhibit once its segment started, even if cut', () => {
-    const report: HeardReport = { interrupted: true, segments: [
-      seg({ kind: 'data', text: 'Here is the cost exhibit.', exhibitId: 'exhibit-a', playback: 'partial', heardText: 'Here is' }),
-    ] };
-    expect(applyHeard(report, { ...composed, newReveals: [], exhibitId: 'exhibit-a' }).exhibitBooked).toBe(true);
-    const unstarted: HeardReport = { interrupted: true, segments: [seg({ exhibitId: 'exhibit-a', playback: 'unplayed', heardText: '' })] };
-    expect(applyHeard(unstarted, { ...composed, newReveals: [], exhibitId: 'exhibit-a' }).exhibitBooked).toBe(false);
-  });
-
-  it('hears the question only when its full text was heard', () => {
-    const report: HeardReport = { interrupted: false, segments: [seg({ kind: 'tail', text: 'Where would you start?' })] };
-    expect(applyHeard(report, composed).questionHeard).toBe(true);
-    expect(applyHeard(report, composed).heardContains('where would  you start?')).toBe(true);
-  });
-});
-
-describe('unheardQuestionPressureTest', () => {
-  const prev = { ...INITIAL_PRESSURE_TEST, gatedTurns: 1 };
-  it('undoes an ask and keeps what the reply decided', () => {
-    const next = { ...prev, state: 'awaiting' as const, askedAt: 5, probe: 'Is that MECE?', intents: ['mece' as const], codeAsked: true, gatedTurns: 2, structureGiven: true };
-    expect(unheardQuestionPressureTest(prev, next)).toEqual({ ...prev, gatedTurns: 2, structureGiven: true });
-  });
-  it('keeps a satisfaction decided by the reply', () => {
-    const awaiting = { ...prev, state: 'awaiting' as const, askedAt: 3 };
-    const satisfied = { ...awaiting, state: 'satisfied' as const, satisfiedAt: 4 };
-    expect(unheardQuestionPressureTest(awaiting, satisfied)).toEqual(satisfied);
-  });
-});
-
-describe('isCancelledTurn', () => {
-  it('is an interruption before any segment started', () => {
-    expect(isCancelledTurn({ interrupted: true, segments: [seg({ playback: 'unplayed', heardText: '' })] })).toBe(true);
-    expect(isCancelledTurn({ interrupted: true, segments: [] })).toBe(true);
-    expect(isCancelledTurn({ interrupted: true, segments: [seg({ playback: 'partial' })] })).toBe(false);
-    expect(isCancelledTurn({ interrupted: false, segments: [] })).toBe(false);
-  });
-});
-```
-
-- [ ] **Step 2: Run to verify failure**
-
-Run: `npx vitest run tests/orchestrator/heard.test.ts`
-Expected: FAIL — cannot resolve `@/lib/orchestrator/heard`.
-
-- [ ] **Step 3: Implement the types and `heard.ts`**
-
-Append to `lib/orchestrator/turn-types.ts`:
-```ts
-// Voice playback of one accepted segment (spec 2026-10-08-voice-phase-b §5):
-// played = heard to the end; partial = started, cut by a barge-in; unplayed =
-// never started (still in TTS or the queue, or the TTS failed before audio).
-export type SegmentPlayback = 'played' | 'partial' | 'unplayed';
-export type HeardSegment = Segment & { playback: SegmentPlayback; heardText: string };
-// What the candidate heard of one turn, from the voice layer's playout clock.
+export type HeardSegment = Segment & { playback: SegmentPlayback; heardChars: number; exhibitShown: boolean };
 export type HeardReport = { segments: HeardSegment[]; interrupted: boolean };
-
-// A barge-in before any of the turn's segments started: the turn is dropped
-// whole — no writes, no deferred work — and the voice layer carries the
-// candidate's text into the next turn (§5.3).
-export class TurnCancelled extends Error {
-  constructor() { super('turn cancelled: barge-in before any of it was heard'); this.name = 'TurnCancelled'; }
-}
-export function isCancelledTurn(r: HeardReport): boolean {
-  return r.interrupted && r.segments.every(s => s.playback === 'unplayed');
-}
+export class TurnCancelled extends Error {}
+export function isCancelledTurn(r: HeardReport): boolean;        // interrupted && nothing heard or shown
+// RunTurnOptions.heard?: () => Promise<HeardReport>; RunTurnOptions.onTiming?: (marks) => void
+// Settled.persist(latency, heard?) => Promise<TurnResult>; commitScripted(plan, heard?) => Promise<TurnResult>
 ```
+Timer marks: `pt_judge_start/_end`, `pt_judge_settle_start/_end`, `structure_judge_start/_end`, `heard_resolved`.
 
-Create `lib/orchestrator/heard.ts`:
-```ts
-// Applying what the candidate heard to a settled turn (spec
-// 2026-10-08-voice-phase-b §5.1–5.2). Pure: Settle's persist calls it. Text
-// mode passes no report and gets the composed turn back unchanged.
-import type { HeardReport } from './turn-types';
-import type { PressureTestState } from './pressure-test';
+- [x] **Step 1: Failing tests.** The test files above, written first. They cover:
+  - reveal bookkeeping: booked if any figure was heard (cut after the figure → booked; cut before it → not booked, its request row logged `none` with `unheardResponse`); with no figure, the whole sentence must be heard;
+  - exhibits booked only on browser confirmation;
+  - the question heard only in full;
+  - every delivery-dependent row of §5.4: `lastQuestion`, the pressure test, close → `ended`, grace ask;
+  - cancellation: nothing written, `TurnCancelled`, `onTiming` called;
+  - no revive after End;
+  - scripted lines: a `required` warning counts only in full; a warning nobody heard is cancelled; a `decided` termination stands unheard; a cut distress offer isn't recorded; an inactive session never calls `heard`.
+- [x] **Step 2: Run, verify RED.** Pure file: module missing. Runner file: 11 fail because `heard` is ignored. 3 already pass, because they pin existing behavior (full play, termination, inactive session).
+- [x] **Step 3: Implement** the files above.
+- [x] **Step 4: GREEN.** `npx vitest run tests/orchestrator/heard.test.ts tests/orchestrator/heard-runner.test.ts` → 30/30.
+- [x] **Step 5: Mutation check.** Six guards were removed one at a time, and each was caught: `endedSaved`, figure-based booking, the status re-check, the `required` gate, the exhibit confirmation, and the pressure-test revert.
+- [x] **Step 6: Full verification.** `npm run typecheck && npm test && npm run lint` → clean; 964 passed, 1 skipped (the API-key harness).
+- [x] **Step 7: Commit.**
 
-const norm = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
+**Checkpoint (delivery bookkeeping):** stop and report.
 
-export type HeardOutcome = {
-  savedText: string;          // the turn as heard, without the acknowledgment
-  bookedReveals: string[];    // newReveals whose segment was played (§5.1)
-  droppedReveals: string[];
-  exhibitBooked: boolean;     // its segment started (it was on screen)
-  questionHeard: boolean;
-  heardContains: (span: string | null | undefined) => boolean;
-};
+> **Amendments for Tasks 2–5 from the 8 Oct spec revision.** These override the code below wherever they conflict, and each task's brief is re-checked against spec §5 when it starts:
+> 1. **`heardChars`, not `heardText`.** `Playout.interrupt`/`classify` return `{ playback, heardChars }`. Word timestamps are aligned 1:1 to the text's whitespace tokens to give character positions; when the counts differ, or there are no timestamps, the heard share of the audio is applied to the text and snapped back to a word boundary.
+> 2. **Heard cursor = play end + `HEARD_MARGIN_MS`.** Caption words are scheduled at `startAt + w.endMs + HEARD_MARGIN_MS`, so the screen never runs ahead of the saved line.
+> 3. **Exhibits.** The controller tracks `exhibit_shown` confirmations per segment. `heard()` waits for outstanding ones up to `EXHIBIT_CONFIRM_MS` (1500ms). After that, or on a late confirmation, it sends `exhibit_withdraw`. The protocol gains `exhibit_shown`, `exhibit_withdraw` and `audio_blocked`.
+> 4. **Scripted turns call `heard()` too.** The controller resolves it for scripted-only turns. A final that arrives while a scripted segment plays is queued as the next turn, not dropped. Barge-in is still ignored during scripted lines.
+> 5. **`audio_blocked`** is a cut without a carry. The agent goes silent until `ready`, and a turn cancelled this way re-runs with its text after `ready`.
+> 6. **`VOICE_TTS_RUN_CAP`** is required whenever `VOICE_TTS` is not `fake`, enforced per agent process, alongside the monthly ledger.
+> 7. **Environment commands** are in spec §12.
 
-export function applyHeard(
-  report: HeardReport | null,
-  c: { spokenText: string; question: string; newReveals: string[]; exhibitId?: string },
-): HeardOutcome {
-  if (!report) {
-    return {
-      savedText: c.spokenText, bookedReveals: c.newReveals, droppedReveals: [],
-      exhibitBooked: c.exhibitId !== undefined, questionHeard: true, heardContains: () => true,
-    };
-  }
-  const savedText = report.segments.map(s => s.heardText.trim()).filter(Boolean).join(' ');
-  const heard = norm(savedText);
-  const played = new Set(report.segments.filter(s => s.playback === 'played').flatMap(s => s.revealIds));
-  const heardContains = (span: string | null | undefined) => !span || heard.includes(norm(span));
-  return {
-    savedText,
-    bookedReveals: c.newReveals.filter(id => played.has(id)),
-    droppedReveals: c.newReveals.filter(id => !played.has(id)),
-    exhibitBooked: c.exhibitId !== undefined
-      && report.segments.some(s => s.exhibitId === c.exhibitId && s.playback !== 'unplayed'),
-    questionHeard: heardContains(c.question),
-    heardContains,
-  };
-}
-
-// The pressure test when this turn's question was not heard: nothing the
-// question did stands (an ask, a re-ask, a code-asked probe or structure ask);
-// what the candidate's reply decided does (structure given, satisfied), and so
-// does the gate's counter.
-export function unheardQuestionPressureTest(prev: PressureTestState, next: PressureTestState): PressureTestState {
-  if (prev.state === 'awaiting' && next.state === 'satisfied') return next;
-  return { ...prev, gatedTurns: next.gatedTurns, structureGiven: next.structureGiven };
-}
-```
-
-- [ ] **Step 4: Run the pure tests**
-
-Run: `npx vitest run tests/orchestrator/heard.test.ts`
-Expected: PASS (7 tests).
-
-- [ ] **Step 5: Write the failing runner tests**
-
-`tests/orchestrator/heard-runner.test.ts`: copy the in-memory store, `vi.mock` blocks, scripted model queue and helpers (`T`, `ask`, `pt`, `revealed`) verbatim from `tests/orchestrator/pressure-test-runner.test.ts` lines 1–78. Then:
-```ts
-import { TurnCancelled, type HeardReport, type Segment } from '@/lib/orchestrator/turn-types';
-
-// A voice layer stand-in: records accepted segments; `play` decides each one's playback.
-function voice(play: (s: Segment, i: number) => Pick<HeardReport['segments'][number], 'playback' | 'heardText'>, interrupted = false) {
-  const segs: Segment[] = [];
-  const onSegment = async (s: Segment) => { segs.push(s); };
-  const heard = vi.fn(async (): Promise<HeardReport> => ({ interrupted, segments: segs.map((s, i) => ({ ...s, ...play(s, i) })) }));
-  return { segs, onSegment, heard };
-}
-const all = (s: Segment) => ({ playback: 'played' as const, heardText: s.text });
-
-describe('voice: what was heard decides what is booked (spec §5)', () => {
-  it('books a played data line and saves the full line', async () => {
-    resetStore('CLARIFY');
-    const v = voice(all);
-    modelQueue.push(T({ requests: [ask(['stores_count'], 'the store count')], question: 'How would you structure it?' }));
-    const r = await runTurn('s1', 'How many stores are there?', { onSegment: v.onSegment, heard: v.heard });
-    expect(revealed()).toContain('stores_count');
-    expect(r.interviewerText).toContain('How would you structure it?');
-    expect(store.turns.at(-1)?.text).toBe(r.interviewerText);
-  });
-
-  it('does not book a data line cut mid-way; saves only the heard words; keeps the old question', async () => {
-    resetStore('CLARIFY', { lastQuestion: 'What is your first question?' });
-    const v = voice((s) => s.kind === 'data' ? { playback: 'partial', heardText: s.text.split(' ').slice(0, 2).join(' ') } : s.kind === 'tail' ? { playback: 'unplayed', heardText: '' } : all(s), true);
-    modelQueue.push(T({ requests: [ask(['stores_count'], 'the store count')], question: 'How would you structure it?' }));
-    const r = await runTurn('s1', 'How many stores are there?', { onSegment: v.onSegment, heard: v.heard });
-    expect(revealed()).not.toContain('stores_count');
-    expect(r.interviewerText).not.toContain('structure');
-    expect((store.session.flagsJsonb as Record<string, unknown>).lastQuestion).toBe('What is your first question?');
-    expect(store.events.some(e => e.subtype === 'voice_heard')).toBe(true);
-  });
-
-  it('a cancelled turn writes nothing and throws TurnCancelled', async () => {
-    resetStore('CLARIFY');
-    const turnsBefore = store.turns.length;
-    const v = voice(() => ({ playback: 'unplayed', heardText: '' }), true);
-    const onTiming = vi.fn();
-    modelQueue.push(T({ requests: [ask(['stores_count'], 'the store count')], question: 'Go on.' }));
-    await expect(runTurn('s1', 'How many stores', { onSegment: v.onSegment, heard: v.heard, onTiming })).rejects.toBeInstanceOf(TurnCancelled);
-    expect(store.turns.length).toBe(turnsBefore);
-    expect(store.revealed).toEqual([]);
-    expect(store.events).toEqual([]);
-    expect(onTiming).toHaveBeenCalledOnce();
-  });
-
-  it('does not count an unheard probe as the pressure test being asked', async () => {
-    resetStore('STRUCTURE');
-    const v = voice(s => s.kind === 'tail' ? { playback: 'unplayed', heardText: '' } : all(s), true);
-    modelQueue.push(T({ say: 'Okay.', question: 'Is that MECE — what’s missing?' }));
-    await runTurn('s1', 'I would split profit into revenue and costs.', { onSegment: v.onSegment, heard: v.heard });
-    expect(pt()?.state ?? 'not_asked').toBe('not_asked');
-  });
-
-  it('does not revive a session ended while the turn was playing (Review Focus 5)', async () => {
-    resetStore('CLARIFY');
-    const v = voice(all);
-    const heard = async () => { store.session.status = 'abandoned'; return v.heard(); };
-    modelQueue.push(T({ question: 'Go on.' }));
-    await runTurn('s1', 'Okay.', { onSegment: v.onSegment, heard });
-    expect(store.session.status).toBe('abandoned');
-    expect(store.turns.at(-1)?.role).toBe('interviewer');
-  });
-
-  it('never asks a scripted turn what was heard', async () => {
-    resetStore('CLARIFY');
-    store.session.status = 'completed';
-    const v = voice(all);
-    await runTurn('s1', 'Hello?', { onSegment: v.onSegment, heard: v.heard });
-    expect(v.heard).not.toHaveBeenCalled();
-  });
-});
-```
-Note for the implementer: `resetStore(phase, flags)` sets `flagsJsonb` from `flags` (check `readsFixture` in `tests/orchestrator/fixtures/turn-reads.ts`; if `lastQuestion` must be passed differently, adjust the fixture call, not the assertion). The partial-data test's `say` is empty, so the data line is the first segment.
-
-- [ ] **Step 6: Run to verify failure**
-
-Run: `npx vitest run tests/orchestrator/heard-runner.test.ts`
-Expected: FAIL — `heard` is ignored, so reveals are booked, `TurnCancelled` is never thrown, and status is overwritten to `active`.
-
-- [ ] **Step 7: Runner changes** (`lib/orchestrator/session-runner.ts`)
-
-Add to `RunTurnOptions`:
-```ts
-  // Voice: what the candidate actually heard (spec 2026-10-08-voice-phase-b
-  // §5). Called after the tail is delivered and before persist; resolves when
-  // playback ended or was interrupted. Absent in text mode: everything
-  // delivered counts as heard. Scripted turns never call it.
-  heard?: () => Promise<HeardReport>;
-  // Voice: the turn's TurnTimer marks, just before runTurn returns or throws
-  // TurnCancelled (the voice layer's per-turn timing record).
-  onTiming?: (marks: Record<string, number>) => void;
-```
-In `runTurn`, add a `cancelled` flag so a cancelled turn's deferred work is dropped like an unaccepted draft's:
-```ts
-  let cancelled = false;
-  try {
-    const run = () => runTurnBody(sessionId, candidateText, task => { deferred.push(task); }, opts);
-    return await (gate ? inDraftScope(gate.id, run) : run());
-  } catch (e) {
-    if (e instanceof TurnCancelled) cancelled = true;
-    throw e;
-  } finally {
-    // A draft that was never accepted, or a turn cancelled by a barge-in, leaves nothing behind.
-    if (!cancelled && (!gate || gate.accepted)) { /* existing body unchanged */ }
-  }
-```
-Replace the end of `runTurnBody` (from `await gate?.wait();` to `return settled.result;`) with:
-```ts
-  const report = opts.heard ? await opts.heard() : null;
-  timer.mark('heard_resolved');
-  if (report && isCancelledTurn(report)) {
-    opts.onTiming?.({ ...timer.marks });
-    throw new TurnCancelled();
-  }
-  await gate?.wait();
-  const result = await settled.persist({
-    firstSegmentMs: firstSegmentAt === null ? null : firstSegmentAt - ctx.turnStartMs,
-    streamed: streamedCount > 0,
-  }, report);
-  opts.onTiming?.({ ...timer.marks });
-  return result;
-```
-Import `TurnCancelled`, `isCancelledTurn`, `type HeardReport` from `./turn-types`.
-
-- [ ] **Step 8: Settle changes** (`lib/orchestrator/settle-turn.ts`)
-
-1. `Settled.persist` becomes `(latency: { firstSegmentMs: number | null; streamed: boolean }, heard?: HeardReport | null) => Promise<TurnResult>`.
-2. Move the `result` object literal (today inside the final `return`) into a `const result: TurnResult = { … }` declared just before `const persist`, and return `result` in `Settled` as before.
-3. At the top of `persist`, after `out.timer?.mark('persist_start');`:
-```ts
-    // Voice (spec §5.1–5.2): book and save what was heard. Text mode: no report, no change.
-    const h = applyHeard(heard ?? null, { spokenText, question, newReveals, exhibitId: exhibit?.id });
-    const exhibitSaved = h.exhibitBooked ? exhibit : undefined;
-    const exhibitRevealsSaved = h.exhibitBooked ? exhibitReveals : [];
-    const lastQuestionSaved = h.questionHeard ? lastQuestion : state.lastQuestion;
-    const ptSaved = h.questionHeard ? pt : unheardQuestionPressureTest(ptPrev, pt);
-    let stallSaved = stallState;
-    let rungSpanSaved = rungDeliverySpan;
-    if (rungSpanSaved && !h.heardContains(rungSpanSaved)) {
-      rungSpanSaved = null;
-      stallSaved = revertUndeliveredRung(stallState, priorStall);
-    }
-    if (heard) {
-      checks.record('voice_heard', heard.interrupted || h.droppedReveals.length > 0 || !h.questionHeard,
-        heard.interrupted ? 'barge-in: only what was heard is saved and booked' : 'playback incomplete', {
-          interrupted: heard.interrupted, questionHeard: h.questionHeard, droppedReveals: h.droppedReveals,
-          playback: heard.segments.map(s => ({ kind: s.kind, playback: s.playback })),
-        });
-    }
-    // A session ended elsewhere while this turn played (End button) is not revived (§5.6).
-    const stillActive = heard
-      ? (await db.query.sessions.findFirst({ where: eq(sessions.id, sessionId) }))?.status === 'active'
-      : true;
-```
-4. In the persist body, use the saved values: the interviewer row text `heardText(ctx, h.savedText)`; `revealedRowsNew` from `[...h.bookedReveals, ...exhibitRevealsSaved]`; the `exhibitsShown` insert on `exhibitSaved`; the rung event subtype and `span` from `rungSpanSaved`; in the session update, `stall: stallSaved`, `lastQuestion: lastQuestionSaved`, `pressureTest: ptSaved`, and wrap the whole `db.update(sessions)…` element as `stillActive ? db.update(sessions)… : Promise.resolve()`; the analytics loops over `h.bookedReveals`, `exhibitRevealsSaved`, `exhibitSaved`.
-5. End `persist` with:
-```ts
-    return heard ? { ...result, interviewerText: heardText(ctx, h.savedText), exhibit: exhibitSaved } : result;
-```
-6. Timer marks: line 139 `const satisfiedNow = await (out.timer ? out.timer.time('pt_judge_settle', pressureTestSatisfiedNow(plan)) : pressureTestSatisfiedNow(plan));` and line 191 `const verdict = pt.structureGiven ? null : await (out.timer ? out.timer.time('structure_judge', state.structureVerdict) : state.structureVerdict);`.
-7. Imports: `applyHeard`, `unheardQuestionPressureTest` from `./heard`; `type HeardReport` from `./turn-types`.
-
-In `lib/orchestrator/stream-turn.ts:201`: `await (opts.timer ? opts.timer.time('pt_judge', pressureTestSatisfiedNow(plan)) : pressureTestSatisfiedNow(plan));`
-
-- [ ] **Step 9: Run the new and existing tests**
-
-Run: `npx vitest run tests/orchestrator`
-Expected: PASS, including every existing runner test (text mode unchanged).
-
-- [ ] **Step 10: Full verification**
-
-Run: `npm run typecheck && npm test && npm run lint`
-Expected: 0 type errors; all tests pass (the API-key harness stays skipped); lint clean, including the boundary rule.
-
-- [ ] **Step 11: Commit**
-
-```bash
-git add lib/orchestrator/turn-types.ts lib/orchestrator/heard.ts lib/orchestrator/session-runner.ts lib/orchestrator/settle-turn.ts lib/orchestrator/stream-turn.ts tests/orchestrator/heard.test.ts tests/orchestrator/heard-runner.test.ts
-git commit -m "feat(turn): heard-aware turns — book and save what voice playback reports; cancelled turns write nothing
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
-```
-
-**Checkpoint:** stop and report to the user before Task 2.
 
 ---
 
@@ -1479,7 +1159,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 ### Task 4: LiveKit agent, token and end routes
 
-**Prerequisites (user):** OK to add `@livekit/rtc-node@^1.1.0` to `dependencies` (already installed as a peer of `@livekit/agents`); `brew install livekit` for `livekit-server --dev` (a system install on your machine). No paid API calls in this task.
+**Prerequisites (user):** the exact commands are in spec §12: `npm install --save @livekit/rtc-node@^1.1.0` (already installed as a peer of `@livekit/agents`; this records it in package.json), `brew install livekit`, the dev-server `LIVEKIT_*` lines in `.env.local`, and `livekit-server --dev --bind 127.0.0.1`. No paid API calls in this task.
 
 **Files:**
 - Modify: `package.json` (dependency + `voice:agent` script), `.env.example`
@@ -1868,11 +1548,11 @@ Read the DB rows for the session by hand (spec §11 item 2 subset) and report.
 
 ---
 
-### Task 6: Listening gate on Cartesia — PAID, needs funding decision
+### Task 6: Listening gate on Cartesia — PAID, its own approved budget
 
 **Prerequisites (user):**
-- Decide on Cartesia Pro ($5/month; overages stay **off**) and buy it yourself. Then set `CARTESIA_API_KEY` / `CARTESIA_VOICE_ID` in `.env.local`.
-- Go-ahead on the estimate: 3 full interviews + 1 barge-in drill ≈ LLM $0.45 (`LLM_BUDGET_USD=1.00` per session), Flux ≈ $0.80, Cartesia ≈ 15–40K characters of the 100K. Optional scoring is +$0.45 per scored interview.
+- Cartesia is already upgraded (no purchase). Overages stay **off**; `CARTESIA_API_KEY` / `CARTESIA_VOICE_ID` are in `.env.local`.
+- Go-ahead on this step's own budget: 3 full interviews + 1 barge-in drill ≈ LLM $0.45 (`LLM_BUDGET_USD=1.00` per session), Flux ≈ $0.80, Cartesia `VOICE_TTS_RUN_CAP` ≈ 15K per session (≈15–40K total). Optional scoring is +$0.45 per scored interview. The upgrade is not a test budget.
 
 **Files:**
 - Create: `Case Interview Runs/voice-live/<date>/gate.md` (results; not committed unless the user asks)
