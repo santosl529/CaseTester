@@ -1,6 +1,6 @@
 # Persona batch evaluation — recorder, scorecard, fault review, scoring evaluation
 
-Status: design approved in conversation (9 Oct 2026); written for review.
+Status: approved 9 Oct 2026, with two changes at review: the ChatGPT baseline runs after the batch (§2.7, §3), and the naming scheme in §2.2.
 Scope: the 63-persona text batch (`scripts/personas.ts`) and everything needed to turn it into a pilot-readiness decision and reusable replay/training material.
 
 ## 1. Purpose and success criteria
@@ -32,7 +32,8 @@ Constraints carried from the project rules: ask before every paid step, with an 
 
 ### 2.2 Waves and the batch manifest
 - The batch runs in **waves of up to 10 personas**; the user chooses each wave's size and persona ids. Each wave is one command, e.g.
-  `scripts/persona-batch.ts --batch=batch-18-oct-09 --personas=1,2,3 --cap=65`, launching the runs in parallel and exiting when they finish.
+  `scripts/persona-batch.ts --personas=1,2,3 --cap=65`, launching the runs in parallel and exiting when they finish.
+- **Naming:** the batch is **batch 18**, version `v1`. Runs are numbered 1–63 in the order they are run. Each wave's runs go in `Case Interview Runs/test runs/batch-18-<mon>-<dd>-runs-<x>-<y>/` (the date the wave ran, its first and last run numbers — e.g. `batch-18-oct-09-runs-1-10`, then `batch-18-oct-10-runs-11-15`). Batch-level files (manifest, budget ledger, scorecard, faults, review sheet, bands comparison) live in `Case Interview Runs/test runs/batch-18/`.
 - `manifest.json` in the batch folder records: batch version, git commit, bands-file hash, severity-file hash, model ids, and per persona: status (pending / done / failed), run folder, wave id, cost.
 - Shared budget ledger across waves (`LLM_BUDGET_FILE` in the batch folder) with the batch cap; each wave also prints its own estimate before starting.
 - **Freeze:** a wave refuses to start on a dirty working tree or on a commit different from the manifest's, unless `--new-version=<label>` is passed; runs are then tagged with that version and never pooled with the earlier version in any summary.
@@ -79,18 +80,19 @@ The user may edit these at spec review; after the freeze, changes create a new v
 **Blind comparison with a free-ChatGPT baseline:**
 - 12 interviews, stratified 4 strong / 4 average / 4 struggling (by persona design), at least 2 with confirmed interviewer faults.
 - Baseline prompt (what a student would type): case prompt + transcript + "Here's my mock case interview transcript. Give me detailed feedback on my performance." No rubric.
-- Baseline model: **to be named by the user at spec review** (whatever free ChatGPT runs in Oct 2026); fallback GPT-6 Luna via the existing OpenAI key — a few cents.
+- **Runs after the batch** (post-batch phase), not during the waves; its tooling is built then too.
+- Baseline model: to be named by the user before that phase (whatever free ChatGPT runs then); fallback GPT-6 Luna via the existing OpenAI key — a few cents.
 - `scripts/blind-packet.ts` renders both reports as plain text with product names removed, assigns A/B randomly per pair, writes `blind/packet.md` and a separate `blind/key.json`. Blinding is partial (structure and style may reveal the source) — recorded as a limitation.
 - Per report the user records: wrong claims about the transcript (count), specific (points to moments), actionable next steps, priorities right, anything wrong or harmful; per pair: preference and "ours clearly better" (yes / no). `scripts/blind-tally.ts` unblinds and summarises.
 
 ## 3. Protocol and spend gates
-1. **Build** (free, TDD, a checkpoint after each piece): recorder → manifest/waves → scorecard extractor → pre-screen → bands comparator → blind packet + tally.
+1. **Build** (free, TDD, a checkpoint after each piece): recorder → manifest/waves → scorecard extractor → pre-screen → bands comparator. (Blind packet + tally are built in step 7.)
 2. **Draft and freeze:** Claude drafts the bands and the severity file; the user reviews; both are committed and hashed.
 3. **Smoke** (≈ $1.20, ask first): one scored persona through every step (record completeness, extractor, pre-screen on that run).
 4. **Waves** (≈ $0.77 per persona, batch cap $65, ask before each wave): the user names the personas and the wave size (≤10).
 5. **Scorecard** (free) → **pre-screen** (≈ $15, ask) → **user confirmation**.
 6. **Reruns** (≈ $15–25, ask): each persona with a confirmed serious fault runs twice more (tagged `rerun-N`).
-7. **Scoring evaluation:** bands comparison (free); baseline for 12 interviews (cents, ask); user's blind read; tally.
+7. **Scoring evaluation (post-batch):** bands comparison (free); then build the blind packet + tally, generate the baseline for 12 interviews (cents, ask), user's blind read, tally.
 8. **Deliverables** (§1) and PRD/progress updates.
 
 Total ≈ $85–110 API; user time ≈ 45 min (bands review), 2–3 h (fault confirmation), ≈ 2 h (blind read).
@@ -108,7 +110,6 @@ Total ≈ $85–110 API; user time ≈ 45 min (bands review), 2–3 h (fault con
 - Accuracy against a human grader and grading consistency (`regrade.ts --repeat`) — not selected for this round.
 - Any fix to faults found — the batch reports them; fixes follow as separate work.
 
-## 6. Decisions for the user at spec review
-1. Baseline model for the blind comparison (§2.7).
-2. Severity definitions (§2.5) — edit before freeze.
-3. Batch name and version label for the first wave.
+## 6. Decisions
+- Settled at review: batch 18, version `v1`, wave folders `batch-18-<mon>-<dd>-runs-<x>-<y>`; ChatGPT baseline post-batch; severity definitions as written (still editable until the freeze in step 2).
+- Open: baseline model for the blind comparison (before the post-batch phase).
