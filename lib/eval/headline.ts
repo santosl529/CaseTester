@@ -24,10 +24,10 @@ export function headline(rows: ScorecardRow[], faults: FaultRecord[]) {
 
   const turns = rows.reduce((n, r) => n + r.modelTurns, 0);
   const longestFaultyStretch = rows.map(r => {
-    // Interviewer lines sit at even turn indices 2, 4, 6, …: consecutive interviewer turns differ by 2.
-    const idx = [...new Set(confirmed.filter(f => f.runId === r.runId).map(f => f.turnIndex))].sort((a, b) => a - b);
-    let best = 0, cur = 0, prev = -10;
-    for (const i of idx) { cur = i - prev === 2 ? cur + 1 : 1; best = Math.max(best, cur); prev = i; }
+    // Replies sit wherever the candidate's turns put them (silence check-ins shift the indices): a stretch is consecutive entries of this run's replyTurns that each carry a confirmed fault.
+    const faulty = new Set(confirmed.filter(f => f.runId === r.runId).map(f => f.turnIndex));
+    let best = 0, cur = 0;
+    for (const i of r.replyTurns) { cur = faulty.has(i) ? cur + 1 : 0; best = Math.max(best, cur); }
     return { runId: r.runId, turns: best };
   });
 

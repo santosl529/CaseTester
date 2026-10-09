@@ -181,4 +181,14 @@ describe('scorecard', () => {
     expect(scorecardRow({ runId: 'r', run: run({ score: null }), turnFile: tf(end('failed')) }).scoring).toBe('failed');
     expect(scorecardRow({ runId: 'r', run: run({ score: null }), turnFile: null }).scoring).toBeNull();
   });
+
+  it('replyTurns: the interviewer line after each candidate turn, from the turn records else the transcript', () => {
+    const tf = (turns: TurnRecord[]) => ({ header: { type: 'header', batch: null, version: null, wave: null, runNumber: null, commit: 'c', dirty: false, models: {}, persona: null, sessionId: 's', startedAt: '' } as TurnFileHeader, turns, end: null });
+    // check-in at 1, reply to candidate 2 at 3, check-in at 4, reply to candidate 5 at 6
+    const withFile = scorecardRow({ runId: 'r', run: run(), turnFile: tf([turn(2), turn(5)]) });
+    expect(withFile.replyTurns).toEqual([3, 6]);
+    const transcript = (i: number, role: string) => ({ turnIndex: i, role, text: role === 'candidate' ? 'c' : 'Still with me?' });
+    const noFile = scorecardRow({ runId: 'r', turnFile: null, run: run({ turns: [transcript(0, 'interviewer'), transcript(1, 'interviewer'), transcript(2, 'candidate'), transcript(3, 'interviewer'), transcript(4, 'interviewer'), transcript(5, 'candidate'), transcript(6, 'interviewer')] }) });
+    expect(noFile.replyTurns).toEqual([3, 6]);
+  });
 });

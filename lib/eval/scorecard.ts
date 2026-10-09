@@ -32,6 +32,8 @@ export type ScorecardRow = {
   rerun: number | null;
   completion: 'ended' | 'abandoned' | 'terminated' | 'not_completed' | 'technical_failure';
   stuck: boolean | null;
+  /** Interviewer turn indices that answer a candidate turn (candidate index + 1), in order; check-in lines are not among them. */
+  replyTurns: number[];
   modelTurns: number;
   stages: ReturnType<typeof stageAdministration>;
   stagesSource: 'end_gate' | 'transcript';
@@ -184,6 +186,7 @@ export function scorecardRow(p: { runId: string; run: RunRecord; turnFile: { hea
     rerun: p.entry?.rerun ?? turnFile?.header.rerun ?? null,
     completion,
     stuck: records ? maxSame >= 3 || (noProgress ?? 0) >= 4 : null,
+    replyTurns: records ? records.map(r => r.turnIndex + 1) : run.turns.filter(t => t.role === 'candidate').map(t => t.turnIndex + 1).filter(i => run.turns.some(x => x.turnIndex === i && x.role === 'interviewer')),
     modelTurns: records?.length ?? run.turns.filter(t => t.role === 'candidate').length,
     stages,
     stagesSource,

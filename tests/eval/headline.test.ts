@@ -3,7 +3,7 @@ import { headline, headlineScope } from '@/lib/eval/headline';
 import type { ScorecardRow } from '@/lib/eval/scorecard';
 import type { FaultRecord } from '@/lib/eval/prescreen';
 
-const row = (runId: string, modelTurns: number) => ({ runId, modelTurns } as unknown as ScorecardRow);
+const row = (runId: string, modelTurns: number, replyTurns: number[] = Array.from({ length: modelTurns }, (_, i) => 2 * i + 2)) => ({ runId, modelTurns, replyTurns } as unknown as ScorecardRow);
 const fault = (runId: string, turnIndex: number, severity: FaultRecord['severity'], status: FaultRecord['status'] = 'confirmed', source: FaultRecord['source'] = 'prescreen') => ({ runId, turnIndex, severity, status, source } as FaultRecord);
 
 describe('headline', () => {
@@ -22,6 +22,14 @@ describe('headline', () => {
     expect(h.confirmedPer100Turns).toBeCloseTo(8);      // 4 / 50 turns
     expect(h.proposedModerateUnconfirmed).toBe(1);
     expect(h.longestFaultyStretch).toEqual([{ runId: 'a', turns: 3 }, { runId: 'b', turns: 0 }]); // turns 4, 6, 8 are consecutive interviewer turns
+  });
+
+  it('stretch follows the run\'s own reply turns, not a fixed spacing (silence check-ins shift the indices)', () => {
+    const replyTurns = [3, 6, 8, 11, 14, 17, 20, 23]; // Tobias: check-ins sit at 1, 4, 9, 12, ...
+    const stretch = (idx: number[]) => headline([row('t', 8, replyTurns)], idx.map(i => fault('t', i, 'moderate'))).longestFaultyStretch[0].turns;
+    expect(stretch([6, 8, 11])).toBe(3);
+    expect(stretch([6, 11])).toBe(1);   // 8 between them has no fault
+    expect(stretch([4, 9])).toBe(0);    // faults on check-in lines are not replies
   });
 
   it('computes prescreenPrecision and humanFound', () => {
