@@ -27,7 +27,7 @@ export function headline(rows: ScorecardRow[], faults: FaultRecord[]) {
     // Replies sit wherever the candidate's turns put them (silence check-ins shift the indices): a stretch is consecutive entries of this run's replyTurns that each carry a confirmed fault.
     const faulty = new Set(confirmed.filter(f => f.runId === r.runId).map(f => f.turnIndex));
     let best = 0, cur = 0;
-    for (const i of r.replyTurns) { cur = faulty.has(i) ? cur + 1 : 0; best = Math.max(best, cur); }
+    for (const i of r.replyTurns ?? []) { cur = faulty.has(i) ? cur + 1 : 0; best = Math.max(best, cur); }
     return { runId: r.runId, turns: best };
   });
 

@@ -12,13 +12,20 @@ const faultsPath = path.join(OUT, 'faults.jsonl');
 const sheetPath = path.join(OUT, 'review-sheet.md');
 const faults = existsSync(faultsPath) ? readFileSync(faultsPath, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l) as FaultRecord) : [];
 
+// scorecard.json from before replyTurns existed would give a wrong headline stretch: stop and say how to refresh it.
+function readRows(): ScorecardRow[] {
+  const rows = JSON.parse(readFileSync(path.join(OUT, 'scorecard.json'), 'utf8')) as ScorecardRow[];
+  if (rows.some(r => !Array.isArray(r.replyTurns))) { console.error('[review] scorecard.json predates replyTurns — re-run: npx tsx scripts/batch-scorecard.ts'); process.exit(1); }
+  return rows;
+}
+
 if (process.argv.includes('--write')) {
   if (existsSync(sheetPath) && !process.argv.includes('--force')) {
     console.error(`[review] ${sheetPath} already exists. Use --force to overwrite.`);
     process.exit(1);
   }
   const n = Number(process.argv.find(a => a.startsWith('--full-reads='))?.split('=')[1] ?? 8);
-  const rows = JSON.parse(readFileSync(path.join(OUT, 'scorecard.json'), 'utf8')) as ScorecardRow[];
+  const rows = readRows();
   const flagged = new Set([...faults.map(f => f.runId), ...rows.filter(r => r.codeFlags.length).map(r => r.runId)]);
   const clean = rows.map(r => r.runId).filter(id => !flagged.has(id));
   const pick = clean.map(id => ({ id, k: Math.random() })).sort((a, b) => a.k - b.k).slice(0, n).map(x => x.id);
@@ -27,6 +34,7 @@ if (process.argv.includes('--write')) {
   writeFileSync(sheetPath, renderReviewSheet(faults, pick, codeFlagged));
   console.log(`[review] ${sheetPath}: ${proposed.serious.length} serious proposed, ${proposed.moderate.length} moderate proposed, ${codeFlagged.reduce((n, r) => n + r.codeFlags.length, 0)} code flags in ${codeFlagged.length} runs, ${pick.length} full reads`);
 } else if (process.argv.includes('--apply')) {
+  const rows = readRows();
   const { verdicts, humanFaults, unrecognised } = parseReviewSheet(readFileSync(sheetPath, 'utf8'));
   const applied = applyVerdicts(faults, verdicts);
 
@@ -47,7 +55,7 @@ if (process.argv.includes('--write')) {
 
   writeFileSync(faultsPath, allFaults.map(f => JSON.stringify(f)).join('\n') + '\n');
   console.log(`[review] applied ${matchedVerdicts} verdicts to existing faults, added ${newHumanFaults.length} human-found faults`);
-  const scope = headlineScope(JSON.parse(readFileSync(path.join(OUT, 'scorecard.json'), 'utf8')) as ScorecardRow[], allFaults, process.argv.includes('--include-reruns'));
+  const scope = headlineScope(rows, allFaults, process.argv.includes('--include-reruns'));
   const h = headline(scope.rows, scope.faults);
   writeFileSync(path.join(OUT, 'headline.json'), JSON.stringify({ ...h, excludedReruns: scope.excludedReruns }, null, 2));
   if (scope.excludedReruns.length) console.log(`[review] headline leaves out ${scope.excludedReruns.length} reruns (--include-reruns to count them): ${scope.excludedReruns.join(', ')}`);

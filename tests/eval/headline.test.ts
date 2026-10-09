@@ -32,6 +32,11 @@ describe('headline', () => {
     expect(stretch([4, 9])).toBe(0);    // faults on check-in lines are not replies
   });
 
+  it('a row from a scorecard.json that predates replyTurns does not crash the headline (stretch 0)', () => {
+    const old = { runId: 'o', modelTurns: 10 } as unknown as ScorecardRow;
+    expect(headline([old], [fault('o', 4, 'serious')]).longestFaultyStretch).toEqual([{ runId: 'o', turns: 0 }]);
+  });
+
   it('computes prescreenPrecision and humanFound', () => {
     const h = headline([row('a', 40)], [
       fault('a', 2, 'serious', 'confirmed', 'prescreen'),
