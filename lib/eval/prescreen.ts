@@ -29,9 +29,11 @@ export function normaliseForQuote(s: string): string {
   return s.replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[—–]/g, '-').replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
+export const MIN_QUOTE_CHARS = 15;
+
 export function verifyQuote(quote: string, delivered: string): boolean {
   const q = normaliseForQuote(quote);
-  return q.length >= 8 && normaliseForQuote(delivered).includes(q);
+  return q.length >= MIN_QUOTE_CHARS && normaliseForQuote(delivered).includes(q);
 }
 
 export function buildPrescreenPrompt(p: { run: RunRecord; turns: TurnRecord[] | null; interviewerInstructions: string; caseFacts: string; severity: string }): string {
@@ -54,7 +56,7 @@ export function buildPrescreenPrompt(p: { run: RunRecord; turns: TurnRecord[] | 
     '## Severity definitions', p.severity,
     '## Transcript as delivered (interviewer lines are what the candidate actually received; notes in parentheses are what code did)', transcript,
     '## Output',
-    'List every interviewer fault. For each: turnIndex of the INTERVIEWER line; category; severity per the definitions; quote = an exact excerpt (at least 8 characters) of that interviewer line; expected = what it should have done, citing the case fact where relevant; rule = the instruction or rule it breaks; attribution = model / orchestrator (code changed or wrote it) / simulator (the candidate broke character, so the interviewer was put in an impossible position) / ambiguous_policy / evaluator_uncertain; recovered = whether a later turn fixed it. If there are none, return an empty list. Do not report style preferences as faults.',
+    'List every interviewer fault. For each: turnIndex of the INTERVIEWER line; category; severity per the definitions; quote = an exact excerpt (at least 15 characters) of that interviewer line; expected = what it should have done, citing the case fact where relevant; rule = the instruction or rule it breaks; attribution = model / orchestrator (code changed or wrote it) / simulator (the candidate broke character, so the interviewer was put in an impossible position) / ambiguous_policy / evaluator_uncertain; recovered = whether a later turn fixed it. If there are none, return an empty list. Do not report style preferences as faults.',
   ].join('\n\n');
 }
 
@@ -76,4 +78,18 @@ export function toFaultRecords(runId: string, run: RunRecord, turns: TurnRecord[
     });
   });
   return { kept, dropped };
+}
+
+/** runIds already recorded in prescreened.jsonl (blank/malformed lines ignored). */
+export function alreadyScreened(lines: string[]): Set<string> {
+  const ids = new Set<string>();
+  for (const l of lines) {
+    if (!l.trim()) continue;
+    try { const r = JSON.parse(l) as { runId?: unknown }; if (typeof r.runId === 'string') ids.add(r.runId); } catch { /* ignore */ }
+  }
+  return ids;
+}
+
+export function screenedLine(runId: string, proposed: number, dropped: number, at: Date = new Date()): string {
+  return JSON.stringify({ runId, proposed, dropped, at: at.toISOString() });
 }
