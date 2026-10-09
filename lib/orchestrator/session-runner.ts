@@ -8,6 +8,7 @@ import {
 } from './silence';
 import { isDistressVerdict, type DistressVerdict } from './distress';
 import { classifyDataRequests, type DetectedDataRequest } from './data-requests';
+import { explicitRequestCues } from './request-signal';
 import { logEvent, inDraftScope } from '@/lib/analytics';
 import type { Phase } from './state-machine';
 import { streamInterviewerTurn } from '@/lib/agent/interviewer';
@@ -272,8 +273,22 @@ async function runTurnBody(
     ]));
     recordDistress(distress);
     if (isDistressVerdict(distress)) return offerPause(distress);
+    // Only an ask by phrasing is answered here (smoke run 9 Oct, b5ebdd96
+    // t22): a final answer listing what would change the recommendation
+    // ("one, pilot elasticity above that threshold; two, competitors …") was
+    // classified as three asks, and the goodbye released two figures and
+    // refused two items. With no cue the detections are dropped — not
+    // answered and not logged as requests; the classified marker still goes
+    // in, so neither the background pass nor scoring's backfill re-reads the
+    // exchange — and kept in a check for review.
+    const askCues = explicitRequestCues(candidateText);
+    const dropped = askCues.length === 0 ? (detected ?? []).filter(r => r.explicit) : [];
+    if (detected !== null) {
+      checks.record('code_written_requests', dropped.length > 0, 'no explicit ask by phrasing — detected requests not answered',
+        { cues: askCues, dropped: dropped.map(r => r.what) });
+    }
     out = {
-      turn: codeWrittenTurn(plan, detected), validation: null, modelCallStart, modelLatencyMs: 0,
+      turn: codeWrittenTurn(plan, askCues.length > 0 ? detected : null), validation: null, modelCallStart, modelLatencyMs: 0,
       distressWaitMs: 0, turnUsage, delivered: [], undeliveredRevealIds: [], requestsClassified: detected !== null,
     };
   } else {
