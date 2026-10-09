@@ -4,7 +4,7 @@ import type { PersonaEntry } from './batch-manifest';
 
 export function liveRunArgs(e: PersonaEntry, p: { pace: 'human' | 'fast' }): string[] {
   return ['scripts/live-run.ts', 'prof-001', `--persona=${e.personaId}`, `--batch=${e.wave}`, `--pace=${p.pace}`,
-    '--batch-id=batch-18', `--version=${e.version}`, `--wave=${e.wave}`, `--run-number=${e.runNumber}`];
+    '--batch-id=batch-18', `--version=${e.version}`, `--wave=${e.wave}`, `--run-number=${e.runNumber}`, `--rerun-index=${e.rerun}`];
 }
 
 // live-run names a persona folder NN-<name> (scripts/live-run.ts OUT_DIR).

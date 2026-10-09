@@ -6,6 +6,8 @@ import type { TurnRecord } from '@/lib/orchestrator/turn-record';
 
 export type TurnFileHeader = {
   type: 'header'; batch: string | null; version: string | null; wave: string | null; runNumber: number | null;
+  /** The manifest's rerun index (0 = original); absent in turn files written before it existed. */
+  rerun?: number | null;
   commit: string; dirty: boolean; models: Record<string, string>;
   persona: { id: number; name: string; brief: string } | null; sessionId: string; startedAt: string;
 };

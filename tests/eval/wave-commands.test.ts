@@ -8,9 +8,9 @@ import type { RunRecord } from '@/lib/eval/scorecard';
 
 describe('wave commands', () => {
   it('builds the live-run arguments for one persona', () => {
-    const args = liveRunArgs({ personaId: 7, runNumber: 12, status: 'pending', wave: 'batch-18-oct-09-runs-11-20', version: 'v1', runDir: null }, { pace: 'human' });
+    const args = liveRunArgs({ personaId: 7, runNumber: 12, status: 'pending', wave: 'batch-18-oct-09-runs-11-20', version: 'v1', runDir: null, rerun: 1 }, { pace: 'human' });
     expect(args).toEqual(['scripts/live-run.ts', 'prof-001', '--persona=7', '--batch=batch-18-oct-09-runs-11-20', '--pace=human',
-      '--batch-id=batch-18', '--version=v1', '--wave=batch-18-oct-09-runs-11-20', '--run-number=12']);
+      '--batch-id=batch-18', '--version=v1', '--wave=batch-18-oct-09-runs-11-20', '--run-number=12', '--rerun-index=1']);
   });
 
   it('finds the persona run folder by its two-digit id prefix', () => {

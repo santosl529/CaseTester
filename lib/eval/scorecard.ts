@@ -26,6 +26,8 @@ export type CodeFlag = {
 
 export type ScorecardRow = {
   runId: string; personaId: number | null; personaName: string | null; runNumber: number | null; version: string | null; wave: string | null;
+  /** 0 = the persona's original run in its version; > 0 = a --rerun (kept out of the headline and bands by default). */
+  rerun: number | null;
   completion: 'ended' | 'abandoned' | 'terminated' | 'not_completed' | 'technical_failure';
   stuck: boolean | null;
   modelTurns: number;
@@ -70,7 +72,17 @@ function longestNoProgress(turns: TurnRecord[]): number {
   return best;
 }
 
-export function scorecardRow(p: { runId: string; run: RunRecord; turnFile: { header: TurnFileHeader; turns: TurnRecord[]; end: TurnFileEnd | null } | null }): ScorecardRow {
+/** A rerun row (rerun index > 0). */
+export const isRerun = (r: Pick<ScorecardRow, 'rerun'>): boolean => (r.rerun ?? 0) > 0;
+
+/** The rows of one version (null: every row). Versions are never pooled (spec §2.2). */
+export function rowsOfVersion(rows: ScorecardRow[], version: string | null): ScorecardRow[] {
+  return version === null ? rows : rows.filter(r => r.version === version);
+}
+
+// `entry` is the run's manifest entry (joined by run folder): its version and
+// rerun index win over the turn-file header's.
+export function scorecardRow(p: { runId: string; run: RunRecord; turnFile: { header: TurnFileHeader; turns: TurnRecord[]; end: TurnFileEnd | null } | null; entry?: { version: string; rerun: number } | null }): ScorecardRow {
   const { run, turnFile } = p;
   const records = turnFile?.turns ?? null;
   const interviewerTexts = run.turns.filter(t => t.role === 'interviewer').map(t => t.text);
@@ -128,12 +140,12 @@ export function scorecardRow(p: { runId: string; run: RunRecord; turnFile: { hea
     .reduce((s, a) => s + costOf({ model: String(a.payloadJsonb.model), inputTokens: Number(a.payloadJsonb.inputTokens ?? 0), outputTokens: Number(a.payloadJsonb.outputTokens ?? 0), cacheReadTokens: Number(a.payloadJsonb.cacheReadTokens ?? 0), cacheWriteTokens: Number(a.payloadJsonb.cacheWriteTokens ?? 0) }), 0);
   const rel = (records ?? []).map(firstRelevantMs).filter((x): x is number => x !== null);
   const ratings = Object.fromEntries(DIMENSIONS.map(d => [d, (run.score?.[`${d}Rating`] as string | null | undefined) ?? null])) as Record<Dimension, string | null>;
-  const scoringComplete = run.analytics.find(a => a.eventType === 'scoring_complete');
 
   return {
     runId: p.runId,
     personaId: turnFile?.header.persona?.id ?? null, personaName: turnFile?.header.persona?.name ?? null,
-    runNumber: turnFile?.header.runNumber ?? null, version: turnFile?.header.version ?? null, wave: turnFile?.header.wave ?? null,
+    runNumber: turnFile?.header.runNumber ?? null, version: p.entry?.version ?? turnFile?.header.version ?? null, wave: turnFile?.header.wave ?? null,
+    rerun: p.entry?.rerun ?? turnFile?.header.rerun ?? null,
     completion,
     stuck: records ? maxSame >= 3 || (noProgress ?? 0) >= 4 : null,
     modelTurns: records?.length ?? run.turns.filter(t => t.role === 'candidate').length,
@@ -157,7 +169,8 @@ export function scorecardRow(p: { runId: string; run: RunRecord; turnFile: { hea
       slowTurns: records ? rel.filter(x => x > SLOW_TURN_MS).length : null,
       unpricedUsageCalls, appCostUsd, simulatorCostUsd: turnFile?.end?.candidateUsage.usd ?? null,
     },
-    scoring: turnFile?.end?.scoring ?? (scoringComplete ? 'scored' : null),
+    // A saved score is the ground truth; the end line's status explains a missing one.
+    scoring: run.score ? 'scored' : turnFile?.end?.scoring ?? null,
     ratings,
     scoringQa: (() => {
       const q = run.analytics.find(a => a.eventType === 'scoring_qa')?.payloadJsonb;

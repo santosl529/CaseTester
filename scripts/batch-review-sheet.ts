@@ -1,9 +1,9 @@
 //   npx tsx scripts/batch-review-sheet.ts --write [--full-reads=8]   → batch-18/review-sheet.md
-//   npx tsx scripts/batch-review-sheet.ts --apply                     → faults.jsonl updated from the sheet
+//   npx tsx scripts/batch-review-sheet.ts --apply [--include-reruns]  → faults.jsonl updated from the sheet; headline.json (reruns left out by default)
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { renderReviewSheet, parseReviewSheet, applyVerdicts } from '@/lib/eval/review-sheet';
-import { headline } from '@/lib/eval/headline';
+import { headline, headlineScope } from '@/lib/eval/headline';
 import type { FaultRecord } from '@/lib/eval/prescreen';
 import type { ScorecardRow } from '@/lib/eval/scorecard';
 
@@ -46,8 +46,10 @@ if (process.argv.includes('--write')) {
 
   writeFileSync(faultsPath, allFaults.map(f => JSON.stringify(f)).join('\n') + '\n');
   console.log(`[review] applied ${matchedVerdicts} verdicts to existing faults, added ${newHumanFaults.length} human-found faults`);
-  const h = headline(JSON.parse(readFileSync(path.join(OUT, 'scorecard.json'), 'utf8')) as ScorecardRow[], allFaults);
-  writeFileSync(path.join(OUT, 'headline.json'), JSON.stringify(h, null, 2));
+  const scope = headlineScope(JSON.parse(readFileSync(path.join(OUT, 'scorecard.json'), 'utf8')) as ScorecardRow[], allFaults, process.argv.includes('--include-reruns'));
+  const h = headline(scope.rows, scope.faults);
+  writeFileSync(path.join(OUT, 'headline.json'), JSON.stringify({ ...h, excludedReruns: scope.excludedReruns }, null, 2));
+  if (scope.excludedReruns.length) console.log(`[review] headline leaves out ${scope.excludedReruns.length} reruns (--include-reruns to count them): ${scope.excludedReruns.join(', ')}`);
   console.log(`[review] ${h.withSerious}/${h.interviews} interviews with a confirmed serious fault · ${h.confirmedSerious} confirmed serious faults · ${h.seriousPer100Turns.toFixed(1)} serious per 100 turns · ${h.confirmedPer100Turns.toFixed(1)} all confirmed per 100 turns · longest faulty stretch ${Math.max(0, ...h.longestFaultyStretch.map(x => x.turns))} turns`);
   if (unrecognised.length) console.warn(`[review] NOT applied — fix these lines in the sheet:\n  ${unrecognised.join('\n  ')}`);
 } else {

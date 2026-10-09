@@ -1,7 +1,16 @@
 // Batch headline (spec 2026-10-09 §2.3): confirmed faults only, so a long
 // loop in one interview is visible next to the averages.
-import type { ScorecardRow } from './scorecard';
+import { isRerun, type ScorecardRow } from './scorecard';
 import type { FaultRecord } from './prescreen';
+
+// What the headline counts: the scorecard's rows (one version), reruns only
+// when asked, and only the faults of those runs — so neither another
+// version's faults nor a rerun's are pooled into the batch numbers.
+export function headlineScope(rows: ScorecardRow[], faults: FaultRecord[], includeReruns: boolean) {
+  const kept = includeReruns ? rows : rows.filter(r => !isRerun(r));
+  const ids = new Set(kept.map(r => r.runId));
+  return { rows: kept, faults: faults.filter(f => ids.has(f.runId)), excludedReruns: includeReruns ? [] : rows.filter(isRerun).map(r => r.runId) };
+}
 
 export function headline(rows: ScorecardRow[], faults: FaultRecord[]) {
   const confirmed = faults.filter(f => f.status === 'confirmed');

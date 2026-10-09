@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { headline } from '@/lib/eval/headline';
+import { headline, headlineScope } from '@/lib/eval/headline';
 import type { ScorecardRow } from '@/lib/eval/scorecard';
 import type { FaultRecord } from '@/lib/eval/prescreen';
 
@@ -39,5 +39,17 @@ describe('headline', () => {
       fault('a', 2, 'serious', 'proposed', 'prescreen'),
     ]);
     expect(h.prescreenPrecision).toBeNull();
+  });
+
+  it('scope: reruns and their faults are left out unless asked for', () => {
+    const r = (runId: string, rerun: number | null) => ({ runId, rerun, modelTurns: 10 } as unknown as ScorecardRow);
+    const rows = [r('w1/01-a', 0), r('w2/01-a', 1), r('w1/02-b', null)];
+    const faults = [fault('w1/01-a', 4, 'serious'), fault('w2/01-a', 4, 'serious')];
+    const s = headlineScope(rows, faults, false);
+    expect(s.rows.map(x => x.runId)).toEqual(['w1/01-a', 'w1/02-b']);
+    expect(s.faults.map(f => f.runId)).toEqual(['w1/01-a']);
+    expect(s.excludedReruns).toEqual(['w2/01-a']);
+    const all = headlineScope(rows, faults, true);
+    expect([all.rows.length, all.faults.length, all.excludedReruns.length]).toEqual([3, 2, 0]);
   });
 });

@@ -81,6 +81,7 @@ const NO_SCORE = process.argv.includes('--no-score');
 const VERSION = flag('version') ?? null;
 const WAVE = flag('wave') ?? null;
 const RUN_NUMBER = flag('run-number') ? Number(flag('run-number')) : null;
+const RERUN_INDEX = flag('rerun-index') ? Number(flag('rerun-index')) : null;
 const BATCH_ID = flag('batch-id') ?? null;
 const turnRecords: TurnRecord[] = [];
 let turnHeader: TurnFileHeader | null = null;
@@ -284,7 +285,7 @@ async function main() {
   console.log(`[live-run] session ${sessionId} · ${caseData.title}${PERSONA ? ` · persona ${PERSONA.id} ${PERSONA.name}` : ''} · pace ${PACE}`);
   const git = gitInfo();
   turnHeader = {
-    type: 'header', batch: BATCH_ID, version: VERSION, wave: WAVE, runNumber: RUN_NUMBER, commit: git.commit, dirty: git.dirty,
+    type: 'header', batch: BATCH_ID, version: VERSION, wave: WAVE, runNumber: RUN_NUMBER, rerun: RERUN_INDEX, commit: git.commit, dirty: git.dirty,
     models: { interviewer: process.env.INTERVIEWER_PROVIDER ?? INTERVIEWER_MODEL_ID, scoring: SCORING_MODEL_ID, candidate: CANDIDATE_MODEL },
     persona: PERSONA ? { id: PERSONA.id, name: PERSONA.name, brief: PERSONA.brief } : null,
     sessionId, startedAt: new Date().toISOString(),

@@ -13,6 +13,8 @@ const CODE_PATHS_LABEL = CODE_PATHS.join(', ');
 export type PersonaEntry = {
   personaId: number; runNumber: number; status: 'pending' | 'done' | 'failed';
   wave: string; version: string; runDir: string | null;
+  /** 0 for a persona's original run in a version; N for its Nth --rerun (never pooled with the original). */
+  rerun: number;
 };
 export type Manifest = {
   batch: 'batch-18'; version: string;
@@ -77,7 +79,12 @@ export function planWave(m: Manifest | null, p: {
   if (todo.length === 0) throw new Error('every persona given has already run (use --rerun to run again)');
   const first = manifest.runs.reduce((n, r) => Math.max(n, r.runNumber), 0) + 1;
   const wave = waveFolderName(p.date, first, first + todo.length - 1);
-  const entries: PersonaEntry[] = todo.map((personaId, i) => ({ personaId, runNumber: first + i, status: 'pending', wave, version: manifest.version, runDir: null }));
+  // A persona already done in this version (planned again by --rerun) gets the next rerun index.
+  const rerunOf = (personaId: number) => {
+    const done = manifest.runs.filter(r => r.version === manifest.version && r.personaId === personaId && r.status === 'done');
+    return done.length ? Math.max(...done.map(r => r.rerun)) + 1 : 0;
+  };
+  const entries: PersonaEntry[] = todo.map((personaId, i) => ({ personaId, runNumber: first + i, status: 'pending', wave, version: manifest.version, runDir: null, rerun: rerunOf(personaId) }));
   return { manifest: { ...manifest, runs: [...manifest.runs, ...entries] }, wave, entries };
 }
 
@@ -96,6 +103,11 @@ export function markWaveResults(m: Manifest, entries: PersonaEntry[], runJsonExi
       return { ...r, runDir, status: runDir && runJsonExists(runDir) ? 'done' : 'failed' };
     }),
   };
+}
+
+/** The manifest entry whose run folder is `dir` (the scorecard's join), or null. */
+export function entryForRunDir(m: Manifest | null, dir: string): PersonaEntry | null {
+  return m?.runs.find(r => r.runDir !== null && path.resolve(r.runDir) === path.resolve(dir)) ?? null;
 }
 
 export function loadManifest(dir: string): Manifest | null {

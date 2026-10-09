@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { compareRating, BandsFileSchema, bandsSummary, type BandCell } from '@/lib/eval/bands';
+import { compareRating, BandsFileSchema, bandsSummary, bandsRows, type BandCell } from '@/lib/eval/bands';
 import type { ScorecardRow } from '@/lib/eval/scorecard';
 
 const cell = (expect_: BandCell['expect'], confidence: 'high' | 'medium' = 'high'): BandCell => ({ expect: expect_, confidence, reason: 'brief says so' });
@@ -42,5 +42,17 @@ describe('persona bands', () => {
     const s = bandsSummary([row('a', null, 'strong'), row('b', 99, 'strong')], bands, new Set());
     expect(s.skippedNoPersona).toEqual(['a']);
     expect(s.skippedNoBands).toEqual(['b']);
+  });
+
+  it('reads scored runs only and lists the unscored and the reruns it left out', () => {
+    const r = (runId: string, scoring: string | null, rerun: number | null) => ({ runId, scoring, rerun } as unknown as ScorecardRow);
+    const rows = [r('a', 'scored', 0), r('b', 'failed', 0), r('c', null, null), r('d', 'scored', 1), r('e', 'scored', null)];
+    const s = bandsRows(rows, false);
+    expect(s.rows.map(x => x.runId)).toEqual(['a', 'e']);
+    expect(s.skippedNotScored).toEqual(['b', 'c']);
+    expect(s.excludedReruns).toEqual(['d']);
+    const all = bandsRows(rows, true);
+    expect(all.rows.map(x => x.runId)).toEqual(['a', 'd', 'e']);
+    expect(all.excludedReruns).toEqual([]);
   });
 });

@@ -1,6 +1,7 @@
 // tests/eval/scorecard.test.ts
 import { describe, it, expect } from 'vitest';
-import { scorecardRow, firstRelevantMs, maxSameQuestion, type RunRecord } from '@/lib/eval/scorecard';
+import { scorecardRow, firstRelevantMs, maxSameQuestion, rowsOfVersion, isRerun, type RunRecord, type ScorecardRow } from '@/lib/eval/scorecard';
+import type { TurnFileHeader, TurnFileEnd } from '@/lib/eval/turn-file';
 import { stageAdministration } from '@/lib/orchestrator/spoken-close';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
 
@@ -98,5 +99,30 @@ describe('scorecard', () => {
 
   it('short generic questions do not count as a loop', () => {
     expect(maxSameQuestion(['What does that tell you?', 'What does that tell you?', 'What does that tell you?'])).toBeLessThanOrEqual(1);
+  });
+
+  const header = (over: Partial<TurnFileHeader> = {}): TurnFileHeader => ({ type: 'header', batch: 'batch-18', version: 'v1', wave: 'w', runNumber: 3, commit: 'c', dirty: false, models: {}, persona: { id: 18, name: 'Nikhil', brief: '' }, sessionId: 's', startedAt: '', ...over });
+  const end = (scoring: string): TurnFileEnd => ({ type: 'end', ended: true, budgetStopped: false, scoring, candidateUsage: { calls: 1, input: 1, output: 1, usd: 0 } });
+
+  it('version and rerun come from the joined manifest entry, the turn-file header as fallback', () => {
+    const tf = { header: header({ version: 'v1', rerun: 0 }), turns: [turn(0)], end: end('scored') };
+    expect(scorecardRow({ runId: 'r', run: run(), turnFile: tf, entry: { version: 'v2', rerun: 1 } })).toMatchObject({ version: 'v2', rerun: 1 });
+    expect(scorecardRow({ runId: 'r', run: run(), turnFile: tf, entry: null })).toMatchObject({ version: 'v1', rerun: 0 });
+    expect(scorecardRow({ runId: 'r', run: run(), turnFile: { ...tf, header: header() } })).toMatchObject({ version: 'v1', rerun: null }); // pre-rerun turn file
+  });
+
+  it('keeps one version and tells reruns apart', () => {
+    const rows = [{ runId: 'a', version: 'v1', rerun: 0 }, { runId: 'b', version: 'v2', rerun: 0 }, { runId: 'c', version: 'v1', rerun: 1 }, { runId: 'd', version: null, rerun: null }] as ScorecardRow[];
+    expect(rowsOfVersion(rows, 'v1').map(r => r.runId)).toEqual(['a', 'c']);
+    expect(rowsOfVersion(rows, null)).toHaveLength(4);
+    expect(rows.filter(isRerun).map(r => r.runId)).toEqual(['c']);
+  });
+
+  it('scoring is "scored" whenever the run has a score, else the end line\'s status, else null', () => {
+    const tf = (e: TurnFileEnd | null) => ({ header: header(), turns: [turn(0)], end: e });
+    expect(scorecardRow({ runId: 'r', run: run(), turnFile: tf(end('failed')) }).scoring).toBe('scored');
+    expect(scorecardRow({ runId: 'r', run: run(), turnFile: null }).scoring).toBe('scored');
+    expect(scorecardRow({ runId: 'r', run: run({ score: null }), turnFile: tf(end('failed')) }).scoring).toBe('failed');
+    expect(scorecardRow({ runId: 'r', run: run({ score: null }), turnFile: null }).scoring).toBeNull();
   });
 });

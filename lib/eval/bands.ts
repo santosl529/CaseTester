@@ -2,7 +2,7 @@
 // implies, per dimension, written before the batch. A report is checked
 // against them; runs where the simulator broke its brief are excluded.
 import { z } from 'zod';
-import { DIMENSIONS, type Dimension, type ScorecardRow } from './scorecard';
+import { DIMENSIONS, isRerun, type Dimension, type ScorecardRow } from './scorecard';
 
 const Rating = z.enum(['needs_work', 'meets_bar', 'strong']);
 export const BandCellSchema = z.object({
@@ -30,6 +30,17 @@ export function compareRating(cell: BandCell, rating: string | null): Comparison
 
 type Tally = { in_band: number; one_off: number; two_off: number; unexpected_rating: number; unexpected_not_assessed: number; invalid_rating: number; cells: number };
 const empty = (): Tally => ({ in_band: 0, one_off: 0, two_off: 0, unexpected_rating: 0, unexpected_not_assessed: 0, invalid_rating: 0, cells: 0 });
+
+// The rows the bands check reads: scored runs, and reruns only when asked
+// (a rerun is never pooled with its original). What it leaves out is listed.
+export function bandsRows(rows: ScorecardRow[], includeReruns: boolean) {
+  const kept = includeReruns ? rows : rows.filter(r => !isRerun(r));
+  return {
+    rows: kept.filter(r => r.scoring === 'scored'),
+    skippedNotScored: kept.filter(r => r.scoring !== 'scored').map(r => r.runId),
+    excludedReruns: includeReruns ? [] : rows.filter(isRerun).map(r => r.runId),
+  };
+}
 
 export function bandsSummary(rows: ScorecardRow[], bands: BandsFile, excludedRuns: Set<string>) {
   const high = empty(), medium = empty();

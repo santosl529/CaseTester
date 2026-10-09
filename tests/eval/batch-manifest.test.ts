@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { waveFolderName, planWave, markWaveResults, type Manifest } from '@/lib/eval/batch-manifest';
+import path from 'node:path';
+import { waveFolderName, planWave, markWaveResults, entryForRunDir, type Manifest } from '@/lib/eval/batch-manifest';
 
 const d = new Date('2026-10-09T15:00:00');
 const base = { commit: 'c1', codeDirty: false, codeChanged: false, date: d, models: { interviewer: 'claude-sonnet-5-5' }, knownIds: Array.from({ length: 62 }, (_, i) => i + 1) };
@@ -113,5 +114,28 @@ describe('batch manifest', () => {
     // any one of code, models or hashes is enough
     expect(planWave(m, { ...base, newVersion: 'v2', personaIds: [2], hashes: { bands: 'b2', severity: 's1' } }).manifest.version).toBe('v2');
     expect(planWave(m, { ...base, newVersion: 'v2', personaIds: [2], models: { interviewer: 'x' }, hashes: { bands: 'b1', severity: 's1' } }).manifest.version).toBe('v2');
+  });
+
+  it('numbers reruns: an original is rerun 0, each --rerun of a persona done in this version gets the next index', () => {
+    let m: Manifest = planWave(null, { ...base, personaIds: [1, 2] }).manifest;
+    expect(m.runs.map(r => r.rerun)).toEqual([0, 0]);
+    m = markWaveResults(m, m.runs.map(r => ({ ...r, runDir: `dir-${r.runNumber}` })), dir => dir === 'dir-1'); // 1 done, 2 failed
+    let w = planWave(m, { ...base, personaIds: [1, 2], rerun: true });
+    expect(w.entries.map(e => [e.personaId, e.rerun])).toEqual([[1, 1], [2, 0]]);   // a failed persona's retry is still its original
+    m = markWaveResults(w.manifest, w.entries.map(e => ({ ...e, runDir: `dir-${e.runNumber}` })), () => true);
+    w = planWave(m, { ...base, personaIds: [1], rerun: true });
+    expect(w.entries[0].rerun).toBe(2);
+    // a new version starts the count again
+    const v2 = planWave(m, { ...base, commit: 'c2', codeChanged: true, newVersion: 'v2', personaIds: [1] });
+    expect(v2.entries[0].rerun).toBe(0);
+  });
+
+  it('joins a run folder to its manifest entry (relative or absolute path)', () => {
+    let m: Manifest = planWave(null, { ...base, personaIds: [4] }).manifest;
+    m = markWaveResults(m, m.runs.map(r => ({ ...r, runDir: 'Case Interview Runs/test runs/w/04-x' })), () => true);
+    expect(entryForRunDir(m, 'Case Interview Runs/test runs/w/04-x')).toMatchObject({ personaId: 4, version: 'v1', rerun: 0 });
+    expect(entryForRunDir(m, path.resolve('Case Interview Runs/test runs/w/04-x'))?.personaId).toBe(4);
+    expect(entryForRunDir(m, 'Case Interview Runs/test runs/w/05-y')).toBeNull();
+    expect(entryForRunDir(null, 'x')).toBeNull();
   });
 });
