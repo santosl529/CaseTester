@@ -55,10 +55,13 @@ const RISK_ASK =
 // there), or with a doer the candidate isn't ("…recommend Brew & Bean / the
 // company do"), or as "what would your recommendation be" (batch 13). An
 // analysis question — "what would you recommend we look at next", "what data
-// would you recommend pulling" — stays out: this count feeds the end gate and
-// RECOMMENDATION_ASK_LIMIT.
+// would you recommend pulling", "… looking at / to / in terms of / as the next
+// analysis to do" — stays out: this count feeds the end gate and
+// RECOMMENDATION_ASK_LIMIT. A comma counts only as ", and …" (batch 18
+// follow-up): "what would you recommend, data-wise, to look at next?" is an
+// analysis question too.
 const REC_ASK =
-  /\b(bottom.?line recommendation|recommendation to the (ceo|client)|final recommendation|what(?:'?s| is) your recommendation|give me your recommendation|what would you (tell|recommend) (to )?the (ceo|client)|pull it together|what would your (?:\w+ )?recommendation be|what would you recommend(?=\s*(?:[?,.!;:\u2014\u2013]|$))|what would you recommend (?!(?:we|i|us)\b)[\w&' ]{1,40}? do)\b/i;
+  /\b(bottom.?line recommendation|recommendation to the (ceo|client)|final recommendation|what(?:'?s| is) your recommendation|give me your recommendation|what would you (tell|recommend) (to )?the (ceo|client)|pull it together|what would your (?:\w+ )?recommendation be|what would you recommend(?=\s*(?:[?.!;:\u2014\u2013]|,\s*and\b|$))|what would you recommend (?!(?:we|i|us|to|as|in|looking)\b)[\w&' ]{1,40}?(?<!\bto) do)\b/i;
 
 export function asksBrainstorm(text: string): boolean { return BRAINSTORM_ASK.test(text); }
 export function asksRisk(text: string): boolean { return RISK_ASK.test(text); }

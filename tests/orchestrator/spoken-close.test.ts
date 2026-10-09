@@ -118,12 +118,23 @@ describe('recommendation ask detection — "what would you recommend" (batch 13 
     "What would you recommend Brew & Bean do first, and what's the plan?",
     'What would you recommend?',
     'What would you recommend the company do?',
+    'What would you recommend she do about the margin decline?',
+    'What would you recommend — what should they do?',
+    'What would you recommend.',
   ];
   const negatives = [
     'What would you recommend we look at next in the data?',
     'What data would you recommend pulling?',
     'Which test would you recommend to check the bean assumption?',
     'What would you recommend we do to size the market?',
+    // Follow-up 9 Oct: "… to do" / "… looking at" / "in terms of" / "as the
+    // next" are analysis questions, and a bare comma must not let a
+    // "data-wise" aside through.
+    'What would you recommend looking at to do the sizing?',
+    'What would you recommend to do the sizing?',
+    'What would you recommend in terms of analysis to do next?',
+    'What would you recommend as the next analysis to do?',
+    'What would you recommend, data-wise, to look at next?',
   ];
 
   it('counts each real recommendation ask', () => {
