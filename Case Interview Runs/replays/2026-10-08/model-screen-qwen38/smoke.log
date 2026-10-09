@@ -1,0 +1,10 @@
+180 reconstructable turns · sampling 20 · rough Sonnet input estimate ~$0.18 (the run budget meters actual spend)
+[budget] replay-output-format: cap $0.90 shared via Case Interview Runs/replays/2026-10-08/model-screen-qwen38/budget.jsonl · already spent $0.0148
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"","move":"pressure_test","requests":[{"what":"the split of revenue growth between price and customer volume","item_ids":["menu_price_change","avg_ticket"],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Before we go further into data, I still need your framework. If you were to lay out the full structure for the profit decline, how would you split it, and is it MECE?"}
+[smoke] sonnet: ok · first token 1061ms · first useful 1759ms · complete 2071ms · streamed yes · tokens in 5531 out 148
+[smoke]   {"move":"pressure_test","requests":[{"what":"the split of revenue growth between price and customer volume","itemIds":["menu_price_change","avg_ticket"],"explicit":true,"respond":"defer"}],"exhibit":null,"rescueItem":null,"say":"","question":"Before we go further into data, I still need your framework. If you were to lay out the full structure for the profit decline, how would you split it, and is it MECE?"}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say": "", "move": "structure", "requests": [], "exhibit": null, "rescue_item": null, "question": "Those are the right things to want, but before you grab any data, tell me how you'd structure the problem — what levers you'd pull on each side, and which branch you'd prioritize first and why."}
+[smoke] qwen38-none: ok · first token 1231ms · first useful 1340ms · complete 1340ms · streamed yes · tokens in 3787 out 77
+[smoke]   {"move":"structure","requests":[],"exhibit":null,"rescueItem":null,"say":"","question":"Those are the right things to want, but before you grab any data, tell me how you'd structure the problem — what levers you'd pull on each side, and which branch you'd prioritize first and why."}
