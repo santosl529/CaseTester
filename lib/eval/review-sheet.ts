@@ -2,6 +2,7 @@
 // fault, then every proposed moderate one, plus runs to read in full, as a
 // markdown sheet with verdict lines; parsed back into faults.jsonl. Unknown verdicts are reported, never dropped.
 import { ProposedFaultSchema, type FaultRecord } from './prescreen';
+import type { ScorecardRow } from './scorecard';
 
 const VERDICTS: Record<string, 'confirmed' | 'rejected'> = { confirmed: 'confirmed', confirm: 'confirmed', yes: 'confirmed', y: 'confirmed', rejected: 'rejected', reject: 'rejected', no: 'rejected', n: 'rejected' };
 const SEVERITIES = new Set(['serious', 'moderate', 'minor']);
@@ -33,8 +34,17 @@ function faultBlock(f: FaultRecord): string[] {
   ];
 }
 
-export function renderReviewSheet(faults: FaultRecord[], fullReads: string[]): string {
+// Every code flag (loop, repeated_short_probe, question_withheld, …) is a
+// review candidate (follow-up 9 Oct); flagged runs are already left out of
+// the random full reads.
+export function codeFlagLines(rows: Pick<ScorecardRow, 'runId' | 'codeFlags'>[]): string[] {
+  return rows.flatMap(r => r.codeFlags.map(f => `- ${f.kind} · run ${r.runId} · turn ${f.turnIndex ?? '—'} · ${collapseNewlines(f.detail)}`));
+}
+
+export function renderReviewSheet(faults: FaultRecord[], fullReads: string[], codeFlagged: Pick<ScorecardRow, 'runId' | 'codeFlags'>[] = []): string {
   const { serious, moderate } = proposedForReview(faults);
+  const flagLines = codeFlagLines(codeFlagged);
+  const flaggedRuns = codeFlagged.filter(r => r.codeFlags.length).length;
   return [
     '# Batch 18 — fault review', '',
     'For each fault set `verdict:` to confirmed or rejected. Optional: `severity:` (serious/moderate/minor), `attribution:` (model/orchestrator/simulator/ambiguous_policy/evaluator_uncertain), `note:`.', '',
@@ -42,6 +52,9 @@ export function renderReviewSheet(faults: FaultRecord[], fullReads: string[]): s
     ...serious.flatMap(faultBlock),
     `## Proposed moderate faults (${moderate.length})`, '',
     ...moderate.flatMap(faultBlock),
+    `## Code-flagged runs to check (${flagLines.length} flags in ${flaggedRuns} runs — read around each turn; note any real fault as a human-found entry below)`, '',
+    'turn = the candidate\'s line; the interviewer\'s reply is turn + 1.', '',
+    ...flagLines, '',
     `## Read in full (${fullReads.length} runs with no flags — note any fault the pre-screen missed as a new section like below)`, '',
     ...fullReads.map(r => `- ${r}`), '',
     '## Human-found faults (from full reads — add a new section per entry)', '',

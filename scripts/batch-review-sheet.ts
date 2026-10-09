@@ -23,8 +23,9 @@ if (process.argv.includes('--write')) {
   const clean = rows.map(r => r.runId).filter(id => !flagged.has(id));
   const pick = clean.map(id => ({ id, k: Math.random() })).sort((a, b) => a.k - b.k).slice(0, n).map(x => x.id);
   const proposed = proposedForReview(faults);
-  writeFileSync(sheetPath, renderReviewSheet(faults, pick));
-  console.log(`[review] ${sheetPath}: ${proposed.serious.length} serious proposed, ${proposed.moderate.length} moderate proposed, ${pick.length} full reads`);
+  const codeFlagged = rows.filter(r => r.codeFlags.length);
+  writeFileSync(sheetPath, renderReviewSheet(faults, pick, codeFlagged));
+  console.log(`[review] ${sheetPath}: ${proposed.serious.length} serious proposed, ${proposed.moderate.length} moderate proposed, ${codeFlagged.reduce((n, r) => n + r.codeFlags.length, 0)} code flags in ${codeFlagged.length} runs, ${pick.length} full reads`);
 } else if (process.argv.includes('--apply')) {
   const { verdicts, humanFaults, unrecognised } = parseReviewSheet(readFileSync(sheetPath, 'utf8'));
   const applied = applyVerdicts(faults, verdicts);

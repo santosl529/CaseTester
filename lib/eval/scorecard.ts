@@ -19,8 +19,9 @@ export type RunRecord = {
 };
 
 export type CodeFlag = {
+  /** The turn record's index: the candidate's line (the interviewer's reply is turnIndex + 1), as the check events use. */
   turnIndex: number | null;
-  kind: 'question_withheld' | 'guard_double_miss' | 'model_unusable' | 'prefix_mismatch' | 'loop' | 'stage_skipped' | 'technical_failure' | 'slow_turn';
+  kind: 'question_withheld' | 'guard_double_miss' | 'model_unusable' | 'prefix_mismatch' | 'loop' | 'repeated_short_probe' | 'stage_skipped' | 'technical_failure' | 'slow_turn';
   detail: string;
 };
 
@@ -51,10 +52,29 @@ const words = (q: string) => new Set(q.toLowerCase().replace(/[^a-z0-9 ]+/g, ' '
 const jaccard = (a: Set<string>, b: Set<string>) => { const inter = [...a].filter(x => b.has(x)).length; return inter / (a.size + b.size - inter || 1); };
 const questionOf = (line: string) => line.split(/(?<=[.!?])\s+/).filter(s => s.trim().endsWith('?')).join(' ') || line;
 
+const tokenCount = (q: string) => (q.toLowerCase().match(/[a-z0-9]+/g) ?? []).length;
+
 export function maxSameQuestion(questions: string[]): number {
   // Very short questions ("What does that tell you?") are generic follow-ups, not loops.
-  const sets = questions.filter(q => (q.toLowerCase().match(/[a-z0-9]+/g) ?? []).length >= MIN_LOOP_TOKENS).map(words);
+  const sets = questions.filter(q => tokenCount(q) >= MIN_LOOP_TOKENS).map(words);
   return sets.reduce((best, s) => Math.max(best, sets.filter(t => jaccard(s, t) >= 0.8).length), 0);
+}
+
+// A short question the loop rule ignores, asked 3+ times (same Jaccard ≥ 0.8
+// match, among the short ones only): a review candidate, never "stuck"
+// (follow-up 9 Oct). lastIndex is the position in `questions` of its last ask.
+export function repeatedShortProbes(questions: string[]): { question: string; count: number; lastIndex: number }[] {
+  const short = questions.map((q, i) => ({ q: q.trim(), i, w: words(q) })).filter(x => x.w.size > 0 && tokenCount(x.q) < MIN_LOOP_TOKENS);
+  const used = new Set<number>();
+  const out: { question: string; count: number; lastIndex: number }[] = [];
+  for (const s of short) {
+    if (used.has(s.i)) continue;
+    const same = short.filter(t => !used.has(t.i) && jaccard(s.w, t.w) >= 0.8);
+    if (same.length < 3) continue;
+    for (const t of same) used.add(t.i);
+    out.push({ question: s.q, count: same.length, lastIndex: same[same.length - 1].i });
+  }
+  return out;
 }
 
 export function firstRelevantMs(t: TurnRecord): number | null {
@@ -104,9 +124,15 @@ export function scorecardRow(p: { runId: string; run: RunRecord; turnFile: { hea
     flags.push({ turnIndex: null, kind: 'technical_failure', detail: 'turn file has no end line — the run died' });
   }
 
-  const questions = (records ? records.map(r => r.savedLine) : interviewerTexts.slice(1)).map(questionOf);
+  const asked = records
+    ? records.map(r => ({ line: r.savedLine, turnIndex: r.turnIndex }))
+    : run.turns.filter(t => t.role === 'interviewer').slice(1).map(t => ({ line: t.text, turnIndex: t.turnIndex - 1 }));
+  const questions = asked.map(a => questionOf(a.line));
   const maxSame = maxSameQuestion(questions);
   if (maxSame >= 3) flags.push({ turnIndex: null, kind: 'loop', detail: `same question asked ${maxSame} times` });
+  for (const p of repeatedShortProbes(questions)) {
+    flags.push({ turnIndex: asked[p.lastIndex].turnIndex, kind: 'repeated_short_probe', detail: `short question asked ${p.count} times: "${p.question}"` });
+  }
   const noProgress = records ? longestNoProgress(records) : null;
   if (completion === 'ended' && (!stages.brainstormAsked || !stages.recommendationAsked)) {
     flags.push({ turnIndex: null, kind: 'stage_skipped', detail: `brainstorm asked: ${stages.brainstormAsked}, recommendation asked: ${stages.recommendationAsked}` });

@@ -50,6 +50,27 @@ describe('review sheet', () => {
     expect(h.proposedModerateUnconfirmed).toBe(1);   // m2 still unreviewed
   });
 
+  it('lists every code flag as a review candidate, without disturbing verdict parsing (follow-up 9 Oct)', () => {
+    const flagged = [
+      { runId: 'w/01-a', codeFlags: [{ turnIndex: null, kind: 'loop' as const, detail: 'same question asked 3 times' }, { turnIndex: 8, kind: 'repeated_short_probe' as const, detail: 'short question asked 3 times: "What does that tell you?"' }] },
+      { runId: 'w/02-b', codeFlags: [{ turnIndex: 4, kind: 'model_unusable' as const, detail: '{"unparsed":true,\n"emptyTurn":false}' }] },
+      { runId: 'w/03-c', codeFlags: [] },
+    ];
+    const md = renderReviewSheet([f('m1', 'moderate')], ['run-7'], flagged);
+    const at = md.indexOf('## Code-flagged runs to check (3 flags in 2 runs');
+    expect(at).toBeGreaterThan(md.indexOf('## Proposed moderate faults'));
+    expect(at).toBeLessThan(md.indexOf('## Read in full'));
+    const section = md.slice(at, md.indexOf('## Read in full'));
+    expect(section).toContain('- loop · run w/01-a · turn — · same question asked 3 times');
+    expect(section).toContain('- repeated_short_probe · run w/01-a · turn 8 · short question asked 3 times: "What does that tell you?"');
+    expect(section).toContain('- model_unusable · run w/02-b · turn 4 · {"unparsed":true, "emptyTurn":false}');
+    expect(section).not.toContain('w/03-c');
+    const parsed = parseReviewSheet(md.replace('verdict: \n', 'verdict: confirmed\n'));
+    expect(parsed.unrecognised).toEqual([]);
+    expect(parsed.verdicts.get('m1')?.status).toBe('confirmed');
+    expect(renderReviewSheet([], [])).toContain('## Code-flagged runs to check (0 flags in 0 runs');
+  });
+
   it('parses verdicts case-insensitively, with optional severity/attribution changes and a note', () => {
     const md = ['### a', 'verdict: Confirmed', 'severity: moderate', 'note: real but recovered next turn', '### b', 'verdict: REJECT', '### c', 'verdict: maybe'].join('\n');
     const { verdicts, unrecognised } = parseReviewSheet(md);

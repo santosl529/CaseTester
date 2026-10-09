@@ -1,6 +1,6 @@
 // tests/eval/scorecard.test.ts
 import { describe, it, expect } from 'vitest';
-import { scorecardRow, firstRelevantMs, maxSameQuestion, rowsOfVersion, isRerun, type RunRecord, type ScorecardRow } from '@/lib/eval/scorecard';
+import { scorecardRow, firstRelevantMs, maxSameQuestion, repeatedShortProbes, rowsOfVersion, isRerun, type RunRecord, type ScorecardRow } from '@/lib/eval/scorecard';
 import type { TurnFileHeader, TurnFileEnd } from '@/lib/eval/turn-file';
 import { stageAdministration } from '@/lib/orchestrator/spoken-close';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
@@ -99,6 +99,30 @@ describe('scorecard', () => {
 
   it('short generic questions do not count as a loop', () => {
     expect(maxSameQuestion(['What does that tell you?', 'What does that tell you?', 'What does that tell you?'])).toBeLessThanOrEqual(1);
+  });
+
+  it('a short probe asked 3+ times is a repeated_short_probe flag, not a loop (follow-up 9 Oct)', () => {
+    expect(repeatedShortProbes(['What does that tell you?', 'What does that tell you?', 'What does that tell you?'])).toEqual([{ question: 'What does that tell you?', count: 3, lastIndex: 2 }]);
+    expect(repeatedShortProbes(['What does that tell you?', 'What does that tell you?', 'Which branch first?'])).toEqual([]);
+    expect(repeatedShortProbes(['Is that MECE — what is missing?', 'Is that MECE, what is missing?', 'Is that MECE? What is missing?'])).toEqual([]); // long ones are the loop rule's
+    // Turn 0 reveals data, so no no-progress stretch reaches 4: only the probe can make it stuck.
+    const turns = [
+      turn(0, { savedLine: 'Revenue is 4 million. Where next?', delivered: [{ kind: 'data', text: 'Revenue is 4 million.', revealIds: ['rev'], atMs: 900 }] }),
+      ...[1, 2, 3].map(i => turn(i, { savedLine: 'Good. What does that tell you?' })),
+    ];
+    const row = scorecardRow({ runId: 'r', run: run(), turnFile: { header: header(), turns, end: end('scored') } });
+    expect(row.stuck).toBe(false);
+    expect(row.loops.maxSameQuestion).toBe(0);
+    expect(row.codeFlags.filter(f => f.kind === 'loop')).toEqual([]);
+    expect(row.codeFlags.filter(f => f.kind === 'repeated_short_probe')).toEqual([{ turnIndex: 3, kind: 'repeated_short_probe', detail: 'short question asked 3 times: "What does that tell you?"' }]);
+  });
+
+  it('a repeated short probe is flagged from the transcript when there is no turn file', () => {
+    const turns = [{ turnIndex: 0, role: 'interviewer', text: 'Your client…' },
+      ...[1, 2, 3].flatMap(k => [{ turnIndex: 2 * k - 1, role: 'candidate', text: 'c' }, { turnIndex: 2 * k, role: 'interviewer', text: 'What does that tell you?' }])];
+    const row = scorecardRow({ runId: 'r', run: run({ turns }), turnFile: null });
+    expect(row.stuck).toBeNull();
+    expect(row.codeFlags.find(f => f.kind === 'repeated_short_probe')).toMatchObject({ turnIndex: 5 }); // the candidate turn the last ask (line 6) answered, as records index it
   });
 
   const header = (over: Partial<TurnFileHeader> = {}): TurnFileHeader => ({ type: 'header', batch: 'batch-18', version: 'v1', wave: 'w', runNumber: 3, commit: 'c', dirty: false, models: {}, persona: { id: 18, name: 'Nikhil', brief: '' }, sessionId: 's', startedAt: '', ...over });
