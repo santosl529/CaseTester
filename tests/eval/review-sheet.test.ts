@@ -28,4 +28,46 @@ describe('review sheet', () => {
     const out = applyVerdicts([f('a'), f('b')], new Map([['a', { status: 'confirmed' as const, severity: 'moderate' as const, note: 'n' }]]));
     expect(out.map(x => [x.id, x.status, x.severity])).toEqual([['a', 'confirmed', 'moderate'], ['b', 'proposed', 'serious']]);
   });
+
+  it('parses a human entry into a FaultRecord', () => {
+    const md = ['### run-7-t4-human', 'category: math', 'severity: serious', 'quote: 2+2=5', 'expected: 2+2=4', 'rule: arithmetic', 'attribution: model', 'note: simple error'].join('\n');
+    const { humanFaults, unrecognised } = parseReviewSheet(md);
+    expect(humanFaults).toHaveLength(1);
+    expect(humanFaults[0]).toMatchObject({
+      id: 'run-7-t4-human',
+      runId: 'run-7',
+      turnIndex: 4,
+      category: 'math',
+      severity: 'serious',
+      quote: '2+2=5',
+      expected: '2+2=4',
+      rule: 'arithmetic',
+      attribution: 'model',
+      status: 'confirmed',
+      source: 'human',
+      note: 'simple error',
+    });
+    expect(unrecognised).toHaveLength(0);
+  });
+
+  it('reports a human entry missing rule as unrecognised', () => {
+    const md = ['### run-7-t4-human', 'category: math', 'severity: serious', 'expected: 2+2=4'].join('\n');
+    const { humanFaults, unrecognised } = parseReviewSheet(md);
+    expect(humanFaults).toHaveLength(0);
+    expect(unrecognised).toContain('run-7-t4-human: missing required fields rule');
+  });
+
+  it('does not inject a heading from multi-line delivered text with ### in it', () => {
+    const fault: FaultRecord = {
+      id: 'x1', runId: 'r', turnIndex: 2, category: 'requests', severity: 'serious', quote: 'q', expected: 'e', rule: 'Rule 11', attribution: 'model', recovered: false,
+      candidateText: 'c', context: [], rawOutput: null, codeChanges: [], delivered: 'line1\n### fake heading\nline2', source: 'prescreen', status: 'proposed', note: '',
+    };
+    const md = renderReviewSheet([fault], []);
+    // Check that the delivered text is collapsed and appears inline
+    expect(md).toContain('line1 ### fake heading line2'); // newlines collapsed
+    // Check that there's no line starting with just "###" from the fake heading (besides x1)
+    const faultSection = md.split('## Read in full')[0];
+    const faultHeadings = faultSection.split('\n').filter(l => l.match(/^###/));
+    expect(faultHeadings).toEqual(['### x1']); // only the fault id heading
+  });
 });

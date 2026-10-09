@@ -5,6 +5,14 @@ import type { FaultRecord } from './prescreen';
 
 export function headline(rows: ScorecardRow[], faults: FaultRecord[]) {
   const confirmed = faults.filter(f => f.status === 'confirmed');
+  const confirmedSerious = confirmed.filter(f => f.severity === 'serious');
+  const confirmedModerate = confirmed.filter(f => f.severity === 'moderate');
+  const confirmedMinor = confirmed.filter(f => f.severity === 'minor');
+  const proposedModerate = faults.filter(f => f.severity === 'moderate' && f.status === 'proposed');
+  const prescreen = faults.filter(f => f.source === 'prescreen');
+  const prescreenConfirmed = prescreen.filter(f => f.status === 'confirmed');
+  const prescreenRejected = prescreen.filter(f => f.status === 'rejected');
+
   const turns = rows.reduce((n, r) => n + r.modelTurns, 0);
   const longestFaultyStretch = rows.map(r => {
     // Interviewer lines sit at even turn indices 2, 4, 6, …: consecutive interviewer turns differ by 2.
@@ -13,12 +21,21 @@ export function headline(rows: ScorecardRow[], faults: FaultRecord[]) {
     for (const i of idx) { cur = i - prev === 2 ? cur + 1 : 1; best = Math.max(best, cur); prev = i; }
     return { runId: r.runId, turns: best };
   });
+
+  const prescreenReviewed = prescreenConfirmed.length + prescreenRejected.length;
+  const prescreenPrecision = prescreenReviewed > 0 ? prescreenConfirmed.length / prescreenReviewed : null;
+
   return {
     interviews: rows.length,
-    withSerious: new Set(confirmed.filter(f => f.severity === 'serious').map(f => f.runId)).size,
+    confirmedSerious: confirmedSerious.length,
+    confirmedModerate: confirmedModerate.length,
+    confirmedMinor: confirmedMinor.length,
     turns,
-    confirmedFaults: confirmed.length,
-    faultsPer100Turns: turns ? (100 * confirmed.length) / turns : 0,
+    seriousPer100Turns: turns ? (100 * confirmedSerious.length) / turns : 0,
+    confirmedPer100Turns: turns ? (100 * confirmed.length) / turns : 0,
+    proposedModerateUnconfirmed: proposedModerate.length,
+    prescreenPrecision,
+    humanFound: faults.filter(f => f.source === 'human').length,
     longestFaultyStretch,
   };
 }
