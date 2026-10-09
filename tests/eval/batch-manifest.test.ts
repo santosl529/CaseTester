@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { waveFolderName, planWave, markWaveResults, type Manifest } from '@/lib/eval/batch-manifest';
 
 const d = new Date('2026-10-09T15:00:00');
-const base = { commit: 'c1', dirty: false, date: d, models: { interviewer: 'claude-sonnet-5-5' }, knownIds: Array.from({ length: 62 }, (_, i) => i + 1) };
+const base = { commit: 'c1', codeDirty: false, codeChanged: false, date: d, models: { interviewer: 'claude-sonnet-5-5' }, knownIds: Array.from({ length: 62 }, (_, i) => i + 1) };
 
 describe('batch manifest', () => {
   it('names wave folders batch-18-<mon>-<dd>-runs-<x>-<y>', () => {
@@ -26,13 +26,38 @@ describe('batch manifest', () => {
     expect(w.wave).toBe('batch-18-oct-09-runs-3-3');
   });
 
-  it('refuses a dirty tree and a changed commit; --new-version allows the commit change and tags runs', () => {
+  it('refuses uncommitted code and a code change; --new-version allows the code change and tags runs', () => {
     const m = planWave(null, { ...base, personaIds: [1] }).manifest;
-    expect(() => planWave(m, { ...base, dirty: true, personaIds: [2] })).toThrow(/uncommitted/);
-    expect(() => planWave(m, { ...base, commit: 'c2', personaIds: [2] })).toThrow(/commit/);
-    const w = planWave(m, { ...base, commit: 'c2', newVersion: 'v2', personaIds: [2] });
+    expect(m.commits).toEqual(['c1']);
+    expect(() => planWave(m, { ...base, codeDirty: true, personaIds: [2] })).toThrow(/uncommitted/);
+    expect(() => planWave(m, { ...base, commit: 'c2', codeChanged: true, personaIds: [2] })).toThrow(/code .*changed since version v1.*--new-version/);
+    const w = planWave(m, { ...base, commit: 'c2', codeChanged: true, newVersion: 'v2', personaIds: [2] });
     expect(w.entries[0].version).toBe('v2');
     expect(w.manifest.version).toBe('v2');
+    expect(w.manifest.commit).toBe('c2');               // the new version's fingerprint base
+    expect(w.manifest.commits).toEqual(['c1', 'c2']);
+  });
+
+  it('a commit that leaves the code unchanged (docs, run outputs) joins the current version and is recorded', () => {
+    const m = planWave(null, { ...base, personaIds: [1] }).manifest;
+    const w = planWave(m, { ...base, commit: 'c2', personaIds: [2] });
+    expect(w.manifest.version).toBe('v1');
+    expect(w.entries[0].version).toBe('v1');
+    expect(w.manifest.commit).toBe('c1');
+    expect(w.manifest.commits).toEqual(['c1', 'c2']);
+    expect(planWave(w.manifest, { ...base, commit: 'c2', personaIds: [3] }).manifest.commits).toEqual(['c1', 'c2']); // same commit not repeated
+  });
+
+  it('freezes the models: a changed model needs --new-version and the error names the key', () => {
+    const m = planWave(null, { ...base, personaIds: [1], models: { interviewer: 'claude-sonnet-5-5', scoring: 'claude-opus-5-5' } }).manifest;
+    expect(() => planWave(m, { ...base, personaIds: [2], models: { interviewer: 'cerebras', scoring: 'claude-opus-5-5' } }))
+      .toThrow(/models changed .*interviewer: claude-sonnet-5-5 → cerebras/);
+    expect(() => planWave(m, { ...base, personaIds: [2], models: { interviewer: 'claude-sonnet-5-5' } })).toThrow(/scoring: claude-opus-5-5 → none/);
+    const w = planWave(m, { ...base, personaIds: [2], models: { interviewer: 'cerebras', scoring: 'claude-opus-5-5' }, newVersion: 'v2' });
+    expect(w.manifest.models.interviewer).toBe('cerebras');
+    expect(w.entries[0].version).toBe('v2');
+    // same models in another key order are not a change
+    expect(planWave(m, { ...base, personaIds: [2], models: { scoring: 'claude-opus-5-5', interviewer: 'claude-sonnet-5-5' } }).manifest.version).toBe('v1');
   });
 
   it('refuses more than 10 personas and unknown persona ids', () => {
@@ -60,7 +85,7 @@ describe('batch manifest', () => {
   it('judges "already done" within the current version only', () => {
     let m: Manifest = planWave(null, { ...base, personaIds: [1] }).manifest;
     m = markWaveResults(m, m.runs.map(r => ({ ...r, runDir: 'x' })), () => true);
-    const w = planWave(m, { ...base, commit: 'c2', newVersion: 'v2', personaIds: [1] });
+    const w = planWave(m, { ...base, commit: 'c2', codeChanged: true, newVersion: 'v2', personaIds: [1] });
     expect(w.entries.map(e => [e.personaId, e.runNumber, e.version])).toEqual([[1, 2, 'v2']]);
   });
 
@@ -71,7 +96,22 @@ describe('batch manifest', () => {
 
   it('rejects --new-version equal to the current version label', () => {
     const m = planWave(null, { ...base, personaIds: [1] }).manifest;
-    expect(() => planWave(m, { ...base, commit: 'c2', newVersion: 'v1', personaIds: [2] })).toThrow(/v1 is already the current version/);
+    expect(() => planWave(m, { ...base, commit: 'c2', codeChanged: true, newVersion: 'v1', personaIds: [2] })).toThrow(/v1 is already the current version/);
     expect(() => planWave(m, { ...base, newVersion: 'v1', personaIds: [2] })).toThrow(/v1 is already the current version/);
+  });
+
+  it('rejects a --new-version label an earlier version already used', () => {
+    const v1 = planWave(null, { ...base, personaIds: [1] }).manifest;
+    const v2 = planWave(v1, { ...base, commit: 'c2', codeChanged: true, newVersion: 'v2', personaIds: [2] }).manifest;
+    expect(() => planWave(v2, { ...base, commit: 'c3', codeChanged: true, newVersion: 'v1', personaIds: [3] })).toThrow(/v1 was already used/);
+  });
+
+  it('rejects a --new-version when nothing changed', () => {
+    const m = planWave(null, { ...base, personaIds: [1], hashes: { bands: 'b1', severity: 's1' } }).manifest;
+    expect(() => planWave(m, { ...base, commit: 'c2', newVersion: 'v2', personaIds: [2], hashes: { bands: 'b1', severity: 's1' } }))
+      .toThrow(/nothing changed — no new version needed/);
+    // any one of code, models or hashes is enough
+    expect(planWave(m, { ...base, newVersion: 'v2', personaIds: [2], hashes: { bands: 'b2', severity: 's1' } }).manifest.version).toBe('v2');
+    expect(planWave(m, { ...base, newVersion: 'v2', personaIds: [2], models: { interviewer: 'x' }, hashes: { bands: 'b1', severity: 's1' } }).manifest.version).toBe('v2');
   });
 });
