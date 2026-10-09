@@ -29,7 +29,7 @@ for (const dir of runDirs()) {
 mkdirSync(OUT, { recursive: true });
 rows.sort((a, b) => (a.runNumber ?? 0) - (b.runNumber ?? 0));
 writeFileSync(path.join(OUT, 'scorecard.json'), JSON.stringify(rows, null, 2));
-const cols = ['runNumber', 'personaId', 'personaName', 'version', 'completion', 'stuck', 'modelTurns', 'firstRelevantMedianMs', 'firstRelevantP90Ms', 'regenerations', 'vetoTurns', 'slowTurns', 'codeFlags', 'repeatedAsks', 'explicitAsks', 'appCostUsd', 'simulatorCostUsd', ...DIMENSIONS];
+const cols = ['runNumber', 'personaId', 'personaName', 'version', 'completion', 'stuck', 'modelTurns', 'firstRelevantMedianMs', 'firstRelevantP90Ms', 'regenerations', 'vetoTurns', 'slowTurns', 'unpricedUsageCalls', 'codeFlags', 'repeatedAsks', 'explicitAsks', 'appCostUsd', 'simulatorCostUsd', ...DIMENSIONS];
 const cell = (r: ScorecardRow, c: string): string => {
   const v = c in r ? (r as Record<string, unknown>)[c] : c in r.performance ? (r.performance as Record<string, unknown>)[c]
     : c === 'codeFlags' ? r.codeFlags.map(f => f.kind).join(' ') : c === 'repeatedAsks' ? r.effort.repeatedAsks
@@ -42,6 +42,7 @@ const qaTotals = rows.reduce<Record<string, number>>((m, r) => { for (const [k, 
 writeFileSync(path.join(OUT, 'scorecard.md'), [
   `# Batch 18 scorecard (auto columns)`, '',
   `Scoring-QA totals across ${rows.filter(r => r.scoringQa).length} scored runs: ${Object.entries(qaTotals).map(([k, v]) => `${k} ${v}`).join(' · ') || 'none'}`, '',
+  `Runs with unpriced usage: ${rows.filter(r => r.performance.unpricedUsageCalls > 0).length} (${rows.reduce((n, r) => n + r.performance.unpricedUsageCalls, 0)} calls; their cost is missing from app cost)`, '',
   `${rows.length} runs · ended ${ended} · technical failures ${rows.filter(r => r.completion === 'technical_failure').length} · stuck ${rows.filter(r => r.stuck).length} · with code flags ${rows.filter(r => r.codeFlags.length).length}`, '',
   '| # | persona | completion | stuck | flags | first relevant p50/p90 | cost app/sim |', '|---|---|---|---|---|---|---|',
   ...rows.map(r => `| ${r.runNumber ?? ''} | ${r.personaId ?? ''} ${r.personaName ?? r.runId} | ${r.completion} | ${r.stuck ?? '-'} | ${r.codeFlags.map(f => f.kind).join(', ') || '-'} | ${r.performance.firstRelevantMedianMs ?? '-'}/${r.performance.firstRelevantP90Ms ?? '-'} | $${r.performance.appCostUsd.toFixed(2)}/${r.performance.simulatorCostUsd === null ? '-' : '$' + r.performance.simulatorCostUsd.toFixed(2)} |`),

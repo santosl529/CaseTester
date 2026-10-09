@@ -79,4 +79,24 @@ describe('scorecard', () => {
     expect(row.effort.repeatedAsks).toBe(1);
     expect(row.performance.appCostUsd).toBeCloseTo(1);
   });
+
+  it('stages come from the end_gate event when present (transcript regex can miss phrasing)', () => {
+    const gate = { category: 'check', subtype: 'end_gate', turnIndex: 5, payloadJsonb: { decision: 'pass', detail: { riskAsked: true, brainstormAsked: true, recommendationAsked: true, recommendationAskCount: 1, recommendationReceived: true } } };
+    const r = run({ events: [gate], turns: [{ turnIndex: 0, role: 'interviewer', text: 'Hello.' }, { turnIndex: 1, role: 'candidate', text: 'c' }] });
+    const row = scorecardRow({ runId: 'r', turnFile: null, run: r });
+    expect(row.stagesSource).toBe('end_gate');
+    expect(row.stages.recommendationAsked).toBe(true);
+    expect(row.codeFlags.some(f => f.kind === 'stage_skipped')).toBe(false);
+    expect(scorecardRow({ runId: 'r', turnFile: null, run: run() }).stagesSource).toBe('transcript');
+  });
+
+  it('counts llm_usage rows with unpriced models without adding cost', () => {
+    const row = scorecardRow({ runId: 'r', turnFile: null, run: run({ analytics: [{ eventType: 'llm_usage', payloadJsonb: { model: 'mystery-model', inputTokens: 5, outputTokens: 5 } }] }) });
+    expect(row.performance.unpricedUsageCalls).toBe(1);
+    expect(row.performance.appCostUsd).toBe(0);
+  });
+
+  it('short generic questions do not count as a loop', () => {
+    expect(maxSameQuestion(['What does that tell you?', 'What does that tell you?', 'What does that tell you?'])).toBeLessThanOrEqual(1);
+  });
 });

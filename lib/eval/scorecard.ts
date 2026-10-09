@@ -30,11 +30,12 @@ export type ScorecardRow = {
   stuck: boolean | null;
   modelTurns: number;
   stages: ReturnType<typeof stageAdministration>;
+  stagesSource: 'end_gate' | 'transcript';
   loops: { maxSameQuestion: number; longestNoProgress: number | null };
   codeFlags: CodeFlag[];
   effort: { repeatedAsks: number };
   opportunities: { explicitAsks: number; ledgerItemsRequested: number; mathChecks: number; exhibitsShown: number; stallRungs: number; recAsks: number };
-  performance: { firstRelevantMedianMs: number | null; firstRelevantP90Ms: number | null; regenerations: number | null; vetoTurns: number; slowTurns: number | null; appCostUsd: number; simulatorCostUsd: number | null };
+  performance: { firstRelevantMedianMs: number | null; firstRelevantP90Ms: number | null; regenerations: number | null; vetoTurns: number; slowTurns: number | null; unpricedUsageCalls: number; appCostUsd: number; simulatorCostUsd: number | null };
   scoring: string | null;
   ratings: Record<Dimension, string | null>;
   // The per-run scoring-QA counters (scoring_qa analytics event): verifier drops, evidence strips, reconcile merges, …
@@ -42,13 +43,15 @@ export type ScorecardRow = {
 };
 
 export const SLOW_TURN_MS = 5000;
+const MIN_LOOP_TOKENS = 6;
 const pct = (xs: number[], p: number) => { if (!xs.length) return null; const s = [...xs].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(p * s.length))]; };
 const words = (q: string) => new Set(q.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').split(/\s+/).filter(Boolean));
 const jaccard = (a: Set<string>, b: Set<string>) => { const inter = [...a].filter(x => b.has(x)).length; return inter / (a.size + b.size - inter || 1); };
 const questionOf = (line: string) => line.split(/(?<=[.!?])\s+/).filter(s => s.trim().endsWith('?')).join(' ') || line;
 
 export function maxSameQuestion(questions: string[]): number {
-  const sets = questions.map(words);
+  // Very short questions ("What does that tell you?") are generic follow-ups, not loops.
+  const sets = questions.filter(q => (q.toLowerCase().match(/[a-z0-9]+/g) ?? []).length >= MIN_LOOP_TOKENS).map(words);
   return sets.reduce((best, s) => Math.max(best, sets.filter(t => jaccard(s, t) >= 0.8).length), 0);
 }
 
@@ -73,7 +76,12 @@ export function scorecardRow(p: { runId: string; run: RunRecord; turnFile: { hea
   const interviewerTexts = run.turns.filter(t => t.role === 'interviewer').map(t => t.text);
   const lastGate = [...run.events].reverse().find(e => e.category === 'check' && e.subtype === 'end_gate');
   const recReceived = Boolean((lastGate?.payloadJsonb?.detail as { recommendationReceived?: boolean } | undefined)?.recommendationReceived);
-  const stages = stageAdministration(interviewerTexts, recReceived);
+  const gd = lastGate?.payloadJsonb?.detail as Record<string, unknown> | undefined;
+  const fromGate = gd && typeof gd.brainstormAsked === 'boolean' && typeof gd.riskAsked === 'boolean' && typeof gd.recommendationAsked === 'boolean' && typeof gd.recommendationAskCount === 'number';
+  const stages = fromGate
+    ? { ...stageAdministration(interviewerTexts, Boolean(gd.recommendationReceived)), brainstormAsked: gd.brainstormAsked as boolean, riskAsked: gd.riskAsked as boolean, recommendationAsked: gd.recommendationAsked as boolean, recommendationAskCount: gd.recommendationAskCount as number }
+    : stageAdministration(interviewerTexts, recReceived);
+  const stagesSource: ScorecardRow['stagesSource'] = fromGate ? 'end_gate' : 'transcript';
   const flags: CodeFlag[] = [];
 
   const status = run.session.status;
@@ -114,11 +122,13 @@ export function scorecardRow(p: { runId: string; run: RunRecord; turnFile: { hea
   }
   const actedCheck = (sub: string) => run.events.filter(e => e.category === 'check' && e.subtype === sub && e.payloadJsonb.decision === 'act');
   const mathTurns = new Set([...actedCheck('recompute'), ...actedCheck('verified_figures')].map(e => e.turnIndex));
-  const appCostUsd = run.analytics.filter(a => a.eventType === 'llm_usage' && isPriced(String(a.payloadJsonb.model ?? '')))
+  const usage = run.analytics.filter(a => a.eventType === 'llm_usage');
+  const unpricedUsageCalls = usage.filter(a => !isPriced(String(a.payloadJsonb.model ?? ''))).length;
+  const appCostUsd = usage.filter(a => isPriced(String(a.payloadJsonb.model ?? '')))
     .reduce((s, a) => s + costOf({ model: String(a.payloadJsonb.model), inputTokens: Number(a.payloadJsonb.inputTokens ?? 0), outputTokens: Number(a.payloadJsonb.outputTokens ?? 0), cacheReadTokens: Number(a.payloadJsonb.cacheReadTokens ?? 0), cacheWriteTokens: Number(a.payloadJsonb.cacheWriteTokens ?? 0) }), 0);
   const rel = (records ?? []).map(firstRelevantMs).filter((x): x is number => x !== null);
   const ratings = Object.fromEntries(DIMENSIONS.map(d => [d, (run.score?.[`${d}Rating`] as string | null | undefined) ?? null])) as Record<Dimension, string | null>;
-  const scoringQa = run.analytics.find(a => a.eventType === 'scoring_complete');
+  const scoringComplete = run.analytics.find(a => a.eventType === 'scoring_complete');
 
   return {
     runId: p.runId,
@@ -128,6 +138,7 @@ export function scorecardRow(p: { runId: string; run: RunRecord; turnFile: { hea
     stuck: records ? maxSame >= 3 || (noProgress ?? 0) >= 4 : null,
     modelTurns: records?.length ?? run.turns.filter(t => t.role === 'candidate').length,
     stages,
+    stagesSource,
     loops: { maxSameQuestion: maxSame, longestNoProgress: noProgress },
     codeFlags: flags,
     effort: { repeatedAsks: [...askTurns.values()].filter(s => s.size >= 2).length },
@@ -144,9 +155,9 @@ export function scorecardRow(p: { runId: string; run: RunRecord; turnFile: { hea
       regenerations: records ? records.filter(r => r.requests.length > 1).length : null,
       vetoTurns: actedCheck('vetoes').length,
       slowTurns: records ? rel.filter(x => x > SLOW_TURN_MS).length : null,
-      appCostUsd, simulatorCostUsd: turnFile?.end?.candidateUsage.usd ?? null,
+      unpricedUsageCalls, appCostUsd, simulatorCostUsd: turnFile?.end?.candidateUsage.usd ?? null,
     },
-    scoring: turnFile?.end?.scoring ?? (scoringQa ? 'scored' : null),
+    scoring: turnFile?.end?.scoring ?? (scoringComplete ? 'scored' : null),
     ratings,
     scoringQa: (() => {
       const q = run.analytics.find(a => a.eventType === 'scoring_qa')?.payloadJsonb;
