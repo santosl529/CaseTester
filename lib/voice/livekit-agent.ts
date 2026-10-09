@@ -25,7 +25,7 @@ import type { Phase } from '@/lib/orchestrator/state-machine';
 import { DeepgramFluxSTT } from './deepgram';
 import { CartesiaTTS, defaultVoiceId } from './cartesia';
 import { FakeTTS } from './fake-tts';
-import { ACKS } from './acknowledge';
+import { ALL_ACKS } from './acknowledge';
 import { Playout } from './playout';
 import { SpeechEndTracker, trimSilence } from './pcm';
 import { TtsCharBudget, RunCharCap, monthlyLedgerFile, ttsRunCap } from './tts-budget';
@@ -44,7 +44,7 @@ const num = (k: string, d: number) => Number(process.env[k] ?? d);
 // The acknowledgments, synthesized once per TTS + voice and cached on disk.
 async function loadAcks(tts: TTSProvider, voice: string, take: (n: number) => boolean): Promise<Map<string, Uint8Array>> {
   const acks = new Map<string, Uint8Array>();
-  for (const ack of ACKS) {
+  for (const ack of ALL_ACKS) {
     const file = path.join('.voice-cache/acks', `${tts.name}-${voice}-${createHash('sha1').update(ack).digest('hex').slice(0, 10)}.pcm`);
     // Trimmed at both ends as loaded: the TTS pads ~0.1–0.2s of silence each side,
     // which delays the first sound and lengthens the gap after the ack.

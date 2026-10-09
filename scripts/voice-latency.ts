@@ -28,7 +28,7 @@ import type { Phase } from '@/lib/orchestrator/state-machine';
 import { DeepgramFluxSTT, DeepgramNovaSTT } from '@/lib/voice/deepgram';
 import { CartesiaTTS, cartesiaClient, defaultVoiceId } from '@/lib/voice/cartesia';
 import { speakingSink, turnLatency, type TurnLatency } from '@/lib/voice/speak';
-import { pickAck, shouldAcknowledge } from '@/lib/voice/acknowledge';
+import { ackKind, pickAck, shouldAcknowledge } from '@/lib/voice/acknowledge';
 import { silence, speechEndSec, streamRealtime } from '@/lib/voice/pcm';
 import type { STTProvider, TurnSignal } from '@/lib/voice/types';
 import { requireRunBudget } from '@/lib/llm-budget';
@@ -215,7 +215,7 @@ async function main() {
     let firstAudioMs: number | null = null;
     utt.onAudio((_pcm, at) => { firstAudioMs ??= at; });
     const phaseBefore = phase;
-    const ack: string | null = ACK_ON && shouldAcknowledge(transcript) ? pickAck(`${sessionId}:${i}`, lastAck) : null;
+    const ack: string | null = ACK_ON && shouldAcknowledge(transcript) ? pickAck(`${sessionId}:${i}`, lastAck, ackKind(transcript)) : null;
     if (ack) lastAck = ack;
     const ackAtMs = ack ? Date.now() : null;   // pre-synthesized: plays at once
     const result = await runTurn(sessionId, transcript, {

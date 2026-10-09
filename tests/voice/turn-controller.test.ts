@@ -9,6 +9,7 @@ import { TurnCancelled, isCancelledTurn, type HeardReport, type Segment } from '
 import type { ServerMessage } from '@/lib/voice/protocol';
 import type { TTSProvider } from '@/lib/voice/types';
 import { fakeClock, sink } from './helpers/playout-fakes';
+import { ACK_POOLS } from '@/lib/voice/acknowledge';
 
 const RATE = 24000;
 const ACK_MS = 300;
@@ -57,6 +58,19 @@ describe('before the browser can play audio', () => {
     await h.advance(2000);
     expect(h.texts).toEqual([]);
     expect(h.captions('interviewer')).toEqual([]);
+  });
+});
+
+describe('the instant acknowledgment', () => {
+  it('fits the kind of message: a stuck candidate hears "take your time", not "got it"', async () => {
+    const h = harness([[seg('tail', 'Go on.')], [seg('tail', 'Sure.')]]);
+    await h.c.ready(''); h.c.onStt(final('Sorry. Hold on.'));
+    await h.advance(3000);
+    h.c.onStt(final('Can I see the cost breakdown?'));
+    await h.advance(3000);
+    const acks = h.records.map(r => (r as { ack: string | null }).ack);
+    expect(ACK_POOLS.stuck).toContain(acks[0]);
+    expect(ACK_POOLS.data_request).toContain(acks[1]);
   });
 });
 

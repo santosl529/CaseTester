@@ -13,7 +13,7 @@ import { HEARD_MARGIN_MS, type Clock, type Outcome, type Playout } from './playo
 import type { PcmFormat, SttEvent, TTSProvider } from './types';
 import type { ServerMessage, VoiceState } from './protocol';
 import { classifierWaits, type TurnRecord } from './records';
-import { pickAck, shouldAcknowledge } from './acknowledge';
+import { ackKind, pickAck, shouldAcknowledge } from './acknowledge';
 
 // How long heard() waits for the browser to confirm an exhibit it was sent.
 export const EXHIBIT_CONFIRM_MS = 1500;
@@ -207,7 +207,7 @@ export class VoiceTurnController {
 
   private playAck(t: Live): void {
     if (!shouldAcknowledge(t.text)) return;
-    const ack = pickAck(`${this.d.sessionSeed}:${t.seq}`, this.lastAck);
+    const ack = pickAck(`${this.d.sessionSeed}:${t.seq}`, this.lastAck, ackKind(t.text));
     const pcm = this.d.ackPcm(ack);
     if (!pcm) return;
     this.lastAck = ack;

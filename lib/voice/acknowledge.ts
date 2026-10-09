@@ -5,17 +5,57 @@
 // is left out: after an answer it can sound like "you're right").
 import { classifyConduct } from '@/lib/orchestrator/conduct';
 import { pickScript } from '@/lib/agent/prompts/scripts';
+import { explicitRequestCues } from '@/lib/orchestrator/request-signal';
 
 // Two-beat acknowledgments (~0.7–0.9s spoken) cover more of the model's wait
 // than a single word (7 Oct demo: the pause after "Mm-hm." read as too long).
 export const ACKS = ['Okay, got it.', 'Mm-hm, I see.', 'Understood, okay.', 'Okay, I follow.', 'Got it, thanks.'] as const;
-export type Ack = (typeof ACKS)[number];
 
-// A seeded pick that never repeats the previous acknowledgment.
-export function pickAck(seed: string, last: string | null): Ack {
-  const first = pickScript([...ACKS], seed) as Ack;
+// One pool per kind of message (9 Oct): "Got it, thanks." after "Sorry. Hold
+// on." or a question read as not listening. A data ask gets "let me check",
+// never a promise — code may still refuse or defer it.
+export const ACK_POOLS = {
+  answer: ACKS,
+  stuck: ['Take your time.', 'Sure, take a moment.'],
+  question: ['Okay, sure.', 'Mm-hm, sure.'],
+  data_request: ['Okay, let me check.', 'Sure, one second.'],
+} as const;
+export type AckKind = keyof typeof ACK_POOLS;
+export type Ack = (typeof ACK_POOLS)[AckKind][number];
+// Every phrase, for synthesizing the audio once at startup.
+export const ALL_ACKS: readonly Ack[] = Object.values(ACK_POOLS).flat();
+
+// Only short messages get a kind: a long answer that opens with "let me take a
+// second" or asks a rhetorical question is still an answer (on the 9 Oct
+// check, cues anywhere in long persona answers misfired more than random).
+const MAX_KIND_WORDS = 40;
+const STUCK = [
+  /\b(i'?m|i\s+am)\s+(stuck|lost|confused|blanking|not\s+sure)\b/i,
+  /\bi\s+(really\s+)?(don'?t|do\s+not)\s+(really\s+)?know\b/i,
+  /\b(hold|hang)\s+on\b(?!\s+to\b)/i,
+  /\b(give\s+me|just)\s+(a|one)\s+(sec|second|moment|minute)\b/i,
+  /\blet\s+me\s+(think|redo|re-do|start\s+over|try\s+again)\b/i,
+  /\bwait\s*[,.!…]/i,
+];
+const QUESTION = [/\?/, /^\s*(sorry[.,—–-]?\s*)?(quick\s+question|can\s+i\s+ask|what|how|why|which|is|are|does|do|did)\b/i];
+
+// Stuck before a data ask before a question: "Sorry. Hold on." asks for time,
+// not an answer. STT may drop a "?", so a question opener counts too.
+export function ackKind(candidateText: string): AckKind {
+  const t = candidateText.trim();
+  if (t.split(/\s+/).length > MAX_KIND_WORDS) return 'answer';
+  if (STUCK.some(re => re.test(t))) return 'stuck';
+  if (explicitRequestCues(t).length) return 'data_request';
+  if (QUESTION.some(re => re.test(t))) return 'question';
+  return 'answer';
+}
+
+// A seeded pick from the kind's pool that never repeats the previous acknowledgment.
+export function pickAck(seed: string, last: string | null, kind: AckKind = 'answer'): Ack {
+  const pool: readonly Ack[] = ACK_POOLS[kind];
+  const first = pickScript([...pool], seed) as Ack;
   if (first !== last) return first;
-  return ACKS[(ACKS.indexOf(first) + 1) % ACKS.length];
+  return pool[(pool.indexOf(first) + 1) % pool.length];
 }
 
 // No acknowledgment when the conduct floor (the regex layer, instant) flags

@@ -21,7 +21,7 @@ import { startSession } from '@/lib/orchestrator/start-session';
 import { runTurn } from '@/lib/orchestrator/session-runner';
 import { runPostTurnBackground } from '@/lib/orchestrator/post-turn';
 import type { Phase } from '@/lib/orchestrator/state-machine';
-import { pickAck, shouldAcknowledge } from '@/lib/voice/acknowledge';
+import { ackKind, pickAck, shouldAcknowledge } from '@/lib/voice/acknowledge';
 import { trimSilence } from '@/lib/voice/pcm';
 import type { SegmentKind } from '@/lib/orchestrator/turn-types';
 import { requireRunBudget } from '@/lib/llm-budget';
@@ -142,7 +142,7 @@ async function main() {
     const speechEnd = now;
     gap(ENDPOINT_MS, 'end-of-turn detection (simulated Flux)');
 
-    const ack: string | null = shouldAcknowledge(lines[i]) ? pickAck(`${sessionId}:${i}`, lastAck) : null;
+    const ack: string | null = shouldAcknowledge(lines[i]) ? pickAck(`${sessionId}:${i}`, lastAck, ackKind(lines[i])) : null;
     if (ack) {
       lastAck = ack;
       if (!ackAudio.has(ack)) ackAudio.set(ack, trimSilence((await aura(ack)).pcm, RATE));
