@@ -41,18 +41,18 @@ if (rows.length < all.length) console.log(`[scorecard] version ${version}: ${all
 mkdirSync(OUT, { recursive: true });
 rows.sort((a, b) => (a.runNumber ?? 0) - (b.runNumber ?? 0));
 writeFileSync(path.join(OUT, 'scorecard.json'), JSON.stringify(rows, null, 2));
-const cols = ['runId', 'runNumber', 'personaId', 'personaName', 'version', 'rerun', 'completion', 'stuck', 'modelTurns', 'firstRelevantMedianMs', 'firstRelevantP90Ms', 'regenerations', 'vetoTurns', 'slowTurns', 'unpricedUsageCalls', 'codeFlags', 'incompleteTurns', 'repeatedAsks', 'explicitAsks', 'appCostUsd', 'simulatorCostUsd', ...DIMENSIONS];
+const cols = ['runId', 'runNumber', 'personaId', 'personaName', 'version', 'rerun', 'completion', 'stuck', 'modelTurns', 'firstRelevantMedianMs', 'firstRelevantP90Ms', 'regenerations', 'vetoTurns', 'slowTurns', 'unpricedUsageCalls', 'codeFlags', 'incompleteTurns', 'repeatedAsks', 'explicitAsks', 'calculationTurns', 'appCostUsd', 'simulatorCostUsd', ...DIMENSIONS];
 const cell = (r: ScorecardRow, c: string): string => {
   const v = c in r ? (r as Record<string, unknown>)[c] : c in r.performance ? (r.performance as Record<string, unknown>)[c]
     : c === 'codeFlags' ? r.codeFlags.map(f => f.kind).join(' ') : c === 'incompleteTurns' ? r.evidence.incompleteTurns : c === 'repeatedAsks' ? r.effort.repeatedAsks
-    : c === 'explicitAsks' ? r.opportunities.explicitAsks : (r.ratings as Record<string, unknown>)[c];
+    : c === 'explicitAsks' ? r.opportunities.explicitAsks : c === 'calculationTurns' ? r.opportunities.calculationTurns.join(' ') : (r.ratings as Record<string, unknown>)[c];
   return JSON.stringify(v ?? '');
 };
 writeFileSync(path.join(OUT, 'scorecard.csv'), [cols.join(','), ...rows.map(r => cols.map(c => cell(r, c)).join(','))].join('\n') + '\n');
 const originals = rows.filter(r => !isRerun(r));
 const reruns = rows.filter(isRerun);
-const tableRow = (r: ScorecardRow) => `| ${r.runNumber ?? ''}${isRerun(r) ? ` (rerun ${r.rerun})` : ''} | ${r.personaId ?? ''} ${r.personaName ?? r.runId} | ${r.completion} | ${r.stuck ?? '-'} | ${r.codeFlags.map(f => f.kind).join(', ') || '-'} | ${r.performance.firstRelevantMedianMs ?? '-'}/${r.performance.firstRelevantP90Ms ?? '-'} | $${r.performance.appCostUsd.toFixed(2)}/${r.performance.simulatorCostUsd === null ? '-' : '$' + r.performance.simulatorCostUsd.toFixed(2)} |`;
-const tableHead = ['| # | persona | completion | stuck | flags | first relevant p50/p90 | cost app/sim |', '|---|---|---|---|---|---|---|'];
+const tableRow = (r: ScorecardRow) => `| ${r.runNumber ?? ''}${isRerun(r) ? ` (rerun ${r.rerun})` : ''} | ${r.personaId ?? ''} ${r.personaName ?? r.runId} | ${r.completion} | ${r.stuck ?? '-'} | ${r.codeFlags.map(f => f.kind).join(', ') || '-'} | ${r.performance.firstRelevantMedianMs ?? '-'}/${r.performance.firstRelevantP90Ms ?? '-'} | ${r.opportunities.calculationTurns.join(' ') || '-'} | $${r.performance.appCostUsd.toFixed(2)}/${r.performance.simulatorCostUsd === null ? '-' : '$' + r.performance.simulatorCostUsd.toFixed(2)} |`;
+const tableHead = ['| # | persona | completion | stuck | flags | first relevant p50/p90 | calc turns | cost app/sim |', '|---|---|---|---|---|---|---|---|'];
 const ended = originals.filter(r => r.completion === 'ended').length;
 const qaTotals = originals.reduce<Record<string, number>>((m, r) => { for (const [k, v] of Object.entries(r.scoringQa ?? {})) m[k] = (m[k] ?? 0) + v; return m; }, {});
 writeFileSync(path.join(OUT, 'scorecard.md'), [

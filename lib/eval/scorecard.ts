@@ -42,7 +42,7 @@ export type ScorecardRow = {
   effort: { repeatedAsks: number };
   /** Turns whose recorder lost a stage (follow-up 9 Oct); null without a turn file. */
   evidence: { incompleteTurns: number | null };
-  opportunities: { explicitAsks: number; ledgerItemsRequested: number; mathChecks: number; exhibitsShown: number; stallRungs: number; recAsks: number };
+  opportunities: { explicitAsks: number; ledgerItemsRequested: number; mathChecks: number; /** Candidate turns (record index) that show arithmetic, whether or not it matches a case math step. */ calculationTurns: number[]; exhibitsShown: number; stallRungs: number; recAsks: number };
   performance: { firstRelevantMedianMs: number | null; firstRelevantP90Ms: number | null; regenerations: number | null; vetoTurns: number; slowTurns: number | null; unpricedUsageCalls: number; appCostUsd: number; simulatorCostUsd: number | null };
   scoring: string | null;
   ratings: Record<Dimension, string | null>;
@@ -51,6 +51,18 @@ export type ScorecardRow = {
 };
 
 export const SLOW_TURN_MS = 5000;
+
+// A computation is shown: an operator or arithmetic word between numbers, "N% of M",
+// or a result phrase after a number ("is about", "leaving"). Plain quoted figures
+// ("margin fell from 24% to 6%", "58% of revenue") are not.
+const NUM = String.raw`[$~]?\d[\d,]*(?:\.\d+)?%?[kKmMbB]?`;
+const CALC_PATTERNS = [
+  new RegExp(String.raw`${NUM}\s*(?:[×÷*/+=]|\sx\s|\s[-−–]\s)\s*${NUM}`),
+  new RegExp(String.raw`${NUM}\s+(?:times|plus|minus|divided by|multiplied by|over)\s+${NUM}`, 'i'),
+  new RegExp(String.raw`\d%\s+of\s+[$~]?\d`),
+  new RegExp(String.raw`\d[^.?!;]{0,60}?\b(?:is about|is roughly|is approximately|comes to|works out to|equals|leaving|leaves|gives us|gets us)\s+(?:about |roughly |around )?${NUM}`, 'i'),
+];
+export const hasCalculation = (text: string): boolean => CALC_PATTERNS.some(re => re.test(text));
 const MIN_LOOP_TOKENS = 6;
 const pct = (xs: number[], p: number) => { if (!xs.length) return null; const s = [...xs].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(p * s.length))]; };
 const words = (q: string) => new Set(q.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').split(/\s+/).filter(Boolean));
@@ -198,6 +210,7 @@ export function scorecardRow(p: { runId: string; run: RunRecord; turnFile: { hea
       explicitAsks: run.events.filter(e => e.category === 'request_signal' && e.subtype === 'explicit_ask').length,
       ledgerItemsRequested: askTurns.size + dr.filter(e => e.payloadJsonb.revealedByNow).flatMap(e => (e.payloadJsonb.ledgerItemIds as string[]) ?? []).filter(id => !askTurns.has(id)).length,
       mathChecks: mathTurns.size,
+      calculationTurns: records ? records.filter(r => hasCalculation(r.candidateText)).map(r => r.turnIndex) : run.turns.filter(t => t.role === 'candidate' && hasCalculation(t.text)).map(t => t.turnIndex),
       exhibitsShown: run.analytics.filter(a => a.eventType === 'exhibit_shown').length,
       stallRungs: actedCheck('rung_delivery').filter(e => e.payloadJsonb.reason === 'rung delivered').length,
       recAsks: stages.recommendationAskCount,

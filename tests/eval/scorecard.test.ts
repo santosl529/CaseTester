@@ -1,6 +1,6 @@
 // tests/eval/scorecard.test.ts
 import { describe, it, expect } from 'vitest';
-import { scorecardRow, firstRelevantMs, maxSameQuestion, repeatedShortProbes, rowsOfVersion, isRerun, type RunRecord, type ScorecardRow } from '@/lib/eval/scorecard';
+import { scorecardRow, hasCalculation, firstRelevantMs, maxSameQuestion, repeatedShortProbes, rowsOfVersion, isRerun, type RunRecord, type ScorecardRow } from '@/lib/eval/scorecard';
 import type { TurnFileHeader, TurnFileEnd } from '@/lib/eval/turn-file';
 import { stageAdministration } from '@/lib/orchestrator/spoken-close';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
@@ -190,5 +190,20 @@ describe('scorecard', () => {
     const transcript = (i: number, role: string) => ({ turnIndex: i, role, text: role === 'candidate' ? 'c' : 'Still with me?' });
     const noFile = scorecardRow({ runId: 'r', turnFile: null, run: run({ turns: [transcript(0, 'interviewer'), transcript(1, 'interviewer'), transcript(2, 'candidate'), transcript(3, 'interviewer'), transcript(4, 'interviewer'), transcript(5, 'candidate'), transcript(6, 'interviewer')] }) });
     expect(noFile.replyTurns).toEqual([3, 6]);
+  });
+
+  it('hasCalculation: arithmetic shown, not plain quoted figures', () => {
+    for (const t of ['0.06 × 1.15', '42 + 22 + 12 = 76', '451.2 / 0.76', '16 points on $480M is about $77M', "that's 43.3, leaving 14.7", '25% of 58 is 14.5', '3 times 4', '480 x 0.16',
+      "If non-beans rose 37.5% in intensity, that's 43.3, leaving 14.7 for beans — roughly 40% up.", 'a 16-point margin hit, plus 2 from overhead, giving 18'])
+      expect(hasCalculation(t), t).toBe(true);
+    for (const t of ['revenue is up 15% but margin fell from 24% to 6%', 'COGS is 58% of revenue', 'We have 200 stores across 3 regions.', 'No numbers here'])
+      expect(hasCalculation(t), t).toBe(false);
+  });
+
+  it('calculationTurns: candidate turns containing arithmetic (record index), alongside mathChecks', () => {
+    const tf = { header: { type: 'header', batch: null, version: null, wave: null, runNumber: null, commit: 'c', dirty: false, models: {}, persona: null, sessionId: 's', startedAt: '' } as TurnFileHeader, turns: [turn(2, { candidateText: 'COGS is 58% of revenue' }), turn(5, { candidateText: 'so 42 + 22 + 12 = 76' })], end: null };
+    expect(scorecardRow({ runId: 'r', run: run(), turnFile: tf }).opportunities.calculationTurns).toEqual([5]);
+    const noFile = scorecardRow({ runId: 'r', turnFile: null, run: run({ turns: [{ turnIndex: 1, role: 'candidate', text: '25% of 58 is 14.5' }, { turnIndex: 2, role: 'interviewer', text: 'ok' }] }) });
+    expect(noFile.opportunities.calculationTurns).toEqual([1]);
   });
 });
