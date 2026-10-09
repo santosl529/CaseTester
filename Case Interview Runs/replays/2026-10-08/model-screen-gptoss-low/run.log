@@ -1,0 +1,168 @@
+180 reconstructable turns · sampling 20 · rough Sonnet input estimate ~$0.18 (the run budget meters actual spend)
+[budget] replay-output-format: cap $0.25 shared via Case Interview Runs/replays/2026-10-08/model-screen-gptoss-low/budget.jsonl · already spent $0.0070
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Understood.","move":"structure","requests":[],"exhibit":null,"rescue_item":null,"question":"Please outline the framework you’d use to diagnose the profit decline, and then tell me which part you’d prioritize first and why."}
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Okay.", "move":"structure", "requests":[],"exhibit":null,"rescue_item":null,"question":"Please outline the framework you’d use to analyze the profit decline."}
+  01-maya-the-fr#3 INTRO          useful sonnet 1978 · gptoss-low 267/271
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"Understood.","move":"clarify","requests":[{"what":"number of stores (current and prior period)","item_ids":["stores_count"],"explicit":true,"respond":"release"},{"what":"average revenue per store (current period)","item_ids":["revenue_per_store"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What does that tell you about the drivers of the revenue growth?"}
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"clarify","requests":[{"what":"stores count and revenue per store","item_ids":["stores_count","revenue_per_store"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Do you have any other data you’d like to see to flesh out the revenue picture?"}
+  01-maya-the-fr#5 CLARIFY        useful sonnet 1446 · gptoss-low 385/182
+[interviewer] phase: CLARIFY
+[interviewer] request guard: explicit ask, no request declared — regenerating
+[interviewer-model] cerebras 429 — retrying in 59100ms (attempt 1/3)
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"pressure_test","requests":[],"exhibit":null,"rescue_item":null,"question":"Is that framework MECE — what's missing?"}
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"Got it.","move":"structure","requests":[{"what":"COGS as % of revenue","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"Labor as % of revenue","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"Overhead / rent as % of revenue","item_ids":["overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Please outline the framework you’d use to diagnose the margin decline."}
+  56-devon-the-i#4 CLARIFY        useful sonnet 1580 · gptoss-low 277/333
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"pressure_test","requests":[],"exhibit":null,"rescue_item":null,"question":"Is that framework MECE, and what might be missing from it?"}
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"Okay.","move":"pressure_test","requests":[{"what":"COGS as % of revenue","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"Labor as % of revenue","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"Overhead / rent as % of revenue","item_ids":["overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Is that framework MECE — what's missing?"}
+  06-destiny-the#14 STRUCTURE      useful sonnet 1492 · gptoss-low 186/202
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"Got it.","move":"analysis","requests":[{"what":"COGS as % of revenue","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"Labor as % of revenue","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"Overhead / rent as % of revenue","item_ids":["overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Why do you want to start with the cost breakdown before looking at revenue mix or below‑the‑line items?"}
+[interviewer] phase: STRUCTURE
+[interviewer-model] cerebras 429 — retrying in 59100ms (attempt 1/3)
+[interviewer-model] raw response: {"say":"Got it.","move":"analysis","requests":[{"what":"COGS as % of revenue","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"Labor as % of revenue","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"Overhead / rent as % of revenue","item_ids":["overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Where would you dig first, and why?"}
+  58-hugo-the-hi#6 STRUCTURE      useful sonnet 2494 · gptoss-low 375/375
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"structure","requests":[{"what":"framework for analysis","item_ids":[],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Please outline the structured approach you’d use to diagnose the profit decline, and indicate which part you’d prioritize first."}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Got it.", "move":"analysis","requests":[{"what":"average ticket value and transaction volume per store","item_ids":["avg_ticket"],"explicit":true,"respond":"release"},{"what":"cost percentages (COGS, labor, overhead) for current and prior period","item_ids":["cogs_pct","labor_pct","overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What does the average ticket and cost percentage data tell you about the drivers of margin change?"}
+  01-maya-the-fr#7 ANALYSIS       useful sonnet 1575 · gptoss-low 270/167
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Understood.","move":"analysis","requests":[{"what":"breakdown of COGS components","item_ids":["bean_share_of_cogs","non_bean_input_change"],"explicit":true,"respond":"release"},{"what":"coffee bean price change over the period","item_ids":["bean_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Which COGS component would you examine first, and what would you look for?"}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Got it.","move":"analysis","requests":[{"what":"coffee bean price change over the period","item_ids":["bean_price_change"],"explicit":true,"respond":"release"},{"what":"share of coffee beans in COGS","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"other input cost changes in COGS","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"},{"what":"number of stores","item_ids":["stores_count"],"explicit":true,"respond":"defer"},{"what":"average revenue per store","item_ids":["revenue_per_store"],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Which of these cost components do you think is driving the COGS increase, and what additional detail would you need to confirm it?"}
+  06-destiny-the#20 ANALYSIS       useful sonnet 1721 · gptoss-low 247/226
+[interviewer] phase: ANALYSIS
+[interviewer-model] cerebras 429 — retrying in 59100ms (attempt 1/3)
+[interviewer-model] raw response: {"say":"Okay.","move":"analysis","requests":[{"what":"bean share of COGS","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"other input cost changes","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Based on the split, what portion of the margin decline can you attribute to beans versus other inputs?"}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Got it.","move":"analysis","requests":[{"what":"COGS breakdown: coffee beans as a share of COGS","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What does this breakdown tell you about the drivers of the margin decline?"}
+  09-derek-the-b#10 ANALYSIS       useful sonnet 1483 · gptoss-low 280/262
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Right.", "move":"analysis","requests":[{"what":"total annual revenue","item_ids":["revenue_total"],"explicit":true,"respond":"release"},{"what":"coffee bean price change over two years","item_ids":["bean_price_change"],"explicit":true,"respond":"release"},{"what":"coffee beans share of COGS","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"other input cost changes (dairy, packaging, food) over two years","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"How does the bean price change compare to the overall COGS increase?"}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay.","move":"analysis","requests":[{"what":"COGS breakdown: coffee beans as a share of COGS","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Walk me through how you derived the $40‑45 M impact of a 10 % price increase."}
+  40-jasmine-the#8 ANALYSIS       useful sonnet 1529 · gptoss-low 257/252
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Understood.", "move":"analysis","requests":[{"what":"coffee bean price change over the period","item_ids":["bean_price_change"],"explicit":true,"respond":"release"},{"what":"non‑bean input cost changes over the period","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"You've turned the COGS rise into points of revenue. Points of what are you using for that conversion?"}
+[interviewer] phase: ANALYSIS
+[interviewer-model] cerebras 429 — retrying in 58100ms (attempt 1/3)
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"analysis","requests":[{"what":"bean price change over the period","item_ids":["bean_price_change"],"explicit":true,"respond":"release"},{"what":"non-bean input cost change over the period","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"When you say COGS rose by 16 points to 58% of revenue, are those points of revenue or of margin?"}
+  58-hugo-the-hi#8 ANALYSIS       useful sonnet 2119 · gptoss-low 243/188
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Okay.", "move":"analysis", "requests":[],"exhibit":null,"rescue_item":null,"question":"Which component of COGS would you examine first, and why?"}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: {"say":"Understood.","move":"analysis","requests":[{"what":"coffee bean price change over two years","item_ids":["bean_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"How much have bean prices moved, and what share of COGS do beans represent?"}
+  40-jasmine-the#6 ANALYSIS       useful sonnet 1386 · gptoss-low 374/275
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Mm-hm.", "move":"analysis","requests":[{"what":"cost breakdown as percentages of revenue","item_ids":["cogs_pct","labor_pct","overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Which cost component would you dive into first, and why?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Got it.", "move":"exhibit", "requests":[{"what":"cost structure breakdown","item_ids":["exhibit-a"],"explicit":true,"respond":"release"}], "exhibit":"exhibit-a", "rescue_item":null, "question":"What does the exhibit tell you about the cost drivers?"}
+  01-maya-the-fr#9 EXHIBIT        useful sonnet 1734 · gptoss-low 553/310
+[interviewer] phase: EXHIBIT
+[interviewer-model] cerebras 429 — retrying in 59100ms (attempt 1/3)
+[interviewer-model] raw response: {"say":"Got it.", "move":"exhibit", "requests":[],"exhibit":"exhibit-a","rescue_item":null,"question":"What does exhibit‑a tell you, and when you converted the bean and non‑bean cost changes into points, points of what?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"exhibit","requests":[],"exhibit":"exhibit-a","rescue_item":null,"question":"Looking at the cost‑structure exhibit, what does it tell you in terms of points of what?"}
+  08-claire-the-#8 EXHIBIT        useful sonnet 1902 · gptoss-low 209/169
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"","move":"exhibit","requests":[{"what":"menu price changes over 2 years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"}],"exhibit":"exhibit-a","rescue_item":null,"question":"What does the exhibit tell you about the pricing trend?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Got it.","move":"exhibit","requests":[{"what":"menu price changes over 2 years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"}],"exhibit":"exhibit-a","rescue_item":null,"question":"Please take a look at the exhibit and tell me what it reveals about the cost drivers."}
+  58-hugo-the-hi#12 EXHIBIT        useful sonnet 1431 · gptoss-low 231/283
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: {"say":"Got it.","move":"analysis","requests":[{"what":"total annual revenue","item_ids":["revenue_total"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What does the revenue figure tell you about the dollar impact of the cost changes you identified?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] cerebras 429 — retrying in 59100ms (attempt 1/3)
+[interviewer-model] raw response: {"say":"Okay.","move":"analysis","requests":[{"what":"bean price change over 2 years","item_ids":["bean_price_change"],"explicit":true,"respond":"release"},{"what":"total annual revenue","item_ids":["revenue_total"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Given the revenue and bean price change, how much of the COGS increase can be attributed to higher bean costs versus other input costs?"}
+  01-maya-the-fr#27 EXHIBIT        useful sonnet 2722 · gptoss-low 235/273
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Understood.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Beyond the cost drivers we've identified, what other initiatives could Brew & Bean pursue to improve profitability?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Understood.", "move":"brainstorm", "requests":[], "exhibit":null, "rescue_item":null, "question":"Beyond the cost drivers we've identified, what other actions could Brew & Bean take to improve profitability?"}
+  01-maya-the-fr#23 BRAINSTORM     useful sonnet 2715 · gptoss-low 203/183
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Okay.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Beyond price adjustments, what other actions could Brew & Bean pursue to protect or restore profitability?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: {"say":"Got it.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Beyond pricing, what other levers could Brew & Bean pursue to restore profitability?"}
+  56-devon-the-i#10 BRAINSTORM     useful sonnet 1978 · gptoss-low 192/177
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] cerebras 429 — retrying in 59100ms (attempt 1/3)
+[interviewer-model] raw response: {"say":"Got it.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"Based on what we've discussed, what would you recommend Brew & Bean do to restore profitability?"}
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Got it.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"Based on your analysis, what recommendation would you give to Brew & Bean to restore profitability?"}
+  01-maya-the-fr#31 RECOMMENDATION useful sonnet 2692 · gptoss-low 193/202
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Understood.","move":"risk","requests":[],"exhibit":null,"rescue_item":null,"question":"What do you see as the biggest risk to implementing your pricing and cost‑control recommendations?"}
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: {"say":"Understood.","move":"risk","requests":[],"exhibit":null,"rescue_item":null,"question":"What do you see as the biggest risk to your pricing and procurement recommendations?"}
+  58-hugo-the-hi#16 RECOMMENDATION useful sonnet 1791 · gptoss-low 391/224
+[interviewer] phase: WRAP
+[interviewer-model] raw response: {"say":"Understood.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"Based on our discussion, what would you recommend Brew & Bean do to restore profitability?"}
+[interviewer] phase: WRAP
+[interviewer-model] cerebras 429 — retrying in 58100ms (attempt 1/3)
+[interviewer-model] raw response: {"say":"Okay.", "move":"recommendation", "requests":[],"exhibit":null,"rescue_item":null,"question":"What would you recommend Brew & Bean do to reverse the margin decline?"}
+  01-maya-the-fr#33 WRAP           useful sonnet 2772 · gptoss-low 194/177
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Okay.", "move":"structure","requests":[{"what":"full cost breakdown","item_ids":[],"explicit":true,"respond":"defer"},{"what":"revenue by location versus total","item_ids":[],"explicit":true,"respond":"defer"},{"what":"number of locations two years ago versus today","item_ids":[],"explicit":true,"respond":"defer"},{"what":"average ticket size","item_ids":[],"explicit":true,"respond":"defer"},{"what":"transaction volume per store per day","item_ids":[],"explicit":true,"respond":"defer"},{"what":"employee headcount and average wage","item_ids":[],"explicit":true,"respond":"defer"},{"what":"customer satisfaction or NPS scores","item_ids":[],"explicit":true,"respond":"defer"},{"what":"market share versus competitors","item_ids":[],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Can you outline the framework you’d use to tackle this profit decline?"}
+[interviewer] phase: INTRO
+[interviewer] request guard: explicit ask, no request declared — regenerating
+[interviewer-model] raw response: {"say":"Got it.","move":"clarify","requests":[{"what":"cost breakdown","item_ids":["cogs_pct","labor_pct","overhead_pct"],"explicit":true,"respond":"release"},{"what":"revenue by location versus total","item_ids":["revenue_total","revenue_per_store"],"explicit":true,"respond":"release"},{"what":"store count two years ago versus today","item_ids":["stores_count"],"explicit":true,"respond":"release"},{"what":"average ticket size","item_ids":["avg_ticket"],"explicit":true,"respond":"release"},{"what":"transaction volume per store per day","item_ids":[],"explicit":true,"respond":"defer"},{"what":"employee headcount and average wage","item_ids":[],"explicit":true,"respond":"defer"},{"what":"customer satisfaction or NPS scores","item_ids":[],"explicit":true,"respond":"defer"},{"what":"market share versus competitors","item_ids":[],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Which of these data points would you like to see first?"}
+  18-nikhil-the-#2 INTRO          useful sonnet 2774 · gptoss-low 272/725
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"pressure_test","requests":[{"what":"COGS as % of revenue","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"Labor as % of revenue","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"Overhead / rent as % of revenue","item_ids":["overhead_pct"],"explicit":true,"respond":"release"},{"what":"Menu price changes over 2 years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Is that MECE — what's missing?"}
+[interviewer] phase: STRUCTURE
+[interviewer-model] cerebras 429 — retrying in 59100ms (attempt 1/3)
+[interviewer] request guard: explicit ask, no request declared — regenerating
+[interviewer-model] raw response: {"say":"Okay.","move":"pressure_test","requests":[],"exhibit":null,"rescue_item":null,"question":"Is that MECE – what's missing?"}
+  09-derek-the-b#6 STRUCTURE      useful sonnet 1862 · gptoss-low 381/367
+[interviewer] phase: STRUCTURE
+[interviewer] request guard: explicit ask, no request declared — regenerating
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"pressure_test","requests":[],"exhibit":null,"rescue_item":null,"question":"Is that framework MECE—what might be missing?"}
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"Understood.","move":"pressure_test","requests":[{"what":"COGS as % of revenue","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"labor expense as % of revenue","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"overhead / rent as % of revenue","item_ids":["overhead_pct"],"explicit":true,"respond":"release"},{"what":"total annual revenue","item_ids":["revenue_total"],"explicit":true,"respond":"release"},{"what":"average revenue per store","item_ids":["revenue_per_store"],"explicit":true,"respond":"release"},{"what":"number of stores","item_ids":["stores_count"],"explicit":true,"respond":"release"},{"what":"menu price changes over 2 years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"},{"what":"average transaction value","item_ids":["avg_ticket"],"explicit":true,"respond":"release"},{"what":"coffee bean price change over 2 years","item_ids":["bean_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Is that MECE—what might be missing?"}
+  18-nikhil-the-#6 STRUCTURE      useful sonnet 2463 · gptoss-low 371/272
+[interviewer] phase: STRUCTURE
+[interviewer-model] cerebras 429 — retrying in 59100ms (attempt 1/3)
+[interviewer-model] raw response: {"say":"","move":"pressure_test","requests":[{"what":"COGS as % of revenue","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"Labor as % of revenue","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"Overhead / rent as % of revenue","item_ids":["overhead_pct"],"explicit":true,"respond":"release"},{"what":"Total annual revenue","item_ids":["revenue_total"],"explicit":true,"respond":"release"},{"what":"Average revenue per store","item_ids":["revenue_per_store"],"explicit":true,"respond":"release"},{"what":"Number of stores","item_ids":["stores_count"],"explicit":true,"respond":"release"},{"what":"Menu price changes over 2 years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"},{"what":"Average transaction value","item_ids":["avg_ticket"],"explicit":true,"respond":"release"},{"what":"Coffee bean price change over 2 years","item_ids":["bean_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Is that MECE—what’s missing?"}
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"pressure_test","requests":[],"exhibit":null,"rescue_item":null,"question":"Is that framework MECE, and what might be missing?"}
+  18-nikhil-the-#14 STRUCTURE      useful sonnet 2802 · gptoss-low 468/219
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"Okay.","move":"structure","requests":[],"exhibit":null,"rescue_item":null,"question":"Please walk me through your framework for analyzing the profit decline."}
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: {"say":"Got it.","move":"structure","requests":[{"what":"COGS as % of revenue","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"Labor as % of revenue","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"Overhead / rent as % of revenue","item_ids":["overhead_pct"],"explicit":true,"respond":"release"},{"what":"Total annual revenue","item_ids":["revenue_total"],"explicit":true,"respond":"release"},{"what":"Average revenue per store","item_ids":["revenue_per_store"],"explicit":true,"respond":"release"},{"what":"Number of stores","item_ids":["stores_count"],"explicit":true,"respond":"release"},{"what":"Menu price changes over 2 years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"},{"what":"Average transaction value","item_ids":["avg_ticket"],"explicit":true,"respond":"release"},{"what":"Coffee bean price change over 2 years","item_ids":["bean_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Please walk me through your framework for analyzing the profit decline."}
+  18-nikhil-the-#24 STRUCTURE      useful sonnet 2630 · gptoss-low 225/348
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Got it.","move":"clarify","requests":[{"what":"cost breakdown by line item for both years","item_ids":["cogs_pct","labor_pct","overhead_pct","bean_price_change","non_bean_input_change","bean_share_of_cogs"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Do you also want to see the revenue breakdown by store count and average ticket?"}
+[interviewer] phase: INTRO
+[interviewer-model] cerebras 429 — retrying in 58100ms (attempt 1/3)
+[interviewer-model] raw response: {"say":"Mm-hm.","move":"analysis","requests":[{"what":"cost breakdown by line item for both years","item_ids":["cogs_pct","labor_pct","overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Do you have any insight into whether the revenue growth was driven more by higher transaction counts or higher average ticket?"}
+  20-connor-the-#2 INTRO          useful sonnet 1474 · gptoss-low 1536/171
+
+MODEL-AB (screening) — 26 turns · sonnet from REPLAY_BASE_FROM (historical, not re-run), challengers twice (mean)
+  [sonnet] firstUsefulMs median 1902 p90 2772
+  [sonnet] firstTokenMs median 1083 p90 1230
+  [sonnet] completeMs median 2119 p90 2995
+  [sonnet] guard B active on 8, regenerated 0
+  [gptoss-low] guard B active on 16, regenerated 4 · client rate-limit waits 11 (excluded from timings, max 59375ms)
+  [budget] spent $0.1044 of $0.25 — this process: cerebras/gpt-oss-120b 56 calls $0.0974 (4 with estimated output)
+  [sonnet] quality flags over 26 outputs: {} · errors 0
+  [gptoss-low] 0 errored calls of 52
+    FIRST USEFUL  mean-of-2 median 271 p90 432 · minus sonnet: median -1488ms (p10 -2494, p90 -1162), faster on 26/26
+    first token   mean-of-2 median 240 p90 394 · minus sonnet: median -835ms (p10 -1019, p90 -299), faster on 26/26
+    completion    mean-of-2 median 287 p90 443 · minus sonnet: median -1750ms (p10 -2606, p90 -1295), faster on 26/26
+    first relevant spoken text (per call) median 262 p90 385 · came from say on 0/52 calls
+    reasoning tokens per call median 69 p90 160 max 585 · reasoning on 52/52 calls, first reasoning → first answer token median 49ms p90 145ms
+    tokens per call median in 4516 (cached 3840) out 164
+    quality flags over 52 outputs: {}
+    request decisions differ — its two runs 15/26 · vs sonnet 34/52 outputs
+  wrote Case Interview Runs/replays/2026-10-08/model-screen-gptoss-low/replay-model-ab.md and replay-results-model-ab.json
+  [gptoss-low] substantive data decisions differ — its two runs 14/26 · vs sonnet 29/52 outputs · would withhold {}
+  wrote Case Interview Runs/replays/2026-10-08/model-screen-gptoss-low/delivery-review-model-ab.md

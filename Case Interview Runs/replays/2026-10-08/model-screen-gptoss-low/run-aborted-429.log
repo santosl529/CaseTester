@@ -1,0 +1,14 @@
+180 reconstructable turns · sampling 20 · rough Sonnet input estimate ~$0.18 (the run budget meters actual spend)
+[budget] replay-output-format: cap $0.25 shared via Case Interview Runs/replays/2026-10-08/model-screen-gptoss-low/budget.jsonl · already spent $0.0014
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Okay.", "move":"structure", "requests":[],"exhibit":null,"rescue_item":null,"question":"Please outline the framework you’d use to diagnose the profit decline."}
+[interviewer] phase: INTRO
+[interviewer-model] raw response: {"say":"Got it.","move":"structure","requests":[],"exhibit":null,"rescue_item":null,"question":"Please outline the framework you’d use to analyze the profit decline."}
+  01-maya-the-fr#3 INTRO          useful sonnet 1978 · gptoss-low 271/271
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"Got it.","move":"clarify","requests":[{"what":"stores count by period","item_ids":["stores_count"],"explicit":true,"respond":"release"},{"what":"average revenue per store by period","item_ids":["revenue_per_store"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Based on these numbers, how would you prioritize your next steps in the analysis?"}
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: {"say":"Got it.","move":"clarify","requests":[{"what":"stores count","item_ids":["stores_count"],"explicit":true,"respond":"release"},{"what":"average revenue per store","item_ids":["revenue_per_store"],"explicit":true,"respond":"release"},{"what":"total annual revenue","item_ids":["revenue_total"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Based on this, what additional information would you need to evaluate the revenue trend?"}
+  01-maya-the-fr#5 CLARIFY        useful sonnet 1446 · gptoss-low 303/311
+[interviewer] phase: CLARIFY
+[interviewer-model] cerebras 429 — retrying in 50100ms (attempt 1/3)
