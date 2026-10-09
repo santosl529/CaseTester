@@ -124,8 +124,27 @@ export function decideData(p: {
   return { releases, exhibit, refusals, defers, offers, requests: decided };
 }
 
+// An item spoken mid-sentence starts lower-case (smoke run 9 Oct: "I don't
+// have Pilot elasticity results … or Competitor pricing actions" — the
+// classifier's capital). Kept as written when its first word looks like an
+// acronym ("COGS", "NPS"), carries a digit ("Q3"), has an inner capital
+// ("McKinsey"), or opens a capitalised name ("Brew & Bean", "Blue Bottle").
+// The logged `what` is never changed.
+function spokenWhat(what: string): string {
+  const words = what.trim().split(/\s+/);
+  const first = words[0] ?? '';
+  const letters = first.replace(/[^A-Za-z]/g, '');
+  const next = words.slice(1).find(w => /[A-Za-z]/.test(w)) ?? '';
+  const keep = !/^[A-Z]/.test(first)
+    || /\d/.test(first)
+    || (letters.length >= 2 && letters === letters.toUpperCase())
+    || /[A-Z]/.test(first.slice(1))
+    || /^[A-Z]/.test(next);
+  return keep ? what : what.charAt(0).toLowerCase() + what.slice(1);
+}
+
 const joinWhat = (whats: string[], conj: 'and' | 'or') => {
-  const u = [...new Set(whats)];
+  const u = [...new Set(whats.map(spokenWhat))];
   return u.length <= 1 ? (u[0] ?? '') : `${u.slice(0, -1).join(', ')} ${conj} ${u.at(-1)}`;
 };
 

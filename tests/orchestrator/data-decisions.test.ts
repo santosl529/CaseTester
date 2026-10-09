@@ -143,3 +143,38 @@ describe('decisionRows', () => {
     ]);
   });
 });
+
+// Smoke run 9 Oct (b5ebdd96 t23): "I don't have Pilot elasticity results … or
+// Competitor pricing actions" — the classifier's capital, mid-sentence. Lists
+// lower-case each item's first letter unless its first word looks like an
+// acronym, carries a digit, has inner capitals, or opens a capitalised name.
+describe('spoken lists lower-case the first letter of each item', () => {
+  it.each([
+    ['Pilot elasticity results', 'pilot elasticity results'],
+    ['Competitor pricing actions', 'competitor pricing actions'],
+    ['COGS by line item', 'COGS by line item'],
+    ['NPS scores', 'NPS scores'],
+    ['Q3 revenue', 'Q3 revenue'],
+    ['2024 store count', '2024 store count'],
+    ['McKinsey benchmarks', 'McKinsey benchmarks'],
+    ['Brew & Bean menu prices', 'Brew & Bean menu prices'],
+    ['Blue Bottle pricing', 'Blue Bottle pricing'],
+    ['the store count', 'the store count'],
+  ])('%s → %s', (what, spoken) => {
+    expect(renderDataLines(decideData(base({ requests: [req({ what, itemIds: [] })] })), 's')).toEqual([`I don't have ${spoken}.`]);
+  });
+
+  it('applies to refusals, deferrals and offers, and keeps the logged what as declared', () => {
+    const d = decideData(base({ requests: [
+      req({ what: 'Pilot elasticity results', itemIds: [] }), req({ what: 'Competitor pricing actions', itemIds: [] }),
+      req({ what: 'Bean prices', itemIds: ['bean_price_change'], respond: 'defer' }),
+      req({ what: 'Average ticket', itemIds: ['avg_ticket'], explicit: false }),
+    ] }));
+    expect(renderDataLines(d, 's')).toEqual([
+      "I don't have pilot elasticity results or competitor pricing actions.",
+      "I'll come back to bean prices shortly.",
+      "I can share average ticket if you'd like.",
+    ]);
+    expect(decisionRows(d).map(r => r.what)).toEqual(['Pilot elasticity results', 'Competitor pricing actions', 'Bean prices', 'Average ticket']);
+  });
+});
