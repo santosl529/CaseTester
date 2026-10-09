@@ -4,10 +4,10 @@
 //   npx tsx scripts/persona-batch.ts --personas=1,2,3 --cap=65 [--pace=fast] [--new-version=v2] [--rerun] [--dry]
 //
 // Costs real money (≈ $0.77 per persona scored). --dry prints the plan only.
-import { spawn } from 'node:child_process';
+import { spawn, type ChildProcess } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { planWave, markWaveResults, loadManifest, saveManifest } from '@/lib/eval/batch-manifest';
+import { planWave, markWaveResults, loadManifest, saveManifest, type PersonaEntry } from '@/lib/eval/batch-manifest';
 import { liveRunArgs, findRunDir } from '@/lib/eval/wave-commands';
 import { gitInfo } from '@/lib/eval/git-info';
 import { INTERVIEWER_MODEL_ID, SCORING_MODEL_ID } from '@/lib/models';
@@ -17,6 +17,25 @@ const arg = (n: string) => process.argv.find(a => a.startsWith(`--${n}=`))?.spli
 const RUNS = 'Case Interview Runs/test runs';
 const BATCH_DIR = path.join(RUNS, 'batch-18');
 const PER_PERSONA_USD = 0.77;
+
+function spawnPersonaRun(e: PersonaEntry, pace: 'human' | 'fast', env: NodeJS.ProcessEnv): { child: ChildProcess; promise: Promise<void> } {
+  const child = spawn('npx', ['tsx', '--env-file=.env.local', ...liveRunArgs(e, { pace })], { env, stdio: ['ignore', 'pipe', 'pipe'] });
+  return {
+    child,
+    promise: new Promise<void>(resolve => {
+      let resolved = false;
+      child.stdout.on('data', d => process.stdout.write(`[#${e.runNumber} p${e.personaId}] ${d}`));
+      child.stderr.on('data', d => process.stderr.write(`[#${e.runNumber} p${e.personaId}] ${d}`));
+      child.on('error', err => {
+        console.error(`[wave] #${e.runNumber} persona ${e.personaId} failed to start: ${err.message}`);
+        if (!resolved) { resolved = true; resolve(); }
+      });
+      child.on('close', code => {
+        if (!resolved) { resolved = true; console.log(`[wave] #${e.runNumber} persona ${e.personaId} exited ${code}`); resolve(); }
+      });
+    }),
+  };
+}
 
 async function main() {
   const personaIds = (arg('personas') ?? '').split(',').filter(Boolean).map(Number);
@@ -34,12 +53,21 @@ async function main() {
   saveManifest(BATCH_DIR, manifest);
 
   const env = { ...process.env, LLM_BUDGET_USD: String(cap), LLM_BUDGET_FILE: path.resolve(BATCH_DIR, 'budget-ledger.jsonl') };
-  await Promise.all(entries.map(e => new Promise<void>(resolve => {
-    const child = spawn('npx', ['tsx', '--env-file=.env.local', ...liveRunArgs(e, { pace })], { env, stdio: ['ignore', 'pipe', 'pipe'] });
-    child.stdout.on('data', d => process.stdout.write(`[#${e.runNumber} p${e.personaId}] ${d}`));
-    child.stderr.on('data', d => process.stderr.write(`[#${e.runNumber} p${e.personaId}] ${d}`));
-    child.on('close', code => { console.log(`[wave] #${e.runNumber} persona ${e.personaId} exited ${code}`); resolve(); });
-  })));
+  const spawned = entries.map(e => spawnPersonaRun(e, pace, env));
+  const children = spawned.map(s => s.child);
+  let sigintCount = 0;
+
+  const cleanup = () => {
+    sigintCount++;
+    if (sigintCount > 1) process.exit(130);
+    console.log(`[wave] interrupted — stopping ${children.length} runs`);
+    children.forEach(c => c.kill('SIGINT'));
+  };
+
+  process.on('SIGINT', cleanup);
+  process.on('SIGTERM', cleanup);
+
+  await Promise.all(spawned.map(s => s.promise));
 
   const waveDir = path.join(RUNS, wave);
   const located = entries.map(e => ({ ...e, runDir: findRunDir(waveDir, e.personaId) }));
