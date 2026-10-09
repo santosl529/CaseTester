@@ -1,7 +1,7 @@
 # Persona batch evaluation — recorder, scorecard, fault review, scoring evaluation
 
 Status: approved 9 Oct 2026, with two changes at review: the ChatGPT baseline runs after the batch (§2.7, §3), and the naming scheme in §2.2.
-Scope: the 63-persona text batch (`scripts/personas.ts`) and everything needed to turn it into a pilot-readiness decision and reusable replay/training material.
+Scope: the 62-persona text batch (`scripts/personas.ts`) and everything needed to turn it into a pilot-readiness decision and reusable replay/training material.
 
 ## 1. Purpose and success criteria
 
@@ -33,7 +33,7 @@ Constraints carried from the project rules: ask before every paid step, with an 
 ### 2.2 Waves and the batch manifest
 - The batch runs in **waves of up to 10 personas**; the user chooses each wave's size and persona ids. Each wave is one command, e.g.
   `scripts/persona-batch.ts --personas=1,2,3 --cap=65`, launching the runs in parallel and exiting when they finish.
-- **Naming:** the batch is **batch 18**, version `v1`. Runs are numbered 1–63 in the order they are run. Each wave's runs go in `Case Interview Runs/test runs/batch-18-<mon>-<dd>-runs-<x>-<y>/` (the date the wave ran, its first and last run numbers — e.g. `batch-18-oct-09-runs-1-10`, then `batch-18-oct-10-runs-11-15`). Batch-level files (manifest, budget ledger, scorecard, faults, review sheet, bands comparison) live in `Case Interview Runs/test runs/batch-18/`.
+- **Naming:** the batch is **batch 18**, version `v1`. Runs are numbered 1–62 in the order they are run. Each wave's runs go in `Case Interview Runs/test runs/batch-18-<mon>-<dd>-runs-<x>-<y>/` (the date the wave ran, its first and last run numbers — e.g. `batch-18-oct-09-runs-1-10`, then `batch-18-oct-10-runs-11-15`). Batch-level files (manifest, budget ledger, scorecard, faults, review sheet, bands comparison) live in `Case Interview Runs/test runs/batch-18/`.
 - `manifest.json` in the batch folder records: batch version, git commit, bands-file hash, severity-file hash, model ids, and per persona: status (pending / done / failed), run folder, wave id, cost.
 - Shared budget ledger across waves (`LLM_BUDGET_FILE` in the batch folder) with the batch cap; each wave also prints its own estimate before starting.
 - **Freeze:** a wave refuses to start on a dirty working tree or on a commit different from the manifest's, unless `--new-version=<label>` is passed; runs are then tagged with that version and never pooled with the earlier version in any summary.
@@ -58,7 +58,7 @@ Opportunity denominators: explicit asks; ledger items requested; candidate calcu
 ### 2.4 Fault records, pre-screen and human confirmation
 - **Fault record** (`faults.jsonl`): id, run, turn, candidate text + two preceding turns, model raw output, orchestrator changes (withheld / decisions), delivered text, expected behaviour with rule or case-fact reference, category (requests / math / grounding / acknowledgment / conversation / administration), severity, attribution (model / orchestrator / **simulator** / ambiguous policy / evaluator uncertain), recovered (and at which turn), source (code / pre-screen / human), status (proposed / confirmed / rejected), reviewer note.
 - **Code flags** (free, in the extractor): mechanical faults visible in records — vetoes that removed the whole question, guard-B double misses, loops (same probe ≥3), stages skipped, technical failures, timeouts.
-- **Opus pre-screen** (`scripts/batch-prescreen.ts`, Opus 5.5, one call per interview): input = transcript as delivered, condensed turn records, the interviewer-behaviour rules excerpt, the case facts (server-side script — never shipped to the client). Output = proposed faults with exact quotes. Code verifies every quote verbatim against the delivered text (same approach as the scoring evidence audit) and drops unverifiable proposals. Estimate ≈ 63 × (35k in, 4k out) ≈ **$15**; metered under the batch ledger with its own cap.
+- **Opus pre-screen** (`scripts/batch-prescreen.ts`, Opus 5.5, one call per interview): input = transcript as delivered, condensed turn records, the interviewer-behaviour rules excerpt, the case facts (server-side script — never shipped to the client). Output = proposed faults with exact quotes. Code verifies every quote verbatim against the delivered text (same approach as the scoring evidence audit) and drops unverifiable proposals. Estimate ≈ 62 × (35k in, 4k out) ≈ **$15**; metered under the batch ledger with its own cap.
 - **Human confirmation**: `review-sheet.md` lists every proposed serious fault (with context and quotes) plus **8 randomly chosen interviews with no flags**, to be read in full. Verdicts are entered in the sheet and parsed back into `faults.jsonl`. Reported: pre-screen precision (confirmed ÷ proposed) and an estimate of misses from the 8 full reads.
 
 ### 2.5 Severity definitions (frozen before the batch; file `evals/severity.md`)

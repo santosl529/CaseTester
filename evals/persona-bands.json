@@ -1,0 +1,625 @@
+{
+  "version": "v1",
+  "personas": {
+    "1": {
+      "structure":     { "expect": ["needs_work"], "confidence": "medium", "reason": "\"go silent for over a minute\", then \"produce a vague three-bucket list\"" },
+      "quantitative":  { "expect": ["needs_work"], "confidence": "high", "reason": "\"get it wrong the same way three times, even after correction\"" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["needs_work"], "confidence": "medium", "reason": "[pause 70s] silence at structuring, short stuck replies, \"god I'm so bad at this\" (rubric: long silences)" },
+      "synthesis":     { "expect": ["needs_work"], "confidence": "high", "reason": "\"freeze and say you don't know — and keep saying some short version of it every time you're asked\" (no committed answer)" },
+      "pushback":      { "expect": ["needs_work"], "confidence": "high", "reason": "\"stay stuck through the interviewer's next two nudges\"; same conversion error \"even after correction\" (ignores hints)" }
+    },
+    "2": {
+      "structure":     { "expect": ["strong"], "confidence": "high", "reason": "\"delivers tight, correct reasoning\"; \"Everything you eventually say is strong\"" },
+      "quantitative":  { "expect": ["strong"], "confidence": "high", "reason": "\"Everything you eventually say is strong\"" },
+      "dataExhibit":   { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "pauses after each exhibit, then strong reasoning — exhibit reading implied, not stated" },
+      "judgment":      { "expect": ["strong"], "confidence": "high", "reason": "\"Everything you eventually say is strong\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "tight answers, but 65–90s silences before each" },
+      "synthesis":     { "expect": ["strong"], "confidence": "high", "reason": "pauses before the recommendation, then strong" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "3": {
+      "structure":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"careful\"; relevant scoping questions that \"meaningfully narrow the problem\" before committing to a structure" },
+      "quantitative":  { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"your analysis is solid\"" },
+      "dataExhibit":   { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "scopes again \"after the first cost exhibit\"; \"your analysis is solid\"" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"your analysis is solid\"; questions are \"genuinely relevant\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"You never stall otherwise\"; questions are relevant and non-repetitive — not a delivery flaw" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "4": {
+      "structure":     { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"A competent candidate\"" },
+      "quantitative":  { "expect": ["meets_bar"], "confidence": "high", "reason": "\"your analysis stays adequate\" (rubric label for meets_bar)" },
+      "dataExhibit":   { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"your analysis stays adequate\"" },
+      "judgment":      { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"your analysis stays adequate\"; \"a reasonable recommendation\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"apologizes constantly\" — escalating self-criticism as filler" },
+      "synthesis":     { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"give a reasonable recommendation\"" },
+      "pushback":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"sorry, that was probably wrong\" — self-criticism \"escalates through the case\" (composure)" }
+    },
+    "5": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "6": {
+      "structure":     { "expect": ["needs_work"], "confidence": "high", "reason": "\"you cannot produce a structure on your own, however it's re-asked or simplified\"" },
+      "quantitative":  { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"answer data questions with common sense rather than analysis\"; \"untrained\"" },
+      "dataExhibit":   { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"answer data questions with common sense rather than analysis\"" },
+      "judgment":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"common sense rather than analysis\"; \"just untrained\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "first-timer, short stuck replies, no framework vocabulary" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": ["needs_work"], "confidence": "medium", "reason": "\"never ask for data unprompted\"; moves only when told what to look at (passive)" }
+    },
+    "7": {
+      "structure":     { "expect": ["needs_work"], "confidence": "high", "reason": "\"Open badly — a vague structure\", then stuck when pushed on it" },
+      "quantitative":  { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"Make one math error early that needs correcting\", then finds footing" },
+      "dataExhibit":   { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "\"deliver sharp exhibit reads\"" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"a genuinely strong recommendation, operating unassisted\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": ["strong"], "confidence": "high", "reason": "\"a genuinely strong recommendation\"" },
+      "pushback":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "stuck when pushed early, then \"operating unassisted\"; \"Never stall again after the opening\"" }
+    },
+    "8": {
+      "structure":     { "expect": ["strong"], "confidence": "high", "reason": "\"A strong candidate throughout — clean structure\"" },
+      "quantitative":  { "expect": ["strong"], "confidence": "high", "reason": "\"A strong candidate throughout — … correct math\"" },
+      "dataExhibit":   { "expect": ["strong"], "confidence": "high", "reason": "\"A strong candidate throughout — … sharp exhibit interpretation\"" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "strong throughout, but \"unwilling to decide under uncertainty\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "strong throughout; brief stuck replies only at the recommendation" },
+      "synthesis":     { "expect": ["needs_work"], "confidence": "high", "reason": "\"Never give a recommendation\" (no committed answer)" },
+      "pushback":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "however the question is narrowed, repeats that she \"can't commit\" (does not take the hint)" }
+    },
+    "9": {
+      "structure":     { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination once the hostile lines land after a warning (Rule 18: no score)" },
+      "quantitative":  { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination once the hostile lines land after a warning (Rule 18: no score); if scored instead: needs_work — \"confidently wrong\", repeated unit error" },
+      "dataExhibit":   { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination once the hostile lines land after a warning (Rule 18: no score); if scored instead: needs_work — share of COGS read as points of revenue" },
+      "judgment":      { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination once the hostile lines land after a warning (Rule 18: no score); if scored instead: needs_work — \"Invent figures that were never released\"" },
+      "creativity":    { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination once the hostile lines land after a warning (Rule 18: no score)" },
+      "communication": { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination once the hostile lines land after a warning (Rule 18: no score); if scored instead: needs_work/meets_bar — \"long monologues (250+ words)\"" },
+      "synthesis":     { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination once the hostile lines land after a warning (Rule 18: no score); if scored instead: needs_work/meets_bar — recommendation built on invented figures" },
+      "pushback":      { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination once the hostile lines land after a warning (Rule 18: no score); if scored instead: needs_work — \"argue rather than absorb\"" }
+    },
+    "10": {
+      "structure":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your qualitative reasoning is otherwise strong\"" },
+      "quantitative":  { "expect": ["needs_work"], "confidence": "high", "reason": "unit conflation \"in three separate calculations\"; \"make the identical class of error again\" after correction" },
+      "dataExhibit":   { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "conflates \"percent of COGS\" with \"percentage points of revenue\" when using shown data" },
+      "judgment":      { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "\"Your qualitative reasoning is otherwise strong\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"acknowledge it — then make the identical class of error again later\" (feedback not incorporated)" }
+    },
+    "11": {
+      "structure":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your structure and judgment are good\"" },
+      "quantitative":  { "expect": ["needs_work"], "confidence": "high", "reason": "\"Several of your fuzzy quantities should be materially wrong\"; \"Resist precision even when asked directly\"" },
+      "dataExhibit":   { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "fuzzy restatements, several \"materially wrong relative to what you've been shown\"" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your structure and judgment are good\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"Resist precision even when asked directly — you're ballparking\"" }
+    },
+    "12": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your arithmetic is correct throughout\"; but \"spend real time computing figures that don't affect the conclusion\"" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your recommendation is sound\"; time on figures that don't matter (weak prioritization)" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["meets_bar"], "confidence": "medium", "reason": "theatrical three-to-four-decimal precision — a communication note, not an error" },
+      "synthesis":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your recommendation is sound\"" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "13": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "rounds \"within a few percent of the exact answer\", says clearly it is estimating — estimation is a scored skill" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Flag your assumptions as you go\"; \"your conclusions are unaffected\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "14": {
+      "structure":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Nothing else in your case is wrong\"" },
+      "quantitative":  { "expect": ["needs_work"], "confidence": "high", "reason": "\"overstate it by 2–3×\"; \"it's bad arithmetic\"" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"Build your entire diagnosis on it\" — claims a driver explains more than the whole change" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"You're fluent and confident\"" },
+      "synthesis":     { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"carry the inflated figure into your recommendation\"" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "15": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"Build subsequent math on the misremembered figures\"; method otherwise fine" },
+      "dataExhibit":   { "expect": ["needs_work"], "confidence": "medium", "reason": "\"Misstate data that was already shown to you\" (misread exhibit figures)" },
+      "judgment":      { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"Your reasoning method is otherwise fine\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "16": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "errors caught \"two sentences later\" and re-derived unprompted; \"your final numbers are all correct\" (rubric meets_bar: minor errors self-caught)" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "17": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "18": {
+      "structure":     { "expect": ["needs_work"], "confidence": "medium", "reason": "\"Open by requesting eight distinct data points\" — no structure, \"Never prioritize\"" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": ["needs_work"], "confidence": "high", "reason": "\"Keep requesting rather than analyzing what you've been given\"" },
+      "judgment":      { "expect": ["needs_work"], "confidence": "medium", "reason": "\"Never prioritize and never explain why you want any figure\"; requests mix implausible items" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "19": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "reasons \"entirely from assumption\"; \"several are wrong\"" },
+      "dataExhibit":   { "expect": ["needs_work"], "confidence": "high", "reason": "\"When data is offered, acknowledge it briefly and return to your priors\"" },
+      "judgment":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"Your assumptions are plausible but unverified, and several are wrong\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"a confident recommendation built almost entirely on assumed figures\"" },
+      "pushback":      { "expect": ["needs_work"], "confidence": "medium", "reason": "\"Never ask for a single piece of data\"; offered data is set aside (ignores cues)" }
+    },
+    "20": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": ["needs_work"], "confidence": "high", "reason": "\"Read only the first row of any cost exhibit\"; \"never comment on the other lines or on the year-by-year trend\"" },
+      "judgment":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"conclude that line is the whole story\"; \"shallow on data\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"Fast and decisive but shallow\" — conclusion rests on a partial read" },
+      "pushback":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"When an exhibit is referenced again, repeat the same partial read\"" }
+    },
+    "21": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"reason around the gap by assuming they did not\" after an unanswered request — a coverage caveat (floor meets_bar), not a judgment ding" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "22": {
+      "structure":     { "expect": ["needs_work"], "confidence": "high", "reason": "\"Porter's Five Forces, then the 4Ps — with no adaptation\" (rubric needs_work: unmodified Porter/4P)" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Delivery is confident and rehearsed\"" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"When pressure-tested, add more template layers rather than tailoring\"" }
+    },
+    "23": {
+      "structure":     { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"your structure has a real overlap … that you talk past\"" },
+      "quantitative":  { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"narrating derivations unprompted\"" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your preemption is fluent but shallow\"" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "talks past the real overlap rather than addressing it" }
+    },
+    "24": {
+      "structure":     { "expect": ["needs_work"], "confidence": "high", "reason": "\"say the structure is implied by the answer\" — recommendation before any structure" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"it's input costs, raise prices\" asserted \"before any data has been released\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "the turn-two recommendation is re-asserted, not built from the analysis" },
+      "pushback":      { "expect": ["needs_work"], "confidence": "medium", "reason": "\"Resist returning to diagnosis and keep re-asserting the recommendation\"" }
+    },
+    "25": {
+      "structure":     { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"Your content is adequate but buried\"" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"Your content is adequate but buried\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["needs_work"], "confidence": "high", "reason": "\"Every answer runs 450–600 words, circling the same three points\"; \"Never yield the floor\"" },
+      "synthesis":     { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"adequate but buried\" in 450–600-word answers (rubric: rambling / partially buried)" },
+      "pushback":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"don't respond to conversational cues to wrap up\"" }
+    },
+    "26": {
+      "structure":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"When given a direction, execute it well. Capable\"" },
+      "quantitative":  { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"When given a direction, execute it well\"" },
+      "dataExhibit":   { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"When given a direction, execute it well\"" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Capable but passive\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": ["needs_work"], "confidence": "high", "reason": "\"Never drive the case or request data on your own initiative\" (rubric needs_work: passive/waits to be led)" }
+    },
+    "27": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Otherwise engaged and analytical\"" },
+      "dataExhibit":   { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Otherwise engaged and analytical\"" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Otherwise engaged and analytical\"" },
+      "creativity":    { "expect": ["needs_work"], "confidence": "high", "reason": "\"say 'I think we've covered the main possibilities' and stop\"; pressed, \"repeat two ideas already discussed\"" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "28": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"your analysis is decent\", but profanity escalates \"as you struggle with a calculation\"" },
+      "dataExhibit":   { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"your analysis is decent\"" },
+      "judgment":      { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"your analysis is decent\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"Swear steadily at yourself and the problem\" — self-directed filler" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "29": {
+      "structure":     { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination: insults, a warning, then \"a useless piece of software\" (Rule 18: no score)" },
+      "quantitative":  { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination: insults, a warning, then \"a useless piece of software\" (Rule 18: no score)" },
+      "dataExhibit":   { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination: insults, a warning, then \"a useless piece of software\" (Rule 18: no score)" },
+      "judgment":      { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination: insults, a warning, then \"a useless piece of software\" (Rule 18: no score)" },
+      "creativity":    { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination: insults, a warning, then \"a useless piece of software\" (Rule 18: no score)" },
+      "communication": { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination: insults, a warning, then \"a useless piece of software\" (Rule 18: no score)" },
+      "synthesis":     { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination: insults, a warning, then \"a useless piece of software\" (Rule 18: no score)" },
+      "pushback":      { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination: insults, a warning, then \"a useless piece of software\" (Rule 18: no score); if scored instead: needs_work — \"sharpen to contempt after a correction\"" }
+    },
+    "30": {
+      "structure":     { "expect": "not_assessed", "confidence": "medium", "reason": "\"On your fourth reply … direct a group-targeting slur\" — C3 ends the session immediately (Rule 18: no score)" },
+      "quantitative":  { "expect": "not_assessed", "confidence": "medium", "reason": "\"On your fourth reply … direct a group-targeting slur\" — C3 ends the session immediately (Rule 18: no score)" },
+      "dataExhibit":   { "expect": "not_assessed", "confidence": "medium", "reason": "\"On your fourth reply … direct a group-targeting slur\" — C3 ends the session immediately (Rule 18: no score)" },
+      "judgment":      { "expect": "not_assessed", "confidence": "medium", "reason": "\"On your fourth reply … direct a group-targeting slur\" — C3 ends the session immediately (Rule 18: no score)" },
+      "creativity":    { "expect": "not_assessed", "confidence": "medium", "reason": "\"On your fourth reply … direct a group-targeting slur\" — C3 ends the session immediately (Rule 18: no score)" },
+      "communication": { "expect": "not_assessed", "confidence": "medium", "reason": "\"On your fourth reply … direct a group-targeting slur\" — C3 ends the session immediately (Rule 18: no score)" },
+      "synthesis":     { "expect": "not_assessed", "confidence": "medium", "reason": "\"On your fourth reply … direct a group-targeting slur\" — C3 ends the session immediately (Rule 18: no score)" },
+      "pushback":      { "expect": "not_assessed", "confidence": "medium", "reason": "\"On your fourth reply … direct a group-targeting slur\" — C3 ends the session immediately (Rule 18: no score)" }
+    },
+    "31": {
+      "structure":     { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"Your actual case performance is mediocre\"" },
+      "quantitative":  { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"Your actual case performance is mediocre\"" },
+      "dataExhibit":   { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"Your actual case performance is mediocre\"" },
+      "judgment":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"Your actual case performance is mediocre\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"Your actual case performance is mediocre\"" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "32": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "33": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "34": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": "not_assessed", "confidence": "medium", "reason": "\"Never return to the case after the warning\" (insult comes \"Early on\") — this stage is never reached" },
+      "dataExhibit":   { "expect": "not_assessed", "confidence": "medium", "reason": "\"Never return to the case after the warning\" (insult comes \"Early on\") — this stage is never reached" },
+      "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
+      "creativity":    { "expect": "not_assessed", "confidence": "medium", "reason": "\"Never return to the case after the warning\" (insult comes \"Early on\") — this stage is never reached" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": "not_assessed", "confidence": "medium", "reason": "\"Never return to the case after the warning\" (insult comes \"Early on\") — this stage is never reached" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "35": {
+      "structure":     { "expect": ["strong"], "confidence": "high", "reason": "\"Your structure, math, and recommendation are all strong\"" },
+      "quantitative":  { "expect": ["strong"], "confidence": "high", "reason": "\"Your structure, math, and recommendation are all strong\"" },
+      "dataExhibit":   { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"your analytical logic is consistently sound\"" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"your analytical logic is consistently sound\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "halting English and [pause 20s] — fluency must not be scored as reasoning; logic \"consistently sound\"" },
+      "synthesis":     { "expect": ["strong"], "confidence": "high", "reason": "\"Your structure, math, and recommendation are all strong\"" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "36": {
+      "structure":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Perform well\"" },
+      "quantitative":  { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Perform well\"" },
+      "dataExhibit":   { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Perform well\"" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Perform well\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Perform well\"; the one [pause 200s] is a wifi dropout, not a candidate silence" },
+      "synthesis":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Perform well\"" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "37": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"Your analysis is inconsistent, strong in bursts\"" },
+      "dataExhibit":   { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"Your analysis is inconsistent, strong in bursts\"" },
+      "judgment":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"Your analysis is inconsistent, strong in bursts\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["needs_work"], "confidence": "medium", "reason": "\"answers that don't quite respond to the question asked\"; [pause 40s]/[pause 75s] gaps; off-topic drift" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "38": {
+      "structure":     { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"Polished but formulaic\" (rubric meets_bar: limited tailoring)" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Polished but formulaic\"" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "39": {
+      "structure":     { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"Produce adequate work when finally forced to\"" },
+      "quantitative":  { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"Produce adequate work when finally forced to\"" },
+      "dataExhibit":   { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"Produce adequate work when finally forced to\"" },
+      "judgment":      { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"Produce adequate work when finally forced to\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"Produce adequate work when finally forced to\"" },
+      "pushback":      { "expect": ["needs_work"], "confidence": "medium", "reason": "\"ask for the interviewer's analysis at least five times\"; \"When deflected, try a different angle rather than answering\"" }
+    },
+    "40": {
+      "structure":     { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"Deliver structure, analysis, and a complete recommendation … all competent\"" },
+      "quantitative":  { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"analysis … all competent\"" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"all competent\"" },
+      "creativity":    { "expect": ["needs_work"], "confidence": "medium", "reason": "\"Skip any brainstorm\" with \"one-line answers\" when prompted — an administered, refused brainstorm is rated (cf. Noor), not not-assessed" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"a complete recommendation within your first two or three replies, all competent\"" },
+      "pushback":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"volunteer no further detail when prompted (one-line answers)\"" }
+    },
+    "41": {
+      "structure":     { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"Your case work is decent\"" },
+      "quantitative":  { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"Your case work is decent\"" },
+      "dataExhibit":   { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"Your case work is decent\"" },
+      "judgment":      { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"Your case work is decent\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"Your case work is decent\"" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "42": {
+      "structure":     { "expect": ["needs_work"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — the structuring ask is made and refused" },
+      "quantitative":  { "expect": "not_assessed", "confidence": "medium", "reason": "\"Never actually attempt the case\" — refuses at the opening, so this stage is never reached" },
+      "dataExhibit":   { "expect": "not_assessed", "confidence": "medium", "reason": "\"Never actually attempt the case\" — refuses at the opening, so this stage is never reached" },
+      "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
+      "creativity":    { "expect": "not_assessed", "confidence": "medium", "reason": "\"Never actually attempt the case\" — refuses at the opening, so this stage is never reached" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": "not_assessed", "confidence": "medium", "reason": "\"Never actually attempt the case\" — refuses at the opening, so this stage is never reached" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "43": {
+      "structure":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your structure is textbook-perfect\" but \"you can't elaborate on your own reasoning when probed\"" },
+      "quantitative":  { "expect": ["needs_work"], "confidence": "high", "reason": "\"State math results with no visible derivation\" (rubric: asserting a number without deriving it is needs_work)" },
+      "dataExhibit":   { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"paste text that references an exhibit you were never shown\"" },
+      "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "register \"swings between polished consultant-speak and terse fragments\"" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": ["needs_work"], "confidence": "medium", "reason": "\"can't elaborate on your own reasoning when probed — 'as I mentioned, it's a cost-side issue'\"" }
+    },
+    "44": {
+      "structure":     { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "\"Your case performance is otherwise excellent\"" },
+      "quantitative":  { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "\"Check every figure you're given … and against each other\"; \"otherwise excellent\"" },
+      "dataExhibit":   { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "\"Your case performance is otherwise excellent\"" },
+      "judgment":      { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "\"Your case performance is otherwise excellent\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "\"Your case performance is otherwise excellent\"" },
+      "synthesis":     { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "\"Your case performance is otherwise excellent\"" },
+      "pushback":      { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "raises a genuine discrepancy \"directly with your arithmetic\", repeats it \"once more with the numbers laid out\" if brushed off" }
+    },
+    "45": {
+      "structure":     { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "\"Your reasoning is strong\"" },
+      "quantitative":  { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "\"Your reasoning is strong\"; math worked through out loud (in Spanish)" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "\"Your reasoning is strong\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"your English fluent; switching is a thinking habit\" — code-switching should be neutral" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "46": {
+      "structure":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your actual performance is above average\"" },
+      "quantitative":  { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your actual performance is above average\"" },
+      "dataExhibit":   { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your actual performance is above average\"" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your actual performance is above average\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your actual performance is above average\"" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "47": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"Take every correction or probe as a verdict on your ability\" — wounded, not evaluative; keeps working" }
+    },
+    "48": {
+      "structure":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"You're engaged, capable, and treat the session normally\"" },
+      "quantitative":  { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"engaged, capable\"" },
+      "dataExhibit":   { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"engaged, capable\"" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"engaged, capable\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"engaged, capable\"" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "49": {
+      "structure":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your case work is good\"" },
+      "quantitative":  { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your case work is good\"" },
+      "dataExhibit":   { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your case work is good\"" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your case work is good\" (though anchored on made-up \"real data\" from an internship)" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your case work is good\"" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "50": {
+      "structure":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"otherwise a solid performer\"" },
+      "quantitative":  { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"otherwise a solid performer\"" },
+      "dataExhibit":   { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"otherwise a solid performer\"" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"otherwise a solid performer\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"otherwise a solid performer\"" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "51": {
+      "structure":     { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "transaction-based structure, \"genuinely MECE and complete\" — a valid non-standard framework must not be penalized" },
+      "quantitative":  { "expect": ["strong"], "confidence": "high", "reason": "\"Your analysis and recommendation are strong\"" },
+      "dataExhibit":   { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "\"Your analysis … [is] strong\"" },
+      "judgment":      { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "\"Your analysis and recommendation are strong\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": ["strong"], "confidence": "high", "reason": "\"Your analysis and recommendation are strong\"" },
+      "pushback":      { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "\"Defend it clearly when pressure-tested and decline to restructure\"" }
+    },
+    "52": {
+      "structure":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "rules branches out by reasoning and asks for data \"only on branches you couldn't eliminate\" (prioritization)" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"a 200-store chain doesn't silently absorb a wage shock…\" — reasoned elimination, three times" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "asks for data only where needed; \"Never request data you don't need\"" }
+    },
+    "53": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Once the data doesn't support it, explicitly reject it\" and \"move to whatever the data does support\"" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"I was wrong about waste; the pattern doesn't support it\" — updates hypotheses on evidence" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "54": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your close is clean but narrower than your thinking was\"" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "55": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"connect the shape of a cost trend you've been shown to a supplier contract renewal cycle\"" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "extends the hint into \"staggered renegotiation timing\" — an idea \"the interviewer never said\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": ["meets_bar"], "confidence": "medium", "reason": "stuck \"five or six replies\" until handed a direction, then takes it and extends it (incorporates hints)" }
+    },
+    "56": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "57": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": ["needs_work"], "confidence": "medium", "reason": "released numbers applied \"in the wrong slots\" (prior-year base, per-transaction as per-cup) — clean arithmetic on wrong setups" },
+      "dataExhibit":   { "expect": ["needs_work"], "confidence": "medium", "reason": "\"apply them in the wrong slots\" — a share of one line applied to another" },
+      "judgment":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"your conclusions are confidently wrong\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"your conclusions are confidently wrong\"" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "58": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your inference method is sound\"" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your inference method is sound\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "59": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "reopens pricing \"once cost data contradicts your assumption\"; \"Every revisit is justified by new evidence you cite\"" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Every revisit is justified by new evidence you cite, not by drift\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "60": {
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"grounded in the data you've been shown\"; \"uses only released data\"" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your reasoning is sound\"; \"consider and reject selective pricing with a stated rationale\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"You are not wrong; you are different\" — a defensible non-model recommendation must not be marked down" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "61": {
+      "structure":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"A capable candidate\"; \"short, competent answers\"" },
+      "quantitative":  { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"A capable candidate\"; \"short, competent answers\"" },
+      "dataExhibit":   { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"A capable candidate\"; \"short, competent answers\"" },
+      "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"A capable candidate\"; \"short, competent answers\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    },
+    "62": {
+      "structure":     { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"A decent candidate\"" },
+      "quantitative":  { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"Your analysis is adequate throughout\" (but \"damn, wrong units again\" hints at real slips)" },
+      "dataExhibit":   { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"Your analysis is adequate throughout\"" },
+      "judgment":      { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"Your analysis is adequate throughout\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"A decent candidate\"; \"carry straight on with your recommendation\"" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
+    }
+  }
+}
