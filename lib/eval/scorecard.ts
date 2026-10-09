@@ -22,7 +22,7 @@ export type RunRecord = {
 export type CodeFlag = {
   /** The turn record's index: the candidate's line (the interviewer's reply is turnIndex + 1), as the check events use. */
   turnIndex: number | null;
-  kind: 'question_withheld' | 'guard_double_miss' | 'model_unusable' | 'prefix_mismatch' | 'loop' | 'repeated_short_probe' | 'incomplete_evidence' | 'stage_skipped' | 'technical_failure' | 'slow_turn';
+  kind: 'question_withheld' | 'guard_double_miss' | 'model_unusable' | 'prefix_mismatch' | 'loop' | 'repeated_short_probe' | 'incomplete_evidence' | 'stage_skipped' | 'technical_failure' | 'slow_turn' | 'code_written_ask_dropped';
   detail: string;
 };
 
@@ -172,6 +172,13 @@ export function scorecardRow(p: { runId: string; run: RunRecord; turnFile: { hea
     if (lost.length) flags.push({ turnIndex: r.turnIndex, kind: 'incomplete_evidence', detail: `recorder failed at: ${lost.join(', ')}` });
     const rel = firstRelevantMs(r);
     if (rel !== null && rel > SLOW_TURN_MS) flags.push({ turnIndex: r.turnIndex, kind: 'slow_turn', detail: `${rel} ms to first relevant speech` });
+  }
+
+  // A code-written turn (close, grace ask, time warning, rung 1) answers only
+  // asks addressed to the interviewer; what it dropped is listed for review.
+  for (const e of run.events.filter(x => x.category === 'check' && x.subtype === 'code_written_requests' && x.payloadJsonb.decision === 'act')) {
+    const dropped = ((e.payloadJsonb.detail as { dropped?: string[] } | undefined)?.dropped) ?? [];
+    flags.push({ turnIndex: e.turnIndex, kind: 'code_written_ask_dropped', detail: `not answered (no addressed ask covered them): ${dropped.join('; ')}` });
   }
 
   const dr = run.events.filter(e => e.category === 'data_request' && e.payloadJsonb.explicit === true);

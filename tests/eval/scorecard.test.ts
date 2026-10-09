@@ -207,3 +207,25 @@ describe('scorecard', () => {
     expect(noFile.opportunities.calculationTurns).toEqual([1]);
   });
 });
+
+// Smoke fix B: a code-written turn answers only asks addressed to the
+// interviewer; any detection it drops is surfaced so the batch review sees a
+// real ask the rule loses.
+describe('code_written_ask_dropped', () => {
+  const ev = (turnIndex: number, decision: 'act' | 'pass', dropped: string[]) => ({
+    category: 'check', subtype: 'code_written_requests', turnIndex,
+    payloadJsonb: { decision, ...(decision === 'act' ? { reason: 'r' } : {}), detail: { sentences: [], answered: [], dropped } },
+  });
+
+  it('flags each turn whose detections were dropped, naming them', () => {
+    const row = scorecardRow({ runId: 'r', turnFile: null, run: run({ events: [ev(9, 'pass', []), ev(22, 'act', ['Pilot elasticity results', 'Competitor pricing actions'])] }) });
+    expect(row.codeFlags.filter(f => f.kind === 'code_written_ask_dropped')).toEqual([
+      { turnIndex: 22, kind: 'code_written_ask_dropped', detail: 'not answered (no addressed ask covered them): Pilot elasticity results; Competitor pricing actions' },
+    ]);
+  });
+
+  it('no flag when nothing was dropped', () => {
+    const row = scorecardRow({ runId: 'r', turnFile: null, run: run({ events: [ev(9, 'pass', [])] }) });
+    expect(row.codeFlags.some(f => f.kind === 'code_written_ask_dropped')).toBe(false);
+  });
+});
