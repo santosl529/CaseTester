@@ -51,8 +51,14 @@ export const BRAINSTORM_ASK =
   /\bwhat else (could|can|should|might) [\w&' ]{1,40}? do\b|\bbeyond (pricing|price|a price increase|that|this|what we'?ve (discussed|covered)),? what\b|\bwhat other (levers|ideas|options)\b|\bbrainstorm/i;
 const RISK_ASK =
   /\b(biggest risk|key risk|main risk|what could go wrong|what would change your mind|what would make you wrong|how would you (test|de-?risk)|risks? (to|of|with|in) (that|this|your) (recommendation|plan))\b/i;
+// "What would you recommend" counts only as the whole question (it ends
+// there), or with a doer the candidate isn't ("…recommend Brew & Bean / the
+// company do"), or as "what would your recommendation be" (batch 13). An
+// analysis question — "what would you recommend we look at next", "what data
+// would you recommend pulling" — stays out: this count feeds the end gate and
+// RECOMMENDATION_ASK_LIMIT.
 const REC_ASK =
-  /\b(bottom.?line recommendation|recommendation to the (ceo|client)|final recommendation|what(?:'?s| is) your recommendation|give me your recommendation|what would you (tell|recommend) (to )?the (ceo|client)|pull it together)\b/i;
+  /\b(bottom.?line recommendation|recommendation to the (ceo|client)|final recommendation|what(?:'?s| is) your recommendation|give me your recommendation|what would you (tell|recommend) (to )?the (ceo|client)|pull it together|what would your (?:\w+ )?recommendation be|what would you recommend(?=\s*(?:[?,.!;:\u2014\u2013]|$))|what would you recommend (?!(?:we|i|us)\b)[\w&' ]{1,40}? do)\b/i;
 
 export function asksBrainstorm(text: string): boolean { return BRAINSTORM_ASK.test(text); }
 export function asksRisk(text: string): boolean { return RISK_ASK.test(text); }

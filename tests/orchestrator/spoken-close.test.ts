@@ -110,3 +110,28 @@ describe('recommendation ask detection (batch 5–6 phrasings)', () => {
     expect(s.recommendationAskCount).toBe(2);
   });
 });
+
+describe('recommendation ask detection — "what would you recommend" (batch 13 phrasings)', () => {
+  const positives = [
+    'Okay. So what would your recommendation be, and what would you tell them to do first?',
+    'Good. Given all that, what would you recommend, and which of those levers would you pull first?',
+    "What would you recommend Brew & Bean do first, and what's the plan?",
+    'What would you recommend?',
+    'What would you recommend the company do?',
+  ];
+  const negatives = [
+    'What would you recommend we look at next in the data?',
+    'What data would you recommend pulling?',
+    'Which test would you recommend to check the bean assumption?',
+    'What would you recommend we do to size the market?',
+  ];
+
+  it('counts each real recommendation ask', () => {
+    for (const t of positives) expect(stageAdministration([t], false).recommendationAskCount, t).toBe(1);
+    expect(stageAdministration(positives, false).recommendationAskCount).toBe(positives.length);
+  });
+
+  it('does not count analysis questions that use "recommend"', () => {
+    for (const t of negatives) expect(stageAdministration([t], false).recommendationAsked, t).toBe(false);
+  });
+});
