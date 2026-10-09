@@ -1235,7 +1235,8 @@ declares each request and code decides (release, refuse, defer, offer), so
 the parallel detection below is gone from model turns (v4.8 — it fed only a
 log-only audit, which disagreed with the declarations on about half of
 Nikhil's batch-10/11 turns with no way to tell which was right).
-Code-written turns still classify synchronously.* Logging did not stop the failure: batch 2
+Code-written turns still classify synchronously, and since 9 Oct answer only the
+detections an addressed ask in the message covers (Rule 12 item 6).* Logging did not stop the failure: batch 2
 (29–30 Sep, after the v4.3 fixes) still left 23 requests for held data
 unanswered, against 27 in batch 1, and the typical pattern was the candidate
 asking again and getting the data a turn or two late. The v3.5 review's
@@ -1452,11 +1453,34 @@ mid-flow.
      "That's time. Thanks for working through it — your written report will
      follow." — with no evaluation of the candidate's answer (Rule 1). Maya's
      19:23 "is exactly the synthesis" was both a second goodbye and a grade.
-  6. **A request in the final message is answered before the goodbye
-     (round 3).** Camila (batch 3) asked for store figures in her last
-     message and got only the close. On an ending turn, data the candidate
-     just asked for is released ahead of the closing line, stage limits
-     aside — the case is over.
+  6. **An ask in the final message is answered before the goodbye
+     (round 3; narrowed 9 Oct).** Camila (batch 3) asked for store figures in
+     her last message and got only the close. On an ending turn, data the
+     candidate just asked for is released ahead of the closing line, stage
+     limits aside — the case is over. Since 9 Oct, on every code-written turn
+     (close, grace ask, time warning, rung 1) code answers only what the
+     candidate *asked the interviewer for*: a sentence with an addressed-ask
+     phrasing ("could I get…", "could you share…", "do we have…", "do we know
+     how many / how much / what the … figure…", "is there data on…", "any
+     numbers on…", "please share…"; "I'd want/need the…" only before the
+     brainstorm or when phrased as a question), a question about case data
+     ("What was the store count two years ago?"), or a numbered list that
+     follows such a sentence. The classifier's detections are answered only
+     when such a sentence covers them; a lone question about the data, or an
+     "I'd want …" sentence, covers only the items it names, so a rhetorical
+     question next to a next step answers nothing. Dropped detections are
+     recorded in the `code_written_requests` check (scorecard flag
+     `code_written_ask_dropped`) and, while the case goes on, logged as
+     passing mentions (`explicit: false`). **Accepted trade-off:** a
+     statement-form need — Camila's own kind ("The thing that would settle
+     it is understanding where the 15% growth came from"), next steps ("I'd
+     want a waste audit before committing") and conditions ("what would make
+     me change course: one, pilot elasticity…") — is no longer answered at
+     the close. Reason: the 9 Oct smoke run (Tobias, b5ebdd96 t22) — the
+     goodbye released two figures and refused two items the candidate had
+     named only as conditions; the same dump happened on 8 of the 9 corpus
+     closes that answered data. No phrasing rule tells a statement-form ask
+     from a condition without reopening those dumps.
 
   **Deterministic backstop:**
   - **Wider goodbye detector.** Closing language includes, at minimum:
