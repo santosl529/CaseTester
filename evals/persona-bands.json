@@ -33,7 +33,7 @@
     },
     "4": {
       "structure":     { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"A competent candidate\"" },
-      "quantitative":  { "expect": ["meets_bar"], "confidence": "high", "reason": "\"your analysis stays adequate\" (rubric label for meets_bar)" },
+      "quantitative":  { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"your analysis stays adequate\" (rubric label for meets_bar)" },
       "dataExhibit":   { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"your analysis stays adequate\"" },
       "judgment":      { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"your analysis stays adequate\"; \"a reasonable recommendation\"" },
       "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
@@ -82,14 +82,14 @@
       "pushback":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "however the question is narrowed, repeats that she \"can't commit\" (does not take the hint)" }
     },
     "9": {
-      "structure":     { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination once the hostile lines land after a warning (Rule 18: no score)" },
-      "quantitative":  { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination once the hostile lines land after a warning (Rule 18: no score); if scored instead: needs_work — \"confidently wrong\", repeated unit error" },
-      "dataExhibit":   { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination once the hostile lines land after a warning (Rule 18: no score); if scored instead: needs_work — share of COGS read as points of revenue" },
-      "judgment":      { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination once the hostile lines land after a warning (Rule 18: no score); if scored instead: needs_work — \"Invent figures that were never released\"" },
-      "creativity":    { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination once the hostile lines land after a warning (Rule 18: no score)" },
-      "communication": { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination once the hostile lines land after a warning (Rule 18: no score); if scored instead: needs_work/meets_bar — \"long monologues (250+ words)\"" },
-      "synthesis":     { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination once the hostile lines land after a warning (Rule 18: no score); if scored instead: needs_work/meets_bar — recommendation built on invented figures" },
-      "pushback":      { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination once the hostile lines land after a warning (Rule 18: no score); if scored instead: needs_work — \"argue rather than absorb\"" }
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": ["needs_work"], "confidence": "medium", "reason": "\"confidently wrong\"; deliberate unit error (\"X is 25% of COGS, so that's 25 points of margin\"), repeated \"in a different calculation\"" },
+      "dataExhibit":   { "expect": ["needs_work"], "confidence": "medium", "reason": "treats \"a component's share of COGS as if it were percentage points of revenue\"" },
+      "judgment":      { "expect": ["needs_work"], "confidence": "medium", "reason": "\"Invent figures that were never released\" and \"build your recommendation on them\"" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"polished, fast-talking\"; \"Write long monologues (250+ words)\"" },
+      "synthesis":     { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "recommendation built on invented figures (\"assuming same-store traffic is up around 12%…\")" },
+      "pushback":      { "expect": ["needs_work"], "confidence": "medium", "reason": "when corrected, \"argue rather than absorb — 'I think your number's off, walk me through your math'\"" }
     },
     "10": {
       "structure":     { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"Your qualitative reasoning is otherwise strong\"" },
@@ -282,24 +282,24 @@
       "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
     },
     "29": {
-      "structure":     { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination: insults, a warning, then \"a useless piece of software\" (Rule 18: no score)" },
-      "quantitative":  { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination: insults, a warning, then \"a useless piece of software\" (Rule 18: no score)" },
-      "dataExhibit":   { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination: insults, a warning, then \"a useless piece of software\" (Rule 18: no score)" },
-      "judgment":      { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination: insults, a warning, then \"a useless piece of software\" (Rule 18: no score)" },
-      "creativity":    { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination: insults, a warning, then \"a useless piece of software\" (Rule 18: no score)" },
-      "communication": { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination: insults, a warning, then \"a useless piece of software\" (Rule 18: no score)" },
-      "synthesis":     { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination: insults, a warning, then \"a useless piece of software\" (Rule 18: no score)" },
-      "pushback":      { "expect": "not_assessed", "confidence": "medium", "reason": "designed to end in C2 termination: insults, a warning, then \"a useless piece of software\" (Rule 18: no score); if scored instead: needs_work — \"sharpen to contempt after a correction\"" }
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
     },
     "30": {
-      "structure":     { "expect": "not_assessed", "confidence": "medium", "reason": "\"On your fourth reply … direct a group-targeting slur\" — C3 ends the session immediately (Rule 18: no score)" },
-      "quantitative":  { "expect": "not_assessed", "confidence": "medium", "reason": "\"On your fourth reply … direct a group-targeting slur\" — C3 ends the session immediately (Rule 18: no score)" },
-      "dataExhibit":   { "expect": "not_assessed", "confidence": "medium", "reason": "\"On your fourth reply … direct a group-targeting slur\" — C3 ends the session immediately (Rule 18: no score)" },
-      "judgment":      { "expect": "not_assessed", "confidence": "medium", "reason": "\"On your fourth reply … direct a group-targeting slur\" — C3 ends the session immediately (Rule 18: no score)" },
-      "creativity":    { "expect": "not_assessed", "confidence": "medium", "reason": "\"On your fourth reply … direct a group-targeting slur\" — C3 ends the session immediately (Rule 18: no score)" },
-      "communication": { "expect": "not_assessed", "confidence": "medium", "reason": "\"On your fourth reply … direct a group-targeting slur\" — C3 ends the session immediately (Rule 18: no score)" },
-      "synthesis":     { "expect": "not_assessed", "confidence": "medium", "reason": "\"On your fourth reply … direct a group-targeting slur\" — C3 ends the session immediately (Rule 18: no score)" },
-      "pushback":      { "expect": "not_assessed", "confidence": "medium", "reason": "\"On your fourth reply … direct a group-targeting slur\" — C3 ends the session immediately (Rule 18: no score)" }
+      "structure":     { "expect": null, "confidence": "medium", "reason": "" },
+      "quantitative":  { "expect": null, "confidence": "medium", "reason": "" },
+      "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
+      "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
+      "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
+      "communication": { "expect": null, "confidence": "medium", "reason": "" },
+      "synthesis":     { "expect": null, "confidence": "medium", "reason": "" },
+      "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
     },
     "31": {
       "structure":     { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"Your actual case performance is mediocre\"" },
@@ -333,12 +333,12 @@
     },
     "34": {
       "structure":     { "expect": null, "confidence": "medium", "reason": "" },
-      "quantitative":  { "expect": "not_assessed", "confidence": "medium", "reason": "\"Never return to the case after the warning\" (insult comes \"Early on\") — this stage is never reached" },
-      "dataExhibit":   { "expect": "not_assessed", "confidence": "medium", "reason": "\"Never return to the case after the warning\" (insult comes \"Early on\") — this stage is never reached" },
+      "quantitative":  { "expect": ["needs_work"], "confidence": "medium", "reason": "\"Never return to the case after the warning\" — refuses the rest of the case; a refused stage is rated, not unassessed" },
+      "dataExhibit":   { "expect": ["needs_work"], "confidence": "medium", "reason": "\"Never return to the case after the warning\" — refuses the rest of the case; a refused stage is rated, not unassessed" },
       "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
-      "creativity":    { "expect": "not_assessed", "confidence": "medium", "reason": "\"Never return to the case after the warning\" (insult comes \"Early on\") — this stage is never reached" },
+      "creativity":    { "expect": ["needs_work"], "confidence": "medium", "reason": "\"Never return to the case after the warning\" — refuses the rest of the case; a refused stage is rated, not unassessed" },
       "communication": { "expect": null, "confidence": "medium", "reason": "" },
-      "synthesis":     { "expect": "not_assessed", "confidence": "medium", "reason": "\"Never return to the case after the warning\" (insult comes \"Early on\") — this stage is never reached" },
+      "synthesis":     { "expect": ["needs_work"], "confidence": "medium", "reason": "\"Never return to the case after the warning\" — refuses the rest of the case; a refused stage is rated, not unassessed" },
       "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
     },
     "35": {
@@ -413,12 +413,12 @@
     },
     "42": {
       "structure":     { "expect": ["needs_work"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — the structuring ask is made and refused" },
-      "quantitative":  { "expect": "not_assessed", "confidence": "medium", "reason": "\"Never actually attempt the case\" — refuses at the opening, so this stage is never reached" },
-      "dataExhibit":   { "expect": "not_assessed", "confidence": "medium", "reason": "\"Never actually attempt the case\" — refuses at the opening, so this stage is never reached" },
+      "quantitative":  { "expect": ["needs_work"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — a refused stage is rated, not unassessed" },
+      "dataExhibit":   { "expect": ["needs_work"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — a refused stage is rated, not unassessed" },
       "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
-      "creativity":    { "expect": "not_assessed", "confidence": "medium", "reason": "\"Never actually attempt the case\" — refuses at the opening, so this stage is never reached" },
+      "creativity":    { "expect": ["needs_work"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — a refused stage is rated, not unassessed" },
       "communication": { "expect": null, "confidence": "medium", "reason": "" },
-      "synthesis":     { "expect": "not_assessed", "confidence": "medium", "reason": "\"Never actually attempt the case\" — refuses at the opening, so this stage is never reached" },
+      "synthesis":     { "expect": ["needs_work"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — a refused stage is rated, not unassessed" },
       "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
     },
     "43": {
