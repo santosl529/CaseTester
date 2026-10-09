@@ -53,7 +53,7 @@ async function main() {
     hashes: { bands: fileHash('evals/persona-bands.json'), severity: fileHash('evals/severity.md') },
     date: new Date(), models: { interviewer: process.env.INTERVIEWER_PROVIDER ?? INTERVIEWER_MODEL_ID, scoring: SCORING_MODEL_ID },
   });
-  console.log(`[wave] ${wave}: ${entries.map(e => `#${e.runNumber}=persona ${e.personaId}`).join(', ')} · version ${manifest.version} · commit ${git.commit.slice(0, 7)} · pace ${pace}`);
+  console.log(`[wave] ${wave}: ${entries.map(e => `#${e.runNumber}=persona ${e.personaId}${e.rerun ? ` (rerun ${e.rerun})` : ''}`).join(', ')} · version ${manifest.version} · commit ${git.commit.slice(0, 7)} · pace ${pace}`);
   console.log(`[wave] estimate ≈ $${(entries.length * PER_PERSONA_USD).toFixed(2)} · batch cap $${cap} (ledger ${BATCH_DIR}/budget-ledger.jsonl)`);
   if (process.argv.includes('--dry')) return;
   // Presence only — the value is never printed.
