@@ -127,6 +127,15 @@ describe('CerebrasInterviewerModel.streamTurn', () => {
     expect(ev.at(-1)).toMatchObject({ type: 'done', turn: { say: 'Got it.' } });
     expect(slept).toEqual([2100]);
   });
+
+  it('marks a 429 wait as a rate wait, before the retried request', async () => {
+    const ok = fakeFetch([turn()]).fetch;
+    let calls = 0;
+    const f = (async (u: string, init: RequestInit) => (++calls === 1 ? new Response('busy', { status: 429, headers: { 'retry-after': '1' } }) : ok(u, init))) as unknown as typeof fetch;
+    const marks: string[] = [];
+    await all(new CerebrasInterviewerModel('gpt-oss-120b', 'low', f, new RateLimiter(100), async () => {}).streamTurn(ctx({ onMark: m => marks.push(m) })));
+    expect(marks.slice(0, 3)).toEqual(['model_request', 'model_rate_wait', 'model_request']);
+  });
 });
 
 describe('OpenAIInterviewerModel (latency screening, 7 Oct)', () => {

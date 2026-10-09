@@ -155,6 +155,8 @@ export class CerebrasInterviewerModel implements InterviewerModel {
       console.warn(`[interviewer-model] ${this.endpoint.label} 429 — retrying in ${delay}ms (attempt ${attempt + 1}/${MAX_429_RETRIES})`);
       await res.body?.cancel();
       await this.sleep(delay);
+      // The server's wait is the account's limit too, not the model's latency.
+      ctx.onMark?.(`${markPrefix}model_rate_wait`);
     }
   }
 
