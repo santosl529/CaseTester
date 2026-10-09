@@ -8,8 +8,9 @@
 // $/MTok, Claude API list prices checked 8 Oct 2026
 // (platform.claude.com/docs/en/about-claude/pricing). 5-minute cache writes;
 // the app sets no 1-hour cache. Non-Anthropic providers (Luna, Sol, Gemini,
-// Cerebras) are deliberately absent: add a verified price before a budgeted
-// run uses them.
+// gpt-oss) are deliberately absent: add a verified price before a budgeted
+// run uses them. Cerebras ids are keyed as the adapter reports usage
+// ("cerebras/<model>").
 import type { LlmUsage } from './llm-usage';
 
 type Rate = { in: number; cacheRead: number; cacheWrite: number; out: number };
@@ -26,6 +27,11 @@ const HAIKU_5_5: Price = {
   longPrompt: { overTokens: 100_000, in: 0.5, cacheRead: 0.05, cacheWrite: 0.625, out: 2.5 },
 };
 
+// Qwen 3.8 27B on Cerebras (interviewer screening only), checked 8 Oct 2026
+// (inference-docs.cerebras.ai/models/qwen-3.8-27b). No cached-input price is
+// published, so cached tokens are priced at the full input rate.
+const QWEN_3_8_27B_CEREBRAS: Price = { in: 0.99, cacheRead: 0.99, cacheWrite: 0.99, out: 1.49 };
+
 export const MODEL_PRICES: Record<string, Price> = {
   'claude-opus-5-5': OPUS_5_5,
   'claude-opus-5': OPUS_5,
@@ -35,6 +41,7 @@ export const MODEL_PRICES: Record<string, Price> = {
   'claude-haiku-4-5': HAIKU_4_5,
   'claude-haiku-4-5-20251001': HAIKU_4_5,
   'claude-haiku-5-5': HAIKU_5_5,
+  'cerebras/qwen-3.8-27b': QWEN_3_8_27B_CEREBRAS,
 };
 
 export class UnpricedModelError extends Error {

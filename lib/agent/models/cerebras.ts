@@ -15,7 +15,6 @@ import { TurnStreamParser } from './turn-stream';
 import { collectTurn, NEUTRAL_TURN } from './turn-events';
 import { TURN_KEYS, retryNote, type Attempt } from './anthropic';
 import { activeRunBudget } from '@/lib/llm-budget';
-import { UnpricedModelError } from '@/lib/llm-pricing';
 
 // The OpenAI-style chat-completions endpoints this adapter speaks to.
 type Endpoint = { url: string; keyEnv: string; label: string; name: string; extraBody?: Record<string, unknown> };
@@ -151,8 +150,6 @@ export class CerebrasInterviewerModel implements InterviewerModel {
   }
 
   async *streamTurn(ctx: TurnContext): AsyncGenerator<TurnEvent> {
-    // Not metered and no verified price: refused under a run budget (lib/llm-budget.ts).
-    if (activeRunBudget()) throw new UnpricedModelError(this.modelId);
     const canRegenerate = () => ctx.canRegenerate?.() ?? true;
     let attempt = yield* this.attempt(buildMessages(ctx), ctx);
     let retried = false;
@@ -175,6 +172,12 @@ export class CerebrasInterviewerModel implements InterviewerModel {
   }
 
   private async *attempt(messages: ChatMessage[], ctx: TurnContext, markPrefix = ''): AsyncGenerator<TurnEvent, Attempt> {
+    // Under a run budget (lib/llm-budget.ts) each attempt is checked before it
+    // is sent — an unpriced model is refused — and recorded from the stream's
+    // usage, or estimated from the characters if the stream was cut short.
+    const budget = activeRunBudget();
+    const usageModel = `${this.endpoint.label}/${this.modelId}`;
+    budget?.check(usageModel);
     const abort = new AbortController();
     const res = await this.post(buildBody(this.modelId, messages, this.reasoningEffort, this.endpoint.extraBody), abort.signal, ctx, markPrefix);
     if (!res.ok || !res.body) {
@@ -213,11 +216,19 @@ export class CerebrasInterviewerModel implements InterviewerModel {
       }
     } finally {
       reader.releaseLock();
+      if (budget) {
+        const cachedTokens = usage?.prompt_tokens_details?.cached_tokens ?? 0;
+        budget.record(usage
+          ? { model: usageModel, inputTokens: (usage.prompt_tokens ?? 0) - cachedTokens, outputTokens: usage.completion_tokens ?? 0,
+              cacheReadTokens: cachedTokens, cacheWriteTokens: 0, outputEstimated: false }
+          : { model: usageModel, inputTokens: Math.ceil(messages.reduce((n, m) => n + m.content.length, 0) / 3),
+              outputTokens: Math.ceil(parser.text.length / 3), cacheReadTokens: 0, cacheWriteTokens: 0, outputEstimated: true });
+      }
     }
     const cached = usage?.prompt_tokens_details?.cached_tokens ?? 0;
     ctx.onUsage?.({
       component: 'interviewer',
-      model: `${this.endpoint.label}/${this.modelId}`,
+      model: usageModel,
       inputTokens: (usage?.prompt_tokens ?? 0) - cached,
       outputTokens: usage?.completion_tokens ?? 0,
       cacheReadTokens: cached,

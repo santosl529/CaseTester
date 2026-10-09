@@ -1,6 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { SseReader, buildMessages, buildBody, CerebrasInterviewerModel, OpenAIInterviewerModel, RateLimiter, retryDelayMs } from '@/lib/agent/models/cerebras';
 import type { TurnContext, TurnEvent } from '@/lib/agent/models/interface';
+import { installRunBudget, clearRunBudget, BudgetExceededError } from '@/lib/llm-budget';
+import { UnpricedModelError } from '@/lib/llm-pricing';
 
 const ctx = (over: Partial<TurnContext> = {}): TurnContext => ({
   systemPrompt: 'FIXED', turnSystem: 'STATE',
@@ -130,5 +132,38 @@ describe('RateLimiter', () => {
     expect(retryDelayMs('3', 0)).toBe(3100);
     expect(retryDelayMs(null, 0)).toBe(5000);
     expect(retryDelayMs(null, 2)).toBe(20_000);
+  });
+});
+
+describe('CerebrasInterviewerModel under a run budget (Qwen screening, 8 Oct)', () => {
+  afterEach(() => clearRunBudget());
+
+  it('records each call from the API usage, cached tokens included', async () => {
+    const b = installRunBudget(1);
+    const { fetch } = fakeFetch([turn()]);
+    await all(new CerebrasInterviewerModel('qwen-3.8-27b', 'none', fetch).streamTurn(ctx()));
+    // usage: 40 uncached + 60 cached in (both $0.99), 20 out ($1.49)
+    expect(b.spentUsd).toBeCloseTo((100 * 0.99 + 20 * 1.49) / 1e6, 10);
+    expect(b.byModel.get('cerebras/qwen-3.8-27b')).toMatchObject({ calls: 1, estimated: 0 });
+  });
+
+  it('records an aborted attempt (unknown id) with estimated tokens', async () => {
+    const b = installRunBudget(1);
+    const { fetch } = fakeFetch([
+      turn({ requests: [{ what: 'x', item_ids: ['cost_breakdown'], explicit: true, respond: 'release' }] }),
+      turn(),
+    ]);
+    await all(new CerebrasInterviewerModel('qwen-3.8-27b', 'none', fetch).streamTurn(ctx()));
+    expect(b.byModel.get('cerebras/qwen-3.8-27b')).toMatchObject({ calls: 2, estimated: 1 });
+  });
+
+  it('refuses before sending once the cap is spent, and still refuses an unpriced model', async () => {
+    const b = installRunBudget(0.000001);
+    b.record({ model: 'cerebras/qwen-3.8-27b', inputTokens: 10, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, outputEstimated: false });
+    const { fetch, bodies } = fakeFetch([turn()]);
+    await expect(all(new CerebrasInterviewerModel('qwen-3.8-27b', 'none', fetch).streamTurn(ctx()))).rejects.toThrow(BudgetExceededError);
+    installRunBudget(1);
+    await expect(all(new CerebrasInterviewerModel('gpt-oss-120b', 'low', fetch).streamTurn(ctx()))).rejects.toThrow(UnpricedModelError);
+    expect(bodies).toHaveLength(0);
   });
 });

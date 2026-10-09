@@ -33,7 +33,7 @@ import { writeOpener, OPENER_TURN_NOTE, openerGate } from '@/lib/agent/opener';
 import { INTERVIEWER_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { TURN_SCHEMA } from '@/lib/agent/models/turn-schema';
 import { stripMetaLeak, rewriteSystemLanguage } from '@/lib/orchestrator/audit';
-import { OpenAIInterviewerModel } from '@/lib/agent/models/cerebras';
+import { OpenAIInterviewerModel, CerebrasInterviewerModel } from '@/lib/agent/models/cerebras';
 import { GeminiInterviewerModel } from '@/lib/agent/models/gemini';
 import type { InterviewerModel } from '@/lib/agent/models/interface';
 import { enforceNumericProvenance } from '@/lib/orchestrator/numeric-provenance';
@@ -317,6 +317,9 @@ type VariantRun = {
   variant: string; firstTokenMs: number | null; firstUsefulMs: number | null; completeMs: number;
   inputTokens: number; cacheRead: number; cacheWrite: number; outputTokens: number; turn?: ModelTurn; error?: string;
   guardB?: boolean; regenerated?: boolean;
+  // Client-side rate-limit wait before the first request (Cerebras), taken
+  // out of every timing above — it measures the account tier, not the model.
+  rateWaitMs?: number;
 };
 
 // Guard B as production applies it (plan-turn.ts): explicit asks by phrasing,
@@ -330,23 +333,27 @@ async function runVariant(s: Sample, arm: AbArm): Promise<VariantRun> {
   let firstTokenMs: number | null = null, declarationsMs: number | null = null;
   let turn: ModelTurn | undefined;
   let regenerated = false;
+  let rateWaitMs = 0;
   try {
     for await (const e of streamInterviewerTurn({
       model: arm.model, candidateText: s.candidateText, history: s.history, promptCtx: s.ctx, phase: s.ctx.currentPhase, promptVariant: arm.promptVariant,
       requireRequests: guardB(s), onRequestGuard: r => { regenerated ||= r.regenerated; },
-      onMark: name => { if (name === 'model_first_token') firstTokenMs ??= Date.now() - t0; },
+      onMark: name => {
+        if (name === 'model_rate_wait' && firstTokenMs == null) rateWaitMs = Date.now() - t0;
+        if (name === 'model_first_token') firstTokenMs ??= Date.now() - t0 - rateWaitMs;
+      },
       onUsage: x => { u.inputTokens += x.inputTokens; u.outputTokens += x.outputTokens; u.cacheRead += x.cacheReadTokens ?? 0; u.cacheWrite += x.cacheWriteTokens ?? 0; },
     })) {
-      if (e.type === 'field' && e.key === 'rescue_item') declarationsMs ??= Date.now() - t0;
+      if (e.type === 'field' && e.key === 'rescue_item') declarationsMs ??= Date.now() - t0 - rateWaitMs;
       if (e.type === 'restart') { firstTokenMs = null; declarationsMs = null; }
       if (e.type === 'done') turn = e.turn;
     }
   } catch (err) {
-    return { variant: arm.name, firstTokenMs, firstUsefulMs: null, completeMs: Date.now() - t0, ...u, error: String(err).slice(0, 200), guardB: guardB(s), regenerated };
+    return { variant: arm.name, firstTokenMs, firstUsefulMs: null, completeMs: Date.now() - t0 - rateWaitMs, ...u, error: String(err).slice(0, 200), guardB: guardB(s), regenerated, rateWaitMs };
   }
-  const completeMs = Date.now() - t0;
+  const completeMs = Date.now() - t0 - rateWaitMs;
   const hasData = !!turn && (turn.requests.length > 0 || !!turn.exhibit || !!turn.rescueItem);
-  return { variant: arm.name, firstTokenMs, firstUsefulMs: hasData ? declarationsMs : completeMs, completeMs, ...u, turn, guardB: guardB(s), regenerated };
+  return { variant: arm.name, firstTokenMs, firstUsefulMs: hasData ? declarationsMs : completeMs, completeMs, ...u, turn, guardB: guardB(s), regenerated, rateWaitMs };
 }
 
 function qualityFlags(s: Sample, t: ModelTurn | undefined): string[] {
@@ -459,7 +466,11 @@ async function runScreen(samples: Sample[], base: AbArm, challengers: AbArm[], t
   }
   const regenLine = (rs: VariantRun[]) => `guard B active on ${rs.filter(r => r.guardB).length}, regenerated ${rs.filter(r => r.regenerated).length}`;
   console.log(`  [${base.name}] ${regenLine(rows.map(r => r.base))}`);
-  for (const c of challengers) console.log(`  [${c.name}] ${regenLine(rows.flatMap(r => r.runs[c.name]))}`);
+  for (const c of challengers) {
+    const rs = rows.flatMap(r => r.runs[c.name]);
+    const waited = rs.filter(r => (r.rateWaitMs ?? 0) > 0);
+    console.log(`  [${c.name}] ${regenLine(rs)} · client rate-limit waits ${waited.length} (excluded from timings, max ${Math.max(0, ...waited.map(r => r.rateWaitMs!))}ms)`);
+  }
   console.log(`  [budget] ${activeRunBudget()?.summary()}`);
   const baseFlags = baseOk.flatMap(r => qualityFlags(samples.find(x => x.id === r.id)!, r.base.turn));
   console.log(`  [${base.name}] quality flags over ${baseOk.length} outputs: ${JSON.stringify(baseFlags.reduce<Record<string, number>>((m, x) => { m[x] = (m[x] ?? 0) + 1; return m; }, {}))} · errors ${rows.length - baseOk.length}`);
@@ -499,6 +510,8 @@ const CHALLENGERS: Record<string, () => InterviewerModel> = {
   // Haiku 5.5 (8 Oct): thinking explicitly disabled, effort medium (its default),
   // no fallbacks (it has no server-side fallback). Not between_tools.
   'haiku55-none-medium': () => new AnthropicInterviewerModel('claude-haiku-5-5', 'state-in-system', { thinking: 'disabled', effort: 'medium', fallbacks: false }),
+  // Qwen 3.8 27B on Cerebras (8 Oct): reasoning off ("none"; the model's default is high).
+  'qwen38-none': () => new CerebrasInterviewerModel('qwen-3.8-27b', 'none'),
 };
 
 
