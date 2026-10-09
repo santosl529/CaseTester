@@ -48,6 +48,21 @@ describe('Cerebras adapter pieces', () => {
     ]);
   });
 
+  it('Qwen: one leading system message (its chat template rejects a later one) — fixed instructions, then state, then history', () => {
+    expect(buildMessages(ctx(), 'RETRY', 'leading-system').map(m => [m.role, m.content])).toEqual([
+      ['system', 'FIXED\n\nSTATE\n\nRETRY'], ['user', 'Can I see the cost breakdown?'],
+    ]);
+  });
+
+  it('sends Qwen its state in the leading system message, gpt-oss its state last', async () => {
+    const q = fakeFetch([turn()]);
+    await all(new CerebrasInterviewerModel('qwen-3.8-27b', 'none', q.fetch).streamTurn(ctx()));
+    expect((q.bodies[0] as { messages: { role: string }[] }).messages.map(m => m.role)).toEqual(['system', 'user']);
+    const g = fakeFetch([turn()]);
+    await all(new CerebrasInterviewerModel('gpt-oss-120b', 'low', g.fetch).streamTurn(ctx()));
+    expect((g.bodies[0] as { messages: { role: string }[] }).messages.map(m => m.role)).toEqual(['system', 'user', 'system']);
+  });
+
   it('asks for the strict turn schema, streamed, at low reasoning', () => {
     const b = buildBody('gpt-oss-120b', [], 'low');
     expect(b).toMatchObject({ model: 'gpt-oss-120b', stream: true, reasoning_effort: 'low', response_format: { type: 'json_schema', json_schema: { strict: true } } });

@@ -34,9 +34,19 @@ type Chunk = {
 
 // Fixed instructions first (cached prefix), then the history, then this
 // turn's state — and a retry note joined to it, so there is one system
-// message at the end.
-export function buildMessages(ctx: Pick<TurnContext, 'systemPrompt' | 'turnSystem' | 'history'>, retry?: string): ChatMessage[] {
+// message at the end. 'leading-system' (Qwen, whose chat template rejects any
+// system message after the first — Cerebras 400, 8 Oct): the state joins the
+// fixed instructions in the one leading system message, as Sonnet's prompt
+// has it; the cached prefix is then the fixed instructions only.
+export type MessageLayout = 'state-last' | 'leading-system';
+export function buildMessages(ctx: Pick<TurnContext, 'systemPrompt' | 'turnSystem' | 'history'>, retry?: string, layout: MessageLayout = 'state-last'): ChatMessage[] {
   const state = [ctx.turnSystem, retry].filter(Boolean).join('\n\n');
+  if (layout === 'leading-system') {
+    return [
+      { role: 'system', content: [ctx.systemPrompt, state].filter(Boolean).join('\n\n') },
+      ...ctx.history.map(m => ({ role: m.role, content: m.content })),
+    ];
+  }
   return [
     { role: 'system', content: ctx.systemPrompt },
     ...ctx.history.map(m => ({ role: m.role, content: m.content })),
@@ -151,7 +161,8 @@ export class CerebrasInterviewerModel implements InterviewerModel {
 
   async *streamTurn(ctx: TurnContext): AsyncGenerator<TurnEvent> {
     const canRegenerate = () => ctx.canRegenerate?.() ?? true;
-    let attempt = yield* this.attempt(buildMessages(ctx), ctx);
+    const layout: MessageLayout = this.modelId.startsWith('qwen') ? 'leading-system' : 'state-last';
+    let attempt = yield* this.attempt(buildMessages(ctx, undefined, layout), ctx);
     let retried = false;
     const needsRetry = (a: Attempt) => a.turn === null || a.unknown.length > 0 || (!a.turn.say && !a.turn.question);
     if (needsRetry(attempt) && canRegenerate()) {
@@ -160,7 +171,7 @@ export class CerebrasInterviewerModel implements InterviewerModel {
       console.warn('[interviewer-model] regenerating:', note);
       yield { type: 'restart', reason: note };
       ctx.onMark?.('model_regenerate');
-      attempt = yield* this.attempt(buildMessages(ctx, note), ctx, 'retry_');
+      attempt = yield* this.attempt(buildMessages(ctx, note, layout), ctx, 'retry_');
     }
     const turn = attempt.turn && (attempt.turn.say || attempt.turn.question) ? attempt.turn : NEUTRAL_TURN;
     const validation: TurnValidation = {
