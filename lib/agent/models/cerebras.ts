@@ -29,7 +29,10 @@ const OPENAI: Endpoint = {
 type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: string };
 type Chunk = {
   choices?: { delta?: { content?: string | null; reasoning?: string | null }; finish_reason?: string | null }[];
-  usage?: { prompt_tokens?: number; completion_tokens?: number; prompt_tokens_details?: { cached_tokens?: number } };
+  usage?: {
+    prompt_tokens?: number; completion_tokens?: number; prompt_tokens_details?: { cached_tokens?: number };
+    completion_tokens_details?: { reasoning_tokens?: number };
+  };
 };
 
 // Fixed instructions first (cached prefix), then the history, then this
@@ -244,6 +247,7 @@ export class CerebrasInterviewerModel implements InterviewerModel {
       outputTokens: usage?.completion_tokens ?? 0,
       cacheReadTokens: cached,
       cacheWriteTokens: 0,
+      ...(usage?.completion_tokens_details?.reasoning_tokens !== undefined ? { reasoningTokens: usage.completion_tokens_details.reasoning_tokens } : {}),
     });
     console.log('[interviewer-model] raw response:', parser.text);
     return { turn: parseTurn(parser.text), refused: false, unknown };

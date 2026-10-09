@@ -12,6 +12,9 @@ export type LlmUsage = {
   // inputTokens counts only the uncached remainder.
   cacheReadTokens?: number;
   cacheWriteTokens?: number;
+  // Reasoning tokens, where the provider reports them — already counted in
+  // outputTokens (Cerebras/OpenAI completion_tokens_details).
+  reasoningTokens?: number;
 };
 
 export type OnUsage = (usage: LlmUsage) => void;

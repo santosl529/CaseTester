@@ -80,6 +80,22 @@ describe('CerebrasInterviewerModel.streamTurn', () => {
     expect(usage).toEqual([{ component: 'interviewer', model: 'cerebras/gpt-oss-120b', inputTokens: 40, outputTokens: 20, cacheReadTokens: 60, cacheWriteTokens: 0 }]);
   });
 
+  it('reports reasoning tokens (part of the output) and marks the first reasoning chunk', async () => {
+    const enc = new TextEncoder();
+    const parts = [
+      `data: ${JSON.stringify({ choices: [{ delta: { reasoning: 'Candidate asked for costs.' } }] })}\n\n`,
+      `data: ${JSON.stringify({ choices: [{ delta: { content: turn() } }] })}\n\n`,
+      `data: ${JSON.stringify({ choices: [], usage: { prompt_tokens: 100, completion_tokens: 50, completion_tokens_details: { reasoning_tokens: 30 } } })}\n\n`,
+      'data: [DONE]\n\n',
+    ];
+    const f = (async () => new Response(new ReadableStream({ start(c) { for (const p of parts) c.enqueue(enc.encode(p)); c.close(); } }), { status: 200 })) as unknown as typeof fetch;
+    const usage: { reasoningTokens?: number; outputTokens: number }[] = [];
+    const marks: string[] = [];
+    await all(new CerebrasInterviewerModel('qwen-3.8-27b', 'low', f).streamTurn(ctx({ onUsage: u => usage.push(u), onMark: m => marks.push(m) })));
+    expect(usage[0]).toMatchObject({ outputTokens: 50, reasoningTokens: 30 });
+    expect(marks.indexOf('model_first_reasoning')).toBeLessThan(marks.indexOf('model_first_token'));
+  });
+
   it('regenerates once on an unknown id while nothing was delivered', async () => {
     const { fetch, bodies } = fakeFetch([
       turn({ requests: [{ what: 'x', item_ids: ['cost_breakdown'], explicit: true, respond: 'release' }] }),
