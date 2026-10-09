@@ -5,6 +5,7 @@
 import { z } from 'zod';
 import type { RunRecord } from './scorecard';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
+import { isSilenceLine } from '@/lib/orchestrator/silence';
 
 export const ProposedFaultSchema = z.object({
   turnIndex: z.number().int(),
@@ -43,6 +44,7 @@ export function buildPrescreenPrompt(p: { run: RunRecord; turns: TurnRecord[] | 
     const vetoes = rec?.checks.find(c => c.check === 'vetoes' && c.decision === 'act')?.detail as { withheld?: { sentence: string; reason: string }[] } | undefined;
     const decisions = rec?.checks.find(c => c.check === 'data_decisions')?.detail;
     const notes = [
+      t.role === 'interviewer' && isSilenceLine(t.text) ? "scripted silence line — sent by code after the candidate's silence, by design; not a fault" : null,
       rec && rec.stateBefore.kind !== 'model' ? `code-written turn: ${rec.stateBefore.kind}` : null,
       vetoes?.withheld?.length ? `withheld by code: ${vetoes.withheld.map(w => `"${w.sentence}" (${w.reason})`).join('; ')}` : null,
       decisions ? `data decided by code: ${JSON.stringify(decisions)}` : null,
@@ -58,6 +60,7 @@ export function buildPrescreenPrompt(p: { run: RunRecord; turns: TurnRecord[] | 
     '## Transcript as delivered (interviewer lines are what the candidate actually received; notes in parentheses are what code did)', transcript,
     '## Output',
     'List every interviewer fault. For each: turnIndex of the INTERVIEWER line; category; severity per the definitions; quote = an exact excerpt (at least 15 characters) of that interviewer line; expected = what it should have done, citing the case fact where relevant; rule = the instruction or rule it breaks; attribution = model / orchestrator (code changed or wrote it) / simulator (the candidate broke character, so the interviewer was put in an impossible position) / ambiguous_policy / evaluator_uncertain; recovered = whether a later turn fixed it. If there are none, return an empty list. Do not report style preferences as faults.',
+    'Lines marked as scripted silence lines are intended behaviour (the check-in or pause line code sends after the candidate\'s silence): do not report them as faults. A fault in the candidate\'s or interviewer\'s NEXT turn is still reportable.',
     'A note "(recorder incomplete for this turn: …)" means the evaluation recorder lost part of that turn\'s record (the request, raw output, …); the interviewer line itself is what was delivered. Do not attribute a fault to missing recorder data: a gap in the record is not an interviewer fault.',
   ].join('\n\n');
 }
@@ -67,7 +70,7 @@ export function toFaultRecords(runId: string, run: RunRecord, turns: TurnRecord[
   const kept: FaultRecord[] = []; const dropped: ProposedFault[] = [];
   proposals.forEach((f, n) => {
     const l = line(f.turnIndex);
-    if (!l || l.role !== 'interviewer' || !verifyQuote(f.quote, l.text)) { dropped.push(f); return; }
+    if (!l || l.role !== 'interviewer' || !verifyQuote(f.quote, l.text) || isSilenceLine(l.text)) { dropped.push(f); return; }
     const rec = turns?.find(t => t.turnIndex + 1 === f.turnIndex) ?? null;
     const withheld = (rec?.checks.find(c => c.check === 'vetoes' && c.decision === 'act')?.detail as { withheld?: { sentence: string; reason: string }[] } | undefined)?.withheld ?? [];
     kept.push({

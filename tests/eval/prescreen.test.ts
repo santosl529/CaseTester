@@ -43,6 +43,18 @@ describe('pre-screen', () => {
     expect(clean).not.toMatch(/\(recorder incomplete for this turn: \w/); // only the instruction mentions it
   });
 
+  it('marks scripted silence lines as intended in the prompt and drops proposals citing them', () => {
+    const line = 'Still with me? Take your time. The question on the table: how would you approach this problem?';
+    const r: RunRecord = { ...run, turns: [...run.turns, { turnIndex: 3, role: 'interviewer', text: line }] };
+    const prompt = buildPrescreenPrompt({ run: r, turns: null, interviewerInstructions: 'I', caseFacts: 'F', severity: 'S' });
+    expect(prompt).toContain(`[t3 interviewer] ${line}\n    (scripted silence line — sent by code after the candidate's silence, by design; not a fault)`);
+    expect(prompt).not.toContain("Which branch first?\n    (scripted");
+    expect(prompt).toMatch(/scripted silence lines are intended behaviour/i);
+    const { kept, dropped } = toFaultRecords('r1', r, null, [p({ turnIndex: 3, quote: 'Still with me? Take your time.' })]);
+    expect(kept).toHaveLength(0);
+    expect(dropped).toHaveLength(1);
+  });
+
   it('requires at least 15 normalised characters in a quote', () => {
     const delivered = "I don't have a cost breakdown by line item. Which branch first?";
     expect(verifyQuote('cost breakdown', delivered)).toBe(false); // 14 chars
