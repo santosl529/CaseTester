@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { compareRating, BandsFileSchema, bandsSummary, bandsRows, type BandCell } from '@/lib/eval/bands';
+import { compareRating, BandsFileSchema, BandCellSchema, bandsSummary, bandsRows, type BandCell } from '@/lib/eval/bands';
 import type { ScorecardRow } from '@/lib/eval/scorecard';
 
 const cell = (expect_: BandCell['expect'], confidence: 'high' | 'medium' = 'high'): BandCell => ({ expect: expect_, confidence, reason: 'brief says so' });
@@ -15,6 +15,21 @@ describe('persona bands', () => {
     expect(compareRating(cell(['meets_bar']), 'not_assessed')).toBe('unexpected_not_assessed');
     expect(compareRating(cell(null), 'strong')).toBe('no_expectation');
     expect(compareRating(cell(['strong']), 'excellent')).toBe('invalid_rating');
+  });
+
+  it('accepts either a rating or not assessed when a cell allows both (refused stages, follow-up 9 Oct)', () => {
+    const both = cell(['needs_work', 'not_assessed'], 'medium');
+    expect(compareRating(both, null)).toBe('in_band');
+    expect(compareRating(both, 'not_assessed')).toBe('in_band');
+    expect(compareRating(both, 'needs_work')).toBe('in_band');
+    expect(compareRating(both, 'meets_bar')).toBe('one_off');
+    expect(compareRating(both, 'strong')).toBe('two_off');
+    expect(compareRating(both, 'excellent')).toBe('invalid_rating');
+    expect(compareRating(cell(['not_assessed']), 'meets_bar')).toBe('unexpected_rating');
+    expect(compareRating(cell(['not_assessed']), null)).toBe('in_band');
+    expect(BandCellSchema.safeParse({ expect: ['needs_work', 'not_assessed'], confidence: 'medium', reason: 'refuses the stage' }).success).toBe(true);
+    expect(BandCellSchema.safeParse({ expect: ['needs_work', 'excellent'], confidence: 'medium', reason: 'refuses the stage' }).success).toBe(false);
+    expect(BandCellSchema.safeParse({ expect: [], confidence: 'medium', reason: 'refuses the stage' }).success).toBe(false);
   });
 
   it('validates the bands file: every persona has all 8 dimensions', () => {

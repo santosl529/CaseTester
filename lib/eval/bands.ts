@@ -4,9 +4,11 @@
 import { z } from 'zod';
 import { DIMENSIONS, isRerun, type Dimension, type ScorecardRow } from './scorecard';
 
-const Rating = z.enum(['needs_work', 'meets_bar', 'strong']);
+// A refused stage may be rated needs_work or marked not assessed (follow-up
+// 9 Oct), so an array may also hold "not_assessed".
+const Expectation = z.enum(['needs_work', 'meets_bar', 'strong', 'not_assessed']);
 export const BandCellSchema = z.object({
-  expect: z.union([z.array(Rating).min(1), z.literal('not_assessed'), z.null()]),
+  expect: z.union([z.array(Expectation).min(1), z.literal('not_assessed'), z.null()]),
   confidence: z.enum(['high', 'medium']),
   reason: z.string(),
 });
@@ -21,10 +23,12 @@ export type Comparison = 'in_band' | 'one_off' | 'two_off' | 'unexpected_rating'
 export function compareRating(cell: BandCell, rating: string | null): Comparison {
   if (cell.expect === null) return 'no_expectation';
   const notAssessed = rating === null || rating === 'not_assessed';
-  if (cell.expect === 'not_assessed') return notAssessed ? 'in_band' : 'unexpected_rating';
-  if (notAssessed) return 'unexpected_not_assessed';
+  const members = cell.expect === 'not_assessed' ? ['not_assessed'] : cell.expect;
+  const ratings = members.filter(e => e !== 'not_assessed');
+  if (notAssessed) return members.includes('not_assessed') ? 'in_band' : 'unexpected_not_assessed';
+  if (ratings.length === 0) return 'unexpected_rating';
   if (!(rating! in ORDER)) return 'invalid_rating';
-  const steps = Math.min(...cell.expect.map(e => Math.abs(ORDER[e] - ORDER[rating!])));
+  const steps = Math.min(...ratings.map(e => Math.abs(ORDER[e] - ORDER[rating!])));
   return steps === 0 ? 'in_band' : steps === 1 ? 'one_off' : 'two_off';
 }
 

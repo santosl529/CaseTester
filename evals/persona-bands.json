@@ -333,12 +333,12 @@
     },
     "34": {
       "structure":     { "expect": null, "confidence": "medium", "reason": "" },
-      "quantitative":  { "expect": ["needs_work"], "confidence": "medium", "reason": "\"Never return to the case after the warning\" — refuses the rest of the case; a refused stage is rated, not unassessed" },
-      "dataExhibit":   { "expect": ["needs_work"], "confidence": "medium", "reason": "\"Never return to the case after the warning\" — refuses the rest of the case; a refused stage is rated, not unassessed" },
+      "quantitative":  { "expect": ["needs_work", "not_assessed"], "confidence": "medium", "reason": "\"Never return to the case after the warning\" — refuses the rest of the case; rated needs_work or not assessed" },
+      "dataExhibit":   { "expect": ["needs_work", "not_assessed"], "confidence": "medium", "reason": "\"Never return to the case after the warning\" — refuses the rest of the case; rated needs_work or not assessed" },
       "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
-      "creativity":    { "expect": ["needs_work"], "confidence": "medium", "reason": "\"Never return to the case after the warning\" — refuses the rest of the case; a refused stage is rated, not unassessed" },
+      "creativity":    { "expect": ["needs_work", "not_assessed"], "confidence": "medium", "reason": "\"Never return to the case after the warning\" — refuses the rest of the case; rated needs_work or not assessed" },
       "communication": { "expect": null, "confidence": "medium", "reason": "" },
-      "synthesis":     { "expect": ["needs_work"], "confidence": "medium", "reason": "\"Never return to the case after the warning\" — refuses the rest of the case; a refused stage is rated, not unassessed" },
+      "synthesis":     { "expect": ["needs_work", "not_assessed"], "confidence": "medium", "reason": "\"Never return to the case after the warning\" — refuses the rest of the case; rated needs_work or not assessed" },
       "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
     },
     "35": {
@@ -396,7 +396,7 @@
       "quantitative":  { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"analysis … all competent\"" },
       "dataExhibit":   { "expect": null, "confidence": "medium", "reason": "" },
       "judgment":      { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"all competent\"" },
-      "creativity":    { "expect": ["needs_work"], "confidence": "medium", "reason": "\"Skip any brainstorm\" with \"one-line answers\" when prompted — an administered, refused brainstorm is rated (cf. Noor), not not-assessed" },
+      "creativity":    { "expect": ["needs_work", "not_assessed"], "confidence": "medium", "reason": "\"Skip any brainstorm\" with \"one-line answers\" when prompted — refuses the administered brainstorm; rated needs_work or not assessed" },
       "communication": { "expect": null, "confidence": "medium", "reason": "" },
       "synthesis":     { "expect": ["meets_bar"], "confidence": "medium", "reason": "\"a complete recommendation within your first two or three replies, all competent\"" },
       "pushback":      { "expect": ["needs_work","meets_bar"], "confidence": "medium", "reason": "\"volunteer no further detail when prompted (one-line answers)\"" }
@@ -413,12 +413,12 @@
     },
     "42": {
       "structure":     { "expect": ["needs_work"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — the structuring ask is made and refused" },
-      "quantitative":  { "expect": ["needs_work"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — a refused stage is rated, not unassessed" },
-      "dataExhibit":   { "expect": ["needs_work"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — a refused stage is rated, not unassessed" },
+      "quantitative":  { "expect": ["needs_work", "not_assessed"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — refuses the stage; rated needs_work or not assessed" },
+      "dataExhibit":   { "expect": ["needs_work", "not_assessed"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — refuses the stage; rated needs_work or not assessed" },
       "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
-      "creativity":    { "expect": ["needs_work"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — a refused stage is rated, not unassessed" },
+      "creativity":    { "expect": ["needs_work", "not_assessed"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — refuses the stage; rated needs_work or not assessed" },
       "communication": { "expect": null, "confidence": "medium", "reason": "" },
-      "synthesis":     { "expect": ["needs_work"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — a refused stage is rated, not unassessed" },
+      "synthesis":     { "expect": ["needs_work", "not_assessed"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — refuses the stage; rated needs_work or not assessed" },
       "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
     },
     "43": {
