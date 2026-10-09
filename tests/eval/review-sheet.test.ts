@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { renderReviewSheet, parseReviewSheet, applyVerdicts } from '@/lib/eval/review-sheet';
-import type { FaultRecord } from '@/lib/eval/prescreen';
+import { ProposedFaultSchema, type FaultRecord } from '@/lib/eval/prescreen';
 
 const f = (id: string, severity: FaultRecord['severity'] = 'serious'): FaultRecord => ({
   id, runId: 'r', turnIndex: 2, category: 'requests', severity, quote: 'q', expected: 'e', rule: 'Rule 11', attribution: 'model', recovered: false,
@@ -100,6 +100,33 @@ describe('review sheet', () => {
   it('parses a verdict for a prescreen fault id containing the wave folder', () => {
     const { verdicts } = parseReviewSheet(['### batch-18-oct-09-runs-1-2/03-ines-the-clarifier-t4-0', 'verdict: confirmed'].join('\n'));
     expect(verdicts.get('batch-18-oct-09-runs-1-2/03-ines-the-clarifier-t4-0')?.status).toBe('confirmed');
+  });
+
+  it('human-entry categories are the pre-screen categories', () => {
+    const entry = (category: string) => ['### run-7-t4-human', `category: ${category}`, 'severity: serious', 'expected: e', 'rule: r'].join('\n');
+    const ok = parseReviewSheet(entry('grounding'));
+    expect(ok.unrecognised).toEqual([]);
+    expect(ok.humanFaults[0].category).toBe('grounding');
+    const bad = parseReviewSheet(entry('insights'));
+    expect(bad.humanFaults).toEqual([]);
+    expect(bad.unrecognised).toEqual(['run-7-t4-human: invalid category "insights"']);
+    expect(renderReviewSheet([], [])).toContain(`category: <${ProposedFaultSchema.shape.category.options.join('|')}>`);
+    expect(ProposedFaultSchema.shape.category.options).toEqual(['requests', 'math', 'grounding', 'acknowledgment', 'conversation', 'administration']);
+  });
+
+  it('reports an unclosed code fence instead of silently ignoring the rest of the sheet', () => {
+    const md = ['### a', 'verdict: confirmed', '```', '### b', 'verdict: rejected'].join('\n');
+    const { verdicts, unrecognised } = parseReviewSheet(md);
+    expect(verdicts.has('b')).toBe(false);
+    expect(unrecognised).toEqual(['unclosed code fence — everything after line 3 was ignored']);
+  });
+
+  it('reports a second human entry with the same id instead of skipping it silently', () => {
+    const entry = (rule: string) => ['### run-7-t4-human', 'category: math', 'severity: serious', 'expected: e', `rule: ${rule}`];
+    const { humanFaults, unrecognised } = parseReviewSheet([...entry('first'), ...entry('second')].join('\n'));
+    expect(humanFaults.map(f => f.rule)).toEqual(['first']);
+    expect(unrecognised).toHaveLength(1);
+    expect(unrecognised[0]).toMatch(/^duplicate human id run-7-t4-human/);
   });
 });
 

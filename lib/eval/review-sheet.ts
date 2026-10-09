@@ -1,12 +1,14 @@
 // The human confirmation step (spec 2026-10-09 §2.4): every proposed serious
 // fault, plus runs to read in full, as a markdown sheet with verdict lines;
 // parsed back into faults.jsonl. Unknown verdicts are reported, never dropped.
-import type { FaultRecord } from './prescreen';
+import { ProposedFaultSchema, type FaultRecord } from './prescreen';
 
 const VERDICTS: Record<string, 'confirmed' | 'rejected'> = { confirmed: 'confirmed', confirm: 'confirmed', yes: 'confirmed', y: 'confirmed', rejected: 'rejected', reject: 'rejected', no: 'rejected', n: 'rejected' };
 const SEVERITIES = new Set(['serious', 'moderate', 'minor']);
 const ATTRIBUTIONS = new Set(['model', 'orchestrator', 'simulator', 'ambiguous_policy', 'evaluator_uncertain']);
-const CATEGORIES = new Set(['requests', 'insights', 'structure', 'math', 'recovery']);
+// The pre-screen's categories, so a human-found fault is filed like a proposed one.
+const CATEGORY_LIST: readonly string[] = ProposedFaultSchema.shape.category.options;
+const CATEGORIES = new Set(CATEGORY_LIST);
 
 function collapseNewlines(s: string): string {
   return s.replace(/\s*\n\s*/g, ' ');
@@ -30,7 +32,7 @@ export function renderReviewSheet(faults: FaultRecord[], fullReads: string[]): s
     `## Read in full (${fullReads.length} runs with no flags — note any fault the pre-screen missed as a new section like below)`, '',
     ...fullReads.map(r => `- ${r}`), '',
     '## Human-found faults (from full reads — add a new section per entry)', '',
-    '```markdown', '### <run>-t<turn>-human', 'category: <requests|insights|structure|math|recovery>', 'severity: <serious|moderate|minor>', 'quote: (optional) the text snippet', 'expected: what should have happened', 'rule: which rule violated', 'attribution: (optional, default evaluator_uncertain)', 'note: (optional) any notes', '```', '',
+    '```markdown', '### <run>-t<turn>-human', `category: <${CATEGORY_LIST.join('|')}>`, 'severity: <serious|moderate|minor>', 'quote: (optional) the text snippet', 'expected: what should have happened', 'rule: which rule violated', 'attribution: (optional, default evaluator_uncertain)', 'note: (optional) any notes', '```', '',
   ].join('\n');
 }
 
@@ -41,6 +43,7 @@ export function parseReviewSheet(md: string) {
   let id: string | null = null;
   let isHuman = false;
   let inCodeBlock = false;
+  let fenceOpenedAt = 0;
   let cur: {
     status?: 'confirmed' | 'rejected';
     severity?: FaultRecord['severity'];
@@ -99,10 +102,11 @@ export function parseReviewSheet(md: string) {
         status: 'confirmed',
         note: cur.note,
       };
-      // Skip if already present
-      if (!humanFaults.some(f => f.id === id)) {
-        humanFaults.push(fault);
+      if (humanFaults.some(f => f.id === id)) {
+        unrecognised.push(`duplicate human id ${id} — this entry was ignored (use a different turn or merge the two)`);
+        return;
       }
+      humanFaults.push(fault);
     } else {
       // Prescreen verdict
       if (id && cur.status) {
@@ -116,11 +120,13 @@ export function parseReviewSheet(md: string) {
     }
   };
 
-  for (const raw of md.split('\n')) {
-    const line = raw.trim();
+  const lines = md.split('\n');
+  for (let n = 0; n < lines.length; n++) {
+    const line = lines[n].trim();
     // Check for code block fences
-    if (line === '```' || line.startsWith('```')) {
+    if (line.startsWith('```')) {
       inCodeBlock = !inCodeBlock;
+      if (inCodeBlock) fenceOpenedAt = n + 1;
       continue;
     }
     // Skip everything inside code blocks
@@ -157,6 +163,7 @@ export function parseReviewSheet(md: string) {
     else if (key === 'quote' && val) cur.quote = val;
   }
   flush();
+  if (inCodeBlock) unrecognised.push(`unclosed code fence — everything after line ${fenceOpenedAt} was ignored`);
   return { verdicts, humanFaults, unrecognised };
 }
 
