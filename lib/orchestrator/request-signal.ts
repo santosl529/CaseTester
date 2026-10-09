@@ -48,7 +48,7 @@ const WANT_ASK_PHASES: Phase[] = ['INTRO', 'CLARIFY', 'STRUCTURE', 'ANALYSIS', '
 // stall.ts's case nouns, plus the store count (prof-001's scoping facts).
 const ASK_DATA_NOUN = /\b(stores?|counts?)\b/i;
 // A list that continues an ask: "Could I get: one, …. Two, …." or bullets.
-const LIST_ITEM = /^(?:(?:two|three|four|five|six|seven|eight|nine|ten|second(?:ly)?|third(?:ly)?|fourth|fifth|finally|lastly)\b|\d+[.)]\s|[-•*]\s)/i;
+const LIST_ITEM = /^(?:(?:one|first(?:ly)?|two|three|four|five|six|seven|eight|nine|ten|second(?:ly)?|third(?:ly)?|fourth|fifth|finally|lastly)\b|\d+\)\s|[-•*]\s)/i;
 
 function asksAddressed(sentence: string, phase: Phase): boolean {
   if (ADDRESSED_CUES.some(re => re.test(sentence))) return true;
@@ -62,7 +62,8 @@ function asksAddressed(sentence: string, phase: Phase): boolean {
 export function addressedAskSentences(text: string, phase: Phase): string[] {
   const out: string[] = [];
   let inAsk = false;
-  for (const s of sentencesOf(text)) {
+  // "1. Store count" would split after "1.": numbered lines become "1) …".
+  for (const s of sentencesOf(text.replace(/(^|\n)\s*(\d+)[.)]\s+/g, '$1$2) '))) {
     inAsk = asksAddressed(s, phase) || (inAsk && LIST_ITEM.test(s));
     if (inAsk) out.push(s);
   }

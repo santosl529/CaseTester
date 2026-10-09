@@ -58,7 +58,17 @@ describe('addressedAskSentences', () => {
     expect(asks('Could you share these:\n- store count\n- revenue by year\nThanks.')).toEqual(['Could you share these:', '- store count', '- revenue by year']);
   });
 
+  it('a list opened by "One," or numbered lines after an ask belongs to it', () => {
+    expect(asks('Before I frame it, could I get a few data points?\n\nOne, the full cost breakdown. Two, store count by year.\n\nOnce I have those I can see where the margin went.')).toEqual([
+      'Before I frame it, could I get a few data points?', 'One, the full cost breakdown.', 'Two, store count by year.',
+    ]);
+    expect(asks('Could you share these?\n1. Store count by year.\n2. Revenue by year.\nThat would help.')).toEqual(['Could you share these?', '1) Store count by year.', '2) Revenue by year.']);
+  });
+
   it('a list of conditions with no ask is not one', () => {
+    // A run-on enumeration after an ask is not joined to it either: it is where
+    // a list of conditions sits (the mixed-message runner test).
+    expect(asks('Could you share the store count? What would make me change course: one, pilot elasticity; two, competitors holding prices.')).toEqual(['Could you share the store count?']);
     expect(asks('What would make me change course: one, pilot elasticity above that threshold; two, competitors holding prices. Three, new-store openings.')).toEqual([]);
   });
 
