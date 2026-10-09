@@ -121,6 +121,12 @@ describe('recommendation ask detection — "what would you recommend" (batch 13 
     'What would you recommend she do about the margin decline?',
     'What would you recommend — what should they do?',
     'What would you recommend.',
+    // Fix round 1: a short tail after a separator is still the whole ask.
+    'What would you recommend, then?',
+    'What would you recommend, Maya?',
+    'What would you recommend, given all that?',
+    'What would you recommend — and why?',
+    'What would you recommend. Take a moment.',
   ];
   const negatives = [
     'What would you recommend we look at next in the data?',
@@ -135,6 +141,10 @@ describe('recommendation ask detection — "what would you recommend" (batch 13 
     'What would you recommend in terms of analysis to do next?',
     'What would you recommend as the next analysis to do?',
     'What would you recommend, data-wise, to look at next?',
+    // Fix round 1: any separator, not just the comma, can introduce an analysis question.
+    'What would you recommend — which analysis should we run next?',
+    'What would you recommend: should we look at costs or revenue first?',
+    'What would you recommend, to do next?',
   ];
 
   it('counts each real recommendation ask', () => {

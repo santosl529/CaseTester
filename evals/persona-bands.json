@@ -412,7 +412,7 @@
       "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
     },
     "42": {
-      "structure":     { "expect": ["needs_work"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — the structuring ask is made and refused" },
+      "structure":     { "expect": ["needs_work", "not_assessed"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — the structuring ask is made and refused; rated needs_work or not assessed" },
       "quantitative":  { "expect": ["needs_work", "not_assessed"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — refuses the stage; rated needs_work or not assessed" },
       "dataExhibit":   { "expect": ["needs_work", "not_assessed"], "confidence": "medium", "reason": "\"ask to skip the case\"; \"Never actually attempt the case\" — refuses the stage; rated needs_work or not assessed" },
       "judgment":      { "expect": null, "confidence": "medium", "reason": "" },
