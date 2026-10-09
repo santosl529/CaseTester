@@ -120,18 +120,18 @@ function hasAnalysisSignal(raw: string): boolean {
 // back to the clarifying-question budget, the pre-v4.5 behavior.
 const DATA_REQUEST_PHRASE =
   /\b(do we have|do you have|can (i|we) (get|see|have|look at)|could (i|we|you) (get|see|share|pull)|is there (any )?(data|information|a breakdown)|any (data|numbers|figures|information) on|i'?d (like|want|love) to (see|get|look at)|what (does|do) the (data|numbers|breakdown|exhibit) (show|say))\b/i;
-const DATA_NOUN =
+export const DATA_NOUN =
   /\b(revenue|costs?|cogs|margins?|prices?|pricing|volume|data|numbers?|figures?|breakdown|split|trend|history|share|growth|ticket|transactions?|labor|overhead|inflation|sales|units|traffic|spend)\b/i;
 const INTERROGATIVE_START =
   /^\s*(?:and |so |okay,? |ok,? )?(what|what'?s|how|why|which|who|when|where|do|does|did|is|are|was|were|can|could|would|should|has|have|any)\b/i;
 
-function sentencesOf(text: string): string[] {
+export function sentencesOf(text: string): string[] {
   return text.split(/(?<=[.!?])\s+|\n+/).map(x => x.trim()).filter(Boolean);
 }
 
 // A real question sentence: ends in "?" AND opens like a question. Uptalk
 // answers ("Maybe buy in bulk, or lock in a price?") are statements.
-function isQuestionSentence(sentence: string): boolean {
+export function isQuestionSentence(sentence: string): boolean {
   return sentence.endsWith('?') && INTERROGATIVE_START.test(sentence);
 }
 

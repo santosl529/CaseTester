@@ -8,7 +8,7 @@ import {
 } from './silence';
 import { isDistressVerdict, type DistressVerdict } from './distress';
 import { classifyDataRequests, type DetectedDataRequest } from './data-requests';
-import { explicitRequestCues } from './request-signal';
+import { addressedAskSentences, matchAskDetections } from './request-signal';
 import { logEvent, inDraftScope } from '@/lib/analytics';
 import type { Phase } from './state-machine';
 import { streamInterviewerTurn } from '@/lib/agent/interviewer';
@@ -273,23 +273,26 @@ async function runTurnBody(
     ]));
     recordDistress(distress);
     if (isDistressVerdict(distress)) return offerPause(distress);
-    // Only an ask by phrasing is answered here (smoke run 9 Oct, b5ebdd96
-    // t22): a final answer listing what would change the recommendation
-    // ("one, pilot elasticity above that threshold; two, competitors …") was
-    // classified as three asks, and the goodbye released two figures and
-    // refused two items. With no cue the detections are dropped — not
-    // answered and not logged as requests; the classified marker still goes
-    // in, so neither the background pass nor scoring's backfill re-reads the
-    // exchange — and kept in a check for review.
-    const askCues = explicitRequestCues(candidateText);
-    const dropped = askCues.length === 0 ? (detected ?? []).filter(r => r.explicit) : [];
+    // Only asks addressed to the interviewer are answered here (smoke run
+    // 9 Oct, b5ebdd96 t22: a final answer listing what would change the
+    // recommendation was classified as three asks, and the goodbye released
+    // two figures and refused two items). A detection is answered when an
+    // asking sentence of the message covers it (request-signal.ts); the rest
+    // are dropped and kept in a check. Dropped ones are not logged as asks
+    // (the classified marker still goes in, so neither the background pass
+    // nor scoring's backfill re-reads the exchange); when the case goes on,
+    // they are logged as passing mentions so the classifier's record stays.
+    const askSentences = addressedAskSentences(candidateText, currentPhase);
+    const { kept, dropped } = matchAskDetections(askSentences, (detected ?? []).filter(r => r.explicit));
     if (detected !== null) {
-      checks.record('code_written_requests', dropped.length > 0, 'no explicit ask by phrasing — detected requests not answered',
-        { cues: askCues, dropped: dropped.map(r => r.what) });
+      checks.record('code_written_requests', dropped.length > 0, 'detected requests no asking sentence covers — not answered', {
+        sentences: askSentences, answered: kept.map(r => r.what), dropped: dropped.map(r => r.what),
+      });
     }
     out = {
-      turn: codeWrittenTurn(plan, askCues.length > 0 ? detected : null), validation: null, modelCallStart, modelLatencyMs: 0,
+      turn: codeWrittenTurn(plan, detected === null ? null : kept), validation: null, modelCallStart, modelLatencyMs: 0,
       distressWaitMs: 0, turnUsage, delivered: [], undeliveredRevealIds: [], requestsClassified: detected !== null,
+      extraRequestRows: state.kind === 'close' ? [] : dropped.map(r => ({ what: r.what, ledgerItemIds: r.ledgerItemIds, response: 'none' as const, explicit: false })),
     };
   } else {
     const isDelivered = { value: false };

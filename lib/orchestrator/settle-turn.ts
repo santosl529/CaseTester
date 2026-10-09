@@ -10,6 +10,7 @@ import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { logDataRequestClassification } from './data-request-log';
+import type { DetectedDataRequest } from './data-requests';
 import { reveal, revealedValues, markExhibitReveals } from './data-ledger';
 import { auditTurn, auditTurnStyle } from './audit';
 import { changeFigures } from './numeric-provenance';
@@ -126,6 +127,9 @@ export type ModelOutcome = {
   delivered: string[];              // speech already delivered, in order; [] when nothing streamed
   undeliveredRevealIds?: string[];  // reveals whose segment was not delivered (D3): never booked
   requestsClassified?: boolean;     // false: a code-written turn whose request classification failed
+  // Code-written turns: data_request rows logged beside the decisions' own —
+  // detections no asking sentence covered, as passing mentions (session-runner.ts).
+  extraRequestRows?: DetectedDataRequest[];
   timer?: TurnTimer;                // per-step timing (turn-timer.ts)
 };
 
@@ -410,7 +414,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       requestsClassified
         ? logDataRequestClassification({
           sessionId, phase: currentPhase,
-          requests: heardRequestRows(decisionRows(decisions), h),
+          requests: [...heardRequestRows(decisionRows(decisions), h), ...(out.extraRequestRows ?? [])],
           candidateTurnIndex: nextTurnIndex, interviewerTurnIndex: nextTurnIndex + 1,
           revealedIds: revealedIdsSaved,
         }).then(() => undefined)
