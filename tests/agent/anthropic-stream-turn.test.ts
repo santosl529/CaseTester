@@ -130,4 +130,32 @@ describe('AnthropicInterviewerModel.streamTurn', () => {
     expect(stream).toHaveBeenCalledTimes(1);
     expect(ev.at(-1)).toMatchObject({ type: 'done', validation: { refused: true }, turn: { question: 'What would you like to explore next?' } });
   });
+
+  it('hooks: onRequest gets the exact params body and onRawOutput the raw text, once per attempt — unknown-id abort included', async () => {
+    const bad = turn({ requests: [{ what: 'x', item_ids: ['cost_breakdown'], explicit: true, respond: 'release' }] });
+    const good = turn({ requests: [{ what: 'x', item_ids: ['cogs_pct'], explicit: true, respond: 'release' }] });
+    const { model, stream } = stubbed([{ text: bad }, { text: good }]);
+    const reqs: { attempt: string; model: string; body: unknown }[] = [];
+    const outs: { attempt: string; text: string }[] = [];
+    await all(model.streamTurn(ctx({ onRequest: r => reqs.push(r), onRawOutput: r => outs.push(r) })));
+    expect(stream).toHaveBeenCalledTimes(2);
+    expect(stream.mock.results[0].value.abort).toHaveBeenCalledTimes(1);      // the first attempt was the abort path
+    expect(reqs.map(r => r.attempt)).toEqual(['first', 'retry']);
+    expect(reqs.map(r => r.body)).toEqual([stream.mock.calls[0][0], stream.mock.calls[1][0]]);
+    expect(reqs[0].body).toBe(stream.mock.calls[0][0]);                      // the very object sent
+    expect(reqs[0].model).toBe('test-model');
+    expect(outs.map(o => o.attempt)).toEqual(['first', 'retry']);
+    expect(bad.startsWith(outs[0].text)).toBe(true);                          // what streamed before the abort
+    expect(outs[0].text).toContain('"cost_breakdown"');
+    expect(outs[1].text).toBe(good);
+  });
+
+  it('hooks: a single clean attempt reports one request and one raw output', async () => {
+    const { model, stream } = stubbed([{ text: turn() }]);
+    const reqs: unknown[] = [];
+    const outs: string[] = [];
+    await all(model.streamTurn(ctx({ onRequest: r => reqs.push(r.body), onRawOutput: r => outs.push(r.text) })));
+    expect(reqs).toEqual([stream.mock.calls[0][0]]);
+    expect(outs).toEqual([turn()]);
+  });
 });
