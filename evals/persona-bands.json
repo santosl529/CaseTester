@@ -12,13 +12,13 @@
       "pushback":      { "expect": ["needs_work"], "confidence": "high", "reason": "\"stay stuck through the interviewer's next two nudges\"; same conversion error \"even after correction\" (ignores hints)" }
     },
     "2": {
-      "structure":     { "expect": ["strong"], "confidence": "high", "reason": "\"delivers tight, correct reasoning\"; \"Everything you eventually say is strong\"" },
-      "quantitative":  { "expect": ["strong"], "confidence": "high", "reason": "\"Everything you eventually say is strong\"" },
+      "structure":     { "expect": ["strong", "meets_bar"], "confidence": "medium", "reason": "\"delivers tight, correct reasoning\"; \"Everything you eventually say is strong\"; strong gate requires every strong element, so meets_bar is in band" },
+      "quantitative":  { "expect": ["strong", "meets_bar"], "confidence": "medium", "reason": "\"Everything you eventually say is strong\"; strong gate requires every strong element, so meets_bar is in band" },
       "dataExhibit":   { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "pauses after each exhibit, then strong reasoning — exhibit reading implied, not stated" },
-      "judgment":      { "expect": ["strong"], "confidence": "high", "reason": "\"Everything you eventually say is strong\"" },
+      "judgment":      { "expect": ["strong", "meets_bar"], "confidence": "medium", "reason": "\"Everything you eventually say is strong\"; strong gate requires every strong element, so meets_bar is in band" },
       "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
       "communication": { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "tight answers, but 65–90s silences before each" },
-      "synthesis":     { "expect": ["strong"], "confidence": "high", "reason": "pauses before the recommendation, then strong" },
+      "synthesis":     { "expect": ["strong", "meets_bar"], "confidence": "medium", "reason": "pauses before the recommendation, then strong; strong gate requires every strong element, so meets_bar is in band" },
       "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
     },
     "3": {
@@ -68,13 +68,13 @@
       "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"a genuinely strong recommendation, operating unassisted\"" },
       "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
       "communication": { "expect": null, "confidence": "medium", "reason": "" },
-      "synthesis":     { "expect": ["strong"], "confidence": "high", "reason": "\"a genuinely strong recommendation\"" },
+      "synthesis":     { "expect": ["strong", "meets_bar"], "confidence": "medium", "reason": "\"a genuinely strong recommendation\"; strong gate requires every strong element, so meets_bar is in band" },
       "pushback":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "stuck when pushed early, then \"operating unassisted\"; \"Never stall again after the opening\"" }
     },
     "8": {
-      "structure":     { "expect": ["strong"], "confidence": "high", "reason": "\"A strong candidate throughout — clean structure\"" },
-      "quantitative":  { "expect": ["strong"], "confidence": "high", "reason": "\"A strong candidate throughout — … correct math\"" },
-      "dataExhibit":   { "expect": ["strong"], "confidence": "high", "reason": "\"A strong candidate throughout — … sharp exhibit interpretation\"" },
+      "structure":     { "expect": ["strong", "meets_bar"], "confidence": "medium", "reason": "\"A strong candidate throughout — clean structure\"; strong gate requires every strong element, so meets_bar is in band" },
+      "quantitative":  { "expect": ["strong", "meets_bar"], "confidence": "medium", "reason": "\"A strong candidate throughout — … correct math\"; strong gate requires every strong element, so meets_bar is in band" },
+      "dataExhibit":   { "expect": ["strong", "meets_bar"], "confidence": "medium", "reason": "\"A strong candidate throughout — … sharp exhibit interpretation\"; strong gate requires every strong element, so meets_bar is in band" },
       "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "strong throughout, but \"unwilling to decide under uncertainty\"" },
       "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
       "communication": { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "strong throughout; brief stuck replies only at the recommendation" },
@@ -342,13 +342,13 @@
       "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
     },
     "35": {
-      "structure":     { "expect": ["strong"], "confidence": "high", "reason": "\"Your structure, math, and recommendation are all strong\"" },
-      "quantitative":  { "expect": ["strong"], "confidence": "high", "reason": "\"Your structure, math, and recommendation are all strong\"" },
+      "structure":     { "expect": ["strong", "meets_bar"], "confidence": "medium", "reason": "\"Your structure, math, and recommendation are all strong\"; strong gate requires every strong element, so meets_bar is in band" },
+      "quantitative":  { "expect": ["strong", "meets_bar"], "confidence": "medium", "reason": "\"Your structure, math, and recommendation are all strong\"; strong gate requires every strong element, so meets_bar is in band" },
       "dataExhibit":   { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"your analytical logic is consistently sound\"" },
       "judgment":      { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "\"your analytical logic is consistently sound\"" },
       "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
       "communication": { "expect": ["meets_bar","strong"], "confidence": "medium", "reason": "halting English and [pause 20s] — fluency must not be scored as reasoning; logic \"consistently sound\"" },
-      "synthesis":     { "expect": ["strong"], "confidence": "high", "reason": "\"Your structure, math, and recommendation are all strong\"" },
+      "synthesis":     { "expect": ["strong", "meets_bar"], "confidence": "medium", "reason": "\"Your structure, math, and recommendation are all strong\"; strong gate requires every strong element, so meets_bar is in band" },
       "pushback":      { "expect": null, "confidence": "medium", "reason": "" }
     },
     "36": {
@@ -503,12 +503,12 @@
     },
     "51": {
       "structure":     { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "transaction-based structure, \"genuinely MECE and complete\" — a valid non-standard framework must not be penalized" },
-      "quantitative":  { "expect": ["strong"], "confidence": "high", "reason": "\"Your analysis and recommendation are strong\"" },
+      "quantitative":  { "expect": ["strong", "meets_bar"], "confidence": "medium", "reason": "\"Your analysis and recommendation are strong\"; strong gate requires every strong element, so meets_bar is in band" },
       "dataExhibit":   { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "\"Your analysis … [is] strong\"" },
       "judgment":      { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "\"Your analysis and recommendation are strong\"" },
       "creativity":    { "expect": null, "confidence": "medium", "reason": "" },
       "communication": { "expect": null, "confidence": "medium", "reason": "" },
-      "synthesis":     { "expect": ["strong"], "confidence": "high", "reason": "\"Your analysis and recommendation are strong\"" },
+      "synthesis":     { "expect": ["strong", "meets_bar"], "confidence": "medium", "reason": "\"Your analysis and recommendation are strong\"; strong gate requires every strong element, so meets_bar is in band" },
       "pushback":      { "expect": ["strong","meets_bar"], "confidence": "medium", "reason": "\"Defend it clearly when pressure-tested and decline to restructure\"" }
     },
     "52": {

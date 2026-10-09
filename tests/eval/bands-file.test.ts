@@ -27,4 +27,9 @@ describe('evals/persona-bands.json', () => {
       for (const [d, c] of Object.entries(dims)) if (c.expect !== null) expect(c.reason.length, `${id}.${d}`).toBeGreaterThan(10);
     }
   });
+  it('no cell expects exactly strong: the strong gate requires every strong element, so meets_bar is in band', () => {
+    for (const [id, dims] of Object.entries(file.personas)) {
+      for (const [d, c] of Object.entries(dims)) expect(c.expect, `${id}.${d}`).not.toEqual(['strong']);
+    }
+  });
 });
