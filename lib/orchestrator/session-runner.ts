@@ -16,12 +16,14 @@ import { SILENCE_PAUSE_EXPIRED, CLOSE_SCRIPTS, GRACE_ASK_SCRIPTS, TIME_WARNING_S
 import { planTurn, scriptedOffer, type ModelPlan, type TurnReads } from './plan-turn';
 import { planFingerprint, type DraftGate } from './speculation';
 import { promptContextFor } from './prompt-context';
+import { TurnRecorder, type TurnRecord, type TurnStateBefore } from './turn-record';
+import { revealedValues } from './data-ledger';
 import { streamTurnSegments } from './stream-turn';
 import { settleTurn, commitScripted, logSessionEvent, type TurnUsage, type ModelOutcome } from './settle-turn';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import {
   isUsefulSegment, isCancelledTurn, TurnCancelled,
-  type ConductFlags, type HeardReport, type ScriptedPlan, type SegmentSink, type TurnResult,
+  type ConductFlags, type HeardReport, type ScriptedPlan, type SegmentSink, type TurnCtx, type TurnResult,
 } from './turn-types';
 
 // The turn coordinator (specs 2026-10-05-streaming-turn, 2026-10-06
@@ -42,6 +44,9 @@ export type SilenceResult = {
 };
 
 export type RunTurnOptions = {
+  // Evaluation runs (spec 2026-10-09 §2.1): one TurnRecord per turn, after
+  // Settle. Production passes none. A throwing callback is logged and ignored.
+  onTurnRecord?: (record: TurnRecord) => void;
   // Where analytics writes go (latency plan step 2): the turn route hands them
   // to after(), the live-run harness to its background list. Nothing in a turn
   // or in scoring reads analytics. Without it they are awaited before return.
@@ -115,6 +120,29 @@ export async function planFingerprintNow(sessionId: string, candidateText: strin
   }));
 }
 
+function stateBeforeOf(plan: ModelPlan): TurnStateBefore {
+  const { ctx, state } = plan;
+  return {
+    phase: ctx.currentPhase,
+    elapsedMs: state.elapsedMs,
+    kind: state.kind,
+    promptContext: promptContextFor(plan),
+    revealedIds: Object.keys(revealedValues(state.ledger)),
+    shownExhibitIds: [...state.shownExhibitIds],
+    openDataRequests: state.openDataRequests.map(o => ({ ledgerItemId: o.ledgerItemId, what: o.what })),
+    pressureTest: state.pressureTest,
+    stallRung: state.stallDecision.intervene ? (state.stallDecision.rung ?? null) : null,
+    verifiedFigures: [...state.verifiedNow],
+    recomputeFlags: [...state.recomputeFlags],
+    requestCues: [...state.requestCues],
+  };
+}
+
+// A recorder failure never breaks or alters a turn.
+const safe = (f: () => void) => {
+  try { f(); } catch (e) { console.warn('[runner] turn recorder failed (ignored):', e instanceof Error ? e.message : e); }
+};
+
 async function runTurnBody(
   sessionId: string, candidateText: string, later: (task: () => Promise<void>) => void, opts: RunTurnOptions,
 ): Promise<TurnResult> {
@@ -135,12 +163,27 @@ async function runTurnBody(
     }
     return report;
   };
-  const done = <T>(value: T): T => { opts.onTiming?.({ ...timer.marks }); return value; };
+  const done = (value: TurnResult): TurnResult => {
+    opts.onTiming?.({ ...timer.marks });
+    if (rec && recordCtx) {
+      try {
+        opts.onTurnRecord!(rec.finish({
+          sessionId, turnIndex: recordCtx.nextTurnIndex, candidateText, checks: recordCtx.checks.entries,
+          savedLine: value.interviewerText, phaseAfter: value.phase, ended: value.ended, timing: { ...timer.marks },
+        }));
+      } catch (e) {
+        console.warn('[runner] onTurnRecord failed (ignored):', e instanceof Error ? e.message : e);
+      }
+    }
+    return value;
+  };
   // Full-turn timing (latency plan step 1): the model call alone was ~1.9s of
   // a ~2.2s turn in batches 7–8, but the writes after the interviewer row were
   // never timed.
   const turnStartMs = Date.now();
   const timer = new TurnTimer(turnStartMs);
+  const rec = opts.onTurnRecord ? new TurnRecorder(turnStartMs) : null;
+  let recordCtx: TurnCtx | null = null;
   // Every read this turn needs takes only the session id: issued together.
   const reads = await readTurn(sessionId);
   timer.mark('reads_done');
@@ -151,9 +194,17 @@ async function runTurnBody(
   });
   timer.mark('plan_done');
   opts.onPlanFingerprint?.(planFingerprint(plan));
+  recordCtx = plan.ctx;
+  if (rec) {
+    safe(() => rec.setState(plan.kind === 'scripted'
+      ? { phase: plan.ctx.currentPhase, elapsedMs: null, kind: 'scripted', promptContext: null, revealedIds: [], shownExhibitIds: [],
+          openDataRequests: [], pressureTest: null, stallRung: null, verifiedFigures: [], recomputeFlags: [], requestCues: [] }
+      : stateBeforeOf(plan)));
+  }
   if (plan.kind === 'scripted') {
     if (!plan.interviewerText) return done(await commit(plan, null)); // inactive session: nothing said
     if (sink) await sink({ text: plan.interviewerText, revealIds: [], kind: 'scripted' }).catch(() => {});
+    if (rec) safe(() => rec.segment({ text: plan.interviewerText, revealIds: [], kind: 'scripted' }));
     return done(await commit(plan, await hear(plan)));
   }
 
@@ -173,6 +224,7 @@ async function runTurnBody(
   let exhibitDelivered = false;
   const deliver: SegmentSink = async seg => {
     await (sink ?? (async () => {}))(seg);
+    if (rec) safe(() => rec.segment(seg));
     firstSegmentAt ??= Date.now();
     timer.mark('first_delivered');
     if (isUsefulSegment(seg)) timer.mark('first_useful_delivered');
@@ -232,7 +284,10 @@ async function runTurnBody(
         checks.record('model_turn_validation', v.unknownIds.length > 0 || v.retried || v.unparsed || v.emptyTurn || v.refused,
           v.retried ? 'model reply regenerated' : 'model reply unusable', { ...v });
       },
+      onRequest: rec ? r => safe(() => rec.request(r.attempt, r.model, r.body)) : undefined,
+      onRawOutput: rec ? r => safe(() => rec.output(r.attempt, r.text)) : undefined,
       onUsage: u => {
+        if (rec) safe(() => rec.usage(u));
         turnUsage.model = u.model;
         turnUsage.inputTokens += u.inputTokens;
         turnUsage.outputTokens += u.outputTokens;
@@ -260,6 +315,8 @@ async function runTurnBody(
       turnUsage, delivered: streamed.delivered, undeliveredRevealIds: [...streamed.undeliveredRevealIds],
     };
   }
+
+  if (rec) safe(() => rec.setModelTurn(out.turn, out.validation));
 
   // Settle (settle-turn.ts): compose, book, commit; only the text after what
   // was already delivered goes out.
