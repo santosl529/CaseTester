@@ -50,4 +50,28 @@ describe('batch manifest', () => {
     const re = planWave(m, { ...base, personaIds: [1], rerun: true });
     expect(re.entries.map(e => e.personaId)).toEqual([1]);
   });
+  it('stores the bands/severity hashes at the first wave and refuses changed files later', () => {
+    const m = planWave(null, { ...base, personaIds: [1], hashes: { bands: 'b1', severity: 's1' } }).manifest;
+    expect([m.bandsHash, m.severityHash]).toEqual(['b1', 's1']);
+    expect(() => planWave(m, { ...base, personaIds: [2], hashes: { bands: 'b2', severity: 's1' } })).toThrow(/persona-bands/);
+    expect(planWave(m, { ...base, personaIds: [2], hashes: { bands: 'b2', severity: 's1' }, newVersion: 'v2' }).manifest.bandsHash).toBe('b2');
+  });
+
+  it('judges "already done" within the current version only', () => {
+    let m: Manifest = planWave(null, { ...base, personaIds: [1] }).manifest;
+    m = markWaveResults(m, m.runs.map(r => ({ ...r, runDir: 'x' })), () => true);
+    const w = planWave(m, { ...base, commit: 'c2', newVersion: 'v2', personaIds: [1] });
+    expect(w.entries.map(e => [e.personaId, e.runNumber, e.version])).toEqual([[1, 2, 'v2']]);
+  });
+
+  it('deduplicates persona ids keeping first occurrence order', () => {
+    const w = planWave(null, { ...base, personaIds: [3, 3, 1] });
+    expect(w.entries.map(e => e.personaId)).toEqual([3, 1]);
+  });
+
+  it('rejects --new-version equal to the current version label', () => {
+    const m = planWave(null, { ...base, personaIds: [1] }).manifest;
+    expect(() => planWave(m, { ...base, commit: 'c2', newVersion: 'v1', personaIds: [2] })).toThrow(/v1 is already the current version/);
+    expect(() => planWave(m, { ...base, newVersion: 'v1', personaIds: [2] })).toThrow(/v1 is already the current version/);
+  });
 });

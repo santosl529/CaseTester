@@ -7,7 +7,7 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { planWave, markWaveResults, loadManifest, saveManifest, type PersonaEntry } from '@/lib/eval/batch-manifest';
+import { planWave, markWaveResults, loadManifest, saveManifest, fileHash, type PersonaEntry } from '@/lib/eval/batch-manifest';
 import { liveRunArgs, findRunDir } from '@/lib/eval/wave-commands';
 import { gitInfo } from '@/lib/eval/git-info';
 import { INTERVIEWER_MODEL_ID, SCORING_MODEL_ID } from '@/lib/models';
@@ -45,6 +45,7 @@ async function main() {
   const git = gitInfo();
   const { manifest, wave, entries } = planWave(loadManifest(BATCH_DIR), {
     personaIds, knownIds: PERSONAS.map(x => x.id), commit: git.commit, dirty: git.dirty, newVersion: arg('new-version'), rerun: process.argv.includes('--rerun'),
+    hashes: { bands: fileHash('evals/persona-bands.json'), severity: fileHash('evals/severity.md') },
     date: new Date(), models: { interviewer: process.env.INTERVIEWER_PROVIDER ?? INTERVIEWER_MODEL_ID, scoring: SCORING_MODEL_ID },
   });
   console.log(`[wave] ${wave}: ${entries.map(e => `#${e.runNumber}=persona ${e.personaId}`).join(', ')} · version ${manifest.version} · commit ${git.commit.slice(0, 7)} · pace ${pace}`);
