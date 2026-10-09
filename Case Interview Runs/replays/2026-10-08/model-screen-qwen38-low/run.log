@@ -1,0 +1,289 @@
+180 reconstructable turns · sampling 20 · rough Sonnet input estimate ~$0.18 (the run budget meters actual spend)
+[budget] replay-output-format: cap $0.35 shared via Case Interview Runs/replays/2026-10-08/model-screen-qwen38-low/budget.jsonl · already spent $0.0193
+[interviewer] phase: INTRO
+[interviewer-model] raw response: 
+
+{"say":"Understood.","move":"structure","requests":[],"exhibit":null,"rescue_item":null,"question":"That's three broad buckets, but it's not yet a tree I can follow. Can you structure this into a framework — something I can trace branch by branch — and tell me which branch you'd pull first and why?"}
+[interviewer] phase: INTRO
+[interviewer-model] raw response: 
+
+{"say":"Right, that's a reasonable split.","move":"pressure_test","requests":[],"exhibit":null,"rescue_item":null,"question":"Which of those three branches do you prioritize first, and why?"}
+  01-maya-the-fr#3 INTRO          useful sonnet 1978 · qwen38-low 794/2933
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: 
+
+{"say": "Mm-hm.", "move": "clarify", "requests": [{"what": "whether store count changed over the two-year period", "item_ids": ["stores_count"], "explicit": true, "respond": "release"}], "exhibit": null, "rescue_item": null, "question": "Noted. Now get me back to your framework — within costs, what would you break down, and which branch would you dig into first?"}
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: 
+
+{"say":"","move":"clarify","requests":[{"what":"number of stores current vs prior period","item_ids":["stores_count"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Noted. Now back to your structure — within revenue and costs, what specifically would you break apart, and which branch do you tackle first?"}
+  01-maya-the-fr#5 CLARIFY        useful sonnet 1446 · qwen38-low 1162/4391
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: 
+
+{"say":"That's a solid refinement.","move":"analysis","requests":[{"what":"COGS as a percent of revenue for both years","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"labor as a percent of revenue for both years","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"overhead and rent as a percent of revenue for both years","item_ids":["overhead_pct"],"explicit":true,"respond":"release"},{"what":"below-the-line items such as interest, taxes, depreciation, and one-time charges","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"With those cost lines in front of you, which one is doing the most damage, and what's your next step?"}
+[interviewer] phase: CLARIFY
+[interviewer-model] raw response: 
+
+{"say":"Right, that's cleaner.","move":"analysis","requests":[{"what":"COGS as a percent of revenue for both years","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"Labor as a percent of revenue for both years","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"Overhead and rent as a percent of revenue for both years","item_ids":["overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Given what you see in those lines, where do you focus first?"}
+  56-devon-the-i#4 CLARIFY        useful sonnet 1580 · qwen38-low 992/568
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: 
+
+{"say":"Mm-hm.","move":"analysis","requests":[{"what":"COGS as % of revenue","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"Labor as % of revenue","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"Overhead / rent as % of revenue","item_ids":["overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Those are your three cost lines over the two-year window. Which one is driving your margin decline?"}
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: 
+
+{"say":"","move":"pressure_test","requests":[],"exhibit":null,"rescue_item":null,"question":"You're prioritizing labor over ingredients or rent — what makes you think that's where the biggest problem is?"}
+  06-destiny-the#14 STRUCTURE      useful sonnet 1492 · qwen38-low 1348/892
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: 
+
+{"say":"You've made your case for cost first.","move":"analysis","requests":[{"what":"COGS as a percentage of revenue for both years","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"Labor as a percentage of revenue for both years","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"Overhead and rent as a percentage of revenue for both years","item_ids":["overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Now that you have all three lines, which is the primary driver, and what do you need next to get to the root cause within that line?"}
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: 
+
+{"say":"So you're isolating the line items before guessing at the mechanism.","move":"analysis","requests":[{"what":"COGS as a percentage of revenue for both years","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"Labor as a percentage of revenue for both years","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"Overhead and rent as a percentage of revenue for both years","item_ids":["overhead_pct"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Which line is doing the work here, and what would you drill into next?"}
+  58-hugo-the-hi#6 STRUCTURE      useful sonnet 2494 · qwen38-low 891/805
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: 
+
+{"say":"Mm-hm.","move":"analysis","requests":[{"what":"average transaction value, current and prior","item_ids":["avg_ticket"],"explicit":true,"respond":"release"},{"what":"menu price changes over the two years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Okay, so you've got the revenue side. What's your next move — what would you want to pull on the cost side, and why?"}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: 
+
+{"say":"Mm-hm.","move":"analysis","requests":[{"what":"average transaction value","item_ids":["avg_ticket"],"explicit":true,"respond":"release"},{"what":"menu price changes over two years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"So where does that leave you on the revenue side, and what's your next step?"}
+  01-maya-the-fr#7 ANALYSIS       useful sonnet 1575 · qwen38-low 1335/808
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: 
+
+{"say":"So COGS is your story, then.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"Now you're inside COGS. What would you want to break it into next to find the specific driver?"}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: 
+
+{"say":"Right, that's a clean decomposition.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"So COGS is where you focus. What would you want to break it into next, to find what's driving that 16-point increase?"}
+  06-destiny-the#20 ANALYSIS       useful sonnet 1721 · qwen38-low 1269/882
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: 
+
+{"say":"Right. COGS breakdown: coffee beans are 42% of COGS, up from 34% two years ago. Other inputs — dairy, packaging, food — have gone up 3 points of revenue in aggregate over the same period.","move":"analysis","requests":[{"what":"COGS breakdown by input category: beans as share of COGS and other input cost changes","item_ids":["bean_share_of_cogs","non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"So with beans at 42% of COGS and other inputs up 3 points of revenue combined, walk me through how that 16-point COGS deterioration decomposes between the bean line and the other inputs."}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: 
+
+{"say":"Got it.","move":"analysis","requests":[{"what":"COGS breakdown: coffee beans as a share of COGS","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Now that you have the split, size the bean component as a percentage of revenue, and tell me how much of the 16-point COGS increase it explains versus the rest."}
+  09-derek-the-b#10 ANALYSIS       useful sonnet 1483 · qwen38-low 998/1074
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: 
+
+{"say":"Understood.","move":"analysis","requests":[{"what":"COGS breakdown: coffee beans as a share of COGS","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"COGS breakdown: other input cost changes over two years","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Does that breakdown change how you'd allocate the fix between pricing, hedging, and the other inputs?"}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: 
+
+{"say":"That math is clean.","move":"risk","requests":[],"exhibit":null,"rescue_item":null,"question":"Before you'd feel comfortable presenting a 10% price increase to the CEO as the lead lever, is there anything else you'd want to confirm about where that 16-point COGS increase is coming from? And why would that matter for the recommendation?"}
+  40-jasmine-the#8 ANALYSIS       useful sonnet 1529 · qwen38-low 1648/2233
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: 
+
+{"say":"Understood.","move":"analysis","requests":[{"what":"coffee bean price change over two years","item_ids":["bean_price_change"],"explicit":true,"respond":"release"},{"what":"coffee beans as a share of COGS","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"},{"what":"other input cost changes over two years","item_ids":["non_bean_input_change"],"explicit":false,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"You've put bean prices near 25% higher directly into the COGS math. A price change and a cost share aren't the same base — what base is that 25% measured against, and how does it become points of revenue?"}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: 
+[interviewer-model] regenerating: Your previous draft of this turn was not a complete JSON object. Write the whole turn again as one JSON object.
+[interviewer-model] raw response: 
+
+{"say":"Right, so this is a COGS story and you want to know what's inside it.","move":"analysis","requests":[{"what":"coffee bean price change over the two years","item_ids":["bean_price_change"],"explicit":true,"respond":"release"},{"what":"other input cost changes — dairy, packaging, food","item_ids":["non_bean_input_change"],"explicit":true,"respond":"release"},{"what":"coffee beans as a share of COGS in the prior period","item_ids":["bean_share_of_cogs"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Quick check before you interpret those numbers: your 38 percent per-unit figure holds average ticket flat so that revenue growth equals volume growth. Is that an assumption you're comfortable making, or do we need to verify average ticket first?"}
+  58-hugo-the-hi#8 ANALYSIS       useful sonnet 2119 · qwen38-low 1308/3936
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: 
+[interviewer-model] regenerating: Your previous draft of this turn was not a complete JSON object. Write the whole turn again as one JSON object.
+[interviewer-model] raw response: 
+
+{"say": "You've anchored the whole case on COGS and called a recommendation.", "move": "risk", "requests": [], "exhibit": null, "rescue_item": null, "question": "You're recommending a price increase, yet your own next step says you still need to confirm the 16 points is input price rather than waste or mix. What's the risk that it's driven by something a price rise doesn't fix, and how would that change what you'd recommend?"}
+[interviewer] phase: ANALYSIS
+[interviewer-model] raw response: 
+
+{"say":"Right.","move":"brainstorm","requests":[],"exhibit":null,"rescue_item":null,"question":"Beyond what we've discussed, what else could the client do?"}
+  40-jasmine-the#6 ANALYSIS       useful sonnet 1386 · qwen38-low 4072/1615
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: 
+
+{"say":"Got it.","move":"exhibit","requests":[{"what":"cost structure breakdown","item_ids":["exhibit-a"],"explicit":true,"respond":"release"}],"exhibit":"exhibit-a","rescue_item":null,"question":"What does that tell you?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: 
+
+{"say":"Right.","move":"analysis","requests":[{"what":"cost breakdown as a percentage of revenue","item_ids":["cogs_pct","labor_pct","overhead_pct","exhibit-a"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What does that tell you?"}
+  01-maya-the-fr#9 EXHIBIT        useful sonnet 1734 · qwen38-low 797/546
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: 
+[interviewer-model] regenerating: Your previous draft of this turn was not a complete JSON object. Write the whole turn again as one JSON object.
+[interviewer-model] raw response: 
+
+{"say":"Mm-hm.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"When you said ten points and twenty-eight point one points — points of what?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: 
+[interviewer-model] regenerating: Your previous draft of this turn was not a complete JSON object. Write the whole turn again as one JSON object.
+[interviewer-model] raw response: 
+
+{"say":"Right.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"When you add those up to 10 plus 28.1 — points of what?"}
+  08-claire-the-#8 EXHIBIT        useful sonnet 1902 · qwen38-low 4304/4666
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: 
+
+{"say":"You've reconciled the full COGS swing to input inflation.","move":"analysis","requests":[{"what":"menu price history over the past two years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Read that price history — does it confirm your flat-price read, and if prices did move, how does that change the split of those 16 points?"}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: 
+
+{"say":"Right.","move":"exhibit","requests":[{"what":"menu price changes over two years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"}],"exhibit":"exhibit-a","rescue_item":null,"question":"Menu prices held flat, so the pass-through finding is confirmed. What does the exhibit add to what you already have?"}
+  58-hugo-the-hi#12 EXHIBIT        useful sonnet 1431 · qwen38-low 1750/1630
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: 
+
+{
+  "say": "You're close.",
+  "move": "analysis",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Try this: for every dollar of revenue, two years ago the company spent 42 cents on COGS. Today it spends 58 cents. So what does that sixteen-cent gap mean — it's sixteen percent of what?"
+}
+[interviewer] phase: EXHIBIT
+[interviewer-model] raw response: 
+
+{
+  "say": "No problem, let's work it in dollars.",
+  "move": "analysis",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "If revenue two years ago was 100 dollars and COGS was 42 dollars, and today revenue is 100 dollars and COGS is 58 dollars — what percent did the COGS dollar amount grow by? And what are the two different things the number sixteen is telling you?"
+}
+  01-maya-the-fr#27 EXHIBIT        useful sonnet 2722 · qwen38-low 2695/605
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: 
+
+{"say":"Mm-hm.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"Right, so COGS is where the margin went. What's driving that jump from 42 to 58 — what would you look at next to break that down?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: 
+
+{"say":"Understood.","move":"analysis","requests":[],"exhibit":null,"rescue_item":null,"question":"So pick up where you left off — you've identified COGS as the dominant driver. What would you look at next within COGS?"}
+  01-maya-the-fr#23 BRAINSTORM     useful sonnet 2715 · qwen38-low 1570/702
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: 
+
+{"say":"The sizing is clean.","move":"brainstorm","requests":[{"what":"competitive price points in nearby locations","item_ids":[],"explicit":true,"respond":"release"},{"what":"loyalty member behavior by location","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Beyond the price lever, what else could the client do to close that 16-point gap?"}
+[interviewer] phase: BRAINSTORM
+[interviewer-model] raw response: 
+
+{"say":"I'll come back to those data points.","move":"brainstorm","requests":[{"what":"competitive price points nearby","item_ids":[],"explicit":true,"respond":"release"},{"what":"loyalty member behavior by location","item_ids":[],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Beyond the price lever you've explored, what else could the client do to reverse this margin decline? Think beyond pricing."}
+  56-devon-the-i#10 BRAINSTORM     useful sonnet 1978 · qwen38-low 1212/836
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: 
+
+{"say": "Understood.", "move": "risk", "requests": [], "exhibit": null, "rescue_item": null, "question": "Of those levers, what's the biggest risk of raising prices, and how would you mitigate it?"}
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: 
+
+{"say":"Mm-hm.","move":"recommendation","requests":[],"exhibit":null,"rescue_item":null,"question":"So if the CEO said to you today, what should we do and why? Walk me through your recommendation."}
+  01-maya-the-fr#31 RECOMMENDATION useful sonnet 2692 · qwen38-low 674/717
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: 
+
+{"say":"Understood.","move":"risk","requests":[],"exhibit":null,"rescue_item":null,"question":"You've addressed elasticity and phasing. What about the competitive set? If you raise prices ten percent and your nearest competitors haven't had the same cost shock or haven't passed it through yet, what happens to your traffic and your positioning?"}
+[interviewer] phase: RECOMMENDATION
+[interviewer-model] raw response: 
+
+{"say": "Got it.", "move": "risk", "requests": [], "exhibit": null, "rescue_item": null, "question": "You flagged elasticity, but let me push there. If a 10% price increase drops same-store traffic even 5 to 6%, does your margin math still close, or does the lost volume erase the gain? Walk me through that."}
+  58-hugo-the-hi#16 RECOMMENDATION useful sonnet 1791 · qwen38-low 1307/688
+[interviewer] phase: WRAP
+[interviewer-model] raw response: 
+
+{
+  "say": "",
+  "move": "risk",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "If you could only pull one lever before the end of next quarter, which one, and what's the main risk of that choice?"
+}
+[interviewer] phase: WRAP
+[interviewer-model] raw response: 
+
+{
+  "say": "",
+  "move": "recommendation",
+  "requests": [],
+  "exhibit": null,
+  "rescue_item": null,
+  "question": "Think about it this way: if you had to do just one thing in the next quarter, which of those three would you pick, and what makes it the one?"
+}
+  01-maya-the-fr#33 WRAP           useful sonnet 2772 · qwen38-low 619/679
+[interviewer] phase: INTRO
+[interviewer-model] raw response: 
+
+{"say":"Noted.","move":"structure","requests":[{"what":"the full cost breakdown by category for both years","item_ids":["cogs_pct","labor_pct","overhead_pct"],"explicit":true,"respond":"defer"},{"what":"revenue by location versus total","item_ids":["revenue_total","revenue_per_store"],"explicit":true,"respond":"defer"},{"what":"number of locations two years ago versus today","item_ids":["stores_count"],"explicit":true,"respond":"defer"},{"what":"average ticket size","item_ids":["avg_ticket"],"explicit":true,"respond":"defer"},{"what":"transaction volume per store per day","item_ids":[],"explicit":true,"respond":"defer"},{"what":"employee headcount and average wage","item_ids":[],"explicit":true,"respond":"defer"},{"what":"customer satisfaction or NPS scores over the period","item_ids":[],"explicit":true,"respond":"defer"},{"what":"market share versus competitors","item_ids":[],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Before I pull any numbers, how would you structure your approach to this problem? Take a minute if you need to."}
+[interviewer] phase: INTRO
+[interviewer-model] raw response: 
+
+{"say":"","move":"structure","requests":[{"what":"full cost breakdown — COGS, labor, rent, other — for both years","item_ids":["cogs_pct","labor_pct","overhead_pct"],"explicit":true,"respond":"defer"},{"what":"revenue by location versus total","item_ids":["revenue_per_store"],"explicit":true,"respond":"defer"},{"what":"number of locations two years ago versus today","item_ids":["stores_count"],"explicit":true,"respond":"defer"},{"what":"average ticket size","item_ids":["avg_ticket"],"explicit":true,"respond":"defer"},{"what":"transaction volume per store per day","item_ids":[],"explicit":true,"respond":"defer"},{"what":"employee headcount and average wage","item_ids":[],"explicit":true,"respond":"defer"},{"what":"customer satisfaction or NPS scores over the period","item_ids":[],"explicit":true,"respond":"defer"},{"what":"market share versus competitors","item_ids":[],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"Let's hold on the data for now. How would you structure your approach to this problem?"}
+  18-nikhil-the-#2 INTRO          useful sonnet 2774 · qwen38-low 645/934
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: 
+
+{"say":"The framework covers the main bases.","move":"analysis","requests":[{"what":"COGS as a percentage of revenue by year","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"Labor as a percentage of revenue by year","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"Overhead and rent as a percentage of revenue by year","item_ids":["overhead_pct"],"explicit":true,"respond":"release"},{"what":"Menu price changes over two years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"What does that tell you — where does your eye go first?"}
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: 
+
+{"say":"That covers the gaps.","move":"analysis","requests":[{"what":"cost breakdown by year","item_ids":["cogs_pct","labor_pct","overhead_pct"],"explicit":true,"respond":"release"},{"what":"menu price changes over two years","item_ids":["menu_price_change"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"That's now the data you need. Walk me through what the cost lines are telling you about where the 18-point compression is coming from."}
+  09-derek-the-b#6 STRUCTURE      useful sonnet 1862 · qwen38-low 1880/438
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: 
+
+{"say":"Mm-hm.","move":"analysis","requests":[{"what":"revenue per store per year","item_ids":["revenue_per_store"],"explicit":true,"respond":"release"},{"what":"gross margin by product category","item_ids":[],"explicit":true,"respond":"defer"},{"what":"mix shift across categories over two years","item_ids":[],"explicit":true,"respond":"defer"},{"what":"waste or spoilage rates","item_ids":[],"explicit":true,"respond":"defer"},{"what":"discounting and promotional activity as a percent of gross sales","item_ids":[],"explicit":true,"respond":"defer"},{"what":"delivery platform commissions","item_ids":[],"explicit":true,"respond":"defer"},{"what":"training and turnover costs","item_ids":[],"explicit":true,"respond":"defer"},{"what":"depreciation and
+[interviewer-model] regenerating: Your previous draft of this turn was not a complete JSON object. Write the whole turn again as one JSON object.
+[interviewer-model] raw response: 
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: 
+
+{"say":"Right.","move":"analysis","requests":[{"what":"COGS as a percentage of revenue by year","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"labor expense by year","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"overhead and rent by year","item_ids":["overhead_pct"],"explicit":true,"respond":"release"},{"what":"total annual revenue","item_ids":["revenue_total"],"explicit":true,"respond":"release"},{"what":"revenue per store per year","item_ids":["revenue_per_store"],"explicit":true,"
+[interviewer-model] regenerating: Your previous draft of this turn was not a complete JSON object. Write the whole turn again as one JSON object.
+[interviewer-model] raw response: 
+
+{"say":"You've expanded the list.","move":"pressure_test","requests":[{"what":"revenue per store per year","item_ids":["revenue_per_store","stores_count","revenue_total"],"explicit":true,"respond":"defer"},{"what":"gross margin by product category","item_ids":[],"explicit":true,"respond":"defer"},{"what":"mix shift across product categories","item_ids":[],"explicit":true,"respond":"defer"},{"what":"waste or spoilage rates","item_ids":[],"explicit":true,"respond":"defer"},{"what":"discounting and promotional activity as percent of gross sales","item_ids":[],"explicit":true,"respond":"defer"},{"what":"delivery platform commissions","item_ids":[],"explicit":true,"respond":"defer"},{"what":"training and turnover costs","item_ids":[],"explicit":true,"respond":"defer"},{"what":"depreciation and amortization by year","item_ids":[],"explicit":true,"respond":"defer"},{"what":"menu price history","item_ids":["menu_price_change"],"explicit":true,"respond":"defer"}],"exhibit":null,"rescue_item":null,"question":"You've added more items, but you haven't told me what's structurally missing from your decomposition. Set the list aside for a moment: of the branches you've outlined, which do you prioritize first, and why?"}
+  18-nikhil-the-#6 STRUCTURE      useful sonnet 2463 · qwen38-low 6293/3421
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: 
+
+{"say":"Right.","move":"analysis","requests":[{"what":"COGS as a percentage of revenue","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"labor expense by year","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"rent expense by year","item_ids":["overhead_pct"],"explicit":true,"respond":"release"},{"what":"revenue in absolute dollars","item_ids":["revenue_total"],"explicit":true,"respond":"release"},{"what":"store count by year","item_ids":["stores_count"],"explicit":true,"respond":"release"},{"what":"revenue per store per year","item_ids":["revenue_per_store"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Use what you've just got. Which cost line is the driver, and why?"}
+[interviewer] phase: STRUCTURE
+[interviewer-model] raw response: 
+[interviewer-model] regenerating: Your previous draft of this turn was not a complete JSON object. Write the whole turn again as one JSON object.
+[interviewer-model] raw response: 
+
+{"say":"Got it — cost side, justified by the revenue growth.","move":"analysis","requests":[{"what":"COGS as a percentage of revenue","item_ids":["cogs_pct"],"explicit":true,"respond":"release"},{"what":"labor as a percentage of revenue","item_ids":["labor_pct"],"explicit":true,"respond":"release"},{"what":"overhead and rent as a percentage of revenue","item_ids":["overhead_pct"],"explicit":true,"respond":"release"},{"what":"total annual revenue","item_ids":["revenue_total"],"explicit":true,"respond":"release"},{"what":"number of stores","item_ids":["stores_count"],"explicit":true,"respond":"release"}],"exhibit":null,"rescue_item":null,"question":"Work through that and tell me what's driving the margin decline."}
+  18-nikhil-the-#14 STRUCTURE      useful sonnet 2802 · qwen38-low 2586/3599
+[interviewer] phase: STRUCTURE
+[interviewer] phase: STRUCTURE
+  18-nikhil-the-#24 STRUCTURE      useful sonnet 2630 · qwen38-low ERR/ERR
+[interviewer] phase: INTRO
+[interviewer] phase: INTRO
+  20-connor-the-#2 INTRO          useful sonnet 1474 · qwen38-low ERR/ERR
+
+MODEL-AB (screening) — 26 turns · sonnet from REPLAY_BASE_FROM (historical, not re-run), challengers twice (mean)
+  [sonnet] firstUsefulMs median 1902 p90 2772
+  [sonnet] firstTokenMs median 1083 p90 1230
+  [sonnet] completeMs median 2119 p90 2995
+  [sonnet] guard B active on 8, regenerated 0
+  [qwen38-low] guard B active on 16, regenerated 0 · client rate-limit waits 0 (excluded from timings, max 0ms)
+  [budget] spent $0.3532 of $0.35 — this process: cerebras/qwen-3.8-27b 55 calls $0.3339
+  [sonnet] quality flags over 26 outputs: {} · errors 0
+  [qwen38-low] 4 errored calls of 52
+    FIRST USEFUL  mean-of-2 median 1136 p90 3093 · minus sonnet: median -503ms (p10 -1984, p90 1458), faster on 16/24
+    first token   mean-of-2 median 1076 p90 1887 · minus sonnet: median 152ms (p10 -501, p90 864), faster on 9/22
+    completion    mean-of-2 median 1124 p90 3103 · minus sonnet: median -793ms (p10 -2145, p90 1458), faster on 19/26
+    first relevant spoken text (per call) median 1178 p90 4036 · came from say on 14/48 calls
+    reasoning tokens per call median 600 p90 3800 max 3924 · reasoning on 41/48 calls, first reasoning → first answer token median 504ms p90 1052ms
+    tokens per call median in 4844 (cached 3072) out 716
+    quality flags over 52 outputs: {"unsourced_figure":2,"say:data_talk":1,"narration":1,"no_turn":4}
+    request decisions differ — its two runs 11/24 · vs sonnet 24/48 outputs
+  wrote Case Interview Runs/replays/2026-10-08/model-screen-qwen38-low/replay-model-ab.md and replay-results-model-ab.json
+  [qwen38-low] substantive data decisions differ — its two runs 8/24 · vs sonnet 13/48 outputs · would withhold {"provenance":2,"data_talk":1,"meta_leak":1}
+  wrote Case Interview Runs/replays/2026-10-08/model-screen-qwen38-low/delivery-review-model-ab.md

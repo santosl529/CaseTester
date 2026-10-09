@@ -44,3 +44,18 @@ $0.448 of $0.90 (ledger `budget.jsonl`): Sonnet 28 calls $0.185 (2 smoke), Qwen 
 - Speed: the fastest interviewer screened so far (0.61s median to first useful content, −1.1s vs Sonnet).
 - Quality: not viable as configured. The fault rate is ~2.7× Sonnet's and far above Haiku 5.5's 25%. The failures are in what the product depends on: data-request judgment (unasked releases, ignored asks, unstable decisions run to run), grading in say, and math checking (doubted correct math, missed a units error, one invented figure). The deterministic backstops catch some (provenance blocks invented figures, the gate holds premature releases, guard B forces a declaration) but not unasked releases, grading, or wrong math doubts.
 - Untested: `reasoning_effort` low/medium (skipped at the user's call). At ~1850 tok/s, a few hundred reasoning tokens would cost ~0.2s, so a reasoning arm could still land under Haiku 5.5's 1.25s — the one cheap follow-up worth considering.
+
+## Delivery (added 8 Oct, evening — free re-analysis, `delivery-review-qwen38-none.md`)
+Each output passed through Settle's per-sentence vetoes and `decideData` (release cap, offers for unasked mentions, refusals, deferrals) on the reconstructed turn state; the pressure-test gate judged by hand. Command: `REPLAY_ARM=screen-review REPLAY_RESULTS=<this folder>/replay-results-model-ab.json REPLAY_TAG=qwen38-none REPLAY_EXTRA_BATCHES=batch-11-oct-06,batch-17-oct-07-luna REPLAY_OUT=<this folder> npx tsx scripts/replay-output-format.ts --limit 20`.
+
+| 52 outputs | raw | reach the candidate |
+|---|---|---|
+| Qwen none | 32 (62%) | **30 (58%)** |
+| Sonnet (26) | 6 (23%) | 6 (23%) |
+
+- Stopped before the candidate: Maya t5 run 2 (premature release — the gate defers it); Devon t4 run 1 and Derek t6 run 2 (deferral after the test was answered — the gate turns a declared deferral into a release once the judge marks the test answered; judge-dependent).
+- Softened: invented "Average ticket is up 2.1%" (Maya t7 run 2) is withheld by provenance; what reaches the candidate is an offer ("I can share … if you'd like") to an explicit ask — still a fault, milder. Unasked releases declared `explicit:false` become offers (Destiny t20, Derek t6 run 1, Jasmine t8 run 2).
+- Worse than the raw read: Connor t2 run 1 speaks **"I don't have a cost breakdown by line item for both years"** — a false refusal of data the case holds (the ask was declared with no ledger id after a guard-B regeneration). Maya t27 run 1: both sentences withheld (a hypothetical "$100" fails provenance) → "We'll keep going. Go on." at a stuck moment (+1 delivered).
+- Same 24 turns as the low screen (Nikhil t24, Connor t2 excluded): raw 29/48 (60%), delivered 27/48 (56%).
+
+**Request disagreements, by substance.** Raw decision strings differ run to run on 18/26; the normalized outcome (released / exhibit / promised / offered / refused) differs on 15/26. By hand: 14 substantive (Maya t5 defer vs premature release; Devon t4 promise vs release; Destiny t14 exhibit + promise vs nothing; Maya t7 nothing vs offer; Destiny t20 one offer vs exhibit + three offers; Jasmine t8 two vs three releases + an offer; Jasmine t6 nothing vs two releases; Claire t8 exhibit vs nothing; Hugo t12 exhibit vs not; Maya t23 nothing vs two releases; Derek t6 release vs promise; Nikhil t6 refusals vs none; Nikhil t24 release + promises vs nothing; Connor t2 false refusal vs promise), 1 mapping only (Nikhil t2: "revenue by location versus total" promised as revenue_total or refused).
