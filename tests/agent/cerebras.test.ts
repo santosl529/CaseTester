@@ -194,7 +194,7 @@ describe('CerebrasInterviewerModel under a run budget (Qwen screening, 8 Oct)', 
     const { fetch, bodies } = fakeFetch([turn()]);
     await expect(all(new CerebrasInterviewerModel('qwen-3.8-27b', 'none', fetch).streamTurn(ctx()))).rejects.toThrow(BudgetExceededError);
     installRunBudget(1);
-    await expect(all(new CerebrasInterviewerModel('gpt-oss-120b', 'low', fetch).streamTurn(ctx()))).rejects.toThrow(UnpricedModelError);
+    await expect(all(new CerebrasInterviewerModel('llama-unpriced', 'low', fetch).streamTurn(ctx()))).rejects.toThrow(UnpricedModelError);
     expect(bodies).toHaveLength(0);
   });
 });

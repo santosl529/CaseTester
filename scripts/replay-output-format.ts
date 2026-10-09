@@ -660,6 +660,8 @@ const CHALLENGERS: Record<string, () => InterviewerModel> = {
   // Qwen 3.8 27B on Cerebras (8 Oct): reasoning off ("none"; the model's default is high).
   'qwen38-none': () => new CerebrasInterviewerModel('qwen-3.8-27b', 'none'),
   'qwen38-low': () => new CerebrasInterviewerModel('qwen-3.8-27b', 'low'),
+  // gpt-oss-120b on Cerebras (8 Oct): low is its lowest reasoning setting (no "none").
+  'gptoss-low': () => new CerebrasInterviewerModel('gpt-oss-120b', 'low'),
 };
 
 
@@ -754,7 +756,7 @@ async function main() {
         return { name: n, model: CHALLENGERS[n](), promptVariant: 'full' as const };
       })];
     requireRunBudget('replay-output-format');
-    if (args.includes('--smoke')) { await smoke(spread.find(x => x.ctx.currentPhase === 'ANALYSIS') ?? spread[0], arms); return; }
+    if (args.includes('--smoke')) { await smoke(spread.find(x => x.ctx.currentPhase === 'ANALYSIS') ?? spread[0], process.env.REPLAY_BASE_FROM ? arms.slice(1) : arms); return; }
     const savedBase = process.env.REPLAY_BASE_FROM
       ? new Map((JSON.parse(readFileSync(process.env.REPLAY_BASE_FROM, 'utf8')) as ScreenRow[]).map(r => [r.id, r.base]))
       : undefined;

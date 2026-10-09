@@ -23,10 +23,11 @@ describe('costOf', () => {
     expect(() => costOf(u('openai/gpt-6-luna', 1000, 10))).toThrow(UnpricedModelError);
   });
 
-  it('prices Qwen 3.8 27B on Cerebras by its usage id, cached input at the full input rate (no cached price published)', () => {
-    // $0.99 in, $1.49 out per MTok (inference-docs.cerebras.ai, 8 Oct)
+  it('prices Cerebras models by their usage id, cached input at the full input rate (no cached price published)', () => {
+    // inference-docs.cerebras.ai, 8 Oct: Qwen 3.8 27B $0.99 in / $1.49 out; gpt-oss-120b $0.35 / $0.75
     expect(costOf(u('cerebras/qwen-3.8-27b', 1e6, 1e6, 1e6))).toBeCloseTo(3.47);
-    expect(() => costOf(u('cerebras/gpt-oss-120b', 1000, 10))).toThrow(UnpricedModelError);
+    expect(costOf(u('cerebras/gpt-oss-120b', 1e6, 1e6, 1e6))).toBeCloseTo(1.45);
+    expect(() => costOf(u('cerebras/llama-unpriced', 1000, 10))).toThrow(UnpricedModelError);
   });
 
   it('counts cache reads and writes at their own rates', () => {
