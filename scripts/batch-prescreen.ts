@@ -12,10 +12,11 @@ import { buildPromptParts } from '@/lib/agent/prompts/system';
 import { getCaseById } from '@/lib/cases/loader';
 import { readTurnFile } from '@/lib/eval/turn-file';
 import { loadManifest } from '@/lib/eval/batch-manifest';
+import { runIdOf, TEST_RUNS_DIR } from '@/lib/eval/wave-commands';
 import { buildPrescreenPrompt, toFaultRecords, PrescreenOutputSchema, alreadyScreened, screenedLine } from '@/lib/eval/prescreen';
 import type { RunRecord } from '@/lib/eval/scorecard';
 
-const RUNS = 'Case Interview Runs/test runs';
+const RUNS = TEST_RUNS_DIR;
 const OUT = path.join(RUNS, 'batch-18');
 const arg = (n: string) => process.argv.find(a => a.startsWith(`--${n}=`))?.split('=')[1];
 
@@ -32,7 +33,7 @@ async function main() {
   const done = alreadyScreened(existsSync(doneFile) ? readFileSync(doneFile, 'utf8').split('\n') : []);
   let screened = 0, skipped = 0, failed = 0;
   for (const dir of dirs) {
-    const runId = path.basename(dir);
+    const runId = runIdOf(dir, RUNS);
     if (done.has(runId)) { console.log(`[prescreen] ${runId}: already screened — skipped`); skipped++; continue; }
     try {
       const files = readdirSync(dir);

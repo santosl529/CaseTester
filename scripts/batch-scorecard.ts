@@ -8,8 +8,9 @@ import path from 'node:path';
 import { scorecardRow, DIMENSIONS, type RunRecord, type ScorecardRow } from '@/lib/eval/scorecard';
 import { readTurnFile } from '@/lib/eval/turn-file';
 import { loadManifest } from '@/lib/eval/batch-manifest';
+import { runIdOf, TEST_RUNS_DIR } from '@/lib/eval/wave-commands';
 
-const RUNS = 'Case Interview Runs/test runs';
+const RUNS = TEST_RUNS_DIR;
 const OUT = path.join(RUNS, 'batch-18');
 const arg = (n: string) => process.argv.find(a => a.startsWith(`--${n}=`))?.split('=')[1];
 
@@ -24,7 +25,7 @@ for (const dir of runDirs()) {
   const json = files.find(f => f.endsWith('.json'));
   if (!json) { console.warn(`[scorecard] ${dir}: no run JSON — skipped`); continue; }
   const tf = files.find(f => f.endsWith('.turns.jsonl.gz'));
-  rows.push(scorecardRow({ runId: path.basename(dir), run: JSON.parse(readFileSync(path.join(dir, json), 'utf8')) as RunRecord, turnFile: tf ? readTurnFile(path.join(dir, tf)) : null }));
+  rows.push(scorecardRow({ runId: runIdOf(dir, RUNS), run: JSON.parse(readFileSync(path.join(dir, json), 'utf8')) as RunRecord, turnFile: tf ? readTurnFile(path.join(dir, tf)) : null }));
 }
 mkdirSync(OUT, { recursive: true });
 rows.sort((a, b) => (a.runNumber ?? 0) - (b.runNumber ?? 0));

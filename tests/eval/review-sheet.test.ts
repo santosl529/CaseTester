@@ -89,4 +89,17 @@ describe('review sheet', () => {
     });
     expect(unrecognised).toHaveLength(0);
   });
+
+  it('parses a human heading whose run id is <wave>/<persona-folder>', () => {
+    const md = ['### batch-18-oct-09-runs-1-2/40-jasmine-the-early-finisher-t6-human', 'category: math', 'severity: serious', 'expected: correct answer', 'rule: arithmetic'].join('\n');
+    const { humanFaults, unrecognised } = parseReviewSheet(md);
+    expect(unrecognised).toEqual([]);
+    expect(humanFaults[0]).toMatchObject({ runId: 'batch-18-oct-09-runs-1-2/40-jasmine-the-early-finisher', turnIndex: 6 });
+  });
+
+  it('parses a verdict for a prescreen fault id containing the wave folder', () => {
+    const { verdicts } = parseReviewSheet(['### batch-18-oct-09-runs-1-2/03-ines-the-clarifier-t4-0', 'verdict: confirmed'].join('\n'));
+    expect(verdicts.get('batch-18-oct-09-runs-1-2/03-ines-the-clarifier-t4-0')?.status).toBe('confirmed');
+  });
 });
+
