@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Interviewer History</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600&display=swap">
+<style>
+/* Layout: same system as the agent map. Left index; a dated changelog column; model strip and metrics up top. */
+:root{
+  --bg:#f3f4f1; --surface:#ffffff; --ink:#1d2421; --muted:#5d6762; --line:#d9ddd8;
+  --accent:#1f6f5c; --accent-soft:#e1efe9; --slot:#8a4b08; --slot-bg:#fbefdc;
+  --high:#b42318; --high-bg:#fdecea; --med:#a15c07; --med-bg:#fdf1dc; --low:#3b5b8a; --low-bg:#e7eef8;
+  --llm:#6b3fa0; --llm-bg:#f0e9f8; --code-bg:#f7f8f6;
+  --m-haiku:#3b5b8a; --m-opus:#6b3fa0; --m-sonnet:#1f6f5c; --m-think:#a15c07;
+  --f-display:"Fraunces",Georgia,serif; --f-body:"IBM Plex Sans",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --surface:#1b211f; --ink:#e3e8e5; --muted:#9aa5a0; --line:#2e3633;
+  --accent:#5cc4a7; --accent-soft:#1d3530; --slot:#f0b46a; --slot-bg:#3a2a14;
+  --high:#ff8a80; --high-bg:#3d1c1a; --med:#f2b45c; --med-bg:#3a2b14; --low:#8fb2e6; --low-bg:#1c2a3e;
+  --llm:#c4a3ee; --llm-bg:#2c2140; --code-bg:#171c1a;
+  --m-haiku:#8fb2e6; --m-opus:#c4a3ee; --m-sonnet:#5cc4a7; --m-think:#f2b45c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --surface:#1b211f; --ink:#e3e8e5; --muted:#9aa5a0; --line:#2e3633;
+  --accent:#5cc4a7; --accent-soft:#1d3530; --slot:#f0b46a; --slot-bg:#3a2a14;
+  --high:#ff8a80; --high-bg:#3d1c1a; --med:#f2b45c; --med-bg:#3a2b14; --low:#8fb2e6; --low-bg:#1c2a3e;
+  --llm:#c4a3ee; --llm-bg:#2c2140; --code-bg:#171c1a;
+  --m-haiku:#8fb2e6; --m-opus:#c4a3ee; --m-sonnet:#5cc4a7; --m-think:#f2b45c; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--f-body);padding-inline:16px;padding-block:0}
+.wrap{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:200px minmax(0,1fr);gap:40px;padding-block:32px 80px}
+nav{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;font-size:13px}
+nav a{display:block;color:var(--muted);text-decoration:none;padding:3px 0 3px 10px;border-left:2px solid var(--line)}
+nav a:hover,nav a:focus-visible{color:var(--accent);border-left-color:var(--accent);outline:none}
+nav .grp{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 4px}
+nav a.back{border-left-color:var(--accent);color:var(--accent);font-weight:500}
+main{min-width:0}
+header h1{font:600 clamp(28px,4vw,40px)/1.15 var(--f-display);margin:0 0 6px;text-wrap:balance}
+header p{color:var(--muted);margin:0;max-width:70ch}
+.meta{font:12px var(--f-mono);color:var(--muted);margin-top:10px}
+h2{font:600 24px/1.25 var(--f-display);margin:56px 0 12px;text-wrap:balance;scroll-margin-top:20px}
+h3{font-size:16px;font-weight:600;margin:0 0 4px}
+p,li{max-width:75ch}
+code{font-family:var(--f-mono);font-size:.86em;background:var(--code-bg);border:1px solid var(--line);border-radius:3px;padding:0 4px}
+.note{font-size:13px;color:var(--muted)}
+.chip{display:inline-block;font:500 11px/1 var(--f-mono);padding:4px 6px;border-radius:3px;white-space:nowrap}
+.c-model{background:var(--llm-bg);color:var(--llm)} .c-code{background:var(--accent-soft);color:var(--accent)}
+.c-prompt{background:var(--low-bg);color:var(--low)} .c-revert{background:var(--high-bg);color:var(--high)} .c-measure{background:var(--med-bg);color:var(--med)}
+
+/* model strip */
+.strip{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px;overflow-x:auto}
+.lane{display:grid;grid-template-columns:96px minmax(640px,1fr);gap:10px;align-items:center;margin:6px 0}
+.lane .lab{font-size:12px;color:var(--muted)}
+.track{position:relative;height:30px;background:var(--code-bg);border-radius:3px}
+.seg{position:absolute;top:0;bottom:0;border-radius:3px;color:#fff;font:500 11px/30px var(--f-mono);padding:0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg.haiku{background:var(--m-haiku)} .seg.opus{background:var(--m-opus)} .seg.sonnet{background:var(--m-sonnet)} .seg.think{background:var(--m-think)}
+.seg.fmt1{background:var(--muted)} .seg.fmt2{background:var(--accent)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .seg{color:#141917}}
+:root[data-theme="dark"] .seg{color:#141917}
+.axis{position:relative;height:18px;font:11px var(--f-mono);color:var(--muted)}
+.axis span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.strip-note{font-size:12.5px;color:var(--muted);margin-top:10px}
+
+/* growth */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface);margin:12px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--code-bg)}
+tr:last-child td{border-bottom:0}
+td.n{font-variant-numeric:tabular-nums;font-family:var(--f-mono);font-size:12.5px;white-space:nowrap}
+.bar{display:inline-block;height:8px;background:var(--accent);border-radius:2px;vertical-align:middle;margin-left:6px}
+
+/* timeline */
+.era{display:grid;grid-template-columns:120px minmax(0,1fr);gap:20px;padding:22px 0;border-top:1px solid var(--line)}
+.era .when{font:500 13px/1.4 var(--f-mono);color:var(--muted)}
+.era .when b{display:block;color:var(--ink);font:600 18px/1.2 var(--f-display);margin-bottom:4px}
+.era .tag{margin-top:6px;display:flex;gap:4px;flex-wrap:wrap}
+.era .body{min-width:0}
+.era .why{margin:4px 0 10px;color:var(--muted);font-size:14px}
+.era ul{margin:6px 0;padding-left:18px}
+.era li{margin:3px 0}
+.era li .chip{margin-right:6px;vertical-align:1px}
+.result{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:8px 12px;margin-top:10px;font-size:13.5px}
+.result b{font-weight:600}
+.hash{font:11.5px var(--f-mono);color:var(--muted)}
+details{border:1px solid var(--line);border-radius:6px;background:var(--surface);margin:10px 0}
+summary{cursor:pointer;padding:9px 14px;font-weight:500;font-size:14px}
+summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+pre{margin:0;padding:14px 16px;border-top:1px solid var(--line);background:var(--code-bg);font:12.5px/1.55 var(--f-mono);white-space:pre-wrap;word-break:break-word}
+.pattern{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin:12px 0}
+.pattern h3{margin:0 0 4px}
+.pattern p{margin:4px 0}
+@media (max-width:820px){.wrap{grid-template-columns:minmax(0,1fr)}nav{position:static}nav a:not(.back),nav .grp{display:none}.era{grid-template-columns:minmax(0,1fr);gap:6px}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav aria-label="Sections">
+  <a class="back" href="interviewer-audit.html">← Agent map</a>
+  <a class="back" href="interviewer-issues.html">Issues board →</a>
+  <div class="grp">History</div>
+  <a href="#models">Models over time</a>
+  <a href="#growth">Size over time</a>
+  <a href="#metrics">Batch results</a>
+  <a href="#latency">Turn times</a>
+  <a href="#quotes">Quote &amp; claim accuracy</a>
+  <a href="#timeline">Timeline</a>
+  <a href="#v1">The first prompt</a>
+  <a href="#patterns">Patterns</a>
+  <a href="#sources">Sources</a>
+</nav>
+
+<main>
+<header>
+  <h1>How the interviewer changed</h1>
+  <p>From a 273-word Haiku prompt on 29 June to a Sonnet interviewer wrapped in about thirty code guards on 5 October: each change, why it was made, and what the next batch showed.</p>
+  <div class="meta">Built from git history, docs/interviewer-behavior.md (v4.1–v4.6 notes and Part V), .superpowers/sdd/progress.md, and the streaming-turn spec · read 6 Oct 2026</div>
+</header>
+
+<section id="models">
+<h2>Models over time</h2>
+<div class="strip" role="img" aria-label="Interviewer model: Haiku 4.5 from 29 June, Opus 4.8 from July, Sonnet 5.5 from 2 October with a thinking trial on 3 October. Output format: tool calls until 5 October, then JSON.">
+  <div class="lane"><div class="lab">Interviewer</div><div class="track">
+    <div class="seg haiku" style="left:0%;width:16%">Haiku 4.5</div>
+    <div class="seg opus" style="left:16%;width:68.5%">Opus 4.8</div>
+    <div class="seg sonnet" style="left:84.5%;width:1.2%" title="Sonnet 5.5, thinking off"></div>
+    <div class="seg think" style="left:85.7%;width:1.4%" title="Sonnet 5.5, adaptive thinking at low effort (batch 6)"></div>
+    <div class="seg sonnet" style="left:87.1%;width:12.9%">Sonnet 5.5</div>
+  </div></div>
+  <div class="lane"><div class="lab">Output</div><div class="track">
+    <div class="seg fmt1" style="left:0%;width:96.5%">tool calls (speak, reveal_data, …) + free text</div>
+    <div class="seg fmt2" style="left:96.5%;width:3.5%" title="JSON action list">JSON</div>
+  </div></div>
+  <div class="lane"><div class="lab">Scoring</div><div class="track">
+    <div class="seg opus" style="left:16%;width:68.5%">Opus 4.8 judge</div>
+    <div class="seg opus" style="left:84.5%;width:15.5%">Opus 5.5</div>
+  </div></div>
+  <div class="lane"><div class="lab"></div><div class="axis">
+    <span style="left:0%">29 Jun</span><span style="left:16%">mid Jul*</span><span style="left:48%">14 Sep</span><span style="left:70%">27 Sep</span><span style="left:85%">2 Oct</span><span style="left:99%">5 Oct</span>
+  </div></div>
+  <p class="strip-note">The axis is compressed: July to mid-September had no interviewer commits, so that span is drawn shorter than real time. *The Haiku → Opus 4.8 switch shipped in the 19 July catch-up commit; the exact date it took effect isn't recorded. The amber sliver is batch 6 (3 Oct), the one batch run with adaptive thinking at low effort; it was reverted the same day.</p>
+</div>
+</section>
+
+<section id="growth">
+<h2>Size over time</h2>
+<p>Words in <code>lib/agent/prompts/system.ts</code> (prompt text plus the code that builds it) and lines in <code>session-runner.ts</code>, the file that runs a turn and holds most of the guards. Measured at milestone commits.</p>
+<div class="tbl"><table>
+<thead><tr><th>Date</th><th>Commit</th><th>Milestone</th><th>system.ts words</th><th>Anti-hallucination words</th><th>Runner lines</th></tr></thead>
+<tbody>
+<tr><td class="n">29 Jun</td><td class="n">9358ea2</td><td>First interviewer (Haiku)</td><td class="n">273<span class="bar" style="width:3px"></span></td><td class="n">82</td><td class="n">—</td></tr>
+<tr><td class="n">19 Jul</td><td class="n">80e0655</td><td>Opus 4.8 + behavior backstops</td><td class="n">2,327<span class="bar" style="width:47px"></span></td><td class="n">458</td><td class="n">148<span class="bar" style="width:7px"></span></td></tr>
+<tr><td class="n">14 Sep</td><td class="n">0c7af92</td><td>Rule 11 v4.1</td><td class="n">2,471<span class="bar" style="width:49px"></span></td><td class="n">458</td><td class="n">462<span class="bar" style="width:23px"></span></td></tr>
+<tr><td class="n">29 Sep</td><td class="n">141fb68</td><td>Batch-1 fixes (v4.3)</td><td class="n">2,532<span class="bar" style="width:51px"></span></td><td class="n">458</td><td class="n">718<span class="bar" style="width:36px"></span></td></tr>
+<tr><td class="n">2 Oct</td><td class="n">f32497f</td><td>One goodbye (v4.6)</td><td class="n">2,681<span class="bar" style="width:54px"></span></td><td class="n">458</td><td class="n">996<span class="bar" style="width:50px"></span></td></tr>
+<tr><td class="n">3 Oct</td><td class="n">3726001</td><td>Thinking reverted</td><td class="n">2,774<span class="bar" style="width:55px"></span></td><td class="n">458</td><td class="n">1,104<span class="bar" style="width:55px"></span></td></tr>
+<tr><td class="n">5 Oct</td><td class="n">HEAD</td><td>JSON turns, caching</td><td class="n">2,994<span class="bar" style="width:60px"></span></td><td class="n">458</td><td class="n">1,205<span class="bar" style="width:60px"></span></td></tr>
+</tbody></table></div>
+<p class="note">After July, the prompt grew about 30% while the runner grew about eightfold. Most fixes since September went into code, not the prompt. The anti-hallucination block hasn't changed since July.</p>
+</section>
+
+<section id="metrics">
+<h2>Batch results</h2>
+<p>Numbers as recorded in the behavior spec and progress ledger. A dash means that batch didn't record the measure. Batches 7–10 have no written results in the repo, so they aren't in this table. Their turn times and scoring checks are computed from the run records in the next two sections.</p>
+<div class="tbl"><table>
+<thead><tr><th>Measure</th><th>B1 · 27–28 Sep</th><th>B2 · 29–30 Sep</th><th>B3 · 2 Oct</th><th>B4 · 2 Oct</th><th>B5 · 2–3 Oct</th><th>B6 · 3 Oct</th></tr></thead>
+<tbody>
+<tr><td>Interviewer model</td><td>Opus 4.8</td><td>Opus 4.8</td><td>Opus 4.8</td><td>Sonnet 5.5</td><td>Sonnet 5.5</td><td>Sonnet 5.5 + thinking</td></tr>
+<tr><td>Requests for held data left unanswered</td><td class="n">27</td><td class="n">23</td><td class="n">4</td><td class="n">—</td><td class="n">0 (hand count)</td><td class="n">0</td></tr>
+<tr><td>Requested data never provided, at scoring</td><td class="n">—</td><td class="n">—</td><td class="n">4</td><td class="n">0</td><td class="n">0</td><td class="n">0</td></tr>
+<tr><td>Doubt probes on correct math</td><td class="n">—</td><td class="n">5</td><td class="n">0</td><td class="n">0</td><td class="n">0 false flags</td><td class="n">—</td></tr>
+<tr><td>Goodbyes per session</td><td class="n">—</td><td class="n">up to 4 (Maya)</td><td class="n">1</td><td class="n">1</td><td class="n">1</td><td class="n">—</td></tr>
+<tr><td>Data leaks (provenance)</td><td class="n">1 ($480M, Priya)</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="n">0</td><td class="n">0</td></tr>
+<tr><td>Narration spoken to the candidate</td><td class="n">—</td><td class="n">—</td><td class="n">0</td><td class="n">found</td><td class="n">~16 in 8/10 runs</td><td class="n">0</td></tr>
+<tr><td>Mid-case praise (hand count)</td><td class="n">—</td><td class="n">—</td><td class="n">~9</td><td class="n">—</td><td class="n">~3</td><td class="n">—</td></tr>
+<tr><td>“Strong” dimension ratings</td><td class="n" colspan="2">73 of 88 (B1–B2 review)</td><td class="n">8 of 9 sessions strong overall</td><td class="n">32 of 80</td><td class="n">26 of 72</td><td class="n">—</td></tr>
+<tr><td>Median interviewer turn</td><td class="n">—</td><td class="n">—</td><td class="n">1.8s</td><td class="n">1.9s*</td><td class="n">1.8s</td><td class="n">2.75s (thinking 4.1s)</td></tr>
+<tr><td>Interviewer cost per run</td><td class="n">—</td><td class="n">—</td><td class="n">$0.54</td><td class="n">—</td><td class="n">$0.23</td><td class="n">≈$0.21</td></tr>
+</tbody></table></div>
+<p class="note">*Batch 4's 1.9s included the parallel distress check; it was logged separately from batch 5 on. Replay on 5 Oct (50 batch 7–8 turns, JSON format): first token 1.35s, first spoken sentence 1.64s, full turn 2.18s median. B5/B6 counts are hand counts from reading transcripts; B1–B3 counts mostly come from logs and classifiers.</p>
+</section>
+
+<section id="latency">
+<h2>Turn times by batch</h2>
+<p>Computed from every interviewer turn in <code>Case Interview Runs/test runs/</code> (<code>turns[].latencyMs</code> and <code>turn_latency</code> analytics), 1,176 turns across 10 batches. Batches 1–8 recorded only the model call. Batches 9–10 also recorded the whole turn and the time to the first spoken segment.</p>
+<div class="strip" style="padding:12px 12px 4px">
+<svg viewBox="0 0 770 318" width="100%" style="min-width:640px;display:block" role="img" aria-labelledby="lat-t lat-d">
+  <title id="lat-t">Interviewer model-call time per batch</title>
+  <desc id="lat-d">Median and 95th-percentile seconds for batches 1 to 10. Medians sit between 1.8 and 2.0 seconds except batch 6 at 2.67, batch 9 at 2.23 and batch 10 at 3.41. The voice budget of 1.5 seconds is below every median.</desc>
+  <g font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--muted)">
+    <g stroke="var(--line)" stroke-width="1">
+      <line x1="48" x2="760" y1="260" y2="260"/><line x1="48" x2="760" y1="220" y2="220"/><line x1="48" x2="760" y1="180" y2="180"/><line x1="48" x2="760" y1="140" y2="140"/><line x1="48" x2="760" y1="100" y2="100"/><line x1="48" x2="760" y1="60" y2="60"/><line x1="48" x2="760" y1="20" y2="20"/>
+    </g>
+    <text x="40" y="264" text-anchor="end">0s</text><text x="40" y="224" text-anchor="end">1s</text><text x="40" y="184" text-anchor="end">2s</text><text x="40" y="144" text-anchor="end">3s</text><text x="40" y="104" text-anchor="end">4s</text><text x="40" y="64" text-anchor="end">5s</text><text x="40" y="24" text-anchor="end">6s</text>
+    <line x1="48" x2="760" y1="200" y2="200" stroke="var(--high)" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="758" y="214" text-anchor="end" fill="var(--high)">voice budget 1.5s (to first audio)</text>
+  </g>
+  <!-- range sticks median→p95, median filled dot, p95 ring -->
+  <g stroke="var(--accent)" stroke-width="2" fill="none">
+    <line x1="80" x2="80" y1="180.8" y2="108.8"/><line x1="152" x2="152" y1="185.6" y2="136.4"/><line x1="224" x2="224" y1="186.4" y2="144.4"/><line x1="296" x2="296" y1="182.8" y2="139.6"/><line x1="368" x2="368" y1="187.2" y2="138.8"/><line x1="440" x2="440" y1="153.2" y2="33.6"/><line x1="512" x2="512" y1="182.8" y2="140.4"/><line x1="584" x2="584" y1="184" y2="133.6"/><line x1="656" x2="656" y1="170.8" y2="108.8"/><line x1="728" x2="728" y1="123.6" y2="98.4"/>
+  </g>
+  <g fill="var(--surface)" stroke="var(--accent)" stroke-width="2">
+    <circle cx="80" cy="108.8" r="5"><title>B1 p95 3.78s</title></circle><circle cx="152" cy="136.4" r="5"><title>B2 p95 3.09s</title></circle><circle cx="224" cy="144.4" r="5"><title>B3 p95 2.89s</title></circle><circle cx="296" cy="139.6" r="5"><title>B4 p95 3.01s</title></circle><circle cx="368" cy="138.8" r="5"><title>B5 p95 3.03s</title></circle><circle cx="440" cy="33.6" r="5"><title>B6 p95 5.66s</title></circle><circle cx="512" cy="140.4" r="5"><title>B7 p95 2.99s</title></circle><circle cx="584" cy="133.6" r="5"><title>B8 p95 3.16s</title></circle><circle cx="656" cy="108.8" r="5"><title>B9 p95 3.78s</title></circle><circle cx="728" cy="98.4" r="5"><title>B10 p95 4.04s</title></circle>
+  </g>
+  <g fill="var(--accent)" stroke="var(--surface)" stroke-width="2">
+    <circle cx="80" cy="180.8" r="6"><title>B1 median 1.98s (Opus 4.8)</title></circle><circle cx="152" cy="185.6" r="6"><title>B2 median 1.86s</title></circle><circle cx="224" cy="186.4" r="6"><title>B3 median 1.84s</title></circle><circle cx="296" cy="182.8" r="6"><title>B4 median 1.93s (Sonnet 5.5)</title></circle><circle cx="368" cy="187.2" r="6"><title>B5 median 1.82s</title></circle><circle cx="440" cy="153.2" r="6"><title>B6 median 2.67s (thinking on)</title></circle><circle cx="512" cy="182.8" r="6"><title>B7 median 1.93s</title></circle><circle cx="584" cy="184" r="6"><title>B8 median 1.90s</title></circle><circle cx="656" cy="170.8" r="6"><title>B9 median 2.23s (streaming branch)</title></circle><circle cx="728" cy="123.6" r="6"><title>B10 median 3.41s (plan-owns-decisions, 1 run)</title></circle>
+  </g>
+  <g font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" fill="var(--ink)" text-anchor="middle">
+    <text x="440" y="170">2.67</text><text x="752" y="127" text-anchor="end">3.41</text><text x="656" y="187">2.23</text>
+  </g>
+  <g font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" text-anchor="middle">
+    <g fill="var(--ink)"><text x="80" y="280">B1</text><text x="152" y="280">B2</text><text x="224" y="280">B3</text><text x="296" y="280">B4</text><text x="368" y="280">B5</text><text x="440" y="280">B6</text><text x="512" y="280">B7</text><text x="584" y="280">B8</text><text x="656" y="280">B9</text><text x="728" y="280">B10</text></g>
+    <g fill="var(--muted)"><text x="152" y="296">Opus 4.8</text><text x="440" y="296">Sonnet + think</text><text x="440" y="310"></text><text x="368" y="296">Sonnet</text><text x="548" y="296">Sonnet</text><text x="656" y="296">streaming</text><text x="728" y="310">plan-owns</text><text x="728" y="296">JSON decl.</text></g>
+  </g>
+</svg>
+<div class="legend" style="display:flex;gap:16px;font-size:12.5px;color:var(--muted);padding:4px 0 8px"><span><svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="5" fill="var(--accent)"/></svg> median</span><span><svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="4" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/></svg> 95th percentile</span><span>Model call only. Hover a dot for its value.</span></div>
+</div>
+
+<div class="tbl"><table>
+<thead><tr><th>Batch</th><th>What changed before it</th><th>Model call median / p95</th><th>Whole turn</th><th>First spoken segment</th><th>Turns</th></tr></thead>
+<tbody>
+<tr><td>B1 · 27–28 Sep</td><td>Opus 4.8, July backstops + Rule 11 v4.1</td><td class="n">1.98 / 3.78s</td><td class="n">—</td><td class="n">—</td><td class="n">133</td></tr>
+<tr><td>B2 · 29 Sep</td><td>v4.3: provenance blocks, C5, C4, grace ask, source spans</td><td class="n">1.86 / 3.09s</td><td class="n">—</td><td class="n">—</td><td class="n">133</td></tr>
+<tr><td>B3 · 2 Oct</td><td>v4.6 + round 3. Adds the parallel Haiku distress check and the serial hint check.</td><td class="n">1.84 / 2.89s</td><td class="n">—</td><td class="n">—</td><td class="n">128</td></tr>
+<tr><td>B4 · 2 Oct</td><td>Sonnet 5.5, thinking off</td><td class="n">1.93 / 3.01s*</td><td class="n">—</td><td class="n">—</td><td class="n">112</td></tr>
+<tr><td>B5 · 2–3 Oct</td><td>Narration and blank-turn fixes. Distress wait logged on its own: 0.00s median.</td><td class="n">1.82 / 3.03s</td><td class="n">—</td><td class="n">—</td><td class="n">135</td></tr>
+<tr><td>B6 · 3 Oct</td><td>Adaptive thinking at low effort (reverted after)</td><td class="n"><b>2.67 / 5.66s</b></td><td class="n">—</td><td class="n">—</td><td class="n">118</td></tr>
+<tr><td>B7 · 3 Oct</td><td>Thinking off again, batch-6 fixes</td><td class="n">1.93 / 2.99s</td><td class="n">—</td><td class="n">—</td><td class="n">112</td></tr>
+<tr><td>B8 · 3 Oct</td><td>Strip and data edge cases (4 runs)</td><td class="n">1.90 / 3.16s</td><td class="n">—</td><td class="n">—</td><td class="n">68</td></tr>
+<tr><td>B9 · 5 Oct</td><td><code>streaming-turn</code> branch: JSON turns, caching, parallel I/O, Plan → Stream → Settle</td><td class="n">2.23 / 3.78s</td><td class="n">2.37 / 3.92s</td><td class="n">1.75 / 3.26s</td><td class="n">127</td></tr>
+<tr><td>B10 · 6 Oct</td><td><code>plan-owns-decisions</code> branch: the model declares its move and every request before speaking (1 run, Nikhil)</td><td class="n"><b>3.41 / 4.04s</b></td><td class="n">3.50 / 4.16s</td><td class="n"><b>3.27 / 3.49s</b></td><td class="n">10</td></tr>
+</tbody></table></div>
+<p class="note">*Batch 4's model figure includes the parallel distress wait (per the spec); from B5 on it's logged separately and is ~0s, because the distress check always finishes first. Replay on 5 Oct (50 turns, no live candidate): first token 1.35s, first sentence 1.64s, full turn 2.18s.</p>
+<div class="pattern">
+  <h3>What the turn times say</h3>
+  <ul>
+    <li>Across eight batches and two model families, the median model call never left 1.8–2.0s. Every prompt-and-guard change in between was latency-neutral.</li>
+    <li>Two changes moved it, and both were slower: thinking (B6, +0.8s median, p95 nearly doubled) and the declaration-first JSON schema (B10).</li>
+    <li>Streaming (B9) brought the first spoken segment to 1.75s. That's still above the 1.5s voice budget, and the whole turn got slower (2.37s). The streaming spec expected this: it's a prerequisite for voice, not the fix.</li>
+    <li><b>B10 is a regression worth checking before that branch merges.</b> The model now writes <code>move</code> and a full <code>requests</code> list before any <code>say</code> text, so nothing can be spoken until the declarations finish. On a request-heavy persona like Nikhil, the first segment went from 1.75s to 3.27s. One run is a small sample, but the mechanism is structural.</li>
+  </ul>
+</div>
+</section>
+
+<section id="quotes">
+<h2>Quote and claim accuracy</h2>
+<p>“Quotes” shows up in two places in this system: the interviewer quoting or paraphrasing the candidate live, and the scoring report citing candidate quotes as evidence. Both have a history.</p>
+
+<h3>Are the report's quotes real?</h3>
+<p>I checked every quote in every final report (wentWell, needsWork, and strong-checklist quotes) against the candidate's own turns, splitting on ellipses the way the evidence audit does. This was an independent local script, not the product's audit.</p>
+<div class="tbl"><table>
+<thead><tr><th>Batch</th><th>Quotes in final reports</th><th>Verbatim in candidate turns</th><th>Spliced with “…”</th><th>Not verbatim</th><th>Stripped by the audit before shipping</th></tr></thead>
+<tbody>
+<tr><td>B1</td><td class="n">405</td><td class="n">400</td><td class="n">19</td><td class="n">5</td><td class="n">1</td></tr>
+<tr><td>B2</td><td class="n">390</td><td class="n">389</td><td class="n">29</td><td class="n">1</td><td class="n">0</td></tr>
+<tr><td>B3</td><td class="n">320</td><td class="n">320</td><td class="n">21</td><td class="n">0</td><td class="n">1</td></tr>
+<tr><td>B4</td><td class="n">701</td><td class="n">700</td><td class="n">8</td><td class="n">1</td><td class="n">0</td></tr>
+<tr><td>B5–B10</td><td class="n">2,836</td><td class="n">2,836</td><td class="n">23</td><td class="n">0</td><td class="n">0</td></tr>
+</tbody></table></div>
+<p class="note">The 7 “not verbatim” quotes (B1, B2, B4) are near-verbatim: quotes nested inside quotes, or a dropped clause. The product's tolerant matcher accepts these on purpose (≥80% token overlap, every number exact). My strict check flags them; I don't read any of them as invented. Quotes per report roughly doubled from B4 on, when the judge started filling a strong checklist with quotes.</p>
+<p><b>Bottom line:</b> invented quotes stopped being a problem early. The remaining accuracy problems are claims built on real quotes, which no quote check can catch.</p>
+
+<h3>The problems, in order</h3>
+<div class="tbl"><table>
+<thead><tr><th>When</th><th>Where</th><th>Problem</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td>Jul</td><td>Interviewer</td><td>Restated a candidate's <i>question</i> as their claim (“you said the increase looks the same across all stores”).</td><td>CANDIDATE ATTRIBUTION rule in the anti-hallucination block. Rule 3 classes it as severe as invented data. Prompt-only: no code check.</td></tr>
+<tr><td>Jul</td><td>Interviewer</td><td>Adopted candidate-derived figures as fact (“did volume grow that 15%?”, “the remaining 2 to 4 points”).</td><td>“Candidate-derived figures are not case facts” rule. Provenance audit allows candidate numbers only as candidate-attributed.</td></tr>
+<tr><td>Jul</td><td>Scoring</td><td>A strict whole-quote substring check stripped real near-verbatim, multi-sentence quotes and gutted the evidence.</td><td>Tolerant matcher: normalize, split on ellipses and sentences, ≥80% token overlap, numbers exact.</td></tr>
+<tr><td>Jul 17</td><td>Scoring</td><td>One misdiagnosis was charged in four different dimensions.</td><td>Reconciliation logs cross-dimension repeats. Log only: 4 → 21 per batch since, never acted on.</td></tr>
+<tr><td>14 Sep</td><td>Interviewer → scoring</td><td>Run 58cb8061: the model wrote the candidate's next answer (“\n\nuser Several levers…”), which was spoken, persisted, and <i>scored as the candidate's words</i>.</td><td>Stop sequences + <code>stripFabricatedTurn</code>; scoring repairs transcript artifacts first. JSON output (5 Oct) removed the stop sequences; the strip remains.</td></tr>
+<tr><td>14 Sep</td><td>Scoring</td><td>Run 58cb8061 shipped two Creativity strengths with no evidence at all.</td><td>Points left with no surviving quote are dropped.</td></tr>
+<tr><td>14 Sep</td><td>Scoring</td><td>Run 4: the same concept appeared as a strength and a weakness in one dimension (implicit elasticity credited, then faulted).</td><td>Reconciliation merges same-concept pairs: 18 in B1, about 57–61 per batch since B4.</td></tr>
+<tr><td>14 Sep</td><td>Scoring</td><td>Run 4: an assumption resting on data the interviewer never gave was charged to the candidate.</td><td>Data-coverage section for the judge + reconciliation gap drops (4 in B1, 8 in B2, 0 since B3).</td></tr>
+<tr><td>27–28 Sep</td><td>Scoring</td><td>Sam's correct 200 × $2.4M = $480M became her Top Improvement as a “math error”.</td><td>Error-claim verifier, given the code-verified figures. Interviewer-error marks.</td></tr>
+<tr><td>27–28 Sep</td><td>Scoring</td><td>4 of 11 Top Improvements repeated the answer key's specific lever. Camila, Micah, and Tobias were marked down for not proposing the key's “commodity blend”.</td><td>v4.5: answer-key ideas are examples. Deterministic answer-key pass (1 removal since, in B9).</td></tr>
+<tr><td>29 Sep</td><td>Scoring</td><td>Yuki penalized for a Level 1 rescue she never received; her self-correction “So my question — sorry, my test —” cited under Communication.</td><td>Only delivered rungs count as assists. The grammar point is still an open decision in the spec.</td></tr>
+<tr><td>29 Sep</td><td>Interviewer</td><td>Maya asked whether menu prices had changed, wasn't answered, then was told “that's the one thing you assumed”.</td><td>Assumption guard withholds the challenge and releases the data.</td></tr>
+<tr><td>B1</td><td>Scoring</td><td>The judge credited Maya with “You caught the units yourself that time.”, which was the interviewer's line, not hers.</td><td>Caught by the evidence audit (candidate-turns only).</td></tr>
+<tr><td>B5</td><td>Scoring</td><td>The judge called Tobias's correct 31.5 × 1.375 = 43.3 a mixed-bases error.</td><td>Verify-only math steps for the other-input figures, passed to the verifier.</td></tr>
+</tbody></table></div>
+
+<h3>Claims the verifier removed (B1–B10)</h3>
+<p>19 claims dropped across 83 scored runs (counted from the <code>[score] verifier dropped</code> lines in every run log). Each one cited real words but misdescribed what happened. Grouped by kind:</p>
+<div class="tbl"><table>
+<thead><tr><th>Kind</th><th>Count</th><th>Examples (claim → why it was false)</th></tr></thead>
+<tbody>
+<tr><td>Omission claim the transcript contradicts</td><td class="n">7</td><td>B4 Tobias: “never reconciled the 10% increase to margin” → turn 17 did. · B5 Maya: “Revenue was never split into volume × price” → turn 8 asked whether growth came from price or customers. · B6 Lena: “did not revisit the inelasticity claim” → turn 11 did. · B7 Destiny: “never laid out a revenue branch” → turn 27 did. · B8 Destiny: “did not break costs into COGS/labor/overhead” → turn 11 did. · B8 Maya: “proposed no method for gauging price sensitivity” → turn 51 proposed a store pilot. · B9 Devon: “didn't say what margin it targets” → stated ~11% and ~13%.</td></tr>
+<tr><td>Mischaracterized timing, sequence or moment</td><td class="n">5</td><td>B5 Devon: a missed moment where the candidate had in fact committed with reasoning. · B5 Ines: “overhead surfaced only after the interviewer asked” → raised it proactively at turn 11. · B7 Hugo: “pricing only appeared after the interviewer pushed” → raised in turn 1. · B9 Maya: “needed four prompts to produce any ideas” → it was two. · B9 Tobias: “every question drew a ‘Still with me?’ nudge” → not every one.</td></tr>
+<tr><td>Error claim about correct math</td><td class="n">4</td><td>B3 Yuki: three claims (needsWork ×2 + topFix) that her 15% margin was a slip. It was the correct post-increase margin (16.6/110.6), so <i>her top fix was a false correction</i>. · B3 Maya: “never performed the nested conversion correctly” → turn 34 did.</td></tr>
+<tr><td>Rests on an excluded wellbeing turn</td><td class="n">2</td><td>B7 and B9 Maya: missed-opportunity moments whose answer was a C5 wellbeing exchange.</td></tr>
+<tr><td>Answer-key anchoring</td><td class="n">1</td><td>B1 Derek: “could have flagged the pricing-power question the model answer rewards” → he did, repeatedly.</td></tr>
+</tbody></table></div>
+<p class="note">Also removed in code before the verifier: 2 claims resting on interviewer-error turns (B3, Sam), 12 gap-leak faults (B1–B2), 1 answer-key weakness (B9), 2 fabricated quotes (B1, B3). Not measured anywhere: false claims the verifier doesn't catch, false praise (the verifier only checks negative claims), and quotes that are real but cited for the wrong point.</p>
+</section>
+
+<section id="timeline">
+<h2>Timeline</h2>
+<p class="note"><span class="chip c-model">model</span> model or format change · <span class="chip c-prompt">prompt</span> prompt rule · <span class="chip c-code">code</span> deterministic guard · <span class="chip c-revert">revert</span> undone · <span class="chip c-measure">measure</span> instrumentation or experiment</p>
+
+<div class="era" id="e0">
+  <div class="when"><b>29 Jun – 1 Jul</b>Build step 3<div class="tag"><span class="chip c-model">Haiku 4.5</span></div></div>
+  <div class="body">
+    <h3>First interviewer</h3>
+    <p class="why">Plan Task 5. Text channel only, built against the PRD's hallucination gate.</p>
+    <ul>
+      <li><span class="chip c-model">model</span>Haiku 4.5 behind the <code>InterviewerModel</code> interface. Tool calls: <code>speak</code>, <code>reveal_data</code>, <code>show_exhibit</code>, <code>advance_phase</code>, <code>end_case</code>.</li>
+      <li><span class="chip c-prompt">prompt</span>A 273-word prompt file: case prompt, phase, revealed values, <i>labels</i> of unrevealed items, five behavior bullets, a one-time pushback reminder, a phase time note. See <a href="#v1">the first prompt</a>.</li>
+      <li><span class="chip c-code">code</span>Post-turn number audit (any number not in the revealed set).</li>
+      <li><span class="chip c-prompt">prompt</span>1 Jul: anti-hallucination block strengthened. The model is now told which exhibit ids exist, so <code>show_exhibit</code> gets called correctly.</li>
+    </ul>
+    <div class="result"><b>Gate:</b> hallucination harness passed 1 Jul. Zero invented numbers across 9 scripted turns on prof-001.</div>
+    <div class="hash">9358ea2 · 766ae2c · 338d8b3</div>
+  </div>
+</div>
+
+<div class="era" id="e1">
+  <div class="when"><b>July</b>Pilot runs<div class="tag"><span class="chip c-model">Opus 4.8</span></div></div>
+  <div class="body">
+    <h3>Opus 4.8 and the first wave of backstops</h3>
+    <p class="why">Pilot runs showed Haiku missing live math errors. The behavior spec (docs/interviewer-behavior.md) took shape as numbered rules.</p>
+    <ul>
+      <li><span class="chip c-model">model</span>Haiku 4.5 → Opus 4.8. <code>models/haiku.ts</code> renamed to <code>models/anthropic.ts</code>. A tool-id validate-and-retry loop was added.</li>
+      <li><span class="chip c-prompt">prompt</span>The prompt grew to ~2,300 words: demeanor, delivery, rigor, data, and flow sections.</li>
+      <li><span class="chip c-code">code</span>Numeric provenance audit, recompute and unit-check notes, the stall ladder, per-phase pacing budgets and load shedding, style and meta-leak audits, exhibit resolution.</li>
+      <li><span class="chip c-code">code</span>Rule 10: ledger values must be complete spoken sentences (checked at case load).</li>
+      <li><span class="chip c-code">code</span>Rule 11: promise-without-delivery recovery. Resolves the item named in the text or injects a refusal, never a guessed item.</li>
+      <li><span class="chip c-code">code</span>Scoring stack built alongside: generic 8-dimension rubric, judge, evidence audit, claim verifier, coverage agent.</li>
+    </ul>
+    <div class="hash">80e0655 · c937d6f (catch-up commits dated 19 Jul)</div>
+  </div>
+</div>
+
+<div class="era" id="e2">
+  <div class="when"><b>14 Sep</b>Run-4 review · v4.1<div class="tag"><span class="chip c-prompt">Rule 11</span></div></div>
+  <div class="body">
+    <h3>Every data request gets an answer</h3>
+    <p class="why">Live run 4 had two silent non-responses: a data request answered with the next agenda item. The report then blamed the candidate for the resulting assumption. Run 58cb8061 had the model write the candidate's next answer itself.</p>
+    <ul>
+      <li><span class="chip c-prompt">prompt</span>Release, refuse, or defer out loud. “Briefly redirect” was removed. Under time pressure, answer open requests first, then ask for the recommendation.</li>
+      <li><span class="chip c-code">code</span>Force-release of open requests before any recommendation ask (one synchronous Haiku classification on ask turns).</li>
+      <li><span class="chip c-code">code</span>Fabricated-turn guard: stop sequences, plus <code>stripFabricatedTurn</code> as the backstop.</li>
+      <li><span class="chip c-code">code</span>Phase repair from evidence (both 14 Sep runs had sat in STRUCTURE all case). Closing-turn composition.</li>
+      <li><span class="chip c-code">code</span>Scoring: data-coverage caveat, dimension reconciliation pass, requested-vs-never-requested split for the judge.</li>
+    </ul>
+    <div class="hash">0c7af92 · 6d3be31 · 6fe94a3 · f0d3d8f · 1adcf39</div>
+  </div>
+</div>
+
+<div class="era" id="e3">
+  <div class="when"><b>25–26 Sep</b>v4.2<div class="tag"><span class="chip c-code">silence</span></div></div>
+  <div class="body">
+    <h3>Silence in text mode</h3>
+    <ul>
+      <li><span class="chip c-code">code</span>A scripted check-in after the silence window. Continued silence becomes a technical pause that stops the clock; pauses are capped so silence can't buy case time; an expired pause abandons the session unscored.</li>
+      <li><span class="chip c-code">code</span>A close spoken without <code>end_case</code> becomes a real end when the case may end, and is withdrawn otherwise. The stall ladder stands down after a committed recommendation.</li>
+    </ul>
+    <div class="hash">e6afcbc · 42c5907</div>
+  </div>
+</div>
+
+<div class="era" id="e4">
+  <div class="when"><b>27–30 Sep</b>Batches 1–2 · v4.3–v4.5<div class="tag"><span class="chip c-model">Opus 4.8</span></div></div>
+  <div class="body">
+    <h3>Persona runs: the checks themselves were causing errors</h3>
+    <p class="why">The first simulated-candidate batches (13 runs, 11 personas, then batch 2). The logs showed that the live recompute check produced all three false math corrections, and its note leaked the unrevealed $480M into the prompt, which Priya then heard. The provenance audit logged “blocked” and delivered the turn anyway.</p>
+    <ul>
+      <li><span class="chip c-code">code</span>Provenance audit now actually withholds blocked figures (FR-4).</li>
+      <li><span class="chip c-prompt">prompt</span><span class="chip c-code">code</span>Recompute note made probe-only and stripped of case data. The prompt no longer told the model to correct. Later: source spans and a revealed-inputs gate for both live and scoring math checks, plus an attempt counter.</li>
+      <li><span class="chip c-code">code</span>C5 wellbeing: lexicon caught Sam's disclosure; the offer gained its required elements; the clock pauses during the exchange.</li>
+      <li><span class="chip c-code">code</span>C4 changed from replacing the turn to redirect-and-continue (Priya's two same-message requests had been dropped). Quoted or reported speech is never C2.</li>
+      <li><span class="chip c-code">code</span>The recommendation ask always lands: a wider time-warning window and a time-up grace ask (the warning had fired in 1 of 13 runs).</li>
+      <li><span class="chip c-code">code</span>v4.4 same-turn resolution. The candidate's message is classified alongside the interviewer call, and an ignored request is released or deferred before the turn is sent.</li>
+      <li><span class="chip c-prompt">prompt</span>v4.5 (batch 2): doubt probes vs explain probes; only delivered hints count as assists; analysis plus a question counts as progress; answer-key ideas are examples, not requirements; never challenge an assumption about data the candidate asked for.</li>
+      <li><span class="chip c-code">code</span>Scoring: error-claim verifier, interviewer-error marks, caveat floor.</li>
+    </ul>
+    <div class="result"><b>Measured:</b> 27 → 23 requests for held data left unanswered (B1 → B2). 5 doubt probes on correct math in B2 (Ines apologized for correct math). 73 of 88 dimension ratings “strong”.</div>
+    <div class="hash">29dfa56 · 141fb68 · b1b4d23 · 13386c1 · fee2803 · 5fce221</div>
+  </div>
+</div>
+
+<div class="era" id="e5">
+  <div class="when"><b>2 Oct (am)</b>v4.6 · round 3 · batch 3<div class="tag"><span class="chip c-model">Opus 4.8</span></div></div>
+  <div class="body">
+    <h3>One goodbye, verified figures, a model layer for distress</h3>
+    <p class="why">Maya's batch-2 session said goodbye four times: the end gate blocked <code>end_case</code>, but the goodbye text was delivered anyway. Yuki's phantom stall rung came from number words (“ten and a half points”) the progress detector couldn't read.</p>
+    <ul>
+      <li><span class="chip c-code">code</span>Verified figures sent to the interviewer; doubt probes on them withheld before sending.</li>
+      <li><span class="chip c-code">code</span>One goodbye, only with a confirmed end. A blocked close is replaced with one scripted probe. The recommendation is never asked twice.</li>
+      <li><span class="chip c-code">code</span>Number words normalized before every progress and math check (needed for voice as well).</li>
+      <li><span class="chip c-model">model</span>C5 Haiku classifier in parallel with the interviewer; the regex stays as the floor.</li>
+      <li><span class="chip c-code">code</span>Timeframe check (log only). Every check records its decision.</li>
+      <li><span class="chip c-code">code</span>Round 3: deliver every announced fact; release stale requests in code; answer requests in the final message; rewrite system vocabulary; Haiku hint check; strong-rating checklist gate.</li>
+    </ul>
+    <div class="result"><b>Batch 3:</b> one goodbye in every completed session. Requests for held data left unanswered 23 → 4. Zero doubt probes on correct math. No phantom rungs. C5 model layer caught Leah, whom the regex would have missed. Still 8 of 9 sessions rated strong overall.</div>
+    <div class="hash">09e8532 · f32497f · 5349e6e · c8a94cf · 8f550c4</div>
+  </div>
+</div>
+
+<div class="era" id="e6">
+  <div class="when"><b>2 Oct (pm)</b>Batch 4<div class="tag"><span class="chip c-model">Sonnet 5.5</span></div></div>
+  <div class="body">
+    <h3>Switch to Sonnet 5.5, thinking off</h3>
+    <p class="why">Speed and cost for the voice budget. The deterministic math backstops were judged to carry the math-catching load that had justified Opus.</p>
+    <ul>
+      <li><span class="chip c-model">model</span>Interviewer Opus 4.8 → Sonnet 5.5 with <code>thinking: between_tools</code> (Sonnet rejects <code>disabled</code>). Scoring on Opus 5.5 with adaptive thinking at high effort. Server-side refusal fallbacks everywhere. Model ids moved to <code>lib/models.ts</code>.</li>
+      <li><span class="chip c-code">code</span>After the batch: scoring streams (every run had failed on a non-streaming 32k request). Plain text beside tool calls dropped. Copied check-ins stripped. The false “margin” impact flags removed.</li>
+      <li><span class="chip c-code">code</span>Follow-up: plain text is the reply unless the turn also calls <code>speak</code>; never send a blank turn.</li>
+    </ul>
+    <div class="result"><b>Batch 4:</b> one goodbye per session. Requested-never-provided data at scoring 4 → 0. Sonnet still caught Derek's and Maya's real errors. Grades spread: strong skill ratings 62 → 32 of 80. Median turn 1.9s (no gain). App cost $0.70 per run.</div>
+    <div class="hash">f1f24a7 · 0b60fd4 · 33b6d8a · 604be3b</div>
+  </div>
+</div>
+
+<div class="era" id="e7">
+  <div class="when"><b>2–3 Oct</b>Batches 5–6<div class="tag"><span class="chip c-model">Sonnet</span><span class="chip c-revert">thinking reverted</span></div></div>
+  <div class="body">
+    <h3>The narration problem</h3>
+    <p class="why">Five batch-5 runs crashed on a blank turn from the batch-4 narration rule. After the rerun, reading every exchange by hand turned up Sonnet speaking its own reasoning to the candidate about 16 times in 8 of 10 runs (“Best: reveal the cost structure exhibit? They haven't asked for it.”). With thinking off, Sonnet reasons in plain text before each release.</p>
+    <ul>
+      <li><span class="chip c-code">code</span>Meta-leak strip reworked: it runs on the model's own words before revealed values are appended, and covers the Sonnet phrasing. Raw model text is now logged.</li>
+      <li><span class="chip c-model">model</span>Batch 6 tried adaptive thinking at low effort. Narration dropped to 0, but thinking turns took 4.1s (median 2.75s, p95 5.7s).</li>
+      <li><span class="chip c-revert">revert</span>Back to thinking off with the strip, the same day.</li>
+      <li><span class="chip c-code">code</span>Batch-6 fixes:
+        <ul>
+          <li>Synthesis guard: the interviewer had dictated Maya's recommendation under time pressure.</li>
+          <li>Passing mentions get an offer, not a release.</li>
+          <li>Out-of-case asks get a refusal.</li>
+          <li>Ledger labels state their periods (the <code>cogs_pct</code> label said “(current)” and caused false refusals).</li>
+          <li>Negated mentions aren't counted as a recommendation.</li>
+          <li>More goodbye phrases recognized.</li>
+          <li>Coverage alone can't end the case before the recommendation ask.</li>
+        </ul>
+      </li>
+      <li><span class="chip c-measure">measure</span>Data-request classifier measured at 69/73 on a hand-labelled set.</li>
+    </ul>
+    <div class="result"><b>Batch 5 (hand count):</b> about 36 ledger requests, 0 ignored, 0 never delivered. 0 leaks. About 16 narration lines. About 5 out-of-case requests ignored. <b>Opus (B3) vs Sonnet (B5):</b> narration 0 vs ~16; mid-case praise ~9 vs ~3; interviewer cost $0.54 vs $0.23 per run; median turn 1.8s for both. <b>Batch 6:</b> 0 narration, 0 leaks, 0 broken promises, 0 ignored ledger requests, but too slow.</div>
+    <div class="hash">04fb2e8 · b2ebc9b · 3726001 · b6338e1 · efe0661 · 39103e6 · af5a61b</div>
+  </div>
+</div>
+
+<div class="era" id="e8">
+  <div class="when"><b>3–4 Oct</b>Batches 7–8<div class="tag"><span class="chip c-code">strip</span></div></div>
+  <div class="body">
+    <h3>Narration and data edge cases, round two</h3>
+    <ul>
+      <li><span class="chip c-code">code</span>Strip the batch-7 narration phrasings, and spoken ledger ids (“Available items match: bean_share_of_cogs, …”).</li>
+      <li><span class="chip c-code">code</span>A deferral frame isn't a data promise. An offer and “not at this point” never share a turn. A mid-case release of an earlier request gets its own lead-in.</li>
+      <li><span class="chip c-prompt">prompt</span>The interviewer is told which exhibits are already on screen (Maya saw exhibit A four times).</li>
+    </ul>
+    <div class="result">Run records exist for batch 7 (10 personas) and batch 8 (4 personas). There's no written results summary in the repo.</div>
+    <div class="hash">5b8342c · 5977a07 · f5d82c8 · 038400a · 826665a · c06eca8</div>
+  </div>
+</div>
+
+<div class="era" id="e9">
+  <div class="when"><b>5 Oct</b>Latency work<div class="tag"><span class="chip c-model">JSON output</span></div></div>
+  <div class="body">
+    <h3>Timing the whole turn, structured output, the streaming plan</h3>
+    <p class="why">Prep for the voice budget (≤1.5s to first audio). The model call was ~1.9s of a ~2.2s turn, and the rest had never been timed.</p>
+    <ul>
+      <li><span class="chip c-measure">measure</span>Full-turn timing split into pre-model, model, post-model, and persistence.</li>
+      <li><span class="chip c-code">code</span>DB reads and writes run in parallel; analytics are logged after the response.</li>
+      <li><span class="chip c-measure">measure</span>Prompt caching on the fixed block (~5.3k of ~8.3k input tokens). Replay: no latency change (+110ms paired median); the gain is input cost. Caching the conversation too made Sonnet narrate ~10× more and added ~310ms, so it wasn't kept.</li>
+      <li><span class="chip c-model">model</span>Tool calls → one JSON action list via <code>output_config.format</code> (forced <code>tool_choice</code> is rejected on Sonnet 5.5). Replay on 50 turns: narration ~16 → 0. <code>normalizeActions</code> handles the new failure shapes, with one regeneration.</li>
+      <li><span class="chip c-measure">measure</span>Streaming replay: first token 1.35s, first spoken sentence 1.64s, full turn 2.18s. Haiku was faster (1.05s first sentence) but failed data gating and demeanor on hand-read turns, so Sonnet stays.</li>
+      <li><span class="chip c-prompt">prompt</span>Spec and plan for a streaming turn: Plan → Stream → Settle (not built yet).</li>
+    </ul>
+    <div class="hash">1fa6551 · f5ffbfa · 4d4854a · 2f42a34 · f077c45 · 1bece40 · 338e7d2</div>
+  </div>
+</div>
+
+<div class="era" id="e10">
+  <div class="when"><b>5–6 Oct</b>Batches 9–10 · branches<div class="tag"><span class="chip c-model">streaming</span><span class="chip c-model">declarations</span></div></div>
+  <div class="body">
+    <h3>Streaming, then “Plan owns decisions”</h3>
+    <p class="why">Two branches newer than <code>latency-json-output</code>, the branch the agent map describes. Neither is merged into main. The behavior on these branches differs from what the agent map shows.</p>
+    <ul>
+      <li><span class="chip c-code">code</span><code>streaming-turn</code>: an incremental parser for the streamed JSON. The turn runs as Plan (no side effects) → Stream (distress gate, pass-or-buffer sentences, questions held back) → Settle (today's post-model guards plus a prefix lock). Regeneration happens only before anything is delivered.</li>
+      <li><span class="chip c-model">model</span><code>plan-owns-decisions</code>: the turn schema gains declarations. The model states its <code>move</code> and lists every data request with <code>item_ids</code>, <code>explicit</code>, and <code>respond</code> before its spoken text. Code then decides Rule 11 from that declaration; Settle can only veto. Phase and stage progress come from declared moves.</li>
+    </ul>
+    <div class="result"><b>Batch 9</b> (streaming, 10 personas): first spoken segment 1.75s median, whole turn 2.37s. Verifier dropped 4 claims, the answer-key pass 1. <b>Batch 10</b> (plan-owns-decisions, Nikhil only): first segment 3.27s, whole turn 3.50s. See <a href="#latency">turn times</a>.</div>
+    <div class="hash">streaming-turn: 8d2186d … f2a657a · plan-owns-decisions: cddb81c … 5a426e7</div>
+  </div>
+</div>
+</section>
+
+<section id="v1">
+<h2>The first prompt</h2>
+<p>The whole interviewer prompt on 29 June, for comparison with the ~3,000-word version on the <a href="interviewer-audit.html#interviewer">agent map</a>. The anti-hallucination and role-lock addenda followed it.</p>
+<details>
+<summary>system.ts at 9358ea2 (Haiku 4.5)</summary>
+<pre>You are a professional McKinsey-style case interviewer conducting a mock case interview.
+
+Case prompt (already read to candidate):
+${ctx.casePrompt}
+
+Current phase: ${ctx.currentPhase}
+Revealed data:
+- ${id}: ${value}
+Data available to reveal (labels only — do NOT state values until revealed):
+- ${label}
+
+Your behavior:
+- Ask probing questions; do not volunteer the framework or solve the case.
+- Withhold data until the candidate specifically asks for it, then use reveal_data.
+- Stay professional, neutral, and realistic.
+- Use advance_phase when the candidate has sufficiently completed the current phase.
+- Use end_case only in RECOMMENDATION or WRAP phase when the case is complete.
+[IMPORTANT: You have not yet pushed back on the candidate this session. If the candidate makes an assertion without evidence or jumps to a conclusion, challenge it once before the end of RECOMMENDATION phase.]
+[TIME NOTE: The candidate is near the end of the ${phase} phase budget. Gently guide them toward completing this phase.]
+
+${ANTI_HALLUCINATION_ADDENDUM}
+
+${ANTI_JAILBREAK_ADDENDUM}</pre>
+</details>
+</section>
+
+<section id="patterns">
+<h2>Patterns across the history</h2>
+<p class="note">My reading of the record, not measured.</p>
+<div class="pattern">
+  <h3>Enforcement moved from the prompt into code</h3>
+  <p>Most September and October fixes are deterministic guards that repair the turn after the model writes it: same-turn resolution, forced and stale releases, close replacement, the synthesis guard, probe withholding. The prompt grew slowly; the runner grew from 148 to 1,205 lines. The model now mostly proposes, and code decides what gets said.</p>
+</div>
+<div class="pattern">
+  <h3>Each model switch changed the failure shape</h3>
+  <p>Haiku missed math. Opus praised mid-case (~9 in B3) and sometimes ignored requests. Sonnet spoke its own reasoning. Each switch was followed by a round of new strips and guards tuned to the new model's phrasing. That's also why the meta-leak patterns had to be rewritten after the Opus → Sonnet switch.</p>
+</div>
+<div class="pattern">
+  <h3>The checks were a recurring source of errors</h3>
+  <p>Several regressions came from the guards rather than the model:</p>
+  <ul>
+    <li>The recompute check caused all three false corrections and the $480M leak.</li>
+    <li>The unit check fired on every correct 10.5.</li>
+    <li>The progress detector couldn't read number words.</li>
+    <li>The goodbye detector missed phrasings.</li>
+    <li>Coverage let a case end with no recommendation ask.</li>
+    <li>The narration rule blanked turns.</li>
+  </ul>
+  <p>The spec's own design principle (check the least typical form of a risk) comes from this.</p>
+</div>
+<div class="pattern">
+  <h3>Hand-reading caught what the counters didn't</h3>
+  <p>Batch 5's manual review found the ~16 narration lines, false “recommendation received” matches, and unrecognized goodbyes. None of these were counted by any automated check. Batch 6 confirmed it again.</p>
+</div>
+<div class="pattern">
+  <h3>Latency hasn't moved with model changes</h3>
+  <p>Median turn time stayed at 1.8–1.9s across Opus and Sonnet, and caching didn't change it. The levers that did move it were thinking (worse) and the streaming plan (first sentence at ~1.6s on replay).</p>
+</div>
+</section>
+
+<section id="sources">
+<h2>Sources</h2>
+<ul>
+  <li><code>git log -- lib/agent lib/models.ts</code> and full history since 29 Jun 2026; sizes from <code>git show &lt;commit&gt;:path | wc</code>.</li>
+  <li><code>docs/interviewer-behavior.md</code>: v4.1–v4.6 change notes, Part V batch results, manual reviews.</li>
+  <li><code>.superpowers/sdd/progress.md</code>: post-plan hardening and persona-run cycles.</li>
+  <li><code>docs/superpowers/specs/2026-10-05-streaming-turn-design.md</code>: replay latency figures.</li>
+  <li>Commit messages for 80e0655, c937d6f, 0c7af92, 29dfa56, 4d4854a, 2f42a34.</li>
+</ul>
+<p class="note">Not covered: the content of batches 7–10 (records only, no write-up), and the scoring pipeline's own history beyond where it touches the interviewer.</p>
+</section>
+</main>
+</div>
+</body>
+</html>

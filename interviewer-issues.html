@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Interviewer Issues Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600&display=swap">
+<style>
+/* Layout: summary counts → filter row → five status columns → timeline (piecewise date scale) → table. Same tokens as the agent map. */
+:root{
+  --bg:#f3f4f1; --surface:#ffffff; --ink:#1d2421; --muted:#5d6762; --line:#d9ddd8; --code-bg:#f7f8f6;
+  --accent:#1f6f5c; --accent-soft:#e1efe9;
+  --s-open:#b42318; --s-open-bg:#fdecea;
+  --s-decision:#a15c07; --s-decision-bg:#fdf1dc;
+  --s-partial:#3b5b8a; --s-partial-bg:#e7eef8;
+  --s-fixed:#5d6762; --s-fixed-bg:#eceeeb;
+  --s-verified:#1f6f5c; --s-verified-bg:#e1efe9;
+  --f-display:"Fraunces",Georgia,serif; --f-body:"IBM Plex Sans",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --surface:#1b211f; --ink:#e3e8e5; --muted:#9aa5a0; --line:#2e3633; --code-bg:#171c1a;
+  --accent:#5cc4a7; --accent-soft:#1d3530;
+  --s-open:#ff8a80; --s-open-bg:#3d1c1a; --s-decision:#f2b45c; --s-decision-bg:#3a2b14;
+  --s-partial:#8fb2e6; --s-partial-bg:#1c2a3e; --s-fixed:#aab4af; --s-fixed-bg:#262d2a;
+  --s-verified:#5cc4a7; --s-verified-bg:#1d3530; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --surface:#1b211f; --ink:#e3e8e5; --muted:#9aa5a0; --line:#2e3633; --code-bg:#171c1a;
+  --accent:#5cc4a7; --accent-soft:#1d3530;
+  --s-open:#ff8a80; --s-open-bg:#3d1c1a; --s-decision:#f2b45c; --s-decision-bg:#3a2b14;
+  --s-partial:#8fb2e6; --s-partial-bg:#1c2a3e; --s-fixed:#aab4af; --s-fixed-bg:#262d2a;
+  --s-verified:#5cc4a7; --s-verified-bg:#1d3530; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body);padding-inline:16px;padding-block:0}
+.wrap{max-width:1320px;margin:0 auto;padding-block:28px 80px}
+.top{display:flex;gap:16px;flex-wrap:wrap;align-items:baseline;justify-content:space-between}
+.links{display:flex;gap:14px;font-size:13px}
+.links a{color:var(--accent);text-decoration:none}
+.links a:hover,.links a:focus-visible{text-decoration:underline;outline:none}
+h1{font:600 clamp(26px,3.6vw,38px)/1.15 var(--f-display);margin:8px 0 6px;text-wrap:balance}
+.lede{color:var(--muted);max-width:78ch;margin:0}
+.meta{font:12px var(--f-mono);color:var(--muted);margin-top:8px}
+h2{font:600 22px/1.25 var(--f-display);margin:44px 0 10px;scroll-margin-top:16px}
+.note{font-size:13px;color:var(--muted);max-width:90ch}
+code{font-family:var(--f-mono);font-size:.86em;background:var(--code-bg);border:1px solid var(--line);border-radius:3px;padding:0 4px}
+
+.counts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:22px 0 0}
+.count{border-top:3px solid var(--c);padding-top:6px}
+.count b{display:block;font:600 28px/1.1 var(--f-display);font-variant-numeric:tabular-nums;color:var(--c)}
+.count span{font-size:13px;color:var(--muted)}
+
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:22px 0 0;padding:10px 0;border-block:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+.filters label{font-size:12px;color:var(--muted);margin-right:2px}
+.chip-btn{font:500 12.5px var(--f-body);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 10px;cursor:pointer}
+.chip-btn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip-btn:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=search]{font:13px var(--f-body);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;padding:5px 10px;min-width:200px;flex:1;max-width:320px}
+.shown{font:12px var(--f-mono);color:var(--muted);margin-left:auto}
+
+.board{display:grid;grid-template-columns:repeat(5,minmax(220px,1fr));gap:12px;margin-top:16px;overflow-x:auto;padding-bottom:6px}
+.col{min-width:0;background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.col h3{margin:0 0 2px;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;color:var(--c)}
+.col h3 small{font:500 12px var(--f-mono);color:var(--muted)}
+.col .def{font-size:12px;color:var(--muted);margin:0 0 4px}
+.card{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--c);border-radius:4px;padding:8px 10px;cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.card:hover{border-color:var(--c)}
+.card:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.card .t{font-size:13.5px;font-weight:500;line-height:1.35}
+.card .m{font:11.5px var(--f-mono);color:var(--muted);margin-top:4px;display:flex;gap:6px;flex-wrap:wrap}
+.card .area{color:var(--ink);opacity:.75}
+.card .d{display:none;font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.45}
+.card.open .d{display:block}
+.card .d b{color:var(--ink);font-weight:500}
+.card.flash{animation:flash 1.2s ease-out}
+@keyframes flash{0%{box-shadow:0 0 0 3px var(--c)}100%{box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion:reduce){.card.flash{animation:none;outline:2px solid var(--c)}html{scroll-behavior:auto}}
+
+.tl{background:var(--surface);border:1px solid var(--line);border-radius:6px;overflow-x:auto;margin-top:12px}
+.tl-inner{min-width:900px;padding:8px 12px 14px}
+.tl-row{display:grid;grid-template-columns:270px minmax(0,1fr);align-items:center;min-height:24px;cursor:pointer}
+.tl-row:hover{background:var(--code-bg)}
+.tl-row .lab{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:10px}
+.tl-row .lab .sdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c);margin-right:6px;vertical-align:1px}
+.tl-group{font:600 11px var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:12px 0 4px;border-bottom:1px solid var(--line);margin-bottom:2px}
+.track{position:relative;height:24px}
+.bar{position:absolute;top:8px;height:8px;border-radius:4px;background:var(--c);min-width:6px}
+.bar.unfixed{background:repeating-linear-gradient(135deg,var(--c) 0 4px,transparent 4px 7px);border:1px solid var(--c);top:7px;height:10px}
+.pt{position:absolute;top:6px;width:12px;height:12px;transform:translateX(-50%) rotate(45deg);background:var(--s-verified);border:2px solid var(--surface)}
+.start{position:absolute;top:7px;width:2px;height:10px;background:var(--c)}
+.axis{position:relative;height:30px;margin-left:270px;border-bottom:1px solid var(--line)}
+.axis span{position:absolute;bottom:4px;transform:translateX(-50%);font:11px var(--f-mono);color:var(--muted);white-space:nowrap}
+.axis span.b{bottom:16px;color:var(--ink);font-weight:500}
+.vl{position:absolute;top:0;bottom:0;width:1px;background:var(--line)}
+.vl.today{background:var(--s-open);width:2px}
+.tl-body{position:relative}
+.gridlines{position:absolute;top:0;bottom:0;left:270px;right:0;pointer-events:none}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted);margin:8px 0 0}
+.legend i{display:inline-block;vertical-align:-1px;margin-right:5px}
+.legend .sw{width:22px;height:8px;border-radius:4px;background:var(--muted)}
+.legend .sw.h{background:repeating-linear-gradient(135deg,var(--muted) 0 4px,transparent 4px 7px);border:1px solid var(--muted);height:10px}
+.legend .dm{width:10px;height:10px;transform:rotate(45deg);background:var(--s-verified)}
+.compress{font:11px var(--f-mono);color:var(--muted)}
+
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface);margin-top:12px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;vertical-align:top;padding:7px 10px;border-bottom:1px solid var(--line)}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--code-bg);position:sticky;top:0}
+td.n{font:12px var(--f-mono);white-space:nowrap}
+.pill{display:inline-block;font:500 11px/1 var(--f-mono);padding:4px 6px;border-radius:3px;white-space:nowrap;background:var(--cb);color:var(--c)}
+.s-open{--c:var(--s-open);--cb:var(--s-open-bg)}
+.s-decision{--c:var(--s-decision);--cb:var(--s-decision-bg)}
+.s-partial{--c:var(--s-partial);--cb:var(--s-partial-bg)}
+.s-fixed{--c:var(--s-fixed);--cb:var(--s-fixed-bg)}
+.s-verified{--c:var(--s-verified);--cb:var(--s-verified-bg)}
+@media (max-width:900px){.counts{grid-template-columns:repeat(3,minmax(0,1fr))}.board{grid-template-columns:repeat(5,minmax(240px,82vw))}}
+@media (max-width:520px){.counts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="links"><a href="interviewer-audit.html">← Agent map</a><a href="interviewer-history.html">History</a></div>
+    <div class="meta">Interviewer behavior only · as of 6 Oct 2026 · branch latency-json-output</div>
+  </div>
+  <h1>Interviewer issues board</h1>
+  <p class="lede">Every interviewer-behavior problem on record: when it was first seen, when a fix landed, and whether a later batch showed the fix holding. Scoring-report issues are on the <a href="interviewer-history.html#quotes">history page</a>.</p>
+
+  <div class="counts" id="counts"></div>
+
+  <div class="filters" role="group" aria-label="Filters">
+    <label for="q">Filter</label>
+    <input type="search" id="q" placeholder="Search issues, personas, commits">
+    <span id="areaChips" style="display:contents"></span>
+    <span class="shown" id="shown"></span>
+  </div>
+
+  <section id="board-sec">
+    <h2>Board</h2>
+    <p class="note">Click a card for its evidence and fix. “Fixed, not verified” means a fix landed but no written batch result confirms it. Batches 7–9 ran after many of these fixes, but nobody has written up their results, so reading those transcripts could move cards into Verified.</p>
+    <div class="board" id="board"></div>
+  </section>
+
+  <section id="timeline-sec">
+    <h2>Timeline</h2>
+    <p class="note">Each row runs from when the issue was first seen to when its fix landed. A hatched bar runs to today: still open, partial, or waiting on a decision. ◆ marks the batch that confirmed the fix. Click a row to jump to its card.</p>
+    <div class="legend">
+      <span><i class="sw"></i>seen → fixed</span><span><i class="sw h"></i>not fixed yet (runs to today)</span><span><i class="dm"></i>verified in a batch</span>
+      <span class="compress">Scale: 29 Jun – 13 Sep is compressed into the first 14% of the width; 14 Sep – 6 Oct uses the rest.</span>
+    </div>
+    <div class="tl"><div class="tl-inner">
+      <div class="axis" id="axis"></div>
+      <div class="tl-body"><div class="gridlines" id="grid"></div><div id="rows"></div></div>
+    </div></div>
+  </section>
+
+  <section id="table-sec">
+    <h2>All issues</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>#</th><th>Issue</th><th>Area</th><th>Status</th><th>First seen</th><th>Fixed</th><th>Verified</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table></div>
+    <p class="note">Sources: docs/interviewer-behavior.md (v4.1–v4.6 notes, Part V batch results and manual reviews), git history, .superpowers/sdd/progress.md, run logs in Case Interview Runs/, and the 6 Oct code audit (agent map). Dates marked ~ are approximate: the July pilot findings were recorded in one catch-up commit dated 19 Jul.</p>
+  </section>
+</div>
+
+<script>
+const STATUS = {
+  open:     {label:'Open',               def:'Still happening, or no fix exists.'},
+  decision: {label:'Needs your decision', def:'Recorded as pending a product call.'},
+  partial:  {label:'Partial',             def:'Prompt-only or log-only. Nothing in code stops it.'},
+  fixed:    {label:'Fixed, not verified', def:'Code fix landed. No written batch result confirms it yet.'},
+  verified: {label:'Verified',            def:'A later batch documented the fix holding.'},
+};
+const ORDER = ['open','decision','partial','fixed','verified'];
+const AREAS = ['Data integrity','Data delivery','Math probing','Speech & demeanor','Flow & close','Stall & hints','Conduct & wellbeing','Latency','Prompt hygiene'];
+
+// s = status · o = first seen (ISO) · on = where seen · f = fixed (ISO|null) · fr = fix ref · v = verified (ISO|null) · vn = verification note · d = detail
+const ISSUES = [
+ // Data integrity
+ {a:'Data integrity', t:'Invented numbers in interviewer speech (FR-4)', s:'verified', o:'2026-06-29', on:'Hallucination gate, build step 3', f:'2026-07-01', fr:'766ae2c', v:'2026-07-01', vn:'Gate passed: 0 invented numbers in 9 scripted turns; B5, B6: 0 leaks by hand and by an independent number scan', d:'Anti-hallucination rule plus a post-turn number audit. Exhibit ids added to the prompt in the same fix.'},
+ {a:'Data integrity', t:'Provenance audit logged "blocked" but delivered the figure', s:'verified', o:'2026-09-27', on:'B1 · Priya heard the unrevealed $480M', f:'2026-09-29', fr:'v4.3 (block tier)', v:'2026-10-03', vn:'B5 and B6: 0 leaks', d:'A live FR-4 violation. The block tier now withholds the figure before sending.'},
+ {a:'Data integrity', t:'Recompute note leaked case data and caused false corrections', s:'verified', o:'2026-09-27', on:'B1 · all 3 false “Quick correction” turns; $480M in the note', f:'2026-09-29', fr:'29dfa56 · fee2803', v:'2026-10-02', vn:'B3: 0 doubt probes on correct math; B4/B5: 0 false flags', d:'The note carried the math-step description. It was made probe-only with no case values, then gained source spans and a revealed-inputs gate.'},
+ {a:'Data integrity', t:'Fixed prompt contains unrevealed prof-001 values (25%, 42%, 58%)', s:'open', o:'2026-10-02', on:'Added with the v4.6 timeframe rule; found in the 6 Oct audit', f:null, fr:'', v:null, vn:'', d:'system.ts:152. Sent every turn from turn 1. Breaks the core invariant as CLAUDE.md states it. The provenance audit still blocks the numbers if spoken. Also case-specific text in generic code.'},
+ {a:'Data integrity', t:'Model wrote the candidate’s next turn (fabricated turn)', s:'fixed', o:'2026-09-14', on:'Live run 58cb8061 · spoken, saved, and scored', f:'2026-09-14', fr:'6fe94a3', v:null, vn:'No recurrence written up. JSON output (5 Oct) dropped the stop sequences; the strip remains.', d:'Stop sequences plus stripFabricatedTurn per spoken line. Scoring repairs transcript artifacts first.'},
+ {a:'Data integrity', t:'Restates a candidate’s question as their claim', s:'partial', o:'2026-07-10', on:'~Jul pilot · “you said the increase looks the same across all stores”', f:null, fr:'prompt rule only', v:null, vn:'', d:'CANDIDATE ATTRIBUTION rule. Rule 3 rates it as severe as invented data, but no code check exists and it isn’t counted in any batch.'},
+ {a:'Data integrity', t:'Adopts candidate-derived figures as case fact', s:'partial', o:'2026-07-10', on:'~Jul pilot · “did volume grow that 15%?”, “the remaining 2 to 4 points”', f:null, fr:'prompt rule only', v:null, vn:'', d:'The provenance audit accepts any number from any candidate turn, so adopting a candidate’s wrong figure passes. Prompt-only.'},
+
+ // Data delivery
+ {a:'Data delivery', t:'Promises data or an exhibit without delivering it', s:'verified', o:'2026-07-10', on:'~Jul pilot transcripts', f:'2026-07-19', fr:'c937d6f · c8a94cf (2 Oct: every announced fact)', v:'2026-10-03', vn:'B5: 0 never delivered; B6: 0 broken promises (7 deferrals all delivered next turn)', d:'Recovers the item the text names, or injects a refusal. Never guesses an item. Extended after Tobias got only one of two named facts.'},
+ {a:'Data delivery', t:'Data requests silently ignored', s:'verified', o:'2026-09-14', on:'Run 4 · two non-responses; B1: 27, B2: 23', f:'2026-09-30', fr:'0c7af92 · 5fce221 · c8a94cf', v:'2026-10-03', vn:'B3: 4; B5 hand count: 0 of ~36; B6: 0', d:'Prompt rule (release/refuse/defer) → same-turn resolution in code → earlier requests released by code once their stage is reached.'},
+ {a:'Data delivery', t:'Open requests unreleased when the recommendation is asked', s:'verified', o:'2026-09-14', on:'Run 4 / eca39ec7', f:'2026-09-14', fr:'6d3be31', v:'2026-10-02', vn:'B4: requested-never-provided at scoring 4 → 0', d:'Forced release before any recommendation ask (one synchronous Haiku call on those turns).'},
+ {a:'Data delivery', t:'Refusal injected for data the case holds', s:'fixed', o:'2026-09-27', on:'B1 · Maya told “we don’t have that cut” for an open deferral', f:'2026-09-29', fr:'v4.3 promise recovery', v:null, vn:'B5 manual: 1 partial wrong refusal still seen (Sonnet); B3: 1 (Ines)', d:'Recovery uses the single open request before falling back to a refusal.'},
+ {a:'Data delivery', t:'False refusal caused by a misleading ledger label', s:'fixed', o:'2026-10-02', on:'B5 Destiny “not for two years ago”; B6 Hugo', f:'2026-10-03', fr:'39103e6', v:null, vn:'', d:'cogs_pct label said “(current)” though the value carries both years. Labels the model sees now state their periods.'},
+ {a:'Data delivery', t:'Passing mention released data unasked', s:'fixed', o:'2026-10-02', on:'B5 Destiny (revenue); B6 Maya “price and cups”', f:'2026-10-03', fr:'efe0661 · 038400a', v:null, vn:'', d:'The classifier marks explicit vs mention. A mention gets an offer (“There’s data on that…”); a yes releases it.'},
+ {a:'Data delivery', t:'Explicit asks for out-of-case data ignored', s:'fixed', o:'2026-10-02', on:'B5 · ~5 (Nikhil’s waste/turnover; Devon’s elasticity)', f:'2026-10-03', fr:'efe0661', v:null, vn:'', d:'An ignored explicit ask for data not in the case gets a scripted “That’s not in the information I have.”'},
+ {a:'Data delivery', t:'Stray “I’ll come to that data shortly” right after releases', s:'open', o:'2026-10-02', on:'B5 manual review · ~7 runs', f:null, fr:'', v:null, vn:'', d:'Listed in the B5 review. I found no commit that names it. f5d82c8 (a deferral frame isn’t a promise) may touch it. Unconfirmed.'},
+ {a:'Data delivery', t:'Same exhibit shown repeatedly', s:'fixed', o:'2026-10-03', on:'B7 · Maya saw exhibit A four times', f:'2026-10-03', fr:'c06eca8', v:null, vn:'', d:'Exhibits already on screen are marked in the case state.'},
+ {a:'Data delivery', t:'Exhibit shown with no words', s:'fixed', o:'2026-10-02', on:'B5 (narration stripped), B6 (no text)', f:'2026-10-03', fr:'bc09ecf', v:null, vn:'', d:'Scripted hand-over line: “Take a look at this and tell me what you see.”'},
+ {a:'Data delivery', t:'Challenged an assumption about data the candidate asked for', s:'fixed', o:'2026-09-29', on:'B2 · Maya: “that’s the one thing you assumed”', f:'2026-10-02', fr:'v4.5 assumption guard', v:null, vn:'Fired once in B9 logs', d:'Withholds the challenge; releases or defers the data instead.'},
+
+ // Math probing
+ {a:'Math probing', t:'Doubt probes on correct math', s:'verified', o:'2026-09-29', on:'B2 · 5 probes; Ines apologized for correct math', f:'2026-10-02', fr:'09e8532', v:'2026-10-02', vn:'B3: 0; B4: 0', d:'Verified figures go to the interviewer; doubt probes on them are withheld before sending. At most one explain probe if no work was shown.'},
+ {a:'Math probing', t:'Unit check fired on every correct 10.5', s:'verified', o:'2026-09-29', on:'B2', f:'2026-10-02', fr:'v4.6', v:'2026-10-02', vn:'B3: the two “points of what?” were on real errors (Derek, Maya)', d:'Suppressed when the conversion was verified this turn.'},
+ {a:'Math probing', t:'Probe guard withheld a probe on a real unit error', s:'fixed', o:'2026-10-02', on:'B5 · Derek’s “25 points of revenue”', f:'2026-10-03', fr:'post-B5 fix', v:null, vn:'', d:'A unit-check firing now counts as a flag, so the probe survives.'},
+ {a:'Math probing', t:'False “case-breaking” impact flags', s:'verified', o:'2026-10-02', on:'B4 · 3 flags from the “margin” cue', f:'2026-10-02', fr:'33b6d8a', v:'2026-10-03', vn:'B5: 0 false flags', d:'Dollar-impact step cue removed.'},
+ {a:'Math probing', t:'Cross-period arithmetic (e.g. 25% two years ago × 58% today)', s:'partial', o:'2026-09-29', on:'B2 · Derek 6:08 (the spec notes it doesn’t reproduce as cited)', f:null, fr:'5349e6e (log only)', v:null, vn:'', d:'Prompt rule plus a log-only check; the false-positive rate was never measured. The prompt example is itself the unrevealed-values problem above.'},
+
+ // Speech & demeanor
+ {a:'Speech & demeanor', t:'Mid-case praise (“Good reasoning.”)', s:'open', o:'2026-07-10', on:'~Jul; B3 Opus ~9, B5 Sonnet ~3', f:null, fr:'prompt rule only', v:null, vn:'', d:'Forbidden by the demeanor rule; no code check. Still seen in the last hand count (B5).'},
+ {a:'Speech & demeanor', t:'Interviewer debriefed or graded at the close', s:'verified', o:'2026-09-14', on:'Live run · per-dimension critique in the closing turn', f:'2026-10-02', fr:'f32497f', v:'2026-10-02', vn:'B3–B5: one scripted goodbye per session', d:'Every ending turn is now the scripted close; the model’s sign-off is dropped.'},
+ {a:'Speech & demeanor', t:'Internal reasoning spoken to the candidate', s:'fixed', o:'2026-10-02', on:'B4 found; B5 ~16 in 8 of 10 runs', f:'2026-10-05', fr:'04fb2e8 · 5b8342c · 2f42a34 (JSON)', v:null, vn:'Replay: 0 of 50 turns in JSON. B9 (JSON, streaming branch) logged 2 strips; spoken count not hand-checked.', d:'Thinking (B6) also removed it but cost 0.8s. JSON output means only “say” text is spoken.'},
+ {a:'Speech & demeanor', t:'Ledger ids spoken aloud', s:'fixed', o:'2026-10-03', on:'B7 · “Available items match: bean_share_of_cogs…”', f:'2026-10-03', fr:'5977a07', v:null, vn:'', d:'Added to the strip.'},
+ {a:'Speech & demeanor', t:'Model copied the scripted check-in', s:'fixed', o:'2026-10-02', on:'B4', f:'2026-10-02', fr:'33b6d8a', v:null, vn:'', d:'Model-written check-ins are stripped.'},
+ {a:'Speech & demeanor', t:'System vocabulary spoken (“ledger”, “flag”)', s:'fixed', o:'2026-10-02', on:'B3', f:'2026-10-02', fr:'8f550c4', v:null, vn:'B5 notes the rewrite was never exercised live', d:'Rewritten into interviewer language before sending.'},
+ {a:'Speech & demeanor', t:'Blank interviewer turns', s:'verified', o:'2026-10-02', on:'B5 · 5 runs crashed', f:'2026-10-02', fr:'604be3b', v:'2026-10-03', vn:'B5 rerun and B6 completed', d:'Plain text is the reply unless the turn calls speak; a blank turn becomes “Go on.”'},
+ {a:'Speech & demeanor', t:'Stacked questions', s:'partial', o:'2026-07-19', on:'Style audit; B9 logged 2', f:null, fr:'log only', v:null, vn:'', d:'Prompt says one question per turn; the style audit only logs.'},
+
+ // Flow & close
+ {a:'Flow & close', t:'Several goodbyes in one session', s:'verified', o:'2026-09-29', on:'B2 · Maya ×4', f:'2026-10-02', fr:'f32497f', v:'2026-10-02', vn:'B3, B4, B5: one per session', d:'A goodbye goes out only with a confirmed end; a blocked close is replaced by one scripted probe.'},
+ {a:'Flow & close', t:'Goodbye not recognized, then more questions', s:'fixed', o:'2026-10-02', on:'B5 · “We’ll leave it there”, “the case is complete”', f:'2026-10-03', fr:'930749c', v:null, vn:'', d:'Phrases added to the close detector.'},
+ {a:'Flow & close', t:'Recommendation asked repeatedly', s:'verified', o:'2026-09-29', on:'B2 Maya asked again after answering; B3 Maya 17 asks', f:'2026-10-02', fr:'round 3', v:'2026-10-02', vn:'B4: Maya’s loop gone (35 turns vs 48)', d:'The ask fires once; it’s skipped after a recommendation is received.'},
+ {a:'Flow & close', t:'Time warning rarely landed', s:'fixed', o:'2026-09-27', on:'B1 · fired in 1 of 13 runs', f:'2026-09-29', fr:'b1b4d23', v:null, vn:'Not separately reported in later batches', d:'Wider warning window plus a time-up grace ask.'},
+ {a:'Flow & close', t:'Case ended without a recommendation ask', s:'fixed', o:'2026-10-02', on:'B5 · Lena ended at 12.8 min', f:'2026-10-03', fr:'af5a61b', v:null, vn:'', d:'Coverage alone can no longer open the end gate before the ask.'},
+ {a:'Flow & close', t:'Negated mention counted as a recommendation', s:'fixed', o:'2026-10-02', on:'B5 · Claire “I know I didn’t get to a recommendation”', f:'2026-10-03', fr:'3c195f0', v:null, vn:'', d:'Negations excluded from the recommendation detector.'},
+ {a:'Flow & close', t:'Interviewer supplied the recommendation', s:'fixed', o:'2026-09-29', on:'B2 Maya “the direct lever is menu prices”; B4; B6', f:'2026-10-03', fr:'b6338e1', v:null, vn:'3 hits in 886 replayed turns, all Maya', d:'The synthesis guard replaces the turn with a narrowing question. Still open: whether naming the lever in a hypothetical counts.'},
+ {a:'Flow & close', t:'Blocked wordless end sent a bare “Go on.”', s:'fixed', o:'2026-10-03', on:'B6', f:'2026-10-03', fr:'30f0baa', v:null, vn:'', d:'Now asks for the missing stage.'},
+ {a:'Flow & close', t:'Phase stuck for the whole case', s:'verified', o:'2026-07-10', on:'~Jul INTRO all case; 14 Sep both runs in STRUCTURE', f:'2026-09-14', fr:'INTRO auto-advance · f0d3d8f', v:'2026-10-05', vn:'B9 logs show phase repair firing (16×)', d:'Phase raised to what the turn visibly did.'},
+ {a:'Flow & close', t:'Recommendation asked too early', s:'decision', o:'2026-09-29', on:'B2 · Camila asked at 9:39, case ended 11:12', f:null, fr:'', v:null, vn:'', d:'Proposal: hold the ask until about T−5 min unless the candidate offers. Not adopted (v4.5 open item c).'},
+
+ // Stall & hints
+ {a:'Stall & hints', t:'Phantom stall rung from number words', s:'verified', o:'2026-09-29', on:'B2 · Yuki (“ten and a half points”)', f:'2026-10-02', fr:'v4.6 number-word normalization', v:'2026-10-02', vn:'B3: no phantom rungs (Yuki, Ines, Tobias)', d:'Also needed for voice, where speech-to-text writes numbers as words.'},
+ {a:'Stall & hints', t:'Undelivered hint counted as an assist', s:'fixed', o:'2026-09-29', on:'B2 Yuki; B3 Maya’s ladder froze (cue-only test)', f:'2026-10-02', fr:'v4.5 + round 3 hint check', v:null, vn:'B5: hint check never exercised live', d:'A rung counts only when the sent text carries it; a question-only delivery is confirmed by Haiku.'},
+ {a:'Stall & hints', t:'Imperative hint went uncounted', s:'fixed', o:'2026-10-02', on:'B5', f:'2026-10-03', fr:'post-B5 fix', v:null, vn:'', d:'Imperatives added to rung delivery.'},
+ {a:'Stall & hints', t:'Define “handing over the answer” in the synthesis cap', s:'decision', o:'2026-09-29', on:'B2 · Maya’s “the direct lever is…” logged as Level 2', f:null, fr:'', v:null, vn:'', d:'v4.5 open item (a). The synthesis guard covers the clear cases; the definition is still pending.'},
+
+ // Conduct & wellbeing
+ {a:'Conduct & wellbeing', t:'Distress missed when phrased differently', s:'verified', o:'2026-09-27', on:'B1 · Sam caught only after her phrasing was added', f:'2026-10-02', fr:'141fb68 · C5 Haiku layer', v:'2026-10-02', vn:'B3 and B4: model layer caught Leah (regex would have missed)', d:'Regex floor plus a parallel Haiku classifier that prefers false alarms.'},
+ {a:'Conduct & wellbeing', t:'Distress offer ended on a case question', s:'fixed', o:'2026-09-27', on:'Run 4ea2840a · “Shall I pull the menu-price history?”', f:'2026-09-29', fr:'141fb68', v:null, vn:'', d:'The offer is fully scripted and ends on the candidate’s choice.'},
+ {a:'Conduct & wellbeing', t:'C4 redirect dropped same-message data requests', s:'fixed', o:'2026-09-27', on:'B1 · Priya (6caca9a1)', f:'2026-09-29', fr:'13386c1', v:null, vn:'', d:'Redirect and continue: one clause, then the normal turn.'},
+ {a:'Conduct & wellbeing', t:'Reported speech triggered a conduct warning', s:'fixed', o:'2026-09-27', on:'B1', f:'2026-09-29', fr:'13386c1', v:null, vn:'', d:'Quoted, reported, and generic-you text is logged, never warned.'},
+ {a:'Conduct & wellbeing', t:'Light “I’m going to bomb every interview” fired C5 with the 988 line', s:'decision', o:'2026-10-02', on:'B3 · Ben replied “just me grumbling”', f:null, fr:'', v:null, vn:'', d:'C1 vs C5 placement pending. The regex fires before the model layer, which would have classed it as case frustration.'},
+ {a:'Conduct & wellbeing', t:'Silence check-in timing during structuring', s:'decision', o:'2026-09-29', on:'Tobias reruns', f:null, fr:'', v:null, vn:'', d:'Check-in fires at 60s, the top of the 30–60s window. Decide after the Tobias rerun.'},
+
+ // Latency
+ {a:'Latency', t:'Turn time above the 1.5s voice budget', s:'open', o:'2026-09-27', on:'B1 median 1.98s; flat at 1.8–2.0s since', f:null, fr:'streaming-turn branch (unmerged)', v:null, vn:'', d:'B9 (streaming): first spoken segment 1.75s, whole turn 2.37s. Speculative start and an acknowledgment clip are planned for M2.'},
+ {a:'Latency', t:'Declaration-first turn schema delays the first sentence', s:'open', o:'2026-10-06', on:'B10 · plan-owns-decisions, Nikhil', f:null, fr:'', v:null, vn:'', d:'First segment 1.75s → 3.27s: the model writes its move and every request before any spoken text. One run, but the cause is structural.'},
+ {a:'Latency', t:'Serial Haiku calls after the model (ask turns, hint check)', s:'open', o:'2026-10-06', on:'6 Oct audit', f:null, fr:'', v:null, vn:'', d:'Not timed separately; folded into postModelMs.'},
+
+ // Prompt hygiene
+ {a:'Prompt hygiene', t:'Contradictory instructions in the interviewer prompt', s:'open', o:'2026-10-06', on:'6 Oct audit', f:null, fr:'', v:null, vn:'', d:'“Never state a replacement figure” vs the recompute “Correct it now…”; “no handoff” vs stall Level 3 “here’s the cost data”; courteous close vs “don’t write a goodbye”; “most recent message” vs any-turn provenance.'},
+ {a:'Prompt hygiene', t:'Regeneration call sends a role:"system" message', s:'open', o:'2026-10-06', on:'6 Oct audit', f:null, fr:'', v:null, vn:'', d:'Untested; no regeneration recorded in any run. If the API rejects it, the turn errors instead of recovering.'},
+];
+
+const DAY = 864e5, T = s => Date.parse(s + 'T00:00:00Z');
+const START = T('2026-06-29'), KNEE = T('2026-09-13'), END = T('2026-10-07'), TODAY = T('2026-10-06'), KNEE_X = 14;
+const x = iso => { const t = typeof iso === 'number' ? iso : T(iso);
+  return t <= KNEE ? (t - START) / (KNEE - START) * KNEE_X : KNEE_X + (t - KNEE) / (END - KNEE) * (100 - KNEE_X); };
+const fmt = iso => iso ? new Date(T(iso)).toLocaleDateString('en-GB', {day:'numeric', month:'short', timeZone:'UTC'}) : '—';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ISSUES.forEach((i, n) => i.id = n + 1);
+
+const state = {q:'', areas:new Set()};
+try { const s = JSON.parse(localStorage.getItem('issues-filter') || '{}'); if (s.areas) state.areas = new Set(s.areas); } catch (e) {}
+const save = () => { try { localStorage.setItem('issues-filter', JSON.stringify({areas:[...state.areas]})); } catch (e) {} };
+
+const visible = () => ISSUES.filter(i => (state.areas.size === 0 || state.areas.has(i.a)) &&
+  (!state.q || [i.t, i.on, i.fr, i.d, i.vn, i.a].join(' ').toLowerCase().includes(state.q)));
+
+function renderChips() {
+  const el = document.getElementById('areaChips');
+  el.innerHTML = AREAS.map(a => `<button class="chip-btn" type="button" aria-pressed="${state.areas.has(a)}" data-area="${esc(a)}">${esc(a)}</button>`).join('');
+  el.querySelectorAll('button').forEach(b => b.onclick = () => {
+    const a = b.dataset.area; state.areas.has(a) ? state.areas.delete(a) : state.areas.add(a); save(); render();
+  });
+}
+
+function render() {
+  const list = visible();
+  renderChips();
+  document.getElementById('shown').textContent = `${list.length} of ${ISSUES.length} shown`;
+  document.getElementById('counts').innerHTML = ORDER.map(s =>
+    `<div class="count s-${s}"><b>${list.filter(i => i.s === s).length}</b><span>${STATUS[s].label}</span></div>`).join('');
+
+  document.getElementById('board').innerHTML = ORDER.map(s => {
+    const items = list.filter(i => i.s === s).sort((a, b) => T(a.o) - T(b.o));
+    return `<div class="col s-${s}"><h3>${STATUS[s].label}<small>${items.length}</small></h3><p class="def">${STATUS[s].def}</p>${
+      items.map(i => `<button class="card s-${i.s}" type="button" id="card-${i.id}" aria-expanded="false">
+        <div class="t">${esc(i.t)}</div>
+        <div class="m"><span class="area">${esc(i.a)}</span><span>seen ${fmt(i.o)}</span>${i.f ? `<span>fixed ${fmt(i.f)}</span>` : ''}${i.v ? `<span>✓ ${fmt(i.v)}</span>` : ''}</div>
+        <div class="d"><b>Seen:</b> ${esc(i.on)}<br>${i.fr ? `<b>Fix:</b> ${esc(i.fr)}<br>` : ''}${i.vn ? `<b>Verification:</b> ${esc(i.vn)}<br>` : ''}${esc(i.d)}</div>
+      </button>`).join('') || '<p class="def">None.</p>'}</div>`;
+  }).join('');
+  document.querySelectorAll('.card').forEach(c => c.onclick = () => {
+    c.classList.toggle('open'); c.setAttribute('aria-expanded', c.classList.contains('open'));
+  });
+
+  // timeline
+  const ticks = [['2026-06-29','29 Jun'],['2026-07-19','19 Jul'],['2026-09-14','14 Sep'],['2026-09-21','21 Sep'],['2026-09-27','27 Sep'],['2026-10-01','1 Oct'],['2026-10-04','4 Oct'],['2026-10-06','6 Oct']];
+  const batches = [['2026-09-27','B1'],['2026-09-29','B2'],['2026-10-02','B3–5'],['2026-10-03','B6–8'],['2026-10-05','B9'],['2026-10-06.5','B10']];
+  document.getElementById('axis').innerHTML =
+    ticks.map(([d, l]) => `<span style="left:${x(d)}%">${l}</span>`).join('') +
+    batches.map(([d, l]) => `<span class="b" style="left:${x(d.endsWith('.5') ? T(d.slice(0,10)) + DAY/2 : d)}%">${l}</span>`).join('');
+  document.getElementById('grid').innerHTML =
+    batches.map(([d]) => `<div class="vl" style="left:${x(d.endsWith('.5') ? T(d.slice(0,10)) + DAY/2 : d)}%"></div>`).join('') +
+    `<div class="vl today" style="left:${x(TODAY)}%" title="Today, 6 Oct"></div>`;
+
+  document.getElementById('rows').innerHTML = AREAS.map(a => {
+    const rows = list.filter(i => i.a === a).sort((p, q) => T(p.o) - T(q.o));
+    if (!rows.length) return '';
+    return `<div class="tl-group">${esc(a)}</div>` + rows.map(i => {
+      const x0 = x(i.o), x1 = i.f ? x(i.f) : x(TODAY + DAY * 0.9);
+      const w = Math.max(x1 - x0, 0.6);
+      const tip = `${i.t} — seen ${fmt(i.o)}${i.f ? ', fixed ' + fmt(i.f) : ', not fixed'}${i.v ? ', verified ' + fmt(i.v) : ''} (${STATUS[i.s].label})`;
+      return `<div class="tl-row s-${i.s}" data-id="${i.id}" title="${esc(tip)}" role="button" tabindex="0">
+        <div class="lab"><span class="sdot"></span>${esc(i.t)}</div>
+        <div class="track">
+          <div class="start" style="left:${x0}%"></div>
+          <div class="bar${i.f ? '' : ' unfixed'}" style="left:${x0}%;width:${w}%"></div>
+          ${i.v ? `<div class="pt" style="left:${x(i.v) + (i.v === i.f ? 0.5 : 0)}%"></div>` : ''}
+        </div></div>`;
+    }).join('');
+  }).join('') || '<p class="note" style="padding:12px 0">No issues match.</p>';
+  document.querySelectorAll('.tl-row').forEach(r => {
+    const go = () => { const c = document.getElementById('card-' + r.dataset.id); if (!c) return;
+      c.classList.add('open'); c.setAttribute('aria-expanded', 'true'); c.scrollIntoView({block:'center'});
+      c.classList.remove('flash'); void c.offsetWidth; c.classList.add('flash'); };
+    r.onclick = go; r.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } };
+  });
+
+  document.getElementById('tbody').innerHTML = [...list].sort((p, q) => ORDER.indexOf(p.s) - ORDER.indexOf(q.s) || T(p.o) - T(q.o)).map(i =>
+    `<tr><td class="n">${i.id}</td><td>${esc(i.t)}<div class="note">${esc(i.on)}</div></td><td>${esc(i.a)}</td><td><span class="pill s-${i.s}">${STATUS[i.s].label}</span></td><td class="n">${fmt(i.o)}</td><td class="n">${i.f ? fmt(i.f) + `<div class="note">${esc(i.fr)}</div>` : (i.fr ? `<span class="note">${esc(i.fr)}</span>` : '—')}</td><td class="n">${i.v ? fmt(i.v) : '—'}</td></tr>`).join('');
+}
+
+document.getElementById('q').addEventListener('input', e => { state.q = e.target.value.trim().toLowerCase(); render(); });
+render();
+</script>
+</body>
+</html>
