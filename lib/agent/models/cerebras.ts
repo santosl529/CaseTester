@@ -226,7 +226,6 @@ export class CerebrasInterviewerModel implements InterviewerModel {
               if (unknown.length > 0 && (ctx.canRegenerate?.() ?? true)) {
                 abort.abort();
                 console.warn('[interviewer-model] unknown ids declared:', JSON.stringify(unknown));
-                ctx.onRawOutput?.({ attempt: which, text: parser.text });
                 return { turn: parseTurn(parser.text), refused: false, unknown };
               }
             }
@@ -235,6 +234,8 @@ export class CerebrasInterviewerModel implements InterviewerModel {
         }
       }
     } finally {
+      // Once per attempt, also when the consumer closes the stream early (guard B).
+      ctx.onRawOutput?.({ attempt: which, text: parser.text });
       reader.releaseLock();
       if (budget) {
         const cachedTokens = usage?.prompt_tokens_details?.cached_tokens ?? 0;
@@ -256,7 +257,6 @@ export class CerebrasInterviewerModel implements InterviewerModel {
       ...(usage?.completion_tokens_details?.reasoning_tokens !== undefined ? { reasoningTokens: usage.completion_tokens_details.reasoning_tokens } : {}),
     });
     console.log('[interviewer-model] raw response:', parser.text);
-    ctx.onRawOutput?.({ attempt: which, text: parser.text });
     return { turn: parseTurn(parser.text), refused: false, unknown };
   }
 }

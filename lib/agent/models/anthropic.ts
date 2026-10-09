@@ -101,40 +101,42 @@ export class AnthropicInterviewerModel implements InterviewerModel {
     const stream = this.client.beta.messages.stream(params as never);
     const parser = new TurnStreamParser();
     let unknown: string[] = [];
-    for await (const ev of stream as AsyncIterable<{ type: string; delta?: { type: string; text?: string } }>) {
-      if (ev.type !== 'content_block_delta' || ev.delta?.type !== 'text_delta') continue;
-      ctx.onMark?.(`${markPrefix}model_first_token`);
-      for (const p of parser.push(ev.delta.text ?? '')) {
-        if (p.type === 'sentence') { yield p; continue; }
-        if (p.key === 'requests' && ctx.resolveId) {
-          unknown = unknownIds(toRequests(p.value), ctx.resolveId);
-          if (unknown.length > 0 && (ctx.canRegenerate?.() ?? true)) {
-            (stream as unknown as { abort?: () => void }).abort?.();
-            console.warn('[interviewer-model] unknown ids declared:', JSON.stringify(unknown));
-            ctx.onRawOutput?.({ attempt: which, text: parser.text });
-            return { turn: parseTurn(parser.text), refused: false, unknown };
+    try {
+      for await (const ev of stream as AsyncIterable<{ type: string; delta?: { type: string; text?: string } }>) {
+        if (ev.type !== 'content_block_delta' || ev.delta?.type !== 'text_delta') continue;
+        ctx.onMark?.(`${markPrefix}model_first_token`);
+        for (const p of parser.push(ev.delta.text ?? '')) {
+          if (p.type === 'sentence') { yield p; continue; }
+          if (p.key === 'requests' && ctx.resolveId) {
+            unknown = unknownIds(toRequests(p.value), ctx.resolveId);
+            if (unknown.length > 0 && (ctx.canRegenerate?.() ?? true)) {
+              (stream as unknown as { abort?: () => void }).abort?.();
+              console.warn('[interviewer-model] unknown ids declared:', JSON.stringify(unknown));
+              return { turn: parseTurn(parser.text), refused: false, unknown };
+            }
           }
+          if (TURN_KEYS.has(p.key)) yield { type: 'field', key: p.key as 'move', value: p.value };
         }
-        if (TURN_KEYS.has(p.key)) yield { type: 'field', key: p.key as 'move', value: p.value };
       }
-    }
-    const r = await (stream as unknown as { finalMessage(): Promise<Anthropic.Beta.BetaMessage> }).finalMessage();
-    ctx.onUsage?.({
-      component: 'interviewer',
-      model: this.modelId,
-      inputTokens: r.usage.input_tokens,
-      outputTokens: r.usage.output_tokens,
-      cacheReadTokens: r.usage.cache_read_input_tokens ?? 0,
-      cacheWriteTokens: r.usage.cache_creation_input_tokens ?? 0,
-    });
-    console.log('[interviewer-model] raw response:', parser.text);
-    if (r.stop_reason === 'refusal') {
-      console.warn('[interviewer-model] refusal:', JSON.stringify(r.stop_details));
+      const r = await (stream as unknown as { finalMessage(): Promise<Anthropic.Beta.BetaMessage> }).finalMessage();
+      ctx.onUsage?.({
+        component: 'interviewer',
+        model: this.modelId,
+        inputTokens: r.usage.input_tokens,
+        outputTokens: r.usage.output_tokens,
+        cacheReadTokens: r.usage.cache_read_input_tokens ?? 0,
+        cacheWriteTokens: r.usage.cache_creation_input_tokens ?? 0,
+      });
+      console.log('[interviewer-model] raw response:', parser.text);
+      if (r.stop_reason === 'refusal') {
+        console.warn('[interviewer-model] refusal:', JSON.stringify(r.stop_details));
+        return { turn: null, refused: true, unknown: [] };
+      }
+      return { turn: parseTurn(parser.text), refused: false, unknown };
+    } finally {
+      // Once per attempt, also when the consumer closes the stream early (guard B).
       ctx.onRawOutput?.({ attempt: which, text: parser.text });
-      return { turn: null, refused: true, unknown: [] };
     }
-    ctx.onRawOutput?.({ attempt: which, text: parser.text });
-    return { turn: parseTurn(parser.text), refused: false, unknown };
   }
 }
 

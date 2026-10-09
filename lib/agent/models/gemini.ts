@@ -118,7 +118,6 @@ export class GeminiInterviewerModel implements InterviewerModel {
                 if (unknown.length > 0 && (ctx.canRegenerate?.() ?? true)) {
                   abort.abort();
                   console.warn('[interviewer-model] unknown ids declared:', JSON.stringify(unknown));
-                  ctx.onRawOutput?.({ attempt: which, text: parser.text });
                   return { turn: parseTurn(parser.text), refused: false, unknown };
                 }
               }
@@ -128,6 +127,8 @@ export class GeminiInterviewerModel implements InterviewerModel {
         }
       }
     } finally {
+      // Once per attempt, also when the consumer closes the stream early (guard B).
+      ctx.onRawOutput?.({ attempt: which, text: parser.text });
       reader.releaseLock();
     }
     const cached = usage?.cachedContentTokenCount ?? 0;
@@ -140,7 +141,6 @@ export class GeminiInterviewerModel implements InterviewerModel {
       cacheWriteTokens: 0,
     });
     console.log('[interviewer-model] raw response:', parser.text);
-    ctx.onRawOutput?.({ attempt: which, text: parser.text });
     return { turn: parseTurn(parser.text), refused: false, unknown };
   }
 }

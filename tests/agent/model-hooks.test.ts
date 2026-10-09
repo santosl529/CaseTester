@@ -54,4 +54,27 @@ describe('model-layer request / raw-output hooks', () => {
     }));
     expect(reqs).toEqual(['first', 'guard']);
   });
+
+  it('Cerebras: onRawOutput fires exactly once per attempt on a normal turn', async () => {
+    const outs: { attempt: string; text: string }[] = [];
+    const m = new CerebrasInterviewerModel('qwen-3.8-27b', 'none', sse([turnJson()]), new RateLimiter(100));
+    await drain(m.streamTurn(ctx({ onRawOutput: r => outs.push(r) })));
+    expect(outs.map(o => o.attempt)).toEqual(['first']);
+    expect(outs[0].text).toBe(turnJson());
+  });
+
+  it('Cerebras: guard B closing the first stream early still reports its raw output', async () => {
+    const reqs: string[] = [];
+    const outs: { attempt: string; text: string }[] = [];
+    const m = new CerebrasInterviewerModel('qwen-3.8-27b', 'none', sse([turnJson(), turnJson({ requests: [{ what: 'costs', item_ids: [], explicit: true, respond: 'release' }] })]), new RateLimiter(100));
+    await drain(streamInterviewerTurn({
+      model: m, candidateText: 'Can I get the costs?', history: [], phase: 'ANALYSIS', requireRequests: true,
+      promptCtx: { casePrompt: 'p', currentPhase: 'ANALYSIS', revealedValues: {}, unrevealedItems: [], exhibits: [], advancedLastTurn: false, elapsedMs: 0, totalMs: 1, phaseBudgetsMs: {} } as never,
+      onRequest: r => reqs.push(r.attempt),
+      onRawOutput: r => outs.push(r),
+    }));
+    expect(reqs).toEqual(['first', 'guard']);
+    expect(outs.map(o => o.attempt)).toEqual(['first', 'guard']);
+    expect(outs[0].text.length).toBeGreaterThan(0);
+  });
 });
