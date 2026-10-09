@@ -37,6 +37,21 @@ describe('addressedAskSentences', () => {
     "I can't commit without a fuller breakdown of COGS.",
   ])('not an addressed ask, late in the case: %s', t => expect(asks(t)).toEqual([]));
 
+  it.each([
+    'Do you know what worries me?',
+    'Do you know why that is?',
+    'Do you know how that plays out?',
+    'Do we know if that holds?',
+  ])('a rhetorical "do you know …" is not an ask: %s', t => expect(asks(t)).toEqual([]));
+
+  it.each([
+    'Do we know how many of the 200 stores opened in the last two years?',
+    'Do we know how much the bean cost rose?',
+    'Do we know what the store count was two years ago?',
+    'Do we know the store count by year.',
+    'Do you know our revenue by region.',
+  ])('"do we know" + a quantity or a data noun is an ask: %s', t => expect(asks(t)).toEqual([t]));
+
   it("the \"I'd want/need\" cue counts up to EXHIBIT, or late when the sentence is a question", () => {
     const t = "I'd want the COGS split by year.";
     expect(asks(t, 'ANALYSIS')).toEqual([t]);
@@ -85,8 +100,16 @@ describe('matchAskDetections', () => {
     expect(matchAskDetections([], [d('Store count')])).toEqual({ kept: [], dropped: [d('Store count')] });
   });
 
-  it('one asking sentence and one detection match whatever the words', () => {
+  it('one asking sentence with an addressed-ask cue and one detection match whatever the words', () => {
     expect(matchAskDetections(['Could you share that?'], [d('Number of stores')]).kept).toEqual([d('Number of stores')]);
+  });
+
+  // Fix round 2: a lone data question (B) is often rhetorical; it covers only
+  // what it names.
+  it('a lone data question and one detection need a content word in common', () => {
+    expect(matchAskDetections(["So what's driving the margin decline?"], [d('breakdown of COGS components')]).kept).toEqual([]);
+    expect(matchAskDetections(['Does that make sense given the numbers?'], [d('Waste audit')]).kept).toEqual([]);
+    expect(matchAskDetections(['What was the store count two years ago?'], [d('Number of stores')]).kept).toEqual([d('Number of stores')]);
   });
 
   it('otherwise a detection is kept when it shares a content word with an asking sentence', () => {

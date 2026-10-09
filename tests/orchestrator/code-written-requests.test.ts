@@ -164,6 +164,25 @@ describe('corpus final messages at the close', () => {
   });
 });
 
+// Fix round 2 (re-review probes): a rhetorical question next to a next step
+// must not answer the next step at the goodbye.
+describe('rhetorical questions do not answer a next step at the close', () => {
+  it.each([
+    ["So what's driving the margin decline? Costs. I can't commit without a fuller breakdown of COGS.", det('breakdown of COGS components', ['bean_share_of_cogs', 'non_bean_input_change'])],
+    ["I'd want a waste audit before committing. Does that make sense given the numbers?", det('Waste audit', [])],
+    ['Do you know what worries me? Volume loss if the pilot shows elasticity above the threshold.', det('Pilot elasticity results', [])],
+  ])('%s', async (text, d) => {
+    atClose();
+    detected = [d];
+    const r = await runTurn('s1', text);
+    expect(turnKind()).toBe('close');
+    expect(r.interviewerText).not.toMatch(DATA_LINE);
+    expect(revealed()).toEqual([]);
+    expect(requestRows()).toEqual([]);
+    expect((check('code_written_requests')?.detail as Row).dropped).toEqual([d.what]);
+  });
+});
+
 describe('real asks in a final message are answered at the close', () => {
   it.each([
     ['Do we know how many of the 200 stores opened in the last two years?', 'Store openings in the last two years'], // Priya

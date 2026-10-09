@@ -38,7 +38,6 @@ export function requestSentences(text: string): string[] {
 const ADDRESSED_CUES: RegExp[] = [
   ...CUES.filter(([label]) => label !== "I'd want the").map(([, re]) => re),
   /\b(could|can|would|will)\s+you\s+(share|give|send|show|tell|pull|provide)\b/i,
-  /\bdo\s+(we|you)\s+know\b/i,
   /\bany\s+(data|numbers|figures|information)\s+on\b/i,
 ];
 const WANT_CUE = CUES.find(([label]) => label === "I'd want the")![1];
@@ -50,10 +49,27 @@ const ASK_DATA_NOUN = /\b(stores?|counts?)\b/i;
 // A list that continues an ask: "Could I get: one, …. Two, …." or bullets.
 const LIST_ITEM = /^(?:(?:one|first(?:ly)?|two|three|four|five|six|seven|eight|nine|ten|second(?:ly)?|third(?:ly)?|fourth|fifth|finally|lastly)\b|\d+\)\s|[-•*]\s)/i;
 
+// "Do we know how many stores…" asks; "Do you know what worries me?" is
+// rhetorical (fix round 2). It counts only before a quantity ("how many",
+// "how much") or a case figure ("the / our / what the … store count").
+const DO_KNOW = /\bdo\s+(?:we|you)\s+know\s+(.*)$/i;
+const isDataNoun = (t: string) => DATA_NOUN.test(t) || ASK_DATA_NOUN.test(t);
+function doKnowAsk(sentence: string): boolean {
+  const rest = DO_KNOW.exec(sentence)?.[1];
+  if (rest === undefined) return false;
+  if (/^how\s+(many|much)\b/i.test(rest)) return true;
+  return /^(?:what\s+)?(?:the|our|their|its|any)\b/i.test(rest) && isDataNoun(rest);
+}
+
+// An (A) cue: the sentence asks the interviewer by its phrasing.
+function cueAsk(sentence: string): boolean {
+  return ADDRESSED_CUES.some(re => re.test(sentence)) || doKnowAsk(sentence);
+}
+
 function asksAddressed(sentence: string, phase: Phase): boolean {
-  if (ADDRESSED_CUES.some(re => re.test(sentence))) return true;
+  if (cueAsk(sentence)) return true;
   if (WANT_CUE.test(sentence) && (WANT_ASK_PHASES.includes(phase) || sentence.endsWith('?'))) return true;
-  return isQuestionSentence(sentence) && (DATA_NOUN.test(sentence) || ASK_DATA_NOUN.test(sentence));
+  return isQuestionSentence(sentence) && isDataNoun(sentence);
 }
 
 // The sentences of the message that ask the interviewer for data — by an
@@ -80,11 +96,16 @@ const stem = (w: string) => { const s = w.replace(/(?:ing|ed|es|s|e)$/, ''); ret
 const contentWords = (t: string) => new Set((t.toLowerCase().match(/[a-z]+/g) ?? []).filter(w => w.length >= 3 && !GENERIC.has(w)).map(stem));
 
 // The classifier's detections an asking sentence covers (kept) and the rest
-// (dropped). One asking sentence and one detection are a match; otherwise a
-// detection needs a content word in common with an asking sentence.
+// (dropped). One asking sentence with an addressed-ask cue ("Could you share
+// that?") and one detection are a match; otherwise a detection needs a content
+// word in common with an asking sentence — a lone data question is often
+// rhetorical ("So what's driving the margin decline?", fix round 2) and covers
+// only what it names.
 export function matchAskDetections<T extends { what: string }>(sentences: string[], detections: T[]): { kept: T[]; dropped: T[] } {
   if (sentences.length === 0) return { kept: [], dropped: [...detections] };
-  if (sentences.length === 1 && detections.length === 1) return { kept: [...detections], dropped: [] };
+  if (sentences.length === 1 && detections.length === 1 && (cueAsk(sentences[0]) || WANT_CUE.test(sentences[0]))) {
+    return { kept: [...detections], dropped: [] };
+  }
   const asked = contentWords(sentences.join(' '));
   const kept: T[] = [];
   const dropped: T[] = [];
