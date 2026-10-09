@@ -82,6 +82,8 @@ export class GeminiInterviewerModel implements InterviewerModel {
         thinkingConfig: { thinkingLevel: this.thinkingLevel },
       },
     };
+    const which = markPrefix ? 'retry' as const : 'first' as const;
+    ctx.onRequest?.({ attempt: which, model: this.modelId, body });
     ctx.onMark?.(`${markPrefix}model_request`);
     const res = await this.fetchImpl(`https://generativelanguage.googleapis.com/v1beta/models/${this.modelId}:streamGenerateContent?alt=sse`, {
       method: 'POST',
@@ -116,6 +118,7 @@ export class GeminiInterviewerModel implements InterviewerModel {
                 if (unknown.length > 0 && (ctx.canRegenerate?.() ?? true)) {
                   abort.abort();
                   console.warn('[interviewer-model] unknown ids declared:', JSON.stringify(unknown));
+                  ctx.onRawOutput?.({ attempt: which, text: parser.text });
                   return { turn: parseTurn(parser.text), refused: false, unknown };
                 }
               }
@@ -137,6 +140,7 @@ export class GeminiInterviewerModel implements InterviewerModel {
       cacheWriteTokens: 0,
     });
     console.log('[interviewer-model] raw response:', parser.text);
+    ctx.onRawOutput?.({ attempt: which, text: parser.text });
     return { turn: parseTurn(parser.text), refused: false, unknown };
   }
 }

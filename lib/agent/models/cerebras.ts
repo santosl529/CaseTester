@@ -195,7 +195,10 @@ export class CerebrasInterviewerModel implements InterviewerModel {
     const usageModel = `${this.endpoint.label}/${this.modelId}`;
     budget?.check(usageModel);
     const abort = new AbortController();
-    const res = await this.post(buildBody(this.modelId, messages, this.reasoningEffort, this.endpoint.extraBody), abort.signal, ctx, markPrefix);
+    const which = markPrefix ? 'retry' as const : 'first' as const;
+    const body = buildBody(this.modelId, messages, this.reasoningEffort, this.endpoint.extraBody);
+    ctx.onRequest?.({ attempt: which, model: this.modelId, body });
+    const res = await this.post(body, abort.signal, ctx, markPrefix);
     if (!res.ok || !res.body) {
       throw new Error(`${this.endpoint.name} ${res.status}: ${(await res.text()).slice(0, 300)}`);
     }
@@ -223,6 +226,7 @@ export class CerebrasInterviewerModel implements InterviewerModel {
               if (unknown.length > 0 && (ctx.canRegenerate?.() ?? true)) {
                 abort.abort();
                 console.warn('[interviewer-model] unknown ids declared:', JSON.stringify(unknown));
+                ctx.onRawOutput?.({ attempt: which, text: parser.text });
                 return { turn: parseTurn(parser.text), refused: false, unknown };
               }
             }
@@ -252,6 +256,7 @@ export class CerebrasInterviewerModel implements InterviewerModel {
       ...(usage?.completion_tokens_details?.reasoning_tokens !== undefined ? { reasoningTokens: usage.completion_tokens_details.reasoning_tokens } : {}),
     });
     console.log('[interviewer-model] raw response:', parser.text);
+    ctx.onRawOutput?.({ attempt: which, text: parser.text });
     return { turn: parseTurn(parser.text), refused: false, unknown };
   }
 }

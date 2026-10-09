@@ -87,15 +87,18 @@ export class AnthropicInterviewerModel implements InterviewerModel {
     // server-side fallback, a declined request re-runs on another model.
     ctx.onMark?.(`${markPrefix}model_request`);
     const { thinking = 'between_tools', effort, fallbacks = true } = this.options;
-    const stream = this.client.beta.messages.stream({
+    const params = {
       model: this.modelId,
       max_tokens: 1024,
       system,
       messages,
-      output_config: { format: { type: 'json_schema', schema: TURN_SCHEMA }, ...(effort ? { effort } : {}) },
+      output_config: { format: { type: 'json_schema' as const, schema: TURN_SCHEMA }, ...(effort ? { effort } : {}) },
       thinking: { type: thinking },
       ...(fallbacks ? { betas: [FALLBACK_BETA], fallbacks: FALLBACKS } : {}),
-    });
+    };
+    const which = markPrefix ? 'retry' as const : 'first' as const;
+    ctx.onRequest?.({ attempt: which, model: this.modelId, body: params });
+    const stream = this.client.beta.messages.stream(params as never);
     const parser = new TurnStreamParser();
     let unknown: string[] = [];
     for await (const ev of stream as AsyncIterable<{ type: string; delta?: { type: string; text?: string } }>) {
@@ -108,6 +111,7 @@ export class AnthropicInterviewerModel implements InterviewerModel {
           if (unknown.length > 0 && (ctx.canRegenerate?.() ?? true)) {
             (stream as unknown as { abort?: () => void }).abort?.();
             console.warn('[interviewer-model] unknown ids declared:', JSON.stringify(unknown));
+            ctx.onRawOutput?.({ attempt: which, text: parser.text });
             return { turn: parseTurn(parser.text), refused: false, unknown };
           }
         }
@@ -126,8 +130,10 @@ export class AnthropicInterviewerModel implements InterviewerModel {
     console.log('[interviewer-model] raw response:', parser.text);
     if (r.stop_reason === 'refusal') {
       console.warn('[interviewer-model] refusal:', JSON.stringify(r.stop_details));
+      ctx.onRawOutput?.({ attempt: which, text: parser.text });
       return { turn: null, refused: true, unknown: [] };
     }
+    ctx.onRawOutput?.({ attempt: which, text: parser.text });
     return { turn: parseTurn(parser.text), refused: false, unknown };
   }
 }

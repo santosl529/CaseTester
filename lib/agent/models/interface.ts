@@ -34,6 +34,10 @@ export type TurnContext = {
   // Timing marks from inside the model call (request sent, first token, a
   // regeneration) — lib/orchestrator/turn-timer.ts.
   onMark?: (name: string) => void;
+  // Evaluation recorder (spec 2026-10-09 §2.1): the exact request body of
+  // every API call and the raw text it returned. Production passes none.
+  onRequest?: (r: { attempt: 'first' | 'retry'; model: string; body: unknown }) => void;
+  onRawOutput?: (r: { attempt: 'first' | 'retry'; text: string }) => void;
 };
 
 // The streamed turn: each field as it closes (say, then move, requests,

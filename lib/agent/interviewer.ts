@@ -5,6 +5,7 @@ import type { InterviewerModel, ModelMessage, TurnContext, TurnEvent } from './m
 import type { ModelTurn } from './models/turn-schema';
 import type { OnUsage } from '@/lib/llm-usage';
 import { collectTurn, eventsFromTurn } from './models/turn-events';
+import type { AttemptKind } from '@/lib/orchestrator/turn-record';
 import { exactResolver } from '@/lib/orchestrator/data-decisions';
 
 export type InterviewerTurnInput = {
@@ -25,6 +26,9 @@ export type InterviewerTurnInput = {
   // If the model's requests close empty, the turn is written once more with
   // REQUEST_GUARD_NOTE — the caller holds "say" so nothing is delivered yet.
   requireRequests?: boolean;
+  // Evaluation recorder: every API request and raw reply, guard-B ones tagged.
+  onRequest?: (r: { attempt: AttemptKind; model: string; body: unknown }) => void;
+  onRawOutput?: (r: { attempt: AttemptKind; text: string }) => void;
   onRequestGuard?: (r: { regenerated: boolean }) => void;
 };
 
@@ -65,6 +69,8 @@ export async function* streamInterviewerTurn(input: InterviewerTurnInput): Async
     onValidation: input.onValidation,
     canRegenerate: input.canRegenerate,
     onMark: input.onMark,
+    onRequest: input.onRequest,
+    onRawOutput: input.onRawOutput,
   };
   console.log('[interviewer] phase:', input.phase);
   const run = (c: TurnContext) => (input.model.streamTurn ? input.model.streamTurn(c) : eventsFromTurn(input.model.runTurn(c)));
@@ -85,5 +91,11 @@ export async function* streamInterviewerTurn(input: InterviewerTurnInput): Async
   console.warn('[interviewer] request guard: explicit ask, no request declared — regenerating');
   input.onMark?.('request_guard_regenerate');
   yield { type: 'restart', reason: REQUEST_GUARD_NOTE };
-  yield* run({ ...ctx, turnSystem: [ctx.turnSystem, REQUEST_GUARD_NOTE].filter(Boolean).join('\n\n') });
+  const guardTag = <T extends { attempt: 'first' | 'retry' }>(r: T) => ({ ...r, attempt: r.attempt === 'first' ? 'guard' as const : 'guard_retry' as const });
+  yield* run({
+    ...ctx,
+    turnSystem: [ctx.turnSystem, REQUEST_GUARD_NOTE].filter(Boolean).join('\n\n'),
+    onRequest: input.onRequest ? r => input.onRequest!(guardTag(r)) : undefined,
+    onRawOutput: input.onRawOutput ? r => input.onRawOutput!(guardTag(r)) : undefined,
+  });
 }
