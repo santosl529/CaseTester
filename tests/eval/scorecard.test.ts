@@ -114,7 +114,23 @@ describe('scorecard', () => {
     expect(row.stuck).toBe(false);
     expect(row.loops.maxSameQuestion).toBe(0);
     expect(row.codeFlags.filter(f => f.kind === 'loop')).toEqual([]);
-    expect(row.codeFlags.filter(f => f.kind === 'repeated_short_probe')).toEqual([{ turnIndex: 3, kind: 'repeated_short_probe', detail: 'short question asked 3 times: "What does that tell you?"' }]);
+    expect(row.codeFlags.filter(f => f.kind === 'repeated_short_probe')).toEqual([{ turnIndex: 3, kind: 'repeated_short_probe', detail: 'short probe asked 3 times (under 6 words, so not a loop): "What does that tell you?"' }]);
+  });
+
+  it('a repeated short probe counts only real questions from the model, never silence check-ins (fix round 1)', () => {
+    expect(repeatedShortProbes(['Go on.', 'Go on.', 'Go on.'])).toEqual([]);
+    const transcript = (line: string) => [{ turnIndex: 0, role: 'interviewer', text: 'Your client…' },
+      ...[1, 2, 3].flatMap(k => [{ turnIndex: 2 * k - 1, role: 'candidate', text: 'c' }, { turnIndex: 2 * k, role: 'interviewer', text: line }])];
+    const kinds = (row: ScorecardRow) => row.codeFlags.map(f => f.kind);
+    expect(kinds(scorecardRow({ runId: 'r', run: run({ turns: transcript('Still with me? Take your time.') }), turnFile: null }))).not.toContain('repeated_short_probe');
+    expect(kinds(scorecardRow({ runId: 'r', run: run({ turns: transcript('Go on.') }), turnFile: null }))).not.toContain('repeated_short_probe');
+    expect(kinds(scorecardRow({ runId: 'r', run: run({ turns: transcript('Good. What does that tell you?') }), turnFile: null }))).toContain('repeated_short_probe');
+    // Code-written turns (close, grace ask, time warning, rung 1, scripted) are not the model's probes.
+    const st = turn(0).stateBefore;
+    const recs = [1, 2, 3].map(i => turn(i, { savedLine: 'What does that tell you?', stateBefore: { ...st, kind: i === 2 ? 'scripted' : 'model' } }));
+    expect(kinds(scorecardRow({ runId: 'r', run: run(), turnFile: { header: header(), turns: recs, end: end('scored') } }))).not.toContain('repeated_short_probe');
+    const recAsk = [1, 2, 3].map(i => turn(i, { savedLine: 'What does that tell you?', stateBefore: { ...st, kind: i === 2 ? 'rec_ask' : 'model' } }));
+    expect(kinds(scorecardRow({ runId: 'r', run: run(), turnFile: { header: header(), turns: recAsk, end: end('scored') } }))).toContain('repeated_short_probe');
   });
 
   it('a repeated short probe is flagged from the transcript when there is no turn file', () => {

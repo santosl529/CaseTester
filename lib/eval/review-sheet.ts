@@ -25,7 +25,7 @@ export function proposedForReview(faults: FaultRecord[]) {
 function faultBlock(f: FaultRecord): string[] {
   return [
     `### ${f.id}`,
-    `run ${f.runId} · turn ${f.turnIndex} · ${f.category} · attribution ${f.attribution} · recovered ${f.recovered}`, '',
+    `run ${f.runId} · turn ${f.turnIndex} (interviewer reply) · ${f.category} · attribution ${f.attribution} · recovered ${f.recovered}`, '',
     ...f.context.map(c => `> ${collapseNewlines(c)}`), `> [candidate] ${collapseNewlines(f.candidateText)}`, `> [interviewer, delivered] ${collapseNewlines(f.delivered)}`, '',
     `- quote: "${collapseNewlines(f.quote)}"`, `- expected: ${collapseNewlines(f.expected)}`, `- rule: ${f.rule}`,
     ...(f.codeChanges.length ? [`- code: ${f.codeChanges.join('; ')}`] : []),
@@ -36,9 +36,10 @@ function faultBlock(f: FaultRecord): string[] {
 
 // Every code flag (loop, repeated_short_probe, question_withheld, …) is a
 // review candidate (follow-up 9 Oct); flagged runs are already left out of
-// the random full reads.
+// the random full reads. A flag's turnIndex is the candidate turn; the sheet
+// shows the interviewer reply (+1), the number the fault blocks and ids use.
 export function codeFlagLines(rows: Pick<ScorecardRow, 'runId' | 'codeFlags'>[]): string[] {
-  return rows.flatMap(r => r.codeFlags.map(f => `- ${f.kind} · run ${r.runId} · turn ${f.turnIndex ?? '—'} · ${collapseNewlines(f.detail)}`));
+  return rows.flatMap(r => r.codeFlags.map(f => `- ${f.kind} · run ${r.runId} · turn ${f.turnIndex === null ? '—' : `${f.turnIndex + 1} (interviewer reply)`} · ${collapseNewlines(f.detail)}`));
 }
 
 export function renderReviewSheet(faults: FaultRecord[], fullReads: string[], codeFlagged: Pick<ScorecardRow, 'runId' | 'codeFlags'>[] = []): string {
@@ -53,7 +54,7 @@ export function renderReviewSheet(faults: FaultRecord[], fullReads: string[], co
     `## Proposed moderate faults (${moderate.length})`, '',
     ...moderate.flatMap(faultBlock),
     `## Code-flagged runs to check (${flagLines.length} flags in ${flaggedRuns} runs — read around each turn; note any real fault as a human-found entry below)`, '',
-    'turn = the candidate\'s line; the interviewer\'s reply is turn + 1.', '',
+    'turn N (interviewer reply) = the interviewer\'s line in the transcript, the number fault ids use; — = the whole run.', '',
     ...flagLines, '',
     `## Read in full (${fullReads.length} runs with no flags — note any fault the pre-screen missed as a new section like below)`, '',
     ...fullReads.map(r => `- ${r}`), '',

@@ -59,12 +59,28 @@ vi.mock('@/lib/orchestrator/pressure-test', async orig => ({
 }));
 
 const { runTurn } = await import('@/lib/orchestrator/session-runner');
-import type { TurnRecord } from '@/lib/orchestrator/turn-record';
+import { TurnRecorder, type TurnRecord } from '@/lib/orchestrator/turn-record';
 
 const T = (over: Partial<ModelTurn> = {}): ModelTurn => ({ move: 'analysis', requests: [], exhibit: null, rescueItem: null, say: '', question: 'Go on.', ...over });
 beforeEach(() => { modelQueue.length = 0; unclonableBody = false; });
 
 describe('runTurn onTurnRecord', () => {
+  it('a recorder error whose message itself throws still does not alter the turn (fix round 1)', async () => {
+    resetStore('ANALYSIS', { pressureTest: { state: 'satisfied', reasks: 0, gatedTurns: 0 } });
+    modelQueue.push(T({ say: 'Got it.', question: 'Which line moved most?' }));
+    const a = await runTurn('s1', 'I think costs drove it.', {});
+    class Hostile extends Error { override get message(): string { throw new Error('no message'); } }
+    const spy = vi.spyOn(TurnRecorder.prototype, 'output').mockImplementation(() => { throw new Hostile(); });
+    try {
+      resetStore('ANALYSIS', { pressureTest: { state: 'satisfied', reasks: 0, gatedTurns: 0 } });
+      modelQueue.push(T({ say: 'Got it.', question: 'Which line moved most?' }));
+      const records: TurnRecord[] = [];
+      const b = await runTurn('s1', 'I think costs drove it.', { onTurnRecord: rec => records.push(rec) });
+      expect(b.interviewerText).toBe(a.interviewerText);
+      expect(records).toHaveLength(1);
+    } finally { spy.mockRestore(); }
+  });
+
   it('records state before, the exact request, raw output, checks and the delivered line', async () => {
     resetStore('ANALYSIS', { pressureTest: { state: 'satisfied', reasks: 0, gatedTurns: 0 } });
     modelQueue.push(T({ say: 'Got it.', question: 'Which line moved most?' }));

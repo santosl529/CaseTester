@@ -5,6 +5,7 @@ import type { TurnRecord } from '@/lib/orchestrator/turn-record';
 import type { TurnFileHeader, TurnFileEnd } from './turn-file';
 import { stageAdministration } from '@/lib/orchestrator/spoken-close';
 import { isBareAcknowledgment } from '@/lib/orchestrator/stream-turn';
+import { isSilenceLine } from '@/lib/orchestrator/silence';
 import { costOf, isPriced } from '@/lib/llm-pricing';
 
 export const DIMENSIONS = ['structure', 'quantitative', 'dataExhibit', 'judgment', 'creativity', 'communication', 'synthesis', 'pushback'] as const;
@@ -64,9 +65,11 @@ export function maxSameQuestion(questions: string[]): number {
 
 // A short question the loop rule ignores, asked 3+ times (same Jaccard ≥ 0.8
 // match, among the short ones only): a review candidate, never "stuck"
-// (follow-up 9 Oct). lastIndex is the position in `questions` of its last ask.
+// (follow-up 9 Oct). Only real questions (ending "?") count — "Go on." is
+// not a probe. lastIndex is the position in `questions` of its last ask.
 export function repeatedShortProbes(questions: string[]): { question: string; count: number; lastIndex: number }[] {
-  const short = questions.map((q, i) => ({ q: q.trim(), i, w: words(q) })).filter(x => x.w.size > 0 && tokenCount(x.q) < MIN_LOOP_TOKENS);
+  const short = questions.map((q, i) => ({ q: q.trim(), i, w: words(q) }))
+    .filter(x => x.q.endsWith('?') && x.w.size > 0 && tokenCount(x.q) < MIN_LOOP_TOKENS);
   const used = new Set<number>();
   const out: { question: string; count: number; lastIndex: number }[] = [];
   for (const s of short) {
@@ -126,14 +129,17 @@ export function scorecardRow(p: { runId: string; run: RunRecord; turnFile: { hea
     flags.push({ turnIndex: null, kind: 'technical_failure', detail: 'turn file has no end line — the run died' });
   }
 
-  const asked = records
-    ? records.map(r => ({ line: r.savedLine, turnIndex: r.turnIndex }))
-    : run.turns.filter(t => t.role === 'interviewer').slice(1).map(t => ({ line: t.text, turnIndex: t.turnIndex - 1 }));
-  const questions = asked.map(a => questionOf(a.line));
+  const questions = (records ? records.map(r => r.savedLine) : interviewerTexts.slice(1)).map(questionOf);
   const maxSame = maxSameQuestion(questions);
   if (maxSame >= 3) flags.push({ turnIndex: null, kind: 'loop', detail: `same question asked ${maxSame} times` });
-  for (const p of repeatedShortProbes(questions)) {
-    flags.push({ turnIndex: asked[p.lastIndex].turnIndex, kind: 'repeated_short_probe', detail: `short question asked ${p.count} times: "${p.question}"` });
+  // Short probes: the model's own lines only — not the scripted silence
+  // check-in / pause lines, nor code-written turns (close, grace ask, …).
+  const probes = (records
+    ? records.filter(r => r.stateBefore.kind === 'model' || r.stateBefore.kind === 'rec_ask').map(r => ({ line: r.savedLine, turnIndex: r.turnIndex }))
+    : run.turns.filter(t => t.role === 'interviewer').slice(1).map(t => ({ line: t.text, turnIndex: t.turnIndex - 1 })))
+    .filter(a => !isSilenceLine(a.line));
+  for (const p of repeatedShortProbes(probes.map(a => questionOf(a.line)))) {
+    flags.push({ turnIndex: probes[p.lastIndex].turnIndex, kind: 'repeated_short_probe', detail: `short probe asked ${p.count} times (under ${MIN_LOOP_TOKENS} words, so not a loop): "${p.question}"` });
   }
   const noProgress = records ? longestNoProgress(records) : null;
   if (completion === 'ended' && (!stages.brainstormAsked || !stages.recommendationAsked)) {

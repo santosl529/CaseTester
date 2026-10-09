@@ -62,13 +62,20 @@ describe('review sheet', () => {
     expect(at).toBeLessThan(md.indexOf('## Read in full'));
     const section = md.slice(at, md.indexOf('## Read in full'));
     expect(section).toContain('- loop · run w/01-a · turn — · same question asked 3 times');
-    expect(section).toContain('- repeated_short_probe · run w/01-a · turn 8 · short question asked 3 times: "What does that tell you?"');
-    expect(section).toContain('- model_unusable · run w/02-b · turn 4 · {"unparsed":true, "emptyTurn":false}');
+    expect(section).toContain('turn N (interviewer reply) = the interviewer\'s line in the transcript, the number fault ids use');
+    expect(section).toContain('- repeated_short_probe · run w/01-a · turn 9 (interviewer reply) · short question asked 3 times: "What does that tell you?"');
+    expect(section).toContain('- model_unusable · run w/02-b · turn 5 (interviewer reply) · {"unparsed":true, "emptyTurn":false}');
     expect(section).not.toContain('w/03-c');
     const parsed = parseReviewSheet(md.replace('verdict: \n', 'verdict: confirmed\n'));
     expect(parsed.unrecognised).toEqual([]);
     expect(parsed.verdicts.get('m1')?.status).toBe('confirmed');
     expect(renderReviewSheet([], [])).toContain('## Code-flagged runs to check (0 flags in 0 runs');
+  });
+
+  it('fault blocks number the interviewer reply the same way the code-flag lines do (fix round 1)', () => {
+    const md = renderReviewSheet([{ ...f('a'), turnIndex: 9 }], [], [{ runId: 'r', codeFlags: [{ turnIndex: 8, kind: 'loop', detail: 'x' }] }]);
+    expect(md).toContain('run r · turn 9 (interviewer reply) · requests');
+    expect(md).toContain('- loop · run r · turn 9 (interviewer reply) · x');
   });
 
   it('parses verdicts case-insensitively, with optional severity/attribution changes and a note', () => {

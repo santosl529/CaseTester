@@ -143,8 +143,11 @@ function stateBeforeOf(plan: ModelPlan): TurnStateBefore {
 // 9 Oct). Only called when a recorder is attached.
 const safe = (rec: TurnRecorder, stage: string, f: () => void) => {
   try { f(); } catch (e) {
-    console.warn(`[runner] turn recorder failed at ${stage} (ignored):`, e instanceof Error ? e.message : e);
-    try { rec.noteError(stage, e instanceof Error ? e.message : String(e)); } catch { /* noting must never break a turn */ }
+    try {
+      const message = e instanceof Error ? e.message : String(e);
+      console.warn(`[runner] turn recorder failed at ${stage} (ignored):`, message);
+      rec.noteError(stage, message);
+    } catch { /* nothing on the failure path may break a turn */ }
   }
 };
 
