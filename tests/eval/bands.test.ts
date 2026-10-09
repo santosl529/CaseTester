@@ -14,6 +14,7 @@ describe('persona bands', () => {
     expect(compareRating(cell('not_assessed'), 'meets_bar')).toBe('unexpected_rating');
     expect(compareRating(cell(['meets_bar']), 'not_assessed')).toBe('unexpected_not_assessed');
     expect(compareRating(cell(null), 'strong')).toBe('no_expectation');
+    expect(compareRating(cell(['strong']), 'excellent')).toBe('invalid_rating');
   });
 
   it('validates the bands file: every persona has all 8 dimensions', () => {
@@ -29,8 +30,17 @@ describe('persona bands', () => {
     const bands = BandsFileSchema.parse({ version: 'v1', personas: { '2': dims } });
     const row = (runId: string, structure: string, quantitative: string) => ({ runId, personaId: 2, ratings: { structure, quantitative } } as unknown as ScorecardRow);
     const s = bandsSummary([row('a', 'strong', 'meets_bar'), row('b', 'needs_work', 'needs_work')], bands, new Set(['b']));
-    expect(s.high).toEqual({ in_band: 1, one_off: 0, two_off: 0, unexpected_rating: 0, unexpected_not_assessed: 0, cells: 1 });
+    expect(s.high).toEqual({ in_band: 1, one_off: 0, two_off: 0, unexpected_rating: 0, unexpected_not_assessed: 0, invalid_rating: 0, cells: 1 });
     expect(s.medium.one_off).toBe(1);
     expect(s.excludedRuns).toEqual(['b']);
+  });
+
+  it('tracks skipped runs: personaId null and missing bands entries', () => {
+    const dims = { structure: cell(['strong']), quantitative: cell(null), dataExhibit: cell(null), judgment: cell(null), creativity: cell(null), communication: cell(null), synthesis: cell(null), pushback: cell(null) };
+    const bands = BandsFileSchema.parse({ version: 'v1', personas: { '2': dims } });
+    const row = (runId: string, personaId: number | null, structure: string) => ({ runId, personaId, ratings: { structure } } as unknown as ScorecardRow);
+    const s = bandsSummary([row('a', null, 'strong'), row('b', 99, 'strong')], bands, new Set());
+    expect(s.skippedNoPersona).toEqual(['a']);
+    expect(s.skippedNoBands).toEqual(['b']);
   });
 });

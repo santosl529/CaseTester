@@ -14,10 +14,11 @@ const faults = existsSync(faultsPath) ? readFileSync(faultsPath, 'utf8').split('
 const excluded = new Set(faults.filter(f => f.status === 'confirmed' && f.attribution === 'simulator').map(f => f.runId));
 const s = bandsSummary(rows.filter(r => r.scoring === 'scored'), bands, excluded);
 writeFileSync(path.join(OUT, 'bands.json'), JSON.stringify(s, null, 2));
-const line = (name: string, t: typeof s.high) => `| ${name} | ${t.cells} | ${t.in_band} (${t.cells ? Math.round(100 * t.in_band / t.cells) : 0}%) | ${t.one_off} | ${t.two_off} | ${t.unexpected_rating} | ${t.unexpected_not_assessed} |`;
+const line = (name: string, t: typeof s.high) => `| ${name} | ${t.cells} | ${t.in_band} (${t.cells ? Math.round(100 * t.in_band / t.cells) : 0}%) | ${t.one_off} | ${t.two_off} | ${t.unexpected_rating} | ${t.unexpected_not_assessed} | ${t.invalid_rating} |`;
 writeFileSync(path.join(OUT, 'bands.md'), [
   '# Batch 18 — reports vs persona bands', '', `Excluded (simulator broke its brief): ${s.excludedRuns.join(', ') || 'none'}`, '',
-  '| confidence | cells | in band | one off | two off | rated, expected not assessed | not assessed, expected a rating |', '|---|---|---|---|---|---|---|',
+  `Not checked — no persona: ${s.skippedNoPersona.join(', ') || 'none'}; no bands entry: ${s.skippedNoBands.join(', ') || 'none'}`, '',
+  '| confidence | cells | in band | one off | two off | rated, expected not assessed | not assessed, expected a rating | invalid rating |', '|---|---|---|---|---|---|---|---|',
   line('high', s.high), line('medium', s.medium), '', '## Misses', '',
   ...s.misses.map(m => `- ${m.runId} (persona ${m.personaId}) ${m.dimension}: expected ${JSON.stringify(m.expected)}, got ${m.rating} — ${m.result} (${m.confidence})`),
 ].join('\n') + '\n');
