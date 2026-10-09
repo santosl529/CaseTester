@@ -70,4 +70,23 @@ describe('review sheet', () => {
     const faultHeadings = faultSection.split('\n').filter(l => l.match(/^###/));
     expect(faultHeadings).toEqual(['### x1']); // only the fault id heading
   });
+
+  it('ignores template lines in code block, producing no warnings or human faults', () => {
+    const md = renderReviewSheet([f('a')], ['run-7']);
+    const { humanFaults, unrecognised } = parseReviewSheet(md);
+    expect(unrecognised).toHaveLength(0);
+    expect(humanFaults).toHaveLength(0);
+  });
+
+  it('parses a human entry with hyphens in the run id', () => {
+    const md = ['### 40-jasmine-the-early-finisher-t6-human', 'category: math', 'severity: serious', 'expected: correct answer', 'rule: arithmetic'].join('\n');
+    const { humanFaults, unrecognised } = parseReviewSheet(md);
+    expect(humanFaults).toHaveLength(1);
+    expect(humanFaults[0]).toMatchObject({
+      id: '40-jasmine-the-early-finisher-t6-human',
+      runId: '40-jasmine-the-early-finisher',
+      turnIndex: 6,
+    });
+    expect(unrecognised).toHaveLength(0);
+  });
 });

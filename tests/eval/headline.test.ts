@@ -13,6 +13,7 @@ describe('headline', () => {
       fault('b', 2, 'serious', 'rejected'), fault('b', 10, 'moderate', 'proposed'),
     ]);
     expect(h.interviews).toBe(2);
+    expect(h.withSerious).toBe(1);
     expect(h.confirmedSerious).toBe(1);
     expect(h.confirmedModerate).toBe(2);
     expect(h.confirmedMinor).toBe(1);

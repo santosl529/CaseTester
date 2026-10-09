@@ -40,6 +40,7 @@ export function parseReviewSheet(md: string) {
   const unrecognised: string[] = [];
   let id: string | null = null;
   let isHuman = false;
+  let inCodeBlock = false;
   let cur: {
     status?: 'confirmed' | 'rejected';
     severity?: FaultRecord['severity'];
@@ -73,10 +74,15 @@ export function parseReviewSheet(md: string) {
         unrecognised.push(`${id}: invalid severity "${cur.severity}"`);
         return;
       }
+      const match = id.match(/^(.+)-t(\d+)-human$/);
+      if (!match) {
+        unrecognised.push(`${id}: invalid human fault id format`);
+        return;
+      }
       const fault: FaultRecord = {
         id,
-        runId: id.split('-t')[0],
-        turnIndex: parseInt(id.split('-t')[1], 10),
+        runId: match[1],
+        turnIndex: parseInt(match[2], 10),
         category: cur.category as FaultRecord['category'],
         severity: cur.severity,
         quote: cur.quote ?? '',
@@ -94,7 +100,7 @@ export function parseReviewSheet(md: string) {
         note: cur.note,
       };
       // Skip if already present
-      if (!humanFaults.some(f => f.id === id) && verdicts.has(id) === false) {
+      if (!humanFaults.some(f => f.id === id)) {
         humanFaults.push(fault);
       }
     } else {
@@ -112,6 +118,14 @@ export function parseReviewSheet(md: string) {
 
   for (const raw of md.split('\n')) {
     const line = raw.trim();
+    // Check for code block fences
+    if (line === '```' || line.startsWith('```')) {
+      inCodeBlock = !inCodeBlock;
+      continue;
+    }
+    // Skip everything inside code blocks
+    if (inCodeBlock) continue;
+
     const h = line.match(/^###\s+(\S+)/);
     if (h) {
       flush();

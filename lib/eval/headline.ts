@@ -24,9 +24,11 @@ export function headline(rows: ScorecardRow[], faults: FaultRecord[]) {
 
   const prescreenReviewed = prescreenConfirmed.length + prescreenRejected.length;
   const prescreenPrecision = prescreenReviewed > 0 ? prescreenConfirmed.length / prescreenReviewed : null;
+  const withSerious = new Set(confirmedSerious.map(f => f.runId)).size;
 
   return {
     interviews: rows.length,
+    withSerious,
     confirmedSerious: confirmedSerious.length,
     confirmedModerate: confirmedModerate.length,
     confirmedMinor: confirmedMinor.length,

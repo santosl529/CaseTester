@@ -29,9 +29,12 @@ if (process.argv.includes('--write')) {
   const { verdicts, humanFaults, unrecognised } = parseReviewSheet(readFileSync(sheetPath, 'utf8'));
   const applied = applyVerdicts(faults, verdicts);
 
-  // Check for non-human verdict ids with no matching fault
+  // Count verdicts that actually matched existing faults
+  let matchedVerdicts = 0;
   for (const [id] of verdicts) {
-    if (!applied.some(f => f.id === id)) {
+    if (faults.some(f => f.id === id)) {
+      matchedVerdicts++;
+    } else {
       unrecognised.push(`${id}: verdict id not found in existing faults`);
     }
   }
@@ -42,10 +45,10 @@ if (process.argv.includes('--write')) {
   const allFaults = [...applied, ...newHumanFaults];
 
   writeFileSync(faultsPath, allFaults.map(f => JSON.stringify(f)).join('\n') + '\n');
-  console.log(`[review] applied ${verdicts.size} verdicts to existing faults, added ${newHumanFaults.length} human-found faults`);
+  console.log(`[review] applied ${matchedVerdicts} verdicts to existing faults, added ${newHumanFaults.length} human-found faults`);
   const h = headline(JSON.parse(readFileSync(path.join(OUT, 'scorecard.json'), 'utf8')) as ScorecardRow[], allFaults);
   writeFileSync(path.join(OUT, 'headline.json'), JSON.stringify(h, null, 2));
-  console.log(`[review] ${h.confirmedSerious}/${h.interviews} interviews with a confirmed serious fault · ${h.seriousPer100Turns.toFixed(1)} serious per 100 turns · ${h.confirmedPer100Turns.toFixed(1)} all confirmed per 100 turns · longest faulty stretch ${Math.max(0, ...h.longestFaultyStretch.map(x => x.turns))} turns`);
+  console.log(`[review] ${h.withSerious}/${h.interviews} interviews with a confirmed serious fault · ${h.confirmedSerious} confirmed serious faults · ${h.seriousPer100Turns.toFixed(1)} serious per 100 turns · ${h.confirmedPer100Turns.toFixed(1)} all confirmed per 100 turns · longest faulty stretch ${Math.max(0, ...h.longestFaultyStretch.map(x => x.turns))} turns`);
   if (unrecognised.length) console.warn(`[review] NOT applied — fix these lines in the sheet:\n  ${unrecognised.join('\n  ')}`);
 } else {
   console.error('use --write or --apply');
