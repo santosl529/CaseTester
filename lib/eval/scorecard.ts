@@ -60,7 +60,7 @@ const CALC_PATTERNS = [
   new RegExp(String.raw`${NUM}\s*(?:[×÷*/+=]|\sx\s|\s[-−–]\s)\s*${NUM}`),
   new RegExp(String.raw`${NUM}\s+(?:times|plus|minus|divided by|multiplied by|over)\s+${NUM}`, 'i'),
   new RegExp(String.raw`\d%\s+of\s+[$~]?\d`),
-  new RegExp(String.raw`\d[^.?!;]{0,60}?\b(?:is about|is roughly|is approximately|comes to|works out to|equals|leaving|leaves|gives us|gets us)\s+(?:about |roughly |around )?${NUM}`, 'i'),
+  new RegExp(String.raw`\d[^.?!;]{0,60}?\b(?:is about|is roughly|is approximately|comes to|works out to|equals|leaving|leaves|giving|gives us|gets us)\s+(?:about |roughly |around )?${NUM}`, 'i'),
 ];
 export const hasCalculation = (text: string): boolean => CALC_PATTERNS.some(re => re.test(text));
 const MIN_LOOP_TOKENS = 6;

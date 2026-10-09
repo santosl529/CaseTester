@@ -44,7 +44,7 @@ describe('review sheet', () => {
     expect(unrecognised).toEqual([]);
     const applied = applyVerdicts(faults, verdicts);
     expect(applied.find(x => x.id === 'm1')?.status).toBe('confirmed');
-    const h = headline([{ runId: 'r', modelTurns: 50 } as unknown as ScorecardRow], applied);
+    const h = headline([{ runId: 'r', modelTurns: 50, replyTurns: [] } as unknown as ScorecardRow], applied);
     expect(h.confirmedModerate).toBe(1);
     expect(h.confirmedPer100Turns).toBeCloseTo(2);
     expect(h.proposedModerateUnconfirmed).toBe(1);   // m2 still unreviewed
