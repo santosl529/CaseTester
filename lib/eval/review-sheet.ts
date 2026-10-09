@@ -1,6 +1,6 @@
 // The human confirmation step (spec 2026-10-09 §2.4): every proposed serious
-// fault, plus runs to read in full, as a markdown sheet with verdict lines;
-// parsed back into faults.jsonl. Unknown verdicts are reported, never dropped.
+// fault, then every proposed moderate one, plus runs to read in full, as a
+// markdown sheet with verdict lines; parsed back into faults.jsonl. Unknown verdicts are reported, never dropped.
 import { ProposedFaultSchema, type FaultRecord } from './prescreen';
 
 const VERDICTS: Record<string, 'confirmed' | 'rejected'> = { confirmed: 'confirmed', confirm: 'confirmed', yes: 'confirmed', y: 'confirmed', rejected: 'rejected', reject: 'rejected', no: 'rejected', n: 'rejected' };
@@ -14,21 +14,34 @@ function collapseNewlines(s: string): string {
   return s.replace(/\s*\n\s*/g, ' ');
 }
 
+// What the sheet asks a human to review: every proposed serious fault, then
+// every proposed moderate one (follow-up 9 Oct); minor proposals stay off.
+export function proposedForReview(faults: FaultRecord[]) {
+  const proposed = faults.filter(f => f.status === 'proposed');
+  return { serious: proposed.filter(f => f.severity === 'serious'), moderate: proposed.filter(f => f.severity === 'moderate') };
+}
+
+function faultBlock(f: FaultRecord): string[] {
+  return [
+    `### ${f.id}`,
+    `run ${f.runId} · turn ${f.turnIndex} · ${f.category} · attribution ${f.attribution} · recovered ${f.recovered}`, '',
+    ...f.context.map(c => `> ${collapseNewlines(c)}`), `> [candidate] ${collapseNewlines(f.candidateText)}`, `> [interviewer, delivered] ${collapseNewlines(f.delivered)}`, '',
+    `- quote: "${collapseNewlines(f.quote)}"`, `- expected: ${collapseNewlines(f.expected)}`, `- rule: ${f.rule}`,
+    ...(f.codeChanges.length ? [`- code: ${f.codeChanges.join('; ')}`] : []),
+    ...(f.rawOutput ? [`- raw model output: \`${collapseNewlines(f.rawOutput).replace(/`/g, "'")}\``] : []), '',
+    'verdict: ', 'note: ', '',
+  ];
+}
+
 export function renderReviewSheet(faults: FaultRecord[], fullReads: string[]): string {
-  const serious = faults.filter(f => f.severity === 'serious' && f.status === 'proposed');
+  const { serious, moderate } = proposedForReview(faults);
   return [
     '# Batch 18 — fault review', '',
     'For each fault set `verdict:` to confirmed or rejected. Optional: `severity:` (serious/moderate/minor), `attribution:` (model/orchestrator/simulator/ambiguous_policy/evaluator_uncertain), `note:`.', '',
     `## Proposed serious faults (${serious.length})`, '',
-    ...serious.flatMap(f => [
-      `### ${f.id}`,
-      `run ${f.runId} · turn ${f.turnIndex} · ${f.category} · attribution ${f.attribution} · recovered ${f.recovered}`, '',
-      ...f.context.map(c => `> ${collapseNewlines(c)}`), `> [candidate] ${collapseNewlines(f.candidateText)}`, `> [interviewer, delivered] ${collapseNewlines(f.delivered)}`, '',
-      `- quote: "${collapseNewlines(f.quote)}"`, `- expected: ${collapseNewlines(f.expected)}`, `- rule: ${f.rule}`,
-      ...(f.codeChanges.length ? [`- code: ${f.codeChanges.join('; ')}`] : []),
-      ...(f.rawOutput ? [`- raw model output: \`${collapseNewlines(f.rawOutput).replace(/`/g, "'")}\``] : []), '',
-      'verdict: ', 'note: ', '',
-    ]),
+    ...serious.flatMap(faultBlock),
+    `## Proposed moderate faults (${moderate.length})`, '',
+    ...moderate.flatMap(faultBlock),
     `## Read in full (${fullReads.length} runs with no flags — note any fault the pre-screen missed as a new section like below)`, '',
     ...fullReads.map(r => `- ${r}`), '',
     '## Human-found faults (from full reads — add a new section per entry)', '',

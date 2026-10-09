@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { renderReviewSheet, parseReviewSheet, applyVerdicts } from '@/lib/eval/review-sheet';
+import { renderReviewSheet, parseReviewSheet, applyVerdicts, proposedForReview } from '@/lib/eval/review-sheet';
 import { ProposedFaultSchema, type FaultRecord } from '@/lib/eval/prescreen';
+import { headline } from '@/lib/eval/headline';
+import type { ScorecardRow } from '@/lib/eval/scorecard';
 
 const f = (id: string, severity: FaultRecord['severity'] = 'serious'): FaultRecord => ({
   id, runId: 'r', turnIndex: 2, category: 'requests', severity, quote: 'q', expected: 'e', rule: 'Rule 11', attribution: 'model', recovered: false,
@@ -14,6 +16,38 @@ describe('review sheet', () => {
     expect(md).not.toContain('### b');          // only serious proposals are listed
     expect(md).toContain('verdict: ');
     expect(md).toContain('run-7');
+  });
+
+  it('lists proposed moderate faults in their own section after the serious ones; minor stays off (follow-up 9 Oct)', () => {
+    const md = renderReviewSheet([f('a'), f('m1', 'moderate'), f('b', 'minor'), { ...f('m2', 'moderate'), status: 'confirmed' }], []);
+    const serious = md.indexOf('## Proposed serious faults (1)');
+    const moderate = md.indexOf('## Proposed moderate faults (1)');
+    expect(serious).toBeGreaterThan(-1);
+    expect(moderate).toBeGreaterThan(serious);
+    expect(md.indexOf('### a')).toBeGreaterThan(serious);
+    expect(md.indexOf('### a')).toBeLessThan(moderate);
+    const modSection = md.slice(moderate, md.indexOf('## Read in full'));
+    expect(modSection).toContain('### m1');
+    expect(modSection).toContain('verdict: ');
+    expect(md).not.toContain('### m2');          // already reviewed
+    expect(md).not.toContain('### b');           // minor stays off the sheet
+    expect(proposedForReview([f('a'), f('m1', 'moderate'), f('b', 'minor')])).toMatchObject({ serious: [{ id: 'a' }], moderate: [{ id: 'm1' }] });
+  });
+
+  it('a verdict on a moderate proposal applies and is counted in the headline', () => {
+    const faults = [f('a'), f('m1', 'moderate'), f('m2', 'moderate')];
+    const md = renderReviewSheet(faults, []).split('\n');
+    const at = md.indexOf('### m1');
+    const v = md.indexOf('verdict: ', at);
+    md[v] = 'verdict: confirmed';
+    const { verdicts, unrecognised } = parseReviewSheet(md.join('\n'));
+    expect(unrecognised).toEqual([]);
+    const applied = applyVerdicts(faults, verdicts);
+    expect(applied.find(x => x.id === 'm1')?.status).toBe('confirmed');
+    const h = headline([{ runId: 'r', modelTurns: 50 } as unknown as ScorecardRow], applied);
+    expect(h.confirmedModerate).toBe(1);
+    expect(h.confirmedPer100Turns).toBeCloseTo(2);
+    expect(h.proposedModerateUnconfirmed).toBe(1);   // m2 still unreviewed
   });
 
   it('parses verdicts case-insensitively, with optional severity/attribution changes and a note', () => {
