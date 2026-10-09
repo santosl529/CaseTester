@@ -1,0 +1,185 @@
+{
+  "clips": [
+    {
+      "kind": "clean",
+      "text": "Okay, so the headline is that revenue is actually growing 15% but margin collapsed from 24% to 6% — that's an 18 point drop. So this is almost certainly a cost story rather than a demand story, though I want to check whether revenue growth came from new stores versus same-store sales, because opening locations can drag margin temporarily. I'd structure it as profit equals revenue minus costs.",
+      "line": 0
+    },
+    {
+      "kind": "think",
+      "text": "Okay, so the headline is that revenue is actually growing 15% but margin collapsed from 24% to 6% — that's an 18 point drop. So this is almost um, [[slnc 1200]] certainly a cost story rather than a demand story, though I want to check whether revenue growth came from new stores versus same-store sales, because opening locations can drag margin temporarily. I'd structure it as profit equals revenue minus costs.",
+      "line": 0
+    },
+    {
+      "kind": "boundary",
+      "text": "Okay, so the headline is that revenue is actually growing 15% but margin collapsed from 24% to 6% — that's an 18 point drop. [[slnc 1500]] So this is almost certainly a cost story rather than a demand story, though I want to check whether revenue growth came from new stores versus same-store sales, because opening locations can drag margin temporarily. I'd structure it as profit equals revenue minus costs.",
+      "line": 0
+    },
+    {
+      "kind": "number",
+      "text": "Okay, so the headline is that revenue is actually growing [[slnc 800]] 15% but margin collapsed from 24% to 6% — that's an 18 point drop. So this is almost certainly a cost story rather than a demand story, though I want to check whether revenue growth came from new stores versus same-store sales, because opening locations can drag margin temporarily. I'd structure it as profit equals revenue minus costs.",
+      "line": 0
+    },
+    {
+      "kind": "correction",
+      "text": "Okay, so the headline is that revenue is actually growing 15% but margin collapsed from 24% to 6% — that's an 18 point drop. So this is almost certainly a cost story rather than a [[slnc 700]] actually, sorry, [[slnc 500]] demand story, though I want to check whether revenue growth came from new stores versus same-store sales, because opening locations can drag margin temporarily. I'd structure it as profit equals revenue minus costs.",
+      "line": 0
+    }
+  ],
+  "rows": [
+    {
+      "config": "eot 0.7 / eager 0.5",
+      "line": 0,
+      "kind": "clean",
+      "score": {
+        "detectionMs": 1332,
+        "premature": [],
+        "eagerLeadMs": 200,
+        "eagerMatches": true,
+        "eagers": 1,
+        "resumed": 0
+      },
+      "speechEndMs": 24920,
+      "signals": [
+        {
+          "kind": "eager",
+          "atMs": 26052,
+          "transcript": "Okay. So the headline is that revenue is actually growing fifteen percent, but margin collapsed from twenty four percent to six percent. That's an eighteen point drop. So this is almost certainly a cost story rather than a demand story, though I want to check whether revenue growth came from new stores versus same store sales because opening locations can drag margin temporarily. I'd structure it as profit equals revenue minus costs."
+        },
+        {
+          "kind": "final",
+          "atMs": 26252,
+          "transcript": "Okay. So the headline is that revenue is actually growing fifteen percent, but margin collapsed from twenty four percent to six percent. That's an eighteen point drop. So this is almost certainly a cost story rather than a demand story, though I want to check whether revenue growth came from new stores versus same store sales because opening locations can drag margin temporarily. I'd structure it as profit equals revenue minus costs."
+        }
+      ]
+    },
+    {
+      "config": "eot 0.7 / eager 0.5",
+      "line": 0,
+      "kind": "think",
+      "score": {
+        "detectionMs": 1315,
+        "premature": [
+          12095
+        ],
+        "eagerLeadMs": 199,
+        "eagerMatches": true,
+        "eagers": 2,
+        "resumed": 0
+      },
+      "speechEndMs": 26460,
+      "signals": [
+        {
+          "kind": "eager",
+          "atMs": 11854,
+          "transcript": "Okay. So the headline is that revenue is actually growing fifteen percent, but margin collapsed from twenty four percent to six percent. That's an eighteen point drop. So this is almost dumb."
+        },
+        {
+          "kind": "final",
+          "atMs": 12095,
+          "transcript": "Okay. So the headline is that revenue is actually growing fifteen percent, but margin collapsed from twenty four percent to six percent. That's an eighteen point drop. So this is almost dumb."
+        },
+        {
+          "kind": "eager",
+          "atMs": 27576,
+          "transcript": "Certainly a cost story rather than a demand story, though I want to check whether revenue growth came from new stores versus same store sales, because opening locations can drag margin temporarily. I'd structure it as profit equals revenue minus costs."
+        },
+        {
+          "kind": "final",
+          "atMs": 27775,
+          "transcript": "Certainly a cost story rather than a demand story, though I want to check whether revenue growth came from new stores versus same store sales, because opening locations can drag margin temporarily. I'd structure it as profit equals revenue minus costs."
+        }
+      ]
+    },
+    {
+      "config": "eot 0.7 / eager 0.5",
+      "line": 0,
+      "kind": "boundary",
+      "score": {
+        "detectionMs": 1238,
+        "premature": [
+          10278
+        ],
+        "eagerLeadMs": 72,
+        "eagerMatches": true,
+        "eagers": 2,
+        "resumed": 0
+      },
+      "speechEndMs": 26380,
+      "signals": [
+        {
+          "kind": "eager",
+          "atMs": 10265,
+          "transcript": "Okay. So the headline is that revenue is actually growing fifteen percent, but margin collapsed from twenty four percent to six percent. That's an eighteen point drop."
+        },
+        {
+          "kind": "final",
+          "atMs": 10278,
+          "transcript": "Okay. So the headline is that revenue is actually growing fifteen percent, but margin collapsed from twenty four percent to six percent. That's an eighteen point drop."
+        },
+        {
+          "kind": "eager",
+          "atMs": 27546,
+          "transcript": "So this is almost certainly a cost story rather than a demand story, though I want to check whether revenue growth came from new stores versus same store sales, because opening locations can drag margin temporarily. I'd structure it as profit equals revenue minus costs."
+        },
+        {
+          "kind": "final",
+          "atMs": 27618,
+          "transcript": "So this is almost certainly a cost story rather than a demand story, though I want to check whether revenue growth came from new stores versus same store sales, because opening locations can drag margin temporarily. I'd structure it as profit equals revenue minus costs."
+        }
+      ]
+    },
+    {
+      "config": "eot 0.7 / eager 0.5",
+      "line": 0,
+      "kind": "number",
+      "score": {
+        "detectionMs": 1278,
+        "premature": [],
+        "eagerLeadMs": 120,
+        "eagerMatches": true,
+        "eagers": 1,
+        "resumed": 0
+      },
+      "speechEndMs": 25820,
+      "signals": [
+        {
+          "kind": "eager",
+          "atMs": 26978,
+          "transcript": "Okay. So the headline is that revenue is actually growing fifteen percent, but margin collapsed from twenty four percent to six percent. That's an eighteen point drop. So this is almost certainly a cost story rather than a demand story, though I want to check whether revenue growth came from new stores versus same store sales because opening locations can drag margin temporarily. I'd structure it as profit equals revenue minus costs."
+        },
+        {
+          "kind": "final",
+          "atMs": 27098,
+          "transcript": "Okay. So the headline is that revenue is actually growing fifteen percent, but margin collapsed from twenty four percent to six percent. That's an eighteen point drop. So this is almost certainly a cost story rather than a demand story, though I want to check whether revenue growth came from new stores versus same store sales because opening locations can drag margin temporarily. I'd structure it as profit equals revenue minus costs."
+        }
+      ]
+    },
+    {
+      "config": "eot 0.7 / eager 0.5",
+      "line": 0,
+      "kind": "correction",
+      "score": {
+        "detectionMs": 1296,
+        "premature": [],
+        "eagerLeadMs": 119,
+        "eagerMatches": true,
+        "eagers": 1,
+        "resumed": 0
+      },
+      "speechEndMs": 27680,
+      "signals": [
+        {
+          "kind": "eager",
+          "atMs": 28857,
+          "transcript": "Okay. So the headline is that revenue is actually growing fifteen percent, but margin collapsed from twenty four percent to six percent. That's an eighteen point drop. So this is almost certainly a cost story rather than a... actually, sorry, demand story. Though I want to check whether revenue growth came from new stores versus same store sales because opening locations can drag margin temporarily, I'd structure it as profit equals revenue minus costs."
+        },
+        {
+          "kind": "final",
+          "atMs": 28976,
+          "transcript": "Okay. So the headline is that revenue is actually growing fifteen percent, but margin collapsed from twenty four percent to six percent. That's an eighteen point drop. So this is almost certainly a cost story rather than a... actually, sorry, demand story. Though I want to check whether revenue growth came from new stores versus same store sales because opening locations can drag margin temporarily, I'd structure it as profit equals revenue minus costs."
+        }
+      ]
+    }
+  ]
+}
