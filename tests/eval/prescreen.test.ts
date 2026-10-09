@@ -34,6 +34,15 @@ describe('pre-screen', () => {
     for (const s of ['INSTR', 'FACTS', 'SEV', '[t1 candidate] Can I get the cost breakdown?', '[t2 interviewer]']) expect(prompt).toContain(s);
   });
 
+  it('notes a turn whose recorder evidence is incomplete, and tells the model not to blame the interviewer for it (follow-up 9 Oct)', () => {
+    const rec = { turnIndex: 1, stateBefore: { kind: 'model' }, checks: [], recorderErrors: [{ stage: 'request', message: 'm' }, { stage: 'output', message: 'm' }, { stage: 'request', message: 'm' }] } as never;
+    const prompt = buildPrescreenPrompt({ run, turns: [rec], interviewerInstructions: 'INSTR', caseFacts: 'FACTS', severity: 'SEV' });
+    expect(prompt).toContain("[t2 interviewer] I don't have a cost breakdown by line item. Which branch first?\n    (recorder incomplete for this turn: request, output)");
+    expect(prompt).toMatch(/recorder incomplete[^\n]*do not attribute a fault to missing recorder data/i);
+    const clean = buildPrescreenPrompt({ run, turns: [{ turnIndex: 1, stateBefore: { kind: 'model' }, checks: [], recorderErrors: [] } as never], interviewerInstructions: 'I', caseFacts: 'F', severity: 'S' });
+    expect(clean).not.toMatch(/\(recorder incomplete for this turn: \w/); // only the instruction mentions it
+  });
+
   it('requires at least 15 normalised characters in a quote', () => {
     const delivered = "I don't have a cost breakdown by line item. Which branch first?";
     expect(verifyQuote('cost breakdown', delivered)).toBe(false); // 14 chars

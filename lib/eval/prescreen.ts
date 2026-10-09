@@ -46,6 +46,7 @@ export function buildPrescreenPrompt(p: { run: RunRecord; turns: TurnRecord[] | 
       rec && rec.stateBefore.kind !== 'model' ? `code-written turn: ${rec.stateBefore.kind}` : null,
       vetoes?.withheld?.length ? `withheld by code: ${vetoes.withheld.map(w => `"${w.sentence}" (${w.reason})`).join('; ')}` : null,
       decisions ? `data decided by code: ${JSON.stringify(decisions)}` : null,
+      rec?.recorderErrors?.length ? `recorder incomplete for this turn: ${[...new Set(rec.recorderErrors.map(e => e.stage))].join(', ')}` : null,
     ].filter(Boolean);
     return `[t${t.turnIndex} ${t.role}] ${t.text}${notes.length ? `\n    (${notes.join(' | ')})` : ''}`;
   }).join('\n');
@@ -57,6 +58,7 @@ export function buildPrescreenPrompt(p: { run: RunRecord; turns: TurnRecord[] | 
     '## Transcript as delivered (interviewer lines are what the candidate actually received; notes in parentheses are what code did)', transcript,
     '## Output',
     'List every interviewer fault. For each: turnIndex of the INTERVIEWER line; category; severity per the definitions; quote = an exact excerpt (at least 15 characters) of that interviewer line; expected = what it should have done, citing the case fact where relevant; rule = the instruction or rule it breaks; attribution = model / orchestrator (code changed or wrote it) / simulator (the candidate broke character, so the interviewer was put in an impossible position) / ambiguous_policy / evaluator_uncertain; recovered = whether a later turn fixed it. If there are none, return an empty list. Do not report style preferences as faults.',
+    'A note "(recorder incomplete for this turn: …)" means the evaluation recorder lost part of that turn\'s record (the request, raw output, …); the interviewer line itself is what was delivered. Do not attribute a fault to missing recorder data: a gap in the record is not an interviewer fault.',
   ].join('\n\n');
 }
 

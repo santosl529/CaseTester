@@ -138,9 +138,14 @@ function stateBeforeOf(plan: ModelPlan): TurnStateBefore {
   };
 }
 
-// A recorder failure never breaks or alters a turn.
-const safe = (f: () => void) => {
-  try { f(); } catch (e) { console.warn('[runner] turn recorder failed (ignored):', e instanceof Error ? e.message : e); }
+// A recorder failure never breaks or alters a turn; the record notes the
+// stage it lost, so the evaluation reads it as incomplete evidence (follow-up
+// 9 Oct). Only called when a recorder is attached.
+const safe = (rec: TurnRecorder, stage: string, f: () => void) => {
+  try { f(); } catch (e) {
+    console.warn(`[runner] turn recorder failed at ${stage} (ignored):`, e instanceof Error ? e.message : e);
+    try { rec.noteError(stage, e instanceof Error ? e.message : String(e)); } catch { /* noting must never break a turn */ }
+  }
 };
 
 async function runTurnBody(
@@ -196,7 +201,7 @@ async function runTurnBody(
   opts.onPlanFingerprint?.(planFingerprint(plan));
   recordCtx = plan.ctx;
   if (rec) {
-    safe(() => rec.setState(plan.kind === 'scripted'
+    safe(rec, 'state', () => rec.setState(plan.kind === 'scripted'
       ? { phase: plan.ctx.currentPhase, elapsedMs: null, kind: 'scripted', promptContext: null, revealedIds: [], shownExhibitIds: [],
           openDataRequests: [], pressureTest: null, stallRung: null, verifiedFigures: [], recomputeFlags: [], requestCues: [] }
       : stateBeforeOf(plan)));
@@ -204,7 +209,7 @@ async function runTurnBody(
   if (plan.kind === 'scripted') {
     if (!plan.interviewerText) return done(await commit(plan, null)); // inactive session: nothing said
     if (sink) await sink({ text: plan.interviewerText, revealIds: [], kind: 'scripted' }).catch(() => {});
-    if (rec) safe(() => rec.segment({ text: plan.interviewerText, revealIds: [], kind: 'scripted' }));
+    if (rec) safe(rec, 'segment', () => rec.segment({ text: plan.interviewerText, revealIds: [], kind: 'scripted' }));
     return done(await commit(plan, await hear(plan)));
   }
 
@@ -224,7 +229,7 @@ async function runTurnBody(
   let exhibitDelivered = false;
   const deliver: SegmentSink = async seg => {
     await (sink ?? (async () => {}))(seg);
-    if (rec) safe(() => rec.segment(seg));
+    if (rec) safe(rec, 'segment', () => rec.segment(seg));
     firstSegmentAt ??= Date.now();
     timer.mark('first_delivered');
     if (isUsefulSegment(seg)) timer.mark('first_useful_delivered');
@@ -284,10 +289,10 @@ async function runTurnBody(
         checks.record('model_turn_validation', v.unknownIds.length > 0 || v.retried || v.unparsed || v.emptyTurn || v.refused,
           v.retried ? 'model reply regenerated' : 'model reply unusable', { ...v });
       },
-      onRequest: rec ? r => safe(() => rec.request(r.attempt, r.model, r.body)) : undefined,
-      onRawOutput: rec ? r => safe(() => rec.output(r.attempt, r.text)) : undefined,
+      onRequest: rec ? r => safe(rec, 'request', () => rec.request(r.attempt, r.model, r.body)) : undefined,
+      onRawOutput: rec ? r => safe(rec, 'output', () => rec.output(r.attempt, r.text)) : undefined,
       onUsage: u => {
-        if (rec) safe(() => rec.usage(u));
+        if (rec) safe(rec, 'usage', () => rec.usage(u));
         turnUsage.model = u.model;
         turnUsage.inputTokens += u.inputTokens;
         turnUsage.outputTokens += u.outputTokens;
@@ -316,7 +321,7 @@ async function runTurnBody(
     };
   }
 
-  if (rec) safe(() => rec.setModelTurn(out.turn, out.validation));
+  if (rec) safe(rec, 'model_turn', () => rec.setModelTurn(out.turn, out.validation));
 
   // Settle (settle-turn.ts): compose, book, commit; only the text after what
   // was already delivered goes out.

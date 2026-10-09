@@ -41,10 +41,10 @@ if (rows.length < all.length) console.log(`[scorecard] version ${version}: ${all
 mkdirSync(OUT, { recursive: true });
 rows.sort((a, b) => (a.runNumber ?? 0) - (b.runNumber ?? 0));
 writeFileSync(path.join(OUT, 'scorecard.json'), JSON.stringify(rows, null, 2));
-const cols = ['runId', 'runNumber', 'personaId', 'personaName', 'version', 'rerun', 'completion', 'stuck', 'modelTurns', 'firstRelevantMedianMs', 'firstRelevantP90Ms', 'regenerations', 'vetoTurns', 'slowTurns', 'unpricedUsageCalls', 'codeFlags', 'repeatedAsks', 'explicitAsks', 'appCostUsd', 'simulatorCostUsd', ...DIMENSIONS];
+const cols = ['runId', 'runNumber', 'personaId', 'personaName', 'version', 'rerun', 'completion', 'stuck', 'modelTurns', 'firstRelevantMedianMs', 'firstRelevantP90Ms', 'regenerations', 'vetoTurns', 'slowTurns', 'unpricedUsageCalls', 'codeFlags', 'incompleteTurns', 'repeatedAsks', 'explicitAsks', 'appCostUsd', 'simulatorCostUsd', ...DIMENSIONS];
 const cell = (r: ScorecardRow, c: string): string => {
   const v = c in r ? (r as Record<string, unknown>)[c] : c in r.performance ? (r.performance as Record<string, unknown>)[c]
-    : c === 'codeFlags' ? r.codeFlags.map(f => f.kind).join(' ') : c === 'repeatedAsks' ? r.effort.repeatedAsks
+    : c === 'codeFlags' ? r.codeFlags.map(f => f.kind).join(' ') : c === 'incompleteTurns' ? r.evidence.incompleteTurns : c === 'repeatedAsks' ? r.effort.repeatedAsks
     : c === 'explicitAsks' ? r.opportunities.explicitAsks : (r.ratings as Record<string, unknown>)[c];
   return JSON.stringify(v ?? '');
 };
@@ -59,6 +59,7 @@ writeFileSync(path.join(OUT, 'scorecard.md'), [
   `# Batch 18 scorecard (auto columns)${version ? ` — version ${version}` : ''}`, '',
   `Totals and the table below are original runs; reruns are listed separately (${reruns.length}).`, '',
   `Scoring-QA totals across ${originals.filter(r => r.scoringQa).length} scored runs: ${Object.entries(qaTotals).map(([k, v]) => `${k} ${v}`).join(' · ') || 'none'}`, '',
+  `Runs with incomplete recorder evidence: ${originals.filter(r => (r.evidence.incompleteTurns ?? 0) > 0).map(r => `${r.runNumber ?? r.runId} (${r.evidence.incompleteTurns} turns)`).join(', ') || 'none'} — their turn records lack some stages; read the transcript for those turns`, '',
   `Runs with unpriced usage: ${originals.filter(r => r.performance.unpricedUsageCalls > 0).length} (${originals.reduce((n, r) => n + r.performance.unpricedUsageCalls, 0)} calls; their cost is missing from app cost)`, '',
   `${originals.length} runs · ended ${ended} · technical failures ${originals.filter(r => r.completion === 'technical_failure').length} · stuck ${originals.filter(r => r.stuck).length} · with code flags ${originals.filter(r => r.codeFlags.length).length}`, '',
   ...tableHead, ...originals.map(tableRow),

@@ -40,6 +40,19 @@ describe('TurnRecorder', () => {
     expect((r.requests[0].body as { messages: unknown[] }).messages).toHaveLength(1);
   });
 
+  it('notes recorder errors per stage; none → an empty list (follow-up 9 Oct)', () => {
+    const fin = (rec: TurnRecorder) => rec.finish({ sessionId: 's', turnIndex: 0, candidateText: '', checks: [], savedLine: '', phaseAfter: 'INTRO', ended: false, timing: {} });
+    const clean = new TurnRecorder(0, () => 0);
+    clean.setState(state);
+    expect(fin(clean).recorderErrors).toEqual([]);
+    const rec = new TurnRecorder(0, () => 0);
+    rec.setState(state);
+    rec.noteError('request', 'structuredClone failed');
+    rec.noteError('segment', 'boom');
+    expect(fin(rec).recorderErrors).toEqual([{ stage: 'request', message: 'structuredClone failed' }, { stage: 'segment', message: 'boom' }]);
+    expect(() => rec.noteError(undefined as never, { toString() { throw new Error('x'); } } as never)).not.toThrow();
+  });
+
   it('refuses to finish without a state snapshot', () => {
     const rec = new TurnRecorder(0, () => 0);
     expect(() => rec.finish({ sessionId: 's', turnIndex: 0, candidateText: '', checks: [], savedLine: '', phaseAfter: 'INTRO', ended: false, timing: {} }))

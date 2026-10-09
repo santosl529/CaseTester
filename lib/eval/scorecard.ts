@@ -21,7 +21,7 @@ export type RunRecord = {
 export type CodeFlag = {
   /** The turn record's index: the candidate's line (the interviewer's reply is turnIndex + 1), as the check events use. */
   turnIndex: number | null;
-  kind: 'question_withheld' | 'guard_double_miss' | 'model_unusable' | 'prefix_mismatch' | 'loop' | 'repeated_short_probe' | 'stage_skipped' | 'technical_failure' | 'slow_turn';
+  kind: 'question_withheld' | 'guard_double_miss' | 'model_unusable' | 'prefix_mismatch' | 'loop' | 'repeated_short_probe' | 'incomplete_evidence' | 'stage_skipped' | 'technical_failure' | 'slow_turn';
   detail: string;
 };
 
@@ -37,6 +37,8 @@ export type ScorecardRow = {
   loops: { maxSameQuestion: number; longestNoProgress: number | null };
   codeFlags: CodeFlag[];
   effort: { repeatedAsks: number };
+  /** Turns whose recorder lost a stage (follow-up 9 Oct); null without a turn file. */
+  evidence: { incompleteTurns: number | null };
   opportunities: { explicitAsks: number; ledgerItemsRequested: number; mathChecks: number; exhibitsShown: number; stallRungs: number; recAsks: number };
   performance: { firstRelevantMedianMs: number | null; firstRelevantP90Ms: number | null; regenerations: number | null; vetoTurns: number; slowTurns: number | null; unpricedUsageCalls: number; appCostUsd: number; simulatorCostUsd: number | null };
   scoring: string | null;
@@ -146,6 +148,8 @@ export function scorecardRow(p: { runId: string; run: RunRecord; turnFile: { hea
     if (acted('request_guard') && (r.parsedTurn?.requests.length ?? 0) === 0) flags.push({ turnIndex: r.turnIndex, kind: 'guard_double_miss', detail: 'explicit ask; no request declared after the guard rewrite' });
     if (r.validation && (r.validation.unparsed || r.validation.emptyTurn || r.validation.refused)) flags.push({ turnIndex: r.turnIndex, kind: 'model_unusable', detail: JSON.stringify(r.validation) });
     if (acted('stream_prefix_mismatch')) flags.push({ turnIndex: r.turnIndex, kind: 'prefix_mismatch', detail: 'composed turn differed from delivered speech' });
+    const lost = [...new Set((r.recorderErrors ?? []).map(e => e.stage))];
+    if (lost.length) flags.push({ turnIndex: r.turnIndex, kind: 'incomplete_evidence', detail: `recorder failed at: ${lost.join(', ')}` });
     const rel = firstRelevantMs(r);
     if (rel !== null && rel > SLOW_TURN_MS) flags.push({ turnIndex: r.turnIndex, kind: 'slow_turn', detail: `${rel} ms to first relevant speech` });
   }
@@ -180,6 +184,7 @@ export function scorecardRow(p: { runId: string; run: RunRecord; turnFile: { hea
     loops: { maxSameQuestion: maxSame, longestNoProgress: noProgress },
     codeFlags: flags,
     effort: { repeatedAsks: [...askTurns.values()].filter(s => s.size >= 2).length },
+    evidence: { incompleteTurns: records ? records.filter(r => (r.recorderErrors ?? []).length > 0).length : null },
     opportunities: {
       explicitAsks: run.events.filter(e => e.category === 'request_signal' && e.subtype === 'explicit_ask').length,
       ledgerItemsRequested: askTurns.size + dr.filter(e => e.payloadJsonb.revealedByNow).flatMap(e => (e.payloadJsonb.ledgerItemIds as string[]) ?? []).filter(id => !askTurns.has(id)).length,

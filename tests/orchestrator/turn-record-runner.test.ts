@@ -81,6 +81,7 @@ describe('runTurn onTurnRecord', () => {
     expect(rec.savedLine).toBe(r.interviewerText);
     expect(rec.delivered.length).toBeGreaterThan(0);
     expect(rec.parsedTurn?.question).toBe('Which line moved most?');
+    expect(rec.recorderErrors).toEqual([]);
   });
 
   it('without onTurnRecord nothing changes (same interviewer text)', async () => {
@@ -111,5 +112,9 @@ describe('runTurn onTurnRecord', () => {
     const b = await runTurn('s1', 'I think costs drove it.', { onTurnRecord: rec => records.push(rec) });
     expect(b.interviewerText).toBe(a.interviewerText);
     expect(records).toHaveLength(1);
+    // The record says what it is missing (follow-up 9 Oct).
+    expect(records[0].requests).toEqual([]);
+    expect(records[0].recorderErrors.map(e => e.stage)).toContain('request');
+    expect(records[0].recorderErrors.find(e => e.stage === 'request')?.message).toBeTruthy();
   });
 });

@@ -19,6 +19,12 @@ describe('turn file', () => {
     expect(back.end?.scoring).toBe('scored');
   });
 
+  it('a turn written before recorderErrors existed reads with an empty list (follow-up 9 Oct)', () => {
+    const p = path.join(mkdtempSync(path.join(tmpdir(), 'tf-')), 'old.turns.jsonl.gz');
+    writeFileSync(p, gzipSync([header, { type: 'turn', turnIndex: 0 }, { type: 'turn', turnIndex: 2, recorderErrors: [{ stage: 'request', message: 'm' }] }].map(x => JSON.stringify(x)).join('\n') + '\n'));
+    expect(readTurnFile(p).turns.map(t => t.recorderErrors)).toEqual([[], [{ stage: 'request', message: 'm' }]]);
+  });
+
   it('a file cut off before the end line reads with end = null', () => {
     const p = path.join(mkdtempSync(path.join(tmpdir(), 'tf-')), 'cut.turns.jsonl.gz');
     writeFileSync(p, gzipSync(JSON.stringify(header) + '\n' + JSON.stringify({ type: 'turn', turnIndex: 0 }) + '\n'));

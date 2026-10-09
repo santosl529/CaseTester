@@ -46,6 +46,8 @@ export type TurnRecord = {
   ended: boolean;
   timing: Record<string, number>;
   usage: LlmUsage[];
+  /** Recorder steps that failed this turn (follow-up 9 Oct): the record is incomplete evidence for those stages. Empty when none. */
+  recorderErrors: { stage: string; message: string }[];
 };
 
 export class TurnRecorder {
@@ -56,6 +58,7 @@ export class TurnRecorder {
   private segments: TurnRecord['delivered'] = [];
   private modelTurn: ModelTurn | null = null;
   private validation: TurnValidation | null = null;
+  private errors: TurnRecord['recorderErrors'] = [];
 
   constructor(private startMs: number, private now: () => number = Date.now) {}
 
@@ -68,6 +71,10 @@ export class TurnRecorder {
   }
   output(attempt: AttemptKind, text: string): void { this.outputs.push({ attempt, text, atMs: this.at() }); }
   usage(u: LlmUsage): void { this.usages.push({ ...u }); }
+  /** Notes a failed recorder step. Never throws. */
+  noteError(stage: string, message: string): void {
+    try { this.errors.push({ stage: String(stage), message: String(message) }); } catch { /* a note that cannot be made is dropped */ }
+  }
   segment(seg: Segment): void {
     this.segments.push({ kind: seg.kind, text: seg.text, revealIds: [...seg.revealIds], ...(seg.exhibitId ? { exhibitId: seg.exhibitId } : {}), atMs: this.at() });
   }
@@ -82,7 +89,7 @@ export class TurnRecorder {
       stateBefore: this.state, requests: this.requests, outputs: this.outputs,
       parsedTurn: this.modelTurn, validation: this.validation, checks: p.checks.map(c => ({ ...c })),
       delivered: this.segments, savedLine: p.savedLine, phaseAfter: p.phaseAfter, ended: p.ended,
-      timing: { ...p.timing }, usage: this.usages,
+      timing: { ...p.timing }, usage: this.usages, recorderErrors: this.errors.map(e => ({ ...e })),
     };
   }
 }

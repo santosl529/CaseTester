@@ -27,7 +27,8 @@ export function readTurnFile(p: string): { header: TurnFileHeader; turns: TurnRe
   if (!header) throw new Error(`${p}: no header line`);
   return {
     header,
-    turns: rows.filter(r => r.type === 'turn') as TurnRecord[],
+    // Turns written before recorderErrors existed read as complete.
+    turns: (rows.filter(r => r.type === 'turn') as TurnRecord[]).map(t => ({ ...t, recorderErrors: t.recorderErrors ?? [] })),
     end: (rows.find(r => r.type === 'end') as TurnFileEnd | undefined) ?? null,
   };
 }

@@ -9,7 +9,7 @@ const turn = (i: number, over: Partial<TurnRecord> = {}): TurnRecord => ({
   type: 'turn', sessionId: 's', turnIndex: i, candidateText: 'c',
   stateBefore: { phase: 'ANALYSIS', elapsedMs: 0, kind: 'model', promptContext: null, revealedIds: [], shownExhibitIds: [], openDataRequests: [], pressureTest: null, stallRung: null, verifiedFigures: [], recomputeFlags: [], requestCues: [] },
   requests: [], outputs: [], parsedTurn: null, validation: null, checks: [],
-  delivered: [{ kind: 'tail', text: 'Q?', revealIds: [], atMs: 1500 }], savedLine: 'Q?', phaseAfter: 'ANALYSIS', ended: false, timing: {}, usage: [], ...over,
+  delivered: [{ kind: 'tail', text: 'Q?', revealIds: [], atMs: 1500 }], savedLine: 'Q?', phaseAfter: 'ANALYSIS', ended: false, timing: {}, usage: [], recorderErrors: [], ...over,
 });
 const run = (over: Partial<RunRecord> = {}): RunRecord => ({
   session: { id: 's', status: 'completed' },
@@ -123,6 +123,22 @@ describe('scorecard', () => {
     const row = scorecardRow({ runId: 'r', run: run({ turns }), turnFile: null });
     expect(row.stuck).toBeNull();
     expect(row.codeFlags.find(f => f.kind === 'repeated_short_probe')).toMatchObject({ turnIndex: 5 }); // the candidate turn the last ask (line 6) answered, as records index it
+  });
+
+  it('counts turns with incomplete recorder evidence and flags each (follow-up 9 Oct)', () => {
+    const turns = [
+      turn(0, { recorderErrors: [{ stage: 'request', message: 'clone failed' }, { stage: 'output', message: 'x' }, { stage: 'request', message: 'clone failed' }] }),
+      turn(2),
+      turn(4, { recorderErrors: [{ stage: 'segment', message: 'y' }] }),
+    ];
+    const row = scorecardRow({ runId: 'r', run: run(), turnFile: { header: header(), turns, end: end('scored') } });
+    expect(row.evidence).toEqual({ incompleteTurns: 2 });
+    expect(row.codeFlags.filter(f => f.kind === 'incomplete_evidence')).toEqual([
+      { turnIndex: 0, kind: 'incomplete_evidence', detail: 'recorder failed at: request, output' },
+      { turnIndex: 4, kind: 'incomplete_evidence', detail: 'recorder failed at: segment' },
+    ]);
+    expect(scorecardRow({ runId: 'r', run: run(), turnFile: { header: header(), turns: [turn(0)], end: end('scored') } }).evidence).toEqual({ incompleteTurns: 0 });
+    expect(scorecardRow({ runId: 'old', run: run(), turnFile: null }).evidence).toEqual({ incompleteTurns: null });
   });
 
   const header = (over: Partial<TurnFileHeader> = {}): TurnFileHeader => ({ type: 'header', batch: 'batch-18', version: 'v1', wave: 'w', runNumber: 3, commit: 'c', dirty: false, models: {}, persona: { id: 18, name: 'Nikhil', brief: '' }, sessionId: 's', startedAt: '', ...over });
