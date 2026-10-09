@@ -8,7 +8,7 @@ A voice-based AI mock case interview for undergraduates recruiting for managemen
 - Supabase (Postgres + Auth, email + club-code gate); RLS on all candidate-owned tables.
 - drizzle for typed schema + migrations (or Supabase migrations — flag if you switch).
 - Tailwind; minimal mid-case UI (voice is primary, exhibit panel is the only mid-case visual).
-- Live interviewer LLM: Claude Sonnet 5.5 (`claude-sonnet-5-5`), thinking off (`thinking: {type: "between_tools"}` — Sonnet 5.5 rejects `disabled`), behind an `InterviewerModel` interface. (History: Haiku 4.5 → Opus 4.8 in July 2026 after missed live math errors → Sonnet 5.5 in Oct 2026 for speed/cost; the deterministic math backstops now carry most of the math-catching load — watch for regressions.)
+- Live interviewer LLM: Claude Sonnet 5.5 (`claude-sonnet-5-5`), thinking off (`thinking: {type: "between_tools"}` — Sonnet 5.5 rejects `disabled`), behind an `InterviewerModel` interface. (History: Haiku 4.5 → Opus 4.8 in July 2026 after missed live math errors → Sonnet 5.5 in Oct 2026 for speed/cost; the deterministic math backstops now carry most of the math-catching load — watch for regressions.; with thinking off Sonnet speaks its release reasoning as plain text, which the runner's meta-leak strip removes — adaptive thinking at low effort removed it at the source but took thinking turns to 4.1s (batch 6, 3 Oct), so it stays off.)
 - Scoring LLM: Claude Opus 5.5 (`claude-opus-5-5`, adaptive thinking, effort `high`), runs at case end — judge, claim-verifier, and dimension-reconciliation passes; plus deterministic evidence-quote, math, answer-key, and strong-rating audits in code.
 - Background classifiers: Claude Haiku 4.5 (`claude-haiku-4-5`) — coverage, data requests, distress (C5), hint check.
 - Model ids live in `lib/models.ts`. Interviewer and scoring calls use server-side refusal fallbacks (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`, Claude API only).
@@ -40,6 +40,8 @@ See the PRD §3 for the proposed layout (`/lib/orchestrator`, `/lib/agent`, `/li
 - Case answer keys, data-ledger values, `*_key` fields, `math_steps.answer`, and `rubric_anchors` are SERVER-ONLY. They must never reach the client bundle.
 - Case content is human-authored JSON in `/cases`, validated against a zod schema on load — reject malformed cases at boot.
 - Deterministic checks (math tolerance, data-leak audit) are computed in code, never delegated to the LLM where ground truth exists.
+- Always read PRD/progress.md before working on new task
+- Always update progress.md after finishing work
 
 ## Supabase
 - Client-side: `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (publishable key).
@@ -51,6 +53,7 @@ See the PRD §3 for the proposed layout (`/lib/orchestrator`, `/lib/agent`, `/li
 - Never read `.env.local` or any `.env.*` file with real values.
 - Refer to `.env.example` for required environment variables.
 - If you need an env var's value, ask me.
+- Commands may load .env.local via --env-file to make API calls. Never print, read, or copy the values themselves.
 
 ## Definition of done
 - The project's typecheck, tests, and lint all pass (see Commands).
