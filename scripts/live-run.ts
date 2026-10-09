@@ -50,6 +50,10 @@ import { getPersona, type Persona } from './personas';
 import { anthropicClient } from '@/lib/anthropic-client';
 import { requireRunBudget, BudgetExceededError } from '@/lib/llm-budget';
 import { costOf, isPriced } from '@/lib/llm-pricing';
+import { writeTurnFile, type TurnFileHeader } from '@/lib/eval/turn-file';
+import { gitInfo } from '@/lib/eval/git-info';
+import type { TurnRecord } from '@/lib/orchestrator/turn-record';
+import { INTERVIEWER_MODEL_ID, SCORING_MODEL_ID } from '@/lib/models';
 
 const CANDIDATE_MODEL = 'claude-opus-5';
 // human pacing on a 20-minute clock can exceed 30 turns; --max-turns=N for a smoke run
@@ -74,6 +78,12 @@ const BATCH = flag('batch');
 // --no-score: transcripts and timing only (no Opus scoring) — for A/B runs on
 // the interviewer; --finish=<sessionId> can score the session later.
 const NO_SCORE = process.argv.includes('--no-score');
+const VERSION = flag('version') ?? null;
+const WAVE = flag('wave') ?? null;
+const RUN_NUMBER = flag('run-number') ? Number(flag('run-number')) : null;
+const BATCH_ID = flag('batch-id') ?? null;
+const turnRecords: TurnRecord[] = [];
+let turnHeader: TurnFileHeader | null = null;
 if (PERSONA && !BATCH) throw new Error('--persona runs need --batch=NAME (the "test runs/" subfolder)');
 
 // "Maya — the Freezer" (id 1) → test runs/<batch>/01-maya-the-freezer
@@ -272,6 +282,13 @@ async function main() {
   const { sessionId, openingText } = await startSession(userId, caseId);
   if (flag('seed')) await seedSession(sessionId);
   console.log(`[live-run] session ${sessionId} · ${caseData.title}${PERSONA ? ` · persona ${PERSONA.id} ${PERSONA.name}` : ''} · pace ${PACE}`);
+  const git = gitInfo();
+  turnHeader = {
+    type: 'header', batch: BATCH_ID, version: VERSION, wave: WAVE, runNumber: RUN_NUMBER, commit: git.commit, dirty: git.dirty,
+    models: { interviewer: process.env.INTERVIEWER_PROVIDER ?? INTERVIEWER_MODEL_ID, scoring: SCORING_MODEL_ID, candidate: CANDIDATE_MODEL },
+    persona: PERSONA ? { id: PERSONA.id, name: PERSONA.name, brief: PERSONA.brief } : null,
+    sessionId, startedAt: new Date().toISOString(),
+  };
   console.log(`\n[interviewer · INTRO] ${openingText}`);
 
   const transcript: Line[] = [{ role: 'interviewer', text: openingText }];
@@ -313,7 +330,7 @@ async function main() {
 
       const phaseBeforeTurn = phase;
       // Analytics writes run in the background, as after() runs them in the route.
-      const result = await runTurn(sessionId, candidateText, { defer: task => { background.push(task()); } });
+      const result = await runTurn(sessionId, candidateText, { defer: task => { background.push(task()); }, onTurnRecord: r => turnRecords.push(r) });
       // What the candidate sees: the spoken text, plus the exhibit the app would
       // render in its side panel. The DB transcript is unaffected.
       transcript.push({
@@ -350,7 +367,7 @@ async function main() {
   }
   console.log(`\n[live-run] ended=${ended} scoring=${scoring.status}`);
 
-  await writeArtifacts(sessionId, caseData.title);
+  await writeArtifacts(sessionId, caseData.title, { ended, budgetStopped, scoring: scoring.status });
 }
 
 // --finish=<sessionId> [--log-from=<file>]: score an already-run session and
@@ -367,7 +384,7 @@ async function finish(sessionId: string) {
   await writeArtifacts(sessionId, getCaseById(session.caseId).title);
 }
 
-async function writeArtifacts(sessionId: string, caseTitle: string) {
+async function writeArtifacts(sessionId: string, caseTitle: string, run?: { ended: boolean; budgetStopped: boolean; scoring: string }) {
   const session = (await db.query.sessions.findFirst({ where: eq(sessions.id, sessionId) }))!;
   const turns = await db.query.sessionTurns.findMany({
     where: eq(sessionTurns.sessionId, sessionId),
@@ -408,6 +425,12 @@ async function writeArtifacts(sessionId: string, caseTitle: string) {
   const date = new Date().toISOString().slice(0, 10);
   const base = `live-run-${date}-${sessionId.slice(0, 8)}`;
   await mkdir(OUT_DIR, { recursive: true });
+  if (turnHeader && run) {
+    writeTurnFile(path.join(OUT_DIR, `${base}.turns.jsonl.gz`), turnHeader, turnRecords, {
+      type: 'end', ended: run.ended, budgetStopped: run.budgetStopped, scoring: run.scoring,
+      candidateUsage: { calls: candidateUsage.calls, input: candidateUsage.input, output: candidateUsage.output, usd: candidateUsage.usd },
+    });
+  }
 
   const md: string[] = [];
   md.push(`# Live run — ${caseTitle}`, '');

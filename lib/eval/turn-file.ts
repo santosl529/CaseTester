@@ -1,0 +1,31 @@
+// <run>.turns.jsonl.gz: a header line, one line per TurnRecord, an end line
+// (spec 2026-10-09 §2.1). A run that died has no end line.
+import { writeFileSync, readFileSync } from 'node:fs';
+import { gzipSync, gunzipSync } from 'node:zlib';
+import type { TurnRecord } from '@/lib/orchestrator/turn-record';
+
+export type TurnFileHeader = {
+  type: 'header'; batch: string | null; version: string | null; wave: string | null; runNumber: number | null;
+  commit: string; dirty: boolean; models: Record<string, string>;
+  persona: { id: number; name: string; brief: string } | null; sessionId: string; startedAt: string;
+};
+export type TurnFileEnd = {
+  type: 'end'; ended: boolean; budgetStopped: boolean; scoring: string;
+  candidateUsage: { calls: number; input: number; output: number; usd: number };
+};
+
+export function writeTurnFile(p: string, header: TurnFileHeader, turns: TurnRecord[], end: TurnFileEnd): void {
+  const lines = [header, ...turns, end].map(x => JSON.stringify(x)).join('\n') + '\n';
+  writeFileSync(p, gzipSync(lines));
+}
+
+export function readTurnFile(p: string): { header: TurnFileHeader; turns: TurnRecord[]; end: TurnFileEnd | null } {
+  const rows = gunzipSync(readFileSync(p)).toString('utf8').split('\n').filter(Boolean).map(l => JSON.parse(l) as { type: string });
+  const header = rows.find(r => r.type === 'header') as TurnFileHeader | undefined;
+  if (!header) throw new Error(`${p}: no header line`);
+  return {
+    header,
+    turns: rows.filter(r => r.type === 'turn') as TurnRecord[],
+    end: (rows.find(r => r.type === 'end') as TurnFileEnd | undefined) ?? null,
+  };
+}
