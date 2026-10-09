@@ -103,7 +103,7 @@ const contentWords = (t: string) => new Set((t.toLowerCase().match(/[a-z]+/g) ??
 // only what it names.
 export function matchAskDetections<T extends { what: string }>(sentences: string[], detections: T[]): { kept: T[]; dropped: T[] } {
   if (sentences.length === 0) return { kept: [], dropped: [...detections] };
-  if (sentences.length === 1 && detections.length === 1 && (cueAsk(sentences[0]) || WANT_CUE.test(sentences[0]))) {
+  if (sentences.length === 1 && detections.length === 1 && cueAsk(sentences[0])) {
     return { kept: [...detections], dropped: [] };
   }
   const asked = contentWords(sentences.join(' '));

@@ -112,6 +112,18 @@ describe('matchAskDetections', () => {
     expect(matchAskDetections(['What was the store count two years ago?'], [d('Number of stores')]).kept).toEqual([d('Number of stores')]);
   });
 
+  // An "I'd want …" sentence that qualifies only by the want cue (no addressed-ask
+  // cue) never takes the 1:1 shortcut: it needs content-word overlap too.
+  it("an \"I'd want\" sentence and one detection need a content word in common", () => {
+    const text = "I'd want a waste audit before committing, does that make sense?";
+    const sentences = asks(text, 'CLOSE');
+    expect(sentences.length).toBe(1);
+    const unrelated = { what: 'Competitor pricing actions', explicit: true, ledgerItemIds: [] as string[] };
+    const related = { what: 'Waste audit results', explicit: true, ledgerItemIds: [] as string[] };
+    expect(matchAskDetections(sentences, [unrelated]).kept).toEqual([]);
+    expect(matchAskDetections(sentences, [related]).kept).toEqual([related]);
+  });
+
   it('otherwise a detection is kept when it shares a content word with an asking sentence', () => {
     const r = matchAskDetections(['Could you share the store count?'], [d('Number of stores'), d('Pilot elasticity results'), d('Competitor pricing actions')]);
     expect(r.kept).toEqual([d('Number of stores')]);
