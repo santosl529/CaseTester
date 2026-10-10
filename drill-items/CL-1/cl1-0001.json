@@ -1,6 +1,6 @@
 {
   "item_id": "cl1-0001",
-  "version": 1,
+  "version": 2,
   "drill_id": "CL-1",
   "status": "live",
   "level": 1,
@@ -9,7 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "profitability",
-  "prompt": "Objective: find why profit fell 20%. What you've learned: revenue is flat. Latest finding: cost of goods sold rose 25% while other costs held steady. What is the best next step?",
+  "prompt": "Objective: find why a paint maker's profit fell 15%. What you've learned: revenue is flat. Latest finding: cost of goods sold rose 18% while other costs held steady. What is the best next step?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -19,7 +19,7 @@
       "id": "a",
       "text": "Break cost of goods sold down by input to see which rose",
       "correct": true,
-      "feedback": "Right. COGS explains the decline, so the next step is finding which input moved."
+      "feedback": "Right. COGS explains the decline, so the next step is finding which input moved: pigments, resins, cans or plant labor."
     },
     {
       "id": "b",
@@ -47,7 +47,7 @@
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "COGS rose 25% while revenue and other costs held, so the next step is finding which input of COGS moved.",
+  "explanation": "COGS rose 18% while revenue and other costs held, so the next step is finding which input of COGS moved.",
   "extras": {},
   "sources": [],
   "authorship": {

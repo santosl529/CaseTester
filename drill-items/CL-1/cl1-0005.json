@@ -1,6 +1,6 @@
 {
   "item_id": "cl1-0005",
-  "version": 1,
+  "version": 2,
   "drill_id": "CL-1",
   "status": "live",
   "level": 1,
@@ -9,7 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "growth_strategy",
-  "prompt": "Objective: help a meal-kit company double revenue. What you've learned: the customer count is flat because new sign-ups equal cancellations. Latest finding: half of new customers cancel within two months. What is the best next step?",
+  "prompt": "Objective: help a language-learning app double revenue. What you've learned: paying users are flat because new subscriptions equal cancellations. Latest finding: 60% of new subscribers cancel within their first month. What is the best next step?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,27 +17,27 @@
   "options": [
     {
       "id": "a",
-      "text": "Work out why new customers cancel within two months",
+      "text": "Work out why new subscribers cancel within a month",
       "correct": true,
-      "feedback": "Right. Cancellations cancel out every new customer, so early churn comes before spending more on acquisition."
+      "feedback": "Right. Cancellations cancel out every new subscriber, so early churn comes before spending more on acquisition."
     },
     {
       "id": "b",
-      "text": "Calculate the marketing needed to double sign-ups",
+      "text": "Calculate the ad spend needed to double sign-ups",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "More sign-ups won't help while half of them leave within two months."
+      "feedback": "More sign-ups won't help while 60% of them leave within a month."
     },
     {
       "id": "c",
-      "text": "Compare prices with rival meal-kit companies",
+      "text": "Compare prices with rival language apps",
       "correct": false,
       "tag": "M.low_priority_next_step",
       "feedback": "Price may turn out to be one reason people cancel, but start with why they cancel."
     },
     {
       "id": "d",
-      "text": "Size the market for ready-to-eat meals",
+      "text": "Size the market for live tutoring add-ons",
       "correct": false,
       "tag": "M.low_priority_next_step",
       "feedback": "A new product is a later lever. The finding is about churn."
@@ -47,7 +47,7 @@
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Half of new customers cancel within two months, so understanding early churn comes before growing acquisition.",
+  "explanation": "60% of new subscribers cancel within a month, so understanding early churn comes before growing acquisition.",
   "extras": {},
   "sources": [],
   "authorship": {

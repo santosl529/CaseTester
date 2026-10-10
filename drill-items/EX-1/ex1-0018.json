@@ -1,6 +1,6 @@
 {
   "item_id": "ex1-0018",
-  "version": 1,
+  "version": 2,
   "drill_id": "EX-1",
   "status": "live",
   "level": 1,
@@ -24,13 +24,13 @@
         [
           "Basic",
           "$10",
-          "50,000",
+          "60,000",
           "6%"
         ],
         [
           "Plus",
-          "$20",
-          "30,000",
+          "$25",
+          "28,000",
           "3%"
         ],
         [
@@ -55,16 +55,16 @@
     },
     {
       "id": "b",
-      "text": "Plus earns $600k a month, more than Basic's $500k",
+      "text": "Plus earns $700k a month, more than Basic's $600k",
       "correct": true,
-      "feedback": "Right. Monthly revenue: Basic $10 × 50,000 = $500k, Plus $20 × 30,000 = $600k, Pro $40 × 5,000 = $200k."
+      "feedback": "Right. Monthly revenue: Basic $10 × 60,000 = $600k, Plus $25 × 28,000 = $700k, Pro $40 × 5,000 = $200k."
     },
     {
       "id": "c",
       "text": "Basic, with the most customers, earns the most",
       "correct": false,
       "tag": "M.misread_trend",
-      "feedback": "Basic has the most customers, but $10 × 50,000 = $500k, less than Plus at $600k."
+      "feedback": "Basic has the most customers, but $10 × 60,000 = $600k, less than Plus at $700k."
     },
     {
       "id": "d",
@@ -78,9 +78,9 @@
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Monthly revenue: Basic $500k, Plus $600k, Pro $200k.",
+  "explanation": "Monthly revenue: Basic $600k, Plus $700k, Pro $200k.",
   "extras": {
-    "proof": "Monthly revenue: Basic $500k, Plus $600k, Pro $200k."
+    "proof": "Monthly revenue: Basic $600k, Plus $700k, Pro $200k."
   },
   "sources": [],
   "authorship": {

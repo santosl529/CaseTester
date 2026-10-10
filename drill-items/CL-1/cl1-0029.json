@@ -1,6 +1,6 @@
 {
   "item_id": "cl1-0029",
-  "version": 1,
+  "version": 2,
   "drill_id": "CL-1",
   "status": "live",
   "level": 1,
@@ -9,7 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "investment_decision",
-  "prompt": "Objective: decide whether to build a third plant. What you've learned: Plant A runs at 98% utilization. Latest finding: Plant B runs at 60%. What is the best next step?",
+  "prompt": "Objective: decide whether a bottling company should build a third bottling line. What you've learned: Line A runs at 97% utilization. Latest finding: Line B runs at 58%. What is the best next step?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,37 +17,37 @@
   "options": [
     {
       "id": "a",
-      "text": "Check whether Plant B can take on Plant A's work",
+      "text": "Check whether Line B can take on Line A's work",
       "correct": true,
-      "feedback": "Right. Spare capacity at Plant B may remove the need to build, so test that first."
+      "feedback": "Right. Spare capacity on Line B may remove the need to build, so test that first."
     },
     {
       "id": "b",
-      "text": "Test demand forecasts to size the third plant",
+      "text": "Test demand forecasts to size the third line",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That assumes a third plant is needed. Plant B has spare capacity."
+      "feedback": "That assumes a third line is needed. Line B has spare capacity."
     },
     {
       "id": "c",
-      "text": "Plan where a third plant could be built",
+      "text": "Plan where a third line could be built",
       "correct": false,
       "tag": "M.illogical_next_step",
       "feedback": "That jumps ahead to building."
     },
     {
       "id": "d",
-      "text": "Check that Plant A's utilization is measured correctly",
+      "text": "Check that Line A's utilization is measured correctly",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "Already answered: 98%."
+      "feedback": "Already answered: 97%."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Plant A is at 98% but Plant B is at 60%. Test whether B can take over some of A's work before building.",
+  "explanation": "Line A is at 97% but Line B is at 58%. Test whether B can take over some of A's work before building.",
   "extras": {},
   "sources": [],
   "authorship": {

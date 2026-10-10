@@ -1,6 +1,6 @@
 {
   "item_id": "cl1-0028",
-  "version": 1,
+  "version": 2,
   "drill_id": "CL-1",
   "status": "live",
   "level": 1,
@@ -9,7 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "profitability",
-  "prompt": "Objective: find why a car wash's revenue fell 15%. What you've learned: the number of cars washed is flat. Latest finding: customers have shifted from the premium wash to the basic wash. What is the best next step?",
+  "prompt": "Objective: find why a laundromat chain's revenue fell 12%. What you've learned: the number of loads washed is flat. Latest finding: customers have shifted from the large machines to the small ones. What is the best next step?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,28 +17,28 @@
   "options": [
     {
       "id": "a",
-      "text": "Check with the interviewer whether the mix shift is the main issue",
+      "text": "Check with the interviewer whether the machine mix is the main issue",
       "correct": false,
       "tag": "M.waited_for_interviewer",
       "feedback": "The finding answers that. Drive the case."
     },
     {
       "id": "b",
-      "text": "Find out why car counts held flat at each location",
+      "text": "Find out why load counts held flat at each location",
       "correct": false,
       "tag": "M.illogical_next_step",
       "feedback": "Already answered: volume is flat."
     },
     {
       "id": "c",
-      "text": "Estimate revenue if the basic wash were dropped",
+      "text": "Estimate revenue if the small machines were removed",
       "correct": false,
       "tag": "M.illogical_next_step",
       "feedback": "That jumps to a drastic fix before knowing why customers switched."
     },
     {
       "id": "d",
-      "text": "Learn why customers are trading down to the basic wash",
+      "text": "Learn why customers are switching to the smaller machines",
       "correct": true,
       "feedback": "Right. The mix shift explains revenue; next is why it happened."
     }
@@ -47,7 +47,7 @@
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Customers shifted from premium to basic washes. Find out why.",
+  "explanation": "Customers shifted from large to small machines. Find out why.",
   "extras": {},
   "sources": [],
   "authorship": {

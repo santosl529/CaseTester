@@ -1,6 +1,6 @@
 {
   "item_id": "cl1-0015",
-  "version": 1,
+  "version": 2,
   "drill_id": "CL-1",
   "status": "live",
   "level": 1,
@@ -9,7 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "pricing",
-  "prompt": "Objective: decide whether to raise a streaming service's price 15%. What you've learned: the survey says 6% of subscribers would cancel. Latest finding: revenue would rise about 8%. What is the best next step?",
+  "prompt": "Objective: decide whether a newspaper should raise its digital subscription price 25%. What you've learned: a survey says 5% of subscribers would cancel. Latest finding: revenue would rise about 19%. What is the best next step?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -20,7 +20,7 @@
       "text": "Recompute the revenue impact plan by plan",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "Already answered: about +8%."
+      "feedback": "Already answered: about +19%."
     },
     {
       "id": "b",
@@ -31,7 +31,7 @@
     },
     {
       "id": "c",
-      "text": "Test rival reactions and the 6% cancellation estimate",
+      "text": "Test rival reactions and the 5% cancellation estimate",
       "correct": true,
       "feedback": "Right. The math works on paper. Next is testing its assumptions: rivals' responses and whether people do what they say."
     },
@@ -47,7 +47,7 @@
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "The revenue math works on paper. Test the assumptions: competitor reactions and whether surveyed cancellations hold.",
+  "explanation": "1.25 × 0.95 ≈ 1.19, so the math works on paper. Test the assumptions: rival reactions and whether surveyed cancellations hold.",
   "extras": {},
   "sources": [],
   "authorship": {

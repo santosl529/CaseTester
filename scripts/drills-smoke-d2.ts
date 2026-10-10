@@ -37,7 +37,7 @@ const ANSWERS: Record<string, StepResponse[]> = {
     { type: 'choice', option_id: 'keep' },
     { type: 'text', value: 'Units per customer fell 20% at flat prices, which supports it.' },
   ],
-  'SY-2': [{ type: 'text', value: 'Add pharmacy counters, starting with a pilot. Each counter costs $400k and earns about $150k a year, paying back in under 3 years against our 4-year hurdle, and 60% of our shoppers fill prescriptions elsewhere. The main risk is that the national pharmacy chain near most of our stores keeps those customers, so the next step is a 10-store pilot that tracks prescriptions filled each week.' }],
+  'SY-2': [{ type: 'text', value: 'Open weekday mornings for school groups, starting with a pilot. Each park would host about 120 groups a year at $600, $72k against $40k of extra costs, and the parks are closed then anyway. The main risk is that schools pay museums only $450, so the next step is a 5-park pilot tracking bookings against the roughly 70 groups needed to break even.' }],
   'CL-3': [{ type: 'text', value: "I'd split margin into price, mix, COGS and operating expenses. I'd start with COGS as a share of revenue by year for the last 3 years, since it is the biggest cost line, then check average price by product line and SG&A by year." }],
   'QN-5': [
     { type: 'choices', option_ids: ['1', '2', '3', '4'] },

@@ -1,6 +1,6 @@
 {
   "item_id": "cl1-0033",
-  "version": 1,
+  "version": 2,
   "drill_id": "CL-1",
   "status": "live",
   "level": 1,
@@ -9,7 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "profitability",
-  "prompt": "Objective: find why a bookstore chain's profit fell. What you've learned: book sales rose 4% but total sales fell 6%. Latest finding: gift and toy sales fell 30%. What is the best next step?",
+  "prompt": "Objective: find why a garden-center chain's profit fell. What you've learned: plant sales rose 3% but total sales fell 8%. Latest finding: outdoor furniture sales fell 35%. What is the best next step?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,16 +17,16 @@
   "options": [
     {
       "id": "a",
-      "text": "Work out why gift and toy sales fell 30%",
+      "text": "Work out why outdoor furniture sales fell 35%",
       "correct": true,
-      "feedback": "Right. The decline is in gifts and toys, so find the cause there."
+      "feedback": "Right. The decline is in outdoor furniture, so find the cause there."
     },
     {
       "id": "b",
-      "text": "Break book sales down by genre",
+      "text": "Break plant sales down by type",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "Books grew 4%. The problem is elsewhere."
+      "feedback": "Plants grew 3%. The problem is elsewhere."
     },
     {
       "id": "c",
@@ -37,17 +37,17 @@
     },
     {
       "id": "d",
-      "text": "Estimate savings from dropping gifts and toys",
+      "text": "Estimate savings from dropping outdoor furniture",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That jumps to a fix before knowing why they fell."
+      "feedback": "That jumps to a fix before knowing why sales fell."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Gifts and toys fell 30%, so find out why.",
+  "explanation": "Outdoor furniture sales fell 35%, so find out why.",
   "extras": {},
   "sources": [],
   "authorship": {

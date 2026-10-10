@@ -1,0 +1,137 @@
+{
+  "pairs": [
+    {
+      "items": [
+        "cl1-0003",
+        "ps1-0027"
+      ],
+      "reason": "Both are warehouses, but different problems and figures: a parts distributor's picking slowed by new scanners (CL-1) vs a framework that includes next season's forecast (PS-1). Neither reveals the other's answer."
+    },
+    {
+      "items": [
+        "cl1-0006",
+        "ps1-0007"
+      ],
+      "reason": "Hotel staffing vs airline crew staffing; the shared 10% is a different target. Different clients and questions."
+    },
+    {
+      "items": [
+        "cl1-0007",
+        "sy1-0005"
+      ],
+      "reason": "Both are acquisitions, so they share deal vocabulary (synergies, worth), but different clients, prices and figures ($250M packaging rival vs $500M RivalCo)."
+    },
+    {
+      "items": [
+        "cl1-0015",
+        "sy1-0002"
+      ],
+      "reason": "Both test a subscription price rise against a cancellation survey, but different clients and figures (newspaper +25% with 5% cancelling vs app plan $20→$24 with 8%)."
+    },
+    {
+      "items": [
+        "cl1-0023",
+        "sy1-0009"
+      ],
+      "reason": "Both mention a factory night shift, but different questions: electronics defects isolated to nights (CL-1) vs adding a night shift for capacity (SY-1)."
+    },
+    {
+      "items": [
+        "cl1-0029",
+        "ex1-0021"
+      ],
+      "reason": "Same reasoning on purpose (use spare capacity before building), kept per Matt's Oct 10 instruction, in a different industry with different figures: bottling lines at 97% and 58% vs plants at 98% and 60–63%."
+    },
+    {
+      "items": [
+        "ex1-0014",
+        "hy1-0008"
+      ],
+      "reason": "Shared 25 and 60 are coincidence: department budget changes vs a software company's revenue and headcount growth."
+    },
+    {
+      "items": [
+        "ex1-0017",
+        "sy1-0030"
+      ],
+      "reason": "Coincidental numbers: a company's cash-flow waterfall vs the home fitness industry's sales and margins."
+    },
+    {
+      "items": [
+        "ex1-0023",
+        "sy1-0016"
+      ],
+      "reason": "Austin is a city in a market table (EX-1) and an office location (SY-1); figures coincide by chance."
+    },
+    {
+      "items": [
+        "hy1-0013",
+        "ps1-0044"
+      ],
+      "reason": "Both are airline routes, but different questions and figures: a fare cut on a business route (HY-1) vs a framework for adding daily flights (PS-1)."
+    },
+    {
+      "items": [
+        "hy1-0015",
+        "ps1-0022"
+      ],
+      "reason": "Both are car washes, but different situations and figures: revenue −15% with flat volume (HY-1) vs profit −25% and a kiosk bucket in a framework (PS-1). Neither reveals the other."
+    },
+    {
+      "items": [
+        "hy1-0020",
+        "sy1-0007"
+      ],
+      "reason": "$8M and $20M coincide: delayed merger savings (HY-1) vs choosing among cost-cutting options (SY-1)."
+    },
+    {
+      "items": [
+        "hy1-0040",
+        "sy1-0030"
+      ],
+      "reason": "Coincidental numbers: solar installations after a subsidy ends vs the home fitness industry downturn."
+    },
+    {
+      "items": [
+        "ps1-0012",
+        "sy1-0035"
+      ],
+      "reason": "Both are fitness businesses, but different questions and no shared figures: a studio profit framework missing instructor pay (PS-1) vs a mid-case growth summary (SY-1)."
+    },
+    {
+      "items": [
+        "ps1-0013",
+        "sy1-0033"
+      ],
+      "reason": "Shared words only (system, transit, extra): a city fare rise framework vs a delivery-time mid-case summary."
+    },
+    {
+      "items": [
+        "ps1-0019",
+        "sy1-0025"
+      ],
+      "reason": "Both are state programs, but different questions and figures: a graduation-rate framework vs funding a job-training program."
+    },
+    {
+      "items": [
+        "ps1-0046",
+        "sy1-0011"
+      ],
+      "reason": "Coincidental numbers: ARR growth for a software company vs a city's parking garages."
+    },
+    {
+      "items": [
+        "cl1-0021",
+        "example-sy2-01"
+      ],
+      "reason": "Both use hours when the business is closed, but different clients, figures and tasks: a salon's Monday children's haircuts (pick a next step) vs trampoline parks hosting school field trips (write a recommendation)."
+    },
+    {
+      "items": [
+        "example-sy2-01",
+        "sy1-0028"
+      ],
+      "reason": "Both add a service in hours when the business is closed, but different clients and figures: burger restaurants adding breakfast ($20k setup, $30k a year) vs trampoline parks hosting school groups (120 groups at $600 against $40k of costs, with a museum price risk)."
+    }
+  ]
+}

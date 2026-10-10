@@ -1,6 +1,6 @@
 {
   "item_id": "cl1-0010",
-  "version": 1,
+  "version": 2,
   "drill_id": "CL-1",
   "status": "live",
   "level": 1,
@@ -9,7 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "competitive_response",
-  "prompt": "Objective: respond to a rival that cut prices 20%. What you've learned: we've lost 4% of customers in three months. Latest finding: the customers who left were mostly small accounts. What is the best next step?",
+  "prompt": "Objective: respond to a rival office-cleaning firm that cut prices 15%. What you've learned: we've lost 6% of contracts in four months. Latest finding: the contracts lost were mostly single-office clients. What is the best next step?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,20 +17,20 @@
   "options": [
     {
       "id": "a",
-      "text": "Estimate the cost of matching the 20% cut",
+      "text": "Estimate the cost of matching the 15% cut",
       "correct": false,
       "tag": "M.illogical_next_step",
       "feedback": "That jumps to a response before knowing what the losses are worth."
     },
     {
       "id": "b",
-      "text": "Check what the lost accounts were worth and who's next",
+      "text": "Check what the lost contracts were worth and who's next",
       "correct": true,
-      "feedback": "Right. We know who is leaving. Next is what they are worth and whether bigger accounts are next."
+      "feedback": "Right. We know who is leaving. Next is what they are worth and whether bigger clients are next."
     },
     {
       "id": "c",
-      "text": "Survey small accounts on why they prefer the rival's offer",
+      "text": "Survey single-office clients on why they prefer the rival's offer",
       "correct": false,
       "tag": "M.low_priority_next_step",
       "feedback": "Their reason is likely price. What matters more is the value at stake and whether it spreads."
@@ -47,7 +47,7 @@
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "The losses are small accounts. Before responding, size what they were worth and whether larger accounts are at risk.",
+  "explanation": "The losses are single-office clients. Before responding, size what they were worth and whether larger clients are at risk.",
   "extras": {},
   "sources": [],
   "authorship": {

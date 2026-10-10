@@ -1,6 +1,6 @@
 {
   "item_id": "cl1-0021",
-  "version": 1,
+  "version": 2,
   "drill_id": "CL-1",
   "status": "live",
   "level": 1,
@@ -9,7 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "new_product_launch",
-  "prompt": "Objective: decide whether a restaurant chain, now closed in the mornings, should add breakfast. What you've learned: breakfast would cost $20k per restaurant to set up. Latest finding: each restaurant would bring in about $30k a year from breakfast. What is the best next step?",
+  "prompt": "Objective: decide whether a hair-salon chain, now closed on Mondays, should open on Mondays for children's haircuts. What you've learned: opening would cost $8k per salon to set up. Latest finding: each salon would bring in about $12k a year on Mondays. What is the best next step?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,27 +17,27 @@
   "options": [
     {
       "id": "a",
-      "text": "Check whether the $30k is profit after staff and food",
+      "text": "Check whether the $12k is profit after staff and products",
       "correct": true,
-      "feedback": "Right. If $30k is revenue, not profit, the payback could disappear. That's the open question."
+      "feedback": "Right. If $12k is revenue, not profit, the payback could disappear. That's the open question."
     },
     {
       "id": "b",
-      "text": "Check whether breakfast would take sales away from lunch",
+      "text": "Check whether Monday haircuts would take sales from adult clients",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "The restaurants are closed in the morning and lunch is a different time, so there's little to take."
+      "feedback": "The salons are closed on Mondays and the new service is for children, so there's little to take."
     },
     {
       "id": "c",
-      "text": "Recalculate the payback on the $20k setup",
+      "text": "Recalculate the payback on the $8k setup",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "The payback depends on whether the $30k is profit, which isn't known yet."
+      "feedback": "The payback depends on whether the $12k is profit, which isn't known yet."
     },
     {
       "id": "d",
-      "text": "Plan the rollout to every restaurant",
+      "text": "Plan the rollout to every salon",
       "correct": false,
       "tag": "M.illogical_next_step",
       "feedback": "That jumps to execution before the economics are confirmed."
@@ -47,7 +47,7 @@
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Whether $30k a year is revenue or profit decides the payback. Check it, or run a pilot to confirm demand.",
+  "explanation": "Whether $12k a year is revenue or profit decides the payback. Check it, or run a pilot to confirm demand.",
   "extras": {},
   "sources": [],
   "authorship": {

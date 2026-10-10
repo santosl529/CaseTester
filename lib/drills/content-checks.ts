@@ -248,7 +248,78 @@ export function rulePlayerProblems(items: Item[]): string[] {
     `${r.drill}: a solver that never reads the case scores ${Math.round(r.score * 100)}% (chance ${Math.round(r.chance * 100)}%, max ${Math.round(RULE_PLAYER_MAX * 100)}%)`);
 }
 
-// Every wording check, for validation and the seed script.
-export function contentCheckProblems(items: Item[]): string[] {
-  return [...lengthCueProblems(items), ...phraseCueProblems(items), ...rulePlayerProblems(items)];
+
+
+// ---------------------------------------------------- one case, one drill
+
+// Two items in different drills shouldn't share a scenario (docs/prd-drills.md
+// "Authored items"): a student who has done one would know the other's
+// answer. A pair is flagged when the items share words that few items use
+// (the client type: "brewery", "headcount", "breakfast") and key figures:
+// 2+ such words and a number, 3+ such words, or one such word and 2+
+// numbers. A human may record a flagged pair as different scenarios in
+// drill-items/scenario-reviewed.json, with a reason.
+
+const SCENARIO_STOP = new Set(('the a an of to in on at by for and or but is are was were be it its this that these those as with from than then so what which who how why when where your you our we they their there have has had not no can could would should will may might more most less about over under after before since while into per each other also only just both all any some such same last next year years month months week weeks day days client candidate framework strongest initial hypothesis best step takeaway matters recommendation summary objective learned latest finding asks fact sheet what\'s you\'ve client\'s candidate\'s wants series values name categories title type rows columns axis label format suffix prefix show true false null').split(' '));
+// A word is distinctive if at most this many items use it.
+export const SCENARIO_RARE_WORD_MAX_ITEMS = 6;
+
+const scenarioText = (item: Item) => `${item.prompt} ${item.exhibit ? JSON.stringify(item.exhibit) : ''}`.toLowerCase();
+
+function scenarioWords(item: Item): Set<string> {
+  const out = new Set<string>();
+  for (const w of scenarioText(item).match(/[a-z][a-z'-]{3,}/g) ?? []) {
+    if (!SCENARIO_STOP.has(w)) out.add(w.replace(/('s|s)$/, ''));
+  }
+  return out;
+}
+
+// Figures without units, so "98%" in a question matches "98" in a chart.
+// Years and small bare numbers (counts like "3 buckets") are left out.
+const SCALE: Record<string, number> = { k: 1e3, m: 1e6, million: 1e6, b: 1e9, billion: 1e9 };
+function scenarioNumbers(item: Item): Set<number> {
+  const out = new Set<number>();
+  for (const m of scenarioText(item).matchAll(/(\$?)(\d[\d,]*(?:\.\d+)?)\s?(%|k|m|b|million|billion)?\b/g)) {
+    let v = Number(m[2].replace(/,/g, ''));
+    const unit = m[3];
+    if (unit && SCALE[unit]) v *= SCALE[unit];
+    if (!unit && v >= 1900 && v <= 2100) continue;
+    if (!unit && !m[1] && v < 10) continue;
+    out.add(Math.round(v * 1e6) / 1e6);
+  }
+  return out;
+}
+
+export interface ReviewedPair { items: [string, string]; reason: string }
+export interface ScenarioOverlap { a: string; b: string; words: string[]; numbers: number[] }
+
+export function scenarioOverlaps(items: Item[], reviewed: ReviewedPair[] = []): ScenarioOverlap[] {
+  const facts = items.map(item => ({ item, words: scenarioWords(item), numbers: scenarioNumbers(item) }));
+  const df = new Map<string, number>();
+  for (const f of facts) for (const w of f.words) df.set(w, (df.get(w) ?? 0) + 1);
+  const ok = new Set(reviewed.map(p => [...p.items].sort().join(' ')));
+  const out: ScenarioOverlap[] = [];
+  for (let i = 0; i < facts.length; i++) {
+    for (let j = i + 1; j < facts.length; j++) {
+      const x = facts[i], y = facts[j];
+      if (x.item.drill_id === y.item.drill_id) continue;
+      const words = [...x.words].filter(w => y.words.has(w) && df.get(w)! <= SCENARIO_RARE_WORD_MAX_ITEMS);
+      const numbers = [...x.numbers].filter(n => y.numbers.has(n));
+      const same = (words.length >= 2 && numbers.length >= 1) || words.length >= 3 || (words.length >= 1 && numbers.length >= 2);
+      const [a, b] = [x.item.item_id, y.item.item_id].sort();
+      if (same && !ok.has(`${a} ${b}`)) out.push({ a, b, words: words.sort(), numbers: numbers.sort((p, q) => p - q) });
+    }
+  }
+  return out.sort((p, q) => p.a.localeCompare(q.a) || p.b.localeCompare(q.b));
+}
+
+export function scenarioProblems(items: Item[], reviewed: ReviewedPair[] = []): string[] {
+  return scenarioOverlaps(items, reviewed).map(o =>
+    `${o.a} and ${o.b} may share a scenario (${[...o.words.map(w => `"${w}"`), ...o.numbers.map(String)].join(', ')}): change one, or record them in drill-items/scenario-reviewed.json`);
+}
+
+// Every content check, for validation and the seed script: wording within
+// each pool, and scenarios across drills.
+export function contentCheckProblems(items: Item[], reviewedPairs: ReviewedPair[] = []): string[] {
+  return [...lengthCueProblems(items), ...phraseCueProblems(items), ...rulePlayerProblems(items), ...scenarioProblems(items, reviewedPairs)];
 }

@@ -1,6 +1,6 @@
 {
   "item_id": "ps1-0019",
-  "version": 1,
+  "version": 2,
   "drill_id": "PS-1",
   "status": "live",
   "level": 1,
@@ -10,7 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "public_sector",
-  "prompt": "A state government wants to raise its high school graduation rate from 78% to 85%. The candidate's framework: (1) School-level factors: teacher quality and class sizes; (2) Student-level factors: attendance and academic performance; (3) Programs the state already funds. What is the flaw in this framework?",
+  "prompt": "A state government wants to raise its high school graduation rate from 76% to 84%. The candidate's framework: (1) School-level factors: teacher quality and class sizes; (2) Student-level factors: attendance and academic performance; (3) Programs the state already funds. What is the flaw in this framework?",
   "exhibit": null,
   "input": {
     "type": "single_choice"

@@ -3,11 +3,11 @@
   "item_id": "example-sy2-01",
   "drill_id": "SY-2",
   "answer_type": "normal",
-  "notes": "Recommendation comes last; leans on the rebrand; no risk named",
+  "notes": "Recommendation comes last; leans on the uniform supplier; no risk named",
   "responses": [
     {
       "type": "text",
-      "value": "Most of our shoppers, 60%, already fill prescriptions somewhere else, and a counter costs $400k and pays back in under 3 years against our 4-year hurdle. Our stores were also rebranded last year, which helps. So I'd add the counters, starting with a few stores."
+      "value": "Each park could host about 120 school groups a year at $600, which is $72k against $40k of extra staff and utilities, and we're closed on weekday mornings anyway. We also changed our uniform supplier last year, so the team is ready for change. So I'd open for school groups, starting with a few parks."
     }
   ],
   "labels": {

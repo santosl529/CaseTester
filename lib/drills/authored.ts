@@ -6,7 +6,9 @@
 import 'server-only';
 import fs from 'fs';
 import path from 'path';
+import { z } from 'zod';
 import { ItemSchema, type Item } from './item-schema';
+import type { ReviewedPair } from './content-checks';
 import { getDrill } from './config';
 
 export const DRILL_ITEMS_DIR = path.join(process.cwd(), 'drill-items');
@@ -49,3 +51,14 @@ export function loadAuthoredItems(dir = DRILL_ITEMS_DIR): Item[] {
 // The wording checks (length, phrase, rule player) live in content-checks.ts,
 // which the review page script can import too.
 export { contentCheckProblems, lengthCueProblems } from './content-checks';
+
+// Cross-drill item pairs a human has checked and recorded as different
+// scenarios, so the scenario check stops flagging them.
+export const SCENARIO_REVIEWED_FILE = path.join(DRILL_ITEMS_DIR, 'scenario-reviewed.json');
+const ReviewedPairsSchema = z.object({
+  pairs: z.array(z.object({ items: z.tuple([z.string(), z.string()]), reason: z.string().min(10) })),
+});
+export function loadReviewedScenarioPairs(file = SCENARIO_REVIEWED_FILE): ReviewedPair[] {
+  if (!fs.existsSync(file)) return [];
+  return ReviewedPairsSchema.parse(JSON.parse(fs.readFileSync(file, 'utf-8'))).pairs;
+}

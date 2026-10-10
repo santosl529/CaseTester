@@ -1,6 +1,6 @@
 {
   "item_id": "cl1-0011",
-  "version": 1,
+  "version": 2,
   "drill_id": "CL-1",
   "status": "live",
   "level": 1,
@@ -9,7 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "profitability",
-  "prompt": "Objective: find why a gym chain's profit fell. What you've learned: revenue rose 5%. Latest finding: costs rose 15%, mostly instructor pay after a new contract. What is the best next step?",
+  "prompt": "Objective: find why a driving-school chain's profit fell. What you've learned: revenue rose 6%. Latest finding: costs rose 14%, mostly instructor pay after a new contract. What is the best next step?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,10 +17,10 @@
   "options": [
     {
       "id": "a",
-      "text": "Size revenue by membership type",
+      "text": "Size revenue by course type",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "Revenue rose 5%. The finding is on the cost side."
+      "feedback": "Revenue rose 6%. The finding is on the cost side."
     },
     {
       "id": "b",
@@ -37,7 +37,7 @@
     },
     {
       "id": "d",
-      "text": "Estimate savings from closing the least profitable gyms",
+      "text": "Estimate savings from closing the least profitable schools",
       "correct": false,
       "tag": "M.illogical_next_step",
       "feedback": "That jumps to a fix unrelated to the finding."
@@ -47,7 +47,7 @@
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Costs rose 15%, mostly from a new instructor contract. Size it and look for offsets.",
+  "explanation": "Costs rose 14%, mostly from a new instructor contract. Size it and look for offsets.",
   "extras": {},
   "sources": [],
   "authorship": {

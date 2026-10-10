@@ -1,6 +1,6 @@
 {
   "item_id": "ps1-0040",
-  "version": 1,
+  "version": 2,
   "drill_id": "PS-1",
   "status": "live",
   "level": 1,
@@ -10,7 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "industry_analysis",
-  "prompt": "An investor wants to know whether the electric scooter rental industry is attractive. The candidate's framework: (1) Revenue: price and volume; (2) Fixed costs; (3) Variable costs. What is the flaw in this framework?",
+  "prompt": "An investor wants to know whether the self-storage industry is attractive. The candidate's framework: (1) Revenue: price and volume; (2) Fixed costs; (3) Variable costs. What is the flaw in this framework?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -18,40 +18,40 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 2 and 3 overlap: charging and repairs are both fixed and variable",
+      "text": "Buckets 2 and 3 overlap: security and cleaning are both fixed and variable",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Charging and repairs are variable costs; the split is clean. The issue is that a company profit tree can't judge an industry."
+      "feedback": "Security and cleaning sit in one place in a clean fixed and variable split. The issue is that a company profit tree can't judge an industry."
     },
     {
       "id": "b",
-      "text": "Missing: how fast the scooters wear out",
+      "text": "Missing: how fast new facilities fill up",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "Scooter life matters, but adding a cost line doesn't fix the mismatch."
+      "feedback": "Fill-up speed matters, but adding a line doesn't fix the mismatch."
     },
     {
       "id": "c",
-      "text": "Bucket 2 doesn't belong: scooter companies rent their fleets",
+      "text": "Bucket 2 doesn't belong: storage operators lease their buildings",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Nothing says fleets are rented, and fixed costs matter. The issue is the generic framework."
+      "feedback": "Nothing says buildings are leased, and fixed costs matter. The issue is the generic framework."
     },
     {
       "id": "d",
       "text": "It's a generic profit tree: it can't judge a whole industry's outlook",
       "correct": true,
-      "feedback": "Right. Industry attractiveness needs market growth, competition, unit economics per ride and regulation."
+      "feedback": "Right. Industry attractiveness needs market growth, competition and new supply, unit economics per facility, and zoning."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Whether an industry is attractive depends on growth, competition, economics per ride and regulation, not one company's revenue and costs.",
+  "explanation": "Whether an industry is attractive depends on growth, competition and new supply, economics per facility and zoning, not one company's revenue and costs.",
   "extras": {
     "flaw_type": "generic",
-    "corrected_framework": "Market size and growth; competition and pricing power; unit economics per ride; regulation and city permits"
+    "corrected_framework": "Market size and growth; competition and new supply; unit economics per facility; zoning and land costs"
   },
   "sources": [],
   "authorship": {

@@ -1,6 +1,6 @@
 {
   "item_id": "cl1-0022",
-  "version": 1,
+  "version": 2,
   "drill_id": "CL-1",
   "status": "live",
   "level": 1,
@@ -9,7 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "public_sector",
-  "prompt": "Objective: raise a state's high school graduation rate. What you've learned: the rate fell from 80% to 74%. Latest finding: the drop is concentrated in three rural districts. What is the best next step?",
+  "prompt": "Objective: raise a county's adult literacy program completion rate. What you've learned: completion fell from 70% to 61%. Latest finding: the drop is concentrated in two programs run at rural libraries. What is the best next step?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,37 +17,37 @@
   "options": [
     {
       "id": "a",
-      "text": "Compare the state's rate with neighboring states",
+      "text": "Compare the county's rate with neighboring counties",
       "correct": false,
       "tag": "M.low_priority_next_step",
-      "feedback": "Less useful: the drop is concentrated in three districts."
+      "feedback": "Less useful: the drop is concentrated in two programs."
     },
     {
       "id": "b",
-      "text": "Find out what changed in those three rural districts",
+      "text": "Find out what changed in those two rural programs",
       "correct": true,
-      "feedback": "Right. The problem is local, so diagnose those districts."
+      "feedback": "Right. The problem is local, so diagnose those two programs."
     },
     {
       "id": "c",
-      "text": "Budget a statewide tutoring program",
+      "text": "Budget a countywide tutoring expansion",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That jumps to a statewide fix for a local problem."
+      "feedback": "That jumps to a countywide fix for a local problem."
     },
     {
       "id": "d",
-      "text": "Break the statewide rate down by school size",
+      "text": "Break the county's rate down by student age",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "Already narrowed down: three rural districts."
+      "feedback": "Already narrowed down: two rural programs."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "The drop is concentrated in three rural districts. Diagnose what changed there.",
+  "explanation": "The drop is concentrated in two rural programs. Diagnose what changed there.",
   "extras": {},
   "sources": [],
   "authorship": {

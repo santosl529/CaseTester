@@ -1,6 +1,6 @@
 {
   "item_id": "cl1-0037",
-  "version": 1,
+  "version": 2,
   "drill_id": "CL-1",
   "status": "live",
   "level": 1,
@@ -9,7 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "cost_reduction",
-  "prompt": "Objective: cut a call center's cost per call. What you've learned: wages are flat. Latest finding: average call length rose from 6 to 9 minutes. What is the best next step?",
+  "prompt": "Objective: cut an insurer's cost per claim. What you've learned: adjusters' pay is flat. Latest finding: average adjuster time per claim rose from 4 to 7 hours. What is the best next step?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,27 +17,27 @@
   "options": [
     {
       "id": "a",
-      "text": "Find which call types got longer, and by how much",
+      "text": "Find which claim types take longer, and by how much",
       "correct": true,
-      "feedback": "Right. Longer calls drive cost, so find which calls got longer."
+      "feedback": "Right. Longer claims drive cost, so find which claims take longer."
     },
     {
       "id": "b",
-      "text": "Compare agent wages with other call centers",
+      "text": "Compare adjuster pay with other insurers",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "Wages are flat. The finding is call length."
+      "feedback": "Pay is flat. The finding is time per claim."
     },
     {
       "id": "c",
-      "text": "Count calls per day month by month",
+      "text": "Count claims per day month by month",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "The finding is about call length, not volume."
+      "feedback": "The finding is about time per claim, not volume."
     },
     {
       "id": "d",
-      "text": "Estimate savings from hiring cheaper agents",
+      "text": "Estimate savings from hiring cheaper adjusters",
       "correct": false,
       "tag": "M.illogical_next_step",
       "feedback": "That jumps to a fix unrelated to the finding."
@@ -47,7 +47,7 @@
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Average call length rose from 6 to 9 minutes. Find which call types got longer.",
+  "explanation": "Adjuster time per claim rose from 4 to 7 hours. Find which claim types take longer.",
   "extras": {},
   "sources": [],
   "authorship": {

@@ -1,6 +1,6 @@
 {
   "item_id": "cl1-0012",
-  "version": 1,
+  "version": 2,
   "drill_id": "CL-1",
   "status": "live",
   "level": 1,
@@ -9,7 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "investment_decision",
-  "prompt": "Objective: decide whether to buy a new delivery van. What you've learned: the van costs $40,000. Latest finding: it would save $10,000 a year in courier fees. What is the best next step?",
+  "prompt": "Objective: decide whether a florist should buy a refrigerated display case. What you've learned: the case costs $12,000. Latest finding: it would cut flower spoilage by $4,000 a year. What is the best next step?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,14 +17,14 @@
   "options": [
     {
       "id": "a",
-      "text": "Compare the van's price with other dealers",
+      "text": "Compare the case's price with other suppliers",
       "correct": false,
       "tag": "M.low_priority_next_step",
-      "feedback": "A slightly cheaper van won't change much. Running costs could change the answer."
+      "feedback": "A slightly cheaper case won't change much. Running costs could change the answer."
     },
     {
       "id": "b",
-      "text": "Estimate how the courier's fees might change",
+      "text": "Estimate how spoilage might change next year",
       "correct": false,
       "tag": "M.low_priority_next_step",
       "feedback": "Secondary. The payback leaves out running costs."
@@ -38,16 +38,16 @@
     },
     {
       "id": "d",
-      "text": "Ask the interviewer for the van's running costs",
+      "text": "Ask the interviewer for the case's running costs",
       "correct": true,
-      "feedback": "Right. The 4-year payback ignores fuel, insurance and a driver, which come next."
+      "feedback": "Right. The 3-year payback ignores electricity and maintenance, which come next."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "$40,000 ÷ $10,000 = a 4-year payback before running costs, which come next.",
+  "explanation": "$12,000 ÷ $4,000 = a 3-year payback before running costs, which come next.",
   "extras": {},
   "sources": [],
   "authorship": {

@@ -210,8 +210,8 @@ describe('applying a grade (code computes every score)', () => {
 
   it('settles SY-2’s fact-sheet numbers check in code', () => {
     const sy = item('SY-2');
-    const with$ = [scoreStep(sy, 0, { type: 'text', value: 'Add the counters: each costs $400k and earns $150k a year.' }, false)];
-    const without = [scoreStep(sy, 0, { type: 'text', value: 'Add the counters: shoppers want them and they pay back fast.' }, false)];
+    const with$ = [scoreStep(sy, 0, { type: 'text', value: 'Open for school groups: 120 groups at $600 beats $40k of costs.' }, false)];
+    const without = [scoreStep(sy, 0, { type: 'text', value: 'Open for school groups: schools want trips and the parks are empty.' }, false)];
     const pass = (s: StepResult[]) => applyGrade(sy, s, false, fullGrade(sy)).check_results.checks.find(c => c.check_id === 'cites_numbers')!.pass;
     expect(pass(with$)).toBe(true);
     expect(pass(without)).toBe(false);

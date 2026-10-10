@@ -1,6 +1,6 @@
 {
   "item_id": "cl1-0024",
-  "version": 1,
+  "version": 2,
   "drill_id": "CL-1",
   "status": "live",
   "level": 1,
@@ -9,7 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "competitive_response",
-  "prompt": "Objective: respond to a new rival in a ride-hailing city. What you've learned: share fell from 60% to 45%. Latest finding: the losses are concentrated in late-night trips, where the rival pays drivers more. What is the best next step?",
+  "prompt": "Objective: respond to a new rival in a city's bike-courier market. What you've learned: share fell from 55% to 40%. Latest finding: the losses are concentrated in weekend deliveries, where the rival pays riders more. What is the best next step?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -20,34 +20,34 @@
       "text": "Compare our app ratings with the rival's",
       "correct": false,
       "tag": "M.low_priority_next_step",
-      "feedback": "Secondary: the losses line up with driver pay at night."
+      "feedback": "Secondary: the losses line up with rider pay at weekends."
     },
     {
       "id": "b",
-      "text": "Estimate the cost of matching the rival's driver pay everywhere",
+      "text": "Estimate the cost of matching the rival's rider pay everywhere",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That jumps to a costly fix, and the problem is only late at night."
+      "feedback": "That jumps to a costly fix, and the problem is only at weekends."
     },
     {
       "id": "c",
-      "text": "Ask the interviewer which hours to focus on",
+      "text": "Ask the interviewer which days to focus on",
       "correct": false,
       "tag": "M.waited_for_interviewer",
-      "feedback": "The finding already says: late nights. Drive the case."
+      "feedback": "The finding already says: weekends. Drive the case."
     },
     {
       "id": "d",
-      "text": "Ask the interviewer for late-night driver supply and wait times",
+      "text": "Ask the interviewer for weekend rider supply and delivery times",
       "correct": true,
-      "feedback": "Right. Losses are concentrated where the rival pays drivers more, so night driver supply is next."
+      "feedback": "Right. Losses are concentrated where the rival pays riders more, so weekend rider supply is next."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Losses are concentrated in late-night trips, where the rival pays drivers more. Check driver supply and wait times at night.",
+  "explanation": "Losses are concentrated in weekend deliveries, where the rival pays riders more. Check rider supply and delivery times at weekends.",
   "extras": {},
   "sources": [],
   "authorship": {

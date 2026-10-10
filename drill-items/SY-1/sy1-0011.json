@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0011",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -11,7 +11,7 @@
     "SY.summary"
   ],
   "case_type": "public_sector",
-  "prompt": "The client asks: \"Should the city build a new bus line or improve existing routes?\" Fact sheet: a new line costs $50M and would serve 8,000 riders a day; upgrading existing routes costs $20M and cuts trip times 20% for 40,000 riders a day; ridership fell 15% as trips slowed; city hall was renovated last year. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should the city build a new downtown parking garage or upgrade its existing garages?\" Fact sheet: a new garage costs $30M and adds 600 spaces; upgrading existing garages with space-guidance signs costs $6M and cuts the time to find a space 30% for 25,000 drivers a week; downtown visits fell 12% as parking searches got longer; the city unveiled a new logo last year. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -19,41 +19,41 @@
   "options": [
     {
       "id": "a",
-      "text": "Upgrades cost $20M and speed up trips 20% for 40,000 daily riders, against $50M for 8,000 on a new line. Improving existing routes should come first.",
+      "text": "Guidance signs cost $6M and cut search times 30% for 25,000 drivers a week, against $30M for 600 new spaces. Upgrading existing garages should come first.",
       "correct": false,
       "tag": "M.buried_recommendation",
       "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
     },
     {
       "id": "b",
-      "text": "Build the new line. It brings service to 8,000 riders a day who have none, and new lines win riders in a way repairs don't.",
+      "text": "Build the new garage. It adds 600 spaces downtown, and new capacity draws visitors in a way signs don't.",
       "correct": false,
       "tag": "M.ignores_deciding_fact",
-      "feedback": "It ignores cost and cause: $50M for 8,000 riders, while slow trips are why 15% of riders left."
+      "feedback": "It ignores cost and cause: $30M for 600 spaces, while slow parking searches are why visits fell 12%."
     },
     {
       "id": "c",
-      "text": "Improve existing routes first. For $20M, trips get 20% faster for 40,000 daily riders, against $50M for 8,000 on a new line.",
+      "text": "Upgrade the existing garages first. For $6M, search times fall 30% for 25,000 drivers a week, against $30M for 600 new spaces.",
       "correct": true,
-      "feedback": "Right. It leads with the answer and backs it with cost per rider and the cause of the decline."
+      "feedback": "Right. It leads with the answer and backs it with cost per driver helped and the cause of the decline."
     },
     {
       "id": "d",
-      "text": "Improve existing routes. Having renovated city hall last year, the city needs to show riders visible results this year.",
+      "text": "Upgrade the existing garages. After unveiling a new logo last year, the city needs to show residents visible results this year.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "City hall's renovation has nothing to do with buses. Cost per rider and the cause of the decline support the answer."
+      "feedback": "The logo has nothing to do with parking. Cost per driver and the cause of the decline support the answer."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Full answer: Improve existing routes first. For $20M, upgrades make trips 20% faster for 40,000 daily riders, against $50M for a new line serving 8,000, and slow trips are why ridership fell 15%. The main risk is that faster trips don't win riders back, so the next step is to upgrade the busiest routes first and measure ridership. What would change the answer: ridership staying flat on the upgraded routes.",
+  "explanation": "Full answer: Upgrade the existing garages first. For $6M, guidance signs cut search times 30% for 25,000 drivers a week, against $30M for a garage adding 600 spaces, and longer parking searches are why downtown visits fell 12%. The main risk is that faster searches don't bring visitors back, so the next step is to upgrade the busiest garages first and track downtown visits. What would change the answer: visits staying flat once searches are faster.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "City hall was renovated last year."
+      "The city unveiled a new logo last year."
     ]
   },
   "sources": [],

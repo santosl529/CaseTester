@@ -124,6 +124,9 @@ export const ItemSchema = z.object({
     similarity_check: z.enum(['passed', 'flagged', 'failed', 'pending', 'not_applicable']),
     similarity_note: z.string().nullable().default(null),
     similarity_checked_at: z.string().nullable().default(null),
+    // How the check ran: with web search ("web") or on the model's knowledge
+    // alone ("knowledge", which missed a less famous firm case).
+    similarity_method: z.enum(['web', 'knowledge']).nullable().default(null),
   }).nullable(),
   generator: GeneratorRefSchema.nullable(),
   // The drill's worked example on the intro screen. One reviewed item per

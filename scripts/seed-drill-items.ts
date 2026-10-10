@@ -11,7 +11,7 @@
 import { and, count, eq, lt } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { drillAttempts, drillItems } from '@/db/schema';
-import { contentCheckProblems, loadAuthoredItems } from '@/lib/drills/authored';
+import { contentCheckProblems, loadAuthoredItems, loadReviewedScenarioPairs } from '@/lib/drills/authored';
 import { TAXONOMY_VERSION } from '@/lib/drills/config';
 import type { Item } from '@/lib/drills/item-schema';
 
@@ -29,8 +29,8 @@ const meta = (item: Item) => JSON.stringify(canonical(item.authorship));
 async function main() {
   const items = loadAuthoredItems();
   // A pool whose wording gives answers away isn't ready, even as drafts.
-  const cues = contentCheckProblems(items);
-  if (cues.length) throw new Error(`Option wording gives answers away:\n${cues.join('\n')}`);
+  const cues = contentCheckProblems(items, loadReviewedScenarioPairs());
+  if (cues.length) throw new Error(`Content checks failed:\n${cues.join('\n')}`);
   let inserted = 0, updated = 0, unchanged = 0;
   const conflicts: string[] = [];
 

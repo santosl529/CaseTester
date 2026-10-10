@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { contentCheckProblems, loadAuthoredItems, parseAuthoredItems } from '@/lib/drills/authored';
-import { lengthCueProblems, oddOneOutCues, phraseCues, rulePlayer } from '@/lib/drills/content-checks';
+import { contentCheckProblems, loadAuthoredItems, loadReviewedScenarioPairs, parseAuthoredItems } from '@/lib/drills/authored';
+import { lengthCueProblems, oddOneOutCues, phraseCues, rulePlayer, scenarioOverlaps } from '@/lib/drills/content-checks';
 import { getDrill } from '@/lib/drills/config';
 
 describe('authored drill items (/drill-items)', () => {
@@ -54,7 +54,7 @@ describe('authored drill items (/drill-items)', () => {
   });
 
   it('gives no answer away through wording (length, phrases, rule player)', () => {
-    expect(contentCheckProblems(items)).toEqual([]);
+    expect(contentCheckProblems(items, loadReviewedScenarioPairs())).toEqual([]);
   });
 
   it('flags a pool where the right answer is usually the longest', () => {
@@ -94,5 +94,22 @@ describe('wording checks', () => {
   it('a solver that never reads the case beats a marked pool and not a clean one', () => {
     expect(rulePlayer(marked)[0].score).toBe(1);
     expect(rulePlayer(pool)[0].score).toBeLessThanOrEqual(0.4);
+  });
+});
+
+describe('one case, one drill', () => {
+  const items = loadAuthoredItems();
+  const hy = items.find(i => i.item_id === 'hy1-0036')!;
+  // A CL-1 item that reuses HY-1's brewery case and figures.
+  const copy = { ...items.find(i => i.drill_id === 'CL-1')!, item_id: 'cl1-copy',
+    prompt: "Objective: grow a brewery's sales. What you've learned: bar sales fell 10% and supermarket sales rose 25%. What is the best next step?" };
+
+  it('flags two drills sharing a client type and key figures', () => {
+    expect(scenarioOverlaps([...items, copy])).toContainEqual(expect.objectContaining({ a: 'cl1-copy', b: hy.item_id }));
+  });
+
+  it('stops flagging a pair once it is recorded as reviewed', () => {
+    const reviewed = [...loadReviewedScenarioPairs(), { items: ['cl1-copy', hy.item_id] as [string, string], reason: 'checked: different scenario' }];
+    expect(scenarioOverlaps([...items, copy], reviewed)).toEqual([]);
   });
 });

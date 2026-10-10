@@ -1,6 +1,6 @@
 {
   "item_id": "cl1-0032",
-  "version": 1,
+  "version": 2,
   "drill_id": "CL-1",
   "status": "live",
   "level": 1,
@@ -9,7 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "new_product_launch",
-  "prompt": "Objective: decide whether a toothpaste maker should launch refill tablets. What you've learned: the target market is $200M. Latest finding: consumer tests show strong interest but low willingness to pay a premium. What is the best next step?",
+  "prompt": "Objective: decide whether a shampoo maker should launch solid shampoo bars. What you've learned: the target market is $150M. Latest finding: consumer tests show strong interest but low willingness to pay a premium. What is the best next step?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -38,7 +38,7 @@
     },
     {
       "id": "d",
-      "text": "Check profitability near the regular toothpaste price",
+      "text": "Check profitability near the regular shampoo price",
       "correct": true,
       "feedback": "Right. Interest is high but premiums are not, so profitability at a standard price decides it."
     }

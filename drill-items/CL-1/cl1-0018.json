@@ -1,6 +1,6 @@
 {
   "item_id": "cl1-0018",
-  "version": 1,
+  "version": 2,
   "drill_id": "CL-1",
   "status": "live",
   "level": 1,
@@ -9,7 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "profitability",
-  "prompt": "Objective: find why a software company's margin fell from 20% to 8%. What you've learned: revenue grew 25%. Latest finding: headcount grew 60%, mostly in sales. What is the best next step?",
+  "prompt": "Objective: find why an engineering consultancy's margin fell from 18% to 9%. What you've learned: revenue grew 20%. Latest finding: headcount grew 45%, mostly junior engineers. What is the best next step?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,27 +17,27 @@
   "options": [
     {
       "id": "a",
-      "text": "Find out why revenue grew only 25%",
+      "text": "Find out why revenue grew only 20%",
       "correct": false,
       "tag": "M.illogical_next_step",
       "feedback": "Revenue grew; the margin fell because costs grew faster."
     },
     {
       "id": "b",
-      "text": "Compare revenue per salesperson before and after hiring",
+      "text": "Compare revenue per engineer before and after the hiring",
       "correct": true,
-      "feedback": "Right. Sales hiring outran revenue. Productivity per salesperson shows whether the new hires are paying off."
+      "feedback": "Right. Hiring outran revenue. Revenue per engineer shows whether the new hires are billing enough yet."
     },
     {
       "id": "c",
-      "text": "Compare cloud costs with industry benchmarks",
+      "text": "Compare office costs with industry benchmarks",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "The finding points to headcount, not cloud costs."
+      "feedback": "The finding points to headcount, not office costs."
     },
     {
       "id": "d",
-      "text": "Estimate savings from cutting 30% of the sales team this year",
+      "text": "Estimate savings from cutting a third of junior engineers this year",
       "correct": false,
       "tag": "M.illogical_next_step",
       "feedback": "That jumps to a fix before knowing whether the hires are ramping up."
@@ -47,7 +47,7 @@
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Headcount grew 60%, mostly in sales, against 25% revenue growth. Check sales productivity before and after.",
+  "explanation": "Headcount grew 45%, mostly junior engineers, against 20% revenue growth. Check revenue per engineer before and after.",
   "extras": {},
   "sources": [],
   "authorship": {
