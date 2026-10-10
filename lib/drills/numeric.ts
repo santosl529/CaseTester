@@ -39,6 +39,16 @@ export function parseNumericInput(raw: string): ParsedNumber {
   return { ok: true, value, percent: Boolean(percentSign) };
 }
 
+// The reverse, for showing estimates the way students type them: 130M, 12.48B,
+// 40% for a share (unit "share" or "percent", stored as 0.4), $60 for dollars.
+export function formatEstimate(n: number, unit = ''): string {
+  if (/share|percent/i.test(unit)) return `${(n * 100).toLocaleString('en-US', { maximumFractionDigits: 1 })}%`;
+  const abs = Math.abs(n);
+  const [scaled, suffix] = abs >= 1e12 ? [n / 1e12, 'T'] : abs >= 1e9 ? [n / 1e9, 'B'] : abs >= 1e6 ? [n / 1e6, 'M'] : [n, ''];
+  const body = `${scaled.toLocaleString('en-US', { maximumFractionDigits: 2 })}${suffix}`;
+  return /dollar|usd|\$/i.test(unit) ? `$${body}` : body;
+}
+
 export type ToleranceType = 'absolute' | 'relative';
 
 // How an item reads percent answers. The key stores percent answers in percent

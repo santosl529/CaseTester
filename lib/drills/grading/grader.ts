@@ -3,7 +3,7 @@
 // answers each yes/no check and quotes the student's words as evidence; it
 // never outputs a score. Student text is data, wrapped in tags the grader is
 // told never to take instructions from. Code then verifies every quote and
-// re-asks once for items whose quotes don't check out.
+// re-asks once, saying which quotes didn't check out.
 import 'server-only';
 import Anthropic from '@anthropic-ai/sdk';
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
@@ -15,7 +15,7 @@ import { answerText, itemSteps, type StepResult } from '../sets/scoring';
 import type { ItemGrade } from './apply';
 
 // Bump on any change to the prompt or output schema; stored on every grade.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v2';
+export const GRADER_PROMPT_VERSION = 'drills-grader-v3';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 
@@ -26,6 +26,7 @@ How to judge:
 - A check passes only if the answer clearly does what the check asks. When in doubt, it fails.
 - A red flag is present only if the answer clearly matches its definition.
 - When a check passes, or a red flag is present, set "evidence" to an exact quote copied from the student's answer that shows it, word for word, as short as possible. When a check fails, set "evidence" to "".
+- If the evidence is in more than one place, quote each part exactly and put " … " between the parts. Never join parts with your own words or punctuation.
 - Checks marked [judges the whole answer] are about the answer as a whole or about something it leaves out. Set their "evidence" to "" whether they pass or fail.
 - Never output a score. Code computes scores from your answers.
 
@@ -166,11 +167,11 @@ export class GradingError extends Error {}
 // re-asked once, then those checks count as failed and are flagged for QA.
 export async function gradeSet(entries: GradingEntry[], call: CallModel = anthropicCaller()): Promise<SetGrade> {
   const usage: GradingUsage = { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0, calls: 0 };
-  const ask = async (batch: GradingEntry[], attempts: number) => {
+  const ask = async (batch: GradingEntry[], attempts: number, note = '') => {
     let last: unknown;
     for (let i = 0; i < attempts; i++) {
       try {
-        const res = await call(SYSTEM, `<items>\n${batch.map(buildItemBlock).join('\n\n')}\n</items>`);
+        const res = await call(SYSTEM, `<items>\n${batch.map(buildItemBlock).join('\n\n')}\n</items>${note}`);
         usage.calls++;
         for (const k of Object.keys(res.usage) as (keyof typeof res.usage)[]) usage[k] += res.usage[k];
         const out = res.output && OutputSchema.safeParse(res.output);
@@ -194,7 +195,15 @@ export async function gradeSet(entries: GradingEntry[], call: CallModel = anthro
   const firstBad = new Map(entries.map(e => [e.key, badQuotes(e, results.get(e.key)!)]));
   const retry = entries.filter(e => firstBad.get(e.key)!.length > 0);
   if (retry.length) {
-    const again = await ask(retry, 1).catch(() => null);
+    // The same request at temperature 0 would get the same quotes back, so
+    // say which ones weren't found.
+    const notFound = retry.flatMap(e => {
+      const out = results.get(e.key)!;
+      const quotes = new Map([...out.checks.map(c => [c.check_id, c.evidence] as const), ...out.red_flags.map(f => [f.id, f.evidence] as const)]);
+      return firstBad.get(e.key)!.map(id => `- item "${e.key}", "${id}": ${quotes.get(id) ? `"${fence(quotes.get(id)!)}"` : 'no quote given'}`);
+    });
+    const note = `\n\nIn your last grading, these quotes were not found word for word in the student's answer:\n${notFound.join('\n')}\nGrade again. Copy every quote exactly; put " … " between parts from different places.`;
+    const again = await ask(retry, 1, note).catch(() => null);
     if (again) for (const e of retry) results.set(e.key, again.get(e.key)!);
   }
 

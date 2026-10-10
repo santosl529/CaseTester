@@ -5,6 +5,7 @@
 // Built from the item's key, so only ever sent after the item is submitted.
 import 'server-only';
 import { DRILLS_CONFIG } from '../config';
+import { formatEstimate } from '../numeric';
 import type { Item } from '../item-schema';
 import type { CheckResults } from '../grading/apply';
 import { qn5DriverSet } from './qn5';
@@ -83,11 +84,12 @@ export function stepFeedback(item: Item, i: number, step: StepResult | null, pre
     }
     if (i === 1) {
       const values = (step?.detail?.values ?? {}) as Record<string, number>;
-      const ranges = item.extras.ranges as Record<string, { low: number; high: number }>;
+      const ranges = item.extras.ranges as Record<string, { low: number; high: number; unit: string }>;
+      const show = (id: string, n: number) => formatEstimate(n, ranges[id]?.unit);
       return {
         ...base,
-        your_answer: drivers.map(id => `${cardText(item, id)}: ${values[id] !== undefined ? fmt(values[id]) : '—'}`).join('; '),
-        correct_answer: drivers.map(id => `${cardText(item, id)}: ${fmt(ranges[id].low)}–${fmt(ranges[id].high)}`).join('; '),
+        your_answer: drivers.map(id => `${cardText(item, id)}: ${values[id] !== undefined ? show(id, values[id]) : '—'}`).join('; '),
+        correct_answer: drivers.map(id => `${cardText(item, id)}: ${show(id, ranges[id].low)}–${show(id, ranges[id].high)}`).join('; '),
         feedback: right ? 'All assumptions are believable.' : step?.tag ? tagFeedback(step.tag) : '',
       };
     }
@@ -95,7 +97,7 @@ export function stepFeedback(item: Item, i: number, step: StepResult | null, pre
       const product = step?.detail?.product as number | undefined;
       return {
         ...base, your_answer: step?.response.type === 'numeric' ? step.response.value : null,
-        correct_answer: product !== undefined && Number.isFinite(product) ? `${fmt(product)} (your drivers multiplied)` : 'Your drivers multiplied together',
+        correct_answer: product !== undefined && Number.isFinite(product) ? `${formatEstimate(product)} (your drivers multiplied)` : 'Your drivers multiplied together',
         feedback: right ? 'Correct.' : step?.tag ? tagFeedback(step.tag) : '',
       };
     }

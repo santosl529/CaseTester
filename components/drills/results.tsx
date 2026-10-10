@@ -44,7 +44,7 @@ export function SetResults({ results }: { results: Results }) {
           {results.items.map(item => (
             <li key={item.position} className="space-y-3 rounded-lg border p-4">
               <p className="text-sm text-muted-foreground">Item {item.position + 1} · {seconds(Math.min(item.time_ms, item.time_limit_ms))} of {seconds(item.time_limit_ms)}</p>
-              <p className="text-sm font-medium">{item.prompt}</p>
+              <p className="whitespace-pre-line text-sm font-medium">{item.prompt}</p>
               {item.exhibit && <DrillChart spec={item.exhibit} />}
               <ItemFeedbackPanel feedback={item.feedback} />
             </li>

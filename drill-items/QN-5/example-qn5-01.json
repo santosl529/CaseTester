@@ -103,7 +103,7 @@
   "checks": [],
   "red_flags": [],
   "model_answer": "130M households × 40% with a dog × 4 grooming visits a year × $60 a visit ≈ $12.5B",
-  "explanation": "130M households × 40% with a dog × 4 grooming visits a year × $60 a visit ≈ $12.5B A believable total is 5,000,000,000–15,000,000,000 (Industry reports put US pet grooming at roughly $8–12B a year).",
+  "explanation": "130M households × 40% with a dog × 4 grooming visits a year × $60 a visit ≈ $12.5B. A believable total is 5B–15B (Industry reports put US pet grooming at roughly $8–12B a year).",
   "extras": {
     "accepted_sets": [
       [

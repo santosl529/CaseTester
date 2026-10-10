@@ -5,6 +5,7 @@
 // item of a drill is graded against the same rubric.
 import type { ItemInput } from './item-schema';
 import { getDrill } from './config';
+import { formatEstimate } from './numeric';
 
 type Tier = 1 | 2 | 3;
 interface Base { item_id: string; tier: Tier; case_type: string }
@@ -271,7 +272,7 @@ export function qn5Item(c: Qn5Content): ItemInput {
     },
     checks: [], red_flags: [],
     model_answer: c.walkthrough,
-    explanation: `${c.walkthrough} A believable total is ${c.total_low.toLocaleString('en-US')}–${c.total_high.toLocaleString('en-US')} (${c.total_source}).`,
+    explanation: `${c.walkthrough.replace(/[^.!?]$/, '$&.')} A believable total is ${formatEstimate(c.total_low)}–${formatEstimate(c.total_high)} (${c.total_source}).`,
     extras: {
       accepted_sets: c.accepted_driver_sets.map(s => s.map(String)),
       ranges: Object.fromEntries(c.cards.filter(k => k.role === 'driver').map(k => [String(k.card), { low: k.low, high: k.high, unit: k.unit, source: k.source }])),

@@ -15,7 +15,6 @@ const tables = (): Tables => Object.fromEntries(fs.readdirSync(TEMPLATES).filter
   .map(f => [path.basename(f, '.csv'), parseCsv(fs.readFileSync(path.join(TEMPLATES, f), 'utf-8'))]));
 const imported = importContent(tables(), { includeExamples: true });
 const item = (drill: string) => imported.items.find(i => i.drill_id === drill)!;
-const golden = (drill: string) => imported.golden.find(g => g.drill_id === drill)!;
 
 describe('content import (docs/drills-content-templates)', () => {
   it('turns the template examples into valid items and graded answers', () => {
@@ -234,6 +233,7 @@ describe('the grading call', () => {
   it('verifies quotes, including stitched fragments', () => {
     expect(quoteFound('“The client should NOT enter”', 'The client should not  enter Canada.')).toBe(true);
     expect(quoteFound('growth; costs', 'Demand: growth\nEconomics: costs')).toBe(true);
+    expect(quoteFound('last 3 years … SG&A by year', 'COGS for the last 3 years, then SG&A by year.')).toBe(true);
     expect(quoteFound('it is very profitable', 'The client should not enter.')).toBe(false);
   });
 
@@ -249,9 +249,13 @@ describe('the grading call', () => {
 
   it('fails checks whose quotes never verify, after one re-ask, and flags them for review', async () => {
     let calls = 0;
-    const call: CallModel = async () => { calls++; return { output: reply(true, 'words the student never wrote'), usage }; };
+    let reask = '';
+    const call: CallModel = async (_system, user) => { calls++; reask = user; return { output: reply(true, 'words the student never wrote'), usage }; };
     const r = await gradeSet([entry('Do not enter Canada.')], call);
     expect(calls).toBe(2);
+    // The re-ask says which quotes weren't found, or it would get the same ones back.
+    expect(reask).toContain('not found word for word');
+    expect(reask).toContain('"recommendation_first": "words the student never wrote"');
     // Checks that need a quote fail; whole-answer checks need none and keep their verdict.
     const checks = r.grades.get('a1')!.checks;
     for (const c of item('SY-2').checks.filter(c => c.detection === 'ai')) {
@@ -293,5 +297,16 @@ describe('HY-2 stage timing', () => {
     const served = new Date('2026-10-09T10:00:00Z');
     expect(stepStartedAt(hy, 2, served, '2026-10-09T10:01:00Z').toISOString()).toBe('2026-10-09T10:01:00.000Z');
     expect(stepStartedAt(hy, 0, served, '2026-10-09T10:01:00Z')).toBe(served);
+  });
+});
+
+describe('QN-5 number display', () => {
+  it('shows estimates the way students type them', async () => {
+    const { formatEstimate } = await import('@/lib/drills/numeric');
+    expect(formatEstimate(130_000_000, 'households')).toBe('130M');
+    expect(formatEstimate(12_480_000_000)).toBe('12.48B');
+    expect(formatEstimate(0.4, 'share')).toBe('40%');
+    expect(formatEstimate(60, 'dollars')).toBe('$60');
+    expect(formatEstimate(2_400)).toBe('2,400');
   });
 });
