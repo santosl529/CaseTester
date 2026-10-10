@@ -1,8 +1,9 @@
 // Copies authored drill items from /drill-items into drill_items
 // (docs/prd-drills.md "Content system"). Idempotent:
 //   - a new item_id@version is inserted;
-//   - an existing one may only change status or is_example — any other edit
-//     needs a new version, since attempts record the version they saw;
+//   - an existing one may only change status, is_example or authorship (the
+//     review record) — any other edit needs a new version, since attempts
+//     record the version they saw;
 //   - except a draft no attempt has used yet, which is updated in place.
 //
 //   npm run db:seed-drill-items
@@ -18,7 +19,11 @@ const canonical = (v: unknown): unknown =>
   Array.isArray(v) ? v.map(canonical)
     : v && typeof v === 'object' ? Object.fromEntries(Object.keys(v).sort().map(k => [k, canonical((v as Record<string, unknown>)[k])]))
     : v;
-const content = (item: Item) => JSON.stringify(canonical({ ...item, status: undefined, is_example: undefined }));
+// What students see and are scored on. Status, the example flag and the
+// authorship record (reviewer, similarity check) are review metadata, so they
+// can change without a new version.
+const content = (item: Item) => JSON.stringify(canonical({ ...item, status: undefined, is_example: undefined, authorship: undefined }));
+const meta = (item: Item) => JSON.stringify(canonical(item.authorship));
 
 async function main() {
   const items = loadAuthoredItems();
@@ -51,15 +56,15 @@ async function main() {
       }
       continue;
     }
-    if (row.status !== item.status || row.isExample !== item.is_example) {
-      await db.update(drillItems).set({ status: item.status, isExample: item.is_example, payload: item }).where(where);
+    if (row.status !== item.status || row.isExample !== item.is_example || meta(row.payload as Item) !== meta(item)) {
+      await db.update(drillItems).set({ status: item.status, isExample: item.is_example, authorship: item.authorship ?? {}, payload: item }).where(where);
       updated++;
     } else {
       unchanged++;
     }
   }
 
-  console.log(`drill items: ${inserted} inserted, ${updated} status updated, ${unchanged} unchanged, ${conflicts.length} conflicts`);
+  console.log(`drill items: ${inserted} inserted, ${updated} updated (status, example or authorship), ${unchanged} unchanged, ${conflicts.length} conflicts`);
   if (conflicts.length) {
     console.error(conflicts.join('\n'));
     process.exitCode = 1;

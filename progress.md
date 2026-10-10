@@ -44,8 +44,7 @@
 - `scripts/drills-smoke.ts` now handles authored items. Its submit-race check was wrong: either key may win the race, and it had assumed one always does.
 - Tier 3 batch drafted (drafts, awaiting Matt's review): ps1-0046–0050, hy1-0041–0045, ex1-0041–0045. All passed the similarity check; wording checks still pass. Tier 3 counts now PS-1 11, HY-1 12, EX-1 11.
 
-## Open: which database drills uses (2026-10-10)
+## Database decision reconfirmed (2026-10-10)
 
-- Matt (Oct 10): per the agreement with his teammate, nothing goes on the shared CaseTester database until the merge, and asked to confirm drills has been on a temporary drills project.
-- It hasn't: per the Oct 7 note above, drills has used the shared CaseTester project (it has 258 case sessions). Already there: migrations 0009–0011 and 210 drill items (205 marked live, with the old authorship fields). Test students were all deleted.
-- No database writes until Matt decides. The item files are ahead of the database (similarity results), so re-seed once the target database is settled.
+- Matt asked whether drills had been on a temporary drills project; it has been on the shared CaseTester project since the Oct 7 decision. Matt chose to keep it there.
+- Re-synced: all 225 authored items (205 live, 20 drafts) match the files. `db:seed-drill-items` now updates the authorship record (reviewer, similarity check) in place, since it's review metadata, not content.

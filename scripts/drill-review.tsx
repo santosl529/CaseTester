@@ -74,6 +74,10 @@ function extras(item: Item): string {
   return rows.length ? `<dl class="extras">${rows.join('')}</dl>` : '';
 }
 
+// Not live yet, in a drill that is: these are what the reviewer has to decide on.
+// (Drafts in drills that aren't live yet are placeholders, not review work.)
+const waiting = (item: Item) => item.status !== 'live' && getDrill(item.drill_id).live;
+
 function card(item: Item): string {
   const file = path.relative(ROOT, path.join(DIR, item.drill_id, `${item.item_id}.json`));
   const options = item.options.map(o => {
@@ -84,7 +88,7 @@ function card(item: Item): string {
     </li>`;
   }).join('');
   const chart = item.exhibit ? `<div class="chart">${renderToStaticMarkup(createElement(DrillChart, { spec: item.exhibit }))}</div>` : '';
-  return `<article class="item" id="${esc(item.item_id)}" data-id="${esc(item.item_id)}">
+  return `<article class="item" id="${esc(item.item_id)}" data-id="${esc(item.item_id)}"${waiting(item) ? ' data-waiting' : ''}>
     <header>
       <label class="done"><input type="checkbox" data-review="${esc(item.item_id)}"> Reviewed</label>
       <strong>${esc(item.item_id)}</strong>
@@ -117,6 +121,11 @@ function main() {
       ${pool.map(card).join('')}
     </section>`;
   }).join('');
+  const pending = items.filter(waiting);
+  const pendingBox = pending.length ? `<div class="intro"><b>Waiting for your review (${pending.length}):</b>
+    ${drills.filter(id => pending.some(i => i.drill_id === id)).map(id => `<p>${esc(id)}: ${pending.filter(i => i.drill_id === id).map(i => `<a href="#${esc(i.item_id)}">${esc(i.item_id)}</a>`).join(', ')}</p>`).join('')}
+    <label><input type="checkbox" id="only-waiting"> Show only these</label>
+  </div>` : '';
   const toc = drills.map(id => `<a href="#drill-${id}">${esc(id)} ${esc(getDrill(id).name)} (${items.filter(i => i.drill_id === id).length})</a>`).join('');
 
   const html = `<!doctype html>
@@ -166,6 +175,7 @@ function main() {
   <b>To approve or ask for edits,</b> send decisions by item ID (for example “ps1-0011 approve”, “hy1-0003 edit: …”). The engineer updates each file's status and authorship, so nobody edits JSON by hand.<br>
   Each drill's <b>worked example</b> is marked “worked example” and is shown only once approved. The “Reviewed” checkboxes here only track your progress in this browser; they don't change any files.
 </div>
+${pendingBox}
 <nav>${toc}<span id="progress"></span></nav>
 ${sections}
 </div>
@@ -188,6 +198,11 @@ ${sections}
     });
   }
   update();
+  // "Show only these": hide every item that isn't waiting for review.
+  const only = document.getElementById('only-waiting');
+  if (only) only.addEventListener('change', () => {
+    for (const el of document.querySelectorAll('.item')) el.hidden = only.checked && !el.hasAttribute('data-waiting');
+  });
 </script>
 </body></html>`;
   fs.writeFileSync(OUT, html);
