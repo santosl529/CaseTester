@@ -42,7 +42,7 @@ describe('costOf', () => {
 });
 
 describe('RunBudget', () => {
-  afterEach(() => { clearRunBudget(); delete process.env.LLM_BUDGET_USD; });
+  afterEach(() => { clearRunBudget(); for (const k of ['LLM_BUDGET_USD', 'LLM_BUDGET_FILE', 'LLM_EXTRA_BUDGET_USD', 'LLM_EXTRA_BUDGET_FILE']) delete process.env[k]; });
 
   it('refuses a call once spend reaches the cap, and refuses unpriced models up front', () => {
     const b = new RunBudget(0.01);
@@ -62,6 +62,30 @@ describe('RunBudget', () => {
     expect(b.spentUsd).toBeCloseTo(0.01);
     b.record({ ...u('claude-haiku-4-5', 10_000, 0), outputEstimated: false });
     expect(() => a.check('claude-haiku-4-5')).toThrow(BudgetExceededError);
+  });
+
+  // A targeted check inside a batch (10 Oct, batch 18 v3 recheck): its own
+  // cap across every process and call, while the batch cap still applies.
+  it('an extra cap (LLM_EXTRA_BUDGET_USD + LLM_EXTRA_BUDGET_FILE) is checked and recorded beside the main one', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'budget-'));
+    process.env.LLM_BUDGET_USD = '65';
+    process.env.LLM_BUDGET_FILE = path.join(dir, 'batch.jsonl');
+    process.env.LLM_EXTRA_BUDGET_USD = '0.02';
+    process.env.LLM_EXTRA_BUDGET_FILE = path.join(dir, 'recheck.jsonl');
+    const a = requireRunBudget('test-script');
+    a.record({ ...u('claude-haiku-4-5', 10_000, 0), outputEstimated: false });   // $0.01
+    const b = requireRunBudget('test-script');                                     // another process, both ledgers shared
+    expect(b.spentUsd).toBeCloseTo(0.01);
+    expect(b.extraSpentUsd).toBeCloseTo(0.01);
+    b.record({ ...u('claude-haiku-4-5', 10_000, 0), outputEstimated: false });
+    expect(() => a.check('claude-haiku-4-5')).toThrow(BudgetExceededError);       // the extra cap, far below the batch cap
+    expect(() => requireRunBudget('test-script')).toThrow(BudgetExceededError);    // a new process can't start either
+  });
+
+  it('an extra cap needs its shared ledger file', () => {
+    process.env.LLM_BUDGET_USD = '1';
+    process.env.LLM_EXTRA_BUDGET_USD = '0.5';
+    expect(() => requireRunBudget('test-script')).toThrow(/LLM_EXTRA_BUDGET_FILE/);
   });
 
   it('paid scripts cannot start without a cap', () => {
