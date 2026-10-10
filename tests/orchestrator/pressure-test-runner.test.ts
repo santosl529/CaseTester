@@ -185,16 +185,22 @@ describe('bounded fallbacks', () => {
     expect(revealed()).toContain('cogs_pct');
   });
 
-  it('a stall-ladder restate in between (code-written) does not count as a ladder step and delays the waiver by that turn only', async () => {
+  // The honest bound: every reply while the probe is open counts, code-written
+  // turns included; the waiver can only be spoken on a model-written turn, so
+  // it comes on the first model turn at or after the third reply. Stall rung 1
+  // never fires twice in a row, so a rung-1 restate delays it by one reply at most.
+  it('counts a stall-ladder restate (code-written) as a reply; the waiver lands on the next model turn', async () => {
     resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
     const heard: string[] = [];
     for (let i = 0; i < 5 && pt()?.state !== 'waived'; i++) {
       judgeQueue.push({ answered: false });
       heard.push(await turn('Could I get the cost breakdown?', T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'Go on.' })));
     }
+    const restates = heard.filter(h => /Take your time\. The question on the table/.test(h)).length;
+    expect(restates).toBe(1);                                   // the scenario this test is about
     expect(pt()?.state).toBe('waived');
+    expect(pt()?.awaitingReplies).toBe(heard.length);           // every reply counted, the restate included
     expect(heard.length).toBeLessThanOrEqual(PT_REPLY_LIMIT + 1);
-    expect(heard.filter(h => /Take your time\. The question on the table/.test(h)).length).toBeLessThanOrEqual(1);
   });
 
   it('with no structure ever given, the hold still ends: three held turns after the structure ask, then a waiver', async () => {

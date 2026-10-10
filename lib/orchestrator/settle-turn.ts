@@ -215,9 +215,14 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   const early = EARLY_PHASES.includes(currentPhase);
   const isProbe = (q: string) => probeIntents(q).length > 0 && (early || turn.move === 'pressure_test');
   const waiverQuestion = (lead: string) => `${lead} ${pickFallbackQuestion({ figuresDelivered: figuresOut, seed, last: state.lastQuestion ?? null })}`;
+  // Every reply while the probe is open counts, code-written turns included
+  // (stall rung 1, the recommendation ask, the time warning); only a model
+  // turn can carry a ladder step or the waiver (pressureTestOutcomeNow).
+  if (ptPrev.state === 'awaiting' && !satisfiedNow && kind !== 'close') {
+    pt.awaitingReplies = (ptPrev.awaitingReplies ?? 0) + 1;
+  }
   if (!codeWritten && kind !== 'rec_ask') {
     if (ptPrev.state === 'awaiting' && !satisfiedNow) {
-      pt.awaitingReplies = (ptPrev.awaitingReplies ?? 0) + 1;
       if (waiving) {
         question = waiverQuestion(WAIVER_LEAD.awaiting);
         ptAction = 'waived';

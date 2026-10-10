@@ -197,8 +197,13 @@ export function pickFallbackQuestion(p: { figuresDelivered: boolean; seed: strin
 }
 
 // v3 bound (batch 18, 10 Oct — Destiny and Maya held 20 turns): while the
-// probe is open, every candidate reply counts, whatever the judge says. Reply
-// 1 gets the re-ask, reply 2 a narrowed probe, reply 3 the waiver.
+// probe is open, every candidate reply counts, whatever the judge says and
+// whoever writes the turn. Only a model turn carries a ladder step: reply 1
+// the re-ask, reply 2 a narrowed probe, and the waiver on the first model
+// turn at or after reply 3. The actual maximum: reply 4 when stall rung 1
+// (code-written, at most once a session — the ladder never repeats a rung)
+// lands on reply 3; the time warning, grace ask and recommendation ask can
+// each add one reply, and each releases the open requests itself.
 export const PT_REPLY_LIMIT = 3;
 // With no structure ever given: held turns before the waiver (2 before code
 // asks for the structure, then 3 more).
