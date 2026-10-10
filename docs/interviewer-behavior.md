@@ -1,4 +1,9 @@
-# Interviewer Behavior Rules (v4.8)
+# Interviewer Behavior Rules (v4.9)
+
+**v4.9 change (10 Oct 2026): the pressure test is bounded (Rule 7) and an
+empty data mapping is not a refusal (Rule 11).** A policy change, made after
+batch 18 v2 wave 1; batch 18 runs on it are version v3 and are never pooled
+with v2.
 
 **v4.8 change (6 Oct 2026): one consistent prompt, `say` first, data
 decided releases-first.** The rules are unchanged; their wording to the model
@@ -944,6 +949,40 @@ The same rotating-pool requirement applies to every scripted phrase in this
 doc ("walk me through that", brainstorm prompts, time warnings). Fixed intent,
 varied surface form. Phrase pools live in case config, per intent.
 
+**Bounded probe — the waiver (v4.9, 10 Oct 2026; batch 18 version v3).**
+*Policy change.* Until v4.8 an unanswered probe held the analysis data "until
+the answer or a time-based exception", with no other bound. In batch 18 v2
+(wave 1) that held Destiny for 22 turns and Maya for 20: the data waited
+silently, the interviewer asked about "these cost lines" the candidate never
+received, and the judge rejected a valid answer twelve times before accepting
+the same reply. From v4.9:
+- While the probe is open, **every candidate reply counts**, whatever the
+  answer check says (a judge failure counts too). Reply 1 gets one re-ask of
+  the probe (code-written, naming the deferral when data is held); reply 2 a
+  narrowed version of the same intent ("Let me make it concrete: …"); reply 3
+  a **waiver**. Code-written turns (stall rung 1, the recommendation ask, the
+  close) are not ladder steps and don't trigger the waiver.
+- **The waiver is spoken, logged and not satisfaction.** Code says "Let's
+  leave the structure there." and asks a plain analysis question; the test's
+  state becomes `waived` (event `intervention / pressure_test_waived`), and
+  held requests are released through the normal cap of three, the rest
+  deferred out loud. For scoring the probe was administered and unanswered
+  (Rule 13, assisted vs covered), not a coverage gap.
+- With no structure ever given, the same bound applies after code asks for
+  one: five consecutive held turns end in a waiver ("Let's move on to the
+  analysis.").
+- **Every held ask is answered out loud with its reason**, repeats included:
+  "I'll share the cost breakdown once we've settled your structure." (v4.8
+  held a repeat silently — Rule 11 forbids that.)
+- **No talk about undelivered figures:** a model question about figures the
+  candidate hasn't received ("these cost lines", "with those in front of
+  you") is replaced; delivery claims in `say` ("being sent", "come through")
+  are withheld. The model is told, in any stage, that the probe is open and
+  which figures the candidate has.
+- The answer check reads the probe as heard: the original plus code's re-ask
+  and narrowed probe. A hedged pick with a reason answers a which-first
+  question; a bare pick does not.
+
 ## 8. Keep the phase machine in sync — silently, never twice in a row
 
 **v4.7 enforcement:** the model no longer advances the phase. It declares what
@@ -1120,7 +1159,15 @@ decides within fixed bounds — only data the case holds and hasn't released,
 only explicit asks (mentions are offered), at most three releases a turn with
 the rest deferred out loud, a rung-3 rescue item only on a rung-3 turn — and
 speaks every outcome, naming what was asked. A declared id the case doesn't
-have triggers one regeneration before anything is spoken. Open requests are
+have triggers one regeneration before anything is spoken. **An empty mapping
+is not proof the case lacks the data (v4.9; batch 18 v2, Maya: "I don't have
+the number of stores").** An explicit ask declared with no ids is mapped to
+the one catalog item whose label it names in full, with only timeframe words
+around it ("the number of stores over the two years" → store count); a
+qualified ask ("total annual revenue by region") asks for a cut the label
+doesn't cover and is refused. An unmapped ask the model declared as
+"defer" is never refused: code says the generic "I'll come back to the data
+you've asked for once we've settled your structure", promising no item. Open requests are
 released by code before any recommendation ask and before the close. The
 same-turn resolution, stale release, offer acceptance and promise recovery
 described below are retired: with one author, there is nothing to repair. A
