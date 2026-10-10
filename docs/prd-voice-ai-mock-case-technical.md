@@ -98,6 +98,7 @@ This is the single most important constraint in the document. It de-risks the ex
     pressure-test.ts      Rule 7 pressure-test state (not_asked/awaiting/satisfied), probe detection, the Haiku answer judge, gate scope, bounded fallback questions (8 Oct)
     request-signal.ts     guard B's explicit-ask detector (phrasing; precision-tuned) and the sentences it keeps for request_signal events; addressedAskSentences / matchAskDetections — which classifier detections a code-written turn answers (9 Oct)
     settle-turn.ts        Settle stage: composes the turn, books reveals, derives phase, one commit
+    turn-record.ts        TurnRecorder — one evaluation record per turn (exact model requests, raw replies, state before, check verdicts, timed delivery, recorder errors); filled only when runTurn gets onTurnRecord (evaluation runs), production passes none (9 Oct)
     data-decisions.ts     Rule 11 decided in code from the model's declared requests; renders every data line
     turn-data.ts          one turn's data decisions (shared by Stream and Settle)
     progress.ts           phase and stage administration from declared moves (Rule 8, §5.2)
@@ -135,6 +136,11 @@ This is the single most important constraint in the document. It de-risks the ex
   llm-pricing.ts          one price table by exact model id (cache, Haiku 5.5 long-prompt tier, Cerebras qwen-3.8-27b for screening); unknown ids throw — never $0 (8 Oct)
   anthropic-client.ts, llm-meter.ts, llm-budget.ts   the one Anthropic client; its fetch meter checks a run budget before each call and records usage from the response (JSON and SSE, aborted streams estimated); LLM_BUDGET_USD / LLM_BUDGET_FILE (8 Oct)
   number-words.ts         spoken numbers → digits for the stall signal and math spans
+  /eval                   persona-batch evaluation (spec docs/superpowers/specs/2026-10-09-persona-batch-evaluation-design.md; dev only, never imported by app/):
+                          turn-file.ts (<run>.turns.jsonl.gz: header, TurnRecords, end line), git-info.ts (commit + code fingerprint),
+                          batch-manifest.ts (batch 18 waves, run numbering, freeze on code fingerprint + model ids + bands/severity hashes, versions, reruns),
+                          wave-commands.ts, scorecard.ts (one row per interview: completion, stages, loops, code flags, opportunities, latency, cost, ratings, evidence),
+                          prescreen.ts (Opus fault proposals, verbatim-quote check), review-sheet.ts + headline.ts (human confirmation, batch headline), bands.ts (reports vs persona bands)
   /voice                  STTProvider/TTSProvider (types.ts), Deepgram Flux/Nova-3 (deepgram.ts), Cartesia (cartesia.ts), segment → speech (speak.ts), instant acknowledgment (acknowledge.ts; the thinking filler was removed 7 Oct), playback scheduler (playback.ts), end-of-turn clip variants + signal scoring (endpoint.ts), PCM helpers (pcm.ts) — M0 Phase A; LiveKit glue is Phase B
   /cases                  case JSON loader + schema validation (zod)
 /cases                    human-authored case content (JSON, version-controlled)
@@ -147,7 +153,10 @@ This is the single most important constraint in the document. It de-risks the ex
                           evaluation: live-run --script / --seed / --seed-through / --max-turns (scripted and saved-prefix replays, no Opus),
                           guard-check.ts, review-dump.ts, request-signal-check.ts, plan-inspect.ts (free — read saved runs);
                           eval-probe-judge.ts, eval-background.ts (per-role Haiku 5.5 regression checks on fixed saved inputs; --dry estimates cost free);
-                          every paid script requires LLM_BUDGET_USD (lib/llm-budget.ts)
+                          every paid script requires LLM_BUDGET_USD (lib/llm-budget.ts);
+                          persona batch (9 Oct): persona-batch.ts — one wave of ≤10 personas in parallel (cost money; --dry free; needs --env-file=.env.local);
+                          batch-scorecard.ts, batch-review-sheet.ts (--write/--apply), batch-bands.ts (free); batch-prescreen.ts (Opus, cost money, resumable)
+/evals                    frozen batch-evaluation inputs: severity.md (fault severity definitions), persona-bands.json (expected rating per persona × dimension)
 ```
 
 The `/voice` directory must not be imported by `/lib/orchestrator`, `/lib/agent`, or `/lib/scoring`. Enforce with a lint rule (e.g. `eslint-plugin-boundaries`) so M1 stays voice-free by construction.
@@ -332,6 +341,8 @@ Heavy work at the end protects live latency (FR-11). Implemented in `lib/scoring
 
 Persist everything to `scores`. Log `scoring_runtime_ms`. The three Opus 5.5 calls **stream** (a non-streaming 32k-token request trips the SDK's 10-minute guard — every batch-4 scoring run failed before this) and use server-side refusal fallbacks.
 
+**Persona-band check (9 Oct, `lib/eval/bands.ts`, `scripts/batch-bands.ts`):** each persona's brief implies expected ratings per dimension (`evals/persona-bands.json`, frozen per batch version; a refused stage accepts needs_work or not assessed; strong-only expectations also accept meets_bar because of the strong gate). Batch reports are compared cell by cell (in band / one / two steps off / unexpected (not) assessed), by confidence, with unscored runs and simulator-broken runs listed apart. Smoke run (Tobias): 6/6 in band after widening. A blind comparison against a free-ChatGPT baseline on 12 batch interviews follows the batch (spec §2.7).
+
 **Validation hook:** the report format and judge prompt must support offline benchmarking against ex-MBB coach scoring (product PRD §15 risk). Build a script that runs the judge over a labeled sample and reports correlation. If scores don't correlate with expert scoring, the feature's core value is unproven — surface this early.
 
 ---
@@ -445,6 +456,8 @@ Steps 1–6 contain zero voice code. That's the point.
 
 Log: `case_start`, `mic_check_result`, per-turn latency, phase transitions, data items revealed, exhibit shown, `case_complete` vs `abandon` (+ abandon phase), `scoring_runtime_ms`, `$ cost per session`, post-case ratings (realism, usefulness), blind-comparison opt-ins. These feed the success metrics and go/no-go gates directly. Append to `analytics_events`.
 
+Evaluation runs only (9 Oct): `scripts/live-run.ts` also writes `<run>.turns.jsonl.gz` beside each run — every model request body and raw reply, the state the prompt was built from, all check verdicts, timed delivery, recorder errors, plus the commit, persona and simulator spend — so runs replay exactly; git-ignored (≈1 MB per interview).
+
 Also logged (added during the build): `llm_usage` (tokens per call, by component — the `$/case` input), `scoring_qa` (one per scoring run: transcript artifacts, evidence strips and point drops, verifier drops, data-request gaps / not-in-case / backfills, reconciliation merges / gap drops / cross-dimension repeats), `turn_latency`, `phase_repair`, `data_force_released`, `fabricated_turn_stripped`, `data_revealed` with `via: 'exhibit'` for exhibit-covered ledger items, `spoken_close_resolved`, `session_paused` / `session_resumed`, `case_abandoned`, and `provenance_blocked` (v4.3 — a turn had a figure withheld; target rate is near zero, and every event is a model fabrication caught). `scoring_qa` also carries (v4.3) `interviewerErrorMarks`, `markClaimDrops`, and `caveatFloors`.
 
 ---
@@ -466,6 +479,11 @@ And the structural one this whole doc is organized around:
 ---
 
 ## 15. Open questions (deferred to build)
+
+- **Pre-pilot persona batch (batch 18, 9 Oct; spec `docs/superpowers/specs/2026-10-09-persona-batch-evaluation-design.md`, plan `docs/superpowers/plans/2026-10-09-persona-batch-evaluation.md`):** all 62 personas, scored, in user-sized waves (≤10) under a frozen configuration; ≈$48 + pre-screen ≈$15. Tooling built and verified on a smoke run (v1, Tobias, $0.78 incl. pre-screen). **Status:** waves not started; wave 1 starts version v2 (`--new-version=v2`) — the close-turn change below came after the smoke and has not yet run live. Deliverables: pilot-readiness scorecard, the five most consequential recurring failures with replay sets, the persona-band check, then the blind ChatGPT comparison (post-batch). Deferred: training-example export from confirmed faults; hand-check of 20 data-request denominators.
+- **Close turns answer only addressed asks (9 Oct, live):** accepted trade-off — statement-form final needs (Camila's kind, next steps, conditions) are no longer answered at the close (behaviour spec Rule 12 item 6). Watch in batch 18: `code_written_ask_dropped` flags.
+- **Recommendation-ask detection (REC_ASK, 9 Oct, live):** now recognises "what would you recommend …" / "what would your recommendation be" asks and excludes analysis questions ("… to do the sizing?", "— which analysis …?"); a 1–3-word tail after a separator ("What would you recommend: costs or revenue?") still counts as an ask (indistinguishable by regex from ", then?" / ", Maya?"). No such phrasing in the corpus — monitor.
+- **Batch tooling known limits:** the pre-screen under-rates some severities (it rated a challenge to correct math moderate; `evals/severity.md` calls it serious — corrected in human review, prompt unchanged by decision); `calculationTurns` is a regex heuristic (spaced-dash ranges like "3 - 4 options" would count); scripted silence lines are marked intended and never proposed as faults.
 
 - Vendor confirmation: Phase A done (Flux, Cartesia, Sonnet + acknowledgment); Phase B (LiveKit transport, mic, barge-in, playback-confirmed reveals) not started — needs Cartesia Pro or another streaming TTS. Open: human endpoint recordings (they decide the end-of-turn settings); enabling speculation (abort cancelled drafts' API calls, measure live savings and waste); Deepgram keyterms for case names; Deepgram's apparent one-stream concurrency limit on the credit account (a pilot with concurrent cases needs it lifted); Cerebras 5 requests/min if ever revisited.
 - **Interviewer model:** whether GPT-6 Luna (reasoning none) or Claude Haiku 5.5 with the pressure-test and request guards can run a rigorous interview consistently — the guard defects are fixed (§5.4); the paired evaluation is paused and must be re-estimated with coverage priced correctly (and, for Luna, a verified price and metering — OpenAI and Gemini adapters are refused under a run budget; the Cerebras adapter is metered since 8 Oct, priced for `qwen-3.8-27b` only). Qwen 3.8 27B was screened and stopped (§1, interviewer row). Production stays on Sonnet.

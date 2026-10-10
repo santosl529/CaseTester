@@ -1,5 +1,7 @@
 # Persona Batch Evaluation Implementation Plan
 
+> **Status (10 Oct):** all 12 tasks implemented on branch `persona-batch-eval`, reviewed, plus a final-review fix wave and smoke-run follow-ups (rulings in the SDD ledger, `.superpowers/sdd/2026-10-09-persona-batch-evaluation/progress.md`). Smoke run done; waves not started.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Record every turn of the batch-18 persona runs exactly, run them in user-sized waves under a frozen configuration, and turn them into a scorecard, a confirmed fault list and a persona-band scoring check.

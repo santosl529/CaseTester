@@ -1,6 +1,6 @@
 # Persona batch evaluation — recorder, scorecard, fault review, scoring evaluation
 
-Status: approved 9 Oct 2026, with two changes at review: the ChatGPT baseline runs after the batch (§2.7, §3), and the naming scheme in §2.2.
+Status: approved 9 Oct 2026, with two changes at review: the ChatGPT baseline runs after the batch (§2.7, §3), and the naming scheme in §2.2. **Implemented 9 Oct** (plan `docs/superpowers/plans/2026-10-09-persona-batch-evaluation.md`, branch `persona-batch-eval`); smoke run done (v1, persona 2). Changes from this spec made during the build (each in the plan's SDD ledger): run ids are `<wave>/<persona-folder>`; the freeze compares a code fingerprint (`lib app scripts cases db package*.json`) + model ids + bands/severity hashes rather than raw HEAD; reruns are numbered and kept out of summaries by default; moderate proposals are also on the review sheet; repeated short probes and incomplete recorder evidence become review candidates; scripted silence lines are never faults; refusal cells accept needs_work or not assessed; strong-only cells also accept meets_bar; there are 62 personas. Waves have not started — wave 1 is version v2.
 Scope: the 62-persona text batch (`scripts/personas.ts`) and everything needed to turn it into a pilot-readiness decision and reusable replay/training material.
 
 ## 1. Purpose and success criteria

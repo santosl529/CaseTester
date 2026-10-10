@@ -451,3 +451,21 @@ forever.
 - Data-request non-response rate (interviewer-behavior Rule 11), split by
   ledger-exists vs. not (`session_events`, category `data_request`, subtype
   `none`). [logged; not aggregated]
+
+## Persona-band check of reports [implemented 9 Oct: `lib/eval/bands.ts`, `scripts/batch-bands.ts`]
+
+Batch-level check that reports rate each persona the way its brief designs it
+(spec `docs/superpowers/specs/2026-10-09-persona-batch-evaluation-design.md` §2.7).
+`evals/persona-bands.json` holds, per persona × dimension, the allowed ratings
+(or "not assessed", or no expectation) with a confidence and the brief's words;
+it is frozen per batch version (its hash is in the batch manifest). Policies:
+a stage the candidate refuses accepts needs_work or not assessed (it is
+uncertain which the judge returns); a "strong" expectation also accepts
+meets_bar, because the strong gate requires every strong element. The script
+reports in band / one / two steps off / unexpected (not) assessed / invalid
+rating, separately for high- and medium-confidence cells, and lists runs not
+checked (unscored, no persona, no bands entry) and runs excluded because a
+reviewer confirmed the simulator broke its brief. Smoke run (9 Oct, Tobias):
+the judge rated structure and quantitative meets_bar with substantive reasons
+against a strong-only expectation — the reason strong-only cells were widened.
+The per-run `scoring_qa` counters are summed across the batch in `scorecard.md`.
