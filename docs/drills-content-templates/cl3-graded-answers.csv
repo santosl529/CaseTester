@@ -1,0 +1,2 @@
+answer_id,item_id,answer_type,answer,breaks_into_drivers,drivers_covered,states_where_to_start,gives_reason_for_start,requests_are_specific,red_flag_solution_before_diagnosis,red_flag_six_plus_unstructured_requests,notes
+EXAMPLE-cl3-01-a,EXAMPLE-cl3-01,normal,"I'd want revenue and cost data for the last three years, plus anything on competitors and pricing. I'd also look at customer satisfaction.",N,Price,N,N,N,N,N,A list with no structure or starting point

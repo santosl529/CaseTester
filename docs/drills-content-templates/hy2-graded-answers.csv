@@ -1,0 +1,2 @@
+answer_id,item_id,answer_type,stage1_answer,stage2_action,stage2_answer,family,directional,evidence_based,testable,tentative,update_reason_uses_new_fact,red_flag_restates_facts,red_flag_three_plus_causes,notes
+EXAMPLE-hy2-01-a,EXAMPLE-hy2-01,normal,"I think the client cut prices to win new customers, which would explain more customers but less revenue. I would check average price over time.",revise,"Prices are flat, so it is not discounting. Customers are buying fewer units each, so I would look at why basket size fell.",Lower prices,Y,Y,Y,Y,Y,N,N,

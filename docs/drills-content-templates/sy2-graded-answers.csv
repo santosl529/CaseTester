@@ -1,0 +1,2 @@
+answer_id,item_id,answer_type,answer,recommendation_first,two_to_three_reasons,cites_fact_sheet_numbers,leaves_out_irrelevant_facts,consistent_with_facts,includes_risk,includes_next_step,red_flag_no_clear_position,red_flag_contradicts_facts,notes
+EXAMPLE-sy2-01-a,EXAMPLE-sy2-01,normal,"Canada is a $400M market but it's only growing 3%, and two big players have 70%. Entry costs $60M and pays back in 5 years. So I'd say we shouldn't enter. We could look at a partnership.",N,Y,Y,Y,Y,N,Y,N,N,Recommendation comes after the facts; no risk named

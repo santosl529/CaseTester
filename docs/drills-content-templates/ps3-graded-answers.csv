@@ -1,0 +1,4 @@
+answer_id,item_id,answer_type,answer,areas_covered,no_overlap,case_specific,concrete_subpoints,red_flag_generic_profit_tree,notes
+EXAMPLE-ps3-01-a,EXAMPLE-ps3-01,borderline,"Market: how many people work out at home; growth
+Revenue: price per month; number of subscribers
+Costs: app, video production, marketing",Customer demand; Economics,Y,N,Y,N,Revenue and costs are generic; misses competition and cannibalization

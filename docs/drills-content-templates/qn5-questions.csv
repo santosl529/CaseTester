@@ -1,0 +1,2 @@
+item_id,tier,case_type,prompt,accepted_driver_sets,total_low,total_high,total_source,walkthrough
+EXAMPLE-qn5-01,2,market_sizing,Estimate annual US spending on dog grooming.,"1,2,3,4",5000000000,15000000000,Industry reports put US pet grooming at roughly $8–12B a year,130M households × 40% with a dog × 4 grooming visits a year × $60 a visit ≈ $12.5B

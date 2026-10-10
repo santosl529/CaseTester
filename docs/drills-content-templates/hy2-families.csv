@@ -1,0 +1,4 @@
+item_id,family,description,correct_action_after_new_fact,reason
+EXAMPLE-hy2-01,Buying less per customer,Customers buy fewer units each,keep,"Units per customer fell 20%, which supports it"
+EXAMPLE-hy2-01,Lower prices,Discounts or price cuts reduced revenue per unit,drop,"Price per unit is flat, which rules it out"
+EXAMPLE-hy2-01,Mix shift to cheaper products,Customers moved to lower-priced products,revise,Flat unit price argues against it; units per customer is the driver

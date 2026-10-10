@@ -1,0 +1,5 @@
+item_id,area,what_counts,also_accept
+EXAMPLE-ps3-01,Customer demand,Whether people want an at-home subscription and how many would sign up,market size; interest; adoption
+EXAMPLE-ps3-01,Economics,"Revenue per subscriber against content, app and marketing costs",profitability; unit economics; costs
+EXAMPLE-ps3-01,Competition,Existing fitness apps and what they charge,competitors; alternatives
+EXAMPLE-ps3-01,Cannibalization,Whether gym members would cancel memberships for the cheaper subscription,impact on core business; member churn

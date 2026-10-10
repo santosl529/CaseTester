@@ -1,0 +1,5 @@
+item_id,driver,what_counts
+EXAMPLE-cl3-01,Price,Average price or discounting by product
+EXAMPLE-cl3-01,Cost of goods sold,"Materials, production or input costs"
+EXAMPLE-cl3-01,Operating expenses,"SG&A, overhead, labor outside production"
+EXAMPLE-cl3-01,Mix,Shift between higher- and lower-margin products or customers
