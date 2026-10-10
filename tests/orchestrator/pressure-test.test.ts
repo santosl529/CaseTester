@@ -152,6 +152,13 @@ describe('probe judge prompt (v3)', () => {
     expect(p).toMatch(/not a what's-missing question/i);
   });
 
+  // Regression from the first v3 wording (dev 18-nikhil-the-data-hoover, both
+  // passes): a MECE answer with the branch choice declined was rejected.
+  it('a substantive answer to one part of a compound probe counts even when another part is declined', () => {
+    const p = buildProbeJudgePrompt('Is it MECE, and which branch would you prioritize first, and why?', ['It is broadly MECE; marketing overlaps with overhead. On where to start, I would rather see data.']);
+    expect(p).toMatch(/Declining or deferring one part .* does not cancel/i);
+  });
+
   it('treats "Asked again as:" lines as the same test', () => {
     const p = buildProbeJudgePrompt(probeAsHeard({ ...INITIAL_PRESSURE_TEST, state: 'awaiting', probe: 'Is that MECE?', followUps: ['Let me make it concrete: name one thing your structure doesn\'t cover yet.'] }), ['Rent.']);
     expect(p).toContain('Asked again as: Let me make it concrete');
