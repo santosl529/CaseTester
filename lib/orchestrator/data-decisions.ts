@@ -16,6 +16,9 @@ import { pickScript, STALE_RELEASE_LEADINS } from '@/lib/agent/prompts/scripts';
 
 export const RELEASE_CAP = 3;
 
+// The lead-in for data said again on an explicit re-ask.
+export const RESTATE_LEADIN = 'As I mentioned:';
+
 // Spec 2026-10-07 §4's line for asks code can't map while the structure is open.
 export const UNMAPPED_DEFER_LINE = "I'll come back to the data you've asked for once we've settled your structure.";
 
@@ -71,6 +74,7 @@ export type ExhibitInfo = { id: string; title: string; coversLedgerItems?: strin
 
 export type DataDecisions = {
   releases: { id: string; value: string; earlier: boolean }[];
+  restates: { id: string; value: string }[];  // explicit re-asks of data already revealed: said again, never re-booked
   exhibit: { id: string; title: string; covers: string[] } | null;
   refusals: string[];     // what, for explicit asks the case doesn't hold
   defers: string[];       // what, for asks held for later (by the model, or over the cap)
@@ -110,6 +114,11 @@ export function decideData(p: {
 
   const releases: DataDecisions['releases'] = [];
   const releasing = new Set<string>();
+  // Already revealed is not "don't say it again" (batch 18 v3 recheck: an
+  // explicit re-ask got nothing while the model said "Here they are again").
+  const restates: DataDecisions['restates'] = [];
+  const restating = new Set<string>();
+  const restatable = (id: string) => itemById.has(id) && p.ledger.revealed.has(id) && !restating.has(id) && !releasing.has(id);
   const refusals: string[] = [];
   const defers: string[] = [];
   const gateDefers: string[] = [];
@@ -138,7 +147,12 @@ export function decideData(p: {
     if (!r.explicit || r.respond === 'defer') { later.push({ at, r, ledgerIds }); return; }
     let heldOver = false;
     for (const id of ledgerIds) {
-      if (covered.has(id) || !available(id)) continue;
+      if (covered.has(id)) continue;
+      if (restatable(id)) {
+        if (restates.length < cap) { restates.push({ id, value: itemById.get(id)!.value }); restating.add(id); }
+        continue;
+      }
+      if (!available(id)) continue;
       if (releases.length >= cap) { heldOver = true; continue; }
       releases.push({ id, value: itemById.get(id)!.value, earlier: openIds.has(id) });
       releasing.add(id);
@@ -170,7 +184,7 @@ export function decideData(p: {
 
   // Earlier asks first, so the lead-in introduces them together.
   releases.sort((a, b) => Number(b.earlier) - Number(a.earlier));
-  return { releases, exhibit, refusals, defers, gateDefers, unmappedDefer, offers, requests: decided };
+  return { releases, restates, exhibit, refusals, defers, gateDefers, unmappedDefer, offers, requests: decided };
 }
 
 // An item spoken mid-sentence starts lower-case (smoke run 9 Oct: "I don't
@@ -201,13 +215,15 @@ const joinWhat = (whats: string[], conj: 'and' | 'or') => {
 // the exhibit handover, refusals, deferrals, offers — each with what it
 // carries, so voice bookkeeping can tell which sentence a release is in
 // (spec 2026-10-08-voice-phase-b §5.3).
-export type DataLinePart = { kind: 'leadin' | 'release' | 'exhibit' | 'refusals' | 'defers' | 'offers'; ids: string[]; text: string };
+export type DataLinePart = { kind: 'leadin' | 'release' | 'restate' | 'exhibit' | 'refusals' | 'defers' | 'offers'; ids: string[]; text: string };
 
 export function renderDataLineParts(d: DataDecisions, seed: string): DataLinePart[] {
   const parts: DataLinePart[] = [];
   const earlier = d.releases.filter(r => r.earlier);
   if (earlier.length > 0) parts.push({ kind: 'leadin', ids: [], text: pickScript(STALE_RELEASE_LEADINS, seed) });
   for (const r of d.releases) parts.push({ kind: 'release', ids: [r.id], text: r.value });
+  // Restated values carry no ids: nothing is booked as a new reveal.
+  d.restates.forEach((r, i) => parts.push({ kind: 'restate', ids: [], text: i === 0 ? `${RESTATE_LEADIN} ${r.value}` : r.value }));
   if (d.exhibit) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: `Here's an exhibit: ${d.exhibit.title}.` });
   if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: `I don't have ${joinWhat(d.refusals, 'or')}.` });
   if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: `I'll come back to ${joinWhat(d.defers, 'and')} shortly.` });

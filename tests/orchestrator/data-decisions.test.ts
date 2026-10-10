@@ -49,12 +49,17 @@ describe('decideData', () => {
     expect(renderDataLines(decideData(base({ requests: [req({ what: 'NPS', itemIds: [], explicit: false })] })), 's')).toEqual([]);
   });
 
-  it('skips data already released and unknown ids', () => {
+  // Batch 18 v3 recheck (10 Oct): an explicit re-ask of data already released
+  // got nothing while the model said "Here they are again." Already revealed
+  // is not "don't say it again": the value is restated, the ledger untouched.
+  it('restates data already released on an explicit re-ask (never re-released), and skips unknown ids', () => {
     const ledger = createLedger(ITEMS);
     reveal(ledger, 'stores_count');
     const d = decideData(base({ ledger, requests: [req({ itemIds: ['stores_count', 'not_a_real_id'] })] }));
     expect(d.releases).toEqual([]);
-    expect(renderDataLines(d, 's')).toEqual([]);
+    expect(d.restates.map(r => r.id)).toEqual(['stores_count']);
+    expect(renderDataLines(d, 's')).toEqual(['As I mentioned: 200 stores today.']);
+    expect(decisionRows(d)).toEqual([{ what: 'the data', ledgerItemIds: ['stores_count', 'not_a_real_id'].filter(id => id === 'stores_count'), response: 'release', explicit: true }]);
   });
 
   // Batch 11 (Nikhil t6, t8): "COGS is 58%… I'll come back to the cost
@@ -246,5 +251,38 @@ describe('an empty item mapping is not proof the case lacks the data', () => {
   it('an unmapped explicit release is still refused', () => {
     const d = decideData(base({ requests: [req({ what: 'total annual revenue by region', itemIds: [] })] }));
     expect(renderDataLines(d, 's')).toEqual(["I don't have total annual revenue by region."]);
+  });
+});
+
+describe('repeat requests for data already released', () => {
+  const revealedLedger = (...ids: string[]) => { const l = createLedger(ITEMS); ids.forEach(id => reveal(l, id)); return l; };
+
+  it('a passing mention of released data repeats nothing', () => {
+    const d = decideData(base({ ledger: revealedLedger('cogs_pct'), requests: [req({ what: 'COGS', itemIds: ['cogs_pct'], explicit: false })] }));
+    expect(d.restates).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual([]);
+  });
+
+  it('a new item and a released one in the same ask: the new one released, the old one restated after it', () => {
+    const d = decideData(base({ ledger: revealedLedger('cogs_pct'), requests: [req({ what: 'the cost lines', itemIds: ['cogs_pct', 'labor_pct'] })] }));
+    expect(d.releases.map(r => r.id)).toEqual(['labor_pct']);
+    expect(d.restates.map(r => r.id)).toEqual(['cogs_pct']);
+    expect(renderDataLines(d, 's')).toEqual(['Labor is 22% of revenue.', 'As I mentioned: COGS is 58% of revenue.']);
+  });
+
+  it('restates each item once per turn, at most the release cap, and only for explicit asks', () => {
+    const l = revealedLedger('stores_count', 'cogs_pct', 'labor_pct', 'avg_ticket');
+    const d = decideData(base({ ledger: l, requests: [
+      req({ what: 'stores and COGS', itemIds: ['stores_count', 'cogs_pct'] }),
+      req({ what: 'COGS again', itemIds: ['cogs_pct'] }),
+      req({ what: 'labor and ticket', itemIds: ['labor_pct', 'avg_ticket'] }),
+    ] }));
+    expect(d.restates.map(r => r.id)).toEqual(['stores_count', 'cogs_pct', 'labor_pct']);
+  });
+
+  it('an item on an exhibit already on screen is restated from the ledger too', () => {
+    const l = revealedLedger('cogs_pct');
+    const d = decideData(base({ ledger: l, shownExhibitIds: new Set(['exhibit-a']), requests: [req({ what: 'COGS', itemIds: ['cogs_pct'] })] }));
+    expect(d.restates.map(r => r.id)).toEqual(['cogs_pct']);
   });
 });

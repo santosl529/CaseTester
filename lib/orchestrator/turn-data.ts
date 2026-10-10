@@ -78,11 +78,12 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   if (gateOn) {
     requests = requests.flatMap(r => {
       if (r.respond !== 'release') return [r];
-      const held = r.itemIds.filter(gated);
+      // Data already given is never held again: a re-ask restates it (data-decisions.ts).
+      const held = r.itemIds.filter(id => gated(id) && !ledger.revealed.has(id));
       if (held.length === 0) return [r];
       gatedIds.push(...held);
       gateHeld.add(r.what);
-      const free = r.itemIds.filter(id => !gated(id));
+      const free = r.itemIds.filter(id => !held.includes(id));
       return [
         ...(free.length ? [{ ...r, itemIds: free }] : []),
         { ...r, itemIds: held, respond: 'defer' as const },

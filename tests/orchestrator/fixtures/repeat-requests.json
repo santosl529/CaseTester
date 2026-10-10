@@ -1,0 +1,150 @@
+{
+ "destiny-r1": {
+  "source": "Case Interview Runs/test runs/batch-18-v3-prefix-oct-10-r1/06-destiny-the-blank-slate (v3 prefix replay, 10 Oct)",
+  "turns": [
+   {
+    "turnIndex": 17,
+    "candidate": "Sorry — I don't think you've given me the numbers yet. Could you share them?",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "",
+     "question": "Looking at those three cost lines, which one explains most of the margin decline, and how did you get there?"
+    }
+   },
+   {
+    "turnIndex": 19,
+    "candidate": "I still don't see any numbers in your message — are they missing?",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown as a share of revenue",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "They're in my last message, so I'll restate them.",
+     "question": "Comparing today with two years ago, which cost line moved the most, and what does that tell you about the margin?"
+    }
+   },
+   {
+    "turnIndex": 21,
+    "candidate": "I'm not seeing any cost lines, sorry. Can you paste them?",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown as a share of revenue",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "Here they are again.",
+     "question": "Compare each line today against two years ago. Which one moved the most, and how much of the margin decline does it account for?"
+    }
+   }
+  ]
+ },
+ "destiny-r2": {
+  "source": "Case Interview Runs/test runs/batch-18-v3-prefix-oct-10-r2/06-destiny-the-blank-slate (v3 prefix replay, 10 Oct)",
+  "turns": [
+   {
+    "turnIndex": 17,
+    "candidate": "Sorry — I don't think you've given me the numbers yet. Could you share them?",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown as a share of revenue",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "They're on the table now, so let me repeat them.",
+     "question": "Looking at COGS, labor and overhead, which cost line explains most of the margin drop, and how did you work that out?"
+    }
+   },
+   {
+    "turnIndex": 19,
+    "candidate": "I still don't see any numbers in your message — are they missing?",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown as a share of revenue",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "",
+     "question": "Which of those cost lines explains most of the margin drop, and how did you work that out?"
+    }
+   },
+   {
+    "turnIndex": 21,
+    "candidate": "I'm not seeing any cost lines, sorry. Can you paste them?",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "Sorry about that. Here they are again.",
+     "question": "Which of those cost lines explains most of the margin drop, and how did you work that out?"
+    }
+   }
+  ]
+ }
+}

@@ -1179,7 +1179,16 @@ two years" → store count). Anything else keeps the ask unmapped and its
 scope intact — "by year", "per store", "for drinks", "excluding new stores",
 "in California", or "two years ago" for a current-only item. An unmapped ask the model declared as
 "defer" is never refused: code says the generic "I'll come back to the data
-you've asked for once we've settled your structure", promising no item. Open requests are
+you've asked for once we've settled your structure", promising no item.
+**Repeat requests (fix branch `repeat-request-restate`, 10 Oct — not part of
+batch 18 v3; required before the voice pilot).** Already revealed is not
+"don't say it again": an explicit re-ask of data already given gets the
+canonical ledger value restated by code ("As I mentioned: …"), at most three a
+turn, without re-booking the reveal; a passing mention repeats nothing; the
+pressure-test gate never holds data already given. A redelivery claim in the
+model's own words ("Here they are again.", "let me repeat them") is withheld —
+code's restate line is the one delivered with the data. (v3 recheck, Destiny:
+"Here they are again." with no figures after it.) Open requests are
 released by code before any recommendation ask and before the close. The
 same-turn resolution, stale release, offer acceptance and promise recovery
 described below are retired: with one author, there is nothing to repair. A
