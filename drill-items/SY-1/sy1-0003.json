@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0003",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -19,21 +19,21 @@
   "options": [
     {
       "id": "a",
-      "text": "Don't raise prices; run promotions instead. Profit fell $4M, and with traffic flat the chain needs more visits to earn it back.",
+      "text": "Run promotions instead of raising prices. Profit fell $4M, and with traffic flat the chain needs more visits to earn it back.",
       "correct": false,
       "tag": "M.ignores_deciding_fact",
       "feedback": "Confident and numerical, but it misreads the problem: costs rose 35% while prices haven't moved, so it's a cost problem, not a demand problem."
     },
     {
       "id": "b",
-      "text": "Prices might rise about 8% to match competitors, or costs might come down; each has a case until we know more.",
+      "text": "Prices might rise about 8% to match competitors, or costs might come down. Each has a case until we know more.",
       "correct": false,
       "tag": "M.hedged_recommendation",
       "feedback": "This never commits to an answer."
     },
     {
       "id": "c",
-      "text": "Raise menu prices about 8%, like competitors: ingredients are up 35% while our prices have not moved in three years.",
+      "text": "Raise menu prices about 8%, like competitors. Ingredients are up 35% while our prices have not moved in three years.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with the facts that decide it."
     },

@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0023",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -33,13 +33,13 @@
     },
     {
       "id": "c",
-      "text": "Automate: $3M of labor savings plus $300k from fewer errors makes the payback about 3.6 years, inside the hurdle.",
+      "text": "Automate the warehouse. $3M of labor savings plus $300k from fewer errors makes the payback about 3.6 years, inside the hurdle.",
       "correct": true,
       "feedback": "Right. It leads with the answer and counts both savings."
     },
     {
       "id": "d",
-      "text": "Automation pays back close to the 4-year hurdle, so whether to go ahead turns on future volume.",
+      "text": "Automation pays back close to the 4-year hurdle. Whether to go ahead turns on future volume.",
       "correct": false,
       "tag": "M.hedged_recommendation",
       "feedback": "This never commits, even though payback is inside the hurdle and volume is growing."

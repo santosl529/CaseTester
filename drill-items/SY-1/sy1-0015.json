@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0015",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -19,7 +19,7 @@
   "options": [
     {
       "id": "a",
-      "text": "Outsourcing saves $2M a year, but a 15-point satisfaction drop would cost about $2.25M in churn, so customer service should stay in-house.",
+      "text": "Outsourcing saves $2M a year, but a 15-point satisfaction drop would cost about $2.25M in churn. Customer service should stay in-house.",
       "correct": false,
       "tag": "M.buried_recommendation",
       "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
@@ -33,7 +33,7 @@
     },
     {
       "id": "c",
-      "text": "Keep customer service in-house: outsourcing saves $2M a year, but a 15-point satisfaction drop would cost about $2.25M.",
+      "text": "Keep customer service in-house. Outsourcing saves $2M a year, but a 15-point satisfaction drop would cost about $2.25M.",
       "correct": true,
       "feedback": "Right. It leads with the answer and nets the saving against the churn cost."
     },

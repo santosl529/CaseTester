@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0004",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -26,7 +26,7 @@
     },
     {
       "id": "b",
-      "text": "Labor savings of $500k a year repay the $2M machine in 4 years, inside the 5-year hurdle, so buying it makes sense.",
+      "text": "Labor savings of $500k a year repay the $2M machine in 4 years, inside the 5-year hurdle. Buying it makes sense.",
       "correct": false,
       "tag": "M.buried_recommendation",
       "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
@@ -40,7 +40,7 @@
     },
     {
       "id": "d",
-      "text": "Buy the machine. It pays back in 4 years ($2M ÷ $500k a year), inside the 5-year hurdle, and it lasts 8 years.",
+      "text": "Buy the machine. It pays back in 4 years, inside the 5-year hurdle, and it lasts 8 years.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with the payback against the hurdle."
     }

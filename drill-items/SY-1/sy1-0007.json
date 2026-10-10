@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0007",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -26,14 +26,14 @@
     },
     {
       "id": "b",
-      "text": "Supplier talks and plant closures both have merit, and the order should reflect how fast the board needs savings.",
+      "text": "Supplier talks and plant closures both have merit. The order should reflect how fast the board needs savings.",
       "correct": false,
       "tag": "M.hedged_recommendation",
       "feedback": "This never commits, even though the target is this year."
     },
     {
       "id": "c",
-      "text": "Start with supplier renegotiation: it saves $8M within 6 months with no up-front cost, most of this year's $10M target.",
+      "text": "Start with supplier renegotiation. It saves $8M within 6 months with no up-front cost, most of this year's $10M target.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with what decides it: savings this year."
     },

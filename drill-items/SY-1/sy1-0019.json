@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0019",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -33,13 +33,13 @@
     },
     {
       "id": "c",
-      "text": "Hold off on the national launch: break-even needs a 2% share, and the test market reached only 1%.",
+      "text": "Hold off on the national launch. Break-even needs a 2% share, and the test market reached only 1%.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with the share gap."
     },
     {
       "id": "d",
-      "text": "The test reached 1% share against the 2% needed to break even, even with the segment growing 12%, so a national launch should wait.",
+      "text": "The test reached 1% share against the 2% needed to break even, even with the segment growing 12%. A national launch should wait.",
       "correct": false,
       "tag": "M.buried_recommendation",
       "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."

@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0013",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -19,7 +19,7 @@
   "options": [
     {
       "id": "a",
-      "text": "Sell the division for the $50M offered: it lost $20M, revenue falls 10% a year, and restructuring costs $80M.",
+      "text": "Sell the division for the $50M offered. It lost $20M, revenue falls 10% a year, and restructuring costs $80M.",
       "correct": true,
       "feedback": "Right. It leads with the answer and compares the two options on their numbers."
     },
@@ -39,7 +39,7 @@
     },
     {
       "id": "d",
-      "text": "With $20M of losses, revenue down 10% a year and restructuring costing $80M for break-even at best, the $50M offer is better, so we should sell.",
+      "text": "With $20M of losses, revenue down 10% a year and restructuring costing $80M for break-even at best, the $50M offer is better. We should sell.",
       "correct": false,
       "tag": "M.buried_recommendation",
       "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."

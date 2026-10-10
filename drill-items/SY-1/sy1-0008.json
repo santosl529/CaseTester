@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0008",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -19,7 +19,7 @@
   "options": [
     {
       "id": "a",
-      "text": "Online is growing 25% a year, 40% of customers would buy there, and $4M of sales at a 20% margin nearly covers the $1M setup in year one, so we should launch.",
+      "text": "Online is growing 25% a year, 40% of customers would buy there, and $4M of sales at a 20% margin nearly covers the $1M setup. We should launch.",
       "correct": false,
       "tag": "M.buried_recommendation",
       "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
@@ -40,7 +40,7 @@
     },
     {
       "id": "d",
-      "text": "Launch online sales: the category grows 25% a year online, and $4M of sales at a 20% margin nearly covers the $1M setup.",
+      "text": "Launch online sales. The category grows 25% a year online, and $4M of sales at a 20% margin nearly covers the $1M setup.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with growth, demand and economics."
     }

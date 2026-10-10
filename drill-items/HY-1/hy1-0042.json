@@ -2,14 +2,14 @@
   "item_id": "hy1-0042",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 3,
   "skills": [
     "HY.form"
   ],
   "case_type": "pricing",
-  "prompt": "A ferry operator's revenue per passenger rose 10% this year, but its total ticket revenue was flat. Which is the strongest initial hypothesis?",
+  "prompt": "After a 10% fare increase, a ferry operator's revenue per passenger rose 10% this year, but its total ticket revenue was flat. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -51,10 +51,10 @@
   "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
     "similarity_check": "passed",
     "similarity_note": null,
     "similarity_checked_at": "2026-10-10"

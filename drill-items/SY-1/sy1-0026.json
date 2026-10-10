@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0026",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -26,7 +26,7 @@
     },
     {
       "id": "b",
-      "text": "Keep the price at $4: at $3 we would need about 1,670 cups a day to keep profit flat, and the survey says 1,200.",
+      "text": "Keep the price at $4. At $3 we would need about 1,670 cups a day to keep profit flat, and the survey says 1,200.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with the break-even volume."
     },
@@ -39,7 +39,7 @@
     },
     {
       "id": "d",
-      "text": "At $3 we'd earn $1.50 a cup instead of $2.50 and need about 1,670 cups a day against 1,200 expected, so the price should stay at $4.",
+      "text": "At $3 we'd earn $1.50 a cup instead of $2.50 and need about 1,670 cups a day against 1,200 expected. The price should stay at $4.",
       "correct": false,
       "tag": "M.buried_recommendation",
       "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."

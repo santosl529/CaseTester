@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0027",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -33,13 +33,13 @@
     },
     {
       "id": "c",
-      "text": "Buy the distributor: $10M from other customers plus $4M of fees saved repays the $80M in under 6 years.",
+      "text": "Buy the distributor. $10M from other customers plus $4M of fees saved repays the $80M in under 6 years.",
       "correct": true,
       "feedback": "Right. It leads with the answer and counts both sources of value without double counting."
     },
     {
       "id": "d",
-      "text": "The deal sits near the hurdle and the owner is retiring, so more diligence is needed before taking a view.",
+      "text": "The deal sits near the hurdle, and the owner is retiring. More diligence is needed before taking a view.",
       "correct": false,
       "tag": "M.hedged_recommendation",
       "feedback": "This never commits, even though payback is under 6 years against an 8-year hurdle."

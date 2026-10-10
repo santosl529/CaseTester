@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0002",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -19,14 +19,14 @@
   "options": [
     {
       "id": "a",
-      "text": "Even if 8% of subscribers cancel, revenue rises about 10% to $1.1M a month, and $24 is within rivals' $22–28, so the price should go up.",
+      "text": "Even if 8% of subscribers cancel, revenue rises about 10% to $1.1M a month, and $24 is within rivals' $22–28. The price should go up.",
       "correct": false,
       "tag": "M.buried_recommendation",
       "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
     },
     {
       "id": "b",
-      "text": "Raise the price to $24: even if 8% of subscribers cancel, monthly revenue would rise about 10%, to $1.1M.",
+      "text": "Raise the price to $24. Even if 8% of subscribers cancel, monthly revenue would rise about 10%, to $1.1M.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with the revenue math and the competitor range."
     },

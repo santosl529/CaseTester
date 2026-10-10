@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0017",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -19,7 +19,7 @@
   "options": [
     {
       "id": "a",
-      "text": "Build the wing: rooms run at 95% with a 6-week waitlist, and 8 more rooms at $3M each repay $120M in 5 years.",
+      "text": "Build the wing. Rooms run at 95% with a 6-week waitlist, and 8 more rooms at $3M each repay $120M in 5 years.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with demand and payback."
     },
@@ -39,7 +39,7 @@
     },
     {
       "id": "d",
-      "text": "Rooms run at 95% with a 6-week waitlist, and 8 new rooms earn about $24M a year, repaying $120M in 5 years, so build it.",
+      "text": "Rooms run at 95% with a 6-week waitlist, and 8 new rooms earn about $24M a year, repaying $120M in 5 years. The hospital should build.",
       "correct": false,
       "tag": "M.buried_recommendation",
       "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."

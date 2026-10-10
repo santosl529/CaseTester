@@ -4,10 +4,11 @@
 //   - an existing one may only change status, is_example or authorship (the
 //     review record) — any other edit needs a new version, since attempts
 //     record the version they saw;
-//   - except a draft no attempt has used yet, which is updated in place.
+//   - except a draft no attempt has used yet, which is updated in place;
+//   - when a newer version is live, older live versions are retired.
 //
 //   npm run db:seed-drill-items
-import { and, count, eq } from 'drizzle-orm';
+import { and, count, eq, lt } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { drillAttempts, drillItems } from '@/db/schema';
 import { contentCheckProblems, loadAuthoredItems } from '@/lib/drills/authored';
@@ -64,7 +65,18 @@ async function main() {
     }
   }
 
-  console.log(`drill items: ${inserted} inserted, ${updated} updated (status, example or authorship), ${unchanged} unchanged, ${conflicts.length} conflicts`);
+  // A newer version replaces the old one: retire older live versions so only
+  // one version of an item is live. Attempts keep pointing at the version
+  // they saw.
+  let retired = 0;
+  for (const item of items.filter(i => i.status === 'live' && i.version > 1)) {
+    const rows = await db.update(drillItems).set({ status: 'retired' })
+      .where(and(eq(drillItems.itemId, item.item_id), lt(drillItems.version, item.version), eq(drillItems.status, 'live')))
+      .returning({ id: drillItems.itemId });
+    retired += rows.length;
+  }
+
+  console.log(`drill items: ${inserted} inserted, ${updated} updated (status, example or authorship), ${unchanged} unchanged, ${retired} older versions retired, ${conflicts.length} conflicts`);
   if (conflicts.length) {
     console.error(conflicts.join('\n'));
     process.exitCode = 1;

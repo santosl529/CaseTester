@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0025",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -19,7 +19,7 @@
   "options": [
     {
       "id": "a",
-      "text": "Fund the program: each $5,000 participant returns about $10,000 in tax and lower benefits over 10 years.",
+      "text": "Fund the program. Each $5,000 participant returns about $10,000 in tax and lower benefits over 10 years.",
       "correct": true,
       "feedback": "Right. It leads with the answer and counts both returns over the full period."
     },
@@ -39,7 +39,7 @@
     },
     {
       "id": "d",
-      "text": "The program seems to pay for itself over time, though the gains may fade, so funding it is a judgment call.",
+      "text": "The program seems to pay for itself over time, though the gains may fade. Funding it is a judgment call.",
       "correct": false,
       "tag": "M.hedged_recommendation",
       "feedback": "This never commits, even though the return is about double the cost."

@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0021",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -19,7 +19,7 @@
   "options": [
     {
       "id": "a",
-      "text": "Don't enter: each customer costs $40 to win but brings only $35, and the incumbent holds 85%.",
+      "text": "Don't enter this city. Each customer costs $40 to win but brings only $35, and the incumbent holds 85%.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with unit economics and the incumbent's strength."
     },
@@ -39,7 +39,7 @@
     },
     {
       "id": "d",
-      "text": "Enter and outspend the incumbent on drivers; a 20% pay gap is easy to close with bonuses.",
+      "text": "Enter and outspend the incumbent on drivers. A 20% pay gap is easy to close with bonuses.",
       "correct": false,
       "tag": "M.ignores_deciding_fact",
       "feedback": "Bonuses add cost to economics that already lose $5 per customer."

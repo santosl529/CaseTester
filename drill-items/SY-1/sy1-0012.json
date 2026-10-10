@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0012",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -26,7 +26,7 @@
     },
     {
       "id": "b",
-      "text": "Texas looks promising on growth and payback, but with no presence there, a decision feels premature.",
+      "text": "Texas looks promising on growth and payback. With no presence there, though, a decision feels premature.",
       "correct": false,
       "tag": "M.hedged_recommendation",
       "feedback": "This never commits, even though every number points to entering."
@@ -40,7 +40,7 @@
     },
     {
       "id": "d",
-      "text": "Enter Texas: the $2B market grows 6% a year, the top three hold only 20%, and each restaurant pays back in 3 years.",
+      "text": "Enter Texas. The $2B market grows 6% a year, the top three hold only 20%, and each restaurant pays back in 3 years.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with market, competition and payback."
     }

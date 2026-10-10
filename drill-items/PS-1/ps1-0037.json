@@ -1,6 +1,6 @@
 {
   "item_id": "ps1-0037",
-  "version": 1,
+  "version": 2,
   "drill_id": "PS-1",
   "status": "live",
   "level": 1,
@@ -18,7 +18,7 @@
   "options": [
     {
       "id": "a",
-      "text": "It's a generic strategy list (a SWOT): no demand, economics or credit risk",
+      "text": "It's a generic strategy list (a SWOT): it skips demand, economics and credit risk",
       "correct": true,
       "feedback": "Right. A launch needs demand, competition, unit economics, risk and the ability to execute."
     },

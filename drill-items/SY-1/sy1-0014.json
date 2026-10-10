@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0014",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -26,7 +26,7 @@
     },
     {
       "id": "b",
-      "text": "Enter Mexico first: it grows 9% a year against Brazil's 4%, has no tariff, and our distribution partner is already there.",
+      "text": "Enter Mexico first. It grows 9% a year against Brazil's 4%, has no tariff, and our distribution partner is already there.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with growth, tariffs and our partner."
     },

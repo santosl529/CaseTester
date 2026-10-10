@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0001",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -19,7 +19,7 @@
   "options": [
     {
       "id": "a",
-      "text": "Don't enter Canada now: the 5-year payback misses our 3-year hurdle, and two incumbents hold 70%.",
+      "text": "Don't enter Canada now. The 5-year payback misses our 3-year hurdle, and two incumbents hold 70%.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with the facts that decide it: the payback misses the hurdle in a slow, concentrated market."
     },
@@ -39,7 +39,7 @@
     },
     {
       "id": "d",
-      "text": "Payback is 5 years against a 3-year hurdle and two incumbents hold 70%, so we shouldn't enter Canada now.",
+      "text": "Payback is 5 years against a 3-year hurdle, and two incumbents hold 70%. We shouldn't enter Canada now.",
       "correct": false,
       "tag": "M.buried_recommendation",
       "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."

@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0010",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -26,7 +26,7 @@
     },
     {
       "id": "b",
-      "text": "Hold our price: at a 30% margin, a 15% cut halves profit per unit, so volume must double; we've lost only 5%.",
+      "text": "Hold our price. At a 30% margin, a 15% cut halves profit per unit, so volume must double, and we've lost only 5%.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with the break-even math."
     },
@@ -39,7 +39,7 @@
     },
     {
       "id": "d",
-      "text": "Matching protects volume and holding protects margin; the right answer becomes clearer after the next quarter.",
+      "text": "Matching protects volume and holding protects margin. The right answer becomes clearer after the next quarter.",
       "correct": false,
       "tag": "M.hedged_recommendation",
       "feedback": "This never commits, even though the math is clear."

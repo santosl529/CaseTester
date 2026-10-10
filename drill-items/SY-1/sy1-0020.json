@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0020",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -33,14 +33,14 @@
     },
     {
       "id": "c",
-      "text": "Closing saves the $200k loss but costs $500k to exit the lease, so there are good arguments on both sides.",
+      "text": "Closing saves the $200k loss but costs $500k to exit the lease. There are good arguments on both sides.",
       "correct": false,
       "tag": "M.hedged_recommendation",
       "feedback": "This never commits, even though the exit pays back in under 18 months."
     },
     {
       "id": "d",
-      "text": "Close the store: it loses $200k, shifting customers add $150k, and the $500k exit pays back in 18 months.",
+      "text": "Close the store. It loses $200k, shifting customers add $150k, and the $500k exit pays back in 18 months.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with the payback."
     }

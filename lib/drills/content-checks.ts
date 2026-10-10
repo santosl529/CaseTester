@@ -47,8 +47,29 @@ export function lengthCueProblems(items: Item[]): string[] {
 const STOP = new Set('a an the of to in on at by for and or but is are was were be it its this that these those as with from than then so'.split(' '));
 const words = (text: string) => text.toLowerCase().replace(/[’‘]/g, "'").match(/[a-z0-9$%'.-]+/g)?.map(w => w.replace(/^[.'-]+|[.'-]+$/g, '')).filter(Boolean) ?? [];
 
+// Sentences, split at ., ! or ? followed by a space and a capital, digit or $.
+export const sentenceCount = (text: string) => text.trim().split(/(?<=[.!?])\s+(?=[A-Z0-9$])/).filter(Boolean).length;
+
+// How an option is punctuated and built, apart from its words: a colon, a
+// semicolon, a dash, brackets, how many sentences, whether it ends with a
+// period. (SY-1 once had a colon in 29 of 30 right answers and none of the
+// wrong ones.)
+function shapeFeatures(text: string): string[] {
+  const t = text.trim();
+  return [
+    ...(t.includes(':') ? ['has a colon'] : []),
+    ...(t.includes(';') ? ['has a semicolon'] : []),
+    // A dash between words, not an en dash in a range like 22–28.
+    ...(/—|\s[-–]\s/.test(t) ? ['has a dash'] : []),
+    ...(/[()]/.test(t) ? ['has brackets'] : []),
+    ...(t.includes('?') ? ['has a question mark'] : []),
+    `${Math.min(sentenceCount(t), 3)}${sentenceCount(t) >= 3 ? '+' : ''} sentence${sentenceCount(t) === 1 ? '' : 's'}`,
+    t.endsWith('.') ? 'ends with a period' : 'no final period',
+  ];
+}
+
 // What a student could notice about an option without reading the case:
-// its words and phrases, how it starts and ends.
+// its words and phrases, how it starts and ends, and how it's punctuated.
 export function wordingFeatures(text: string): Set<string> {
   const w = words(text);
   const f = new Set<string>();
@@ -65,6 +86,7 @@ export function wordingFeatures(text: string): Set<string> {
     if (w.length > 1) f.add(`starts "${w.slice(0, 2).join(' ')}"`);
     f.add(`ends "${w.slice(-2).join(' ')}"`);
   }
+  for (const s of shapeFeatures(text)) f.add(s);
   return f;
 }
 
@@ -111,8 +133,48 @@ export function phraseCues(items: Item[]): PhraseCue[] {
   return cues.sort((a, b) => a.drill.localeCompare(b.drill) || (b.right + b.wrong) - (a.right + a.wrong));
 }
 
+// The odd one out: within an item, the right answer is the only option with
+// a feature (or the only one without it). Across a pool, that should happen
+// for the right answer about as often as for any one wrong option. If the
+// right answer is the odd one out in 5+ items and at least 60% of the time
+// any option is, students can spot it. This catches what pool-wide counts
+// miss, such as a colon that every option has in some items but only the
+// right answer has in others.
+export const ODD_ONE_OUT = { min: 5, share: 0.6 };
+
+export interface OddOneOut { drill: string; feature: string; right: number; wrong: number; kind: 'only with' | 'only without' }
+
+export function oddOneOutCues(items: Item[]): OddOneOut[] {
+  const cues: OddOneOut[] = [];
+  for (const [drill, pool] of choicePools(items)) {
+    const tally = new Map<string, { right: number; wrong: number }>();
+    for (const item of pool) {
+      const feats = item.options.map(o => ({ o, f: wordingFeatures(o.text) }));
+      const all = new Set(feats.flatMap(x => [...x.f]));
+      for (const feature of all) {
+        const having = feats.filter(x => x.f.has(feature));
+        for (const [kind, odd] of [['only with', having], ['only without', feats.filter(x => !x.f.has(feature))]] as const) {
+          if (odd.length !== 1) continue;
+          const key = `${kind}\u0000${feature}`;
+          const t = tally.get(key) ?? { right: 0, wrong: 0 };
+          if (odd[0].o.correct) t.right++; else t.wrong++;
+          tally.set(key, t);
+        }
+      }
+    }
+    for (const [key, { right, wrong }] of tally) {
+      const [kind, feature] = key.split('\u0000') as [OddOneOut['kind'], string];
+      if (right >= ODD_ONE_OUT.min && right / (right + wrong) >= ODD_ONE_OUT.share) cues.push({ drill, feature, right, wrong, kind });
+    }
+  }
+  return cues.sort((a, b) => a.drill.localeCompare(b.drill) || b.right - a.right);
+}
+
 export function phraseCueProblems(items: Item[]): string[] {
-  return phraseCues(items).map(c => `${c.drill}: "${c.phrase}" is in ${c.right + c.wrong} options and ${c.marks === 'right' ? `right in ${c.right}` : `wrong in ${c.wrong}`}`);
+  return [
+    ...phraseCues(items).map(c => `${c.drill}: "${c.phrase}" is in ${c.right + c.wrong} options and ${c.marks === 'right' ? `right in ${c.right}` : `wrong in ${c.wrong}`}`),
+    ...oddOneOutCues(items).map(c => `${c.drill}: the right answer is the ${c.kind === 'only with' ? 'only option with' : 'only option without'} ${c.feature} in ${c.right} items (a wrong option is, in ${c.wrong})`),
+  ];
 }
 
 // ------------------------------------------------------------- rule player

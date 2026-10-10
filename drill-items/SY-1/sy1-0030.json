@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0030",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -26,7 +26,7 @@
     },
     {
       "id": "b",
-      "text": "Don't invest now: sales fell 30% in both of the last two years, and margins are down from 20% to 2%.",
+      "text": "Don't invest now. Sales fell 30% in both of the last two years, and margins are down from 20% to 2%.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with the industry's numbers."
     },
@@ -39,7 +39,7 @@
     },
     {
       "id": "d",
-      "text": "The industry is in a downturn but may recover, and investing now has both upside and downside.",
+      "text": "The industry is in a downturn but may recover. Investing now has both upside and downside.",
       "correct": false,
       "tag": "M.hedged_recommendation",
       "feedback": "This never commits."

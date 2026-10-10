@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0011",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -19,7 +19,7 @@
   "options": [
     {
       "id": "a",
-      "text": "Upgrades cost $20M and speed up trips 20% for 40,000 daily riders, against $50M for 8,000 on a new line, so improving existing routes should come first.",
+      "text": "Upgrades cost $20M and speed up trips 20% for 40,000 daily riders, against $50M for 8,000 on a new line. Improving existing routes should come first.",
       "correct": false,
       "tag": "M.buried_recommendation",
       "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
@@ -33,7 +33,7 @@
     },
     {
       "id": "c",
-      "text": "Improve existing routes first: for $20M, trips will get 20% faster for 40,000 daily riders, against $50M for 8,000 on a new line.",
+      "text": "Improve existing routes first. For $20M, trips get 20% faster for 40,000 daily riders, against $50M for 8,000 on a new line.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with cost per rider and the cause of the decline."
     },

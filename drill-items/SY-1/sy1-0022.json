@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0022",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -26,7 +26,7 @@
     },
     {
       "id": "b",
-      "text": "Keep product X: where stores dropped it, sales of Y, a 45%-margin product, fell 15%.",
+      "text": "Keep product X. Where stores dropped it, sales of Y, a 45%-margin product, fell 15%.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with evidence that dropping X cuts Y's sales."
     },
@@ -39,7 +39,7 @@
     },
     {
       "id": "d",
-      "text": "Where stores stopped carrying X, sales of 45%-margin Y fell 15%, so although X earns only 5%, we should keep it.",
+      "text": "Where stores stopped carrying X, sales of 45%-margin Y fell 15%. So although X earns only 5%, we should keep it.",
       "correct": false,
       "tag": "M.buried_recommendation",
       "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."

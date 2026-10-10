@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { contentCheckProblems, loadAuthoredItems, parseAuthoredItems } from '@/lib/drills/authored';
-import { lengthCueProblems, phraseCues, rulePlayer } from '@/lib/drills/content-checks';
+import { lengthCueProblems, oddOneOutCues, phraseCues, rulePlayer } from '@/lib/drills/content-checks';
 import { getDrill } from '@/lib/drills/config';
 
 describe('authored drill items (/drill-items)', () => {
@@ -77,6 +77,18 @@ describe('wording checks', () => {
   it('flags a phrase that only wrong answers use', () => {
     const wrong = pool.map(i => ({ ...i, options: i.options.map(o => (o.correct ? o : { ...o, text: `Recommend that ${o.text}` })) }));
     expect(phraseCues(wrong)).toContainEqual(expect.objectContaining({ phrase: 'starts "recommend that"', marks: 'wrong' }));
+  });
+
+  // Same words, different punctuation: the right answer alone gets a colon.
+  const colon = pool.map(i => ({ ...i, options: i.options.map(o => (o.correct ? { ...o, text: o.text.replace(' ', ': ') } : o)) }));
+
+  it('notices when only the right answer has a colon', () => {
+    expect(oddOneOutCues(colon)).toContainEqual(expect.objectContaining({ feature: 'has a colon', kind: 'only with', right: pool.length, wrong: 0 }));
+    expect(oddOneOutCues(pool)).toEqual([]);
+  });
+
+  it('counts punctuation in the rule player', () => {
+    expect(rulePlayer(colon)[0].score).toBeGreaterThan(0.9);
   });
 
   it('a solver that never reads the case beats a marked pool and not a clean one', () => {

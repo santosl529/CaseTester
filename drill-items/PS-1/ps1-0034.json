@@ -1,6 +1,6 @@
 {
   "item_id": "ps1-0034",
-  "version": 1,
+  "version": 2,
   "drill_id": "PS-1",
   "status": "live",
   "level": 1,
@@ -25,7 +25,7 @@
     },
     {
       "id": "b",
-      "text": "It's a generic 3Cs list: it describes but gives no growth levers",
+      "text": "It's a generic 3Cs list: it describes without giving any growth levers",
       "correct": true,
       "feedback": "Right. A growth target needs levers: more customers, more revenue per customer, new products, new segments or geographies."
     },

@@ -1,6 +1,6 @@
 {
   "item_id": "ps1-0023",
-  "version": 1,
+  "version": 2,
   "drill_id": "PS-1",
   "status": "live",
   "level": 1,
@@ -32,7 +32,7 @@
     },
     {
       "id": "c",
-      "text": "Bucket 1 doesn't belong: office rent has no link to this price",
+      "text": "Bucket 1 doesn't belong: office rent can't set this watch's price",
       "correct": true,
       "feedback": "Right. Office rent is overhead with no link to this price. Replace it with the effect on the brand: the price must protect its luxury positioning."
     },

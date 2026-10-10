@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0024",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -33,14 +33,14 @@
     },
     {
       "id": "c",
-      "text": "Forty percent joining and visiting 12% more adds about $1.2M of profit, below the $2M cost, so the rollout should wait.",
+      "text": "Forty percent joining and visiting 12% more adds about $1.2M of profit, below the $2M cost. The rollout should wait.",
       "correct": false,
       "tag": "M.buried_recommendation",
       "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
     },
     {
       "id": "d",
-      "text": "Redesign the program before any rollout: the extra visits add about $1.2M of profit, less than its $2M cost.",
+      "text": "Redesign the program before any rollout. The extra visits add about $1.2M of profit, less than its $2M cost.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with the profit math."
     }

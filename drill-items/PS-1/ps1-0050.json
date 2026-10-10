@@ -2,7 +2,7 @@
   "item_id": "ps1-0050",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 3,
   "skills": [
@@ -55,10 +55,10 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
     "similarity_check": "passed",
     "similarity_note": null,
     "similarity_checked_at": "2026-10-10"

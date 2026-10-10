@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0005",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -19,7 +19,7 @@
   "options": [
     {
       "id": "a",
-      "text": "Don't buy RivalCo at $500M: it's worth about $490M, counting $150M of synergies and $60M of integration costs.",
+      "text": "Don't buy RivalCo at $500M. It's worth about $490M, counting $150M of synergies and $60M of integration costs.",
       "correct": true,
       "feedback": "Right. It leads with the answer and does the full value math, including integration costs."
     },
@@ -39,7 +39,7 @@
     },
     {
       "id": "d",
-      "text": "RivalCo is worth roughly the asking price once synergies and integration are counted, so the board may want to weigh it further.",
+      "text": "RivalCo is worth roughly the asking price once synergies and integration are counted. The board may want to weigh it further.",
       "correct": false,
       "tag": "M.hedged_recommendation",
       "feedback": "This never commits to an answer, even though the math says the price is $10M too high."

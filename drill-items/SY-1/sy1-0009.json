@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0009",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -19,7 +19,7 @@
   "options": [
     {
       "id": "a",
-      "text": "Add a night shift: serving the 20% of demand we turn away adds $8M of profit for $3M a year, without a $40M plant.",
+      "text": "Add a night shift. Serving the 20% of demand we turn away adds $8M of profit for $3M a year, without a $40M plant.",
       "correct": true,
       "feedback": "Right. It leads with the answer and nets the shift's cost against the profit it brings."
     },

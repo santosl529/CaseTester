@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0006",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -19,14 +19,14 @@
   "options": [
     {
       "id": "a",
-      "text": "Three percent of a $300M market at a 40% margin is about $3.6M a year, repaying $5M in under two years, so launch it.",
+      "text": "Three percent of a $300M market at a 40% margin is about $3.6M a year, repaying $5M in under two years. We should launch it.",
       "correct": false,
       "tag": "M.buried_recommendation",
       "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
     },
     {
       "id": "b",
-      "text": "Launch the protein bar: 3% of a $300M market at a 40% margin will earn about $3.6M a year, repaying $5M in under two years.",
+      "text": "Launch the protein bar. At 3% of a $300M market and a 40% margin, it will earn about $3.6M a year, repaying $5M in under two years.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with the profit math."
     },
