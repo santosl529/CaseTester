@@ -132,6 +132,11 @@ describe('awaiting-answer turns are bounded (v3)', () => {
     const waived = store.events.filter(e => e.subtype === 'pressure_test_waived');
     expect(waived).toHaveLength(1);
     expect(waived[0]).toMatchObject({ category: 'intervention' });
+    // What scoring is told (lib/scoring/assists.ts summarizePressureTest).
+    const payload = waived[0].payloadJsonb as Row;
+    expect(payload).toMatchObject({ from: 'awaiting', probeDelivered: true, probe: destiny.probe, askedAt: 4, replyTurns: [5, 7, 9] });
+    expect(payload.followUps).toHaveLength(2);
+    expect(payload.waivedAt).toBe(10);
     expect(pt()?.satisfiedAt).toBeUndefined();
   });
 

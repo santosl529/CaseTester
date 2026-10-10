@@ -214,7 +214,9 @@ describe('bounded fallbacks', () => {
     expect(heard.findIndex(h => /Let's move on to the analysis\./.test(h))).toBe(4);
     expect(pt()?.state).toBe('waived');
     expect(revealed()).toContain('cogs_pct');
-    expect(store.events.filter(e => e.subtype === 'pressure_test_waived')).toHaveLength(1);
+    const waivedEvents = store.events.filter(e => e.subtype === 'pressure_test_waived');
+    expect(waivedEvents).toHaveLength(1);
+    expect(waivedEvents[0].payloadJsonb).toMatchObject({ from: 'not_asked', probeDelivered: false, structureAsked: true });
   });
 
   it('asks the pressure test itself, once, when the model never does and requested data keeps being held', async () => {

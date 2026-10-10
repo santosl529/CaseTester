@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { summarizeAssists, summarizeCoverage, type InterventionEvent } from '@/lib/scoring/assists';
+import { summarizeAssists, summarizeCoverage, summarizePressureTest, type InterventionEvent } from '@/lib/scoring/assists';
 
 describe('summarizeAssists', () => {
   it('returns empty string when there were no assists', () => {
@@ -63,5 +63,54 @@ describe('summarizeAssists — delivered rungs only (Rule 13 v4.5)', () => {
   it('shows the delivered hint text', () => {
     const out = summarizeAssists([{ subtype: 'restate_anchor', phase: 'EXHIBIT', payloadJsonb: { level: 1, span: 'Take your time.' } }]);
     expect(out).toContain('the interviewer said: "Take your time."');
+  });
+});
+
+// v3 (batch 18, 10 Oct): code can close an unanswered pressure test (the
+// waiver). Scoring is told what happened — whether the probe was delivered,
+// the questions and replies, that code closed it — neutrally: not an assist,
+// not an unanswered question, not "needs work" by itself.
+describe('summarizePressureTest', () => {
+  const transcript = [
+    { role: 'candidate', turnIndex: 3, text: 'Revenue, costs, and the market.' },
+    { role: 'interviewer', turnIndex: 4, text: 'Three buckets. Is that MECE, and what is missing?' },
+    { role: 'candidate', turnIndex: 5, text: 'Can I get the cost breakdown?' },
+    { role: 'interviewer', turnIndex: 6, text: "I'll share the cost breakdown once we've settled your structure. Before I share that data, I'd like your answer on the structure: what might be missing from your structure?" },
+    { role: 'candidate', turnIndex: 7, text: "I'm not sure." },
+    { role: 'interviewer', turnIndex: 8, text: "Let me make it concrete: name one thing your structure doesn't cover yet." },
+    { role: 'candidate', turnIndex: 9, text: 'I really don’t know.' },
+    { role: 'interviewer', turnIndex: 10, text: "COGS is 58% of revenue. Let's leave the structure there. What do those figures tell you?" },
+  ];
+  const waived = (payload: Record<string, unknown>) => ({ subtype: 'pressure_test_waived', phase: 'STRUCTURE', payloadJsonb: payload });
+
+  it('records a delivered probe that code closed: the questions, the replies, the closure — neutrally', () => {
+    const s = summarizePressureTest([waived({
+      from: 'awaiting', probeDelivered: true, probe: 'Three buckets. Is that MECE, and what is missing?', askedAt: 4,
+      followUps: ["Before I share that data, I'd like your answer on the structure: what might be missing from your structure?", "Let me make it concrete: name one thing your structure doesn't cover yet."],
+      replyTurns: [5, 7, 9], waivedAt: 10, released: ['cogs_pct'],
+    })], transcript);
+    expect(s).toMatch(/PRESSURE TEST/);
+    expect(s).toMatch(/delivered \(turn 4\): "Three buckets\. Is that MECE, and what is missing\?"/);
+    expect(s).toMatch(/turn 6\): "Before I share that data/);
+    expect(s).toMatch(/turn 8\): "Let me make it concrete/);
+    expect(s).toMatch(/turn 5: "Can I get the cost breakdown\?"/);
+    expect(s).toMatch(/turn 9: "I really don’t know\."/);
+    expect(s).toMatch(/code closed the probe .*turn 10/);
+    expect(s).toMatch(/not an assist, not an unanswered question/);
+    expect(s).not.toMatch(/needs work|INTERVIEWER ASSISTS|coverageCaveat/);
+  });
+
+  it('a never-asked waiver says the pressure test was not administered', () => {
+    const s = summarizePressureTest([waived({
+      from: 'not_asked', probeDelivered: false, followUps: [], structureAsked: true, replyTurns: [], waivedAt: 10, released: ['cogs_pct'],
+    })], transcript);
+    expect(s).toMatch(/No pressure-test probe was delivered/);
+    expect(s).toMatch(/NOT administered/);
+    expect(s).not.toMatch(/was delivered \(turn/);
+  });
+
+  it('says nothing without a waiver, and a waiver is never listed as an assist', () => {
+    expect(summarizePressureTest([], transcript)).toBe('');
+    expect(summarizeAssists([waived({ from: 'awaiting', probeDelivered: true, followUps: [], replyTurns: [], waivedAt: 10, released: [] })])).toBe('');
   });
 });

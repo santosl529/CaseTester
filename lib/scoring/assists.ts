@@ -54,3 +54,46 @@ export function summarizeCoverage(events: InterventionEvent[]): string {
 - Attribute thin coverage of later stages (extended analysis, brainstorm depth) to time pressure, NOT to the candidate: apply a coverageCaveat rather than a low rating where a stage was compressed for time.
 - This does not excuse errors the candidate actually made in what they did cover; it only prevents penalizing them for stages the interviewer had no time to run.`;
 }
+
+// The v3 pressure-test waiver (docs/interviewer-behavior.md Rule 7, v4.9):
+// code closed an open probe after the reply bound, or moved on when no
+// structure was ever given. A record for the judge — whether the probe was
+// delivered, the questions and replies, and that code closed it — stated
+// neutrally: the closure is a bound on the interview, not an assist, not an
+// unanswered question, and not by itself a weakness. With no probe delivered
+// the pressure test was not administered.
+type WaiverPayload = {
+  from?: string; probeDelivered?: boolean; probe?: string; askedAt?: number;
+  followUps?: string[]; replyTurns?: number[]; waivedAt?: number;
+};
+type Line = { role: string; turnIndex: number; text: string };
+
+export function summarizePressureTest(events: InterventionEvent[], transcript: Line[]): string {
+  const e = events.find(x => x.subtype === 'pressure_test_waived');
+  if (!e) return '';
+  const p = (e.payloadJsonb ?? {}) as WaiverPayload;
+  const quote = (s: string) => `"${s.trim()}"`;
+  const turnOf = (text: string) => transcript.find(t => t.role === 'interviewer' && t.text.includes(text))?.turnIndex;
+  const replies = (p.replyTurns ?? [])
+    .map(i => transcript.find(t => t.role === 'candidate' && t.turnIndex === i))
+    .filter((t): t is Line => t !== undefined)
+    .map(t => `turn ${t.turnIndex}: ${quote(t.text)}`);
+  const at = p.waivedAt !== undefined ? ` (turn ${p.waivedAt})` : '';
+
+  if (!p.probeDelivered) {
+    return `PRESSURE TEST (Rule 7) — a record of what happened, not a verdict:
+- No pressure-test probe was delivered: code's structure check did not find a structure the probe could test.
+- Code moved the interview on to the analysis${at} and released the data it had been holding.
+Scoring: the pressure test was NOT administered — don't treat it as asked, answered or unanswered. Rate structuring from what the candidate actually said.`;
+  }
+  const lines = [`- The interviewer's structure probe was delivered${p.askedAt !== undefined ? ` (turn ${p.askedAt})` : ''}: ${quote(p.probe ?? '')}`];
+  for (const f of p.followUps ?? []) {
+    const t = turnOf(f);
+    lines.push(`- Asked again${t !== undefined ? ` (turn ${t})` : ''}: ${quote(f)}`);
+  }
+  if (replies.length) lines.push(`- The candidate's replies while it was open: ${replies.join('; ')}`);
+  lines.push(`- After ${p.replyTurns?.length ?? 0} replies, code closed the probe without a reply its check judged to answer it, and released the data it had been holding${at}.`);
+  return `PRESSURE TEST (Rule 7) — a record of what happened, not a verdict:
+${lines.join('\n')}
+Scoring: rate structuring from these exchanges as they read. The closure is a code bound on the interview — not an assist, not an unanswered question, and not by itself evidence of a weakness.`;
+}

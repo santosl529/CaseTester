@@ -267,8 +267,16 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   if (ptAction === 'waived') {
     // Not satisfaction: administered and unanswered (Rule 13 assisted vs covered).
     Object.assign(pt, { state: 'waived', waivedAt: nextTurnIndex + 1 });
+    // What scoring is told (lib/scoring/assists.ts summarizePressureTest): whether
+    // the probe was delivered, its questions and the replies, and the closure.
+    const probeDelivered = ptPrev.state === 'awaiting';
+    const replyTurns = probeDelivered
+      ? [...state.turnRows.filter(t => t.role === 'candidate' && t.turnIndex > (ptPrev.askedAt ?? -1)).map(t => t.turnIndex), nextTurnIndex]
+      : [];
     ctx.events.push({ category: 'intervention', subtype: 'pressure_test_waived', payload: {
-      from: ptPrev.state, replies: pt.awaitingReplies ?? 0, gatedTurns: pt.gatedTurns, released: decisions.releases.map(r => r.id),
+      from: ptPrev.state, probeDelivered, probe: ptPrev.probe ?? null, askedAt: ptPrev.askedAt ?? null, followUps: ptPrev.followUps ?? [],
+      structureAsked: ptPrev.structureAsked, replies: pt.awaitingReplies ?? 0, replyTurns, gatedTurns: pt.gatedTurns,
+      waivedAt: nextTurnIndex + 1, released: decisions.releases.map(r => r.id),
     } });
   } else if (pt.state === 'not_asked' && probeIntents(question).length > 0 && (early || ptAction === 'code_asked')) {
     Object.assign(pt, { state: 'awaiting', askedAt: nextTurnIndex + 1, probe: question, intents: probeIntents(question), awaitingReplies: 0, followUps: [] });

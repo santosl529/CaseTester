@@ -12,7 +12,7 @@ import { runClaimVerifier } from './verifier';
 import { runReconciliation } from './reconcile';
 import { checkMathSteps } from './deterministic';
 import { assembleReport } from './report';
-import { summarizeAssists, summarizeCoverage } from './assists';
+import { summarizeAssists, summarizeCoverage, summarizePressureTest } from './assists';
 import { summarizeDataRequests } from './data-coverage';
 import { buildInterviewerMarks, formatInterviewerMarksSection, dropClaimsOnMarkedTurns } from './interviewer-errors';
 import { applyCaveatFloor } from './caveat-floor';
@@ -104,7 +104,7 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   const transcript = repairedTranscript;
   const mathResults = checkMathSteps(transcript, caseData.mathSteps, revealedRows.map(r => r.ledgerItemId));
   const interventions = interventionRows.map(r => ({ subtype: r.subtype, phase: r.phase, payloadJsonb: r.payloadJsonb }));
-  const interventionSummary = [summarizeAssists(interventions), summarizeCoverage(interventions)]
+  const interventionSummary = [summarizeAssists(interventions), summarizeCoverage(interventions), summarizePressureTest(interventions, transcript)]
     .filter(Boolean)
     .join('\n\n');
   const logUsage = (u: Record<string, unknown>) => { void logEvent('llm_usage', u, { sessionId, userId }); };
