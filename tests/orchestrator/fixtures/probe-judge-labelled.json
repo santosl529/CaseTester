@@ -218,6 +218,46 @@
    "answered": true,
    "source": "02-tobias-the-silent-thinker t5",
    "borderline": false
+  },
+  {
+   "id": "b18-destiny-t13",
+   "probe": "Those are the costs you named. Is that everything a coffee chain spends money on, and which of those would you look at first to explain the margin drop, and why?",
+   "reply": "Probably staff — baristas across 200 stores feels like the biggest bill. Beyond those, maybe marketing and utilities? I'm honestly guessing.",
+   "answered": true,
+   "source": "batch-18 v2 wave 1 (10 Oct), Destiny t13 — picks staff with a reason, names missing costs; rejected 12x live",
+   "borderline": false
+  },
+  {
+   "id": "b18-destiny-t15",
+   "probe": "Those are the costs you named. Is that everything a coffee chain spends money on, and which of those would you look at first to explain the margin drop, and why?",
+   "reply": "Just a hunch. I'd want to see what each cost was two years ago versus now, I guess.",
+   "answered": false,
+   "source": "batch-18 v2 wave 1 (10 Oct), Destiny t15 — a hunch, then a data ask",
+   "borderline": false
+  },
+  {
+   "id": "b18-maya-t18",
+   "probe": "Is that MECE, and what's missing? Also, which of those branches would you prioritize first, and why?",
+   "reply": "Costs, maybe? I'm not sure, sorry.",
+   "answered": false,
+   "source": "batch-18 v2 wave 1 (10 Oct), Maya t18 — a pick with no reason",
+   "borderline": true
+  },
+  {
+   "id": "b18-maya-t28",
+   "probe": "Is that MECE, and what's missing? Also, which of those branches would you prioritize first, and why?",
+   "reply": "I still don't have them, so I'll assume cost of goods — coffee beans, milk — is the biggest line and the one that moved. God, I'm so bad at this. Am I on the right track at all?",
+   "answered": true,
+   "source": "batch-18 v2 wave 1 (10 Oct), Maya t28 — picks COGS as the biggest line that moved",
+   "borderline": true
+  },
+  {
+   "id": "b18-maya-t32",
+   "probe": "Is that MECE, and what's missing? Also, which of those branches would you prioritize first, and why?",
+   "reply": "Okay, let me try the math. Margin went from 24% to 6%, so that's an 18 point drop. Which means costs went from 76% of revenue to 94%. So costs went up 18%. If COGS is the biggest line, I'd say most of that 18% increase sits in COGS — probably bean prices going up. Am I on the right track?",
+   "answered": true,
+   "source": "batch-18 v2 wave 1 (10 Oct), Maya t32 — sizes the cost rise and puts most of it in COGS",
+   "borderline": true
   }
  ],
  "structureGiven": [

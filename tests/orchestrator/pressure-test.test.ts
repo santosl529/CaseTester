@@ -3,7 +3,7 @@
 // pressure-test-runner.test.ts.
 import { describe, it, expect } from 'vitest';
 import {
-  probeIntents, buildProbeJudgePrompt, parseProbeJudge, judgeProbeAnswer, isGatedItem, exhibitIsGated,
+  probeIntents, buildProbeJudgePrompt, parseProbeJudge, judgeProbeAnswer, isGatedItem, exhibitIsGated, probeAsHeard,
   pickFallbackQuestion, INITIAL_PRESSURE_TEST, FIGURES_QUESTIONS, NO_FIGURES_QUESTIONS,
   buildStructureJudgePrompt, parseStructureJudge, judgeStructureGiven,
 } from '@/lib/orchestrator/pressure-test';
@@ -136,5 +136,25 @@ describe('the hand-labelled validation set', () => {
     for (const c of set.structureGiven) { expect(c.replies.length).toBeGreaterThan(0); expect(typeof c.given).toBe('boolean'); }
     expect(new Set(set.probeAnswers.map(c => c.answered))).toEqual(new Set([true, false]));
     expect(new Set(set.structureGiven.map(c => c.given))).toEqual(new Set([true, false]));
+  });
+});
+
+// v3 (batch 18 v2): the judge rejected Destiny's "Probably staff — baristas
+// across 200 stores feels like the biggest bill" twelve times. A hedged pick
+// with a reason answers a which-first question; a bare pick does not; and the
+// judge reads code's re-ask and narrowed probe as the same test.
+describe('probe judge prompt (v3)', () => {
+  it('counts a hedged pick with a reason for a which-first question, not a bare pick', () => {
+    const p = buildProbeJudgePrompt('Which branch would you start with, and why?', ['Probably staff — it feels like the biggest bill.']);
+    expect(p).toMatch(/hedged/i);
+    expect(p).toMatch(/biggest bill/);
+    expect(p).toMatch(/pick with no reason/i);
+    expect(p).toMatch(/not a what's-missing question/i);
+  });
+
+  it('treats "Asked again as:" lines as the same test', () => {
+    const p = buildProbeJudgePrompt(probeAsHeard({ ...INITIAL_PRESSURE_TEST, state: 'awaiting', probe: 'Is that MECE?', followUps: ['Let me make it concrete: name one thing your structure doesn\'t cover yet.'] }), ['Rent.']);
+    expect(p).toContain('Asked again as: Let me make it concrete');
+    expect(p).toMatch(/"Asked again as:" .*same/i);
   });
 });
