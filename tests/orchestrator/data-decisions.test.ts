@@ -184,13 +184,14 @@ describe('spoken lists lower-case the first letter of each item', () => {
 // the number of stores" although the case holds it. An empty mapping is the
 // model's claim, not proof (v3).
 describe('an empty item mapping is not proof the case lacks the data', () => {
-  const CATALOG = [
-    { id: 'revenue_total', label: 'Total annual revenue' },
-    { id: 'stores_count', label: 'Number of stores' },
-    { id: 'revenue_per_store', label: 'Average revenue per store' },
-    { id: 'cogs_pct', label: 'COGS as % of revenue' },
-    { id: 'labor_pct', label: 'Labor as % of revenue' },
-    { id: 'menu_price_change', label: 'Menu price changes over 2 years' },
+  // prof-001's labels and timeframes.
+  const CATALOG: { id: string; label: string; timeframes: Record<string, string> }[] = [
+    { id: 'revenue_total', label: 'Total annual revenue', timeframes: { 480: 'current' } },
+    { id: 'stores_count', label: 'Number of stores', timeframes: { 200: 'both' } },
+    { id: 'revenue_per_store', label: 'Average revenue per store', timeframes: { 2.4: 'current' } },
+    { id: 'cogs_pct', label: 'COGS as % of revenue', timeframes: { 42: 'prior', 58: 'current' } },
+    { id: 'labor_pct', label: 'Labor as % of revenue', timeframes: { 22: 'both' } },
+    { id: 'menu_price_change', label: 'Menu price changes over 2 years', timeframes: {} },
   ];
 
   it('maps a request that names exactly one label, plus only timeframe words', () => {
@@ -203,6 +204,30 @@ describe('an empty item mapping is not proof the case lacks the data', () => {
     expect(labelMatch('total annual revenue by region', CATALOG)).toBeNull();
     expect(labelMatch('average revenue per store by format', CATALOG)).toBeNull();
     expect(labelMatch('number of stores opened per year by city', CATALOG)).toBeNull();
+  });
+
+  // Scope qualifiers are preserved: any word beyond the label that isn't an
+  // article / auxiliary or a period word blocks the match.
+  it.each([
+    'total annual revenue by year', 'total annual revenue per store', 'total annual revenue for company-owned stores',
+    'total annual revenue excluding new stores', 'total annual revenue in California', 'total annual revenue at the flagship',
+    'number of stores by state', 'number of stores opened each year', 'number of new stores', 'number of stores per city',
+    'number of stores across regions', 'number of franchised stores', 'COGS as % of revenue by product',
+    'COGS as % of revenue for drinks only', 'COGS as % of revenue with delivery fees', 'labor as % of revenue at the top 10 stores',
+    'labor as % of revenue every year', 'menu price changes by item', 'menu price changes on drinks', 'average revenue per store by format',
+  ])('keeps the qualifier: "%s" is not mapped', what => {
+    expect(labelMatch(what, CATALOG)).toBeNull();
+  });
+
+  // A period the item doesn't cover is a qualifier too.
+  it('maps a period word only when the item covers that period', () => {
+    expect(labelMatch('total annual revenue two years ago', CATALOG)).toBeNull();          // current only
+    expect(labelMatch('total annual revenue now versus two years ago', CATALOG)).toBeNull();
+    expect(labelMatch('average revenue per store over the past two years', CATALOG)).toBeNull();
+    expect(labelMatch('current total annual revenue', CATALOG)).toBe('revenue_total');
+    expect(labelMatch('COGS as % of revenue two years ago', CATALOG)).toBe('cogs_pct');
+    expect(labelMatch('labor as a percent of revenue now and two years ago', CATALOG)).toBe('labor_pct');
+    expect(labelMatch('number of stores two years ago', CATALOG)).toBe('stores_count');
   });
 
   it('does not map a request that names only part of a label, or none', () => {

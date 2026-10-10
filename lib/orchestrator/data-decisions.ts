@@ -29,27 +29,40 @@ export function exactResolver(entries: { id: string; names: string[] }[]): (raw:
   return raw => byName.get(norm(raw)) ?? null;
 }
 
-// A request the model left unmapped (item_ids []) that names exactly one
-// catalog label — every word of it, plus nothing but timeframe and filler
-// words (batch 18 v2, Maya t6: "the number of stores over the two years" →
-// stores_count, refused as missing). A qualified request ("total annual
-// revenue by region") asks for a cut the label doesn't cover, and stays
-// unmapped.
-const LABEL_STOPWORDS = new Set(['the', 'a', 'an', 'of', 'as', 'and', 'or', 'for', 'in', 'on', 'to', 'at', 'by', 'its', 'their', 'our', 'we', 'they', 'you', 'your', 'did', 'do', 'does', 'is', 'was', 'were', 'has', 'have', 'had', 'how', 'what', 'many', 'much']);
+// A narrow alias for an explicit ask the model left unmapped (item_ids []):
+// it names exactly one catalog item when every word of that item's label is
+// in the ask and every other word is an article / auxiliary or a period word
+// — and the period words fit the periods the item covers (batch 18 v2, Maya
+// t6: "the number of stores over the two years" → stores_count, refused as
+// missing). Anything else blocks the match, so a qualified ask keeps its
+// scope and stays unmapped: "by year", "per store", "for drinks", "excluding
+// new stores", "in California", "two years ago" for a current-only item.
+const LABEL_IGNORED = new Set(['the', 'a', 'an', 'of', 'as', 'and', 'is', 'was', 'were', 'did', 'do', 'does', 'has', 'have', 'had', 'how', 'what', 'many', 'much', 'its', 'their', 'our', 'we', 'they', 'it']);
 const LABEL_NUMBERS: Record<string, string> = { one: '1', two: '2', three: '3' };
-const LABEL_TIMEFRAME = new Set(['over', '2', 'year', 'past', 'last', 'both', 'period', 'now', 'then', 'today', 'current', 'currently', 'prior', 'previou', 'ago', 'change', 'changed', 'time']);
+const PRIOR_WORDS = new Set(['ago', 'prior', 'previou', 'then', 'past', 'last', 'both', 'over', 'since', 'from', 'change', 'changed', 'before', 'earlier', 'versu', 'vs', 'compared', '2']);
+const CURRENT_WORDS = new Set(['now', 'today', 'current', 'currently', 'latest', 'versu', 'vs', 'compared']);
+const NEUTRAL_PERIOD_WORDS = new Set(['year', 'period', 'time', 'in', 'during']);
 const labelWords = (s: string): string[] => s.toLowerCase().replace(/%/g, ' percent ').replace(/percentage/g, 'percent')
-  .split(/[^a-z0-9]+/).filter(Boolean)
+  .split(/[^a-z0-9.]+/).map(w => w.replace(/^\.+|\.+$/g, '')).filter(Boolean)
   .map(w => (w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w))
   .map(w => LABEL_NUMBERS[w] ?? w)
-  .filter(w => !LABEL_STOPWORDS.has(w));
+  .filter(w => !LABEL_IGNORED.has(w));
 
-export function labelMatch(what: string, items: { id: string; label: string }[]): string | null {
+export function labelMatch(what: string, items: { id: string; label: string; timeframes?: Record<string, string> }[]): string | null {
   const asked = new Set(labelWords(what));
   const hits = items.filter(i => {
     const label = new Set(labelWords(i.label));
     if (label.size === 0 || ![...label].every(w => asked.has(w))) return false;
-    return [...asked].every(w => label.has(w) || LABEL_TIMEFRAME.has(w));
+    const extra = [...asked].filter(w => !label.has(w));
+    if (!extra.every(w => PRIOR_WORDS.has(w) || CURRENT_WORDS.has(w) || NEUTRAL_PERIOD_WORDS.has(w))) return false;
+    // Periods asked for must be ones the item holds (no timeframes recorded: its label names them).
+    const tf = Object.values(i.timeframes ?? {});
+    if (tf.length === 0) return true;
+    const coversPrior = tf.some(t => t === 'prior' || t === 'both' || t === 'change');
+    const coversCurrent = tf.some(t => t === 'current' || t === 'both');
+    if (extra.some(w => PRIOR_WORDS.has(w)) && !coversPrior) return false;
+    if (extra.some(w => CURRENT_WORDS.has(w)) && !coversCurrent) return false;
+    return true;
   });
   return hits.length === 1 ? hits[0].id : null;
 }
