@@ -957,20 +957,29 @@ silently, the interviewer asked about "these cost lines" the candidate never
 received, and the judge rejected a valid answer twelve times before accepting
 the same reply. From v4.9:
 - While the probe is open, **every candidate reply counts**, whatever the
-  answer check says (a judge failure counts too). Reply 1 gets one re-ask of
+  answer check says (a judge failure counts too) and whoever writes the turn.
+  Only a model-written turn carries a ladder step: reply 1 gets one re-ask of
   the probe (code-written, naming the deferral when data is held); reply 2 a
-  narrowed version of the same intent ("Let me make it concrete: …"); reply 3
-  a **waiver**. Code-written turns (stall rung 1, the recommendation ask, the
-  close) are not ladder steps and don't trigger the waiver.
+  narrowed version of the same intent ("Let me make it concrete: …"); the
+  **waiver** comes on the first model turn at or after reply 3.
+- **The actual maximum:** reply 4, when stall rung 1 (code-written, at most
+  once a session — the ladder never repeats a rung) lands on reply 3. The time
+  warning, grace ask and recommendation ask are code-written too and can each
+  add one reply; each releases the open requests itself (Rule 11), and the
+  close ends the case.
 - **The waiver is spoken, logged and not satisfaction.** Code says "Let's
   leave the structure there." and asks a plain analysis question; the test's
   state becomes `waived` (event `intervention / pressure_test_waived`), and
   held requests are released through the normal cap of three, the rest
-  deferred out loud. For scoring the probe was administered and unanswered
-  (Rule 13, assisted vs covered), not a coverage gap.
-- With no structure ever given, the same bound applies after code asks for
-  one: five consecutive held turns end in a waiver ("Let's move on to the
-  analysis.").
+  deferred out loud.
+- **Scoring is told, neutrally** (`summarizePressureTest`): whether the probe
+  was delivered, the questions asked and the replies, and that code closed it.
+  The closure is not an assist, not an unanswered question and not by itself
+  a weakness; the judge rates structuring from the exchanges as they read.
+- With no structure ever given, the hold ends too: five consecutive held
+  turns, after code's one structure ask, end in a waiver ("Let's move on to
+  the analysis."). No probe was delivered, so scoring is told the pressure
+  test was **not administered**.
 - **Every held ask is answered out loud with its reason**, repeats included:
   "I'll share the cost breakdown once we've settled your structure." (v4.8
   held a repeat silently — Rule 11 forbids that.)
@@ -981,7 +990,8 @@ the same reply. From v4.9:
   which figures the candidate has.
 - The answer check reads the probe as heard: the original plus code's re-ask
   and narrowed probe. A hedged pick with a reason answers a which-first
-  question; a bare pick does not.
+  question; a bare pick does not; declining one part of a compound probe
+  doesn't cancel a substantive answer to another part.
 
 ## 8. Keep the phase machine in sync — silently, never twice in a row
 
@@ -1161,11 +1171,13 @@ the rest deferred out loud, a rung-3 rescue item only on a rung-3 turn — and
 speaks every outcome, naming what was asked. A declared id the case doesn't
 have triggers one regeneration before anything is spoken. **An empty mapping
 is not proof the case lacks the data (v4.9; batch 18 v2, Maya: "I don't have
-the number of stores").** An explicit ask declared with no ids is mapped to
-the one catalog item whose label it names in full, with only timeframe words
-around it ("the number of stores over the two years" → store count); a
-qualified ask ("total annual revenue by region") asks for a cut the label
-doesn't cover and is refused. An unmapped ask the model declared as
+the number of stores").** An explicit ask declared with no ids is mapped by
+a narrow alias only: every word of exactly one catalog item's label is in the
+ask, every other word is an article / auxiliary or a period word, and the
+period words fit the periods the item holds ("the number of stores over the
+two years" → store count). Anything else keeps the ask unmapped and its
+scope intact — "by year", "per store", "for drinks", "excluding new stores",
+"in California", or "two years ago" for a current-only item. An unmapped ask the model declared as
 "defer" is never refused: code says the generic "I'll come back to the data
 you've asked for once we've settled your structure", promising no item. Open requests are
 released by code before any recommendation ask and before the close. The
