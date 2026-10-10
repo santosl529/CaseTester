@@ -1,0 +1,65 @@
+{
+  "item_id": "hy1-0042",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "pricing",
+  "prompt": "A ferry operator's revenue per passenger rose 10% this year, but its total ticket revenue was flat. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Passenger numbers have probably held steady as fares rose.",
+      "correct": false,
+      "feedback": "Flat revenue with 10% more per passenger means passengers fell about 9% (1 ÷ 1.1 ≈ 0.91).",
+      "tag": "M.ignores_facts"
+    },
+    {
+      "id": "b",
+      "text": "Higher fares are likely driving away about one passenger in eleven.",
+      "correct": true,
+      "feedback": "Right. Flat revenue with 10% more per passenger means about 9% fewer passengers. I'd compare passenger counts by route against each route's fare change."
+    },
+    {
+      "id": "c",
+      "text": "The ferries are likely carrying more passengers on longer routes.",
+      "correct": false,
+      "feedback": "If passengers rose, revenue would have grown. It was flat.",
+      "tag": "M.ignores_facts"
+    },
+    {
+      "id": "d",
+      "text": "Something about demand has probably shifted.",
+      "correct": false,
+      "feedback": "Too vague to test: what shifted, and what data would show it?",
+      "tag": "M.untestable_hypothesis"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows revenue per passenger up 10% and total revenue flat, so passengers fell about 9%. Likely cause: the higher fares drove some away. To test it, compare passenger changes by route with each route's fare increase. If routes with no fare rise also lost passengers, look for another cause, such as a new bridge or competitor.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

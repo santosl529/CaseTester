@@ -1,0 +1,97 @@
+{
+  "item_id": "ex1-0042",
+  "version": 1,
+  "drill_id": "EX-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "cost_reduction",
+  "prompt": "The client wants to know why its cost per delivery rose. Which takeaway matters most?",
+  "exhibit": {
+    "type": "stacked_bar",
+    "title": "Cost per delivery by component ($)",
+    "categories": [
+      "2023",
+      "2025"
+    ],
+    "series": [
+      {
+        "name": "Fuel",
+        "values": [
+          4,
+          5
+        ]
+      },
+      {
+        "name": "Driver pay",
+        "values": [
+          5,
+          8
+        ]
+      },
+      {
+        "name": "Vehicle costs",
+        "values": [
+          3,
+          2
+        ]
+      }
+    ]
+  },
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Driver pay is the largest component in 2025, at $8",
+      "correct": false,
+      "feedback": "True, but the question is why cost rose, and that needs the change, not the level.",
+      "tag": "M.trivial_takeaway"
+    },
+    {
+      "id": "b",
+      "text": "Driver pay added all of the $3 rise; fuel and vehicles cancel out",
+      "correct": true,
+      "feedback": "Right. Total cost went from $12 to $15. Driver pay rose $3 (5 to 8), fuel rose $1 and vehicle costs fell $1."
+    },
+    {
+      "id": "c",
+      "text": "All three components rose over the period",
+      "correct": false,
+      "feedback": "Vehicle costs fell, from $3 to $2.",
+      "tag": "M.misread_trend"
+    },
+    {
+      "id": "d",
+      "text": "A shortage of drivers pushed up pay",
+      "correct": false,
+      "feedback": "The chart shows pay rising, not why.",
+      "tag": "M.unsupported_claim"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Total cost per delivery rose from $12 to $15. Driver pay rose $3 (5 to 8); fuel rose $1 and vehicle costs fell $1.",
+  "extras": {
+    "proof": "Total cost per delivery rose from $12 to $15. Driver pay rose $3 (5 to 8); fuel rose $1 and vehicle costs fell $1."
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

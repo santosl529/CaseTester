@@ -1,0 +1,65 @@
+{
+  "item_id": "hy1-0041",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "A subscription box company's revenue grew 20% this year while its customer count grew 50%. The price of a box was unchanged. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Customers are likely taking fewer boxes each, perhaps by skipping months.",
+      "correct": true,
+      "feedback": "Right. Revenue per customer fell about 20% (1.2 ÷ 1.5 = 0.8) at an unchanged price, so each customer is buying fewer boxes. I'd compare boxes per customer by joining date."
+    },
+    {
+      "id": "b",
+      "text": "Discounts for new customers have probably cut the price per box.",
+      "correct": false,
+      "feedback": "The price of a box was unchanged.",
+      "tag": "M.ignores_facts"
+    },
+    {
+      "id": "c",
+      "text": "Churn has likely risen sharply this year.",
+      "correct": false,
+      "feedback": "Customers grew 50%. Churn doesn't explain why revenue per customer fell.",
+      "tag": "M.ignores_facts"
+    },
+    {
+      "id": "d",
+      "text": "New customers are probably spending more per box than older ones.",
+      "correct": false,
+      "feedback": "Revenue per customer fell about 20%, and the box price didn't change.",
+      "tag": "M.ignores_facts"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows revenue per customer down about 20% (1.2 ÷ 1.5) with the box price unchanged, so customers take fewer boxes. Likely cause: skipped months, or new customers on less frequent plans. To test it, compare boxes per customer by joining date and plan. If boxes per customer held steady, recheck how customers are counted.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

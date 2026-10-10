@@ -1,0 +1,107 @@
+{
+  "item_id": "ex1-0043",
+  "version": 1,
+  "drill_id": "EX-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "A warehouse club asks whether its revenue is growing. Which takeaway matters most?",
+  "exhibit": {
+    "type": "dual_axis",
+    "title": "Members and annual spend per member",
+    "categories": [
+      "2022",
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "series": [
+      {
+        "name": "Members (thousands)",
+        "values": [
+          100,
+          120,
+          135,
+          150
+        ]
+      },
+      {
+        "name": "Spend per member ($)",
+        "values": [
+          500,
+          420,
+          360,
+          300
+        ],
+        "axis": "right"
+      }
+    ],
+    "y_axis": {
+      "label": "Members (thousands)"
+    },
+    "y2_axis": {
+      "label": "Spend per member ($)",
+      "format": {
+        "prefix": "$"
+      }
+    },
+    "show_values": false
+  },
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Membership grew 50% in three years",
+      "correct": false,
+      "feedback": "True, but spend per member fell 40%, so revenue fell.",
+      "tag": "M.trivial_takeaway"
+    },
+    {
+      "id": "b",
+      "text": "Revenue grew, since members rose faster than spend fell",
+      "correct": false,
+      "feedback": "Members rose 50% (×1.5) but spend fell 40% (×0.6): 1.5 × 0.6 = 0.9, so revenue fell about 10%.",
+      "tag": "M.misread_trend"
+    },
+    {
+      "id": "c",
+      "text": "Revenue fell about 10% despite 50% more members",
+      "correct": true,
+      "feedback": "Right. Revenue went from 100k × $500 = $50M to 150k × $300 = $45M."
+    },
+    {
+      "id": "d",
+      "text": "New members are bargain hunters who spend little",
+      "correct": false,
+      "feedback": "The chart shows the average falling, not who the new members are.",
+      "tag": "M.unsupported_claim"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Revenue = members × spend per member: 100k × $500 = $50M in 2022, 150k × $300 = $45M in 2025, a fall of about 10%.",
+  "extras": {
+    "proof": "Revenue = members × spend per member: 100k × $500 = $50M in 2022, 150k × $300 = $45M in 2025, a fall of about 10%."
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,69 @@
+{
+  "item_id": "ps1-0049",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "A national museum wants to raise attendance 20%. The candidate's framework: (1) Ticket revenue: visitors × price; (2) Exhibition and staff costs; (3) Donations and grants. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "It's a generic profit tree: it never asks why people visit or stay away",
+      "correct": true,
+      "feedback": "Right. The goal is visitors, not profit. A useful structure looks at who visits and who doesn't, what draws them (exhibitions, events, price, access) and capacity at peak times."
+    },
+    {
+      "id": "b",
+      "text": "Missing: revenue from the gift shop and café",
+      "correct": false,
+      "feedback": "Adding a revenue line keeps it a profit tree, which still doesn't explain attendance.",
+      "tag": "M.missing_bucket"
+    },
+    {
+      "id": "c",
+      "text": "Bucket 1 doesn't belong: ticket price doesn't affect attendance",
+      "correct": false,
+      "feedback": "Price can affect who comes. The problem is the whole structure, not one bucket.",
+      "tag": "M.irrelevant_bucket"
+    },
+    {
+      "id": "d",
+      "text": "Buckets 2 and 3 overlap: grants pay for exhibitions",
+      "correct": false,
+      "feedback": "Grants may fund exhibitions, but income and costs are separate. The issue is that the framework answers a different question.",
+      "tag": "M.overlapping_buckets"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Raising attendance needs a demand view: current and potential visitor segments, what draws or deters them, and capacity. A revenue-and-cost tree answers whether the museum makes money.",
+  "extras": {
+    "flaw_type": "generic",
+    "corrected_framework": "Visitor segments and who isn't visiting; draws (exhibitions, events, price, access); capacity at peak times; marketing reach"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

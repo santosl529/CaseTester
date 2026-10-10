@@ -1,0 +1,69 @@
+{
+  "item_id": "ps1-0050",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "profitability",
+  "prompt": "A city bike-share program wants to break even. The candidate's framework: (1) Rides per bike per day; (2) Revenue per ride; (3) Cost to buy and maintain each bike. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 2 overlap: longer rides earn more per ride",
+      "correct": false,
+      "feedback": "Ride length affects revenue per ride, but how often bikes are used and what each ride earns are separate drivers.",
+      "tag": "M.overlapping_buckets"
+    },
+    {
+      "id": "b",
+      "text": "Missing: the cost of stations and of moving bikes between them",
+      "correct": true,
+      "feedback": "Right. Docking stations and trucks that rebalance bikes are large costs that don't sit in any per-bike bucket. Without them, break-even looks closer than it is."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 3 doesn't belong: bikes are a one-time purchase",
+      "correct": false,
+      "feedback": "Bikes also need ongoing maintenance and replacement, so their cost belongs in a break-even view.",
+      "tag": "M.irrelevant_bucket"
+    },
+    {
+      "id": "d",
+      "text": "It's a generic profit tree: break-even needs a market-size view first",
+      "correct": false,
+      "feedback": "Revenue drivers against costs is the right start for break-even. The flaw is a missing cost line.",
+      "tag": "M.generic_framework"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Break-even = rides × revenue per ride against bike costs plus system costs: stations, rebalancing trucks and staff. The system costs are missing.",
+  "extras": {
+    "flaw_type": "missing",
+    "corrected_framework": "Rides per bike; revenue per ride; bike purchase and maintenance; stations and rebalancing"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

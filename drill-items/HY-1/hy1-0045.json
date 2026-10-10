@@ -1,0 +1,65 @@
+{
+  "item_id": "hy1-0045",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "A software company's monthly churn rate fell from 3% to 2%, yet it now loses more customers each month than it did a year ago. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Retention efforts are probably failing.",
+      "correct": false,
+      "feedback": "The churn rate fell from 3% to 2%, so retention improved.",
+      "tag": "M.ignores_facts"
+    },
+    {
+      "id": "b",
+      "text": "The customer base has likely grown by more than half.",
+      "correct": true,
+      "feedback": "Right. Customers lost = churn rate × customers. For 2% to lose more than 3% did, the base must have grown by more than 50%. I'd check customer counts a year apart."
+    },
+    {
+      "id": "c",
+      "text": "Larger customers are probably the ones leaving now.",
+      "correct": false,
+      "feedback": "Customer size doesn't explain more customers leaving at a lower rate.",
+      "tag": "M.ignores_facts"
+    },
+    {
+      "id": "d",
+      "text": "The churn figure is wrong and needs to be recalculated.",
+      "correct": false,
+      "feedback": "This states an error as certain. The numbers are consistent if the customer base grew.",
+      "tag": "M.overconfident_hypothesis"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows a lower churn rate but more customers lost, which means more customers to lose from: lost = rate × base, so the base grew more than 50%. To test it, compare customer counts a year apart. If the base didn't grow that much, then the rate or the counts are measured differently.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

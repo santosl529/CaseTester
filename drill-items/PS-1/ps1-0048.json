@@ -1,0 +1,69 @@
+{
+  "item_id": "ps1-0048",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "profitability",
+  "prompt": "A food-delivery app's contribution per order fell from $3.10 to $2.40. The candidate's framework: (1) Average order value and commission rate; (2) Courier pay per order; (3) Payment and refund costs per order; (4) Number of orders per month. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 3 overlap: refunds lower the order value",
+      "correct": false,
+      "feedback": "Refunds are a cost the app bears after the sale; order value and commission are what it charges. They are separate lines.",
+      "tag": "M.overlapping_buckets"
+    },
+    {
+      "id": "b",
+      "text": "Missing: what couriers earn for each delivery",
+      "correct": false,
+      "feedback": "Courier earnings per delivery are bucket 2.",
+      "tag": "M.missing_bucket"
+    },
+    {
+      "id": "c",
+      "text": "It's a generic unit-economics list that would fit any delivery business",
+      "correct": false,
+      "feedback": "Unit economics per order is the right lens for a per-order margin. The flaw is bucket 4.",
+      "tag": "M.generic_framework"
+    },
+    {
+      "id": "d",
+      "text": "Bucket 4 doesn't belong: order volume doesn't change contribution per order",
+      "correct": true,
+      "feedback": "Right. Contribution per order is revenue minus variable costs on each order, so how many orders there are doesn't move it. Replace it with promotions and discounts per order."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Contribution per order = commission − courier pay − payment and refund costs − promotions. Volume changes total contribution, not contribution per order.",
+  "extras": {
+    "flaw_type": "irrelevant",
+    "corrected_framework": "Order value and commission; courier pay; payment and refund costs; promotions per order"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

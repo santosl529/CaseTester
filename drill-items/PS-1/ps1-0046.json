@@ -1,0 +1,69 @@
+{
+  "item_id": "ps1-0046",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "A software company's annual recurring revenue (ARR) grew 30% last year but only 12% this year. The candidate's framework: (1) New customers won; (2) Expansion revenue from existing customers; (3) Revenue lost to churn; (4) Net revenue retention. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Bucket 4 repeats buckets 2 and 3: net retention nets expansion against churn",
+      "correct": true,
+      "feedback": "Right. Net revenue retention is existing customers' revenue after expansion and churn, so bucket 4 counts buckets 2 and 3 again. Keep the three flows: new, expansion, churn."
+    },
+    {
+      "id": "b",
+      "text": "Missing: revenue from new customers signed this year",
+      "correct": false,
+      "feedback": "That is bucket 1, new customers won.",
+      "tag": "M.missing_bucket"
+    },
+    {
+      "id": "c",
+      "text": "Bucket 1 doesn't belong: new customers don't affect retention",
+      "correct": false,
+      "feedback": "The question is ARR growth, not retention, and new customers are a large part of it.",
+      "tag": "M.irrelevant_bucket"
+    },
+    {
+      "id": "d",
+      "text": "It's a generic SaaS dashboard: it never asks why growth slowed",
+      "correct": false,
+      "feedback": "Splitting ARR growth into new, expansion and churn is exactly how to find why it slowed. The flaw is the repeated bucket.",
+      "tag": "M.generic_framework"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "ARR growth = new + expansion − churn. Net revenue retention is (start + expansion − churn) ÷ start, so it repeats buckets 2 and 3.",
+  "extras": {
+    "flaw_type": "overlap",
+    "corrected_framework": "New customers won; expansion from existing customers; churn and downgrades"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

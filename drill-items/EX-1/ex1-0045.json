@@ -1,0 +1,94 @@
+{
+  "item_id": "ex1-0045",
+  "version": 1,
+  "drill_id": "EX-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "The client wants to cut the number of customers it loses each year. Which takeaway matters most?",
+  "exhibit": {
+    "type": "table",
+    "title": "Customers and renewal rate by tenure",
+    "table": {
+      "columns": [
+        "Tenure",
+        "Customers",
+        "Renew each year"
+      ],
+      "rows": [
+        [
+          "First year",
+          "10,000",
+          "45%"
+        ],
+        [
+          "Second year",
+          "20,000",
+          "80%"
+        ],
+        [
+          "Third year or more",
+          "40,000",
+          "88%"
+        ]
+      ]
+    }
+  },
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Customers of three years or more are the largest group",
+      "correct": false,
+      "feedback": "True, but they renew at 88%, so they lose fewer customers than the first-year group.",
+      "tag": "M.trivial_takeaway"
+    },
+    {
+      "id": "b",
+      "text": "The longest-tenure group loses the most, since it is four times larger",
+      "correct": false,
+      "feedback": "40,000 × 12% = 4,800 lost, against 10,000 × 55% = 5,500 for first-year customers.",
+      "tag": "M.misread_trend"
+    },
+    {
+      "id": "c",
+      "text": "First-year customers account for the most losses, about 5,500 a year",
+      "correct": true,
+      "feedback": "Right. Lost each year: first year 10,000 × 55% = 5,500; second year 20,000 × 20% = 4,000; third year or more 40,000 × 12% = 4,800."
+    },
+    {
+      "id": "d",
+      "text": "First-year customers find onboarding confusing",
+      "correct": false,
+      "feedback": "The table shows renewal rates, not why customers leave.",
+      "tag": "M.unsupported_claim"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Customers lost each year = customers × (1 − renewal rate): first year 5,500, second year 4,000, third year or more 4,800.",
+  "extras": {
+    "proof": "Customers lost each year = customers × (1 − renewal rate): first year 5,500, second year 4,000, third year or more 4,800."
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

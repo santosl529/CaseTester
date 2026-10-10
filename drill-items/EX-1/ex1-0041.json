@@ -1,0 +1,93 @@
+{
+  "item_id": "ex1-0041",
+  "version": 1,
+  "drill_id": "EX-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "The client wants to move marketing budget to the channel that brings in the most revenue per dollar spent. Which takeaway matters most?",
+  "exhibit": {
+    "type": "grouped_bar",
+    "title": "Revenue and marketing spend by channel ($M)",
+    "categories": [
+      "Search",
+      "Social",
+      "TV"
+    ],
+    "series": [
+      {
+        "name": "Revenue",
+        "values": [
+          12,
+          8,
+          6
+        ]
+      },
+      {
+        "name": "Spend",
+        "values": [
+          3,
+          1,
+          3
+        ]
+      }
+    ]
+  },
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Social returns about $8 per dollar, twice search",
+      "correct": true,
+      "feedback": "Right. Revenue per dollar: search 12 ÷ 3 = $4, social 8 ÷ 1 = $8, TV 6 ÷ 3 = $2."
+    },
+    {
+      "id": "b",
+      "text": "Search brings in the most revenue, $12M",
+      "correct": false,
+      "feedback": "True, but it costs $3M, so it returns $4 per dollar; social returns $8.",
+      "tag": "M.trivial_takeaway"
+    },
+    {
+      "id": "c",
+      "text": "Search and TV return about the same per dollar",
+      "correct": false,
+      "feedback": "They cost the same ($3M), but search brings in $12M and TV $6M: $4 per dollar against $2.",
+      "tag": "M.misread_trend"
+    },
+    {
+      "id": "d",
+      "text": "Social's customers are the most loyal",
+      "correct": false,
+      "feedback": "The chart shows revenue and spend, not loyalty.",
+      "tag": "M.unsupported_claim"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Revenue per dollar of spend: search 12 ÷ 3 = $4, social 8 ÷ 1 = $8, TV 6 ÷ 3 = $2.",
+  "extras": {
+    "proof": "Revenue per dollar of spend: search 12 ÷ 3 = $4, social 8 ÷ 1 = $8, TV 6 ÷ 3 = $2."
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

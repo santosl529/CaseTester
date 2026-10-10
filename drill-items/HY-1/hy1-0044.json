@@ -1,0 +1,65 @@
+{
+  "item_id": "hy1-0044",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "profitability",
+  "prompt": "A home-goods retailer's gross margin rose from 30% to 33%, but the margin on each product was unchanged. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "The retailer has probably raised prices across the board.",
+      "correct": false,
+      "feedback": "Higher prices would raise each product's margin, but every product's margin was unchanged.",
+      "tag": "M.ignores_facts"
+    },
+    {
+      "id": "b",
+      "text": "Supplier costs have likely fallen this year.",
+      "correct": false,
+      "feedback": "Lower costs would raise each product's margin, which was unchanged.",
+      "tag": "M.ignores_facts"
+    },
+    {
+      "id": "c",
+      "text": "Cheaper, lower-margin products are probably selling better than before.",
+      "correct": false,
+      "feedback": "That would lower the overall margin, but it rose.",
+      "tag": "M.ignores_facts"
+    },
+    {
+      "id": "d",
+      "text": "Sales have likely shifted toward higher-margin products.",
+      "correct": true,
+      "feedback": "Right. If no product's margin changed, the average can only rise through mix. I'd compare each category's share of sales across the two years."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows the overall margin up 3 points with every product's margin unchanged. Likely cause: the mix shifted toward higher-margin products. To test it, compare each category's share of sales across the two years. If the mix didn't change, recheck how the margin is calculated.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

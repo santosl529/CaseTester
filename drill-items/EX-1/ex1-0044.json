@@ -1,0 +1,102 @@
+{
+  "item_id": "ex1-0044",
+  "version": 1,
+  "drill_id": "EX-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "The client wants to know which region added more revenue since 2020. In 2020, North had $200M of revenue and South $50M. Which takeaway matters most?",
+  "exhibit": {
+    "type": "line",
+    "title": "Revenue by region, indexed (2020 = 100)",
+    "categories": [
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "series": [
+      {
+        "name": "North",
+        "values": [
+          100,
+          102,
+          104,
+          106,
+          108,
+          110
+        ]
+      },
+      {
+        "name": "South",
+        "values": [
+          100,
+          118,
+          130,
+          142,
+          152,
+          160
+        ]
+      }
+    ]
+  },
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "North is still the larger region by far",
+      "correct": false,
+      "feedback": "True, but the question is which region added more revenue.",
+      "tag": "M.trivial_takeaway"
+    },
+    {
+      "id": "b",
+      "text": "North added more revenue, since it is four times South's size",
+      "correct": false,
+      "feedback": "North grew 10% of $200M, which is $20M; South grew 60% of $50M, which is $30M.",
+      "tag": "M.misread_trend"
+    },
+    {
+      "id": "c",
+      "text": "South's growth came from new stores",
+      "correct": false,
+      "feedback": "The chart shows revenue growth, not where it came from.",
+      "tag": "M.unsupported_claim"
+    },
+    {
+      "id": "d",
+      "text": "South added about $30M against North's $20M",
+      "correct": true,
+      "feedback": "Right. The chart is indexed, so apply each line to its own base: North 10% of $200M = $20M, South 60% of $50M = $30M."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The lines are indexed to 2020 = 100. North: 10% of $200M = $20M added. South: 60% of $50M = $30M added.",
+  "extras": {
+    "proof": "The lines are indexed to 2020 = 100. North: 10% of $200M = $20M added. South: 60% of $50M = $30M added."
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

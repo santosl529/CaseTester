@@ -1,0 +1,65 @@
+{
+  "item_id": "hy1-0043",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "draft",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "operations",
+  "prompt": "A clinic's patient visits rose 15%, doctors' hours were unchanged, average visit length was unchanged, and average wait time doubled. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Each visit is probably taking longer than it used to.",
+      "correct": false,
+      "feedback": "Average visit length was unchanged.",
+      "tag": "M.ignores_facts"
+    },
+    {
+      "id": "b",
+      "text": "A 15% rise can't double waits, so something else has likely changed.",
+      "correct": false,
+      "feedback": "Near full capacity, a small rise in demand can double waits. Nothing else needs to have changed.",
+      "tag": "M.ignores_facts"
+    },
+    {
+      "id": "c",
+      "text": "The clinic was likely near full capacity, so 15% more visits sharply lengthened queues.",
+      "correct": true,
+      "feedback": "Right. With the same hours and visit length, 15% more visits pushes a nearly full schedule over the edge, and waits grow much faster than visits. I'd compare waits by hour against how full each hour is."
+    },
+    {
+      "id": "d",
+      "text": "Patients are probably less patient than they used to be.",
+      "correct": false,
+      "feedback": "Too vague to test, and it doesn't explain longer waits.",
+      "tag": "M.untestable_hypothesis"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows 15% more visits with the same hours and visit length, and waits doubled. Likely cause: the clinic was near capacity, where queues grow much faster than demand. To test it, compare wait times with how full each hour is. If waits rose even in quiet hours, look at check-in or scheduling.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}
