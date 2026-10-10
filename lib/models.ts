@@ -20,3 +20,10 @@ export const SCORING_MODEL_ID = 'claude-opus-5-5';
 // — not Bedrock/Vertex/Foundry. Requires the beta messages endpoint.
 export const FALLBACK_BETA = 'server-side-fallback-2026-07-01' as const;
 export const FALLBACKS = 'default' as const;
+
+// Drills checklist grader (docs/prd-drills.md "Checklist grading call"): the
+// cheapest model that meets the 90% agreement gate on the golden sets. Haiku
+// 4.5 is the first candidate; re-test cheaper models when they ship.
+export const DRILL_GRADER_MODEL_ID = 'claude-haiku-4-5';
+// Per million tokens, for grading_jobs.cost_usd.
+export const DRILL_GRADER_PRICE = { input: 1, output: 5, cache_write: 1.25, cache_read: 0.1 };

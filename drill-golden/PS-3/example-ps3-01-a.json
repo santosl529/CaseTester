@@ -1,0 +1,47 @@
+{
+  "answer_id": "example-ps3-01-a",
+  "item_id": "example-ps3-01",
+  "drill_id": "PS-3",
+  "answer_type": "borderline",
+  "notes": "Revenue and costs are generic; misses competition and cannibalization",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Market",
+          "points": [
+            "how many people work out at home",
+            "growth"
+          ]
+        },
+        {
+          "title": "Revenue",
+          "points": [
+            "price per month",
+            "number of subscribers"
+          ]
+        },
+        {
+          "title": "Costs",
+          "points": [
+            "app, video production, marketing"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": true,
+    "cover_2": true,
+    "cover_3": false,
+    "cover_4": false,
+    "no_overlap": true,
+    "case_specific": false,
+    "concrete_subpoints": true
+  },
+  "red_flags": {
+    "generic_profit_tree": false
+  },
+  "family": null
+}

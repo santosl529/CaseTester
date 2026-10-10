@@ -1,0 +1,165 @@
+{
+  "item_id": "example-ps3-01",
+  "version": 1,
+  "drill_id": "PS-3",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific",
+    "PS.depth"
+  ],
+  "case_type": "new_product_launch",
+  "prompt": "A regional gym chain is considering launching an at-home fitness subscription. Its goal is to add $10M in revenue within three years.",
+  "exhibit": null,
+  "input": {
+    "type": "structured_buckets",
+    "max_words": 120,
+    "max_buckets": 5
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "cover_1",
+      "question": "Does the framework cover Customer demand? This counts: Whether people want an at-home subscription and how many would sign up. These also count: market size, interest, adoption.",
+      "weight": 0.125,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Customer demand: Whether people want an at-home subscription and how many would sign up.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_2",
+      "question": "Does the framework cover Economics? This counts: Revenue per subscriber against content, app and marketing costs. These also count: profitability, unit economics, costs.",
+      "weight": 0.125,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Economics: Revenue per subscriber against content, app and marketing costs.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_3",
+      "question": "Does the framework cover Competition? This counts: Existing fitness apps and what they charge. These also count: competitors, alternatives.",
+      "weight": 0.125,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Competition: Existing fitness apps and what they charge.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_4",
+      "question": "Does the framework cover Cannibalization? This counts: Whether gym members would cancel memberships for the cheaper subscription. These also count: impact on core business, member churn.",
+      "weight": 0.125,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Cannibalization: Whether gym members would cancel memberships for the cheaper subscription.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "no_overlap",
+      "question": "Is every bucket distinct, with no two buckets substantially covering the same thing?",
+      "weight": 0.15,
+      "fail_tag": "M.overlapping_buckets",
+      "feedback": "Two buckets cover the same ground. Merge them and use the space for something missing.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "case_specific",
+      "question": "Is every bucket specific to this client and objective, rather than a generic heading that would fit any case?",
+      "weight": 0.2,
+      "fail_tag": "M.generic_framework",
+      "feedback": "Some buckets are generic. Tie each one to this client's question.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "concrete_subpoints",
+      "question": "Does every bucket have at least one concrete sub-point: a specific thing to examine, not a restated heading?",
+      "weight": 0.15,
+      "fail_tag": "M.shallow_structure",
+      "feedback": "Some buckets have no concrete sub-points. Say what you would examine inside each one.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "generic_profit_tree",
+      "definition": "The top level of the framework is only revenue and costs (a generic profit tree).",
+      "cap": 0.4,
+      "tag": "M.generic_framework",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "fewer_than_two_buckets",
+      "definition": "The framework has fewer than 2 buckets.",
+      "cap": 0.3,
+      "tag": "M.shallow_structure",
+      "detection": "code",
+      "step": 0
+    }
+  ],
+  "model_answer": "Customer demand: interest among members and non-members; willingness to pay\nEconomics: price, content and app costs, break-even subscribers\nCompetition: existing apps and their pricing; how the chain differs\nFit with the gyms: cannibalization of memberships; brand and trainer assets",
+  "explanation": "A strong framework covers Customer demand, Economics, Competition, Cannibalization. Watch for overlap: Demand and willingness to pay often overlap with pricing; keep pricing under economics",
+  "extras": {
+    "must_cover": [
+      {
+        "area": "Customer demand",
+        "what_counts": "Whether people want an at-home subscription and how many would sign up",
+        "also_accept": [
+          "market size",
+          "interest",
+          "adoption"
+        ]
+      },
+      {
+        "area": "Economics",
+        "what_counts": "Revenue per subscriber against content, app and marketing costs",
+        "also_accept": [
+          "profitability",
+          "unit economics",
+          "costs"
+        ]
+      },
+      {
+        "area": "Competition",
+        "what_counts": "Existing fitness apps and what they charge",
+        "also_accept": [
+          "competitors",
+          "alternatives"
+        ]
+      },
+      {
+        "area": "Cannibalization",
+        "what_counts": "Whether gym members would cancel memberships for the cheaper subscription",
+        "also_accept": [
+          "impact on core business",
+          "member churn"
+        ]
+      }
+    ],
+    "common_overlaps": "Demand and willingness to pay often overlap with pricing; keep pricing under economics"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

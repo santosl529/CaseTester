@@ -1,0 +1,33 @@
+{
+  "answer_id": "example-hy2-01-a",
+  "item_id": "example-hy2-01",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I think the client cut prices to win new customers, which would explain more customers but less revenue. I would check average price over time."
+    },
+    {
+      "type": "choice",
+      "option_id": "revise"
+    },
+    {
+      "type": "text",
+      "value": "Prices are flat, so it is not discounting. Customers are buying fewer units each, so I would look at why basket size fell."
+    }
+  ],
+  "labels": {
+    "directional": true,
+    "evidence_based": true,
+    "testable": true,
+    "tentative": true,
+    "update_reason": true
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": false
+  },
+  "family": "Lower prices"
+}

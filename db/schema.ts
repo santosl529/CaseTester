@@ -317,6 +317,8 @@ export const gradingJobs = pgTable('grading_jobs', {
   latencyMs: integer('latency_ms'),
   error: text('error'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  // When the latest run claimed the job; a run older than a few minutes has died.
+  startedAt: timestamp('started_at', { withTimezone: true }),
   completedAt: timestamp('completed_at', { withTimezone: true }),
 }, t => [index('grading_jobs_status_idx').on(t.status, t.createdAt)]).enableRLS();
 

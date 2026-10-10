@@ -112,6 +112,7 @@ async function runDrill(drillId: string, skillId: string, level: 1 | 2) {
   }
   await completeSet(student, set_id);
   const results = await setResults(student, set_id);
+  if (results.status !== 'completed') throw new Error(`${drillId}: set still ${results.status}`);
   check(Math.abs(results.score - expected / view.size) < 1e-6, `${drillId}: set score ${results.score}, expected ${expected / view.size}`);
   check(results.items.length === view.size, `${drillId}: results list ${results.items.length} items`);
   console.log(`${drillId}: ${view.size} items, score ${Math.round(results.score * 100)}%, ${results.mistakes?.text ?? 'no misses'}`);

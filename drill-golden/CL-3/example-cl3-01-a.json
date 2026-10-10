@@ -1,0 +1,28 @@
+{
+  "answer_id": "example-cl3-01-a",
+  "item_id": "example-cl3-01",
+  "drill_id": "CL-3",
+  "answer_type": "normal",
+  "notes": "A list with no structure or starting point",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd want revenue and cost data for the last three years, plus anything on competitors and pricing. I'd also look at customer satisfaction."
+    }
+  ],
+  "labels": {
+    "breaks_into_drivers": false,
+    "driver_1": true,
+    "driver_2": false,
+    "driver_3": false,
+    "driver_4": false,
+    "states_where_to_start": false,
+    "reason_for_start": false,
+    "specific_requests": false
+  },
+  "red_flags": {
+    "solution_before_diagnosis": false,
+    "six_plus_unstructured_requests": false
+  },
+  "family": null
+}

@@ -38,7 +38,20 @@ export const InputSpecSchema = z.object({
   // Multi-step items (QN-4: pick the formula, then calculate). `type` is the
   // first step's type. Step weights are scoring rules from the drill spec,
   // not answer data, so they may reach the client.
-  steps: z.array(z.object({ type: InputTypeSchema, weight: z.number().positive().max(1) })).min(2).optional(),
+  steps: z.array(z.object({
+    type: InputTypeSchema,
+    weight: z.number().positive().max(1),
+    // What the step asks, shown above its input ("Now calculate it").
+    label: z.string().optional(),
+    max_words: z.number().int().positive().optional(),
+    // Fixed choices for a choice step whose right answer depends on an
+    // earlier step (HY-2 keep/revise/drop, QN-5's sanity check), so they
+    // can't be options with a static `correct` flag.
+    choices: z.array(z.object({ id: z.string().min(1), text: z.string().min(1) })).optional(),
+    // Its own time limit, counted from when the previous step was submitted
+    // (HY-2 stage 2). Without one, the step shares the item's limit.
+    time_limits_s: z.tuple([z.number().positive(), z.number().positive(), z.number().positive()]).optional(),
+  })).min(2).optional(),
 });
 
 const CheckSchema = z.object({
@@ -47,6 +60,15 @@ const CheckSchema = z.object({
   weight: z.number().positive().max(1),
   fail_tag: KnownTag,
   feedback: z.string().min(1),
+  // Which step's answer the check reads (HY-2 grades stage 1 and stage 2).
+  step: z.number().int().nonnegative().default(0),
+  // "code" checks are settled by code before the AI call and never sent to it
+  // (PRD "Deterministic backstops": word caps, bucket counts, number presence).
+  detection: z.enum(['ai', 'code']).default('ai'),
+  // "whole": the check judges the answer as a whole or something it leaves
+  // out ("no two buckets overlap", "leaves out the irrelevant facts"), so no
+  // single quote can show it. Every other check needs a verified quote.
+  evidence: z.enum(['quote', 'whole']).default('quote'),
 });
 
 const RedFlagSchema = z.object({
@@ -55,6 +77,9 @@ const RedFlagSchema = z.object({
   cap: z.number().min(0).max(1),
   tag: KnownTag,
   detection: z.enum(['ai', 'code']),
+  // The cap applies to this step's share of the score (HY-2's red flags cap
+  // stage 1 only); on single-step items that is the whole item.
+  step: z.number().int().nonnegative().default(0),
 });
 
 // Set on generated items: attempts store this triple instead of an item row,

@@ -12,7 +12,8 @@ import { TAXONOMY_VERSION } from './config';
 
 export type DrillEvent =
   | 'drill_set_started' | 'drill_example_viewed' | 'drill_example_skipped' | 'drill_item_served'
-  | 'drill_attempt_submitted' | 'drill_set_completed' | 'drill_set_expired';
+  | 'drill_attempt_submitted' | 'drill_set_completed' | 'drill_set_expired'
+  | 'grading_job_completed' | 'grading_injection_suspected';
 
 const APP_VERSION = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'dev';
 

@@ -1,0 +1,27 @@
+{
+  "answer_id": "example-sy2-01-a",
+  "item_id": "example-sy2-01",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "Recommendation comes after the facts; no risk named",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Canada is a $400M market but it's only growing 3%, and two big players have 70%. Entry costs $60M and pays back in 5 years. So I'd say we shouldn't enter. We could look at a partnership."
+    }
+  ],
+  "labels": {
+    "recommendation_first": false,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": false,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false
+  },
+  "family": null
+}

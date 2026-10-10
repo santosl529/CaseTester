@@ -1,0 +1,169 @@
+{
+  "item_id": "example-hy2-01",
+  "version": 1,
+  "drill_id": "HY-2",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "HY.form",
+    "HY.update"
+  ],
+  "case_type": "profitability",
+  "prompt": "Revenue declined 12% last year, but the customer count increased 8%.",
+  "exhibit": null,
+  "input": {
+    "type": "free_text",
+    "steps": [
+      {
+        "type": "free_text",
+        "weight": 0.6,
+        "label": "Your hypothesis, and why",
+        "max_words": 50,
+        "time_limits_s": [
+          90,
+          75,
+          60
+        ]
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.25,
+        "label": "Given the new fact, what do you do with your hypothesis?",
+        "choices": [
+          {
+            "id": "keep",
+            "text": "Keep my hypothesis"
+          },
+          {
+            "id": "revise",
+            "text": "Revise it"
+          },
+          {
+            "id": "drop",
+            "text": "Drop it"
+          }
+        ],
+        "time_limits_s": [
+          60,
+          45,
+          35
+        ]
+      },
+      {
+        "type": "free_text",
+        "weight": 0.15,
+        "label": "Why? If you revise it, give the revised hypothesis.",
+        "max_words": 30
+      }
+    ]
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "directional",
+      "question": "Does the hypothesis name a specific likely cause, either one of the listed hypothesis families or another specific cause consistent with the facts?",
+      "weight": 0.15,
+      "fail_tag": "M.restates_facts",
+      "feedback": "Name a specific likely cause, not a restatement of what happened.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "evidence_based",
+      "question": "Does the hypothesis use the facts given in the prompt?",
+      "weight": 0.15,
+      "fail_tag": "M.ignores_facts",
+      "feedback": "Tie the hypothesis to the facts you were given.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "testable",
+      "question": "Is it clear what data would confirm or reject the hypothesis?",
+      "weight": 0.15,
+      "fail_tag": "M.untestable_hypothesis",
+      "feedback": "Say what data would confirm or reject it.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "tentative",
+      "question": "Is the hypothesis framed as something to verify, while still committing to one direction?",
+      "weight": 0.15,
+      "fail_tag": "M.overconfident_hypothesis",
+      "feedback": "Frame it as something to test, not a conclusion.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "update_reason",
+      "question": "Does the explanation for keeping, revising or dropping the hypothesis use the new fact (\"Price per unit is flat; units bought per customer fell 20%.\")?",
+      "weight": 0.15,
+      "fail_tag": "M.sticky_hypothesis",
+      "feedback": "Use the new fact to explain your decision.",
+      "step": 2,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "restates_facts",
+      "definition": "Stage 1 only restates the facts and names no cause.",
+      "cap": 0.3,
+      "tag": "M.restates_facts",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "three_plus_causes",
+      "definition": "Stage 1 lists three or more causes without picking one.",
+      "cap": 0.5,
+      "tag": "M.shotgun_hypotheses",
+      "detection": "ai",
+      "step": 0
+    }
+  ],
+  "model_answer": "Stage 1: Revenue per customer likely fell, probably because customers are buying less per visit. I would check units and spend per customer by segment.\nStage 2: Keep: units per customer fell 20% at flat prices, which confirms that customers are buying less.",
+  "explanation": "The new fact: Price per unit is flat; units bought per customer fell 20%. Buying less per customer: keep (Units per customer fell 20%, which supports it). Lower prices: drop (Price per unit is flat, which rules it out). Mix shift to cheaper products: revise (Flat unit price argues against it; units per customer is the driver).",
+  "extras": {
+    "families": [
+      {
+        "family": "Buying less per customer",
+        "description": "Customers buy fewer units each",
+        "action": "keep",
+        "reason": "Units per customer fell 20%, which supports it"
+      },
+      {
+        "family": "Lower prices",
+        "description": "Discounts or price cuts reduced revenue per unit",
+        "action": "drop",
+        "reason": "Price per unit is flat, which rules it out"
+      },
+      {
+        "family": "Mix shift to cheaper products",
+        "description": "Customers moved to lower-priced products",
+        "action": "revise",
+        "reason": "Flat unit price argues against it; units per customer is the driver"
+      }
+    ],
+    "new_fact": "Price per unit is flat; units bought per customer fell 20%."
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

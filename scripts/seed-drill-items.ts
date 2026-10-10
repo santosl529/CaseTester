@@ -2,12 +2,13 @@
 // (docs/prd-drills.md "Content system"). Idempotent:
 //   - a new item_id@version is inserted;
 //   - an existing one may only change status or is_example — any other edit
-//     needs a new version, since attempts record the version they saw.
+//     needs a new version, since attempts record the version they saw;
+//   - except a draft no attempt has used yet, which is updated in place.
 //
 //   npm run db:seed-drill-items
-import { and, eq } from 'drizzle-orm';
+import { and, count, eq } from 'drizzle-orm';
 import { db } from '@/db/client';
-import { drillItems } from '@/db/schema';
+import { drillAttempts, drillItems } from '@/db/schema';
 import { lengthCueProblems, loadAuthoredItems } from '@/lib/drills/authored';
 import { TAXONOMY_VERSION } from '@/lib/drills/config';
 import type { Item } from '@/lib/drills/item-schema';
@@ -39,7 +40,14 @@ async function main() {
       continue;
     }
     if (content(row.payload as Item) !== content(item)) {
-      conflicts.push(`${item.item_id}@${item.version}: content changed; bump "version" to publish the edit`);
+      const [{ n }] = await db.select({ n: count() }).from(drillAttempts)
+        .where(and(eq(drillAttempts.itemId, item.item_id), eq(drillAttempts.itemVersion, item.version)));
+      if (row.status === 'draft' && n === 0) {
+        await db.update(drillItems).set({ payload: item, status: item.status, isExample: item.is_example, tier: item.tier, skills: item.skills }).where(where);
+        updated++;
+      } else {
+        conflicts.push(`${item.item_id}@${item.version}: content changed; bump "version" to publish the edit`);
+      }
       continue;
     }
     if (row.status !== item.status || row.isExample !== item.is_example) {

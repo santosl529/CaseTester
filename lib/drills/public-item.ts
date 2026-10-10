@@ -28,7 +28,14 @@ export function toPublicItem(item: Item): PublicItem {
       ...(item.input.max_words !== undefined && { max_words: item.input.max_words }),
       ...(item.input.max_buckets !== undefined && { max_buckets: item.input.max_buckets }),
       ...(item.input.max_select !== undefined && { max_select: item.input.max_select }),
-      ...(item.input.steps && { steps: item.input.steps.map(st => ({ type: st.type, weight: st.weight })) }),
+      // Step layout only: type, weight, label, word cap and fixed choices.
+      // Which choice is right is never part of a step.
+      ...(item.input.steps && { steps: item.input.steps.map(st => ({
+        type: st.type, weight: st.weight,
+        ...(st.label && { label: st.label }),
+        ...(st.max_words && { max_words: st.max_words }),
+        ...(st.choices && { choices: st.choices.map(c => ({ id: c.id, text: c.text })) }),
+      })) }),
     },
     options: item.options.map(o => ({ id: o.id, text: o.text })),
   };

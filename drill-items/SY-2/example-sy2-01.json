@@ -1,0 +1,150 @@
+{
+  "item_id": "example-sy2-01",
+  "version": 1,
+  "drill_id": "SY-2",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence",
+    "SY.complete"
+  ],
+  "case_type": "market_entry",
+  "prompt": "The client asks: \"Should we enter the Canadian market?\"\n\nFact sheet:\n- The Canadian market is worth $400M and growing 3% a year\n- Entry would cost $60M\n- Expected profit is $12M a year, a 5-year payback, against a 3-year hurdle\n- Two incumbents hold 70% share\n- The client is headquartered in Chicago\n\nGive your recommendation.",
+  "exhibit": null,
+  "input": {
+    "type": "free_text",
+    "max_words": 120
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "recommendation_first",
+      "question": "Does the first sentence state a clear recommendation?",
+      "weight": 0.2,
+      "fail_tag": "M.buried_recommendation",
+      "feedback": "Lead with the recommendation in your first sentence.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "two_to_three_reasons",
+      "question": "Does the answer give two or three supporting reasons?",
+      "weight": 0.15,
+      "fail_tag": "M.unsupported_recommendation",
+      "feedback": "Back the recommendation with two or three reasons.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cites_numbers",
+      "question": "Do the reasons cite numbers from the fact sheet?",
+      "weight": 0.15,
+      "fail_tag": "M.unsupported_recommendation",
+      "feedback": "Use the numbers from the fact sheet to support your reasons.",
+      "step": 0,
+      "detection": "code",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "leaves_out_irrelevant",
+      "question": "Does the answer leave out the irrelevant facts (The client is headquartered in Chicago)?",
+      "weight": 0.15,
+      "fail_tag": "M.irrelevant_facts",
+      "feedback": "Leave out facts that don't bear on the decision.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "consistent_with_facts",
+      "question": "Are all the supporting points consistent with the fact sheet?",
+      "weight": 0.15,
+      "fail_tag": "M.unsupported_recommendation",
+      "feedback": "Some points go beyond or against the fact sheet.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "includes_risk",
+      "question": "Does the answer name a risk?",
+      "weight": 0.1,
+      "fail_tag": "M.missing_risk_or_next_step",
+      "feedback": "Name the main risk to your recommendation.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "includes_next_step",
+      "question": "Does the answer give a next step?",
+      "weight": 0.1,
+      "fail_tag": "M.missing_risk_or_next_step",
+      "feedback": "End with a concrete next step.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "no_clear_position",
+      "definition": "The answer takes no clear position, for example \"it depends\".",
+      "cap": 0.4,
+      "tag": "M.hedged_recommendation",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "contradicts_facts",
+      "definition": "The answer makes a claim the fact sheet contradicts.",
+      "cap": 0.5,
+      "tag": "M.unsupported_recommendation",
+      "detection": "ai",
+      "step": 0
+    }
+  ],
+  "model_answer": "The client should not enter Canada now. Payback would be 5 years against its 3-year hurdle, the market grows only 3% a year, and two incumbents hold 70% share. The main risk is that a partnership could change the economics, so the next step is to test whether a partner could cut the $60M entry cost.",
+  "explanation": "Acceptable recommendation: Do not enter now. Key risks: A partnership could change the economics; the market could grow faster than forecast. Next steps: Explore a partnership to cut the $60M entry cost; revisit in two years.",
+  "extras": {
+    "facts": [
+      {
+        "fact": "The Canadian market is worth $400M and growing 3% a year",
+        "relevant": true
+      },
+      {
+        "fact": "Entry would cost $60M",
+        "relevant": true
+      },
+      {
+        "fact": "Expected profit is $12M a year, a 5-year payback, against a 3-year hurdle",
+        "relevant": true
+      },
+      {
+        "fact": "Two incumbents hold 70% share",
+        "relevant": true
+      },
+      {
+        "fact": "The client is headquartered in Chicago",
+        "relevant": false
+      }
+    ],
+    "acceptable_recommendations": "Do not enter now"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

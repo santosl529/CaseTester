@@ -14,7 +14,10 @@
     "db:migrate": "tsx db/migrate.ts",
     "db:seed-drill-items": "tsx --conditions=react-server --env-file=.env.local scripts/seed-drill-items.ts",
     "drills:smoke": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke.ts",
-    "drills:review": "tsx scripts/drill-review.tsx"
+    "drills:review": "tsx scripts/drill-review.tsx",
+    "drills:import": "tsx scripts/import-drill-content.ts",
+    "drills:golden": "tsx --conditions=react-server --env-file=.env.local scripts/drills-golden.ts",
+    "drills:smoke:d2": "DRILLS_PREVIEW_DRAFTS=1 tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-d2.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",

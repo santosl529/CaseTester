@@ -5,7 +5,7 @@ import { ItemFeedbackPanel } from '@/components/drills/runner';
 import { RetryButton } from '@/components/drills/retry-button';
 import type { setResults } from '@/lib/drills/sets/service';
 
-type Results = Awaited<ReturnType<typeof setResults>>;
+type Results = Extract<Awaited<ReturnType<typeof setResults>>, { status: 'completed' }>;
 
 const seconds = (ms: number) => `${Math.round(ms / 1000)} s`;
 

@@ -23,7 +23,8 @@ export function skillScores(attempts: { skills: string[]; result: ItemResult }[]
     acc.set(skill, { sum: a.sum + score * weight, weight: a.weight + weight, count: a.count + 1 });
   };
   for (const { skills, result } of attempts) {
-    if (result.skipped || result.steps.length === 0) for (const s of skills) add(s, 0, 1);
+    if (result.contributions?.length) for (const c of result.contributions) for (const s of c.skills) add(s, c.score, c.weight);
+    else if (result.skipped || result.steps.length === 0) for (const s of skills) add(s, 0, 1);
     else for (const step of result.steps) for (const s of step.skills) add(s, step.score, step.weight);
   }
   const min = DRILLS_CONFIG.rules.mastery.min_items_or_checks_per_skill;

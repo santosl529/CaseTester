@@ -1,0 +1,173 @@
+{
+  "item_id": "example-qn5-01",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "Estimate annual US spending on dog grooming.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "US households",
+      "correct": true,
+      "feedback": "A driver: US Census: about 130M households"
+    },
+    {
+      "id": "2",
+      "text": "Share of households with a dog",
+      "correct": true,
+      "feedback": "A driver: Pet industry surveys: about 40% of households own a dog"
+    },
+    {
+      "id": "3",
+      "text": "Professional grooming visits per dog-owning household per year",
+      "correct": true,
+      "feedback": "A driver: Many owners groom every 2–3 months; some never use a groomer"
+    },
+    {
+      "id": "4",
+      "text": "Average price per grooming visit",
+      "correct": true,
+      "feedback": "A driver: Typical local grooming prices $40–90"
+    },
+    {
+      "id": "5",
+      "text": "Number of dogs in the US",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Double counts with household × share"
+    },
+    {
+      "id": "6",
+      "text": "Number of pet stores",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Supply, not spending"
+    }
+  ],
+  "numeric": {
+    "answer": 16250000000,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "130M households × 40% with a dog × 4 grooming visits a year × $60 a visit ≈ $12.5B",
+  "explanation": "130M households × 40% with a dog × 4 grooming visits a year × $60 a visit ≈ $12.5B A believable total is 5,000,000,000–15,000,000,000 (Industry reports put US pet grooming at roughly $8–12B a year).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 110000000,
+        "high": 140000000,
+        "unit": "households",
+        "source": "US Census: about 130M households"
+      },
+      "2": {
+        "low": 0.3,
+        "high": 0.5,
+        "unit": "share",
+        "source": "Pet industry surveys: about 40% of households own a dog"
+      },
+      "3": {
+        "low": 2,
+        "high": 8,
+        "unit": "visits",
+        "source": "Many owners groom every 2–3 months; some never use a groomer"
+      },
+      "4": {
+        "low": 40,
+        "high": 90,
+        "unit": "dollars",
+        "source": "Typical local grooming prices $40–90"
+      }
+    },
+    "benchmark": {
+      "low": 5000000000,
+      "high": 15000000000,
+      "source": "Industry reports put US pet grooming at roughly $8–12B a year"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -238,6 +238,7 @@
       ],
       "input_types": [
         "multi_select",
+        "numeric_set",
         "numeric",
         "single_choice"
       ],

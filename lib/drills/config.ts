@@ -48,7 +48,8 @@ export const TaxonomySchema = z.object({
 
 export const InputTypeSchema = z.enum([
   'single_choice', 'multi_select', 'ordering', 'numeric',
-  'free_text', 'structured_buckets', 'grouped_ideas',
+  // numeric_set: several labeled numbers in one step (QN-5's assumptions).
+  'numeric_set', 'free_text', 'structured_buckets', 'grouped_ideas',
 ]);
 
 export const DrillSchema = z.object({
