@@ -2,14 +2,14 @@
   "item_id": "hy1-0001",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
     "HY.form"
   ],
   "case_type": "profitability",
-  "prompt": "A sandwich chain's revenue is flat, but its profit fell 20%. Food costs rose from 30% to 38% of revenue. Which is the strongest initial hypothesis?",
+  "prompt": "A sandwich chain's revenue is flat, but its profit fell 20%. Food costs rose from 30% to 32% of revenue. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Ingredient prices have likely risen faster than menu prices.",
+      "text": "Ingredient prices have probably risen faster than the chain's menu prices.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd check cost per sandwich by ingredient over the last two years."
+      "feedback": "Right. Food cost rose as a share of flat revenue, so each sandwich costs more relative to its price. I'd check cost per sandwich by ingredient over the last two years."
     },
     {
       "id": "b",
-      "text": "It could be ingredient prices, waste, theft, menu mix or supplier contracts.",
+      "text": "Rent and staff costs have likely grown faster than sales.",
       "correct": false,
-      "tag": "M.shotgun_hypotheses",
-      "feedback": "This lists several causes without committing to the most likely one."
+      "tag": "M.ignores_facts",
+      "feedback": "The prompt points to food cost, which rose from 30% to 32% of revenue. Nothing suggests rent or staff."
     },
     {
       "id": "c",
-      "text": "Supplier price hikes caused the drop, so the chain should renegotiate its contracts.",
+      "text": "Sales per store have likely slipped as traffic moves to rivals.",
       "correct": false,
-      "tag": "M.overconfident_hypothesis",
-      "feedback": "This states a cause as certain before any data has tested it."
+      "tag": "M.ignores_facts",
+      "feedback": "Revenue is flat, so falling sales can't explain the profit drop."
     },
     {
       "id": "d",
-      "text": "Something has gone wrong on the cost side of the business.",
+      "text": "Something on the cost side has probably gone wrong.",
       "correct": false,
       "tag": "M.untestable_hypothesis",
-      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+      "feedback": "Too vague to test: which cost, and what data would show it? The prompt already points to food cost."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Food cost rising 8 points of revenue explains most of the profit drop. The hypothesis names a likely cause (ingredient prices outpacing menu prices) and the data to test it.",
-  "extras": {
-    "distractor_flaws": {
-      "M.shotgun_hypotheses": "It could be ingredient prices, waste, theft, menu mix or supplier contracts.",
-      "M.overconfident_hypothesis": "Supplier price hikes caused the drop, so the chain should renegotiate its contracts.",
-      "M.untestable_hypothesis": "Something has gone wrong on the cost side of the business."
-    }
-  },
+  "explanation": "The data shows food cost rising from 30% to 32% of flat revenue, enough to cut a thin margin by a fifth. Likely cause: ingredient prices have risen faster than menu prices. To test it, compare cost per sandwich by ingredient with menu prices over two years. If ingredient costs are flat, look at waste or portion sizes instead.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

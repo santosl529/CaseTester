@@ -2,10 +2,7 @@
 // item JSON and golden answers. Pure: the script in
 // scripts/import-drill-content.ts does the file reading and writing.
 import { z } from 'zod';
-import {
-  cl3Item, hy2Item, ps3Item, qn5Item, sy2Item,
-  type Cl3Content, type Hy2Content, type Ps3Content, type Qn5Content, type Sy2Content,
-} from './checklists';
+import { cl3Item, hy2Item, ps3Item, qn5Item, sy2Item, type Cl3Content, type Hy2Content, type Ps3Content, type Qn5Content, type Sy2Content, QN5_CARD_ROLES, type Qn5CardRole } from './checklists';
 import { ItemSchema, type Item } from './item-schema';
 import type { StepResponse } from './sets/scoring';
 
@@ -164,10 +161,14 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
   });
 
   build('qn5-questions.csv', t['qn5-questions'] ?? [], r => {
-    const cards = rowsFor('qn5-driver-cards', r.item_id).map(c => ({
-      card: num(c.card, 'card'), text: c.text, role: (c.role.toLowerCase() === 'driver' ? 'driver' : 'distractor') as 'driver' | 'distractor',
-      low: c.low ? num(c.low, 'low') : null, high: c.high ? num(c.high, 'high') : null, unit: c.unit, source: c.source_or_reasoning,
-    }));
+    const cards = rowsFor('qn5-driver-cards', r.item_id).map(c => {
+      const role = c.role.trim().toLowerCase();
+      if (!QN5_CARD_ROLES.includes(role as Qn5CardRole)) throw new Error(`card ${c.card}: role must be ${QN5_CARD_ROLES.join(', ')}, not "${c.role}"`);
+      return {
+        card: num(c.card, 'card'), text: c.text, role: role as Qn5CardRole,
+        low: c.low ? num(c.low, 'low') : null, high: c.high ? num(c.high, 'high') : null, unit: c.unit, source: c.source_or_reasoning,
+      };
+    });
     if (cards.length < 6 || cards.length > 8) throw new Error(`needs 6–8 driver cards in qn5-driver-cards.csv, has ${cards.length}`);
     for (const c of cards.filter(c => c.role === 'driver')) {
       if (c.low === null || c.high === null || c.low > c.high) throw new Error(`card ${c.card} needs a low ≤ high range`);

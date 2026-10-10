@@ -2,7 +2,7 @@
   "item_id": "ps1-0004",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Missing: new customer acquisition",
+      "text": "Missing: marketing to win new subscribers",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "Growing the customer base is bucket 1, which covers acquisition."
+      "feedback": "Winning new subscribers is how the customer base grows, which is bucket 1."
     },
     {
       "id": "b",
-      "text": "Bucket 3 doesn't matter for doubling revenue",
+      "text": "Bucket 3 doesn't belong: new products are separate from growth",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "New products can be a major growth lever, so bucket 3 belongs."
+      "feedback": "Ready-to-eat meals could be a large source of new revenue, so new products belong in a growth framework."
     },
     {
       "id": "c",
-      "text": "It is a generic growth list, not specific to meal kits",
+      "text": "It's a generic growth list: these levers would fit almost any company",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "The levers are tailored to a subscription food business. The issue is the overlap."
+      "feedback": "The levers are specific to a meal-kit subscription: order frequency, basket size, ready-to-eat meals. The flaw is that bucket 4 repeats bucket 2."
     },
     {
       "id": "d",
-      "text": "Bucket 4 overlaps with bucket 2",
+      "text": "Buckets 2 and 4 overlap: revenue per customer is frequency × basket",
       "correct": true,
-      "feedback": "Right. Revenue per customer is the sum of frequency and basket size, so bucket 4 repeats bucket 2."
+      "feedback": "Right. Revenue per customer is order frequency × basket size, so bucket 4 repeats bucket 2. Use the slot for new channels, such as grocery stores or corporate meals."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

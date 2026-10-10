@@ -1,0 +1,69 @@
+{
+  "item_id": "ps1-0043",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "live",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "profitability",
+  "prompt": "A ski resort's profit fell 20% in a season when visits were flat. The candidate's framework: (1) Visits: day tickets and season passes; (2) Ticket and pass prices; (3) Costs: staff, snowmaking and lift maintenance. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 2 overlap: pass prices decide how many passes sell",
+      "correct": false,
+      "feedback": "Price affects volume, but visits and prices are separate drivers of ticket revenue.",
+      "tag": "M.overlapping_buckets"
+    },
+    {
+      "id": "b",
+      "text": "Bucket 1 doesn't belong: visits were flat, so they can't explain the drop",
+      "correct": false,
+      "feedback": "Flat visits are a finding, not a reason to drop the bucket. The split between day tickets and passes can still move revenue.",
+      "tag": "M.irrelevant_bucket"
+    },
+    {
+      "id": "c",
+      "text": "It's a generic profit tree: ski resorts depend on the weather",
+      "correct": false,
+      "feedback": "Weather works through visits and snowmaking costs, which are in the tree. The flaw is a missing revenue stream.",
+      "tag": "M.generic_framework"
+    },
+    {
+      "id": "d",
+      "text": "Missing: what visitors spend on rentals, lessons and food",
+      "correct": true,
+      "feedback": "Right. Tickets are only part of a resort's revenue. With visits flat, lower spending on rentals, lessons and food could explain the drop."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Revenue = visits × (ticket price + spending on the mountain). The framework covers tickets but not rentals, lessons and food.",
+  "extras": {
+    "flaw_type": "missing",
+    "corrected_framework": "Visits (day tickets, passes); ticket and pass prices; spending per visit (rentals, lessons, food); costs"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

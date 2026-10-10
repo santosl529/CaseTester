@@ -2,9 +2,9 @@
   "item_id": "ps1-0006",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 2,
+  "tier": 1,
   "skills": [
     "PS.mece",
     "PS.case_specific"
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Missing: manufacturing costs",
+      "text": "Missing: sensor costs for each pair",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "Manufacturing and sensor costs are bucket 3."
+      "feedback": "Sensor costs are in bucket 3, manufacturing and sensor costs."
     },
     {
       "id": "b",
-      "text": "Buckets 1 and 4 overlap",
+      "text": "Buckets 1 and 4 overlap: interest in smart gear is demand",
       "correct": true,
-      "feedback": "Right. Interest in smart gear is demand. Replace bucket 4 with competition from watches and fitness trackers."
+      "feedback": "Right. Customer interest in smart running gear is the same question as runner demand. Replace bucket 4 with competition from watches and fitness trackers."
     },
     {
       "id": "c",
-      "text": "Bucket 2 doesn't matter until after launch",
+      "text": "Bucket 3 doesn't belong: sensor costs will fall quickly",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Price decides whether the line is profitable, so it matters before launch."
+      "feedback": "Even falling costs decide whether the shoes make money at launch, so bucket 3 belongs."
     },
     {
       "id": "d",
-      "text": "It is a generic launch framework, not specific to smart shoes",
+      "text": "It's a generic launch framework: it ignores what makes sensor shoes different",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "The buckets are specific to sensor shoes. The flaw is buckets 1 and 4 repeating each other."
+      "feedback": "The buckets are specific to sensor shoes: sensor costs and demand for sensor-equipped shoes. The flaw is that buckets 1 and 4 repeat each other."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

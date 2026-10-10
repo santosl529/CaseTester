@@ -2,9 +2,9 @@
   "item_id": "ps1-0032",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 3,
+  "tier": 1,
   "skills": [
     "PS.mece",
     "PS.case_specific"
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 1 and 4 overlap and should be merged",
+      "text": "Buckets 1 and 4 overlap: promotion is part of the park experience",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Product and promotion are different Ps. The bigger issue is that the 4Ps don't fit."
+      "feedback": "Product and promotion are different Ps. The real issue is that the 4Ps don't fit a crowding problem."
     },
     {
       "id": "b",
-      "text": "Missing: a fifth P, people",
+      "text": "Missing: a fifth P for people",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "Adding another P doesn't help. The framework doesn't fit the problem."
+      "feedback": "Adding another P doesn't help, because a marketing checklist doesn't fit the problem."
     },
     {
       "id": "c",
-      "text": "Bucket 2 doesn't matter for a public park",
+      "text": "Bucket 4 doesn't belong: busy parks need no more promotion",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Pricing can be a lever. The real issue is that the framework is canned."
+      "feedback": "Promotion could steer visitors to quieter times. The issue is that the whole framework is canned."
     },
     {
       "id": "d",
-      "text": "It is the marketing 4Ps applied to a capacity problem; it doesn't address visitor flows or capacity",
+      "text": "It's a generic 4Ps list: it ignores visitor flows and capacity",
       "correct": true,
-      "feedback": "Right. Use a structure built for crowding: demand by time and place, capacity, and levers to shift or cap visits."
+      "feedback": "Right. Overcrowding is a demand and capacity problem. Use demand by time and place, capacity, and levers to shift or cap visits."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

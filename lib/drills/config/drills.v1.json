@@ -22,7 +22,7 @@
       "pass_bar": 0.8,
       "priority": "P0",
       "item_source": "authored",
-      "live": false
+      "live": true
     },
     {
       "id": "PS-2",
@@ -94,7 +94,7 @@
       "pass_bar": 0.8,
       "priority": "P0",
       "item_source": "authored",
-      "live": false
+      "live": true
     },
     {
       "id": "HY-2",
@@ -274,7 +274,7 @@
       "pass_bar": 0.8,
       "priority": "P0",
       "item_source": "authored",
-      "live": false
+      "live": true
     },
     {
       "id": "EX-2",
@@ -460,7 +460,7 @@
       "pass_bar": 0.8,
       "priority": "P0",
       "item_source": "authored",
-      "live": false
+      "live": true
     },
     {
       "id": "SY-2",
@@ -552,7 +552,7 @@
       "pass_bar": 0.8,
       "priority": "P0",
       "item_source": "authored",
-      "live": false
+      "live": true
     },
     {
       "id": "CL-2",

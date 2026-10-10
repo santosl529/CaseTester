@@ -2,7 +2,7 @@
   "item_id": "sy1-0022",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -11,7 +11,7 @@
     "SY.summary"
   ],
   "case_type": "profitability",
-  "prompt": "The client asks: \"Should we drop our lowest-margin product?\" Fact sheet: product X earns a 5% margin and is 10% of revenue; 60% of product X buyers also buy product Y; product Y earns a 45% margin; product X launched in 2015. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should we drop our lowest-margin product?\" Fact sheet: product X earns a 5% margin and is 10% of revenue; 60% of product X buyers also buy product Y; product Y earns a 45% margin; in stores that stopped carrying X, Y sales fell 15%; product X launched in 2015. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "It earns only 5%, but 60% of its buyers also buy product Y at a 45% margin, so dropping it risks losing more profit than it saves. The main risk is that X keeps dragging down the overall margin. Putting it together, keep product X.",
+      "text": "Drop product X. At a 5% margin it drags down the average and frees shelf space.",
       "correct": false,
-      "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores the deciding fact: where stores dropped X, sales of 45%-margin product Y fell 15%."
     },
     {
       "id": "b",
-      "text": "Keep product X. It earns only 5%, but 60% of its buyers also buy product Y at a 45% margin, so dropping it risks losing more profit than it saves. The main risk is that X keeps dragging down the overall margin, so the next step is to test a small price increase on X instead.",
+      "text": "Keep product X: where stores dropped it, sales of Y, a 45%-margin product, fell 15%.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with evidence that dropping X cuts Y's sales."
     },
     {
       "id": "c",
-      "text": "Keep product X. Product X launched in 2015. It earns only 5%, but 60% of its buyers also buy product Y at a 45% margin, so dropping it risks losing more profit than it saves.",
+      "text": "Drop product X. It launched in 2015 and has run its course.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "feedback": "The launch date isn't evidence. What happened to Y where X was dropped is."
     },
     {
       "id": "d",
-      "text": "Keep product X. Customers expect a full product range.",
+      "text": "Where stores stopped carrying X, sales of 45%-margin Y fell 15%, so although X earns only 5%, we should keep it.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.buried_recommendation",
+      "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Keep product X. It earns only 5%, but 60% of its buyers also buy product Y at a 45% margin, so dropping it risks losing more profit than it saves. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Keep product X. It earns only 5%, but 60% of its buyers also buy product Y at a 45% margin, and where stores stopped carrying X, Y sales fell 15%. The main risk is that X keeps dragging down the overall margin, so the next step is to test a small price increase on X. What would change the answer: evidence that Y sales hold up without X.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

@@ -2,9 +2,9 @@
   "item_id": "ps1-0040",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 1,
+  "tier": 2,
   "skills": [
     "PS.mece",
     "PS.case_specific"
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 2 and 3 overlap and should be merged",
+      "text": "Buckets 2 and 3 overlap: charging and repairs are both fixed and variable",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Fixed and variable costs don't overlap. The structure is the issue."
+      "feedback": "Charging and repairs are variable costs; the split is clean. The issue is that a company profit tree can't judge an industry."
     },
     {
       "id": "b",
-      "text": "Missing: depreciation of scooters",
+      "text": "Missing: how fast the scooters wear out",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "Adding a cost line doesn't fix the mismatch."
+      "feedback": "Scooter life matters, but adding a cost line doesn't fix the mismatch."
     },
     {
       "id": "c",
-      "text": "Bucket 2 doesn't matter",
+      "text": "Bucket 2 doesn't belong: scooter companies rent their fleets",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Costs matter. The issue is the generic framework."
+      "feedback": "Nothing says fleets are rented, and fixed costs matter. The issue is the generic framework."
     },
     {
       "id": "d",
-      "text": "It is a generic profit tree; it doesn't assess the industry's structure or outlook",
+      "text": "It's a generic profit tree: it can't judge a whole industry's outlook",
       "correct": true,
-      "feedback": "Right. Industry attractiveness needs market growth, competition, unit economics and regulation."
+      "feedback": "Right. Industry attractiveness needs market growth, competition, unit economics per ride and regulation."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

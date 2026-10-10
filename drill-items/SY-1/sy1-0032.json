@@ -2,7 +2,7 @@
   "item_id": "sy1-0032",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -11,7 +11,7 @@
     "SY.summary"
   ],
   "case_type": "market_entry",
-  "prompt": "Mid-case: You're assessing entry into Japan. You've sized the market at $1.2B, growing 5% a year, and found that two competitors hold 60% share. You haven't looked at entry costs. Which is the best summary?",
+  "prompt": "Mid-case: You're assessing entry into Japan. You've sized the market at $1.2B, growing 5% a year, and found that two competitors hold 60% share. You also learned that Japan has a large tourism industry. You haven't looked at entry costs. Which is the best summary?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "So far: Japan is a fast-growing market with no dominant competitors. Next I'd estimate entry costs.",
+      "text": "So far: Japan is a $1.2B market growing 5% a year, with plenty of room since competitors hold only 40%.",
       "correct": false,
       "tag": "M.inaccurate_summary",
-      "feedback": "This claims findings the analysis hasn't shown. Summarize only what you've established."
+      "feedback": "It misstates the share: the two competitors hold 60%."
     },
     {
       "id": "b",
-      "text": "We've looked at market size and competition. We still need to look at entry costs, and next I'd estimate entry costs and whether we can win share profitably. The main finding so far is that Japan is a $1.2B market growing 5% a year, but two competitors already hold 60% share.",
+      "text": "So far: Japan is a $1.2B market growing 5% a year with a large tourism industry, and two competitors hold 60%. Next, entry costs.",
       "correct": false,
-      "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "tag": "M.irrelevant_facts",
+      "feedback": "Tourism isn't part of this market's case, so it doesn't belong in the summary."
     },
     {
       "id": "c",
-      "text": "So far: Japan looks like a decent-size market with some competition. Next I'd estimate entry costs and whether we can win share profitably.",
+      "text": "So far: Japan is a $1.2B market growing 5% a year, and entry costs seem manageable. Next I'd study the competitors.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.inaccurate_summary",
+      "feedback": "Entry costs haven't been looked at yet, and the competitors have."
     },
     {
       "id": "d",
-      "text": "So far: Japan is a $1.2B market growing 5% a year, but two competitors already hold 60% share. We haven't yet looked at entry costs, so next I'd estimate entry costs and whether we can win share profitably.",
+      "text": "So far: a $1.2B market growing 5% a year, but two competitors hold 60%. Entry costs come next.",
       "correct": true,
-      "feedback": "Right. It states what is known, with numbers, then what is still open and what comes next."
+      "feedback": "Right. It states what is known, with numbers, then what is still open."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Japan is a $1.2B market growing 5% a year, but two competitors already hold 60% share. A good mid-case summary states what is known with numbers and what comes next, without claiming findings that haven't been tested.",
+  "explanation": "Known: a $1.2B market growing 5% a year, with two competitors holding 60%. Open: entry costs. Next: estimate them and whether we could win share profitably. If entry costs are high against the share we could win, the market's size won't matter.",
   "extras": {
     "answer_type": "summary",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

@@ -2,9 +2,9 @@
   "item_id": "ex1-0017",
   "version": 1,
   "drill_id": "EX-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 3,
+  "tier": 2,
   "skills": [
     "EX.takeaway"
   ],
@@ -43,47 +43,49 @@
   "options": [
     {
       "id": "a",
-      "text": "Operating cash doesn't cover capex, interest and dividends",
+      "text": "Outflows of $50M exceed operating cash of $30M",
       "correct": true,
       "feedback": "Right. Operating cash of 30 against outflows of 50 (25 + 15 + 10) gives net cash flow of −20."
     },
     {
       "id": "b",
-      "text": "Interest cost $15M",
+      "text": "Interest cost $15M in 2025",
       "correct": false,
       "tag": "M.trivial_takeaway",
-      "feedback": "True, but it doesn't answer the client's question."
+      "feedback": "True, but interest is one of three outflows. The point is that together they exceed operating cash."
     },
     {
       "id": "c",
       "text": "Dividends were the largest outflow",
       "correct": false,
       "tag": "M.misread_trend",
-      "feedback": "That misreads the chart: Capex (25) was larger than dividends (10)."
+      "feedback": "Capex (25) was larger than dividends (10)."
     },
     {
       "id": "d",
-      "text": "The client will run out of cash next year at this rate",
+      "text": "At this rate the client runs out of cash next year",
       "correct": false,
       "tag": "M.unsupported_claim",
-      "feedback": "The chart doesn't show this. It may be true, but there is no data here to support it."
+      "feedback": "The chart shows one year's flows, not the cash balance, so it can't say when cash runs out."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Operating cash doesn't cover capex, interest and dividends. Operating cash of 30 against outflows of 50 (25 + 15 + 10) gives net cash flow of −20.",
+  "explanation": "Operating cash of 30 against outflows of 50 (25 + 15 + 10) gives net cash flow of −20.",
   "extras": {
     "proof": "Operating cash of 30 against outflows of 50 (25 + 15 + 10) gives net cash flow of −20."
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

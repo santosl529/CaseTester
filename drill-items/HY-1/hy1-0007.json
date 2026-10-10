@@ -2,14 +2,14 @@
   "item_id": "hy1-0007",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
     "HY.form"
   ],
   "case_type": "cost_reduction",
-  "prompt": "A hospital's supply costs rose 18% in two years while patient volumes were flat. Which is the strongest initial hypothesis?",
+  "prompt": "A hospital's supply costs rose 18% in two years. Patient volumes and the number of items used per patient were both flat. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Supply costs are up 18% with flat patient volumes.",
+      "text": "Doctors are probably using more supplies per patient than before.",
       "correct": false,
-      "tag": "M.restates_facts",
-      "feedback": "This restates the facts without proposing a cause."
+      "tag": "M.ignores_facts",
+      "feedback": "Items used per patient were flat."
     },
     {
       "id": "b",
-      "text": "It could be prices, usage per patient, waste, a different patient mix, new procedures or theft.",
+      "text": "A rise in patient numbers is likely driving the extra spend.",
       "correct": false,
-      "tag": "M.shotgun_hypotheses",
-      "feedback": "This lists several causes without committing to the most likely one."
+      "tag": "M.ignores_facts",
+      "feedback": "Patient volumes were flat."
     },
     {
       "id": "c",
-      "text": "Prices paid per item have likely risen, perhaps from buying off-contract.",
+      "text": "The hospital is probably paying more per item than it did two years ago.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare unit prices for the top supplies against contract prices."
+      "feedback": "Right. With volume and usage flat, the price paid per item must have risen. I'd compare unit prices for the top supplies with contract prices."
     },
     {
       "id": "d",
-      "text": "The hospital has a supply problem.",
+      "text": "Supply spending has probably drifted out of control.",
       "correct": false,
       "tag": "M.untestable_hypothesis",
-      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+      "feedback": "Too vague to test: drifted how, and what data would show it?"
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "With flat volumes, cost growth comes from price or usage per patient. The hypothesis picks one and names the comparison that tests it.",
-  "extras": {
-    "distractor_flaws": {
-      "M.restates_facts": "Supply costs are up 18% with flat patient volumes.",
-      "M.shotgun_hypotheses": "It could be prices, usage per patient, waste, a different patient mix, new procedures or theft.",
-      "M.untestable_hypothesis": "The hospital has a supply problem."
-    }
-  },
+  "explanation": "The data shows spend up 18% with patients and items per patient flat, so the price paid per item rose. Likely cause: buying off-contract. To test it, compare unit prices paid for the top supplies with contract prices. If they match, the contract prices themselves went up.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

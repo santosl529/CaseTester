@@ -2,7 +2,7 @@
   "item_id": "sy1-0015",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "Outsourcing saves $2M a year, but a 15-point drop in satisfaction would cost about $2.25M a year in churn at $150k per point. The main risk is that in-house costs keep rising. Putting it together, keep customer service in-house.",
+      "text": "Outsourcing saves $2M a year, but a 15-point satisfaction drop would cost about $2.25M in churn, so customer service should stay in-house.",
       "correct": false,
       "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
     },
     {
       "id": "b",
-      "text": "On one hand, outsourcing saves $2M a year, but a 15-point drop in satisfaction would cost about $2.25M a year in churn at $150k per point. On the other hand, there is the risk that in-house costs keep rising. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "text": "Outsource customer service. The $4M quote adds $2M a year to profit, a third of today's cost, from the first year.",
       "correct": false,
-      "tag": "M.hedged_recommendation",
-      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores the churn: a 15-point satisfaction drop costs about $2.25M a year, more than the saving."
     },
     {
       "id": "c",
-      "text": "Keep customer service in-house. Outsourcing saves $2M a year, but a 15-point drop in satisfaction would cost about $2.25M a year in churn at $150k per point. The main risk is that in-house costs keep rising, so the next step is to look for savings within the team, such as self-service for simple requests.",
+      "text": "Keep customer service in-house: outsourcing saves $2M a year, but a 15-point satisfaction drop would cost about $2.25M.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and nets the saving against the churn cost."
     },
     {
       "id": "d",
-      "text": "Keep customer service in-house. Customers prefer talking to our own staff.",
+      "text": "Outsource. The vendor is based in Ireland, where English-speaking staff are easy to hire and keep.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.irrelevant_facts",
+      "feedback": "Where the vendor is doesn't change the math: the churn cost exceeds the saving."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Keep customer service in-house. Outsourcing saves $2M a year, but a 15-point drop in satisfaction would cost about $2.25M a year in churn at $150k per point. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Keep customer service in-house. Outsourcing saves $2M a year, but a 15-point satisfaction drop would cost about $2.25M a year in churn (15 × $150k). The main risk is that in-house costs keep rising, so the next step is to look for savings within the team, such as self-service for simple requests. What would change the answer: an outsourcer that keeps the satisfaction drop under about 13 points.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

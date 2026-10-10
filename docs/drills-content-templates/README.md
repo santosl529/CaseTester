@@ -21,6 +21,7 @@ Questions can arrive in batches. A drill can go live once it has enough reviewed
 Each drill has a questions file, a file for its list parts (one row per area, fact, family or driver, linked by `item_id`), and a graded-answers file.
 
 - **IDs:** use any unique ID per question (for example `ps3-0001`), and the same ID in the linked files.
+- **One case, one drill:** don't reuse a case (the same client situation) across drills, including the Level 1 drills. A student who has seen it already knows the answer.
 - **`tier`:** 1, 2 or 3 (harder questions and less time at higher tiers).
 - **`case_type`:** use the provisional labels until the final list of 14 exists (profitability, market_entry, growth_strategy, pricing, m_and_a, new_product_launch, market_sizing, cost_reduction, operations, competitive_response, turnaround, investment_decision, industry_analysis, public_sector).
 - **Y/N columns:** `Y` means the answer does it, `N` means it doesn't.
@@ -47,7 +48,8 @@ Each drill has a questions file, a file for its list parts (one row per area, fa
 
 ### QN-5 Market sizing
 - `qn5-questions.csv`: the sizing question, the accepted set(s) of driver cards (card numbers, for example `1,2,3,4`; up to two sets), the believable range for the total, its source, and a worked answer.
-- `qn5-driver-cards.csv`: 6–8 cards per question. Real drivers get a believable low–high range and a source or reasoning (typically about ±50% around a central value). Distractors are cards that double count or don't belong; leave their range blank.
+- `qn5-driver-cards.csv`: 6–8 cards per question. Set `role` to `driver`, `double_count` (counts something a driver already counts, like "number of dogs" next to "dog-owning households") or `not_a_driver` (doesn't belong in the estimate, like "number of pet stores"). Real drivers get a believable low–high range and a source or reasoning (typically about ±50% around a central value). Leave distractors' range blank.
+- Every range needs a named source or a written derivation, including the total's range in `qn5-questions.csv`.
 
 ## Graded sample answers: what to include
 

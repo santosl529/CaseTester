@@ -2,7 +2,7 @@
   "item_id": "sy1-0018",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "The rival targets small customers, who are 20% of revenue but only 5% of profit, and our large customers rate our service 9 out of 10, which the rival can't match. The main risk is that the rival moves up to larger customers. Putting it together, don't cut prices across the board; protect the large customers.",
+      "text": "Cut prices 30% to match. Small customers are 20% of our revenue, too much to give away to a newcomer.",
       "correct": false,
-      "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores the deciding fact: those customers are only 5% of profit, and a 30% cut would hit everyone."
     },
     {
       "id": "b",
-      "text": "Don't cut prices across the board; protect the large customers. The rival targets small customers, who are 20% of revenue but only 5% of profit, and our large customers rate our service 9 out of 10, which the rival can't match. The main risk is that the rival moves up to larger customers, so the next step is to monitor churn among large accounts and prepare a lower-cost offer if it rises.",
+      "text": "Don't cut prices across the board: the rival's small customers are only 5% of profit, and large ones rate us 9 of 10.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with where the profit is and why large customers stay."
     },
     {
       "id": "c",
-      "text": "Don't cut prices across the board; protect the large customers. We have 200 sales staff. The rival targets small customers, who are 20% of revenue but only 5% of profit, and our large customers rate our service 9 out of 10, which the rival can't match.",
+      "text": "Hold prices. With 200 sales staff, we can out-sell a rival that has no service team at all.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "feedback": "Sales headcount doesn't decide this. The profit split and service ratings do."
     },
     {
       "id": "d",
-      "text": "Don't cut prices across the board; protect the large customers. Our brand is stronger than the rival's.",
+      "text": "We could match on price or lean harder on service; both responses have merit as the rival grows.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.hedged_recommendation",
+      "feedback": "This never commits."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Don't cut prices across the board; protect the large customers. The rival targets small customers, who are 20% of revenue but only 5% of profit, and our large customers rate our service 9 out of 10, which the rival can't match. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Don't cut prices across the board. The rival targets small customers, who are 20% of revenue but only 5% of profit, and our large customers rate our service 9 out of 10, which a rival with no service team can't match. The main risk is that the rival moves up to larger customers, so the next step is to watch churn among large accounts and prepare a lower-cost offer if it rises. What would change the answer: large accounts starting to leave.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

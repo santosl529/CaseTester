@@ -1,6 +1,6 @@
 item_id,fact,relevant
-EXAMPLE-sy2-01,The Canadian market is worth $400M and growing 3% a year,Y
-EXAMPLE-sy2-01,Entry would cost $60M,Y
-EXAMPLE-sy2-01,"Expected profit is $12M a year, a 5-year payback, against a 3-year hurdle",Y
-EXAMPLE-sy2-01,Two incumbents hold 70% share,Y
-EXAMPLE-sy2-01,The client is headquartered in Chicago,N
+EXAMPLE-sy2-01,Each pharmacy counter costs $400k to set up,Y
+EXAMPLE-sy2-01,"Each counter is expected to earn about $150k a year, against a 4-year payback hurdle",Y
+EXAMPLE-sy2-01,60% of our shoppers fill prescriptions somewhere else every month,Y
+EXAMPLE-sy2-01,A national pharmacy chain has a store within a mile of 80% of our locations,Y
+EXAMPLE-sy2-01,Our stores were rebranded last year,N

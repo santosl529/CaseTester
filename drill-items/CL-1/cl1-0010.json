@@ -2,7 +2,7 @@
   "item_id": "cl1-0010",
   "version": 1,
   "drill_id": "CL-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -17,45 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Count how many customers left again to double-check",
+      "text": "Estimate the cost of matching the 20% cut",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That has already been answered. Build on what you know."
+      "feedback": "That jumps to a response before knowing what the losses are worth."
     },
     {
       "id": "b",
-      "text": "Check what the lost accounts were worth and who is at risk next",
+      "text": "Check what the lost accounts were worth and who's next",
       "correct": true,
-      "feedback": "Right. We know who is leaving. Next is what they are worth and whether the losses will spread to bigger accounts."
+      "feedback": "Right. We know who is leaving. Next is what they are worth and whether bigger accounts are next."
     },
     {
       "id": "c",
-      "text": "Look at the rival's office design, since it could affect the answer",
+      "text": "Survey small accounts on why they prefer the rival's offer",
       "correct": false,
-      "tag": "M.illogical_next_step",
-      "feedback": "That is off the objective. It won't help answer the client's question."
+      "tag": "M.low_priority_next_step",
+      "feedback": "Their reason is likely price. What matters more is the value at stake and whether it spreads."
     },
     {
       "id": "d",
-      "text": "Recommend matching the 20% price cut",
+      "text": "Compare our service ratings with the rival's",
       "correct": false,
-      "tag": "M.illogical_next_step",
-      "feedback": "That jumps to a solution before the analysis supports it."
+      "tag": "M.low_priority_next_step",
+      "feedback": "Secondary. First size what the losses are worth."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "We know who is leaving. Next is what they are worth and whether the losses will spread to bigger accounts.",
+  "explanation": "The losses are small accounts. Before responding, size what they were worth and whether larger accounts are at risk.",
   "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

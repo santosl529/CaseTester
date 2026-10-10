@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { lengthCueProblems, loadAuthoredItems, parseAuthoredItems } from '@/lib/drills/authored';
+import { contentCheckProblems, loadAuthoredItems, parseAuthoredItems } from '@/lib/drills/authored';
+import { lengthCueProblems, phraseCues, rulePlayer } from '@/lib/drills/content-checks';
 import { getDrill } from '@/lib/drills/config';
 
 describe('authored drill items (/drill-items)', () => {
@@ -38,18 +39,48 @@ describe('authored drill items (/drill-items)', () => {
     ])).toThrow(/two worked examples/);
   });
 
-  it('rejects an unreviewed worked example', () => {
-    expect(() => parseAuthoredItems([{ file: file('PS-1', 'e'), raw: { ...sample(), is_example: true } }])).toThrow(/must be a reviewed item/);
+  it('rejects an unreviewed worked example once it is live', () => {
+    const unreviewed = { ...sample(), is_example: true, authorship: { ...sample().authorship!, reviewed_by: null, reviewed_at: null } };
+    expect(parseAuthoredItems([{ file: file('PS-1', 'e'), raw: { ...unreviewed, status: 'draft' } }])).toHaveLength(1);
+    expect(() => parseAuthoredItems([{ file: file('PS-1', 'e'), raw: { ...unreviewed, status: 'live' } }])).toThrow(/must be a reviewed item/);
   });
 
-  it('gives no answer away through option length', () => {
-    expect(lengthCueProblems(items)).toEqual([]);
+  it('keeps an item off live until it passes the similarity check', () => {
+    const at = (similarity_check: string, status = 'live') => [{ file: file('PS-1', 'x'), raw: { ...sample(), status, authorship: { ...sample().authorship!, similarity_check } } }];
+    expect(parseAuthoredItems(at('passed'))).toHaveLength(1);
+    for (const s of ['pending', 'flagged', 'failed']) expect(() => parseAuthoredItems(at(s)), s).toThrow(/must pass the similarity check/);
+    expect(parseAuthoredItems(at('flagged', 'in_review'))).toHaveLength(1);
+    expect(() => parseAuthoredItems(at('not_applicable', 'draft'))).toThrow(/Authored items need a similarity check/);
+  });
+
+  it('gives no answer away through wording (length, phrases, rule player)', () => {
+    expect(contentCheckProblems(items)).toEqual([]);
   });
 
   it('flags a pool where the right answer is usually the longest', () => {
     const pool = items.filter(i => i.drill_id === 'PS-1').map(i => ({
       ...i, options: i.options.map(o => (o.correct ? { ...o, text: `${o.text} — and this is the much longer, fully explained answer` } : o)),
     }));
-    expect(lengthCueProblems(pool)).toEqual([expect.stringMatching(/^PS-1: the right answer is the longest option in 40 of 40 items/)]);
+    expect(lengthCueProblems(pool)).toEqual([expect.stringMatching(new RegExp(`^PS-1: the right answer is the longest option in ${pool.length} of ${pool.length} items`))]);
+  });
+});
+
+describe('wording checks', () => {
+  const pool = loadAuthoredItems().filter(i => i.drill_id === 'HY-1');
+  // Every right answer gets the same tell-tale word.
+  const marked = pool.map(i => ({ ...i, options: i.options.map(o => (o.correct ? { ...o, text: `Most likely, ${o.text}` } : o)) }));
+
+  it('flags a phrase that only right answers use', () => {
+    expect(phraseCues(marked)).toContainEqual(expect.objectContaining({ phrase: 'starts "most likely"', marks: 'right', right: pool.length }));
+  });
+
+  it('flags a phrase that only wrong answers use', () => {
+    const wrong = pool.map(i => ({ ...i, options: i.options.map(o => (o.correct ? o : { ...o, text: `Recommend that ${o.text}` })) }));
+    expect(phraseCues(wrong)).toContainEqual(expect.objectContaining({ phrase: 'starts "recommend that"', marks: 'wrong' }));
+  });
+
+  it('a solver that never reads the case beats a marked pool and not a clean one', () => {
+    expect(rulePlayer(marked)[0].score).toBe(1);
+    expect(rulePlayer(pool)[0].score).toBeLessThanOrEqual(0.4);
   });
 });

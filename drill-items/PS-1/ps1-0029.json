@@ -2,7 +2,7 @@
   "item_id": "ps1-0029",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -10,7 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "investment_decision",
-  "prompt": "A city is deciding whether to build a new public swimming pool. The candidate's framework: (1) Expected visitors and fees; (2) Construction cost; (3) Annual running costs; (4) Which architect designed the city hall. What is the flaw in this framework?",
+  "prompt": "A city is deciding whether to build a new public swimming pool. The candidate's framework: (1) The pool's opening-season marketing campaign; (2) Expected visitors and fees; (3) Construction cost; (4) Annual running costs; (5) Health and youth programs the pool would support. What is the flaw in this framework?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -18,48 +18,50 @@
   "options": [
     {
       "id": "a",
-      "text": "Bucket 4 doesn't matter",
+      "text": "Bucket 1 doesn't belong: promotion won't decide whether to build",
       "correct": true,
-      "feedback": "Right. Replace it with the community benefits the city wants, such as health and youth programs."
+      "feedback": "Right. Promotion matters once the pool exists, not for the decision to build it. Drop it; the other four buckets cover the decision."
     },
     {
       "id": "b",
-      "text": "Buckets 2 and 3 overlap and should be merged",
+      "text": "Buckets 3 and 4 overlap: a cheaper build means higher running costs",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Construction and running costs are one-time and ongoing, so they don't overlap."
+      "feedback": "Build quality affects running costs, but one-time and yearly costs are separate buckets."
     },
     {
       "id": "c",
-      "text": "Missing: running costs",
+      "text": "Missing: lifeguards, heating and upkeep each year",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "Running costs are bucket 3."
+      "feedback": "Those are annual running costs, bucket 4."
     },
     {
       "id": "d",
-      "text": "It is a generic investment framework",
+      "text": "It's a generic investment case, but a public pool isn't meant to make money",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "The buckets fit a public pool. The flaw is bucket 4."
+      "feedback": "The framework weighs community benefit (bucket 5) alongside usage and costs, which is right for a city decision. The flaw is bucket 1."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "A public investment weighs usage, costs and community benefit. City hall's architect is irrelevant.",
+  "explanation": "A public investment weighs usage, costs and community benefit, and this framework covers all three. How to market the pool comes after deciding to build it.",
   "extras": {
     "flaw_type": "irrelevant",
     "corrected_framework": "Usage and fees; construction cost; running costs; community benefits"
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

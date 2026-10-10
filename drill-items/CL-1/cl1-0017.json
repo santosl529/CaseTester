@@ -2,7 +2,7 @@
   "item_id": "cl1-0017",
   "version": 1,
   "drill_id": "CL-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 3,
   "skills": [
@@ -17,45 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Weigh fuel savings from newer planes against their cost",
+      "text": "Estimate the cost of newer planes against the fuel they save",
       "correct": true,
-      "feedback": "Right. An old fleet points to fuel savings. The next step is weighing them against the cost of renewal."
+      "feedback": "Right. An old fleet burning 20% more fuel points to savings; weigh them against the cost of renewal."
     },
     {
       "id": "b",
-      "text": "Check fuel's share of costs",
+      "text": "Break labor costs down by role",
       "correct": false,
-      "tag": "M.illogical_next_step",
-      "feedback": "That has already been answered. Build on what you know."
+      "tag": "M.low_priority_next_step",
+      "feedback": "Labor is worth a look later, but the latest finding points to fuel."
     },
     {
       "id": "c",
-      "text": "Review the airline's in-flight menu",
+      "text": "Compare the fuel prices the airline pays with its rivals' prices",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That is off the objective. It won't help answer the client's question."
+      "feedback": "The finding is about how much fuel the planes burn, not its price."
     },
     {
       "id": "d",
-      "text": "Recommend replacing the whole fleet",
+      "text": "Estimate the cost of replacing the whole fleet now",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That jumps to a solution before the analysis supports it."
+      "feedback": "That jumps to a fix without weighing it against the savings."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "An old fleet points to fuel savings. The next step is weighing them against the cost of renewal.",
+  "explanation": "The fleet burns about 20% more fuel than newer planes. Weigh the fuel savings against the cost of renewal.",
   "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

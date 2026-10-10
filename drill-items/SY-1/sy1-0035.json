@@ -2,7 +2,7 @@
   "item_id": "sy1-0035",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -11,7 +11,7 @@
     "SY.summary"
   ],
   "case_type": "growth_strategy",
-  "prompt": "Mid-case: A gym chain wants to grow revenue. You've found that membership is flat at 50,000, but revenue per member rose 8% thanks to personal training. You haven't looked at new locations. Which is the best summary?",
+  "prompt": "Mid-case: A gym chain wants to grow revenue. You've found that membership is flat at 50,000, but revenue per member rose 8% thanks to personal training. You also learned the gyms are open 24 hours. You haven't looked at new locations. Which is the best summary?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "So far: membership grew 8% while personal training was flat. Next I'd look at new locations.",
+      "text": "So far: membership is flat at 50,000 at our 24-hour gyms, and personal training raised revenue per member 8%. Next, new locations.",
       "correct": false,
-      "tag": "M.inaccurate_summary",
-      "feedback": "This claims findings the analysis hasn't shown. Summarize only what you've established."
+      "tag": "M.irrelevant_facts",
+      "feedback": "Opening hours aren't part of what you found about growth, so they don't belong in the summary."
     },
     {
       "id": "b",
-      "text": "We've looked at membership and revenue per member. We still need to look at new locations, and next I'd evaluate opening new locations. The main finding so far is that membership is flat at 50,000, so all growth so far has come from personal training, which raised revenue per member 8%.",
+      "text": "So far: membership grew 8% thanks to personal training. New locations come next.",
       "correct": false,
-      "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "tag": "M.inaccurate_summary",
+      "feedback": "It misstates what you found: membership is flat; revenue per member rose 8%."
     },
     {
       "id": "c",
-      "text": "So far: membership is flat at 50,000, so all growth so far has come from personal training, which raised revenue per member 8%. We haven't yet looked at new locations, so next I'd evaluate opening new locations.",
+      "text": "So far: membership is flat at 50,000, so growth came from personal training, which raised revenue per member 8%. Next I'd look at new locations.",
       "correct": true,
-      "feedback": "Right. It states what is known, with numbers, then what is still open and what comes next."
+      "feedback": "Right. It states what is known, with numbers, then what is still open."
     },
     {
       "id": "d",
-      "text": "So far: revenue per member is up a bit. Next I'd evaluate opening new locations.",
+      "text": "So far: personal training is driving growth, so new locations won't be needed.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.inaccurate_summary",
+      "feedback": "It closes a question that hasn't been looked at: new locations."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Membership is flat at 50,000, so all growth so far has come from personal training, which raised revenue per member 8%. A good mid-case summary states what is known with numbers and what comes next, without claiming findings that haven't been tested.",
+  "explanation": "Known: membership is flat at 50,000, and personal training raised revenue per member 8%. Open: new locations. Next: evaluate them. If personal-training uptake is leveling off, new locations become the main growth lever.",
   "extras": {
     "answer_type": "summary",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

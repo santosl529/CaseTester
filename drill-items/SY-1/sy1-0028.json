@@ -2,7 +2,7 @@
   "item_id": "sy1-0028",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -11,7 +11,7 @@
     "SY.summary"
   ],
   "case_type": "new_product_launch",
-  "prompt": "The client asks: \"Should our burger restaurants add breakfast?\" Fact sheet: adding breakfast costs $20k per restaurant; breakfast would earn about $30k a year per restaurant; the restaurants are currently closed in the morning; the breakfast market grows 5% a year; the chain's mascot is a bear. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should our burger restaurants add breakfast?\" Fact sheet: adding breakfast costs $20k per restaurant; breakfast would earn about $30k a year per restaurant; the restaurants are currently closed in the morning; the breakfast market grows 5% a year; the chain's head office moved to Denver this year. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -19,50 +19,52 @@
   "options": [
     {
       "id": "a",
-      "text": "Each restaurant would spend $20k to earn about $30k a year, paying back in under a year, using hours when it is currently closed. The main risk is that breakfast competitors with strong coffee keep customers away. Putting it together, add breakfast.",
+      "text": "Don't add breakfast. The breakfast market grows only 5% a year, and our restaurants have never served it.",
       "correct": false,
-      "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "Market growth doesn't decide it. Each restaurant pays back $20k in under a year."
     },
     {
       "id": "b",
-      "text": "On one hand, each restaurant would spend $20k to earn about $30k a year, paying back in under a year, using hours when it is currently closed. On the other hand, there is the risk that breakfast competitors with strong coffee keep customers away. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "text": "Add breakfast. The move to a new head office in Denver is a good moment for a change like this.",
       "correct": false,
-      "tag": "M.hedged_recommendation",
-      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+      "tag": "M.irrelevant_facts",
+      "feedback": "The head office move has nothing to do with breakfast. The payback does."
     },
     {
       "id": "c",
-      "text": "Add breakfast. The chain's mascot is a bear. Each restaurant would spend $20k to earn about $30k a year, paying back in under a year, using hours when it is currently closed.",
+      "text": "Breakfast could pay off, but it's a new daypart for the chain, so a firm answer is premature.",
       "correct": false,
-      "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "tag": "M.hedged_recommendation",
+      "feedback": "This never commits, even though the payback is under a year."
     },
     {
       "id": "d",
-      "text": "Add breakfast. Each restaurant would spend $20k to earn about $30k a year, paying back in under a year, using hours when it is currently closed. The main risk is that breakfast competitors with strong coffee keep customers away, so the next step is to pilot breakfast in 10 restaurants.",
+      "text": "We should add breakfast: $20k per restaurant earns about $30k a year, in hours when it's closed.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with the payback."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Add breakfast. Each restaurant would spend $20k to earn about $30k a year, paying back in under a year, using hours when it is currently closed. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Add breakfast. Each restaurant spends $20k to earn about $30k a year, paying back in under a year, in hours when it's now closed. The main risk is that the $30k estimate is optimistic against established breakfast competitors, so the next step is a 10-restaurant pilot. What would change the answer: pilot restaurants earning well under $20k a year from breakfast.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "The chain's mascot is a bear."
+      "The chain's head office moved to Denver this year."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

@@ -2,7 +2,7 @@
   "item_id": "sy1-0037",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -11,7 +11,7 @@
     "SY.summary"
   ],
   "case_type": "m_and_a",
-  "prompt": "Mid-case: The client is evaluating an acquisition priced at $300M. You've valued the target at $250M on its own and found $40M of cost synergies. You haven't assessed integration risks. Which is the best summary?",
+  "prompt": "Mid-case: The client is evaluating an acquisition priced at $300M. You've valued the target at $250M on its own and found $40M of cost synergies. You also learned the target was founded by two engineers. You haven't assessed integration risks. Which is the best summary?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "So far: the target is worth about $250M on its own, and $40M of synergies brings it to $290M, still $10M below the $300M price. We haven't yet looked at integration risks, so next I'd assess integration risks and whether revenue synergies could close the gap.",
+      "text": "So far: $250M stand-alone plus $40M of synergies is $290M, $10M below the $300M price. Next, integration risks.",
       "correct": true,
-      "feedback": "Right. It states what is known, with numbers, then what is still open and what comes next."
+      "feedback": "Right. It states what is known, with numbers, then what is still open."
     },
     {
       "id": "b",
-      "text": "So far: the target is worth more than the $300M price once synergies are added. Next I'd plan the integration.",
+      "text": "So far: $250M stand-alone plus $40M of synergies makes the target worth $290M, so the deal clears the $300M price.",
       "correct": false,
       "tag": "M.inaccurate_summary",
-      "feedback": "This claims findings the analysis hasn't shown. Summarize only what you've established."
+      "feedback": "$290M is below the $300M price, not above it."
     },
     {
       "id": "c",
-      "text": "So far: the target is worth about $250M on its own, and $40M of synergies brings it to $290M, still $10M below the $300M price. The target was founded by two engineers. Next I'd assess integration risks and whether revenue synergies could close the gap.",
+      "text": "So far: the engineer-founded target is worth about $250M alone, plus $40M of synergies. Next, integration risks.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "feedback": "Who founded the target doesn't affect its value, so it doesn't belong in the summary."
     },
     {
       "id": "d",
-      "text": "So far: the price looks a little high compared with the value. Next I'd assess integration risks and whether revenue synergies could close the gap.",
+      "text": "So far: synergies bring the target to $290M, and integration looks low-risk, so the $300M price is close to fair.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.inaccurate_summary",
+      "feedback": "Integration risks haven't been assessed yet."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "The target is worth about $250M on its own, and $40M of synergies brings it to $290M, still $10M below the $300M price. A good mid-case summary states what is known with numbers and what comes next, without claiming findings that haven't been tested.",
+  "explanation": "Known: $250M + $40M of synergies = $290M, against a $300M price. Open: integration risks and any revenue synergies. Next: assess integration. If integration costs are material, the gap grows beyond $10M.",
   "extras": {
     "answer_type": "summary",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

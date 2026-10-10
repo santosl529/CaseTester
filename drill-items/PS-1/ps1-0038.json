@@ -2,15 +2,15 @@
   "item_id": "ps1-0038",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 3,
+  "tier": 2,
   "skills": [
     "PS.mece",
     "PS.case_specific"
   ],
   "case_type": "cost_reduction",
-  "prompt": "A city wants to cut the cost of garbage collection by 15%. The candidate's framework: (1) Company; (2) Customers; (3) Competitors. What is the flaw in this framework?",
+  "prompt": "A city wants to cut the cost of garbage collection by 15%. The candidate's framework: (1) Revenue: household fees and city funding; (2) Fixed costs; (3) Variable costs. What is the flaw in this framework?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -18,48 +18,50 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 1 and 2 overlap and should be merged",
+      "text": "Buckets 2 and 3 overlap: fuel use depends on the trucks",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "The issue isn't overlap. The 3Cs don't fit a cost question."
+      "feedback": "Trucks and fuel are linked, but fixed and variable is a clean split. The issue is that a profit tree doesn't show where cost can be cut."
     },
     {
       "id": "b",
-      "text": "It is the 3Cs, which doesn't break down the cost of collection",
+      "text": "It's a generic profit tree: it hides what drives collection costs",
       "correct": true,
-      "feedback": "Right. Break cost into trucks, crews, fuel, disposal fees and route design."
+      "feedback": "Right. A cost target needs the cost broken into its drivers: crews, trucks, fuel, disposal fees, and route design and frequency."
     },
     {
       "id": "c",
-      "text": "Missing: suppliers",
+      "text": "Missing: what the landfill charges per ton",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "Adding a C doesn't fix the mismatch."
+      "feedback": "Disposal fees are a variable cost, bucket 3. Naming one line doesn't fix the generic structure."
     },
     {
       "id": "d",
-      "text": "Bucket 3 doesn't matter for a city service",
+      "text": "Bucket 2 doesn't belong: trucks and depots can't be cut in a year",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "The flaw is the canned framework, not one bucket."
+      "feedback": "Truck fleets and depots can be resized, and the city didn't set a deadline. The issue is the whole structure."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "A cost problem needs a cost breakdown and the drivers behind each line.",
+  "explanation": "A fixed and variable split, plus revenue, doesn't show where 15% could come from. Break cost into crews, trucks, fuel, disposal fees and route design.",
   "extras": {
     "flaw_type": "generic",
     "corrected_framework": "Crews and labor; trucks and maintenance; fuel; disposal fees; route design and frequency"
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

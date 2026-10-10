@@ -2,7 +2,7 @@
   "item_id": "sy1-0004",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -19,50 +19,52 @@
   "options": [
     {
       "id": "a",
-      "text": "It pays back in 4 years ($2M ÷ $500k a year), inside the 5-year hurdle, and it lasts 8 years. The main risk is that the labor savings depend on redeploying staff. Putting it together, buy the machine.",
+      "text": "Don't buy the machine. It pays back in 4 years at best, and $2M is a large outlay while the current one still runs most of the month.",
       "correct": false,
-      "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It mentions the 4-year payback but misses that it's inside the 5-year hurdle, which is what decides it."
     },
     {
       "id": "b",
-      "text": "On one hand, it pays back in 4 years ($2M ÷ $500k a year), inside the 5-year hurdle, and it lasts 8 years. On the other hand, there is the risk that the labor savings depend on redeploying staff. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "text": "Labor savings of $500k a year repay the $2M machine in 4 years, inside the 5-year hurdle, so buying it makes sense.",
       "correct": false,
-      "tag": "M.hedged_recommendation",
-      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+      "tag": "M.buried_recommendation",
+      "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
     },
     {
       "id": "c",
-      "text": "Buy the machine. The supplier has been in business since 1950. It pays back in 4 years ($2M ÷ $500k a year), inside the 5-year hurdle, and it lasts 8 years.",
+      "text": "Buy the machine. The supplier has been in business since 1950, so the savings are reliable.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "feedback": "The supplier's age says nothing about the savings. The payback is what supports buying."
     },
     {
       "id": "d",
-      "text": "Buy the machine. It pays back in 4 years ($2M ÷ $500k a year), inside the 5-year hurdle, and it lasts 8 years. The main risk is that the labor savings depend on redeploying staff, so the next step is to confirm with operations that the savings can be captured.",
+      "text": "Buy the machine. It pays back in 4 years ($2M ÷ $500k a year), inside the 5-year hurdle, and it lasts 8 years.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with the payback against the hurdle."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Buy the machine. It pays back in 4 years ($2M ÷ $500k a year), inside the 5-year hurdle, and it lasts 8 years. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Buy the machine. It pays back in 4 years ($2M ÷ $500k a year), inside the 5-year hurdle, and it lasts 8 years. The main risk is that the labor savings depend on moving staff to other work, so the next step is to confirm with operations that the savings can be captured. What would change the answer: savings below $400k a year, which would push payback past 5 years.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "The supplier has been in business since 1950."
+      "The supplier was founded in 1950."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

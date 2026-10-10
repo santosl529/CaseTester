@@ -2,7 +2,7 @@
   "item_id": "sy1-0014",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 3,
   "skills": [
@@ -11,7 +11,7 @@
     "SY.summary"
   ],
   "case_type": "growth_strategy",
-  "prompt": "The client asks: \"Which market should we enter next, Brazil or Mexico?\" Fact sheet: Brazil's market is $1B, growing 4% a year, with a 25% import tariff; Mexico's market is $600M, growing 9% a year, with no tariff; our distribution partner already operates in Mexico; our CFO speaks Portuguese. Which is the best recommendation?",
+  "prompt": "The client asks: \"Which market should we enter next, Brazil or Mexico?\" Fact sheet: Brazil's market is $1B, growing 4% a year, with a 25% import tariff; Mexico's market is $600M, growing 9% a year, with no tariff; our distribution partner already operates in Mexico; our largest shareholder is based in Spain. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -19,50 +19,52 @@
   "options": [
     {
       "id": "a",
-      "text": "It grows more than twice as fast as Brazil (9% vs 4%), has no tariff against Brazil's 25%, and our distribution partner already operates there. The main risk is that Mexico's smaller size ($600M vs $1B) caps the upside. Putting it together, enter Mexico first.",
+      "text": "Enter Brazil first. At $1B it's the larger market, $400M bigger than Mexico, so it offers the bigger prize over time.",
       "correct": false,
-      "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores what decides it: Brazil grows half as fast and has a 25% tariff, and our partner is already in Mexico."
     },
     {
       "id": "b",
-      "text": "Enter Mexico first. It grows more than twice as fast as Brazil (9% vs 4%), has no tariff against Brazil's 25%, and our distribution partner already operates there. The main risk is that Mexico's smaller size ($600M vs $1B) caps the upside, so the next step is to plan Brazil as a second step once Mexico is profitable.",
+      "text": "Enter Mexico first: it grows 9% a year against Brazil's 4%, has no tariff, and our distribution partner is already there.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with growth, tariffs and our partner."
     },
     {
       "id": "c",
-      "text": "Enter Mexico first. Our CFO speaks Portuguese. It grows more than twice as fast as Brazil (9% vs 4%), has no tariff against Brazil's 25%, and our distribution partner already operates there.",
+      "text": "Enter Mexico first. Our largest shareholder is based in Spain, and Mexico is Spanish-speaking, which will smooth the way.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "feedback": "Right country, wrong reason: a shareholder's location doesn't decide market entry. Growth, tariffs and our partner do."
     },
     {
       "id": "d",
-      "text": "Enter Mexico first. Mexico is the more natural fit for us.",
+      "text": "Enter Brazil first. A 25% tariff is manageable in a market $400M larger than Mexico's, and it grows 4% a year.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores growth and access: Mexico grows 9% a year against 4%, with no tariff and our partner already there."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Enter Mexico first. It grows more than twice as fast as Brazil (9% vs 4%), has no tariff against Brazil's 25%, and our distribution partner already operates there. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Enter Mexico first. It grows 9% a year against Brazil's 4%, has no tariff against Brazil's 25%, and our distribution partner already operates there. The main risk is that Mexico's smaller size ($600M vs $1B) caps the upside, so the next step is to plan Brazil as a second step once Mexico is profitable. What would change the answer: Brazil cutting its tariff, which would make the larger market more attractive.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "Our CFO speaks Portuguese."
+      "Our largest shareholder is based in Spain."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

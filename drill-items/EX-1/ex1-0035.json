@@ -2,9 +2,9 @@
   "item_id": "ex1-0035",
   "version": 1,
   "drill_id": "EX-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 3,
+  "tier": 2,
   "skills": [
     "EX.takeaway"
   ],
@@ -17,27 +17,23 @@
       "columns": [
         "Project",
         "Investment ($M)",
-        "Annual cash flow ($M)",
-        "Payback (years)"
+        "Annual cash flow ($M)"
       ],
       "rows": [
         [
           "A",
-          "10",
-          "2.5",
-          "4"
-        ],
-        [
-          "B",
-          "6",
-          "2",
+          "15",
           "3"
         ],
         [
+          "B",
+          "10",
+          "2.5"
+        ],
+        [
           "C",
-          "15",
-          "3",
-          "5"
+          "6",
+          "2"
         ]
       ]
     }
@@ -48,47 +44,49 @@
   "options": [
     {
       "id": "a",
-      "text": "Project C needs the largest investment",
+      "text": "Project A throws off the most cash, $3M a year",
       "correct": false,
       "tag": "M.trivial_takeaway",
-      "feedback": "True, but it doesn't answer the client's question."
+      "feedback": "True, but A costs $15M, so it takes 5 years to pay back."
     },
     {
       "id": "b",
-      "text": "Project A pays back fastest",
+      "text": "Project B pays back fastest, with the most cash per dollar",
       "correct": false,
       "tag": "M.misread_trend",
-      "feedback": "That misreads the chart: A pays back in 4 years; B in 3."
+      "feedback": "B returns $2.5M a year on $10M (4 years); C returns $2M on $6M (3 years)."
     },
     {
       "id": "c",
-      "text": "Only Project B meets the 3-year hurdle",
+      "text": "C earns back its $6M in three years; A and B take longer",
       "correct": true,
-      "feedback": "Right. Paybacks: A 4 years, B 3 years, C 5 years."
+      "feedback": "Right. Payback = investment ÷ annual cash flow: A 15 ÷ 3 = 5 years, B 10 ÷ 2.5 = 4 years, C 6 ÷ 2 = 3 years."
     },
     {
       "id": "d",
-      "text": "Project C carries the highest risk",
+      "text": "Project A carries the highest risk",
       "correct": false,
       "tag": "M.unsupported_claim",
-      "feedback": "The chart doesn't show this. It may be true, but there is no data here to support it."
+      "feedback": "The table shows money in and out, not risk."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Only Project B meets the 3-year hurdle. Paybacks: A 4 years, B 3 years, C 5 years.",
+  "explanation": "Payback = investment ÷ annual cash flow: A 15 ÷ 3 = 5 years, B 10 ÷ 2.5 = 4 years, C 6 ÷ 2 = 3 years.",
   "extras": {
-    "proof": "Paybacks: A 4 years, B 3 years, C 5 years."
+    "proof": "Payback = investment ÷ annual cash flow: A 15 ÷ 3 = 5 years, B 10 ÷ 2.5 = 4 years, C 6 ÷ 2 = 3 years."
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

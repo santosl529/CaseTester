@@ -2,9 +2,9 @@
   "item_id": "ex1-0011",
   "version": 1,
   "drill_id": "EX-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 2,
+  "tier": 1,
   "skills": [
     "EX.takeaway"
   ],
@@ -37,47 +37,49 @@
   "options": [
     {
       "id": "a",
-      "text": "Hospital A has the shortest wait",
+      "text": "Hospital A is fastest, at 45 minutes",
       "correct": false,
       "tag": "M.trivial_takeaway",
-      "feedback": "True, but it doesn't answer the client's question."
+      "feedback": "True, but A is already close to B and D. The citywide average comes down most by fixing C."
     },
     {
       "id": "b",
-      "text": "All four hospitals have similar waits",
+      "text": "Hospital C's wait is close to the others'",
       "correct": false,
       "tag": "M.misread_trend",
-      "feedback": "That misreads the chart: C waits 120 minutes; the others 45–50."
+      "feedback": "B and D wait about 50 minutes; C waits 120."
     },
     {
       "id": "c",
-      "text": "Hospital C's wait is far longer than the others'",
+      "text": "C's wait is more than double the others'",
       "correct": true,
       "feedback": "Right. C averages 120 minutes against 45–50 at A, B and D."
     },
     {
       "id": "d",
-      "text": "Hospital C is understaffed, which is why its patients wait so long",
+      "text": "Hospital C is short of doctors and nurses",
       "correct": false,
       "tag": "M.unsupported_claim",
-      "feedback": "The chart doesn't show this. It may be true, but there is no data here to support it."
+      "feedback": "The chart shows waits, not staffing. That may be true, but nothing here supports it."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Hospital C's wait is far longer than the others'. C averages 120 minutes against 45–50 at A, B and D.",
+  "explanation": "C averages 120 minutes against 45–50 at A, B and D.",
   "extras": {
     "proof": "C averages 120 minutes against 45–50 at A, B and D."
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

@@ -2,14 +2,14 @@
   "item_id": "hy1-0032",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 3,
+  "tier": 2,
   "skills": [
     "HY.form"
   ],
   "case_type": "investment_decision",
-  "prompt": "A manufacturer's new plant runs at 55% of capacity a year after opening. Demand forecasts had assumed 85%. Which is the strongest initial hypothesis?",
+  "prompt": "A manufacturer's new plant runs at 55% of capacity a year after opening, with no unusual downtime. The demand forecast had assumed 85%. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "The plant runs at 55% of capacity against an 85% forecast.",
+      "text": "Orders probably exceed forecast, but the plant can't keep up.",
       "correct": false,
-      "tag": "M.restates_facts",
-      "feedback": "This restates the facts without proposing a cause."
+      "tag": "M.ignores_facts",
+      "feedback": "A plant at 55% with no unusual downtime has spare capacity, so it isn't failing to keep up."
     },
     {
       "id": "b",
-      "text": "It could be demand, production problems, staffing, pricing or the forecast itself.",
+      "text": "Machine breakdowns are likely limiting output.",
       "correct": false,
-      "tag": "M.shotgun_hypotheses",
-      "feedback": "This lists several causes without committing to the most likely one."
+      "tag": "M.ignores_facts",
+      "feedback": "Downtime is normal."
     },
     {
       "id": "c",
-      "text": "The forecasting team got it wrong, and that is the only reason.",
+      "text": "The forecasting team got it wrong, and that is the whole story.",
       "correct": false,
       "tag": "M.overconfident_hypothesis",
-      "feedback": "This states a cause as certain before any data has tested it."
+      "feedback": "This states one cause as certain and blames a team before any data."
     },
     {
       "id": "d",
-      "text": "Demand likely fell short of forecast, perhaps because the forecast assumed new customers who didn't come.",
+      "text": "Demand likely fell short of the forecast.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare forecast and actual orders by customer."
+      "feedback": "Right. With no unusual downtime, low utilization points to demand. I'd compare forecast and actual orders by customer."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Low utilization means demand or production fell short. Orders by customer against forecast tells which.",
-  "extras": {
-    "distractor_flaws": {
-      "M.restates_facts": "The plant runs at 55% of capacity against an 85% forecast.",
-      "M.shotgun_hypotheses": "It could be demand, production problems, staffing, pricing or the forecast itself.",
-      "M.overconfident_hypothesis": "The forecasting team got it wrong, and that is the only reason."
-    }
-  },
+  "explanation": "The data shows the plant at 55% of capacity, against an 85% forecast, with no unusual downtime. Likely cause: demand fell short of the forecast. To test it, compare forecast and actual orders by customer. If orders match the forecast, look at production planning.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

@@ -1,0 +1,69 @@
+{
+  "item_id": "ps1-0044",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "live",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "investment_decision",
+  "prompt": "A regional airline is deciding whether to add daily flights between two mid-size cities. The candidate's framework: (1) Passenger demand and fares on the route; (2) Cost per flight: fuel, crew and airport fees; (3) Other ways to travel, such as driving or other airlines; (4) The airline's brand awareness across the country. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Bucket 4 doesn't belong: national awareness can't decide one route",
+      "correct": true,
+      "feedback": "Right. Awareness sounds relevant, but whether this route pays depends on its own demand, fares and costs. Replace it with whether a plane is free, or better used elsewhere."
+    },
+    {
+      "id": "b",
+      "text": "Buckets 1 and 3 overlap: driving and rival airlines are part of demand",
+      "correct": false,
+      "feedback": "Alternatives shape demand, but how many people travel and what else they could use are separate questions.",
+      "tag": "M.overlapping_buckets"
+    },
+    {
+      "id": "c",
+      "text": "Missing: landing charges at both airports",
+      "correct": false,
+      "feedback": "Landing charges are airport fees, bucket 2.",
+      "tag": "M.missing_bucket"
+    },
+    {
+      "id": "d",
+      "text": "It's a generic entry framework, but one route isn't a new market",
+      "correct": false,
+      "feedback": "Demand, cost per flight and alternatives fit a route decision. The flaw is bucket 4.",
+      "tag": "M.generic_framework"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "A route decision turns on demand and fares, cost per flight, alternatives, and the best use of the aircraft. National brand awareness doesn't decide one route.",
+  "extras": {
+    "flaw_type": "irrelevant",
+    "corrected_framework": "Route demand and fares; cost per flight; alternatives; aircraft availability and best use"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -2,7 +2,7 @@
   "item_id": "cl1-0040",
   "version": 1,
   "drill_id": "CL-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -17,45 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Ask the interviewer what they would like to look at next",
+      "text": "Ask the interviewer what discount the gym has in mind",
       "correct": false,
       "tag": "M.waited_for_interviewer",
-      "feedback": "Drive the case: propose the next step yourself rather than waiting to be told."
+      "feedback": "Drive the case: work out the trade-off yourself."
     },
     {
       "id": "b",
-      "text": "Look at the gym's towel service, since it could affect the answer",
+      "text": "Measure peak-hour usage day by day",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That is off the objective. It won't help answer the client's question."
+      "feedback": "Already answered: peak hours are full."
     },
     {
       "id": "c",
-      "text": "Recommend launching the off-peak plan at half price",
+      "text": "Calculate revenue if the off-peak plan were half price",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That jumps to a solution before the analysis supports it."
+      "feedback": "That ignores current members who might downgrade."
     },
     {
       "id": "d",
-      "text": "Estimate gains from new off-peak members against downgrades",
+      "text": "Weigh the gain from new off-peak members against downgrades",
       "correct": true,
-      "feedback": "Right. Demand exists. The open question is whether downgrades by current members eat the gain."
+      "feedback": "Right. Demand exists; the open question is whether downgrades by current members eat the gain."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Demand exists. The open question is whether downgrades by current members eat the gain.",
+  "explanation": "25% of non-members would join off-peak. Weigh their revenue against current members downgrading.",
   "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

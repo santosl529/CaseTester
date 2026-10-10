@@ -2,7 +2,7 @@
   "item_id": "hy1-0009",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "The competitor is likely taking share where it opened.",
+      "text": "The new competitor is likely taking share in the markets it has entered.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare sales declines in markets with and without the competitor."
+      "feedback": "Right. A competitor opened in 40% of markets in the same year. I'd compare sales declines in markets with and without it."
     },
     {
       "id": "b",
-      "text": "The decline could be the competitor, delivery apps, prices, quality or the economy.",
+      "text": "Diners are likely cutting back evenly, with or without the new rival.",
       "correct": false,
-      "tag": "M.shotgun_hypotheses",
-      "feedback": "This lists several causes without committing to the most likely one."
+      "tag": "M.ignores_facts",
+      "feedback": "This ignores the competitor that opened in 40% of markets, the most obvious lead."
     },
     {
       "id": "c",
-      "text": "The competitor caused the decline, so the chain should cut prices to match.",
+      "text": "The competitor caused the decline, so prices need to be cut to match.",
       "correct": false,
       "tag": "M.overconfident_hypothesis",
-      "feedback": "This states a cause as certain before any data has tested it."
+      "feedback": "This states a cause as certain and jumps to a price cut before any data has tested it."
     },
     {
       "id": "d",
-      "text": "The market has become more difficult.",
+      "text": "Delivery apps are probably pulling orders away from the chain.",
       "correct": false,
-      "tag": "M.untestable_hypothesis",
-      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+      "tag": "M.ignores_facts",
+      "feedback": "Nothing points to delivery apps, and it ignores the competitor that opened this year."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Comparing markets with and without the competitor isolates its effect. That makes the hypothesis directional and testable.",
-  "extras": {
-    "distractor_flaws": {
-      "M.shotgun_hypotheses": "The decline could be the competitor, delivery apps, prices, quality or the economy.",
-      "M.overconfident_hypothesis": "The competitor caused the decline, so the chain should cut prices to match.",
-      "M.untestable_hypothesis": "The market has become more difficult."
-    }
-  },
+  "explanation": "The data shows same-store sales down 8% in the year a competitor entered 40% of markets. Likely cause: the competitor is taking share. To test it, compare declines in markets with and without it. If sales fell as much where it didn't open, the cause is broader.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

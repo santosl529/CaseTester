@@ -2,7 +2,7 @@
   "item_id": "sy1-0007",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "It saves $8M within 6 months with no up-front cost, most of this year's $10M target; plant closures save more but take 2 years and cost $20M up front. The main risk is that suppliers push back and savings come in below $8M. Putting it together, start with supplier renegotiation.",
+      "text": "Close the two plants first. At $15M a year they save the most, 50% above the $10M target, and the savings last.",
       "correct": false,
-      "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores timing: closures take 2 years and $20M up front, so they can't deliver this year's target."
     },
     {
       "id": "b",
-      "text": "On one hand, it saves $8M within 6 months with no up-front cost, most of this year's $10M target; plant closures save more but take 2 years and cost $20M up front. On the other hand, there is the risk that suppliers push back and savings come in below $8M. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "text": "Supplier talks and plant closures both have merit, and the order should reflect how fast the board needs savings.",
       "correct": false,
       "tag": "M.hedged_recommendation",
-      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+      "feedback": "This never commits, even though the target is this year."
     },
     {
       "id": "c",
-      "text": "Start with supplier renegotiation. It saves $8M within 6 months with no up-front cost, most of this year's $10M target; plant closures save more but take 2 years and cost $20M up front. The main risk is that suppliers push back and savings come in below $8M, so the next step is to start supplier talks now and plan plant consolidation as a second phase.",
+      "text": "Start with supplier renegotiation: it saves $8M within 6 months with no up-front cost, most of this year's $10M target.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with what decides it: savings this year."
     },
     {
       "id": "d",
-      "text": "Start with supplier renegotiation. Supplier renegotiation is the least disruptive option.",
+      "text": "Cut marketing first. With 5,000 employees to protect, it saves $5M without a single layoff.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.irrelevant_facts",
+      "feedback": "Headcount isn't the issue, and cutting marketing saves only $5M while risking sales."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Start with supplier renegotiation. It saves $8M within 6 months with no up-front cost, most of this year's $10M target; plant closures save more but take 2 years and cost $20M up front. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Start with supplier renegotiation. It saves $8M within 6 months with no up-front cost, most of this year's $10M target; plant closures save more but take 2 years and $20M up front. The main risk is that suppliers push back and savings fall short, so the next step is to start talks now and plan plant consolidation as a second phase. What would change the answer: supplier savings well below $8M, which would bring other quick options forward.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

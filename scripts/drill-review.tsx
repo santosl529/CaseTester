@@ -15,6 +15,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { DrillChart } from '@/components/drills/chart';
 import { ItemSchema, type Item } from '@/lib/drills/item-schema';
 import { DRILLS_CONFIG, getDrill, getMistakeTag } from '@/lib/drills/config';
+import { LENGTH_CUE_MAX_SHARE, RULE_PLAYER_MAX, phraseCues, rulePlayer } from '@/lib/drills/content-checks';
 
 const ROOT = process.cwd();
 const DIR = path.join(ROOT, 'drill-items');
@@ -31,12 +32,28 @@ const CHECKLIST = [
   'No third-party content is reused.',
 ];
 const DRILL_NOTES: Record<string, string> = {
-  'PS-1': 'One planted flaw per framework. Wrong options allege a different flaw type.',
-  'HY-1': 'Wrong options are each one weak type: restates the facts, shotgun, overconfident, or untestable.',
-  'EX-1': 'Wrong takeaways are: true but unimportant, a misreading of the chart, or a claim the data doesn\'t support.',
-  'SY-1': 'Wrong options bury the answer, hedge, pad with irrelevant facts, lack numbers, or misstate progress.',
-  'CL-1': 'Wrong next steps are already answered, off the objective, a premature solution, or waiting for the interviewer.',
+  'PS-1': 'One planted flaw per framework. Wrong options allege a different flaw, worded like the right one.',
+  'HY-1': 'At Tier 2 and 3, at least two wrong options are well-formed hypotheses that ignore or contradict a fact in the prompt.',
+  'EX-1': 'Wrong takeaways include true, on-topic readings that aren\'t the most important one (the biggest level instead of the biggest change).',
+  'SY-1': 'Options reach different conclusions; at least two wrong ones are confident and numerical but ignore a deciding fact.',
+  'CL-1': 'At least two wrong next steps are sensible analyses that matter less right now than the right one.',
 };
+
+// The wording checks for one pool (lib/drills/content-checks.ts).
+function wordingBox(pool: Item[]): string {
+  const rp = rulePlayer(pool)[0];
+  if (!rp) return '';
+  const rank = (item: Item) => [...item.options].sort((a, b) => a.text.length - b.text.length);
+  const longest = pool.filter(i => rank(i).at(-1)!.correct).length;
+  const cues = phraseCues(pool);
+  const ok = rp.score <= RULE_PLAYER_MAX && longest / pool.length <= LENGTH_CUE_MAX_SHARE && cues.length === 0;
+  return `<div class="checks ${ok ? 'pass' : 'fail'}">
+    <b>Wording checks: ${ok ? 'pass' : 'fail'}.</b>
+    Rule player (picks by wording alone, never reads the case): <b>${Math.round(rp.score * 100)}%</b> (chance ${Math.round(rp.chance * 100)}%, max ${Math.round(RULE_PLAYER_MAX * 100)}%).
+    Right answer is the longest option in ${longest} of ${pool.length} items (max ${Math.round(LENGTH_CUE_MAX_SHARE * 100)}%).
+    ${cues.length ? `Phrases that give answers away: ${cues.map(c => `“${esc(c.phrase)}” (${c.marks} in ${c.marks === 'right' ? c.right : c.wrong} of ${c.right + c.wrong})`).join('; ')}.` : 'No phrase marks answers as right or wrong.'}
+  </div>`;
+}
 
 function load(): Item[] {
   return fs.readdirSync(DIR, { withFileTypes: true }).filter(d => d.isDirectory()).flatMap(d =>
@@ -71,7 +88,7 @@ function card(item: Item): string {
     <header>
       <label class="done"><input type="checkbox" data-review="${esc(item.item_id)}"> Reviewed</label>
       <strong>${esc(item.item_id)}</strong>
-      <span class="meta">Tier ${item.tier} · ${esc((item.case_type ?? 'no case type').replace(/_/g, ' '))} · ${esc(item.status)}${item.is_example ? ' · worked example' : ''}</span>
+      <span class="meta">Tier ${item.tier} · ${esc((item.case_type ?? 'no case type').replace(/_/g, ' '))} · ${esc(item.status)}${item.is_example ? ' · worked example' : ''} · similarity ${esc(item.authorship?.similarity_check ?? 'n/a')}</span>
       <code class="file">${esc(file)}</code>
     </header>
     <p class="prompt">${esc(item.prompt)}</p>
@@ -79,6 +96,7 @@ function card(item: Item): string {
     <ol class="options">${options}</ol>
     <p class="explanation"><b>Explanation shown after answering:</b> ${esc(item.explanation)}</p>
     ${extras(item)}
+    ${item.authorship?.similarity_note ? `<p class="explanation"><b>Similarity check flagged:</b> ${esc(item.authorship.similarity_note)}</p>` : ''}
   </article>`;
 }
 
@@ -95,6 +113,7 @@ function main() {
     return `<section id="drill-${id}">
       <h2>${esc(id)} ${esc(drill.name)} <span class="count">${pool.length} items · ${live} live</span></h2>
       <p class="sub">Skills: ${esc(skills)}. ${esc(DRILL_NOTES[id] ?? '')}</p>
+      ${wordingBox(pool)}
       ${pool.map(card).join('')}
     </section>`;
   }).join('');
@@ -134,6 +153,8 @@ function main() {
   .chart figcaption span { display: block; color: var(--muted); font-size: 13px; }
   .chart table { border-collapse: collapse; font-size: 13.5px; margin-top: 6px; } .chart th, .chart td { border: 1px solid var(--border); padding: 3px 8px; text-align: left; }
   .chart p { color: var(--muted); font-size: 12.5px; margin: 4px 0 0; } .chart details { font-size: 13px; margin-top: 4px; }
+  .checks { border-radius: 8px; padding: 10px 14px; margin: 10px 0 4px; font-size: 14px; border: 1px solid var(--border); background: var(--card); }
+  .checks.pass { border-color: var(--ok); } .checks.fail { border-color: var(--tag); }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 </style></head>
 <body><div class="wrap">
@@ -142,12 +163,8 @@ function main() {
 <div class="intro">
   <b>For each item, check that:</b>
   <ul>${CHECKLIST.map(c => `<li>${esc(c)}</li>`).join('')}</ul>
-  <b>To fix an item,</b> edit the JSON file named under its ID.<br>
-  <b>To approve an item,</b> set these fields in its file:
-  <pre>"status": "live",
-"authorship": { "author_of_record": "Your Name", "drafting_model": "claude-opus-5-5",
-                "reviewed_by": "Your Name", "reviewed_at": "YYYY-MM-DD", "similarity_check": "passed" }</pre>
-  Mark one reviewed item per drill <code>"is_example": true</code> as its worked example. The "Reviewed" checkboxes here only track your progress in this browser; they don't change any files.
+  <b>To approve or ask for edits,</b> send decisions by item ID (for example “ps1-0011 approve”, “hy1-0003 edit: …”). The engineer updates each file's status and authorship, so nobody edits JSON by hand.<br>
+  Each drill's <b>worked example</b> is marked “worked example” and is shown only once approved. The “Reviewed” checkboxes here only track your progress in this browser; they don't change any files.
 </div>
 <nav>${toc}<span id="progress"></span></nav>
 ${sections}

@@ -2,7 +2,7 @@
   "item_id": "sy1-0019",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 3,
   "skills": [
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "Break-even needs a 2% share, but the test market reached only 1%, even though the $800M premium segment is growing 12% a year. The main risk is that a competitor takes the premium space while we wait. Putting it together, don't launch nationally yet.",
+      "text": "Launch nationally. The premium segment is $800M and growing 12% a year, so even 1% is $8M of sales.",
       "correct": false,
-      "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores the deciding fact: break-even needs 2% share, and the test reached only 1%."
     },
     {
       "id": "b",
-      "text": "On one hand, break-even needs a 2% share, but the test market reached only 1%, even though the $800M premium segment is growing 12% a year. On the other hand, there is the risk that a competitor takes the premium space while we wait. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "text": "Launch nationally. Our dog show sponsorship gives the line built-in awareness among premium buyers.",
       "correct": false,
-      "tag": "M.hedged_recommendation",
-      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+      "tag": "M.irrelevant_facts",
+      "feedback": "The sponsorship doesn't change the test result: 1% share against 2% needed."
     },
     {
       "id": "c",
-      "text": "Don't launch nationally yet. Break-even needs a 2% share, but the test market reached only 1%, even though the $800M premium segment is growing 12% a year. The main risk is that a competitor takes the premium space while we wait, so the next step is to find out why the test underperformed and rerun it with changes.",
+      "text": "Hold off on the national launch: break-even needs a 2% share, and the test market reached only 1%.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with the share gap."
     },
     {
       "id": "d",
-      "text": "Don't launch nationally yet. Premium dog food is a crowded space.",
+      "text": "The test reached 1% share against the 2% needed to break even, even with the segment growing 12%, so a national launch should wait.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.buried_recommendation",
+      "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Don't launch nationally yet. Break-even needs a 2% share, but the test market reached only 1%, even though the $800M premium segment is growing 12% a year. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Don't launch nationally yet. Break-even needs a 2% share, but the test market reached only 1%, even in an $800M segment growing 12% a year. The main risk is that a competitor takes the premium space while we wait, so the next step is to find out why the test underperformed and rerun it with changes. What would change the answer: a rerun test reaching 2% share.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

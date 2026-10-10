@@ -2,7 +2,7 @@
   "item_id": "ps1-0018",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 1 and 2 overlap and should be merged",
+      "text": "Buckets 1 and 2 overlap: office rent depends on headcount",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Staff and rent don't overlap."
+      "feedback": "Rent rises with headcount, but staff pay and rent are separate cost lines with separate levers."
     },
     {
       "id": "b",
-      "text": "Missing: cloud hosting and software tools",
+      "text": "Missing: cloud hosting and software subscriptions",
       "correct": true,
-      "feedback": "Right. For a software company, cloud and tool spend is often the second-largest cost line."
+      "feedback": "Right. For a software company, cloud and tool spend is often one of the largest cost lines after people."
     },
     {
       "id": "c",
-      "text": "Bucket 2 doesn't matter for a software company",
+      "text": "Bucket 2 doesn't belong: most software staff work remotely",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Rent is a real cost, even if smaller than staff."
+      "feedback": "Nothing says staff are remote. Office rent is a real cost that can be cut."
     },
     {
       "id": "d",
-      "text": "It is a generic cost tree",
+      "text": "It's a generic cost list: software costs are better split by product",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "Staff and rent are relevant here. The flaw is a missing cost line."
+      "feedback": "Splitting by cost type is a valid, complete cut. The flaw is that a large cost line is missing."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

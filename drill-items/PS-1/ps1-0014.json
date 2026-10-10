@@ -2,7 +2,7 @@
   "item_id": "ps1-0014",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -18,48 +18,50 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 1 and 2 overlap and should be merged",
+      "text": "Buckets 1 and 2 overlap: higher rates lower occupancy",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Rate and occupancy are different drivers."
+      "feedback": "Rate and occupancy affect each other, but they are different drivers of room revenue, so they belong in separate buckets."
     },
     {
       "id": "b",
-      "text": "Missing: growth beyond the existing hotels, such as new properties or other services",
+      "text": "Missing: revenue beyond rooms, such as food, bar and events",
       "correct": true,
-      "feedback": "Right. Rates and occupancy only grow the current hotels. New properties, food and events are missing."
+      "feedback": "Right. Room rates and occupancy only cover room revenue. Food, bar and events are a large part of a boutique hotel's profit and are missing."
     },
     {
       "id": "c",
-      "text": "Bucket 1 doesn't matter, since rates are set by the market",
+      "text": "Bucket 1 doesn't belong: boutique hotels have no room to raise rates",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Rate is a major lever, even if the market constrains it."
+      "feedback": "Nothing says rates are capped. Rate is usually a hotel's strongest profit lever."
     },
     {
       "id": "d",
-      "text": "It is a generic revenue tree",
+      "text": "It's a generic revenue tree: it doesn't reflect boutique hotels",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "Rate and occupancy are hotel-specific. The flaw is missing growth levers."
+      "feedback": "Rate and occupancy are the right hotel drivers. The flaw is that only room revenue is covered."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Growth comes from existing rooms (rate, occupancy), other revenue (food, events), new hotels and costs. Only the first is here.",
+  "explanation": "Profit grows from room revenue (rate, occupancy), revenue beyond rooms (food, bar, events) and costs. Rate and occupancy only cover rooms. Opening new hotels is another lever worth adding.",
   "extras": {
     "flaw_type": "missing",
-    "corrected_framework": "Existing rooms (rate, occupancy); other revenue (food, events); new properties; cost efficiency"
+    "corrected_framework": "Room revenue (rate, occupancy); revenue beyond rooms (food, bar, events); new properties; cost efficiency"
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

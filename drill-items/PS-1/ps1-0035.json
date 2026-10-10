@@ -2,7 +2,7 @@
   "item_id": "ps1-0035",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 2 and 3 overlap and should be merged",
+      "text": "Buckets 2 and 3 overlap: driver pay is both fixed and variable",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Fixed and variable costs don't overlap. The structure itself is wrong for the question."
+      "feedback": "Driver pay sits in one place in a fixed and variable split. The structure itself is wrong for a time question."
     },
     {
       "id": "b",
-      "text": "Missing: delivery driver costs",
+      "text": "Missing: what delivery drivers cost",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "Adding a cost line doesn't fix the mismatch."
+      "feedback": "Adding a cost line doesn't fix a profit tree applied to a delivery-time problem."
     },
     {
       "id": "c",
-      "text": "It is a generic profit tree; it doesn't follow the steps that add delivery time",
+      "text": "It's a generic profit tree: the 40 minutes aren't broken into steps",
       "correct": true,
       "feedback": "Right. Break the 40 minutes into stages: order taking, cooking, waiting for a driver, and driving."
     },
     {
       "id": "d",
-      "text": "Bucket 1 doesn't matter",
+      "text": "Bucket 1 doesn't belong: faster delivery is about cost, not revenue",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "The issue is not one bucket. The whole framework doesn't address time."
+      "feedback": "The issue isn't one bucket. The whole framework doesn't address time."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

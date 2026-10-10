@@ -2,7 +2,7 @@
   "item_id": "cl1-0028",
   "version": 1,
   "drill_id": "CL-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -17,45 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Ask the interviewer what they would like to look at next",
+      "text": "Check with the interviewer whether the mix shift is the main issue",
       "correct": false,
       "tag": "M.waited_for_interviewer",
-      "feedback": "Drive the case: propose the next step yourself rather than waiting to be told."
+      "feedback": "The finding answers that. Drive the case."
     },
     {
       "id": "b",
-      "text": "Look at the car wash's signage colors, since it could affect the answer",
+      "text": "Find out why car counts held flat at each location",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That is off the objective. It won't help answer the client's question."
+      "feedback": "Already answered: volume is flat."
     },
     {
       "id": "c",
-      "text": "Recommend dropping the basic wash",
+      "text": "Estimate revenue if the basic wash were dropped",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That jumps to a solution before the analysis supports it."
+      "feedback": "That jumps to a drastic fix before knowing why customers switched."
     },
     {
       "id": "d",
-      "text": "Find out why customers are trading down",
+      "text": "Learn why customers are trading down to the basic wash",
       "correct": true,
-      "feedback": "Right. The mix shift explains revenue. Next is why it happened."
+      "feedback": "Right. The mix shift explains revenue; next is why it happened."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "The mix shift explains revenue. Next is why it happened.",
+  "explanation": "Customers shifted from premium to basic washes. Find out why.",
   "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

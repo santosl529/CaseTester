@@ -2,7 +2,7 @@
   "item_id": "ps1-0020",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 1 and 2 overlap and should be merged",
+      "text": "Buckets 1 and 2 overlap: dog ownership is counted per household",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Households and the share with a dog are separate drivers that multiply."
+      "feedback": "Households and the share with a dog are separate drivers that multiply together."
     },
     {
       "id": "b",
-      "text": "Bucket 3 doesn't matter for market size",
+      "text": "Bucket 3 doesn't belong: market size is about how many dogs",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "The market is in dollars, so price is essential."
+      "feedback": "The market is measured in dollars a year, so the price per walk is essential."
     },
     {
       "id": "c",
-      "text": "It is a generic sizing approach",
+      "text": "It's a generic top-down estimate: counting walkers would be better",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "The drivers fit dog walking. The flaw is missing drivers."
+      "feedback": "Top-down and bottom-up are both valid. The flaw is that this top-down estimate leaves out two drivers."
     },
     {
       "id": "d",
-      "text": "Missing: how many dog owners use a walker, and how often",
+      "text": "Missing: how many dog owners pay for walks, and how often",
       "correct": true,
-      "feedback": "Right. Dog-owning households × price skips the share that pays for walks and the number of walks a year."
+      "feedback": "Right. Dog-owning households × price skips the share of owners who hire a walker and how many walks they buy a year."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

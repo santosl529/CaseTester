@@ -2,7 +2,7 @@
   "item_id": "ps1-0003",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Missing: competitor activity",
+      "text": "Missing: what competitors near each store are doing",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "Competitor effects show up through traffic and spend inside revenue, so they don't need their own branch here."
+      "feedback": "Competitors show up through lost traffic and lower spend, which the revenue bucket captures. The flaw is that traffic appears twice."
     },
     {
       "id": "b",
-      "text": "Bucket 2 is irrelevant to a profit decline",
+      "text": "Bucket 2 doesn't belong: a grocer's costs rarely move much",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Costs are half of profit. They are central to this question."
+      "feedback": "Labor, rent and cost of goods can move a lot and are half of the profit equation. Bucket 2 is central."
     },
     {
       "id": "c",
-      "text": "Bucket 3 overlaps with bucket 1",
+      "text": "Buckets 1 and 3 overlap: shopper traffic is part of revenue",
       "correct": true,
-      "feedback": "Right. Traffic is already inside revenue. A separate bucket double counts it."
+      "feedback": "Right. Revenue is shoppers × spend per visit, so a separate traffic bucket counts traffic twice. Analyze traffic by store inside revenue."
     },
     {
       "id": "d",
-      "text": "A revenue-and-cost tree is too generic for this question",
+      "text": "It's a generic profit tree: it says nothing specific to grocery",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "A profit tree fits a profitability question. The flaw is the duplicated traffic bucket."
+      "feedback": "A profit tree is the right start for a profit decline, and its lines (spend per visit, cost of goods) fit a grocer. The flaw is the repeated traffic bucket."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

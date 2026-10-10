@@ -2,7 +2,7 @@
   "item_id": "hy1-0002",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Traffic is up 30% and orders are flat.",
+      "text": "Traffic has likely grown faster than orders this year.",
       "correct": false,
       "tag": "M.restates_facts",
-      "feedback": "This restates the facts without proposing a cause."
+      "feedback": "This restates the facts. It doesn't say why the extra visitors aren't buying."
     },
     {
       "id": "b",
-      "text": "Conversion has likely fallen because the new traffic is lower-intent.",
+      "text": "The new traffic is probably less ready to buy than the old.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare conversion rates by traffic source."
+      "feedback": "Right. More visits with flat orders means conversion fell. I'd compare conversion rates by traffic source to see whether the new traffic converts worse."
     },
     {
       "id": "c",
-      "text": "The new social media ads are bringing in the wrong visitors, and that is the whole story.",
+      "text": "Search is likely sending the site less traffic than before.",
       "correct": false,
-      "tag": "M.overconfident_hypothesis",
-      "feedback": "This states a cause as certain before any data has tested it."
+      "tag": "M.ignores_facts",
+      "feedback": "Traffic rose 30%, so people are finding the site. The gap is between visits and orders."
     },
     {
       "id": "d",
-      "text": "The website isn't performing the way it should.",
+      "text": "Shoppers are probably buying less often since a rival opened.",
       "correct": false,
-      "tag": "M.untestable_hypothesis",
-      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+      "tag": "M.ignores_facts",
+      "feedback": "Shoppers buying elsewhere would visit less, but traffic is up 30%. The visitors are there; they just aren't buying."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "More visits with the same orders means conversion fell. A good hypothesis picks the likeliest cause and the cut of data that tests it.",
-  "extras": {
-    "distractor_flaws": {
-      "M.restates_facts": "Traffic is up 30% and orders are flat.",
-      "M.overconfident_hypothesis": "The new social media ads are bringing in the wrong visitors, and that is the whole story.",
-      "M.untestable_hypothesis": "The website isn't performing the way it should."
-    }
-  },
+  "explanation": "The data shows 30% more visits but the same number of orders, so conversion fell. Likely cause: the new traffic is less ready to buy. To test it, compare conversion by traffic source. If returning visitors also convert less, the problem is the site or prices, not the new traffic.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

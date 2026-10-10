@@ -2,14 +2,14 @@
   "item_id": "cl1-0002",
   "version": 1,
   "drill_id": "CL-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 1,
+  "tier": 2,
   "skills": [
     "CL.next_step"
   ],
   "case_type": "market_entry",
-  "prompt": "Objective: decide whether a beverage company should enter the energy-drink market. What you've learned: the market is $2B and growing 8% a year. Latest finding: the market looks attractive on size and growth. What is the best next step?",
+  "prompt": "Objective: decide whether a beverage company should enter the energy-drink market. What you've learned: the market is $2B and growing 8% a year. Latest finding: the top two brands hold 75% share. What is the best next step?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,45 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Re-check the market size estimate",
+      "text": "Find out how big the market will be in five years",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That has already been answered. Build on what you know."
+      "feedback": "Growth is already known (8% a year). The new question is whether the client can compete with two dominant brands."
     },
     {
       "id": "b",
-      "text": "Assess competitors and whether the client could win share",
+      "text": "Test whether the client could take share from the top two",
       "correct": true,
-      "feedback": "Right. Size and growth say the market is attractive. Next comes whether this client can compete."
+      "feedback": "Right. The market is attractive, but two brands hold 75%. Whether the client can take share decides it."
     },
     {
       "id": "c",
-      "text": "Look at the client's office locations",
+      "text": "Map the distribution costs of a national launch",
       "correct": false,
-      "tag": "M.illogical_next_step",
-      "feedback": "That is off the objective. It won't help answer the client's question."
+      "tag": "M.low_priority_next_step",
+      "feedback": "Useful once you know the client can win share, not before."
     },
     {
       "id": "d",
-      "text": "Recommend entering now, since the market is large and growing",
+      "text": "Check with the interviewer whether the client still wants to enter",
       "correct": false,
-      "tag": "M.illogical_next_step",
-      "feedback": "That jumps to a solution before the analysis supports it."
+      "tag": "M.waited_for_interviewer",
+      "feedback": "Drive the case: the objective is already set. Propose the next analysis yourself."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Size and growth say the market is attractive. Next comes whether this client can compete.",
+  "explanation": "Size and growth are known; two brands hold 75%. Before costs or launch plans, test whether the client has a way to win share.",
   "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

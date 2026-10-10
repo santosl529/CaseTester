@@ -2,7 +2,7 @@
   "item_id": "cl1-0032",
   "version": 1,
   "drill_id": "CL-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 3,
   "skills": [
@@ -17,45 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Re-check the market size",
+      "text": "Size the market in other countries",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That has already been answered. Build on what you know."
+      "feedback": "Off the finding."
     },
     {
       "id": "b",
-      "text": "Ask the interviewer what they would like to look at next",
+      "text": "Ask the interviewer what price point the client prefers here",
       "correct": false,
       "tag": "M.waited_for_interviewer",
-      "feedback": "Drive the case: propose the next step yourself rather than waiting to be told."
+      "feedback": "Drive the case: work out what price makes sense."
     },
     {
       "id": "c",
-      "text": "Recommend a premium launch price",
+      "text": "Estimate revenue at a premium price",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That jumps to a solution before the analysis supports it."
+      "feedback": "The finding says consumers won't pay a premium."
     },
     {
       "id": "d",
-      "text": "Check profitability at a near-regular price",
+      "text": "Check profitability near the regular toothpaste price",
       "correct": true,
-      "feedback": "Right. Interest is high but premiums are not, so profitability at a standard price is the question."
+      "feedback": "Right. Interest is high but premiums are not, so profitability at a standard price decides it."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Interest is high but premiums are not, so profitability at a standard price is the question.",
+  "explanation": "Interest is strong but willingness to pay a premium is low. Check profitability at a near-regular price.",
   "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

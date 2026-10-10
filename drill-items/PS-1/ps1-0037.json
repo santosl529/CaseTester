@@ -2,9 +2,9 @@
   "item_id": "ps1-0037",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 2,
+  "tier": 1,
   "skills": [
     "PS.mece",
     "PS.case_specific"
@@ -18,27 +18,27 @@
   "options": [
     {
       "id": "a",
-      "text": "It is a SWOT, which doesn't test demand, economics or risk for the card",
+      "text": "It's a generic strategy list (a SWOT): no demand, economics or credit risk",
       "correct": true,
-      "feedback": "Right. A launch needs demand, competition, unit economics, risk, and the ability to execute."
+      "feedback": "Right. A launch needs demand, competition, unit economics, risk and the ability to execute."
     },
     {
       "id": "b",
-      "text": "Buckets 3 and 4 overlap and should be merged",
+      "text": "Buckets 3 and 4 overlap: student debt is both an opportunity and a threat",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Opportunities and threats are separate. The issue is the generic structure."
+      "feedback": "Opportunities and threats are separate in a SWOT. The issue is the generic structure."
     },
     {
       "id": "c",
-      "text": "Missing: a bucket for credit risk",
+      "text": "Missing: a credit-risk bucket in the SWOT",
       "correct": false,
       "tag": "M.missing_bucket",
       "feedback": "Credit risk matters, but adding it doesn't fix a canned framework."
     },
     {
       "id": "d",
-      "text": "Bucket 1 doesn't matter",
+      "text": "Bucket 1 doesn't belong: a bank's strengths don't matter to students",
       "correct": false,
       "tag": "M.irrelevant_bucket",
       "feedback": "The issue is the whole framework, not one bucket."
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

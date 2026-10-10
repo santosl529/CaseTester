@@ -5,12 +5,12 @@
 //
 //   npx tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke.ts
 import { randomUUID } from 'crypto';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from '@/db/client';
-import { analyticsEvents, drillAttempts, drillSets, drillTiers, studentDrillSettings } from '@/db/schema';
+import { analyticsEvents, drillAttempts, drillItems, drillSets, drillTiers, studentDrillSettings } from '@/db/schema';
 import { DRILLS_CONFIG } from '@/lib/drills/config';
 import { rebuildItem } from '@/lib/drills/generators/registry';
-import type { Item, Tier } from '@/lib/drills/item-schema';
+import { ItemSchema, type Item, type Tier } from '@/lib/drills/item-schema';
 import type { ItemRef } from '@/lib/drills/sets/plan';
 import {
   DrillError, completeSet, fetchItem, setResults, setView, startSet, submitAttempt, updateSettings,
@@ -36,9 +36,14 @@ async function expectError(code: string, fn: () => Promise<unknown>, what: strin
   }
 }
 
+// The full item (with its key) behind a set position: rebuilt from its seed,
+// or read from drill_items for an authored item.
 async function itemFor(setId: string, position: number): Promise<Item> {
   const [set] = await db.select().from(drillSets).where(eq(drillSets.id, setId));
-  return rebuildItem((set.itemPlan as ItemRef[])[position] as Extract<ItemRef, { kind: 'generated' }>, set.tier as Tier);
+  const ref = (set.itemPlan as ItemRef[])[position];
+  if (ref.kind === 'generated') return rebuildItem(ref, set.tier as Tier);
+  const [row] = await db.select().from(drillItems).where(and(eq(drillItems.itemId, ref.item_id), eq(drillItems.version, ref.version)));
+  return ItemSchema.parse(row.payload);
 }
 
 async function runDrill(drillId: string, skillId: string, level: 1 | 2) {
@@ -90,13 +95,14 @@ async function runDrill(drillId: string, skillId: string, level: 1 | 2) {
         submitAttempt(student, set_id, body(`race-${p}-a`)),
         submitAttempt(student, set_id, body(`race-${p}-b`)),
       ]);
-      const ok = [a, b, c].filter(r => r.status === 'fulfilled');
+      // Either key may win. The two same-key submits must get the same
+      // outcome, and exactly one key may land.
+      const outcome = (r: PromiseSettledResult<unknown>) => (r.status === 'fulfilled' ? JSON.stringify(r.value) : `rejected: ${(r.reason as Error).message}`);
       const keyA = [a, b].filter(r => r.status === 'fulfilled') as PromiseFulfilledResult<unknown>[];
-      check(keyA.length === 2 && JSON.stringify(keyA[0].value) === JSON.stringify(keyA[1].value), `${drillId}: same-key race gave different results`);
-      check(ok.length <= 3, `${drillId}: race`);
+      check(outcome(a) === outcome(b), `${drillId}: same-key race gave different results`);
+      check((a.status === 'fulfilled') !== (c.status === 'fulfilled'), `${drillId}: race landed ${a.status === 'fulfilled' && c.status === 'fulfilled' ? 'both keys' : 'neither key'}`);
       const rows = await db.select({ id: drillAttempts.id }).from(drillAttempts).where(eq(drillAttempts.setId, set_id));
       check(rows.length === p + 1, `${drillId}: racing submits stored ${rows.length - p} attempts for one item`);
-      if (c.status === 'fulfilled' && a.status === 'fulfilled') failures.push(`${drillId}: both keys landed on one item`);
       const won = keyA[0]?.value as { done?: boolean; score?: number } | undefined;
       expected += c.status === 'fulfilled' ? (c.value as { score: number }).score : won?.score ?? 0;
     } else {
@@ -123,7 +129,8 @@ async function main() {
     await updateSettings(student, { time_multiplier: 1.5 });
     const live = DRILLS_CONFIG.drills.drills.filter(d => d.live);
     for (const drill of live) await runDrill(drill.id, drill.skills[0], drill.level);
-    await expectError('no_live_drill', () => startSet(student, { skill_id: 'PS.mece' }), 'authored drill without live items');
+    // CL.data_requests is trained only by CL-3, which isn't live yet.
+    await expectError('no_live_drill', () => startSet(student, { skill_id: 'CL.data_requests' }), 'skill with no live drill');
   } finally {
     const sets = await db.select({ id: drillSets.id }).from(drillSets).where(eq(drillSets.studentId, student));
     await db.delete(drillAttempts).where(eq(drillAttempts.studentId, student));

@@ -2,7 +2,7 @@
   "item_id": "hy1-0004",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "On-time delivery fell from 96% to 88% while volume rose 25%.",
+      "text": "Drivers are likely taking longer routes since a software change.",
       "correct": false,
-      "tag": "M.restates_facts",
-      "feedback": "This restates the facts without proposing a cause."
+      "tag": "M.ignores_facts",
+      "feedback": "Nothing mentions new software, and it ignores the 25% jump in volume that lines up with the decline."
     },
     {
       "id": "b",
-      "text": "It could be traffic, drivers, the routing software, weather, the warehouse or the volume increase.",
+      "text": "Traffic, weather, routing and staffing each probably contribute something.",
       "correct": false,
       "tag": "M.shotgun_hypotheses",
-      "feedback": "This lists several causes without committing to the most likely one."
+      "feedback": "This lists causes without committing to one, so it doesn't tell you what to test first."
     },
     {
       "id": "c",
-      "text": "The company needs more drivers; the volume increase is definitely the cause.",
+      "text": "Customers are probably giving wrong addresses more often.",
       "correct": false,
-      "tag": "M.overconfident_hypothesis",
-      "feedback": "This states a cause as certain before any data has tested it."
+      "tag": "M.ignores_facts",
+      "feedback": "Nothing points to addresses, and it ignores the 25% rise in volume over the same six months."
     },
     {
       "id": "d",
-      "text": "Capacity likely hasn't kept up with volume, so routes are overloaded.",
+      "text": "Capacity has probably lagged the 25% rise in volume.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare on-time rates by route against stops per driver."
+      "feedback": "Right. Volume rose 25% as on-time delivery fell, which points to stretched capacity. I'd compare on-time rates by route against stops per driver."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Volume rose 25% while on-time performance fell, which points to capacity. Testing on-time rates against driver load confirms or rejects it.",
-  "extras": {
-    "distractor_flaws": {
-      "M.restates_facts": "On-time delivery fell from 96% to 88% while volume rose 25%.",
-      "M.shotgun_hypotheses": "It could be traffic, drivers, the routing software, weather, the warehouse or the volume increase.",
-      "M.overconfident_hypothesis": "The company needs more drivers; the volume increase is definitely the cause."
-    }
-  },
+  "explanation": "The data shows on-time delivery falling from 96% to 88% as volume rose 25%. Likely cause: capacity hasn't kept up. To test it, compare on-time rates with stops per driver by route. If routes with no extra load also slipped, look at routing or the warehouse instead.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

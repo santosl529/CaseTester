@@ -40,8 +40,11 @@ export function scoreQn5Step(
     if (!timeout && response.type !== 'choices') throw new ScoringError('unsupported_input', 'Pick the driver cards');
     for (const id of chosen) if (!item.options.some(o => o.id === id)) throw new ScoringError('unknown_option', `Unknown card ${id}`);
     const accepted = x.accepted_sets.find(set => sameSet(set, chosen));
+    // A wrong card picked is tagged as that card is: double counting or a
+    // driver that doesn't belong.
+    const wrongCard = chosen.map(id => item.options.find(o => o.id === id)!).find(o => !o.correct);
     const tag = accepted ? null
-      : chosen.some(id => !item.options.find(o => o.id === id)?.correct) ? 'M.double_counting'
+      : wrongCard ? wrongCard.tag ?? 'M.double_counting'
       : timeout ? 'M.timeout' : 'M.missing_driver';
     return { ...base, score: accepted ? 1 : 0, tag, detail: { drivers: accepted ?? x.accepted_sets[0], chosen } };
   }

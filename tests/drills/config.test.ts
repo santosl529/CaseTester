@@ -13,7 +13,7 @@ describe('drills config v1 (docs/prd-drills.md)', () => {
   it('matches the PRD counts: 9 areas, 29 skills, 62 tags, 25 drills', () => {
     expect(taxonomy.areas).toHaveLength(9);
     expect(taxonomy.skills).toHaveLength(29);
-    expect(taxonomy.mistake_tags).toHaveLength(62);
+    expect(taxonomy.mistake_tags).toHaveLength(65);
     expect(taxonomy.system_tags.map(t => t.id).sort()).toEqual(['M.skipped', 'M.timeout']);
     expect(drills.drills).toHaveLength(25);
     expect(drills.drills.filter(d => d.level === 1)).toHaveLength(13);
@@ -32,8 +32,8 @@ describe('drills config v1 (docs/prd-drills.md)', () => {
     expect(ai).toEqual(['CL-3', 'CR-1', 'HY-2', 'PS-3', 'SY-2']);
   });
 
-  it("makes only D1's generated drills live; authored drills wait for their pools", () => {
-    expect(drills.drills.filter(d => d.live).map(d => d.id).sort()).toEqual(['EX-2', 'EX-3', 'QN-1', 'QN-3', 'QN-4']);
+  it("makes D1's drills live once their pools are approved; D2's wait for theirs", () => {
+    expect(drills.drills.filter(d => d.live).map(d => d.id).sort()).toEqual(['CL-1', 'EX-1', 'EX-2', 'EX-3', 'HY-1', 'PS-1', 'QN-1', 'QN-3', 'QN-4', 'SY-1']);
     expect(hasLiveLevel2Drill('QN.percentages')).toBe(true);
     expect(hasLiveLevel2Drill('PS.mece')).toBe(false);
   });

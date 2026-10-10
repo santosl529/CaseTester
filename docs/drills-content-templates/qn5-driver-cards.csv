@@ -3,5 +3,5 @@ EXAMPLE-qn5-01,1,US households,driver,110000000,140000000,households,US Census: 
 EXAMPLE-qn5-01,2,Share of households with a dog,driver,0.3,0.5,share,Pet industry surveys: about 40% of households own a dog
 EXAMPLE-qn5-01,3,Professional grooming visits per dog-owning household per year,driver,2,8,visits,Many owners groom every 2–3 months; some never use a groomer
 EXAMPLE-qn5-01,4,Average price per grooming visit,driver,40,90,dollars,Typical local grooming prices $40–90
-EXAMPLE-qn5-01,5,Number of dogs in the US,distractor,,,,Double counts with household × share
-EXAMPLE-qn5-01,6,Number of pet stores,distractor,,,,"Supply, not spending"
+EXAMPLE-qn5-01,5,Number of dogs in the US,double_count,,,,Double counts with household × share
+EXAMPLE-qn5-01,6,Number of pet stores,not_a_driver,,,,"Pet stores are where grooming may happen, not a driver of how much is spent"

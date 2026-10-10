@@ -2,7 +2,7 @@
   "item_id": "sy1-0005",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 3,
   "skills": [
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "Don't buy RivalCo at $500M. Its standalone value of about $400M plus $150M of synergies, less $60M of integration costs, comes to $490M, below the $500M price. The main risk is that a rival bidder buys it instead, so the next step is to go back with an offer below $490M.",
+      "text": "Don't buy RivalCo at $500M: it's worth about $490M, counting $150M of synergies and $60M of integration costs.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and does the full value math, including integration costs."
     },
     {
       "id": "b",
-      "text": "On one hand, its standalone value of about $400M plus $150M of synergies, less $60M of integration costs, comes to $490M, below the $500M price. On the other hand, there is the risk that a rival bidder buys it instead. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "text": "Buy RivalCo. Its $400M stand-alone value plus $150M of synergies makes it worth $550M, above the $500M price.",
       "correct": false,
-      "tag": "M.hedged_recommendation",
-      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It leaves out the $60M of integration costs, which bring the value to $490M, below the price."
     },
     {
       "id": "c",
-      "text": "Don't buy RivalCo at $500M. RivalCo's CEO is a former colleague of our CEO. Its standalone value of about $400M plus $150M of synergies, less $60M of integration costs, comes to $490M, below the $500M price.",
+      "text": "Buy RivalCo. The two CEOs already know each other, so integration should go smoothly.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "feedback": "The CEOs' history doesn't change the value math: $490M against a $500M price."
     },
     {
       "id": "d",
-      "text": "Don't buy RivalCo at $500M. The deal doesn't feel like it creates enough value.",
+      "text": "RivalCo is worth roughly the asking price once synergies and integration are counted, so the board may want to weigh it further.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.hedged_recommendation",
+      "feedback": "This never commits to an answer, even though the math says the price is $10M too high."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Don't buy RivalCo at $500M. Its standalone value of about $400M plus $150M of synergies, less $60M of integration costs, comes to $490M, below the $500M price. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Don't buy RivalCo at $500M. Its $400M stand-alone value plus $150M of synergies, less $60M of integration costs, comes to $490M, below the price. The main risk is that a rival bidder buys it instead, so the next step is to offer below $490M. What would change the answer: synergy or integration estimates that lift the total above $500M.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

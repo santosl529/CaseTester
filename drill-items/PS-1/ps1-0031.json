@@ -2,7 +2,7 @@
   "item_id": "ps1-0031",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 2 and 3 overlap and should be merged",
+      "text": "Buckets 2 and 3 overlap: claims costs are both fixed and variable",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Fixed and variable costs don't overlap."
+      "feedback": "Claims are a variable cost; fixed and variable is a clean split. The issue is that a profit tree can't answer an entry question."
     },
     {
       "id": "b",
-      "text": "Missing: marketing costs",
+      "text": "Missing: the cost of marketing in Germany",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "Adding a cost line doesn't fix a structure that can't answer an entry question."
+      "feedback": "Adding a cost line doesn't fix a structure that never tests the market or the rivals."
     },
     {
       "id": "c",
-      "text": "It is a generic profit tree that doesn't test the market, competition or ability to win in Germany",
+      "text": "It's a generic profit tree: no German market or competition in it",
       "correct": true,
-      "feedback": "Right. Revenue and costs alone can't answer an entry question. Use market, competition, economics and ability to win."
+      "feedback": "Right. Revenue and costs alone can't answer an entry question. Use market, competition, entry economics and the ability to win."
     },
     {
       "id": "d",
-      "text": "Bucket 2 doesn't matter for entry",
+      "text": "Bucket 2 doesn't belong: fixed costs are small for an insurer",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Costs do matter. The issue is that the structure is too generic."
+      "feedback": "Licensing, systems and staff are real fixed costs. The issue is the generic structure, not one bucket."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

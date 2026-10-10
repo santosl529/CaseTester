@@ -2,7 +2,7 @@
   "item_id": "cl1-0003",
   "version": 1,
   "drill_id": "CL-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -17,45 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Check carrier transit times in more detail",
+      "text": "Compare carrier performance route by route",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That has already been answered. Build on what you know."
+      "feedback": "Already answered: carriers report normal transit times."
     },
     {
       "id": "b",
-      "text": "Analyze the client's pricing for more context on the business",
+      "text": "Price out a return to the old system",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That is off the objective. It won't help answer the client's question."
+      "feedback": "That jumps to a fix before knowing which step the system slowed."
     },
     {
       "id": "c",
-      "text": "Find which warehouse step the new system slowed",
+      "text": "Find which warehouse step the new system slowed down",
       "correct": true,
-      "feedback": "Right. Processing time doubled, so the next step is to find which step in the warehouse slowed."
+      "feedback": "Right. Processing time doubled after the launch, so the next step is pinpointing where."
     },
     {
       "id": "d",
-      "text": "Recommend going back to the old system",
+      "text": "Check whether order volume shifted between regions",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That jumps to a solution before the analysis supports it."
+      "feedback": "Volume is flat. The finding points inside the warehouse."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Processing time doubled, so the next step is to find which step in the warehouse slowed.",
+  "explanation": "Processing time doubled after a new system launched, so find which warehouse step slowed.",
   "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

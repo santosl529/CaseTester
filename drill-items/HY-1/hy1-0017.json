@@ -2,7 +2,7 @@
   "item_id": "hy1-0017",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Calls are likely taking longer, perhaps due to a new system or more complex issues.",
+      "text": "Calls are probably taking longer as issues get more complex.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd check average handle time by call type."
+      "feedback": "Right. With wages flat, cost per call rises when each call takes longer or agents sit idle. I'd check average handle time by call type."
     },
     {
       "id": "b",
-      "text": "It could be call length, staffing levels, overtime, systems, training or call mix.",
+      "text": "Agents' pay has probably risen under a new contract.",
       "correct": false,
-      "tag": "M.shotgun_hypotheses",
-      "feedback": "This lists several causes without committing to the most likely one."
+      "tag": "M.ignores_facts",
+      "feedback": "Wages stayed the same."
     },
     {
       "id": "c",
-      "text": "The new phone system is slowing agents down, so it should be replaced.",
+      "text": "A new phone system is slowing agents, so it has to be replaced.",
       "correct": false,
       "tag": "M.overconfident_hypothesis",
-      "feedback": "This states a cause as certain before any data has tested it."
+      "feedback": "Nothing mentions a new system, and this jumps to a fix before any data."
     },
     {
       "id": "d",
-      "text": "The call center is inefficient.",
+      "text": "Call volumes have likely surged past what the team can take.",
       "correct": false,
-      "tag": "M.untestable_hypothesis",
-      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+      "tag": "M.ignores_facts",
+      "feedback": "More calls would spread fixed costs and lower the cost per call. With wages flat, the extra cost has to come from time spent per call or idle time."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "With flat wages, cost per call rises when calls take longer or agents sit idle. Handle time by call type tests the first.",
-  "extras": {
-    "distractor_flaws": {
-      "M.shotgun_hypotheses": "It could be call length, staffing levels, overtime, systems, training or call mix.",
-      "M.overconfident_hypothesis": "The new phone system is slowing agents down, so it should be replaced.",
-      "M.untestable_hypothesis": "The call center is inefficient."
-    }
-  },
+  "explanation": "The data shows cost per call up 20% with wages flat, so each call takes more paid time. Likely cause: calls are taking longer as issues get more complex. To test it, check average handle time by call type. If handle time is flat, look at idle time and staffing instead.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

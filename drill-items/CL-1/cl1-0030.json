@@ -2,7 +2,7 @@
   "item_id": "cl1-0030",
   "version": 1,
   "drill_id": "CL-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -17,45 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Re-check the market's growth in more detail",
+      "text": "Find out why the Mexican market is growing",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That has already been answered. Build on what you know."
+      "feedback": "Growth is known. The finding challenges the client's format."
     },
     {
       "id": "b",
       "text": "Test whether the large-store format fits Mexico",
       "correct": true,
-      "feedback": "Right. Shopping habits challenge the client's format, so format fit comes next."
+      "feedback": "Right. Shoppers prefer small, frequent trips nearby, which challenges a large-store format."
     },
     {
       "id": "c",
-      "text": "Look at the client's US advertising for more context on the business",
+      "text": "Compare land prices for large stores in Mexico City",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That is off the objective. It won't help answer the client's question."
+      "feedback": "That assumes the large format works, which the finding questions."
     },
     {
       "id": "d",
-      "text": "Recommend opening large stores in Mexico City",
+      "text": "Map which US advertising could be reused in Mexico",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That jumps to a solution before the analysis supports it."
+      "feedback": "Off the finding."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Shopping habits challenge the client's format, so format fit comes next.",
+  "explanation": "Local shoppers prefer small, frequent trips. Test whether the large-store format fits.",
   "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

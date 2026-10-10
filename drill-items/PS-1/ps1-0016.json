@@ -2,9 +2,9 @@
   "item_id": "ps1-0016",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 3,
+  "tier": 2,
   "skills": [
     "PS.mece",
     "PS.case_specific"
@@ -18,28 +18,28 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 1 and 3 overlap and should be merged",
+      "text": "Buckets 1 and 3 overlap: rival tablet sales show the demand",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Demand and competitors are separate."
+      "feedback": "Rival sales are one clue to demand, but how much consumers want tablets and who already sells them are separate questions."
     },
     {
       "id": "b",
-      "text": "Bucket 3 doesn't matter for a new format",
+      "text": "Bucket 2 doesn't belong: subscribers care about convenience, not price",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Existing tablet brands set expectations on price and product."
+      "feedback": "Tablets compete with cheap regular toothpaste, so price compared with it is central to demand."
     },
     {
       "id": "c",
-      "text": "It is a generic launch framework",
+      "text": "It's a generic launch checklist that would fit any new toothpaste",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "The buckets are specific to tablets. The flaw is the missing economics."
+      "feedback": "The buckets are specific to refillable tablets sold against regular toothpaste. The flaw is that nobody checks whether the subscription makes money."
     },
     {
       "id": "d",
-      "text": "Missing: the costs and economics of a subscription business",
+      "text": "Missing: what it costs to make, ship and win each subscriber",
       "correct": true,
       "feedback": "Right. Nothing covers production, packaging, shipping and customer acquisition costs, which decide whether a subscription pays."
     }
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

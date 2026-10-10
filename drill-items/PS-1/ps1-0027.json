@@ -2,15 +2,15 @@
   "item_id": "ps1-0027",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 3,
+  "tier": 2,
   "skills": [
     "PS.mece",
     "PS.case_specific"
   ],
   "case_type": "operations",
-  "prompt": "A warehouse is shipping orders 30% slower than last year. The candidate's framework: (1) Order volume and mix; (2) Picking and packing speed; (3) Shipping and carrier pickup schedules; (4) The warehouse's building age and architectural style. What is the flaw in this framework?",
+  "prompt": "A warehouse is shipping orders 30% slower than last year. The candidate's framework: (1) Order volume and mix; (2) Sales forecasts for next holiday season; (3) Picking and packing speed; (4) Shipping and carrier pickup schedules. What is the flaw in this framework?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -18,48 +18,50 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 2 and 3 overlap and should be merged",
+      "text": "Buckets 3 and 4 overlap: packing ends when the carrier picks up",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Packing inside the warehouse and carrier pickup are separate stages."
+      "feedback": "One stage hands off to the other, but work inside the warehouse and carrier pickups are separate stages."
     },
     {
       "id": "b",
-      "text": "Missing: picking and packing speed",
+      "text": "Missing: how fast workers pull items off the shelves",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "That is bucket 2."
+      "feedback": "Pulling items off shelves is picking, bucket 3."
     },
     {
       "id": "c",
-      "text": "Bucket 4 doesn't matter",
+      "text": "Bucket 2 doesn't belong: next season's sales can't explain it",
       "correct": true,
-      "feedback": "Right. Layout might matter, but style doesn't. Replace it with staffing and equipment capacity."
+      "feedback": "Right. A future forecast doesn't explain why shipping is slower now. Replace it with staffing and equipment capacity."
     },
     {
       "id": "d",
-      "text": "It is a generic operations framework",
+      "text": "It's a generic process map: it skips the warehouse software",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "The buckets follow the warehouse flow. The flaw is bucket 4."
+      "feedback": "Software would show up in picking and packing speed. Following the order through the warehouse is the right start. The flaw is bucket 2."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Slower shipping comes from volume, process speed, capacity and outbound logistics. Building style isn't a driver.",
+  "explanation": "Slower shipping comes from volume, process speed, capacity and outbound logistics. A forecast for next season isn't a cause.",
   "extras": {
     "flaw_type": "irrelevant",
     "corrected_framework": "Volume and mix; picking and packing; staffing and equipment capacity; outbound logistics"
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

@@ -2,7 +2,7 @@
   "item_id": "sy1-0003",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "Ingredient costs are up 35% while menu prices haven't moved in three years, and with traffic flat, the $4M profit drop is a cost problem, not a demand problem. The main risk is that price-sensitive customers trade down. Putting it together, the chain should raise menu prices by about 8%, in line with competitors.",
+      "text": "Don't raise prices; run promotions instead. Profit fell $4M, and with traffic flat the chain needs more visits to earn it back.",
       "correct": false,
-      "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "Confident and numerical, but it misreads the problem: costs rose 35% while prices haven't moved, so it's a cost problem, not a demand problem."
     },
     {
       "id": "b",
-      "text": "On one hand, ingredient costs are up 35% while menu prices haven't moved in three years, and with traffic flat, the $4M profit drop is a cost problem, not a demand problem. On the other hand, there is the risk that price-sensitive customers trade down. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "text": "Prices might rise about 8% to match competitors, or costs might come down; each has a case until we know more.",
       "correct": false,
       "tag": "M.hedged_recommendation",
-      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+      "feedback": "This never commits to an answer."
     },
     {
       "id": "c",
-      "text": "The chain should raise menu prices by about 8%, in line with competitors. Ingredient costs are up 35% while menu prices haven't moved in three years, and with traffic flat, the $4M profit drop is a cost problem, not a demand problem. The main risk is that price-sensitive customers trade down, so the next step is to test the increase in a group of stores before rolling it out.",
+      "text": "Raise menu prices about 8%, like competitors: ingredients are up 35% while our prices have not moved in three years.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with the facts that decide it."
     },
     {
       "id": "d",
-      "text": "The chain should raise menu prices by about 8%, in line with competitors. Prices are too low for a bakery of this quality.",
+      "text": "Raise menu prices about 8%. The 2023 logo refresh lifted the brand, giving it room to charge what competitors now charge.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.irrelevant_facts",
+      "feedback": "A logo refresh doesn't justify a price rise. The 35% cost increase and competitors' 8% increases do."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "The chain should raise menu prices by about 8%, in line with competitors. Ingredient costs are up 35% while menu prices haven't moved in three years, and with traffic flat, the $4M profit drop is a cost problem, not a demand problem. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Raise menu prices about 8%, in line with competitors. Ingredient costs are up 35%, our prices haven't moved in three years, and traffic is flat, so the $4M drop is a cost problem, not a demand problem. The main risk is that price-sensitive customers trade down, so the next step is to test the increase in a group of stores first. What would change the answer: a sharp traffic drop in the test stores.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

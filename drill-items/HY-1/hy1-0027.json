@@ -2,14 +2,14 @@
   "item_id": "hy1-0027",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
     "HY.form"
   ],
   "case_type": "growth_strategy",
-  "prompt": "A children's clothing brand sells 70% of its products online. Its online growth slowed from 30% to 5% a year, while store sales grew 10%. Which is the strongest initial hypothesis?",
+  "prompt": "A children's clothing brand sells 70% of its products online. Online growth slowed from 30% to 5% a year, and new online customers fell by half, though ad spend was unchanged. Store sales grew 10%. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Online growth slowed from 30% to 5% while store sales grew 10%.",
+      "text": "The brand has probably cut back its online advertising.",
       "correct": false,
-      "tag": "M.restates_facts",
-      "feedback": "This restates the facts without proposing a cause."
+      "tag": "M.ignores_facts",
+      "feedback": "Ad spend was unchanged."
     },
     {
       "id": "b",
-      "text": "It could be online saturation, ad costs, competitors, the website or store cannibalization.",
+      "text": "Existing online customers are likely buying less often than last year.",
       "correct": false,
-      "tag": "M.shotgun_hypotheses",
-      "feedback": "This lists several causes without committing to the most likely one."
+      "tag": "M.ignores_facts",
+      "feedback": "The slowdown comes from new customers falling by half."
     },
     {
       "id": "c",
-      "text": "The brand may have saturated its online audience.",
+      "text": "The brand has probably run out of new parents to reach online.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare new-customer growth online against repeat purchases."
+      "feedback": "Right. With ad spend flat, new customers halved, which suggests saturation. I'd compare new-customer growth and acquisition cost by channel over time."
     },
     {
       "id": "d",
-      "text": "Online is not what it used to be.",
+      "text": "Online probably isn't working the way it used to.",
       "correct": false,
       "tag": "M.untestable_hypothesis",
-      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+      "feedback": "Too vague to test: it doesn't say what changed."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Slowing growth from new customers points to saturation. New versus repeat customers tests it.",
-  "extras": {
-    "distractor_flaws": {
-      "M.restates_facts": "Online growth slowed from 30% to 5% while store sales grew 10%.",
-      "M.shotgun_hypotheses": "It could be online saturation, ad costs, competitors, the website or store cannibalization.",
-      "M.untestable_hypothesis": "Online is not what it used to be."
-    }
-  },
+  "explanation": "The data shows new online customers halving with ad spend unchanged. Likely cause: the brand has reached most of the parents it can find online. To test it, track new customers and acquisition cost by channel over time. If only one channel dropped, the problem is that channel, not saturation.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

@@ -117,7 +117,13 @@ export const ItemSchema = z.object({
     drafting_model: z.string().nullable(),
     reviewed_by: z.string().nullable(),
     reviewed_at: z.string().nullable(),
-    similarity_check: z.enum(['passed', 'failed', 'pending']),
+    // Clean-room check against published case-prep material
+    // (scripts/drills-similarity.ts): pending until run; flagged items wait for
+    // a human, who marks them passed or failed. Generated items are built from
+    // our own templates, so the check doesn't apply.
+    similarity_check: z.enum(['passed', 'flagged', 'failed', 'pending', 'not_applicable']),
+    similarity_note: z.string().nullable().default(null),
+    similarity_checked_at: z.string().nullable().default(null),
   }).nullable(),
   generator: GeneratorRefSchema.nullable(),
   // The drill's worked example on the intro screen. One reviewed item per
@@ -168,9 +174,19 @@ export const ItemSchema = z.object({
 
   const takesNumber = item.input.type === 'numeric' || item.input.steps?.some(st => st.type === 'numeric');
   if (takesNumber && !item.numeric) issue('Numeric items need a numeric key', ['numeric']);
+  // Clean-room rules: an authored item goes live only once reviewed and past
+  // the similarity check; "not applicable" is for generated items only.
+  const sim = item.authorship?.similarity_check;
+  if (item.generator === null && sim === 'not_applicable') issue('Authored items need a similarity check', ['authorship', 'similarity_check']);
+  if (item.generator !== null && item.authorship && sim !== 'not_applicable') issue('Generated items are not similarity-checked', ['authorship', 'similarity_check']);
+  if (item.generator === null && item.status === 'live') {
+    if (!item.authorship?.reviewed_by) issue('A live item must be reviewed', ['authorship', 'reviewed_by']);
+    if (sim !== 'passed') issue(`A live item must pass the similarity check (it is ${sim ?? 'missing'})`, ['authorship', 'similarity_check']);
+  }
   if (item.is_example) {
     if (item.generator !== null) issue('Only authored items can be the worked example', ['is_example']);
-    if (!item.authorship?.reviewed_by) issue('The worked example must be a reviewed item', ['is_example']);
+    // A draft may be marked as the example ahead of review; it is only shown once live.
+    if (item.status === 'live' && !item.authorship?.reviewed_by) issue('The worked example must be a reviewed item', ['is_example']);
   }
   if (item.numeric) {
     item.numeric.trap_values.forEach((t, i) => {

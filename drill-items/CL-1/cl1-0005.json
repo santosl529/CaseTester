@@ -2,7 +2,7 @@
   "item_id": "cl1-0005",
   "version": 1,
   "drill_id": "CL-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -17,45 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Find out why new customers cancel so quickly",
+      "text": "Work out why new customers cancel within two months",
       "correct": true,
-      "feedback": "Right. Churn offsets every new customer, so understanding early cancellations comes before spending more on acquisition."
+      "feedback": "Right. Cancellations cancel out every new customer, so early churn comes before spending more on acquisition."
     },
     {
       "id": "b",
-      "text": "Count how many customers the company has",
+      "text": "Calculate the marketing needed to double sign-ups",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That has already been answered. Build on what you know."
+      "feedback": "More sign-ups won't help while half of them leave within two months."
     },
     {
       "id": "c",
-      "text": "Review the company's office lease",
+      "text": "Compare prices with rival meal-kit companies",
       "correct": false,
-      "tag": "M.illogical_next_step",
-      "feedback": "That is off the objective. It won't help answer the client's question."
+      "tag": "M.low_priority_next_step",
+      "feedback": "Price may turn out to be one reason people cancel, but start with why they cancel."
     },
     {
       "id": "d",
-      "text": "Recommend doubling the marketing budget",
+      "text": "Size the market for ready-to-eat meals",
       "correct": false,
-      "tag": "M.illogical_next_step",
-      "feedback": "That jumps to a solution before the analysis supports it."
+      "tag": "M.low_priority_next_step",
+      "feedback": "A new product is a later lever. The finding is about churn."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Churn offsets every new customer, so understanding early cancellations comes before spending more on acquisition.",
+  "explanation": "Half of new customers cancel within two months, so understanding early churn comes before growing acquisition.",
   "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

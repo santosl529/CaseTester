@@ -2,7 +2,7 @@
   "item_id": "hy1-0034",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Energy costs rose 25% while prices rose 10%, and two buildings opened.",
+      "text": "Higher energy prices likely explain most of the increase.",
       "correct": false,
-      "tag": "M.restates_facts",
-      "feedback": "This restates the facts without proposing a cause."
+      "tag": "M.ignores_facts",
+      "feedback": "Prices rose 10% but costs rose 25%, so usage rose about 14%."
     },
     {
       "id": "b",
-      "text": "The new buildings likely account for most of the extra usage.",
+      "text": "The two new buildings likely use much of the extra energy.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare energy use per square foot by building."
+      "feedback": "Right. Usage rose about 14% beyond prices, and two buildings opened. I'd compare energy use per square foot by building."
     },
     {
       "id": "c",
       "text": "The new buildings are inefficient and need to be retrofitted.",
       "correct": false,
       "tag": "M.overconfident_hypothesis",
-      "feedback": "This states a cause as certain before any data has tested it."
+      "feedback": "This states a cause as certain and jumps to an expensive fix before any data."
     },
     {
       "id": "d",
-      "text": "The university uses too much energy.",
+      "text": "Students are probably using less energy in the old buildings.",
       "correct": false,
-      "tag": "M.untestable_hypothesis",
-      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+      "tag": "M.ignores_facts",
+      "feedback": "That would lower costs, not raise them 25%."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Usage rose about 15% beyond prices, and new buildings add area. Use per square foot by building tests it.",
-  "extras": {
-    "distractor_flaws": {
-      "M.restates_facts": "Energy costs rose 25% while prices rose 10%, and two buildings opened.",
-      "M.overconfident_hypothesis": "The new buildings are inefficient and need to be retrofitted.",
-      "M.untestable_hypothesis": "The university uses too much energy."
-    }
-  },
+  "explanation": "The data shows energy costs up 25% against 10% for prices, so usage rose about 14% (1.25 ÷ 1.10) in the year two buildings opened. Likely cause: the new buildings use much of the extra energy. To test it, compare energy use per square foot by building. If use rose in the old buildings too, look at weather or equipment.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

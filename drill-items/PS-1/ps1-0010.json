@@ -2,7 +2,7 @@
   "item_id": "ps1-0010",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -10,7 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "investment_decision",
-  "prompt": "A bakery chain is deciding whether to buy a second industrial oven line. The candidate's framework: (1) Extra demand the oven would serve; (2) Cost of the oven and installation; (3) Running costs: energy, labor and maintenance; (4) Upfront investment needed. What is the flaw in this framework?",
+  "prompt": "A bakery chain is deciding whether to buy a second industrial oven line. The candidate's framework: (1) Cost of the oven and installation; (2) Upfront investment needed; (3) Extra demand the oven would serve; (4) Running costs: energy, labor and maintenance. What is the flaw in this framework?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Missing: running costs",
+      "text": "Missing: energy and staff to run the new line",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "Running costs are bucket 3."
+      "feedback": "Energy and labor are in bucket 4, running costs."
     },
     {
       "id": "b",
-      "text": "Buckets 2 and 4 overlap",
+      "text": "Buckets 1 and 2 overlap: the oven and installation are the investment",
       "correct": true,
-      "feedback": "Right. Merge them and add the payback or return compared with the bakery's hurdle."
+      "feedback": "Right. The cost of the oven and installation is the upfront investment. Merge them and add the payback compared with the bakery's hurdle."
     },
     {
       "id": "c",
-      "text": "Bucket 1 doesn't matter: the oven is about efficiency",
+      "text": "Bucket 4 doesn't belong: running costs are small next to the oven's price",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Extra demand is what pays for the oven, so bucket 1 is central."
+      "feedback": "Nothing says running costs are small, and over the oven's life they can exceed its price. They decide whether it pays back."
     },
     {
       "id": "d",
-      "text": "It is a generic investment checklist",
+      "text": "It's a generic capital-budgeting list: it skips the bakery's strategy",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "The buckets fit this oven decision. The flaw is the duplicated investment bucket."
+      "feedback": "Demand, upfront cost and running costs are the right inputs for an oven decision. The flaw is the duplicated investment bucket."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

@@ -1,0 +1,69 @@
+{
+  "item_id": "ps1-0042",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "live",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "profitability",
+  "prompt": "An online furniture retailer's operating margin fell from 12% to 7%. The candidate's framework: (1) Prices and discounting by category; (2) Product costs from suppliers; (3) Delivery and returns costs; (4) Marketing and overhead; (5) Gross margin by category. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Missing: shipping costs for sofas",
+      "correct": false,
+      "feedback": "Shipping is a delivery cost, bucket 3.",
+      "tag": "M.missing_bucket"
+    },
+    {
+      "id": "b",
+      "text": "Bucket 4 doesn't belong: marketing drives sales, not margin",
+      "correct": false,
+      "feedback": "Marketing is a cost, so it comes straight out of operating margin. It belongs.",
+      "tag": "M.irrelevant_bucket"
+    },
+    {
+      "id": "c",
+      "text": "Bucket 5 repeats buckets 1 and 2: margin is price minus product cost",
+      "correct": true,
+      "feedback": "Right. Gross margin is price minus product cost, so bucket 5 repeats buckets 1 and 2. Analyze it by category inside those buckets."
+    },
+    {
+      "id": "d",
+      "text": "It's a generic profit tree: an online retailer is better split by channel",
+      "correct": false,
+      "feedback": "Channel can be a cut inside each bucket. Price and cost lines are the right start for a margin decline.",
+      "tag": "M.generic_framework"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Gross margin is price minus product cost, so bucket 5 counts buckets 1 and 2 again. Keep price, product cost, delivery and returns, and marketing and overhead.",
+  "extras": {
+    "flaw_type": "overlap",
+    "corrected_framework": "Price and discounting; product costs; delivery and returns; marketing and overhead (each by category)"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

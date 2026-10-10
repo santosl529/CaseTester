@@ -119,7 +119,11 @@ export function generatedItem(f: GeneratedFields): Item {
     model_answer: null,
     explanation: f.explanation,
     extras: { ...f.extras, inputs: f.inputs },
-    authorship: null,
+    // Built from our own templates: the similarity check doesn't apply.
+    authorship: {
+      author_of_record: `template ${f.templateId} v${f.templateVersion}`, drafting_model: null, reviewed_by: null, reviewed_at: null,
+      similarity_check: 'not_applicable', similarity_note: null, similarity_checked_at: null,
+    },
     generator: { template_id: f.templateId, template_version: f.templateVersion, seed: f.seed },
     is_example: false,
     firm_style: null,

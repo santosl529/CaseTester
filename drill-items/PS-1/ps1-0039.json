@@ -2,9 +2,9 @@
   "item_id": "ps1-0039",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 3,
+  "tier": 1,
   "skills": [
     "PS.mece",
     "PS.case_specific"
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 2 and 4 overlap and should be merged",
+      "text": "Buckets 2 and 4 overlap: in this SWOT, falling sales are also a threat",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Weaknesses and threats differ. The issue is that SWOT doesn't fit."
+      "feedback": "Weaknesses are internal and threats are external. The issue is that a SWOT doesn't fit a turnaround."
     },
     {
       "id": "b",
-      "text": "Missing: a cash bucket",
+      "text": "Missing: how much cash the chain has left",
       "correct": false,
       "tag": "M.missing_bucket",
       "feedback": "Cash matters, but adding it doesn't make a SWOT a turnaround plan."
     },
     {
       "id": "c",
-      "text": "It is a SWOT, which doesn't diagnose why performance fell or set priorities",
+      "text": "It's a generic checklist: strengths and threats don't diagnose losses",
       "correct": true,
       "feedback": "Right. A turnaround needs a diagnosis of profit and cash, then stabilization and growth options."
     },
     {
       "id": "d",
-      "text": "Bucket 3 doesn't matter in a turnaround",
+      "text": "Bucket 4 doesn't belong: the chain can't act on outside threats",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "The flaw is the canned framework, not one bucket."
+      "feedback": "Threats such as online rivals shape the plan. The issue is the canned framework, not one bucket."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

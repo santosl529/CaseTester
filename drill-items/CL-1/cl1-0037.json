@@ -2,7 +2,7 @@
   "item_id": "cl1-0037",
   "version": 1,
   "drill_id": "CL-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -17,45 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Find which call types got longer",
+      "text": "Find which call types got longer, and by how much",
       "correct": true,
-      "feedback": "Right. Longer calls drive cost, so the next step is finding which calls got longer."
+      "feedback": "Right. Longer calls drive cost, so find which calls got longer."
     },
     {
       "id": "b",
-      "text": "Check whether wages changed",
+      "text": "Compare agent wages with other call centers",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That has already been answered. Build on what you know."
+      "feedback": "Wages are flat. The finding is call length."
     },
     {
       "id": "c",
-      "text": "Look at the office's furniture",
+      "text": "Count calls per day month by month",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That is off the objective. It won't help answer the client's question."
+      "feedback": "The finding is about call length, not volume."
     },
     {
       "id": "d",
-      "text": "Recommend hiring cheaper agents",
+      "text": "Estimate savings from hiring cheaper agents",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That jumps to a solution before the analysis supports it."
+      "feedback": "That jumps to a fix unrelated to the finding."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Longer calls drive cost, so the next step is finding which calls got longer.",
+  "explanation": "Average call length rose from 6 to 9 minutes. Find which call types got longer.",
   "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

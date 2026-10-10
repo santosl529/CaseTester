@@ -2,7 +2,7 @@
   "item_id": "sy1-0040",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -11,7 +11,7 @@
     "SY.summary"
   ],
   "case_type": "investment_decision",
-  "prompt": "Mid-case: The client is deciding whether to buy a delivery van. You've found that it costs $40,000 and would save $10,000 a year in courier fees. You haven't looked at running costs. Which is the best summary?",
+  "prompt": "Mid-case: The client is deciding whether to buy a delivery van. You've found that it costs $40,000 and would save $10,000 a year in courier fees. You also learned the dealer delivers the van for free. You haven't looked at running costs. Which is the best summary?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -19,50 +19,52 @@
   "options": [
     {
       "id": "a",
-      "text": "So far: the van pays back in 4 years including all its costs. Next I'd choose a model.",
+      "text": "So far: the van pays back in 4 years after running costs, so it's worth buying.",
       "correct": false,
       "tag": "M.inaccurate_summary",
-      "feedback": "This claims findings the analysis hasn't shown. Summarize only what you've established."
+      "feedback": "Running costs haven't been looked at, so the payback after them isn't known."
     },
     {
       "id": "b",
-      "text": "So far: the van costs $40,000 and saves $10,000 a year in courier fees, a 4-year payback before running costs. The van comes in three colors. Next I'd add running costs to see if the payback still works.",
+      "text": "So far: the van costs $40,000 and saves $10,000 a year, a 2-year payback. Next, running costs.",
       "correct": false,
-      "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "tag": "M.inaccurate_summary",
+      "feedback": "The math is wrong: $40,000 ÷ $10,000 = 4 years."
     },
     {
       "id": "c",
-      "text": "So far: the van would save money on couriers. Next I'd add running costs to see if the payback still works.",
+      "text": "So far: the van costs $40,000, the dealer delivers it free, and it saves $10,000 a year in courier fees. Next, running costs.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.irrelevant_facts",
+      "feedback": "Free delivery doesn't change the payback, so it doesn't belong in the summary."
     },
     {
       "id": "d",
-      "text": "So far: the van costs $40,000 and saves $10,000 a year in courier fees, a 4-year payback before running costs. We haven't yet looked at running costs such as fuel, insurance and a driver, so next I'd add running costs to see if the payback still works.",
+      "text": "So far: the van costs $40,000 and saves $10,000 a year, a 4-year payback before running costs, which come next.",
       "correct": true,
-      "feedback": "Right. It states what is known, with numbers, then what is still open and what comes next."
+      "feedback": "Right. It states what is known, with numbers, then what is still open."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "The van costs $40,000 and saves $10,000 a year in courier fees, a 4-year payback before running costs. A good mid-case summary states what is known with numbers and what comes next, without claiming findings that haven't been tested.",
+  "explanation": "Known: $40,000 ÷ $10,000 = a 4-year payback before running costs. Open: fuel, insurance and a driver. Next: add them. If running costs approach $10,000 a year, the van never pays back.",
   "extras": {
     "answer_type": "summary",
     "irrelevant_facts": [
-      "The van comes in three colors."
+      "The dealer delivers the van for free."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

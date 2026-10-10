@@ -2,7 +2,7 @@
   "item_id": "sy1-0011",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "For $20M, upgrades cut trip times 20% for 40,000 daily riders, against $50M for a new line serving 8,000, and slow trips are why ridership fell 15%. The main risk is that faster trips don't win riders back. Putting it together, improve the existing routes first.",
+      "text": "Upgrades cost $20M and speed up trips 20% for 40,000 daily riders, against $50M for 8,000 on a new line, so improving existing routes should come first.",
       "correct": false,
       "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
     },
     {
       "id": "b",
-      "text": "On one hand, for $20M, upgrades cut trip times 20% for 40,000 daily riders, against $50M for a new line serving 8,000, and slow trips are why ridership fell 15%. On the other hand, there is the risk that faster trips don't win riders back. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "text": "Build the new line. It brings service to 8,000 riders a day who have none, and new lines win riders in a way repairs don't.",
       "correct": false,
-      "tag": "M.hedged_recommendation",
-      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores cost and cause: $50M for 8,000 riders, while slow trips are why 15% of riders left."
     },
     {
       "id": "c",
-      "text": "Improve the existing routes first. For $20M, upgrades cut trip times 20% for 40,000 daily riders, against $50M for a new line serving 8,000, and slow trips are why ridership fell 15%. The main risk is that faster trips don't win riders back, so the next step is to start with the busiest routes and measure ridership.",
+      "text": "Improve existing routes first: for $20M, trips will get 20% faster for 40,000 daily riders, against $50M for 8,000 on a new line.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with cost per rider and the cause of the decline."
     },
     {
       "id": "d",
-      "text": "Improve the existing routes first. Fixing what you have is always better than building new.",
+      "text": "Improve existing routes. Having renovated city hall last year, the city needs to show riders visible results this year.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.irrelevant_facts",
+      "feedback": "City hall's renovation has nothing to do with buses. Cost per rider and the cause of the decline support the answer."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Improve the existing routes first. For $20M, upgrades cut trip times 20% for 40,000 daily riders, against $50M for a new line serving 8,000, and slow trips are why ridership fell 15%. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Improve existing routes first. For $20M, upgrades make trips 20% faster for 40,000 daily riders, against $50M for a new line serving 8,000, and slow trips are why ridership fell 15%. The main risk is that faster trips don't win riders back, so the next step is to upgrade the busiest routes first and measure ridership. What would change the answer: ridership staying flat on the upgraded routes.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

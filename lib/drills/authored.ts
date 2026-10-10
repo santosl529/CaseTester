@@ -46,32 +46,6 @@ export function loadAuthoredItems(dir = DRILL_ITEMS_DIR): Item[] {
   return parseAuthoredItems(files.map(file => ({ file, raw: JSON.parse(fs.readFileSync(file, 'utf-8')) })));
 }
 
-// Option length must not give the answer away. Drafted pools had the right
-// answer as the longest option in 39–40 of 40 items, so a student could pass by
-// picking the longest. For choice drills, across a pool of 20+ items, the right
-// answer may be the longest (or the shortest) option in at most half of them;
-// chance is 1 in the number of options.
-export const LENGTH_CUE_MAX_SHARE = 0.5;
-const LENGTH_CUE_MIN_POOL = 20;
-
-export function lengthCueProblems(items: Item[]): string[] {
-  const byDrill = new Map<string, Item[]>();
-  for (const item of items) {
-    if (item.options.length < 3) continue;
-    byDrill.set(item.drill_id, [...(byDrill.get(item.drill_id) ?? []), item]);
-  }
-  const problems: string[] = [];
-  for (const [drill, pool] of byDrill) {
-    if (pool.length < LENGTH_CUE_MIN_POOL) continue;
-    const rank = (item: Item) => [...item.options].sort((a, b) => a.text.length - b.text.length);
-    const longest = pool.filter(i => rank(i).at(-1)!.correct).length;
-    const shortest = pool.filter(i => rank(i)[0].correct).length;
-    for (const [which, n] of [['longest', longest], ['shortest', shortest]] as const) {
-      if (n / pool.length > LENGTH_CUE_MAX_SHARE) {
-        problems.push(`${drill}: the right answer is the ${which} option in ${n} of ${pool.length} items (max ${Math.round(LENGTH_CUE_MAX_SHARE * 100)}%)`);
-      }
-    }
-  }
-  return problems;
-}
-
+// The wording checks (length, phrase, rule player) live in content-checks.ts,
+// which the review page script can import too.
+export { contentCheckProblems, lengthCueProblems } from './content-checks';

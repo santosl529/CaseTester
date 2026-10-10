@@ -2,7 +2,7 @@
   "item_id": "sy1-0033",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -11,7 +11,7 @@
     "SY.summary"
   ],
   "case_type": "operations",
-  "prompt": "Mid-case: Delivery times rose from 3 to 5 days. You've found that warehouse processing takes 2 extra days since a new system launched in March, and that carrier transit time is unchanged. You haven't looked at staffing. Which is the best summary?",
+  "prompt": "Mid-case: Delivery times rose from 3 to 5 days. You've found that warehouse processing takes 2 extra days since a new system launched in March, and that carrier transit time is unchanged. You also learned the carrier rebranded in May. You haven't looked at staffing. Which is the best summary?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -19,50 +19,52 @@
   "options": [
     {
       "id": "a",
-      "text": "So far: almost all of the 2-day increase comes from warehouse processing, which slowed after the new system launched in March; carrier transit is unchanged. We haven't yet looked at warehouse staffing, so next I'd check whether staffing changed at the same time.",
+      "text": "So far: the 2 extra days come from warehouse processing since the March system launch; carrier transit is unchanged. Next I'd check staffing.",
       "correct": true,
-      "feedback": "Right. It states what is known, with numbers, then what is still open and what comes next."
+      "feedback": "Right. It states what is known, with numbers, then what is still open."
     },
     {
       "id": "b",
-      "text": "So far: the warehouse and the carriers both slowed, adding a day each. Next I'd look at staffing.",
+      "text": "So far: the new system caused the 2-day delay, so the fix is to roll it back before the busy season.",
       "correct": false,
       "tag": "M.inaccurate_summary",
-      "feedback": "This claims findings the analysis hasn't shown. Summarize only what you've established."
+      "feedback": "It jumps to a fix before checking staffing, which could have changed at the same time."
     },
     {
       "id": "c",
-      "text": "We've looked at the warehouse and the carriers. We still need to look at warehouse staffing, and next I'd check whether staffing changed at the same time. The main finding so far is that almost all of the 2-day increase comes from warehouse processing, which slowed after the new system launched in March; carrier transit is unchanged.",
+      "text": "So far: warehouse processing and carrier transit both slowed, adding 2 days between them. Staffing comes next.",
       "correct": false,
-      "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "tag": "M.inaccurate_summary",
+      "feedback": "It misstates what you found: carrier transit is unchanged."
     },
     {
       "id": "d",
-      "text": "So far: almost all of the 2-day increase comes from warehouse processing, which slowed after the new system launched in March; carrier transit is unchanged. The carrier recently rebranded. Next I'd check whether staffing changed at the same time.",
+      "text": "So far: warehouse processing added 2 days after the March system launch, and the carrier rebranded in May. Next, staffing.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "feedback": "The carrier's rebrand has nothing to do with the delay, so it doesn't belong in the summary."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Almost all of the 2-day increase comes from warehouse processing, which slowed after the new system launched in March; carrier transit is unchanged. A good mid-case summary states what is known with numbers and what comes next, without claiming findings that haven't been tested.",
+  "explanation": "Known: warehouse processing added 2 days after the March system launch; carrier transit is unchanged. Suspected: the new system. Next: check staffing. If staffing also changed in March, the system may not be the whole cause.",
   "extras": {
     "answer_type": "summary",
     "irrelevant_facts": [
-      "The carrier recently rebranded."
+      "The carrier rebranded in May."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

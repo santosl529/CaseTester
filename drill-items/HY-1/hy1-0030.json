@@ -2,7 +2,7 @@
   "item_id": "hy1-0030",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Sales reached 50% of target, and 70% of buyers already bought the dairy yogurt.",
+      "text": "Sales have probably reached about half of target so far.",
       "correct": false,
       "tag": "M.restates_facts",
       "feedback": "This restates the facts without proposing a cause."
     },
     {
       "id": "b",
-      "text": "The line may be cannibalizing the dairy range rather than bringing in new customers.",
+      "text": "The line likely isn't reaching customers beyond the brand's base.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd check whether these buyers reduced their dairy purchases."
+      "feedback": "Right. 70% of buyers already bought the brand, so the line has barely reached new customers, which would explain the shortfall. I'd compare buyers with the target audience."
     },
     {
       "id": "c",
-      "text": "The plant-based line is cannibalizing dairy and should be discontinued.",
+      "text": "The new line is eating into dairy sales, so it should be dropped at once.",
       "correct": false,
       "tag": "M.overconfident_hypothesis",
-      "feedback": "This states a cause as certain before any data has tested it."
+      "feedback": "This states a cause as certain and jumps to a drastic action before any data."
     },
     {
       "id": "d",
-      "text": "The launch underperformed.",
+      "text": "The brand's existing customers are likely ignoring the new line.",
       "correct": false,
-      "tag": "M.untestable_hypothesis",
-      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+      "tag": "M.ignores_facts",
+      "feedback": "70% of buyers are existing customers."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Most buyers already bought the brand, which raises the cannibalization question. Their dairy purchases test it.",
-  "extras": {
-    "distractor_flaws": {
-      "M.restates_facts": "Sales reached 50% of target, and 70% of buyers already bought the dairy yogurt.",
-      "M.overconfident_hypothesis": "The plant-based line is cannibalizing dairy and should be discontinued.",
-      "M.untestable_hypothesis": "The launch underperformed."
-    }
-  },
+  "explanation": "The data shows sales at half of target, with 70% of buyers already buying the brand's dairy yogurt. Likely cause: the line isn't reaching customers beyond the brand's base. To test it, compare buyers with the target audience and check awareness among non-buyers. Also check whether these buyers cut their dairy purchases; if they did, the line is cannibalizing dairy as well.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

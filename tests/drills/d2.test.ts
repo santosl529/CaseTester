@@ -17,6 +17,12 @@ const imported = importContent(tables(), { includeExamples: true });
 const item = (drill: string) => imported.items.find(i => i.drill_id === drill)!;
 
 describe('content import (docs/drills-content-templates)', () => {
+  it('needs each QN-5 card to say which kind of distractor it is', () => {
+    const t = tables();
+    t['qn5-driver-cards'] = t['qn5-driver-cards'].map(r => (r.card === '6' ? { ...r, role: 'distractor' } : r));
+    expect(importContent(t, { includeExamples: true }).problems.map(p => p.message).join(' ')).toMatch(/role must be driver, double_count, not_a_driver/);
+  });
+
   it('turns the template examples into valid items and graded answers', () => {
     expect(imported.problems).toEqual([]);
     expect(imported.items.map(i => i.drill_id).sort()).toEqual(['CL-3', 'HY-2', 'PS-3', 'QN-5', 'SY-2']);
@@ -132,6 +138,8 @@ describe('QN-5 market sizing (scored by code)', () => {
     const s = steps(q(), [{ type: 'choices', option_ids: ['1', '2', '5', '4'] }, right[1], right[2], right[3]]);
     expect(s[0]).toMatchObject({ score: 0, tag: 'M.double_counting' });
     expect(s[0].detail?.drivers).toEqual(['1', '2', '3', '4']);
+    // A card that doesn't belong at all is tagged as such, not as double counting.
+    expect(steps(q(), [{ type: 'choices', option_ids: ['1', '2', '3', '4', '6'] }])[0].tag).toBe('M.irrelevant_driver');
     expect(s.slice(1).map(x => x.score)).toEqual([1, 1, 1]);
     expect(scoreItem(q(), { skipped: false, timedOut: false, steps: s }).score).toBeCloseTo(0.65);
   });
@@ -202,8 +210,8 @@ describe('applying a grade (code computes every score)', () => {
 
   it('settles SY-2’s fact-sheet numbers check in code', () => {
     const sy = item('SY-2');
-    const with$ = [scoreStep(sy, 0, { type: 'text', value: 'Do not enter: payback is 5 years and entry costs $60M.' }, false)];
-    const without = [scoreStep(sy, 0, { type: 'text', value: 'Do not enter: the market is slow and crowded.' }, false)];
+    const with$ = [scoreStep(sy, 0, { type: 'text', value: 'Add the counters: each costs $400k and earns $150k a year.' }, false)];
+    const without = [scoreStep(sy, 0, { type: 'text', value: 'Add the counters: shoppers want them and they pay back fast.' }, false)];
     const pass = (s: StepResult[]) => applyGrade(sy, s, false, fullGrade(sy)).check_results.checks.find(c => c.check_id === 'cites_numbers')!.pass;
     expect(pass(with$)).toBe(true);
     expect(pass(without)).toBe(false);

@@ -10,8 +10,8 @@
     "SY.evidence",
     "SY.complete"
   ],
-  "case_type": "market_entry",
-  "prompt": "The client asks: \"Should we enter the Canadian market?\"\n\nFact sheet:\n- The Canadian market is worth $400M and growing 3% a year\n- Entry would cost $60M\n- Expected profit is $12M a year, a 5-year payback, against a 3-year hurdle\n- Two incumbents hold 70% share\n- The client is headquartered in Chicago\n\nGive your recommendation.",
+  "case_type": "new_product_launch",
+  "prompt": "The client asks: \"Should we add pharmacy counters to our grocery stores?\"\n\nFact sheet:\n- Each pharmacy counter costs $400k to set up\n- Each counter is expected to earn about $150k a year, against a 4-year payback hurdle\n- 60% of our shoppers fill prescriptions somewhere else every month\n- A national pharmacy chain has a store within a mile of 80% of our locations\n- Our stores were rebranded last year\n\nGive your recommendation.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -52,7 +52,7 @@
     },
     {
       "check_id": "leaves_out_irrelevant",
-      "question": "Does the answer leave out the irrelevant facts (The client is headquartered in Chicago)?",
+      "question": "Does the answer leave out the irrelevant facts (Our stores were rebranded last year)?",
       "weight": 0.15,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "Leave out facts that don't bear on the decision.",
@@ -109,32 +109,32 @@
       "step": 0
     }
   ],
-  "model_answer": "The client should not enter Canada now. Payback would be 5 years against its 3-year hurdle, the market grows only 3% a year, and two incumbents hold 70% share. The main risk is that a partnership could change the economics, so the next step is to test whether a partner could cut the $60M entry cost.",
-  "explanation": "Acceptable recommendation: Do not enter now. Key risks: A partnership could change the economics; the market could grow faster than forecast. Next steps: Explore a partnership to cut the $60M entry cost; revisit in two years.",
+  "model_answer": "Add pharmacy counters, starting with a pilot. Each counter costs $400k and earns about $150k a year, paying back in under 3 years against our 4-year hurdle, and 60% of our shoppers fill prescriptions elsewhere every month. The main risk is that the national pharmacy chain near 80% of our stores keeps those customers, so the next step is a 10-store pilot that tracks prescriptions filled each week before we roll out.",
+  "explanation": "Acceptable recommendation: Add pharmacy counters, starting with a pilot. Key risks: A national pharmacy chain near most of our stores keeps customers, so prescriptions fall short; hiring licensed pharmacists. Next steps: Pilot counters in 10 stores and track prescriptions filled per week before rolling out.",
   "extras": {
     "facts": [
       {
-        "fact": "The Canadian market is worth $400M and growing 3% a year",
+        "fact": "Each pharmacy counter costs $400k to set up",
         "relevant": true
       },
       {
-        "fact": "Entry would cost $60M",
+        "fact": "Each counter is expected to earn about $150k a year, against a 4-year payback hurdle",
         "relevant": true
       },
       {
-        "fact": "Expected profit is $12M a year, a 5-year payback, against a 3-year hurdle",
+        "fact": "60% of our shoppers fill prescriptions somewhere else every month",
         "relevant": true
       },
       {
-        "fact": "Two incumbents hold 70% share",
+        "fact": "A national pharmacy chain has a store within a mile of 80% of our locations",
         "relevant": true
       },
       {
-        "fact": "The client is headquartered in Chicago",
+        "fact": "Our stores were rebranded last year",
         "relevant": false
       }
     ],
-    "acceptable_recommendations": "Do not enter now"
+    "acceptable_recommendations": "Add pharmacy counters, starting with a pilot"
   },
   "sources": [],
   "authorship": {
@@ -142,7 +142,9 @@
     "drafting_model": null,
     "reviewed_by": null,
     "reviewed_at": null,
-    "similarity_check": "pending"
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

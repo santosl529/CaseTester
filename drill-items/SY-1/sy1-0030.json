@@ -2,7 +2,7 @@
   "item_id": "sy1-0030",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "Sales have fallen 30% in each of the last two years, prices are falling 10% a year, and the major players' margins have dropped from 20% to 2%. The main risk is that we miss the bottom of the cycle. Putting it together, don't invest in the industry now.",
+      "text": "Invest now. Home workouts were popular on social media, so demand will come back once inventories clear.",
       "correct": false,
-      "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "tag": "M.irrelevant_facts",
+      "feedback": "Social media buzz isn't evidence of recovery. Sales, prices and margins are all falling."
     },
     {
       "id": "b",
-      "text": "Don't invest in the industry now. Sales have fallen 30% in each of the last two years, prices are falling 10% a year, and the major players' margins have dropped from 20% to 2%. The main risk is that we miss the bottom of the cycle, so the next step is to watch for inventories to clear and margins to recover before revisiting.",
+      "text": "Don't invest now: sales fell 30% in both of the last two years, and margins are down from 20% to 2%.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with the industry's numbers."
     },
     {
       "id": "c",
-      "text": "Don't invest in the industry now. Home workouts were popular on social media. Sales have fallen 30% in each of the last two years, prices are falling 10% a year, and the major players' margins have dropped from 20% to 2%.",
+      "text": "Invest now. With margins at 2%, profit is low and businesses are cheap, so it's a good time to buy in.",
       "correct": false,
-      "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "Nothing shows the bottom has come: inventories are high and prices are still falling 10% a year."
     },
     {
       "id": "d",
-      "text": "Don't invest in the industry now. The industry is past its peak.",
+      "text": "The industry is in a downturn but may recover, and investing now has both upside and downside.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.hedged_recommendation",
+      "feedback": "This never commits."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Don't invest in the industry now. Sales have fallen 30% in each of the last two years, prices are falling 10% a year, and the major players' margins have dropped from 20% to 2%. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Don't invest in the industry now. Sales fell 30% in each of the last two years, prices are falling 10% a year, and major players' margins are down from 20% to 2%. The main risk is that we miss the bottom of the cycle, so the next step is to watch for inventories to clear and margins to recover before revisiting. What would change the answer: inventories clearing and prices stabilizing.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

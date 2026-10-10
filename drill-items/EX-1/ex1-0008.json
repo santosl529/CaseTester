@@ -2,7 +2,7 @@
   "item_id": "ex1-0008",
   "version": 1,
   "drill_id": "EX-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -45,28 +45,28 @@
   "options": [
     {
       "id": "a",
-      "text": "Labor costs reduced profit by $5M",
+      "text": "Price increases added $8M to profit",
       "correct": false,
       "tag": "M.trivial_takeaway",
-      "feedback": "True, but it doesn't answer the client's question."
+      "feedback": "True, but price helped profit. The question is why profit fell."
     },
     {
       "id": "b",
-      "text": "Volume was the biggest drag on profit",
+      "text": "Labor was the biggest drag on profit",
       "correct": false,
       "tag": "M.misread_trend",
-      "feedback": "That misreads the chart: Volume added $4M; materials took away $22M."
+      "feedback": "Labor took away $5M; materials took away $22M."
     },
     {
       "id": "c",
-      "text": "The client should switch materials suppliers to bring costs back down",
+      "text": "Switching materials suppliers would recover the lost profit",
       "correct": false,
       "tag": "M.unsupported_claim",
-      "feedback": "The chart doesn't show this. It may be true, but there is no data here to support it."
+      "feedback": "The chart shows the size of the materials hit, not whether a new supplier would fix it."
     },
     {
       "id": "d",
-      "text": "Materials costs outweighed the gains from price and volume",
+      "text": "The materials hit wiped out price and volume gains",
       "correct": true,
       "feedback": "Right. Materials cost 22, against +12 from price and volume, taking profit from 50 to 35."
     }
@@ -75,17 +75,19 @@
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Materials costs outweighed the gains from price and volume. Materials cost 22, against +12 from price and volume, taking profit from 50 to 35.",
+  "explanation": "Materials cost 22, against +12 from price and volume, taking profit from 50 to 35.",
   "extras": {
     "proof": "Materials cost 22, against +12 from price and volume, taking profit from 50 to 35."
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

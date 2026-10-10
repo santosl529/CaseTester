@@ -2,7 +2,7 @@
   "item_id": "sy1-0002",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "Even if 8% of the 50,000 subscribers cancel, monthly revenue rises about 10%, from $1.0M to $1.1M, and $24 stays inside competitors' $22–28 range. The main risk is that cancellations run above the survey's 8%. Putting it together, raise the premium price to $24.",
+      "text": "Even if 8% of subscribers cancel, revenue rises about 10% to $1.1M a month, and $24 is within rivals' $22–28, so the price should go up.",
       "correct": false,
       "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
     },
     {
       "id": "b",
-      "text": "Raise the premium price to $24. Even if 8% of the 50,000 subscribers cancel, monthly revenue rises about 10%, from $1.0M to $1.1M, and $24 stays inside competitors' $22–28 range. The main risk is that cancellations run above the survey's 8%, so the next step is to roll the increase out to new subscribers first and track cancellations.",
+      "text": "Raise the price to $24: even if 8% of subscribers cancel, monthly revenue would rise about 10%, to $1.1M.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with the revenue math and the competitor range."
     },
     {
       "id": "c",
-      "text": "Raise the premium price to $24. The app was redesigned last year. Even if 8% of the 50,000 subscribers cancel, monthly revenue rises about 10%, from $1.0M to $1.1M, and $24 stays inside competitors' $22–28 range.",
+      "text": "Keep the price at $20. Losing 8% of 50,000 subscribers means 4,000 cancellations and less profit, on top of 2% monthly churn.",
       "correct": false,
-      "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It counts the lost subscribers but not the revenue: 46,000 × $24 = $1.10M beats 50,000 × $20 = $1.0M."
     },
     {
       "id": "d",
-      "text": "Raise the premium price to $24. Premium customers value the product and won't mind paying a bit more.",
+      "text": "Raise the price to $24. The app was redesigned last year, so subscribers already get more for their money than at launch.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.irrelevant_facts",
+      "feedback": "The redesign doesn't show subscribers will pay more. The revenue math and competitor prices are what support the increase."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Raise the premium price to $24. Even if 8% of the 50,000 subscribers cancel, monthly revenue rises about 10%, from $1.0M to $1.1M, and $24 stays inside competitors' $22–28 range. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Raise the price to $24. Even if 8% of the 50,000 subscribers cancel, monthly revenue rises about 10%, from $1.0M to $1.1M (46,000 × $24), and $24 sits inside rivals' $22–28. The main risk is that more than 8% cancel, so the next step is to roll it out to new subscribers first and track cancellations. What would change the answer: cancellations above about 17%, where revenue would fall below $1.0M.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

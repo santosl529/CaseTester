@@ -2,7 +2,7 @@
   "item_id": "hy1-0023",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Waste doubled while the menu grew from 20 to 35 dishes.",
+      "text": "Ordering, storage, portions and staff habits are probably involved.",
       "correct": false,
-      "tag": "M.restates_facts",
-      "feedback": "This restates the facts without proposing a cause."
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists causes without committing to one."
     },
     {
       "id": "b",
-      "text": "It could be the menu, ordering, storage, portion sizes or staff.",
+      "text": "Customers are likely ordering less, leaving food unsold.",
       "correct": false,
-      "tag": "M.shotgun_hypotheses",
-      "feedback": "This lists several causes without committing to the most likely one."
+      "tag": "M.ignores_facts",
+      "feedback": "Nothing points to fewer customers, and it ignores the menu growing from 20 to 35 dishes."
     },
     {
       "id": "c",
-      "text": "The larger menu is likely spreading demand thin, so more ingredients expire.",
+      "text": "With more dishes, more ingredients are probably expiring unused.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd check waste by ingredient against how many dishes use it."
+      "feedback": "Right. More dishes means more ingredients, each used less often. I'd check waste by ingredient against how many dishes use it."
     },
     {
       "id": "d",
-      "text": "The kitchen is wasting food.",
+      "text": "The kitchen is probably wasting more food than it needs to.",
       "correct": false,
       "tag": "M.untestable_hypothesis",
-      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+      "feedback": "Too vague to test: it restates the problem without a cause."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "A larger menu means more ingredients with lower turnover. Waste by ingredient tests the link.",
-  "extras": {
-    "distractor_flaws": {
-      "M.restates_facts": "Waste doubled while the menu grew from 20 to 35 dishes.",
-      "M.shotgun_hypotheses": "It could be the menu, ordering, storage, portion sizes or staff.",
-      "M.untestable_hypothesis": "The kitchen is wasting food."
-    }
-  },
+  "explanation": "The data shows waste doubling as the menu grew from 20 to 35 dishes. Likely cause: more ingredients, each used less often, are expiring. To test it, compare waste by ingredient with how many dishes use it. If waste is spread evenly, look at ordering or storage.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

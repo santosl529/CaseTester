@@ -2,14 +2,14 @@
   "item_id": "hy1-0019",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 2,
+  "tier": 3,
   "skills": [
     "HY.form"
   ],
   "case_type": "investment_decision",
-  "prompt": "A hotel renovated half its rooms. Renovated rooms earn 25% more per night, but their occupancy is 10 points lower. Which is the strongest initial hypothesis?",
+  "prompt": "A hotel renovated half its rooms. Renovated rooms sell for 25% more per night and are 70% full, against 80% full for the old rooms. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Renovated rooms earn 25% more per night with occupancy 10 points lower.",
+      "text": "The renovated rooms are probably earning less than the old ones.",
       "correct": false,
-      "tag": "M.restates_facts",
-      "feedback": "This restates the facts without proposing a cause."
+      "tag": "M.ignores_facts",
+      "feedback": "1.25 × 70% = 87.5 against 80 for the old rooms, so renovated rooms earn about 9% more per available room."
     },
     {
       "id": "b",
-      "text": "It could be the price, the booking site, room features, room type or the guest mix.",
+      "text": "Price, booking channels, room features and guest mix may all be at work.",
       "correct": false,
       "tag": "M.shotgun_hypotheses",
-      "feedback": "This lists several causes without committing to the most likely one."
+      "feedback": "This lists causes without committing to one."
     },
     {
       "id": "c",
-      "text": "Renovated rooms may be priced above what many guests will pay.",
+      "text": "The higher rate likely more than makes up for the lower occupancy.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare revenue per available room for renovated and old rooms."
+      "feedback": "Right. 1.25 × 70% = 87.5 against 80, so renovated rooms earn about 9% more per available room. I'd check revenue per available room by room type over a full season."
     },
     {
       "id": "d",
-      "text": "Guests react differently to the new rooms.",
+      "text": "Guests probably prefer the old rooms' style.",
       "correct": false,
-      "tag": "M.untestable_hypothesis",
-      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+      "tag": "M.ignores_facts",
+      "feedback": "Renovated rooms are 70% full at a 25% premium, so demand for them is strong."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Whether the renovation pays depends on revenue per available room, which combines rate and occupancy. The hypothesis says how to settle it.",
-  "extras": {
-    "distractor_flaws": {
-      "M.restates_facts": "Renovated rooms earn 25% more per night with occupancy 10 points lower.",
-      "M.shotgun_hypotheses": "It could be the price, the booking site, room features, room type or the guest mix.",
-      "M.untestable_hypothesis": "Guests react differently to the new rooms."
-    }
-  },
+  "explanation": "The data shows renovated rooms earning 1.25 × 70% = 87.5 per available room against 80 for old rooms, about 9% more. Likely conclusion: the higher rate more than makes up for lower occupancy. To test it, compare revenue per available room by room type over a full season. If occupancy drops further off-peak, the gain could disappear.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

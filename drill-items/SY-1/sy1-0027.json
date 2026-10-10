@@ -2,7 +2,7 @@
   "item_id": "sy1-0027",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -11,7 +11,7 @@
     "SY.summary"
   ],
   "case_type": "m_and_a",
-  "prompt": "The client asks: \"Should we buy a regional distributor for $80M?\" Fact sheet: the distributor earns $10M a year; owning it would save us $4M a year in distribution fees; our hurdle is an 8-year payback; the distributor's owner is retiring; the distributor's trucks are painted green. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should we buy a regional distributor for $80M?\" Fact sheet: the distributor earns $10M a year from its other customers; owning it would also save us the $4M a year we pay it in fees; our hurdle is an 8-year payback; the distributor's owner is retiring; the distributor sponsors a local soccer team. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -19,50 +19,52 @@
   "options": [
     {
       "id": "a",
-      "text": "Its $10M of earnings plus $4M a year of fees we'd stop paying gives a payback under 6 years on the $80M price, inside our 8-year hurdle. The main risk is that key staff leave when the owner retires. Putting it together, buy the distributor.",
+      "text": "Don't buy. At $80M against $10M a year of earnings, payback is 8 years, right at the hurdle.",
       "correct": false,
-      "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It leaves out the $4M a year of fees we'd stop paying, which bring payback under 6 years."
     },
     {
       "id": "b",
-      "text": "On one hand, its $10M of earnings plus $4M a year of fees we'd stop paying gives a payback under 6 years on the $80M price, inside our 8-year hurdle. On the other hand, there is the risk that key staff leave when the owner retires. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "text": "Buy it. It sponsors a local soccer team, which builds goodwill with customers across the region.",
       "correct": false,
-      "tag": "M.hedged_recommendation",
-      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+      "tag": "M.irrelevant_facts",
+      "feedback": "Sponsorship doesn't decide an $80M purchase. The payback does."
     },
     {
       "id": "c",
-      "text": "Buy the distributor. Its $10M of earnings plus $4M a year of fees we'd stop paying gives a payback under 6 years on the $80M price, inside our 8-year hurdle. The main risk is that key staff leave when the owner retires, so the next step is to secure retention agreements with the top managers before signing.",
+      "text": "Buy the distributor: $10M from other customers plus $4M of fees saved repays the $80M in under 6 years.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and counts both sources of value without double counting."
     },
     {
       "id": "d",
-      "text": "Buy the distributor. Owning distribution gives us more control.",
+      "text": "The deal sits near the hurdle and the owner is retiring, so more diligence is needed before taking a view.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.hedged_recommendation",
+      "feedback": "This never commits, even though payback is under 6 years against an 8-year hurdle."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Buy the distributor. Its $10M of earnings plus $4M a year of fees we'd stop paying gives a payback under 6 years on the $80M price, inside our 8-year hurdle. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Buy the distributor. Its $10M from other customers plus the $4M of fees we'd stop paying gives a payback under 6 years on $80M, inside our 8-year hurdle; the $10M excludes business with us, so nothing is counted twice. The main risk is that key staff leave when the owner retires, so the next step is to secure retention agreements with the top managers before signing. What would change the answer: earnings from other customers below about $6M a year, which would push payback to 8 years.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "The distributor's trucks are painted green."
+      "The distributor sponsors a local soccer team."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

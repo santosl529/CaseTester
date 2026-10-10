@@ -232,8 +232,15 @@ export interface Qn5Content extends Base {
   total_high: number;
   total_source: string;
   walkthrough: string;
-  cards: { card: number; text: string; role: 'driver' | 'distractor'; low: number | null; high: number | null; unit: string; source: string }[];
+  cards: { card: number; text: string; role: Qn5CardRole; low: number | null; high: number | null; unit: string; source: string }[];
 }
+
+// A card is a driver, a distractor that counts something twice ("number of
+// dogs" next to "dog-owning households"), or one that doesn't belong in the
+// estimate at all ("number of pet stores").
+export const QN5_CARD_ROLES = ['driver', 'double_count', 'not_a_driver'] as const;
+export type Qn5CardRole = typeof QN5_CARD_ROLES[number];
+const QN5_DISTRACTOR_TAGS = { double_count: 'M.double_counting', not_a_driver: 'M.irrelevant_driver' } as const;
 
 export const QN5_SANITY_CHOICES = [
   { id: 'reasonable', text: 'Seems reasonable' },
@@ -263,7 +270,7 @@ export function qn5Item(c: Qn5Content): ItemInput {
     },
     options: c.cards.map(k => k.role === 'driver'
       ? { id: String(k.card), text: k.text, correct: true, feedback: `A driver: ${k.source}` }
-      : { id: String(k.card), text: k.text, correct: false, tag: 'M.double_counting', feedback: k.source || "This card doesn't belong in the estimate." }),
+      : { id: String(k.card), text: k.text, correct: false, tag: QN5_DISTRACTOR_TAGS[k.role], feedback: k.source || "This card doesn't belong in the estimate." }),
     // The key's central estimate, for display. Step 3 is checked against the
     // student's own assumptions, not this.
     numeric: {

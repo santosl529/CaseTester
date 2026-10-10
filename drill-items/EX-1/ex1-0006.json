@@ -2,7 +2,7 @@
   "item_id": "ex1-0006",
   "version": 1,
   "drill_id": "EX-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -57,47 +57,49 @@
   "options": [
     {
       "id": "a",
-      "text": "The North stayed above 93% every month",
+      "text": "The North stayed within 2 points of 95% all year",
       "correct": false,
       "tag": "M.trivial_takeaway",
-      "feedback": "True, but it doesn't answer the client's question."
+      "feedback": "True, but it describes the region that didn't change. The question is why the company-wide rate fell."
     },
     {
       "id": "b",
-      "text": "The decline is concentrated in the South",
+      "text": "Nearly all the decline is in the South",
       "correct": true,
       "feedback": "Right. The South fell from 94% to 78%; the North stayed between 94% and 96%."
     },
     {
       "id": "c",
-      "text": "Both regions declined at the same rate",
+      "text": "Both regions slipped in March and kept falling",
       "correct": false,
       "tag": "M.misread_trend",
-      "feedback": "That misreads the chart: The North held at 94–96%; only the South fell."
+      "feedback": "The North rose in March, from 94% to 95%. Only the South fell."
     },
     {
       "id": "d",
-      "text": "The South's decline is due to a driver shortage",
+      "text": "Driver shortages in the South caused the drop",
       "correct": false,
       "tag": "M.unsupported_claim",
-      "feedback": "The chart doesn't show this. It may be true, but there is no data here to support it."
+      "feedback": "The chart shows where on-time delivery fell, not why. That may be true, but nothing here supports it."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "The decline is concentrated in the South. The South fell from 94% to 78%; the North stayed between 94% and 96%.",
+  "explanation": "The South fell from 94% to 78%; the North stayed between 94% and 96%.",
   "extras": {
     "proof": "The South fell from 94% to 78%; the North stayed between 94% and 96%."
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

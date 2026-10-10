@@ -2,7 +2,7 @@
   "item_id": "cl1-0006",
   "version": 1,
   "drill_id": "CL-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -17,45 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Check what share of costs is staff",
+      "text": "Break down the non-staff costs to find other savings",
       "correct": false,
-      "tag": "M.illogical_next_step",
-      "feedback": "That has already been answered. Build on what you know."
+      "tag": "M.low_priority_next_step",
+      "feedback": "Useful later, but it doesn't build on the latest finding."
     },
     {
       "id": "b",
       "text": "Size the savings from matching staff to occupancy",
       "correct": true,
-      "feedback": "Right. Fixed staffing regardless of occupancy is the finding. The next step is to size the savings from flexing it."
+      "feedback": "Right. Staffing doesn't flex with occupancy; sizing the savings from flexing it is next."
     },
     {
       "id": "c",
-      "text": "Look at the hotel's online reviews for food quality",
+      "text": "Test whether staff pay is above rival hotels'",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That is off the objective. It won't help answer the client's question."
+      "feedback": "The finding is about how many staff, not what they're paid."
     },
     {
       "id": "d",
-      "text": "Recommend cutting staff by 10% across the board",
+      "text": "Size a 10% headcount cut across all hotels",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That jumps to a solution before the analysis supports it."
+      "feedback": "That jumps to a fix, and a flat cut ignores the occupancy pattern."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Fixed staffing regardless of occupancy is the finding. The next step is to size the savings from flexing it.",
+  "explanation": "Staffing stays fixed whether hotels are 40% or 90% full, so size the savings from matching staff to occupancy.",
   "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

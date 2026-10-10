@@ -6,6 +6,7 @@ Oct 5, 2026 · @Matt
 > - 2026-10-05: Saved to the repo. Applied the review fixes (test-out tier, skills with no Level 2 drill, review set size, `case_type` and next-case fallback, desktop-first, QN-3 trap precedence, scope wording, `org_id`, grading model, chart renderer). Drill specs moved into catalog order; their content is unchanged.
 > - 2026-10-06: Matched to the D0 build: table names and new fields, `student_profiles` for `org_id`, the skill-keyed drill map, three percent modes, 3-level rubric ratings in the case payload. Added the rule for skills with only Level 2 drills and two EX-2 tags (`M.indexed_misread`, `M.period_mismatch`).
 > - 2026-10-06: Matched to the D1 build: endpoint paths, `is_example`, `focus_skill` / `item_plan` / `pending_step` on drill sets, multi-step `input.steps`, rounded-form trap matching, resume and late-answer behavior, and the D1 results-screen action.
+> - 2026-10-10: After content review rounds 1 and 2: three new mistake tags (`M.ignores_deciding_fact`, `M.low_priority_next_step`, `M.irrelevant_driver`), QN-5 card roles, the wording checks for choice drills, and the similarity check that every authored item must pass before going live.
 
 ## Overview
 
@@ -176,7 +177,7 @@ Students should rarely have to choose what to do: the training home leads with o
 
 ## Skill taxonomy
 
-Taxonomy v1 has 9 skill areas, 29 skills and 62 mistake tags; it is the one vocabulary shared by the case grader, every drill and the prescription engine.
+Taxonomy v1 has 9 skill areas, 29 skills and 65 mistake tags; it is the one vocabulary shared by the case grader, every drill and the prescription engine.
 
 ### Rules
 
@@ -215,7 +216,7 @@ Taxonomy v1 has 9 skill areas, 29 skills and 62 mistake tags; it is the one voca
 | `QN.percentages` | Percent change, percent of, percentage points | `M.wrong_base`, `M.percent_vs_points` | QN-3, QN-4 |
 | `QN.growth` | Growth rates and compounding | `M.growth_error` | QN-3, QN-4 |
 | `QN.setup` | Chooses the right formula before calculating | `M.wrong_formula`, `M.missing_term` | QN-1, QN-4 |
-| `QN.sizing_structure` | Builds a complete driver chain for an estimate | `M.missing_driver`, `M.double_counting` | QN-5 |
+| `QN.sizing_structure` | Builds a complete driver chain for an estimate | `M.missing_driver`, `M.double_counting`, `M.irrelevant_driver` | QN-5 |
 | `QN.assumptions` | Makes reasonable estimation assumptions | `M.unreasonable_assumption` | QN-5 |
 | `QN.sanity_check` | Notices when a result is implausible | `M.implausible_accepted`, `M.plausible_rejected` | QN-2, QN-5 |
 | `EX.takeaway` | Finds the insight that matters | `M.trivial_takeaway`, `M.misread_trend`, `M.unsupported_claim` | EX-1, EX-4 |
@@ -226,11 +227,11 @@ Taxonomy v1 has 9 skill areas, 29 skills and 62 mistake tags; it is the one voca
 | `CR.volume` | Generates enough distinct ideas | `M.too_few_ideas` | CR-1 |
 | `CR.structure` | Groups ideas into clear, non-overlapping categories | `M.unstructured_ideas`, `M.overlapping_idea_groups` | CR-1 |
 | `SY.answer_first` | Leads with a clear recommendation | `M.buried_recommendation`, `M.hedged_recommendation` | SY-1, SY-2 |
-| `SY.evidence` | Supports it with the right facts and numbers | `M.unsupported_recommendation`, `M.irrelevant_facts` | SY-1, SY-2 |
+| `SY.evidence` | Supports it with the right facts and numbers | `M.unsupported_recommendation`, `M.irrelevant_facts`, `M.ignores_deciding_fact` | SY-1, SY-2 |
 | `SY.complete` | Includes a risk and a next step | `M.missing_risk_or_next_step` | SY-2 |
 | `SY.summary` | Summarizes progress accurately mid-case | `M.inaccurate_summary` | SY-1 |
 | `CM.concise` | Says it briefly, conclusion first | `M.rambling`, `M.over_word_limit` | CM-1, CM-2 |
-| `CL.next_step` | Proposes a logical next step without being prompted | `M.waited_for_interviewer`, `M.illogical_next_step` | CL-1 |
+| `CL.next_step` | Proposes a logical next step without being prompted | `M.waited_for_interviewer`, `M.illogical_next_step`, `M.low_priority_next_step` | CL-1 |
 | `CL.data_requests` | Asks for specific, prioritized data | `M.vague_data_request`, `M.laundry_list`, `M.premature_solution` | CL-3 |
 | `CL.pushback` | Holds when right, updates when wrong, uses evidence | `M.caved_to_invalid_pushback`, `M.ignored_valid_pushback`, `M.no_evidence_in_defense` | CL-2 |
 
@@ -376,7 +377,7 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 ### QN-5 Market sizing
 
 - **How it works:** A sizing prompt ("Estimate annual US spending on dog grooming") in four steps.
-  1. *Structure:* From 6–8 driver cards, pick the ones that form the estimate (for example, US households → % with a dog → grooming visits per year → price per visit). Distractor cards include drivers that double count ("number of dogs" alongside "dog-owning households") or don't belong.
+  1. *Structure:* From 6–8 driver cards, pick the ones that form the estimate (for example, US households → % with a dog → grooming visits per year → price per visit). Each card has a role: `driver`, `double_count` (counts something a driver already counts, like "number of dogs" alongside "dog-owning households"; tagged `M.double_counting`) or `not_a_driver` (doesn't belong in the estimate, like "number of pet stores"; tagged `M.irrelevant_driver`). A wrong structure logs the tag of the wrong card the student picked, or `M.missing_driver` if they picked only drivers.
   2. *Assumptions:* Enter a number for each driver. An optional one-line reason field is stored but not scored in MVP.
   3. *Calculation:* Enter the final estimate.
   4. *Sanity check:* Pick Seems reasonable, Seems too high or Seems too low.
@@ -386,7 +387,7 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 
 | Step | Weight | How it's checked | Failed step logs |
 | --- | --- | --- | --- |
-| Structure | 35% | Selected set matches one of the key's 1–2 accepted driver sets | `M.missing_driver`, `M.double_counting` |
+| Structure | 35% | Selected set matches one of the key's 1–2 accepted driver sets | `M.missing_driver`, `M.double_counting`, `M.irrelevant_driver` |
 | Assumptions | 30% split evenly per driver | Each value inside the key's accepted range | `M.unreasonable_assumption` |
 | Calculation | 25% | Within ±2% of the product of the student's own assumptions | QN-3 trap-value diagnosis |
 | Sanity check | 10% | Correct relative to the key's benchmark range: "too high" or "too low" is correct if the estimate is more than 3× outside it | `M.implausible_accepted`, `M.plausible_rejected` |
@@ -463,7 +464,7 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 
 - **How it works:** The student sees a short case fact sheet (or a partial case for mid-case items) and picks the best recommendation or summary from 4.
 - **Set and time:** 8 items. 60 / 45 / 35 s.
-- **Scoring:** Auto. Distractors are each tagged: recommendation buried at the end (`M.buried_recommendation`), hedged with no clear answer (`M.hedged_recommendation`), padded with irrelevant facts (`M.irrelevant_facts`), no numbers in support (`M.unsupported_recommendation`) or misstating progress (`M.inaccurate_summary`).
+- **Scoring:** Auto. Distractors are each tagged: recommendation buried at the end (`M.buried_recommendation`), hedged with no clear answer (`M.hedged_recommendation`), resting on irrelevant facts (`M.irrelevant_facts`), no numbers in support (`M.unsupported_recommendation`), confident and numerical but reaching the wrong conclusion by ignoring the fact that decides it (`M.ignores_deciding_fact`), or misstating progress (`M.inaccurate_summary`). Options reach different conclusions, so students decide what to recommend, not just how to phrase it. The explanation models the full answer: recommendation, supporting numbers, main risk, next step, and what would change the answer.
 - **Item source:** Derived from SY-2 fact sheets. AI-drafted, human QA.
 
 ### SY-2 60-second recommendation
@@ -501,7 +502,7 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 
 - **How it works:** The student sees where a case stands (the objective, what has been learned, the latest finding) and picks the best next step from 4.
 - **Set and time:** 8 items. 45 / 35 / 25 s.
-- **Scoring:** Auto. Wrong options log `M.illogical_next_step`, and each has its own feedback line (already answered, off the objective, or jumps to a solution too early).
+- **Scoring:** Auto. Wrong options that are already answered, off the objective or jump to a solution too early log `M.illogical_next_step`; sensible analyses that matter less right now log `M.low_priority_next_step`. Each has its own feedback line.
 - **Item source:** Authored, drawn from case-type interviewer guides. AI-drafted, human QA.
 
 ### CL-2 Hold or fold (P1)
@@ -759,7 +760,8 @@ Items come from two sources: code generators for anything numeric (unlimited and
   "explanation": "...",
   "sources": [],
   "authorship": {"author_of_record": "...", "drafting_model": "...", "reviewed_by": "...",
-                 "reviewed_at": "...", "similarity_check": "passed"},
+                 "reviewed_at": "...", "similarity_check": "passed", "similarity_note": null,
+                 "similarity_checked_at": "..."},
   "generator": null,
   "firm_style": null
 }
@@ -793,6 +795,10 @@ Items come from two sources: code generators for anything numeric (unlimited and
 - Drafted by AI from a drill-specific authoring prompt and the drill spec in this PRD, following the same clean-room workflow as cases.
 - Every item is reviewed by a human before going live. The reviewer confirms: the answer is correct; each distractor is wrong for exactly the reason its tag states; the prompt has one defensible best answer; numbers and facts are plausible; no third-party content is reused; the similarity check passed.
 - The reviewer becomes the author of record.
+- A case (the same client situation) is used in one drill only, so a student who has seen it in one drill doesn't already know the answer in another. Every numeric range (QN-5 drivers and totals) cites a source or gives its derivation.
+- **Wording checks (choice drills).** A pool of 20+ items fails validation, and can't be seeded, if its wording gives answers away: (1) length: the right answer is the longest, or the shortest, option in more than 30% of items; (2) phrases: a phrase, opening or ending appears in 5+ options and is right in 80%+ of them, or in 12+ and wrong in 95%+; (3) rule player: a solver that learns wording patterns from the rest of the pool, never reading the case, scores above 40% (chance is 25%). The review page shows each pool's results. Thresholds live in `lib/drills/content-checks.ts`.
+- **Similarity check (clean room).** Each authored item gets a one-time AI review (`npm run drills:similarity`, Claude Opus 5.5) that flags anything closely resembling well-known published case-prep material (RocketBlocks, CaseCoach, Hacking the Case Interview, Management Consulted and similar). Common business situations and standard frameworks are not flagged. The result is stored on the item (`authorship.similarity_check`: `pending`, `passed`, `flagged` or `failed`, with a note and date); flagged items go to the reviewer, who marks them `passed` or `failed`. Validation keeps an authored item off `live` until it is reviewed and `passed`. Generated items are built from our own templates and are marked `not_applicable`. The check relies on the model's knowledge of published material, not a search of it.
+- **Explanations** separate what the data shows, what is suspected, and what would confirm or overturn it.
 
 ### Launch pool sizes (P0)
 

@@ -89,8 +89,8 @@
       "id": "6",
       "text": "Number of pet stores",
       "correct": false,
-      "tag": "M.double_counting",
-      "feedback": "Supply, not spending"
+      "tag": "M.irrelevant_driver",
+      "feedback": "Pet stores are where grooming may happen, not a driver of how much is spent"
     }
   ],
   "numeric": {
@@ -103,7 +103,7 @@
   "checks": [],
   "red_flags": [],
   "model_answer": "130M households × 40% with a dog × 4 grooming visits a year × $60 a visit ≈ $12.5B",
-  "explanation": "130M households × 40% with a dog × 4 grooming visits a year × $60 a visit ≈ $12.5B. A believable total is 5B–15B (Industry reports put US pet grooming at roughly $8–12B a year).",
+  "explanation": "130M households × 40% with a dog × 4 grooming visits a year × $60 a visit ≈ $12.5B. A believable total is 6B–19B (Derived: 130M households × 40% with a dog × $60 a visit, with 2–6 visits a year (the least certain driver), gives about $6–19B).",
   "extras": {
     "accepted_sets": [
       [
@@ -140,9 +140,9 @@
       }
     },
     "benchmark": {
-      "low": 5000000000,
-      "high": 15000000000,
-      "source": "Industry reports put US pet grooming at roughly $8–12B a year"
+      "low": 6000000000,
+      "high": 19000000000,
+      "source": "Derived: 130M households × 40% with a dog × $60 a visit, with 2–6 visits a year (the least certain driver), gives about $6–19B"
     },
     "step_skills": [
       [
@@ -165,7 +165,9 @@
     "drafting_model": null,
     "reviewed_by": null,
     "reviewed_at": null,
-    "similarity_check": "pending"
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

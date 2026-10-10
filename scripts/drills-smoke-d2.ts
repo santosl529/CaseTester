@@ -37,7 +37,7 @@ const ANSWERS: Record<string, StepResponse[]> = {
     { type: 'choice', option_id: 'keep' },
     { type: 'text', value: 'Units per customer fell 20% at flat prices, which supports it.' },
   ],
-  'SY-2': [{ type: 'text', value: 'The client should not enter Canada now. Payback would be 5 years against a 3-year hurdle, the market grows only 3% a year, and two incumbents hold 70% share. The main risk is that a partnership could change the economics, so the next step is to test whether a partner could cut the $60M entry cost.' }],
+  'SY-2': [{ type: 'text', value: 'Add pharmacy counters, starting with a pilot. Each counter costs $400k and earns about $150k a year, paying back in under 3 years against our 4-year hurdle, and 60% of our shoppers fill prescriptions elsewhere. The main risk is that the national pharmacy chain near most of our stores keeps those customers, so the next step is a 10-store pilot that tracks prescriptions filled each week.' }],
   'CL-3': [{ type: 'text', value: "I'd split margin into price, mix, COGS and operating expenses. I'd start with COGS as a share of revenue by year for the last 3 years, since it is the biggest cost line, then check average price by product line and SG&A by year." }],
   'QN-5': [
     { type: 'choices', option_ids: ['1', '2', '3', '4'] },

@@ -2,7 +2,7 @@
   "item_id": "ps1-0024",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -10,7 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "growth_strategy",
-  "prompt": "A regional bakery brand wants to grow revenue 40% in three years. The candidate's framework: (1) Win more grocery shelf space in current regions; (2) Expand into new regions; (3) Launch new product lines; (4) Change the color of the company logo. What is the flaw in this framework?",
+  "prompt": "A regional bakery brand wants to grow revenue 40% in three years. The candidate's framework: (1) Win more grocery shelf space in current regions; (2) Launch new product lines; (3) Expand into new regions; (4) Cut the cost of ingredients. What is the flaw in this framework?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -18,48 +18,50 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 1 and 2 overlap and should be merged",
+      "text": "Buckets 1 and 3 overlap: both are about selling to more grocers",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Current regions and new regions are separate."
+      "feedback": "Both involve grocers, but deepening current regions and entering new ones are separate levers with different costs."
     },
     {
       "id": "b",
-      "text": "Missing: expansion into new regions",
+      "text": "Missing: selling in regions the brand isn't in yet",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "New regions are bucket 2."
+      "feedback": "That is bucket 3, expanding into new regions."
     },
     {
       "id": "c",
-      "text": "It is a generic growth framework",
+      "text": "It's a generic growth list: it won't say which lever is biggest",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "The levers are specific to a bakery brand. The flaw is bucket 4."
+      "feedback": "Ranking the levers comes after the structure. The levers fit a bakery brand. The flaw is bucket 4."
     },
     {
       "id": "d",
-      "text": "Bucket 4 doesn't matter",
+      "text": "Bucket 4 doesn't belong: cheaper ingredients don't grow revenue",
       "correct": true,
-      "feedback": "Right. Replace it with new channels, such as online or food service."
+      "feedback": "Right. Cutting ingredient costs can raise profit, but the goal is revenue. Replace it with new channels, such as online or food service."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Growth comes from more shelf space, new regions, new products and new channels. The logo doesn't move revenue on its own.",
+  "explanation": "The goal is revenue, and cheaper ingredients don't grow revenue. Growth comes from more shelf space, new regions, new products and new channels.",
   "extras": {
     "flaw_type": "irrelevant",
     "corrected_framework": "Share in current regions; new regions; new products; new channels (online, food service)"
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

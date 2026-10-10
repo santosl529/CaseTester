@@ -2,7 +2,7 @@
   "item_id": "ps1-0013",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Missing: how ridership would change at the higher fare",
+      "text": "Missing: how many riders would stop riding at the higher fare",
       "correct": true,
-      "feedback": "Right. A fare rise changes how many people ride. Without ridership, the revenue math is wrong."
+      "feedback": "Right. A 20% fare rise changes how many people ride. Without the ridership response, the extra revenue is overstated."
     },
     {
       "id": "b",
-      "text": "Buckets 1 and 2 overlap and should be merged",
+      "text": "Buckets 1 and 2 overlap: revenue per rider pays the operating costs",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Revenue per rider and operating costs are separate."
+      "feedback": "Fares fund operations, but revenue per rider and the cost of running the system are separate buckets."
     },
     {
       "id": "c",
-      "text": "Bucket 2 doesn't matter for a fare decision",
+      "text": "Bucket 3 doesn't belong: equity is a policy question, not a fare question",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Costs show how much the agency needs to recover."
+      "feedback": "For a public transit agency, the effect on low-income riders is part of the fare decision. Dropping it wouldn't fix the revenue math."
     },
     {
       "id": "d",
-      "text": "It is a generic profit tree, not a pricing framework",
+      "text": "It's a generic profit tree: a transit agency doesn't aim for profit",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "Revenue and cost both matter here. What is missing is the volume effect."
+      "feedback": "Revenue, costs and rider effects fit a public fare decision. The flaw is that the revenue math ignores lost riders."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

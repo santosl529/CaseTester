@@ -1,0 +1,69 @@
+{
+  "item_id": "ps1-0045",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "live",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "pricing",
+  "prompt": "A hospital network is deciding how to price a new telehealth visit. The candidate's framework: (1) Size of the telehealth market in the region; (2) Competing telehealth providers; (3) The network's ability to run virtual visits. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 2 overlap: the market is the competing providers",
+      "correct": false,
+      "feedback": "The market is the patients and visits; providers compete for them. They are separate questions.",
+      "tag": "M.overlapping_buckets"
+    },
+    {
+      "id": "b",
+      "text": "Missing: which rivals already offer virtual visits",
+      "correct": false,
+      "feedback": "That is bucket 2, competing telehealth providers.",
+      "tag": "M.missing_bucket"
+    },
+    {
+      "id": "c",
+      "text": "It's a generic entry framework: it skips what patients or insurers would pay",
+      "correct": true,
+      "feedback": "Right. These are the buckets for deciding whether to enter. A price needs what patients and insurers would pay, competitors' prices and the cost per visit."
+    },
+    {
+      "id": "d",
+      "text": "Bucket 3 doesn't belong: the network already runs clinics",
+      "correct": false,
+      "feedback": "Virtual visits need different systems and workflows from clinics. The issue is that the structure doesn't answer a pricing question.",
+      "tag": "M.irrelevant_bucket"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Market, competitors and capabilities answer whether to enter, not what to charge. Pricing needs willingness to pay, competitor prices, insurer reimbursement and cost per visit.",
+  "extras": {
+    "flaw_type": "generic",
+    "corrected_framework": "Patient and insurer willingness to pay; competitor prices; reimbursement rules; cost per visit"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -2,7 +2,7 @@
   "item_id": "sy1-0001",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -19,50 +19,52 @@
   "options": [
     {
       "id": "a",
-      "text": "The client should not enter Canada now. Payback would be 5 years against a 3-year hurdle, in a market growing only 3% a year where two incumbents hold 70%. The main risk is that a partnership could change the economics, so the next step is to test whether a partnership could cut the $60M entry cost.",
+      "text": "Don't enter Canada now: the 5-year payback misses our 3-year hurdle, and two incumbents hold 70%.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with the facts that decide it: the payback misses the hurdle in a slow, concentrated market."
     },
     {
       "id": "b",
-      "text": "On one hand, payback would be 5 years against a 3-year hurdle, in a market growing only 3% a year where two incumbents hold 70%. On the other hand, there is the risk that a partnership could change the economics. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "text": "Enter Canada. It's a $400M market growing 3% a year, and $12M of profit a year on $60M would add meaningfully to earnings.",
       "correct": false,
-      "tag": "M.hedged_recommendation",
-      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "Confident and numerical, but it ignores the deciding fact: a 5-year payback misses the 3-year hurdle."
     },
     {
       "id": "c",
-      "text": "The client should not enter Canada now. The client is headquartered in Chicago, close to Canada. Payback would be 5 years against a 3-year hurdle, in a market growing only 3% a year where two incumbents hold 70%.",
+      "text": "Enter Canada. It sits close to our Chicago headquarters, and at $400M the market is big enough to justify $60M.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "feedback": "Being near Chicago doesn't change the economics. The payback still misses the hurdle."
     },
     {
       "id": "d",
-      "text": "The client should not enter Canada now. Canada just isn't attractive for the client right now.",
+      "text": "Payback is 5 years against a 3-year hurdle and two incumbents hold 70%, so we shouldn't enter Canada now.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.buried_recommendation",
+      "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "The client should not enter Canada now. Payback would be 5 years against a 3-year hurdle, in a market growing only 3% a year where two incumbents hold 70%. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Don't enter Canada now. The 5-year payback misses our 3-year hurdle, the market grows only 3% a year, and two incumbents hold 70%. The main risk is that competitors lock up the rest of the market while we wait, so the next step is to revisit in two years and look for a partner who could cut the $60M entry cost. What would change the answer: a way to bring payback under 3 years.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "The client is headquartered in Chicago, close to Canada."
+      "The client is headquartered in Chicago."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

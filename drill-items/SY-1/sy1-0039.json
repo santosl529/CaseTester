@@ -2,7 +2,7 @@
   "item_id": "sy1-0039",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 3,
   "skills": [
@@ -11,7 +11,7 @@
     "SY.summary"
   ],
   "case_type": "new_product_launch",
-  "prompt": "Mid-case: The client is deciding whether to launch a smartwatch. You've sized demand at 2 million units a year and estimated that a 5% share, about 100,000 units, is realistic. You haven't looked at price or costs. Which is the best summary?",
+  "prompt": "Mid-case: The client is deciding whether to launch a smartwatch. You've sized demand at 2 million units a year and estimated that a 5% share, about 100,000 units, is realistic. You also learned the client makes headphones. You haven't looked at price or costs. Which is the best summary?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "So far: the launch would be profitable at 100,000 units a year. Next I'd plan the marketing.",
+      "text": "So far: demand is about 2 million units, and a 5% share means about 1 million units a year.",
       "correct": false,
       "tag": "M.inaccurate_summary",
-      "feedback": "This claims findings the analysis hasn't shown. Summarize only what you've established."
+      "feedback": "The math is wrong: 5% of 2 million is 100,000."
     },
     {
       "id": "b",
-      "text": "We've looked at demand and share. We still need to look at price and unit costs, and next I'd estimate price and unit costs to see if 100,000 units is profitable. The main finding so far is that demand is about 2 million units a year, and a realistic 5% share means about 100,000 units.",
+      "text": "So far: demand is about 2 million units, and since the client makes headphones, a 5% share, about 100,000 units, is realistic. Next, price and costs.",
       "correct": false,
-      "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "tag": "M.irrelevant_facts",
+      "feedback": "Making headphones isn't why 5% is realistic, so it doesn't belong in the summary."
     },
     {
       "id": "c",
-      "text": "So far: demand is about 2 million units a year, and a realistic 5% share means about 100,000 units. We haven't yet looked at price and unit costs, so next I'd estimate price and unit costs to see if 100,000 units is profitable.",
+      "text": "So far: demand is about 2 million units, and a realistic 5% share is about 100,000. Next, price and unit costs.",
       "correct": true,
-      "feedback": "Right. It states what is known, with numbers, then what is still open and what comes next."
+      "feedback": "Right. It states what is known, with numbers, then what is still open."
     },
     {
       "id": "d",
-      "text": "So far: demand is about 2 million units a year, and a realistic 5% share means about 100,000 units. The client also makes headphones. Next I'd estimate price and unit costs to see if 100,000 units is profitable.",
+      "text": "So far: 100,000 units at a 5% share makes the watch profitable. Next, the launch plan.",
       "correct": false,
-      "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "tag": "M.inaccurate_summary",
+      "feedback": "Profit can't be known yet: price and costs haven't been looked at."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Demand is about 2 million units a year, and a realistic 5% share means about 100,000 units. A good mid-case summary states what is known with numbers and what comes next, without claiming findings that haven't been tested.",
+  "explanation": "Known: 2 million units of demand × 5% ≈ 100,000 units. Open: price and unit costs. Next: estimate both. The watch is worth launching only if 100,000 units covers its costs with room to spare.",
   "extras": {
     "answer_type": "summary",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

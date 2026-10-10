@@ -2,7 +2,7 @@
   "item_id": "ps1-0015",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 1 and 2 overlap and should be merged",
+      "text": "Buckets 1 and 2 overlap: the brand's growth is the market's growth",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "The market and the brand's position within it are different questions."
+      "feedback": "The brand is growing faster than the market, which is the point of asking about its position. The two buckets are different questions."
     },
     {
       "id": "b",
-      "text": "Bucket 3 doesn't matter for a small brand",
+      "text": "Bucket 3 doesn't belong: a small brand is too small to share production",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Distribution synergies are often the main reason a large beverage company buys a small brand."
+      "feedback": "Putting a small brand into a large company's distribution and plants is often the main reason to buy it. Synergies belong."
     },
     {
       "id": "c",
-      "text": "Missing: the price and the return on the deal",
+      "text": "Missing: what the brand would cost and the return at that price",
       "correct": true,
       "feedback": "Right. The framework says whether the target is attractive, never whether the deal makes sense at the asking price."
     },
     {
       "id": "d",
-      "text": "It is a generic acquisition framework",
+      "text": "It's a generic acquisition checklist: it doesn't ask why kombucha",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "The buckets are specific to this target. The missing piece is deal value."
+      "feedback": "Bucket 1 is the kombucha market's size and growth. The flaw is the missing price and return."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

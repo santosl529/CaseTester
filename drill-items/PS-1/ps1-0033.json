@@ -2,7 +2,7 @@
   "item_id": "ps1-0033",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "It is a SWOT, which doesn't address what customers would pay, competitor prices or costs",
+      "text": "It's a generic SWOT: no customer value, rival prices or seat cost",
       "correct": true,
       "feedback": "Right. Pricing needs customer value, competitor prices and cost."
     },
     {
       "id": "b",
-      "text": "Buckets 2 and 4 overlap and should be merged",
+      "text": "Buckets 2 and 4 overlap: in this SWOT, weak sales are also a threat",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Weaknesses and threats are distinct in a SWOT. The issue is that SWOT doesn't fit pricing."
+      "feedback": "Weaknesses are internal and threats are external. The issue is that a SWOT doesn't fit pricing."
     },
     {
       "id": "c",
-      "text": "Missing: a bucket for costs",
+      "text": "Missing: a SWOT bucket for the cost of the recliners",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "Adding one bucket doesn't fix a canned framework."
+      "feedback": "Adding one bucket doesn't turn a SWOT into a pricing framework."
     },
     {
       "id": "d",
-      "text": "Bucket 3 doesn't matter",
+      "text": "Bucket 4 doesn't belong: competitors' threats don't set a seat price",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Opportunities aren't the problem. The whole structure is generic."
+      "feedback": "Competitor prices actually matter for pricing. The issue is that the whole SWOT is generic."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

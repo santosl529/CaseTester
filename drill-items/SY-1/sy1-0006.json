@@ -2,7 +2,7 @@
   "item_id": "sy1-0006",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "At 3% of a $300M market and a 40% margin, it would earn about $3.6M a year, paying back the $5M launch cost in under two years, and it beat the leaders in a taste test. The main risk is that the 3% share assumption is too optimistic. Putting it together, launch the protein bar.",
+      "text": "Three percent of a $300M market at a 40% margin is about $3.6M a year, repaying $5M in under two years, so launch it.",
       "correct": false,
       "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
     },
     {
       "id": "b",
-      "text": "Launch the protein bar. At 3% of a $300M market and a 40% margin, it would earn about $3.6M a year, paying back the $5M launch cost in under two years, and it beat the leaders in a taste test. The main risk is that the 3% share assumption is too optimistic, so the next step is to launch in a test region to confirm share before going national.",
+      "text": "Launch the protein bar: 3% of a $300M market at a 40% margin will earn about $3.6M a year, repaying $5M in under two years.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with the profit math."
     },
     {
       "id": "c",
-      "text": "Launch the protein bar. The company's last launch was a sparkling water. At 3% of a $300M market and a 40% margin, it would earn about $3.6M a year, paying back the $5M launch cost in under two years, and it beat the leaders in a taste test.",
+      "text": "Don't launch. A 3% share is a small slice of a $300M market, and the leading brands already own the shelf.",
       "correct": false,
-      "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores what 3% is worth: about $3.6M of profit a year, paying back the $5M in under two years."
     },
     {
       "id": "d",
-      "text": "Launch the protein bar. Protein snacks are a hot category, so the bar should do well.",
+      "text": "Launch the protein bar. Our sparkling water launch shows we know how to bring new products to market.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.irrelevant_facts",
+      "feedback": "The last launch doesn't show this one will pay. The profit math and taste test do."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Launch the protein bar. At 3% of a $300M market and a 40% margin, it would earn about $3.6M a year, paying back the $5M launch cost in under two years, and it beat the leaders in a taste test. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Launch the protein bar. At 3% of a $300M market and a 40% margin, it earns about $3.6M a year, paying back the $5M launch cost in under two years, and it beat the leading brands in a taste test. The main risk is that 3% share is optimistic, so the next step is to launch in a test region first. What would change the answer: test share well below 3%; under about 1.4%, payback stretches past three years.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

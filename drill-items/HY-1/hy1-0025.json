@@ -2,9 +2,9 @@
   "item_id": "hy1-0025",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 2,
+  "tier": 3,
   "skills": [
     "HY.form"
   ],
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "The lower entry price is likely attracting more customers, and the subscription will pay off if they stay over 30 months.",
+      "text": "More customers likely signed up, and they'll pay off if they stay past 30 months.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd model retention by cohort."
+      "feedback": "Right. $40 a month equals the $1,200 license after 30 months. I'd model retention by customer cohort."
     },
     {
       "id": "b",
-      "text": "It could be price, retention, sales, marketing or product changes.",
+      "text": "Customers probably see the subscription as worse value and are leaving.",
       "correct": false,
-      "tag": "M.shotgun_hypotheses",
-      "feedback": "This lists several causes without committing to the most likely one."
+      "tag": "M.ignores_facts",
+      "feedback": "New customers rose 50%."
     },
     {
       "id": "c",
-      "text": "The subscription switch was a mistake and the company should go back to licenses.",
+      "text": "The switch was a mistake, so the company has to return to licenses.",
       "correct": false,
       "tag": "M.overconfident_hypothesis",
-      "feedback": "This states a cause as certain before any data has tested it."
+      "feedback": "This states a verdict as certain before retention data exists."
     },
     {
       "id": "d",
-      "text": "Customers are responding to the new model.",
+      "text": "Revenue per customer has likely fallen because of heavy discounting.",
       "correct": false,
-      "tag": "M.untestable_hypothesis",
-      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+      "tag": "M.ignores_facts",
+      "feedback": "No discount is needed to explain it: $40 × 12 = $480, which is 60% below $1,200."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "$40 a month equals the $1,200 license after 30 months. The switch pays off if retention is long enough, which cohort data can show.",
-  "extras": {
-    "distractor_flaws": {
-      "M.shotgun_hypotheses": "It could be price, retention, sales, marketing or product changes.",
-      "M.overconfident_hypothesis": "The subscription switch was a mistake and the company should go back to licenses.",
-      "M.untestable_hypothesis": "Customers are responding to the new model."
-    }
-  },
+  "explanation": "The data shows first-year revenue per customer down 60% ($40 × 12 = $480 against $1,200) while new customers rose 50%. Likely conclusion: the cheaper entry drew more customers, and it pays off if they stay past 30 months, when $40 a month matches the license. To test it, track retention by customer cohort. If most cancel before 30 months, the switch loses money.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

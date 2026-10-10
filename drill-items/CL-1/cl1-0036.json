@@ -2,14 +2,14 @@
   "item_id": "cl1-0036",
   "version": 1,
   "drill_id": "CL-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
     "CL.next_step"
   ],
   "case_type": "growth_strategy",
-  "prompt": "Objective: grow a brewery's sales. What you've learned: bar sales fell 10% and supermarket sales rose 25%. Latest finding: supermarkets now make up half of sales. What is the best next step?",
+  "prompt": "Objective: grow a brewery's sales. What you've learned: bar sales fell 10% and supermarket sales rose 25%, and bar sales are falling across the whole beer category. Latest finding: supermarkets now make up half of sales. What is the best next step?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,45 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Check how bar sales changed in more detail",
+      "text": "Find out why bar sales fell",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That has already been answered. Build on what you know."
+      "feedback": "Already answered: bar sales are falling across the whole category, not just for this brewery. The growth is in supermarkets."
     },
     {
       "id": "b",
-      "text": "Look at the brewery's tour schedule for more context on the business",
+      "text": "Work out how bar and supermarket prices compare",
       "correct": false,
-      "tag": "M.illogical_next_step",
-      "feedback": "That is off the objective. It won't help answer the client's question."
+      "tag": "M.low_priority_next_step",
+      "feedback": "Secondary to how to grow where demand is moving."
     },
     {
       "id": "c",
-      "text": "Ask the interviewer what they would like to look at next",
+      "text": "Let the interviewer choose which channel to focus on",
       "correct": false,
       "tag": "M.waited_for_interviewer",
-      "feedback": "Drive the case: propose the next step yourself rather than waiting to be told."
+      "feedback": "Drive the case: the finding points to supermarkets."
     },
     {
       "id": "d",
-      "text": "Work out how to win more supermarket shelf space",
+      "text": "Plan how to win more supermarket shelf space",
       "correct": true,
-      "feedback": "Right. Supermarkets are the growing channel, so the next step is how to grow there."
+      "feedback": "Right. Supermarkets are the growing channel and half of sales, so grow there."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Supermarkets are the growing channel, so the next step is how to grow there.",
+  "explanation": "Bar sales are falling for the whole category, and supermarkets are now half of sales and growing. Work out how to win more shelf space.",
   "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

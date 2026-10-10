@@ -2,14 +2,14 @@
   "item_id": "hy1-0010",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
     "HY.form"
   ],
   "case_type": "growth_strategy",
-  "prompt": "A coffee chain's morning sales are up 5%, but afternoon sales are down 20%. Which is the strongest initial hypothesis?",
+  "prompt": "A coffee chain's morning sales are up 5%, but afternoon sales are down 20%. Two months ago, a bubble-tea chain opened next to most of its stores. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Morning sales rose 5% and afternoon sales fell 20%.",
+      "text": "Afternoon sales have likely fallen while mornings held up.",
       "correct": false,
       "tag": "M.restates_facts",
       "feedback": "This restates the facts without proposing a cause."
     },
     {
       "id": "b",
-      "text": "Afternoon customers may have shifted to other options, perhaps cheaper iced drinks nearby.",
+      "text": "Afternoon buyers are likely trying the new bubble-tea shops.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd check afternoon transactions by product and store location."
+      "feedback": "Right. The decline is in the afternoon, when people buy treats, and a bubble-tea chain just opened next door. I'd compare afternoon sales in stores with and without a bubble-tea shop nearby."
     },
     {
       "id": "c",
-      "text": "Remote work killed the afternoon office crowd, so afternoon hours should be cut.",
+      "text": "Remote work has likely emptied the offices around its stores.",
       "correct": false,
-      "tag": "M.overconfident_hypothesis",
-      "feedback": "This states a cause as certain before any data has tested it."
+      "tag": "M.ignores_facts",
+      "feedback": "Emptier offices would hurt mornings too, but morning sales rose 5%."
     },
     {
       "id": "d",
-      "text": "Afternoons aren't working for the chain.",
+      "text": "Coffee prices have likely risen enough to drive customers away.",
       "correct": false,
-      "tag": "M.untestable_hypothesis",
-      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+      "tag": "M.ignores_facts",
+      "feedback": "A price effect would show in the mornings too, but morning sales rose."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "A decline concentrated in the afternoon points to a cause specific to that time. The hypothesis commits to one and says how to test it.",
-  "extras": {
-    "distractor_flaws": {
-      "M.restates_facts": "Morning sales rose 5% and afternoon sales fell 20%.",
-      "M.overconfident_hypothesis": "Remote work killed the afternoon office crowd, so afternoon hours should be cut.",
-      "M.untestable_hypothesis": "Afternoons aren't working for the chain."
-    }
-  },
+  "explanation": "The data shows afternoon sales down 20% while mornings grew, just after bubble-tea shops opened next door. Likely cause: afternoon customers are trying the new shops. To test it, compare afternoon sales in stores with and without a bubble-tea shop nearby. If both fell alike, look for another afternoon-only cause.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

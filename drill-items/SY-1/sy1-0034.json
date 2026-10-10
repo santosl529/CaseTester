@@ -2,7 +2,7 @@
   "item_id": "sy1-0034",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 3,
   "skills": [
@@ -11,7 +11,7 @@
     "SY.summary"
   ],
   "case_type": "pricing",
-  "prompt": "Mid-case: The client is deciding whether to raise prices 10%. You've estimated that volume would fall 5%, so revenue would rise about 4.5%. You haven't checked how competitors would react. Which is the best summary?",
+  "prompt": "Mid-case: The client is deciding whether to raise prices 10%. You've estimated that volume would fall 5%, so revenue would rise about 4.5%. You also learned the product's packaging was updated last year. You haven't checked how competitors would react. Which is the best summary?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "So far: competitors would follow the increase, so revenue would rise the full 10%. Next I'd check costs.",
+      "text": "So far: a 10% price rise with a 5% volume loss raises revenue about 5%, a clear case to raise prices now.",
       "correct": false,
       "tag": "M.inaccurate_summary",
-      "feedback": "This claims findings the analysis hasn't shown. Summarize only what you've established."
+      "feedback": "It decides before checking how competitors would react."
     },
     {
       "id": "b",
-      "text": "So far: a 10% increase with an estimated 5% volume loss would raise revenue about 4.5%. We haven't yet looked at how competitors would respond, so next I'd look at competitor pricing and how they reacted to past increases.",
+      "text": "So far: a 10% increase with a 5% volume loss raises revenue about 4.5%. Competitor reactions come next.",
       "correct": true,
-      "feedback": "Right. It states what is known, with numbers, then what is still open and what comes next."
+      "feedback": "Right. It states what is known, with numbers, then what is still open."
     },
     {
       "id": "c",
-      "text": "So far: a 10% increase with an estimated 5% volume loss would raise revenue about 4.5%. The product's packaging was updated last year. Next I'd look at competitor pricing and how they reacted to past increases.",
+      "text": "So far: a 10% increase would lose 5% of volume, so revenue would rise about 15%. Next, competitor reactions.",
       "correct": false,
-      "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "tag": "M.inaccurate_summary",
+      "feedback": "The math is wrong: 1.10 × 0.95 ≈ 1.045, a rise of about 4.5%."
     },
     {
       "id": "d",
-      "text": "So far: raising prices looks like it would help revenue. Next I'd look at competitor pricing and how they reacted to past increases.",
+      "text": "So far: a 10% increase with a 5% volume loss raises revenue about 4.5%, helped by last year's packaging update. Next, competitors.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.irrelevant_facts",
+      "feedback": "Nothing links the packaging update to the estimate, so it doesn't belong in the summary."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "A 10% increase with an estimated 5% volume loss would raise revenue about 4.5%. A good mid-case summary states what is known with numbers and what comes next, without claiming findings that haven't been tested.",
+  "explanation": "Known: 1.10 × 0.95 ≈ 1.045, so revenue rises about 4.5%. Open: how competitors would react. Next: look at how they responded to past increases. If they would undercut us, volume could fall by more than 5%.",
   "extras": {
     "answer_type": "summary",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

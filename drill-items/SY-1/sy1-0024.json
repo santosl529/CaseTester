@@ -2,7 +2,7 @@
   "item_id": "sy1-0024",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -11,7 +11,7 @@
     "SY.summary"
   ],
   "case_type": "growth_strategy",
-  "prompt": "The client asks: \"Should we roll out the loyalty program?\" Fact sheet: the program costs $2M a year; in a pilot, 40% of customers joined; members visited 12% more often; annual revenue is $100M at a 25% margin; the pilot ran in the spring. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should we roll out the loyalty program?\" Fact sheet: the program costs $2M a year; in a pilot, 40% of customers joined; members visited 12% more often; annual revenue is $100M at a 25% margin; the program's app was built by an outside agency. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -19,50 +19,52 @@
   "options": [
     {
       "id": "a",
-      "text": "With 40% of customers joining and visiting 12% more, revenue rises about 4.8%, or $1.2M of profit at a 25% margin, less than the $2M annual cost. The main risk is that the program's benefits grow over time. Putting it together, don't roll out the loyalty program as designed.",
+      "text": "Roll out the program. 40% of customers joined in the pilot and members visited 12% more often, a big lift in loyalty.",
       "correct": false,
-      "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores the cost: the extra visits add about $1.2M of profit against $2M a year."
     },
     {
       "id": "b",
-      "text": "On one hand, with 40% of customers joining and visiting 12% more, revenue rises about 4.8%, or $1.2M of profit at a 25% margin, less than the $2M annual cost. On the other hand, there is the risk that the program's benefits grow over time. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "text": "Roll it out. An outside agency has already built the app, so it can launch across all stores right away.",
       "correct": false,
-      "tag": "M.hedged_recommendation",
-      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+      "tag": "M.irrelevant_facts",
+      "feedback": "Being ready to launch doesn't make it pay. The profit math says it doesn't."
     },
     {
       "id": "c",
-      "text": "Don't roll out the loyalty program as designed. The pilot ran in the spring. With 40% of customers joining and visiting 12% more, revenue rises about 4.8%, or $1.2M of profit at a 25% margin, less than the $2M annual cost.",
+      "text": "Forty percent joining and visiting 12% more adds about $1.2M of profit, below the $2M cost, so the rollout should wait.",
       "correct": false,
-      "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "tag": "M.buried_recommendation",
+      "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
     },
     {
       "id": "d",
-      "text": "Don't roll out the loyalty program as designed. With 40% of customers joining and visiting 12% more, revenue rises about 4.8%, or $1.2M of profit at a 25% margin, less than the $2M annual cost. The main risk is that the program's benefits grow over time, so the next step is to redesign it with cheaper rewards and rerun the pilot.",
+      "text": "Redesign the program before any rollout: the extra visits add about $1.2M of profit, less than its $2M cost.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with the profit math."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Don't roll out the loyalty program as designed. With 40% of customers joining and visiting 12% more, revenue rises about 4.8%, or $1.2M of profit at a 25% margin, less than the $2M annual cost. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Don't roll out the program as designed. With 40% of customers joining and visiting 12% more, revenue rises about 4.8%, or $1.2M of profit at a 25% margin, less than the $2M cost. The true effect is likely smaller, since customers who already visit often are the most likely to join, which strengthens the case. The main risk is missing a loyalty gain that builds over time, so the next step is to redesign it with cheaper rewards and rerun the pilot against a control group. What would change the answer: a controlled test showing a lift big enough to cover the cost.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "The pilot ran in the spring."
+      "The program's app was built by an outside agency."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

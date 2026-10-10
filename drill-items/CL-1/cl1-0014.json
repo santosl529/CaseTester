@@ -2,7 +2,7 @@
   "item_id": "cl1-0014",
   "version": 1,
   "drill_id": "CL-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -17,45 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Measure the average wait time before moving on",
+      "text": "Measure wait times at off-peak hours",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That has already been answered. Build on what you know."
+      "feedback": "The problem is at peak."
     },
     {
       "id": "b",
-      "text": "Estimate the effect of staffing more checkouts at peak",
+      "text": "Size what staffing more checkouts at peak would do",
       "correct": true,
-      "feedback": "Right. Understaffing at peak is the likely cause. Next is sizing what more staffing would do."
+      "feedback": "Right. Half the checkouts are unstaffed at peak; size what staffing them would do."
     },
     {
       "id": "c",
-      "text": "Look at the chain's produce suppliers to understand the client better",
+      "text": "Size the scanning speed gaps across cashiers",
       "correct": false,
-      "tag": "M.illogical_next_step",
-      "feedback": "That is off the objective. It won't help answer the client's question."
+      "tag": "M.low_priority_next_step",
+      "feedback": "Secondary: half the checkouts are empty."
     },
     {
       "id": "d",
-      "text": "Recommend installing self-checkouts everywhere",
+      "text": "Price out self-checkout machines for every single store",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That jumps to a solution before the analysis supports it."
+      "feedback": "That jumps to an expensive fix before testing the obvious one."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Understaffing at peak is the likely cause. Next is sizing what more staffing would do.",
+  "explanation": "Only half the checkouts are staffed at peak. Size the effect of staffing more.",
   "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

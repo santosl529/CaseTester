@@ -2,15 +2,15 @@
   "item_id": "ps1-0036",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 2,
+  "tier": 3,
   "skills": [
     "PS.mece",
     "PS.case_specific"
   ],
   "case_type": "m_and_a",
-  "prompt": "A media company is deciding whether to buy a popular podcast network. The candidate's framework: (1) Product; (2) Price; (3) Place; (4) Promotion. What is the flaw in this framework?",
+  "prompt": "A media company is deciding whether to buy a popular podcast network. The candidate's framework: (1) Size and growth of the podcast market; (2) Competing podcast networks; (3) Cost of producing new shows; (4) The company's ability to win listeners. What is the flaw in this framework?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -18,48 +18,50 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 1 and 4 overlap and should be merged",
+      "text": "Buckets 2 and 4 overlap: winning listeners means beating rival networks",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Product and promotion are distinct. The issue is that the 4Ps don't fit."
+      "feedback": "Who the competitors are and whether the company can win listeners are separate questions."
     },
     {
       "id": "b",
-      "text": "Missing: a people bucket",
+      "text": "Missing: what advertisers pay per listener",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "Adding a P doesn't fit the framework to the question."
+      "feedback": "Ad rates matter, but adding them doesn't fix a structure that never looks at the network being bought."
     },
     {
       "id": "c",
-      "text": "Bucket 3 doesn't matter for podcasts",
+      "text": "Bucket 1 doesn't belong: the market's size is already known",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "The flaw is the canned framework, not one bucket."
+      "feedback": "Nothing says the market is known, and its growth matters for the deal. The issue is the structure as a whole."
     },
     {
       "id": "d",
-      "text": "It is the marketing 4Ps, which doesn't evaluate an acquisition",
+      "text": "It's a generic entry framework: it skips the network and its price",
       "correct": true,
-      "feedback": "Right. An acquisition needs the market, the target, synergies, and price and return."
+      "feedback": "Right. These are the buckets for starting a podcast business. An acquisition needs the target's audience and finances, the synergies, and the price and return."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "The 4Ps are for marketing a product. An acquisition decision needs a deal framework.",
+  "explanation": "The buckets sound specific, but they are a market-entry framework. Buying a network needs the market, the target itself, synergies, and price and return.",
   "extras": {
     "flaw_type": "generic",
-    "corrected_framework": "Podcast market; target's audience and finances; synergies (ad sales, content); valuation vs price"
+    "corrected_framework": "Podcast market; the network's audience, shows and finances; synergies (ad sales, content); price and return"
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

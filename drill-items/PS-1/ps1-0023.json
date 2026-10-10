@@ -2,15 +2,15 @@
   "item_id": "ps1-0023",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 3,
+  "tier": 1,
   "skills": [
     "PS.mece",
     "PS.case_specific"
   ],
   "case_type": "pricing",
-  "prompt": "A luxury watch brand is setting the price for a new limited-edition model. The candidate's framework: (1) What collectors would pay for scarcity; (2) Prices of comparable limited editions; (3) Production cost of the model; (4) The cost of the brand's office lease. What is the flaw in this framework?",
+  "prompt": "A luxury watch brand is setting the price for a new limited-edition model. The candidate's framework: (1) The cost of the brand's office lease; (2) What collectors would pay for scarcity; (3) Prices of comparable limited editions; (4) Production cost of the model. What is the flaw in this framework?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 1 and 2 overlap and should be merged",
+      "text": "Buckets 2 and 3 overlap: comparable editions set what collectors pay",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Willingness to pay and comparable prices are different inputs."
+      "feedback": "Comparables inform willingness to pay, but what collectors would pay and what similar editions sold for are separate inputs."
     },
     {
       "id": "b",
-      "text": "Missing: production cost",
+      "text": "Missing: what the movement and materials cost",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "Production cost is bucket 3."
+      "feedback": "Movement and materials are the production cost, which bucket 4 covers."
     },
     {
       "id": "c",
-      "text": "Bucket 4 doesn't matter",
+      "text": "Bucket 1 doesn't belong: office rent has no link to this price",
       "correct": true,
-      "feedback": "Right. Replace it with the effect on the brand: the price must protect the brand's luxury positioning."
+      "feedback": "Right. Office rent is overhead with no link to this price. Replace it with the effect on the brand: the price must protect its luxury positioning."
     },
     {
       "id": "d",
-      "text": "It is a generic pricing framework",
+      "text": "It's a generic cost-plus approach: luxury prices aren't set from cost",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "The buckets fit luxury pricing. The flaw is bucket 4."
+      "feedback": "The framework starts from collectors and comparables, with cost as one input. It isn't cost-plus. The flaw is bucket 1."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

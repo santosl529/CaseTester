@@ -2,7 +2,7 @@
   "item_id": "ps1-0012",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 1 and 2 overlap and should be merged",
+      "text": "Buckets 1 and 2 overlap: personal training is part of membership",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Revenue and fixed costs don't overlap."
+      "feedback": "Here personal training is sold on top of the membership fee, so it is separate revenue."
     },
     {
       "id": "b",
-      "text": "Bucket 2 doesn't matter, since retail is a small share",
+      "text": "Bucket 3 doesn't belong: rent and equipment don't change year to year",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Other revenue can still move profit, so it belongs."
+      "feedback": "Even fixed costs can rise, for example at a lease renewal, and they are part of profit. Bucket 3 belongs."
     },
     {
       "id": "c",
-      "text": "A revenue-and-cost tree is too generic here",
+      "text": "It's a generic profit tree: a studio decline starts with member churn",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "A profit tree fits a profitability question. The flaw is the missing cost line."
+      "feedback": "A profit tree fits a profit decline, and churn sits inside bucket 1 (members × fee). The flaw is the missing cost line."
     },
     {
       "id": "d",
-      "text": "Missing: variable and staffing costs such as instructor pay",
+      "text": "Missing: instructor pay and other costs that grow with classes",
       "correct": true,
-      "feedback": "Right. Instructor pay grows with classes, and it is often the biggest studio cost. A cost bucket with only rent and equipment misses it."
+      "feedback": "Right. Instructor pay is one of the biggest studio costs, and it grows with the number of classes. A cost bucket with only rent and equipment misses it."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

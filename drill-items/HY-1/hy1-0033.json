@@ -2,9 +2,9 @@
   "item_id": "hy1-0033",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 1,
+  "tier": 3,
   "skills": [
     "HY.form"
   ],
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Gift and toy sales likely fell sharply.",
+      "text": "Gift and toy sales have likely fallen by about 30%.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd check sales by category over the two years."
+      "feedback": "Right. Books were 70% of sales and grew 4%, so for the total to fall 6%, gifts and toys must have fallen about 30%. I'd check sales by category."
     },
     {
       "id": "b",
-      "text": "It could be gifts, toys, prices, foot traffic, online competition or the season.",
+      "text": "Book sales are probably slipping as e-readers spread.",
       "correct": false,
-      "tag": "M.shotgun_hypotheses",
-      "feedback": "This lists several causes without committing to the most likely one."
+      "tag": "M.ignores_facts",
+      "feedback": "Book sales rose 4%."
     },
     {
       "id": "c",
-      "text": "Toy sales collapsed because of online retailers, so the store should drop toys.",
+      "text": "Gift and toy sales likely dipped slightly, about 6%.",
       "correct": false,
-      "tag": "M.overconfident_hypothesis",
-      "feedback": "This states a cause as certain before any data has tested it."
+      "tag": "M.ignores_facts",
+      "feedback": "A 6% dip in a 30% category would cut total sales by under 2%. To reach −6%, gifts and toys must have fallen about 30%."
     },
     {
       "id": "d",
-      "text": "Some categories underperformed.",
+      "text": "Foot traffic to the store has likely dropped since last year.",
       "correct": false,
-      "tag": "M.untestable_hypothesis",
-      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+      "tag": "M.ignores_facts",
+      "feedback": "If fewer people came, book sales would likely fall too, but they rose 4%."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "If books rose 4% and the total fell 6%, the other 30% must have fallen about 30%. Sales by category confirms it.",
-  "extras": {
-    "distractor_flaws": {
-      "M.shotgun_hypotheses": "It could be gifts, toys, prices, foot traffic, online competition or the season.",
-      "M.overconfident_hypothesis": "Toy sales collapsed because of online retailers, so the store should drop toys.",
-      "M.untestable_hypothesis": "Some categories underperformed."
-    }
-  },
+  "explanation": "The data shows books (70% of sales) up 4% and total sales down 6%: 0.7 × 1.04 = 0.73, so gifts and toys fell from 0.30 to about 0.21, about 30%. To test it, check sales by category. If gifts and toys fell much less, check whether last year's category shares were measured the same way.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

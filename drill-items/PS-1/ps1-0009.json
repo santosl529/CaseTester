@@ -2,9 +2,9 @@
   "item_id": "ps1-0009",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 3,
+  "tier": 2,
   "skills": [
     "PS.mece",
     "PS.case_specific"
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 2 and 4 overlap",
+      "text": "Buckets 2 and 4 overlap: the rival's offer is what attracts them",
       "correct": true,
-      "feedback": "Right. The rival's offer and the features that attract customers are the same analysis. Use the slot for the cost and impact of each response."
+      "feedback": "Right. What the mobile bank offers and the features that attract young customers are the same analysis. Use the slot for the cost and impact of each response."
     },
     {
       "id": "b",
-      "text": "Missing: why customers are switching",
+      "text": "Missing: what young customers dislike about the client",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "That is bucket 1."
+      "feedback": "What young customers dislike is part of why they are switching, which bucket 1 covers."
     },
     {
       "id": "c",
-      "text": "Bucket 3 doesn't matter until the cause is known",
+      "text": "Bucket 3 doesn't belong: a response comes after proving the cause",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Options to respond are where the answer lands, so the bucket belongs."
+      "feedback": "The client asked how to respond, so response options are where the answer lands. They belong in the framework from the start."
     },
     {
       "id": "d",
-      "text": "It is a generic competitor analysis",
+      "text": "It's a generic competitor analysis: it would fit a rival in any industry",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "The buckets are specific to this threat. The flaw is the overlap."
+      "feedback": "The buckets are specific to young customers leaving for a mobile bank. The flaw is the overlap between buckets 2 and 4."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

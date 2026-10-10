@@ -407,6 +407,13 @@
       "deprecated": false
     },
     {
+      "id": "M.irrelevant_driver",
+      "skill": "QN.sizing_structure",
+      "label": "driver that doesn't belong",
+      "severity": null,
+      "deprecated": false
+    },
+    {
       "id": "M.unreasonable_assumption",
       "skill": "QN.assumptions",
       "label": "unreasonable assumption",
@@ -575,6 +582,13 @@
       "deprecated": false
     },
     {
+      "id": "M.ignores_deciding_fact",
+      "skill": "SY.evidence",
+      "label": "ignored the deciding fact",
+      "severity": null,
+      "deprecated": false
+    },
+    {
       "id": "M.missing_risk_or_next_step",
       "skill": "SY.complete",
       "label": "missing risk or next step",
@@ -613,6 +627,13 @@
       "id": "M.illogical_next_step",
       "skill": "CL.next_step",
       "label": "illogical next step",
+      "severity": null,
+      "deprecated": false
+    },
+    {
+      "id": "M.low_priority_next_step",
+      "skill": "CL.next_step",
+      "label": "low-priority next step",
       "severity": null,
       "deprecated": false
     },

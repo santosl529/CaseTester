@@ -2,7 +2,7 @@
   "item_id": "sy1-0021",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 3,
   "skills": [
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "Don't enter this city. Acquiring a customer would cost $40 against a $35 lifetime value, the incumbent holds 85% share and pays drivers 20% more, and entry needs a $5M license. The main risk is that the incumbent stumbles and leaves an opening, so the next step is to monitor the market and revisit if acquisition costs fall.",
+      "text": "Don't enter: each customer costs $40 to win but brings only $35, and the incumbent holds 85%.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with unit economics and the incumbent's strength."
     },
     {
       "id": "b",
-      "text": "On one hand, acquiring a customer would cost $40 against a $35 lifetime value, the incumbent holds 85% share and pays drivers 20% more, and entry needs a $5M license. On the other hand, there is the risk that the incumbent stumbles and leaves an opening. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "text": "Enter the city. Two million people, each a potential rider, is a big market, and the $5M license is small against it.",
       "correct": false,
-      "tag": "M.hedged_recommendation",
-      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores the deciding fact: each customer costs $40 to win and brings only $35."
     },
     {
       "id": "c",
-      "text": "Don't enter this city. The city hosts a large music festival each year. Acquiring a customer would cost $40 against a $35 lifetime value, the incumbent holds 85% share and pays drivers 20% more, and entry needs a $5M license.",
+      "text": "Enter the city. Its large annual music festival brings a surge of riders.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "feedback": "One festival doesn't fix the unit economics."
     },
     {
       "id": "d",
-      "text": "Don't enter this city. The city is too competitive.",
+      "text": "Enter and outspend the incumbent on drivers; a 20% pay gap is easy to close with bonuses.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "Bonuses add cost to economics that already lose $5 per customer."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Don't enter this city. Acquiring a customer would cost $40 against a $35 lifetime value, the incumbent holds 85% share and pays drivers 20% more, and entry needs a $5M license. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Don't enter this city. Each customer would cost $40 to win but bring only $35, and the incumbent holds 85% and pays drivers 20% more. The main risk is that the incumbent stumbles and leaves an opening, so the next step is to monitor the market and revisit if acquisition costs fall. What would change the answer: acquisition costs falling well below $35.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

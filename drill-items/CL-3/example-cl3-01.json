@@ -146,7 +146,9 @@
     "drafting_model": null,
     "reviewed_by": null,
     "reviewed_at": null,
-    "similarity_check": "pending"
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

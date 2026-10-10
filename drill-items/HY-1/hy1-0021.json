@@ -2,7 +2,7 @@
   "item_id": "hy1-0021",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "The new hygienists likely added cost faster than they added visits.",
+      "text": "The new hygienists probably added cost faster than they added visits.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare visits per hygienist before and after the hires."
+      "feedback": "Right. Visits grew 8% but two salaries were added. I'd compare visits per hygienist before and after the hires."
     },
     {
       "id": "b",
-      "text": "It could be staffing, insurance payments, supplies, rent or the mix of procedures.",
+      "text": "Patients are likely drifting to a rival that opened nearby.",
       "correct": false,
-      "tag": "M.shotgun_hypotheses",
-      "feedback": "This lists several causes without committing to the most likely one."
+      "tag": "M.ignores_facts",
+      "feedback": "Patient visits grew 8%."
     },
     {
       "id": "c",
-      "text": "The practice hired too many hygienists, so it should let one go.",
+      "text": "The practice overhired and needs to let one hygienist go.",
       "correct": false,
       "tag": "M.overconfident_hypothesis",
-      "feedback": "This states a cause as certain before any data has tested it."
+      "feedback": "This states a cause as certain and jumps to a fix before any data."
     },
     {
       "id": "d",
-      "text": "The practice's costs are a problem.",
+      "text": "Insurers have likely cut what they pay per visit.",
       "correct": false,
-      "tag": "M.untestable_hypothesis",
-      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+      "tag": "M.ignores_facts",
+      "feedback": "Possible, but nothing points to it. The change the prompt gives is the two new hires."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Adding staff with modest volume growth often hurts profit. Visits per hygienist tests whether capacity is idle.",
-  "extras": {
-    "distractor_flaws": {
-      "M.shotgun_hypotheses": "It could be staffing, insurance payments, supplies, rent or the mix of procedures.",
-      "M.overconfident_hypothesis": "The practice hired too many hygienists, so it should let one go.",
-      "M.untestable_hypothesis": "The practice's costs are a problem."
-    }
-  },
+  "explanation": "The data shows visits up 8% but profit down 10% after two hygienists were hired. Likely cause: the hires added cost faster than visits. To test it, compare visits per hygienist before and after. If productivity held, look at insurer payments or supply costs.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

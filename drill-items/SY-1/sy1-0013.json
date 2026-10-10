@@ -2,7 +2,7 @@
   "item_id": "sy1-0013",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 3,
   "skills": [
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "Sell the European division. It lost $20M last year and revenue is falling 10% a year; a sale brings $50M, while restructuring would cost $80M with break-even at best three years away. The main risk is that the price falls once the buyer sees the declining revenue, so the next step is to start the sale process while the $50M offer stands.",
+      "text": "Sell the division for the $50M offered: it lost $20M, revenue falls 10% a year, and restructuring costs $80M.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and compares the two options on their numbers."
     },
     {
       "id": "b",
-      "text": "On one hand, it lost $20M last year and revenue is falling 10% a year; a sale brings $50M, while restructuring would cost $80M with break-even at best three years away. On the other hand, there is the risk that the price falls once the buyer sees the declining revenue. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "text": "Restructure the division. At 8% of group revenue, it's too big to sell for $50M, and a turnaround could restore its value.",
       "correct": false,
-      "tag": "M.hedged_recommendation",
-      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores the deciding facts: restructuring costs $80M and at best breaks even in three years, while revenue keeps falling."
     },
     {
       "id": "c",
-      "text": "Sell the European division. The division's head office is in Paris. It lost $20M last year and revenue is falling 10% a year; a sale brings $50M, while restructuring would cost $80M with break-even at best three years away.",
+      "text": "Sell the division. It's run from a Paris head office, far from headquarters, which makes it hard to manage.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "feedback": "Where its office is doesn't decide this. The losses and the two options' numbers do."
     },
     {
       "id": "d",
-      "text": "Sell the European division. The division has been a distraction from the core business.",
+      "text": "With $20M of losses, revenue down 10% a year and restructuring costing $80M for break-even at best, the $50M offer is better, so we should sell.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.buried_recommendation",
+      "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Sell the European division. It lost $20M last year and revenue is falling 10% a year; a sale brings $50M, while restructuring would cost $80M with break-even at best three years away. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Sell the European division for the $50M offered. It lost $20M last year and revenue is falling 10% a year, while restructuring would cost $80M for break-even at best in three years. The main risk is that the buyer lowers its price once it sees the falling revenue, so the next step is to start the sale while the offer stands. What would change the answer: a credible plan to return to profit quickly for well under $80M.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

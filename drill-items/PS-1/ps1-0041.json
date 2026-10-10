@@ -1,0 +1,69 @@
+{
+  "item_id": "ps1-0041",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "live",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "market_entry",
+  "prompt": "A Korean skincare brand is deciding whether to sell in US drugstores. The candidate's framework: (1) US drugstore sales: shoppers × price per product; (2) Costs of shipping and import duties; (3) Drugstore shelf fees and marketing costs. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 2 and 3 overlap: duties and shelf fees are both entry costs",
+      "correct": false,
+      "feedback": "Both are costs of entering, but getting product into the country and onto shelves are separate lines with separate levers.",
+      "tag": "M.overlapping_buckets"
+    },
+    {
+      "id": "b",
+      "text": "It's a generic profit tree dressed in entry words",
+      "correct": true,
+      "feedback": "Right. The buckets sound specific, but they are revenue and costs. An entry decision also needs whether US shoppers want the product, who it competes with, and whether this brand can win."
+    },
+    {
+      "id": "c",
+      "text": "Missing: US customer service costs",
+      "correct": false,
+      "feedback": "Adding a cost line keeps it a profit tree. The flaw is that it never tests the market or the competition.",
+      "tag": "M.missing_bucket"
+    },
+    {
+      "id": "d",
+      "text": "Bucket 3 doesn't belong: drugstores set shelf fees, not the brand",
+      "correct": false,
+      "feedback": "Shelf fees are a real cost of selling in drugstores, whoever sets them. They belong in the economics.",
+      "tag": "M.irrelevant_bucket"
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "This is a revenue-and-cost tree dressed in entry words. It needs the US market, the competition and the brand's ability to win, with economics as one bucket.",
+  "extras": {
+    "flaw_type": "generic",
+    "corrected_framework": "US demand for Korean skincare; competing brands; entry economics (duties, shelf fees, marketing); ability to win (brand, retailer relationships)"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

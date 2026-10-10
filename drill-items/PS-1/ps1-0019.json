@@ -2,9 +2,9 @@
   "item_id": "ps1-0019",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 3,
+  "tier": 2,
   "skills": [
     "PS.mece",
     "PS.case_specific"
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 1 and 2 overlap and should be merged",
+      "text": "Buckets 1 and 2 overlap: attendance depends on teacher quality",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "School and student factors are different units of analysis."
+      "feedback": "Teachers can affect attendance, but school factors and student factors are different units of analysis."
     },
     {
       "id": "b",
-      "text": "Bucket 1 doesn't matter, since dropouts are a student choice",
+      "text": "Bucket 1 doesn't belong: dropping out is a student's choice",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Teaching and class size affect whether students stay."
+      "feedback": "Teaching quality and class sizes affect whether students stay in school. Bucket 1 belongs."
     },
     {
       "id": "c",
-      "text": "Missing: factors outside school, such as family income, health and the need to work",
+      "text": "Missing: family income, health and other factors outside school",
       "correct": true,
-      "feedback": "Right. Out-of-school factors drive many dropouts, and neither bucket covers them."
+      "feedback": "Right. Out-of-school factors drive many dropouts, and neither the school nor the student bucket covers them."
     },
     {
       "id": "d",
-      "text": "It is a generic education framework",
+      "text": "It's a generic education framework: it isn't split by school district",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "The buckets fit graduation. The flaw is the missing out-of-school bucket."
+      "feedback": "District can be a cut inside each bucket. The flaw is the missing out-of-school factors."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

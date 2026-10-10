@@ -2,7 +2,7 @@
   "item_id": "sy1-0026",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "At $3 the margin per cup falls from $2.50 to $1.50, so sales would need to reach about 1,670 cups a day to keep profit flat, but the survey suggests only 1,200. The main risk is that a competitor undercuts us. Putting it together, keep the price at $4.",
+      "text": "Cut the price to $3. Sales would rise 20%, to 1,200 cups a day, bringing in more customers.",
       "correct": false,
-      "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores the margin: 1,200 cups at $1.50 earn $1,800 a day, less than 1,000 at $2.50 ($2,500)."
     },
     {
       "id": "b",
-      "text": "Keep the price at $4. At $3 the margin per cup falls from $2.50 to $1.50, so sales would need to reach about 1,670 cups a day to keep profit flat, but the survey suggests only 1,200. The main risk is that a competitor undercuts us, so the next step is to use targeted promotions at slow times instead.",
+      "text": "Keep the price at $4: at $3 we would need about 1,670 cups a day to keep profit flat, and the survey says 1,200.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with the break-even volume."
     },
     {
       "id": "c",
-      "text": "Keep the price at $4. Our café uses fair-trade beans. At $3 the margin per cup falls from $2.50 to $1.50, so sales would need to reach about 1,670 cups a day to keep profit flat, but the survey suggests only 1,200.",
+      "text": "Cut the price to $3. Our fair-trade beans give customers a reason to come back once they try us.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "feedback": "The beans don't change the math: profit falls at $3."
     },
     {
       "id": "d",
-      "text": "Keep the price at $4. Cutting prices cheapens the brand.",
+      "text": "At $3 we'd earn $1.50 a cup instead of $2.50 and need about 1,670 cups a day against 1,200 expected, so the price should stay at $4.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.buried_recommendation",
+      "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Keep the price at $4. At $3 the margin per cup falls from $2.50 to $1.50, so sales would need to reach about 1,670 cups a day to keep profit flat, but the survey suggests only 1,200. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Keep the price at $4. At $3 the margin per cup falls from $2.50 to $1.50, so sales would need about 1,670 cups a day to keep profit flat, but the survey suggests only 1,200. The main risk is that a competitor undercuts us, so the next step is to use targeted promotions at slow times instead. What would change the answer: evidence that sales at $3 would reach about 1,670 cups a day.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
@@ -58,13 +58,15 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
-  "is_example": false,
+  "is_example": true,
   "firm_style": null
 }

@@ -2,7 +2,7 @@
   "item_id": "sy1-0008",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "Online is growing 25% a year in the category, 40% of customers say they would buy online, and $4M of first-year sales at a 20% margin recovers most of the $1M setup cost in year one. The main risk is that online sales cannibalize the 30 stores. Putting it together, launch online sales.",
+      "text": "Online is growing 25% a year, 40% of customers would buy there, and $4M of sales at a 20% margin nearly covers the $1M setup in year one, so we should launch.",
       "correct": false,
       "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
     },
     {
       "id": "b",
-      "text": "On one hand, online is growing 25% a year in the category, 40% of customers say they would buy online, and $4M of first-year sales at a 20% margin recovers most of the $1M setup cost in year one. On the other hand, there is the risk that online sales cannibalize the 30 stores. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "text": "Don't launch online. $4M of sales would be small next to 30 stores, and the $1M setup buys little in year one.",
       "correct": false,
-      "tag": "M.hedged_recommendation",
-      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores the economics: $4M at a 20% margin nearly covers the $1M setup in year one, in a channel growing 25% a year."
     },
     {
       "id": "c",
-      "text": "Launch online sales. Our stores were renovated in 2021. Online is growing 25% a year in the category, 40% of customers say they would buy online, and $4M of first-year sales at a 20% margin recovers most of the $1M setup cost in year one.",
+      "text": "Stay in stores. They were renovated in 2021, so they're our best channel and where customers expect to find us.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "feedback": "A recent renovation doesn't answer whether online pays. The growth and margin math does."
     },
     {
       "id": "d",
-      "text": "Launch online sales. Online is growing 25% a year in the category, 40% of customers say they would buy online, and $4M of first-year sales at a 20% margin recovers most of the $1M setup cost in year one. The main risk is that online sales cannibalize the 30 stores, so the next step is to launch with a limited range and track how much comes from store customers.",
+      "text": "Launch online sales: the category grows 25% a year online, and $4M of sales at a 20% margin nearly covers the $1M setup.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with growth, demand and economics."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Launch online sales. Online is growing 25% a year in the category, 40% of customers say they would buy online, and $4M of first-year sales at a 20% margin recovers most of the $1M setup cost in year one. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Launch online sales. The category grows 25% a year online, 40% of customers would buy there, and $4M of first-year sales at a 20% margin earns $0.8M against a $1M setup. The main risk is that online sales just move existing store customers, so the next step is to launch with a limited range and track how much comes from store customers. What would change the answer: most online sales coming from store customers, with no lift overall.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

@@ -2,9 +2,9 @@
   "item_id": "cl1-0033",
   "version": 1,
   "drill_id": "CL-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 2,
+  "tier": 1,
   "skills": [
     "CL.next_step"
   ],
@@ -17,45 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Find out why gift and toy sales fell",
+      "text": "Work out why gift and toy sales fell 30%",
       "correct": true,
-      "feedback": "Right. The decline is in gifts and toys, so the next step is the cause there."
+      "feedback": "Right. The decline is in gifts and toys, so find the cause there."
     },
     {
       "id": "b",
-      "text": "Check book sales",
+      "text": "Break book sales down by genre",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That has already been answered. Build on what you know."
+      "feedback": "Books grew 4%. The problem is elsewhere."
     },
     {
       "id": "c",
-      "text": "Look at the store's music",
+      "text": "Compare store rents across the chain",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That is off the objective. It won't help answer the client's question."
+      "feedback": "Off the finding."
     },
     {
       "id": "d",
-      "text": "Recommend dropping gifts and toys",
+      "text": "Estimate savings from dropping gifts and toys",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That jumps to a solution before the analysis supports it."
+      "feedback": "That jumps to a fix before knowing why they fell."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "The decline is in gifts and toys, so the next step is the cause there.",
+  "explanation": "Gifts and toys fell 30%, so find out why.",
   "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

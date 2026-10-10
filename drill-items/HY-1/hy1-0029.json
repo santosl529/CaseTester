@@ -2,9 +2,9 @@
   "item_id": "hy1-0029",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 3,
+  "tier": 2,
   "skills": [
     "HY.form"
   ],
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Price-sensitive riders are likely switching to the rival.",
+      "text": "Riders who care about price are likely switching to the cheaper rival.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare share loss by trip type and time of day, where price matters most."
+      "feedback": "Right. Share fell right after the rival cut prices 20%. I'd compare share loss by trip type and time of day, where price matters most."
     },
     {
       "id": "b",
-      "text": "It could be prices, wait times, driver supply, promotions or app ratings.",
+      "text": "The company has probably raised prices and lost riders.",
       "correct": false,
-      "tag": "M.shotgun_hypotheses",
-      "feedback": "This lists several causes without committing to the most likely one."
+      "tag": "M.ignores_facts",
+      "feedback": "The company's own prices were unchanged."
     },
     {
       "id": "c",
-      "text": "Price is the only factor, so the company must match the 20% cut immediately.",
+      "text": "Price is the only factor, so the company needs to match the cut now.",
       "correct": false,
       "tag": "M.overconfident_hypothesis",
-      "feedback": "This states a cause as certain before any data has tested it."
+      "feedback": "This states one cause as certain and jumps to a price war before any data."
     },
     {
       "id": "d",
-      "text": "Competition has intensified.",
+      "text": "Riders are likely leaving because of long wait times.",
       "correct": false,
-      "tag": "M.untestable_hypothesis",
-      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+      "tag": "M.ignores_facts",
+      "feedback": "Possible, but nothing points to it. The share loss lines up with the rival's 20% cut."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Share loss timed with a rival's price cut suggests price sensitivity. Where share fell most tests it.",
-  "extras": {
-    "distractor_flaws": {
-      "M.shotgun_hypotheses": "It could be prices, wait times, driver supply, promotions or app ratings.",
-      "M.overconfident_hypothesis": "Price is the only factor, so the company must match the 20% cut immediately.",
-      "M.untestable_hypothesis": "Competition has intensified."
-    }
-  },
+  "explanation": "The data shows share falling from 60% to 45% right after a rival cut prices 20%, with the company's prices unchanged. Likely cause: price-sensitive riders are switching. To test it, compare share loss by trip type and time of day. If share fell as much where price matters least, look at wait times or driver supply.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

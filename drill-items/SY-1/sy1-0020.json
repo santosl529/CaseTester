@@ -2,7 +2,7 @@
   "item_id": "sy1-0020",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "It loses $200k a year, and customers shifting to nearby stores would add $150k, so the $500k lease exit pays back in under 18 months. The main risk is that fewer customers move to nearby stores than expected. Putting it together, close the store.",
+      "text": "Don't close the store. Breaking the lease costs $500k, which only pays back in two and a half years of its $200k losses.",
       "correct": false,
-      "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores the $150k that shifting customers would add: closing improves profit by $350k a year."
     },
     {
       "id": "b",
-      "text": "On one hand, it loses $200k a year, and customers shifting to nearby stores would add $150k, so the $500k lease exit pays back in under 18 months. On the other hand, there is the risk that fewer customers move to nearby stores than expected. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "text": "Close the store. It opened in 2010, is past its best years and no longer fits the chain.",
       "correct": false,
-      "tag": "M.hedged_recommendation",
-      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+      "tag": "M.irrelevant_facts",
+      "feedback": "The store's age isn't evidence. The losses and the payback on the lease exit are."
     },
     {
       "id": "c",
-      "text": "Close the store. The store opened in 2010. It loses $200k a year, and customers shifting to nearby stores would add $150k, so the $500k lease exit pays back in under 18 months.",
+      "text": "Closing saves the $200k loss but costs $500k to exit the lease, so there are good arguments on both sides.",
       "correct": false,
-      "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "tag": "M.hedged_recommendation",
+      "feedback": "This never commits, even though the exit pays back in under 18 months."
     },
     {
       "id": "d",
-      "text": "Close the store. It loses $200k a year, and customers shifting to nearby stores would add $150k, so the $500k lease exit pays back in under 18 months. The main risk is that fewer customers move to nearby stores than expected, so the next step is to negotiate the lease exit and plan how to keep the store's customers.",
+      "text": "Close the store: it loses $200k, shifting customers add $150k, and the $500k exit pays back in 18 months.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with the payback."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Close the store. It loses $200k a year, and customers shifting to nearby stores would add $150k, so the $500k lease exit pays back in under 18 months. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Close the store. It loses $200k a year, and customers moving to nearby stores add $150k, so the $500k lease exit pays back in under 18 months. The main risk is that fewer customers move than expected, so the next step is to negotiate the exit and plan how to keep the store's customers. What would change the answer: very little; even if no customers moved, the exit would pay back in 2.5 years.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

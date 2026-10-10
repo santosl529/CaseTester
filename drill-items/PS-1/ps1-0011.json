@@ -2,7 +2,7 @@
   "item_id": "ps1-0011",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 1 and 2 overlap and should be merged",
+      "text": "Buckets 1 and 2 overlap: competitors' shares are part of US demand",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Demand and competitors are separate questions."
+      "feedback": "Demand is how much US buyers want e-bikes; competitors' shares are how that demand is split. They are separate questions."
     },
     {
       "id": "b",
-      "text": "Bucket 3 doesn't matter for entry",
+      "text": "Bucket 3 doesn't belong: costing comes after the decision to enter",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Distribution, marketing and duties decide whether entry pays."
+      "feedback": "Distribution, marketing and duties decide whether entry would pay, so they are part of the decision."
     },
     {
       "id": "c",
-      "text": "Missing: whether the client can win in the US",
+      "text": "Missing: whether this client can beat US competitors",
       "correct": true,
-      "feedback": "Right. The framework sizes the market and costs but never asks whether this client can compete there."
+      "feedback": "Right. The framework sizes the market, the rivals and the costs, but never asks whether this client can compete in the US: brand, channels and product fit."
     },
     {
       "id": "d",
-      "text": "It is a generic profit tree",
+      "text": "It's a generic profit tree: it only covers revenue and costs",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "These are market-entry buckets, not a revenue-and-cost tree. What is missing is the client's ability to win."
+      "feedback": "It isn't a profit tree. Demand and competitors are market-entry buckets. What's missing is the client's ability to win."
     }
   ],
   "numeric": null,
@@ -55,13 +55,15 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
-  "is_example": false,
+  "is_example": true,
   "firm_style": null
 }

@@ -2,7 +2,7 @@
   "item_id": "cl1-0008",
   "version": 1,
   "drill_id": "CL-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -17,45 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Re-estimate the market size",
+      "text": "Estimate how fast the market will grow over five years",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That has already been answered. Build on what you know."
+      "feedback": "Volume is already estimated. Profitability is the open question."
     },
     {
       "id": "b",
-      "text": "Ask the interviewer what they would like to look at next",
+      "text": "Ask the interviewer whether 200,000 units is enough",
       "correct": false,
       "tag": "M.waited_for_interviewer",
-      "feedback": "Drive the case: propose the next step yourself rather than waiting to be told."
+      "feedback": "Drive the case: work out what 200,000 units earns instead of asking."
     },
     {
       "id": "c",
-      "text": "Recommend launching, since 200,000 units is a lot",
+      "text": "Plan the launch channels for 200,000 units",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That jumps to a solution before the analysis supports it."
+      "feedback": "That jumps to execution before knowing the thermostat is profitable."
     },
     {
       "id": "d",
-      "text": "Estimate price and unit cost at 200,000 units",
+      "text": "Estimate price and unit cost at 200,000 units a year",
       "correct": true,
-      "feedback": "Right. Volume is estimated. Profitability needs price and cost per unit."
+      "feedback": "Right. Volume is known. Profitability needs price and cost per unit."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Volume is estimated. Profitability needs price and cost per unit.",
+  "explanation": "Volume is estimated at 200,000 units a year. Profitability needs price and cost per unit.",
   "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

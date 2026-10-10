@@ -2,7 +2,7 @@
   "item_id": "sy1-0038",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -11,7 +11,7 @@
     "SY.summary"
   ],
   "case_type": "public_sector",
-  "prompt": "Mid-case: A hospital wants to cut ER waiting times. You've found that 40% of ER visits are non-urgent and could go to urgent care clinics. You haven't looked at ER staffing. Which is the best summary?",
+  "prompt": "Mid-case: A hospital wants to cut ER waiting times. You've found that 40% of ER visits are non-urgent and could go to urgent care clinics. You also learned the hospital has a helicopter pad. You haven't looked at ER staffing. Which is the best summary?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "So far: ER staffing is the main cause of the long waits. Next I'd look at urgent care.",
+      "text": "So far: 40% of ER visits are non-urgent, so diverting them fixes waiting times on its own.",
       "correct": false,
       "tag": "M.inaccurate_summary",
-      "feedback": "This claims findings the analysis hasn't shown. Summarize only what you've established."
+      "feedback": "It closes the case before looking at staffing."
     },
     {
       "id": "b",
-      "text": "So far: 40% of ER visits are non-urgent and could be handled at urgent care clinics, which would free a large share of ER capacity. We haven't yet looked at ER staffing, so next I'd check whether staffing at peak hours also contributes.",
+      "text": "So far: 40% of ER visits are non-urgent and could go to urgent care clinics. ER staffing is still unchecked.",
       "correct": true,
-      "feedback": "Right. It states what is known, with numbers, then what is still open and what comes next."
+      "feedback": "Right. It states what is known, with numbers, then what is still open."
     },
     {
       "id": "c",
-      "text": "We've looked at the mix of ER visits. We still need to look at ER staffing, and next I'd check whether staffing at peak hours also contributes. The main finding so far is that 40% of ER visits are non-urgent and could be handled at urgent care clinics, which would free a large share of ER capacity.",
+      "text": "So far: 40% of visits are non-urgent, and the hospital has a helicopter pad for emergencies. Next, ER staffing.",
       "correct": false,
-      "tag": "M.buried_recommendation",
-      "feedback": "The answer comes last. Lead with the recommendation, then support it."
+      "tag": "M.irrelevant_facts",
+      "feedback": "The helicopter pad has nothing to do with waiting times, so it doesn't belong in the summary."
     },
     {
       "id": "d",
-      "text": "So far: many visits probably don't need to be in the ER. Next I'd check whether staffing at peak hours also contributes.",
+      "text": "So far: 40% of ER visits are urgent cases arriving at peak hours. Next I'd look at staffing.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.inaccurate_summary",
+      "feedback": "It misstates what you found: the 40% are non-urgent."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "40% of ER visits are non-urgent and could be handled at urgent care clinics, which would free a large share of ER capacity. A good mid-case summary states what is known with numbers and what comes next, without claiming findings that haven't been tested.",
+  "explanation": "Known: 40% of visits are non-urgent and could go to urgent care. Open: ER staffing. Next: check staffing at peak hours. If waits stay long at peak even after non-urgent cases are diverted, staffing is part of the problem.",
   "extras": {
     "answer_type": "summary",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

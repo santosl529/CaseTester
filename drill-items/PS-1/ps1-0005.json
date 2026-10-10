@@ -2,15 +2,15 @@
   "item_id": "ps1-0005",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 3,
+  "tier": 2,
   "skills": [
     "PS.mece",
     "PS.case_specific"
   ],
   "case_type": "m_and_a",
-  "prompt": "A private equity firm is deciding whether to buy a chain of veterinary clinics. The candidate's framework: (1) Attractiveness of the vet clinic market; (2) The target's financial performance; (3) Synergies with the firm's other pet businesses; (4) The target's revenue growth and margins. What is the flaw in this framework?",
+  "prompt": "A private equity firm is deciding whether to buy a chain of veterinary clinics. The candidate's framework: (1) The target's financial performance; (2) The target's revenue growth and margins; (3) Attractiveness of the vet clinic market; (4) Synergies with the firm's other pet businesses. What is the flaw in this framework?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 2 and 4 overlap",
+      "text": "Buckets 1 and 2 overlap: growth and margins are financial performance",
       "correct": true,
-      "feedback": "Right. Bucket 4 is a subset of bucket 2. Merge them and add the deal terms: price, financing and exit."
+      "feedback": "Right. Revenue growth and margins are part of financial performance, so bucket 2 repeats bucket 1. Use the slot for the deal terms: price, financing and exit."
     },
     {
       "id": "b",
-      "text": "Missing: the attractiveness of the vet market",
+      "text": "Missing: how fast the vet clinic market is growing",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "Market attractiveness is bucket 1."
+      "feedback": "Market growth is part of the market's attractiveness, which bucket 3 covers."
     },
     {
       "id": "c",
-      "text": "Bucket 3 is irrelevant to a private equity deal",
+      "text": "Bucket 4 doesn't belong: a PE firm values each target on its own",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Synergies with portfolio companies can justify a higher price, so they matter."
+      "feedback": "The firm owns other pet businesses. Shared purchasing or referrals can justify a higher price, so synergies matter here."
     },
     {
       "id": "d",
-      "text": "It is a generic acquisition checklist",
+      "text": "It's a generic due-diligence list: it never asks why vet clinics",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "The buckets are specific to this target. The flaw is the overlap between 2 and 4."
+      "feedback": "Bucket 3 asks exactly that: how attractive the vet clinic market is. The flaw is the overlap between buckets 1 and 2."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

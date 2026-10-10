@@ -2,7 +2,7 @@
   "item_id": "ps1-0021",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -10,7 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "market_entry",
-  "prompt": "A Japanese ramen chain is deciding whether to open restaurants in Canada. The candidate's framework: (1) Canadian demand for ramen; (2) Local competition; (3) Costs of opening and running restaurants; (4) The chain's history and founding story. What is the flaw in this framework?",
+  "prompt": "A Japanese ramen chain is deciding whether to open restaurants in Canada. The candidate's framework: (1) Canadian demand for ramen; (2) How the chain financed its growth in Japan; (3) Local competition; (4) Costs of opening and running restaurants. What is the flaw in this framework?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -18,48 +18,50 @@
   "options": [
     {
       "id": "a",
-      "text": "Bucket 4 doesn't matter",
+      "text": "Bucket 2 doesn't belong: how Japan was financed doesn't decide Canada",
       "correct": true,
-      "feedback": "Right. Replace it with the chain's ability to operate in Canada: suppliers, staff and recipes that travel."
+      "feedback": "Right. Past financing in Japan doesn't tell you whether Canada works. Replace it with the chain's ability to operate in Canada: suppliers, staff and recipes that travel."
     },
     {
       "id": "b",
-      "text": "Buckets 1 and 2 overlap and should be merged",
+      "text": "Buckets 1 and 3 overlap: local ramen rivals are what create demand",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Demand and competition are separate."
+      "feedback": "Demand is how much Canadians want ramen; local shops compete for it. They are separate questions."
     },
     {
       "id": "c",
-      "text": "Missing: the costs of entry",
+      "text": "Missing: fit-out costs for each restaurant",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "Costs are bucket 3."
+      "feedback": "Fit-out is a cost of opening restaurants, which bucket 4 covers."
     },
     {
       "id": "d",
-      "text": "It is a generic profit tree",
+      "text": "It's a generic entry framework: it ignores what's special about ramen",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "Demand, competition and costs fit an entry decision. The flaw is bucket 4."
+      "feedback": "Demand for ramen and local ramen competition are specific to this case. The flaw is bucket 2."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "A founding story may help marketing, but it doesn't decide the entry question. The slot should test the chain's ability to operate abroad.",
+  "explanation": "How the chain funded its growth at home doesn't decide whether Canadian restaurants would work. The slot should test the chain's ability to operate abroad.",
   "extras": {
     "flaw_type": "irrelevant",
     "corrected_framework": "Demand; competition; economics; ability to operate in Canada"
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

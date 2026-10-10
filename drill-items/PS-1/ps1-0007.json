@@ -2,9 +2,9 @@
   "item_id": "ps1-0007",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 3,
+  "tier": 2,
   "skills": [
     "PS.mece",
     "PS.case_specific"
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Missing: fuel costs",
+      "text": "Missing: maintenance contracts with outside suppliers",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "Fuel is bucket 1."
+      "feedback": "Outside maintenance is part of bucket 3, aircraft ownership and maintenance."
     },
     {
       "id": "b",
-      "text": "Bucket 3 is irrelevant to a cost cut",
+      "text": "Bucket 3 doesn't belong: aircraft are long-term commitments",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Aircraft ownership and maintenance are among an airline's largest costs."
+      "feedback": "Aircraft ownership and maintenance are among an airline's largest costs, and leases and maintenance schedules can be renegotiated. They belong in the cost tree."
     },
     {
       "id": "c",
-      "text": "Bucket 4 overlaps with bucket 2",
+      "text": "Buckets 2 and 4 overlap: staffing levels drive labor cost",
       "correct": true,
-      "feedback": "Right. Staffing levels are a lever inside labor cost. Use the slot for airport fees and other costs."
+      "feedback": "Right. Crew scheduling and staffing levels are how labor cost is managed, so bucket 4 repeats bucket 2. Use the slot for airport and navigation fees."
     },
     {
       "id": "d",
-      "text": "It is a generic cost tree rather than airline-specific",
+      "text": "It's a generic cost tree: an airline is better cut by route than by cost line",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "The buckets are airline cost lines. The flaw is that bucket 4 repeats labor."
+      "feedback": "Splitting cost by line is a valid, complete cut, and route detail can sit inside each line. The flaw is that bucket 4 repeats labor."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

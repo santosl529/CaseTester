@@ -2,9 +2,9 @@
   "item_id": "hy1-0014",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 3,
+  "tier": 1,
   "skills": [
     "HY.form"
   ],
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Inventory grew 35%, sales fell 5% and markdowns doubled.",
+      "text": "Lighter markdowns have likely made the stock harder to sell.",
       "correct": false,
-      "tag": "M.restates_facts",
-      "feedback": "This restates the facts without proposing a cause."
+      "tag": "M.ignores_facts",
+      "feedback": "Markdowns doubled."
     },
     {
       "id": "b",
-      "text": "Buying likely hasn't adjusted to lower demand, leaving excess stock to clear.",
+      "text": "Buying has probably stayed high as demand fell, piling up stock.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare purchase orders with sales by category."
+      "feedback": "Right. Inventory grew 35% while sales fell 5%, so buying didn't track demand, and markdowns doubled to clear it. I'd compare purchase orders with sales by category."
     },
     {
       "id": "c",
-      "text": "The buying team ordered the wrong styles, which caused everything.",
+      "text": "The buyers ordered the wrong styles, and that explains the whole problem.",
       "correct": false,
       "tag": "M.overconfident_hypothesis",
-      "feedback": "This states a cause as certain before any data has tested it."
+      "feedback": "This states one cause as the whole explanation before any data has tested it."
     },
     {
       "id": "d",
-      "text": "The retailer has an inventory issue.",
+      "text": "Demand has probably surged and the stores can't keep up.",
       "correct": false,
-      "tag": "M.untestable_hypothesis",
-      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+      "tag": "M.ignores_facts",
+      "feedback": "Sales fell 5%."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Inventory rising while sales fall points to buying not tracking demand. Orders vs sales by category tests it.",
-  "extras": {
-    "distractor_flaws": {
-      "M.restates_facts": "Inventory grew 35%, sales fell 5% and markdowns doubled.",
-      "M.overconfident_hypothesis": "The buying team ordered the wrong styles, which caused everything.",
-      "M.untestable_hypothesis": "The retailer has an inventory issue."
-    }
-  },
+  "explanation": "The data shows inventory up 35% while sales fell 5%, and markdowns doubled. Likely cause: buying stayed high as demand fell. To test it, compare purchase orders with sales by category. If orders fell in line with sales, look at the product mix instead.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

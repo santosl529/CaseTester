@@ -2,7 +2,7 @@
   "item_id": "sy1-0017",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 3,
   "skills": [
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "Build the surgical wing. The current rooms run at 95% with a 6-week waitlist, and 8 new rooms earning about $3M each pay back the $120M in 5 years, inside the 7-year hurdle. The main risk is that the waitlist doesn't fill all 8 rooms, so the next step is to check how many of the 8 rooms the waitlist would fill in year one.",
+      "text": "Build the wing: rooms run at 95% with a 6-week waitlist, and 8 more rooms at $3M each repay $120M in 5 years.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and backs it with demand and payback."
     },
     {
       "id": "b",
-      "text": "On one hand, the current rooms run at 95% with a 6-week waitlist, and 8 new rooms earning about $3M each pay back the $120M in 5 years, inside the 7-year hurdle. On the other hand, there is the risk that the waitlist doesn't fill all 8 rooms. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "text": "Don't build. At $3M a year for each room, the wing pays back in 40 years, far beyond the 7-year hurdle.",
       "correct": false,
-      "tag": "M.hedged_recommendation",
-      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It counts one room instead of eight: 8 × $3M = $24M a year, a 5-year payback."
     },
     {
       "id": "c",
-      "text": "Build the surgical wing. The hospital won a quality award in 2024. The current rooms run at 95% with a 6-week waitlist, and 8 new rooms earning about $3M each pay back the $120M in 5 years, inside the 7-year hurdle.",
+      "text": "Build the wing. The 2024 quality award will draw patients and help fill the 8 new rooms quickly.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "feedback": "The award doesn't show demand. The 95% use and 6-week waitlist do."
     },
     {
       "id": "d",
-      "text": "Build the surgical wing. Patients deserve modern facilities.",
+      "text": "Rooms run at 95% with a 6-week waitlist, and 8 new rooms earn about $24M a year, repaying $120M in 5 years, so build it.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.buried_recommendation",
+      "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Build the surgical wing. The current rooms run at 95% with a 6-week waitlist, and 8 new rooms earning about $3M each pay back the $120M in 5 years, inside the 7-year hurdle. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Build the surgical wing. Current rooms run at 95% with a 6-week waitlist, and 8 rooms earning about $3M each repay $120M in 5 years, inside the 7-year hurdle. The main risk is that the waitlist doesn't fill all 8 rooms, so the next step is to estimate how many rooms it would fill in year one. What would change the answer: demand for fewer than about 6 rooms, which pushes payback past 7 years.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

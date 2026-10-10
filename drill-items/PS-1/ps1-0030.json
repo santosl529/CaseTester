@@ -2,7 +2,7 @@
   "item_id": "ps1-0030",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -10,7 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "competitive_response",
-  "prompt": "A grocery delivery app saw a new rival offer free delivery in its biggest city. The candidate's framework: (1) How many customers are switching; (2) The rival's economics: can it sustain free delivery?; (3) The client's response options; (4) The rival founders' education backgrounds. What is the flaw in this framework?",
+  "prompt": "A grocery delivery app saw a new rival offer free delivery in its biggest city. The candidate's framework: (1) How many customers are switching; (2) Long-term trends in online grocery adoption; (3) The rival's economics: can it sustain free delivery?; (4) The client's response options. What is the flaw in this framework?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -18,48 +18,50 @@
   "options": [
     {
       "id": "a",
-      "text": "Buckets 1 and 2 overlap and should be merged",
+      "text": "Buckets 1 and 4 overlap: the response depends on how many switch",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Customer switching and the rival's economics are separate."
+      "feedback": "The size of the switching informs the response, but measuring it and choosing a response are separate steps."
     },
     {
       "id": "b",
-      "text": "Bucket 4 doesn't matter",
+      "text": "Bucket 2 doesn't belong: industry trends can't say how to respond now",
       "correct": true,
-      "feedback": "Right. Replace it with the cost and impact of each response option."
+      "feedback": "Right. Long-run adoption sounds relevant, but it doesn't help decide how to answer this rival now. Replace it with the cost and impact of each response."
     },
     {
       "id": "c",
-      "text": "Missing: the client's response options",
+      "text": "Missing: whether the rival can afford free delivery for long",
       "correct": false,
       "tag": "M.missing_bucket",
-      "feedback": "Response options are bucket 3."
+      "feedback": "That is bucket 3, the rival's economics."
     },
     {
       "id": "d",
-      "text": "It is a generic competitor framework",
+      "text": "It's a generic competitor framework: it skips the client's own costs",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "The buckets fit this threat. The flaw is bucket 4."
+      "feedback": "Customer impact, the rival's staying power and response options fit this threat. The flaw is bucket 2."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Whether to respond depends on customer impact, the rival's staying power and the economics of each option. The founders' education doesn't matter.",
+  "explanation": "Whether and how to respond depends on customer impact, the rival's staying power and the economics of each option. Industry trends don't decide it.",
   "extras": {
     "flaw_type": "irrelevant",
     "corrected_framework": "Customer impact; rival's staying power; response options; economics of each option"
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

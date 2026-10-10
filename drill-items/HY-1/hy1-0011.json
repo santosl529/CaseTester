@@ -2,9 +2,9 @@
   "item_id": "hy1-0011",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 3,
+  "tier": 2,
   "skills": [
     "HY.form"
   ],
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Output per shift fell 12% after new machines were installed, and downtime is normal.",
+      "text": "The new machines are probably breaking down more than the old ones.",
       "correct": false,
-      "tag": "M.restates_facts",
-      "feedback": "This restates the facts without proposing a cause."
+      "tag": "M.ignores_facts",
+      "feedback": "Downtime is reported as normal."
     },
     {
       "id": "b",
-      "text": "It could be training, machine settings, materials, staffing, scheduling or measurement.",
+      "text": "Training, settings, materials and scheduling may be part of it.",
       "correct": false,
       "tag": "M.shotgun_hypotheses",
-      "feedback": "This lists several causes without committing to the most likely one."
+      "feedback": "This lists causes without committing to one."
     },
     {
       "id": "c",
-      "text": "Workers may not be fully trained on the new machines, slowing changeovers.",
+      "text": "Workers are probably still learning the new machines.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare output by operator and by time since installation."
+      "feedback": "Right. The machines run normally, so the slowdown is probably how they're used. I'd compare output by operator and by time since installation."
     },
     {
       "id": "d",
-      "text": "The new machines changed something.",
+      "text": "Demand has likely dropped, so the factory is producing less.",
       "correct": false,
-      "tag": "M.untestable_hypothesis",
-      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+      "tag": "M.ignores_facts",
+      "feedback": "Nothing points to demand, and the drop lines up with the new machines."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Normal downtime suggests the machines run, but output is lower. Training is a likely cause that output by operator can test.",
-  "extras": {
-    "distractor_flaws": {
-      "M.restates_facts": "Output per shift fell 12% after new machines were installed, and downtime is normal.",
-      "M.shotgun_hypotheses": "It could be training, machine settings, materials, staffing, scheduling or measurement.",
-      "M.untestable_hypothesis": "The new machines changed something."
-    }
-  },
+  "explanation": "The data shows output per shift down 12% after the new machines arrived, with normal downtime. Likely cause: workers are still learning the machines. To test it, compare output by operator and by weeks since installation. If output doesn't improve with experience, check the machine settings.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

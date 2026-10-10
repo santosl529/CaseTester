@@ -2,14 +2,14 @@
   "item_id": "hy1-0013",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 3,
   "skills": [
     "HY.form"
   ],
   "case_type": "pricing",
-  "prompt": "An airline cut fares 10% on one route. Passengers rose 6%, and revenue on the route fell. Which is the strongest initial hypothesis?",
+  "prompt": "An airline cut fares 10% on one route, where most passengers are business travelers. Passengers rose 6%, and revenue on the route fell. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Demand on the route is likely price-inelastic, so the cut lost more in price than it gained in volume.",
+      "text": "Business travelers likely fly whatever the fare, so the cut just gave revenue away.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd estimate elasticity from comparable routes."
+      "feedback": "Right. Most passengers travel for work and their employers pay, so a lower fare barely changes how many fly: 0.9 × 1.06 ≈ 0.95, a revenue fall of about 5%. I'd compare passenger growth by traveler type."
     },
     {
       "id": "b",
-      "text": "It could be elasticity, competitor reactions, the season, capacity or the mix of business and leisure travelers.",
+      "text": "Leisure travelers have probably flooded the route, crowding out business fares.",
       "correct": false,
-      "tag": "M.shotgun_hypotheses",
-      "feedback": "This lists several causes without committing to the most likely one."
+      "tag": "M.ignores_facts",
+      "feedback": "Passengers rose only 6%, so there was no flood."
     },
     {
       "id": "c",
-      "text": "Fare cuts never work, so the airline should never discount.",
+      "text": "The cut was probably small enough that travelers didn't notice.",
       "correct": false,
-      "tag": "M.overconfident_hypothesis",
-      "feedback": "This states a cause as certain before any data has tested it."
+      "tag": "M.ignores_facts",
+      "feedback": "Passengers did rise 6%, so it was noticed. The issue is that 6% more passengers can't make up a 10% lower fare."
     },
     {
       "id": "d",
-      "text": "The fare cut didn't go as hoped.",
+      "text": "The fare cut probably didn't land the way it was meant to.",
       "correct": false,
       "tag": "M.untestable_hypothesis",
-      "feedback": "This is too vague to test: it doesn't say what is wrong or what data would show it."
+      "feedback": "Too vague to test: it doesn't say why or what data would show it."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "A 10% price cut with only 6% more passengers means revenue fell about 5%. The hypothesis explains why and how to check.",
-  "extras": {
-    "distractor_flaws": {
-      "M.shotgun_hypotheses": "It could be elasticity, competitor reactions, the season, capacity or the mix of business and leisure travelers.",
-      "M.overconfident_hypothesis": "Fare cuts never work, so the airline should never discount.",
-      "M.untestable_hypothesis": "The fare cut didn't go as hoped."
-    }
-  },
+  "explanation": "The data shows a 10% fare cut with 6% more passengers, a revenue loss of about 5% (0.9 × 1.06). Likely cause: business travelers, whose employers pay, barely respond to price. To test it, compare passenger growth by traveler type. If leisure travelers also barely responded, demand on the route is simply insensitive to price.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

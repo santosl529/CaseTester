@@ -2,7 +2,7 @@
   "item_id": "ex1-0002",
   "version": 1,
   "drill_id": "EX-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -55,47 +55,49 @@
   "options": [
     {
       "id": "a",
-      "text": "In 2022 the North was larger than the South",
+      "text": "The West is the biggest market, at $88M",
       "correct": false,
       "tag": "M.trivial_takeaway",
-      "feedback": "True, but it doesn't answer the client's question."
+      "feedback": "True and relevant, but the West grows only 10% in three years. The South is where the market is growing."
     },
     {
       "id": "b",
-      "text": "The South is growing much faster than the other regions",
+      "text": "The South is growing far faster than the others",
       "correct": true,
       "feedback": "Right. The South grew 75% (40 to 70) in three years, against 10% for both the West and the North."
     },
     {
       "id": "c",
-      "text": "The West market is shrinking",
+      "text": "The North has grown faster than the West since 2022",
       "correct": false,
       "tag": "M.misread_trend",
-      "feedback": "That misreads the chart: The West grows every year, from 80 to 88."
+      "feedback": "Both grew 10%: the North from 50 to 55, the West from 80 to 88."
     },
     {
       "id": "d",
-      "text": "The South has the weakest competitors, which is why it is growing fastest",
+      "text": "The South's weak competitors explain its fast growth",
       "correct": false,
       "tag": "M.unsupported_claim",
-      "feedback": "The chart doesn't show this. It may be true, but there is no data here to support it."
+      "feedback": "The chart shows market size, not competitors. That may be true, but nothing here supports it."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "The South is growing much faster than the other regions. The South grew 75% (40 to 70) in three years, against 10% for both the West and the North.",
+  "explanation": "The South grew 75% (40 to 70) in three years, against 10% for both the West and the North.",
   "extras": {
     "proof": "The South grew 75% (40 to 70) in three years, against 10% for both the West and the North."
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

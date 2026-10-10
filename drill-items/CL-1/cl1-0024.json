@@ -2,7 +2,7 @@
   "item_id": "cl1-0024",
   "version": 1,
   "drill_id": "CL-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 3,
   "skills": [
@@ -17,45 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Re-check the market share numbers in more detail",
+      "text": "Compare our app ratings with the rival's",
       "correct": false,
-      "tag": "M.illogical_next_step",
-      "feedback": "That has already been answered. Build on what you know."
+      "tag": "M.low_priority_next_step",
+      "feedback": "Secondary: the losses line up with driver pay at night."
     },
     {
       "id": "b",
-      "text": "Review the app's color scheme for more context on the business",
+      "text": "Estimate the cost of matching the rival's driver pay everywhere",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That is off the objective. It won't help answer the client's question."
+      "feedback": "That jumps to a costly fix, and the problem is only late at night."
     },
     {
       "id": "c",
-      "text": "Ask the interviewer what they would like to look at next",
+      "text": "Ask the interviewer which hours to focus on",
       "correct": false,
       "tag": "M.waited_for_interviewer",
-      "feedback": "Drive the case: propose the next step yourself rather than waiting to be told."
+      "feedback": "The finding already says: late nights. Drive the case."
     },
     {
       "id": "d",
-      "text": "Check late-night driver supply and wait times",
+      "text": "Ask the interviewer for late-night driver supply and wait times",
       "correct": true,
-      "feedback": "Right. Losses are concentrated where driver pay differs, so driver supply at night is the next thing to check."
+      "feedback": "Right. Losses are concentrated where the rival pays drivers more, so night driver supply is next."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Losses are concentrated where driver pay differs, so driver supply at night is the next thing to check.",
+  "explanation": "Losses are concentrated in late-night trips, where the rival pays drivers more. Check driver supply and wait times at night.",
   "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

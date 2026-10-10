@@ -2,7 +2,7 @@
   "item_id": "ps1-0017",
   "version": 1,
   "drill_id": "PS-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -18,30 +18,30 @@
   "options": [
     {
       "id": "a",
-      "text": "Missing: delays before production, such as late materials from suppliers",
+      "text": "Missing: late materials from suppliers before production",
       "correct": true,
-      "feedback": "Right. Late raw materials are a common cause, and they sit outside both buckets."
+      "feedback": "Right. Late raw materials are a common cause of late deliveries, and they sit before every stage in this framework."
     },
     {
       "id": "b",
-      "text": "Buckets 2 and 3 overlap and should be merged",
+      "text": "Buckets 2 and 3 overlap: both are physical delays in moving furniture",
       "correct": false,
       "tag": "M.overlapping_buckets",
-      "feedback": "Factory and shipping delays happen at different stages."
+      "feedback": "A delay in the factory and a delay with the carrier happen at different stages and have different fixes."
     },
     {
       "id": "c",
-      "text": "Bucket 3 doesn't matter, since carriers are outside the client's control",
+      "text": "Bucket 3 doesn't belong: carriers are outside the client's control",
       "correct": false,
       "tag": "M.irrelevant_bucket",
-      "feedback": "Carrier delays still make deliveries late, so they belong."
+      "feedback": "Carrier delays still make deliveries late, and the client can choose or manage its carriers."
     },
     {
       "id": "d",
-      "text": "It is a generic operations framework",
+      "text": "It's a generic process map: it never asks which furniture lines are late",
       "correct": false,
       "tag": "M.generic_framework",
-      "feedback": "The buckets follow this supply chain. The flaw is a missing stage."
+      "feedback": "Splitting by product line can be done inside each stage. A process view is the right start. The flaw is a missing stage."
     }
   ],
   "numeric": null,
@@ -55,11 +55,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

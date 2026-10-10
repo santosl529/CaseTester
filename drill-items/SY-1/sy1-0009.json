@@ -2,7 +2,7 @@
   "item_id": "sy1-0009",
   "version": 1,
   "drill_id": "SY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -11,7 +11,7 @@
     "SY.summary"
   ],
   "case_type": "operations",
-  "prompt": "The client asks: \"Should our factory move to 24-hour operation?\" Fact sheet: demand is 20% above capacity; a night shift would add 30% capacity; the night shift would cost $3M a year; the extra sales would add $5M a year in profit; a new plant would cost $40M; the factory was built in 1990. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should our factory move to 24-hour operation?\" Fact sheet: demand is 20% above capacity; a night shift would add 30% capacity and cost $3M a year; serving the extra 20% of demand would add $8M a year in profit before the shift's cost; a new plant would cost $40M; the factory was built in 1990. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -19,37 +19,37 @@
   "options": [
     {
       "id": "a",
-      "text": "Add a night shift. Demand is 20% above capacity, and a night shift adds 30% capacity for $3M a year while bringing $5M of extra profit, without the $40M cost of a new plant. The main risk is that night-shift quality or staffing falls short, so the next step is to pilot the night shift on one line.",
+      "text": "Add a night shift: serving the 20% of demand we turn away adds $8M of profit for $3M a year, without a $40M plant.",
       "correct": true,
-      "feedback": "Right. It leads with the answer, backs it with the numbers that matter, and gives a risk and a next step."
+      "feedback": "Right. It leads with the answer and nets the shift's cost against the profit it brings."
     },
     {
       "id": "b",
-      "text": "On one hand, demand is 20% above capacity, and a night shift adds 30% capacity for $3M a year while bringing $5M of extra profit, without the $40M cost of a new plant. On the other hand, there is the risk that night-shift quality or staffing falls short. It depends on the client's priorities, so I'd want more analysis before committing either way.",
+      "text": "Build a new plant. Demand is already 20% above capacity, and a $40M plant is a lasting fix rather than a costly stopgap.",
       "correct": false,
-      "tag": "M.hedged_recommendation",
-      "feedback": "This never takes a position. Commit to an answer, then name the risk."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores the cost: $40M for a plant against $3M a year for a shift that covers the gap."
     },
     {
       "id": "c",
-      "text": "Add a night shift. The factory was built in 1990. Demand is 20% above capacity, and a night shift adds 30% capacity for $3M a year while bringing $5M of extra profit, without the $40M cost of a new plant.",
+      "text": "Add a night shift. The factory was built in 1990 for round-the-clock work, so a third shift fits how it was designed.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "It leads with the answer, but pads it with a fact that doesn't bear on the decision."
+      "feedback": "The factory's age says nothing about the economics. The $5M net gain does."
     },
     {
       "id": "d",
-      "text": "Add a night shift. Running around the clock is the most efficient way to use a factory.",
+      "text": "Don't add a shift. At $3M a year it buys 30% more capacity when only 20% is needed, so a third of it sits idle.",
       "correct": false,
-      "tag": "M.unsupported_recommendation",
-      "feedback": "It gives an answer but none of the numbers from the fact sheet to back it."
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "Spare capacity doesn't matter: the 20% we can fill adds $8M of profit, $5M after the shift's cost."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Add a night shift. Demand is 20% above capacity, and a night shift adds 30% capacity for $3M a year while bringing $5M of extra profit, without the $40M cost of a new plant. A strong answer leads with the recommendation, supports it with these numbers, and ends with a risk and a next step.",
+  "explanation": "Full answer: Add a night shift. Serving the 20% of demand we turn away adds $8M of profit for $3M a year, a $5M gain, without a $40M new plant. The main risk is that night-shift quality or staffing falls short, so the next step is to pilot it on one line. What would change the answer: demand growing beyond the 30% a shift adds, which would put a new plant back on the table.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
@@ -58,11 +58,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

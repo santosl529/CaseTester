@@ -2,9 +2,9 @@
   "item_id": "ex1-0014",
   "version": 1,
   "drill_id": "EX-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 2,
+  "tier": 3,
   "skills": [
     "EX.takeaway"
   ],
@@ -54,47 +54,49 @@
   "options": [
     {
       "id": "a",
-      "text": "Sales has the largest budget",
+      "text": "Sales is the biggest budget, at $40M",
       "correct": false,
       "tag": "M.trivial_takeaway",
-      "feedback": "True, but it doesn't answer the client's question."
+      "feedback": "True, but sales grew only 5%, about $2M. The question is where costs rose."
     },
     {
       "id": "b",
-      "text": "Marketing's jump drives most of the increase",
+      "text": "Marketing makes up roughly $7M of the $10M increase",
       "correct": true,
-      "feedback": "Right. Marketing rose about $7M (from about $18M to $25M); sales about $2M and IT under $1M."
+      "feedback": "Right. Marketing rose 40%, from about $18M to $25M. Sales rose about $2M and IT under $1M."
     },
     {
       "id": "c",
-      "text": "IT's budget grew the most",
+      "text": "Sales and marketing added similar amounts, since sales is bigger",
       "correct": false,
       "tag": "M.misread_trend",
-      "feedback": "That misreads the chart: IT grew 2%; marketing grew 40%."
+      "feedback": "Sales rose 5% of about $38M, about $2M. Marketing rose 40% of about $18M, about $7M."
     },
     {
       "id": "d",
-      "text": "The marketing increase was wasted, since it didn't lift revenue",
+      "text": "The marketing increase hasn't paid off in revenue",
       "correct": false,
       "tag": "M.unsupported_claim",
-      "feedback": "The chart doesn't show this. It may be true, but there is no data here to support it."
+      "feedback": "The table shows budgets, not revenue. That may be true, but nothing here supports it."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Marketing's jump drives most of the increase. Marketing rose about $7M (from about $18M to $25M); sales about $2M and IT under $1M.",
+  "explanation": "Marketing rose about $7M (from about $18M to $25M); sales about $2M and IT under $1M, out of a total rise of about $10M.",
   "extras": {
-    "proof": "Marketing rose about $7M (from about $18M to $25M); sales about $2M and IT under $1M."
+    "proof": "Marketing rose about $7M (from about $18M to $25M); sales about $2M and IT under $1M, out of a total rise of about $10M."
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

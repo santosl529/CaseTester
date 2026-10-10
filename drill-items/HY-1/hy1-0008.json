@@ -2,9 +2,9 @@
   "item_id": "hy1-0008",
   "version": 1,
   "drill_id": "HY-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 3,
+  "tier": 2,
   "skills": [
     "HY.form"
   ],
@@ -17,51 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Revenue grew 25%, margin fell from 20% to 8%, and headcount grew 60%.",
+      "text": "Cloud hosting costs have probably jumped with the extra revenue.",
       "correct": false,
-      "tag": "M.restates_facts",
-      "feedback": "This restates the facts without proposing a cause."
+      "tag": "M.ignores_facts",
+      "feedback": "Nothing points to cloud costs, and it ignores the 60% rise in headcount."
     },
     {
       "id": "b",
-      "text": "It could be hiring, cloud costs, discounting, marketing spend or a new office.",
+      "text": "Revenue has likely stalled as the market matures.",
       "correct": false,
-      "tag": "M.shotgun_hypotheses",
-      "feedback": "This lists several causes without committing to the most likely one."
+      "tag": "M.ignores_facts",
+      "feedback": "Revenue grew 25%."
     },
     {
       "id": "c",
-      "text": "The company overhired engineers and must lay them off.",
+      "text": "The company overhired engineers and has to lay off a third of them.",
       "correct": false,
       "tag": "M.overconfident_hypothesis",
-      "feedback": "This states a cause as certain before any data has tested it."
+      "feedback": "This states a cause as certain, assumes it was engineers, and jumps to a cut before any data."
     },
     {
       "id": "d",
-      "text": "Hiring has likely run ahead of revenue, especially in sales.",
+      "text": "Hiring has likely run ahead of revenue growth.",
       "correct": true,
-      "feedback": "Right. It commits to a likely cause that fits the facts, and it is testable: I'd compare revenue per employee by function over the period."
+      "feedback": "Right. Headcount grew 60% against 25% revenue growth, so people costs likely ate the margin. I'd compare revenue per employee by function over the period."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Headcount growing 60% against 25% revenue growth points to people costs. Revenue per employee by function tests where.",
-  "extras": {
-    "distractor_flaws": {
-      "M.restates_facts": "Revenue grew 25%, margin fell from 20% to 8%, and headcount grew 60%.",
-      "M.shotgun_hypotheses": "It could be hiring, cloud costs, discounting, marketing spend or a new office.",
-      "M.overconfident_hypothesis": "The company overhired engineers and must lay them off."
-    }
-  },
+  "explanation": "The data shows revenue up 25% while headcount rose 60% and margin fell from 20% to 8%. Likely cause: hiring ran ahead of revenue. To test it, compare revenue per employee by function over the period. If one function's productivity held up, focus on the others.",
+  "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,

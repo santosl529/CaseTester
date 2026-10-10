@@ -2,9 +2,9 @@
   "item_id": "cl1-0004",
   "version": 1,
   "drill_id": "CL-1",
-  "status": "draft",
+  "status": "live",
   "level": 1,
-  "tier": 2,
+  "tier": 3,
   "skills": [
     "CL.next_step"
   ],
@@ -17,45 +17,47 @@
   "options": [
     {
       "id": "a",
-      "text": "Ask the interviewer what they would like to look at next",
+      "text": "Ask the interviewer which price the client has in mind",
       "correct": false,
       "tag": "M.waited_for_interviewer",
-      "feedback": "Drive the case: propose the next step yourself rather than waiting to be told."
+      "feedback": "Drive the case: propose the next analysis instead of waiting for a number."
     },
     {
       "id": "b",
-      "text": "Look at the client's hiring plans, since it could affect the answer",
+      "text": "Estimate the cost to deliver the add-on, to set a price floor",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That is off the objective. It won't help answer the client's question."
+      "feedback": "For software, delivery costs almost nothing, so a cost floor barely constrains the price."
     },
     {
       "id": "c",
-      "text": "Price it at $5,000, the full value it creates",
+      "text": "Calculate revenue if the add-on were priced at $5,000",
       "correct": false,
       "tag": "M.illogical_next_step",
-      "feedback": "That jumps to a solution before the analysis supports it."
+      "feedback": "That jumps to a price before understanding why rivals charge far less."
     },
     {
       "id": "d",
-      "text": "Estimate the cost to deliver it, to set a price floor",
+      "text": "Learn why rivals charge $1,200–2,000 for $5,000 of value",
       "correct": true,
-      "feedback": "Right. Value and competitor prices are known. Cost sets the floor, and the price lands between cost and value, informed by competitors."
+      "feedback": "Right. The gap between value and market prices is the puzzle: features, switching costs or how buyers compare. It shows how much value the client can capture."
     }
   ],
   "numeric": null,
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Value and competitor prices are known. Cost sets the floor, and the price lands between cost and value, informed by competitors.",
+  "explanation": "The add-on saves $5,000 a year but rivals charge $1,200–2,000. Understanding that gap shows how much value the client can capture. Software costs little to deliver, so a cost floor matters little.",
   "extras": {},
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": null,
-    "reviewed_at": null,
-    "similarity_check": "pending"
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
   },
   "generator": null,
   "is_example": false,
