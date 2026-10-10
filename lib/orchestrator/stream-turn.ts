@@ -55,8 +55,10 @@ export function isBareAcknowledgment(sentence: string): boolean {
 // speaks those lines; a model that writes them doubles or contradicts them
 // (batch 9: Devon t14 "…is available, so I'll give you that"). Claims about
 // delivery too (batch 18 v2, Destiny t31: "Those are being sent now." — they
-// weren't, and no code line says so).
-export const DATA_TALK = /\b(i don'?t have|that'?s not in the information|isn'?t something i have|i'?ll come back to|come back to (that|it)|(is|are) available|i'?ll (give|share|show) you|let me (give|share|show|pull)|being sent|on (its|their) way|(come|came|coming) through|in front of you|i'?ve (sent|shared)|(sending|pasting) (them|those|it|that))\b/i;
+// weren't, and no code line says so). Redelivery claims too (v3 recheck,
+// Destiny: "Here they are again." with nothing after it) — on an explicit
+// re-ask code restates the data itself ("As I mentioned: …").
+export const DATA_TALK = /\b(i don'?t have|that'?s not in the information|isn'?t something i have|i'?ll come back to|come back to (that|it)|(is|are) available|i'?ll (give|share|show) you|let me (give|share|show|pull)|being sent|on (its|their) way|(come|came|coming) through|in front of you|i'?ve (sent|shared)|(sending|pasting) (them|those|it|that)|here (they|it|that|those) (are|is)|(let me|i'?ll) (repeat|restate|re-?share)|(in|on) my (last|previous|earlier) message|(they'?re|they are|it'?s|it is) on the table)\b/i;
 
 // A statement in the question that hands something over ("Here's the cost
 // structure over time.", "Take a look at this exhibit.") — code already
