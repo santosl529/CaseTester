@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decideData, renderDataLines, decisionRows } from '@/lib/orchestrator/data-decisions';
+import { decideData, renderDataLines, decisionRows, labelMatch } from '@/lib/orchestrator/data-decisions';
 import { createLedger, reveal, type LedgerItem } from '@/lib/orchestrator/data-ledger';
 import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
 
@@ -176,5 +176,50 @@ describe('spoken lists lower-case the first letter of each item', () => {
       "I can share average ticket if you'd like.",
     ]);
     expect(decisionRows(d).map(r => r.what)).toEqual(['Pilot elasticity results', 'Competitor pricing actions', 'Bean prices', 'Average ticket']);
+  });
+});
+
+// Batch 18 (v2, Maya t6): the model declared "the number of stores over the two
+// years" with item_ids [] and respond "defer", and code answered "I don't have
+// the number of stores" although the case holds it. An empty mapping is the
+// model's claim, not proof (v3).
+describe('an empty item mapping is not proof the case lacks the data', () => {
+  const CATALOG = [
+    { id: 'revenue_total', label: 'Total annual revenue' },
+    { id: 'stores_count', label: 'Number of stores' },
+    { id: 'revenue_per_store', label: 'Average revenue per store' },
+    { id: 'cogs_pct', label: 'COGS as % of revenue' },
+    { id: 'labor_pct', label: 'Labor as % of revenue' },
+    { id: 'menu_price_change', label: 'Menu price changes over 2 years' },
+  ];
+
+  it('maps a request that names exactly one label, plus only timeframe words', () => {
+    expect(labelMatch('the number of stores over the two years', CATALOG)).toBe('stores_count');
+    expect(labelMatch('COGS as a percent of revenue, both periods', CATALOG)).toBe('cogs_pct');
+    expect(labelMatch('menu price changes over the past two years', CATALOG)).toBe('menu_price_change');
+  });
+
+  it('does not map a broader, qualified request that contains a label', () => {
+    expect(labelMatch('total annual revenue by region', CATALOG)).toBeNull();
+    expect(labelMatch('average revenue per store by format', CATALOG)).toBeNull();
+    expect(labelMatch('number of stores opened per year by city', CATALOG)).toBeNull();
+  });
+
+  it('does not map a request that names only part of a label, or none', () => {
+    expect(labelMatch('the stores', CATALOG)).toBeNull();
+    expect(labelMatch('the cost breakdown', CATALOG)).toBeNull();
+    expect(labelMatch('pilot elasticity results', CATALOG)).toBeNull();
+  });
+
+  it('a deferral the model could not map is not a refusal: one generic line, no item promised', () => {
+    const d = decideData(base({ requests: [req({ what: 'the number of stores over the two years', itemIds: [], respond: 'defer' })] }));
+    expect(d.refusals).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual(["I'll come back to the data you've asked for once we've settled your structure."]);
+    expect(decisionRows(d)).toEqual([{ what: 'the number of stores over the two years', ledgerItemIds: [], response: 'defer', explicit: true }]);
+  });
+
+  it('an unmapped explicit release is still refused', () => {
+    const d = decideData(base({ requests: [req({ what: 'total annual revenue by region', itemIds: [] })] }));
+    expect(renderDataLines(d, 's')).toEqual(["I don't have total annual revenue by region."]);
   });
 });

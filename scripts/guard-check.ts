@@ -60,7 +60,8 @@ lat.forEach((a, k) => {
   const marks = g?.timing ? parseTiming(g.timing) : {};
   const useful = g?.timing ? usefulMs(marks) : null;
   const gatedReleased = (dd?.releases ?? []).filter(id => isGatedItem(ledger, id));
-  if (to !== 'satisfied' && gatedReleased.length) releasesBeforePT.push(`t${t}: ${gatedReleased.join(', ')}`);
+  // A v3 waiver closes the test too: its releases are the defined recovery, not premature.
+  if (to !== 'satisfied' && to !== 'waived' && gatedReleased.length) releasesBeforePT.push(`t${t}: ${gatedReleased.join(', ')}`);
   if (probeIntents(heard).length > 0) probesHeard.push(t);
   if (ptEv?.action) fallbacks.push(`t${t} ${ptEv.action}`);
   if (guard) guardTurns.push({ t, regenerated, secondDeclared: regenerated ? declaredCount(g?.raws.at(-1)) : null });

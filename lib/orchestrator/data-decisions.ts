@@ -16,6 +16,9 @@ import { pickScript, STALE_RELEASE_LEADINS } from '@/lib/agent/prompts/scripts';
 
 export const RELEASE_CAP = 3;
 
+// Spec 2026-10-07 §4's line for asks code can't map while the structure is open.
+export const UNMAPPED_DEFER_LINE = "I'll come back to the data you've asked for once we've settled your structure.";
+
 // Resolves a declared id to a canonical one. Exact only — an id or a
 // label / title, ignoring case and punctuation: a partial match could release
 // an item nobody asked for ("cogs" is inside two ids).
@@ -26,6 +29,31 @@ export function exactResolver(entries: { id: string; names: string[] }[]): (raw:
   return raw => byName.get(norm(raw)) ?? null;
 }
 
+// A request the model left unmapped (item_ids []) that names exactly one
+// catalog label — every word of it, plus nothing but timeframe and filler
+// words (batch 18 v2, Maya t6: "the number of stores over the two years" →
+// stores_count, refused as missing). A qualified request ("total annual
+// revenue by region") asks for a cut the label doesn't cover, and stays
+// unmapped.
+const LABEL_STOPWORDS = new Set(['the', 'a', 'an', 'of', 'as', 'and', 'or', 'for', 'in', 'on', 'to', 'at', 'by', 'its', 'their', 'our', 'we', 'they', 'you', 'your', 'did', 'do', 'does', 'is', 'was', 'were', 'has', 'have', 'had', 'how', 'what', 'many', 'much']);
+const LABEL_NUMBERS: Record<string, string> = { one: '1', two: '2', three: '3' };
+const LABEL_TIMEFRAME = new Set(['over', '2', 'year', 'past', 'last', 'both', 'period', 'now', 'then', 'today', 'current', 'currently', 'prior', 'previou', 'ago', 'change', 'changed', 'time']);
+const labelWords = (s: string): string[] => s.toLowerCase().replace(/%/g, ' percent ').replace(/percentage/g, 'percent')
+  .split(/[^a-z0-9]+/).filter(Boolean)
+  .map(w => (w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w))
+  .map(w => LABEL_NUMBERS[w] ?? w)
+  .filter(w => !LABEL_STOPWORDS.has(w));
+
+export function labelMatch(what: string, items: { id: string; label: string }[]): string | null {
+  const asked = new Set(labelWords(what));
+  const hits = items.filter(i => {
+    const label = new Set(labelWords(i.label));
+    if (label.size === 0 || ![...label].every(w => asked.has(w))) return false;
+    return [...asked].every(w => label.has(w) || LABEL_TIMEFRAME.has(w));
+  });
+  return hits.length === 1 ? hits[0].id : null;
+}
+
 export type ExhibitInfo = { id: string; title: string; coversLedgerItems?: string[] };
 
 export type DataDecisions = {
@@ -33,6 +61,8 @@ export type DataDecisions = {
   exhibit: { id: string; title: string; covers: string[] } | null;
   refusals: string[];     // what, for explicit asks the case doesn't hold
   defers: string[];       // what, for asks held for later (by the model, or over the cap)
+  gateDefers: string[];   // what, for asks the pressure-test gate holds: deferred with the reason (v3)
+  unmappedDefer: boolean; // an explicit deferral the model couldn't map: a generic line, nothing promised
   offers: string[];       // what, for passing mentions of data the case holds
   requests: { request: DeclaredRequest; response: RequestResponse; ledgerItemIds: string[] }[];
 };
@@ -46,6 +76,7 @@ export function decideData(p: {
   exhibits: ExhibitInfo[];
   shownExhibitIds: Set<string>;
   open: RequestedUnanswered[];      // explicit asks from earlier turns still unreleased
+  gateHeld?: Set<string>;           // whats of requests the pressure-test gate turned into deferrals
   cap?: number;
 }): DataDecisions {
   const cap = p.cap ?? RELEASE_CAP;
@@ -68,7 +99,9 @@ export function decideData(p: {
   const releasing = new Set<string>();
   const refusals: string[] = [];
   const defers: string[] = [];
+  const gateDefers: string[] = [];
   const offers: string[] = [];
+  let unmappedDefer = false;
   const decided: DataDecisions['requests'] = [];
 
   const available = (id: string) => itemById.has(id) && canReveal(p.ledger, id) && !releasing.has(id);
@@ -83,7 +116,10 @@ export function decideData(p: {
     const ledgerIds = r.itemIds.filter(id => itemById.has(id));
     const exhibitIds = r.itemIds.filter(id => exhibitById.has(id));
     if (ledgerIds.length === 0 && exhibitIds.length === 0) {
-      if (r.explicit) { refusals.push(r.what); decidedAt.push({ at, d: { request: r, response: 'refuse', ledgerItemIds: [] } }); }
+      // An unmapped deferral contradicts itself (the model meant to hold
+      // something): no refusal, and no named item promised — it may not exist.
+      if (r.explicit && r.respond === 'defer') { unmappedDefer = true; decidedAt.push({ at, d: { request: r, response: 'defer', ledgerItemIds: [] } }); }
+      else if (r.explicit) { refusals.push(r.what); decidedAt.push({ at, d: { request: r, response: 'refuse', ledgerItemIds: [] } }); }
       return;
     }
     if (!r.explicit || r.respond === 'defer') { later.push({ at, r, ledgerIds }); return; }
@@ -107,7 +143,7 @@ export function decideData(p: {
       const offerable = held.filter(id => available(id) && !covered.has(id));
       if (offerable.length > 0 && r.respond === 'release' && !partlyReleased) offers.push(r.what);
     } else if (held.some(available) && !partlyReleased) {
-      defers.push(r.what);
+      (p.gateHeld?.has(r.what) ? gateDefers : defers).push(r.what);
     }
     decidedAt.push({ at, d: held.length === 0 && ledgerIds.length > 0
       ? { request: r, response: 'release', ledgerItemIds: ledgerIds }
@@ -121,7 +157,7 @@ export function decideData(p: {
 
   // Earlier asks first, so the lead-in introduces them together.
   releases.sort((a, b) => Number(b.earlier) - Number(a.earlier));
-  return { releases, exhibit, refusals, defers, offers, requests: decided };
+  return { releases, exhibit, refusals, defers, gateDefers, unmappedDefer, offers, requests: decided };
 }
 
 // An item spoken mid-sentence starts lower-case (smoke run 9 Oct: "I don't
@@ -162,6 +198,8 @@ export function renderDataLineParts(d: DataDecisions, seed: string): DataLinePar
   if (d.exhibit) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: `Here's an exhibit: ${d.exhibit.title}.` });
   if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: `I don't have ${joinWhat(d.refusals, 'or')}.` });
   if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: `I'll come back to ${joinWhat(d.defers, 'and')} shortly.` });
+  if (d.gateDefers.length > 0) parts.push({ kind: 'defers', ids: [], text: `I'll share ${joinWhat(d.gateDefers, 'and')} once we've settled your structure.` });
+  if (d.unmappedDefer) parts.push({ kind: 'defers', ids: [], text: UNMAPPED_DEFER_LINE });
   if (d.offers.length > 0) parts.push({ kind: 'offers', ids: [], text: `I can share ${joinWhat(d.offers, 'and')} if you'd like.` });
   return parts;
 }

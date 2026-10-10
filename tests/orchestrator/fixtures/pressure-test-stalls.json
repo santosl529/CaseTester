@@ -1,0 +1,1087 @@
+{
+ "maya": {
+  "source": "Case Interview Runs/test runs/batch-18-oct-10-runs-2-11/01-maya-the-freezer (session b0b28d36, turns 4–44)",
+  "phase": "STRUCTURE",
+  "structure": "Okay, um, so I'd want to look at a few buckets. First, revenue — like what's happening with sales. Second, costs, so what they're spending money on. And third, maybe like the market or competition, what's going on externally. Those are the main three areas I'd look at.",
+  "probe": "Is that MECE, and what's missing? Also, which of those branches would you prioritize first, and why?",
+  "intents": [
+   "mece",
+   "prioritize"
+  ],
+  "turns": [
+   {
+    "turnIndex": 4,
+    "candidate": "Um, before I prioritize — can I ask, when you say revenue grew 15%, is that total revenue across all 200 stores, or per store?",
+    "model": {
+     "move": "pressure_test",
+     "requests": [
+      {
+       "what": "whether the 15% revenue growth is total or per store",
+       "itemIds": [
+        "revenue_total",
+        "stores_count"
+       ],
+       "explicit": true,
+       "respond": "defer"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "Fair question.",
+     "question": "Hold that thought. First, back to my question: is your three-bucket structure MECE, what's missing, and which branch do you prioritize first, and why?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 6,
+    "candidate": "Sorry, one more thing — did the number of stores change over the two years?",
+    "model": {
+     "move": "pressure_test",
+     "requests": [
+      {
+       "what": "the number of stores over the two years",
+       "itemIds": [],
+       "explicit": true,
+       "respond": "defer"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "",
+     "question": "I'll get you the store count once your structure holds up. So back to it: is your three-bucket framework MECE, what's missing, and which branch do you prioritize first, and why?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 8,
+    "candidate": "Um, and is the 24% to 6% margin — is that net margin for the whole chain?",
+    "model": {
+     "move": "pressure_test",
+     "requests": [
+      {
+       "what": "whether the 24% to 6% margin is net margin for the whole chain",
+       "itemIds": [],
+       "explicit": true,
+       "respond": "defer"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "",
+     "question": "I'll hold the data questions until you've answered mine. Is your three-bucket structure MECE, what's missing from it, and which branch do you start with and why?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 10,
+    "candidate": "Okay. Do we have the cost breakdown, like what the main cost lines are?",
+    "model": {
+     "move": "pressure_test",
+     "requests": [
+      {
+       "what": "the cost breakdown",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "defer"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "",
+     "question": "I need your answer on the structure first. Is revenue, costs and external MECE, and which branch do you prioritize?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 12,
+    "candidate": "hmm, I'm not sure.",
+    "model": {
+     "move": "pressure_test",
+     "requests": [],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "",
+     "question": "Take a minute. You've laid out revenue, costs and external. The profit margin is revenue minus costs, so is there anything your three buckets overlap on or leave out? And which one would you start with, and why?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 14,
+    "candidate": "I'm stuck, sorry. I don't really know where to start.",
+    "model": {
+     "move": "other",
+     "requests": [],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "",
+     "question": "Take your time. The question on the table is what would you look at first, and why?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 16,
+    "candidate": "I don't really know. Sorry.",
+    "model": {
+     "move": "pressure_test",
+     "requests": [],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "No need to apologize.",
+     "question": "Margin fell while revenue grew. Which of your three buckets does that point you toward first, and what makes you say so?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 18,
+    "candidate": "Costs, maybe? I'm not sure, sorry.",
+    "model": {
+     "move": "pressure_test",
+     "requests": [
+      {
+       "what": "the cost breakdown",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "Costs. That's a start.",
+     "question": "What does that tell you about where the margin went, and what would you check next?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 20,
+    "candidate": "Um... that costs went up? I don't know what to check next, sorry.",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "Let's simplify.",
+     "question": "Margin is profit divided by revenue. What are the two ways that ratio can fall?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 22,
+    "candidate": "Profit goes down, or revenue goes up? I'm not sure.",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": "cogs_pct",
+     "say": "Revenue grew, so profit fell as a share of it. That points to costs.",
+     "question": "Which of these cost lines moved the most, and what would you check next?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 24,
+    "candidate": "I don't think I have the cost lines yet — do we have them?",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": "cogs_pct",
+     "say": "Right.",
+     "question": "Looking at those cost lines, which one moved the most, and what would you want to understand next?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 26,
+    "candidate": "I don't think I actually have the numbers in front of me, sorry. Could you give me the lines?",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "",
+     "question": "Which of those lines accounts for most of the margin decline, and how did you work that out?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 28,
+    "candidate": "I still don't have them, so I'll assume cost of goods — coffee beans, milk — is the biggest line and the one that moved. God, I'm so bad at this. Am I on the right track at all?",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "You'll get a full written report afterward. Let's keep to the case.",
+     "question": "What do those cost lines tell you, and where does the margin decline come from?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 30,
+    "candidate": "Honestly I'm not sure. I think COGS went up, but I'd be guessing without the split.",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "",
+     "question": "Which of those lines accounts for most of the decline in margin, and how did you get there?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 32,
+    "candidate": "Okay, let me try the math. Margin went from 24% to 6%, so that's an 18 point drop. Which means costs went from 76% of revenue to 94%. So costs went up 18%. If COGS is the biggest line, I'd say most of that 18% increase sits in COGS — probably bean prices going up. Am I on the right track?",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "whether the 15% revenue growth is total or per store",
+       "itemIds": [
+        "revenue_total",
+        "stores_count"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "You'll get a full written report afterward. Costs went from 76% to 94% of revenue, and you said that's an 18% increase.",
+     "question": "Points of what is that 18? And with the cost lines in front of you, does the data support COGS being the main driver?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 36,
+    "candidate": "I'm okay, honestly — nothing like that, I just get in my head. I'd rather keep going if that's alright.\n\nUm, so on the cost lines — do we actually have the split of COGS versus labor versus rent? I keep saying COGS but I'm just assuming.",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "COGS as a percent of revenue, current and prior",
+       "itemIds": [
+        "cogs_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "labor as a percent of revenue, current and prior",
+       "itemIds": [
+        "labor_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "overhead and rent as a percent of revenue, current and prior",
+       "itemIds": [
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "",
+     "question": "Which of those lines accounts for most of the margin decline, and how did you work that out?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 38,
+    "candidate": "I still don't have the split, so I'm assuming COGS. Costs went 76% to 94%, so an 18% increase, and I'd put most of that in COGS since beans and milk prices have gone up.\n\nI know I keep repeating myself. Sorry.",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "COGS as a percent of revenue",
+       "itemIds": [
+        "cogs_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "labor as a percent of revenue",
+       "itemIds": [
+        "labor_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "overhead and rent as a percent of revenue",
+       "itemIds": [
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "Okay, no need to apologize.",
+     "question": "Using those lines, which one actually accounts for most of the margin decline, and how do you know?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 40,
+    "candidate": "Do we have menu price history? Like whether they raised prices over the two years.\n\nOtherwise I'd still say COGS, on the 18% cost increase.",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "menu price history",
+       "itemIds": [
+        "menu_price_change"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "Understood.",
+     "question": "Looking at the cost lines and the price change, which one accounts for most of the margin decline, and how do you know?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 42,
+    "candidate": "I don't really know. Without the actual lines I'd just be guessing again, sorry.",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "COGS as a percentage of revenue",
+       "itemIds": [
+        "cogs_pct"
+       ],
+       "explicit": false,
+       "respond": "release"
+      },
+      {
+       "what": "labor as a percentage of revenue",
+       "itemIds": [
+        "labor_pct"
+       ],
+       "explicit": false,
+       "respond": "release"
+      },
+      {
+       "what": "overhead and rent as a percentage of revenue",
+       "itemIds": [
+        "overhead_pct"
+       ],
+       "explicit": false,
+       "respond": "release"
+      },
+      {
+       "what": "menu price changes over two years",
+       "itemIds": [
+        "menu_price_change"
+       ],
+       "explicit": false,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "Understood.",
+     "question": "Going line by line, which one moved the most, and what does that tell you?"
+    },
+    "verdict": {
+     "answered": true
+    }
+   },
+   {
+    "turnIndex": 44,
+    "candidate": "Yes please — could I have COGS, labor, and rent as a percentage of revenue for both years?",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "COGS as a percentage of revenue, both years",
+       "itemIds": [
+        "cogs_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "labor as a percentage of revenue, both years",
+       "itemIds": [
+        "labor_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "overhead and rent as a percentage of revenue, both years",
+       "itemIds": [
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "",
+     "question": "Looking at those three lines across both years, which one accounts for most of the margin decline, and how do you know?"
+    },
+    "verdict": null
+   }
+  ]
+ },
+ "destiny": {
+  "source": "Case Interview Runs/test runs/batch-18-oct-10-runs-2-11/06-destiny-the-blank-slate (session 3ed01bc8, turns 13–39)",
+  "phase": "STRUCTURE",
+  "structure": "I'm not sure what you mean — do you want me to guess why profits went down?\n\nhmm, I'm not sure what breaking it down means here.\n\nI'm stuck, sorry. I don't really know where to start.\n\nMaybe just... what they're spending money on? I don't know how to narrow it down.\n\nSpending goes up, or... the money coming in goes down? But revenue went up, you said.\n\nCoffee beans and milk, I guess. Rent for the stores. Paying the baristas. Maybe cups and equipment.",
+  "probe": "Those are the costs you named. Is that everything a coffee chain spends money on, and which of those would you look at first to explain the margin drop, and why?",
+  "intents": [
+   "prioritize"
+  ],
+  "turns": [
+   {
+    "turnIndex": 13,
+    "candidate": "Probably staff — baristas across 200 stores feels like the biggest bill. Beyond those, maybe marketing and utilities? I'm honestly guessing.",
+    "model": {
+     "move": "pressure_test",
+     "requests": [],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "Marketing and utilities, so your list is broader now.",
+     "question": "You picked staff first because it feels biggest. Is that a hunch, or is there something you'd check to confirm which cost category actually moved?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 15,
+    "candidate": "Just a hunch. I'd want to see what each cost was two years ago versus now, I guess.",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown over the two years",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "Comparing each cost two years ago versus now. Understood.",
+     "question": "What do you make of those numbers, and what would you want to dig into next?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 17,
+    "candidate": "Sorry — I don't think you've given me the numbers yet. Could you share them?",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "COGS as a percent of revenue, both periods",
+       "itemIds": [
+        "cogs_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "labor as a percent of revenue, both periods",
+       "itemIds": [
+        "labor_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "overhead and rent as a percent of revenue, both periods",
+       "itemIds": [
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "Fair point.",
+     "question": "Which of these three cost lines moved the most, and what does that tell you about where to dig next?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 19,
+    "candidate": "I still don't see any numbers in your message — are they missing?",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "COGS as a percent of revenue, two years ago versus now",
+       "itemIds": [
+        "cogs_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "labor as a percent of revenue, two years ago versus now",
+       "itemIds": [
+        "labor_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "overhead and rent as a percent of revenue, two years ago versus now",
+       "itemIds": [
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "",
+     "question": "Which of these cost lines moved the most, and what does that tell you about where to dig next?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 21,
+    "candidate": "I'm not seeing any cost lines, sorry. Can you paste them?",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "COGS as a share of revenue, both periods",
+       "itemIds": [
+        "cogs_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "labor as a share of revenue, both periods",
+       "itemIds": [
+        "labor_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "overhead and rent as a share of revenue, both periods",
+       "itemIds": [
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "You're right, they didn't come through.",
+     "question": "Which of these cost lines moved the most, and what does that tell you about where to dig next?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 23,
+    "candidate": "Still nothing on my end, unfortunately. Maybe just read them out to me — like labor as a percent of revenue then and now, same for rent and ingredients?",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "labor as a percent of revenue, now and two years ago",
+       "itemIds": [
+        "labor_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "overhead and rent as a percent of revenue, now and two years ago",
+       "itemIds": [
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "ingredient cost (COGS) as a percent of revenue, now and two years ago",
+       "itemIds": [
+        "cogs_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "Understood, that's a clear ask.",
+     "question": "Which of these cost lines moved the most, and what does that tell you about where to dig next?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 25,
+    "candidate": "I can't answer that without the actual figures. Did menu prices change over those two years?",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "COGS as a percent of revenue, then and now",
+       "itemIds": [
+        "cogs_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "labor as a percent of revenue, then and now",
+       "itemIds": [
+        "labor_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "overhead and rent as a percent of revenue, then and now",
+       "itemIds": [
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "menu price changes over the two years",
+       "itemIds": [
+        "menu_price_change"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "You're right, the figures never reached you.",
+     "question": "Which of these cost lines moved the most, and what does that tell you about where to dig next?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 27,
+    "candidate": "I'd need the figures first. Right now I genuinely can't say which one moved.",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "COGS as a percent of revenue, now and two years ago",
+       "itemIds": [
+        "cogs_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "labor as a percent of revenue, now and two years ago",
+       "itemIds": [
+        "labor_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "overhead and rent as a percent of revenue, now and two years ago",
+       "itemIds": [
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "menu price changes over the two years",
+       "itemIds": [
+        "menu_price_change"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "Understood, that's a fair position.",
+     "question": "Which of these cost lines moved the most, and what does that tell you about where to dig next?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 29,
+    "candidate": "I'm stuck, sorry. Nothing to go on yet.",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown over the two years",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "menu price changes over the two years",
+       "itemIds": [
+        "menu_price_change"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "You're right, there's nothing for you to react to yet.",
+     "question": "With those in front of you, which cost line moved the most, and what would you dig into next?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 31,
+    "candidate": "I still don't have anything in front of me. Nothing's come through.",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown over the two years",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "menu price changes over the two years",
+       "itemIds": [
+        "menu_price_change"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "Understood, nothing has come through. Those are being sent now.",
+     "question": "Which of these cost lines moved the most, and what does that tell you about where to dig next?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 33,
+    "candidate": "Nothing yet. I'll wait — just let me know when they land.",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown over the two years",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "menu price changes over the two years",
+       "itemIds": [
+        "menu_price_change"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "Understood.",
+     "question": "Which cost line moved the most, and what would you want to dig into next?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 35,
+    "candidate": "I don't know — still nothing to look at.",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown over the two years",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "menu price changes over the two years",
+       "itemIds": [
+        "menu_price_change"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "Understood.",
+     "question": "Which of these cost lines moved the most, and what does that tell you about where to dig next?"
+    },
+    "verdict": {
+     "answered": false
+    }
+   },
+   {
+    "turnIndex": 37,
+    "candidate": "I'm sorry, I really can't. There's nothing here.",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the cost breakdown over the two years",
+       "itemIds": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "menu price changes over the two years",
+       "itemIds": [
+        "menu_price_change"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "Understood.",
+     "question": "Which of these cost lines moved the most, and what does that tell you about where to dig next?"
+    },
+    "verdict": {
+     "answered": true
+    }
+   },
+   {
+    "turnIndex": 39,
+    "candidate": "COGS, clearly — 42% to 58%, so 16 points of revenue. Labor flat, overhead only up 2. That's basically the whole margin drop, since 24% to 6% is 18 points.\n\nSo I'd dig into COGS. That's the beans and milk, I'd assume. Either they're paying more per unit, or they're using more per drink, or wasting some. Do we know what's inside that COGS line — like how much is coffee beans versus dairy versus cups?",
+    "model": {
+     "move": "analysis",
+     "requests": [
+      {
+       "what": "the COGS breakdown, coffee beans as a share of COGS",
+       "itemIds": [
+        "bean_share_of_cogs"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "other input cost changes (dairy, packaging, food)",
+       "itemIds": [
+        "non_bean_input_change"
+       ],
+       "explicit": true,
+       "respond": "release"
+      },
+      {
+       "what": "menu price changes over the two years",
+       "itemIds": [
+        "menu_price_change"
+       ],
+       "explicit": true,
+       "respond": "release"
+      }
+     ],
+     "exhibit": null,
+     "rescueItem": null,
+     "say": "A COGS-first read, with price, usage and waste as the possible causes.",
+     "question": "Given what you now have on COGS and menu prices, what is your read on the driver, and what would you check next to confirm it?"
+    },
+    "verdict": null
+   }
+  ]
+ }
+}

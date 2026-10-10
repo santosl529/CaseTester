@@ -5,8 +5,8 @@
 import type { ModelTurn, DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import { resolveRequests } from '@/lib/agent/models/turn-schema';
 import type { ModelPlan } from './plan-turn';
-import { decideData, exactResolver, RELEASE_CAP, type DataDecisions } from './data-decisions';
-import { isGatedItem, exhibitIsGated } from './pressure-test';
+import { decideData, exactResolver, labelMatch, RELEASE_CAP, type DataDecisions } from './data-decisions';
+import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT } from './pressure-test';
 import { planForcedReleases } from './data-requests';
 import { revealedValues } from './data-ledger';
 
@@ -25,15 +25,23 @@ export function caseResolver(plan: ModelPlan): (raw: string) => string | null {
 const FORCES_OPEN = new Set(['rec_ask', 'grace_ask', 'time_warning']);
 
 // Whether the pressure test counts as satisfied for this turn: persisted, or
-// the judge says this turn's replies answered it. Resolved once (Stream and
-// Settle both await it before deciding data) and cached on the plan.
-export async function pressureTestSatisfiedNow(plan: ModelPlan): Promise<boolean> {
+// the judge says this turn's replies answered it — and, if not, whether this
+// reply reaches the v3 bound and waives it (PT_REPLY_LIMIT replies while
+// awaiting; PT_NOT_ASKED_LIMIT held turns when no structure was ever given,
+// after code asked for one). Only model turns count. Resolved once (Stream
+// and Settle both await it before deciding data) and cached on the plan.
+export async function pressureTestOutcomeNow(plan: ModelPlan): Promise<{ satisfied: boolean; waiving: boolean }> {
   const { state } = plan;
-  if (state.ptSatisfiedNow !== undefined) return state.ptSatisfiedNow;
-  const v = state.pressureTest.state === 'satisfied'
-    || (state.pressureTest.state === 'awaiting' && Boolean((await state.probeVerdict)?.answered));
-  state.ptSatisfiedNow = v;
-  return v;
+  if (state.ptSatisfiedNow !== undefined && state.ptWaivingNow !== undefined) return { satisfied: state.ptSatisfiedNow, waiving: state.ptWaivingNow };
+  const pt = state.pressureTest;
+  const satisfied = pt.state === 'satisfied'
+    || (pt.state === 'awaiting' && Boolean((await state.probeVerdict)?.answered));
+  const waiving = !satisfied && state.kind === 'model' && (
+    (pt.state === 'awaiting' && (pt.awaitingReplies ?? 0) + 1 >= PT_REPLY_LIMIT)
+    || (pt.state === 'not_asked' && pt.structureAsked && pt.gatedTurns + 1 >= PT_NOT_ASKED_LIMIT));
+  state.ptSatisfiedNow = satisfied;
+  state.ptWaivingNow = waiving;
+  return { satisfied, waiving };
 }
 
 export type TurnData = DataDecisions & { gatedIds: string[] };
@@ -42,32 +50,42 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   const { ctx, state } = plan;
   const { ledger } = state;
   const resolve = caseResolver(plan);
-  const satisfied = state.ptSatisfiedNow ?? state.pressureTest.state === 'satisfied';
+  // Closed: answered, waived (v3), or waiving on this turn — nothing is premature.
+  const satisfied = (state.ptSatisfiedNow ?? state.pressureTest.state === 'satisfied')
+    || Boolean(state.ptWaivingNow) || state.pressureTest.state === 'waived';
   const forcesOpen = FORCES_OPEN.has(state.kind);
   const gateOn = !satisfied && !forcesOpen;
   const exhibitCovers = new Map(state.caseData.exhibits.map(e => [e.id, (e as { coversLedgerItems?: string[] }).coversLedgerItems ?? []]));
   const gated = (id: string) => (exhibitCovers.has(id) ? exhibitIsGated(ledger, exhibitCovers.get(id)!) : isGatedItem(ledger, id));
-  const alreadyAsked = new Set(state.openDataRequests.map(o => o.ledgerItemId));
   const gatedIds: string[] = [];
+  const gateHeld = new Set<string>();
 
-  let requests: DeclaredRequest[] = resolveRequests(turn.requests, resolve);
+  // An unmapped explicit ask (item_ids []) that names exactly one catalog
+  // label is that item (v3, batch 18 Maya t6): an empty mapping is the
+  // model's claim, not proof the case lacks the data. Mentions stay as declared.
+  let requests: DeclaredRequest[] = resolveRequests(turn.requests, resolve).map(r => {
+    if (r.itemIds.length > 0 || !r.explicit) return r;
+    const id = labelMatch(r.what, ledger.items);
+    return id ? { ...r, itemIds: [id] } : r;
+  });
   // After the pressure test, nothing is premature: a declared deferral is
   // released (or refused, when the case doesn't hold the data).
   if (satisfied) requests = requests.map(r => (r.respond === 'defer' ? { ...r, respond: 'release' as const } : r));
-  // Before it, the part of a release that needs it is deferred; the rest
-  // (scoping facts) goes out. A deferral already promised once is held
-  // silently (no second "I'll come back to …").
+  // Before it, the part of a release that needs it is held; the rest
+  // (scoping facts) goes out. Every held ask is answered out loud with the
+  // reason, repeats too (v3 — v2 held a repeat silently: Destiny asked eight
+  // times and heard nothing).
   if (gateOn) {
     requests = requests.flatMap(r => {
       if (r.respond !== 'release') return [r];
       const held = r.itemIds.filter(gated);
       if (held.length === 0) return [r];
       gatedIds.push(...held);
+      gateHeld.add(r.what);
       const free = r.itemIds.filter(id => !gated(id));
-      const repeat = held.every(id => alreadyAsked.has(id) || exhibitCovers.has(id));
       return [
         ...(free.length ? [{ ...r, itemIds: free }] : []),
-        { ...r, itemIds: held, respond: 'defer' as const, explicit: r.explicit && !repeat },
+        { ...r, itemIds: held, respond: 'defer' as const },
       ];
     });
   }
@@ -90,11 +108,13 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
       const releasing = requests.filter(r => r.explicit && r.respond === 'release')
         .flatMap(r => r.itemIds).filter(id => ledger.items.some(i => i.id === id) && !revealed.has(id)).length;
       const room = Math.max(0, RELEASE_CAP - releasing);
-      for (const id of planForcedReleases(state.openDataRequests, revealed, { currentTurnIndex: ctx.nextTurnIndex, cap: room })) {
-        if (declared.has(id) || (gateOn && gated(id))) continue;
+      const pending = planForcedReleases(state.openDataRequests, revealed, { currentTurnIndex: ctx.nextTurnIndex, cap: Infinity })
+        .filter(id => !declared.has(id) && !(gateOn && gated(id)));
+      // Over the cap: deferred out loud, released on a later turn (v3).
+      pending.forEach((id, i) => {
         const open = state.openDataRequests.find(o => o.ledgerItemId === id)!;
-        requests.push({ what: open.what, itemIds: [id], explicit: true, respond: 'release' });
-      }
+        requests.push({ what: open.what, itemIds: [id], explicit: true, respond: i < room ? 'release' : 'defer' });
+      });
     }
   }
 
@@ -108,6 +128,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     exhibits: state.caseData.exhibits.map(e => ({ id: e.id, title: e.title, coversLedgerItems: (e as { coversLedgerItems?: string[] }).coversLedgerItems })),
     shownExhibitIds: state.shownExhibitIds,
     open: state.openDataRequests,
+    gateHeld,
   });
   return { ...decisions, gatedIds };
 }

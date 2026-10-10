@@ -18,7 +18,7 @@ import { withholdProbesOnVerified } from './probe-guard';
 import { checkTimeframes } from './timeframe-check';
 import { checkHintDelivered } from './hint-check';
 
-import { probeIntents, pickFallbackQuestion, reaskProbe, CODE_PROBES, CODE_STRUCTURE_ASKS, EARLY_PHASES, type PressureTestState } from './pressure-test';
+import { probeIntents, pickFallbackQuestion, reaskProbe, narrowProbe, refersToFigures, CODE_PROBES, CODE_STRUCTURE_ASKS, EARLY_PHASES, WAIVER_LEAD, type PressureTestState } from './pressure-test';
 import { requestSentences } from './request-signal';
 import { isUnderTimePressure } from './pacing';
 import { rungName, classifyRungDelivery, revertUndeliveredRung } from './stall';
@@ -30,7 +30,7 @@ import { BLOCKED_CLOSE_PROBES } from './spoken-close';
 import { renderDataLineParts, decisionRows } from './data-decisions';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
-import { turnData, pressureTestSatisfiedNow } from './turn-data';
+import { turnData, pressureTestOutcomeNow } from './turn-data';
 import { vetoReason, gateContext, isHandoverAnnouncement } from './stream-turn';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { TurnValidation } from '@/lib/agent/models/interface';
@@ -160,7 +160,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
 
   // Data: the same decisions Stream delivered from (the pressure test's
   // verdict for this turn first — the gate depends on it).
-  const satisfiedNow = await (out.timer ? out.timer.time('pt_judge_settle', pressureTestSatisfiedNow(plan)) : pressureTestSatisfiedNow(plan));
+  const { satisfied: satisfiedNow, waiving } = await (out.timer ? out.timer.time('pt_judge_settle', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
   const decisions = turnData(plan, turn);
   const dataParts = renderDataLineParts(decisions, seed);
   const dataLines = dataParts.map(p => p.text);
@@ -191,25 +191,55 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   const questionFallback = !codeWritten && kind !== 'rec_ask' && !question;
   if (questionFallback) question = 'Go on.';
 
+  // A model question about figures the candidate hasn't received is replaced
+  // (v3, batch 18 v2: Destiny heard "Which of these cost lines moved the
+  // most?" eleven times with no figures delivered).
+  const figuresOut = decisions.releases.length > 0 || decisions.exhibit !== null;
+  const heldThisTurn = decisions.gatedIds.length > 0 || decisions.defers.length > 0 || decisions.gateDefers.length > 0;
+  if (!codeWritten && kind !== 'rec_ask' && !figuresOut && refersToFigures(question)
+    && (heldThisTurn || Object.keys(revealedValues(ledger)).length === 0)) {
+    withheld.push({ sentence: question, reason: 'undelivered_figures', field: 'question' });
+    question = pickFallbackQuestion({ figuresDelivered: false, seed, last: state.lastQuestion ?? null });
+  }
+
   // Pressure test (spec 2026-10-07-pressure-test-and-request-guards): code
-  // owns the state and the bounded fallbacks — a duplicate probe is replaced
-  // (one re-ask while awaiting, then plain questions), and a test the model
-  // never asks while requested data is held is asked by code, once.
+  // owns the state and the bounded fallbacks. v3 (batch 18, 10 Oct): while
+  // the probe is open, every reply counts — reply 1 gets one re-ask, reply 2
+  // a narrowed probe, reply 3 a spoken waiver that releases what is held
+  // (PT_REPLY_LIMIT); a duplicate probe after the test is closed is
+  // replaced; a test the model never asks while requested data is held is
+  // asked by code, once, and with no structure ever given the hold ends too.
   const ptPrev = state.pressureTest;
   const pt: PressureTestState = { ...ptPrev };
   let ptAction: string | null = null;
   const early = EARLY_PHASES.includes(currentPhase);
   const isProbe = (q: string) => probeIntents(q).length > 0 && (early || turn.move === 'pressure_test');
+  const waiverQuestion = (lead: string) => `${lead} ${pickFallbackQuestion({ figuresDelivered: figuresOut, seed, last: state.lastQuestion ?? null })}`;
   if (!codeWritten && kind !== 'rec_ask') {
-    if (ptPrev.state !== 'not_asked' && isProbe(question) && satisfiedNow) {
-      question = pickFallbackQuestion({ figuresDelivered: decisions.releases.length > 0, seed, last: state.lastQuestion ?? null });
+    if (ptPrev.state === 'awaiting' && !satisfiedNow) {
+      pt.awaitingReplies = (ptPrev.awaitingReplies ?? 0) + 1;
+      if (waiving) {
+        question = waiverQuestion(WAIVER_LEAD.awaiting);
+        ptAction = 'waived';
+      } else if (pt.awaitingReplies === 1) {
+        question = reaskProbe(ptPrev.intents, decisions.gatedIds.length > 0);
+        pt.reasks += 1;
+        pt.followUps = [...(ptPrev.followUps ?? []), question];
+        ptAction = 'reask';
+      } else {
+        question = narrowProbe(ptPrev.intents);
+        pt.followUps = [...(ptPrev.followUps ?? []), question];
+        ptAction = 'narrowed';
+      }
+    } else if (ptPrev.state !== 'not_asked' && isProbe(question) && (satisfiedNow || ptPrev.state === 'waived')) {
+      question = pickFallbackQuestion({ figuresDelivered: figuresOut, seed, last: state.lastQuestion ?? null });
       ptAction = 'replaced_duplicate';
-    } else if (ptPrev.state === 'awaiting' && isProbe(question)) {
-      if (pt.reasks < 1) { question = reaskProbe(ptPrev.intents); pt.reasks += 1; ptAction = 'reask'; }
-      else { question = pickFallbackQuestion({ figuresDelivered: decisions.releases.length > 0, seed, last: state.lastQuestion ?? null }); ptAction = 'replaced_duplicate'; }
     } else if (ptPrev.state === 'not_asked') {
       pt.gatedTurns = decisions.gatedIds.length > 0 ? ptPrev.gatedTurns + 1 : 0;
-      if (!isProbe(question) && pt.gatedTurns >= 2) {
+      if (waiving) {
+        question = waiverQuestion(WAIVER_LEAD.not_asked);
+        ptAction = 'waived';
+      } else if (!isProbe(question) && pt.gatedTurns >= 2) {
         // The probe tests a structure; with none on the table, ask for it first (once).
         // No verdict (timeout, error) is not "no structure": code asks nothing this
         // turn, spends no fallback, and the check runs again next turn.
@@ -229,8 +259,14 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       }
     }
   }
-  if (pt.state === 'not_asked' && probeIntents(question).length > 0 && (early || ptAction === 'code_asked')) {
-    Object.assign(pt, { state: 'awaiting', askedAt: nextTurnIndex + 1, probe: question, intents: probeIntents(question) });
+  if (ptAction === 'waived') {
+    // Not satisfaction: administered and unanswered (Rule 13 assisted vs covered).
+    Object.assign(pt, { state: 'waived', waivedAt: nextTurnIndex + 1 });
+    ctx.events.push({ category: 'intervention', subtype: 'pressure_test_waived', payload: {
+      from: ptPrev.state, replies: pt.awaitingReplies ?? 0, gatedTurns: pt.gatedTurns, released: decisions.releases.map(r => r.id),
+    } });
+  } else if (pt.state === 'not_asked' && probeIntents(question).length > 0 && (early || ptAction === 'code_asked')) {
+    Object.assign(pt, { state: 'awaiting', askedAt: nextTurnIndex + 1, probe: question, intents: probeIntents(question), awaitingReplies: 0, followUps: [] });
   } else if (pt.state === 'awaiting' && satisfiedNow) {
     Object.assign(pt, { state: 'satisfied', satisfiedAt: nextTurnIndex });
   }

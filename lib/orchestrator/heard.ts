@@ -105,10 +105,15 @@ export function heardRequestRows(rows: DetectedDataRequest[], h: HeardOutcome): 
 }
 
 // The pressure test when this turn's question was not heard: nothing the
-// question did stands (an ask, a re-ask, a code-asked probe or structure ask);
-// what the candidate's reply decided does (structure given, satisfied), and so
-// does the gate's counter.
+// question did stands (an ask, a re-ask, a narrowed probe, a code-asked probe
+// or structure ask); what the candidate's reply decided does (structure
+// given, satisfied, the v3 reply count and a waiver it reached), and so does
+// the gate's counter.
 export function unheardQuestionPressureTest(prev: PressureTestState, next: PressureTestState): PressureTestState {
   if (prev.state === 'awaiting' && next.state === 'satisfied') return next;
-  return { ...prev, gatedTurns: next.gatedTurns, structureGiven: next.structureGiven };
+  if (next.state === 'waived' && prev.state !== 'waived') return next;
+  return {
+    ...prev, gatedTurns: next.gatedTurns, structureGiven: next.structureGiven,
+    ...(next.awaitingReplies !== undefined ? { awaitingReplies: next.awaitingReplies } : {}),
+  };
 }

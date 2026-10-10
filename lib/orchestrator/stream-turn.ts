@@ -27,7 +27,7 @@ import { hasCloseCue } from '@/lib/agent/prompts/scripts';
 import { handoffSentences } from './data-ledger';
 import { promisesExhibit } from './exhibits';
 import { revealedValues } from './data-ledger';
-import { turnData, pressureTestSatisfiedNow } from './turn-data';
+import { turnData, pressureTestOutcomeNow } from './turn-data';
 import { renderDataLines } from './data-decisions';
 
 export type GateContext = {
@@ -53,8 +53,10 @@ export function isBareAcknowledgment(sentence: string): boolean {
 
 // The model's own words declining, deferring or announcing data — code
 // speaks those lines; a model that writes them doubles or contradicts them
-// (batch 9: Devon t14 "…is available, so I'll give you that").
-export const DATA_TALK = /\b(i don'?t have|that'?s not in the information|isn'?t something i have|i'?ll come back to|come back to (that|it)|(is|are) available|i'?ll (give|share|show) you|let me (give|share|show|pull))\b/i;
+// (batch 9: Devon t14 "…is available, so I'll give you that"). Claims about
+// delivery too (batch 18 v2, Destiny t31: "Those are being sent now." — they
+// weren't, and no code line says so).
+export const DATA_TALK = /\b(i don'?t have|that'?s not in the information|isn'?t something i have|i'?ll come back to|come back to (that|it)|(is|are) available|i'?ll (give|share|show) you|let me (give|share|show|pull)|being sent|on (its|their) way|(come|came|coming) through|in front of you|i'?ve (sent|shared)|(sending|pasting) (them|those|it|that))\b/i;
 
 // A statement in the question that hands something over ("Here's the cost
 // structure over time.", "Take a look at this exhibit.") — code already
@@ -198,7 +200,7 @@ export async function streamTurnSegments(
     }
     // "say" and the declarations closed: code's data line — once the
     // pressure test's verdict for this turn is in (the gate depends on it).
-    await (opts.timer ? opts.timer.time('pt_judge', pressureTestSatisfiedNow(plan)) : pressureTestSatisfiedNow(plan));
+    await (opts.timer ? opts.timer.time('pt_judge', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
     const d = turnData(plan, fields);
     const lines = renderDataLines(d, `${plan.ctx.sessionId}:${plan.ctx.nextTurnIndex}`);
     if (lines.length > 0 || d.exhibit) {

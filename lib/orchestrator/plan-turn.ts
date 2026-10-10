@@ -17,7 +17,7 @@ import { resumeOnCandidateTurn, effectiveElapsedMs, isSilenceLine, INITIAL_SILEN
 import { classifyConduct, isPauseAccepted, isRiskToSelf } from './conduct';
 import { classifyDistress, type DistressVerdict } from './distress';
 import { explicitRequestCues } from './request-signal';
-import { judgeProbeAnswer, judgeStructureGiven, INITIAL_PRESSURE_TEST, type PressureTestState } from './pressure-test';
+import { judgeProbeAnswer, judgeStructureGiven, probeAsHeard, INITIAL_PRESSURE_TEST, type PressureTestState } from './pressure-test';
 import { logEvent } from '@/lib/analytics';
 import { TOTAL_CASE_MS, type Phase } from './state-machine';
 import { stageGateOpen, endAllowed, recommendationUnresolved } from './spoken-close';
@@ -296,11 +296,12 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Pressure-test state (spec 2026-10-07-pressure-test-and-request-guards):
   // code's, persisted. While it awaits an answer, a judge reads every reply
   // since the question (started here, beside the distress check; read before
-  // the data line). A judge failure leaves it awaiting.
+  // the data line). A judge failure leaves it awaiting. The judge reads the
+  // probe as heard: the original and code's re-ask / narrowed probe (v3).
   const pressureTest: PressureTestState = { ...INITIAL_PRESSURE_TEST, ...(flags.pressureTest as Partial<PressureTestState> | undefined) };
   const probeVerdict: Promise<{ answered: boolean; reason: string } | null> = pressureTest.state === 'awaiting' && extra.classify
     ? judgeProbeAnswer({
-      probe: pressureTest.probe ?? '',
+      probe: probeAsHeard(pressureTest),
       replies: [...turnRows.filter(t => t.role === 'candidate' && t.turnIndex > (pressureTest.askedAt ?? -1)).map(t => t.text), candidateText],
       onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId: session.userId }); },
     })
@@ -398,7 +399,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
       derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, unitCheckHint,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
-      conductRedirectHint, history, turnRows, distress, kind, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
+      conductRedirectHint, history, turnRows, distress, kind, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,
     },
   };

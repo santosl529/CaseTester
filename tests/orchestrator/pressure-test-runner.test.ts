@@ -64,6 +64,7 @@ vi.mock('@/lib/orchestrator/pressure-test', async orig => ({
 }));
 
 const { runTurn } = await import('@/lib/orchestrator/session-runner');
+const { PT_REPLY_LIMIT } = await import('@/lib/orchestrator/pressure-test');
 
 const T = (over: Partial<ModelTurn> = {}): ModelTurn => ({ move: 'analysis', requests: [], exhibit: null, rescueItem: null, say: '', question: 'Go on.', ...over });
 const ask = (ids: string[], what = 'the data', respond: 'release' | 'defer' = 'release') => ({ what, itemIds: ids, explicit: true, respond });
@@ -97,7 +98,7 @@ describe('pressure-test state', () => {
     const heard = await turn('Probably something is missing, yeah. Could I get the cost breakdown?', T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'Which part of the structure would you add to?' }));
     expect(pt()?.state).toBe('awaiting');
     expect(revealed()).not.toContain('cogs_pct');
-    expect(heard).toMatch(/come back to the cost breakdown/);
+    expect(heard).toMatch(/I'll share the cost breakdown once we've settled your structure\./);   // v3: the reason, out loud
   });
 
   it('is satisfied by a partial answer to a compound probe, and the held data is then released', async () => {
@@ -161,19 +162,53 @@ describe('bounded fallbacks', () => {
     expect(heard).not.toMatch(/figure|number/i);
   });
 
-  it('across several failing turns: one re-ask, then plain questions; never satisfied by escape; no repeated promise', async () => {
+  // v3 (batch 18, 10 Oct): v2 held the data with no bound and promised it
+  // once, then silently (Destiny, Maya: 20 turns). Now: one re-ask, one
+  // narrowed probe, then a spoken, logged waiver that releases what is held;
+  // every held ask is answered with its reason. Never satisfied by escape.
+  it('across several failing turns: re-ask, narrowed probe, then a waiver; each held ask answered with its reason', async () => {
     resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
     const heard: string[] = [];
-    for (let i = 0; i < 4; i++) {
+    // Varied asks: a verbatim repeat is a stall-ladder trigger, not this test.
+    for (const line of ['Could I get the cost breakdown?', 'Can I see how costs split out?', 'Do we have the cost lines?', 'What do the costs look like?']) {
       judgeQueue.push({ answered: false });
-      heard.push(await turn('Could I get the cost breakdown?', T({ move: 'pressure_test', requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'Is that MECE — what’s missing?' })));
+      heard.push(await turn(line, T({ move: 'pressure_test', requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'Is that MECE — what’s missing?' })));
     }
-    expect(heard.filter(h => /Before I share that data/.test(h))).toHaveLength(1);
+    expect(heard[0]).toMatch(/Before I share that data/);
+    expect(heard[1]).toMatch(/Let me make it concrete/);
+    expect(heard[2]).toMatch(/Let's leave the structure there\./);
+    expect(heard[2]).toMatch(/COGS/);
+    for (const h of heard.slice(0, 2)) expect(h).toMatch(/I'll share the cost breakdown once we've settled your structure\./);
     expect(heard.filter(h => /MECE/.test(h))).toHaveLength(0);
-    for (let i = 1; i < heard.length; i++) expect(heard[i]).not.toBe(heard[i - 1]);
-    expect(heard.filter(h => /come back to the cost breakdown/.test(h)).length).toBeLessThanOrEqual(1);
-    expect(pt()?.state).toBe('awaiting');
-    expect(revealed()).not.toContain('cogs_pct');
+    expect(pt()).toMatchObject({ state: 'waived', awaitingReplies: 3 });
+    expect(pt()?.satisfiedAt).toBeUndefined();
+    expect(revealed()).toContain('cogs_pct');
+  });
+
+  it('a stall-ladder restate in between (code-written) does not count as a ladder step and delays the waiver by that turn only', async () => {
+    resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
+    const heard: string[] = [];
+    for (let i = 0; i < 5 && pt()?.state !== 'waived'; i++) {
+      judgeQueue.push({ answered: false });
+      heard.push(await turn('Could I get the cost breakdown?', T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'Go on.' })));
+    }
+    expect(pt()?.state).toBe('waived');
+    expect(heard.length).toBeLessThanOrEqual(PT_REPLY_LIMIT + 1);
+    expect(heard.filter(h => /Take your time\. The question on the table/.test(h)).length).toBeLessThanOrEqual(1);
+  });
+
+  it('with no structure ever given, the hold still ends: three held turns after the structure ask, then a waiver', async () => {
+    resetStore('STRUCTURE');
+    structureGiven = false;
+    const heard: string[] = [];
+    const lines = ['Could I get the cost breakdown?', 'Can I see how costs split out?', 'Do we have the cost lines?', 'What do the costs look like?', 'Any cost data at all?', 'And the costs?'];
+    for (const line of lines) heard.push(await turn(line, T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'What else would you want?' })));
+    expect(heard.filter(h => /Before we (get into|go further into) the data, .*structure/.test(h))).toHaveLength(1);
+    expect(heard.filter(h => /Let's move on to the analysis\./.test(h))).toHaveLength(1);
+    expect(heard.findIndex(h => /Let's move on to the analysis\./.test(h))).toBe(4);
+    expect(pt()?.state).toBe('waived');
+    expect(revealed()).toContain('cogs_pct');
+    expect(store.events.filter(e => e.subtype === 'pressure_test_waived')).toHaveLength(1);
   });
 
   it('asks the pressure test itself, once, when the model never does and requested data keeps being held', async () => {
@@ -215,7 +250,8 @@ describe('bounded fallbacks', () => {
     structureGiven = null;
     const heard: string[] = [];
     for (let i = 0; i < 3; i++) heard.push(await turn('Could I get the cost breakdown?', T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'What else would you want?' })));
-    expect(heard.some(h => /structure|might be missing|which branch|break this/.test(h))).toBe(false);
+    // Code asks nothing: no structure ask or probe (the held ask's reason line names the structure, v3).
+    expect(heard.some(h => /Before we (get into|go further into) the data|might be missing|which branch|break this/.test(h))).toBe(false);
     expect(heard.every(h => /what else would you want\?/i.test(h))).toBe(true);
     expect(pt()).toMatchObject({ state: 'not_asked', codeAsked: false, structureAsked: false, structureGiven: false });
     expect(revealed()).not.toContain('cogs_pct');

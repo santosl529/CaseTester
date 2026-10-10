@@ -14,9 +14,12 @@ import { BACKGROUND_MODEL_ID, backgroundRequest } from '@/lib/models';
 export type ProbeIntent = 'mece' | 'prioritize' | 'robustness';
 
 export type PressureTestState = {
-  state: 'not_asked' | 'awaiting' | 'satisfied';
+  state: 'not_asked' | 'awaiting' | 'satisfied' | 'waived';
   askedAt?: number;          // interviewer turn index that asked it
   probe?: string;            // the question as delivered
+  followUps?: string[];      // code's re-ask and narrowed probe, as delivered (the judge reads them too)
+  awaitingReplies?: number;  // candidate replies while awaiting, answered or not (v3 bound)
+  waivedAt?: number;         // interviewer turn index of the waiver
   intents?: ProbeIntent[];
   satisfiedAt?: number;      // candidate turn index judged to answer it
   reasks: number;            // code re-asks while awaiting (at most one)
@@ -176,6 +179,14 @@ export const CODE_STRUCTURE_ASKS = [
   'Before we go further into the data, could you lay out how you would structure the problem?',
 ] as const;
 
+// A question that points at figures as if the candidate had them ("Which of
+// these three cost lines moved the most?", "With those in front of you…").
+// Bare "these costs" is not one: it can mean the costs the candidate named.
+const FIGURE_REFERENCE = /\b(these|those)\s+(?:[\w-]+\s+){0,2}(figures|numbers|lines|line items|data|breakdown|split|percentages)\b|\bin front of you\b/i;
+export function refersToFigures(question: string): boolean {
+  return FIGURE_REFERENCE.test(question);
+}
+
 // A replacement question for a duplicate probe; never the last question asked.
 export function pickFallbackQuestion(p: { figuresDelivered: boolean; seed: string; last: string | null }): string {
   const pool: readonly string[] = p.figuresDelivered ? FIGURES_QUESTIONS : NO_FIGURES_QUESTIONS;
@@ -183,11 +194,36 @@ export function pickFallbackQuestion(p: { figuresDelivered: boolean; seed: strin
   return first !== p.last ? first : pool[(pool.indexOf(first) + 1) % pool.length];
 }
 
-// One re-ask of the unanswered probe, naming the deferral.
-export function reaskProbe(intents: ProbeIntent[] | undefined): string {
+// v3 bound (batch 18, 10 Oct — Destiny and Maya held 20 turns): while the
+// probe is open, every candidate reply counts, whatever the judge says. Reply
+// 1 gets the re-ask, reply 2 a narrowed probe, reply 3 the waiver.
+export const PT_REPLY_LIMIT = 3;
+// With no structure ever given: held turns before the waiver (2 before code
+// asks for the structure, then 3 more).
+export const PT_NOT_ASKED_LIMIT = 5;
+
+// One re-ask of the unanswered probe, naming the deferral when data is held.
+export function reaskProbe(intents: ProbeIntent[] | undefined, dataHeld = true): string {
   const intent = intents?.[0] ?? 'mece';
   const ask = intent === 'prioritize' ? 'which branch would you start with, and why?'
     : intent === 'robustness' ? 'what result would break this structure?'
       : 'what might be missing from your structure?';
-  return `Before I share that data, I'd like your answer on the structure: ${ask}`;
+  return dataHeld ? `Before I share that data, I'd like your answer on the structure: ${ask}` : `Coming back to your structure: ${ask}`;
+}
+
+// The narrowed probe: the same intent, made concrete (a Rule 13 Level 2 for the test).
+export function narrowProbe(intents: ProbeIntent[] | undefined): string {
+  const intent = intents?.at(-1) ?? 'mece';
+  const ask = intent === 'prioritize' ? "of the areas you've named, which one would you check first, and why?"
+    : intent === 'robustness' ? 'what one finding would make you drop one of your branches?'
+      : "name one thing your structure doesn't cover yet.";
+  return `Let me make it concrete: ${ask}`;
+}
+
+// The waiver's spoken lead, before the question (v3).
+export const WAIVER_LEAD = { awaiting: "Let's leave the structure there.", not_asked: "Let's move on to the analysis." } as const;
+
+// The probe as the candidate heard it, for the judge: the original and code's follow-ups.
+export function probeAsHeard(pt: PressureTestState): string {
+  return [pt.probe ?? '', ...(pt.followUps ?? []).map(f => `Asked again as: ${f}`)].filter(Boolean).join('\n');
 }

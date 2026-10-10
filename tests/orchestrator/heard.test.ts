@@ -144,6 +144,18 @@ describe('unheardQuestionPressureTest', () => {
     const satisfied = { ...awaiting, state: 'satisfied' as const, satisfiedAt: 4 };
     expect(unheardQuestionPressureTest(awaiting, satisfied)).toEqual(satisfied);
   });
+  // v3 bound: the reply counted whether or not the re-ask was heard, so the
+  // count stands; the unheard follow-up does not (the judge never reads it).
+  it('keeps the reply count but drops an unheard re-ask', () => {
+    const awaiting = { ...prev, state: 'awaiting' as const, askedAt: 3, probe: 'Is that MECE?', awaitingReplies: 0, followUps: [] };
+    const next = { ...awaiting, reasks: 1, awaitingReplies: 1, followUps: ['Coming back to your structure: what might be missing from it?'] };
+    expect(unheardQuestionPressureTest(awaiting, next)).toEqual({ ...awaiting, awaitingReplies: 1 });
+  });
+  it('keeps a waiver reached by the reply count', () => {
+    const awaiting = { ...prev, state: 'awaiting' as const, askedAt: 3, awaitingReplies: 2, followUps: ['a', 'b'] };
+    const waived = { ...awaiting, state: 'waived' as const, waivedAt: 9, awaitingReplies: 3 };
+    expect(unheardQuestionPressureTest(awaiting, waived)).toEqual(waived);
+  });
 });
 
 describe('isCancelledTurn', () => {
