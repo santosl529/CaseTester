@@ -1,6 +1,8 @@
 import { classifyError, type MathStepInput, type ErrorClass } from '@/lib/scoring/deterministic';
 import { assignSpans, findStepSpans, inputsRevealed } from '@/lib/scoring/math-spans';
 import { normalizeNumberWords } from '@/lib/number-words';
+import type { ArithmeticClaim } from './arithmetic-check';
+import { formatUnitFlagLine, type UnitFlag, type UnitVerified } from './unit-check';
 
 // Rule 2/14 deterministic backstop (docs/interviewer-behavior.md): "Live
 // detection by the model alone is a probabilistic capability, not an
@@ -15,14 +17,28 @@ import { normalizeNumberWords } from '@/lib/number-words';
 // right after it's made, matching Rule 14's fast-path example), not one turn
 // late.
 
+// What a flag says the candidate claimed (round-3 fixes): the quantity, its
+// units, and — where the figure depends on one — the base and timeframe, from
+// the case facts the candidate has. Logged with the flag; never in a hint
+// beyond what the candidate already has.
+export type FlagClaim = { quantity: string; units?: string; base?: string; timeframe?: string; expression?: string };
+
 export type RecomputeFlag = {
+  // step: a case math step's answer; unit: a nested-percentage conversion
+  // (unit-check.ts); arithmetic: a stated operation that doesn't hold
+  // (arithmetic-check.ts). Absent on flags logged before 11 Oct (= step).
+  kind?: 'step' | 'unit' | 'arithmetic';
   stepId: string;
   description: string;
   expected: number;
   candidateValue: number;
   errorClass: Extract<ErrorClass, 'minor' | 'case_breaking'>;
   span: string; // the candidate clause the figure came from (Rule 2 v4.3)
+  claim?: FlagClaim;
+  unit?: UnitFlag;  // kind 'unit': the full unit finding, for the interviewer line
 };
+
+type StepMeta = MathStepInput & { quantity?: string; timeframe?: string };
 
 // v4.3: matched through source spans (lib/scoring/math-spans.ts) and gated on
 // revealed inputs. The previous any-number-to-any-step pairing produced all
@@ -51,10 +67,52 @@ export function checkRecomputeForTurn(
     if (statedValid) continue;
     const errorClass = classifyError(step.answer, step.tolerance, attempt.value);
     if (errorClass === 'minor' || errorClass === 'case_breaking') {
-      flags.push({ stepId: step.id, description: step.description, expected: step.answer, candidateValue: attempt.value, errorClass, span: attempt.span });
+      const meta = step as StepMeta;
+      const units = Array.isArray(step.unit) ? step.unit.join(' or ') : step.unit;
+      flags.push({
+        kind: 'step', stepId: step.id, description: step.description, expected: step.answer, candidateValue: attempt.value, errorClass, span: attempt.span,
+        claim: { quantity: meta.quantity ?? step.id.replace(/_/g, ' '), ...(units ? { units } : {}), ...(meta.timeframe ? { timeframe: meta.timeframe } : {}) },
+      });
     }
   }
   return flags;
+}
+
+// A unit flag (unit-check.ts) as a recompute flag: Rule 14's attempt count
+// and the correction on a repeat apply to it like to any step.
+export function flagsFromUnitCheck(unitFlags: UnitFlag[]): RecomputeFlag[] {
+  return unitFlags.map(f => ({
+    kind: 'unit' as const, stepId: `unit:${f.base.split(' ')[0]}`, description: `${f.quantity} in ${f.units}`,
+    expected: f.expected, candidateValue: f.stated,
+    errorClass: classifyError(f.expected, Math.max(0.3, f.expected * 0.05), f.stated) === 'case_breaking' ? 'case_breaking' as const : 'minor' as const,
+    span: f.span, claim: { quantity: f.quantity, units: f.units, base: f.base, timeframe: f.timeframe }, unit: f,
+  }));
+}
+
+// A stated operation that doesn't hold (arithmetic-check.ts) — the candidate's
+// own slip, never one they corrected in the same message.
+export function flagsFromArithmetic(claims: ArithmeticClaim[]): RecomputeFlag[] {
+  return claims.filter(c => c.verdict === 'incorrect' && !c.selfCorrected).map(c => ({
+    kind: 'arithmetic' as const, stepId: `arith:${c.expression}`, description: `${c.expression} = ${c.stated}`,
+    expected: Math.round(c.computed * 1000) / 1000, candidateValue: c.stated,
+    errorClass: 'case_breaking' as const, span: c.span,
+    claim: { quantity: `${c.expression}`, expression: c.expression },
+  }));
+}
+
+// Figures verified correct outside the case's steps: stated arithmetic that
+// holds (the work is on the page) and conversions at a given base.
+export function verifiedFromChecks(claims: ArithmeticClaim[], unitVerified: UnitVerified[]): VerifiedFigure[] {
+  return [
+    // A ratio is also verified as the percent change it states ("58/42 = 1.38"
+    // verifies "up 38%"), and a share as its percent reading.
+    ...claims.filter(c => c.verdict === 'correct').flatMap(c => {
+      const readings = [c.stated];
+      if (c.stated > 0.5 && c.stated < 3 && !Number.isInteger(c.stated)) readings.push(Math.round((c.stated - 1) * 1000) / 10, Math.round(c.stated * 1000) / 10);
+      return readings.map(value => ({ stepId: `arith:${c.expression}`, value, span: c.span, workShown: true, operands: [] }));
+    }),
+    ...unitVerified.map(u => ({ stepId: `unit:${u.stated}`, value: u.stated, span: u.span, workShown: false, operands: [] })),
+  ];
 }
 
 // Rule 14 attempt state, per math step: how many times the candidate has
@@ -95,6 +153,11 @@ export function formatRecomputeHint(
     const attempt = opts.attempts?.[f.stepId] ?? 1;
     const action = recomputeAction(f, attempt, Boolean(opts.underTimePressure));
     if (action === 'shed') continue;
+    if (f.kind === 'unit' && f.unit && action === 'probe') { lines.push(formatUnitFlagLine(f.unit)); continue; }
+    if (f.kind === 'arithmetic' && action === 'probe') {
+      lines.push(`- The candidate wrote ${f.claim?.expression} = ${f.candidateValue} in "${f.span}"; that operation doesn't give ${f.candidateValue}. Probe once — "Walk me through that calculation." Do not correct it or say the right figure.`);
+      continue;
+    }
     if (action === 'probe') {
       lines.push(`- The candidate said ${f.candidateValue} in "${f.span}" and it does not match the value derivable from the data they have. Probe once — "Walk me through that." Do not correct it or say what the right figure is.`);
     } else {

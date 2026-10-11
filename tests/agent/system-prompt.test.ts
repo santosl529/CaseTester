@@ -163,7 +163,6 @@ describe('buildPromptParts — stable prefix vs per-turn state', () => {
     advancedLastTurn: true,
     elapsedMs: TOTAL - 20_000,
     recomputeHint: 'RECOMPUTE FLAG: x',
-    unitCheckHint: 'UNIT-CONVERSION FLAG: y',
     stallGuidance: 'STALL: z',
     coverageSteer: 'COVERAGE: w',
     openDataRequestsHint: 'OPEN DATA REQUESTS: v',
@@ -178,7 +177,7 @@ describe('buildPromptParts — stable prefix vs per-turn state', () => {
   it('carries every per-turn input in the turn part only', () => {
     const { stable, turn } = buildPromptParts(late);
     for (const s of ['Current stage: ANALYSIS', 'COGS is 58% of revenue.', 'Bean price change', '(already on the candidate',
-      'The stage moved on LAST turn', 'RECOMPUTE FLAG: x', 'UNIT-CONVERSION FLAG: y', 'STALL: z', 'COVERAGE: w',
+      'The stage moved on LAST turn', 'RECOMPUTE FLAG: x', 'STALL: z', 'COVERAGE: w',
       'OPEN DATA REQUESTS: v', 'CONDUCT (C4): u', 'THIS TURN: t', 'under a minute left']) {
       expect(turn).toContain(s);
       expect(stable).not.toContain(s);

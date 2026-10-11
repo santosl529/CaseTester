@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { checkVerifiedForTurn, checkRecomputeForTurn, isWorkShown, formatVerifiedHint } from '@/lib/orchestrator/recompute';
-import { withholdProbesOnVerified } from '@/lib/orchestrator/probe-guard';
+import { withholdProbesOnVerified, withholdMathChallenges } from '@/lib/orchestrator/probe-guard';
 import { getCaseById } from '@/lib/cases/loader';
 
 const steps = getCaseById('prof-001').mathSteps;
@@ -94,9 +94,17 @@ describe('probe withholding before send (Rule 2 v4.5)', () => {
     expect(withholdProbesOnVerified(t, { verified: verifiedMaya, alreadyProbed: new Set(), flaggedThisTurn: false }).text).toBe(t);
   });
 
-  it('keeps a doubt probe about an unverified figure (Derek)', () => {
+  // Round-3 (11 Oct): an unverified figure is not grounds for doubt. Derek's
+  // conversion is now flagged by the numeric unit check, and the flag is what
+  // lets the probe through; without it the doubt is withheld.
+  it('keeps a doubt probe on a flagged figure (Derek: the unit check flags his 25 points)', () => {
     const t = "Hold on. You said beans are twenty-five percent of COGS, so twenty-five points of margin exposure. Points of what?";
-    expect(withholdProbesOnVerified(t, { verified: [], alreadyProbed: new Set(), flaggedThisTurn: false }).text).toBe(t);
+    expect(withholdMathChallenges(t, { verified: [], alreadyProbed: new Set(), flaggedThisTurn: true, flagged: [25], candidateFigures: [25] }).text).toBe(t);
+  });
+
+  it('withholds the same doubt with no flag behind it (unsupported challenge)', () => {
+    const out = withholdMathChallenges('You said twenty-five points of margin exposure. Points of what?', { verified: [], alreadyProbed: new Set(), flaggedThisTurn: false, candidateFigures: [25] });
+    expect(out.withheld.map(w => w.test)).toEqual(['unsupported_challenge']);
   });
 
   it('keeps a bare doubt when a recompute flag fired this turn (it may be about that)', () => {
@@ -109,5 +117,52 @@ describe('verify-only non-bean steps (batch 5: Tobias)', () => {
   it("verifies Tobias's 31.5 × 1.375 = 43.3", () => {
     const v = checkVerifiedForTurn('Other inputs up 37.5%: 31.5 × 1.375 = 43.3 points of revenue.', steps, ['bean_share_of_cogs', 'cogs_pct', 'non_bean_input_change']);
     expect(v.find(x => x.stepId === 'non_bean_points_now')?.value).toBe(43.3);
+  });
+});
+
+// Batch 18 v3: the interviewer doubted correct math on its own in 5+ runs.
+// None had a flag behind it; each is withheld, and the neutral request for the
+// working stays available once per figure.
+describe('model-driven challenges without a flag (batch 18)', () => {
+  const ctx = (candidateFigures: number[], over: Partial<Parameters<typeof withholdMathChallenges>[1]> = {}) =>
+    ({ verified: [], alreadyProbed: new Set<string>(), flaggedThisTurn: false, candidateFigures, ...over });
+
+  it.each([
+    ['Jasmine t16', 'Your arithmetic applies inflation to COGS as a share of revenue, but revenue also grew over the same period.', [58, 59]],
+    ['Jasmine t16', 'Is that the right base?', [58, 59]],
+    ['Camila t8', 'Does that change your 53.8 and 14.7 figures, and does it change whether bean cost per unit actually rose by that 40%?', [53.8, 14.7]],
+    ['Omar t10', 'How does that affect the 53.8 you\'re comparing to the actual 58?', [53.8]],
+    ['Hannah t8', 'One more nuance: your 43.3 points assumes the same volume against flat prices, while revenue grew 15%.', [43.3]],
+    ['Marisol t14', 'Does that 66.7 reconcile with the 15% revenue growth and the margin decline you started with?', [66.7, 23.4]],
+  ])('%s: %s', (_, sentence, figs) => {
+    expect(withholdMathChallenges(sentence, ctx(figs)).withheld).toHaveLength(1);
+  });
+
+  it('a doubt on a figure a check verified is a doubt on verified work (Omar: 10.5 verified)', () => {
+    const verified = checkVerifiedForTurn(OMAR, steps, BEANS_REVEALED);
+    const out = withholdMathChallenges('One thing to check in your build: your 31.5 and 10.5 are points of revenue from two years ago, but revenue has since grown.', ctx([31.5, 10.5], { verified }));
+    expect(out.withheld[0].test).toBe('doubt_on_verified');
+  });
+
+  it.each([
+    ['a business-assumption pushback (Tobias, batch 2)', 'One check on your sizing: does volume hold when you raise prices 10 percent?', [11.5, 10]],
+    ['a misquote of released data, corrected (Marisol t10)', 'You assumed beans rose 37.5%, but that figure was given for dairy, packaging and food, not beans.', [23.4]],
+    ['a question that uses their figure as a yardstick (Malik t8)', 'What do those numbers tell you about mix versus input inflation, and does the size of the effect match the 16-point COGS increase?', [16]],
+    ['a next-step question on their figure', 'Given 16 points in COGS, what would you want to see next?', [16]],
+  ])('keeps %s', (_, sentence, figs) => {
+    expect(withholdMathChallenges(sentence, ctx(figs)).withheld).toEqual([]);
+  });
+
+  it('a figure flagged earlier stays challengeable (Maya: 16 / 18 = 1.6% at t20, raised again at t24)', () => {
+    const t = 'One thing to check: you said 16 divided by 18 is 1.6%. Is that right?';
+    expect(withholdMathChallenges(t, ctx([16, 18, 1.6], { flagged: [1.6] })).withheld).toEqual([]);
+  });
+
+  it('a neutral request for the working on an unverified figure: once', () => {
+    const first = withholdMathChallenges('How did you get to 53.8?', ctx([53.8]));
+    expect(first.withheld).toEqual([]);
+    expect(first.explainProbed).toEqual(['fig:53.8']);
+    const again = withholdMathChallenges('How did you get to 53.8?', ctx([53.8], { alreadyProbed: new Set(first.explainProbed) }));
+    expect(again.withheld[0].test).toBe('explain_already_probed');
   });
 });

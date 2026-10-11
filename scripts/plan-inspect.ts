@@ -49,7 +49,7 @@ const st = plan.state;
 console.log(`turn kind: ${st.kind} · phase ${plan.ctx.currentPhase}`);
 console.log(`recompute flags: ${JSON.stringify(st.recomputeFlags)}`);
 console.log(`verified now: ${JSON.stringify(st.verifiedNow.map(v => ({ value: v.value, stepId: v.stepId })))} · verified earlier: ${JSON.stringify(st.verifiedPrev.map(v => ({ value: v.value, stepId: v.stepId })))}`);
-console.log(`unit-check hint: ${st.unitCheckHint ? 'YES' : 'none'} · stall: ${st.stallDecision.intervene ? `rung ${st.stallDecision.rung}` : 'none'} · coverage steer: ${st.coverageSteer ?? 'none'}`);
+console.log(`flags: ${st.recomputeFlags.map(f => `${f.kind ?? 'step'}:${f.candidateValue}`).join(', ') || 'none'} · stall: ${st.stallDecision.intervene ? `rung ${st.stallDecision.rung}` : 'none'} · coverage steer: ${st.coverageSteer ?? 'none'}`);
 console.log(`final session flags — recomputeAttempts ${JSON.stringify(run.session.flagsJsonb.recomputeAttempts)} · explainProbed ${JSON.stringify(run.session.flagsJsonb.explainProbed)}`);
 console.log('--- TURN PROMPT (case state) ---');
 console.log(buildPromptParts(promptContextFor(plan)).turn);

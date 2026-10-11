@@ -13,6 +13,8 @@
 
 export type MarkKind =
   | 'unbacked_correction'  // correction with no recompute flag behind it (Rule 2)
+  | 'confirmed_interviewer_error' // doubt on math a check verified correct (round-3, challenge-marks.ts)
+  | 'unsupported_challenge'       // doubt on math no check verified or flagged — logged, not a confirmed error
   | 'empty_release'        // data announced but not delivered (Rule 10)
   | 'unanswered_request'   // available data requested and never provided (Rule 11)
   | 'conduct_warning'      // C2 warning — not the report's call (Rule 17)
@@ -94,15 +96,25 @@ export function buildInterviewerMarks(
 }
 
 export function formatInterviewerMarksSection(marks: InterviewerMark[]): string {
-  if (marks.length === 0) return '';
-  const lines = marks.map(m => {
+  const line = (m: InterviewerMark) => {
     const at = m.interviewerTurn !== null ? `interviewer turn ${m.interviewerTurn}` : 'session';
     const cand = m.candidateTurns.length ? `; candidate turn(s) ${m.candidateTurns.join(', ')}` : '';
     return `- [${m.kind}] ${at}${cand}: ${m.note}`;
-  });
-  return `INTERVIEWER ERRORS AND EXCLUSIONS (from the session's own event log — these are system facts, not judgments):
-${lines.join('\n')}
-A candidate turn listed here can never be evidence against the candidate, and an interviewer error can never be cited as proof of a candidate mistake. Wellbeing exchanges are excluded from scoring entirely.`;
+  };
+  const errors = marks.filter(m => m.kind !== 'unsupported_challenge');
+  const unsupported = marks.filter(m => m.kind === 'unsupported_challenge');
+  const parts: string[] = [];
+  if (errors.length > 0) {
+    parts.push(`INTERVIEWER ERRORS AND EXCLUSIONS (from the session's own event log — these are system facts, not judgments):
+${errors.map(line).join('\n')}
+A candidate turn listed here can never be evidence against the candidate, and an interviewer error can never be cited as proof of a candidate mistake — not the candidate apologising, conceding, or redoing correct work after it. Wellbeing exchanges are excluded from scoring entirely.`);
+  }
+  if (unsupported.length > 0) {
+    parts.push(`UNSUPPORTED CHALLENGES (logged apart from interviewer errors: the interviewer doubted a figure that no check verified or flagged):
+${unsupported.map(line).join('\n')}
+The challenge itself is not evidence that the candidate erred. Judge the candidate's math on its own terms — a genuine error stays a weakness, a correct figure stays correct whatever the challenge implied.`);
+  }
+  return parts.join('\n\n');
 }
 
 type ItemWithQuotes = { point: string; quotes: string[] };
@@ -110,20 +122,27 @@ type ItemWithQuotes = { point: string; quotes: string[] };
 // Enforcement: a needs-work item whose every quote comes only from marked
 // candidate turns rests on a system-caused (or excluded) moment — dropped. A
 // quote that also appears in an unmarked turn keeps the item.
+// `genuine`: per candidate turn, the clauses a check flagged as a real error
+// (recompute spans). A quote resting on one of them is the candidate's own
+// mistake — kept even in a marked turn (round-3: a confirmed interviewer error
+// excuses the reply to it, not an independent slip in the same message).
 export function dropClaimsOnMarkedTurns<R extends Record<string, unknown>>(
   rubric: R,
   dimensionKeys: readonly string[],
   turns: Turn[],
   marks: InterviewerMark[],
+  genuine: Map<number, string[]> = new Map(),
 ): { rubric: R; dropped: { dimension: string; point: string }[] } {
   const marked = new Set(marks.flatMap(m => m.candidateTurns));
   if (marked.size === 0) return { rubric, dropped: [] };
   const norm = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
   const candidate = turns.filter(t => t.role === 'candidate');
+  const restsOnGenuineError = (turnIndex: number, q: string) =>
+    (genuine.get(turnIndex) ?? []).map(norm).some(span => span.includes(q) || q.includes(span));
   const onlyMarked = (quote: string) => {
     const q = norm(quote);
     const hits = candidate.filter(t => norm(t.text).includes(q));
-    return hits.length > 0 && hits.every(t => marked.has(t.turnIndex));
+    return hits.length > 0 && hits.every(t => marked.has(t.turnIndex) && !restsOnGenuineError(t.turnIndex, q));
   };
   const cleaned = structuredClone(rubric);
   const dropped: { dimension: string; point: string }[] = [];

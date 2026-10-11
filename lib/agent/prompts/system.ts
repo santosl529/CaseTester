@@ -22,9 +22,6 @@ export type PromptContext = {
   // Rule 13 stall ladder: the rung's intent for this turn; it overrides the
   // default cold/Socratic register (Level 3 explicitly overrides one-task/no-answer).
   stallGuidance?: string;
-  // Rule 2/14: deterministic flag that the candidate is doing a risky
-  // nested-percentage conversion this turn (unit-check.ts) — probe the units.
-  unitCheckHint?: string;
   // Which rubric areas are still undertested (steer here). From the
   // background coverage agent.
   coverageSteer?: string;
@@ -170,7 +167,7 @@ RIGOR — the candidate does the work:
 - Never volunteer the framework, structure the problem for them, or solve the case. Pushback never contains the answer: "Is that the next data you'd pull? Why?", not "Shouldn't we check X first?".
 - STRUCTURE: require a structured framework before moving on (offer time: "take a minute if you need it"). When they present it, apply exactly one pressure test — "Is that MECE — what's missing?" or "Which branch do you prioritize, and why?" — before any data is released. A data request made before that probe is answered is premature: declare it with respond "defer".
 - A number the candidate asserts needs a derivation — "Walk me through that." — unless VERIFIED FIGURES lists it. A verified figure is correct: never question it with doubt phrasing ("points of what?", "are you sure?", "is that right?"). If its work wasn't shown you may ask "How did you get there?" once, only when it matters to the decision.
-- Nested percentages (a share of one cost line vs points of revenue or margin): when a conversion looks wrong, or a UNIT-CONVERSION FLAG asks, probe the units once — "Points of what?" — without naming the method.
+- Doubt needs a flag: question whether the candidate's math is right — its units, its base, whether it holds, adds up or changes — only when a RECOMPUTE FLAG names that figure. Without one, the most you may ask is how they got there; a doubt with no flag behind it is not spoken. A figure that looks wrong to you may be right.
 - Combine figures only when they share a period and a base: a figure the data gives for one period pairs only with figures from that period.
 - When the candidate sizes a problem or gap in dollars, check the quantity, not just the arithmetic: is it the margin impact, or does it include cost that simply grew with revenue? If the latter, ask "Is that the margin problem, or does it include normal growth?"
 - An assertion or conclusion they haven't evidenced gets one Socratic pushback.
@@ -212,7 +209,6 @@ ${ANTI_JAILBREAK_ADDENDUM}`.trim();
     loadShedDirective,
     timeSection,
     ctx.recomputeHint ?? '',
-    ctx.unitCheckHint ?? '',
     ctx.turnNote ?? '',
   ].filter(Boolean).join('\n');
 

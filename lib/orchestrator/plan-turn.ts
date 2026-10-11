@@ -8,8 +8,10 @@ import { formatOpenRequestsHint } from './data-requests';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
 import { createLedger, reveal, revealedValues, labelWithPeriod } from './data-ledger';
-import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts, checkVerifiedForTurn, formatVerifiedHint, type RecomputeAttempts, type VerifiedFigure } from './recompute';
-import { detectNestedPercentConversion, formatUnitCheckHint } from './unit-check';
+import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts, checkVerifiedForTurn, formatVerifiedHint, flagsFromUnitCheck, flagsFromArithmetic, verifiedFromChecks, type RecomputeAttempts, type VerifiedFigure } from './recompute';
+import { checkNestedConversions } from './unit-check';
+import { checkStatedArithmetic } from './arithmetic-check';
+import { candidateFiguresOf } from './math-talk';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
 import { evaluateStall, INITIAL_STALL_STATE, type StallState } from './stall';
@@ -236,49 +238,74 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const warningThresholdMs = TOTAL_CASE_MS - timeWarningMs;
   const shouldFireTimeWarning = !flags.timeWarningFired && !timeUp && elapsedMs >= warningThresholdMs;
 
-  // Rule 2/14 deterministic recompute backstop (from THIS candidate message).
-  // Only steps whose inputs the candidate has received are checked, and only
-  // numbers stated about that step's metric count (source spans, Rule 2 v4.3).
-  const recomputeFlags = checkRecomputeForTurn(candidateText, caseData.mathSteps, Object.keys(revealedValues(ledger)));
+  // Rule 2/14 (round-3, 11 Oct): the candidate's math is verified in code,
+  // three ways, from THIS message — the case's math steps (only steps whose
+  // inputs the candidate has; only numbers stated about that step's metric —
+  // source spans, Rule 2 v4.3), stated arithmetic ("16 / 18 = 1.6%"), and
+  // nested-percentage conversions checked against the base the candidate was
+  // given (unit-check.ts; the keyword detector it replaces doubted correct
+  // work in 9 batch-18 interviews). Each figure ends up verified correct,
+  // flagged incorrect, or unverified — and only a flag licenses doubt
+  // (probe-guard.ts).
+  const revealedIdsNow = Object.keys(revealedValues(ledger));
+  const stepFlags = checkRecomputeForTurn(candidateText, caseData.mathSteps, revealedIdsNow);
+  const arithmetic = checkStatedArithmetic(candidateText);
+  const units = checkNestedConversions(candidateText, { bases: caseData.shareBases, items: caseData.dataLedger, revealedIds: revealedIdsNow });
+  const recomputeFlags = [
+    ...stepFlags,
+    ...flagsFromUnitCheck(units.flags),
+    ...flagsFromArithmetic(arithmetic).filter(a => !stepFlags.some(f => f.candidateValue === a.candidateValue)),
+  ];
   // Rule 14: the attempt counter is orchestrator state, not model judgment.
   const recomputeAttempts = recordAttempts((flags.recomputeAttempts as RecomputeAttempts | undefined) ?? {}, recomputeFlags);
   const { hint: recomputeHint, derivedValues: derivedValueTexts } = formatRecomputeHint(recomputeFlags, {
     attempts: recomputeAttempts,
     underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
   });
-  // Logged with span and attempt: the input to interviewer-error marking, and
-  // so a flag is never invisible again.
+  // Logged with span, attempt and the claim (quantity, units, base,
+  // timeframe): the input to interviewer-error marking, and so a flag is
+  // never invisible again.
   for (const f of recomputeFlags) {
     ctx.events.push({ category: 'intervention', subtype: 'recompute_flag', payload: {
-      stepId: f.stepId, candidateValue: f.candidateValue, expected: f.expected, errorClass: f.errorClass,
-      span: f.span, attempt: recomputeAttempts[f.stepId],
+      kind: f.kind ?? 'step', stepId: f.stepId, candidateValue: f.candidateValue, expected: f.expected, errorClass: f.errorClass,
+      span: f.span, attempt: recomputeAttempts[f.stepId], claim: f.claim ?? null,
     } });
   }
   checks.record('recompute', recomputeFlags.length > 0, 'mismatch flagged', {
-    flags: recomputeFlags.map(f => ({ stepId: f.stepId, candidateValue: f.candidateValue, expected: f.expected, errorClass: f.errorClass, span: f.span })),
+    flags: recomputeFlags.map(f => ({ kind: f.kind ?? 'step', stepId: f.stepId, candidateValue: f.candidateValue, expected: f.expected, errorClass: f.errorClass, span: f.span, claim: f.claim ?? null })),
+  });
+  checks.record('unit_check', units.flags.length > 0, 'nested conversion verified wrong — unit flag', {
+    flags: units.flags.map(f => ({ stated: f.stated, units: f.units, expected: f.expected, base: f.base })),
+    verified: units.verified.map(v => ({ stated: v.stated, expected: v.expected })),
+  });
+  checks.record('arithmetic_check', arithmetic.some(a => a.verdict === 'incorrect' && !a.selfCorrected), 'stated arithmetic that does not hold — flag', {
+    claims: arithmetic.map(a => ({ expression: a.expression, stated: a.stated, computed: a.computed, verdict: a.verdict, selfCorrected: a.selfCorrected })),
   });
 
   // Rule 2 v4.5/v4.6: the other half of the signal — figures the candidate
   // stated correctly (recompute_ok), with whether the work was shown. Doubt
   // probes on these are banned and withheld before send (probe-guard.ts).
-  const verifiedNow = checkVerifiedForTurn(candidateText, caseData.mathSteps, Object.keys(revealedValues(ledger)));
+  const stepVerified = checkVerifiedForTurn(candidateText, caseData.mathSteps, revealedIdsNow);
+  const verifiedNow = [
+    ...stepVerified,
+    ...verifiedFromChecks(arithmetic, units.verified).filter(v => !stepVerified.some(x => Math.abs(x.value - v.value) < 1e-9)),
+  ];
   const verifiedPrev = (flags.lastVerified as VerifiedFigure[] | undefined) ?? [];
   const explainProbedBefore = new Set((flags.explainProbed as string[] | undefined) ?? []);
   const verifiedHint = formatVerifiedHint(verifiedNow, explainProbedBefore);
   checks.record('verified_figures', verifiedNow.length > 0, 'recompute_ok sent to the interviewer', {
     verified: verifiedNow.map(v => ({ stepId: v.stepId, value: v.value, workShown: v.workShown, span: v.span })),
   });
-
-  // Rule 2/14: risky nested-percentage conversion in this candidate message →
-  // tell the interviewer to probe the units (unit-check.ts) — unless the
-  // conversion was verified this turn and nothing was flagged (v4.6: the
-  // detector fired "points of what?" on every correct 10.5 in batch 2).
-  const nestedConversion = detectNestedPercentConversion(candidateText);
-  const conversionVerified = nestedConversion && verifiedNow.length > 0 && recomputeFlags.length === 0;
-  const unitCheckHint = nestedConversion && !conversionVerified ? formatUnitCheckHint() : undefined;
-  checks.record('unit_check', unitCheckHint !== undefined, 'nested share-of-COGS conversion — probe hint sent', {
-    nestedConversion, suppressedAsVerified: conversionVerified,
-  });
+  // Figures a check found wrong, this turn or earlier: still wrong, so a probe
+  // on them stays licensed (Maya, batch 18 v3: "16 divided by 18 is 1.6%" at
+  // t20, re-raised at t24).
+  const flaggedFigures = [...new Set([...((flags.flaggedFigures as number[] | undefined) ?? []), ...recomputeFlags.map(f => f.candidateValue)])];
+  // The figures the candidate derived (their numbers less the case's own):
+  // what a challenge to "the candidate's math" can be about (math-talk.ts).
+  const candidateFigures = candidateFiguresOf(
+    [...turnRows.filter(t => t.role === 'candidate').map(t => t.text), candidateText],
+    [caseData.prompt, ...Object.values(revealedValues(ledger))],
+  );
 
   // Rule 13 stall ladder: evaluate BEFORE the model turn so a triggered rung's
   // guidance goes into this turn's prompt.
@@ -397,7 +424,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       caseData, repliedToDistressOffer, shownExhibitIds, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
-      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, unitCheckHint,
+      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, kind, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,

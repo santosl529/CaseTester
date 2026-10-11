@@ -21,7 +21,6 @@ export function promptContextFor(plan: ModelPlan): PromptContext {
     totalMs: TOTAL_CASE_MS,
     phaseBudgetsMs: state.phaseBudgetsMs,
     recomputeHint: [state.recomputeHint, state.verifiedHint].filter(Boolean).join('\n\n') || undefined,
-    unitCheckHint: state.unitCheckHint,
     stallGuidance: stallDecision.guidance,
     coverageSteer: state.coverageSteer,
     openDataRequestsHint: state.openDataRequestsHint,

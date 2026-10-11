@@ -19,7 +19,7 @@ import type { OpenRequestItem } from './assumption-guard';
 import { isDistressVerdict, type DistressVerdict } from './distress';
 import { stripFabricatedTurn, stripMetaLeak, rewriteSystemLanguage, stripCopiedCheckIn } from './audit';
 import { enforceNumericProvenance, changeFigures } from './numeric-provenance';
-import { withholdProbesOnVerified } from './probe-guard';
+import { challengeVerdict } from './probe-guard';
 import { withholdAssumptionChallenges } from './assumption-guard';
 import { suppliesRecommendation } from './synthesis-guard';
 import { isClosingTurn } from './spoken-close';
@@ -35,6 +35,8 @@ export type GateContext = {
   verified: VerifiedFigure[];
   alreadyProbed: Set<string>;
   flaggedThisTurn: boolean;
+  flagged?: number[];              // figures a check flagged wrong this turn
+  candidateFigures?: number[];     // the figures the candidate derived (math-talk.ts)
   openItems: OpenRequestItem[];
   phase: Phase;
   acknowledged?: boolean;  // voice already spoke a backchannel this turn
@@ -73,14 +75,18 @@ export function isHandoverAnnouncement(sentence: string): boolean {
 // Why a sentence of the model's own words must not be spoken, or null.
 // `inQuestion`: the sentence is (part of) the question field — a question
 // there is expected; in "say" it is not.
-export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?: boolean } = {}): string | null {
+export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?: boolean; previous?: string } = {}): string | null {
   if (stripFabricatedTurn(sentence).fabricated !== null) return 'fabricated_turn';
   if (stripMetaLeak(sentence).strippedSentences.length > 0) return 'meta_leak';
   if (rewriteSystemLanguage(sentence).rewrites.length > 0) return 'system_language';
   if (stripCopiedCheckIn(sentence).stripped) return 'copied_check_in';
   if (enforceNumericProvenance(sentence, g.allowedTexts).blocked) return 'provenance';
-  const probe = withholdProbesOnVerified(sentence, { verified: g.verified, alreadyProbed: g.alreadyProbed, flaggedThisTurn: g.flaggedThisTurn });
-  if (probe.withheld.length > 0) return 'probe_guard';
+  // Doubt on the candidate's math only with a flag behind it (probe-guard.ts):
+  // on a verified figure "probe_guard", on an unverified one "unsupported_challenge".
+  const challenge = challengeVerdict(sentence, {
+    verified: g.verified, alreadyProbed: g.alreadyProbed, flaggedThisTurn: g.flaggedThisTurn, flagged: g.flagged, candidateFigures: g.candidateFigures,
+  }, new Set(), opts.previous);
+  if (challenge && !('explainKey' in challenge)) return challenge.test === 'unsupported_challenge' ? 'unsupported_challenge' : 'probe_guard';
   if (withholdAssumptionChallenges(sentence, g.openItems).withheld.length > 0) return 'assumption_guard';
   if (hasCloseCue(sentence) || isClosingTurn(sentence)) return 'close_cue';
   // Data lines come between "say" and the question, so only "say" can double
@@ -108,7 +114,9 @@ export function gateContext(plan: ModelPlan, extraRevealed: string[] = []): Gate
     ],
     verified: [...state.verifiedNow, ...state.verifiedPrev],
     alreadyProbed: state.explainProbedBefore,
-    flaggedThisTurn: state.recomputeFlags.length > 0 || state.unitCheckHint !== undefined,
+    flaggedThisTurn: state.recomputeFlags.length > 0,
+    flagged: state.flaggedFigures,
+    candidateFigures: state.candidateFigures,
     openItems: state.openDataRequests.map(r => ({ ledgerItemId: r.ledgerItemId, label: r.label })),
     phase: ctx.currentPhase,
     acknowledged: Boolean(ctx.acknowledged),

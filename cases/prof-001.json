@@ -123,7 +123,9 @@
         "labor_pct",
         "overhead_pct"
       ],
-      "live": false
+      "live": false,
+      "quantity": "net profit margin today",
+      "timeframe": "current"
     },
     {
       "id": "profit_margin_prior",
@@ -139,7 +141,9 @@
         "labor_pct",
         "overhead_pct"
       ],
-      "live": false
+      "live": false,
+      "quantity": "net profit margin two years ago",
+      "timeframe": "prior"
     },
     {
       "id": "cogs_dollar_impact",
@@ -160,7 +164,9 @@
       "inputs": [
         "cogs_pct",
         "revenue_total"
-      ]
+      ],
+      "quantity": "the margin impact of the COGS increase, in dollars at today's revenue",
+      "timeframe": "change"
     },
     {
       "id": "revenue_per_store_check",
@@ -179,7 +185,9 @@
       "unit": "usd",
       "inputs": [
         "revenue_total"
-      ]
+      ],
+      "quantity": "average revenue per store",
+      "timeframe": "current"
     },
     {
       "id": "bean_share_of_revenue",
@@ -203,7 +211,9 @@
       "operands": [
         25,
         42
-      ]
+      ],
+      "quantity": "coffee beans as a share of revenue two years ago",
+      "timeframe": "prior"
     },
     {
       "id": "bean_points_added",
@@ -230,7 +240,9 @@
       "operands": [
         10.5,
         40
-      ]
+      ],
+      "quantity": "bean inflation's contribution to the COGS increase, in points of revenue",
+      "timeframe": "change"
     },
     {
       "id": "non_bean_points_now",
@@ -257,7 +269,9 @@
       "operands": [
         31.5,
         1.375
-      ]
+      ],
+      "quantity": "other inputs as a share of revenue today",
+      "timeframe": "current"
     },
     {
       "id": "non_bean_points_added",
@@ -286,7 +300,9 @@
       "operands": [
         43.3,
         31.5
-      ]
+      ],
+      "quantity": "other inputs' contribution to the COGS increase, in points of revenue",
+      "timeframe": "change"
     }
   ],
   "exhibits": [
@@ -337,6 +353,17 @@
       "WRAP": 40000
     }
   },
+  "shareBases": [
+    {
+      "name": "COGS",
+      "aliases": [
+        "cost of goods sold",
+        "cost of goods",
+        "cogs line"
+      ],
+      "item": "cogs_pct"
+    }
+  ],
   "structureKey": "Strong structure disaggregates profit = revenue − costs, then breaks revenue into volume × price and costs into COGS / labor / overhead / other. The candidate should hypothesize which bucket is the driver before asking for data. Bonus: asks about competitive context (are peers also seeing this?) and pricing power.",
   "recommendationKey": "Primary recommendation: raise menu prices, which have not changed in two years while input costs rose about 38% — selectively, by 8–12% on high-margin specialty SKUs where demand is less elastic. Pair it with procurement across all inputs, not just beans: multi-year bean supply contracts plus renegotiated dairy and packaging supply, since beans explain only about a quarter of the COGS increase. Secondary: pilot a lower-cost 'commodity blend' for budget-conscious locations. Do not recommend blanket cost cuts — labor and overhead are already lean.",
   "answerKeyIdeas": [

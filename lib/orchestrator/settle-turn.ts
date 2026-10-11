@@ -14,7 +14,8 @@ import type { DetectedDataRequest } from './data-requests';
 import { reveal, revealedValues, markExhibitReveals } from './data-ledger';
 import { auditTurn, auditTurnStyle } from './audit';
 import { changeFigures } from './numeric-provenance';
-import { withholdProbesOnVerified } from './probe-guard';
+import { withholdMathChallenges, challengeVerdict } from './probe-guard';
+import { classifyMathTalk } from './math-talk';
 import { checkTimeframes } from './timeframe-check';
 import { checkHintDelivered } from './hint-check';
 
@@ -148,13 +149,28 @@ export type Settled = {
 };
 
 const CODE_WRITTEN = new Set(['close', 'grace_ask', 'time_warning', 'rung1']);
+
+// A figure the candidate gave as a result in this message ("= 53.8", "is
+// about 1.6%", "so 38%") — not an input or an index base ("index this to 100").
+function statedAsResult(candidateText: string, figure: number): boolean {
+  const n = String(figure).replace('.', '\\.');
+  return new RegExp(`(?:=|≈|\\bis|\\bare|\\bgives|\\babout|\\broughly|\\bthat'?s|\\bso|\\bcomes to)\\s+(?:about\\s+|roughly\\s+|around\\s+|~)?\\$?${n}(?![\\d])`, 'i').test(candidateText);
+}
+
+// The figure as the candidate wrote it ("1.6%", "43.3 points"), for a neutral
+// request for the working.
+function figureAsWritten(candidateText: string, figure: number): string {
+  const n = String(figure).replace('.', '\\.');
+  const m = new RegExp(`(?<![\\d.])${n}(?:\\s?%|\\s+(?:percentage\\s+)?points?|\\s+percent)?`, 'i').exec(candidateText);
+  return m ? m[0] : String(figure);
+}
 const ASKS_RECOMMENDATION = new Set(['rec_ask', 'grace_ask', 'time_warning']);
 
 export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Settled> {
   const { ctx, state } = plan;
   const { sessionId, userId, candidateText, now, nextTurnIndex, currentPhase, flags, conduct, checks, later, turnStartMs } = ctx;
   const { caseData, ledger, elapsedMs, recomputeFlags, recomputeAttempts, verifiedNow, verifiedPrev, explainProbedBefore,
-    unitCheckHint, priorStall, stallDecision, kind } = state;
+    candidateFigures, priorStall, stallDecision, kind } = state;
   const { turn, modelCallStart, modelLatencyMs, distressWaitMs, turnUsage } = out;
   const seed = `${sessionId}:${nextTurnIndex}`;
   const codeWritten = CODE_WRITTEN.has(kind);
@@ -171,8 +187,9 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // The model's words, vetoed sentence by sentence (never rewritten).
   const withheld: { sentence: string; reason: string; field: 'say' | 'question' }[] = [];
   const keep = (text: string, field: 'say' | 'question') => {
-    let kept = sentencesOf(text).filter(s => {
-      const reason = vetoReason(s, g, { inQuestion: field === 'question' });
+    const all = sentencesOf(text);
+    let kept = all.filter((s, i) => {
+      const reason = vetoReason(s, g, { inQuestion: field === 'question', previous: all[i - 1] });
       if (reason) withheld.push({ sentence: s, reason, field });
       return reason === null;
     });
@@ -190,6 +207,41 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   const say = codeWritten ? turn.say : keep(turn.say, 'say');
   let question = codeWritten ? turn.question : keep(turn.question, 'question');
   if (kind === 'rec_ask') question = pickScript([...BLOCKED_CLOSE_PROBES.recommendation], seed);
+  // A math challenge withheld from the question takes its setup with it
+  // ("One thing to check: you said 16 divided by 18 is 1.6%." — batch 18 v3,
+  // Maya t24, left without its question): what remains must still be a
+  // question, else a neutral one replaces it — a request for the working on
+  // the figure when that is still allowed, otherwise a plain next question.
+  const challengeCtx = {
+    verified: [...verifiedNow, ...verifiedPrev], alreadyProbed: explainProbedBefore, flaggedThisTurn: recomputeFlags.length > 0,
+    flagged: state.flaggedFigures, candidateFigures,
+  };
+  const mathWithheld = withheld.filter(w => w.field === 'question' && (w.reason === 'probe_guard' || w.reason === 'unsupported_challenge'));
+  let challengeReplacement: string | null = null;
+  if (!codeWritten && kind !== 'rec_ask' && mathWithheld.length > 0) {
+    const figs = [...candidateFigures, ...challengeCtx.verified.map(v => v.value)];
+    const rest = sentencesOf(question).filter(x => x.endsWith('?') || !(/:\s*$/.test(x) || classifyMathTalk(x, figs).figures.length > 0));
+    // What stays must still ask something that isn't about the challenged math.
+    if (rest.some(x => x.endsWith('?') && classifyMathTalk(x, figs).kind === 'none')) {
+      question = rest.join(' ');
+    } else {
+      const about = mathWithheld.map(w => challengeVerdict(w.sentence, challengeCtx)).find(v => v && !('explainKey' in v) && v.figure !== undefined
+        && statedAsResult(candidateText, v.figure)) as { figure?: number } | undefined;
+      const figureText = about?.figure !== undefined ? figureAsWritten(candidateText, about.figure) : null;
+      const explain = figureText ? `How did you get to ${figureText}?` : null;
+      const verdict = explain ? challengeVerdict(explain, challengeCtx) : null;
+      const allowed = explain !== null && (verdict === null || 'explainKey' in verdict);
+      question = allowed && explain ? explain : pickFallbackQuestion({ figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: state.lastQuestion ?? null });
+      challengeReplacement = question;
+    }
+  }
+  checks.record('math_challenge', mathWithheld.length > 0, 'a doubt on the candidate\'s math without a flag was withheld', {
+    withheld: mathWithheld.map(w => ({ sentence: w.sentence, reason: w.reason })), replacement: challengeReplacement,
+  });
+  for (const w of withheld.filter(x => x.reason === 'probe_guard' || x.reason === 'unsupported_challenge')) {
+    // Prevented, not delivered: logged apart from the interviewer errors scoring marks (interviewer-errors.ts).
+    ctx.events.push({ category: 'intervention', subtype: w.reason === 'probe_guard' ? 'challenge_on_verified_blocked' : 'unsupported_challenge_blocked', payload: { sentence: w.sentence, field: w.field } });
+  }
   const questionFallback = !codeWritten && kind !== 'rec_ask' && !question;
   if (questionFallback) question = 'Go on.';
 
@@ -330,10 +382,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   const lastQuestion = ended || questionFallback ? state.lastQuestion : question;
 
   // Explain probes the turn asked (recorded so each figure gets at most one).
-  const probe = withholdProbesOnVerified(spokenText, {
-    verified: [...verifiedNow, ...verifiedPrev], alreadyProbed: explainProbedBefore,
-    flaggedThisTurn: recomputeFlags.length > 0 || unitCheckHint !== undefined,
-  });
+  const probe = withholdMathChallenges(spokenText, challengeCtx);
 
   // Audits (log only) on the composed turn.
   const revealedTexts = Object.values(revealedValues(ledger));
@@ -426,10 +475,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       rungSpanSaved = null;
       stallSaved = revertUndeliveredRung(stallState, priorStall);
     }
-    const probeSaved = heard ? withholdProbesOnVerified(h.savedText, {
-      verified: [...verifiedNow, ...verifiedPrev], alreadyProbed: explainProbedBefore,
-      flaggedThisTurn: recomputeFlags.length > 0 || unitCheckHint !== undefined,
-    }) : probe;
+    const probeSaved = heard ? withholdMathChallenges(h.savedText, challengeCtx) : probe;
     const unbooked = new Set([...h.droppedReveals, ...(exhibitSaved ? [] : exhibitReveals)]);
     const revealedIdsSaved = new Set(Object.keys(revealedValues(ledger)).filter(id => !unbooked.has(id)));
     if (heard) {
@@ -503,6 +549,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
             graceAskFired: Boolean(flags.graceAskFired) || (kind === 'grace_ask' && qHeard),
             recomputeAttempts,
             lastVerified: verifiedNow,
+            flaggedFigures: state.flaggedFigures,
             explainProbed: [...explainProbedBefore, ...probeSaved.explainProbed],
             loadShedLogged: Boolean(flags.loadShedLogged) || loadShedLoggedThisTurn,
             moves: movesSaved,

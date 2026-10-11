@@ -1,28 +1,66 @@
+// The unit check verifies the conversion numerically (round-3 fixes). Batch
+// 18's keyword detector fired in 38 of 62 interviews and "Points of what?" hit
+// correct work in 9; these are those candidates' turns, saved verbatim
+// (tests/orchestrator/fixtures/batch18-unit-check.json).
 import { describe, it, expect } from 'vitest';
-import { detectNestedPercentConversion, formatUnitCheckHint } from '@/lib/orchestrator/unit-check';
+import { checkNestedConversions, formatUnitFlagLine } from '@/lib/orchestrator/unit-check';
+import { getCaseById } from '@/lib/cases/loader';
+import saved from './fixtures/batch18-unit-check.json';
 
-describe('detectNestedPercentConversion', () => {
-  it('fires on the exact live-run bean error (share of COGS → points of revenue)', () => {
-    const text =
-      "If raw beans were, say, 60% of COGS two years ago, a 40% increase would theoretically add ~24 points to COGS % of revenue.";
-    expect(detectNestedPercentConversion(text)).toBe(true);
+const prof = getCaseById('prof-001');
+const run = (text: string, revealed: string[] = ['cogs_pct']) =>
+  checkNestedConversions(text, { bases: prof.shareBases, items: prof.dataLedger, revealedIds: revealed });
+const turns = saved as Record<string, { text: string; revealed: string[] }>;
+
+describe('correct work is not flagged (batch 18: the doubted conversions)', () => {
+  it.each([
+    '07-raj-the-slow-burner-t11', '11-brandon-the-fuzzy-talker-t11', '53-fiona-the-hypothesis-reverser-t7',
+    '54-owen-the-quiet-dropper-t7', '20-connor-the-exhibit-skimmer-t9', '59-nadia-the-backtracker-t5',
+    '17-priya-the-gamer-t5', '18-nikhil-the-data-hoover-t11', '04-hannah-the-apologizer-t7',
+  ])('%s', id => {
+    expect(run(turns[id].text, turns[id].revealed).flags).toEqual([]);
   });
 
-  it('fires when a share of COGS is converted to points of margin', () => {
-    expect(detectNestedPercentConversion('Beans are 50% of COGS so that is 20 points of margin.')).toBe(true);
+  it('a result in points of COGS is a different quantity, not a unit error', () => {
+    expect(run('Beans are 25% of COGS, up 40%, so that contributes 0.25 × 40 = 10 points of COGS growth.').flags).toEqual([]);
   });
 
-  it('does NOT fire on a plain COGS-as-%-of-revenue statement', () => {
-    expect(detectNestedPercentConversion('COGS is 58% of revenue today, up from 42%.')).toBe(false);
+  it('verifies a correct conversion at either base (two years ago or today)', () => {
+    expect(run('Beans were 25% of COGS, and with COGS at 42% that is 10.5 points of revenue.').verified).toEqual([
+      expect.objectContaining({ stated: 10.5, expected: 10.5 }),
+    ]);
+    expect(run('Beans were 25% of COGS and up 40%, so they add about 4.2 points of revenue.').verified[0]).toMatchObject({ stated: 4.2 });
+  });
+});
+
+describe('a wrong conversion is flagged with the claim, units, base and timeframe', () => {
+  it('batch 18, Sofia t11: 25% × 40% = 10 "percentage points of revenue"', () => {
+    const { flags } = run(turns['10-sofia-the-unit-confuser-t11'].text, turns['10-sofia-the-unit-confuser-t11'].revealed);
+    expect(flags).toHaveLength(1);
+    expect(flags[0]).toMatchObject({
+      kind: 'unit', stated: 10, units: 'points of revenue', unconverted: 10, expected: 4.2,
+      quantity: 'the 25% share of COGS, up 40%', base: 'COGS at 42% of revenue (two years ago)', timeframe: 'prior',
+    });
   });
 
-  it('does NOT fire on non-nested reasoning', () => {
-    expect(detectNestedPercentConversion('The margin fell 18 points while revenue grew 15%.')).toBe(false);
+  it('batch 2, Derek: his own assumed share, restated as points of margin', () => {
+    const { flags } = run("So if beans are 25% of COGS, that's 25 points of margin exposure right there, which more than covers the 16 points we've lost.");
+    expect(flags[0]).toMatchObject({ stated: 25, units: 'points of margin', expected: 10.5 });
   });
 
-  it('hint tells the interviewer to probe units without handing over the method', () => {
-    const hint = formatUnitCheckHint();
-    expect(hint).toContain('Points of what?');
-    expect(hint).not.toMatch(/×|COGS as a % of revenue/);
+  it('uses the base the candidate cited', () => {
+    const { flags } = run('Waste runs about 4% of COGS, and COGS is 58% of revenue — so call it 4 points of revenue.');
+    expect(flags[0]).toMatchObject({ expected: 2.3, timeframe: 'current', base: 'COGS at 58% of revenue (today)' });
+  });
+
+  it('no flag before the candidate has the base (they cannot convert yet)', () => {
+    expect(run("If beans are 25% of COGS, that's 25 points of revenue.", []).flags).toEqual([]);
+  });
+
+  it('the interviewer line names the claim and asks for the units, without the method', () => {
+    const line = formatUnitFlagLine(run("If beans are 25% of COGS, that's 25 points of revenue.").flags[0]);
+    expect(line).toMatch(/the candidate said 25 points of revenue/);
+    expect(line).toMatch(/Points of what\?/);
+    expect(line).toMatch(/don't name the method or the figure/);
   });
 });

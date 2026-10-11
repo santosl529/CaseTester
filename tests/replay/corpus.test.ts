@@ -1,8 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { checkRecomputeForTurn, checkVerifiedForTurn } from '@/lib/orchestrator/recompute';
-import { withholdProbesOnVerified } from '@/lib/orchestrator/probe-guard';
+import { checkRecomputeForTurn, checkVerifiedForTurn, flagsFromUnitCheck, flagsFromArithmetic, verifiedFromChecks } from '@/lib/orchestrator/recompute';
+import { withholdMathChallenges } from '@/lib/orchestrator/probe-guard';
+import { checkNestedConversions } from '@/lib/orchestrator/unit-check';
+import { checkStatedArithmetic } from '@/lib/orchestrator/arithmetic-check';
+import { candidateFiguresOf } from '@/lib/orchestrator/math-talk';
 import { evaluateStall, INITIAL_STALL_STATE, type StallState } from '@/lib/orchestrator/stall';
 import { isClosingTurn } from '@/lib/orchestrator/spoken-close';
 import { createLedger, reveal, resolveItemsFromText, handoffSentences } from '@/lib/orchestrator/data-ledger';
@@ -79,22 +82,31 @@ describe.skipIf(!available)('replay suite — saved persona runs, batches 1–4'
     expect(flags).toEqual([]);
   });
 
-  // Rule 2 v4.5: the probe guard withholds exactly batch 2's doubt probes on
-  // correct math, and nothing legitimate (Carmen's explain probe, Derek's
-  // probe on a real error).
-  it('withholds exactly the batch-2 probes on verified figures', () => {
+  // Rule 2 v4.5 → round-3 (11 Oct): the probe guard, fed as Plan feeds it
+  // (step, unit and arithmetic checks; the candidate's derived figures),
+  // withholds batch 2's doubt probes on verified figures, the explain probes
+  // on shown work, and one unsupported units nitpick on Maya's unverified
+  // "16%" — nothing legitimate (Tobias's volume pushback stays, and so does
+  // Derek's probe on his flagged 25 points).
+  it('withholds exactly the batch-2 probes on verified or unverified figures', () => {
     const withheld: string[] = [];
     for (const r of batch('batch-2-sep-29')) {
       let prev: ReturnType<typeof checkVerifiedForTurn> = [];
       let probed = new Set<string>();
+      let flagged: number[] = [];
       for (const t of r.turns.filter(x => x.role === 'interviewer')) {
         const c = r.turns.find(x => x.turnIndex === t.turnIndex - 1);
         if (!c || c.role !== 'candidate') continue;
         const ids = revealedBefore(r, c.timestampMs);
-        const now = checkVerifiedForTurn(c.text, prof.mathSteps, ids);
-        const out = withholdProbesOnVerified(t.text, {
-          verified: [...now, ...prev], alreadyProbed: probed,
-          flaggedThisTurn: checkRecomputeForTurn(c.text, prof.mathSteps, ids).length > 0,
+        const arith = checkStatedArithmetic(c.text);
+        const unit = checkNestedConversions(c.text, { bases: prof.shareBases, items: prof.dataLedger, revealedIds: ids });
+        const flags = [...checkRecomputeForTurn(c.text, prof.mathSteps, ids), ...flagsFromUnitCheck(unit.flags), ...flagsFromArithmetic(arith)];
+        flagged = [...flagged, ...flags.map(f => f.candidateValue)];
+        const now = [...checkVerifiedForTurn(c.text, prof.mathSteps, ids), ...verifiedFromChecks(arith, unit.verified)];
+        const caseTexts = [prof.prompt, ...prof.dataLedger.filter(d => ids.includes(d.id)).map(d => d.value)];
+        const out = withholdMathChallenges(t.text, {
+          verified: [...now, ...prev], alreadyProbed: probed, flaggedThisTurn: flags.length > 0, flagged,
+          candidateFigures: candidateFiguresOf(r.turns.filter(x => x.role === 'candidate' && x.turnIndex <= c.turnIndex).map(x => x.text), caseTexts),
         });
         for (const w of out.withheld) withheld.push(`${r.persona.slice(0, 8)}:${w.test}`);
         probed = new Set([...probed, ...out.explainProbed]);
@@ -102,7 +114,7 @@ describe.skipIf(!available)('replay suite — saved persona runs, batches 1–4'
       }
     }
     expect(withheld.sort()).toEqual([
-      '01-maya-:doubt_on_verified', '02-tobia:explain_work_shown', '03-ines-:doubt_on_verified',
+      '01-maya-:explain_work_shown', '01-maya-:unsupported_challenge', '02-tobia:explain_work_shown', '03-ines-:doubt_on_verified',
       '32-sam-t:doubt_on_verified', '33-omar-:doubt_on_verified',
     ]);
   });

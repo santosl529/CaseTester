@@ -15,6 +15,7 @@ import { assembleReport } from './report';
 import { summarizeAssists, summarizeCoverage, summarizePressureTest } from './assists';
 import { summarizeDataRequests } from './data-coverage';
 import { buildInterviewerMarks, formatInterviewerMarksSection, dropClaimsOnMarkedTurns } from './interviewer-errors';
+import { buildChallengeMarks, verifyCandidateTurns, genuineErrorSpans, formatClaimChecksSection } from './challenge-marks';
 import { applyCaveatFloor } from './caveat-floor';
 import { applyAnswerKeyPass } from './answer-key-pass';
 import { applyStrongGate } from './strong-gate';
@@ -158,15 +159,25 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   // here only to PROTECT the candidate (warnings and C5 exchanges can't count
   // against them); they never feed a penalty (Rule 18).
   const markEvents = await db.query.sessionEvents.findMany({ where: eq(sessionEvents.sessionId, sessionId) });
-  const marks = buildInterviewerMarks(
-    transcript,
-    markEvents.map(e => ({ category: e.category, subtype: e.subtype, turnIndex: e.turnIndex })),
-    dataCoverage.requestedUnanswered,
-  );
+  // Round-3: challenges to the candidate's math as delivered — confirmed
+  // interviewer errors (doubt on verified math) protect the reply; unsupported
+  // challenges are logged apart (challenge-marks.ts). Verification is
+  // recomputed from the transcript with what was revealed by each turn.
+  const turnMs = new Map(turns.map(t => [t.turnIndex, t.timestampMs]));
+  const revealedBefore = (turnIndex: number) => revealedRows.filter(r => r.revealedAtMs <= (turnMs.get(turnIndex) ?? Infinity)).map(r => r.ledgerItemId);
+  const verification = verifyCandidateTurns(transcript, caseData, revealedBefore);
+  const marks = [
+    ...buildInterviewerMarks(
+      transcript,
+      markEvents.map(e => ({ category: e.category, subtype: e.subtype, turnIndex: e.turnIndex })),
+      dataCoverage.requestedUnanswered,
+    ),
+    ...buildChallengeMarks(transcript, caseData, revealedBefore, verification),
+  ];
   if (marks.length > 0) console.warn('[score] interviewer-error marks:', JSON.stringify(marks.map(m => [m.kind, m.interviewerTurn])));
 
   const rawRubric = await runJudge(
-    transcript, caseData, revealedIds, mathResults, interventionSummary, dataCoverage,
+    transcript, caseData, revealedIds, mathResults, [interventionSummary, formatClaimChecksSection(verification)].filter(Boolean).join('\n\n'), dataCoverage,
     formatInterviewerMarksSection(marks),
     u => logUsage({ ...u }),
   );
@@ -178,7 +189,7 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   // Enforcement of the marks: a needs-work item whose only evidence is a
   // candidate turn responding to an interviewer error (or a C5 exchange) goes.
   const { rubric: auditedRubric, dropped: markDrops } = dropClaimsOnMarkedTurns(
-    quoteAuditedRubric, RUBRIC_DIMENSION_KEYS, transcript, marks,
+    quoteAuditedRubric, RUBRIC_DIMENSION_KEYS, transcript, marks, genuineErrorSpans(verification),
   );
   if (markDrops.length > 0) console.warn('[score] dropped claims resting on interviewer errors:', JSON.stringify(markDrops));
   if (violations.length > 0) {
@@ -251,7 +262,10 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
     reconcileMerges: merges.length,
     // v4.3: claims dropped for resting on interviewer errors, and caveated
     // dimensions raised to the meets_bar floor.
-    interviewerErrorMarks: marks.length,
+    interviewerErrorMarks: marks.filter(m => m.kind !== 'unsupported_challenge').length,
+    // Round-3: delivered doubts on the candidate's math, by verification.
+    confirmedChallengeErrors: marks.filter(m => m.kind === 'confirmed_interviewer_error').length,
+    unsupportedChallenges: marks.filter(m => m.kind === 'unsupported_challenge').length,
     markClaimDrops: markDrops.length,
     caveatFloors: floored.length,
     gapClaimDrops: gapDrops.length,

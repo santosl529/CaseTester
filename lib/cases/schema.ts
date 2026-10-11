@@ -80,6 +80,10 @@ const MathStepSchema = z.object({
   // Figures the candidate states when showing their work for this step (Rule
   // 2 v4.5 "work shown"), e.g. [25, 42] for 25% of COGS × 42% of revenue.
   operands: z.array(z.number()).optional(),
+  // What the figure is, and for which period (round-3: a flag names the
+  // candidate's claim in these terms). Server-only like the rest.
+  quantity: z.string().optional(),
+  timeframe: z.enum(['current', 'prior', 'change']).optional(),
 });
 
 const ExhibitSchema = z.object({
@@ -128,6 +132,15 @@ export const CaseSchema = z.object({
     phrases: z.array(z.string().min(3)).min(1),
   })).default([]),
   pacing: PacingSchema.optional(),
+  // Rule 2/14 unit check (lib/orchestrator/unit-check.ts): cost lines whose
+  // shares candidates convert into points of revenue, and the ledger item that
+  // gives that line's own share of revenue (its timeframes give the values).
+  // Without it the case has no nested-percentage check.
+  shareBases: z.array(z.object({
+    name: z.string().min(1),
+    aliases: z.array(z.string().min(2)).default([]),
+    item: z.string(),
+  })).default([]),
   // Deprecated: the judge scores against the generic 8-dimension rubric in
   // lib/scoring/rubric.ts (docs/Case Interview Feedback Rubric.pdf). Per-case
   // anchors are tolerated in case files but no longer read.
@@ -139,6 +152,9 @@ export const CaseSchema = z.object({
       ctx.addIssue({ code: 'custom', path: ['mathSteps', i, 'inputs', j], message: `Unknown ledger item "${id}"` });
     }
   }));
+  c.shareBases.forEach((b, i) => {
+    if (!ledgerIds.has(b.item)) ctx.addIssue({ code: 'custom', path: ['shareBases', i, 'item'], message: `Unknown ledger item "${b.item}"` });
+  });
 });
 
 export type Case = z.infer<typeof CaseSchema>;
