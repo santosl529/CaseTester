@@ -116,7 +116,8 @@ export interface Hy2Content extends Base {
   new_fact: string;
   model_answer_stage1: string;
   model_answer_stage2: string;
-  families: { family: string; description: string; action: Hy2Action; reason: string }[];
+  // actions: every update the key accepts for the family (usually one).
+  families: { family: string; description: string; actions: Hy2Action[]; reason: string }[];
 }
 
 // An off-topic stage 1 caps stage 1, like PS-3's off-topic flag.
@@ -136,7 +137,7 @@ export const HY2_GRADING_RULES = [
   'Testable: it names the data or comparison that would confirm or reject it ("units per customer by month"). "Look into it" or "analyze the data" is not enough.',
   'Tentative: it is framed as something to check ("likely", "my hypothesis is", "I would test") while leading with one cause. Stating it as settled fact fails; so do two causes with neither as the lead.',
   'Update reason: it uses the new fact (its content or its number) and draws a conclusion from it. Any of these counts: naming the cause the fact points to ("so it\'s the rainy days", "the issue is that 40% of stores ran out"), saying what the fact does to the mechanism ("so fewer ambulances are free", "cutting capacity"), or saying whether it supports the hypothesis ("which confirms it"). Restating the fact with no conclusion fails, restating the decision ("I keep it because it still makes sense") fails, and so does a fix with no hypothesis behind it ("so reopen them").',
-  'Hypothesis family: classify the stage 1 answer only, never the stage 2 explanation, by its mechanism, not its wording. If it names a lead cause and a backup, use the lead; when causes are joined by "or", the first is the lead. If it names several causes and none leads, the family is "other".',
+  'Hypothesis family: classify the stage 1 answer only, never the stage 2 explanation, by its mechanism, not its wording. Even a bare label names a mechanism ("price elasticity" is a price cause). If it names a lead cause and a backup, use the lead for the family and report the backup\'s family as backup_family; when causes are joined by "or", the first is the lead. If it names several causes and none leads, the family is "other" and there is no backup.',
   'Off-topic: stage 1 offers no cause for what happened, for example it proposes a fix or answers a different question. Restating the facts is the restates_facts red flag instead.',
   'Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item.',
 ];
@@ -176,16 +177,19 @@ export function hy2Item(c: Hy2Content): ItemInput {
       { id: 'off_topic', step: 0, definition: 'Stage 1 offers no cause for what happened: it proposes a fix or answers a different question.', cap: HY2_OFF_TOPIC_CAP, tag: 'M.no_hypothesis', detection: 'ai', evidence: 'whole' as const },
     ],
     model_answer: `Stage 1: ${c.model_answer_stage1}\nStage 2: ${c.model_answer_stage2}`,
-    explanation: `The new fact: ${c.new_fact} ${c.families.map(f => `${f.family}: ${f.action} (${f.reason}).`).join(' ')}`,
+    explanation: `The new fact: ${c.new_fact} ${c.families.map(f => `${f.family}: ${f.actions.join(' or ')} (${f.reason}).`).join(' ')}`,
     extras: { families: c.families, new_fact: c.new_fact, grading_rules: HY2_GRADING_RULES },
   };
 }
 
-// The update decision (PRD): the key gives the right action for each family;
-// for a hypothesis in no family ("other"), revise and drop are both right.
-export function hy2DecisionTag(families: Hy2Content['families'], family: string | null, chose: string): string | null {
+// The update decision (PRD): the key gives the accepted actions for each
+// family; for a hypothesis in no family ("other"), revise and drop are both
+// right. Revising is also right when stage 1 named a backup cause in a family
+// the new fact supports: the student moves to their own backup.
+export function hy2DecisionTag(families: Hy2Content['families'], family: string | null, chose: string, backup: string | null = null): string | null {
   const known = families.find(f => f.family === family);
-  const right: string[] = known ? [known.action] : ['revise', 'drop'];
+  const right: string[] = known ? [...known.actions] : ['revise', 'drop'];
+  if (chose === 'revise' && families.find(f => f.family === backup)?.actions.includes('keep')) right.push('revise');
   if (right.includes(chose)) return null;
   // Kept a hypothesis the fact contradicts, or changed one it supports.
   return chose === 'keep' ? 'M.sticky_hypothesis' : right.includes('keep') ? 'M.dropped_supported_hypothesis' : 'M.sticky_hypothesis';
@@ -217,7 +221,7 @@ export const sy2Acceptable = (s: string) => s.split('|').map(r => r.trim()).filt
 export const SY2_GRADING_RULES = [
   'Recommendation first: the first sentence commits to a course of action that answers the client\'s question. Context or a restated question first fails. A condition ("open, starting with a pilot") is fine if it still picks a direction.',
   'Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons ("it\'s a good opportunity", "the market is attractive") and irrelevant facts don\'t count, and the same fact said twice counts once.',
-  'Irrelevant facts: mentioning an irrelevant fact in any way fails, even to dismiss it.',
+  'Irrelevant facts: using an irrelevant fact as a reason or as support fails. Mentioning one only to dismiss it ("the kitchen shouldn\'t drive this") is fine.',
   'Consistent with the facts: every number and claim matches the fact sheet or follows from it. A wrong calculation fails, and so does a claim beyond the sheet stated as fact, unless it is framed as a risk or an assumption. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.',
   'Risk: names something specific that could make the recommendation wrong ("schools may not pay $600 when museums charge $450"). "There are risks" fails.',
   'Next step: a concrete action ("pilot in 5 parks and track bookings"). "Do more analysis" fails.',
@@ -242,7 +246,7 @@ export function sy2Item(c: Sy2Content): ItemInput {
       // PRD: "code pre-check: at least one fact-sheet number appears". Settled by code.
       { check_id: 'cites_numbers', question: 'Do the reasons cite numbers from the fact sheet?', weight: 0.15, detection: 'code',
         fail_tag: 'M.unsupported_recommendation', feedback: 'Use the numbers from the fact sheet to support your reasons.' },
-      { check_id: 'leaves_out_irrelevant', question: `Does the answer leave out the irrelevant facts (${list(c.facts.filter(f => !f.relevant).map(f => f.fact))})?`,
+      { check_id: 'leaves_out_irrelevant', question: `Does the answer avoid using the irrelevant facts (${list(c.facts.filter(f => !f.relevant).map(f => f.fact))}) as reasons or support? Mentioning one only to dismiss it is fine.`,
         evidence: 'whole' as const, weight: 0.15, fail_tag: 'M.irrelevant_facts', feedback: "Leave out facts that don't bear on the decision." },
       { check_id: 'consistent_with_facts', question: 'Are all the supporting points consistent with the fact sheet?', evidence: 'whole' as const, weight: 0.15,
         fail_tag: 'M.unsupported_recommendation', feedback: 'Some points go beyond or against the fact sheet.' },
@@ -273,7 +277,8 @@ export interface Cl3Content extends Base {
   specific_request_examples: string;
   vague_request_examples: string;
   model_answer: string;
-  // critical: the driver to start with (exactly one per question).
+  // critical: the driver to start with; a second one where it is an equally
+  // fair place to start. An answer is capped only if it covers neither.
   drivers: { driver: string; what_counts: string; critical: boolean }[];
 }
 
@@ -285,7 +290,7 @@ export const CL3_GRADING_RULES = [
   'Breaks into drivers: names at least two parts of the metric that together explain it (price and volume; ingredient, labor and rent costs) as a structure. A list of data sources or reports is not a breakdown.',
   'Driver coverage: a driver counts if the answer names it or asks for data on it, tied to this case. A generic word alone ("costs", "market data") does not cover a specific driver ("ingredient cost per cup") unless the request makes it specific.',
   'Where to start: the answer names one driver or analysis to look at first ("I\'d start with", "first"). Listing everything with no order fails.',
-  'Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). "Because it\'s important" fails.',
+  'Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). The reason can come before the starting point ("The list grows when operations fall behind referrals, so I\'d start with operations per week"). "Because it\'s important" fails.',
   'Specific requests: judge only the data the answer asks to see. Drivers listed to break the metric down ("profit is revenue minus marketing and content costs", "I\'d look at price, mix and costs") are the breakdown, not requests. Every request must name a metric plus a cut or a time period ("ingredient cost per cup by month for two years"); one vague request ("information about costs") fails the check.',
   'Solution before diagnosis: the answer proposes fixes ("cut staff", "raise prices") before finding the cause. A hypothesis to test is not a solution.',
   'Six or more unstructured requests: count separate data requests; six or more with no grouping by driver is a laundry list.',
@@ -296,7 +301,7 @@ export const CL3_GRADING_RULES = [
 export function cl3Item(c: Cl3Content): ItemInput {
   const n = c.drivers.length;
   const critical = c.drivers.filter(d => d.critical);
-  if (critical.length !== 1) throw new Error(`needs exactly one critical driver, has ${critical.length}`);
+  if (critical.length < 1 || critical.length > 2) throw new Error(`needs one or two critical drivers, has ${critical.length}`);
   return {
     ...common(c, 'CL-3', 2, ['CL.data_requests']),
     prompt: `${c.situation}\n\nWhat information would you ask for, and where would you start?`,
@@ -319,13 +324,13 @@ export function cl3Item(c: Cl3Content): ItemInput {
       { id: 'solution_before_diagnosis', definition: 'The answer proposes solutions before diagnosing the problem.', cap: 0.5, tag: 'M.premature_solution', detection: 'ai' },
       { id: 'six_plus_unstructured_requests', definition: 'The answer lists six or more data requests with no structure.', cap: 0.5, tag: 'M.laundry_list', detection: 'ai' },
       { id: 'off_topic', definition: 'The answer addresses a different question from the one asked.', cap: CL3_CAPS.off_topic, tag: 'M.vague_data_request', detection: 'ai', evidence: 'whole' as const },
-      { id: 'missed_critical_driver', definition: `The answer misses the critical driver: ${critical[0].driver}.`, cap: CL3_CAPS.missed_critical_driver, tag: 'M.vague_data_request', detection: 'code' },
+      { id: 'missed_critical_driver', definition: `The answer misses the critical driver: ${critical.map(d => d.driver).join(' or ')}.`, cap: CL3_CAPS.missed_critical_driver, tag: 'M.vague_data_request', detection: 'code' },
     ],
     model_answer: c.model_answer,
     explanation: `Drivers: ${c.drivers.map(d => d.driver).join(', ')}. Start with ${c.best_starting_point}: ${c.reason_to_start_there}. Specific: ${c.specific_request_examples}. Vague: ${c.vague_request_examples}.`,
     extras: {
       drivers: c.drivers, best_starting_point: c.best_starting_point,
-      critical_check: `driver_${c.drivers.indexOf(critical[0]) + 1}`,
+      critical_checks: critical.map(d => `driver_${c.drivers.indexOf(d) + 1}`),
       grading_rules: CL3_GRADING_RULES,
     },
   };

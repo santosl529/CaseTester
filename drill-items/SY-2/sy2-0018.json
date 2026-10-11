@@ -52,7 +52,7 @@
     },
     {
       "check_id": "leaves_out_irrelevant",
-      "question": "Does the answer leave out the irrelevant facts (Vinyl is especially popular with collectors of 1970s rock)?",
+      "question": "Does the answer avoid using the irrelevant facts (Vinyl is especially popular with collectors of 1970s rock) as reasons or support? Mentioning one only to dismiss it is fine.",
       "weight": 0.15,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "Leave out facts that don't bear on the decision.",
@@ -135,7 +135,7 @@
       "step": 0
     }
   ],
-  "model_answer": "Invest in a pressing line. Plants have 6-month waitlists for new orders and vinyl sales have grown 10% a year for five years, so a $1.5M line pressing 1 million records a year at $1.20 each pays back in about 15 months. The main risk is that three new plants added 15% to industry capacity last year, which could shorten the waitlists. The next step is to sign pressing contracts with labels before buying.",
+  "model_answer": "Invest in a pressing line. Plants have 6-month waitlists for new orders and vinyl sales have grown 10% a year for five years, and a $1.5M line earns about $1.2M a year ($1.20 on each of 1 million records), so it pays back in about 15 months. The main risk is that three new plants added 15% to industry capacity last year, which could shorten the waitlists. The next step is to sign pressing contracts with labels before buying.",
   "explanation": "Acceptable recommendation: Invest, after securing label contracts. The deciding fact: Pressing plants have 6-month waitlists for new orders. Key risks: New capacity could shorten the waitlists and cut margins. Next steps: Sign pressing contracts with labels before buying the line.",
   "extras": {
     "facts": [
@@ -169,7 +169,7 @@
     "grading_rules": [
       "Recommendation first: the first sentence commits to a course of action that answers the client's question. Context or a restated question first fails. A condition (\"open, starting with a pilot\") is fine if it still picks a direction.",
       "Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons (\"it's a good opportunity\", \"the market is attractive\") and irrelevant facts don't count, and the same fact said twice counts once.",
-      "Irrelevant facts: mentioning an irrelevant fact in any way fails, even to dismiss it.",
+      "Irrelevant facts: using an irrelevant fact as a reason or as support fails. Mentioning one only to dismiss it (\"the kitchen shouldn't drive this\") is fine.",
       "Consistent with the facts: every number and claim matches the fact sheet or follows from it. A wrong calculation fails, and so does a claim beyond the sheet stated as fact, unless it is framed as a risk or an assumption. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.",
       "Risk: names something specific that could make the recommendation wrong (\"schools may not pay $600 when museums charge $450\"). \"There are risks\" fails.",
       "Next step: a concrete action (\"pilot in 5 parks and track bookings\"). \"Do more analysis\" fails.",

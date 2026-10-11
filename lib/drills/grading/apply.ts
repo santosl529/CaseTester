@@ -18,6 +18,7 @@ export interface ItemGrade {
   checks: Record<string, CheckVerdict>;
   red_flags: Record<string, CheckVerdict>;   // pass = the red flag is present
   family: string | null;
+  backup_family?: string | null;             // HY-2: family of a stage 1 backup cause
   injection_suspected: boolean;
   qa_flags: string[];                        // checks whose quote never verified
 }
@@ -105,8 +106,11 @@ export function applyGrade(item: Item, steps: StepResult[], timedOut: boolean, g
   // SY-2: an off-topic answer isn't also flagged for its position (rule 8).
   const offTopic = item.drill_id === 'SY-2' && grade?.red_flags.off_topic?.pass;
   const redFlags = item.red_flags.map(f => {
-    // PS-3 / CL-3: missing the critical area or driver is read off its check.
-    const missedCritical = f.id === 'missed_critical_area' || f.id === 'missed_critical_driver' ? !checks.find(c => c.check_id === item.extras.critical_check)?.pass : null;
+    // PS-3 / CL-3: missing the critical area or driver(s) is read off their
+    // checks; covering any one of a CL-3 item's critical drivers is enough.
+    const criticalChecks = (item.extras.critical_checks as string[] | undefined) ?? [item.extras.critical_check as string];
+    const missedCritical = f.id === 'missed_critical_area' || f.id === 'missed_critical_driver'
+      ? !criticalChecks.some(id => checks.find(c => c.check_id === id)?.pass) : null;
     const v = !written[f.step] ? { pass: false, evidence: '' }
       : missedCritical !== null ? { pass: missedCritical, evidence: '' }
       : offTopic && SY2_OFF_TOPIC_SUPPRESSES.includes(f.id) ? { pass: false, evidence: '' } : flagged(f.id);
@@ -119,7 +123,7 @@ export function applyGrade(item: Item, steps: StepResult[], timedOut: boolean, g
   const choiceStep = spec.findIndex(s => s.type === 'single_choice' && s.choices);
   if (item.drill_id === 'HY-2' && choiceStep >= 0) {
     const chose = steps[choiceStep]?.response.type === 'choice' ? (steps[choiceStep].response as { option_id: string }).option_id : null;
-    decisionTag = chose ? hy2DecisionTag(item.extras.families as Hy2Content['families'], grade?.family ?? null, chose) : 'M.timeout';
+    decisionTag = chose ? hy2DecisionTag(item.extras.families as Hy2Content['families'], grade?.family ?? null, chose, grade?.backup_family ?? null) : 'M.timeout';
     if (chose) decision = { chose, right: decisionTag === null };
   }
 

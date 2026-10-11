@@ -51,7 +51,7 @@ Fewer than 2 buckets is also capped (30%) by code.
 
 ## HY-2 Initial hypothesis
 
-The update decision (keep, revise or drop) is HY-2's critical element. Code scores it at 25% from the family the grader assigns, so HY-2 has no separate critical-area cap. "Other" accepts revise or drop.
+The update decision (keep, revise or drop) is HY-2's critical element. Code scores it at 25% from the family the grader assigns, so HY-2 has no separate critical-area cap. The key can accept more than one action for a family (hy2-0007 "Poor service": drop or revise). "Other" accepts revise or drop. Revise is also right when the student moves to their own stated backup and the new fact supports the backup's family.
 
 1. **(grader)** Directional: the cause says what changed and through which driver ("customers buy fewer units per visit"). A generic cause ("operational problems", "market conditions", "costs went up") is not directional, and neither is the facts re-stated as a ratio ("fewer appointments end in a sale", "revenue per customer fell").
    - *hy2-0003-a:* "Waits are longer." names no cause.
@@ -71,11 +71,12 @@ The update decision (keep, revise or drop) is HY-2's critical element. Code scor
    - *hy2-0004-a:* "so it's mostly the rainy days" is a conclusion, so it passes; *hy2-0006-a:* "Waste went from 2% to 9%" only restates the fact, so it fails.
    - *hy2-0008-a*, *hy2-0023-a*, *hy2-0036-a:* fixes ("so reopen them") fail.
    - *hy2-0020-a:* uses the new fact but misreads it: the reason passes, and the decision check catches the wrong update.
-6. **(grader)** Hypothesis family: classify the stage 1 answer only, never the stage 2 explanation, by its mechanism, not its wording. If it names a lead cause and a backup, use the lead; when causes are joined by "or", the first is the lead. If it names several causes and none leads, the family is "other".
+6. **(grader)** Hypothesis family: classify the stage 1 answer only, never the stage 2 explanation, by its mechanism, not its wording. Even a bare label names a mechanism ("price elasticity" is a price cause). If it names a lead cause and a backup, use the lead for the family and report the backup's family as backup_family; when causes are joined by "or", the first is the lead. If it names several causes and none leads, the family is "other" and there is no backup.
    - *hy2-0027-a:* "losing shoppers ... or it lost shelf space" is classified by its lead, losing shoppers.
    - *hy2-0015-a:* "Price elasticity." is the price family by its mechanism.
    - *hy2-0010-a:* four causes with no lead is "other".
    - *example-hy2-01-a:* "cut prices to win new customers" is Lower prices; its stage 2 doesn't change that.
+   - *hy2-0027-a:* the lead (losing shoppers) is the family; the backup (lost shelf space) is the backup family. Revising to a backup the new fact supports is a right update.
 7. **(grader)** Off-topic: stage 1 offers no cause for what happened, for example it proposes a fix or answers a different question. Restating the facts is the restates_facts red flag instead.
    - *hy2-0008-a*, *hy2-0023-a*, *hy2-0036-a:* fixes or policy proposals with no cause.
 8. **(grader)** Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item.
@@ -98,8 +99,9 @@ Each question marks one fact as the deciding fact: the one the recommendation sh
 2. **(grader)** Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons ("it's a good opportunity", "the market is attractive") and irrelevant facts don't count, and the same fact said twice counts once.
    - *sy2-0013-a:* margin, shipping cost and the certificate are three relevant facts, so it passes.
    - *sy2-0029-a:* the credit, the tons captured and the running cost count; cement prices, an irrelevant fact, don't.
-3. **(grader)** Irrelevant facts: mentioning an irrelevant fact in any way fails, even to dismiss it.
-   - *sy2-0004-a:* mentions the kitchen to dismiss it, which still fails.
+3. **(grader)** Irrelevant facts: using an irrelevant fact as a reason or as support fails. Mentioning one only to dismiss it ("the kitchen shouldn't drive this") is fine.
+   - *sy2-0004-a:* mentions the kitchen only to dismiss it, so it passes.
+   - *sy2-0029-a:* offers cement prices as a reason, so it fails.
 4. **(grader)** Consistent with the facts: every number and claim matches the fact sheet or follows from it. A wrong calculation fails, and so does a claim beyond the sheet stated as fact, unless it is framed as a risk or an assumption. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.
    - *sy2-0020-a:* a wrong saving ($1.4M instead of about $950,000) fails this check, but isn't the contradicts-facts flag.
    - *sy2-0023-a:* "only 10% of shoppers" against the sheet's 30% is the contradicts-facts flag.
@@ -128,7 +130,7 @@ Each question marks one fact as the deciding fact: the one the recommendation sh
 
 ## CL-3 What do you need to know?
 
-Each question marks one driver as critical: the one to start with. An answer that never covers it is capped at 60% (settled by code from that driver's check). Starting somewhere else with a reason is allowed (*cl3-0010-a*); missing the critical driver altogether is not.
+Each question marks one driver as critical, the one to start with, or two where another is an equally fair place to start. An answer that covers neither is capped at 60% (settled by code from those drivers' checks). Starting somewhere else with a reason is allowed (*cl3-0010-a*); missing the critical driver altogether is not.
 
 1. **(grader)** Breaks into drivers: names at least two parts of the metric that together explain it (price and volume; ingredient, labor and rent costs) as a structure. A list of data sources or reports is not a breakdown.
    - *cl3-0014-a:* "customer data, sales by region, revenue per account" is a list of data, not a breakdown.
@@ -138,8 +140,8 @@ Each question marks one driver as critical: the one to start with. An answer tha
    - *cl3-0018-a:* "I'd need demand" names the critical driver only as a word, with no request, so it doesn't count.
 3. **(grader)** Where to start: the answer names one driver or analysis to look at first ("I'd start with", "first"). Listing everything with no order fails.
    - *cl3-0023-a:* nine requests in no order fail.
-4. **(grader)** Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). "Because it's important" fails.
-   - *cl3-0021-a:* says where to start but not why.
+4. **(grader)** Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). The reason can come before the starting point ("The list grows when operations fall behind referrals, so I'd start with operations per week"). "Because it's important" fails.
+   - *cl3-0021-a:* "The list grows when operations fall behind referrals" comes before the starting point and is its reason, so it passes.
    - *cl3-0004-a:* "since the cars are older" uses the situation, so it passes.
 5. **(grader)** Specific requests: judge only the data the answer asks to see. Drivers listed to break the metric down ("profit is revenue minus marketing and content costs", "I'd look at price, mix and costs") are the breakdown, not requests. Every request must name a metric plus a cut or a time period ("ingredient cost per cup by month for two years"); one vague request ("information about costs") fails the check.
    - *cl3-0004-a:* "maintenance costs and fuel costs" name no cut or period.

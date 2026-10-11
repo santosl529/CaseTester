@@ -3,7 +3,7 @@
   "item_id": "hy2-0027",
   "drill_id": "HY-2",
   "answer_type": "borderline",
-  "notes": "Losing shoppers leads, so that is the family (rule 6) and tentative passes (rule 4). That family should be dropped, so revise is the wrong update (decision check).",
+  "notes": "Losing shoppers leads, so that is the family (rule 6) and tentative passes (rule 4). Its backup, lost shelf space, is the family the fact supports, so revising to it is right (decision passes).",
   "responses": [
     {
       "type": "text",

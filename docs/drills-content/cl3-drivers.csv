@@ -40,7 +40,7 @@ cl3-0010,Route synergies,Savings from combining routes or depots,N
 cl3-0010,Customer contracts,"Contract length, renewals or concentration",N
 cl3-0010,Price against value,Whether $40M is justified,N
 cl3-0011,Time per student at each station,Serving or checkout time per student,Y
-cl3-0011,Arrival pattern,Students arriving at once or the lunch schedule,N
+cl3-0011,Arrival pattern,Students arriving at once or the lunch schedule,Y
 cl3-0011,Staff on the line,Servers or cashiers working,N
 cl3-0011,Payment,How students pay and how long it takes,N
 cl3-0012,Labor savings,Milking hours or wages saved,Y
@@ -64,7 +64,7 @@ cl3-0016,Carrier rates,Rates per package by carrier,N
 cl3-0016,Shipping speed,Share of express against standard,N
 cl3-0016,Split orders,Orders sent in more than one box,N
 cl3-0017,Repeat visits,Jobs needing a second visit,Y
-cl3-0017,Travel time,Time driving between jobs,N
+cl3-0017,Travel time,Time driving between jobs,Y
 cl3-0017,Time per repair,Hours spent on each repair,N
 cl3-0017,Scheduling gaps,Cancellations or empty slots,N
 cl3-0018,Mexican demand,"Scooter sales, buyers or growth in Mexico",Y
@@ -131,7 +131,7 @@ cl3-0033,Share of EV buyers who install a charger,"Buyers who install, by housin
 cl3-0033,EV sales,Electric cars sold per year,N
 cl3-0033,Replacements,Chargers replaced or upgraded,N
 cl3-0034,Cost of other water sources,"Cost of conservation, reuse or imports",Y
-cl3-0034,Demand growth,Water demand forecasts,N
+cl3-0034,Demand growth,Water demand forecasts,Y
 cl3-0034,Plant cost,Plant cost per cubic meter,N
 cl3-0034,Energy prices,Power costs to run the plant,N
 cl3-0035,Revenue at risk,Share or price expected to be lost,Y

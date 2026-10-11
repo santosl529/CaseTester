@@ -11,7 +11,7 @@
     "SY.complete"
   ],
   "case_type": "market_sizing",
-  "prompt": "The client asks: \"Should our startup build scheduling software for independent US tattoo studios?\"\n\nFact sheet:\n- There are about 20,000 tattoo studios in the US\n- Studios would pay about $60 a month, and about 20% say they'd switch from paper or free tools\n- That is about 4,000 studios at $720 a year, or roughly $2.9M of revenue a year at full uptake\n- Building and running the software would cost about $3M over two years\n- Tattoos are most popular among people aged 18 to 34\n\nGive your recommendation.",
+  "prompt": "The client asks: \"Should our startup build scheduling software for independent US tattoo studios?\"\n\nFact sheet:\n- There are about 20,000 tattoo studios in the US\n- Studios would pay about $60 a month, and about 20% say they'd switch from paper or free tools\n- That is about 4,000 studios at $720 a year, or roughly $2.9M of revenue a year at full uptake\n- Building and running the software would cost about $3M a year\n- Tattoos are most popular among people aged 18 to 34\n\nGive your recommendation.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -52,7 +52,7 @@
     },
     {
       "check_id": "leaves_out_irrelevant",
-      "question": "Does the answer leave out the irrelevant facts (Tattoos are most popular among people aged 18 to 34)?",
+      "question": "Does the answer avoid using the irrelevant facts (Tattoos are most popular among people aged 18 to 34) as reasons or support? Mentioning one only to dismiss it is fine.",
       "weight": 0.15,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "Leave out facts that don't bear on the decision.",
@@ -135,7 +135,7 @@
       "step": 0
     }
   ],
-  "model_answer": "Don't build it as a standalone product. About 4,000 studios, the 20% of 20,000 that say they'd switch, paying $720 a year is roughly $2.9M a year even at full uptake, against $3M to build and run it over two years. The main risk is that the 20% estimate is off. The next step is to check whether the same software could serve a larger market, such as other appointment-based studios, before building.",
+  "model_answer": "Don't build it as a standalone product. About 4,000 studios, the 20% of 20,000 that say they'd switch, paying $720 a year is roughly $2.9M a year even at full uptake, against about $3M a year to build and run it, so it can't make money even if every interested studio signs up. The main risk is that the 20% estimate is off. The next step is to check whether the same software could serve a larger market, such as other appointment-based studios, before building.",
   "explanation": "Acceptable recommendation: Don't build it as a standalone product. The deciding fact: That is about 4,000 studios at $720 a year, or roughly $2.9M of revenue a year at full uptake. Key risks: An estimate based on stated interest may be too low or too high. Next steps: Look for a larger market the same software could serve before building.",
   "extras": {
     "facts": [
@@ -155,7 +155,7 @@
         "deciding": true
       },
       {
-        "fact": "Building and running the software would cost about $3M over two years",
+        "fact": "Building and running the software would cost about $3M a year",
         "relevant": true,
         "deciding": false
       },
@@ -169,7 +169,7 @@
     "grading_rules": [
       "Recommendation first: the first sentence commits to a course of action that answers the client's question. Context or a restated question first fails. A condition (\"open, starting with a pilot\") is fine if it still picks a direction.",
       "Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons (\"it's a good opportunity\", \"the market is attractive\") and irrelevant facts don't count, and the same fact said twice counts once.",
-      "Irrelevant facts: mentioning an irrelevant fact in any way fails, even to dismiss it.",
+      "Irrelevant facts: using an irrelevant fact as a reason or as support fails. Mentioning one only to dismiss it (\"the kitchen shouldn't drive this\") is fine.",
       "Consistent with the facts: every number and claim matches the fact sheet or follows from it. A wrong calculation fails, and so does a claim beyond the sheet stated as fact, unless it is framed as a risk or an assumption. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.",
       "Risk: names something specific that could make the recommendation wrong (\"schools may not pay $600 when museums charge $450\"). \"There are risks\" fails.",
       "Next step: a concrete action (\"pilot in 5 parks and track bookings\"). \"Do more analysis\" fails.",

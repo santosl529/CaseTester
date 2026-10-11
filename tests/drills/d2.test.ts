@@ -104,6 +104,12 @@ describe('checklists match the PRD drill specs', () => {
     expect(hy2DecisionTag(fams, 'Lower prices', 'keep')).toBe('M.sticky_hypothesis');
     expect(hy2DecisionTag(fams, 'other', 'revise')).toBeNull();
     expect(hy2DecisionTag(fams, 'other', 'drop')).toBeNull();
+    // A key may accept several actions; revising to one's own supported backup is right too.
+    const multi = fams.map(f => (f.family === 'Lower prices' ? { ...f, actions: ['drop' as const, 'revise' as const] } : f));
+    expect(hy2DecisionTag(multi, 'Lower prices', 'revise')).toBeNull();
+    expect(hy2DecisionTag(fams, 'Lower prices', 'revise')).toBe('M.sticky_hypothesis');
+    expect(hy2DecisionTag(fams, 'Lower prices', 'revise', 'Buying less per customer')).toBeNull();
+    expect(hy2DecisionTag(fams, 'Lower prices', 'keep', 'Buying less per customer')).toBe('M.sticky_hypothesis');
   });
 });
 
@@ -341,7 +347,7 @@ describe('the grading call', () => {
       item_key: 'a1',
       checks: item('SY-2').checks.filter(c => c.detection === 'ai').map(c => ({ check_id: c.check_id, pass, evidence })),
       red_flags: item('SY-2').red_flags.filter(f => f.detection === 'ai').map(f => ({ id: f.id, present: false, evidence: '' })),
-      hypothesis_family: null, injection_suspected: false,
+      hypothesis_family: null, backup_family: null, injection_suspected: false,
     }],
   });
   const usage = { input_tokens: 1000, output_tokens: 200, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 };

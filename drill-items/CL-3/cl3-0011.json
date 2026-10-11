@@ -127,7 +127,7 @@
     },
     {
       "id": "missed_critical_driver",
-      "definition": "The answer misses the critical driver: Time per student at each station.",
+      "definition": "The answer misses the critical driver: Time per student at each station or Arrival pattern.",
       "cap": 0.6,
       "tag": "M.vague_data_request",
       "detection": "code",
@@ -135,7 +135,7 @@
     }
   ],
   "model_answer": "The line depends on arrivals, time per student at each station, staff on the line, and payment. I'd start with seconds per student at each station this term against last, since the slowest station sets the pace, then students arriving per minute.",
-  "explanation": "Drivers: Time per student at each station, Arrival pattern, Staff on the line, Payment. Start with Time per student at each station: The line is arrivals against serving speed, and a slow station sets the pace. Specific: Seconds per student at each station this term against last; students arriving per minute in the first 10 minutes. Vague: Cafeteria data; staff information.",
+  "explanation": "Drivers: Time per student at each station, Arrival pattern, Staff on the line, Payment. Start with Time per student at each station (or the arrival pattern): The line is arrivals against serving speed: a slow station sets the pace, and a lunch-bell surge can overwhelm any station. Specific: Seconds per student at each station this term against last; students arriving per minute in the first 10 minutes. Vague: Cafeteria data; staff information.",
   "extras": {
     "drivers": [
       {
@@ -146,7 +146,7 @@
       {
         "driver": "Arrival pattern",
         "what_counts": "Students arriving at once or the lunch schedule",
-        "critical": false
+        "critical": true
       },
       {
         "driver": "Staff on the line",
@@ -159,13 +159,16 @@
         "critical": false
       }
     ],
-    "best_starting_point": "Time per student at each station",
-    "critical_check": "driver_1",
+    "best_starting_point": "Time per student at each station (or the arrival pattern)",
+    "critical_checks": [
+      "driver_1",
+      "driver_2"
+    ],
     "grading_rules": [
       "Breaks into drivers: names at least two parts of the metric that together explain it (price and volume; ingredient, labor and rent costs) as a structure. A list of data sources or reports is not a breakdown.",
       "Driver coverage: a driver counts if the answer names it or asks for data on it, tied to this case. A generic word alone (\"costs\", \"market data\") does not cover a specific driver (\"ingredient cost per cup\") unless the request makes it specific.",
       "Where to start: the answer names one driver or analysis to look at first (\"I'd start with\", \"first\"). Listing everything with no order fails.",
-      "Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). \"Because it's important\" fails.",
+      "Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). The reason can come before the starting point (\"The list grows when operations fall behind referrals, so I'd start with operations per week\"). \"Because it's important\" fails.",
       "Specific requests: judge only the data the answer asks to see. Drivers listed to break the metric down (\"profit is revenue minus marketing and content costs\", \"I'd look at price, mix and costs\") are the breakdown, not requests. Every request must name a metric plus a cut or a time period (\"ingredient cost per cup by month for two years\"); one vague request (\"information about costs\") fails the check.",
       "Solution before diagnosis: the answer proposes fixes (\"cut staff\", \"raise prices\") before finding the cause. A hypothesis to test is not a solution.",
       "Six or more unstructured requests: count separate data requests; six or more with no grouping by driver is a laundry list.",

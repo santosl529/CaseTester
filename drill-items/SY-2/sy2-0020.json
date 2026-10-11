@@ -11,7 +11,7 @@
     "SY.complete"
   ],
   "case_type": "profitability",
-  "prompt": "The client asks: \"How should our regional bus-tour company restore profit?\"\n\nFact sheet:\n- Revenue is flat at $8M\n- Fuel and driver costs are flat\n- Commissions paid to online travel sites rose from 10% to 22% of revenue as bookings moved online\n- 70% of customers say they'd book directly if offered a 5% discount\n- The company's buses are painted red\n\nGive your recommendation.",
+  "prompt": "The client asks: \"How should our regional bus-tour company restore profit?\"\n\nFact sheet:\n- Revenue is flat at $8M\n- Fuel and driver costs are flat\n- Commissions paid to online travel sites rose from 10% to 22% of revenue as bookings moved online\n- 70% of customers say they'd book directly if offered a 5% discount\n- Tour reviews average 4.5 stars\n\nGive your recommendation.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -52,7 +52,7 @@
     },
     {
       "check_id": "leaves_out_irrelevant",
-      "question": "Does the answer leave out the irrelevant facts (The company's buses are painted red)?",
+      "question": "Does the answer avoid using the irrelevant facts (Tour reviews average 4.5 stars) as reasons or support? Mentioning one only to dismiss it is fine.",
       "weight": 0.15,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "Leave out facts that don't bear on the decision.",
@@ -160,7 +160,7 @@
         "deciding": false
       },
       {
-        "fact": "The company's buses are painted red",
+        "fact": "Tour reviews average 4.5 stars",
         "relevant": false,
         "deciding": false
       }
@@ -169,7 +169,7 @@
     "grading_rules": [
       "Recommendation first: the first sentence commits to a course of action that answers the client's question. Context or a restated question first fails. A condition (\"open, starting with a pilot\") is fine if it still picks a direction.",
       "Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons (\"it's a good opportunity\", \"the market is attractive\") and irrelevant facts don't count, and the same fact said twice counts once.",
-      "Irrelevant facts: mentioning an irrelevant fact in any way fails, even to dismiss it.",
+      "Irrelevant facts: using an irrelevant fact as a reason or as support fails. Mentioning one only to dismiss it (\"the kitchen shouldn't drive this\") is fine.",
       "Consistent with the facts: every number and claim matches the fact sheet or follows from it. A wrong calculation fails, and so does a claim beyond the sheet stated as fact, unless it is framed as a risk or an assumption. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.",
       "Risk: names something specific that could make the recommendation wrong (\"schools may not pay $600 when museums charge $450\"). \"There are risks\" fails.",
       "Next step: a concrete action (\"pilot in 5 parks and track bookings\"). \"Do more analysis\" fails.",

@@ -3,7 +3,7 @@
   "item_id": "cl3-0021",
   "drill_id": "CL-3",
   "answer_type": "normal",
-  "notes": "Says where to start but not why that's the place to start (rule 4).",
+  "notes": "The opening sentence is the reason for starting with operations against referrals; a reason can come first (rule 4).",
   "responses": [
     {
       "type": "text",
@@ -17,7 +17,7 @@
     "driver_3": true,
     "driver_4": true,
     "states_where_to_start": true,
-    "reason_for_start": false,
+    "reason_for_start": true,
     "specific_requests": true
   },
   "red_flags": {

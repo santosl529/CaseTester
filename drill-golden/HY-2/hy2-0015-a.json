@@ -3,7 +3,7 @@
   "item_id": "hy2-0015",
   "drill_id": "HY-2",
   "answer_type": "short",
-  "notes": "A label, not what changed and through which driver, so directional fails (rule 1); the family is still price by its mechanism (rule 6). The reason mentions the new fact but doesn't say what it means (rule 5).",
+  "notes": "A label, not what changed and through which driver, so directional fails (rule 1); the family is still price by its mechanism (rule 6), and the key accepts keep or revise for it, so the decision passes. The reason mentions the new fact but doesn't say what it means (rule 5).",
   "responses": [
     {
       "type": "text",

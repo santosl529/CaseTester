@@ -5,9 +5,8 @@
 Live: PS-1, HY-1, EX-1, SY-1, CL-1 (225 authored items approved; shared CaseTester database, in sync with /drill-items). D2 drills are built but off until Matt's content arrives.
 
 Open items, in order:
-1. **Matt to check every graded answer** (all Claude's). Flagged: hy2-0006-a and hy2-0017-a update_reason should be N under rule 5 (the grader agrees; these plus hy2-0020-a are HY-2 update_reason's only misses); hy2-0020-a (a misread conclusion: pass or fail?); hy2-0013-a and hy2-0015-a families; rule 6's "first of 'or' causes is the lead". After his corrections, re-run all four gates (~$0.50).
-2. **Approvals pending:** HY-2, SY-2, CL-3, QN-5 questions.
-3. **Next build phase:** D3 (the loop); offered to Matt.
+1. **For Matt:** (a) hy2-0017-a evidence-based: Matt set N; the grader says Y, quoting "cheaper options now that DIY cameras exist". (b) Still undecided from earlier: hy2-0006-a and hy2-0017-a update_reason (Claude thinks N; grader agrees), hy2-0020-a (misread conclusion). (c) Approve HY-2, SY-2, CL-3, QN-5 questions to go live.
+2. **Next build phase:** D3 (the loop).
 
 How Matt likes to work: plain, short explanations; he reviews items on `drill-review.html` (`npm run drills:review`, "Waiting for your review" box) and sends decisions by item ID; commit and push to `drills` when asked (GitHub push works).
 
@@ -194,3 +193,14 @@ How Matt likes to work: plain, short explanations; he reviews items on `drill-re
 - Gates on v13: PS-3, HY-2, SY-2, CL-3 all checks ≥90%. Smoke passes (every drill 100% on its model answers).
 - 5 more draft model answers fixed (hy2-0005, hy2-0027, cl3-0005, cl3-0019, cl3-0040), re-passed similarity.
 - Final `drills:models --runs 3` on v13: all 154 model answers score 100%, no score changed between runs ($1.73).
+
+## Matt's review of HY-2, SY-2, CL-3 applied (2026-10-11)
+
+- CL-3: up to two critical (starting) drivers; cap only when an answer covers neither (`extras.critical_checks`). cl3-0011, 0017, 0034 accept a second start; cl3-0026 (marketing spend doubled) and cl3-0027 (volume and staffing unchanged) got a pointing fact. Rule 4: a reason can come before the starting point.
+- SY-2: sy2-0024 cost is $3M a year; sy2-0016 has 600,000 yearly online orders (75,000 unfilled ≈ $1.1M lost > $800k saved); 17 joke irrelevant facts replaced with plausible non-deciding ones. Rule 3 and the check: mentioning an irrelevant fact only to dismiss it is fine.
+- HY-2: families accept several actions (`drop|revise` in the CSV, `actions` in the item): hy2-0007 Poor service and hy2-0028 Unhappy with the buyer drop or revise; hy2-0015 price family keep or revise. Grader reports `backup_family`; revise is right when the student's own backup is in a family the fact supports. Family never null for HY-2; a bare label still names a mechanism.
+- Grades changed per Matt: hy2-0017-a evidence N, cl3-0021-a reason Y, sy2-0004-a leaves-out Y. hy2-0015-a and hy2-0027-a decisions now pass (verified).
+- Cross-drill duplicate check, Level 1 + Level 2: 400 questions, 26 flagged pairs (13 across levels), all reviewed and recorded, none open; no identical question text.
+- Gates on drills-grader-v16: PS-3, HY-2, SY-2, CL-3 all ≥90%. All model answers score 100% with no change across three runs. Smoke passes.
+- Lesson: changing the stored shape of a key (`action` → `actions`) breaks grading for items already in the database until they are re-seeded (the smoke caught a job failing on stale HY-2 drafts). For live items, a key-format change needs a re-seed or new versions.
+- PRD HY-2, SY-2, CL-3 sections updated to match.

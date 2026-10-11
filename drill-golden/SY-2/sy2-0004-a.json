@@ -3,7 +3,7 @@
   "item_id": "sy2-0004",
   "drill_id": "SY-2",
   "answer_type": "normal",
-  "notes": "Mentions the kitchen to dismiss it, which still fails leaving out irrelevant facts (rule 3).",
+  "notes": "Mentions the kitchen only to dismiss it, which is fine (rule 3).",
   "responses": [
     {
       "type": "text",
@@ -14,7 +14,7 @@
     "recommendation_first": true,
     "two_to_three_reasons": true,
     "cites_numbers": true,
-    "leaves_out_irrelevant": false,
+    "leaves_out_irrelevant": true,
     "consistent_with_facts": true,
     "includes_risk": true,
     "includes_next_step": true

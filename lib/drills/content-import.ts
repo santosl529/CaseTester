@@ -2,7 +2,7 @@
 // item JSON and golden answers. Pure: the script in
 // scripts/import-drill-content.ts does the file reading and writing.
 import { z } from 'zod';
-import { cl3Item, hy2Item, ps3Item, qn5Item, sy2Item, type Cl3Content, type Hy2Content, type Ps3Content, type Qn5Content, type Sy2Content, QN5_CARD_ROLES, type Qn5CardRole } from './checklists';
+import { cl3Item, hy2Item, ps3Item, qn5Item, sy2Item, type Cl3Content, type Hy2Action, type Hy2Content, type Ps3Content, type Qn5Content, type Sy2Content, QN5_CARD_ROLES, type Qn5CardRole } from './checklists';
 import { ItemSchema, type Item } from './item-schema';
 import type { StepResponse } from './sets/scoring';
 
@@ -125,15 +125,16 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
   build('hy2-questions.csv', t['hy2-questions'] ?? [], r => {
     const families = rowsFor('hy2-families', r.item_id);
     if (families.length < 3 || families.length > 4) throw new Error(`needs 3–4 hypothesis families in hy2-families.csv, has ${families.length}`);
-    const actions = families.map(f => f.correct_action_after_new_fact.toLowerCase());
-    for (const a of actions) if (!['keep', 'revise', 'drop'].includes(a)) throw new Error(`correct_action_after_new_fact must be keep, revise or drop, got "${a}"`);
-    if (!actions.includes('keep') || !actions.some(a => a !== 'keep')) {
+    // One action, or several the key accepts, separated by "|" ("drop|revise").
+    const actions = families.map(f => f.correct_action_after_new_fact.toLowerCase().split('|').map(a => a.trim()));
+    for (const a of actions.flat()) if (!['keep', 'revise', 'drop'].includes(a)) throw new Error(`correct_action_after_new_fact must be keep, revise or drop (or several separated by |), got "${a}"`);
+    if (!actions.some(a => a.includes('keep')) || !actions.some(a => !a.includes('keep'))) {
       throw new Error('the new fact must support at least one family (keep) and contradict at least one (revise or drop)');
     }
     return hy2Item({
       item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: r.case_type, opening_facts: r.opening_facts,
       new_fact: r.new_fact, model_answer_stage1: r.model_answer_stage1, model_answer_stage2: r.model_answer_stage2,
-      families: families.map(f => ({ family: f.family, description: f.description, action: f.correct_action_after_new_fact.toLowerCase() as 'keep', reason: f.reason })),
+      families: families.map((f, i) => ({ family: f.family, description: f.description, actions: actions[i] as Hy2Action[], reason: f.reason })),
     } satisfies Hy2Content);
   });
 

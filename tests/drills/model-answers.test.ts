@@ -21,11 +21,11 @@ const steps = (item: Item): StepResult[] => {
 const perfect = (item: Item, s: StepResult[]): ItemGrade => {
   const quote = (step: number) => firstSentence(answerText(s[step].response));
   const chosen = s.find(x => x.response.type === 'choice')?.response as { option_id: string } | undefined;
-  const families = (item.extras.families as { family: string; action: string }[] | undefined) ?? [];
+  const families = (item.extras.families as { family: string; actions: string[] }[] | undefined) ?? [];
   return {
     checks: Object.fromEntries(item.checks.filter(c => c.detection === 'ai').map(c => [c.check_id, { pass: true, evidence: quote(c.step) }])),
     red_flags: Object.fromEntries(item.red_flags.filter(f => f.detection === 'ai').map(f => [f.id, { pass: false, evidence: '' }])),
-    family: families.find(f => f.action === chosen?.option_id)?.family ?? null,
+    family: families.find(f => f.actions.includes(chosen?.option_id ?? ''))?.family ?? null,
     injection_suspected: false, qa_flags: [],
   };
 };

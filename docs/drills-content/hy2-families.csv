@@ -18,7 +18,7 @@ hy2-0005,New tutors are weaker,Students avoid the new tutors on quality,revise,"
 hy2-0006,More material per pack,Waste or scrap means more material per pack,keep,Waste rose from 2% to 9% of material used
 hy2-0006,Costlier pack formats,Sales shifted to packs that use more material,drop,The pack-size mix was unchanged
 hy2-0006,Supplier surcharges,The new supplier charges more than the price index,revise,"Prices rose only 3%; the new supplier matters through waste, not price"
-hy2-0007,Poor service,Unhappy customers stop coming back,revise,Warranty visits held; the losses are in routine work where price matters
+hy2-0007,Poor service,Unhappy customers stop coming back,drop|revise,Warranty visits held; the losses are in routine work where price matters
 hy2-0007,Cheaper rivals for routine work,Owners take oil changes and tires elsewhere,keep,Routine visits fell 35% after rivals 30% cheaper opened
 hy2-0007,Fewer cars to service,Fewer cars on the road need service,drop,Car sales held and warranty visits were flat
 hy2-0008,Members losing interest,Members use the centers less because they want to,drop,Daytime and weekend visits held steady
@@ -45,7 +45,7 @@ hy2-0014,More calls,Higher demand stretches the fleet,revise,Calls rose only 4%;
 hy2-0014,Slower driving,Traffic makes trips longer,drop,Driving times are unchanged
 hy2-0014,Hospital handover delays,Ambulances wait at hospitals,keep,Handover waits rose from 15 to 40 minutes
 hy2-0014,Slow dispatch,Calls take longer to dispatch,drop,Call-to-dispatch time is unchanged
-hy2-0015,Hourly parkers left because of the price,Short-stay parkers are sensitive to the higher rate,revise,They left as cheaper meters opened next door
+hy2-0015,Hourly parkers left because of the price,Short-stay parkers are sensitive to the higher rate,keep|revise,They left as cheaper meters opened next door
 hy2-0015,Cheaper option next door,New city meters draw short-stay parkers,keep,Hourly parkers fell 30% as the meters opened
 hy2-0015,Less downtown traffic,Fewer people come downtown,drop,Daily and monthly revenue rose 18%
 hy2-0016,Discounting,Lower prices per lesson,drop,Prices are unchanged
@@ -84,7 +84,7 @@ hy2-0026,Higher building costs,Maintenance and utilities rose,drop,"Building cos
 hy2-0027,Brand losing appeal,Shoppers prefer other brands,drop,Sales grew 9% in its long-time stores
 hy2-0027,Lost distribution,It lost shelf space at a retailer,keep,A 150-store chain dropped it
 hy2-0027,Price gap,Its price is too high against rivals,revise,"Possible, but core stores grew with the category"
-hy2-0028,Unhappy with the buyer,Clients dislike the buyer's prices or service,revise,Clients whose broker stayed renewed at 92%
+hy2-0028,Unhappy with the buyer,Clients dislike the buyer's prices or service,drop|revise,Clients whose broker stayed renewed at 92%
 hy2-0028,Brokers leaving,Departing brokers take their clients,keep,"12 of 30 brokers left, and their clients followed"
 hy2-0028,Market-wide churn,Clients switch more across the industry,drop,Clients with a remaining broker renewed at 92%
 hy2-0029,Fewer inspectors,Vacancies cut capacity,drop,Headcount is unchanged

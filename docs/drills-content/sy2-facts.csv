@@ -2,18 +2,18 @@ item_id,fact,relevant,deciding
 sy2-0001,"The printer costs $250,000, lasts about 7 years, and would save $70,000 a year in outsourced milling",Y,Y
 sy2-0001,Two technicians would need a 3-week training course,Y,N
 sy2-0001,Turnaround for crowns would drop from 10 days to 4,Y,N
-sy2-0001,The lab's owner plans to repaint the office this spring,N,N
+sy2-0001,The lab's main competitor raised crown prices 5% last year,N,N
 sy2-0001,"The lab makes about 6,000 crowns a year, and volume has been steady for three years",Y,N
 sy2-0002,"Peak hours (weekday evenings and weekends) are 95% booked, with a waitlist most nights",Y,Y
 sy2-0002,Off-peak hours are 35% booked,Y,N
 sy2-0002,A competing studio 20 minutes away charges $65 an hour at peak,Y,N
-sy2-0002,The studio renewed its liquor license in March,N,N
+sy2-0002,Off-peak lesson bookings rose 8% this year,N,N
 sy2-0002,About 60% of peak bookings come from members of local golf leagues,Y,N
 sy2-0003,"Canadian supermarket listing fees would cost $300,000 in the first year",Y,N
 sy2-0003,"A distributor projects $1.5M of first-year sales at a 30% gross margin, or $450,000",Y,Y
 sy2-0003,Barbecue-sauce sales in Canada grew 4% last year,Y,N
 sy2-0003,"Labels would need French text, a one-time cost of $40,000",Y,N
-sy2-0003,The company's founder grew up in Austin,N,N
+sy2-0003,The brand's US sales grew 12% last year,N,N
 sy2-0004,Badge data show an average of 15 of the 40 desks in use on any day,Y,Y
 sy2-0004,"The current lease costs $600,000 a year; an office half the size nearby costs $320,000",Y,N
 sy2-0004,"Moving would cost about $150,000 once",Y,N
@@ -23,12 +23,12 @@ sy2-0005,"Orders now wait 9 days to ship, against a 3-day promise",Y,N
 sy2-0005,"The backlog is in printing: printers run 5 days a week at full capacity, while packing has spare time",Y,Y
 sy2-0005,"A weekend printing shift would cost $18,000 a month and add 40% to printing capacity",Y,N
 sy2-0005,"Late orders get their shipping refunded, which costs $25,000 a month",Y,N
-sy2-0005,The company changed its logo in the spring,N,N
+sy2-0005,Customer reviews average 4.6 stars,N,N
 sy2-0006,Making frozen lasagna needs a $2M freezer line,Y,N
 sy2-0006,"A test in 50 stores projects $3M a year of sales at a 25% margin, or $750,000 a year",Y,Y
 sy2-0006,Frozen-meal sales grew 2% last year,Y,N
 sy2-0006,Our biggest retailer has offered freezer space in 300 stores,Y,N
-sy2-0006,The founder's family recipe dates from 1952,N,N
+sy2-0006,The company's pasta sauce holds 12% of its category,N,N
 sy2-0007,"Evening classes at the current studio are fully booked, with a 120-person waitlist",Y,Y
 sy2-0007,"Adding evening classes needs two more kilns at $30,000; a second studio would cost $400,000",Y,N
 sy2-0007,"Each evening class brings in $9,000 a year",Y,N
@@ -38,26 +38,26 @@ sy2-0008,"The rival uses contractor crews, and its reviews average 3.1 stars, ag
 sy2-0008,"We've lost 6% of jobs since the rival launched, all of them small apartment moves",Y,Y
 sy2-0008,Small apartment moves earn a 10% margin; whole-house moves earn 25% and make up 70% of profit,Y,N
 sy2-0008,Matching the rival's prices would cut our profit by about $1.2M a year,Y,N
-sy2-0008,Our trucks were repainted last year,N,N
+sy2-0008,Fuel costs rose 6% this year,N,N
 sy2-0009,"Extending the route would cost $800,000 a year",Y,N
 sy2-0009,"The stadium district hosts about 120 event days a year with 15,000 visitors each",Y,N
 sy2-0009,"A survey found 40% of event visitors would ride the shuttle, cutting event-day parking demand by about 1,500 cars",Y,Y
-sy2-0009,The shuttle buses were repainted in the city's colors last year,N,N
+sy2-0009,Downtown hotel occupancy rose 4% last year,N,N
 sy2-0009,"The stadium owner has offered to pay $300,000 a year toward the route",Y,N
 sy2-0010,The rival earns $1.5M a year in profit,Y,N
 sy2-0010,"Combining routes would save about $700,000 a year, since both companies serve the same suburbs",Y,Y
 sy2-0010,We require acquisitions to pay back within 7 years,Y,N
 sy2-0010,30% of the rival's revenue comes from one property-management firm whose contract renews next year,Y,N
-sy2-0010,The rival's office is next to a popular bakery,N,N
+sy2-0010,The rival has 60 employees,N,N
 sy2-0011,Margin fell from 15% to 6% in two years,Y,N
 sy2-0011,Food costs held at 30% of revenue,Y,N
 sy2-0011,"Event-staff overtime doubled after we began taking same-week bookings, which are now 40% of events",Y,Y
 sy2-0011,"Our prices haven't risen in two years, while competitors raised theirs 8%",Y,N
-sy2-0011,The company won a local best-caterer award,N,N
+sy2-0011,Corporate clients make up 55% of revenue,N,N
 sy2-0012,"Students take 3.1 lessons a month on average, at $45 each",Y,N
 sy2-0012,"Missed lessons, now 15% of bookings, earn nothing under per-lesson pricing",Y,Y
 sy2-0012,Two nearby schools sell monthly memberships at $140 to $160,Y,N
-sy2-0012,The school repainted its practice rooms,N,N
+sy2-0012,Enrollment grew 6% last year,N,N
 sy2-0012,The membership would cover up to 4 lessons a month,Y,N
 sy2-0013,"Shipping a plant to Germany costs £14 per order, against £6 in the UK",Y,Y
 sy2-0013,"The average order is £35, at a 40% gross margin",Y,N
@@ -78,12 +78,13 @@ sy2-0016,The warehouse costs $2.4M a year to run,Y,N
 sy2-0016,Shipping online orders from stores would add $1.6M a year in store labor and packaging,Y,N
 sy2-0016,"In a test, 1 in 8 orders picked in stores couldn't be filled because store stock records were wrong",Y,Y
 sy2-0016,"Each unfilled online order loses $15 of profit, and 10% of those customers never return",Y,N
-sy2-0016,The warehouse roof was replaced in 2023,N,N
+sy2-0016,"The chain ships about 600,000 online orders a year",Y,N
+sy2-0016,Store sales grew 3% last year,N,N
 sy2-0017,"Each new city costs about $500,000 to launch and takes 2 years to break even",Y,N
 sy2-0017,45% of current customers say they'd book dog training through the app,Y,N
 sy2-0017,"Training sessions earn the app $25 per booking, against $8 for pet-sitting",Y,Y
 sy2-0017,"Trainers would need vetting, which takes 3 weeks per trainer",Y,N
-sy2-0017,The app's icon was redesigned in May,N,N
+sy2-0017,"The app has 120,000 active customers",N,N
 sy2-0018,Vinyl sales grew 10% a year for five years,Y,N
 sy2-0018,Pressing plants have 6-month waitlists for new orders,Y,Y
 sy2-0018,A new pressing line costs $1.5M and can press 1 million records a year at a $1.20 margin each,Y,N
@@ -93,12 +94,12 @@ sy2-0019,"4 of the 15 showrooms cause 80% of the losses, all in malls that lost 
 sy2-0019,The other 11 showrooms are profitable,Y,N
 sy2-0019,Online rentals grew 30% last year and are now 25% of revenue,Y,N
 sy2-0019,Closing a showroom early costs about 6 months' rent,Y,N
-sy2-0019,The chain's founder opened the first store in 1998,N,N
+sy2-0019,The chain's delivery vans are leased through 2027,N,N
 sy2-0020,Revenue is flat at $8M,Y,N
 sy2-0020,Fuel and driver costs are flat,Y,N
 sy2-0020,Commissions paid to online travel sites rose from 10% to 22% of revenue as bookings moved online,Y,Y
 sy2-0020,70% of customers say they'd book directly if offered a 5% discount,Y,N
-sy2-0020,The company's buses are painted red,N,N
+sy2-0020,Tour reviews average 4.5 stars,N,N
 sy2-0021,Running 5 shelters costs $6M a year; 2 larger ones would cost $4.2M after a $5M build,Y,Y
 sy2-0021,Adoption rates are highest at the 2 shelters near the largest towns,Y,N
 sy2-0021,"After consolidation, half of residents would drive more than 40 minutes to a shelter",Y,N
@@ -108,7 +109,7 @@ sy2-0022,Kiln-dried lumber sells for $120 more per thousand board feet than air-
 sy2-0022,"The kiln could dry 10,000 thousand board feet a year, adding about $1.2M a year in revenue",Y,Y
 sy2-0022,"Running the kiln would cost $500,000 a year in energy and labor",Y,N
 sy2-0022,The kiln costs $3M and lasts about 20 years,Y,N
-sy2-0022,The mill's logo is a pine tree,N,N
+sy2-0022,Lumber prices rose 4% last year,N,N
 sy2-0023,30% of shoppers check prices on their phones in our stores,Y,N
 sy2-0023,Online prices are on average 12% lower on the items shoppers check most,Y,N
 sy2-0023,Matching on those items would cut gross profit by $2M a year,Y,N
@@ -117,7 +118,7 @@ sy2-0023,The chain sponsors a local marathon,N,N
 sy2-0024,"There are about 20,000 tattoo studios in the US",Y,N
 sy2-0024,"Studios would pay about $60 a month, and about 20% say they'd switch from paper or free tools",Y,N
 sy2-0024,"That is about 4,000 studios at $720 a year, or roughly $2.9M of revenue a year at full uptake",Y,Y
-sy2-0024,Building and running the software would cost about $3M over two years,Y,N
+sy2-0024,Building and running the software would cost about $3M a year,Y,N
 sy2-0024,Tattoos are most popular among people aged 18 to 34,N,N
 sy2-0025,"The patch is approved in Europe and awaits US approval, expected in 18 months",Y,N
 sy2-0025,Our sales force already calls on the doctors who prescribe it,Y,N
@@ -128,7 +129,7 @@ sy2-0026,"Buses on Main Street carry 18,000 riders a day; cars carry 22,000 peop
 sy2-0026,"Bus trips would be 8 minutes faster, and the city's model shows car trips 2 minutes slower",Y,Y
 sy2-0026,"The change would cost $3M, mostly paint and signals",Y,N
 sy2-0026,40 shops fear losing curbside parking; 70% of their customers arrive on foot or by bus,Y,N
-sy2-0026,The street was named in 1890,N,N
+sy2-0026,A bike-share station opened on Main Street last year,N,N
 sy2-0027,"Revenue grew 10% to $40M, but profit fell from $6M to $2M",Y,N
 sy2-0027,The company added 12 smaller events this year; attendance per event is flat,Y,N
 sy2-0027,The 12 new events lost $3.5M together; the 20 established events earned more than last year,Y,Y
@@ -138,7 +139,7 @@ sy2-0028,"Our own restaurants cost $900,000 each to open and earn $250,000 a yea
 sy2-0028,"Franchising would bring 6% royalties on about $1.5M of sales per restaurant, $90,000 a year, at almost no capital cost",Y,N
 sy2-0028,"We have $9M, enough for 10 of our own restaurants in 3 years; franchisees have offered to open 40",Y,Y
 sy2-0028,Food-quality scores at franchised chains in the region average 10% lower,Y,N
-sy2-0028,The chain's salsa won a state fair prize,N,N
+sy2-0028,Two of the chain's restaurants are in airports,N,N
 sy2-0029,Carbon capture costs $200M to install and $15M a year to run,Y,N
 sy2-0029,It would capture 1 million tons of CO2 a year,Y,N
 sy2-0029,"A government credit pays $85 for each ton captured, for 12 years",Y,Y
@@ -148,4 +149,4 @@ sy2-0030,Lockers in apartment buildings are 85% full on average; lockers in stor
 sy2-0030,"Each locker costs $8,000 to install and earns $2,500 a year when 80% full",Y,N
 sy2-0030,"Building owners have offered 2,500 new apartment sites",Y,N
 sy2-0030,Carriers pay us $1 per parcel delivered,Y,N
-sy2-0030,The lockers are painted green,N,N
+sy2-0030,Carriers delivered 15% more parcels through our lockers this year,N,N

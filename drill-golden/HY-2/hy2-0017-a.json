@@ -3,7 +3,7 @@
   "item_id": "hy2-0017",
   "drill_id": "HY-2",
   "answer_type": "normal",
-  "notes": "Uses the given fact that prices haven't changed implicitly: the cause is a cheaper outside option (rule 2).",
+  "notes": "Names a cause but uses none of the given facts (cancellations doubled, prices unchanged), so evidence-based fails (rule 2).",
   "responses": [
     {
       "type": "text",
@@ -20,7 +20,7 @@
   ],
   "labels": {
     "directional": true,
-    "evidence_based": true,
+    "evidence_based": false,
     "testable": true,
     "tentative": true,
     "update_reason": true
