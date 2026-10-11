@@ -5,7 +5,7 @@
 import type { ModelTurn, DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import { resolveRequests } from '@/lib/agent/models/turn-schema';
 import type { ModelPlan } from './plan-turn';
-import { decideData, exactResolver, labelMatch, RELEASE_CAP, type DataDecisions } from './data-decisions';
+import { decideData, exactResolver, labelMatch, outsideAskScope, RELEASE_CAP, type DataDecisions } from './data-decisions';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT } from './pressure-test';
 import { planForcedReleases } from './data-requests';
 import { revealedValues } from './data-ledger';
@@ -68,6 +68,17 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     const id = labelMatch(r.what, ledger.items);
     return id ? { ...r, itemIds: [id] } : r;
   });
+  // A qualified ask keeps its scope (v4.10): an item it can't answer — the
+  // whole when a split of it was asked for, a cut it doesn't have — is not
+  // what was requested, released or restated (data-decisions.ts).
+  const scoped: { what: string; ids: string[] }[] = [];
+  requests = requests.map(r => {
+    const out = r.itemIds.filter(id => { const item = ledger.items.find(i => i.id === id); return item !== undefined && outsideAskScope(r.what, item); });
+    if (out.length === 0) return r;
+    scoped.push({ what: r.what, ids: out });
+    return { ...r, itemIds: r.itemIds.filter(id => !out.includes(id)) };
+  });
+  if (scoped.length > 0) plan.ctx.checks.act('request_scope', 'items outside a qualified ask dropped from it', { scoped });
   // After the pressure test, nothing is premature: a declared deferral is
   // released (or refused, when the case doesn't hold the data).
   if (satisfied) requests = requests.map(r => (r.respond === 'defer' ? { ...r, respond: 'release' as const } : r));

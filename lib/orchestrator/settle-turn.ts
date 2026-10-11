@@ -33,7 +33,7 @@ import { renderDataLineParts, decisionRows } from './data-decisions';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
 import { turnData, pressureTestOutcomeNow } from './turn-data';
-import { vetoReason, gateContext, isHandoverAnnouncement } from './stream-turn';
+import { vetoReason, gateContext, isHandoverAnnouncement, isDeliveryClaim } from './stream-turn';
 import type { ModelTurn, Move } from '@/lib/agent/models/turn-schema';
 import type { TurnValidation } from '@/lib/agent/models/interface';
 import type { ModelPlan } from './plan-turn';
@@ -253,7 +253,21 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // A model question about figures the candidate hasn't received is replaced
   // (v3, batch 18 v2: Destiny heard "Which of these cost lines moved the
   // most?" eleven times with no figures delivered).
-  const figuresOut = decisions.releases.length > 0 || decisions.exhibit !== null;
+  const figuresOut = decisions.releases.length > 0 || decisions.exhibit !== null || decisions.restates.length > 0;
+  // No delivery claim without a delivery (v4.10): "Here they are again",
+  // "Here's the cost breakdown", "being sent now" in the question, on a turn
+  // that hands nothing over, is withheld ("say" withholds them always — code's
+  // data line speaks for a delivery).
+  if (!codeWritten && kind !== 'rec_ask' && !figuresOut) {
+    const kept = sentencesOf(question).filter(x => {
+      if (!isDeliveryClaim(x, state.shownExhibitIds.size > 0)) return true;
+      withheld.push({ sentence: x, reason: 'undelivered_claim', field: 'question' });
+      return false;
+    });
+    if (kept.length !== sentencesOf(question).length) {
+      question = kept.some(x => x.endsWith('?')) ? kept.join(' ') : pickFallbackQuestion({ figuresDelivered: false, seed, last: state.lastQuestion ?? null });
+    }
+  }
   const heldThisTurn = decisions.gatedIds.length > 0 || decisions.defers.length > 0 || decisions.gateDefers.length > 0;
   if (!codeWritten && kind !== 'rec_ask' && !figuresOut && refersToFigures(question)
     && (heldThisTurn || Object.keys(revealedValues(ledger)).length === 0)) {
@@ -545,6 +559,15 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       codeAsked: stageAskedSaved, ended: endedSaved && state.timeUp ? 'time_up' : null,
     });
     const stagesEnforcedSaved = stageAskedSaved ? { ...state.stagesEnforced, [stageAskedSaved]: true } : state.stagesEnforced;
+    // KF-4 (v4.10): when the gate closes this turn, the unmapped asks it held
+    // are put to the interviewer next turn — once; then they lapse (logged).
+    const closed = (st: string | undefined) => st === 'satisfied' || st === 'waived';
+    const heldUnmapped = !closed(ptPrev.state) && closed(ptSaved.state)
+      ? [...new Set(state.dataRequestRows
+        .filter(r => r.subtype === 'defer' && ((r.payloadJsonb as { ledgerItemIds?: string[] }).ledgerItemIds ?? []).length === 0)
+        .map(r => (r.payloadJsonb as { what?: string }).what ?? '').filter(Boolean))]
+      : [];
+    const unmappedToResolveSaved = heldUnmapped.length > 0 ? heldUnmapped : [];
     await Promise.all([
       db.insert(sessionTurns).values([
         { sessionId, turnIndex: nextTurnIndex, role: 'candidate', text: candidateText, timestampMs: now },
@@ -606,6 +629,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
             pressureTest: ptSaved,
             stageEvidence: stagesSaved,
             stagesEnforced: stagesEnforcedSaved,
+            unmappedToResolve: unmappedToResolveSaved,
           },
         })
         .where(and(eq(sessions.id, sessionId), eq(sessions.status, 'active'))),

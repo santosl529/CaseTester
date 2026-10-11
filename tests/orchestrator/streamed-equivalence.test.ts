@@ -85,9 +85,18 @@ describe('settleTurn composition', () => {
     expect(t.spokenText).toBe('Which line moved most?');
   });
 
-  it('keeps a handover sentence that is the whole question', async () => {
-    const s = await settle(T({ question: 'Take a look at this exhibit and tell me what it shows.' }));
+  it('keeps a handover sentence that is the whole question, when the exhibit is on screen', async () => {
+    const plan = modelPlanFixture({ distress: null });
+    plan.state.shownExhibitIds = new Set(['exhibit-a']);
+    const s = await settleTurn(plan, outcome(T({ question: 'Take a look at this exhibit and tell me what it shows.' }), []));
     expect(s.spokenText).toBe('Take a look at this exhibit and tell me what it shows.');
+  });
+
+  // v4.10: no delivery claim without a delivery.
+  it('a handover claim on a turn that hands nothing over is replaced by a plain question', async () => {
+    const s = await settle(T({ question: 'Take a look at this exhibit and tell me what it shows.' }));
+    expect(s.spokenText).not.toMatch(/Take a look/);
+    expect(s.spokenText).toMatch(/\?$/);
   });
 
   it('keeps a question that merely mentions here', async () => {

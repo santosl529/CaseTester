@@ -154,8 +154,12 @@ describe.skipIf(!available)('replay suite — saved persona runs, batches 1–4'
     ]);
   });
 
-  // Round-3 fix 2: multi-fact recovery fills exactly the three known partial
-  // deliveries and never names an extra item.
+  // Round-3 fix 2: multi-fact recovery fills exactly the known partial
+  // deliveries and never names an extra item. v4.10: prof-001's two
+  // "COGS breakdown: …" labels were renamed for what they are (the bean share
+  // of COGS; the other inputs' price change) — so Ines's "Here's the COGS
+  // breakdown by input" no longer resolves to the price change (the batch-18
+  // over-map).
   it('recovers exactly the known partial deliveries in batches 2–4', () => {
     const recovered: string[] = [];
     for (const r of [...batch('batch-2-sep-29'), ...batch('batch-3-oct-02'), ...batch('batch-4-oct-02')]) {
@@ -168,7 +172,6 @@ describe.skipIf(!available)('replay suite — saved persona runs, batches 1–4'
       }
     }
     expect(recovered.sort()).toEqual([
-      'batch-2 03-ines-the- t14 non_bean_input_change',
       'batch-2 17-priya-the t10 menu_price_change',
       'batch-3 02-tobias-th t14 non_bean_input_change',
     ]);

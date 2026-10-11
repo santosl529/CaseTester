@@ -108,7 +108,7 @@ describe('data ledger', () => {
       const prof = [
         { id: 'bean_price_change', label: 'Coffee bean price change over 2 years', value: 'Beans up 40%.', releaseWhen: 'ANALYSIS' as const },
         { id: 'menu_price_change', label: 'Menu price changes over 2 years', value: 'Menu prices have not changed in two years.', releaseWhen: 'ANALYSIS' as const },
-        { id: 'non_bean_input_change', label: 'COGS breakdown: other input cost changes (dairy, packaging, food) over 2 years', value: 'Other inputs up 37.5%.', releaseWhen: 'ANALYSIS' as const },
+        { id: 'non_bean_input_change', label: 'Price change of the other inputs (dairy, packaging, food) over 2 years', value: 'Other inputs up 37.5%.', releaseWhen: 'ANALYSIS' as const },
       ];
 
       it.each([

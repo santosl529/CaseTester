@@ -33,9 +33,11 @@ describe('turnData and the pressure test', () => {
     expect(d.gatedIds.sort()).toEqual(['cogs_pct', 'labor_pct', 'overhead_pct']);
   });
 
-  it('once satisfied, a declared deferral is released', () => {
+  // v4.10: the three cost lines are the exhibit's data — released by showing it.
+  it('once satisfied, a declared deferral is released (as the exhibit that shows it)', () => {
     const d = turnData(plan('STRUCTURE', PT('satisfied')), T([COSTS('defer')]));
-    expect(d.releases.map(r => r.id).sort()).toEqual(['cogs_pct', 'labor_pct', 'overhead_pct']);
+    expect(d.exhibit?.id).toBe('exhibit-a');
+    expect(d.exhibit?.covers.sort()).toEqual(['cogs_pct', 'labor_pct', 'overhead_pct']);
   });
 
   it('keeps the stall rescue item exception before the pressure test', () => {

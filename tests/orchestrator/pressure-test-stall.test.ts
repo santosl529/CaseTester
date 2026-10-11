@@ -128,7 +128,7 @@ describe('awaiting-answer turns are bounded (v3)', () => {
     expect(revealed()).toEqual([]);                       // held while the probe is open
     const waiverTurn = await step(at(destiny, 17));
     expect(revealed()).toEqual(expect.arrayContaining(COST));
-    expect(waiverTurn).toMatch(/COGS is 58% of revenue/);
+    expect(waiverTurn).toMatch(/Here's an exhibit: Brew & Bean Cost Structure Over Time\./);   // v4.10: the cost lines go out as the exhibit
     const waived = store.events.filter(e => e.subtype === 'pressure_test_waived');
     expect(waived).toHaveLength(1);
     expect(waived[0]).toMatchObject({ category: 'intervention' });
@@ -167,17 +167,20 @@ describe('pending requests stay recorded and their deferral is explained', () =>
     for (const d of defers) expect((d.payloadJsonb as Row).ledgerItemIds).toEqual(expect.arrayContaining(COST));
   });
 
-  it('pending requests over the release cap: three go out on the waiver turn, the fourth is deferred out loud and released next', async () => {
+  // v4.10: the three cost lines go out as the exhibit (not against the cap), so
+  // all four held items reach the candidate on the waiver turn. The cap itself
+  // is covered in data-decisions.test.ts.
+  it('pending requests on the waiver turn: the cost lines as the exhibit, menu prices read out — nothing left held', async () => {
     seed(destiny);
     // Destiny t25: COGS, labor, overhead and menu prices — four held items.
     await step(at(destiny, 25));
     await step(at(destiny, 27));
     const waiverTurn = await step(at(destiny, 29));
     expect(pt()?.state).toBe('waived');
-    expect(revealed()).toHaveLength(3);
-    expect(waiverTurn).toMatch(/I'll come back to menu price changes over the two years shortly\./);
-    await step(at(destiny, 31), null);
-    expect(revealed()).toContain('menu_price_change');
+    expect(revealed().sort()).toEqual([...COST, 'menu_price_change'].sort());
+    expect(waiverTurn).toMatch(/Here's an exhibit: Brew & Bean Cost Structure Over Time\./);
+    expect(waiverTurn).toMatch(/Menu prices have not changed in two years\./);
+    expect(waiverTurn).not.toMatch(/I'll come back to/);
   });
 });
 

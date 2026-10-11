@@ -4,7 +4,7 @@
 // both are written at commit (settle-turn.ts). The distress and data-request
 // classifiers start here, in parallel with the model call that follows.
 import type { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
-import { formatOpenRequestsHint } from './data-requests';
+import { formatOpenRequestsHint, formatUnmappedHint } from './data-requests';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
 import { createLedger, reveal, revealedValues, labelWithPeriod } from './data-ledger';
@@ -349,7 +349,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const catalog = caseData.dataLedger.map(d => ({ id: d.id, label: labelWithPeriod(d) }));
   const dataRequestRows = dataRequestEventRows.map(r => ({ subtype: r.subtype, turnIndex: r.turnIndex, payloadJsonb: r.payloadJsonb }));
   const openDataRequests = summarizeDataRequests(dataRequestRows, catalog, Object.keys(revealedValues(ledger))).requestedUnanswered;
-  const openDataRequestsHint = formatOpenRequestsHint(openDataRequests);
+  const unmappedToResolve = (flags.unmappedToResolve as string[] | undefined) ?? [];
+  const openDataRequestsHint = [formatOpenRequestsHint(openDataRequests), formatUnmappedHint(unmappedToResolve)].filter(Boolean).join('\n') || undefined;
 
   const elapsedMs = effectiveElapsedMs(session.startedAt.getTime(), now, extra.silenceState);
   const timeUp = elapsedMs >= TOTAL_CASE_MS;
@@ -586,7 +587,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     ctx,
     state: {
       caseData, repliedToDistressOffer, shownExhibitIds, ledger, catalog, dataRequestRows,
-      openDataRequests, openDataRequestsHint, elapsedMs, timeUp, coverage, coverageMayEnd,
+      openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
       derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,

@@ -68,6 +68,14 @@ export const DATA_TALK = /\b(i don'?t have|that'?s not in the information|isn'?t
 // announced the exhibit or data (batch 13: Daniel t10, Jordan t14, Fiona t8).
 // Withheld only when another sentence of the question is left (Settle).
 const HANDOVER_OPENER = /^(here'?s|here is|take a look|let me (show|bring|put|pull))\b/i;
+// A claim that something is being handed over now (v4.10): only true when the
+// turn delivers it.
+const DELIVERY_CLAIM = /\b(?:here (?:they|it|that|those|these) (?:are|is)|being sent|on (?:its|their) way|i'?ve (?:sent|shared|put)|(?:sending|pasting|sharing) (?:them|those|it|that|the)|(?:let me|i'?ll) (?:repeat|restate|re-?share|resend))\b/i;
+export function isDeliveryClaim(sentence: string, exhibitOnScreen = false): boolean {
+  if (exhibitOnScreen && /\bexhibit\b/i.test(sentence)) return false;   // "this exhibit" may be the one already showing
+  return DELIVERY_CLAIM.test(sentence) || isHandoverAnnouncement(sentence) || (/^(?:take a look|let me (?:show|bring|put|pull))\b/i.test(sentence.trim()) && !sentence.includes(':'));
+}
+
 export function isHandoverAnnouncement(sentence: string): boolean {
   const s = sentence.trim();
   return !s.endsWith('?') && !s.includes(':') && HANDOVER_OPENER.test(s);

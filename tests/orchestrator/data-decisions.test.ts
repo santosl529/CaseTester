@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decideData, renderDataLines, decisionRows, labelMatch } from '@/lib/orchestrator/data-decisions';
+import { decideData, renderDataLines, decisionRows, labelMatch, outsideAskScope } from '@/lib/orchestrator/data-decisions';
 import { createLedger, reveal, type LedgerItem } from '@/lib/orchestrator/data-ledger';
 import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
 
@@ -90,7 +90,7 @@ describe('decideData', () => {
   });
 
   it('caps releases at three and defers the rest out loud', () => {
-    const d = decideData(base({ requests: [
+    const d = decideData(base({ exhibits: [], requests: [
       req({ what: 'stores', itemIds: ['stores_count'] }), req({ what: 'COGS', itemIds: ['cogs_pct'] }),
       req({ what: 'labor', itemIds: ['labor_pct'] }), req({ what: 'the ticket', itemIds: ['avg_ticket'] }),
     ] }));
@@ -244,7 +244,8 @@ describe('an empty item mapping is not proof the case lacks the data', () => {
   it('a deferral the model could not map is not a refusal: one generic line, no item promised', () => {
     const d = decideData(base({ requests: [req({ what: 'the number of stores over the two years', itemIds: [], respond: 'defer' })] }));
     expect(d.refusals).toEqual([]);
-    expect(renderDataLines(d, 's')).toEqual(["I'll come back to the data you've asked for once we've settled your structure."]);
+    // v4.10 (KF-4): nothing promised — the ask may name data the case doesn't have.
+    expect(renderDataLines(d, 's')).toEqual(["Let's settle your structure before we get into the data."]);
     expect(decisionRows(d)).toEqual([{ what: 'the number of stores over the two years', ledgerItemIds: [], response: 'defer', explicit: true }]);
   });
 
@@ -284,5 +285,62 @@ describe('repeat requests for data already released', () => {
     const l = revealedLedger('cogs_pct');
     const d = decideData(base({ ledger: l, shownExhibitIds: new Set(['exhibit-a']), requests: [req({ what: 'COGS', itemIds: ['cogs_pct'] })] }));
     expect(d.restates.map(r => r.id)).toEqual(['cogs_pct']);
+  });
+});
+
+// v4.10 (Rule 10): data an exhibit shows is released by showing it.
+describe('an ask for the data an exhibit shows gets the exhibit', () => {
+  it('two or more of its unreleased items in one explicit ask → the exhibit, not the values read aloud', () => {
+    const d = decideData(base({ requests: [req({ what: 'the cost breakdown', itemIds: ['cogs_pct', 'labor_pct'] })] }));
+    expect(d.exhibit?.id).toBe('exhibit-a');
+    expect(d.releases).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual(["Here's an exhibit: Cost Structure Over Time."]);
+  });
+  it('one of its items alone is read out; a passing mention shows nothing', () => {
+    expect(decideData(base({ requests: [req({ what: 'COGS', itemIds: ['cogs_pct'] })] })).exhibit).toBeNull();
+    expect(decideData(base({ requests: [req({ what: 'the cost lines', itemIds: ['cogs_pct', 'labor_pct'], explicit: false })] })).exhibit).toBeNull();
+  });
+  it('an exhibit already on screen is not shown again; a re-ask restates the values', () => {
+    const l = createLedger(ITEMS); reveal(l, 'cogs_pct'); reveal(l, 'labor_pct');
+    const d = decideData(base({ ledger: l, shownExhibitIds: new Set(['exhibit-a']), requests: [req({ what: 'the cost lines', itemIds: ['cogs_pct', 'labor_pct'] })] }));
+    expect(d.exhibit).toBeNull();
+    expect(d.restates.map(r => r.id)).toEqual(['cogs_pct', 'labor_pct']);
+  });
+});
+
+// v4.10: a qualified ask keeps its scope; synonyms and grouped asks untouched.
+describe('outsideAskScope', () => {
+  const L = (label: string, timeframes?: Record<string, string>) => ({ label, timeframes });
+  const COGS = L('COGS as % of revenue', { 58: 'current', 42: 'prior' });
+  const LABOR = L('Labor as % of revenue', { 22: 'both' });
+  const SHARE = L("Composition of COGS: coffee beans' share of COGS", { 25: 'prior' });
+  const OTHER_CHANGE = L('Price change of the other inputs (dairy, packaging, food) over 2 years', { 37.5: 'change' });
+  const TICKET = L('Average transaction value', { '6.80': 'current' });
+  const PER_STORE = L('Average revenue per store', { 2.4: 'current' });
+
+  it.each([
+    ['Variable-versus-fixed cost split within COGS and labor', COGS],   // Tyler t19 (batch 18)
+    ['Variable-versus-fixed cost split within COGS and labor', LABOR],
+    ['transaction volume per store', TICKET],                             // Yuki t13
+    ['the split of COGS by input', OTHER_CHANGE],                         // the batch-18 over-map (7 runs)
+    ['the COGS breakdown by input', OTHER_CHANGE],
+    ['green coffee cost per pound by year', SHARE],
+  ])('out of scope: "%s"', (what, item) => {
+    expect(outsideAskScope(what, item)).toBe(true);
+  });
+
+  it.each([
+    ['the cost breakdown', COGS],                                         // a grouped ask covers the lines
+    ['the cost breakdown by category for both years', LABOR],
+    ['the COGS split by input', SHARE],                                   // the composition is the split
+    ['the COGS split by input and the price trend on each', OTHER_CHANGE],
+    ['COGS split by input and how each moved', OTHER_CHANGE],
+    ['the cost breakdown by component, then versus now', OTHER_CHANGE],
+    ['cost of goods sold', COGS],                                         // a synonym
+    ['COGS by year', COGS],
+    ['revenue per store', PER_STORE],
+    ['whether the 15% revenue growth is total or per store', L('Total annual revenue', { 480: 'current' })],
+  ])('in scope: "%s"', (what, item) => {
+    expect(outsideAskScope(what, item)).toBe(false);
   });
 });

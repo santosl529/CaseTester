@@ -34,7 +34,10 @@ export function withholdAssumptionChallenges(
   const kept = sentences.filter(sentence => {
     if (!ASSUMPTION_CHALLENGE.test(sentence)) return true;
     const words = new Set(sentence.toLowerCase().split(/[^a-z]+/).filter(Boolean).map(stem));
-    const item = openItems.find(i => labelTokens(i.label).some(t => words.has(t)));
+    // The open item the sentence names best (most label words), not the first
+    // that shares one: two labels may share "price" (v4.10 relabelled prof-001).
+    const scored = openItems.map(i => ({ i, n: labelTokens(i.label).filter(t => words.has(t)).length })).filter(x => x.n > 0);
+    const item = scored.sort((a, b) => b.n - a.n)[0]?.i;
     if (!item) return true;
     withheld.push({ sentence, ledgerItemId: item.ledgerItemId });
     return false;

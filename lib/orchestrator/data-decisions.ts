@@ -19,8 +19,11 @@ export const RELEASE_CAP = 3;
 // The lead-in for data said again on an explicit re-ask.
 export const RESTATE_LEADIN = 'As I mentioned:';
 
-// Spec 2026-10-07 §4's line for asks code can't map while the structure is open.
-export const UNMAPPED_DEFER_LINE = "I'll come back to the data you've asked for once we've settled your structure.";
+// Spec 2026-10-07 §4's line for asks code can't map while the structure is
+// open. v4.10 (KF-4): it promises nothing — the ask may name data the case
+// doesn't have; it is put to the interviewer again once the structure is
+// settled (plan-turn.ts unmappedToResolve), to map or decline then.
+export const UNMAPPED_DEFER_LINE = "Let's settle your structure before we get into the data.";
 
 // Resolves a declared id to a canonical one. Exact only — an id or a
 // label / title, ignoring case and punctuation: a partial match could release
@@ -70,6 +73,49 @@ export function labelMatch(what: string, items: { id: string; label: string; tim
   return hits.length === 1 ? hits[0].id : null;
 }
 
+// Qualifiers keep their scope (v4.10; batch 18: Tyler's "variable-versus-fixed
+// split within COGS and labor" was mapped to the COGS and labor lines and got
+// nothing, logged as answered; Derek's "per-pound and per-gallon costs" got the
+// bean share). An item is outside an ask's scope when the ask wants
+//   - a split of that very item ("a breakdown of COGS", "the split within
+//     COGS") and the item is the whole, not a part of it — "the cost
+//     breakdown" still covers the cost lines, and "the COGS split" still
+//     covers COGS's composition; or
+//   - a cut the item doesn't have ("per pound", "by store", "by month") — a
+//     cut its label or periods carry ("revenue per store", "by year") is fine.
+// Synonyms and grouped asks are untouched: this only removes items, and only
+// on a qualifier the item can't answer. What remains unmapped is refused as
+// the case not having it (the qualified data truly isn't there).
+const SPLIT_WORDS = String.raw`(?:split|breakdown|break-?down|decomposition|components?|composition|mix|makeup|make-up|detail)`;
+const HEAD_NOUN = (label: string) => label.toLowerCase().replace(/[^a-z0-9% ]+/g, ' ').split(/\s+/).find(w => w.length >= 3 && !['the', 'average', 'total', 'number'].includes(w)) ?? '';
+const CUT = /\b(?:per|by|for each)\s+(pound|lb|gallon|sku|product|store|location|region|market|month|quarter|week|day|daypart|channel|customer|segment|supplier|year)s?\b|\b(variable|fixed)\b/i;
+const PART_LABEL = /\b(?:share|split|composition|breakdown|mix|component)\b/i;
+const CHANGE_LABEL = /\b(?:change|changes|growth|increase|inflation|trend)\b/i;
+const MOVEMENT_ASK = /\b(?:chang\w*|mov\w*|grow\w*|grew|increas\w*|inflat\w*|trend\w*|rose|risen|went up|over (?:time|the (?:two )?years)|year[- ]over[- ]year|both years|each year|price (?:trend|history|movement)|then (?:versus|vs\.?|and) now|(?:versus|vs\.?) (?:now|today)|before and after)\b/i;
+
+export function outsideAskScope(what: string, item: { label: string; timeframes?: Record<string, string> }): boolean {
+  const ask = what.toLowerCase();
+  const head = HEAD_NOUN(item.label);
+  if (!head) return false;
+  const label = item.label.toLowerCase();
+  // A split of the item itself: "<split> of/within/inside <head>", "within <head>", "<head> <split>".
+  const splitOfHead = new RegExp(String.raw`\b${SPLIT_WORDS}\s+(?:of|within|inside|in|for)\s+(?:the\s+)?(?:[\w&-]+\s+){0,3}?${head}\b|\b(?:within|inside)\s+(?:the\s+)?${head}\b|\b${head}\s+${SPLIT_WORDS}\b`, 'i');
+  if (splitOfHead.test(ask) && !PART_LABEL.test(label)) return true;
+  // A split / composition ask is about the parts, not how they moved: a
+  // change item ("price change of the other inputs") is in scope only when the
+  // ask also asks about movement ("…and how each moved", "the price trend").
+  // Batch 18: "the split of COGS by input" released the 37.5% price change in 7 runs.
+  if (new RegExp(String.raw`\b${SPLIT_WORDS}\b`, 'i').test(ask) && CHANGE_LABEL.test(label) && !MOVEMENT_ASK.test(ask)) return true;
+  const cut = CUT.exec(ask);
+  // "total or per store" asks for either: the uncut figure is in scope.
+  if (cut && !/\b(?:total|overall|in total)\s+(?:or|and)\b|\b(?:or|and)\s+(?:in\s+)?total\b/.test(ask)) {
+    const dim = (cut[1] ?? cut[2] ?? '').toLowerCase();
+    if (dim === 'year') return Object.values(item.timeframes ?? {}).length === 0 && !/\byear/.test(label);
+    if (!label.includes(dim)) return true;
+  }
+  return false;
+}
+
 export type ExhibitInfo = { id: string; title: string; coversLedgerItems?: string[] };
 
 export type DataDecisions = {
@@ -101,12 +147,16 @@ export function decideData(p: {
   const exhibitById = new Map(p.exhibits.map(e => [e.id, e]));
   const openIds = new Set(p.open.map(o => o.ledgerItemId));
 
-  // Exhibit: one per turn — a requested one first, else the model's handover.
-  const requestedExhibit = p.requests
-    .filter(r => r.explicit && r.respond === 'release')
-    .flatMap(r => r.itemIds)
-    .find(id => exhibitById.has(id) && !p.shownExhibitIds.has(id));
-  const exhibitId = requestedExhibit ?? (p.exhibit && exhibitById.has(p.exhibit) && !p.shownExhibitIds.has(p.exhibit) ? p.exhibit : null);
+  // Exhibit: one per turn — a requested one first; then one whose data the ask
+  // covers (v4.10, Rule 10: data an exhibit shows is released by showing it —
+  // batch 18 read the cost lines aloud and never showed the chart in 8 runs;
+  // two or more of its items, still unreleased, in one explicit ask); else the
+  // model's handover.
+  const explicitIds = p.requests.filter(r => r.explicit && r.respond === 'release').flatMap(r => r.itemIds);
+  const requestedExhibit = explicitIds.find(id => exhibitById.has(id) && !p.shownExhibitIds.has(id));
+  const coveringExhibit = p.exhibits.find(e => !p.shownExhibitIds.has(e.id)
+    && (e.coversLedgerItems ?? []).filter(id => explicitIds.includes(id) && canReveal(p.ledger, id)).length >= 2)?.id;
+  const exhibitId = requestedExhibit ?? coveringExhibit ?? (p.exhibit && exhibitById.has(p.exhibit) && !p.shownExhibitIds.has(p.exhibit) ? p.exhibit : null);
   const exhibit = exhibitId
     ? { id: exhibitId, title: exhibitById.get(exhibitId)!.title, covers: exhibitById.get(exhibitId)!.coversLedgerItems ?? [] }
     : null;

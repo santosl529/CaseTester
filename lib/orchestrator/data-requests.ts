@@ -223,6 +223,15 @@ ${lines}
 Declare each in "requests" with respond "release" as soon as the candidate has earned it. The system releases any still open before it asks for the recommendation.`;
 }
 
+// Asks held while the structure was open that named no case item (v4.10,
+// KF-4): put back to the interviewer once, the turn after the gate closes, to
+// map to case data or declare as not in the case. Never promised meanwhile.
+export function formatUnmappedHint(whats: string[]): string | undefined {
+  if (whats.length === 0) return undefined;
+  return `ASKED EARLIER, NOT ANSWERED YET (held while the structure was open; no case item was named): ${whats.map(w => `"${w}"`).join('; ')}.
+Declare each in "requests" now: the item_ids that cover it, or [] if the case doesn't have it — the system answers them.`;
+}
+
 // Which open requests to force-release on a recommendation-ask turn: not
 // already revealed (including reveals made earlier this turn), capped so a
 // wrap-up turn never becomes a data monologue. What the candidate asked for in
