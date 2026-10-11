@@ -393,19 +393,18 @@ describe('the grading call', () => {
     expect(r.grades.get('a1')!.red_flags.no_clear_position.pass).toBe(false);
   });
 
-  it('grades answers one at a time when a batch keeps coming back incomplete', async () => {
+  it('grades each answer in its own call, with only that answer in the prompt', async () => {
     const two = [entry('Do not enter Canada.'), { ...entry('Do not enter.'), key: 'a2' }];
-    let calls = 0;
+    const prompts: string[] = [];
     const call: CallModel = async (_system, user) => {
-      calls++;
-      const keys = [...user.matchAll(/<item key="([^"]+)"/g)].map(m => m[1]);
-      // A whole batch always leaves out the second answer; single answers come back whole.
-      const items = keys.map(k => ({ ...reply(false, '').items[0], item_key: k }));
-      return { output: { items: keys.length > 1 ? items.slice(0, 1) : items }, usage };
+      prompts.push(user);
+      return { output: { items: [{ ...reply(false, '').items[0], item_key: user.match(/<item key="([^"]+)"/)![1] }] }, usage };
     };
     const r = await gradeSet(two, call);
     expect([...r.grades.keys()].sort()).toEqual(['a1', 'a2']);
-    expect(calls).toBe(5);
+    expect(prompts).toHaveLength(2);
+    // One answer per prompt, always under the same label: position and ids never reach the grader.
+    for (const p of prompts) expect(p.match(/<item key="[^"]+"/g)).toEqual(['<item key="answer"']);
   });
 });
 

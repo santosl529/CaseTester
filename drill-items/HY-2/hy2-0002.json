@@ -103,7 +103,7 @@
     },
     {
       "check_id": "update_reason",
-      "question": "Does the explanation for keeping, revising or dropping the hypothesis use the new fact (\"In stores that kept it in stock, repeat purchases matched the brand's other flavors. But 40% of stores ran out within two weeks and weren't restocked for a month.\")?",
+      "question": "Does the stage 2 explanation use the new fact (\"In stores that kept it in stock, repeat purchases matched the brand's other flavors. But 40% of stores ran out within two weeks and weren't restocked for a month.\"), its content or a number from it, and draw a conclusion from it about the hypothesis? A short conclusion is enough (\"so it's the rainy days\", \"which confirms it\", \"so it's slow delivery, not the food\"). Restating the fact with no conclusion fails.",
       "weight": 0.15,
       "fail_tag": "M.sticky_hypothesis",
       "feedback": "Use the new fact to explain your decision.",
@@ -139,7 +139,7 @@
       "evidence": "whole"
     }
   ],
-  "model_answer": "Stage 1: With sales falling 30% a month, shoppers who try lemon likely don't like it enough to buy it again. I'd compare repeat-purchase rates for lemon with the brand's other flavors.\nStage 2: Drop: where lemon stayed in stock, repeat buying matched other flavors. The fall comes from stock-outs in 40% of stores.",
+  "model_answer": "Stage 1: Lemon reached only 60% of its first-month target and has fallen 30% a month since, likely because shoppers who try it don't like it enough to rebuy. I'd compare repeat-purchase rates for lemon with the brand's other flavors.\nStage 2: Drop: where lemon stayed in stock, repeat buying matched other flavors. The fall comes from stock-outs in 40% of stores.",
   "explanation": "The new fact: In stores that kept it in stock, repeat purchases matched the brand's other flavors. But 40% of stores ran out within two weeks and weren't restocked for a month. Customers don't like it: drop (Repeat buying matched other flavors where it was in stock). Stock-outs: keep (40% of stores ran out and weren't restocked for a month). Price too high: drop (Shoppers who could find it rebought at the usual rate). Weak awareness: revise (Awareness may limit trial, but the monthly fall tracks the stock-outs).",
   "extras": {
     "families": [
@@ -174,8 +174,8 @@
       "Evidence-based: the hypothesis uses at least one given fact and contradicts none. A cause that a given fact rules out fails.",
       "Testable: it names the data or comparison that would confirm or reject it (\"units per customer by month\"). \"Look into it\" or \"analyze the data\" is not enough.",
       "Tentative: it is framed as something to check (\"likely\", \"my hypothesis is\", \"I would test\") while leading with one cause. Stating it as settled fact fails; so do two causes with neither as the lead.",
-      "Update reason: it uses the new fact (its content or its number) and says what it means for the hypothesis. Restating the decision (\"I keep it because it still makes sense\") fails, and so does a fix with no hypothesis behind it (\"so reopen them\").",
-      "Hypothesis family: classify stage 1 by its mechanism, not its wording. If it names a lead cause and a backup, use the lead.",
+      "Update reason: it uses the new fact (its content or its number) and draws a conclusion from it about the hypothesis. A short conclusion is enough (\"so it's the rainy days\", \"which confirms it\", \"so it's slow delivery, not the food\"). Restating the fact with no conclusion fails, restating the decision (\"I keep it because it still makes sense\") fails, and so does a fix with no hypothesis behind it (\"so reopen them\").",
+      "Hypothesis family: classify the stage 1 answer only, never the stage 2 explanation, by its mechanism, not its wording. If it names a lead cause and a backup, use the lead; when causes are joined by \"or\", the first is the lead. If it names several causes and none leads, the family is \"other\".",
       "Off-topic: stage 1 offers no cause for what happened, for example it proposes a fix or answers a different question. Restating the facts is the restates_facts red flag instead.",
       "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
     ]

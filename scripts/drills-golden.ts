@@ -16,8 +16,8 @@ import { itemSteps, type StepResult } from '@/lib/drills/sets/scoring';
 
 const GATE = 0.9;
 const MIN_ANSWERS = 30;
-// Answers per grading call: 4 like a drill set, or --batch 1 to grade each alone.
-const BATCH = process.argv.includes('--batch') ? Number(process.argv[process.argv.indexOf('--batch') + 1]) : 4;
+// Answers sent at once. Each is still graded in its own call, as in a drill set.
+const BATCH = 4;
 const only = process.argv.includes('--drill') ? process.argv[process.argv.indexOf('--drill') + 1] : null;
 
 const readDir = <T>(dir: string, parse: (raw: unknown) => T): T[] =>

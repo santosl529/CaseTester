@@ -5,9 +5,11 @@
 Live: PS-1, HY-1, EX-1, SY-1, CL-1 (225 authored items approved; shared CaseTester database, in sync with /drill-items). D2 drills are built but off until Matt's content arrives.
 
 Open items, in order:
-1. **Matt to check every graded answer** (PS-3, HY-2, SY-2, CL-3; all Claude's, see "Who graded the D2 answers"), then approve HY-2, SY-2, CL-3, QN-5 questions, and ps3-0003 v2 / ps3-0007 v2 (model-framework fixes).
-2. **Grader instability in batches (decision for Matt):** the same perfect answer can lose 15–40 points depending on which answers share its grading call (HY-2 worst: 7–11 of 41 model answers below 100% in batches of 4, different ones each run; 2 of 41 graded alone). Grading alone fixes that but shifts calibration: HY-2 update_reason falls to 74% and CL-3 specific_requests to 77% on the golden sets. Production stays at one call per set (PRD) until decided. Next step proposed: look at why those two checks change when graded alone, then re-run both modes.
-3. **Next build phase:** D3 (the loop).
+1. **API credit ran out (2026-10-11)** during the final gate runs. After topping up: re-run `npm run drills:golden` for HY-2, SY-2 and CL-3 on grader v12 (PS-3 already passed on v12), and fix the 5 model answers below, then `npm run drills:models -- --runs 3`.
+2. **5 draft model answers below 100% on grader v12** (consistent across 3 runs): hy2-0025 and hy2-0034 (update_reason), hy2-0029 (tentative), cl3-0005 (specific_requests), cl3-0040 (driver_2, specific_requests). Each prompt change shifts a few borderline model answers; `drills:models` catches them.
+3. **Matt to check every graded answer** (all Claude's). Flagged: hy2-0006-a and hy2-0017-a update_reason should be N under rule 5; hy2-0020-a (misread conclusion); hy2-0013-a and hy2-0015-a families; rule 6's "first of 'or' causes is the lead".
+4. **Approvals pending:** HY-2, SY-2, CL-3, QN-5 questions.
+5. **Next build phase:** D3 (the loop); Matt asked what's next, D3 offered.
 
 How Matt likes to work: plain, short explanations; he reviews items on `drill-review.html` (`npm run drills:review`, "Waiting for your review" box) and sends decisions by item ID; commit and push to `drills` when asked (GitHub push works).
 
@@ -172,3 +174,18 @@ How Matt likes to work: plain, short explanations; he reviews items on `drill-re
 - Found: ps3-0003 (law firm; fifth bucket "How spending is approved" not in the key, overlaps outside services) and ps3-0007 (blood center; "peaks" in two buckets). Fixed as v2 drafts (v1 stays live). Importer now keeps a draft's version number. 17 HY-2/SY-2/CL-3 draft model answers fixed (missing CL-3 drivers, stage 1 not using a given fact, two causes with no lead, hy2-0035 decision contradicting its own family, hy2-0032 reason not saying what the fact means); all re-passed similarity.
 - QN-5 ranges per Matt: bananas 25–100, electricity 13–22¢. qn5-0022 means the world (card and prompt both say so); looked up Cirium Oct 2024 (26,100 aircraft of 30+ seats in service incl. some freighters) and set 22,000–27,000 with the link.
 - `--batch N` option on drills:models and drills:golden for the batching experiment.
+
+## One grading call per answer (2026-10-11)
+
+- Matt: a score must never depend on other answers; switch to one call per answer; PRD updated (grading call, cost controls, drill scoring lines, overview). `gradeSet` grades each answer in its own call, in parallel; the batch-incomplete fallback is gone. Grader runs at temperature 0 (confirmed). Prompt versions v9 (mode) → v11 (wording below).
+- ps3-0003 v2 and ps3-0007 v2 approved and live (v1 retired). QN-5 ranges approved.
+- Checks that fell when graded alone: HY-2 update_reason (grader wanted an explicit conclusion) and CL-3 specific_requests (grader counted the driver breakdown as vague requests). Check questions and rules now say a short conclusion counts / the breakdown isn't a request, with examples. CL-3 specific_requests 77% → 90%; HY-2 update_reason 74% → 87% (see open item 1). HY-2 rule 6 now says: classify stage 1 only; several causes with no lead is "other"; first of "or" causes is the lead; family back to 94%.
+- Gates in the new mode: PS-3, SY-2, CL-3 pass (all ≥90%); HY-2 passes except update_reason 87%.
+- `drills:models --runs N` reports model answers whose score changes between runs.
+
+## Consistency and neutral labels (2026-10-11)
+
+- Grader runs at temperature 0 (confirmed in `anthropicCaller`). Every model answer graded 3 times on v11 and on v12: no score changed between runs on either (on v10, 2 of 154 had: hy2-0016, hy2-0030, both fixed).
+- Every grading call now labels the answer "answer" (was the item id in scripts and a1–a4 by position in production): the label alone shifted hy2-0015's grade, so position and ids no longer reach the grader. Grader `drills-grader-v12`.
+- 18 more draft model answers rewritten (HY-2 stage 2 conclusions, CL-3 breakdown phrasing, etc.), all re-passed similarity.
+- Gates on v12: PS-3 passes (all ≥90%); HY-2, SY-2, CL-3 not yet run (credit).

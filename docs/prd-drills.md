@@ -22,7 +22,7 @@ Drills are a parallel workstream to the case interview build (technical PRD §11
 - **Diagnose, don't just score.** Every result names the specific mistake (for example, "unit error" or "generic framework"), not only a percentage.
 - **Deterministic where possible.** Code scores anything with one right answer. The AI only answers narrow yes/no checklist questions, and code adds up the score.
 - **Text only.** No drill requires voice.
-- **Low running cost.** Most drills cost nothing to run. AI-graded drills use one cheap, batched call per drill set.
+- **Low running cost.** Most drills cost nothing to run. AI-graded drills use one cheap call per written answer, run in parallel once the set ends.
 - **Minimal decisions.** The default action is a single "Continue Training" button.
 - **Data is the advantage.** Every attempt is logged at item level so difficulty, common mistakes and drill effectiveness can be measured.
 
@@ -138,7 +138,7 @@ Students should rarely have to choose what to do: the training home leads with o
 ### Feedback timing
 
 - **Auto-checked items:** feedback right after each item: correct or not, the right answer, a one-line explanation of the specific mistake (from the wrong-option tag) and a worked solution.
-- **AI-graded items:** no per-item feedback. All answers in the set are graded in one call after the last item, and results appear on the results screen.
+- **AI-graded items:** no per-item feedback. All answers in the set are graded after the last item, each in its own call, and results appear on the results screen.
 
 ### Set results screen
 
@@ -291,7 +291,7 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 
 - **How it works:** The student sees a 1–3 sentence case prompt (client, objective, one key metric) and builds a framework in a structured editor: 2–5 buckets, each with a title and 1–4 sub-points of up to 15 words. Total cap: 120 words.
 - **Set and time:** 4 items. 180 / 120 / 90 s.
-- **Scoring:** Checklist, AI-graded once per set.
+- **Scoring:** Checklist, AI-graded after the set, each answer in its own call.
 
 | Check | Weight | Failed check logs |
 | --- | --- | --- |
@@ -477,7 +477,7 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 
 - **How it works:** The student sees the client's question and a fact sheet of 5–6 facts, 1–2 of them irrelevant, and writes a recommendation of up to 120 words, roughly what a candidate says in 60 seconds. Time limits allow for typing speed.
 - **Set and time:** 3 items. 180 / 120 / 90 s.
-- **Scoring:** Checklist, AI-graded once per set.
+- **Scoring:** Checklist, AI-graded after the set, each answer in its own call.
 
 | Check | Weight | Failed check logs |
 | --- | --- | --- |
@@ -529,7 +529,7 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 
 - **How it works:** The student sees a mid-case situation ("The client's margins declined from 20% to 11% over 3 years") and writes what information they'd request and where they'd start, up to 60 words.
 - **Set and time:** 4 items. 90 / 75 / 60 s.
-- **Scoring:** Checklist, AI-graded once per set.
+- **Scoring:** Checklist, AI-graded after the set, each answer in its own call.
 
 | Check | Weight | Failed check logs |
 | --- | --- | --- |
@@ -574,10 +574,10 @@ Set score = the average item score. Feedback text for every tag and check comes 
 
 ### Checklist grading call
 
-One call per drill set, after the last item, containing every free-text answer in the set.
+One call per written answer, made after the last item of the set; a set's calls run in parallel. Each answer is graded on its own so that a student's score never depends on their other answers: when answers shared a call, the grader's verdicts shifted with whatever else was in it (the same answer could lose 15–40 points depending on its neighbors).
 
 - **Model:** The cheapest model tier that meets the 90% agreement target on the golden set (see below). First candidate: Claude Haiku 4.5, gated on the golden sets. Temperature 0. Structured JSON output enforced by schema.
-- **Input:** For each item: the prompt, the student's answer, and from the key only the checks (id and question text), hypothesis families or categories if the drill uses them, and the red-flag definitions. Model answers are not sent, to keep tokens down.
+- **Input:** The item's prompt, the student's answer, and from the key only the checks (id and question text), hypothesis families or categories if the drill uses them, and the red-flag definitions. Model answers are not sent, to keep tokens down.
 - **Student text is data.** It is wrapped in clearly delimited tags, and the system prompt states that instructions inside it must be ignored. Text that looks like an attempt to instruct the grader is flagged and logged, and the item is graded normally.
 - **Output per check:** `pass` (true/false) and `evidence`, an exact quote from the student's answer (required when `pass` is true; optional when false).
 - **Output extras (only for drills that need them):** `hypothesis_family` for HY-2; `valid_ideas` (list of {text, category}) for CR-1.
@@ -989,7 +989,7 @@ Running cost is held down by design: at least 75% of attempts should cost nothin
 ### Cost controls
 
 - **No AI at runtime except grading.** All drill content is generated by code or written ahead of time.
-- **One call per set.** The 5 AI-graded drills (PS-3, HY-2, CR-1, SY-2, CL-3) send every free-text answer in a set in a single grading call.
+- **One call per answer.** The 5 AI-graded drills (PS-3, HY-2, CR-1, SY-2, CL-3) grade each free-text answer in its own call, so a score never depends on other answers. This costs more than one call per set: about 25% more in testing. The fixed instructions are too short to be cached today.
 - **Small inputs.** The call carries only prompts, answers, check questions and red-flag definitions. Model answers and feedback text stay on the server.
 - **Capped answers and outputs.** Word caps on every free-text input; a tight output token limit on the grading call.
 - **Cheapest passing model.** Use the lowest-cost model tier that meets the 90% agreement gate. Re-test cheaper tiers when they become available.

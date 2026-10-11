@@ -1,5 +1,5 @@
 // The checklist grading call (docs/prd-drills.md "Checklist grading call"):
-// one model call per drill set with every written answer in it. The model
+// one model call per written answer, all of a set's calls in parallel. The model
 // answers each yes/no check and quotes the student's words as evidence; it
 // never outputs a score. Student text is data, wrapped in tags the grader is
 // told never to take instructions from. Code then verifies every quote and
@@ -15,7 +15,7 @@ import { answerText, itemSteps, type StepResult } from '../sets/scoring';
 import type { ItemGrade } from './apply';
 
 // Bump on any change to the prompt or output schema; stored on every grade.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v8';
+export const GRADER_PROMPT_VERSION = 'drills-grader-v12';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 
@@ -167,17 +167,23 @@ export function familyName(item: Item, raw: string | null): string | null {
 
 export class GradingError extends Error {}
 
-// Grades a set's written answers. Malformed or incomplete output is retried
-// up to twice (PRD "Schema validation"), then each answer is graded on its
-// own; items with unverified quotes are
+// Grades a set's written answers, each in its own call (PRD "Checklist
+// grading call"): a student's score must never depend on their other
+// answers, and the grader's verdicts shifted with whatever shared its call.
+// The calls run in parallel. Malformed or incomplete output is retried up to
+// twice (PRD "Schema validation"); an answer with unverified quotes is
 // re-asked once, then those checks count as failed and are flagged for QA.
+const ANSWER_KEY = 'answer';
+
 export async function gradeSet(entries: GradingEntry[], call: CallModel = anthropicCaller()): Promise<SetGrade> {
   const usage: GradingUsage = { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0, calls: 0 };
-  const ask = async (batch: GradingEntry[], attempts: number, note = '') => {
+  const ask = async (e: GradingEntry, attempts: number, note = '') => {
     let last: unknown;
     for (let i = 0; i < attempts; i++) {
       try {
-        const res = await call(SYSTEM, `<items>\n${batch.map(buildItemBlock).join('\n\n')}\n</items>${note}`);
+        // The same label in every call, so nothing about the answer's place in
+        // the set (or its id) can reach the grader.
+        const res = await call(SYSTEM, `<items>\n${buildItemBlock({ ...e, key: ANSWER_KEY })}\n</items>${note}`);
         usage.calls++;
         for (const k of Object.keys(res.usage) as (keyof typeof res.usage)[]) usage[k] += res.usage[k];
         const out = res.output && OutputSchema.safeParse(res.output);
@@ -187,54 +193,40 @@ export async function gradeSet(entries: GradingEntry[], call: CallModel = anthro
           for (const c of o.checks) c.check_id = cleanId(c.check_id);
           for (const f of o.red_flags) f.id = cleanId(f.id);
         }
-        const gaps = batch.flatMap(e => missing(e, out.data.items.find(o => o.item_key === e.key)));
-        if (gaps.length === 0) return new Map(out.data.items.map(o => [o.item_key, o]));
+        // One item per call: take it even if the key came back altered.
+        const item = out.data.items.find(o => o.item_key === ANSWER_KEY) ?? (out.data.items.length === 1 ? out.data.items[0] : undefined);
+        const gaps = missing(e, item);
+        if (item && gaps.length === 0) return item;
         last = new Error(`grader output left out: ${gaps.join(', ')} (returned keys: ${out.data.items.map(o => o.item_key).join(', ')})`);
-      } catch (e) {
-        last = e;
+      } catch (err) {
+        last = err;
       }
     }
     throw new GradingError(last instanceof Error ? last.message : String(last));
   };
 
-  let results: Map<string, Output['items'][number]>;
-  try {
-    results = await ask(entries, 3);
-  } catch (e) {
-    // At temperature 0 a batch can come back incomplete every time (seen with
-    // an injection answer in the batch); the same answers graded one at a
-    // time come back whole.
-    if (entries.length === 1) throw e;
-    results = new Map();
-    for (const entry of entries) for (const [k, v] of await ask([entry], 2)) results.set(k, v);
-  }
-  const firstBad = new Map(entries.map(e => [e.key, badQuotes(e, results.get(e.key)!)]));
-  const retry = entries.filter(e => firstBad.get(e.key)!.length > 0);
-  if (retry.length) {
-    // The same request at temperature 0 would get the same quotes back, so
-    // say which ones weren't found.
-    const notFound = retry.flatMap(e => {
-      const out = results.get(e.key)!;
+  const gradeOne = async (e: GradingEntry): Promise<ItemGrade> => {
+    let out = await ask(e, 3);
+    const firstBad = badQuotes(e, out);
+    if (firstBad.length) {
+      // The same request at temperature 0 would get the same quotes back, so
+      // say which ones weren't found.
       const quotes = new Map([...out.checks.map(c => [c.check_id, c.evidence] as const), ...out.red_flags.map(f => [f.id, f.evidence] as const)]);
-      return firstBad.get(e.key)!.map(id => `- item "${e.key}", "${id}": ${quotes.get(id) ? `"${fence(quotes.get(id)!)}"` : 'no quote given'}`);
-    });
-    const note = `\n\nIn your last grading, these quotes were not found word for word in the student's answer:\n${notFound.join('\n')}\nGrade again. Copy every quote exactly; put " … " between parts from different places.`;
-    const again = await ask(retry, 1, note).catch(() => null);
-    if (again) for (const e of retry) results.set(e.key, again.get(e.key)!);
-  }
-
-  const grades = new Map<string, ItemGrade>();
-  for (const e of entries) {
-    const out = results.get(e.key)!;
+      const notFound = firstBad.map(id => `- "${id}": ${quotes.get(id) ? `"${fence(quotes.get(id)!)}"` : 'no quote given'}`);
+      const note = `\n\nIn your last grading, these quotes were not found word for word in the student's answer:\n${notFound.join('\n')}\nGrade again. Copy every quote exactly; put " … " between parts from different places.`;
+      out = (await ask(e, 1, note).catch(() => null)) ?? out;
+    }
     const bad = new Set(badQuotes(e, out));
-    grades.set(e.key, {
+    return {
       checks: Object.fromEntries(out.checks.map(c => [c.check_id, { pass: c.pass && !bad.has(c.check_id), evidence: c.evidence }])),
       red_flags: Object.fromEntries(out.red_flags.map(f => [f.id, { pass: f.present && !bad.has(f.id), evidence: f.evidence }])),
       family: familyName(e.item, out.hypothesis_family),
       injection_suspected: out.injection_suspected,
       qa_flags: [...bad],
-    });
-  }
+    };
+  };
+
+  const grades = new Map(await Promise.all(entries.map(async e => [e.key, await gradeOne(e)] as const)));
   const p = DRILL_GRADER_PRICE;
   const cost = (usage.input_tokens * p.input + usage.output_tokens * p.output
     + usage.cache_creation_input_tokens * p.cache_write + usage.cache_read_input_tokens * p.cache_read) / 1_000_000;

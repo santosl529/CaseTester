@@ -66,13 +66,16 @@ The update decision (keep, revise or drop) is HY-2's critical element. Code scor
 4. **(grader)** Tentative: it is framed as something to check ("likely", "my hypothesis is", "I would test") while leading with one cause. Stating it as settled fact fails; so do two causes with neither as the lead.
    - *hy2-0019-a:* "Refill sales are low because few stores stock refills." is stated as settled fact.
    - *hy2-0004-a:* price leads and weather is a "maybe", so it passes.
-5. **(grader)** Update reason: it uses the new fact (its content or its number) and says what it means for the hypothesis. Restating the decision ("I keep it because it still makes sense") fails, and so does a fix with no hypothesis behind it ("so reopen them").
+5. **(grader)** Update reason: it uses the new fact (its content or its number) and draws a conclusion from it about the hypothesis. A short conclusion is enough ("so it's the rainy days", "which confirms it", "so it's slow delivery, not the food"). Restating the fact with no conclusion fails, restating the decision ("I keep it because it still makes sense") fails, and so does a fix with no hypothesis behind it ("so reopen them").
    - *hy2-0025-a:* "Yes." fails.
+   - *hy2-0004-a:* "so it's mostly the rainy days" is a conclusion, so it passes; *hy2-0006-a:* "Waste went from 2% to 9%" only restates the fact, so it fails.
    - *hy2-0008-a*, *hy2-0023-a*, *hy2-0036-a:* fixes ("so reopen them") fail.
    - *hy2-0020-a:* uses the new fact but misreads it: the reason passes, and the decision check catches the wrong update.
-6. **(grader)** Hypothesis family: classify stage 1 by its mechanism, not its wording. If it names a lead cause and a backup, use the lead.
+6. **(grader)** Hypothesis family: classify the stage 1 answer only, never the stage 2 explanation, by its mechanism, not its wording. If it names a lead cause and a backup, use the lead; when causes are joined by "or", the first is the lead. If it names several causes and none leads, the family is "other".
    - *hy2-0027-a:* "losing shoppers ... or it lost shelf space" is classified by its lead, losing shoppers.
    - *hy2-0015-a:* "Price elasticity." is the price family by its mechanism.
+   - *hy2-0010-a:* four causes with no lead is "other".
+   - *example-hy2-01-a:* "cut prices to win new customers" is Lower prices; its stage 2 doesn't change that.
 7. **(grader)** Off-topic: stage 1 offers no cause for what happened, for example it proposes a fix or answers a different question. Restating the facts is the restates_facts red flag instead.
    - *hy2-0008-a*, *hy2-0023-a*, *hy2-0036-a:* fixes or policy proposals with no cause.
 8. **(grader)** Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item.
@@ -138,8 +141,9 @@ Each question marks one driver as critical: the one to start with. An answer tha
 4. **(grader)** Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). "Because it's important" fails.
    - *cl3-0021-a:* says where to start but not why.
    - *cl3-0004-a:* "since the cars are older" uses the situation, so it passes.
-5. **(grader)** Specific requests: every data request names a metric plus a cut or a time period ("ingredient cost per cup by month for two years"). One vague request ("information about costs") fails the check.
+5. **(grader)** Specific requests: judge only the data the answer asks to see. Drivers listed to break the metric down ("profit is revenue minus marketing and content costs", "I'd look at price, mix and costs") are the breakdown, not requests. Every request must name a metric plus a cut or a time period ("ingredient cost per cup by month for two years"); one vague request ("information about costs") fails the check.
    - *cl3-0004-a:* "maintenance costs and fuel costs" name no cut or period.
+   - *cl3-0026-a:* "Profit is revenue minus marketing, content, instructor and platform costs" is the breakdown; its one request names a metric, a cut and a period, so it passes.
    - *cl3-0029-a:* drivers named as the breakdown aren't requests; its one request is specific.
 6. **(grader)** Solution before diagnosis: the answer proposes fixes ("cut staff", "raise prices") before finding the cause. A hypothesis to test is not a solution.
    - *cl3-0008-a*, *cl3-0016-a*, *cl3-0027-a:* fixes proposed with no diagnosis.
