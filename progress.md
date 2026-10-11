@@ -2,15 +2,20 @@
 
 ## Start here (updated 2026-10-11)
 
-**Status.** All 15 MVP drills are live: ten at Level 1 (PS-1, HY-1, EX-1, SY-1, CL-1, plus generated QN-1, QN-3, QN-4, EX-2, EX-3) and the five D2 drills (PS-3, HY-2, SY-2, CL-3, QN-5). Phases D0–D2 are done. Everything is committed and pushed to `drills`. Database (shared CaseTester Supabase project) is in sync with `/drill-items`.
+**Status.** All 15 MVP drills are live: ten at Level 1 (PS-1, HY-1, EX-1, SY-1, CL-1, plus generated QN-1, QN-3, QN-4, EX-2, EX-3) and the five D2 drills (PS-3, HY-2, SY-2, CL-3, QN-5). Phases D0–D2 are done. Database (shared CaseTester Supabase project) is in sync with `/drill-items`.
 
-**Do not start D3 until Matt says so** (Matt, 2026-10-11). Wait for his instruction.
+**PRD v2 is merged** into `docs/prd-drills.md` (2026-10-11, committed). The repo copy is the source of truth. v2 adds the training program, skill tree, Repair drills, Defend step, Practiced state and transfer checks, and renumbers the phases (D3 loop, D4 training program, D5 chains and Defend, D6 pilot).
+
+**D3 started 2026-10-11** (Matt's go-ahead). The pilot launches after D3 and D4; D5 ships during the pilot.
 
 **What's left to build** (docs/prd-drills.md, "Build phases"):
-- D3 The loop: progress engine (skill states, tiers, reviews), prescription engine (uses the mistake-tag severities in `taxonomy.v1.json`), case-results ingestion, training home with Continue Training, skill profile, next-case card. Real case results need the case grader (on `main`) to emit the new payload; that work is deferred, so test with fixture payloads.
-- D4 Pilot launch: analytics events and reports, WCAG 2.1 AA audit, pilot with the university club.
-- P1: PS-2, QN-2, BJ-1, BJ-2, CR-1, CL-2, diagnostic sampler, grade disputes, 360 px support.
-- Open PRD questions for Matt: what "meeting the bar" means per case tier (needed for next-case selection); whether 80% on two consecutive sets is the right Mastered bar.
+- D3 The loop: taxonomy prerequisites (+ cycle check) and the two Defend tags; progress engine (states incl. Practiced, stages, tiers, reviews, transfer checks, stuck rule), prescription engine, case-results ingestion, skill profile. Test with fixture case payloads (the case grader on `main` doesn't emit them yet).
+- D4 Training program: onboarding (stores the browser time zone on `student_profiles`), diagnostic, tracks and plans (`programs.v1.json`), Practice on my own, Browse drills, Program engine, workouts (50/25/25), training home, Learn library, 22 lessons.
+- D5 Chains and Defend: PS-4, HY-3, SY-3 Repair drills; Defend on PS-3, HY-2, SY-2, CL-3 (set size per tier in `drills.v1.json`); ~280 content pieces for Matt to review.
+- D6 Pilot launch: analytics, WCAG audit, club pilot.
+- All schema changes must stay additive (new tables, enum values, columns).
+- Decided: next-case tier goes up when no dimension is needs_work and at least half are strong; the 14 case types are confirmed (same as the case product); D5 ships during the pilot. Golden-set sourcing for Defend/Repair is skipped for now (Matt).
+- Code vs PRD gap: the daily cap is 20 AI-graded sets (`AI_SETS_PER_DAY` in `lib/drills/sets/service.ts`); v2 says 150 AI-graded answers a day.
 - Merging `drills` into `main`: coordinate migration numbering with the teammate (see Database notes).
 
 **How the AI-graded drills work** (details in the history below):
@@ -244,3 +249,11 @@
 
 - Matt approved HY-2 (40), SY-2 (30), CL-3 (40) and QN-5 (30): live, reviewed by Matthew Santos; drills switched on in `drills.v1.json`; config test expects all 15 live drills. Seeded (140 updated). Smoke passes on the live drills.
 - Matt: don't start D3 until he says so.
+
+## PRD v2 merged (2026-10-11)
+
+- Matt sent a v2 PRD (training program, tracks, diagnostic, lessons, workouts, skill tree, Repair drills, Defend step, Practiced state, transfer checks). It was based on an older PRD copy, so the merge keeps the current PS-3, HY-2, SY-2 and CL-3 sections (Defend added), the three content-review tags, and the build details from earlier revisions (QN-5 card roles, EX-2 tags, QN-3 trap order, percent modes, wording/similarity/scenario checks, real table names and `/api` paths, 3-level rubric payload, prescription fallback, desktop-first, no-Level-1 skills rule, full-size reviews for small sets).
+- Matt's decisions: test-out at tier 2 (with Defend once it ships); grading stays at set completion, one call per answer (switch to per-submission only if results p95 > 10 s); the "half human-written golden answers" rule doesn't apply (removed); pilot with the current 40–50 item Level 1 pools, grow to 80 before wider launch using item-health data; store the browser time zone at signup (workouts and Monday summary use it); Browse cases belongs to the case product, drills only exposes the suggested case; set size by tier in `drills.v1.json`; taxonomy stays `v1`; skill tree approved; mastery bar stays 80% on two sets in a row for the pilot.
+- Rubric: the case grader uses 3 levels (needs_work / meets_bar / strong), not 1–5, so Matt's "no dimension below 3, average 3.5+" needs restating. Left open in the PRD.
+- New endpoint paths chosen to match existing ones (`/api/drills/onboarding`, `/program`, `/workouts/today`, `/catalog`, `/suggested-next`, `/progress/summary`, `/lessons/...`). Browse drills sets reuse the `specific` source.
+- Follow-ups (Matt): keep all the kept build details; rubric bar = no needs_work and at least half strong; 14 case types confirmed; D5 moves into the pilot (until it ships, no Defend and no Repair stage). Golden answers question skipped for now.

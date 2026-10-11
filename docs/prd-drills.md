@@ -1,46 +1,72 @@
 # AI Casing — Drills PRD
 
-Oct 5, 2026 · @Matt
+Oct 11, 2026 · @Matt
 
 > Revision log
 > - 2026-10-05: Saved to the repo. Applied the review fixes (test-out tier, skills with no Level 2 drill, review set size, `case_type` and next-case fallback, desktop-first, QN-3 trap precedence, scope wording, `org_id`, grading model, chart renderer). Drill specs moved into catalog order; their content is unchanged.
 > - 2026-10-06: Matched to the D0 build: table names and new fields, `student_profiles` for `org_id`, the skill-keyed drill map, three percent modes, 3-level rubric ratings in the case payload. Added the rule for skills with only Level 2 drills and two EX-2 tags (`M.indexed_misread`, `M.period_mismatch`).
 > - 2026-10-06: Matched to the D1 build: endpoint paths, `is_example`, `focus_skill` / `item_plan` / `pending_step` on drill sets, multi-step `input.steps`, rounded-form trap matching, resume and late-answer behavior, and the D1 results-screen action.
 > - 2026-10-10: After content review rounds 1 and 2: three new mistake tags (`M.ignores_deciding_fact`, `M.low_priority_next_step`, `M.irrelevant_driver`), QN-5 card roles, the wording checks for choice drills, and the similarity check that every authored item must pass before going live.
+> - 2026-10-11: D2 decisions: PS-3, HY-2, SY-2 and CL-3 grading rules, caps and red flags; one grading call per answer; tag severity defaults; prescription area limit.
+> - 2026-10-11: **v2 merged.** Adds the training program (diagnostic, tracks, plans, workouts, Practice on my own, lessons), the skill tree, drill chains with Repair drills, the Defend step, the Practiced state and transfer checks. Kept from v1: the PS-3, HY-2, SY-2 and CL-3 sections as built (Defend added), the content-review tags, and the build details from the revisions above. Matt's decisions applied: test-out at tier 2 (with Defend once it ships); grading stays at set completion; pilot with the current Level 1 pools; student time zone stored at signup; Browse cases belongs to the case product; set size by tier; taxonomy stays `v1`; skill tree approved.
+
+## What's new in v2
+
+v2 turns drills into a structured training program: a diagnostic, three tracks with week-by-week plans, short lessons, daily workouts with a fixed mix, longer drill chains with a written Defend follow-up, and a transfer check before a skill counts as Mastered.
+
+| Change | What it means for students | Where in this PRD | Priority |
+| --- | --- | --- | --- |
+| Diagnostic at signup | A 15-minute check places each skill and suggests a track | Training program | P0 |
+| Tracks and plans | Foundations (6 weeks), Standard (6 weeks) or Sprint (7 days), each with weekly focus areas, targets and milestones | Training program | P0 |
+| Practice on my own, browse drills | Students can skip the plan, or step off it any time, and still see their weaknesses, progress and suggestions | Training program, User experience | P0 |
+| Lessons | A 3-minute lesson per skill, opened automatically in Foundations and offered everywhere else | Training program, Content system | P0 for the 22 P0 skills |
+| Skill tree | Skills have prerequisites; a student stuck on a skill is sent to the missing prerequisite first | Skill taxonomy | P0 |
+| Drill chains and Repair drills | Each skill climbs Learn → Recognize → Repair → Construct → Defend → Transfer; 5 new drills | Drill catalog | P0 / P1 |
+| Defend follow-up | A scripted interviewer follow-up after Construct answers at tiers 2–3, answered in writing | Drill catalog, Scoring | P0 |
+| Workout mix | Each daily workout is 50% weak spots, 25% spaced review, 25% unfamiliar material | Training program | P0 |
+| Transfer check | New Practiced state; a skill becomes Mastered only after passing unseen items in a new context | Mastery | P0 |
+| Alignment fixes | One AI call per answer; at most 2 of 3 case prescriptions from one skill area; the grader can override default severity | Scoring, Prescription engine, Skill taxonomy | — |
+
+Considered and not in this release: hints inside drills, an "unsure" grading flag, case replay, a separate AI coach, voice and gamification.
 
 ## Overview
 
-Drills are short, targeted exercises that fix the specific weaknesses the AI case grader finds, so students improve between full AI case interviews. They are the practice layer of the product loop: Assess → Diagnose → Prescribe → Practice → Master → Increase difficulty → Reassess.
+Drills are short, targeted exercises inside a structured training program that takes a student from a diagnostic to interview readiness. The plan sets the order of skills; mistakes found by the AI case grader and by drills set the details. The loop: Diagnose → Plan → Learn → Practice (Recognize → Repair → Construct and Defend) → Transfer → Perform in a full case → Reassess.
 
-This PRD covers everything engineering needs to build the drills system: the skill taxonomy, 25 drills across two levels, scoring, mastery, prescriptions, content, data model, APIs, logging and cost controls. The full AI case interview and its grader are out of scope, except for the interface the grader must provide.
+This PRD covers everything engineering needs to build the drills system and training program: tracks and plans, the skill taxonomy and skill tree, 30 drills, lessons, workouts, scoring, mastery, prescriptions, content, data model, APIs, logging and cost controls. The full AI case interview and its grader are out of scope, except for the interface the grader must provide.
 
 Drills are a parallel workstream to the case interview build (technical PRD §11). They live in the same Next.js app and Supabase project.
 
 ### Product principles
 
-- **Recognize → Generate → Perform.** Level 1 drills train recognition using constrained options. Level 2 drills remove the options so students produce answers themselves. Full cases are the performance layer.
+- **Plan, then adapt.** Every student follows a track with weekly focus areas. Mistakes from cases and drills decide what they practice within it.
+- **Learn → Recognize → Repair → Construct → Defend → Transfer → Perform.** Each skill climbs a fixed ladder. Students skip steps they can already pass.
+- **Mastery means independent transfer.** A skill is Mastered only when the student passes unseen items in a new context, not after a set number of exercises.
 - **Diagnose, don't just score.** Every result names the specific mistake (for example, "unit error" or "generic framework"), not only a percentage.
 - **Deterministic where possible.** Code scores anything with one right answer. The AI only answers narrow yes/no checklist questions, and code adds up the score.
-- **Text only.** No drill requires voice.
-- **Low running cost.** Most drills cost nothing to run. AI-graded drills use one cheap call per written answer, run in parallel once the set ends.
-- **Minimal decisions.** The default action is a single "Continue Training" button.
+- **Text only.** No drill requires voice. Defend follow-ups are answered in writing.
+- **Low running cost.** No AI at runtime except grading. Lessons, plans and workouts are content and fixed rules.
+- **Minimal decisions.** The default action is a single "Start today's workout" button.
 - **Data is the advantage.** Every attempt is logged at item level so difficulty, common mistakes and drill effectiveness can be measured.
 
 ### Success metrics (proposed MVP targets)
 
 | Metric | Target | How measured |
 | --- | --- | --- |
-| Prescribed drill sets completed | ≥ 70% of started sets | drill\_set\_completed / drill\_set\_started |
+| Prescribed drill sets completed | ≥ 70% of started sets | `drill_set_completed` / `drill_set_started` |
+| Planned workouts completed | ≥ 60% of planned workouts each week | `workout_completed` / workouts planned |
+| Students who finish their plan | ≥ 40% reach their track's last week | `program_week_started` (last week) / `program_assigned` |
 | Students who drill, then take another case | ≥ 50% within 14 days | Case start after a drill set completion |
-| Improvement on the drilled dimension | ≥ 60% of students who reach mastery score higher on that dimension in their next comparable case | Rubric dimension score, same difficulty tier |
-| Share of attempts with zero AI cost | ≥ 75% | Auto-checked attempts / all attempts |
+| Improvement on the drilled dimension | ≥ 60% of students who reach Mastered score higher on that dimension in their next comparable case | Rubric dimension score, same difficulty tier |
+| Transfer check first-attempt pass rate | 60–85% (lower: drills don't transfer; higher: checks are too easy) | `transfer_check_completed` |
+| Drill grading cost per active student | ≤ $1.25 per month (pilot budget, to confirm) | `grading_jobs.cost_usd` / monthly active students |
 | AI checklist agreement with human reviewers | ≥ 90% per check | Monthly sample of 100 graded answers |
 | Auto-checked feedback latency | < 300 ms p95 | Server timing |
-| AI-graded set results latency | < 10 s p95 | Server timing |
+| AI-graded set results latency | < 10 s p95 after the last answer | Server timing |
 
 ## Scope
 
-The MVP ships 15 priority-0 drills covering the six skill areas undergrads most often fail, plus the full infrastructure (taxonomy, scoring, mastery, prescriptions, skill profile) that every later drill plugs into.
+The MVP ships 18 priority-0 drills (the original 15, live for the pilot, plus 3 Repair drills added during it) and the training program (diagnostic, tracks, plans, workouts, skill tree, transfer checks and lessons for P0 skills), plus the infrastructure every later drill plugs into.
 
 ### Priority definitions
 
@@ -50,22 +76,27 @@ The MVP ships 15 priority-0 drills covering the six skill areas undergrads most 
 
 ### In scope
 
-- Skill taxonomy v1, shared with the case grader (section: Skill taxonomy).
-- The P0 and P1 drills in the Drill catalog, built in priority order. P2 drills are specified only, so the data model supports them; they are not built.
-- Drill sessions, results screens, skill profile, Continue Training, "practice something specific" and an optional interview date.
-- Auto-checked scoring, checklist grading via a cheap model, wrong-answer tags and mastery tracking.
-- Rule-based prescription engine that reads case grader output.
-- Content pipeline: item schema, answer keys, templated item generators, AI-assisted authoring with human QA.
+- Skill taxonomy v1 with prerequisites (the skill tree), shared with the case grader (section: Skill taxonomy).
+- The P0 and P1 drills in the Drill catalog, built in priority order, including drill chains and Defend follow-ups. P2 drills are specified only, so the data model supports them; they are not built.
+- Training program: onboarding questions, diagnostic, three tracks, week-by-week plans, weekly targets and milestones (section: Training program).
+- Lessons: one short static lesson per skill.
+- Daily workouts with a 50/25/25 mix, a Practice on my own option, and browsing any drill.
+- Drill sessions, results screens, skill profile and program progress.
+- Auto-checked scoring, checklist grading via a cheap model, wrong-answer tags, mastery tracking and transfer checks.
+- Rule-based prescription engine that reads case grader output, the diagnostic and the plan.
+- Content pipeline: item schema, answer keys, templated item generators, lessons, AI-assisted authoring with human QA.
 - Item-level event logging for analytics.
 
 ### Out of scope
 
 - The full AI case interview and its grader internals. This PRD only defines the output the grader must send to drills.
+- The case library browser (Browse cases). It belongs to the case product backlog; drills only exposes the suggested case.
 - Voice. No drill uses speech input or output.
+- Hints inside drills, an "unsure" grading flag, case replay and a separate AI coach (considered for v2; not in this release).
 - Firm-style toggles. The item schema reserves a field for them.
 - Behavioral and fit interview practice.
 - Career center or club admin dashboards (planned later; event logging must support them).
-- Leaderboards, social features and streak mechanics.
+- Leaderboards, social features, streaks and achievements.
 - Statistical adaptive models (for example, item response theory). MVP uses fixed rules; the logged data will support a model later.
 - Native mobile apps. Drills ship in the web app.
 
@@ -84,45 +115,187 @@ Every part of the system uses these terms with exactly these meanings; the API, 
 | --- | --- | --- |
 | Rubric dimension | One of the 8 dimensions the case grader scores. Drills roll up to these. | Synthesis & Recommendation |
 | Skill area | A group of related skills. Nine areas: the 8 rubric dimensions plus Hypothesis, which rolls up to Problem Structuring. | Quantitative Rigor |
-| Skill | A specific ability that drills train and mastery tracks. About 30 in v1. Format `AREA.skill_name`. | `QN.percent_change` |
+| Skill | A specific ability that drills train and mastery tracks. 29 in v1. Format `AREA.skill_name`. | `QN.percentages` |
+| Prerequisite | A skill another skill builds on. Stored in the taxonomy file; together they form the skill tree. | `QN.magnitude` is a prerequisite of `QN.sizing_structure` |
 | Mistake tag | A specific error. Each maps to exactly one skill. Used by wrong answers, failed checks, red flags and the case grader. Format `M.mistake_name`. | `M.unit_error` |
-| Level | Level 1 = Recognize (choose from options). Level 2 = Generate (produce the answer). | — |
-| Difficulty tier | Tier 1–3 within a level. Higher tiers use harder items and tighter time limits. Tier 3 of Level 2 is the "under time pressure" stage. | Mental math, tier 3: 12 s per item |
-| Drill | A type of exercise with fixed mechanics and scoring. 25 in the catalog. | Framework builder |
+| Stage | Where a skill is on its ladder: Learn, Recognize, Repair, Construct (with Defend), Transfer. | `PS.mece`: Repair |
+| Level | Level 1 = Recognize (choose from options). Level 2 = Construct (produce the answer). Repair drills sit between them. | — |
+| Difficulty tier | Tier 1–3 within a drill. Higher tiers use harder items and tighter time limits. Tier 3 of Level 2 is the "under time pressure" stage. | Mental math, tier 3: 12 s per item |
+| Drill | A type of exercise with fixed mechanics and scoring. 30 in the catalog. | Framework builder |
+| Repair drill | A drill where the student fixes a flawed answer instead of building one from scratch. | Fix the framework |
+| Defend step | A scripted interviewer follow-up shown after a Construct answer at tiers 2–3. The student answers in writing. | "Which bucket would you dig into first, and why?" |
 | Item | One question or prompt within a drill, with its own answer key. | "Gym chain launching at-home subscription" |
-| Answer key | The authored solution for an item: correct answer and tolerance, or checklist, wrong-option tags and model answer. | — |
+| Answer key | The authored solution for an item: correct answer and tolerance, or checklist, wrong-option tags, model answer and Defend follow-up. | — |
 | Check | One yes/no question in a checklist. Answered by the AI with a quote as evidence. | "Does the first sentence state a recommendation?" |
 | Red flag | A condition that caps an item's score regardless of other checks. | Generic profit tree on a market-entry prompt |
 | Drill set | 3–10 items of one drill, served together. The unit of practice, scoring and AI grading. | 8 Setup-only items on breakeven |
+| Workout | A daily session of 2–4 drill sets, about 20 minutes: 50% weak spots, 25% spaced review, 25% unfamiliar material. | "Today: 20 min, 3 sets" |
+| Transfer check | A Construct set of unseen items from a new case type and industry. Passing it turns Practiced into Mastered. | 4 unseen Framework builder items on a pricing case |
+| Lesson | A 3-minute static page per skill: the idea, a worked example and the common mistakes. | "Building a case-specific framework" |
+| Track | The program a student follows: Foundations, Standard or Sprint. | Standard |
+| Program plan | A track's schedule: weekly focus skill areas, workout and case targets, and milestones. | Week 2: Hypotheses and exhibits |
+| Diagnostic | A 15-minute mixed set at signup that places each skill and suggests a track. | — |
 | Attempt | One student's response to one item. | — |
-| Skill state | Where a student stands on a skill: Not started, Learning, Recognizes, Mastered, Validated. | `QN.breakeven`: Recognizes |
-| Prescription | A recommended drill set, generated from mistake tags, with a reason shown to the student. | "You set up the margin calculation incorrectly twice in your last case." |
+| Skill state | Where a student stands on a skill: Not started, Learning, Recognizes, Practiced, Mastered, Validated. | `QN.setup`: Practiced |
+| Prescription | A recommended drill set for a skill, created from mistake tags, the diagnostic or the plan, with a reason shown to the student. | "You set up the margin calculation incorrectly twice in your last case." |
 | Generator | Code that creates items from a template with randomized inputs, so supply is unlimited and free. | Breakeven problem with random costs |
+
+## Training program
+
+Every student follows one of three tracks, each with a week-by-week plan; daily workouts fill the plan from the student's own weak spots, so the plan sets the order and mistakes set the details.
+
+### Tracks
+
+| Track | Who it's for | Length | Each skill starts at | Lessons | Planned cases |
+| --- | --- | --- | --- | --- | --- |
+| Foundations | New to cases: 0 practice cases, or diagnostic below 50% | Week 0 + 6 weeks | Learn, then Recognize tier 1 | Opened automatically before the first set of each skill | 0 in week 1, 1 a week in weeks 2–3, 2 a week in weeks 4–6 |
+| Standard | Has done some cases | Week 0 + 6 weeks | Diagnostic placement (default: Construct tier 2 test-out) | Offered | 1 baseline, 1 a week in weeks 1–3, 2 a week in weeks 4–6 |
+| Sprint | Interview in 14 days or fewer | 7 days | Construct tier 2; Recognize never served; Repair only after a Construct set below 50% | Offered | 3 |
+
+Assignment at onboarding, first rule that applies:
+
+1. Interview date set and 14 or fewer days away → Sprint.
+2. 0 practice cases, or diagnostic overall score below 50% → Foundations.
+3. Otherwise → Standard.
+
+A student can switch track, or switch to Practice on my own, at any time in settings. The plan is rebuilt from today; skill states are kept.
+
+### Practice on my own (self-directed)
+
+Students who don't want a plan choose **Practice on my own** at onboarding or in settings; they decide what to practice, and the app still diagnoses their weaknesses, tracks their progress and suggests what to do next.
+
+|  | Plan tracks | Practice on my own |
+| --- | --- | --- |
+| Diagnostic | Offered at onboarding | Offered at onboarding |
+| Weekly targets, milestones, week themes | Yes | No |
+| Plan prescriptions | Yes | No |
+| Case and drill prescriptions (weaknesses) | Yes | Yes, shown as suggestions |
+| Skill states, mastery, transfer checks, spaced review | Yes | Yes |
+| Stuck rule (prerequisites) | Yes | Yes, as a suggestion |
+| Lessons | Yes | Yes |
+| Skill profile and progress | Yes | Yes |
+| Foundations gate | Foundations only | No |
+| Home leads with | Today's workout | Suggested next card + browse drills |
+
+- **Home for self-directed students:**
+  - **Suggested next:** one recommended set with its reason and time, chosen by the same rules as a workout's slots (top weakness first, then a due transfer check or review). One tap starts it; it is never required. At most one suggestion card on the home screen.
+  - **Your weaknesses:** the top 3 weak skills with evidence (how often their mistakes appeared and the latest quote from a case or drill).
+  - **Your progress:** skills that moved up in the last 7 days, counts of skills at Practiced and Mastered, and the case rubric trend.
+  - **Due now:** reviews and transfer checks that are due, each startable in one tap.
+  - **Browse drills** as the main entry point, plus a link to the case library (case product).
+- **Weekly summary:** every Monday, in the student's time zone, the home shows a short recap: sets and cases done, skills that moved up, and the current weakest skill.
+- **Interview date** still works: if it is 14 or fewer days away, the home offers the Sprint plan but doesn't switch automatically.
+- **Switching to a plan** keeps all skill states. If the student took the diagnostic in the last 30 days, the plan uses it; otherwise the diagnostic is offered again.
+
+### Onboarding and diagnostic
+
+- **Questions:** follow a plan or practice on my own; interview date (optional); practice cases done (0, 1–5, 6+); and, for plans, time available per week (about 1.5–2, 2–2.5 or 3 hours, which sets 3, 4 or 6 workouts a week; the hours include planned cases).
+- **Time zone:** the browser's time zone is stored at signup. Workout days, the Monday summary and interview-date counts use it.
+- **Diagnostic:** about 15 minutes. 22 auto-checked items at tier 2 timing (3 each from PS-1, HY-1, EX-1, SY-1 and CL-1; 2 from QN-1; 3 from QN-3; 2 from EX-2) and 2 short Construct items (1 PS-3, 1 SY-2, no Defend). AI cost: 2 grading calls.
+- **Placement**, per skill with at least 2 diagnostic items or checks: below 50% → Recognize; 50–79% → Repair (Recognize tier 2 if the skill has no Repair drill); 80% or higher → Construct tier 2 test-out. Skills with no evidence use the track default.
+- Placement only moves skills from Not started to Learning. The diagnostic never grants Recognizes or higher, because 2–3 items are too few.
+- Diagnostic mistake tags create up to 3 prescriptions (source `diagnostic`, +1 per tag). The first case result replaces them.
+- **Skip:** "I'll take a case first" skips the diagnostic; the track default placement is used.
+- **Baseline case:** Standard and Sprint schedule a first full case in Week 0 (Sprint: Day 1). Foundations offers it as optional.
+
+### Six-week plan (Foundations and Standard)
+
+| Week | Theme | Focus skill areas | Milestone: skills at Practiced or above by week end |
+| --- | --- | --- | --- |
+| 0 (day 1) | Diagnose | All | Plan set |
+| 1 | Structure and math | PS; QN setup, percentages, magnitude | `PS.mece`, `PS.case_specific`, `QN.setup` |
+| 2 | Hypotheses and exhibits | HY; EX; QN sizing | `HY.form`, `EX.takeaway`, `QN.sizing_structure` |
+| 3 | Judgment and synthesis | SY; CL; BJ | `SY.answer_first`, `SY.evidence`, `CL.next_step` |
+| 4 | Integration | Weak spots from cases | Every week 1–3 milestone skill at Practiced |
+| 5 | Interview performance | Weak spots; tier 3 (timed) sets | Every open prescription at Practiced; 3 skills with a tier 3 pass |
+| 6 | Readiness | Transfer checks and review, all areas | Every prescribed skill at Mastered; final case |
+
+- **Weekly targets:** the workouts per week chosen at onboarding, plus the track's planned cases. The default is about 2.5 hours a week in weeks 4–6 (4 workouts × 20 min + 2 cases × 35 min). Targets aren't tied to days; the home shows "3 of 4 workouts, 1 of 2 cases this week".
+- **Milestones are targets, not locks.** At week rollover, milestone skills not yet met stay in the weak-spot pool with +1 priority.
+- Focus areas with no live drill are skipped (for example, BJ until BJ-1 ships).
+- **Compression:** if the interview is 15–41 days away, the plan keeps Week 0 and ends with Week 5 (Interview performance) and Week 6 (Readiness). The focus areas of weeks 1–4 are split evenly, in order, across the weeks left between them. If the interview is more than 6 weeks away, the plan runs as written and then repeats Readiness weeks.
+
+Expected time per week (workouts 20 min, cases 35 min):
+
+| Onboarding choice | Workouts a week | Weeks 1–3 | Weeks 4–6 | Typical practice day |
+| --- | --- | --- | --- | --- |
+| About 1.5–2 hours | 3 | \~1.6 hrs | \~2.2 hrs | 20–35 min, 4–5 days a week |
+| About 2–2.5 hours (default) | 4 | \~1.9 hrs | \~2.5 hrs | 20–35 min, 5–6 days a week |
+| About 3 hours | 6 | \~2.6 hrs | \~3.2 hrs | 20–55 min, 6–7 days a week |
+
+Week 0 takes about 50 minutes (diagnostic + baseline case). At the default, the Standard program totals about 14 hours. Foundations is about the same: week 1 has no case, and lessons add about an hour over the program.
+
+### Sprint plan (7 days)
+
+| Day | Activity | Time |
+| --- | --- | --- |
+| 1 | Diagnostic + baseline case | 15 + 35 min |
+| 2 | Workout: weak spots from the case | 30 min |
+| 3 | Case + short workout | 35 + 15 min |
+| 4 | Workout | 30 min |
+| 5 | Case + short workout | 35 + 15 min |
+| 6 | Review workout: Practiced and Mastered skills only | 20 min |
+| 7 (day before the interview) | Light review, or rest | 15 min |
+
+- About 4.5 hours in total. If more than 7 days remain, days 2–5 repeat before day 6.
+- Sprint workouts are 30 minutes, tier 2–3 only. Transfer checks unlock as soon as a skill reaches Practiced. Within 2 days of the interview, only review workouts are served.
+
+### How the plan drives practice
+
+- Skills in the week's focus areas get +2 priority in the workout's weak-spot slot.
+- If no open prescription is in the week's focus areas, the plan creates one (source `plan`) for the next focus skill below Practiced, in prerequisite order. Plan prescriptions have priority 1 and never displace case prescriptions.
+- Case prescriptions keep their own rules (Prescription engine) and are always eligible, whatever the week.
+
+### Workouts
+
+- A workout is 2–4 drill sets, targeting 20 minutes (30 in Sprint, 15 the day before an interview).
+- **Time split (config):** 50% weak spots, 25% spaced review, 25% unfamiliar material. A set's time is estimated as items × the tier's time limit × 0.8, plus Defend time.
+- **Weak spots (50%):** 1–2 sets from the highest-priority open prescriptions (case, drill, diagnostic or plan), at each skill's current stage and tier. At most 1 set per skill per workout.
+- **Spaced review (25%):** a review set (see Spaced review) on the Mastered or Validated skill most overdue for review. If none is due, the Practiced or Mastered skill practiced longest ago. If the student has none, the time goes to weak spots.
+- **Unfamiliar (25%):** a due transfer check if there is one (it may run past 25%). Otherwise a half-size set on a skill at Recognizes or above, using items from a case type and industry the student hasn't seen on that skill. If nothing qualifies, the time goes to weak spots.
+- **Order:** review (warm-up) → weak spots → unfamiliar.
+- The student can stop after any set. The workout stays open until midnight in the student's time zone; a new one is built the next day.
+- Sets started from Browse drills count toward skill progress but not toward weekly workout targets.
+
+### Lessons
+
+- One lesson per skill, readable in about 3 minutes (400 words or fewer): the idea in one sentence, why interviewers care, a step-by-step pattern, one worked example, the common mistakes (one line per mistake tag) and a **Try it** button that starts the skill's next set.
+- Static content with no AI at runtime, authored with the same AI-drafted, human-reviewed workflow as items.
+- **When shown:** in Foundations, automatically before the first set of each skill (Skip allowed). In every track: from the drill intro, from the Learn library, and offered after any set below 50%.
+- **P0:** lessons for the 22 skills trained by P0 drills. Lessons for other skills ship with their drills.
+- Lessons are not scored and don't change skill states.
 
 ## User experience and flows
 
-Students should rarely have to choose what to do: the training home leads with one Continue Training button, and every other path is optional.
+Students should rarely have to choose what to do: the training home leads with today's workout from their plan, and every other path is optional.
 
 ### Training home
 
-- **Continue Training** is the primary button. It shows the drill name, a one-line reason ("Your last case used a generic framework") and estimated time (for example, "about 6 min").
-- Below it, up to 3 queued prescriptions are listed with their reasons.
-- A secondary link, **Practice something specific**, opens the skill picker.
-- A **Ready for your next case** card appears when every open prescription is at Mastered, or after 3 completed drill sets since the last case. It is a suggestion, not a lock.
-- An optional **Interview date** setting sits in the header.
+- A header shows the track and week ("Standard · Week 2 of 6 · Hypotheses and exhibits") and the interview date, if set.
+- **Start today's workout** is the primary button. It shows the estimated time and the 2–4 sets in order, each with its slot (weak spot, review, unfamiliar) and a one-line reason ("Your last case used a generic framework"). After the first set it reads **Continue workout**.
+- This week's targets: workouts and cases done against planned ("3 of 4 workouts, 1 of 2 cases") and the week's milestone skills with their current state.
+- Weakest skill right now, with the evidence behind it: how often its mistake tags appeared recently and the latest quote.
+- A **Next case** card appears when the plan has a case left this week, or when every open prescription is at Practiced or above. It is a suggestion, not a lock.
+- Secondary links: **Browse drills** opens the drill library; **Learn** opens the lesson library; a link to the case library (case product).
 
-### What Continue Training serves (in order)
+Students on Practice on my own see the self-directed home instead (see Training program): Suggested next, weaknesses, progress, due items, and Browse drills.
 
-1. An unfinished drill set from the last 24 hours (resume).
-2. The highest-priority open prescription (see Prescription engine).
-3. A spaced review: a short set on a Mastered skill not practiced in 14+ days (see Spaced review).
-4. The next difficulty tier of the student's weakest skill.
-5. No case taken yet: a prompt to take a first case. In P1, a 10-minute diagnostic sampler (mixed Level 1 and 2 items across all areas) is offered as a free alternative.
+### What the home serves (in order)
+
+1. No onboarding yet: the onboarding questions and diagnostic (see Training program).
+2. An unfinished drill set from the last 24 hours (resume).
+3. The rest of today's workout, if it was started.
+4. A new workout built by the workout rules (see Training program).
+5. If today's workout is done: the Next case card if the plan has a case left this week, otherwise an optional extra workout.
+
+For self-directed students, steps 3–5 are replaced by the Suggested next card.
 
 ### Drill intro screen
 
-- Shows drill name, skill trained, why it was prescribed, number of items, time per item and pass bar.
+- Shows drill name, skill trained, stage, why it was prescribed, number of items, time per item and pass bar.
 - On a student's first time with a drill, shows one worked example. A "Skip example" button hides it for future sets.
+- A **Read the 3-min lesson** link for the skill. In Foundations, the lesson opens automatically before the first set of each skill.
+- For Repair drills, states how much the student is told about the flaw at this tier.
 
 ### Item screen
 
@@ -135,34 +308,51 @@ Students should rarely have to choose what to do: the training home leads with o
 - Coming back to a set mid-way (reload, new tab) shows the intro with a **Resume** button. The item's timer keeps running on the server in the meantime.
 - An answer that reaches the server more than 2 seconds after the time limit counts as a timeout: it scores 0 and logs `M.timeout`, even if it is correct. Without this, the server-side timer could be bypassed.
 
+### Defend step screen
+
+- After the student submits a Construct answer at tier 2 or 3, the same screen shows **Interviewer follow-up** with the scripted question. The main answer stays visible, read-only.
+- Challenge follow-ups show **Hold** and **Update** buttons first, then the text box.
+- Up to 40 words, with its own countdown (60 s at tier 2, 45 s at tier 3, times the accommodation multiplier).
+- Skip and timeout follow the item rules: a skipped or empty Defend scores 0 and logs `M.skipped` or `M.timeout`.
+
 ### Feedback timing
 
 - **Auto-checked items:** feedback right after each item: correct or not, the right answer, a one-line explanation of the specific mistake (from the wrong-option tag) and a worked solution.
-- **AI-graded items:** no per-item feedback. All answers in the set are graded after the last item, each in its own call, and results appear on the results screen.
+- **AI-graded items (Repair, Construct and Defend):** no per-item feedback. All answers in the set are graded after the last item, each in its own call, and results appear on the results screen. Grading moves to "as soon as each answer is submitted" only if results p95 goes over 10 s.
 
 ### Set results screen
 
 - Set score, pass or fail against the bar, and time against target.
 - A mistake summary in plain words ("2 of your 3 misses were unit errors").
-- Per-item breakdown. For AI-graded items: each check passed or failed, the quoted evidence from the student's answer, any red flag, and the model answer.
-- Skill state change, if any ("Breakeven: now Mastered").
-- One primary next action (Continue Training) and two secondary ones (Retry this set, Take a case). Until Continue Training ships in D3, the primary action is **Practice another skill**.
+- Per-item breakdown. For AI-graded items: each check passed or failed, the quoted evidence from the student's answer, any red flag, and the model answer. For Defend steps: the follow-up, the student's reply, each check with evidence and the model reply.
+- Skill state change, if any ("Breakeven: now Practiced. Transfer check unlocks Thursday.").
+- One primary next action (Continue workout) and two secondary ones (Retry this set, Take a case).
 
 ### Skill profile
 
-- All 9 skill areas, each listing its skills with current state and a progress bar toward the next state.
+- All 9 skill areas, each listing its skills with current state, stage and a progress bar toward the next state. Under each skill, "Builds on: …" lists its prerequisites and their states. A drawn tree view is P1.
+- Program progress: track, current week, and milestones met in each week so far.
 - The top 3 mistakes holding the student back, from the last 30 days.
 - A full-case trend line per rubric dimension. It only appears after 2 or more cases in the same difficulty tier, so progress shown is trustworthy.
-- History of completed drill sets and cases.
+- History of completed workouts, drill sets and cases.
 
-### Practice something specific
+### Browse drills (practice something specific)
 
-- Pick a skill area, then a skill. The system picks the drill, level and tier from the student's skill state, and the student can override the level.
+- Available to every student, on a plan or not. Drills are grouped by skill area, then skill. Each skill shows its state and stage, its drills by stage (Recognize, Repair, Construct) and a **Suggested** badge if it has an open prescription.
+- **Quick start:** pick a skill; the system picks the drill, stage and tier from the student's skill state.
+- **Pick exactly:** choose a specific drill and stage. The tier can be any level up to one above the student's current tier on that drill (first time: tier 1 or 2), so nobody starts at the hardest level cold.
+- Browsed sets count toward skill states, tiers, mastery and prescriptions exactly like workout sets. For plan students they don't count toward weekly workout targets, and the plan adapts to the new skill states.
+
+### Cases
+
+- Browsing the case library (filters by case type and difficulty) is part of the case product backlog, not drills.
+- Drills exposes only the suggested case: the Next case card's pick (see Picking the next case), which the case library marks **Suggested** once it exists. It is never required.
+- Any case a student takes feeds the case grader payload as usual, so it updates prescriptions and skill states. For plan students it counts toward the week's case target.
 
 ### Interview date
 
-- Optional. When the date is 7 or fewer days away, Continue Training skips Level 1, favors Level 2 tier 3 (timed) sets and suggests a full case every 2 sets.
-- When 2 or fewer days away, it serves only short review sets of Mastered skills.
+- Optional, set at onboarding or in settings. Setting or changing it can switch the track (14 or fewer days away → Sprint) and rebuilds the plan (see Training program).
+- When the interview is 2 or fewer days away, workouts serve only short review sets of Practiced and Mastered skills.
 
 ### Accessibility (WCAG 2.1 AA)
 
@@ -177,7 +367,7 @@ Students should rarely have to choose what to do: the training home leads with o
 
 ## Skill taxonomy
 
-Taxonomy v1 has 9 skill areas, 29 skills and 65 mistake tags; it is the one vocabulary shared by the case grader, every drill and the prescription engine.
+Taxonomy v1 has 9 skill areas, 29 skills, 67 mistake tags and a prerequisite map (the skill tree); it is the one vocabulary shared by the case grader, every drill and the prescription engine. v2's changes (prerequisites and two Defend tags) are additive, so the file and the case grader payload stay at `v1`.
 
 ### Rules
 
@@ -205,11 +395,11 @@ Taxonomy v1 has 9 skill areas, 29 skills and 65 mistake tags; it is the one voca
 
 | Skill | What it means | Mistake tags | Trained by |
 | --- | --- | --- | --- |
-| `PS.mece` | Buckets don't overlap and nothing major is missing | `M.overlapping_buckets`, `M.missing_bucket` | PS-1, PS-3 |
-| `PS.case_specific` | Structure fits this case, not a canned framework | `M.generic_framework`, `M.irrelevant_bucket` | PS-1, PS-3 |
-| `PS.depth` | Each bucket has concrete sub-points | `M.shallow_structure` | PS-3 |
+| `PS.mece` | Buckets don't overlap and nothing major is missing | `M.overlapping_buckets`, `M.missing_bucket` | PS-1, PS-4, PS-3 |
+| `PS.case_specific` | Structure fits this case, not a canned framework | `M.generic_framework`, `M.irrelevant_bucket` | PS-1, PS-4, PS-3 |
+| `PS.depth` | Each bucket has concrete sub-points | `M.shallow_structure` | PS-4, PS-3 |
 | `PS.clarifying_questions` | Asks the few questions that matter | `M.low_value_question`, `M.missed_key_question`, `M.too_many_questions` | PS-2 |
-| `HY.form` | States a directional, evidence-based, testable, tentative hypothesis | `M.no_hypothesis`, `M.restates_facts`, `M.shotgun_hypotheses`, `M.overconfident_hypothesis`, `M.untestable_hypothesis`, `M.ignores_facts` | HY-1, HY-2 |
+| `HY.form` | States a directional, evidence-based, testable, tentative hypothesis | `M.no_hypothesis`, `M.restates_facts`, `M.shotgun_hypotheses`, `M.overconfident_hypothesis`, `M.untestable_hypothesis`, `M.ignores_facts` | HY-1, HY-3, HY-2 |
 | `HY.update` | Changes the hypothesis when data contradicts it, keeps it when data supports it | `M.sticky_hypothesis`, `M.dropped_supported_hypothesis` | HY-2 |
 | `QN.arithmetic` | Basic operations done correctly | `M.arithmetic_error` | QN-3, QN-4, QN-5 |
 | `QN.magnitude` | Zeros and units handled correctly | `M.zeros_error`, `M.unit_error` | QN-3, QN-4, QN-5 |
@@ -219,53 +409,112 @@ Taxonomy v1 has 9 skill areas, 29 skills and 65 mistake tags; it is the one voca
 | `QN.sizing_structure` | Builds a complete driver chain for an estimate | `M.missing_driver`, `M.double_counting`, `M.irrelevant_driver` | QN-5 |
 | `QN.assumptions` | Makes reasonable estimation assumptions | `M.unreasonable_assumption` | QN-5 |
 | `QN.sanity_check` | Notices when a result is implausible | `M.implausible_accepted`, `M.plausible_rejected` | QN-2, QN-5 |
-| `EX.takeaway` | Finds the insight that matters | `M.trivial_takeaway`, `M.misread_trend`, `M.unsupported_claim` | EX-1, EX-4 |
+| `EX.takeaway` | Finds the insight that matters | `M.trivial_takeaway`, `M.misread_trend`, `M.unsupported_claim` | EX-1, EX-5, EX-4 |
 | `EX.traps` | Catches units, axes, footnotes, indexed values and period mismatches | `M.missed_units`, `M.axis_misread`, `M.dual_axis_misread`, `M.missed_footnote`, `M.indexed_misread`, `M.period_mismatch` | EX-2 |
 | `EX.extraction` | Pulls the right number from dense data | `M.wrong_data_point` | EX-3 |
 | `BJ.so_what` | States what a finding means for the client | `M.no_implication`, `M.implication_off_objective` | BJ-1, BJ-3 |
 | `BJ.risks` | Names specific, relevant risks and next steps | `M.generic_risk`, `M.missed_key_risk` | BJ-2 |
 | `CR.volume` | Generates enough distinct ideas | `M.too_few_ideas` | CR-1 |
 | `CR.structure` | Groups ideas into clear, non-overlapping categories | `M.unstructured_ideas`, `M.overlapping_idea_groups` | CR-1 |
-| `SY.answer_first` | Leads with a clear recommendation | `M.buried_recommendation`, `M.hedged_recommendation` | SY-1, SY-2 |
-| `SY.evidence` | Supports it with the right facts and numbers | `M.unsupported_recommendation`, `M.irrelevant_facts`, `M.ignores_deciding_fact` | SY-1, SY-2 |
+| `SY.answer_first` | Leads with a clear recommendation | `M.buried_recommendation`, `M.hedged_recommendation` | SY-1, SY-3, SY-2 |
+| `SY.evidence` | Supports it with the right facts and numbers | `M.unsupported_recommendation`, `M.irrelevant_facts`, `M.ignores_deciding_fact` | SY-1, SY-3, SY-2 |
 | `SY.complete` | Includes a risk and a next step | `M.missing_risk_or_next_step` | SY-2 |
 | `SY.summary` | Summarizes progress accurately mid-case | `M.inaccurate_summary` | SY-1 |
 | `CM.concise` | Says it briefly, conclusion first | `M.rambling`, `M.over_word_limit` | CM-1, CM-2 |
-| `CL.next_step` | Proposes a logical next step without being prompted | `M.waited_for_interviewer`, `M.illogical_next_step`, `M.low_priority_next_step` | CL-1 |
+| `CL.next_step` | Proposes a logical next step without being prompted | `M.waited_for_interviewer`, `M.illogical_next_step`, `M.low_priority_next_step` | CL-1, CL-4 |
 | `CL.data_requests` | Asks for specific, prioritized data | `M.vague_data_request`, `M.laundry_list`, `M.premature_solution` | CL-3 |
-| `CL.pushback` | Holds when right, updates when wrong, uses evidence | `M.caved_to_invalid_pushback`, `M.ignored_valid_pushback`, `M.no_evidence_in_defense` | CL-2 |
+| `CL.pushback` | Holds when right, updates when wrong, uses evidence | `M.caved_to_invalid_pushback`, `M.ignored_valid_pushback`, `M.no_evidence_in_defense`, `M.dodged_question` (new), `M.inconsistent_defense` (new) | CL-2, Defend steps on all Construct drills |
+
+### Skill tree (prerequisites)
+
+Each skill can list prerequisites: skills it builds on. Together they form the skill tree. The map lives in the taxonomy file and must have no cycles (checked in CI). Approved by Matt on 2026-10-11.
+
+| Skill | Builds on |
+| --- | --- |
+| `PS.case_specific` | `PS.mece` |
+| `PS.depth` | `PS.mece` |
+| `HY.form` | `PS.case_specific` |
+| `HY.update` | `HY.form` |
+| `QN.magnitude` | `QN.arithmetic` |
+| `QN.percentages` | `QN.arithmetic` |
+| `QN.growth` | `QN.percentages` |
+| `QN.setup` | `QN.percentages` |
+| `QN.sizing_structure` | `PS.mece`, `QN.magnitude` |
+| `QN.assumptions` | `QN.magnitude` |
+| `QN.sanity_check` | `QN.magnitude` |
+| `EX.takeaway` | `EX.traps` |
+| `EX.extraction` | `QN.arithmetic` |
+| `BJ.so_what` | `EX.takeaway` |
+| `BJ.risks` | `BJ.so_what` |
+| `SY.evidence` | `EX.takeaway` |
+| `SY.complete` | `SY.answer_first`, `BJ.risks` |
+| `SY.summary` | `SY.answer_first` |
+| `CL.next_step` | `HY.form` |
+| `CL.data_requests` | `PS.mece` |
+| `CL.pushback` | `SY.evidence` |
+| `CR.structure` | `PS.mece` |
+
+Skills not listed have no prerequisites. A prerequisite with no live drill is ignored.
+
+- **Stuck rule:** when a skill has 2 consecutive sets below 50% and any prerequisite is below Practiced, the engine prescribes that prerequisite (lowest state first, then catalog order) at the stuck skill's priority + 1, and pauses the stuck skill's prescription. The stuck skill resumes when the prerequisite reaches Practiced or after 3 prerequisite sets, whichever comes first.
+- **Credit down:** when a skill reaches Mastered, its prerequisites at Not started or Learning move to Recognizes.
+- **Plan order:** within a week's focus areas, plan prescriptions follow prerequisite order.
+- **Foundations gate:** in Foundations, a skill's Construct stage is served only after its prerequisites reach Recognizes. Other tracks have no gate.
 
 ## Drill catalog
 
-The catalog has 25 drills: 13 at Level 1 and 12 at Level 2. 17 are scored entirely by code, and only 5 of the P0/P1 drills need an AI grading call.
+The catalog has 30 drills: 13 at Level 1 (Recognize), 4 Repair drills and 13 at Level 2 (Construct). 17 are scored entirely by code; 11 of the P0/P1 drills need AI grading, plus the Defend step on Construct drills at tiers 2–3.
 
-| ID | Drill | Level | Skills trained | Input | Scoring | Priority |
-| --- | --- | --- | --- | --- | --- | --- |
-| PS-1 | Spot the gap | 1 | `PS.mece`, `PS.case_specific` | Single choice | Auto | P0 |
-| PS-2 | Clarifying questions | 1 | `PS.clarifying_questions` | Multi-select (up to 3) | Auto | P1 |
-| PS-3 | Framework builder | 2 | `PS.mece`, `PS.case_specific`, `PS.depth` | Structured text editor | Checklist | P0 |
-| HY-1 | Pick the best hypothesis | 1 | `HY.form` | Single choice | Auto | P0 |
-| HY-2 | Initial hypothesis | 2 | `HY.form`, `HY.update` | Free text, then Keep/Revise/Drop + free text | Checklist + auto | P0 |
-| QN-1 | Setup only | 1 | `QN.setup` | Single choice | Auto | P0 |
-| QN-2 | Sanity check | 1 | `QN.sanity_check` | Single choice | Auto | P1 |
-| QN-3 | Mental math | 2 | `QN.arithmetic`, `QN.magnitude`, `QN.percentages`, `QN.growth` | Numeric | Auto | P0 |
-| QN-4 | Consulting math | 2 | `QN.setup`, `QN.arithmetic`, `QN.magnitude` | Single choice, then numeric | Auto | P0 |
-| QN-5 | Market sizing | 2 | `QN.sizing_structure`, `QN.assumptions`, `QN.arithmetic`, `QN.sanity_check` | Pick drivers, numeric, single choice | Auto | P0 |
-| EX-1 | Chart read | 1 | `EX.takeaway` | Single choice | Auto | P0 |
-| EX-2 | Exhibit traps | 1 | `EX.traps` | Single choice or numeric | Auto | P0 |
-| EX-3 | Needle in the table | 2 | `EX.extraction`, `QN.arithmetic` | Numeric | Auto | P0 |
-| EX-4 | Written chart takeaway | 2 | `EX.takeaway` | Free text | Checklist | P2 |
-| BJ-1 | "So what?" | 1 | `BJ.so_what` | Single choice | Auto | P1 |
-| BJ-2 | Risks and next steps | 1 | `BJ.risks` | Multi-select | Auto | P1 |
-| BJ-3 | Written "So what?" | 2 | `BJ.so_what` | Free text | Checklist | P2 |
-| CR-1 | Bucketed brainstorm | 2 | `CR.volume`, `CR.structure` | Grouped text editor | Checklist | P1 |
-| SY-1 | Pick the best summary | 1 | `SY.answer_first`, `SY.evidence`, `SY.summary` | Single choice | Auto | P0 |
-| SY-2 | 60-second recommendation | 2 | `SY.answer_first`, `SY.evidence`, `SY.complete` | Free text | Checklist | P0 |
-| CM-1 | Pick the answer-first version | 1 | `CM.concise` | Single choice | Auto | P2 |
-| CM-2 | Answer-first rewrite | 2 | `CM.concise` | Free text | Checklist + auto | P2 |
-| CL-1 | What's next? | 1 | `CL.next_step` | Single choice | Auto | P0 |
-| CL-2 | Hold or fold | 1 | `CL.pushback` | Two single choices | Auto | P1 |
-| CL-3 | What do you need to know? | 2 | `CL.data_requests` | Free text | Checklist | P0 |
+| ID | Drill | Stage | Skills trained | Input | Scoring | Defend | Priority |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| PS-1 | Spot the gap | Recognize | `PS.mece`, `PS.case_specific` | Single choice | Auto | — | P0 |
+| PS-2 | Clarifying questions | Recognize | `PS.clarifying_questions` | Multi-select (up to 3) | Auto | — | P1 |
+| PS-4 | Fix the framework | Repair | `PS.mece`, `PS.case_specific`, `PS.depth` | Structured editor, prefilled | Checklist | — | P0 |
+| PS-3 | Framework builder | Construct | `PS.mece`, `PS.case_specific`, `PS.depth` | Structured text editor | Checklist | Justify | P0 |
+| HY-1 | Pick the best hypothesis | Recognize | `HY.form` | Single choice | Auto | — | P0 |
+| HY-3 | Fix the hypothesis | Repair | `HY.form` | Free text, prefilled | Checklist | — | P0 |
+| HY-2 | Initial hypothesis | Construct | `HY.form`, `HY.update` | Free text, then Keep/Revise/Drop + free text | Checklist + auto | Justify (test design) | P0 |
+| QN-1 | Setup only | Recognize | `QN.setup` | Single choice | Auto | — | P0 |
+| QN-2 | Sanity check | Recognize | `QN.sanity_check` | Single choice | Auto | — | P1 |
+| QN-3 | Mental math | Construct | `QN.arithmetic`, `QN.magnitude`, `QN.percentages`, `QN.growth` | Numeric | Auto | — | P0 |
+| QN-4 | Consulting math | Construct | `QN.setup`, `QN.arithmetic`, `QN.magnitude` | Single choice, then numeric | Auto | — | P0 |
+| QN-5 | Market sizing | Construct | `QN.sizing_structure`, `QN.assumptions`, `QN.arithmetic`, `QN.sanity_check` | Pick drivers, numeric, single choice | Auto | Justify (P1) | P0 |
+| EX-1 | Chart read | Recognize | `EX.takeaway` | Single choice | Auto | — | P0 |
+| EX-2 | Exhibit traps | Recognize | `EX.traps` | Single choice or numeric | Auto | — | P0 |
+| EX-5 | Fix the takeaway | Repair | `EX.takeaway` | Free text, prefilled | Checklist | — | P1 |
+| EX-3 | Needle in the table | Construct | `EX.extraction`, `QN.arithmetic` | Numeric | Auto | — | P0 |
+| EX-4 | Written chart takeaway | Construct | `EX.takeaway` | Free text | Checklist | Justify (implication) | P1 (was P2) |
+| BJ-1 | "So what?" | Recognize | `BJ.so_what` | Single choice | Auto | — | P1 |
+| BJ-2 | Risks and next steps | Recognize | `BJ.risks` | Multi-select | Auto | — | P1 |
+| BJ-3 | Written "So what?" | Construct | `BJ.so_what` | Free text | Checklist | — | P2 |
+| CR-1 | Bucketed brainstorm | Construct | `CR.volume`, `CR.structure` | Grouped text editor | Checklist | — | P1 |
+| SY-1 | Pick the best summary | Recognize | `SY.answer_first`, `SY.evidence`, `SY.summary` | Single choice | Auto | — | P0 |
+| SY-3 | Fix the recommendation | Repair | `SY.answer_first`, `SY.evidence` | Free text, prefilled | Checklist | — | P0 |
+| SY-2 | 60-second recommendation | Construct | `SY.answer_first`, `SY.evidence`, `SY.complete` | Free text | Checklist | Challenge | P0 |
+| CM-1 | Pick the answer-first version | Recognize | `CM.concise` | Single choice | Auto | — | P2 |
+| CM-2 | Answer-first rewrite | Construct | `CM.concise` | Free text | Checklist + auto | — | P2 |
+| CL-1 | What's next? | Recognize | `CL.next_step` | Single choice | Auto | — | P0 |
+| CL-2 | Hold or fold | Recognize | `CL.pushback` | Two single choices | Auto | — | P1 |
+| CL-4 | Your next move | Construct | `CL.next_step` | Free text, then Keep/Change + free text | Checklist + auto | Built in (Adapt stage) | P1 |
+| CL-3 | What do you need to know? | Construct | `CL.data_requests` | Free text | Checklist | Justify | P0 |
+
+### Drill chains
+
+Each skill climbs a chain from choosing an answer to defending one; the chain below decides which drill serves each stage.
+
+| Skill area | Recognize | Repair | Construct | Defend follow-up (tiers 2–3) |
+| --- | --- | --- | --- | --- |
+| PS: frameworks | PS-1 Spot the gap | PS-4 Fix the framework | PS-3 Framework builder | "Which bucket would you dig into first, and why?" |
+| HY: hypotheses | HY-1 Pick the best hypothesis | HY-3 Fix the hypothesis | HY-2 Initial hypothesis (its Update stage covers new evidence) | "What data would you ask for first, and what result would make you drop it?" |
+| EX: chart takeaways | EX-1 Chart read | EX-5 Fix the takeaway (P1) | EX-4 Written chart takeaway (P1) | "What does this mean for the client's decision?" |
+| SY: recommendations | SY-1 Pick the best summary | SY-3 Fix the recommendation | SY-2 60-second recommendation | Scripted interviewer challenge: Hold or Update |
+| CL: next step | CL-1 What's next? | — | CL-4 Your next move (P1) | Built in: a new fact, then Keep or Change |
+| CL: data requests | — | — | CL-3 What do you need to know? | "If that first analysis comes back flat, what next, and why?" |
+| QN: market sizing | QN-1 Setup only | — | QN-5 Market sizing | "Defend your assumption for \[driver\]." (P1) |
+| QN math, EX traps and tables | QN-1, EX-2 | — | QN-3, QN-4, EX-3 | None (auto-checked) |
+
+- **Learn** (a lesson) comes before every chain; **Transfer** (unseen items, new context) comes after it. See Training program and Mastery.
+- A stage with no drill is skipped. Stage moves are defined in Mastery and adaptive progression.
 
 ### How to read each drill spec
 
@@ -290,8 +539,8 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 ### PS-3 Framework builder
 
 - **How it works:** The student sees a 1–3 sentence case prompt (client, objective, one key metric) and builds a framework in a structured editor: 2–5 buckets, each with a title and 1–4 sub-points of up to 15 words. Total cap: 120 words.
-- **Set and time:** 4 items. 180 / 120 / 90 s.
-- **Scoring:** Checklist, AI-graded after the set, each answer in its own call.
+- **Set and time:** 4 items at T1; 3 items at T2 and T3, where each item adds a Defend step. 180 / 120 / 90 s.
+- **Scoring:** Checklist, AI-graded after the set, each answer in its own call. At T2–T3 the checks below make up 75% of the item and the Defend step 25% (see Defend step).
 
 | Check | Weight | Failed check logs |
 | --- | --- | --- |
@@ -307,8 +556,9 @@ Each spec below lists: how it works, set size and time limit per item by difficu
   - Fewer than 2 buckets (cap at 0.3, checked by code).
 - **Grading rules:** An area counts only when the answer ties it to this case (a generic word such as "costs" alone doesn't count), and the full PS-3 rules in `docs/drills-grading-guide.md` decide the borderline calls. Rules the AI applies are sent with every PS-3 item, word for word as in the guide.
 - **Deterministic pre-checks:** Code checks bucket count, empty buckets and word caps before the AI call.
+- **Defend (T2–T3):** Justify. "Which bucket would you dig into first, and why?" Graded with the generic Justify checks in its own call.
 - **Results show:** Each check with quoted evidence, and the key's model framework.
-- **Answer key:** Must-cover areas (each with a short description and acceptable synonyms, one marked critical), common overlap pairs, model framework.
+- **Answer key:** Must-cover areas (each with a short description and acceptable synonyms, one marked critical), common overlap pairs, model framework, and the Defend model reply.
 - **Item source:** Authored, aligned to the 14 case types. AI-drafted, human QA.
 
 ### HY-1 Pick the best hypothesis
@@ -324,8 +574,8 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 - **How it works:** Two stages on the same item.
   1. *Form:* The student reads the opening facts ("Revenue declined 12%, but customer count increased 8%") and writes a hypothesis and why, up to 50 words.
   2. *Update:* A new fact is revealed ("Price per unit is flat; units bought per customer fell 20%"). The student taps Keep, Revise or Drop, then writes up to 30 words explaining why (including the revised hypothesis if Revise).
-- **Set and time:** 4 items. Stage 1: 90 / 75 / 60 s. Stage 2: 60 / 45 / 35 s.
-- **Scoring:** Stage 1 is 60% of the item, stage 2 is 40%.
+- **Set and time:** 4 items at T1; 3 items at T2 and T3, where each item adds a Defend step. Stage 1: 90 / 75 / 60 s. Stage 2: 60 / 45 / 35 s.
+- **Scoring:** Stage 1 is 60% of the item, stage 2 is 40%. At T2–T3, with Defend: stage 1 45%, stage 2 30%, Defend 25%.
 
 | Check | Weight | Failed check logs |
 | --- | --- | --- |
@@ -339,7 +589,8 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 - **How the update decision is auto-checked:** During grading, the AI also classifies the stage 1 hypothesis into one of the key's 3–4 hypothesis families, or "other," and the family of any backup cause the student names. It does this in a separate call that sees only the opening facts, the families and the stage 1 answer, never stage 2 or the new fact, so a correct revision can't pull stage 1 into the family the student revised to. The key states the accepted action(s) for each family given the new fact; where two are defensible, it accepts both (for example drop or revise). Code compares the student's tap to it. For "other," Revise and Drop are both accepted. Revise is also accepted when the student moves to their own stated backup and the new fact supports the backup's family.
 - **Red flags:** Restates the facts with no cause (stage 1 capped at 0.3). Lists 3 or more causes without picking one (stage 1 capped at 0.5, `M.shotgun_hypotheses`). Off-topic: stage 1 offers no cause, for example it proposes a fix or answers a different question (stage 1 capped at 0.2, `M.no_hypothesis`).
 - **Grading rules:** The HY-2 rules in `docs/drills-grading-guide.md` decide borderline calls and are sent to the grader with every item, word for word. Among them: a generic cause ("market conditions") or the facts re-stated as a ratio is not directional; "analyze the data" is not testable; a fix with no hypothesis behind it is not an update reason. The update decision is HY-2's critical element (25%, scored by code), so it has no separate critical-element cap.
-- **Answer key:** Hypothesis families with descriptions, the new fact, the accepted action(s) per family with reason, a model answer for each stage.
+- **Defend (T2–T3):** Justify, with drill-specific checks. "What data would you ask for first to test your hypothesis, and what result would make you drop it?" (see Defend step).
+- **Answer key:** Hypothesis families with descriptions, the new fact, the accepted action(s) per family with reason, a model answer for each stage, and the Defend model reply.
 - **Item source:** Authored. Each item's new fact must support at least one family and contradict at least one. AI-drafted, human QA.
 
 ### QN-1 Setup only
@@ -398,7 +649,8 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 | Calculation | 25% | Within ±2% of the product of the student's own assumptions | QN-3 trap-value diagnosis |
 | Sanity check | 10% | Correct relative to the key's benchmark range: "too high" or "too low" is correct if the estimate is more than 3× outside it | `M.implausible_accepted`, `M.plausible_rejected` |
 
-- **Answer key:** Driver cards with valid or distractor labels, accepted driver sets, accepted range per driver (wide enough to accept reasonable estimates, typically ±50% around a central value) with its source or reasoning, benchmark range for the total, model walkthrough.
+- **Defend (P1):** Justify. "Defend your assumption for \[driver named in the key\]." (see Defend step).
+- **Answer key:** Driver cards with their roles, accepted driver sets, accepted range per driver (wide enough to accept reasonable estimates, typically ±50% around a central value) with its source or reasoning, benchmark range for the total, model walkthrough. A figure names a source only if the source has been looked up (with a link); otherwise the range is given as reasoning.
 - **Item source:** Authored. Every range needs a recorded source or a written derivation in the key. AI-drafted, human QA.
 
 ### EX-1 Chart read
@@ -425,7 +677,7 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 - **Answer key:** Generated: correct answer, tolerance, cells used, neighbor-cell trap values, worked solution.
 - **Item source:** 100% generators.
 
-### EX-4 Written chart takeaway (P2)
+### EX-4 Written chart takeaway (P1)
 
 - **How it works:** Same charts and context as EX-1, but the student writes the takeaway (up to 40 words).
 - **Set and time:** 6 items. 60 / 45 / 35 s.
@@ -476,8 +728,8 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 ### SY-2 60-second recommendation
 
 - **How it works:** The student sees the client's question and a fact sheet of 5–6 facts, 1–2 of them irrelevant, and writes a recommendation of up to 120 words, roughly what a candidate says in 60 seconds. Time limits allow for typing speed.
-- **Set and time:** 3 items. 180 / 120 / 90 s.
-- **Scoring:** Checklist, AI-graded after the set, each answer in its own call.
+- **Set and time:** 3 items at every tier (with a Defend step at T2 and T3). 180 / 120 / 90 s.
+- **Scoring:** Checklist, AI-graded after the set, each answer in its own call. At T2–T3 the checks below make up 75% of the item and the Defend step 25% (see Defend step).
 
 | Check | Weight | Failed check logs |
 | --- | --- | --- |
@@ -493,7 +745,8 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 - **Red flags:** No clear position, for example "it depends" (cap 0.4, `M.hedged_recommendation`). A claim that contradicts the fact sheet (cap 0.5); a wrong calculation fails the consistency check instead. Wrong recommendation: the answer recommends a different action from the key's acceptable recommendation(s) (cap 0.5, `M.unsupported_recommendation`). Misses the deciding fact: each item marks one relevant fact as deciding, and an answer that never uses it is capped at 0.6 (`M.ignores_deciding_fact`). Off-topic: the answer addresses a different question (cap 0.2); an off-topic answer is not also flagged for no clear position or a wrong recommendation (code enforces this).
 - **Deterministic backstops:** The recommendation-first check passes only on a quote from the first sentence.
 - **Grading rules:** The SY-2 rules in `docs/drills-grading-guide.md` are sent to the grader with every item, word for word.
-- **Answer key:** The acceptable recommendation, or two where the call is genuinely debatable; which facts are relevant and which one is deciding; key risks and next steps; model answer.
+- **Defend (T2–T3):** Challenge. An item-specific interviewer challenge, for example "The CFO says your payback math ignores the ramp-up year." The student taps Hold or Update, then writes why. Half the challenges in the pool are valid. Graded with the generic Challenge checks (see Defend step).
+- **Answer key:** The acceptable recommendation, or two where the call is genuinely debatable; which facts are relevant and which one is deciding; key risks and next steps; model answer; the Defend challenge with whether it is valid and why, and a model reply.
 - **Item source:** Authored, one per case type. AI-drafted, human QA.
 
 ### CM-1 Pick the answer-first version (P2)
@@ -528,8 +781,8 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 ### CL-3 What do you need to know?
 
 - **How it works:** The student sees a mid-case situation ("The client's margins declined from 20% to 11% over 3 years") and writes what information they'd request and where they'd start, up to 60 words.
-- **Set and time:** 4 items. 90 / 75 / 60 s.
-- **Scoring:** Checklist, AI-graded after the set, each answer in its own call.
+- **Set and time:** 4 items at T1; 3 items at T2 and T3, where each item adds a Defend step. 90 / 75 / 60 s.
+- **Scoring:** Checklist, AI-graded after the set, each answer in its own call. At T2–T3 the checks below make up 75% of the item and the Defend step 25% (see Defend step).
 
 | Check | Weight | Failed check logs |
 | --- | --- | --- |
@@ -541,8 +794,92 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 
 - **Red flags:** Proposes solutions before diagnosing (cap 0.5, `M.premature_solution`). Six or more unstructured requests (cap 0.5, `M.laundry_list`). Missed critical driver: each item marks one driver as critical, the one to start with, or two where another is an equally fair place to start, and an answer that covers neither is capped at 0.6 (`M.vague_data_request`, checked by code from that driver's check). Off-topic: the answer addresses a different question, for example it recommends a strategy instead of asking for information (cap 0.2, `M.vague_data_request`).
 - **Grading rules:** The CL-3 rules in `docs/drills-grading-guide.md` are sent to the grader with every item, word for word. Among them: a generic word ("costs", "market data") doesn't cover a specific driver; every data request must name a metric plus a cut or period, and drivers listed to break the metric down are not requests; "because it's important" is not a reason for the starting point, but a reason may come before the starting point.
-- **Answer key:** Driver breakdown with the critical driver(s) marked, best starting point with reason, examples of specific vs vague requests, model answer.
+- **Defend (T2–T3):** Justify. "If that first analysis comes back flat, what would you look at next, and why?" Graded with the generic Justify checks in its own call.
+- **Answer key:** Driver breakdown with the critical driver(s) marked, best starting point with reason, examples of specific vs vague requests, model answer, and the Defend model reply.
 - **Item source:** Authored. AI-drafted, human QA.
+
+### Repair drills: PS-4, HY-3, EX-5, SY-3
+
+Repair drills sit between Recognize and Construct: the student fixes a flawed answer instead of building one from a blank page.
+
+- **How it works:** the student sees the case prompt and a flawed answer, prefilled in the editor, and edits it. How much they are told depends on tier: T1 names the flaw ("Buckets 2 and 3 overlap"), T2 says "this answer has one flaw", T3 says "this answer may have one or two flaws".
+- **Scoring:** checklist, AI-graded after the set, each answer in its own call.
+
+| Check | Weight | Failed check logs |
+| --- | --- | --- |
+| Fixes each planted flaw (one check per flaw) | 50% split evenly | That flaw's tag |
+| Adds no new flaw of the drill's types | 30% | The new flaw's tag (the AI picks from the drill's tag list) |
+| Keeps the parts of the answer that were right | 20% | The drill's "dropped right part" tag (table below) |
+
+- **Code pre-check:** an answer unchanged from the flawed version (after whitespace normalization) scores 0 and logs the planted flaw's tag, with no AI call.
+- **Answer key:** the flawed answer, its flaw types and tags, a model repair, and a note on which parts were right.
+- **Item source:** derived from Level 1 items (PS-1 frameworks with a planted flaw; HY-1, EX-1 and SY-1 distractors), so the scenarios already exist and only the repair key is new. AI-drafted, human QA. A student is not served a Repair item derived from a Level 1 item they saw in the last 14 days.
+- **Progression:** Repair sets don't change skill states. They move the student from Recognize to Construct (see Mastery).
+
+| Drill | Flawed answer comes from | Input | Set and time (T1 / T2 / T3) | "Dropped right part" tag | Priority |
+| --- | --- | --- | --- | --- | --- |
+| PS-4 Fix the framework | PS-1 frameworks with a planted flaw (T3 may plant two) | Structured bucket editor, prefilled, same caps as PS-3 | 5 items; 120 / 90 / 75 s | `M.missing_bucket` | P0 |
+| HY-3 Fix the hypothesis | HY-1 distractors: restates facts, shotgun, overconfident, untestable | Free text, prefilled, up to 40 words | 6 items; 60 / 45 / 35 s | `M.ignores_facts` | P0 |
+| EX-5 Fix the takeaway | EX-1 distractors: trivial, misread, unsupported; chart stays visible | Free text, prefilled, up to 40 words | 6 items; 60 / 45 / 35 s | `M.unsupported_claim` | P1 |
+| SY-3 Fix the recommendation | SY-1 distractors: buried, hedged, padded, unsupported | Free text, prefilled, up to 80 words | 5 items; 90 / 75 / 60 s | `M.unsupported_recommendation` | P0 |
+
+### CL-4 Your next move (P1)
+
+- **How it works:** two stages on the same item, mirroring HY-2.
+  1. *Plan:* the student sees where the case stands (same setup as CL-1) and writes the next step and why, up to 40 words.
+  2. *Adapt:* a new fact is revealed. The student taps Keep or Change, then writes up to 30 words why (including the new step if Change).
+- **Set and time:** 4 items. Stage 1: 75 / 60 / 45 s. Stage 2: 60 / 45 / 35 s.
+- **Scoring:** stage 1 is 60% of the item, stage 2 is 40%.
+
+| Check | Weight | Failed check logs |
+| --- | --- | --- |
+| Names one specific next analysis, not a list | 20% | `M.illogical_next_step` |
+| The step is logical: not already answered, on the objective, not jumping to a solution | 25% | `M.illogical_next_step` |
+| Gives a reason tied to the latest finding | 15% | `M.illogical_next_step` |
+| Keep/Change decision correct (auto) | 25% | `M.illogical_next_step` |
+| Change reason uses the new fact | 15% | `M.illogical_next_step` |
+
+- **How the decision is auto-checked:** as in HY-2. The AI classifies the stage 1 step into one of the key's 3–4 step families, or "other", in a separate call that sees only stage 1. The key states the correct action for each family given the new fact; code compares the student's tap. For "other", both actions are accepted.
+- **Red flag:** gives a final recommendation instead of a next step (stage 1 capped at 0.4, `M.illogical_next_step`).
+- **Defend:** none added; the Adapt stage plays that role.
+- **Item source:** derived from CL-1 items plus one new fact per item. Each new fact must support at least one step family and undercut at least one. AI-drafted, human QA.
+
+### Defend step
+
+The Defend step trains what interviews test most: answering a follow-up about your own answer.
+
+- **When:** after the main answer of a Construct item at tiers 2 and 3, including test-out sets (which run at tier 2). Not at tier 1, in the diagnostic, or in Repair or Recognize drills.
+- **Types:**
+  - *Justify:* a question about the student's own answer ("Which bucket would you dig into first, and why?"). Written reply, up to 40 words.
+  - *Challenge:* scripted interviewer pushback on the case facts. Half the challenges in each drill's pool are valid and half are not. The student taps Hold or Update, then writes up to 40 words why.
+- **Time:** 60 s at T2, 45 s at T3.
+- **Weight:** the Defend step is 25% of the item score; the main answer's weights scale to 75%. For HY-2 that makes stage 1 45%, stage 2 30%, Defend 25%.
+- **Skills:** the Defend score counts toward the item's skills (it is part of the item score). Its checks also count toward `CL.pushback`.
+- **Shorter sets:** drills with Defend serve one fewer item at T2 and T3: PS-3, HY-2 and CL-3 drop from 4 to 3 items; SY-2 stays at 3. Set size is set per tier in `drills.v1.json`.
+- **Scoring:** one AI call per Defend reply, made with the set's other grading calls after the last item. Input: the item prompt, the student's main answer and reply (both as delimited data), the follow-up and the checks.
+
+| Type | Check | Weight | Failed check logs |
+| --- | --- | --- | --- |
+| Justify | Answers the question asked and commits to one choice | 35% | `M.dodged_question` |
+| Justify | Gives a reason that uses a case fact or number | 40% | `M.no_evidence_in_defense` |
+| Justify | Consistent with the student's own main answer | 25% | `M.inconsistent_defense` |
+| Challenge | Hold/Update decision correct (auto) | 40% | `M.caved_to_invalid_pushback` or `M.ignored_valid_pushback` |
+| Challenge | Reason uses evidence from the case | 40% | `M.no_evidence_in_defense` |
+| Challenge | Says what changes (Update) or restates the conclusion (Hold), consistent with the main answer | 20% | `M.inconsistent_defense` |
+
+Follow-ups by drill (drill-specific checks replace the generic ones where listed):
+
+| Drill | Type | Follow-up | Checks |
+| --- | --- | --- | --- |
+| PS-3 | Justify | "Which bucket would you dig into first, and why?" | Generic |
+| HY-2 | Justify | "What data would you ask for first to test your hypothesis, and what result would make you drop it?" | Names a specific data request (40%, `M.untestable_hypothesis`); states a result that would reject it (35%, `M.untestable_hypothesis`); consistent with own hypothesis (25%, `M.inconsistent_defense`) |
+| SY-2 | Challenge | Item-specific, e.g. "The CFO says your payback math ignores the ramp-up year." | Generic |
+| CL-3 | Justify | "If that first analysis comes back flat, what would you look at next, and why?" | Generic |
+| EX-4 (P1) | Justify | "What does this mean for the client's decision?" | States an implication for the decision (40%, `M.no_implication`); tied to the client's objective (35%, `M.implication_off_objective`); consistent (25%, `M.inconsistent_defense`) |
+| QN-5 (P1) | Justify | "Defend your assumption for \[driver named in the key\]." | Gives a basis: a benchmark, comparison or derivation (60%, `M.unreasonable_assumption`); consistent with own number (40%, `M.inconsistent_defense`) |
+
+- **Answer key additions:** follow-up type and text; for Challenge, whether it is valid and why; a model reply.
+- **New tags** (both under `CL.pushback`, default severity minor): `M.dodged_question`, `M.inconsistent_defense`.
 
 ## Scoring system
 
@@ -555,8 +892,10 @@ Code computes every score; the AI's only job is to answer narrow yes/no checks a
 | Single choice | 1 if correct, else 0 | The tag on the chosen wrong option |
 | Multi-select | max(0, correct picks − wrong picks) ÷ number of correct options | Tags on wrong picks and on missed correct options |
 | Numeric | 1 if within the item's tolerance, else 0 | Trap-value match (QN-3 precedence), else `M.arithmetic_error` |
-| Multi-step (QN-4, QN-5, HY-2, CL-2) | Weighted sum of step scores, per the drill spec | Each failed step's tag |
+| Multi-step (QN-4, QN-5, HY-2, CL-2, CL-4) | Weighted sum of step scores, per the drill spec | Each failed step's tag |
 | Checklist (free text) | Sum of weights of passed checks, then any red-flag cap applied | Each failed check's tag, plus red-flag tags |
+| Repair (free text) | Checklist, as above; an unchanged answer scores 0 by code | Failed checks; unchanged answer logs the planted flaw's tag |
+| Defend step (T2–T3 Construct items) | 25% of the item; checklist, plus an auto-checked decision for Challenge | Failed Defend checks (mostly `CL.pushback` tags) |
 | Timeout with empty answer | 0 | `M.timeout` |
 | Skip | 0 | `M.skipped` |
 
@@ -574,13 +913,13 @@ Set score = the average item score. Feedback text for every tag and check comes 
 
 ### Checklist grading call
 
-One call per written answer, made after the last item of the set; a set's calls run in parallel. Each answer is graded on its own so that a student's score never depends on their other answers: when answers shared a call, the grader's verdicts shifted with whatever else was in it (the same answer could lose 15–40 points depending on its neighbors).
+One call per written answer, made after the last item of the set; a set's calls run in parallel. Each Repair answer, Construct answer and Defend reply is graded in its own call, so a student's score never depends on their other answers: when answers shared a call, the grader's verdicts shifted with whatever else was in it (the same answer could lose 15–40 points depending on its neighbors). Calls are never batched. Grading moves to "as soon as each answer is submitted" only if results p95 goes over 10 s.
 
-- **Model:** The cheapest model tier that meets the 90% agreement target on the golden set (see below). First candidate: Claude Haiku 4.5, gated on the golden sets. Temperature 0. Structured JSON output enforced by schema.
+- **Model:** The cheapest model tier that meets the 90% agreement target on the golden set (see below). Currently Claude Haiku 4.5. Temperature 0. Structured JSON output enforced by schema.
 - **Input:** The item's prompt, the student's answer, and from the key only the checks (id and question text), hypothesis families or categories if the drill uses them, and the red-flag definitions. Model answers are not sent, to keep tokens down.
 - **Student text is data.** It is wrapped in clearly delimited tags, and the system prompt states that instructions inside it must be ignored. Text that looks like an attempt to instruct the grader is flagged and logged, and the item is graded normally.
 - **Output per check:** `pass` (true/false) and `evidence`, an exact quote from the student's answer (required when `pass` is true; optional when false).
-- **Output extras (only for drills that need them):** `hypothesis_family` for HY-2; `valid_ideas` (list of {text, category}) for CR-1.
+- **Output extras (only for drills that need them):** `hypothesis_family` for HY-2 (from its separate stage 1 call); step family for CL-4; `valid_ideas` (list of {text, category}) for CR-1.
 - **The AI never outputs a score.**
 
 Example output for one item:
@@ -602,19 +941,19 @@ Example output for one item:
 
 - **Quote verification:** Code confirms every `evidence` string is an exact substring of the student's answer (after whitespace normalization). A `pass: true` with a missing or non-matching quote is re-requested once for that item; if it fails again, the check is scored as failed and the item is flagged for QA review.
 - **Schema validation:** Any malformed response is retried up to 2 times, then follows the failure state in User experience.
-- **Code pre-checks run first:** word caps, bucket counts, empty fields and number presence (SY-2) are checked by code. If a pre-check settles a check or red flag, it is not sent to the AI.
+- **Code pre-checks run first:** word caps, bucket counts, empty fields, unchanged Repair answers and number presence (SY-2) are checked by code. If a pre-check settles a check or red flag, it is not sent to the AI.
 
 ### Grading quality
 
-- **Golden set:** Each AI-graded drill has at least 30 human-graded answers, including edge cases (very short answers, off-topic answers, injection attempts, borderline passes).
-- **Release gate:** Any change to a grading prompt, model or checklist must reach at least 90% agreement with human labels on every check before it ships. This runs automatically in CI.
-- **Versioning:** Every grade stores `grader_prompt_version` and `model_id`.
-- **Monthly audit:** 100 randomly sampled graded answers are reviewed by a human; agreement is reported per check.
-- **Disputes (P1):** A "Disagree with this grade?" link on the results screen logs the item for QA review. Disputes don't change the score automatically.
+- **Golden set:** each AI-graded drill and each Defend follow-up type has at least 30 human-graded answers, including edge cases (very short answers, off-topic answers, injection attempts, borderline passes).
+- **Release gate:** any change to a grading prompt, model or checklist must reach at least 90% agreement with human labels on every check before it ships. This runs automatically in CI.
+- **Versioning:** every grade stores `grader_prompt_version` and `model_id`.
+- **Monthly audit:** 100 randomly sampled graded answers are reviewed by a human; agreement is reported per check, including Defend checks.
+- **Disputes (P1):** a "Disagree with this grade?" link on the results screen logs the item for QA review. Disputes don't change the score automatically.
 
 ## Mastery and adaptive progression
 
-A skill is Mastered after two consecutive Level 2 sets at 80% or higher, at tier 2 or above; it is Validated only when a later full case uses the skill without that skill's mistakes. All rules are fixed and stored in a config file so they can be tuned without changing code.
+A skill is Practiced after two consecutive Construct sets at 80% or higher, at tier 2 or above (Defend included); it becomes Mastered when it passes a transfer check on unseen items, and Validated only when a later full case uses the skill without that skill's mistakes. All rules are fixed and stored in a config file so they can be tuned without code changes. The 80% bar and two consecutive sets stay for the pilot and will be tuned from its data.
 
 ### Skill score from a set
 
@@ -626,24 +965,28 @@ A skill is Mastered after two consecutive Level 2 sets at 80% or higher, at tier
 
 | From | To | Condition |
 | --- | --- | --- |
-| Not started | Learning | First prescription, or first set completed for the skill |
-| Learning | Recognizes | 2 consecutive Level 1 sets ≥ 80% on the skill, at T2 or above |
-| Learning | Recognizes and Mastered | Test-out: 2 consecutive Level 2 sets ≥ 80% at T2 or above, with no Level 1 sets needed |
-| Recognizes | Mastered | 2 consecutive Level 2 sets ≥ 80% on the skill, at T2 or above |
+| Not started | Learning | First prescription, diagnostic placement, plan start, or first set completed for the skill |
+| Learning | Recognizes | 2 consecutive Recognize (Level 1) sets ≥ 80% on the skill, at T2 or above |
+| Learning or Recognizes | Practiced | 2 consecutive Construct sets ≥ 80% on the skill, at T2 or above (Defend included). From Learning this is the test-out |
+| Practiced | Mastered | Transfer check ≥ 80% |
+| Practiced | Recognizes | Transfer check below 60%, or a full case logs any of the skill's mistake tags |
 | Mastered | Validated | The next full case marks the skill as observed and logs none of its mistake tags |
 | Mastered or Validated | Recognizes | A full case logs any of the skill's mistake tags, or a spaced review scores below 60% |
+| Not started or Learning | Recognizes | Credit down: a skill that builds on this one reaches Mastered (see Skill tree) |
 
-**Skills with no live Level 2 drill.** Some skills are trained only by Level 1 drills: `SY.summary`, `EX.traps` and `CL.next_step` have no Level 2 drill in the catalog, and `BJ.so_what` and `BJ.risks` have none until BJ-3 (P2) ships. These skills start at Level 1, and the Level 1 criteria (2 consecutive Level 1 sets ≥ 80% at T2 or above) grant Recognizes and Mastered together. The skill profile shows them as Mastered with no extra label.
+Repair sets and lessons never change skill states.
 
-**Skills with no Level 1 drill.** Some skills are trained only by Level 2 drills (for example `QN.arithmetic`, `PS.depth`, `HY.update`, `EX.extraction` and `CL.data_requests`; the `l1` entry in `skill_drills` is null). These skills stay at Level 2 throughout: a set below 50% drops the tier instead of the level, and 2 consecutive Level 2 sets ≥ 80% at T2 or above grant Recognizes and Mastered together.
+**Skills with no live Construct drill** (for example `SY.summary`, `EX.traps`, and Business Judgment in the MVP): Level 1 criteria grant Practiced, the transfer check uses unseen Level 1 items at tier 3, and the profile labels the skill "Level 2 coming soon."
 
-### Where a student starts on a skill
+**Skills with no Recognize drill** (for example `QN.arithmetic`, `PS.depth`, `HY.update`, `EX.extraction` and `CL.data_requests`): they stay at Construct throughout. A set below 50% drops the tier instead of the stage (or goes to Repair, if the skill has a Repair drill).
 
-1. The first set for a newly prescribed skill is Level 2, tier 2. This is the test-out attempt, and because it is at T2 it counts toward Mastered. Skills with no live Level 2 drill start at Level 1, tier 2 instead.
-2. If that set scores below 50%, the next set drops to Level 1. Skills with no Level 1 drill stay at Level 2 and drop one tier instead.
-3. If it scores 50–79%, the student repeats Level 2.
-4. If it scores 80% or higher, it counts toward Mastered.
-5. During interview-date mode (7 or fewer days out), Level 1 is never served, except for skills with no live Level 2 drill.
+### Where a student starts and how they move between stages
+
+1. The starting stage comes from the track and the diagnostic (see Training program). Without either, the first set for a newly prescribed skill is Construct, tier 2. This is the test-out attempt; because it is at T2 it counts toward Practiced, and once Defend ships it includes the Defend step. Skills with no live Construct drill start at Recognize, tier 2.
+2. After a Construct set: 80% or higher counts toward Practiced (T2 and above). 50–79% → the next set is Repair, or Construct again if the skill has no Repair drill. Below 50% → the next set is Recognize and the lesson is offered (in Sprint: Repair instead of Recognize). The stuck rule (Skill tree) may prescribe a prerequisite first.
+3. Once a skill reaches Recognizes, the next set is Repair. A Repair set at 70% or higher moves the student to Construct; otherwise one more Repair set, then Construct regardless.
+4. Skills with no Repair drill skip that stage.
+5. In Sprint, and whenever the interview is 7 or fewer days away, Recognize is never served, except for skills with no live Construct drill.
 
 ### Difficulty tiers
 
@@ -654,13 +997,20 @@ A skill is Mastered after two consecutive Level 2 sets at 80% or higher, at tier
 ### Spaced review
 
 - A Mastered or Validated skill not practiced for 14 days becomes eligible for review.
-- A review set uses the highest live level for the skill (Level 2 where a Level 2 drill exists, otherwise Level 1), at the student's current tier.
+- A review set uses the skill's Construct drill where one exists (otherwise Recognize), at the student's current tier, served in the workout's review slot.
 - A review set is half the normal set size, rounded up. Drills with 4 or fewer items per set (PS-3, HY-2, QN-5, SY-2, CL-3, CR-1) use their full set size, so the review still meets the 3-items-or-checks minimum and counts toward the skill.
 - At 80% or higher, the review clock resets. Below 60%, the skill drops to Recognizes. In between, another review is scheduled for 7 days later.
 
+### Transfer check
+
+- Unlocks 2 days after a skill reaches Practiced (immediately in Sprint) and is served in the workout's unfamiliar slot.
+- A full-size Construct set at tier 2, with Defend, built only from items the student has never seen, from a case type and industry they haven't practiced on that skill in their last 3 sets. Generated drills use a different template context and new seeds.
+- 80% or higher → Mastered. 60–79% → stays Practiced; one Construct set goes into the weak-spot pool and another transfer check unlocks 2 days later. Below 60% → Recognizes.
+- Week 6 (Readiness) runs a transfer check on every prescribed skill still at Practiced.
+
 ### Progress bar toward the next state
 
-The skill profile shows how many qualifying sets the student has (0, 1 or 2 of 2) and their most recent skill score against the 80% bar, in plain words: "1 of 2 passing sets. Last score: 74%. Need 80%."
+The skill profile shows how many qualifying sets the student has (0, 1 or 2 of 2) and their most recent skill score against the 80% bar, in plain words: "1 of 2 passing sets. Last score: 74%. Need 80%." After Practiced it shows the transfer check: "Transfer check unlocks Thursday."
 
 ## Prescription engine and case grader integration
 
@@ -704,8 +1054,10 @@ The transcript-grading agent must emit this payload when a case is graded. The d
 2. Give each skill a priority score: +2 per major tag, +1 per minor tag (using each finding's final severity), +2 if the same skill was flagged in the previous case, +1 if the skill was Mastered or Validated (a regression).
 3. Remove skills with no live drill. Their findings still appear in case feedback.
 4. Take the 3 highest-scoring skills, with no more than 2 from the same skill area (PS, QN, EX and so on). If a third skill would be the area's third, skip it and take the next-highest skill from a different area. If there is none, prescribe only 2. Ties go to the skill in the lower state, then to the skill whose drill is listed first in the catalog.
-5. For each skill, choose the drill from the skill-keyed drill map in config (`skill_drills`: each skill's Level 1 and Level 2 drill, for example `PS.case_specific` → PS-1 / PS-3), and the level and tier from the Mastery rules. Every tag maps to exactly one skill, so the skill decides the drill. If the finding's tag is listed in `focusable_tags` (for example, `M.zeros_error` → QN-3), the set focuses on that tag.
+5. For each skill, choose the drill from the skill-keyed drill map in config (`skill_drills`: each skill's Recognize, Repair and Construct drill, for example `PS.case_specific` → PS-1 / PS-4 / PS-3), and the stage and tier from the Mastery rules. Every tag maps to exactly one skill, so the skill decides the drill. If the finding's tag is listed in `focusable_tags` (for example, `M.zeros_error` → QN-3), the set focuses on that tag.
 6. Write the reason from a template using the tag and the evidence quote: "In your last case you said '…two million divided by fifty dollars.' Breakeven uses contribution per unit, not price."
+
+Prescriptions from the diagnostic and the plan follow the Training program rules, and the stuck rule can add prerequisite prescriptions (Skill tree). In a workout's weak-spot slot, all open prescriptions are ranked together, with +2 for skills in the week's focus areas.
 
 ### Prescriptions inside drills
 
@@ -714,16 +1066,16 @@ The transcript-grading agent must emit this payload when a case is graded. The d
 
 ### Lifecycle
 
-- A prescription stays open until its skill reaches Mastered, or until a newer case regenerates the list.
+- A prescription stays open until its skill reaches Mastered, or until a newer case regenerates the list. A prescription paused by the stuck rule resumes when its prerequisite reaches Practiced or after 3 prerequisite sets.
 - When a newer case arrives, open prescriptions are recalculated. A drill set already in progress is kept and finishes normally.
 - Students can dismiss a prescription. Dismissals are logged and the skill is not re-prescribed until another case flags it.
 
 ### Picking the next case
 
-When the "Ready for your next case" card appears, it recommends one case:
+When the Next case card appears, it recommends one case:
 
-1. The case type whose main skill falls in the skill area of the most recently Mastered prescribed skill, so the case retests it.
-2. The same difficulty tier as the student's last case, or one tier higher if all rubric dimensions in that case met the tier's bar.
+1. The case type whose main skill falls in the skill area of the most recently Practiced or Mastered prescribed skill, so the case retests it.
+2. The same difficulty tier as the student's last case, or one tier higher if that case met the bar: no dimension rated `needs_work` and at least half of the rated dimensions `strong`.
 3. A case the student hasn't taken.
 
 This needs a `case_type` field on every case (added to the case schema) and a config map from each of the 14 case types' main skill to a skill area.
@@ -732,7 +1084,7 @@ This needs a `case_type` field on every case (added to the case schema) and a co
 
 ### Updating skill state from cases
 
-- Any finding on a Mastered or Validated skill drops it to Recognizes.
+- Any finding on a Practiced, Mastered or Validated skill drops it to Recognizes.
 - A Mastered skill listed in `skills_observed` with no findings becomes Validated.
 - Rubric trends on the skill profile compare only cases in the same difficulty tier and appear after 2 or more such cases.
 
@@ -749,9 +1101,11 @@ Items come from two sources: code generators for anything numeric (unlimited and
   "drill_id": "PS-3",
   "status": "live",
   "level": 2,
+  "stage": "construct",
   "tier": 2,
   "skills": ["PS.mece", "PS.case_specific", "PS.depth"],
   "case_type": "market_entry",
+  "industry": "fitness",
   "prompt": "A regional gym chain is considering launching an at-home fitness subscription...",
   "exhibit": null,
   "input": {"type": "structured_buckets", "max_buckets": 5, "max_words": 120},
@@ -766,6 +1120,7 @@ Items come from two sources: code generators for anything numeric (unlimited and
     {"id": "generic_framework", "definition": "A memorized framework not adapted to this case",
      "cap": 0.4, "tag": "M.generic_framework", "detection": "ai"}
   ],
+  "defend": {"type": "justify", "text": "Which bucket would you dig into first, and why?", "model_reply": "..."},
   "model_answer": "...",
   "explanation": "...",
   "sources": [],
@@ -781,10 +1136,18 @@ Items come from two sources: code generators for anything numeric (unlimited and
 - `input.steps` (multi-step items, for example QN-4): the steps in order, each with an input `type` and its `weight` from the drill spec (QN-4: single choice 0.4, then numeric 0.6). `input.type` is the first step's type. Step weights are scoring rules, not answer data, so they reach the client.
 - `numeric` (numeric drills): `answer`, `tolerance_type`, `tolerance_value`, `percent_format` (`none`, `percent` or `percent_or_decimal`), `trap_values` (each with `value` and `tag`). A trap matches when the student's number is within the item's tolerance of the trap value, or equals the trap value rounded the way students round (to 0–2 decimals, or to 2–3 significant figures). Generator tests reject any item where a rounded trap would land on the answer, a rounded answer would land on a trap, or two traps share a rounded form.
 - `is_example` marks the drill's worked example, shown on the intro screen. One reviewed authored item per drill; it is never served in a set.
-- Drill-specific extras live in `extras`: hypothesis families and the update fact (HY-2), driver cards and ranges (QN-5), key categories and target count (CR-1), relevant and irrelevant facts (SY-2).
+- Drill-specific extras live in `extras`: hypothesis families and the update fact (HY-2), driver cards and ranges (QN-5), key categories and target count (CR-1), relevant, irrelevant and deciding facts (SY-2), the critical check(s) (PS-3, CL-3).
 - `generator` is null on authored items. On generated items it holds `template_id`, `template_version` and `seed`, and `extras.inputs` holds the structured inputs the answer is computed from.
 - `firm_style` is reserved for future firm-style toggles.
 - Items are versioned. Any edit creates a new version; attempts store the version they used.
+
+New in v2:
+
+- `stage` on every item: recognize, repair or construct.
+- `industry` on every authored item, used by the unfamiliar slot and transfer checks.
+- Repair items: `extras.flawed_answer`, `extras.flaw_tags` and `extras.derived_from` (the Level 1 item id).
+- Construct items with Defend: `defend` = {`type` (justify or challenge), `text`, `valid` and `reason` (challenge only), `checks` (when drill-specific), `model_reply`}. Defend text stays on the server until the main answer is submitted.
+- CL-4 items: step families, the new fact and the correct action per family, as in HY-2.
 
 ### Generators
 
@@ -805,31 +1168,47 @@ Items come from two sources: code generators for anything numeric (unlimited and
 - Drafted by AI from a drill-specific authoring prompt and the drill spec in this PRD, following the same clean-room workflow as cases.
 - Every item is reviewed by a human before going live. The reviewer confirms: the answer is correct; each distractor is wrong for exactly the reason its tag states; the prompt has one defensible best answer; numbers and facts are plausible; no third-party content is reused; the similarity check passed.
 - The reviewer becomes the author of record.
-- A case (the same client situation) is used in one drill only, so a student who has seen it in one drill doesn't already know the answer in another. A scenario check flags any two items in different drills that share a client type and key figures (words few items use, plus shared numbers, including chart values). A flagged pair is changed, or recorded with a reason in `drill-items/scenario-reviewed.json` once a human confirms the scenarios differ; validation fails on any other flagged pair. Every numeric range (QN-5 drivers and totals) cites a source or gives its derivation.
+- A case (the same client situation) is used in one drill only, so a student who has seen it in one drill doesn't already know the answer in another. Repair items are the exception: they deliberately reuse their Level 1 item's scenario. A scenario check flags any two items in different drills that share a client type and key figures (words few items use, plus shared numbers, including chart values). A flagged pair is changed, or recorded with a reason in `drill-items/scenario-reviewed.json` once a human confirms the scenarios differ; validation fails on any other flagged pair. Every numeric range (QN-5 drivers and totals) cites a source or gives its derivation.
 - **Wording checks (choice drills).** A pool of 20+ items fails validation, and can't be seeded, if its wording gives answers away: (1) length: the right answer is the longest, or the shortest, option in more than 30% of items; (2) phrases: a phrase, opening or ending appears in 5+ options and is right in 80%+ of them, or in 12+ and wrong in 95%+; (3) odd one out: within items, the right answer is the only option with (or without) some feature in 5+ items and at least 60% of such cases; (4) rule player: a solver that learns wording patterns from the rest of the pool, never reading the case, scores above 33% (chance is 25%). "Wording" includes punctuation and shape: colons, semicolons, dashes, brackets, sentence count and the final period. The review page shows each pool's results. Thresholds live in `lib/drills/content-checks.ts`.
 - **Similarity check (clean room).** Each authored item gets a one-time AI review (`npm run drills:similarity`, Claude Opus 5.5 with web search) that flags anything closely resembling well-known published case-prep material (RocketBlocks, CaseCoach, Hacking the Case Interview, Management Consulted and similar). Common business situations and standard frameworks are not flagged. The result is stored on the item (`authorship.similarity_check`: `pending`, `passed`, `flagged` or `failed`, with a note and date); flagged items go to the reviewer, who marks them `passed` or `failed`. Validation keeps an authored item off `live` until it is reviewed and `passed`. Generated items are built from our own templates and are marked `not_applicable`. The check combines the model's knowledge with a few web searches per item for published cases with the same premise (without search it missed Oliver Wyman's Supermarket Pharmacy case); it records whether an item was checked with search, and can still miss paywalled or unindexed material.
 - **Explanations** separate what the data shows, what is suspected, and what would confirm or overturn it.
+
+### Lessons
+
+- Format: `lesson_id`, `skill_id`, `version`, `status` (draft, in\_review, live, retired), `body` (markdown, 400 words or fewer), `worked_example`, `mistakes` (list of {tag, one-line explanation}), `authorship`.
+- Same workflow as authored items: AI-drafted from a lesson prompt and this PRD, reviewed by a human who becomes author of record, similarity-checked, versioned.
+- The reviewer confirms the pattern matches how the drill's answer keys grade, so lessons never teach something the checklists penalize.
 
 ### Launch pool sizes (P0)
 
 | Drill | Authored items at launch | Reason |
 | --- | --- | --- |
 | PS-1 Spot the gap | 80 | 10 sets before repeats |
-| PS-3 Framework builder | 40 | 10 sets before repeats |
+| PS-3 Framework builder | 40, each with a Defend follow-up | 10+ sets before repeats; also feeds transfer checks |
+| PS-4 Fix the framework | 40 (derived from PS-1) | 8 sets before repeats |
 | HY-1 Pick the best hypothesis | 80 | 10 sets before repeats |
-| HY-2 Initial hypothesis | 40 | 10 sets before repeats |
+| HY-2 Initial hypothesis | 40, each with a Defend follow-up | 10+ sets before repeats |
+| HY-3 Fix the hypothesis | 40 (derived from HY-1) | 6–7 sets before repeats |
 | QN-5 Market sizing | 30 | 10 sets before repeats |
 | EX-1 Chart read | 80 | 10 sets before repeats |
 | SY-1 Pick the best summary | 80 | 10 sets before repeats |
-| SY-2 60-second recommendation | 30 | 10 sets before repeats |
+| SY-2 60-second recommendation | 30, each with a Challenge follow-up | 10 sets before repeats |
+| SY-3 Fix the recommendation | 30 (derived from SY-1) | 6 sets before repeats |
 | CL-1 What's next? | 80 | 10 sets before repeats |
-| CL-3 What do you need to know? | 40 | 10 sets before repeats |
+| CL-3 What do you need to know? | 40, each with a Defend follow-up | 10+ sets before repeats |
+| Lessons | 22 | One per skill trained by a P0 drill |
 
 QN-1, QN-3, QN-4, EX-2 and EX-3 are fully generated and need no authored pool.
+
+**Pilot exception:** the pilot runs with the current Level 1 pools (40–50 items per drill: PS-1 50, HY-1 45, EX-1 45, SY-1 40, CL-1 40). They grow to 80 before wider launch, guided by item-health data from the pilot.
+
+v2 adds about 110 Repair items, 150 Defend follow-ups and 22 lessons to review before launch: roughly 280 pieces on top of the existing items. Repair items reuse existing scenarios, so most of the work is writing and checking the repair key.
 
 ### Serving rules
 
 - A student never sees the same authored item twice within 60 days. When a student exhausts a pool, the items they saw longest ago are reused.
+- Transfer checks use only items the student has never seen. If none qualify, the check uses the item seen longest ago from a case type not practiced on that skill, and logs `transfer_pool_exhausted`.
+- Repair items derived from a Level 1 item the student saw in the last 14 days are not served.
 - Sets mix items across case types where possible.
 
 ### Item health
@@ -841,13 +1220,14 @@ QN-1, QN-3, QN-4, EX-2 and EX-3 are fully generated and need no authored pool.
 
 ## Data model
 
-The drills system needs 12 tables (13 with P1 disputes) plus 3 versioned config files; the `drill_attempts` table is the most important, because it is the item-level record everything else is computed from.
+The drills system needs 16 tables (17 with P1 disputes) plus 4 versioned config files; the `drill_attempts` table is the most important, because it is the item-level record everything else is computed from.
 
 ### Config files (versioned, loaded at startup)
 
-- `taxonomy.vN.json`: skill areas, skills, mistake tags (with severity and skill mapping), deprecations.
-- `drills.vN.json`: per drill: id, name, level, skills, input type, scoring type, set size, time limits per tier, pass bar, priority, live flag.
-- `rules.vN.json`: mastery thresholds, tier step rules, spaced review intervals, prescription weights, the skill-keyed drill map (`skill_drills`), focusable tags, case-type-to-skill-area map.
+- `taxonomy.vN.json`: skill areas, skills, mistake tags (with default severity and skill mapping), prerequisites, deprecations.
+- `drills.vN.json`: per drill: id, name, level, stage, skills, input type, scoring type, set size and time limits per tier (set size varies by tier for drills with Defend), pass bar, Defend type, priority, live flag.
+- `rules.vN.json`: mastery thresholds, tier step rules, stage moves, transfer delay and bars, spaced review intervals, prescription weights, stuck rule, workout mix and target minutes, the skill-keyed drill map (`skill_drills`), focusable tags, case-type-to-skill-area map.
+- `programs.vN.json`: tracks, assignment thresholds, the six-week plan (theme, focus areas, case targets, milestones per week), the Sprint day plan, compression rules, workouts per week by availability.
 
 Config files live in the repo and are validated with zod at startup. Changing a value needs a deploy but no code change.
 
@@ -855,21 +1235,27 @@ Config files live in the repo and are validated with zod at startup. Changing a 
 
 | Table | Key fields | Notes |
 | --- | --- | --- |
-| `student_profiles` | user\_id, org\_id (nullable), created\_at | The student record. The app has no users table, so drills adds this one |
-| `student_drill_settings` | student\_id, time\_multiplier (1, 1.5, 2), interview\_date, skipped\_examples\[\] | Extends `student_profiles` |
-| `drill_items` | item\_id, version, drill\_id, status (draft, in\_review, live, retired), is\_example, tier, skills\[\], payload (JSON, per Content system), authorship (JSON), created\_at | Authored items only; generated items are rebuilt from seeds |
+| `student_profiles` | user\_id, org\_id (nullable), timezone, created\_at | The student record. The app has no users table, so drills adds this one. `timezone` is the browser's IANA time zone, stored at signup |
+| `student_drill_settings` | student\_id, time\_multiplier (1, 1.5, 2), skipped\_examples\[\] | Extends `student_profiles`. `interview_date` moves to `student_programs` |
+| `drill_items` | item\_id, version, drill\_id, status (draft, in\_review, live, retired), is\_example, stage, industry, tier, skills\[\], payload (JSON, per Content system), authorship (JSON), created\_at | Authored items only; generated items are rebuilt from seeds |
 | `drill_item_stats` | item\_id, version, attempts, correct\_rate, avg\_time\_ms, option\_counts (JSON), computed\_at | Refreshed daily |
-| `drill_sets` | set\_id, student\_id, drill\_id, level, tier, size, source (prescription, continue, specific, review, diagnostic), prescription\_id, focus\_skill, focus\_tag, item\_plan (JSON), status (in\_progress, grading, completed, expired), current\_position, current\_served\_at, pending\_step (JSON), set\_score, passed, skill\_scores (JSON), taxonomy\_version, started\_at, completed\_at | One row per set. Items are served in order, so the timer for the item in play lives here (`current_served_at`). `item_plan` fixes the set's items at start. `pending_step` holds a multi-step item's finished steps, so a step can't change after its feedback is shown. One in-progress set per student, enforced by a unique index |
-| `drill_attempts` | attempt\_id, set\_id, student\_id, position, idempotency\_key, item\_id + item\_version **or** template\_id + template\_version + seed (enforced by a check constraint), response (JSON), served\_at, time\_ms, time\_limit\_ms, timed\_out, skipped, score, step\_scores (JSON), mistake\_tags\[\], check\_results (JSON: check\_id, pass, evidence), red\_flags\[\], grading\_status, grader\_prompt\_version, model\_id, submitted\_at | One row per item answered. Never deleted |
-| `grading_jobs` | job\_id, set\_id, status, retries, input\_tokens, output\_tokens, cost\_usd, latency\_ms, error, created\_at | One row per AI grading call |
+| `drill_sets` | set\_id, student\_id, drill\_id, level, stage, tier, size, source (prescription, continue, specific, review, diagnostic, plan), prescription\_id, workout\_id, slot (weak, review, unfamiliar), is\_transfer\_check, focus\_skill, focus\_tag, item\_plan (JSON), status (in\_progress, grading, completed, expired), current\_position, current\_served\_at, pending\_step (JSON), set\_score, passed, skill\_scores (JSON), taxonomy\_version, started\_at, completed\_at | One row per set. Items are served in order, so the timer for the item in play lives here (`current_served_at`). `item_plan` fixes the set's items at start. `pending_step` holds a multi-step item's finished steps, so a step can't change after its feedback is shown. One in-progress set per student, enforced by a unique index. Browse drills sets use `specific` |
+| `drill_attempts` | attempt\_id, set\_id, student\_id, position, idempotency\_key, item\_id + item\_version **or** template\_id + template\_version + seed (enforced by a check constraint), response (JSON), served\_at, time\_ms, time\_limit\_ms, timed\_out, skipped, score, step\_scores (JSON), mistake\_tags\[\], check\_results (JSON: check\_id, pass, evidence), red\_flags\[\], defend\_response (JSON: decision, text), defend\_time\_ms, defend\_score, defend\_check\_results (JSON), grading\_status, grader\_prompt\_version, model\_id, submitted\_at | One row per item answered; the Defend step is part of the same row. Never deleted |
+| `grading_jobs` | job\_id, set\_id, status, retries, input\_tokens, output\_tokens, cost\_usd, latency\_ms, error, created\_at | Tracks AI grading for a set |
 | `drill_tiers` | student\_id, drill\_id, current\_tier, updated\_at | Current tier per student per drill |
-| `skill_states` | student\_id, skill\_id, state, l1\_passing\_streak, l2\_passing\_streak, last\_skill\_score, last\_practiced\_at, next\_review\_at, updated\_at | Current state per student per skill |
+| `skill_states` | student\_id, skill\_id, state (adds practiced), stage, l1\_passing\_streak, l2\_passing\_streak, last\_skill\_score, last\_practiced\_at, practiced\_at, transfer\_due\_at, next\_review\_at, paused\_for\_prereq, updated\_at | Current state per student per skill |
 | `skill_state_events` | student\_id, skill\_id, from\_state, to\_state, reason, source\_type (set, case, review), source\_id, created\_at | Full history, for the profile and analytics |
 | `case_results` | case\_attempt\_id, student\_id, case\_id, case\_type, difficulty\_tier, rubric\_scores (JSON), skills\_observed\[\], findings (JSON), taxonomy\_version, received\_at | Written from the case grader payload |
-| `prescriptions` | prescription\_id, student\_id, skill\_id, drill\_id, level, tier, focus\_tag, priority, reason\_text, evidence\_quote, source\_type (case, drill), source\_id, status (open, in\_progress, completed, dismissed, superseded), created\_at, closed\_at | Open prescriptions drive Continue Training |
+| `prescriptions` | prescription\_id, student\_id, skill\_id, drill\_id, level, stage, tier, focus\_tag, priority, reason\_text, evidence\_quote, source\_type (case, drill, diagnostic, plan), source\_id, status (open, in\_progress, completed, dismissed, superseded, paused), created\_at, closed\_at | Open prescriptions drive the workout's weak-spot slot |
+| `student_programs` (new) | student\_id, track (foundations, standard, sprint, self\_directed), plan\_version, started\_at, interview\_date, workouts\_per\_week, current\_week, status (active, completed, switched) | One active row per student; a track switch closes the row and opens a new one |
+| `workouts` (new) | workout\_id, student\_id, program\_week, date (in the student's time zone), target\_minutes, blocks (JSON: slot, drill\_id, skill\_id, stage, tier, set\_id), status (planned, in\_progress, completed, expired) | One per student per day |
+| `lessons` (new) | lesson\_id, skill\_id, version, status, body, worked\_example, mistakes (JSON), authorship (JSON) | Versioned like items |
+| `lesson_views` (new) | student\_id, lesson\_id, version, source (auto, intro, library, low\_score), seconds\_open, skipped, viewed\_at |  |
 | `grade_disputes` (P1) | dispute\_id, attempt\_id, student\_comment, status, reviewer\_notes, created\_at | QA queue |
 
 The student's `org_id` (school or club) lives on `student_profiles`. It is set from the club code the first time the student passes the club-code gate (today, when starting a case) and isn't changed afterwards. Events read it from there.
+
+All schema changes on the shared CaseTester Supabase project are additive: new tables, new enum values and new columns. Nothing `main`'s code uses is dropped, renamed or reshaped.
 
 ### Data rules
 
@@ -879,7 +1265,7 @@ The student's `org_id` (school or club) lives on `student_profiles`. It is set f
 
 ## Services and APIs
 
-The drills system is six logical components behind one student-facing API; AI is used in only one of them (the grading worker), and it runs asynchronously so it never blocks a student.
+The drills system is seven logical components behind one student-facing API; AI is used in only one of them (the grading worker), and it runs asynchronously so it never blocks a student.
 
 ### Implementation on this stack
 
@@ -888,39 +1274,53 @@ The components below are modules in the existing Next.js app (`lib/drills/*`), n
 - Student-facing endpoints are Next.js route handlers and server actions.
 - The grading queue is a Postgres table (`grading_jobs`). A job is started right after set completion (`after()`), and a Vercel cron retries failed jobs and finishes delayed grading within the 10-minute window.
 - Case results reach the progress engine as an in-process function call from the scoring code, not an HTTP endpoint.
+- Workouts are built on request (the first home load of the day), not by a scheduled job.
 
 ### Components
 
 | Component | Responsibility |
 | --- | --- |
-| Drills API | Student-facing endpoints: home, sets, items, attempts, results, profile, settings |
-| Scoring service | Auto-checking, numeric parsing, trap-value diagnosis, checklist score calculation, red-flag caps. Pure code, no AI |
+| Drills API | Student-facing endpoints: onboarding, program, home, workouts, sets, items, attempts, results, lessons, profile, settings |
+| Scoring service | Auto-checking, numeric parsing, trap-value diagnosis, checklist score calculation, red-flag caps, Defend weighting, Repair unchanged-answer check. Pure code, no AI |
 | Generator library | Builds generated items from template, tier and seed. Shared by the Drills API and content admin preview |
-| Grading worker | Consumes grading jobs from the queue, calls the model, validates output and quotes, writes results |
-| Progress engine | Updates skill states and tiers, runs the prescription rules, schedules spaced reviews. Triggered by set completion and by case results |
-| Content admin (internal) | Authoring, review workflow, preview, publish and retire for authored items; item health dashboard |
+| Grading worker | Consumes grading jobs from the queue, calls the model (one call per answer), validates output and quotes, writes results |
+| Progress engine | Updates skill states, stages and tiers, runs transfer checks, the prescription rules and the stuck rule, schedules spaced reviews. Triggered by set completion and by case results |
+| Program engine | Assigns tracks, builds and compresses plans, tracks weekly targets and milestones, creates plan prescriptions and builds each day's workout. No AI |
+| Content admin (internal) | Authoring, review workflow, preview, publish and retire for authored items and lessons; item health dashboard |
 
 The shared chart renderer is a frontend component.
 
 ### Student-facing endpoints
 
-Route handlers live under `/api`. Endpoints marked (D3) or (P1) are not built yet.
+Route handlers live under `/api`. Each endpoint is marked with the phase that builds it; unmarked ones are built.
 
 | Method and path | Purpose | Returns |
 | --- | --- | --- |
-| `GET /api/drills/home` (D3) | Training home | Continue Training target (drill, reason, estimated minutes), open prescriptions, next-case card, interview mode |
-| `POST /api/drills/sets` | Start a set. Body: `skill_id` with an optional `level` (Practice something specific), or `drill_id` (Retry this set). Prescription and Continue Training sources arrive in D3 | `set_id` |
+| `GET /api/drills/home` (D3/D4) | Training home | Program header, today's workout (sets, reasons, estimated minutes), weekly targets, weakest skill, open prescriptions, next-case card |
+| `POST /api/drills/onboarding` (D4) | Plan or self-directed, interview date, cases done, time per week, time zone | Suggested track |
+| `GET /api/drills/program` (D4) | Current program | Track, plan, current week, weekly targets, milestones |
+| `PUT /api/drills/program` (D4) | Switch track, change interview date or availability | Rebuilt plan |
+| `GET /api/drills/workouts/today` (D4) | Builds today's workout if none exists | Blocks with slot, reason and estimated minutes |
+| `GET /api/drills/catalog` (D4) | Browse drills | Skill areas, skills with state and stage, drills by stage, allowed tiers, Suggested badges |
+| `GET /api/drills/suggested-next` (D4) | Suggested next set for self-directed students (also used for the home card) | Drill, stage, tier, reason, estimated minutes |
+| `GET /api/drills/progress/summary` (D4) | Weaknesses, recent progress, due reviews and transfer checks, weekly summary | Top 3 weak skills with evidence, skills moved up, due items |
+| `GET /api/drills/lessons/{skill_id}` (D4) | Lesson for a skill | Lesson content |
+| `POST /api/drills/lessons/{lesson_id}/views` (D4) | Log a view or skip | — |
+| `POST /api/drills/sets` | Start a set. Body: `skill_id` with an optional `level` (Practice something specific), or `drill_id` (Retry this set). Later phases add `source` (prescription, workout, diagnostic), `prescription_id`, and `drill_id` + `stage` + `tier` for Pick exactly; the server rejects a tier more than one above the student's current tier | `set_id` |
 | `GET /api/drills/sets/{id}` | Resume a set | Status, current position, intro info (drill, skills, size, time per item, pass bar, worked example on first view) |
 | `GET /api/drills/sets/{id}/items/{position}` | Fetch an item. Records `served_at` server-side | Item content and input spec, time limit and time remaining, finished steps of a multi-step item. **Never the answer key** |
-| `POST /api/drills/sets/{id}/attempts` | Submit an answer, or one step of a multi-step item. Body: position, step, response, skip, timed_out, idempotency key | Auto-checked: score, correct answer, feedback (or the step's feedback mid-item). AI-graded: accepted |
+| `GET /api/drills/sets/{id}/items/{position}/defend` (D5) | Defend follow-up; only after the main answer is submitted | Follow-up type and text |
+| `POST /api/drills/sets/{id}/attempts` | Submit an answer, or one step of a multi-step item. Body: position, step, response, skip, timed\_out, idempotency key; D5 adds `part` (main or defend) | Auto-checked: score, correct answer, feedback (or the step's feedback mid-item). AI-graded: accepted |
 | `POST /api/drills/sets/{id}/complete` | Finish the set; queues AI grading if needed | Status (`completed` or `grading`) |
 | `GET /api/drills/sets/{id}/results` | Results screen data. Clients poll every 2 s while status is `grading` | Set score, pass, mistake summary, time against target, tier change, per-item results, skill state changes (D3), next action |
-| `GET /api/skills/profile` (D3) | Skill profile | States, progress, top mistakes, rubric trends, history |
+| `GET /api/skills/profile` (D3) | Skill profile | States, progress, program progress, top mistakes, rubric trends, history |
 | `PATCH /api/prescriptions/{id}` (D3) | Dismiss a prescription | Updated prescription |
-| `PUT /api/me/drill-settings` | Time multiplier, interview date (D3), example preferences | Updated settings |
+| `PUT /api/me/drill-settings` | Time multiplier, example preferences | Updated settings |
 | `POST /api/attempts/{id}/dispute` (P1) | Dispute a grade | Dispute record |
 
 The club-code check has its own route, `POST /api/club`, called at the club step. It records `org_id` and gates drills; case start still checks the code too.
+
+The case library list (`GET /cases`, with filters and the Suggested mark) belongs to the case product backlog.
 
 ### Internal interfaces
 
@@ -928,11 +1328,11 @@ The club-code check has its own route, `POST /api/club`, called at the club step
 | --- | --- |
 | Case results ingestion (in-process function) | Receives the case grader payload. Validates tags against the taxonomy, stores it, updates skill states and regenerates prescriptions. Idempotent on `case_attempt_id` |
 | Taxonomy config | The case grader imports the same taxonomy loader as drills |
-| Content admin API | Item CRUD, review state changes, generator preview by seed, item stats |
+| Content admin API | Item and lesson CRUD, review state changes, generator preview by seed, item stats |
 
 ### Integrity rules
 
-- Answer keys stay on the server until an item is submitted.
+- Answer keys stay on the server until an item is submitted, and Defend follow-ups until the main answer is submitted.
 - Time limits are enforced on the server from `served_at` (recorded on the drill set when the item is fetched) to submission, with a 2-second grace for network delay. Later submissions are marked `timed_out` and score as timeouts (0, `M.timeout`).
 - Attempt submission is idempotent: a repeated idempotency key returns the original result.
 - An item can only be fetched in order, and only once its previous item has been submitted.
@@ -940,9 +1340,9 @@ The club-code check has its own route, `POST /api/club`, called at the club step
 
 ### Event flow after a set completes
 
-1. Auto-checked set: the Scoring service finalizes the set score immediately. AI-graded set: the Grading worker finishes, then the Scoring service computes scores.
-2. The Progress engine updates skill scores, tier, skill states and review dates.
-3. The Progress engine refreshes prescriptions and the Continue Training target.
+1. Auto-checked set: the Scoring service finalizes the set score immediately. AI-graded set: the Grading worker grades every answer (one call each, in parallel), then the Scoring service computes scores.
+2. The Progress engine updates skill scores, stage, tier, skill states, transfer dates and review dates, and applies the stuck rule.
+3. The Progress engine refreshes prescriptions; the Program engine updates weekly targets and milestones and the rest of today's workout.
 4. The results screen shows everything in one response.
 
 ## Analytics and event logging
@@ -955,8 +1355,8 @@ Every event carries `student_id`, `org_id` (school or club, if any), `timestamp`
 
 | Event | Fired when | Key properties |
 | --- | --- | --- |
-| `drills_home_viewed` | Training home loads | continue\_target\_drill, open\_prescriptions, interview\_mode |
-| `drill_set_started` | A set is created | set\_id, drill\_id, level, tier, source, prescription\_id, focus\_tag |
+| `drills_home_viewed` | Training home loads | track, week, open\_prescriptions, interview\_days\_out |
+| `drill_set_started` | A set is created | set\_id, drill\_id, level, stage, tier, source, prescription\_id, focus\_tag, slot, suggested |
 | `drill_example_viewed` / `drill_example_skipped` | Intro example shown or skipped | drill\_id |
 | `drill_item_served` | An item is fetched | set\_id, position, item ref (id + version, or template + seed) |
 | `drill_attempt_submitted` | An answer is submitted | attempt\_id, score, time\_ms, timed\_out, skipped, mistake\_tags |
@@ -968,34 +1368,70 @@ Every event carries `student_id`, `org_id` (school or club, if any), `timestamp`
 | `prescription_created` / `_dismissed` / `_completed` | Prescription lifecycle | prescription\_id, skill\_id, drill\_id, source\_type, priority |
 | `next_case_card_shown` / `_clicked` | Next-case card | recommended\_case\_id |
 | `case_result_received` | Case grader payload accepted | case\_attempt\_id, case\_type, difficulty\_tier, finding\_count |
+| `onboarding_completed` | Onboarding answers submitted | track\_suggested, interview\_days\_out, cases\_done, workouts\_per\_week |
+| `diagnostic_completed` | Diagnostic results are final | overall\_score, placements (JSON) |
+| `program_assigned` / `_switched` | Track set or changed | track, plan\_version, reason |
+| `program_week_started` | Week rollover | week, milestones\_met (previous week) |
+| `workout_built` / `_completed` | Workout created or finished | workout\_id, blocks, minutes\_target, minutes\_actual |
+| `lesson_viewed` / `_skipped` | Lesson opened or skipped | lesson\_id, skill\_id, source, seconds\_open |
+| `defend_submitted` | Defend reply submitted | attempt\_id, type, decision, score |
+| `transfer_check_completed` | Transfer check results final | skill\_id, score, passed, attempt\_number |
+| `prerequisite_prescribed` | Stuck rule fires | skill\_id, prerequisite\_id |
+| `transfer_pool_exhausted` | No unseen item qualifies | skill\_id, drill\_id |
+| `suggestion_shown` / `_started` | Suggested next card (self-directed) | drill\_id, reason, source |
+| `drill_catalog_viewed` | Browse drills opens | — |
+| `weekly_summary_viewed` | Monday recap shown | week |
 | `grade_dispute_submitted` (P1) | Student disputes a grade | attempt\_id |
 
 ### MVP reports
 
 | Report | What it shows |
 | --- | --- |
-| Loop funnel | Case taken → prescription created → set started → skill Mastered → next case taken, with drop-off at each step |
+| Loop funnel | Case taken → prescription created → set started → skill Practiced → Mastered → next case taken, with drop-off at each step |
+| Program funnel | Onboarding → diagnostic → each plan week → last week, by track, with drop-off |
 | Drill effectiveness | For each skill: rate of that skill's mistake tags per case before vs after Mastered. Compared against students who dismissed the same prescription, as a natural comparison group |
+| Transfer | First-attempt transfer pass rate per skill; skills where students pass practice but fail transfer |
+| Lessons | Next-set score for students who read the lesson vs those who skipped it |
+| Defend | Defend scores by drill and type; Hold/Update accuracy on valid vs invalid challenges |
+| Workout mix | Actual minutes per slot vs the 50/25/25 target |
+| Stuck rule | How often it fires per skill, and whether the stuck skill passes after the prerequisite |
+| Plan vs self-directed | Practice volume, skills reaching Mastered, transfer pass rates and case rubric gains between the two groups |
 | Engagement | Sets per active student per week, share of students returning within 7 days, average session length |
 | Item health | Correct rate, average time and distractor pull per item; items auto-pulled to review |
-| Grading quality and cost | Agreement with human labels per check, retry and failure rates, cost per AI-graded set, share of attempts with zero AI cost |
+| Grading quality and cost | Agreement with human labels per check, retry and failure rates, cost per graded answer and per active student |
 
 All reports must be filterable by `org_id` so that career center and club dashboards can be built on the same data later.
 
 ## Cost controls and non-functional requirements
 
-Running cost is held down by design: at least 75% of attempts should cost nothing, and each AI-graded set should cost no more than 5% of one full AI case interview.
+Running cost is held down by design: AI is used only to grade free-text answers, and drill grading should stay within $1.25 per active student per month (pilot budget, to confirm), a small share next to the cost of full cases.
 
 ### Cost controls
 
-- **No AI at runtime except grading.** All drill content is generated by code or written ahead of time.
-- **One call per answer.** The 5 AI-graded drills (PS-3, HY-2, CR-1, SY-2, CL-3) grade each free-text answer in its own call, so a score never depends on other answers. This costs more than one call per set: about 25% more in testing. The fixed instructions are too short to be cached today.
-- **Small inputs.** The call carries only prompts, answers, check questions and red-flag definitions. Model answers and feedback text stay on the server.
-- **Capped answers and outputs.** Word caps on every free-text input; a tight output token limit on the grading call.
+- **No AI at runtime except grading.** Items, lessons, plans and workouts are written ahead of time or built by fixed rules.
+- **One small call per answer.** Each Repair answer, Construct answer and Defend reply is graded in its own call at temperature 0, after the last item of the set. HY-2 adds one short family call per answer.
+- **Code first.** Empty answers, unchanged Repair answers, word caps, bucket counts and number presence are settled by code, with no AI call.
+- **Defend only where it counts.** Tiers 2–3 only; never at tier 1 or in the diagnostic. Sets with Defend are one item shorter.
+- **Small inputs.** A call carries only the prompt, the answer, check questions and red-flag definitions (Defend adds the student's main answer). Model answers and feedback text stay on the server.
+- **Capped answers and outputs.** Word caps on every free-text input; a tight output token limit on every call.
 - **Cheapest passing model.** Use the lowest-cost model tier that meets the 90% agreement gate. Re-test cheaper tiers when they become available.
-- **Prompt caching.** Cache the fixed grading instructions where the model provider supports it.
-- **Usage cap.** A per-student limit of 20 AI-graded sets per day. Auto-checked drills are unlimited.
-- **Monitoring.** A dashboard of cost per AI-graded set and per active student, with an alert if the 7-day average exceeds budget by 25%.
+- **Prompt caching.** Cache the fixed grading instructions where the model provider supports it. Today they are too short to be cached.
+- **Usage cap.** 150 AI-graded answers per student per day. Auto-checked drills are unlimited.
+- **Monitoring.** A dashboard of cost per graded answer, per workout and per active student, with an alert if the 7-day average exceeds budget by 25%.
+
+### Cost estimate
+
+Estimate per active student per month on the Standard plan (4 workouts a week, up to 2 cases a week). It assumes a cheap grading model at about $1 per million input tokens and $5 per million output tokens (about $0.003–0.005 per graded answer) and about $0.50 per full text case; replace these with real prices before launch.
+
+| Item | Volume per month | Estimated cost |
+| --- | --- | --- |
+| Workout grading (Repair, Construct, Defend) | \~17 workouts × \~12 graded answers ≈ 200 | $0.60–1.00 |
+| Diagnostic | 2 graded answers, once | < $0.01 |
+| Lessons, plans, workouts, auto-checked items | — | $0 |
+| Full cases (not part of drills) | \~6 | \~$3.00 |
+| **Total** |  | **\~$3.60–4.00** |
+
+Drill grading is about a fifth of the total; full cases remain the main cost. The v1 target of "75% of attempts cost nothing" is replaced by the per-student budget.
 
 ### Non-functional requirements
 
@@ -1005,45 +1441,57 @@ Running cost is held down by design: at least 75% of attempts should cost nothin
 | Availability | 99.5% during the pilot. Auto-checked drills keep working if the model provider is down; AI grading queues and completes later |
 | Devices | Desktop-first for the pilot: latest 2 versions of Chrome, Safari, Edge and Firefox. Full support down to 360 px wide ships in P1 |
 | Accessibility | WCAG 2.1 AA, including keyboard operation, chart data tables, screen-reader timer announcements and the time-accommodation setting |
-| Security | Answer keys never sent before submission. Content admin restricted by role. All endpoints authenticated |
+| Security | Answer keys and Defend follow-ups never sent before they should be. Content admin restricted by role. All endpoints authenticated |
 | Privacy | Text only, so no voice or biometric data is collected. Student answers are deleted when the account is deleted. Data from university partners may count as education records; confirm handling with legal before institutional launch |
 | Configurability | Thresholds, weights, time limits, set sizes and maps live in config files and change without code changes (a deploy is still needed) |
 | Observability | Structured logs and alerts for grading failures, retry rates, queue depth and quote-verification failures |
 
 ## Build phases, acceptance criteria and open questions
 
-The build runs in five phases, D0 to D4. Auto-checked drills ship before AI-graded ones so the riskiest piece, AI grading, is built on proven foundations; each phase has a hard exit gate.
+The build runs in seven phases, D0 to D6. Auto-checked drills ship before AI-graded ones, and the loop ships before the program built on it, so each risky piece sits on proven foundations; each phase has a hard exit gate. D0–D2 are done. The pilot launches after D3 and D4 (D6); D5 ships during the pilot.
+
+Until D5 ships, Construct sets have no Defend step (so PS-3, HY-2 and CL-3 keep 4 items at every tier) and skills skip the Repair stage, as for skills with no Repair drill.
 
 ### Phases
 
 | Phase | What gets built | Exit gate |
 | --- | --- | --- |
-| D0 Foundations | Taxonomy v1 and config files, data model, numeric parser, generator framework, chart renderer, case grader payload contract | Config, schema, parser and generator tests pass. The grader gate (case grader emits valid payloads on 30 sample transcripts, with a human agreeing with at least 85% of its tags) is deferred until the grader is updated |
-| D1 Auto-checked drills | QN-1, QN-3, QN-4, EX-2, EX-3 (generated) and PS-1, HY-1, EX-1, SY-1, CL-1 (authored); item, feedback and results screens; Practice something specific | All generator tests pass; zero key errors in 1,000 sampled generated items; authored pools at launch size and reviewed |
-| D2 AI-graded drills | PS-3, HY-2, SY-2, CL-3, plus QN-5; grading worker, golden sets, quote verification, failure handling | At least 90% agreement per check on every golden set; results < 10 s p95; cost per set within budget |
-| D3 The loop | Progress engine (states, tiers, reviews), prescription engine, case results ingestion, training home with Continue Training, skill profile, next-case card | Scripted scenarios produce the exact state changes and prescriptions defined in this PRD |
-| D4 Pilot launch | Analytics events and reports, WCAG 2.1 AA audit, pilot with the university club | Audit passed; all events firing; pilot students complete the full loop |
-| P1 Fast follow | PS-2, QN-2, BJ-1, BJ-2, CR-1, CL-2, diagnostic sampler, grade disputes, 360 px support | Same gates as D1 and D2 for the new drills |
+| D0 Foundations (done) | Taxonomy v1 and config files, data model, numeric parser, generator framework, chart renderer, case grader payload contract | Config, schema, parser and generator tests pass. The grader gate (case grader emits valid payloads on 30 sample transcripts, with a human agreeing with at least 85% of its tags) is deferred until the grader is updated |
+| D1 Auto-checked drills (done) | QN-1, QN-3, QN-4, EX-2, EX-3 (generated) and PS-1, HY-1, EX-1, SY-1, CL-1 (authored); item, feedback and results screens; Practice something specific | All generator tests pass; zero key errors in 1,000 sampled generated items; authored pools reviewed (pilot pool sizes, see Launch pool sizes) |
+| D2 AI-graded drills (done) | PS-3, HY-2, SY-2, CL-3, plus QN-5; grading worker (one call per answer), golden sets, quote verification, failure handling | At least 90% agreement per check on every golden set; results < 10 s p95; cost per answer within budget |
+| D3 The loop | Taxonomy prerequisites and Defend tags; progress engine (states including Practiced, stages, tiers, reviews, transfer checks, stuck rule), prescription engine, case results ingestion, skill profile | Scripted scenarios produce the exact state changes and prescriptions defined in this PRD |
+| D4 Training program | Onboarding (with time zone), diagnostic, tracks and plans, Practice on my own, Browse drills, Program engine, workouts with the 50/25/25 mix, training home, Learn library, 22 P0 lessons | Scripted Foundations, Standard and Sprint students get the plans, workouts and milestone results defined in this PRD; lessons reviewed |
+| D6 Pilot launch (after D3 and D4) | Analytics events and reports, WCAG 2.1 AA audit, pilot with the university club | Audit passed; all events firing; pilot students finish Week 0 and Week 1 of a plan and complete the full loop |
+| D5 Chains and Defend (during the pilot) | Repair drills PS-4, HY-3, SY-3; Defend step on PS-3, HY-2, SY-2, CL-3; follow-ups written for existing items | At least 90% agreement per check on every new golden set; pools at launch size |
+| P1 Fast follow | PS-2, QN-2, BJ-1, BJ-2, CR-1, CL-2, EX-4, EX-5, CL-4, QN-5 Defend, drawn skill-tree view, P1 lessons, grade disputes, 360 px support | Same gates as D1, D2 and D5 for the new drills |
 
 ### Definition of done for MVP
 
-- [ ] Zero answer-key errors in a 200-item human QA sample of authored items across all P0 drills.
-- [ ] Answer keys are never present in any client response before submission (verified by security test).
-- [ ] AI grading agreement is at least 90% on every check of every AI-graded drill.
-- [ ] A test student can complete the full loop: case → prescriptions → drill sets → Mastered → next case recommended → Validated.
-- [ ] At least 75% of pilot attempts cost nothing in AI calls.
+- [ ] Zero answer-key errors in a 200-item human QA sample of authored items across all P0 drills, including Repair items and Defend follow-ups.
+- [ ] Answer keys and Defend follow-ups never reach the client before they should (verified by security test).
+- [ ] AI grading agreement is at least 90% on every check of every AI-graded drill and Defend type.
+- [ ] A test student can complete the full loop: onboarding → diagnostic → plan → workouts → case → prescriptions → Practiced → transfer check → Mastered → next case → Validated.
+- [ ] Scripted Foundations, Standard and Sprint students get the plans, workouts and milestones defined in this PRD.
+- [ ] All 22 P0 lessons are reviewed and live.
+- [ ] Drill grading cost per active pilot student is within budget.
 - [ ] WCAG 2.1 AA audit passed.
 - [ ] All events in Analytics fire with complete properties.
 
 ### Open questions
 
-- [ ] **Rubric scale:** Payload format decided: the grader's 3-level ratings. Still open: what counts as "meeting the bar" at each difficulty tier (for example, every dimension `meets_bar` or better)? Needed for next-case selection.
+- [x] **Rubric scale and "meeting the bar":** the case grader rates each dimension on 3 levels (`needs_work`, `meets_bar`, `strong`). Decided 2026-10-11: a student moves up a case tier when no dimension is at `needs_work` and at least half are rated `strong`.
 - [ ] **Grader changes:** How much work is it for the transcript-grading agent to emit skill tags, severity, `skills_observed` and exact evidence quotes? (Deferred: the grader will be updated later.)
-- [x] **Tag severity:** Which mistake tags are major vs minor? Decided 2026-10-11: 35 major, 30 minor, set as defaults in `taxonomy.v1.json` (reasons in `docs/drills-tag-severity.md`). The case grader may adjust them per finding (see "What the case grader must send").
-- [ ] **Mastery bar:** Are 80% and two consecutive sets the right bar? Validate with pilot data and adjust in config.
-- [ ] **First-time users:** Should MVP require a full case before drills, or bring the diagnostic sampler forward from P1?
-- [ ] **Free vs paid:** Are drills limited for free users, and if so, how?
-- [ ] **Content review capacity:** About 580 authored items need human review before launch. @Matt is authoring drill content separately.
+- [x] **Tag severity:** Decided 2026-10-11: 35 major, 30 minor, set as defaults in `taxonomy.v1.json` (reasons in `docs/drills-tag-severity.md`). The case grader may adjust them per finding (see "What the case grader must send"). The two Defend tags default to minor.
+- [x] **Mastery bar:** 80% on two consecutive sets for Practiced, and 80% on the transfer check, for the pilot (Matt, 2026-10-11). Tune from pilot data in config.
+- [x] **First-time users:** Resolved in v2: the diagnostic moves to P0 and runs at onboarding; a full case is no longer required before drills.
+- [x] **Pilot scope:** Decided 2026-10-11: the pilot launches with D3 and D4; D5 ships during the pilot.
+- [x] **Skill tree sign-off:** Approved as written (Matt, 2026-10-11).
+- [ ] **Plan content:** Confirm the six-week themes, milestones and case counts, and the Sprint day plan, with a club coach or recent hires.
+- [ ] **Defend weight and timing:** Is 25% of the item right, and are 60 / 45 s enough to type 40 words?
+- [ ] **Transfer delay:** Is a 2-day wait after Practiced right, or should it be longer for retention?
+- [ ] **Cost budget:** Confirm the $1.25 per active student per month drill-grading budget once real model prices are known.
+- [ ] **Free vs paid:** Are drills and tracks limited for free users, and if so, how?
+- [ ] **Content review capacity:** About 280 new pieces (110 Repair items, 150 Defend follow-ups, 22 lessons) plus the Level 1 pools' growth to 80 before wider launch. @Matt reviews drill content.
 - [ ] **University data handling:** Confirm with legal how student data from partner schools must be handled.
 - [ ] **Firm-style toggles:** When should items start carrying `firm_style`?
-- [ ] **Case types:** The PRD refers to 14 case types but doesn't list them. The list is needed for `case_type` on cases and items.
+- [x] **Case types:** Confirmed 2026-10-11: the 14 case types are `profitability`, `growth_strategy`, `market_entry`, `market_sizing`, `pricing`, `cost_reduction`, `operations`, `new_product_launch`, `m_and_a`, `investment_decision`, `competitive_response`, `turnaround`, `public_sector`, `industry_analysis`, the same list as the case product. The item schema enforces it; the case-type-to-skill-area map (each type's main skill) still needs writing.
