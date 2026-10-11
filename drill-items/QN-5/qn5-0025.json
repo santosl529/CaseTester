@@ -76,7 +76,7 @@
       "id": "4",
       "text": "Average cost per lunch",
       "correct": true,
-      "feedback": "A driver: Reasoning: federal reimbursement rates are around $4 per free lunch"
+      "feedback": "A driver: Reasoning: food, staff and overhead for one school lunch come to roughly $3 to $4.50"
     },
     {
       "id": "5",
@@ -136,7 +136,7 @@
         "low": 3,
         "high": 4.5,
         "unit": "dollars",
-        "source": "Reasoning: federal reimbursement rates are around $4 per free lunch"
+        "source": "Reasoning: food, staff and overhead for one school lunch come to roughly $3 to $4.50"
       }
     },
     "benchmark": {

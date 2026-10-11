@@ -127,7 +127,7 @@ qn5-0021,3,Cartridges bought per printer household per year,driver,2,5,cartridge
 qn5-0021,4,Number of office-supply stores,not_a_driver,,,,"Where cartridges are sold, not how many"
 qn5-0021,5,Printers sold per year,not_a_driver,,,,"New printers, not the cartridges used in all printers"
 qn5-0021,6,US population,double_count,,,,Counts the same homes through the people in them
-qn5-0022,1,Commercial passenger aircraft in service worldwide,driver,25000,30000,aircraft,"Reasoning: industry fleet counts of roughly 25,000 to 30,000"
+qn5-0022,1,Commercial passenger aircraft in service worldwide,driver,25000,30000,aircraft,"Reasoning: a rough estimate of 25,000 to 30,000 jets; the least certain base figure here"
 qn5-0022,2,Seats per aircraft,driver,150,200,seats,Reasoning: most of the fleet is single-aisle jets with 150 to 200 seats
 qn5-0022,3,Share of seats replaced each year,driver,0.08,0.15,share,Derived: seats replaced every 7 to 12 years in cabin refits
 qn5-0022,4,Average price per replacement seat,driver,3000,8000,dollars,Reasoning: economy seats cost a few thousand dollars; premium seats far more
@@ -149,7 +149,7 @@ qn5-0024,6,TVs sold per year,not_a_driver,,,,"New TVs, not the electricity all T
 qn5-0025,1,Public-school students,driver,47000000,50000000,students,"Reasoning: about 4M per grade × 13 grades, with about 90% in public schools"
 qn5-0025,2,Share of students eating school lunch on a typical day,driver,0.45,0.65,share,Reasoning: about half eat the school lunch
 qn5-0025,3,School days per year,driver,175,185,days,Reasoning: a school year is about 36 weeks of 5 days
-qn5-0025,4,Average cost per lunch,driver,3,4.5,dollars,Reasoning: federal reimbursement rates are around $4 per free lunch
+qn5-0025,4,Average cost per lunch,driver,3,4.5,dollars,"Reasoning: food, staff and overhead for one school lunch come to roughly $3 to $4.50"
 qn5-0025,5,Number of public schools,not_a_driver,,,,Student count already sizes the schools
 qn5-0025,6,Share of students eligible for free lunch,not_a_driver,,,,"Decides who pays, not how many lunches are served"
 qn5-0026,1,US households,driver,125000000,135000000,households,Reasoning: about 335M people ÷ about 2.5 people per household ≈ 130M

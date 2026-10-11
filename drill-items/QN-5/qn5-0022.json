@@ -58,7 +58,7 @@
       "id": "1",
       "text": "Commercial passenger aircraft in service worldwide",
       "correct": true,
-      "feedback": "A driver: Reasoning: industry fleet counts of roughly 25,000 to 30,000"
+      "feedback": "A driver: Reasoning: a rough estimate of 25,000 to 30,000 jets; the least certain base figure here"
     },
     {
       "id": "2",
@@ -125,7 +125,7 @@
         "low": 25000,
         "high": 30000,
         "unit": "aircraft",
-        "source": "Reasoning: industry fleet counts of roughly 25,000 to 30,000"
+        "source": "Reasoning: a rough estimate of 25,000 to 30,000 jets; the least certain base figure here"
       },
       "2": {
         "low": 150,
