@@ -1,0 +1,29 @@
+{
+  "answer_id": "sy2-0014-a",
+  "item_id": "sy2-0014",
+  "drill_id": "SY-2",
+  "answer_type": "short",
+  "notes": "The right call, but it never uses the fact that 70% of the wait is at the scanners (rule 7).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Add a security lane."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": false,
+    "cites_numbers": false,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": false,
+    "includes_next_step": false
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": true,
+    "off_topic": false
+  },
+  "family": null
+}

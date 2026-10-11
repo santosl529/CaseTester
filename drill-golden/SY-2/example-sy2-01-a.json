@@ -21,7 +21,9 @@
   },
   "red_flags": {
     "no_clear_position": false,
-    "contradicts_facts": false
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false
   },
   "family": null
 }

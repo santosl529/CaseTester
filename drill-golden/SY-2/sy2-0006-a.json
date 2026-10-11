@@ -1,0 +1,29 @@
+{
+  "answer_id": "sy2-0006-a",
+  "item_id": "sy2-0006",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Launch the frozen lasagna. The 50-store test points to $3M a year at a 25% margin, $750,000 a year, so the $2M freezer line pays back in under 3 years, and our biggest retailer has offered freezer space in 300 stores. The risk is that the test stores sold better than average, so the next step is to launch in the 300 stores and track weekly sales against plan."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false
+  },
+  "family": null
+}

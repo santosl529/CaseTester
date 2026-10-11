@@ -135,7 +135,8 @@
       "cap": 0.2,
       "tag": "M.no_hypothesis",
       "detection": "ai",
-      "step": 0
+      "step": 0,
+      "evidence": "whole"
     }
   ],
   "model_answer": "Stage 1: With revenue and repairs flat, profit likely fell because each repair costs more to do, most likely more mechanic time per job. I'd compare labor hours and parts cost per repair with last year.\nStage 2: Keep: parts and pay are flat, but each repair takes 30% longer, so labor cost per repair rose.",

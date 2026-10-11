@@ -1,0 +1,29 @@
+{
+  "answer_id": "sy2-0028-a",
+  "item_id": "sy2-0028",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Grow mainly through franchising. Our $9M covers only 10 of our own restaurants in 3 years, while franchisees have offered to open 40, each paying about $90,000 a year in royalties at almost no capital cost. The risk is quality: franchised chains here score 10% lower, so the next step is to sign 10 franchisees first with strict quality audits."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false
+  },
+  "family": null
+}

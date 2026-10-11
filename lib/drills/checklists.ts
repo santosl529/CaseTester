@@ -173,7 +173,7 @@ export function hy2Item(c: Hy2Content): ItemInput {
     red_flags: [
       { id: 'restates_facts', step: 0, definition: 'Stage 1 only restates the facts and names no cause.', cap: 0.3, tag: 'M.restates_facts', detection: 'ai' },
       { id: 'three_plus_causes', step: 0, definition: 'Stage 1 lists three or more causes without picking one.', cap: 0.5, tag: 'M.shotgun_hypotheses', detection: 'ai' },
-      { id: 'off_topic', step: 0, definition: 'Stage 1 offers no cause for what happened: it proposes a fix or answers a different question.', cap: HY2_OFF_TOPIC_CAP, tag: 'M.no_hypothesis', detection: 'ai' },
+      { id: 'off_topic', step: 0, definition: 'Stage 1 offers no cause for what happened: it proposes a fix or answers a different question.', cap: HY2_OFF_TOPIC_CAP, tag: 'M.no_hypothesis', detection: 'ai', evidence: 'whole' as const },
     ],
     model_answer: `Stage 1: ${c.model_answer_stage1}\nStage 2: ${c.model_answer_stage2}`,
     explanation: `The new fact: ${c.new_fact} ${c.families.map(f => `${f.family}: ${f.action} (${f.reason}).`).join(' ')}`,
@@ -199,10 +199,29 @@ export interface Sy2Content extends Base {
   key_risks: string;
   next_steps: string;
   model_answer: string;
-  facts: { fact: string; relevant: boolean }[];
+  // deciding: the fact that decides the question (exactly one, and relevant).
+  facts: { fact: string; relevant: boolean; deciding: boolean }[];
 }
 
+export const SY2_CAPS = { misses_deciding_fact: 0.6, off_topic: 0.2 };
+
+// The grading guide's SY-2 rules (docs/drills-grading-guide.md), sent to the
+// grader with every SY-2 item. Keep the two in step.
+export const SY2_GRADING_RULES = [
+  'Recommendation first: the first sentence commits to a course of action that answers the client\'s question. Context or a restated question first fails. A condition ("open, starting with a pilot") is fine if it still picks a direction.',
+  'Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons ("it\'s a good opportunity", "the market is attractive") and irrelevant facts don\'t count, and the same fact said twice counts once.',
+  'Irrelevant facts: mentioning an irrelevant fact in any way fails, even to dismiss it.',
+  'Consistent with the facts: every number and claim matches the fact sheet or follows from it. A wrong calculation fails, and so does a claim beyond the sheet stated as fact, unless it is framed as a risk or an assumption. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.',
+  'Risk: names something specific that could make the recommendation wrong ("schools may not pay $600 when museums charge $450"). "There are risks" fails.',
+  'Next step: a concrete action ("pilot in 5 parks and track bookings"). "Do more analysis" fails.',
+  'Deciding fact: the answer uses the deciding fact, by its content or its number, as part of its case. Mentioning it only in passing, without using it to decide, does not count.',
+  'Off-topic: the answer addresses a different question from the client\'s. An off-topic answer is not also flagged for no clear position.',
+  'Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item.',
+];
+
 export function sy2Item(c: Sy2Content): ItemInput {
+  const deciding = c.facts.filter(f => f.deciding);
+  if (deciding.length !== 1 || !deciding[0].relevant) throw new Error(`needs exactly one deciding fact, marked relevant, has ${deciding.length}`);
   return {
     ...common(c, 'SY-2', 2, ['SY.answer_first', 'SY.evidence', 'SY.complete']),
     prompt: `The client asks: "${c.client_question}"\n\nFact sheet:\n${c.facts.map(f => `- ${f.fact}`).join('\n')}\n\nGive your recommendation.`,
@@ -227,10 +246,12 @@ export function sy2Item(c: Sy2Content): ItemInput {
     red_flags: [
       { id: 'no_clear_position', definition: 'The answer takes no clear position, for example "it depends".', cap: 0.4, tag: 'M.hedged_recommendation', detection: 'ai' },
       { id: 'contradicts_facts', definition: 'The answer makes a claim the fact sheet contradicts.', cap: 0.5, tag: 'M.unsupported_recommendation', detection: 'ai' },
+      { id: 'misses_deciding_fact', definition: `Present when the answer never uses the deciding fact, neither its content nor its numbers. The deciding fact: ${deciding[0].fact}.`, cap: SY2_CAPS.misses_deciding_fact, tag: 'M.ignores_deciding_fact', detection: 'ai', evidence: 'whole' as const },
+      { id: 'off_topic', definition: "The answer addresses a different question from the client's.", cap: SY2_CAPS.off_topic, tag: 'M.unsupported_recommendation', detection: 'ai', evidence: 'whole' as const },
     ],
     model_answer: c.model_answer,
-    explanation: `Acceptable recommendation: ${c.acceptable_recommendations}. Key risks: ${c.key_risks}. Next steps: ${c.next_steps}.`,
-    extras: { facts: c.facts, acceptable_recommendations: c.acceptable_recommendations },
+    explanation: `Acceptable recommendation: ${c.acceptable_recommendations}. The deciding fact: ${deciding[0].fact}. Key risks: ${c.key_risks}. Next steps: ${c.next_steps}.`,
+    extras: { facts: c.facts, acceptable_recommendations: c.acceptable_recommendations, grading_rules: SY2_GRADING_RULES },
   };
 }
 

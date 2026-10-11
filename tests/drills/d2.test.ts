@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { importContent, parseCsv, parseFramework, type Tables } from '@/lib/drills/content-import';
-import { HY2_GRADING_RULES, hy2DecisionTag, PS3_GRADING_RULES } from '@/lib/drills/checklists';
+import { HY2_GRADING_RULES, hy2DecisionTag, PS3_GRADING_RULES, SY2_GRADING_RULES } from '@/lib/drills/checklists';
 import type { Item } from '@/lib/drills/item-schema';
 import { ScoringError, scoreItem, scoreStep, type StepResponse, type StepResult } from '@/lib/drills/sets/scoring';
 import { applyGrade, numbersIn, type ItemGrade } from '@/lib/drills/grading/apply';
@@ -251,6 +251,15 @@ describe('applying a grade (code computes every score)', () => {
     expect(shotgun.score).toBeCloseTo(0.6 * 0.5 + 0.4);
   });
 
+  it('passes SY-2 recommendation-first only on a quote from the first sentence', () => {
+    const sy = item('SY-2');
+    const s = [scoreStep(sy, 0, { type: 'text', value: 'Schools want trips and the parks are empty. Open for school groups.' }, false)];
+    const graded = (evidence: string) => applyGrade(sy, s, false, fullGrade(sy, { checks: { ...fullGrade(sy).checks, recommendation_first: { pass: true, evidence } } }))
+      .check_results.checks.find(c => c.check_id === 'recommendation_first')!.pass;
+    expect(graded('Open for school groups')).toBe(false);
+    expect(graded('Schools want trips')).toBe(true);
+  });
+
   it('settles SY-2’s fact-sheet numbers check in code', () => {
     const sy = item('SY-2');
     const with$ = [scoreStep(sy, 0, { type: 'text', value: 'Open for school groups: 120 groups at $600 beats $40k of costs.' }, false)];
@@ -283,14 +292,14 @@ describe('the grading call', () => {
 
   it('keeps the grader’s rules word for word in the grading guide', () => {
     const guide = fs.readFileSync(path.join(process.cwd(), 'docs/drills-grading-guide.md'), 'utf-8');
-    for (const rule of [...PS3_GRADING_RULES, ...HY2_GRADING_RULES]) expect(guide).toContain(rule);
+    for (const rule of [...PS3_GRADING_RULES, ...HY2_GRADING_RULES, ...SY2_GRADING_RULES]) expect(guide).toContain(rule);
   });
 
-  it('sends PS-3 its grading rules, and no rules where an item has none', () => {
+  it('sends an item its grading rules, and none where it has none', () => {
     const ps3 = buildItemBlock({ key: 'p1', item: item('PS-3'), steps: [scoreStep(item('PS-3'), 0, parseFramework('Demand: interest\nCosts: app'), false)] });
     expect(ps3).toContain('<grading_rules>');
     expect(ps3).toContain('A generic word alone');
-    expect(buildItemBlock(entry('Enter Canada.'))).not.toContain('<grading_rules>');
+    expect(buildItemBlock({ key: 'c1', item: item('CL-3'), steps: [scoreStep(item('CL-3'), 0, { type: 'text', value: 'Start with COGS.' }, false)] })).not.toContain('<grading_rules>');
   });
 
   it('maps a family echoed with its description back to the family name', () => {
@@ -311,7 +320,7 @@ describe('the grading call', () => {
     items: [{
       item_key: 'a1',
       checks: item('SY-2').checks.filter(c => c.detection === 'ai').map(c => ({ check_id: c.check_id, pass, evidence })),
-      red_flags: [{ id: 'no_clear_position', present: false, evidence: '' }, { id: 'contradicts_facts', present: false, evidence: '' }],
+      red_flags: item('SY-2').red_flags.filter(f => f.detection === 'ai').map(f => ({ id: f.id, present: false, evidence: '' })),
       hypothesis_family: null, injection_suspected: false,
     }],
   });
@@ -353,6 +362,15 @@ describe('the grading call', () => {
     const call: CallModel = async () => { calls++; return { output: { items: [] }, usage }; };
     await expect(gradeSet([entry('Do not enter.')], call)).rejects.toThrow(GradingError);
     expect(calls).toBe(3);
+  });
+
+  it('keeps a whole-answer red flag present without a quote', async () => {
+    const out = reply(false, '');
+    out.items[0].red_flags = out.items[0].red_flags.map(f => ({ ...f, present: f.id === 'misses_deciding_fact' || f.id === 'no_clear_position' }));
+    const r = await gradeSet([entry('Do not enter.')], async () => ({ output: out, usage }));
+    // misses_deciding_fact judges the whole answer; no_clear_position needs a quote it didn't give.
+    expect(r.grades.get('a1')!.red_flags.misses_deciding_fact.pass).toBe(true);
+    expect(r.grades.get('a1')!.red_flags.no_clear_position.pass).toBe(false);
   });
 
   it('grades answers one at a time when a batch keeps coming back incomplete', async () => {

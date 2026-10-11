@@ -1,0 +1,29 @@
+{
+  "answer_id": "sy2-0030-a",
+  "item_id": "sy2-0030",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Expand, but put the new lockers in apartment buildings. Apartment lockers are 85% full while store lockers are 30% full, and at 80% full an $8,000 locker earns $2,500 a year, paying back in about 3 years. Building owners have offered 2,500 sites. The risk is that newer buildings fill more slowly, so start with 500 sites and track fill rates."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false
+  },
+  "family": null
+}

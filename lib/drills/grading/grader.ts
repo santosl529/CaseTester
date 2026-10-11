@@ -15,7 +15,7 @@ import { answerText, itemSteps, type StepResult } from '../sets/scoring';
 import type { ItemGrade } from './apply';
 
 // Bump on any change to the prompt or output schema; stored on every grade.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v6';
+export const GRADER_PROMPT_VERSION = 'drills-grader-v7';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 
@@ -27,7 +27,7 @@ How to judge:
 - A red flag is present only if the answer clearly matches its definition.
 - When a check passes, or a red flag is present, set "evidence" to an exact quote copied from the student's answer that shows it, word for word, as short as possible. When a check fails, set "evidence" to "".
 - If the evidence is in more than one place, quote each part exactly and put " … " between the parts. Never join parts with your own words or punctuation.
-- Checks marked [judges the whole answer] are about the answer as a whole or about something it leaves out. Set their "evidence" to "" whether they pass or fail.
+- Checks and red flags marked [judges the whole answer] are about the answer as a whole or about something it leaves out. Set their "evidence" to "" whether they pass or fail, or whether the red flag is present or not.
 - Never output a score. Code computes scores from your answers.
 - When an item lists grading rules, apply them to every check and red flag for that item. They say how to read the checks, and they take precedence over your own sense of what counts.
 
@@ -78,7 +78,7 @@ export function buildItemBlock(e: GradingEntry): string {
   const rules = item.extras.grading_rules as string[] | undefined;
   if (rules?.length) parts.push(`<grading_rules>\n${rules.map(r => `- ${r}`).join('\n')}\n</grading_rules>`);
   parts.push(`<checks>\n${aiChecks.map(c => `- check_id "${c.check_id}"${stageNote(item, c.step)}${c.evidence === 'whole' ? ' [judges the whole answer]' : ''}: ${c.question}`).join('\n')}\n</checks>`);
-  parts.push(`<red_flags>\n${aiFlags.length ? aiFlags.map(f => `- id "${f.id}"${stageNote(item, f.step)}: ${f.definition}`).join('\n') : '(none)'}\n</red_flags>`);
+  parts.push(`<red_flags>\n${aiFlags.length ? aiFlags.map(f => `- id "${f.id}"${stageNote(item, f.step)}${f.evidence === 'whole' ? ' [judges the whole answer]' : ''}: ${f.definition}`).join('\n') : '(none)'}\n</red_flags>`);
   spec.forEach((s, i) => {
     const r = steps[i]?.response;
     if (s.type === 'single_choice' && s.choices) {
@@ -93,17 +93,8 @@ export function buildItemBlock(e: GradingEntry): string {
   return parts.join('\n');
 }
 
-// Whitespace, case and curly quotes don't count as a mismatch.
-export const normalizeQuote = (s: string) => s.toLowerCase().replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/\s+/g, ' ').trim();
-
-// Evidence may stitch together several fragments ("…", "...", ";" or a line
-// break between them, e.g. sub-points from different buckets). Every fragment
-// must appear in the answer.
-export function quoteFound(evidence: string, answer: string): boolean {
-  const haystack = normalizeQuote(answer);
-  const fragments = evidence.split(/…|\.\.\.|;|\n/).map(f => normalizeQuote(f).replace(/^["']+|["']+$/g, '').trim()).filter(f => f.length >= 2);
-  return fragments.length > 0 && fragments.every(f => haystack.includes(f));
-}
+export { normalizeQuote, quoteFound } from './quotes';
+import { quoteFound } from './quotes';
 
 // The answer text a check or red flag reads: its step's answer, or for HY-2's
 // stage 2 reason, both stage 2 inputs.
@@ -121,7 +112,7 @@ export function badQuotes(e: GradingEntry, out: Output['items'][number]): string
   }
   for (const f of out.red_flags) {
     const flag = e.item.red_flags.find(x => x.id === f.id);
-    if (flag && f.present && !quoteFound(f.evidence, answerFor(e, flag.step))) bad.push(f.id);
+    if (flag && flag.evidence !== 'whole' && f.present && !quoteFound(f.evidence, answerFor(e, flag.step))) bad.push(f.id);
   }
   return bad;
 }

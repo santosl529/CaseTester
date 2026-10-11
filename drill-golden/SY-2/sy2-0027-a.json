@@ -1,0 +1,29 @@
+{
+  "answer_id": "sy2-0027-a",
+  "item_id": "sy2-0027",
+  "drill_id": "SY-2",
+  "answer_type": "off_topic",
+  "notes": "Answers a question about the head office, the irrelevant fact: off-topic flag (rule 8), and it fails leaving out irrelevant facts (rule 3). 'A good investment for the brand' goes beyond the sheet (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "The new head office is a good investment for the brand, and moving again would be costly, so keep it."
+    }
+  ],
+  "labels": {
+    "recommendation_first": false,
+    "two_to_three_reasons": false,
+    "cites_numbers": false,
+    "leaves_out_irrelevant": false,
+    "consistent_with_facts": false,
+    "includes_risk": false,
+    "includes_next_step": false
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": true,
+    "off_topic": true
+  },
+  "family": null
+}

@@ -107,34 +107,68 @@
       "tag": "M.unsupported_recommendation",
       "detection": "ai",
       "step": 0
+    },
+    {
+      "id": "misses_deciding_fact",
+      "definition": "Present when the answer never uses the deciding fact, neither its content nor its numbers. The deciding fact: Each park would host about 120 school groups a year at $600 per group.",
+      "cap": 0.6,
+      "tag": "M.ignores_deciding_fact",
+      "detection": "ai",
+      "step": 0,
+      "evidence": "whole"
+    },
+    {
+      "id": "off_topic",
+      "definition": "The answer addresses a different question from the client's.",
+      "cap": 0.2,
+      "tag": "M.unsupported_recommendation",
+      "detection": "ai",
+      "step": 0,
+      "evidence": "whole"
     }
   ],
   "model_answer": "Open weekday mornings for school groups, starting with a pilot. Each park would host about 120 groups a year at $600, $72k of revenue against $40k of extra staff and utility costs, a $32k gain, and the parks are closed on weekday mornings now, so nothing is cannibalized. The main risk is that schools won't pay $600 when local science museums charge $450, so the next step is a 5-park pilot that tracks bookings against the roughly 70 groups a year each park needs to break even.",
-  "explanation": "Acceptable recommendation: Open weekday mornings for school groups, starting with a pilot. Key risks: Schools may not pay $600 when science museums charge $450, so bookings fall short of 120 groups a year; staffing early shifts. Next steps: Pilot school mornings in 5 parks and track group bookings against the roughly 70 a year needed to break even.",
+  "explanation": "Acceptable recommendation: Open weekday mornings for school groups, starting with a pilot. The deciding fact: Each park would host about 120 school groups a year at $600 per group. Key risks: Schools may not pay $600 when science museums charge $450, so bookings fall short of 120 groups a year; staffing early shifts. Next steps: Pilot school mornings in 5 parks and track group bookings against the roughly 70 a year needed to break even.",
   "extras": {
     "facts": [
       {
         "fact": "Each park would host about 120 school groups a year at $600 per group",
-        "relevant": true
+        "relevant": true,
+        "deciding": true
       },
       {
         "fact": "Opening weekday mornings would add about $40k a year per park in staff and utilities",
-        "relevant": true
+        "relevant": true,
+        "deciding": false
       },
       {
         "fact": "The parks are currently closed until noon on weekdays",
-        "relevant": true
+        "relevant": true,
+        "deciding": false
       },
       {
         "fact": "Schools in the region already book field trips to two science museums at $450 per group",
-        "relevant": true
+        "relevant": true,
+        "deciding": false
       },
       {
         "fact": "The chain changed its uniform supplier last year",
-        "relevant": false
+        "relevant": false,
+        "deciding": false
       }
     ],
-    "acceptable_recommendations": "Open weekday mornings for school groups, starting with a pilot"
+    "acceptable_recommendations": "Open weekday mornings for school groups, starting with a pilot",
+    "grading_rules": [
+      "Recommendation first: the first sentence commits to a course of action that answers the client's question. Context or a restated question first fails. A condition (\"open, starting with a pilot\") is fine if it still picks a direction.",
+      "Reasons: a reason is a fact from the fact sheet, or a number worked out from it, tied to the recommendation. Generic reasons (\"it's a good opportunity\", \"the market is attractive\") don't count. Two or three distinct reasons pass; one reason said twice counts once, and four or more is a list, not a selection.",
+      "Irrelevant facts: mentioning an irrelevant fact in any way fails, even to dismiss it.",
+      "Consistent with the facts: every number and claim matches the fact sheet or follows from it. A wrong calculation fails, and so does a claim beyond the sheet stated as fact, unless it is framed as a risk or an assumption. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.",
+      "Risk: names something specific that could make the recommendation wrong (\"schools may not pay $600 when museums charge $450\"). \"There are risks\" fails.",
+      "Next step: a concrete action (\"pilot in 5 parks and track bookings\"). \"Do more analysis\" fails.",
+      "Deciding fact: the answer uses the deciding fact, by its content or its number, as part of its case. Mentioning it only in passing, without using it to decide, does not count.",
+      "Off-topic: the answer addresses a different question from the client's. An off-topic answer is not also flagged for no clear position.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
   },
   "sources": [],
   "authorship": {

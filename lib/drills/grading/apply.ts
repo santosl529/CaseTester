@@ -11,6 +11,7 @@ import type { Item } from '../item-schema';
 import { hy2DecisionTag, PS3_INJECTION_FAILS, PS3_NO_OVERLAP_MIN_BUCKETS, type Hy2Content } from '../checklists';
 import { parseNumericInput } from '../numeric';
 import { answerText, itemSteps, type ItemResult, type StepResult } from '../sets/scoring';
+import { quoteFound } from './quotes';
 
 export interface CheckVerdict { pass: boolean; evidence: string }
 export interface ItemGrade {
@@ -76,6 +77,9 @@ export function codeChecks(item: Item, steps: StepResult[]): { checks: Record<st
   return { checks, red_flags };
 }
 
+// Up to the first sentence break (., ! or ? followed by a space).
+export const firstSentence = (text: string) => text.trim().split(/(?<=[.!?])\s+/)[0] ?? '';
+
 const skillOf = (tag: string) => getMistakeTag(tag)?.skill;
 
 export function applyGrade(item: Item, steps: StepResult[], timedOut: boolean, grade: ItemGrade | null): ItemResult & { check_results: CheckResults } {
@@ -92,7 +96,10 @@ export function applyGrade(item: Item, steps: StepResult[], timedOut: boolean, g
 
   const checks = item.checks.map(c => {
     // A blank step can't pass anything, whatever the grader said.
-    const v = written[c.step] ? verdict(c.check_id) : { pass: false, evidence: '' };
+    let v = written[c.step] ? verdict(c.check_id) : { pass: false, evidence: '' };
+    // SY-2: the recommendation must be in the first sentence, so the quote
+    // that shows it must come from there.
+    if (c.check_id === 'recommendation_first' && v.pass && !quoteFound(v.evidence, firstSentence(written[c.step]))) v = { pass: false, evidence: '' };
     return { check_id: c.check_id, pass: v.pass, evidence: v.pass ? v.evidence : '', by: c.detection, weight: c.weight, step: c.step, fail_tag: c.fail_tag };
   });
   const redFlags = item.red_flags.map(f => {

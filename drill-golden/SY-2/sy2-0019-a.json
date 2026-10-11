@@ -1,0 +1,29 @@
+{
+  "answer_id": "sy2-0019-a",
+  "item_id": "sy2-0019",
+  "drill_id": "SY-2",
+  "answer_type": "off_topic",
+  "notes": "Answers whether the market is attractive, not what the chain should do: off-topic flag (rule 8). 'Young renters move often' is a claim beyond the sheet, stated as fact (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Furniture rental is growing because young renters move often, so the market is attractive for investors."
+    }
+  ],
+  "labels": {
+    "recommendation_first": false,
+    "two_to_three_reasons": false,
+    "cites_numbers": false,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": false,
+    "includes_risk": false,
+    "includes_next_step": false
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": true,
+    "off_topic": true
+  },
+  "family": null
+}

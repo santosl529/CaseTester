@@ -1,0 +1,187 @@
+{
+  "item_id": "sy2-0013",
+  "version": 1,
+  "drill_id": "SY-2",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence",
+    "SY.complete"
+  ],
+  "case_type": "market_entry",
+  "prompt": "The client asks: \"Should our UK online plant shop start shipping to Germany?\"\n\nFact sheet:\n- Shipping a plant to Germany costs £14 per order, against £6 in the UK\n- The average order is £35, at a 40% gross margin\n- Germany's online plant market is twice the size of the UK's\n- Each shipment to the EU now needs a health certificate costing £3\n- Our warehouse is in Kent\n\nGive your recommendation.",
+  "exhibit": null,
+  "input": {
+    "type": "free_text",
+    "max_words": 120
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "recommendation_first",
+      "question": "Does the first sentence state a clear recommendation?",
+      "weight": 0.2,
+      "fail_tag": "M.buried_recommendation",
+      "feedback": "Lead with the recommendation in your first sentence.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "two_to_three_reasons",
+      "question": "Does the answer give two or three supporting reasons?",
+      "weight": 0.15,
+      "fail_tag": "M.unsupported_recommendation",
+      "feedback": "Back the recommendation with two or three reasons.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cites_numbers",
+      "question": "Do the reasons cite numbers from the fact sheet?",
+      "weight": 0.15,
+      "fail_tag": "M.unsupported_recommendation",
+      "feedback": "Use the numbers from the fact sheet to support your reasons.",
+      "step": 0,
+      "detection": "code",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "leaves_out_irrelevant",
+      "question": "Does the answer leave out the irrelevant facts (Our warehouse is in Kent)?",
+      "weight": 0.15,
+      "fail_tag": "M.irrelevant_facts",
+      "feedback": "Leave out facts that don't bear on the decision.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "consistent_with_facts",
+      "question": "Are all the supporting points consistent with the fact sheet?",
+      "weight": 0.15,
+      "fail_tag": "M.unsupported_recommendation",
+      "feedback": "Some points go beyond or against the fact sheet.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "includes_risk",
+      "question": "Does the answer name a risk?",
+      "weight": 0.1,
+      "fail_tag": "M.missing_risk_or_next_step",
+      "feedback": "Name the main risk to your recommendation.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "includes_next_step",
+      "question": "Does the answer give a next step?",
+      "weight": 0.1,
+      "fail_tag": "M.missing_risk_or_next_step",
+      "feedback": "End with a concrete next step.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "no_clear_position",
+      "definition": "The answer takes no clear position, for example \"it depends\".",
+      "cap": 0.4,
+      "tag": "M.hedged_recommendation",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "contradicts_facts",
+      "definition": "The answer makes a claim the fact sheet contradicts.",
+      "cap": 0.5,
+      "tag": "M.unsupported_recommendation",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "misses_deciding_fact",
+      "definition": "Present when the answer never uses the deciding fact, neither its content nor its numbers. The deciding fact: Shipping a plant to Germany costs £14 per order, against £6 in the UK.",
+      "cap": 0.6,
+      "tag": "M.ignores_deciding_fact",
+      "detection": "ai",
+      "step": 0,
+      "evidence": "whole"
+    },
+    {
+      "id": "off_topic",
+      "definition": "The answer addresses a different question from the client's.",
+      "cap": 0.2,
+      "tag": "M.unsupported_recommendation",
+      "detection": "ai",
+      "step": 0,
+      "evidence": "whole"
+    }
+  ],
+  "model_answer": "Don't ship to Germany from the UK. An average £35 order at a 40% margin earns £14, and shipping to Germany costs £14 plus £3 for the health certificate, so each order loses about £3. Germany's market is twice the UK's, though, so the risk is that a rival takes it while we wait. The next step is to get quotes from a German grower to fulfil orders locally, which would remove the shipping and certificate costs.",
+  "explanation": "Acceptable recommendation: Don't ship from the UK; explore fulfilling from Germany. The deciding fact: Shipping a plant to Germany costs £14 per order, against £6 in the UK. Key risks: A competitor could take the German market first. Next steps: Get quotes from a German grower to fulfil orders locally.",
+  "extras": {
+    "facts": [
+      {
+        "fact": "Shipping a plant to Germany costs £14 per order, against £6 in the UK",
+        "relevant": true,
+        "deciding": true
+      },
+      {
+        "fact": "The average order is £35, at a 40% gross margin",
+        "relevant": true,
+        "deciding": false
+      },
+      {
+        "fact": "Germany's online plant market is twice the size of the UK's",
+        "relevant": true,
+        "deciding": false
+      },
+      {
+        "fact": "Each shipment to the EU now needs a health certificate costing £3",
+        "relevant": true,
+        "deciding": false
+      },
+      {
+        "fact": "Our warehouse is in Kent",
+        "relevant": false,
+        "deciding": false
+      }
+    ],
+    "acceptable_recommendations": "Don't ship from the UK; explore fulfilling from Germany",
+    "grading_rules": [
+      "Recommendation first: the first sentence commits to a course of action that answers the client's question. Context or a restated question first fails. A condition (\"open, starting with a pilot\") is fine if it still picks a direction.",
+      "Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons (\"it's a good opportunity\", \"the market is attractive\") and irrelevant facts don't count, and the same fact said twice counts once.",
+      "Irrelevant facts: mentioning an irrelevant fact in any way fails, even to dismiss it.",
+      "Consistent with the facts: every number and claim matches the fact sheet or follows from it. A wrong calculation fails, and so does a claim beyond the sheet stated as fact, unless it is framed as a risk or an assumption. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.",
+      "Risk: names something specific that could make the recommendation wrong (\"schools may not pay $600 when museums charge $450\"). \"There are risks\" fails.",
+      "Next step: a concrete action (\"pilot in 5 parks and track bookings\"). \"Do more analysis\" fails.",
+      "Deciding fact: the answer uses the deciding fact, by its content or its number, as part of its case. Mentioning it only in passing, without using it to decide, does not count.",
+      "Off-topic: the answer addresses a different question from the client's. An off-topic answer is not also flagged for no clear position.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

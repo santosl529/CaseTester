@@ -135,3 +135,12 @@ How Matt likes to work: plain, short explanations; he reviews items on `drill-re
 - Grader fixes found by the gate: family names echoed with their description are mapped back (`familyName`) — this was mis-scoring the live update decision; the evidence-based check asks for the student's words, not the question's; a batch that keeps coming back incomplete is regraded one answer at a time. Grader `drills-grader-v6`.
 - Gate: all HY-2 checks ≥90% (evidence_based exactly 90%, 28/31). PS-3 re-run unchanged.
 - Importer: unchanged live items are skipped quietly.
+
+## SY-2 content (2026-10-11)
+
+- 30 questions (sy2-0001–0030, tiers 9/12/9, all 14 case types) and 30 graded answers (16 normal, 5 borderline, 3 short, 3 off_topic, 3 injection). All 30 passed web similarity; 17 word-only scenario pairs recorded. Drafts, awaiting Matt.
+- Carry-over: each question marks one deciding fact (`deciding` column in sy2-facts, exactly one, relevant); `misses_deciding_fact` red flag caps at 60% (`M.ignores_deciding_fact`); off-topic caps at 20%; SY-2 grading rules 1–9 sent to the grader and in the guide.
+- Rule change to flag to Matt: "2–3 reasons" is now counted as distinct relevant fact-sheet facts used as support, 2 or more passing (the fuzzy "reason" count failed the gate; PRD says 2–3).
+- Open question for Matt: no SY-2 check tests whether the recommendation is one of the acceptable ones (sy2-0007-a picks the weaker option and passes every check).
+- Grader fixes: red flags can judge the whole answer (`evidence: 'whole'`, optional so live PS-3 items are unchanged), since a flag about something missing has no quote to verify; recommendation-first must quote the first sentence (code); quote helpers moved to pure `grading/quotes.ts`. Grader `drills-grader-v7`.
+- Gates: SY-2 all ≥90% (reasons 90%), HY-2 all ≥94%, PS-3 all ≥94%.

@@ -1,0 +1,29 @@
+{
+  "answer_id": "sy2-0003-a",
+  "item_id": "sy2-0003",
+  "drill_id": "SY-2",
+  "answer_type": "short",
+  "notes": "Commits to an answer but gives no reasons, risk or next step, and never uses the distributor's projection (rule 7).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Yes, go to Canada."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": false,
+    "cites_numbers": false,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": false,
+    "includes_next_step": false
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": true,
+    "off_topic": false
+  },
+  "family": null
+}

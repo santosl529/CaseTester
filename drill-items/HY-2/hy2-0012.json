@@ -135,7 +135,8 @@
       "cap": 0.2,
       "tag": "M.no_hypothesis",
       "detection": "ai",
-      "step": 0
+      "step": 0,
+      "evidence": "whole"
     }
   ],
   "model_answer": "Stage 1: The brand likely lost attention after the deal, probably because the buyer's sales team has many other products to sell. I'd compare sales by store, by which team covers it.\nStage 2: Keep: sales held where the brand's own team stayed and fell 20% where the buyer's busy sales force took over.",

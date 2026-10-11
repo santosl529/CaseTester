@@ -82,3 +82,39 @@ The update decision (keep, revise or drop) is HY-2's critical element. Code scor
 
 9. **Off-topic (stage 1 capped at 20%):** see rule 7. Logged as `M.no_hypothesis`.
 10. **Restates the facts (stage 1 capped at 30%)** and **three or more causes with no lead (stage 1 capped at 50%)**, as in the PRD.
+
+## SY-2 60-second recommendation
+
+Each question marks one fact as the deciding fact: the one the recommendation should turn on. An answer that doesn't use it is capped at 60% (`M.ignores_deciding_fact`).
+
+1. **(grader)** Recommendation first: the first sentence commits to a course of action that answers the client's question. Context or a restated question first fails. A condition ("open, starting with a pilot") is fine if it still picks a direction.
+   - *sy2-0002-a:* the recommendation comes in the second sentence.
+   - *sy2-0024-a:* "Too small a market." is a reason, not the recommendation.
+   - *sy2-0011-a:* two actions in one sentence still commit to a direction.
+2. **(grader)** Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons ("it's a good opportunity", "the market is attractive") and irrelevant facts don't count, and the same fact said twice counts once.
+   - *sy2-0013-a:* margin, shipping cost and the certificate are three relevant facts, so it passes.
+   - *sy2-0029-a:* the credit, the tons captured and the running cost count; cement prices, an irrelevant fact, don't.
+3. **(grader)** Irrelevant facts: mentioning an irrelevant fact in any way fails, even to dismiss it.
+   - *sy2-0004-a:* mentions the kitchen to dismiss it, which still fails.
+4. **(grader)** Consistent with the facts: every number and claim matches the fact sheet or follows from it. A wrong calculation fails, and so does a claim beyond the sheet stated as fact, unless it is framed as a risk or an assumption. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.
+   - *sy2-0020-a:* a wrong saving ($1.4M instead of about $950,000) fails this check, but isn't the contradicts-facts flag.
+   - *sy2-0023-a:* "only 10% of shoppers" against the sheet's 30% is the contradicts-facts flag.
+5. **(grader)** Risk: names something specific that could make the recommendation wrong ("schools may not pay $600 when museums charge $450"). "There are risks" fails.
+   - *sy2-0013-a:* Germany's market size, offered as a reason to keep going, isn't a risk to the recommendation.
+6. **(grader)** Next step: a concrete action ("pilot in 5 parks and track bookings"). "Do more analysis" fails.
+7. **(grader)** Deciding fact: the answer uses the deciding fact, by its content or its number, as part of its case. Mentioning it only in passing, without using it to decide, does not count.
+   - *sy2-0014-a:* "Add a security lane." makes the right call without using the deciding fact.
+   - *sy2-0007-a:* uses the waitlist (the deciding fact) to argue for the other option, so the flag doesn't apply.
+8. **(grader)** Off-topic: the answer addresses a different question from the client's. An off-topic answer is not also flagged for no clear position.
+   - *sy2-0008-a*, *sy2-0019-a*, *sy2-0027-a.*
+9. **(grader)** Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item.
+   - *sy2-0005-a*, *sy2-0016-a*, *sy2-0026-a.*
+
+### Red flags and caps
+
+10. **Misses the deciding fact (cap 60%)**, see rule 7.
+11. **Off-topic (cap 20%)**, see rule 8.
+12. **No clear position (cap 40%)** and **contradicts the fact sheet (cap 50%)**, as in the PRD.
+13. **Cites fact-sheet numbers** is settled by code: at least one number from a relevant fact appears in the answer. Grade it the same way.
+
+No check tests whether the recommendation is one of the acceptable ones (*sy2-0007-a* picks the weaker option and passes every check). Open question for Matt.

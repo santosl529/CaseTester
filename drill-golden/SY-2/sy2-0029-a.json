@@ -1,0 +1,29 @@
+{
+  "answer_id": "sy2-0029-a",
+  "item_id": "sy2-0029",
+  "drill_id": "SY-2",
+  "answer_type": "borderline",
+  "notes": "The credit, tons captured and running cost are relevant facts, so reasons pass; cement prices don't count (rule 2) and fail leaving out irrelevant facts (rule 3). No risk.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Install carbon capture. The $85-a-ton credit on 1 million tons is $85M a year for 12 years, far above the $15M running cost, so the $200M pays back in about 3 years. Cement prices also rose 5%. Next, lock in the credit with a signed agreement."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": false,
+    "consistent_with_facts": true,
+    "includes_risk": false,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false
+  },
+  "family": null
+}

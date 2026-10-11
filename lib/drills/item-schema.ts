@@ -80,6 +80,10 @@ const RedFlagSchema = z.object({
   // The cap applies to this step's share of the score (HY-2's red flags cap
   // stage 1 only); on single-step items that is the whole item.
   step: z.number().int().nonnegative().default(0),
+  // "whole": the flag is about the answer as a whole or something it leaves
+  // out ("doesn't use the deciding fact"), so no quote can show it. Unset
+  // means a verified quote is needed, as for checks.
+  evidence: z.enum(['quote', 'whole']).optional(),
 });
 
 // Set on generated items: attempts store this triple instead of an item row,

@@ -160,6 +160,125 @@
         "hy2-0007"
       ],
       "reason": "\"Department\" means budget departments (EX-1) and dealership service departments (HY-2); 15 and 25 are coincidence."
+    },
+    {
+      "items": [
+        "cl1-0016",
+        "sy2-0002"
+      ],
+      "reason": "Shared words only (evening, weekday, weekend): a bowling chain's falling weekday sales (CL-1) vs a golf-simulator studio raising its peak price (SY-2)."
+    },
+    {
+      "items": [
+        "cl1-0027",
+        "sy2-0023"
+      ],
+      "reason": "Coincidental words and numbers: a university's lab-supply costs (CL-1) vs a sporting-goods chain deciding whether to match online prices (SY-2)."
+    },
+    {
+      "items": [
+        "cl1-0035",
+        "sy2-0021"
+      ],
+      "reason": "Both mention a county, residents and towns, but library-card sign-ups (CL-1) vs consolidating animal shelters (SY-2)."
+    },
+    {
+      "items": [
+        "cl1-0038",
+        "sy2-0026"
+      ],
+      "reason": "Shared common words only: a department-store turnaround (CL-1) vs a city bus lane (SY-2)."
+    },
+    {
+      "items": [
+        "cl1-0040",
+        "sy2-0023"
+      ],
+      "reason": "Coincidental numbers: a gym's off-peak membership (CL-1) vs a sporting-goods chain's price matching (SY-2)."
+    },
+    {
+      "items": [
+        "ex1-0007",
+        "sy2-0019"
+      ],
+      "reason": "Coincidental numbers: choosing an acquisition target from a chart (EX-1) vs closing furniture-rental showrooms (SY-2)."
+    },
+    {
+      "items": [
+        "ex1-0014",
+        "sy2-0026"
+      ],
+      "reason": "Coincidental numbers: department budget changes (EX-1) vs a city bus lane (SY-2)."
+    },
+    {
+      "items": [
+        "ex1-0035",
+        "sy2-0018"
+      ],
+      "reason": "'Fund' means funding one project (EX-1) and an investment fund (SY-2); different decisions and figures."
+    },
+    {
+      "items": [
+        "hy1-0025",
+        "sy2-0002"
+      ],
+      "reason": "'License' is a software license (HY-1) and a liquor license, an irrelevant fact (SY-2); different clients."
+    },
+    {
+      "items": [
+        "hy2-0024",
+        "sy2-0016"
+      ],
+      "reason": "'Replaced' refers to LED lighting (HY-2) and a warehouse roof, an irrelevant fact (SY-2); different decisions."
+    },
+    {
+      "items": [
+        "ps3-0019",
+        "sy2-0024"
+      ],
+      "reason": "Both mention a free tool and 4,000, but a tax chain's 4,000 offices facing a free filing tool (PS-3) vs 4,000 tattoo studios as a software market (SY-2)."
+    },
+    {
+      "items": [
+        "ps3-0036",
+        "sy2-0018"
+      ],
+      "reason": "Both are funds weighing an industry, but satellite internet for rural homes (PS-3) vs a vinyl-record pressing plant (SY-2); different facts."
+    },
+    {
+      "items": [
+        "sy1-0008",
+        "sy2-0003"
+      ],
+      "reason": "Both start selling somewhere new, but a retailer going online (SY-1) vs a barbecue-sauce brand entering Canadian supermarkets (SY-2); different figures."
+    },
+    {
+      "items": [
+        "sy1-0020",
+        "sy2-0004"
+      ],
+      "reason": "Both involve a lease, but closing a loss-making store (SY-1) vs moving an accounting firm to a smaller office (SY-2)."
+    },
+    {
+      "items": [
+        "sy1-0021",
+        "sy2-0002"
+      ],
+      "reason": "'License' and numbers are coincidence: a ride-hailing city launch (SY-1) vs a golf-simulator price rise (SY-2)."
+    },
+    {
+      "items": [
+        "sy1-0025",
+        "sy2-0001"
+      ],
+      "reason": "'Training' means a job-training program (SY-1) and technician training for a 3D printer (SY-2)."
+    },
+    {
+      "items": [
+        "sy1-0030",
+        "sy2-0018"
+      ],
+      "reason": "Both ask whether to invest in an industry, but a shrinking home-fitness industry (SY-1) vs vinyl pressing with long waitlists (SY-2); different facts and answers."
     }
   ]
 }

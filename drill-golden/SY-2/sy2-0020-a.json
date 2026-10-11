@@ -1,0 +1,29 @@
+{
+  "answer_id": "sy2-0020-a",
+  "item_id": "sy2-0020",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "The saving is wrong: 70% of $8M moving from 22% commission to a 5% discount saves about $950,000, not $1.4M. A wrong calculation fails consistency, but it isn't the contradicts-facts flag (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Move customers to direct booking. Online travel sites now take 22% of revenue in commissions, up from 10%, and 70% of customers say they'd book directly for a 5% discount, which would save about $1.4M a year on $8M of revenue. The risk is that the sites rank us lower, so the next step is to launch direct booking with the 5% discount on our website."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": false,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false
+  },
+  "family": null
+}

@@ -145,7 +145,7 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
     return sy2Item({
       item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: r.case_type, client_question: r.client_question,
       acceptable_recommendations: r.acceptable_recommendations, key_risks: r.key_risks, next_steps: r.next_steps,
-      model_answer: r.model_answer, facts: facts.map(f => ({ fact: f.fact, relevant: yes(f.relevant) })),
+      model_answer: r.model_answer, facts: facts.map(f => ({ fact: f.fact, relevant: yes(f.relevant), deciding: yes(f.deciding) })),
     } satisfies Sy2Content);
   });
 
@@ -223,7 +223,7 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
       leaves_out_irrelevant: yes(r.leaves_out_irrelevant_facts), consistent_with_facts: yes(r.consistent_with_facts),
       includes_risk: yes(r.includes_risk), includes_next_step: yes(r.includes_next_step),
     },
-    red_flags: { no_clear_position: yes(r.red_flag_no_clear_position), contradicts_facts: yes(r.red_flag_contradicts_facts) },
+    red_flags: { no_clear_position: yes(r.red_flag_no_clear_position), contradicts_facts: yes(r.red_flag_contradicts_facts), misses_deciding_fact: yes(r.red_flag_misses_deciding_fact), off_topic: yes(r.red_flag_off_topic) },
     family: null,
   }));
   gold('cl3-graded-answers.csv', t['cl3-graded-answers'] ?? [], (r, item) => ({

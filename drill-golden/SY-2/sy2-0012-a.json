@@ -1,0 +1,29 @@
+{
+  "answer_id": "sy2-0012-a",
+  "item_id": "sy2-0012",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Switch to a $150 monthly membership. Students take 3.1 lessons a month at $45, about $140, so $150 keeps revenue per student, and we stop losing the 15% of lessons that are missed today. Nearby schools charge $140 to $160, so the price is in line. The risk is that students who take fewer lessons leave, so offer it to new students first and track cancellations."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false
+  },
+  "family": null
+}

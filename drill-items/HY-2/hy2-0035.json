@@ -135,7 +135,8 @@
       "cap": 0.2,
       "tag": "M.no_hypothesis",
       "detection": "ai",
-      "step": 0
+      "step": 0,
+      "evidence": "whole"
     }
   ],
   "model_answer": "Stage 1: With arrivals up only 5%, longer waits more likely come from slower unloading at the berth. I'd compare crane moves per hour with last year.\nStage 2: Revise: cranes are at normal speed. The yard is full because containers wait 9 days for pickup.",

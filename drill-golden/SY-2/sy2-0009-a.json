@@ -1,0 +1,29 @@
+{
+  "answer_id": "sy2-0009-a",
+  "item_id": "sy2-0009",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Extend the shuttle to the stadium district. A survey says 40% of event visitors would ride it, cutting event-day parking demand by about 1,500 cars, and the stadium owner will pay $300,000 of the $800,000 a year. The risk is that survey intent overstates real ridership, so the next step is a one-season pilot on event days."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false
+  },
+  "family": null
+}

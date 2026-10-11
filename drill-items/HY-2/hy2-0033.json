@@ -135,7 +135,8 @@
       "cap": 0.2,
       "tag": "M.no_hypothesis",
       "detection": "ai",
-      "step": 0
+      "step": 0,
+      "evidence": "whole"
     }
   ],
   "model_answer": "Stage 1: Profit fell despite more tests, likely because insurers are paying less per test. I'd compare payment per test by insurer with last year.\nStage 2: Drop: revenue per test is unchanged. Cost per test rose 15% from sending tests to outside labs.",
