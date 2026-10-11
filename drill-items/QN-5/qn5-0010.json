@@ -58,7 +58,7 @@
       "id": "1",
       "text": "Pet cats in the US",
       "correct": true,
-      "feedback": "A driver: Pet-ownership surveys disagree: roughly 60M to 90M cats"
+      "feedback": "A driver: Reasoning: roughly a third of 130M households have a cat, many have two, so about 60M to 90M cats"
     },
     {
       "id": "2",
@@ -118,7 +118,7 @@
         "low": 55000000,
         "high": 90000000,
         "unit": "cats",
-        "source": "Pet-ownership surveys disagree: roughly 60M to 90M cats"
+        "source": "Reasoning: roughly a third of 130M households have a cat, many have two, so about 60M to 90M cats"
       },
       "2": {
         "low": 0.05,

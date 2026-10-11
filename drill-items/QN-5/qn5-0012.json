@@ -64,7 +64,7 @@
       "id": "2",
       "text": "High-school graduates per year",
       "correct": true,
-      "feedback": "A driver: Education statistics: about 3.8M graduates a year"
+      "feedback": "A driver: Reasoning: about 4M people per year of age, and most finish high school"
     },
     {
       "id": "3",
@@ -135,7 +135,7 @@
         "low": 3500000,
         "high": 4000000,
         "unit": "graduates",
-        "source": "Education statistics: about 3.8M graduates a year"
+        "source": "Reasoning: about 4M people per year of age, and most finish high school"
       },
       "3": {
         "low": 0.6,

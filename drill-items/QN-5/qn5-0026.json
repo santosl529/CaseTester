@@ -58,7 +58,7 @@
       "id": "1",
       "text": "US households",
       "correct": true,
-      "feedback": "A driver: Census: about 131M US households"
+      "feedback": "A driver: Reasoning: about 335M people ÷ about 2.5 people per household ≈ 130M"
     },
     {
       "id": "2",
@@ -118,7 +118,7 @@
         "low": 125000000,
         "high": 135000000,
         "unit": "households",
-        "source": "Census: about 131M US households"
+        "source": "Reasoning: about 335M people ÷ about 2.5 people per household ≈ 130M"
       },
       "2": {
         "low": 3,

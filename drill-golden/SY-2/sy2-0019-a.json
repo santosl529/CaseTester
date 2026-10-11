@@ -23,7 +23,8 @@
     "no_clear_position": false,
     "contradicts_facts": false,
     "misses_deciding_fact": true,
-    "off_topic": true
+    "off_topic": true,
+    "wrong_recommendation": false
   },
   "family": null
 }

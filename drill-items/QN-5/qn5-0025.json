@@ -58,7 +58,7 @@
       "id": "1",
       "text": "Public-school students",
       "correct": true,
-      "feedback": "A driver: Education statistics: about 49M public-school students"
+      "feedback": "A driver: Reasoning: about 4M per grade × 13 grades, with about 90% in public schools"
     },
     {
       "id": "2",
@@ -70,7 +70,7 @@
       "id": "3",
       "text": "School days per year",
       "correct": true,
-      "feedback": "A driver: Most states require about 180 days"
+      "feedback": "A driver: Reasoning: a school year is about 36 weeks of 5 days"
     },
     {
       "id": "4",
@@ -118,7 +118,7 @@
         "low": 47000000,
         "high": 50000000,
         "unit": "students",
-        "source": "Education statistics: about 49M public-school students"
+        "source": "Reasoning: about 4M per grade × 13 grades, with about 90% in public schools"
       },
       "2": {
         "low": 0.45,
@@ -130,7 +130,7 @@
         "low": 175,
         "high": 185,
         "unit": "days",
-        "source": "Most states require about 180 days"
+        "source": "Reasoning: a school year is about 36 weeks of 5 days"
       },
       "4": {
         "low": 3,

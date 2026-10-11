@@ -58,7 +58,7 @@
       "id": "1",
       "text": "US high-school juniors and seniors",
       "correct": true,
-      "feedback": "A driver: Education statistics: about 4M students per grade"
+      "feedback": "A driver: Reasoning: about 4M students per grade, two grades"
     },
     {
       "id": "2",
@@ -118,7 +118,7 @@
         "low": 7500000,
         "high": 8500000,
         "unit": "students",
-        "source": "Education statistics: about 4M students per grade"
+        "source": "Reasoning: about 4M students per grade, two grades"
       },
       "2": {
         "low": 0.4,

@@ -58,7 +58,7 @@
       "id": "1",
       "text": "US population",
       "correct": true,
-      "feedback": "A driver: Census: about 335M people"
+      "feedback": "A driver: Reasoning: the commonly quoted US population is about 335M; the range allows about 5% either way"
     },
     {
       "id": "2",
@@ -118,7 +118,7 @@
         "low": 320000000,
         "high": 350000000,
         "unit": "people",
-        "source": "Census: about 335M people"
+        "source": "Reasoning: the commonly quoted US population is about 335M; the range allows about 5% either way"
       },
       "2": {
         "low": 0.2,

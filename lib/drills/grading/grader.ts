@@ -15,7 +15,7 @@ import { answerText, itemSteps, type StepResult } from '../sets/scoring';
 import type { ItemGrade } from './apply';
 
 // Bump on any change to the prompt or output schema; stored on every grade.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v7';
+export const GRADER_PROMPT_VERSION = 'drills-grader-v8';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 

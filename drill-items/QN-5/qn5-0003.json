@@ -58,7 +58,7 @@
       "id": "1",
       "text": "US population",
       "correct": true,
-      "feedback": "A driver: Census: about 335M people"
+      "feedback": "A driver: Reasoning: the commonly quoted US population is about 335M; the range allows about 5% either way"
     },
     {
       "id": "2",
@@ -70,7 +70,7 @@
       "id": "3",
       "text": "Manual toothbrushes bought per user per year",
       "correct": true,
-      "feedback": "A driver: Dentists advise a new brush every 3 to 4 months; many replace less often"
+      "feedback": "A driver: Reasoning: a new brush every 3 to 6 months"
     },
     {
       "id": "4",
@@ -118,7 +118,7 @@
         "low": 320000000,
         "high": 350000000,
         "unit": "people",
-        "source": "Census: about 335M people"
+        "source": "Reasoning: the commonly quoted US population is about 335M; the range allows about 5% either way"
       },
       "2": {
         "low": 0.55,
@@ -130,7 +130,7 @@
         "low": 2,
         "high": 4,
         "unit": "toothbrushes",
-        "source": "Dentists advise a new brush every 3 to 4 months; many replace less often"
+        "source": "Reasoning: a new brush every 3 to 6 months"
       }
     },
     "benchmark": {

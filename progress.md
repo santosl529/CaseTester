@@ -5,9 +5,9 @@
 Live: PS-1, HY-1, EX-1, SY-1, CL-1 (225 authored items approved; shared CaseTester database, in sync with /drill-items). D2 drills are built but off until Matt's content arrives.
 
 Open items, in order:
-1. **Matt to review the D2 drafts** (all in `docs/drills-content/`, imported, seeded as drafts, web similarity passed, golden gates pass): HY-2 40 questions + 30 graded answers, SY-2 30 + 30, CL-3 40 + 30, QN-5 30 questions (code-scored, no graded answers). On approval: set items live with reviewer, set each drill `live: true` in `drills.v1.json`, update the live-drills config test, seed.
-2. **For Matt to decide:** (a) SY-2 "2–3 reasons" now counts distinct relevant facts, 2 or more passing (PRD says 2–3); (b) no SY-2 check tests whether the recommendation is an acceptable one; (c) QN-5 named sources ("Census", "CDC", "industry reports") are from memory and should be checked before going live, or reworded as reasoning.
-3. **PRD updates needing Matt's go-ahead:** HY-2, SY-2 and CL-3 sections (off-topic caps, SY-2 deciding fact, CL-3 critical driver, grading rules, the reasons wording); grader robustness notes (one-at-a-time fallback, whole-answer red flags, first-sentence check).
+1. **Matt to check every graded answer** for PS-3 (already live), HY-2, SY-2 and CL-3: all grades were written by Claude, and a few were changed after seeing the grader's output (listed in "Who graded the D2 answers"). Until Matt has checked them, the golden gates measure agreement with Claude's labels. Then the HY-2, SY-2, CL-3 and QN-5 questions for approval to go live.
+2. **QN-5 figures:** all named sources reworded as reasoning (list sent to Matt 2026-10-11). Matt may want some verified with links instead.
+3. **Small follow-up:** a PS-3 smoke set answered with model frameworks scored 88%, not 100%; find which question's model framework misses a check.
 4. **Next build phase:** D3 (the loop).
 
 How Matt likes to work: plain, short explanations; he reviews items on `drill-review.html` (`npm run drills:review`, "Waiting for your review" box) and sends decisions by item ID; commit and push to `drills` when asked (GitHub push works).
@@ -153,3 +153,15 @@ How Matt likes to work: plain, short explanations; he reviews items on `drill-re
 - QN-5: 30 sizing questions (tiers 9/12/9), 6–8 cards each, one with two accepted sets (qn5-0012). Totals and walkthroughs generated from driver central values (range = central ÷2 to ×2). Named sources are from memory: flag for checking.
 - Smoke test answers every D2 question from its own key (model answers; QN-5 accepted cards, mid-range values and their product); passes on all five drills.
 - Final gates (grader v7): PS-3, HY-2, SY-2, CL-3 all checks ≥90%.
+
+## Matt's decisions on D2 (2026-10-11)
+
+- SY-2 reasons approved: two or more distinct relevant fact-sheet facts pass.
+- SY-2 correctness: new `wrong_recommendation` red flag (cap 50%, `M.unsupported_recommendation`); the key may list two acceptable recommendations separated by `|` (added to sy2-0008, 0011, 0021, 0025, 0028). Off-topic answers aren't also flagged for position (code, `SY2_OFF_TOPIC_SUPPRESSES`). With only 2 wrong examples the check was untested, so 3 wrong-recommendation answers were added (sy2-0002-b, 0016-b, 0030-b); the grader missed 2 of 5 until the flag was reworded as "Present when the answer recommends a different action…". SY-2 gate: all ≥91% on 34 answers. Grader `drills-grader-v8`.
+- QN-5: no named source unless looked up (with link). All 33 named-source figures reworded as reasoning; template example and README updated.
+- PRD HY-2, SY-2 and CL-3 sections updated with Matt's go-ahead.
+
+## Who graded the D2 answers (asked by Matt, 2026-10-11)
+
+- Claude wrote and graded all 123 golden answers (PS-3 30, HY-2 30, SY-2 33, CL-3 30); Matt chose "Claude drafts, Matt checks every grade" but has not yet checked them grade by grade (PS-3 was approved as a whole).
+- Labels Claude changed after seeing grader disagreements (each to match a written rule, but after the fact): PS-3 none after the rules were set; HY-2 update_reason on 0008-a, 0023-a, 0036-a (Y→N, rule 5 then extended); SY-2 two_to_three_reasons on 0013-a and 0029-a (N→Y, after the reasons rule changed); CL-3 specific_requests on 0029-a (N→Y, note had contradicted the grade).

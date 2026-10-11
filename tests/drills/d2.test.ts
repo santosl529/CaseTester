@@ -88,6 +88,15 @@ describe('checklists match the PRD drill specs', () => {
     expect(importContent(t, { includeExamples: true }).problems.map(p => p.message).join(' ')).toMatch(/exactly one critical must-cover area, has 4/);
   });
 
+  it('caps an SY-2 answer at 0.5 when its recommendation matches none of the acceptable ones', () => {
+    const t = tables();
+    t['sy2-questions'] = t['sy2-questions'].map(r => ({ ...r, acceptable_recommendations: 'Open with a pilot | Wait a season' }));
+    const sy = importContent(t, { includeExamples: true }).items.find(i => i.drill_id === 'SY-2')!;
+    const flag = sy.red_flags.find(f => f.id === 'wrong_recommendation')!;
+    expect(flag).toMatchObject({ cap: 0.5, tag: 'M.unsupported_recommendation' });
+    expect(flag.definition).toContain('"Open with a pilot" or "Wait a season"');
+  });
+
   it('scores the HY-2 update decision from the family', () => {
     const fams = item('HY-2').extras.families as Parameters<typeof hy2DecisionTag>[0];
     expect(hy2DecisionTag(fams, 'Buying less per customer', 'keep')).toBeNull();
@@ -258,6 +267,16 @@ describe('applying a grade (code computes every score)', () => {
       .check_results.checks.find(c => c.check_id === 'recommendation_first')!.pass;
     expect(graded('Open for school groups')).toBe(false);
     expect(graded('Schools want trips')).toBe(true);
+  });
+
+  it('does not also flag an off-topic SY-2 answer for its position', () => {
+    const sy = item('SY-2');
+    const s = [scoreStep(sy, 0, { type: 'text', value: 'Our uniforms should be updated.' }, false)];
+    const flags = (off: boolean) => applyGrade(sy, s, false, fullGrade(sy, { red_flags: { ...fullGrade(sy).red_flags,
+      off_topic: { pass: off, evidence: '' }, wrong_recommendation: { pass: true, evidence: 'uniforms' }, no_clear_position: { pass: true, evidence: 'uniforms' } } })).check_results.red_flags;
+    const present = (f: ReturnType<typeof flags>, id: string) => f.find(x => x.id === id)!.present;
+    expect([present(flags(true), 'wrong_recommendation'), present(flags(true), 'no_clear_position')]).toEqual([false, false]);
+    expect(present(flags(false), 'wrong_recommendation')).toBe(true);
   });
 
   it('settles SY-2’s fact-sheet numbers check in code', () => {

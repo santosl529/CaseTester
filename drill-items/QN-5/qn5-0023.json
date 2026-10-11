@@ -58,7 +58,7 @@
       "id": "1",
       "text": "Staffed hospital beds in the US",
       "correct": true,
-      "feedback": "A driver: Hospital association data: about 920,000 staffed beds"
+      "feedback": "A driver: Reasoning: about 6,000 hospitals × about 150 staffed beds on average ≈ 900,000"
     },
     {
       "id": "2",
@@ -118,7 +118,7 @@
         "low": 880000,
         "high": 950000,
         "unit": "beds",
-        "source": "Hospital association data: about 920,000 staffed beds"
+        "source": "Reasoning: about 6,000 hospitals × about 150 staffed beds on average ≈ 900,000"
       },
       "2": {
         "low": 2,

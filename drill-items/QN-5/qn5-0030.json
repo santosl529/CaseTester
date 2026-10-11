@@ -58,7 +58,7 @@
       "id": "1",
       "text": "Hospital admissions per year",
       "correct": true,
-      "feedback": "A driver: Hospital association data: about 34M admissions a year"
+      "feedback": "A driver: Reasoning: about one hospital admission per 10 people a year × 335M ≈ 34M"
     },
     {
       "id": "2",
@@ -118,7 +118,7 @@
         "low": 33000000,
         "high": 36000000,
         "unit": "admissions",
-        "source": "Hospital association data: about 34M admissions a year"
+        "source": "Reasoning: about one hospital admission per 10 people a year × 335M ≈ 34M"
       },
       "2": {
         "low": 0.08,

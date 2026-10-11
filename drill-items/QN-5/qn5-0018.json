@@ -58,7 +58,7 @@
       "id": "1",
       "text": "US births per year",
       "correct": true,
-      "feedback": "A driver: CDC: about 3.6M births a year"
+      "feedback": "A driver: Reasoning: about 4M people per year of age, with slightly fewer births each year now"
     },
     {
       "id": "2",
@@ -118,7 +118,7 @@
         "low": 3400000,
         "high": 3800000,
         "unit": "births",
-        "source": "CDC: about 3.6M births a year"
+        "source": "Reasoning: about 4M people per year of age, with slightly fewer births each year now"
       },
       "2": {
         "low": 2,

@@ -58,13 +58,13 @@
       "id": "1",
       "text": "US households",
       "correct": true,
-      "feedback": "A driver: US Census: about 130M households"
+      "feedback": "A driver: Reasoning: about 330M people ÷ about 2.5 per household ≈ 130M"
     },
     {
       "id": "2",
       "text": "Share of households with a dog",
       "correct": true,
-      "feedback": "A driver: Pet industry surveys: about 40% of households own a dog"
+      "feedback": "A driver: Reasoning: dogs are the most common pet; roughly 4 in 10 households have one"
     },
     {
       "id": "3",
@@ -118,13 +118,13 @@
         "low": 110000000,
         "high": 140000000,
         "unit": "households",
-        "source": "US Census: about 130M households"
+        "source": "Reasoning: about 330M people ÷ about 2.5 per household ≈ 130M"
       },
       "2": {
         "low": 0.3,
         "high": 0.5,
         "unit": "share",
-        "source": "Pet industry surveys: about 40% of households own a dog"
+        "source": "Reasoning: dogs are the most common pet; roughly 4 in 10 households have one"
       },
       "3": {
         "low": 2,

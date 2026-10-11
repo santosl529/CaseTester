@@ -58,13 +58,13 @@
       "id": "1",
       "text": "US households",
       "correct": true,
-      "feedback": "A driver: Census: about 131M US households"
+      "feedback": "A driver: Reasoning: about 335M people ÷ about 2.5 people per household ≈ 130M"
     },
     {
       "id": "2",
       "text": "Share of households living in houses",
       "correct": true,
-      "feedback": "A driver: Census housing data: about two-thirds of homes are single-family houses"
+      "feedback": "A driver: Reasoning: outside big cities most homes are houses; apartments are perhaps a third of homes"
     },
     {
       "id": "3",
@@ -125,13 +125,13 @@
         "low": 125000000,
         "high": 135000000,
         "unit": "households",
-        "source": "Census: about 131M US households"
+        "source": "Reasoning: about 335M people ÷ about 2.5 people per household ≈ 130M"
       },
       "2": {
         "low": 0.55,
         "high": 0.75,
         "unit": "share",
-        "source": "Census housing data: about two-thirds of homes are single-family houses"
+        "source": "Reasoning: outside big cities most homes are houses; apartments are perhaps a third of homes"
       },
       "3": {
         "low": 0.05,

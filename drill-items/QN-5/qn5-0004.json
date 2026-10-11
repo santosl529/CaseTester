@@ -58,7 +58,7 @@
       "id": "1",
       "text": "K-12 students in the US",
       "correct": true,
-      "feedback": "A driver: Education statistics: about 49M public and 5M private school students"
+      "feedback": "A driver: Reasoning: about 4M children per year of age × 13 grades ≈ 52M, plus or minus"
     },
     {
       "id": "2",
@@ -118,7 +118,7 @@
         "low": 50000000,
         "high": 58000000,
         "unit": "students",
-        "source": "Education statistics: about 49M public and 5M private school students"
+        "source": "Reasoning: about 4M children per year of age × 13 grades ≈ 52M, plus or minus"
       },
       "2": {
         "low": 0.4,

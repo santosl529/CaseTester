@@ -58,7 +58,7 @@
       "id": "1",
       "text": "Cars and light trucks on US roads",
       "correct": true,
-      "feedback": "A driver: Vehicle registration data: about 285M"
+      "feedback": "A driver: Reasoning: about 0.85 cars and light trucks per person × 335M people ≈ 285M"
     },
     {
       "id": "2",
@@ -118,7 +118,7 @@
         "low": 270000000,
         "high": 300000000,
         "unit": "vehicles",
-        "source": "Vehicle registration data: about 285M"
+        "source": "Reasoning: about 0.85 cars and light trucks per person × 335M people ≈ 285M"
       },
       "2": {
         "low": 0.7,

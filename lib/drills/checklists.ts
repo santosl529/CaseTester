@@ -203,7 +203,14 @@ export interface Sy2Content extends Base {
   facts: { fact: string; relevant: boolean; deciding: boolean }[];
 }
 
-export const SY2_CAPS = { misses_deciding_fact: 0.6, off_topic: 0.2 };
+export const SY2_CAPS = { misses_deciding_fact: 0.6, off_topic: 0.2, wrong_recommendation: 0.5 };
+
+// An off-topic answer isn't also judged on its position (rule 8).
+export const SY2_OFF_TOPIC_SUPPRESSES = ['no_clear_position', 'wrong_recommendation'];
+
+// The key's acceptable recommendations: one, or two where the call is
+// genuinely debatable, separated by "|".
+export const sy2Acceptable = (s: string) => s.split('|').map(r => r.trim()).filter(Boolean);
 
 // The grading guide's SY-2 rules (docs/drills-grading-guide.md), sent to the
 // grader with every SY-2 item. Keep the two in step.
@@ -215,7 +222,8 @@ export const SY2_GRADING_RULES = [
   'Risk: names something specific that could make the recommendation wrong ("schools may not pay $600 when museums charge $450"). "There are risks" fails.',
   'Next step: a concrete action ("pilot in 5 parks and track bookings"). "Do more analysis" fails.',
   'Deciding fact: the answer uses the deciding fact, by its content or its number, as part of its case. Mentioning it only in passing, without using it to decide, does not count.',
-  'Off-topic: the answer addresses a different question from the client\'s. An off-topic answer is not also flagged for no clear position.',
+  'Off-topic: the answer addresses a different question from the client\'s. An off-topic answer is not also flagged for no clear position or a wrong recommendation.',
+  'Acceptable recommendation: the recommendation matches one of the key\'s acceptable recommendations in substance: the same action, in any wording. A phased or conditional version of an acceptable action matches. A different action is a wrong recommendation, however well argued.',
   'Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item.',
 ];
 
@@ -248,9 +256,10 @@ export function sy2Item(c: Sy2Content): ItemInput {
       { id: 'contradicts_facts', definition: 'The answer makes a claim the fact sheet contradicts.', cap: 0.5, tag: 'M.unsupported_recommendation', detection: 'ai' },
       { id: 'misses_deciding_fact', definition: `Present when the answer never uses the deciding fact, neither its content nor its numbers. The deciding fact: ${deciding[0].fact}.`, cap: SY2_CAPS.misses_deciding_fact, tag: 'M.ignores_deciding_fact', detection: 'ai', evidence: 'whole' as const },
       { id: 'off_topic', definition: "The answer addresses a different question from the client's.", cap: SY2_CAPS.off_topic, tag: 'M.unsupported_recommendation', detection: 'ai', evidence: 'whole' as const },
+      { id: 'wrong_recommendation', definition: `Present when the answer recommends a different action from the acceptable recommendation${sy2Acceptable(c.acceptable_recommendations).length > 1 ? 's' : ''} (${sy2Acceptable(c.acceptable_recommendations).map(r => `"${r}"`).join(' or ')}), however well it argues for it or softens it with a risk or next step.`, cap: SY2_CAPS.wrong_recommendation, tag: 'M.unsupported_recommendation', detection: 'ai' },
     ],
     model_answer: c.model_answer,
-    explanation: `Acceptable recommendation: ${c.acceptable_recommendations}. The deciding fact: ${deciding[0].fact}. Key risks: ${c.key_risks}. Next steps: ${c.next_steps}.`,
+    explanation: `Acceptable recommendation: ${sy2Acceptable(c.acceptable_recommendations).join(', or ')}. The deciding fact: ${deciding[0].fact}. Key risks: ${c.key_risks}. Next steps: ${c.next_steps}.`,
     extras: { facts: c.facts, acceptable_recommendations: c.acceptable_recommendations, grading_rules: SY2_GRADING_RULES },
   };
 }

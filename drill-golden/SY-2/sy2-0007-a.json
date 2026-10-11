@@ -3,7 +3,7 @@
   "item_id": "sy2-0007",
   "drill_id": "SY-2",
   "answer_type": "borderline",
-  "notes": "Picks the weaker option, but it uses the waitlist as part of its case (rule 7), and no check tests which option it picks. Every check passes.",
+  "notes": "Picks the second studio, which isn't an acceptable recommendation: wrong-recommendation flag, capped at 50% (rule 9). It uses the waitlist (rule 7), and the other checks pass.",
   "responses": [
     {
       "type": "text",
@@ -23,7 +23,8 @@
     "no_clear_position": false,
     "contradicts_facts": false,
     "misses_deciding_fact": false,
-    "off_topic": false
+    "off_topic": false,
+    "wrong_recommendation": true
   },
   "family": null
 }

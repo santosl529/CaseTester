@@ -8,7 +8,7 @@
 // grader put the stage 1 hypothesis in.
 import { getMistakeTag } from '../config';
 import type { Item } from '../item-schema';
-import { hy2DecisionTag, PS3_INJECTION_FAILS, PS3_NO_OVERLAP_MIN_BUCKETS, type Hy2Content } from '../checklists';
+import { hy2DecisionTag, PS3_INJECTION_FAILS, PS3_NO_OVERLAP_MIN_BUCKETS, SY2_OFF_TOPIC_SUPPRESSES, type Hy2Content } from '../checklists';
 import { parseNumericInput } from '../numeric';
 import { answerText, itemSteps, type ItemResult, type StepResult } from '../sets/scoring';
 import { quoteFound } from './quotes';
@@ -102,11 +102,14 @@ export function applyGrade(item: Item, steps: StepResult[], timedOut: boolean, g
     if (c.check_id === 'recommendation_first' && v.pass && !quoteFound(v.evidence, firstSentence(written[c.step]))) v = { pass: false, evidence: '' };
     return { check_id: c.check_id, pass: v.pass, evidence: v.pass ? v.evidence : '', by: c.detection, weight: c.weight, step: c.step, fail_tag: c.fail_tag };
   });
+  // SY-2: an off-topic answer isn't also flagged for its position (rule 8).
+  const offTopic = item.drill_id === 'SY-2' && grade?.red_flags.off_topic?.pass;
   const redFlags = item.red_flags.map(f => {
     // PS-3 / CL-3: missing the critical area or driver is read off its check.
     const missedCritical = f.id === 'missed_critical_area' || f.id === 'missed_critical_driver' ? !checks.find(c => c.check_id === item.extras.critical_check)?.pass : null;
     const v = !written[f.step] ? { pass: false, evidence: '' }
-      : missedCritical !== null ? { pass: missedCritical, evidence: '' } : flagged(f.id);
+      : missedCritical !== null ? { pass: missedCritical, evidence: '' }
+      : offTopic && SY2_OFF_TOPIC_SUPPRESSES.includes(f.id) ? { pass: false, evidence: '' } : flagged(f.id);
     return { id: f.id, present: v.pass, evidence: v.evidence, cap: f.cap, step: f.step, tag: f.tag };
   });
 

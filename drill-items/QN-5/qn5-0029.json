@@ -58,7 +58,7 @@
       "id": "1",
       "text": "Horses in the US",
       "correct": true,
-      "feedback": "A driver: Horse-industry studies: about 6.6M horses"
+      "feedback": "A driver: Reasoning: about 2% of 130M households keep horses, two or three each ≈ 6.5M"
     },
     {
       "id": "2",
@@ -118,7 +118,7 @@
         "low": 6000000,
         "high": 7200000,
         "unit": "horses",
-        "source": "Horse-industry studies: about 6.6M horses"
+        "source": "Reasoning: about 2% of 130M households keep horses, two or three each ≈ 6.5M"
       },
       "2": {
         "low": 0.7,

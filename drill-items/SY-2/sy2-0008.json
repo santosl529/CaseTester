@@ -125,10 +125,18 @@
       "detection": "ai",
       "step": 0,
       "evidence": "whole"
+    },
+    {
+      "id": "wrong_recommendation",
+      "definition": "Present when the answer recommends a different action from the acceptable recommendations (\"Don't match across the board; protect whole-house moves\" or \"Match only on small apartment moves\"), however well it argues for it or softens it with a risk or next step.",
+      "cap": 0.5,
+      "tag": "M.unsupported_recommendation",
+      "detection": "ai",
+      "step": 0
     }
   ],
   "model_answer": "Don't match the rival's prices. We've lost only 6% of jobs, all small apartment moves, which earn a 10% margin, while whole-house moves earn 25% and make up 70% of profit. Matching would cut profit by about $1.2M a year to defend the least valuable work, and our 4.7-star reviews against the rival's 3.1 protect the big moves. The main risk is that the rival moves into whole-house moves, so track our win rate on those quotes monthly.",
-  "explanation": "Acceptable recommendation: Don't match across the board; protect whole-house moves. The deciding fact: We've lost 6% of jobs since the rival launched, all of them small apartment moves. Key risks: The rival moves into whole-house moves. Next steps: Track the win rate on whole-house quotes monthly.",
+  "explanation": "Acceptable recommendation: Don't match across the board; protect whole-house moves, or Match only on small apartment moves. The deciding fact: We've lost 6% of jobs since the rival launched, all of them small apartment moves. Key risks: The rival moves into whole-house moves. Next steps: Track the win rate on whole-house quotes monthly.",
   "extras": {
     "facts": [
       {
@@ -157,7 +165,7 @@
         "deciding": false
       }
     ],
-    "acceptable_recommendations": "Don't match across the board; protect whole-house moves",
+    "acceptable_recommendations": "Don't match across the board; protect whole-house moves | Match only on small apartment moves",
     "grading_rules": [
       "Recommendation first: the first sentence commits to a course of action that answers the client's question. Context or a restated question first fails. A condition (\"open, starting with a pilot\") is fine if it still picks a direction.",
       "Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons (\"it's a good opportunity\", \"the market is attractive\") and irrelevant facts don't count, and the same fact said twice counts once.",
@@ -166,7 +174,8 @@
       "Risk: names something specific that could make the recommendation wrong (\"schools may not pay $600 when museums charge $450\"). \"There are risks\" fails.",
       "Next step: a concrete action (\"pilot in 5 parks and track bookings\"). \"Do more analysis\" fails.",
       "Deciding fact: the answer uses the deciding fact, by its content or its number, as part of its case. Mentioning it only in passing, without using it to decide, does not count.",
-      "Off-topic: the answer addresses a different question from the client's. An off-topic answer is not also flagged for no clear position.",
+      "Off-topic: the answer addresses a different question from the client's. An off-topic answer is not also flagged for no clear position or a wrong recommendation.",
+      "Acceptable recommendation: the recommendation matches one of the key's acceptable recommendations in substance: the same action, in any wording. A phased or conditional version of an acceptable action matches. A different action is a wrong recommendation, however well argued.",
       "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
     ]
   },

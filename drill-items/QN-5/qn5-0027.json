@@ -58,7 +58,7 @@
       "id": "1",
       "text": "Elevators in the US",
       "correct": true,
-      "feedback": "A driver: Industry estimates: about 1M elevators"
+      "feedback": "A driver: Reasoning: a rough estimate of about 1M, mostly in apartment and office buildings; the least certain base figure here"
     },
     {
       "id": "2",
@@ -118,7 +118,7 @@
         "low": 900000,
         "high": 1100000,
         "unit": "elevators",
-        "source": "Industry estimates: about 1M elevators"
+        "source": "Reasoning: a rough estimate of about 1M, mostly in apartment and office buildings; the least certain base figure here"
       },
       "2": {
         "low": 0.7,

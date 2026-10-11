@@ -58,7 +58,7 @@
       "id": "1",
       "text": "Movie tickets sold in the US per year",
       "correct": true,
-      "feedback": "A driver: Industry box-office reports: roughly 800M tickets a year since 2022"
+      "feedback": "A driver: Reasoning: about 335M people going to the movies about 2.4 times a year on average ≈ 800M"
     },
     {
       "id": "2",
@@ -118,7 +118,7 @@
         "low": 600000000,
         "high": 1100000000,
         "unit": "tickets",
-        "source": "Industry box-office reports: roughly 800M tickets a year since 2022"
+        "source": "Reasoning: about 335M people going to the movies about 2.4 times a year on average ≈ 800M"
       },
       "2": {
         "low": 0.3,

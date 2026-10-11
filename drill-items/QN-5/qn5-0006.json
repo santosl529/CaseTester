@@ -58,7 +58,7 @@
       "id": "1",
       "text": "Men and boys in the US",
       "correct": true,
-      "feedback": "A driver: Census: about half of the 335M population"
+      "feedback": "A driver: Reasoning: about half of the roughly 335M people"
     },
     {
       "id": "2",
@@ -118,7 +118,7 @@
         "low": 160000000,
         "high": 170000000,
         "unit": "people",
-        "source": "Census: about half of the 335M population"
+        "source": "Reasoning: about half of the roughly 335M people"
       },
       "2": {
         "low": 6,

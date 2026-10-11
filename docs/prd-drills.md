@@ -337,7 +337,8 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 | Update reason uses the new fact | 15% | `M.sticky_hypothesis` |
 
 - **How the update decision is auto-checked:** During grading, the AI also classifies the stage 1 hypothesis into one of the key's 3–4 hypothesis families, or "other." The key states the correct action for each family given the new fact. Code compares the student's tap to it. For "other," Revise and Drop are both accepted.
-- **Red flags:** Restates the facts with no cause (stage 1 capped at 0.3). Lists 3 or more causes without picking one (stage 1 capped at 0.5, `M.shotgun_hypotheses`).
+- **Red flags:** Restates the facts with no cause (stage 1 capped at 0.3). Lists 3 or more causes without picking one (stage 1 capped at 0.5, `M.shotgun_hypotheses`). Off-topic: stage 1 offers no cause, for example it proposes a fix or answers a different question (stage 1 capped at 0.2, `M.no_hypothesis`).
+- **Grading rules:** The HY-2 rules in `docs/drills-grading-guide.md` decide borderline calls and are sent to the grader with every item, word for word. Among them: a generic cause ("market conditions") or the facts re-stated as a ratio is not directional; "analyze the data" is not testable; a fix with no hypothesis behind it is not an update reason. The update decision is HY-2's critical element (25%, scored by code), so it has no separate critical-element cap.
 - **Answer key:** Hypothesis families with descriptions, the new fact, correct action per family with reason, a model answer for each stage.
 - **Item source:** Authored. Each item's new fact must support at least one family and contradict at least one. AI-drafted, human QA.
 
@@ -488,8 +489,11 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 | Includes a risk | 10% | `M.missing_risk_or_next_step` |
 | Includes a next step | 10% | `M.missing_risk_or_next_step` |
 
-- **Red flags:** No clear position, for example "it depends" (cap 0.4, `M.hedged_recommendation`). A claim that contradicts the fact sheet (cap 0.5).
-- **Answer key:** The correct recommendation (or 2 acceptable ones), which facts are relevant, key risks and next steps, model answer.
+- **Reasons:** "2–3 supporting reasons" is counted as distinct relevant facts from the fact sheet (or numbers worked out from them) used as support; two or more pass. Generic reasons and irrelevant facts don't count.
+- **Red flags:** No clear position, for example "it depends" (cap 0.4, `M.hedged_recommendation`). A claim that contradicts the fact sheet (cap 0.5); a wrong calculation fails the consistency check instead. Wrong recommendation: the answer recommends a different action from the key's acceptable recommendation(s) (cap 0.5, `M.unsupported_recommendation`). Misses the deciding fact: each item marks one relevant fact as deciding, and an answer that never uses it is capped at 0.6 (`M.ignores_deciding_fact`). Off-topic: the answer addresses a different question (cap 0.2); an off-topic answer is not also flagged for no clear position or a wrong recommendation (code enforces this).
+- **Deterministic backstops:** The recommendation-first check passes only on a quote from the first sentence.
+- **Grading rules:** The SY-2 rules in `docs/drills-grading-guide.md` are sent to the grader with every item, word for word.
+- **Answer key:** The acceptable recommendation, or two where the call is genuinely debatable; which facts are relevant and which one is deciding; key risks and next steps; model answer.
 - **Item source:** Authored, one per case type. AI-drafted, human QA.
 
 ### CM-1 Pick the answer-first version (P2)
@@ -535,8 +539,9 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 | Gives a reason for starting there | 10% | `M.laundry_list` |
 | Data requests are specific (name a metric plus a cut or time period) | 25% | `M.vague_data_request` |
 
-- **Red flags:** Proposes solutions before diagnosing (cap 0.5, `M.premature_solution`). Six or more unstructured requests (cap 0.5, `M.laundry_list`).
-- **Answer key:** Driver breakdown, best starting point with reason, examples of specific vs vague requests, model answer.
+- **Red flags:** Proposes solutions before diagnosing (cap 0.5, `M.premature_solution`). Six or more unstructured requests (cap 0.5, `M.laundry_list`). Missed critical driver: each item marks one driver as critical, the one to start with, and an answer that never covers it is capped at 0.6 (`M.vague_data_request`, checked by code from that driver's check). Off-topic: the answer addresses a different question, for example it recommends a strategy instead of asking for information (cap 0.2, `M.vague_data_request`).
+- **Grading rules:** The CL-3 rules in `docs/drills-grading-guide.md` are sent to the grader with every item, word for word. Among them: a generic word ("costs", "market data") doesn't cover a specific driver; every data request must name a metric plus a cut or period; "because it's important" is not a reason for the starting point.
+- **Answer key:** Driver breakdown with the critical driver marked, best starting point with reason, examples of specific vs vague requests, model answer.
 - **Item source:** Authored. AI-drafted, human QA.
 
 ## Scoring system

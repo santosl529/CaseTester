@@ -58,13 +58,13 @@
       "id": "1",
       "text": "US population",
       "correct": true,
-      "feedback": "A driver: Census: about 335M people"
+      "feedback": "A driver: Reasoning: the commonly quoted US population is about 335M; the range allows about 5% either way"
     },
     {
       "id": "2",
       "text": "Bananas eaten per person per year",
       "correct": true,
-      "feedback": "A driver: USDA consumption data: about 13 pounds per person a year, roughly 40 bananas"
+      "feedback": "A driver: Reasoning: about one banana a week per person on average, about 40 a year"
     },
     {
       "id": "3",
@@ -118,13 +118,13 @@
         "low": 320000000,
         "high": 350000000,
         "unit": "people",
-        "source": "Census: about 335M people"
+        "source": "Reasoning: the commonly quoted US population is about 335M; the range allows about 5% either way"
       },
       "2": {
         "low": 25,
         "high": 75,
         "unit": "bananas",
-        "source": "USDA consumption data: about 13 pounds per person a year, roughly 40 bananas"
+        "source": "Reasoning: about one banana a week per person on average, about 40 a year"
       },
       "3": {
         "low": 0.25,

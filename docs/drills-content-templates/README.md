@@ -37,9 +37,9 @@ Each drill has a questions file, a file for its list parts (one row per area, fa
 - `hy2-graded-answers.csv`: stage 1 (up to 50 words), the student's keep/revise/drop choice, stage 2 (up to 30 words), which family the stage 1 answer belongs to (or `other`), and your grading, including `red_flag_off_topic`.
 
 ### SY-2 60-second recommendation
-- `sy2-questions.csv`: the client's question, the acceptable recommendation (or two), key risks, next steps, and a model answer (120 words at most).
+- `sy2-questions.csv`: the client's question, the acceptable recommendation (two, separated by `|`, where the call is genuinely debatable), key risks, next steps, and a model answer (120 words at most). A recommendation that matches neither is capped at 50%.
 - `sy2-facts.csv`: 5–6 facts per question; mark 1–2 as not relevant (`N`), and mark exactly one relevant fact `deciding` (`Y`): the fact the recommendation should turn on. An answer that doesn't use it is capped at 60%.
-- `sy2-graded-answers.csv`: a student recommendation (120 words at most) and your grading, including `red_flag_misses_deciding_fact` and `red_flag_off_topic`. `cites_fact_sheet_numbers` is settled by code: `Y` if any number from a relevant fact appears in the answer.
+- `sy2-graded-answers.csv`: a student recommendation (120 words at most) and your grading, including `red_flag_misses_deciding_fact`, `red_flag_off_topic` and `red_flag_wrong_recommendation`. `cites_fact_sheet_numbers` is settled by code: `Y` if any number from a relevant fact appears in the answer.
 
 ### CL-3 What do you need to know?
 - `cl3-questions.csv`: the mid-case situation, the best place to start and why, examples of specific and vague data requests, and a model answer (60 words at most).
@@ -48,8 +48,8 @@ Each drill has a questions file, a file for its list parts (one row per area, fa
 
 ### QN-5 Market sizing
 - `qn5-questions.csv`: the sizing question, the accepted set(s) of driver cards (card numbers, for example `1,2,3,4`; up to two sets), the believable range for the total, its source, and a worked answer.
-- `qn5-driver-cards.csv`: 6–8 cards per question. Set `role` to `driver`, `double_count` (counts something a driver already counts, like "number of dogs" next to "dog-owning households") or `not_a_driver` (doesn't belong in the estimate, like "number of pet stores"). Real drivers get a believable low–high range and a source or reasoning (typically about ±50% around a central value). Leave distractors' range blank.
-- Every range needs a named source or a written derivation, including the total's range in `qn5-questions.csv`.
+- `qn5-driver-cards.csv`: 6–8 cards per question. Set `role` to `driver`, `double_count` (counts something a driver already counts, like "number of dogs" next to "dog-owning households") or `not_a_driver` (doesn't belong in the estimate, like "number of pet stores"). Real drivers get a believable low–high range and its reasoning, or a looked-up source with its link (typically about ±50% around a central value). Leave distractors' range blank.
+- Every range needs a source or a written derivation, including the total's range in `qn5-questions.csv`. Don't name a source unless the figure has been looked up; then add the link. Otherwise write it as reasoning, for example "about 130M households: 330M people ÷ about 2.5 per household".
 
 ## Graded sample answers: what to include
 

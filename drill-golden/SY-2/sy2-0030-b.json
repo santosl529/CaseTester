@@ -1,0 +1,30 @@
+{
+  "answer_id": "sy2-0030-b",
+  "item_id": "sy2-0030",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "Putting new lockers in stores goes against the key (apartment buildings): wrong-recommendation flag (rule 9). It ignores that store lockers are only 30% full (rule 7), and the 3-year payback assumes 80% full, which store lockers aren't (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Expand to 5,000 lockers, mostly in stores, where shoppers already go. Each $8,000 locker earns $2,500 a year at 80% full, a 3-year payback, and building owners have offered 2,500 sites. The risk is slow fill, so start with 500 new store lockers."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": false,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": true,
+    "off_topic": false,
+    "wrong_recommendation": true
+  },
+  "family": null
+}

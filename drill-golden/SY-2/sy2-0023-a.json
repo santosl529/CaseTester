@@ -3,7 +3,7 @@
   "item_id": "sy2-0023",
   "drill_id": "SY-2",
   "answer_type": "normal",
-  "notes": "'Only 10% of shoppers check prices' contradicts the sheet's 30%: contradicts-facts flag (rule 4). Ignores the test that matching added $2.6M of profit (rule 7).",
+  "notes": "'Only 10% of shoppers check prices' contradicts the sheet's 30%: contradicts-facts flag (rule 4). Ignores the test that matching added $2.6M of profit (rule 7), and 'don't price-match' isn't acceptable (rule 9).",
   "responses": [
     {
       "type": "text",
@@ -23,7 +23,8 @@
     "no_clear_position": false,
     "contradicts_facts": true,
     "misses_deciding_fact": true,
-    "off_topic": false
+    "off_topic": false,
+    "wrong_recommendation": true
   },
   "family": null
 }

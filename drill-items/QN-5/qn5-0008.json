@@ -58,7 +58,7 @@
       "id": "1",
       "text": "UK population",
       "correct": true,
-      "feedback": "A driver: ONS: about 67M people"
+      "feedback": "A driver: Reasoning: the commonly quoted UK population is about 67M; the range allows a few million either way"
     },
     {
       "id": "2",
@@ -118,7 +118,7 @@
         "low": 65000000,
         "high": 70000000,
         "unit": "people",
-        "source": "ONS: about 67M people"
+        "source": "Reasoning: the commonly quoted UK population is about 67M; the range allows a few million either way"
       },
       "2": {
         "low": 0.6,
