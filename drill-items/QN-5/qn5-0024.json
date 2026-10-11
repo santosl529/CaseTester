@@ -1,0 +1,176 @@
+{
+  "item_id": "qn5-0024",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "Estimate how much US households spend each year on electricity for their TVs.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "US households",
+      "correct": true,
+      "feedback": "A driver: Census: about 131M US households"
+    },
+    {
+      "id": "2",
+      "text": "TVs per household",
+      "correct": true,
+      "feedback": "A driver: Reasoning: most homes have two or more"
+    },
+    {
+      "id": "3",
+      "text": "Electricity per TV per year",
+      "correct": true,
+      "feedback": "A driver: Reasoning: about 100 watts for 3 to 5 hours a day"
+    },
+    {
+      "id": "4",
+      "text": "Price of electricity",
+      "correct": true,
+      "feedback": "A driver: Energy statistics: US residential average about 16 cents per kWh"
+    },
+    {
+      "id": "5",
+      "text": "US population",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Counts the same homes through the people in them"
+    },
+    {
+      "id": "6",
+      "text": "TVs sold per year",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "New TVs, not the electricity all TVs use"
+    }
+  ],
+  "numeric": {
+    "answer": 6206200000,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "131M (US households) × 2.2 (TVs per household) × 130 (electricity per TV per year) × 0.16 (price of electricity) ≈ $5.99B",
+  "explanation": "131M (US households) × 2.2 (TVs per household) × 130 (electricity per TV per year) × 0.16 (price of electricity) ≈ $5.99B. A believable total is 3B–12B (Derived: the central driver values give about $5.99B; the range allows a factor of 2 either way for the least certain driver (electricity per TV per year)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 125000000,
+        "high": 135000000,
+        "unit": "households",
+        "source": "Census: about 131M US households"
+      },
+      "2": {
+        "low": 1.8,
+        "high": 2.6,
+        "unit": "TVs",
+        "source": "Reasoning: most homes have two or more"
+      },
+      "3": {
+        "low": 80,
+        "high": 200,
+        "unit": "kilowatt-hours",
+        "source": "Reasoning: about 100 watts for 3 to 5 hours a day"
+      },
+      "4": {
+        "low": 0.13,
+        "high": 0.18,
+        "unit": "dollars per kilowatt-hour",
+        "source": "Energy statistics: US residential average about 16 cents per kWh"
+      }
+    },
+    "benchmark": {
+      "low": 3000000000,
+      "high": 12000000000,
+      "source": "Derived: the central driver values give about $5.99B; the range allows a factor of 2 either way for the least certain driver (electricity per TV per year)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

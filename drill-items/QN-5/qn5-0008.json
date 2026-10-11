@@ -1,0 +1,170 @@
+{
+  "item_id": "qn5-0008",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 1,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "Estimate how many umbrellas are bought in the UK each year.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "UK population",
+      "correct": true,
+      "feedback": "A driver: ONS: about 67M people"
+    },
+    {
+      "id": "2",
+      "text": "Share of people who own an umbrella",
+      "correct": true,
+      "feedback": "A driver: Reasoning: most adults own one in a rainy country"
+    },
+    {
+      "id": "3",
+      "text": "Umbrellas bought per owner per year",
+      "correct": true,
+      "feedback": "A driver: Reasoning: umbrellas break or get lost every year or two"
+    },
+    {
+      "id": "4",
+      "text": "Rainy days per year",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Explains why people own umbrellas but isn't a multiplier in the estimate"
+    },
+    {
+      "id": "5",
+      "text": "UK households",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Counts the same people the population already counts"
+    },
+    {
+      "id": "6",
+      "text": "Average umbrella price",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "The question asks for umbrellas, not spending"
+    }
+  ],
+  "numeric": {
+    "answer": 32906250,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "67M (UK population) × 0.75 (share of people who own an umbrella) × 0.6 (umbrellas bought per owner per year) ≈ 30.1M",
+  "explanation": "67M (UK population) × 0.75 (share of people who own an umbrella) × 0.6 (umbrellas bought per owner per year) ≈ 30.1M. A believable total is 15M–60M (Derived: the central driver values give about 30.1M; the range allows a factor of 2 either way for the least certain driver (umbrellas bought per owner per year)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 65000000,
+        "high": 70000000,
+        "unit": "people",
+        "source": "ONS: about 67M people"
+      },
+      "2": {
+        "low": 0.6,
+        "high": 0.9,
+        "unit": "share",
+        "source": "Reasoning: most adults own one in a rainy country"
+      },
+      "3": {
+        "low": 0.4,
+        "high": 0.9,
+        "unit": "umbrellas",
+        "source": "Reasoning: umbrellas break or get lost every year or two"
+      }
+    },
+    "benchmark": {
+      "low": 15000000,
+      "high": 60000000,
+      "source": "Derived: the central driver values give about 30.1M; the range allows a factor of 2 either way for the least certain driver (umbrellas bought per owner per year)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

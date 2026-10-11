@@ -1,0 +1,176 @@
+{
+  "item_id": "qn5-0018",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "Estimate annual US spending on disposable diapers.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "US births per year",
+      "correct": true,
+      "feedback": "A driver: CDC: about 3.6M births a year"
+    },
+    {
+      "id": "2",
+      "text": "Years a child wears diapers",
+      "correct": true,
+      "feedback": "A driver: Reasoning: most children are toilet-trained between 2 and 3"
+    },
+    {
+      "id": "3",
+      "text": "Diapers per child per year",
+      "correct": true,
+      "feedback": "A driver: Reasoning: about 5 to 8 a day"
+    },
+    {
+      "id": "4",
+      "text": "Average price per diaper",
+      "correct": true,
+      "feedback": "A driver: Reasoning: bulk packs cost about 20 to 35 cents a diaper"
+    },
+    {
+      "id": "5",
+      "text": "US children under age 5",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Counts the same children that births times years in diapers already counts"
+    },
+    {
+      "id": "6",
+      "text": "Number of daycare centers",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Where some diapers are used, not how many"
+    }
+  ],
+  "numeric": {
+    "answer": 5816250000,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "3.6M (US births per year) × 2.5 (years a child wears diapers) × 2.4k (diapers per child per year) × 0.27 (average price per diaper) ≈ $5.83B",
+  "explanation": "3.6M (US births per year) × 2.5 (years a child wears diapers) × 2.4k (diapers per child per year) × 0.27 (average price per diaper) ≈ $5.83B. A believable total is 2.9B–12B (Derived: the central driver values give about $5.83B; the range allows a factor of 2 either way for the least certain driver (average price per diaper)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 3400000,
+        "high": 3800000,
+        "unit": "births",
+        "source": "CDC: about 3.6M births a year"
+      },
+      "2": {
+        "low": 2,
+        "high": 3,
+        "unit": "years",
+        "source": "Reasoning: most children are toilet-trained between 2 and 3"
+      },
+      "3": {
+        "low": 1800,
+        "high": 2900,
+        "unit": "diapers",
+        "source": "Reasoning: about 5 to 8 a day"
+      },
+      "4": {
+        "low": 0.2,
+        "high": 0.35,
+        "unit": "dollars",
+        "source": "Reasoning: bulk packs cost about 20 to 35 cents a diaper"
+      }
+    },
+    "benchmark": {
+      "low": 2900000000,
+      "high": 12000000000,
+      "source": "Derived: the central driver values give about $5.83B; the range allows a factor of 2 either way for the least certain driver (average price per diaper)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

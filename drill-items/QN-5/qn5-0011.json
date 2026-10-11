@@ -1,0 +1,170 @@
+{
+  "item_id": "qn5-0011",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "Estimate how much electricity US home refrigerators use each year, in kilowatt-hours.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "US households",
+      "correct": true,
+      "feedback": "A driver: Census: about 131M US households"
+    },
+    {
+      "id": "2",
+      "text": "Refrigerators per household",
+      "correct": true,
+      "feedback": "A driver: Reasoning: every home has one; about a quarter have a second"
+    },
+    {
+      "id": "3",
+      "text": "Electricity per refrigerator per year",
+      "correct": true,
+      "feedback": "A driver: Reasoning: newer models use about 400 kWh a year, older ones more"
+    },
+    {
+      "id": "4",
+      "text": "US population",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Counts the same homes through the people in them"
+    },
+    {
+      "id": "5",
+      "text": "Number of appliance stores",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Doesn't change electricity use"
+    },
+    {
+      "id": "6",
+      "text": "Price of electricity per kilowatt-hour",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "The question asks for kilowatt-hours, not dollars"
+    }
+  ],
+  "numeric": {
+    "answer": 89375000000,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "131M (US households) × 1.25 (refrigerators per household) × 550 (electricity per refrigerator per year) ≈ 90.1B",
+  "explanation": "131M (US households) × 1.25 (refrigerators per household) × 550 (electricity per refrigerator per year) ≈ 90.1B. A believable total is 45B–180B (Derived: the central driver values give about 90.1B; the range allows a factor of 2 either way for the least certain driver (electricity per refrigerator per year)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 125000000,
+        "high": 135000000,
+        "unit": "households",
+        "source": "Census: about 131M US households"
+      },
+      "2": {
+        "low": 1.1,
+        "high": 1.4,
+        "unit": "refrigerators",
+        "source": "Reasoning: every home has one; about a quarter have a second"
+      },
+      "3": {
+        "low": 400,
+        "high": 700,
+        "unit": "kilowatt-hours",
+        "source": "Reasoning: newer models use about 400 kWh a year, older ones more"
+      }
+    },
+    "benchmark": {
+      "low": 45000000000,
+      "high": 180000000000,
+      "source": "Derived: the central driver values give about 90.1B; the range allows a factor of 2 either way for the least certain driver (electricity per refrigerator per year)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

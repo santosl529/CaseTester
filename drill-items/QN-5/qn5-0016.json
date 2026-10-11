@@ -1,0 +1,176 @@
+{
+  "item_id": "qn5-0016",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "Estimate annual US spending on real (not artificial) Christmas trees.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "US households",
+      "correct": true,
+      "feedback": "A driver: Census: about 131M US households"
+    },
+    {
+      "id": "2",
+      "text": "Share of households that put up a Christmas tree",
+      "correct": true,
+      "feedback": "A driver: Reasoning: most households celebrate with a tree"
+    },
+    {
+      "id": "3",
+      "text": "Share of tree households that buy a real tree",
+      "correct": true,
+      "feedback": "A driver: Reasoning: most use artificial trees"
+    },
+    {
+      "id": "4",
+      "text": "Average price of a real tree",
+      "correct": true,
+      "feedback": "A driver: Reasoning: lot prices typically run $50 to $110"
+    },
+    {
+      "id": "5",
+      "text": "Share of tree households with an artificial tree",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "The other side of the real-tree share"
+    },
+    {
+      "id": "6",
+      "text": "Number of Christmas-tree farms",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Supply, not how many are bought"
+    }
+  ],
+  "numeric": {
+    "answer": 1871999999.9999998,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "131M (US households) × 0.8 (share of households that put up a Christmas tree) × 0.22 (share of tree households that buy a real tree) × 80 (average price of a real tree) ≈ $1.84B",
+  "explanation": "131M (US households) × 0.8 (share of households that put up a Christmas tree) × 0.22 (share of tree households that buy a real tree) × 80 (average price of a real tree) ≈ $1.84B. A believable total is 920M–3.7B (Derived: the central driver values give about $1.84B; the range allows a factor of 2 either way for the least certain driver (average price of a real tree)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 125000000,
+        "high": 135000000,
+        "unit": "households",
+        "source": "Census: about 131M US households"
+      },
+      "2": {
+        "low": 0.7,
+        "high": 0.9,
+        "unit": "share",
+        "source": "Reasoning: most households celebrate with a tree"
+      },
+      "3": {
+        "low": 0.15,
+        "high": 0.3,
+        "unit": "share",
+        "source": "Reasoning: most use artificial trees"
+      },
+      "4": {
+        "low": 50,
+        "high": 110,
+        "unit": "dollars",
+        "source": "Reasoning: lot prices typically run $50 to $110"
+      }
+    },
+    "benchmark": {
+      "low": 920000000,
+      "high": 3700000000,
+      "source": "Derived: the central driver values give about $1.84B; the range allows a factor of 2 either way for the least certain driver (average price of a real tree)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

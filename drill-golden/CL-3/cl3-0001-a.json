@@ -1,0 +1,29 @@
+{
+  "answer_id": "cl3-0001-a",
+  "item_id": "cl3-0001",
+  "drill_id": "CL-3",
+  "answer_type": "normal",
+  "notes": "Strong answer.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Revenue is flat, so it's costs. I'd split them into ingredients per cup, labor and rent. I'd start with ingredient cost per cup by month for two years, since it's the biggest cost, then labor hours per store by month."
+    }
+  ],
+  "labels": {
+    "breaks_into_drivers": true,
+    "driver_1": true,
+    "driver_2": true,
+    "driver_3": true,
+    "driver_4": false,
+    "states_where_to_start": true,
+    "reason_for_start": true,
+    "specific_requests": true
+  },
+  "red_flags": {
+    "solution_before_diagnosis": false,
+    "six_plus_unstructured_requests": false,
+    "off_topic": false
+  },
+  "family": null
+}

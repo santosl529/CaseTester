@@ -1,0 +1,29 @@
+{
+  "answer_id": "cl3-0023-a",
+  "item_id": "cl3-0023",
+  "drill_id": "CL-3",
+  "answer_type": "borderline",
+  "notes": "Nine requests with no grouping or starting point: laundry-list flag (rule 7). Each request names a metric and a period, so specific requests pass (rule 5).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Profit by restaurant, guests per week, average check, food cost share, labor cost share, rent per site, marketing spend, delivery sales and menu prices, all for two years."
+    }
+  ],
+  "labels": {
+    "breaks_into_drivers": false,
+    "driver_1": true,
+    "driver_2": true,
+    "driver_3": true,
+    "driver_4": true,
+    "states_where_to_start": false,
+    "reason_for_start": false,
+    "specific_requests": true
+  },
+  "red_flags": {
+    "solution_before_diagnosis": false,
+    "six_plus_unstructured_requests": true,
+    "off_topic": false
+  },
+  "family": null
+}

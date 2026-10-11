@@ -1,0 +1,164 @@
+{
+  "item_id": "qn5-0019",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "Estimate how many replacement tires are sold for US cars and light trucks each year.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "Cars and light trucks on US roads",
+      "correct": true,
+      "feedback": "A driver: Vehicle registration data: about 285M"
+    },
+    {
+      "id": "2",
+      "text": "Replacement tires per vehicle per year",
+      "correct": true,
+      "feedback": "A driver: Derived: 4 tires replaced every 3 to 6 years"
+    },
+    {
+      "id": "3",
+      "text": "Licensed drivers",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Counts the vehicles' users, not the vehicles"
+    },
+    {
+      "id": "4",
+      "text": "US population",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Counts people, not vehicles"
+    },
+    {
+      "id": "5",
+      "text": "Number of tire shops",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Where tires are fitted, not how many"
+    },
+    {
+      "id": "6",
+      "text": "Average tire price",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "The question asks for tires, not dollars"
+    }
+  ],
+  "numeric": {
+    "answer": 285000000,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "285M (cars and light trucks on US roads) × 1 (replacement tires per vehicle per year) ≈ 285M",
+  "explanation": "285M (cars and light trucks on US roads) × 1 (replacement tires per vehicle per year) ≈ 285M. A believable total is 140M–570M (Derived: the central driver values give about 285M; the range allows a factor of 2 either way for the least certain driver (replacement tires per vehicle per year)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 270000000,
+        "high": 300000000,
+        "unit": "vehicles",
+        "source": "Vehicle registration data: about 285M"
+      },
+      "2": {
+        "low": 0.7,
+        "high": 1.3,
+        "unit": "tires",
+        "source": "Derived: 4 tires replaced every 3 to 6 years"
+      }
+    },
+    "benchmark": {
+      "low": 140000000,
+      "high": 570000000,
+      "source": "Derived: the central driver values give about 285M; the range allows a factor of 2 either way for the least certain driver (replacement tires per vehicle per year)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

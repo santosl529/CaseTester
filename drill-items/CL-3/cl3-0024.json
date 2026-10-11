@@ -1,0 +1,190 @@
+{
+  "item_id": "cl3-0024",
+  "version": 1,
+  "drill_id": "CL-3",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "CL.data_requests"
+  ],
+  "case_type": "industry_analysis",
+  "prompt": "An investor asks whether the US pet-cremation industry is attractive.\n\nWhat information would you ask for, and where would you start?",
+  "exhibit": null,
+  "input": {
+    "type": "free_text",
+    "max_words": 60
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "breaks_into_drivers",
+      "question": "Does the answer break the metric into its drivers?",
+      "weight": 0.25,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Break the metric into its drivers before asking for data.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_1",
+      "question": "Does the answer cover Demand (Pet deaths or the share cremated)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Demand.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_2",
+      "question": "Does the answer cover Fragmentation (Number and size of competitors)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Fragmentation.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_3",
+      "question": "Does the answer cover Prices and margins (Price per cremation or margins)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Prices and margins.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_4",
+      "question": "Does the answer cover Vet referrals (How business comes through vets)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Vet referrals.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "states_where_to_start",
+      "question": "Does the answer say where to start?",
+      "weight": 0.15,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Say where you would start.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "reason_for_start",
+      "question": "Does the answer give a reason for starting there?",
+      "weight": 0.1,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Give a reason for where you start.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "specific_requests",
+      "question": "Are the data requests specific, each naming a metric plus a cut or a time period?",
+      "weight": 0.25,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "Make requests specific, like: Pet deaths per year and the share cremated, for five years; average price per cremation.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "solution_before_diagnosis",
+      "definition": "The answer proposes solutions before diagnosing the problem.",
+      "cap": 0.5,
+      "tag": "M.premature_solution",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "six_plus_unstructured_requests",
+      "definition": "The answer lists six or more data requests with no structure.",
+      "cap": 0.5,
+      "tag": "M.laundry_list",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "off_topic",
+      "definition": "The answer addresses a different question from the one asked.",
+      "cap": 0.2,
+      "tag": "M.vague_data_request",
+      "detection": "ai",
+      "step": 0,
+      "evidence": "whole"
+    },
+    {
+      "id": "missed_critical_driver",
+      "definition": "The answer misses the critical driver: Demand.",
+      "cap": 0.6,
+      "tag": "M.vague_data_request",
+      "detection": "code",
+      "step": 0
+    }
+  ],
+  "model_answer": "I'd look at demand, how fragmented the industry is, prices and margins, and how business arrives through vets. I'd start with pet deaths per year and the share cremated over five years, since attractiveness starts with large, growing demand.",
+  "explanation": "Drivers: Demand, Fragmentation, Prices and margins, Vet referrals. Start with Demand: An industry is only attractive if demand is large and growing. Specific: Pet deaths per year and the share cremated, for five years; average price per cremation. Vague: Industry information; market data.",
+  "extras": {
+    "drivers": [
+      {
+        "driver": "Demand",
+        "what_counts": "Pet deaths or the share cremated",
+        "critical": true
+      },
+      {
+        "driver": "Fragmentation",
+        "what_counts": "Number and size of competitors",
+        "critical": false
+      },
+      {
+        "driver": "Prices and margins",
+        "what_counts": "Price per cremation or margins",
+        "critical": false
+      },
+      {
+        "driver": "Vet referrals",
+        "what_counts": "How business comes through vets",
+        "critical": false
+      }
+    ],
+    "best_starting_point": "Demand",
+    "critical_check": "driver_1",
+    "grading_rules": [
+      "Breaks into drivers: names at least two parts of the metric that together explain it (price and volume; ingredient, labor and rent costs) as a structure. A list of data sources or reports is not a breakdown.",
+      "Driver coverage: a driver counts if the answer names it or asks for data on it, tied to this case. A generic word alone (\"costs\", \"market data\") does not cover a specific driver (\"ingredient cost per cup\") unless the request makes it specific.",
+      "Where to start: the answer names one driver or analysis to look at first (\"I'd start with\", \"first\"). Listing everything with no order fails.",
+      "Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). \"Because it's important\" fails.",
+      "Specific requests: every data request names a metric plus a cut or a time period (\"ingredient cost per cup by month for two years\"). One vague request (\"information about costs\") fails the check.",
+      "Solution before diagnosis: the answer proposes fixes (\"cut staff\", \"raise prices\") before finding the cause. A hypothesis to test is not a solution.",
+      "Six or more unstructured requests: count separate data requests; six or more with no grouping by driver is a laundry list.",
+      "Off-topic: the answer addresses a different question from the one asked, for example it recommends a strategy instead of asking for information.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

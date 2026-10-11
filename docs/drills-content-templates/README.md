@@ -34,17 +34,17 @@ Each drill has a questions file, a file for its list parts (one row per area, fa
 ### HY-2 Initial hypothesis
 - `hy2-questions.csv`: the opening facts (with numbers), the new fact revealed in stage 2, and a model answer for each stage.
 - `hy2-families.csv`: 3–4 likely causes ("hypothesis families"). For each, whether the new fact means the student should **keep**, **revise** or **drop** it, and why. The new fact must support at least one family and contradict at least one.
-- `hy2-graded-answers.csv`: stage 1 (up to 50 words), the student's keep/revise/drop choice, stage 2 (up to 30 words), which family the stage 1 answer belongs to (or `other`), and your grading.
+- `hy2-graded-answers.csv`: stage 1 (up to 50 words), the student's keep/revise/drop choice, stage 2 (up to 30 words), which family the stage 1 answer belongs to (or `other`), and your grading, including `red_flag_off_topic`.
 
 ### SY-2 60-second recommendation
 - `sy2-questions.csv`: the client's question, the acceptable recommendation (or two), key risks, next steps, and a model answer (120 words at most).
-- `sy2-facts.csv`: 5–6 facts per question; mark 1–2 as not relevant (`N`).
-- `sy2-graded-answers.csv`: a student recommendation (120 words at most) and your grading.
+- `sy2-facts.csv`: 5–6 facts per question; mark 1–2 as not relevant (`N`), and mark exactly one relevant fact `deciding` (`Y`): the fact the recommendation should turn on. An answer that doesn't use it is capped at 60%.
+- `sy2-graded-answers.csv`: a student recommendation (120 words at most) and your grading, including `red_flag_misses_deciding_fact` and `red_flag_off_topic`. `cites_fact_sheet_numbers` is settled by code: `Y` if any number from a relevant fact appears in the answer.
 
 ### CL-3 What do you need to know?
 - `cl3-questions.csv`: the mid-case situation, the best place to start and why, examples of specific and vague data requests, and a model answer (60 words at most).
-- `cl3-drivers.csv`: the 3–4 main drivers of the metric.
-- `cl3-graded-answers.csv`: a student answer (60 words at most) and your grading. `drivers_covered` lists the drivers it covers, separated by `;`.
+- `cl3-drivers.csv`: the 3–4 main drivers of the metric. Mark exactly one `critical` (`Y`): the driver to start with. An answer that never covers it is capped at 60%.
+- `cl3-graded-answers.csv`: a student answer (60 words at most) and your grading, including `red_flag_off_topic`. `drivers_covered` lists the drivers it covers, separated by `;`.
 
 ### QN-5 Market sizing
 - `qn5-questions.csv`: the sizing question, the accepted set(s) of driver cards (card numbers, for example `1,2,3,4`; up to two sets), the believable range for the total, its source, and a worked answer.

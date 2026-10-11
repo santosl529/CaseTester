@@ -1,0 +1,170 @@
+{
+  "item_id": "qn5-0020",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "Estimate annual US spending by students on high-school prom.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "US high-school juniors and seniors",
+      "correct": true,
+      "feedback": "A driver: Education statistics: about 4M students per grade"
+    },
+    {
+      "id": "2",
+      "text": "Share who attend prom",
+      "correct": true,
+      "feedback": "A driver: Reasoning: many but not all juniors and seniors attend"
+    },
+    {
+      "id": "3",
+      "text": "Average spend per attendee",
+      "correct": true,
+      "feedback": "A driver: Reasoning: tickets, outfits, transport and photos"
+    },
+    {
+      "id": "4",
+      "text": "Number of high schools",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Each school holds a prom, but spending depends on attendees"
+    },
+    {
+      "id": "5",
+      "text": "All US high-school students",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Includes the juniors and seniors already counted, plus younger students who don't attend"
+    },
+    {
+      "id": "6",
+      "text": "Average cost of a prom ticket",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Already part of the average spend per attendee"
+    }
+  ],
+  "numeric": {
+    "answer": 1760000000,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "8M (US high-school juniors and seniors) × 0.55 (share who attend prom) × 400 (average spend per attendee) ≈ $1.76B",
+  "explanation": "8M (US high-school juniors and seniors) × 0.55 (share who attend prom) × 400 (average spend per attendee) ≈ $1.76B. A believable total is 880M–3.5B (Derived: the central driver values give about $1.76B; the range allows a factor of 2 either way for the least certain driver (average spend per attendee)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 7500000,
+        "high": 8500000,
+        "unit": "students",
+        "source": "Education statistics: about 4M students per grade"
+      },
+      "2": {
+        "low": 0.4,
+        "high": 0.7,
+        "unit": "share",
+        "source": "Reasoning: many but not all juniors and seniors attend"
+      },
+      "3": {
+        "low": 200,
+        "high": 600,
+        "unit": "dollars",
+        "source": "Reasoning: tickets, outfits, transport and photos"
+      }
+    },
+    "benchmark": {
+      "low": 880000000,
+      "high": 3500000000,
+      "source": "Derived: the central driver values give about $1.76B; the range allows a factor of 2 either way for the least certain driver (average spend per attendee)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

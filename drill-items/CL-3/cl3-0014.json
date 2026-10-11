@@ -1,0 +1,190 @@
+{
+  "item_id": "cl3-0014",
+  "version": 1,
+  "drill_id": "CL-3",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "CL.data_requests"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "A uniform-rental company serving businesses wants to grow revenue 25% in three years. It loses 15% of its accounts every year.\n\nWhat information would you ask for, and where would you start?",
+  "exhibit": null,
+  "input": {
+    "type": "free_text",
+    "max_words": 60
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "breaks_into_drivers",
+      "question": "Does the answer break the metric into its drivers?",
+      "weight": 0.25,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Break the metric into its drivers before asking for data.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_1",
+      "question": "Does the answer cover Account losses (Accounts lost or why they leave)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Account losses.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_2",
+      "question": "Does the answer cover New accounts (Accounts won per year)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover New accounts.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_3",
+      "question": "Does the answer cover Revenue per account (Items or services per account)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Revenue per account.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_4",
+      "question": "Does the answer cover New services (Products beyond uniform rental)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover New services.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "states_where_to_start",
+      "question": "Does the answer say where to start?",
+      "weight": 0.15,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Say where you would start.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "reason_for_start",
+      "question": "Does the answer give a reason for starting there?",
+      "weight": 0.1,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Give a reason for where you start.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "specific_requests",
+      "question": "Are the data requests specific, each naming a metric plus a cut or a time period?",
+      "weight": 0.25,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "Make requests specific, like: Accounts lost per year by reason and industry; revenue per account for new and long-time accounts.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "solution_before_diagnosis",
+      "definition": "The answer proposes solutions before diagnosing the problem.",
+      "cap": 0.5,
+      "tag": "M.premature_solution",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "six_plus_unstructured_requests",
+      "definition": "The answer lists six or more data requests with no structure.",
+      "cap": 0.5,
+      "tag": "M.laundry_list",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "off_topic",
+      "definition": "The answer addresses a different question from the one asked.",
+      "cap": 0.2,
+      "tag": "M.vague_data_request",
+      "detection": "ai",
+      "step": 0,
+      "evidence": "whole"
+    },
+    {
+      "id": "missed_critical_driver",
+      "definition": "The answer misses the critical driver: Account losses.",
+      "cap": 0.6,
+      "tag": "M.vague_data_request",
+      "detection": "code",
+      "step": 0
+    }
+  ],
+  "model_answer": "I'd split growth into accounts lost, new accounts won, revenue per account, and new services. I'd start with accounts lost per year by reason and industry, since losing 15% a year means most new sales just replace what leaves.",
+  "explanation": "Drivers: Account losses, New accounts, Revenue per account, New services. Start with Account losses: Losing 15% a year means it must replace a big share of revenue before growing. Specific: Accounts lost per year by reason and industry; revenue per account for new and long-time accounts. Vague: Customer information; sales data.",
+  "extras": {
+    "drivers": [
+      {
+        "driver": "Account losses",
+        "what_counts": "Accounts lost or why they leave",
+        "critical": true
+      },
+      {
+        "driver": "New accounts",
+        "what_counts": "Accounts won per year",
+        "critical": false
+      },
+      {
+        "driver": "Revenue per account",
+        "what_counts": "Items or services per account",
+        "critical": false
+      },
+      {
+        "driver": "New services",
+        "what_counts": "Products beyond uniform rental",
+        "critical": false
+      }
+    ],
+    "best_starting_point": "Account losses",
+    "critical_check": "driver_1",
+    "grading_rules": [
+      "Breaks into drivers: names at least two parts of the metric that together explain it (price and volume; ingredient, labor and rent costs) as a structure. A list of data sources or reports is not a breakdown.",
+      "Driver coverage: a driver counts if the answer names it or asks for data on it, tied to this case. A generic word alone (\"costs\", \"market data\") does not cover a specific driver (\"ingredient cost per cup\") unless the request makes it specific.",
+      "Where to start: the answer names one driver or analysis to look at first (\"I'd start with\", \"first\"). Listing everything with no order fails.",
+      "Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). \"Because it's important\" fails.",
+      "Specific requests: every data request names a metric plus a cut or a time period (\"ingredient cost per cup by month for two years\"). One vague request (\"information about costs\") fails the check.",
+      "Solution before diagnosis: the answer proposes fixes (\"cut staff\", \"raise prices\") before finding the cause. A hypothesis to test is not a solution.",
+      "Six or more unstructured requests: count separate data requests; six or more with no grouping by driver is a laundry list.",
+      "Off-topic: the answer addresses a different question from the one asked, for example it recommends a strategy instead of asking for information.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

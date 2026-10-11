@@ -1,0 +1,29 @@
+{
+  "answer_id": "cl3-0038-a",
+  "item_id": "cl3-0038",
+  "drill_id": "CL-3",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd split downtime into failures by component, repair time and waiting for vessels or weather. I'd start with downtime hours by component for two years, since knowing what breaks most shows where to act."
+    }
+  ],
+  "labels": {
+    "breaks_into_drivers": true,
+    "driver_1": true,
+    "driver_2": true,
+    "driver_3": false,
+    "driver_4": false,
+    "states_where_to_start": true,
+    "reason_for_start": true,
+    "specific_requests": true
+  },
+  "red_flags": {
+    "solution_before_diagnosis": false,
+    "six_plus_unstructured_requests": false,
+    "off_topic": false
+  },
+  "family": null
+}

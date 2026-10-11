@@ -1,0 +1,190 @@
+{
+  "item_id": "cl3-0032",
+  "version": 1,
+  "drill_id": "CL-3",
+  "status": "draft",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "CL.data_requests"
+  ],
+  "case_type": "industry_analysis",
+  "prompt": "A pension fund asks whether the US cell-tower industry is attractive for a 20-year investment.\n\nWhat information would you ask for, and where would you start?",
+  "exhibit": null,
+  "input": {
+    "type": "free_text",
+    "max_words": 60
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "breaks_into_drivers",
+      "question": "Does the answer break the metric into its drivers?",
+      "weight": 0.25,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Break the metric into its drivers before asking for data.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_1",
+      "question": "Does the answer cover Demand from wireless carriers (Carrier leasing or network spending)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Demand from wireless carriers.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_2",
+      "question": "Does the answer cover Lease terms (Lease length or price increases)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Lease terms.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_3",
+      "question": "Does the answer cover Competition (Tower owners and consolidation)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Competition.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_4",
+      "question": "Does the answer cover Technology risk (Satellites or other replacements)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Technology risk.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "states_where_to_start",
+      "question": "Does the answer say where to start?",
+      "weight": 0.15,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Say where you would start.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "reason_for_start",
+      "question": "Does the answer give a reason for starting there?",
+      "weight": 0.1,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Give a reason for where you start.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "specific_requests",
+      "question": "Are the data requests specific, each naming a metric plus a cut or a time period?",
+      "weight": 0.25,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "Make requests specific, like: Carrier spending on tower leases by year for five years; average lease length and yearly price increases.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "solution_before_diagnosis",
+      "definition": "The answer proposes solutions before diagnosing the problem.",
+      "cap": 0.5,
+      "tag": "M.premature_solution",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "six_plus_unstructured_requests",
+      "definition": "The answer lists six or more data requests with no structure.",
+      "cap": 0.5,
+      "tag": "M.laundry_list",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "off_topic",
+      "definition": "The answer addresses a different question from the one asked.",
+      "cap": 0.2,
+      "tag": "M.vague_data_request",
+      "detection": "ai",
+      "step": 0,
+      "evidence": "whole"
+    },
+    {
+      "id": "missed_critical_driver",
+      "definition": "The answer misses the critical driver: Demand from wireless carriers.",
+      "cap": 0.6,
+      "tag": "M.vague_data_request",
+      "detection": "code",
+      "step": 0
+    }
+  ],
+  "model_answer": "I'd look at carrier demand for tower space, lease terms, competition among tower owners, and the risk that satellites replace towers. I'd start with carrier spending on tower leases for five years, since tower income depends on carriers renting space.",
+  "explanation": "Drivers: Demand from wireless carriers, Lease terms, Competition, Technology risk. Start with Demand from wireless carriers: Tower income depends on carriers renting space, so their spending drives the industry. Specific: Carrier spending on tower leases by year for five years; average lease length and yearly price increases. Vague: Industry information; carrier data.",
+  "extras": {
+    "drivers": [
+      {
+        "driver": "Demand from wireless carriers",
+        "what_counts": "Carrier leasing or network spending",
+        "critical": true
+      },
+      {
+        "driver": "Lease terms",
+        "what_counts": "Lease length or price increases",
+        "critical": false
+      },
+      {
+        "driver": "Competition",
+        "what_counts": "Tower owners and consolidation",
+        "critical": false
+      },
+      {
+        "driver": "Technology risk",
+        "what_counts": "Satellites or other replacements",
+        "critical": false
+      }
+    ],
+    "best_starting_point": "Demand from wireless carriers",
+    "critical_check": "driver_1",
+    "grading_rules": [
+      "Breaks into drivers: names at least two parts of the metric that together explain it (price and volume; ingredient, labor and rent costs) as a structure. A list of data sources or reports is not a breakdown.",
+      "Driver coverage: a driver counts if the answer names it or asks for data on it, tied to this case. A generic word alone (\"costs\", \"market data\") does not cover a specific driver (\"ingredient cost per cup\") unless the request makes it specific.",
+      "Where to start: the answer names one driver or analysis to look at first (\"I'd start with\", \"first\"). Listing everything with no order fails.",
+      "Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). \"Because it's important\" fails.",
+      "Specific requests: every data request names a metric plus a cut or a time period (\"ingredient cost per cup by month for two years\"). One vague request (\"information about costs\") fails the check.",
+      "Solution before diagnosis: the answer proposes fixes (\"cut staff\", \"raise prices\") before finding the cause. A hypothesis to test is not a solution.",
+      "Six or more unstructured requests: count separate data requests; six or more with no grouping by driver is a laundry list.",
+      "Off-topic: the answer addresses a different question from the one asked, for example it recommends a strategy instead of asking for information.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

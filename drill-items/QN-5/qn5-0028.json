@@ -1,0 +1,176 @@
+{
+  "item_id": "qn5-0028",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "Estimate yearly US spending on replacing home water heaters, including installation.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "US households",
+      "correct": true,
+      "feedback": "A driver: Census: about 131M US households"
+    },
+    {
+      "id": "2",
+      "text": "Share of households with their own water heater",
+      "correct": true,
+      "feedback": "A driver: Reasoning: most homes; some apartments share a central system"
+    },
+    {
+      "id": "3",
+      "text": "Replacements per heater per year",
+      "correct": true,
+      "feedback": "A driver: Derived: water heaters last 10 to 15 years"
+    },
+    {
+      "id": "4",
+      "text": "Average installed price",
+      "correct": true,
+      "feedback": "A driver: Reasoning: heater plus installation typically costs $1,200 to $2,500"
+    },
+    {
+      "id": "5",
+      "text": "New homes built per year",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "New homes get new heaters; the question is replacements"
+    },
+    {
+      "id": "6",
+      "text": "Number of plumbers",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Installers, not how many heaters are replaced"
+    }
+  ],
+  "numeric": {
+    "answer": 18073575000,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "131M (US households) × 0.9 (share of households with their own water heater) × 0.08 (replacements per heater per year) × 1.8k (average installed price) ≈ $17B",
+  "explanation": "131M (US households) × 0.9 (share of households with their own water heater) × 0.08 (replacements per heater per year) × 1.8k (average installed price) ≈ $17B. A believable total is 8.5B–34B (Derived: the central driver values give about $17B; the range allows a factor of 2 either way for the least certain driver (average installed price)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 125000000,
+        "high": 135000000,
+        "unit": "households",
+        "source": "Census: about 131M US households"
+      },
+      "2": {
+        "low": 0.85,
+        "high": 0.95,
+        "unit": "share",
+        "source": "Reasoning: most homes; some apartments share a central system"
+      },
+      "3": {
+        "low": 0.067,
+        "high": 0.1,
+        "unit": "replacements",
+        "source": "Derived: water heaters last 10 to 15 years"
+      },
+      "4": {
+        "low": 1200,
+        "high": 2500,
+        "unit": "dollars",
+        "source": "Reasoning: heater plus installation typically costs $1,200 to $2,500"
+      }
+    },
+    "benchmark": {
+      "low": 8500000000,
+      "high": 34000000000,
+      "source": "Derived: the central driver values give about $17B; the range allows a factor of 2 either way for the least certain driver (average installed price)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

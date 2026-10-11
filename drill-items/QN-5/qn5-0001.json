@@ -1,0 +1,170 @@
+{
+  "item_id": "qn5-0001",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 1,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "Estimate annual US spending on popcorn at movie theaters.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "Movie tickets sold in the US per year",
+      "correct": true,
+      "feedback": "A driver: Industry box-office reports: roughly 800M tickets a year since 2022"
+    },
+    {
+      "id": "2",
+      "text": "Share of moviegoers who buy popcorn",
+      "correct": true,
+      "feedback": "A driver: Reasoning: popcorn is the most common snack, but many skip snacks"
+    },
+    {
+      "id": "3",
+      "text": "Average price of a popcorn purchase",
+      "correct": true,
+      "feedback": "A driver: Reasoning: theater popcorn typically costs $6 to $10"
+    },
+    {
+      "id": "4",
+      "text": "US population",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Counts the same audience the ticket count already counts"
+    },
+    {
+      "id": "5",
+      "text": "Number of movie theaters",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Where popcorn is sold, not how much is bought"
+    },
+    {
+      "id": "6",
+      "text": "Average movie ticket price",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Ticket revenue, not popcorn spending"
+    }
+  ],
+  "numeric": {
+    "answer": 3059999999.9999995,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "800M (movie tickets sold in the US per year) × 0.45 (share of moviegoers who buy popcorn) × 8 (average price of a popcorn purchase) ≈ $2.88B",
+  "explanation": "800M (movie tickets sold in the US per year) × 0.45 (share of moviegoers who buy popcorn) × 8 (average price of a popcorn purchase) ≈ $2.88B. A believable total is 1.4B–5.8B (Derived: the central driver values give about $2.88B; the range allows a factor of 2 either way for the least certain driver (share of moviegoers who buy popcorn)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 600000000,
+        "high": 1100000000,
+        "unit": "tickets",
+        "source": "Industry box-office reports: roughly 800M tickets a year since 2022"
+      },
+      "2": {
+        "low": 0.3,
+        "high": 0.6,
+        "unit": "share",
+        "source": "Reasoning: popcorn is the most common snack, but many skip snacks"
+      },
+      "3": {
+        "low": 6,
+        "high": 10,
+        "unit": "dollars",
+        "source": "Reasoning: theater popcorn typically costs $6 to $10"
+      }
+    },
+    "benchmark": {
+      "low": 1400000000,
+      "high": 5800000000,
+      "source": "Derived: the central driver values give about $2.88B; the range allows a factor of 2 either way for the least certain driver (share of moviegoers who buy popcorn)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

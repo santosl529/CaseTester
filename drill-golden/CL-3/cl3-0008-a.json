@@ -1,0 +1,29 @@
+{
+  "answer_id": "cl3-0008-a",
+  "item_id": "cl3-0008",
+  "drill_id": "CL-3",
+  "answer_type": "off_topic",
+  "notes": "Recommends a strategy instead of asking for information: off-topic (rule 8), and it proposes a fix before finding the cause (rule 6).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "They should launch their own online brand at a lower price and offer free delivery to compete."
+    }
+  ],
+  "labels": {
+    "breaks_into_drivers": false,
+    "driver_1": false,
+    "driver_2": false,
+    "driver_3": false,
+    "driver_4": false,
+    "states_where_to_start": false,
+    "reason_for_start": false,
+    "specific_requests": false
+  },
+  "red_flags": {
+    "solution_before_diagnosis": true,
+    "six_plus_unstructured_requests": false,
+    "off_topic": true
+  },
+  "family": null
+}

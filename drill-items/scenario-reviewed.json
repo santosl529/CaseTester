@@ -279,6 +279,27 @@
         "sy2-0018"
       ],
       "reason": "Both ask whether to invest in an industry, but a shrinking home-fitness industry (SY-1) vs vinyl pressing with long waitlists (SY-2); different facts and answers."
+    },
+    {
+      "items": [
+        "cl3-0008",
+        "sy1-0008"
+      ],
+      "reason": "Shared word (selling) and coincidental numbers: mattress stores losing sales to online brands (CL-3) vs a retailer deciding whether to sell online (SY-1)."
+    },
+    {
+      "items": [
+        "cl3-0008",
+        "sy2-0011"
+      ],
+      "reason": "Shared word (began) and coincidental numbers: mattress stores losing sales to online brands (CL-3) vs a caterer restoring its margin (SY-2)."
+    },
+    {
+      "items": [
+        "ps3-0034",
+        "qn5-0022"
+      ],
+      "reason": "Both size a global replacement market in dollars, but for electric-car batteries in 2030 (PS-3 framework) vs airliner seats today (QN-5 sizing); different drivers and figures."
     }
   ]
 }

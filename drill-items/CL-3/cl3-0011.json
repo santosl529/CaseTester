@@ -1,0 +1,190 @@
+{
+  "item_id": "cl3-0011",
+  "version": 1,
+  "drill_id": "CL-3",
+  "status": "draft",
+  "level": 2,
+  "tier": 1,
+  "skills": [
+    "CL.data_requests"
+  ],
+  "case_type": "operations",
+  "prompt": "Lunch lines in a school cafeteria now take 25 minutes, up from 10.\n\nWhat information would you ask for, and where would you start?",
+  "exhibit": null,
+  "input": {
+    "type": "free_text",
+    "max_words": 60
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "breaks_into_drivers",
+      "question": "Does the answer break the metric into its drivers?",
+      "weight": 0.25,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Break the metric into its drivers before asking for data.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_1",
+      "question": "Does the answer cover Time per student at each station (Serving or checkout time per student)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Time per student at each station.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_2",
+      "question": "Does the answer cover Arrival pattern (Students arriving at once or the lunch schedule)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Arrival pattern.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_3",
+      "question": "Does the answer cover Staff on the line (Servers or cashiers working)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Staff on the line.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_4",
+      "question": "Does the answer cover Payment (How students pay and how long it takes)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Payment.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "states_where_to_start",
+      "question": "Does the answer say where to start?",
+      "weight": 0.15,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Say where you would start.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "reason_for_start",
+      "question": "Does the answer give a reason for starting there?",
+      "weight": 0.1,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Give a reason for where you start.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "specific_requests",
+      "question": "Are the data requests specific, each naming a metric plus a cut or a time period?",
+      "weight": 0.25,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "Make requests specific, like: Seconds per student at each station this term against last; students arriving per minute in the first 10 minutes.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "solution_before_diagnosis",
+      "definition": "The answer proposes solutions before diagnosing the problem.",
+      "cap": 0.5,
+      "tag": "M.premature_solution",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "six_plus_unstructured_requests",
+      "definition": "The answer lists six or more data requests with no structure.",
+      "cap": 0.5,
+      "tag": "M.laundry_list",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "off_topic",
+      "definition": "The answer addresses a different question from the one asked.",
+      "cap": 0.2,
+      "tag": "M.vague_data_request",
+      "detection": "ai",
+      "step": 0,
+      "evidence": "whole"
+    },
+    {
+      "id": "missed_critical_driver",
+      "definition": "The answer misses the critical driver: Time per student at each station.",
+      "cap": 0.6,
+      "tag": "M.vague_data_request",
+      "detection": "code",
+      "step": 0
+    }
+  ],
+  "model_answer": "I'd split it into how fast students arrive, time per student at each station, staff on the line, and payment. I'd start with seconds per student at each station this term against last, since the slowest station sets the pace of the whole line.",
+  "explanation": "Drivers: Time per student at each station, Arrival pattern, Staff on the line, Payment. Start with Time per student at each station: The line is arrivals against serving speed, and a slow station sets the pace. Specific: Seconds per student at each station this term against last; students arriving per minute in the first 10 minutes. Vague: Cafeteria data; staff information.",
+  "extras": {
+    "drivers": [
+      {
+        "driver": "Time per student at each station",
+        "what_counts": "Serving or checkout time per student",
+        "critical": true
+      },
+      {
+        "driver": "Arrival pattern",
+        "what_counts": "Students arriving at once or the lunch schedule",
+        "critical": false
+      },
+      {
+        "driver": "Staff on the line",
+        "what_counts": "Servers or cashiers working",
+        "critical": false
+      },
+      {
+        "driver": "Payment",
+        "what_counts": "How students pay and how long it takes",
+        "critical": false
+      }
+    ],
+    "best_starting_point": "Time per student at each station",
+    "critical_check": "driver_1",
+    "grading_rules": [
+      "Breaks into drivers: names at least two parts of the metric that together explain it (price and volume; ingredient, labor and rent costs) as a structure. A list of data sources or reports is not a breakdown.",
+      "Driver coverage: a driver counts if the answer names it or asks for data on it, tied to this case. A generic word alone (\"costs\", \"market data\") does not cover a specific driver (\"ingredient cost per cup\") unless the request makes it specific.",
+      "Where to start: the answer names one driver or analysis to look at first (\"I'd start with\", \"first\"). Listing everything with no order fails.",
+      "Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). \"Because it's important\" fails.",
+      "Specific requests: every data request names a metric plus a cut or a time period (\"ingredient cost per cup by month for two years\"). One vague request (\"information about costs\") fails the check.",
+      "Solution before diagnosis: the answer proposes fixes (\"cut staff\", \"raise prices\") before finding the cause. A hypothesis to test is not a solution.",
+      "Six or more unstructured requests: count separate data requests; six or more with no grouping by driver is a laundry list.",
+      "Off-topic: the answer addresses a different question from the one asked, for example it recommends a strategy instead of asking for information.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

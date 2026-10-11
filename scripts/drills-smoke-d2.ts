@@ -49,10 +49,25 @@ const ANSWERS: Record<string, StepResponse[]> = {
   ],
 };
 
-// The model framework of the live PS-3 question with this prompt.
-const ps3Items = loadAuthoredItems().filter(i => i.drill_id === 'PS-3');
-function modelFramework(prompt: string): StepResponse {
-  return parseFramework(ps3Items.find(i => i.prompt === prompt)?.model_answer ?? '');
+// Each question is answered from its own key (model answer, or for QN-5 the
+// accepted cards, a value inside each range and their product), so the run
+// checks grading rather than an answer written for a different question.
+const d2Items = loadAuthoredItems().filter(i => ['PS-3', 'HY-2', 'SY-2', 'CL-3', 'QN-5'].includes(i.drill_id));
+function keyAnswers(drillId: string, prompt: string): StepResponse[] {
+  const item = d2Items.find(i => i.drill_id === drillId && i.prompt === prompt);
+  if (!item) return ANSWERS[drillId];
+  const model = item.model_answer ?? '';
+  if (drillId === 'PS-3') return [parseFramework(model)];
+  if (drillId === 'SY-2' || drillId === 'CL-3') return [{ type: 'text', value: model }];
+  if (drillId === 'HY-2') {
+    const [stage1, stage2] = model.split('\n').map(l => l.replace(/^Stage [12]: /, ''));
+    return [{ type: 'text', value: stage1 }, { type: 'choice', option_id: stage2.split(':')[0].toLowerCase() }, { type: 'text', value: stage2 }];
+  }
+  const { accepted_sets, ranges } = item.extras as { accepted_sets: string[][]; ranges: Record<string, { low: number; high: number }> };
+  const cards = accepted_sets[0];
+  const values = Object.fromEntries(cards.map(c => [c, String((ranges[c].low + ranges[c].high) / 2)]));
+  const total = cards.reduce((a, c) => a * Number(values[c]), 1);
+  return [{ type: 'choices', option_ids: cards }, { type: 'numbers', values }, { type: 'numeric', value: String(total) }, { type: 'choice', option_id: 'reasonable' }];
 }
 
 // Answers every item in the set (a live drill plans a full set; a draft-only
@@ -69,9 +84,7 @@ async function answerSet(setId: string, drillId: string, key = 'k') {
     }
     const leaked = KEY_FIELDS.filter(k => keysDeep(fetched.item).has(k));
     check(leaked.length === 0, `${drillId}: item response leaks ${leaked.join(', ')}`);
-    // PS-3 is live with real questions: answer each with its own model
-    // framework, so the run checks grading rather than an off-topic answer.
-    const answers = drillId === 'PS-3' ? [modelFramework(fetched.item.prompt)] : ANSWERS[drillId];
+    const answers = keyAnswers(drillId, fetched.item.prompt);
     for (const [i, response] of answers.entries()) {
       last = await submitAttempt(student, setId, { position, idempotency_key: `${key}-${drillId}-${position}-${i}`, step: i, response, skip: false, timed_out: false });
       if (i < answers.length - 1) {

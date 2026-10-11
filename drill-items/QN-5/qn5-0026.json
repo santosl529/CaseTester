@@ -1,0 +1,170 @@
+{
+  "item_id": "qn5-0026",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "Estimate how many smoke-alarm batteries are replaced in US homes each year.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "US households",
+      "correct": true,
+      "feedback": "A driver: Census: about 131M US households"
+    },
+    {
+      "id": "2",
+      "text": "Smoke alarms per household",
+      "correct": true,
+      "feedback": "A driver: Reasoning: codes call for one per bedroom and per floor"
+    },
+    {
+      "id": "3",
+      "text": "Share of alarms with a replaceable battery changed each year",
+      "correct": true,
+      "feedback": "A driver: Reasoning: many owners change batteries yearly; sealed 10-year alarms never need one"
+    },
+    {
+      "id": "4",
+      "text": "Share of alarms with sealed 10-year batteries",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Already reflected in the share changed each year"
+    },
+    {
+      "id": "5",
+      "text": "Number of fire stations",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Doesn't change battery replacement"
+    },
+    {
+      "id": "6",
+      "text": "US population",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Counts the same homes through the people in them"
+    }
+  ],
+  "numeric": {
+    "answer": 312000000.00000006,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "131M (US households) × 4 (smoke alarms per household) × 0.6 (share of alarms with a replaceable battery changed each year) ≈ 314M",
+  "explanation": "131M (US households) × 4 (smoke alarms per household) × 0.6 (share of alarms with a replaceable battery changed each year) ≈ 314M. A believable total is 160M–630M (Derived: the central driver values give about 314M; the range allows a factor of 2 either way for the least certain driver (share of alarms with a replaceable battery changed each year)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 125000000,
+        "high": 135000000,
+        "unit": "households",
+        "source": "Census: about 131M US households"
+      },
+      "2": {
+        "low": 3,
+        "high": 5,
+        "unit": "alarms",
+        "source": "Reasoning: codes call for one per bedroom and per floor"
+      },
+      "3": {
+        "low": 0.4,
+        "high": 0.8,
+        "unit": "share",
+        "source": "Reasoning: many owners change batteries yearly; sealed 10-year alarms never need one"
+      }
+    },
+    "benchmark": {
+      "low": 160000000,
+      "high": 630000000,
+      "source": "Derived: the central driver values give about 314M; the range allows a factor of 2 either way for the least certain driver (share of alarms with a replaceable battery changed each year)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

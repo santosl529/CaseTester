@@ -1,0 +1,170 @@
+{
+  "item_id": "qn5-0003",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 1,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "Estimate how many manual toothbrushes are bought in the US each year.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "US population",
+      "correct": true,
+      "feedback": "A driver: Census: about 335M people"
+    },
+    {
+      "id": "2",
+      "text": "Share of people who use a manual toothbrush",
+      "correct": true,
+      "feedback": "A driver: Reasoning: most people use manual brushes; a minority use electric ones"
+    },
+    {
+      "id": "3",
+      "text": "Manual toothbrushes bought per user per year",
+      "correct": true,
+      "feedback": "A driver: Dentists advise a new brush every 3 to 4 months; many replace less often"
+    },
+    {
+      "id": "4",
+      "text": "Share of people who use an electric toothbrush",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "The other side of the manual share; using both counts the same people twice"
+    },
+    {
+      "id": "5",
+      "text": "Number of dentists",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Doesn't change how many brushes are bought"
+    },
+    {
+      "id": "6",
+      "text": "Toothpaste tubes sold per year",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "A related product, not toothbrushes"
+    }
+  ],
+  "numeric": {
+    "answer": 678375000,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "335M (US population) × 0.7 (share of people who use a manual toothbrush) × 3 (manual toothbrushes bought per user per year) ≈ 704M",
+  "explanation": "335M (US population) × 0.7 (share of people who use a manual toothbrush) × 3 (manual toothbrushes bought per user per year) ≈ 704M. A believable total is 350M–1.4B (Derived: the central driver values give about 704M; the range allows a factor of 2 either way for the least certain driver (manual toothbrushes bought per user per year)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 320000000,
+        "high": 350000000,
+        "unit": "people",
+        "source": "Census: about 335M people"
+      },
+      "2": {
+        "low": 0.55,
+        "high": 0.8,
+        "unit": "share",
+        "source": "Reasoning: most people use manual brushes; a minority use electric ones"
+      },
+      "3": {
+        "low": 2,
+        "high": 4,
+        "unit": "toothbrushes",
+        "source": "Dentists advise a new brush every 3 to 4 months; many replace less often"
+      }
+    },
+    "benchmark": {
+      "low": 350000000,
+      "high": 1400000000,
+      "source": "Derived: the central driver values give about 704M; the range allows a factor of 2 either way for the least certain driver (manual toothbrushes bought per user per year)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

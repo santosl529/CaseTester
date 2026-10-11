@@ -5,8 +5,10 @@
 Live: PS-1, HY-1, EX-1, SY-1, CL-1 (225 authored items approved; shared CaseTester database, in sync with /drill-items). D2 drills are built but off until Matt's content arrives.
 
 Open items, in order:
-1. **D2 content, in progress:** HY-2, then SY-2, CL-3, QN-5 (Matt: "build the other drills now"). Carry the PS-3 rules over to HY-2, SY-2 and CL-3 (critical element, off-topic flag, generic words don't count, guide rules sent to the grader); design each drill's version before writing. Same flow as PS-3: CSVs in `docs/drills-content/`, import, scenario + similarity checks, golden gate, then Matt reviews.
-2. **Next build phase:** D3 (the loop) is unblocked on severity.
+1. **Matt to review the D2 drafts** (all in `docs/drills-content/`, imported, seeded as drafts, web similarity passed, golden gates pass): HY-2 40 questions + 30 graded answers, SY-2 30 + 30, CL-3 40 + 30, QN-5 30 questions (code-scored, no graded answers). On approval: set items live with reviewer, set each drill `live: true` in `drills.v1.json`, update the live-drills config test, seed.
+2. **For Matt to decide:** (a) SY-2 "2–3 reasons" now counts distinct relevant facts, 2 or more passing (PRD says 2–3); (b) no SY-2 check tests whether the recommendation is an acceptable one; (c) QN-5 named sources ("Census", "CDC", "industry reports") are from memory and should be checked before going live, or reworded as reasoning.
+3. **PRD updates needing Matt's go-ahead:** HY-2, SY-2 and CL-3 sections (off-topic caps, SY-2 deciding fact, CL-3 critical driver, grading rules, the reasons wording); grader robustness notes (one-at-a-time fallback, whole-answer red flags, first-sentence check).
+4. **Next build phase:** D3 (the loop).
 
 How Matt likes to work: plain, short explanations; he reviews items on `drill-review.html` (`npm run drills:review`, "Waiting for your review" box) and sends decisions by item ID; commit and push to `drills` when asked (GitHub push works).
 
@@ -144,3 +146,10 @@ How Matt likes to work: plain, short explanations; he reviews items on `drill-re
 - Open question for Matt: no SY-2 check tests whether the recommendation is one of the acceptable ones (sy2-0007-a picks the weaker option and passes every check).
 - Grader fixes: red flags can judge the whole answer (`evidence: 'whole'`, optional so live PS-3 items are unchanged), since a flag about something missing has no quote to verify; recommendation-first must quote the first sentence (code); quote helpers moved to pure `grading/quotes.ts`. Grader `drills-grader-v7`.
 - Gates: SY-2 all ≥90% (reasons 90%), HY-2 all ≥94%, PS-3 all ≥94%.
+
+## CL-3 and QN-5 content (2026-10-11)
+
+- CL-3: 40 questions (tiers 12/16/12), each with one critical driver (`critical` column; missing it caps at 60%, code via `extras.critical_check`); off-topic flag (20%); CL-3 rules 1–9 to the grader and in the guide; 30 graded answers. All 40 passed similarity; gate passed first run.
+- QN-5: 30 sizing questions (tiers 9/12/9), 6–8 cards each, one with two accepted sets (qn5-0012). Totals and walkthroughs generated from driver central values (range = central ÷2 to ×2). Named sources are from memory: flag for checking.
+- Smoke test answers every D2 question from its own key (model answers; QN-5 accepted cards, mid-range values and their product); passes on all five drills.
+- Final gates (grader v7): PS-3, HY-2, SY-2, CL-3 all checks ≥90%.

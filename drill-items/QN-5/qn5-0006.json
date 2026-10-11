@@ -1,0 +1,176 @@
+{
+  "item_id": "qn5-0006",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 1,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "Estimate annual US spending on haircuts for men and boys.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "Men and boys in the US",
+      "correct": true,
+      "feedback": "A driver: Census: about half of the 335M population"
+    },
+    {
+      "id": "2",
+      "text": "Haircuts per person per year",
+      "correct": true,
+      "feedback": "A driver: Reasoning: every 4 to 8 weeks for most"
+    },
+    {
+      "id": "3",
+      "text": "Share of haircuts done at a barber or salon",
+      "correct": true,
+      "feedback": "A driver: Reasoning: some cut hair at home"
+    },
+    {
+      "id": "4",
+      "text": "Average price of a haircut",
+      "correct": true,
+      "feedback": "A driver: Reasoning: barbers typically charge $20 to $35"
+    },
+    {
+      "id": "5",
+      "text": "US population",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Already counted through men and boys"
+    },
+    {
+      "id": "6",
+      "text": "Number of barbershops",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Where haircuts happen, not how many"
+    }
+  ],
+  "numeric": {
+    "answer": 29607187500,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "165M (men and boys in the US) × 8 (haircuts per person per year) × 0.75 (share of haircuts done at a barber or salon) × 25 (average price of a haircut) ≈ $24.8B",
+  "explanation": "165M (men and boys in the US) × 8 (haircuts per person per year) × 0.75 (share of haircuts done at a barber or salon) × 25 (average price of a haircut) ≈ $24.8B. A believable total is 12B–50B (Derived: the central driver values give about $24.8B; the range allows a factor of 2 either way for the least certain driver (haircuts per person per year)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 160000000,
+        "high": 170000000,
+        "unit": "people",
+        "source": "Census: about half of the 335M population"
+      },
+      "2": {
+        "low": 6,
+        "high": 12,
+        "unit": "haircuts",
+        "source": "Reasoning: every 4 to 8 weeks for most"
+      },
+      "3": {
+        "low": 0.6,
+        "high": 0.85,
+        "unit": "share",
+        "source": "Reasoning: some cut hair at home"
+      },
+      "4": {
+        "low": 20,
+        "high": 35,
+        "unit": "dollars",
+        "source": "Reasoning: barbers typically charge $20 to $35"
+      }
+    },
+    "benchmark": {
+      "low": 12000000000,
+      "high": 50000000000,
+      "source": "Derived: the central driver values give about $24.8B; the range allows a factor of 2 either way for the least certain driver (haircuts per person per year)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

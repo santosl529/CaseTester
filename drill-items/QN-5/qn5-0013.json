@@ -1,0 +1,176 @@
+{
+  "item_id": "qn5-0013",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "Estimate annual US spending on repairing cracked smartphone screens.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "Smartphones in use in the US",
+      "correct": true,
+      "feedback": "A driver: Reasoning: most of the 335M people over age 10 have one"
+    },
+    {
+      "id": "2",
+      "text": "Share of phones that crack a screen each year",
+      "correct": true,
+      "feedback": "A driver: Reasoning: a minority crack a screen in any year"
+    },
+    {
+      "id": "3",
+      "text": "Share of cracked screens repaired professionally",
+      "correct": true,
+      "feedback": "A driver: Reasoning: many replace the phone or live with the crack"
+    },
+    {
+      "id": "4",
+      "text": "Average repair price",
+      "correct": true,
+      "feedback": "A driver: Reasoning: screen repairs cost $100 to $300 depending on the model"
+    },
+    {
+      "id": "5",
+      "text": "US population",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Counts the same users the phone count already counts"
+    },
+    {
+      "id": "6",
+      "text": "Number of phone-repair shops",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Where repairs happen, not how many"
+    }
+  ],
+  "numeric": {
+    "answer": 4968906250.000001,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "300M (smartphones in use in the US) × 0.15 (share of phones that crack a screen each year) × 0.55 (share of cracked screens repaired professionally) × 175 (average repair price) ≈ $4.33B",
+  "explanation": "300M (smartphones in use in the US) × 0.15 (share of phones that crack a screen each year) × 0.55 (share of cracked screens repaired professionally) × 175 (average repair price) ≈ $4.33B. A believable total is 2.2B–8.7B (Derived: the central driver values give about $4.33B; the range allows a factor of 2 either way for the least certain driver (share of phones that crack a screen each year)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 270000000,
+        "high": 320000000,
+        "unit": "phones",
+        "source": "Reasoning: most of the 335M people over age 10 have one"
+      },
+      "2": {
+        "low": 0.1,
+        "high": 0.25,
+        "unit": "share",
+        "source": "Reasoning: a minority crack a screen in any year"
+      },
+      "3": {
+        "low": 0.4,
+        "high": 0.7,
+        "unit": "share",
+        "source": "Reasoning: many replace the phone or live with the crack"
+      },
+      "4": {
+        "low": 100,
+        "high": 250,
+        "unit": "dollars",
+        "source": "Reasoning: screen repairs cost $100 to $300 depending on the model"
+      }
+    },
+    "benchmark": {
+      "low": 2200000000,
+      "high": 8700000000,
+      "source": "Derived: the central driver values give about $4.33B; the range allows a factor of 2 either way for the least certain driver (share of phones that crack a screen each year)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

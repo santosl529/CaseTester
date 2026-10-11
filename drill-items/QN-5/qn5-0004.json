@@ -1,0 +1,170 @@
+{
+  "item_id": "qn5-0004",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 1,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "Estimate annual US spending on new school backpacks for K-12 students.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "K-12 students in the US",
+      "correct": true,
+      "feedback": "A driver: Education statistics: about 49M public and 5M private school students"
+    },
+    {
+      "id": "2",
+      "text": "Share of students who get a new backpack each year",
+      "correct": true,
+      "feedback": "A driver: Reasoning: many buy one each year; others reuse"
+    },
+    {
+      "id": "3",
+      "text": "Average backpack price",
+      "correct": true,
+      "feedback": "A driver: Reasoning: school backpacks typically cost $20 to $50"
+    },
+    {
+      "id": "4",
+      "text": "US households with children",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Counts the same families the student count already counts"
+    },
+    {
+      "id": "5",
+      "text": "Number of schools",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Doesn't change how many backpacks are bought"
+    },
+    {
+      "id": "6",
+      "text": "School days per year",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Doesn't change how many backpacks are bought"
+    }
+  ],
+  "numeric": {
+    "answer": 1134000000.0000002,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "54M (K-12 students in the US) × 0.6 (share of students who get a new backpack each year) × 35 (average backpack price) ≈ $1.13B",
+  "explanation": "54M (K-12 students in the US) × 0.6 (share of students who get a new backpack each year) × 35 (average backpack price) ≈ $1.13B. A believable total is 570M–2.3B (Derived: the central driver values give about $1.13B; the range allows a factor of 2 either way for the least certain driver (average backpack price)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 50000000,
+        "high": 58000000,
+        "unit": "students",
+        "source": "Education statistics: about 49M public and 5M private school students"
+      },
+      "2": {
+        "low": 0.4,
+        "high": 0.8,
+        "unit": "share",
+        "source": "Reasoning: many buy one each year; others reuse"
+      },
+      "3": {
+        "low": 20,
+        "high": 50,
+        "unit": "dollars",
+        "source": "Reasoning: school backpacks typically cost $20 to $50"
+      }
+    },
+    "benchmark": {
+      "low": 570000000,
+      "high": 2300000000,
+      "source": "Derived: the central driver values give about $1.13B; the range allows a factor of 2 either way for the least certain driver (average backpack price)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

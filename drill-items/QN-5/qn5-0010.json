@@ -1,0 +1,170 @@
+{
+  "item_id": "qn5-0010",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "Estimate annual US spending on professional dental cleanings for pet cats.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "Pet cats in the US",
+      "correct": true,
+      "feedback": "A driver: Pet-ownership surveys disagree: roughly 60M to 90M cats"
+    },
+    {
+      "id": "2",
+      "text": "Share of cats getting a professional dental cleaning each year",
+      "correct": true,
+      "feedback": "A driver: Reasoning: vets recommend it, but few owners do it yearly"
+    },
+    {
+      "id": "3",
+      "text": "Average price of a cat dental cleaning",
+      "correct": true,
+      "feedback": "A driver: Reasoning: cleanings under anesthesia typically cost $300 to $700"
+    },
+    {
+      "id": "4",
+      "text": "Cat-owning households",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Counts the same cats through their owners"
+    },
+    {
+      "id": "5",
+      "text": "Number of veterinary clinics",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Where cleanings happen, not how many"
+    },
+    {
+      "id": "6",
+      "text": "Average price of a vet checkup",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "A different service from dental cleaning"
+    }
+  ],
+  "numeric": {
+    "answer": 3625000000,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "65M (pet cats in the US) × 0.1 (share of cats getting a professional dental cleaning each year) × 500 (average price of a cat dental cleaning) ≈ $3.25B",
+  "explanation": "65M (pet cats in the US) × 0.1 (share of cats getting a professional dental cleaning each year) × 500 (average price of a cat dental cleaning) ≈ $3.25B. A believable total is 1.6B–6.5B (Derived: the central driver values give about $3.25B; the range allows a factor of 2 either way for the least certain driver (share of cats getting a professional dental cleaning each year)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 55000000,
+        "high": 90000000,
+        "unit": "cats",
+        "source": "Pet-ownership surveys disagree: roughly 60M to 90M cats"
+      },
+      "2": {
+        "low": 0.05,
+        "high": 0.15,
+        "unit": "share",
+        "source": "Reasoning: vets recommend it, but few owners do it yearly"
+      },
+      "3": {
+        "low": 300,
+        "high": 700,
+        "unit": "dollars",
+        "source": "Reasoning: cleanings under anesthesia typically cost $300 to $700"
+      }
+    },
+    "benchmark": {
+      "low": 1600000000,
+      "high": 6500000000,
+      "source": "Derived: the central driver values give about $3.25B; the range allows a factor of 2 either way for the least certain driver (share of cats getting a professional dental cleaning each year)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

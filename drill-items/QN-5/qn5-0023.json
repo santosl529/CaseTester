@@ -1,0 +1,176 @@
+{
+  "item_id": "qn5-0023",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "Estimate yearly US hospital spending on hand-sanitizer refills.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "Staffed hospital beds in the US",
+      "correct": true,
+      "feedback": "A driver: Hospital association data: about 920,000 staffed beds"
+    },
+    {
+      "id": "2",
+      "text": "Sanitizer dispensers per bed",
+      "correct": true,
+      "feedback": "A driver: Reasoning: at the bedside, the door and in hallways"
+    },
+    {
+      "id": "3",
+      "text": "Refills per dispenser per year",
+      "correct": true,
+      "feedback": "A driver: Reasoning: busy dispensers need refills every one to four weeks"
+    },
+    {
+      "id": "4",
+      "text": "Average price per refill",
+      "correct": true,
+      "feedback": "A driver: Reasoning: hospital-grade refills cost about $8 to $20"
+    },
+    {
+      "id": "5",
+      "text": "Hospital admissions per year",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Patients are already reflected in how fast beds' dispensers empty"
+    },
+    {
+      "id": "6",
+      "text": "Number of hospitals",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Bed count already sizes the hospitals"
+    }
+  ],
+  "numeric": {
+    "answer": 999180000,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "920k (staffed hospital beds in the US) × 3 (sanitizer dispensers per bed) × 25 (refills per dispenser per year) × 12 (average price per refill) ≈ $828M",
+  "explanation": "920k (staffed hospital beds in the US) × 3 (sanitizer dispensers per bed) × 25 (refills per dispenser per year) × 12 (average price per refill) ≈ $828M. A believable total is 410M–1.7B (Derived: the central driver values give about $828M; the range allows a factor of 2 either way for the least certain driver (refills per dispenser per year)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 880000,
+        "high": 950000,
+        "unit": "beds",
+        "source": "Hospital association data: about 920,000 staffed beds"
+      },
+      "2": {
+        "low": 2,
+        "high": 4,
+        "unit": "dispensers",
+        "source": "Reasoning: at the bedside, the door and in hallways"
+      },
+      "3": {
+        "low": 12,
+        "high": 40,
+        "unit": "refills",
+        "source": "Reasoning: busy dispensers need refills every one to four weeks"
+      },
+      "4": {
+        "low": 8,
+        "high": 20,
+        "unit": "dollars",
+        "source": "Reasoning: hospital-grade refills cost about $8 to $20"
+      }
+    },
+    "benchmark": {
+      "low": 410000000,
+      "high": 1700000000,
+      "source": "Derived: the central driver values give about $828M; the range allows a factor of 2 either way for the least certain driver (refills per dispenser per year)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,176 @@
+{
+  "item_id": "qn5-0025",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "prompt": "Estimate yearly spending on lunches served in US public schools.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "Public-school students",
+      "correct": true,
+      "feedback": "A driver: Education statistics: about 49M public-school students"
+    },
+    {
+      "id": "2",
+      "text": "Share of students eating school lunch on a typical day",
+      "correct": true,
+      "feedback": "A driver: Reasoning: about half eat the school lunch"
+    },
+    {
+      "id": "3",
+      "text": "School days per year",
+      "correct": true,
+      "feedback": "A driver: Most states require about 180 days"
+    },
+    {
+      "id": "4",
+      "text": "Average cost per lunch",
+      "correct": true,
+      "feedback": "A driver: Reasoning: federal reimbursement rates are around $4 per free lunch"
+    },
+    {
+      "id": "5",
+      "text": "Number of public schools",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Student count already sizes the schools"
+    },
+    {
+      "id": "6",
+      "text": "Share of students eligible for free lunch",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Decides who pays, not how many lunches are served"
+    }
+  ],
+  "numeric": {
+    "answer": 18005625000.000004,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "49M (public-school students) × 0.55 (share of students eating school lunch on a typical day) × 180 (school days per year) × 3.75 (average cost per lunch) ≈ $18.2B",
+  "explanation": "49M (public-school students) × 0.55 (share of students eating school lunch on a typical day) × 180 (school days per year) × 3.75 (average cost per lunch) ≈ $18.2B. A believable total is 9.1B–36B (Derived: the central driver values give about $18.2B; the range allows a factor of 2 either way for the least certain driver (average cost per lunch)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 47000000,
+        "high": 50000000,
+        "unit": "students",
+        "source": "Education statistics: about 49M public-school students"
+      },
+      "2": {
+        "low": 0.45,
+        "high": 0.65,
+        "unit": "share",
+        "source": "Reasoning: about half eat the school lunch"
+      },
+      "3": {
+        "low": 175,
+        "high": 185,
+        "unit": "days",
+        "source": "Most states require about 180 days"
+      },
+      "4": {
+        "low": 3,
+        "high": 4.5,
+        "unit": "dollars",
+        "source": "Reasoning: federal reimbursement rates are around $4 per free lunch"
+      }
+    },
+    "benchmark": {
+      "low": 9100000000,
+      "high": 36000000000,
+      "source": "Derived: the central driver values give about $18.2B; the range allows a factor of 2 either way for the least certain driver (average cost per lunch)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

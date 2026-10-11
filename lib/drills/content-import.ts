@@ -156,7 +156,7 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
       item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: r.case_type, situation: r.situation,
       best_starting_point: r.best_starting_point, reason_to_start_there: r.reason_to_start_there,
       specific_request_examples: r.specific_request_examples, vague_request_examples: r.vague_request_examples,
-      model_answer: r.model_answer, drivers: drivers.map(d => ({ driver: d.driver, what_counts: d.what_counts })),
+      model_answer: r.model_answer, drivers: drivers.map(d => ({ driver: d.driver, what_counts: d.what_counts, critical: yes(d.critical) })),
     } satisfies Cl3Content);
   });
 
@@ -232,7 +232,7 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
       breaks_into_drivers: yes(r.breaks_into_drivers), ...named(item, 'driver', 'driver', r.drivers_covered),
       states_where_to_start: yes(r.states_where_to_start), reason_for_start: yes(r.gives_reason_for_start), specific_requests: yes(r.requests_are_specific),
     },
-    red_flags: { solution_before_diagnosis: yes(r.red_flag_solution_before_diagnosis), six_plus_unstructured_requests: yes(r.red_flag_six_plus_unstructured_requests) },
+    red_flags: { solution_before_diagnosis: yes(r.red_flag_solution_before_diagnosis), six_plus_unstructured_requests: yes(r.red_flag_six_plus_unstructured_requests), off_topic: yes(r.red_flag_off_topic) },
     family: null,
   }));
 

@@ -22,7 +22,8 @@
   },
   "red_flags": {
     "solution_before_diagnosis": false,
-    "six_plus_unstructured_requests": false
+    "six_plus_unstructured_requests": false,
+    "off_topic": false
   },
   "family": null
 }

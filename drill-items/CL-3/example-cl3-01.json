@@ -115,6 +115,23 @@
       "tag": "M.laundry_list",
       "detection": "ai",
       "step": 0
+    },
+    {
+      "id": "off_topic",
+      "definition": "The answer addresses a different question from the one asked.",
+      "cap": 0.2,
+      "tag": "M.vague_data_request",
+      "detection": "ai",
+      "step": 0,
+      "evidence": "whole"
+    },
+    {
+      "id": "missed_critical_driver",
+      "definition": "The answer misses the critical driver: Cost of goods sold.",
+      "cap": 0.6,
+      "tag": "M.vague_data_request",
+      "detection": "code",
+      "step": 0
     }
   ],
   "model_answer": "I'd break the margin into price, volume mix and costs. I'd start with COGS as a share of revenue over the 3 years, since it's the biggest cost line, then check operating expenses and average price by product line.",
@@ -123,22 +140,38 @@
     "drivers": [
       {
         "driver": "Price",
-        "what_counts": "Average price or discounting by product"
+        "what_counts": "Average price or discounting by product",
+        "critical": false
       },
       {
         "driver": "Cost of goods sold",
-        "what_counts": "Materials, production or input costs"
+        "what_counts": "Materials, production or input costs",
+        "critical": true
       },
       {
         "driver": "Operating expenses",
-        "what_counts": "SG&A, overhead, labor outside production"
+        "what_counts": "SG&A, overhead, labor outside production",
+        "critical": false
       },
       {
         "driver": "Mix",
-        "what_counts": "Shift between higher- and lower-margin products or customers"
+        "what_counts": "Shift between higher- and lower-margin products or customers",
+        "critical": false
       }
     ],
-    "best_starting_point": "Cost of goods sold"
+    "best_starting_point": "Cost of goods sold",
+    "critical_check": "driver_2",
+    "grading_rules": [
+      "Breaks into drivers: names at least two parts of the metric that together explain it (price and volume; ingredient, labor and rent costs) as a structure. A list of data sources or reports is not a breakdown.",
+      "Driver coverage: a driver counts if the answer names it or asks for data on it, tied to this case. A generic word alone (\"costs\", \"market data\") does not cover a specific driver (\"ingredient cost per cup\") unless the request makes it specific.",
+      "Where to start: the answer names one driver or analysis to look at first (\"I'd start with\", \"first\"). Listing everything with no order fails.",
+      "Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). \"Because it's important\" fails.",
+      "Specific requests: every data request names a metric plus a cut or a time period (\"ingredient cost per cup by month for two years\"). One vague request (\"information about costs\") fails the check.",
+      "Solution before diagnosis: the answer proposes fixes (\"cut staff\", \"raise prices\") before finding the cause. A hypothesis to test is not a solution.",
+      "Six or more unstructured requests: count separate data requests; six or more with no grouping by driver is a laundry list.",
+      "Off-topic: the answer addresses a different question from the one asked, for example it recommends a strategy instead of asking for information.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
   },
   "sources": [],
   "authorship": {

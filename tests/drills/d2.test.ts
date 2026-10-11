@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { importContent, parseCsv, parseFramework, type Tables } from '@/lib/drills/content-import';
-import { HY2_GRADING_RULES, hy2DecisionTag, PS3_GRADING_RULES, SY2_GRADING_RULES } from '@/lib/drills/checklists';
+import { CL3_GRADING_RULES, HY2_GRADING_RULES, hy2DecisionTag, PS3_GRADING_RULES, SY2_GRADING_RULES } from '@/lib/drills/checklists';
 import type { Item } from '@/lib/drills/item-schema';
 import { ScoringError, scoreItem, scoreStep, type StepResponse, type StepResult } from '@/lib/drills/sets/scoring';
 import { applyGrade, numbersIn, type ItemGrade } from '@/lib/drills/grading/apply';
@@ -292,14 +292,15 @@ describe('the grading call', () => {
 
   it('keeps the grader’s rules word for word in the grading guide', () => {
     const guide = fs.readFileSync(path.join(process.cwd(), 'docs/drills-grading-guide.md'), 'utf-8');
-    for (const rule of [...PS3_GRADING_RULES, ...HY2_GRADING_RULES, ...SY2_GRADING_RULES]) expect(guide).toContain(rule);
+    for (const rule of [...PS3_GRADING_RULES, ...HY2_GRADING_RULES, ...SY2_GRADING_RULES, ...CL3_GRADING_RULES]) expect(guide).toContain(rule);
   });
 
   it('sends an item its grading rules, and none where it has none', () => {
     const ps3 = buildItemBlock({ key: 'p1', item: item('PS-3'), steps: [scoreStep(item('PS-3'), 0, parseFramework('Demand: interest\nCosts: app'), false)] });
     expect(ps3).toContain('<grading_rules>');
     expect(ps3).toContain('A generic word alone');
-    expect(buildItemBlock({ key: 'c1', item: item('CL-3'), steps: [scoreStep(item('CL-3'), 0, { type: 'text', value: 'Start with COGS.' }, false)] })).not.toContain('<grading_rules>');
+    const bare = { ...item('CL-3'), extras: { ...item('CL-3').extras, grading_rules: undefined } };
+    expect(buildItemBlock({ key: 'c1', item: bare, steps: [scoreStep(bare, 0, { type: 'text', value: 'Start with COGS.' }, false)] })).not.toContain('<grading_rules>');
   });
 
   it('maps a family echoed with its description back to the family name', () => {

@@ -1,0 +1,29 @@
+{
+  "answer_id": "cl3-0004-a",
+  "item_id": "cl3-0004",
+  "drill_id": "CL-3",
+  "answer_type": "borderline",
+  "notes": "Starts in the right place with a reason from the situation (rule 4), but 'maintenance costs and fuel costs' name no cut or period, so specific requests fail (rule 5).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd split costs into repairs, fuel and insurance. I'd start with repairs, since the cars are older. I'd want maintenance costs and fuel costs."
+    }
+  ],
+  "labels": {
+    "breaks_into_drivers": true,
+    "driver_1": true,
+    "driver_2": true,
+    "driver_3": true,
+    "driver_4": false,
+    "states_where_to_start": true,
+    "reason_for_start": true,
+    "specific_requests": false
+  },
+  "red_flags": {
+    "solution_before_diagnosis": false,
+    "six_plus_unstructured_requests": false,
+    "off_topic": false
+  },
+  "family": null
+}

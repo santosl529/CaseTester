@@ -118,3 +118,36 @@ Each question marks one fact as the deciding fact: the one the recommendation sh
 13. **Cites fact-sheet numbers** is settled by code: at least one number from a relevant fact appears in the answer. Grade it the same way.
 
 No check tests whether the recommendation is one of the acceptable ones (*sy2-0007-a* picks the weaker option and passes every check). Open question for Matt.
+
+## CL-3 What do you need to know?
+
+Each question marks one driver as critical: the one to start with. An answer that never covers it is capped at 60% (settled by code from that driver's check). Starting somewhere else with a reason is allowed (*cl3-0010-a*); missing the critical driver altogether is not.
+
+1. **(grader)** Breaks into drivers: names at least two parts of the metric that together explain it (price and volume; ingredient, labor and rent costs) as a structure. A list of data sources or reports is not a breakdown.
+   - *cl3-0014-a:* "customer data, sales by region, revenue per account" is a list of data, not a breakdown.
+   - *cl3-0013-a:* "ad revenue is price times slots sold" is a breakdown.
+2. **(grader)** Driver coverage: a driver counts if the answer names it or asks for data on it, tied to this case. A generic word alone ("costs", "market data") does not cover a specific driver ("ingredient cost per cup") unless the request makes it specific.
+   - *cl3-0024-a:* "Market size and competition." ties nothing to pet cremation.
+   - *cl3-0018-a:* "I'd need demand" names the critical driver only as a word, with no request, so it doesn't count.
+3. **(grader)** Where to start: the answer names one driver or analysis to look at first ("I'd start with", "first"). Listing everything with no order fails.
+   - *cl3-0023-a:* nine requests in no order fail.
+4. **(grader)** Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). "Because it's important" fails.
+   - *cl3-0021-a:* says where to start but not why.
+   - *cl3-0004-a:* "since the cars are older" uses the situation, so it passes.
+5. **(grader)** Specific requests: every data request names a metric plus a cut or a time period ("ingredient cost per cup by month for two years"). One vague request ("information about costs") fails the check.
+   - *cl3-0004-a:* "maintenance costs and fuel costs" name no cut or period.
+   - *cl3-0029-a:* drivers named as the breakdown aren't requests; its one request is specific.
+6. **(grader)** Solution before diagnosis: the answer proposes fixes ("cut staff", "raise prices") before finding the cause. A hypothesis to test is not a solution.
+   - *cl3-0008-a*, *cl3-0016-a*, *cl3-0027-a:* fixes proposed with no diagnosis.
+7. **(grader)** Six or more unstructured requests: count separate data requests; six or more with no grouping by driver is a laundry list.
+   - *cl3-0023-a:* nine ungrouped requests.
+8. **(grader)** Off-topic: the answer addresses a different question from the one asked, for example it recommends a strategy instead of asking for information.
+   - *cl3-0008-a*, *cl3-0016-a*, *cl3-0027-a.*
+9. **(grader)** Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item.
+   - *cl3-0006-a*, *cl3-0019-a*, *cl3-0029-a.*
+
+### Red flags and caps
+
+10. **Missed critical driver (cap 60%, settled by code).**
+11. **Off-topic (cap 20%)**, see rule 8.
+12. **Solution before diagnosis** and **six or more unstructured requests** (cap 50% each), as in the PRD.

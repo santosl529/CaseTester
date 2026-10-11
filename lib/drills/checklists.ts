@@ -264,11 +264,30 @@ export interface Cl3Content extends Base {
   specific_request_examples: string;
   vague_request_examples: string;
   model_answer: string;
-  drivers: { driver: string; what_counts: string }[];
+  // critical: the driver to start with (exactly one per question).
+  drivers: { driver: string; what_counts: string; critical: boolean }[];
 }
+
+export const CL3_CAPS = { missed_critical_driver: 0.6, off_topic: 0.2 };
+
+// The grading guide's CL-3 rules (docs/drills-grading-guide.md), sent to the
+// grader with every CL-3 item. Keep the two in step.
+export const CL3_GRADING_RULES = [
+  'Breaks into drivers: names at least two parts of the metric that together explain it (price and volume; ingredient, labor and rent costs) as a structure. A list of data sources or reports is not a breakdown.',
+  'Driver coverage: a driver counts if the answer names it or asks for data on it, tied to this case. A generic word alone ("costs", "market data") does not cover a specific driver ("ingredient cost per cup") unless the request makes it specific.',
+  'Where to start: the answer names one driver or analysis to look at first ("I\'d start with", "first"). Listing everything with no order fails.',
+  'Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). "Because it\'s important" fails.',
+  'Specific requests: every data request names a metric plus a cut or a time period ("ingredient cost per cup by month for two years"). One vague request ("information about costs") fails the check.',
+  'Solution before diagnosis: the answer proposes fixes ("cut staff", "raise prices") before finding the cause. A hypothesis to test is not a solution.',
+  'Six or more unstructured requests: count separate data requests; six or more with no grouping by driver is a laundry list.',
+  'Off-topic: the answer addresses a different question from the one asked, for example it recommends a strategy instead of asking for information.',
+  'Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item.',
+];
 
 export function cl3Item(c: Cl3Content): ItemInput {
   const n = c.drivers.length;
+  const critical = c.drivers.filter(d => d.critical);
+  if (critical.length !== 1) throw new Error(`needs exactly one critical driver, has ${critical.length}`);
   return {
     ...common(c, 'CL-3', 2, ['CL.data_requests']),
     prompt: `${c.situation}\n\nWhat information would you ask for, and where would you start?`,
@@ -290,10 +309,16 @@ export function cl3Item(c: Cl3Content): ItemInput {
     red_flags: [
       { id: 'solution_before_diagnosis', definition: 'The answer proposes solutions before diagnosing the problem.', cap: 0.5, tag: 'M.premature_solution', detection: 'ai' },
       { id: 'six_plus_unstructured_requests', definition: 'The answer lists six or more data requests with no structure.', cap: 0.5, tag: 'M.laundry_list', detection: 'ai' },
+      { id: 'off_topic', definition: 'The answer addresses a different question from the one asked.', cap: CL3_CAPS.off_topic, tag: 'M.vague_data_request', detection: 'ai', evidence: 'whole' as const },
+      { id: 'missed_critical_driver', definition: `The answer misses the critical driver: ${critical[0].driver}.`, cap: CL3_CAPS.missed_critical_driver, tag: 'M.vague_data_request', detection: 'code' },
     ],
     model_answer: c.model_answer,
     explanation: `Drivers: ${c.drivers.map(d => d.driver).join(', ')}. Start with ${c.best_starting_point}: ${c.reason_to_start_there}. Specific: ${c.specific_request_examples}. Vague: ${c.vague_request_examples}.`,
-    extras: { drivers: c.drivers, best_starting_point: c.best_starting_point },
+    extras: {
+      drivers: c.drivers, best_starting_point: c.best_starting_point,
+      critical_check: `driver_${c.drivers.indexOf(critical[0]) + 1}`,
+      grading_rules: CL3_GRADING_RULES,
+    },
   };
 }
 
