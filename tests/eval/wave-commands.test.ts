@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { mkdtempSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { liveRunArgs, findRunDir, runIdOf, TEST_RUNS_DIR } from '@/lib/eval/wave-commands';
+import { liveRunArgs, scoresPersona, parseScoreIds, findRunDir, runIdOf, TEST_RUNS_DIR } from '@/lib/eval/wave-commands';
 import { toFaultRecords } from '@/lib/eval/prescreen';
 import type { RunRecord } from '@/lib/eval/scorecard';
 
@@ -13,6 +13,31 @@ describe('wave commands', () => {
       '--batch-id=batch-18', '--version=v1', '--wave=batch-18-oct-09-runs-11-20', '--run-number=12', '--rerun-index=1']);
     expect(liveRunArgs({ personaId: 7, runNumber: 1, status: 'pending', wave: 'batch-19-oct-12-runs-1-1', version: 'v1', runDir: null, rerun: 0 }, { pace: 'human', batch: 'batch-19' }))
       .toContain('--batch-id=batch-19');
+  });
+
+  it('passes --no-score to a run that is not scored, and nothing to one that is', () => {
+    const entry = (personaId: number) => ({ personaId, runNumber: 1, status: 'pending' as const, wave: 'batch-19-oct-12-runs-1-5', version: 'v1', runDir: null, rerun: 0 });
+    expect(liveRunArgs(entry(5), { pace: 'human', batch: 'batch-19' })).not.toContain('--no-score');
+    expect(liveRunArgs(entry(5), { pace: 'human', batch: 'batch-19', scored: true })).not.toContain('--no-score');
+    const unscored = liveRunArgs(entry(5), { pace: 'human', batch: 'batch-19', scored: false });
+    expect(unscored.at(-1)).toBe('--no-score');
+    expect(unscored.filter(a => a === '--no-score')).toHaveLength(1);
+  });
+
+  it('scores every persona by default, none under --no-score, only the named ones under --score', () => {
+    expect([5, 42].map(id => scoresPersona(id, {}))).toEqual([true, true]);
+    expect([5, 42].map(id => scoresPersona(id, { noScore: true }))).toEqual([false, false]);
+    expect([5, 42, 32].map(id => scoresPersona(id, { scoreIds: [5, 32] }))).toEqual([true, false, true]);
+    // --no-score with --score: unscored except the named ones (the batch-19 plan's form).
+    expect([5, 42, 32].map(id => scoresPersona(id, { noScore: true, scoreIds: [5, 32] }))).toEqual([true, false, true]);
+  });
+
+  it('parses --score ids and refuses ones that are not in the wave', () => {
+    expect(parseScoreIds(undefined, [5, 42])).toBeUndefined();
+    expect(parseScoreIds('5,32', [5, 42, 32])).toEqual([5, 32]);
+    expect(parseScoreIds('', [5])).toEqual([]);
+    expect(() => parseScoreIds('5,7', [5, 42])).toThrow(/7.*not in this wave/);
+    expect(() => parseScoreIds('5,x', [5, 42])).toThrow(/not a persona id/);
   });
 
   it('finds the persona run folder by its two-digit id prefix', () => {
