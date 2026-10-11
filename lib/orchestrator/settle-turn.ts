@@ -115,7 +115,9 @@ export function tailAfterDelivered(finalText: string, delivered: string[]): { ta
   return { tail: sentencesOf(final).filter(x => !done.has(x)).join(' '), mismatch: true };
 }
 
-export type TurnUsage = { model: string; inputTokens: number; outputTokens: number; cacheReadTokens: number; cacheWriteTokens: number; apiCalls: number };
+// model: requested; actualModels: what the API answered from, per call
+// (response.model) — logged so an evaluation can prove which model ran.
+export type TurnUsage = { model: string; actualModels: string[]; inputTokens: number; outputTokens: number; cacheReadTokens: number; cacheWriteTokens: number; apiCalls: number };
 
 export type ModelOutcome = {
   turn: ModelTurn;

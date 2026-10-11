@@ -11,6 +11,8 @@ describe('wave commands', () => {
     const args = liveRunArgs({ personaId: 7, runNumber: 12, status: 'pending', wave: 'batch-18-oct-09-runs-11-20', version: 'v1', runDir: null, rerun: 1 }, { pace: 'human' });
     expect(args).toEqual(['scripts/live-run.ts', 'prof-001', '--persona=7', '--batch=batch-18-oct-09-runs-11-20', '--pace=human',
       '--batch-id=batch-18', '--version=v1', '--wave=batch-18-oct-09-runs-11-20', '--run-number=12', '--rerun-index=1']);
+    expect(liveRunArgs({ personaId: 7, runNumber: 1, status: 'pending', wave: 'batch-19-oct-12-runs-1-1', version: 'v1', runDir: null, rerun: 0 }, { pace: 'human', batch: 'batch-19' }))
+      .toContain('--batch-id=batch-19');
   });
 
   it('finds the persona run folder by its two-digit id prefix', () => {

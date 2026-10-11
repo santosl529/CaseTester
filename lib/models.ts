@@ -19,6 +19,34 @@ export function interviewerRequestOptions(modelId: string): { thinking: 'between
   return { thinking: 'between_tools', fallbacks: true };
 }
 
+// Named interviewer configurations for evaluations (11 Oct 2026): batch 18
+// was meant to measure the pilot interviewer and ran on Sonnet 5.5, because
+// the batch took whatever the default was that day. An evaluation names one of
+// these (INTERVIEWER_EVAL_CONFIG / persona-batch --interviewer=); the model id
+// and every request setting are explicit, and the run fails if the API answers
+// from another model (lib/eval/model-guard.ts). Choosing one changes nothing in
+// production or in any classifier or scoring role.
+export type InterviewerEvalConfig = {
+  model: string;
+  thinking: 'between_tools' | 'disabled';
+  effort?: 'low' | 'medium' | 'high';
+  fallbacks: boolean;
+};
+
+export const INTERVIEWER_EVAL_CONFIGS: Record<string, InterviewerEvalConfig> = {
+  // The pilot interviewer: Haiku 5.5, thinking disabled, effort medium, no
+  // server-side fallback (Haiku 5.5 has none).
+  'haiku55-thinking-off': { model: 'claude-haiku-5-5', thinking: 'disabled', effort: 'medium', fallbacks: false },
+  // The batch-18 baseline: Sonnet 5.5 with thinking off (between_tools), fallbacks on.
+  'sonnet55-baseline': { model: 'claude-sonnet-5-5', thinking: 'between_tools', fallbacks: true },
+};
+
+export function interviewerEvalConfig(name: string): InterviewerEvalConfig {
+  const c = INTERVIEWER_EVAL_CONFIGS[name];
+  if (!c) throw new Error(`unknown interviewer evaluation config "${name}" (have: ${Object.keys(INTERVIEWER_EVAL_CONFIGS).join(', ')})`);
+  return c;
+}
+
 // Scoring: judge, claim verifier, and dimension reconciliation on Opus 5.5.
 // Thinking is always on for this model (adaptive); its effort default is
 // medium, so callers set it explicitly.

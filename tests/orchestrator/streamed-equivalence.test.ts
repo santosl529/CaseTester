@@ -28,7 +28,7 @@ const TURNS: { name: string; turn: ModelTurn; streams: boolean }[] = [
   { name: 'only the question', turn: T(), streams: false },
 ];
 
-const usage = { model: '', inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, apiCalls: 0 };
+const usage = { model: '', actualModels: [] as string[], inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, apiCalls: 0 };
 const outcome = (turn: ModelTurn, delivered: string[], undeliveredRevealIds: string[] = []): ModelOutcome =>
   ({ turn, validation: null, modelCallStart: 0, modelLatencyMs: 0, distressWaitMs: 0, turnUsage: usage, delivered, undeliveredRevealIds });
 const norm = (s: string) => s.replace(/\s+/g, ' ').trim();

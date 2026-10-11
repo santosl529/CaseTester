@@ -5,7 +5,12 @@
 // changes out-of-band, so cost is computed at analysis time from the tokens.
 export type LlmUsage = {
   component: 'interviewer' | 'judge' | 'verifier' | 'coverage' | 'data_request' | 'reconcile' | 'distress' | 'hint_check' | 'opener' | 'probe_judge' | 'structure_judge';
-  model: string;
+  model: string;        // the model requested
+  // The model the API says answered (response.model). Differs from `model`
+  // when a server-side fallback re-ran the request on another model. Recorded
+  // by the interviewer adapter; evaluations fail on a mismatch
+  // (lib/eval/model-guard.ts).
+  actualModel?: string;
   inputTokens: number;
   outputTokens: number;
   // Prompt caching (interviewer): input tokens read from / written to cache.

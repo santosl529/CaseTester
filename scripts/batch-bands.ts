@@ -7,7 +7,8 @@ import { BandsFileSchema, bandsSummary, bandsRows } from '@/lib/eval/bands';
 import type { ScorecardRow } from '@/lib/eval/scorecard';
 import type { FaultRecord } from '@/lib/eval/prescreen';
 
-const OUT = 'Case Interview Runs/test runs/batch-18';
+// --batch=<batch-N> (default batch-18).
+const OUT = `Case Interview Runs/test runs/${process.argv.find(a => a.startsWith('--batch='))?.split('=')[1] ?? 'batch-18'}`;
 const bands = BandsFileSchema.parse(JSON.parse(readFileSync('evals/persona-bands.json', 'utf8')));
 const rows = JSON.parse(readFileSync(path.join(OUT, 'scorecard.json'), 'utf8')) as ScorecardRow[];
 const faultsPath = path.join(OUT, 'faults.jsonl');

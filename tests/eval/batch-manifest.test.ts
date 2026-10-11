@@ -139,3 +139,38 @@ describe('batch manifest', () => {
     expect(entryForRunDir(null, 'x')).toBeNull();
   });
 });
+
+// 11 Oct: batch 18 ran on Sonnet 5.5 when the evaluation was meant for Haiku
+// 5.5. It stays the frozen Sonnet baseline; new waves go to a new batch, and a
+// run answered by another model than the one declared is failed.
+describe('batches after batch 18, and the interviewer model check', () => {
+  it('a new batch names its own waves and manifest; batch 18 takes no new waves', async () => {
+    const { assertBatchOpen } = await import('@/lib/eval/batch-manifest');
+    const w = planWave(null, { ...base, batch: 'batch-19', personaIds: [1, 2] });
+    expect(w.manifest.batch).toBe('batch-19');
+    expect(w.wave).toBe('batch-19-oct-09-runs-1-2');
+    expect(() => planWave(w.manifest, { ...base, batch: 'batch-20', personaIds: [3] })).toThrow(/batch-19's, not batch-20's/);
+    expect(() => assertBatchOpen('batch-18')).toThrow(/frozen/);
+    expect(() => assertBatchOpen('')).toThrow(/must look like batch-19/);
+    expect(() => assertBatchOpen('batch-19')).not.toThrow();
+  });
+
+  it('records requested and returned interviewer models per run; a mismatch fails the run', () => {
+    const m = planWave(null, { ...base, batch: 'batch-19', personaIds: [1, 2], models: { interviewer: 'claude-haiku-5-5', interviewerConfig: 'haiku55-thinking-off' } }).manifest;
+    const ok = { config: 'haiku55-thinking-off', requested: 'claude-haiku-5-5', actual: ['claude-haiku-5-5'], calls: 9, ok: true, problems: [] };
+    const bad = { ...ok, actual: ['claude-sonnet-5-5'], ok: false, problems: ['the API answered from "claude-sonnet-5-5", not "claude-haiku-5-5"'] };
+    const out = markWaveResults(m, m.runs.map(r => ({ ...r, runDir: `d${r.personaId}` })), () => true, dir => (dir === 'd1' ? ok : bad));
+    expect(out.runs.map(r => [r.personaId, r.status, r.failure ?? null, r.interviewer?.actual])).toEqual([
+      [1, 'done', null, ['claude-haiku-5-5']],
+      [2, 'failed', 'model_mismatch', ['claude-sonnet-5-5']],
+    ]);
+    expect(out.models).toEqual({ interviewer: 'claude-haiku-5-5', interviewerConfig: 'haiku55-thinking-off' });
+  });
+
+  it('a run with no record is failed without a model verdict', () => {
+    const m = planWave(null, { ...base, batch: 'batch-19', personaIds: [1] }).manifest;
+    const out = markWaveResults(m, m.runs.map(r => ({ ...r, runDir: 'd1' })), () => false, () => { throw new Error('not read'); });
+    expect(out.runs[0]).toMatchObject({ status: 'failed' });
+    expect(out.runs[0].failure).toBeUndefined();
+  });
+});

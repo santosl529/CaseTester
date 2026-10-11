@@ -7,7 +7,8 @@ import { headline, headlineScope } from '@/lib/eval/headline';
 import type { FaultRecord } from '@/lib/eval/prescreen';
 import type { ScorecardRow } from '@/lib/eval/scorecard';
 
-const OUT = 'Case Interview Runs/test runs/batch-18';
+// --batch=<batch-N> (default batch-18).
+const OUT = `Case Interview Runs/test runs/${process.argv.find(a => a.startsWith('--batch='))?.split('=')[1] ?? 'batch-18'}`;
 const faultsPath = path.join(OUT, 'faults.jsonl');
 const sheetPath = path.join(OUT, 'review-sheet.md');
 const faults = existsSync(faultsPath) ? readFileSync(faultsPath, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l) as FaultRecord) : [];

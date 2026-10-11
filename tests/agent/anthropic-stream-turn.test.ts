@@ -6,7 +6,7 @@ import type { TurnContext, TurnEvent } from '@/lib/agent/models/interface';
 // they close, say by sentence; one regeneration — caught as soon as
 // `requests` names an unknown id — only while nothing was delivered.
 
-function fakeStream(text: string, stop_reason = 'end_turn', chunk = 7) {
+function fakeStream(text: string, stop_reason = 'end_turn', chunk = 7, answeredBy = 'test-model') {
   const events = Array.from({ length: Math.ceil(text.length / chunk) }, (_, i) => ({
     type: 'content_block_delta', delta: { type: 'text_delta', text: text.slice(i * chunk, i * chunk + chunk) },
   }));
@@ -14,15 +14,15 @@ function fakeStream(text: string, stop_reason = 'end_turn', chunk = 7) {
     async *[Symbol.asyncIterator]() { for (const e of events) yield e; },
     abort: vi.fn(),
     finalMessage: async () => ({
-      content: [{ type: 'text', text }], stop_reason, stop_details: null,
+      model: answeredBy, content: [{ type: 'text', text }], stop_reason, stop_details: null,
       usage: { input_tokens: 1, output_tokens: 1, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 },
     }),
   };
 }
 
-function stubbed(replies: { text: string; stop_reason?: string }[], model = new AnthropicInterviewerModel('test-model')) {
+function stubbed(replies: { text: string; stop_reason?: string; answeredBy?: string }[], model = new AnthropicInterviewerModel('test-model')) {
   const stream = vi.fn();
-  for (const r of replies) stream.mockReturnValueOnce(fakeStream(r.text, r.stop_reason));
+  for (const r of replies) stream.mockReturnValueOnce(fakeStream(r.text, r.stop_reason, 7, r.answeredBy));
   (model as unknown as { client: unknown }).client = { beta: { messages: { stream } } };
   return { model, stream };
 }
@@ -157,5 +157,13 @@ describe('AnthropicInterviewerModel.streamTurn', () => {
     await all(model.streamTurn(ctx({ onRequest: r => reqs.push(r.body), onRawOutput: r => outs.push(r.text) })));
     expect(reqs).toEqual([stream.mock.calls[0][0]]);
     expect(outs).toEqual([turn()]);
+  });
+
+  // 11 Oct: an evaluation must prove which model answered (lib/eval/model-guard.ts).
+  it('usage carries the requested model and the model the API answered from', async () => {
+    const { model } = stubbed([{ text: turn(), answeredBy: 'claude-sonnet-5' }]);
+    const usages: { model: string; actualModel?: string }[] = [];
+    await all(model.streamTurn(ctx({ onUsage: u => usages.push(u) })));
+    expect(usages).toEqual([expect.objectContaining({ component: 'interviewer', model: 'test-model', actualModel: 'claude-sonnet-5' })]);
   });
 });

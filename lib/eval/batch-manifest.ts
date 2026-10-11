@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { CODE_PATHS } from './git-info';
+import type { ModelCheck } from './model-guard';
 
 const CODE_PATHS_LABEL = CODE_PATHS.join(', ');
 
@@ -15,9 +16,13 @@ export type PersonaEntry = {
   wave: string; version: string; runDir: string | null;
   /** 0 for a persona's original run in a version; N for its Nth --rerun (never pooled with the original). */
   rerun: number;
+  /** The interviewer the run declared and the model ids the API answered from (lib/eval/model-guard.ts). Absent before 11 Oct. */
+  interviewer?: Pick<ModelCheck, 'config' | 'requested' | 'actual' | 'ok' | 'problems'>;
+  /** Why a run is failed when its record exists (e.g. model_mismatch). */
+  failure?: string;
 };
 export type Manifest = {
-  batch: 'batch-18'; version: string;
+  batch: string; version: string;
   /** The commit the current version started on: the code fingerprint a wave is compared with. */
   commit: string;
   /** Every commit a wave was planned on, in order (commits[0] is the batch's first). */
@@ -29,8 +34,17 @@ export type Manifest = {
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 export const MAX_WAVE = 10;
 
-export function waveFolderName(date: Date, firstRun: number, lastRun: number): string {
-  return `batch-18-${MONTHS[date.getMonth()]}-${String(date.getDate()).padStart(2, '0')}-runs-${firstRun}-${lastRun}`;
+export function waveFolderName(date: Date, firstRun: number, lastRun: number, batch = 'batch-18'): string {
+  return `${batch}-${MONTHS[date.getMonth()]}-${String(date.getDate()).padStart(2, '0')}-runs-${firstRun}-${lastRun}`;
+}
+
+// Batches whose records are a frozen baseline: no new waves (11 Oct — batch
+// 18 is the Sonnet 5.5 baseline; the Haiku 5.5 evaluation is a new batch).
+export const FROZEN_BATCHES: ReadonlySet<string> = new Set(['batch-18']);
+
+export function assertBatchOpen(batch: string): void {
+  if (!/^batch-\d+$/.test(batch)) throw new Error(`batch name "${batch}" must look like batch-19`);
+  if (FROZEN_BATCHES.has(batch)) throw new Error(`${batch} is frozen (the Sonnet 5.5 baseline) — run new waves under a new batch: --batch=<batch-N>`);
 }
 
 export function planWave(m: Manifest | null, p: {
@@ -41,7 +55,11 @@ export function planWave(m: Manifest | null, p: {
   codeChanged: boolean;
   newVersion?: string; rerun?: boolean; date: Date; models: Record<string, string>;
   hashes?: { bands: string; severity: string };
+  /** The batch the wave belongs to (default batch-18, the batch the tooling was built for). */
+  batch?: string;
 }): { manifest: Manifest; wave: string; entries: PersonaEntry[] } {
+  const batch = p.batch ?? 'batch-18';
+  if (m && m.batch !== batch) throw new Error(`the manifest is ${m.batch}'s, not ${batch}'s`);
   if (new Set(p.personaIds).size === 0) throw new Error('no personas given');
   if (p.personaIds.length > MAX_WAVE) throw new Error(`a wave runs at most ${MAX_WAVE} personas (got ${p.personaIds.length})`);
   const known = new Set(p.knownIds);
@@ -50,7 +68,7 @@ export function planWave(m: Manifest | null, p: {
   if (p.codeDirty) throw new Error(`the code (${CODE_PATHS_LABEL}) has uncommitted changes — commit them before a wave (freeze)`);
 
   const personaIds = [...new Set(p.personaIds)];
-  let manifest: Manifest = m ?? { batch: 'batch-18', version: p.newVersion ?? 'v1', commit: p.commit, commits: [p.commit], bandsHash: p.hashes?.bands ?? null, severityHash: p.hashes?.severity ?? null, models: p.models, runs: [] };
+  let manifest: Manifest = m ?? { batch, version: p.newVersion ?? 'v1', commit: p.commit, commits: [p.commit], bandsHash: p.hashes?.bands ?? null, severityHash: p.hashes?.severity ?? null, models: p.models, runs: [] };
   if (m) {
     const hashesChanged = !!p.hashes && m.bandsHash !== null && m.severityHash !== null
       && (m.bandsHash !== p.hashes.bands || m.severityHash !== p.hashes.severity);
@@ -78,7 +96,7 @@ export function planWave(m: Manifest | null, p: {
   const todo = personaIds.filter(id => p.rerun || latest.get(id)?.status !== 'done');
   if (todo.length === 0) throw new Error('every persona given has already run (use --rerun to run again)');
   const first = manifest.runs.reduce((n, r) => Math.max(n, r.runNumber), 0) + 1;
-  const wave = waveFolderName(p.date, first, first + todo.length - 1);
+  const wave = waveFolderName(p.date, first, first + todo.length - 1, batch);
   // A persona already done in this version (planned again by --rerun) gets the next rerun index.
   const rerunOf = (personaId: number) => {
     const done = manifest.runs.filter(r => r.version === manifest.version && r.personaId === personaId && r.status === 'done');
@@ -92,7 +110,13 @@ export function fileHash(p: string): string {
   return createHash('sha256').update(readFileSync(p)).digest('hex');
 }
 
-export function markWaveResults(m: Manifest, entries: PersonaEntry[], runJsonExists: (runDir: string) => boolean): Manifest {
+// A run is done when its record exists and — for a run that declared its
+// interviewer — the model check passed: a run answered by another model is
+// failed, whatever else it produced (lib/eval/model-guard.ts).
+export function markWaveResults(
+  m: Manifest, entries: PersonaEntry[], runJsonExists: (runDir: string) => boolean,
+  modelCheckOf: (runDir: string) => ModelCheck | null = () => null,
+): Manifest {
   const done = new Map(entries.map(e => [e.runNumber, e]));
   return {
     ...m,
@@ -100,7 +124,14 @@ export function markWaveResults(m: Manifest, entries: PersonaEntry[], runJsonExi
       const e = done.get(r.runNumber);
       if (!e) return r;
       const runDir = e.runDir ?? r.runDir;
-      return { ...r, runDir, status: runDir && runJsonExists(runDir) ? 'done' : 'failed' };
+      const exists = Boolean(runDir && runJsonExists(runDir));
+      const check = runDir && exists ? modelCheckOf(runDir) : null;
+      const interviewer = check ? { config: check.config, requested: check.requested, actual: check.actual, ok: check.ok, problems: check.problems } : undefined;
+      const failure = !exists ? undefined : check && !check.ok ? 'model_mismatch' : undefined;
+      return {
+        ...r, runDir, status: exists && !failure ? 'done' : 'failed',
+        ...(interviewer ? { interviewer } : {}), ...(failure ? { failure } : {}),
+      };
     }),
   };
 }

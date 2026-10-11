@@ -54,6 +54,7 @@ import { writeTurnFile, type TurnFileHeader } from '@/lib/eval/turn-file';
 import { gitInfo } from '@/lib/eval/git-info';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
 import { INTERVIEWER_MODEL_ID, SCORING_MODEL_ID } from '@/lib/models';
+import { evalInterviewer, checkInterviewerModels, type ModelCheck } from '@/lib/eval/model-guard';
 
 const CANDIDATE_MODEL = 'claude-opus-5';
 // human pacing on a 20-minute clock can exceed 30 turns; --max-turns=N for a smoke run
@@ -86,6 +87,16 @@ const BATCH_ID = flag('batch-id') ?? null;
 const turnRecords: TurnRecord[] = [];
 let turnHeader: TurnFileHeader | null = null;
 if (PERSONA && !BATCH) throw new Error('--persona runs need --batch=NAME (the "test runs/" subfolder)');
+
+// The declared evaluation interviewer (INTERVIEWER_EVAL_CONFIG, lib/models.ts
+// INTERVIEWER_EVAL_CONFIGS). Batch runs (--batch-id) must declare one: batch
+// 18 recorded the default and ran on Sonnet when Haiku was meant. Checked
+// before anything is spent (unknown config / unpriced model); after every turn
+// the interviewer's returned model ids are compared with it, and a mismatch
+// stops the run unscored (lib/eval/model-guard.ts).
+const EVAL = process.env.INTERVIEWER_EVAL_CONFIG || BATCH_ID ? evalInterviewer(process.env.INTERVIEWER_EVAL_CONFIG) : null;
+let modelCheck: ModelCheck | null = null;
+const interviewerUsages = () => turnRecords.flatMap(r => r.usage);
 
 // "Maya — the Freezer" (id 1) → test runs/<batch>/01-maya-the-freezer
 const OUT_DIR = PERSONA
@@ -286,7 +297,8 @@ async function main() {
   const git = gitInfo();
   turnHeader = {
     type: 'header', batch: BATCH_ID, version: VERSION, wave: WAVE, runNumber: RUN_NUMBER, rerun: RERUN_INDEX, commit: git.commit, dirty: git.dirty,
-    models: { interviewer: process.env.INTERVIEWER_PROVIDER ?? INTERVIEWER_MODEL_ID, scoring: SCORING_MODEL_ID, candidate: CANDIDATE_MODEL },
+    models: { interviewer: EVAL?.model ?? process.env.INTERVIEWER_PROVIDER ?? INTERVIEWER_MODEL_ID, scoring: SCORING_MODEL_ID, candidate: CANDIDATE_MODEL },
+    interviewerConfig: EVAL?.config ?? null,
     persona: PERSONA ? { id: PERSONA.id, name: PERSONA.name, brief: PERSONA.brief } : null,
     sessionId, startedAt: new Date().toISOString(),
   };
@@ -298,6 +310,7 @@ async function main() {
   let phase: Phase = 'INTRO';
   let ended = false;
   let budgetStopped = false;
+  let modelStopped = false;
 
   try {
     for (let turn = 0; turn < MAX_TURNS && Date.now() - startedAt < MAX_WALL_MS; turn++) {
@@ -342,6 +355,15 @@ async function main() {
       phase = result.phase;
 
       background.push(runPostTurnBackground({ sessionId, userId, caseId, phase: phaseBeforeTurn, result }));
+      if (EVAL) {
+        const check = checkInterviewerModels(EVAL.config, EVAL.model, interviewerUsages());
+        if (!check.ok && check.calls > 0) {
+          modelCheck = check;
+          modelStopped = true;
+          console.error(`[live-run] INTERVIEWER MODEL CHECK FAILED — run stopped, not scored: ${check.problems.join('; ')}`);
+          break;
+        }
+      }
       if (result.ended) {
         ended = true;
         break;
@@ -356,12 +378,17 @@ async function main() {
   }
   await Promise.allSettled(background);
   if (budgetStopped) console.warn(`[live-run] RUN BUDGET REACHED — run stopped: ${BUDGET.summary()}`);
+  if (EVAL && !modelCheck) modelCheck = checkInterviewerModels(EVAL.config, EVAL.model, interviewerUsages());
+  if (modelCheck && !modelCheck.ok) {
+    modelStopped = true;
+    console.error(`[live-run] interviewer model check failed: ${modelCheck.problems.join('; ')}`);
+  }
 
   // A scoring failure must not lose the run: batch 4 (2 Oct) threw in the
   // judge and the transcript files were never written.
   let scoring: { status: string };
   try {
-    scoring = budgetStopped ? { status: 'budget_stopped' } : !ended ? { status: 'not_completed' } : NO_SCORE ? { status: 'skipped' } : await scoreSession({ sessionId, userId });
+    scoring = budgetStopped ? { status: 'budget_stopped' } : modelStopped ? { status: 'model_mismatch' } : !ended ? { status: 'not_completed' } : NO_SCORE ? { status: 'skipped' } : await scoreSession({ sessionId, userId });
   } catch (err) {
     console.error('[live-run] scoring failed:', err instanceof Error ? err.message : err);
     scoring = { status: 'failed' };
@@ -369,6 +396,8 @@ async function main() {
   console.log(`\n[live-run] ended=${ended} scoring=${scoring.status}`);
 
   await writeArtifacts(sessionId, caseData.title, { ended, budgetStopped, scoring: scoring.status });
+  // A run answered by another model is a failed evaluation run.
+  if (modelStopped) process.exitCode = 2;
 }
 
 // --finish=<sessionId> [--log-from=<file>]: score an already-run session and
@@ -428,7 +457,7 @@ async function writeArtifacts(sessionId: string, caseTitle: string, run?: { ende
   await mkdir(OUT_DIR, { recursive: true });
   if (turnHeader && run) {
     writeTurnFile(path.join(OUT_DIR, `${base}.turns.jsonl.gz`), turnHeader, turnRecords, {
-      type: 'end', ended: run.ended, budgetStopped: run.budgetStopped, scoring: run.scoring,
+      type: 'end', ended: run.ended, budgetStopped: run.budgetStopped, scoring: run.scoring, modelCheck,
       candidateUsage: { calls: candidateUsage.calls, input: candidateUsage.input, output: candidateUsage.output, usd: candidateUsage.usd },
     });
   }
@@ -438,6 +467,7 @@ async function writeArtifacts(sessionId: string, caseTitle: string, run?: { ende
   md.push(`- Session: \`${sessionId}\` · case \`${session.caseId}\` · status **${session.status}** · ${date}`);
   md.push(`- Overall: **${score?.overallRating ?? 'not scored'}**`);
   md.push(`- Candidate simulator: \`${CANDIDATE_MODEL}\` (sees only the transcript)`);
+  if (modelCheck) md.push(`- Interviewer: config \`${modelCheck.config}\` · requested \`${modelCheck.requested}\` · answered by ${modelCheck.actual.map(a => `\`${a}\``).join(', ') || 'none recorded'} · **${modelCheck.ok ? 'model check passed' : `MODEL CHECK FAILED: ${modelCheck.problems.join('; ')}`}**`);
   if (PERSONA) {
     md.push(`- Persona: **${PERSONA.id}. ${PERSONA.name}**`);
     md.push(`- Tests: ${PERSONA.tests}`);
@@ -498,7 +528,7 @@ async function writeArtifacts(sessionId: string, caseTitle: string, run?: { ende
   }
 
   await writeFile(path.join(OUT_DIR, `${base}.md`), md.join('\n'));
-  await writeFile(path.join(OUT_DIR, `${base}.json`), JSON.stringify({ session, turns, score, events, analytics, revealed }, null, 2));
+  await writeFile(path.join(OUT_DIR, `${base}.json`), JSON.stringify({ session, turns, score, events, analytics, revealed, modelCheck }, null, 2));
   const pdf = score ? await renderReportPdf(sessionId) : null;
   if (pdf) await writeFile(path.join(OUT_DIR, `${base}.pdf`), pdf.buffer);
   await writeFile(path.join(OUT_DIR, `${base}.log`), logLines.join('\n'));

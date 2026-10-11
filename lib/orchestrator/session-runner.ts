@@ -226,7 +226,7 @@ async function runTurnBody(
   console.log('[runner] phase:', currentPhase, 'kind:', state.kind, 'stall rung:', stallDecision.intervene ? stallDecision.rung : 'none');
   // PRD §13: per-turn latency + token usage. A regeneration makes two API
   // calls — onUsage fires per call, so sum here.
-  const turnUsage: TurnUsage = { model: '', inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, apiCalls: 0 };
+  const turnUsage: TurnUsage = { model: '', actualModels: [], inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, apiCalls: 0 };
   // Delivery (D3): the caller's sink, wrapped to time the first segment and
   // the first useful one (past "say"), and note an exhibit already on screen.
   let firstSegmentAt: number | null = null;
@@ -315,6 +315,7 @@ async function runTurnBody(
       onUsage: u => {
         if (rec) safe(rec, 'usage', () => rec.usage(u));
         turnUsage.model = u.model;
+        if (u.actualModel) turnUsage.actualModels.push(u.actualModel);
         turnUsage.inputTokens += u.inputTokens;
         turnUsage.outputTokens += u.outputTokens;
         turnUsage.cacheReadTokens += u.cacheReadTokens ?? 0;

@@ -17,8 +17,9 @@ import { buildPrescreenPrompt, toFaultRecords, PrescreenOutputSchema, alreadyScr
 import type { RunRecord } from '@/lib/eval/scorecard';
 
 const RUNS = TEST_RUNS_DIR;
-const OUT = path.join(RUNS, 'batch-18');
 const arg = (n: string) => process.argv.find(a => a.startsWith(`--${n}=`))?.split('=')[1];
+// --batch=<batch-N> (default batch-18).
+const OUT = path.join(RUNS, arg('batch') ?? 'batch-18');
 
 async function main() {
   const dirs = arg('runs')?.split(',') ?? (loadManifest(OUT)?.runs ?? []).filter(r => r.status === 'done' && r.runDir).map(r => r.runDir!);

@@ -6,11 +6,25 @@
 // openai-luna-none (GPT-6 Luna at reasoning none, 7 Oct). An unknown value
 // throws rather than silently running the default, so an evaluation can't
 // measure the wrong model.
+//
+// An evaluation names its interviewer instead (INTERVIEWER_EVAL_CONFIG, one of
+// lib/models.ts INTERVIEWER_EVAL_CONFIGS): the model id and every request
+// setting come from the config. Setting both is refused — one run, one
+// declared interviewer.
 import type { InterviewerModel } from './interface';
-import { AnthropicInterviewerModel } from './anthropic';
+import { AnthropicInterviewerModel, promptLayoutFromEnv } from './anthropic';
 import { CerebrasInterviewerModel, OpenAIInterviewerModel } from './cerebras';
+import { interviewerEvalConfig } from '@/lib/models';
 
-export function createInterviewerModel(provider = process.env.INTERVIEWER_PROVIDER): InterviewerModel {
+export function createInterviewerModel(
+  provider = process.env.INTERVIEWER_PROVIDER,
+  evalConfig = process.env.INTERVIEWER_EVAL_CONFIG,
+): InterviewerModel {
+  if (evalConfig) {
+    if (provider) throw new Error(`INTERVIEWER_EVAL_CONFIG="${evalConfig}" and INTERVIEWER_PROVIDER="${provider}" are both set — an evaluation declares its interviewer one way`);
+    const c = interviewerEvalConfig(evalConfig);
+    return new AnthropicInterviewerModel(c.model, promptLayoutFromEnv(), { thinking: c.thinking, effort: c.effort, fallbacks: c.fallbacks });
+  }
   if (!provider) return new AnthropicInterviewerModel();
   if (provider === 'cerebras') return new CerebrasInterviewerModel();
   if (provider === 'openai-luna-none') return new OpenAIInterviewerModel('gpt-6-luna', 'none');

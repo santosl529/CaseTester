@@ -121,6 +121,7 @@ export class AnthropicInterviewerModel implements InterviewerModel {
       ctx.onUsage?.({
         component: 'interviewer',
         model: this.modelId,
+        actualModel: r.model,
         inputTokens: r.usage.input_tokens,
         outputTokens: r.usage.output_tokens,
         cacheReadTokens: r.usage.cache_read_input_tokens ?? 0,

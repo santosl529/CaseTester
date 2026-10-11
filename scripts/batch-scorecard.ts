@@ -15,8 +15,9 @@ import { loadManifest, entryForRunDir } from '@/lib/eval/batch-manifest';
 import { runIdOf, TEST_RUNS_DIR } from '@/lib/eval/wave-commands';
 
 const RUNS = TEST_RUNS_DIR;
-const OUT = path.join(RUNS, 'batch-18');
 const arg = (n: string) => process.argv.find(a => a.startsWith(`--${n}=`))?.split('=')[1];
+// --batch=<batch-N> (default batch-18).
+const OUT = path.join(RUNS, arg('batch') ?? 'batch-18');
 
 const manifest = loadManifest(OUT);
 const versionArg = arg('version');
