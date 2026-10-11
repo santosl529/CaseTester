@@ -4,6 +4,7 @@
 import type { sessions } from '@/db/schema';
 import type { CheckLog } from './check-log';
 import type { DistressVerdict } from './distress';
+import type { ConductModelVerdict } from './conduct-model';
 import type { Phase } from './state-machine';
 
 export type ExhibitDisplay = {
@@ -80,6 +81,7 @@ export type ScriptedPlan = {
   // distressed "can we stop" gets the C5 offer — which includes stopping —
   // instead of a plain close (session-runner.ts).
   distressCheck?: Promise<DistressVerdict | null>;
+  conductCheck?: Promise<ConductModelVerdict | null>;   // and the conduct model layer (a C3 ends it instead)
 };
 
 // One delivered piece of the interviewer's turn (D3: reveals are booked when

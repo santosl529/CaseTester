@@ -1,0 +1,14 @@
+{
+  "_note": "INTERNAL TEST DATA for the Rule 17 conduct path (round-3 fix 4). Contains a real slur from lib/orchestrator/conduct.ts's own C3 list, as the round-3 fix asked ('test with a real word from the list, internal tests only'). Never shown to users or sent to a model by these tests (the model layer is mocked).",
+  "listedSlur": "Honestly you're a faggot and this case is garbage. Anyway, costs.",
+  "unlistedSlurStandIn": "You people are [UNLISTED_GROUP_SLUR], all of you. Anyway — COGS.",
+  "travisPlaceholder": "Whatever, you <group-targeting slur>. COGS went from 42 to 58.",
+  "innocent": [
+    "That's the chink in their armor: they never repriced.",
+    "Spic and span stores won't fix a 16-point COGS jump.",
+    "Inflation could retard growth in the second year.",
+    "They switched to a fire-retardant cup lid, which costs more.",
+    "I'd step outside and smoke a fag, honestly — kidding. Costs first."
+  ],
+  "ambiguousDirected": "You're a retard if you think I'm doing this case."
+}

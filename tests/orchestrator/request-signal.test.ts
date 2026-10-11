@@ -41,6 +41,7 @@ import { vi } from 'vitest';
 import type { InterviewerModel, TurnContext, TurnEvent } from '@/lib/agent/models/interface';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 
+vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
 vi.mock('@/db/client', () => ({ db: {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
 vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => [] }));

@@ -17,6 +17,7 @@ import type { Phase } from './state-machine';
 import type { VerifiedFigure } from './recompute';
 import type { OpenRequestItem } from './assumption-guard';
 import { isDistressVerdict, type DistressVerdict } from './distress';
+import type { ConductModelVerdict } from './conduct-model';
 import { stripFabricatedTurn, stripMetaLeak, rewriteSystemLanguage, stripCopiedCheckIn } from './audit';
 import { enforceNumericProvenance, changeFigures } from './numeric-provenance';
 import { challengeVerdict } from './probe-guard';
@@ -141,6 +142,7 @@ type StreamTiming = { modelDoneAt: number; distressWaitMs: number };
 
 export type StreamOutcome =
   | ({ kind: 'distress'; verdict: DistressVerdict } & StreamTiming)
+  | ({ kind: 'conduct'; verdict: ConductModelVerdict } & StreamTiming)   // a C3 by the model layer: the session ends (v4.10)
   | ({
     kind: 'done';
     turn: ModelTurn;
@@ -153,6 +155,11 @@ export type StreamOutcome =
   } & StreamTiming);
 
 type Pending = { kind: 'sentence'; text: string } | { kind: 'data_line' };
+
+// Rule 17: a C3 by the model layer ends the session (conduct-model.ts).
+export function conductEnds(c: ConductModelVerdict | null): boolean {
+  return c?.label === 'C3';
+}
 
 // The declarations code needs for the data line; "say" may close before or
 // after them (say-first schema; a model that keeps the old order still works).
@@ -167,9 +174,13 @@ export async function streamTurnSegments(
   const mark = (name: string) => opts.timer?.mark(name);
   const { state } = plan;
   const start = Date.now();
+  // The screens (D1): the distress check and the conduct model layer. Nothing
+  // is delivered before both are in; either can end the draft.
   let verdict: DistressVerdict | null | undefined; // undefined: not in yet
+  let conduct: ConductModelVerdict | null = null;
   let verdictAtMs: number | null = null;
-  const verdictPromise = state.distress.then(v => { verdict = v; verdictAtMs = Date.now(); return v; });
+  const verdictPromise = Promise.all([state.distress, state.conductCheck]).then(([d, c]) => { conduct = c; verdict = d; verdictAtMs = Date.now(); return d; });
+  const stops = () => isDistressVerdict(verdict ?? null) || conductEnds(conduct);
 
   const g = gateContext(plan);
   let bufferSwitch: string | null = state.buffered ? `plan:${state.bufferReason ?? 'buffered'}` : null;
@@ -256,7 +267,7 @@ export async function streamTurnSegments(
     if (e.type === 'field') closed.add(e.key);
     // Guard B: held say sentences go out once the requests have closed (a
     // regeneration before then drops them with the draft).
-    if (holdForRequests && e.type === 'field' && e.key === 'requests' && verdict !== undefined && !isDistressVerdict(verdict)) await flushQueue();
+    if (holdForRequests && e.type === 'field' && e.key === 'requests' && verdict !== undefined && !stops()) await flushQueue();
     if (!p && !dataLineQueued && closed.has('say') && DECLARATIONS.every(k => closed.has(k))) {
       dataLineQueued = true;
       p = { kind: 'data_line' };
@@ -264,7 +275,7 @@ export async function streamTurnSegments(
     if (!p) continue;
     if (verdict === undefined) { queue.push(p); mark('held_for_distress'); continue; } // D1: hold until the verdict
     if (p.kind === 'sentence' && holdForRequests && !closed.has('requests')) { queue.push(p); mark('held_for_requests'); continue; }
-    if (isDistressVerdict(verdict)) continue;
+    if (stops()) continue;
     await flushQueue();
     await handle(p);
   }
@@ -272,6 +283,8 @@ export async function streamTurnSegments(
   const doneAt = modelDoneAt ?? Date.now();
   const v = verdict === undefined ? await verdictPromise : verdict;
   const timing: StreamTiming = { modelDoneAt: doneAt, distressWaitMs: Math.max(0, (verdictAtMs ?? Date.now()) - doneAt) };
+  const c = conduct as ConductModelVerdict | null;
+  if (c && conductEnds(c)) return { kind: 'conduct', verdict: c, ...timing };
   if (isDistressVerdict(v)) return { kind: 'distress', verdict: v, ...timing };
   await flushQueue();
   return { kind: 'done', turn, validation, delivered, deliveredRevealIds, undeliveredRevealIds, firstSegmentMs, bufferSwitch, ...timing };

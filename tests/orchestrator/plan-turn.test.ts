@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // The Plan stage decides the turn without touching the database: a proxy db
 // records any use; the distress classifier that starts in Plan is stubbed.
 const dbUsed = vi.fn();
+vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
 vi.mock('@/db/client', () => ({
   db: new Proxy({}, { get: (_t, prop) => { dbUsed(String(prop)); return () => { throw new Error(`db.${String(prop)} used in plan`); }; } }),
 }));

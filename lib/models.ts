@@ -84,6 +84,11 @@ export const BACKGROUND_MODEL_ID = {
   // The pressure-test answer judge and the structure check. Switched 8 Oct:
   // false unlocks 0.7 per pass vs 4.5's 2.0; one consistent false rejection.
   probe_judge: 'claude-haiku-5-5',
+  // New role (11 Oct, round-3 fix 4): the conduct backstop and tiebreaker
+  // (lib/orchestrator/conduct-model.ts), on the distress screen's model. Not
+  // yet evaluated on real messages — its labelled check is in the proposed
+  // validation set.
+  conduct: 'claude-haiku-5-5',
 } as const;
 
 // Request settings for a background call on `model`. Haiku 5.5 (verified

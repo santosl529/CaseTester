@@ -3,8 +3,11 @@
 //
 // SAFETY POSTURE — read before touching the lexicons:
 // This is a deterministic first-pass screen. The doc's design is a deterministic
-// pre-screen with "model judgment as tiebreaker"; the tiebreaker is NOT built
-// yet, so this classifier alone decides. That means:
+// pre-screen with "model judgment as tiebreaker". v4.10 (11 Oct) builds it
+// (conduct-model.ts): a C3 the lists miss ends the session through the model
+// layer, and a hit on an ambiguous slur stem ("chink", "spic", "retard",
+// "fag") is decided there ("confirm") instead of ending a session on a word
+// that has innocent uses. The rest of this note still holds for the lists:
 //   - It WILL have false positives and false negatives. Tune conservatively.
 //   - Destructive actions (terminate) require CLEAR, specific signals — we would
 //     rather miss a borderline C2 than wrongly terminate an innocent candidate.
@@ -21,7 +24,9 @@ export type ConductCategory = 'none' | 'C1' | 'C2' | 'C3' | 'C4' | 'C5';
 // ignore: proceed with the normal case turn (no scripted response, no log for C1)
 // warn/redirect/offer_pause: the interviewer's turn IS the scripted response (short-circuit the case turn)
 // terminate: scripted closing sentence, session ends with NO score/debrief (Rule 18)
-export type ConductAction = 'ignore' | 'warn' | 'terminate' | 'redirect' | 'offer_pause';
+export type ConductAction = 'ignore' | 'warn' | 'terminate' | 'redirect' | 'offer_pause' | 'confirm';
+// confirm: an ambiguous C3 stem — the model layer decides (plan-turn.ts); until
+// it does, nothing is delivered (the screen gate in stream-turn.ts).
 
 export type ConductAssessment = {
   category: ConductCategory;
@@ -44,7 +49,13 @@ const C3_SEXUAL = /\b(send nudes|sexual|f[uc]+k me|suck (my|your)|i want to (f[u
 // terms. This list is illustrative and MUST be reviewed/expanded with counsel
 // and the real population before production — an English-only regex is not a
 // hate-speech classifier.
-const C3_SLUR = /\b(n[i1]gg(er|a)|f[a4]gg?(ot)?|r[e3]tard|k[i1]ke|sp[i1]c|ch[i1]nk|tr[a4]nny)\b/i;
+// v4.10: split by ambiguity. The unambiguous stems end the session at once;
+// the ambiguous ones have common innocent uses and go to the model tiebreaker,
+// unless the context is plainly innocent ("a chink in the armor", "spic and
+// span", "fire retardant", "retard growth").
+const C3_SLUR = /\b(n[i1]gg(er|a)s?|f[a4]gg[o0]ts?|k[i1]kes?|tr[a4]nn(y|ies))\b/i;
+const C3_SLUR_AMBIGUOUS = /\b(r[e3]tard(s|ed)?|sp[i1]cs?|ch[i1]nks?|f[a4]gs?)\b/i;
+const C3_INNOCENT = /\bch[i1]nks? in (?:the|their|its|our|your|his|her|my) armou?r\b|\bspic and span\b|\b(?:fire|flame)[- ]retard\w*|\bretard(?:s|ed|ing)? (?:the |its |their )?(?:growth|progress|development|decline|spread|rate|ripening|combustion)\b|\b(?:smoke|bum|light|roll) (?:a )?fags?\b/i;
 
 // ---- C5: distress signals → break persona, offer pause/stop, NEVER terminate ---
 // Sensitive by design. Self-harm language, or despair generalized beyond the
@@ -156,6 +167,7 @@ export function classifyConduct(text: string, priorHostilityWarnings: number): C
   // distressed candidate who also swears is offered help, not warned/terminated.
   if (C3_THREAT.test(text)) return { category: 'C3', action: 'terminate', reason: 'threat' };
   if (C3_SLUR.test(text)) return { category: 'C3', action: 'terminate', reason: 'slur' };
+  if (C3_SLUR_AMBIGUOUS.test(text.replace(C3_INNOCENT, ' '))) return { category: 'C3', action: 'confirm', reason: 'slur_ambiguous' };
   if (C3_SEXUAL.test(text)) return { category: 'C3', action: 'terminate', reason: 'sexual' };
 
   if (C5_SELF_HARM.test(text)) return { category: 'C5', action: 'offer_pause', reason: 'self_harm' };

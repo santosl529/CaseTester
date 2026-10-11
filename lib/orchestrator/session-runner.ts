@@ -15,7 +15,9 @@ import { streamInterviewerTurn } from '@/lib/agent/interviewer';
 import { createInterviewerModel } from '@/lib/agent/models/factory';
 import { SILENCE_PAUSE_EXPIRED, GRACE_ASK_SCRIPTS, TIME_WARNING_SCRIPTS, STAGE_EXHIBIT_QUESTIONS, closeLine, pickScript } from '@/lib/agent/prompts/scripts';
 import { BLOCKED_CLOSE_PROBES } from './spoken-close';
-import { planTurn, scriptedOffer, scriptedOfferFor, type ModelPlan, type TurnReads } from './plan-turn';
+import { planTurn, scriptedOffer, scriptedOfferFor, terminationPlanFor, type ModelPlan, type TurnReads } from './plan-turn';
+import { conductEnds } from './stream-turn';
+import type { ConductModelVerdict } from './conduct-model';
 import { planFingerprint, type DraftGate } from './speculation';
 import { promptContextFor } from './prompt-context';
 import { TurnRecorder, type TurnRecord, type TurnStateBefore } from './turn-record';
@@ -216,7 +218,12 @@ async function runTurnBody(
     // An exit turn (Rule 18A): a distress verdict on the message takes
     // precedence — the C5 offer includes stopping.
     let scripted: ScriptedPlan = plan;
-    if (plan.distressCheck) {
+    const conductVerdict = plan.conductCheck ? await timer.time('conduct_verdict', plan.conductCheck) : null;
+    if (plan.conductCheck) plan.ctx.checks.record('conduct_backstop', conductEnds(conductVerdict), conductVerdict ? `conduct by model: ${conductVerdict.label}` : 'no verdict', { ...(conductVerdict ?? {}) });
+    if (conductVerdict && conductEnds(conductVerdict)) {
+      plan.ctx.events.length = 0;
+      scripted = terminationPlanFor(plan.ctx, 'C3', { reason: conductVerdict.reason, layer: 'model' });
+    } else if (plan.distressCheck) {
       const verdict = await timer.time('distress_verdict', plan.distressCheck);
       plan.ctx.checks.record('conduct_model', isDistressVerdict(verdict), verdict ? `C5 by model: ${verdict.label}` : 'no verdict', { ...(verdict ?? {}) });
       if (isDistressVerdict(verdict)) {
@@ -258,6 +265,19 @@ async function runTurnBody(
     else if (distress === null) checks.skip('conduct_model', 'classifier failed — regex floor stands');
     else checks.record('conduct_model', isDistressVerdict(distress), `C5 by model: ${distress.label}`, { ...distress });
   };
+  // Rule 17 model layer (v4.10): a C3 the word lists missed, or an ambiguous
+  // stem confirmed, ends the session; the draft is discarded undelivered.
+  const recordConduct = (c: ConductModelVerdict | null) => {
+    checks.record('conduct_backstop', conductEnds(c), c ? `conduct by model: ${c.label}` : (state.conductConfirm ? 'no verdict — the ambiguous stem is not enough to end a session' : 'no verdict — the word lists stand'),
+      { ...(c ?? {}), confirm: state.conductConfirm?.reason ?? null });
+  };
+  const terminate = async (c: ConductModelVerdict) => {
+    console.warn('[runner] C3 by the model layer — session ends:', JSON.stringify(c));
+    if (turnUsage.apiCalls > 0) later(() => logEvent('llm_usage', { component: 'interviewer', ...turnUsage, discarded: true }, { sessionId, userId }));
+    const end = terminationPlanFor(plan.ctx, 'C3', { reason: c.reason, layer: 'model', confirm: state.conductConfirm?.reason ?? null });
+    await deliver({ text: end.interviewerText, revealIds: [], kind: 'scripted' }).catch(() => {});
+    return done(await commit(end, await hear(end)));
+  };
   const offerPause = async (verdict: DistressVerdict) => {
     console.warn('[runner] C5 by the model layer — turn discarded:', JSON.stringify(verdict));
     if (turnUsage.apiCalls > 0) {
@@ -278,13 +298,16 @@ async function runTurnBody(
     // The message's data requests are answered first, from the synchronous
     // classification (today's ask-turn behaviour); the distress gate still
     // applies.
-    const [distress, detected] = await timer.time('code_written_checks', Promise.all([
+    const [distress, detected, conduct] = await timer.time('code_written_checks', Promise.all([
       state.distress,
       classifyDataRequests({
         candidateText, interviewerText: null, catalog: state.catalog,
         onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId }); },
       }),
+      state.conductCheck,
     ]));
+    recordConduct(conduct);
+    if (conduct && conductEnds(conduct)) return terminate(conduct);
     recordDistress(distress);
     if (isDistressVerdict(distress)) return offerPause(distress);
     // Only asks addressed to the interviewer are answered here (smoke run
@@ -344,6 +367,8 @@ async function runTurnBody(
     // Interviewer latency is the model call alone (the whole stream); the wait
     // on the distress verdict past it is logged apart (batch 4 conflated them).
     const modelLatencyMs = streamed.modelDoneAt - modelCallStart;
+    recordConduct(await state.conductCheck);
+    if (streamed.kind === 'conduct') return terminate(streamed.verdict);
     recordDistress(await state.distress);
     if (streamed.kind === 'distress') return offerPause(streamed.verdict);
     checks.record('stream_buffer_switch', streamed.bufferSwitch !== null,

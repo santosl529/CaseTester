@@ -39,10 +39,10 @@ const ROLES: [string, Run, number][] = [
 beforeEach(() => { calls.length = 0; });
 
 describe('background classifiers', () => {
-  it('production: judges and distress on Haiku 5.5 (switched 8 Oct after their checks); the rest on Haiku 4.5', () => {
+  it('production: judges, distress and the conduct backstop (new 11 Oct) on Haiku 5.5; the rest on Haiku 4.5', () => {
     expect(BACKGROUND_MODEL_ID).toEqual({
       coverage: 'claude-haiku-4-5-20251001', data_request: 'claude-haiku-4-5', distress: 'claude-haiku-5-5',
-      hint_check: 'claude-haiku-4-5', probe_judge: 'claude-haiku-5-5',
+      hint_check: 'claude-haiku-4-5', probe_judge: 'claude-haiku-5-5', conduct: 'claude-haiku-5-5',
     });
   });
 

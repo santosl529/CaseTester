@@ -22,6 +22,7 @@ function resetStore(phase: string, flags: Row = {}, elapsedMs?: number) {
   store.turns = r.turnRows.map(t => ({ ...t }));
   store.revealed = []; store.exhibits = []; store.events = [];
 }
+vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
 vi.mock('@/db/client', async () => {
   const { getTableName } = await import('drizzle-orm');
   const target = (t: unknown) => ({ session_turns: store.turns, revealed_data: store.revealed, exhibits_shown: store.exhibits, session_events: store.events } as Record<string, Row[]>)[getTableName(t as never)];

@@ -280,3 +280,20 @@ describe('isPauseAccepted — declining in other words', () => {
     expect(isPauseAccepted("Yes, let's stop there please.")).toBe(true);
   });
 });
+
+// v4.10 (round-3 fix 4): the word lists are a first pass. Unambiguous stems
+// end the session at once; ambiguous stems go to the model layer ("confirm")
+// unless the context is plainly innocent. Internal fixture with a real listed
+// word: tests/orchestrator/fixtures/conduct-internal.json.
+describe('C3 word lists — unambiguous, ambiguous, innocent', async () => {
+  const fx = (await import('./fixtures/conduct-internal.json')).default as { listedSlur: string; innocent: string[]; ambiguousDirected: string };
+  it('a real listed slur ends the session immediately', () => {
+    expect(classifyConduct(fx.listedSlur, 0)).toEqual({ category: 'C3', action: 'terminate', reason: 'slur' });
+  });
+  it.each(fx.innocent)('innocent use is not conduct: %s', text => {
+    expect(['none', 'C1']).toContain(classifyConduct(text, 0).category);
+  });
+  it('an ambiguous stem aimed at someone is decided by the model layer, not ended on the word', () => {
+    expect(classifyConduct(fx.ambiguousDirected, 0)).toEqual({ category: 'C3', action: 'confirm', reason: 'slur_ambiguous' });
+  });
+});

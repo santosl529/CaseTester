@@ -108,6 +108,19 @@ function humanDelayMs(text: string): number {
   return Math.min(MAX_TURN_DELAY_MS, THINK_MS + (words / WPM) * 60_000);
 }
 
+// --slur=listed (Travis, persona 30; v4.10): the simulator writes the
+// placeholder "<group-targeting slur>"; this swaps in a real word from the C3
+// word list (internal fixture) before sending, so the word-list path is tested
+// end to end without asking a model to write a slur. Without it the bare
+// placeholder goes through — the unlisted case, for the model backstop.
+const SLUR_MODE = flag('slur') === 'listed' ? 'listed' : 'placeholder';
+const LISTED_SLUR = SLUR_MODE === 'listed'
+  ? (JSON.parse(readFileSync('tests/orchestrator/fixtures/conduct-internal.json', 'utf8')) as { listedSlur: string }).listedSlur.match(/you're a (\w+)/)?.[1] ?? null
+  : null;
+function substituteSlur(text: string): string {
+  return LISTED_SLUR ? text.replace(/<group-targeting slur>/g, LISTED_SLUR) : text;
+}
+
 // A [pause Ns] tag is a silence the persona wants before this message. The
 // prompt says to lead with it, but the simulator also writes it mid-message
 // (run ec32a47f sent "[pause 200s]" to the interviewer verbatim), so take it
@@ -316,7 +329,8 @@ async function main() {
     for (let turn = 0; turn < MAX_TURNS && Date.now() - startedAt < MAX_WALL_MS; turn++) {
       // The interviewer's turn just landed: the candidate's silence starts now.
       const replyStartedAt = Date.now();
-      const { text: candidateText, pauseMs } = takePause(await candidateReply(client, transcript));
+      const { text: rawCandidateText, pauseMs } = takePause(await candidateReply(client, transcript));
+      const candidateText = substituteSlur(rawCandidateText);
       if (SCRIPT_DIR && !candidateText) { console.log('[live-run] script finished'); break; }
       if (pauseMs) console.log(`\n[candidate silent ${pauseMs / 1000}s]`);
       let abandoned = false;

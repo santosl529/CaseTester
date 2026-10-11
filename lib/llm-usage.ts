@@ -4,7 +4,7 @@
 // nothing in tests). Raw tokens + model id are logged, not dollars: pricing
 // changes out-of-band, so cost is computed at analysis time from the tokens.
 export type LlmUsage = {
-  component: 'interviewer' | 'judge' | 'verifier' | 'coverage' | 'data_request' | 'reconcile' | 'distress' | 'hint_check' | 'opener' | 'probe_judge' | 'structure_judge';
+  component: 'interviewer' | 'judge' | 'verifier' | 'coverage' | 'data_request' | 'reconcile' | 'distress' | 'hint_check' | 'opener' | 'probe_judge' | 'structure_judge' | 'conduct';
   model: string;        // the model requested
   // The model the API says answered (response.model). Differs from `model`
   // when a server-side fallback re-ran the request on another model. Recorded
