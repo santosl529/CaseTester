@@ -66,7 +66,7 @@ The update decision (keep, revise or drop) is HY-2's critical element. Code scor
 4. **(grader)** Tentative: it is framed as something to check ("likely", "my hypothesis is", "I would test") while leading with one cause. Stating it as settled fact fails; so do two causes with neither as the lead.
    - *hy2-0019-a:* "Refill sales are low because few stores stock refills." is stated as settled fact.
    - *hy2-0004-a:* price leads and weather is a "maybe", so it passes.
-5. **(grader)** Update reason: it uses the new fact (its content or its number) and draws a conclusion from it about the hypothesis. A short conclusion is enough ("so it's the rainy days", "which confirms it", "so it's slow delivery, not the food"). Restating the fact with no conclusion fails, restating the decision ("I keep it because it still makes sense") fails, and so does a fix with no hypothesis behind it ("so reopen them").
+5. **(grader)** Update reason: it uses the new fact (its content or its number) and draws a conclusion from it. Any of these counts: naming the cause the fact points to ("so it's the rainy days", "the issue is that 40% of stores ran out"), saying what the fact does to the mechanism ("so fewer ambulances are free", "cutting capacity"), or saying whether it supports the hypothesis ("which confirms it"). Restating the fact with no conclusion fails, restating the decision ("I keep it because it still makes sense") fails, and so does a fix with no hypothesis behind it ("so reopen them").
    - *hy2-0025-a:* "Yes." fails.
    - *hy2-0004-a:* "so it's mostly the rainy days" is a conclusion, so it passes; *hy2-0006-a:* "Waste went from 2% to 9%" only restates the fact, so it fails.
    - *hy2-0008-a*, *hy2-0023-a*, *hy2-0036-a:* fixes ("so reopen them") fail.

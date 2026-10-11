@@ -134,7 +134,7 @@
       "step": 0
     }
   ],
-  "model_answer": "I'd split admin cost into claims processing, customer service, IT systems, and sales commissions. I'd start with cost per claim and the share handled automatically, against peers, since claims are usually the biggest admin cost and manual handling the usual gap.",
+  "model_answer": "I'd split admin cost into claims processing, customer-service calls per member, IT systems, and sales commissions. I'd start with cost per claim and the share handled automatically over two years, against peers, since claims are usually the biggest admin cost and manual handling the usual gap.",
   "explanation": "Drivers: Claims processing, Customer service, IT systems, Sales commissions. Start with Claims processing: Claims handling is usually the largest admin cost, and manual processing is the common gap with peers. Specific: Cost per claim and share of claims handled automatically, against peers; calls per member per year. Vague: Cost information; benchmarking data.",
   "extras": {
     "drivers": [

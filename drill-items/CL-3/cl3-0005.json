@@ -134,7 +134,7 @@
       "step": 0
     }
   ],
-  "model_answer": "I'd look at demand by day, what couples spend on the whole wedding, competitor venues' prices, and our cost per event. I'd start with inquiries turned away and booking lead time by day of the week, since Saturdays are oversold while Fridays and Sundays have room.",
+  "model_answer": "Prices turn on demand by day, couples' budgets, competitor venues' prices, and our cost per event. I'd start with inquiries turned away and booking lead time by day of the week for two years, since Saturdays are oversold while Fridays and Sundays have room.",
   "explanation": "Drivers: Demand by day of the week, Competitor prices, Cost per event, Couples' budgets. Start with Demand by day of the week: Saturday demand far exceeds supply while other days have room, so prices should differ by day. Specific: Booking lead time and inquiries turned away by day of the week for two years; competitor venues' prices by day. Vague: Booking data; competitor information.",
   "extras": {
     "drivers": [

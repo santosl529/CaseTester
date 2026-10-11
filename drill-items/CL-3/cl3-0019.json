@@ -134,7 +134,7 @@
       "step": 0
     }
   ],
-  "model_answer": "I'd look at which deposits left, the rate gap, what else departing customers held with us, and the cost of matching the rate. I'd start with lost deposits by customer segment and balance size, to see whether the losses sit where a 4% rate would bite.",
+  "model_answer": "It depends on which deposits left, the rate gap, what else departing customers held with us, and the cost of matching. I'd start with deposits lost by customer segment and balance size over the past year, to see whether the losses sit where a 4% rate would bite.",
   "explanation": "Drivers: Which deposits left, Rate gap, Customer relationships, Cost of matching. Start with Which deposits left: Knowing which customers and balances left shows whether the online rate is the cause and who to defend. Specific: Deposits lost by customer segment and balance size this year; other products those customers held. Vague: Deposit data; competitor information.",
   "extras": {
     "drivers": [
