@@ -17,6 +17,7 @@ import type { ItemRef } from '../sets/plan';
 import type { ItemResult, StepResult } from '../sets/scoring';
 import { nextTier, passed, setScore, skillScores } from '../sets/summary';
 import { applyGrade, type CheckResults } from './apply';
+import { applySetProgress } from '../progress/store';
 import { gradeSet, type CallModel } from './grader';
 
 type SetRow = typeof drillSets.$inferSelect;
@@ -53,7 +54,8 @@ export const resultOf = (row: AttemptRow): ItemResult => {
 };
 
 // Scores a set whose attempts are all scored: set score, pass, skill scores,
-// the next tier. Idempotent: a completed set is left alone.
+// the next tier, then runs the progress engine. Idempotent: a completed set is
+// left alone.
 export async function finalizeSet(setId: string): Promise<boolean> {
   const event = await db.transaction(async tx => {
     const [set] = await tx.select().from(drillSets).where(eq(drillSets.id, setId)).for('update');
@@ -71,12 +73,18 @@ export async function finalizeSet(setId: string): Promise<boolean> {
       .where(eq(drillSets.id, set.id));
     await tx.insert(drillTiers).values({ studentId: set.studentId, drillId: drill.id, currentTier: tier, updatedAt: now })
       .onConflictDoUpdate({ target: [drillTiers.studentId, drillTiers.drillId], set: { currentTier: tier, updatedAt: now } });
+    // Skill states, stages, transfer and review dates, prescriptions.
+    const progress = await applySetProgress(tx, set, results, skills);
     return {
       studentId: set.studentId,
       props: { set_id: set.id, set_score: score, passed: passed(drill, score), duration_ms: now.getTime() - set.startedAt.getTime(), skill_scores: skills },
+      progress: progress.events,
     };
   });
-  if (event) await logDrillEvent(event.studentId, 'drill_set_completed', event.props);
+  if (event) {
+    await logDrillEvent(event.studentId, 'drill_set_completed', event.props);
+    for (const e of event.progress) await logDrillEvent(event.studentId, e.type, e.props);
+  }
   return event !== null;
 }
 

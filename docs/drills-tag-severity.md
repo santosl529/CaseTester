@@ -8,7 +8,7 @@ Status: approved by Matt on 2026-10-11 with two changes (`M.premature_solution` 
 - **Major:** it changes the answer, sends the case down the wrong path, or would sink an MBB interview on its own.
 - **Minor:** the answer survives. It costs points on polish, efficiency or depth.
 
-**Totals:** 35 major, 30 minor. Math, exhibit and fact-handling mistakes are mostly major, so prescriptions will lean toward QN and EX drills. That's a deliberate choice, and it's worth a look.
+**Totals:** 35 major, 32 minor (the two Defend tags from PRD v2, `M.dodged_question` and `M.inconsistent_defense`, default to minor). Math, exhibit and fact-handling mistakes are mostly major, so prescriptions will lean toward QN and EX drills. That's a deliberate choice, and it's worth a look.
 
 ## Structure (PS)
 

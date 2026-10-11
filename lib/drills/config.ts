@@ -31,6 +31,8 @@ export const TaxonomySchema = z.object({
     area: z.enum(AREA_CODES),
     name: z.string().min(1),
     description: z.string().min(1),
+    // The skill tree (PRD "Skill tree"): skills this one builds on. No cycles.
+    prerequisites: z.array(SkillId),
   })),
   mistake_tags: z.array(z.object({
     id: TagId,
@@ -56,7 +58,11 @@ export const DrillSchema = z.object({
   id: DrillId,
   name: z.string().min(1),
   level: z.union([z.literal(1), z.literal(2)]),
-  skills: z.array(SkillId).min(1),
+  // Every skill the drill scores. Only primary skills change state from its
+  // sets (PRD "Skill states and transitions"); a secondary skill's scores and
+  // mistakes still count toward its skill score, top mistakes and
+  // prescriptions. QN-4 scores arithmetic, but only QN-3 can make it Practiced.
+  skills: z.array(z.object({ id: SkillId, primary: z.boolean() })).min(1),
   input_types: z.array(InputTypeSchema).min(1),
   scoring: z.enum(['auto', 'checklist', 'checklist_auto']),
   // Null only for P2 drills the PRD doesn't size yet (BJ-3, CM-2).
@@ -69,6 +75,7 @@ export const DrillSchema = z.object({
   item_source: z.enum(['generated', 'authored', 'mixed']),
   live: z.boolean(),
 }).superRefine((d, ctx) => {
+  if (!d.skills.some(s => s.primary)) ctx.addIssue({ code: 'custom', path: ['skills'], message: `${d.id}: needs at least one primary skill` });
   if (d.priority !== 'P2' && d.set_size === null) {
     ctx.addIssue({ code: 'custom', path: ['set_size'], message: `${d.id}: only P2 drills may leave set_size unset` });
   }
@@ -79,7 +86,9 @@ export const DrillSchema = z.object({
 
 export const DrillsConfigSchema = z.object({
   version: z.string(),
-  drills: z.array(DrillSchema),
+  drills: z.array(DrillSchema.transform(({ skills, ...d }) => ({
+    ...d, skills: skills.map(s => s.id), primary_skills: skills.filter(s => s.primary).map(s => s.id),
+  }))),
 });
 
 export const RulesSchema = z.object({
@@ -92,6 +101,28 @@ export const RulesSchema = z.object({
     min_items_or_checks_per_skill: z.number().int().positive(),
   }),
   test_out: z.object({ level: z.literal(2), tier: z.number().int().min(1).max(3), drop_to_level1_below: Share }),
+  // Stage moves (PRD "Where a student starts and how they move between stages").
+  stages: z.object({
+    repair_to_construct_at_or_above: Share,
+    max_repair_sets: z.number().int().positive(),
+    construct_to_repair_below: Share,
+    construct_to_recognize_below: Share,
+  }),
+  transfer: z.object({
+    unlock_after_days: z.number().nonnegative(),
+    tier: z.number().int().min(1).max(3),
+    level1_tier: z.number().int().min(1).max(3),   // skills with no live Construct drill
+    pass_at_or_above: Share,
+    demote_below: Share,
+    retry_after_days: z.number().nonnegative(),
+    avoid_case_types_from_last_sets: z.number().int().nonnegative(),
+  }),
+  // The stuck rule (PRD "Skill tree").
+  stuck: z.object({
+    low_score_below: Share,
+    consecutive_sets: z.number().int().positive(),
+    resume_after_prereq_sets: z.number().int().positive(),
+  }),
   tiers: z.object({
     start: z.number().int(), min: z.number().int(), max: z.number().int(),
     up_at_or_above: Share, down_below: Share,
@@ -130,8 +161,9 @@ export const RulesSchema = z.object({
   }),
   // The PRD's tag-to-drill map, keyed by skill: every tag maps to exactly one
   // skill, so the skill decides the drill, and the mastery rules decide which
-  // level (l1 / l2) is served. Null where the catalog has no drill at that level.
-  skill_drills: z.record(SkillId, z.object({ l1: DrillId.nullable(), l2: DrillId.nullable() })),
+  // stage is served: l1 = Recognize, repair = Repair, l2 = Construct. Null
+  // where the catalog has no drill for that stage (every Repair drill until D5).
+  skill_drills: z.record(SkillId, z.object({ l1: DrillId.nullable(), repair: DrillId.nullable(), l2: DrillId.nullable() })),
   // Tags a set can focus on ("70% of mental math items become zeros problems"),
   // and the drill that supports the focus.
   focusable_tags: z.record(TagId, DrillId),
@@ -140,7 +172,7 @@ export const RulesSchema = z.object({
 });
 
 export type Taxonomy = z.infer<typeof TaxonomySchema>;
-export type Drill = z.infer<typeof DrillSchema>;
+export type Drill = z.infer<typeof DrillsConfigSchema>['drills'][number];
 export type DrillsConfig = z.infer<typeof DrillsConfigSchema>;
 export type Rules = z.infer<typeof RulesSchema>;
 export type MistakeTag = Taxonomy['mistake_tags'][number];
@@ -179,10 +211,19 @@ export function crossCheck({ taxonomy, drills, rules }: DrillsConfigBundle): str
     if (!s.id.startsWith(`${s.area}.`)) problems.push(`Skill ${s.id}: id prefix doesn't match area ${s.area}`);
     if (!taxonomy.mistake_tags.some(t => t.skill === s.id)) problems.push(`Skill ${s.id}: has no mistake tags`);
     if (!drills.drills.some(d => d.skills.includes(s.id))) problems.push(`Skill ${s.id}: no drill trains it`);
+    else if (!drills.drills.some(d => d.primary_skills.includes(s.id))) problems.push(`Skill ${s.id}: no drill has it as a primary skill`);
   }
   for (const t of taxonomy.mistake_tags) {
     if (!skillIds.has(t.skill)) problems.push(`Tag ${t.id}: unknown skill ${t.skill}`);
   }
+  for (const s of taxonomy.skills) {
+    for (const p of s.prerequisites) {
+      if (!skillIds.has(p)) problems.push(`Skill ${s.id}: unknown prerequisite ${p}`);
+      if (p === s.id) problems.push(`Skill ${s.id}: lists itself as a prerequisite`);
+    }
+  }
+  const cycle = prerequisiteCycle(taxonomy);
+  if (cycle) problems.push(`Skill tree has a cycle: ${cycle.join(' → ')}`);
   for (const d of drills.drills) {
     for (const s of d.skills) if (!skillIds.has(s)) problems.push(`Drill ${d.id}: unknown skill ${s}`);
   }
@@ -203,7 +244,14 @@ export function crossCheck({ taxonomy, drills, rules }: DrillsConfigBundle): str
       if (!drill) problems.push(`rules.skill_drills.${skill}.l${level}: unknown drill ${drillId}`);
       else if (drill.level !== level || !drill.skills.includes(skill)) {
         problems.push(`rules.skill_drills.${skill}.l${level}: ${drillId} is not a level ${level} drill for ${skill}`);
+      } else if (!drill.primary_skills.includes(skill)) {
+        problems.push(`rules.skill_drills.${skill}.l${level}: ${skill} is not a primary skill of ${drillId}`);
       }
+    }
+    if (levels.repair !== null) {
+      const drill = drillById.get(levels.repair);
+      if (!drill) problems.push(`rules.skill_drills.${skill}.repair: unknown drill ${levels.repair}`);
+      else if (!drill.primary_skills.includes(skill)) problems.push(`rules.skill_drills.${skill}.repair: ${skill} is not a primary skill of ${levels.repair}`);
     }
   }
   const tagSkill = new Map(taxonomy.mistake_tags.map(t => [t.id, t.skill]));
@@ -221,6 +269,28 @@ export function crossCheck({ taxonomy, drills, rules }: DrillsConfigBundle): str
   }
   if (rules.tiers.min > rules.tiers.start || rules.tiers.start > rules.tiers.max) problems.push('rules.tiers: start must sit between min and max');
   return problems;
+}
+
+// The first cycle in the skill tree, as a path that ends where it starts, or
+// null if there is none.
+export function prerequisiteCycle(taxonomy: Taxonomy): string[] | null {
+  const prereqs = new Map(taxonomy.skills.map(s => [s.id, s.prerequisites]));
+  const done = new Set<string>();
+  const visit = (id: string, path: string[]): string[] | null => {
+    if (path.includes(id)) return [...path.slice(path.indexOf(id)), id];
+    if (done.has(id)) return null;
+    for (const p of prereqs.get(id) ?? []) {
+      const found = visit(p, [...path, id]);
+      if (found) return found;
+    }
+    done.add(id);
+    return null;
+  };
+  for (const id of prereqs.keys()) {
+    const found = visit(id, []);
+    if (found) return found;
+  }
+  return null;
 }
 
 export function parseDrillsConfig(raw: { taxonomy: unknown; drills: unknown; rules: unknown }): DrillsConfigBundle {
@@ -248,6 +318,7 @@ export const DRILLS_CONFIG: DrillsConfigBundle = parseDrillsConfig({
 export const TAXONOMY_VERSION = DRILLS_CONFIG.taxonomy.version;
 
 const tagById = new Map(DRILLS_CONFIG.taxonomy.mistake_tags.map(t => [t.id, t]));
+const skillById = new Map(DRILLS_CONFIG.taxonomy.skills.map(s => [s.id, s]));
 const systemTagIds = new Set(DRILLS_CONFIG.taxonomy.system_tags.map(t => t.id));
 const drillById = new Map(DRILLS_CONFIG.drills.drills.map(d => [d.id, d]));
 
@@ -259,6 +330,12 @@ export function isKnownTag(id: string): boolean {
   return tagById.has(id) || systemTagIds.has(id);
 }
 
+export function getSkill(id: string): Skill {
+  const skill = skillById.get(id);
+  if (!skill) throw new Error(`Unknown skill: ${id}`);
+  return skill;
+}
+
 export function getDrill(id: string): Drill {
   const drill = drillById.get(id);
   if (!drill) throw new Error(`Unknown drill: ${id}`);
@@ -268,5 +345,5 @@ export function getDrill(id: string): Drill {
 // "Skills with no live Level 2 drill start at Level 1, and Level 1 criteria
 // grant Mastered" (PRD "Skill states and transitions").
 export function hasLiveLevel2Drill(skillId: string): boolean {
-  return DRILLS_CONFIG.drills.drills.some(d => d.live && d.level === 2 && d.skills.includes(skillId));
+  return DRILLS_CONFIG.drills.drills.some(d => d.live && d.level === 2 && d.primary_skills.includes(skillId));
 }

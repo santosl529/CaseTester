@@ -150,14 +150,14 @@ export const analyticsEvents = pgTable('analytics_events', {
 // ---------------------------------------------------------------------------
 
 export const itemStatusEnum = pgEnum('drill_item_status', ['draft', 'in_review', 'live', 'retired']);
-export const drillSetSourceEnum = pgEnum('drill_set_source', ['prescription', 'continue', 'specific', 'review', 'diagnostic']);
+export const drillSetSourceEnum = pgEnum('drill_set_source', ['prescription', 'continue', 'specific', 'review', 'diagnostic', 'plan']);
 export const drillSetStatusEnum = pgEnum('drill_set_status', ['in_progress', 'grading', 'completed', 'expired']);
 export const attemptGradingStatusEnum = pgEnum('attempt_grading_status', ['not_needed', 'pending', 'graded', 'delayed', 'failed']);
 export const gradingJobStatusEnum = pgEnum('grading_job_status', ['queued', 'running', 'succeeded', 'failed']);
-export const skillStateEnum = pgEnum('skill_state', ['not_started', 'learning', 'recognizes', 'mastered', 'validated']);
+export const skillStateEnum = pgEnum('skill_state', ['not_started', 'learning', 'recognizes', 'practiced', 'mastered', 'validated']);
 export const skillEventSourceEnum = pgEnum('skill_event_source', ['set', 'case', 'review']);
-export const prescriptionSourceEnum = pgEnum('prescription_source', ['case', 'drill']);
-export const prescriptionStatusEnum = pgEnum('prescription_status', ['open', 'in_progress', 'completed', 'dismissed', 'superseded']);
+export const prescriptionSourceEnum = pgEnum('prescription_source', ['case', 'drill', 'diagnostic', 'plan']);
+export const prescriptionStatusEnum = pgEnum('prescription_status', ['open', 'in_progress', 'completed', 'dismissed', 'superseded', 'paused']);
 
 // The student record drills extends (PRD: "nullable org_id on the user
 // record"). There is no app users table, so this is it. org_id is the club
@@ -211,6 +211,8 @@ export const prescriptions = pgTable('prescriptions', {
   skillId: text('skill_id').notNull(),
   drillId: text('drill_id').notNull(),
   level: integer('level').notNull(),
+  // recognize | repair | construct (PRD "Drill chains").
+  stage: text('stage'),
   tier: integer('tier').notNull(),
   focusTag: text('focus_tag'),
   priority: doublePrecision('priority').notNull(),
@@ -229,9 +231,12 @@ export const drillSets = pgTable('drill_sets', {
   studentId: uuid('student_id').notNull(),
   drillId: text('drill_id').notNull(),
   level: integer('level').notNull(),
+  stage: text('stage'),                       // recognize | repair | construct
   tier: integer('tier').notNull(),
   size: integer('size').notNull(),
   source: drillSetSourceEnum('source').notNull(),
+  // A transfer check (PRD "Transfer check"): unseen items, new case types.
+  isTransferCheck: boolean('is_transfer_check').notNull().default(false),
   prescriptionId: uuid('prescription_id').references(() => prescriptions.id),
   // The skill the student picked (Practice something specific), which sets
   // the 70/30 composition on multi-skill drills, and a mistake-tag focus.
@@ -338,6 +343,15 @@ export const skillStates = pgTable('skill_states', {
   lastSkillScore: doublePrecision('last_skill_score'),
   lastPracticedAt: timestamp('last_practiced_at', { withTimezone: true }),
   nextReviewAt: timestamp('next_review_at', { withTimezone: true }),
+  // The progress engine's working state (lib/drills/progress/engine.ts).
+  stage: text('stage'),                       // recognize | repair | construct; null until placed
+  practicedAt: timestamp('practiced_at', { withTimezone: true }),
+  transferDueAt: timestamp('transfer_due_at', { withTimezone: true }),
+  lowStreak: integer('low_streak').notNull().default(0),       // consecutive sets below 50%
+  repairSets: integer('repair_sets').notNull().default(0),     // Repair sets since entering Repair
+  pausedForPrereq: text('paused_for_prereq'),                  // stuck rule: the prerequisite in play
+  prereqSets: integer('prereq_sets').notNull().default(0),     // prerequisite sets since pausing
+  nextFocusTag: text('next_focus_tag'),                        // "the next set focuses on that tag"
   taxonomyVersion: text('taxonomy_version').notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, t => [primaryKey({ columns: [t.studentId, t.skillId] })]).enableRLS();

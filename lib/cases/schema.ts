@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CASE_TYPES } from '@/lib/case-types';
 
 const PhaseSchema = z.enum([
   'INTRO', 'CLARIFY', 'STRUCTURE', 'ANALYSIS',
@@ -113,9 +114,8 @@ export const CaseSchema = z.object({
   firmStyle: z.enum(['mckinsey', 'bcg', 'bain', 'generic']).default('mckinsey'),
   difficulty: z.enum(['easy', 'medium', 'hard']),
   // Drills' next-case picker (docs/prd-drills.md "Picking the next case") maps
-  // case types to skill areas. Optional free text until the 14 case types are
-  // defined; then this becomes a required enum.
-  caseType: z.string().min(1).optional(),
+  // case types to skill areas. Optional until every case file carries one.
+  caseType: z.enum(CASE_TYPES).optional(),
   prompt: z.string().min(50),
   interviewerNotes: z.string(),
   dataLedger: z.array(LedgerItemSchema).min(1),

@@ -8,15 +8,15 @@
 
 **D3 started 2026-10-11** (Matt's go-ahead). The pilot launches after D3 and D4; D5 ships during the pilot.
 
+**D3 is done and committed (2026-10-11).** Gate: `tests/drills/progress.test.ts` (scripted scenarios) and `npm run drills:smoke:d3`. Screenshots of "Your skills" and the results screen (desktop and phone) sent to Matt. **D4 started** (Matt's go-ahead).
+
 **What's left to build** (docs/prd-drills.md, "Build phases"):
-- D3 The loop: taxonomy prerequisites (+ cycle check) and the two Defend tags; progress engine (states incl. Practiced, stages, tiers, reviews, transfer checks, stuck rule), prescription engine, case-results ingestion, skill profile. Test with fixture case payloads (the case grader on `main` doesn't emit them yet).
-- D4 Training program: onboarding (stores the browser time zone on `student_profiles`), diagnostic, tracks and plans (`programs.v1.json`), Practice on my own, Browse drills, Program engine, workouts (50/25/25), training home, Learn library, 22 lessons.
-- D5 Chains and Defend: PS-4, HY-3, SY-3 Repair drills; Defend on PS-3, HY-2, SY-2, CL-3 (set size per tier in `drills.v1.json`); ~280 content pieces for Matt to review.
-- D6 Pilot launch: analytics, WCAG audit, club pilot.
+- D4 Training program: onboarding (stores the browser time zone on `student_profiles`; sets the interview date), diagnostic, tracks and plans (`programs.v1.json`), Practice on my own, Browse drills (quick start uses `nextSetFor`), Program engine, workouts (50/25/25), training home, next-case card (needs `case_type_to_skill_area`), Learn library, 22 lessons.
+- D6 Pilot launch (after D3 and D4): analytics, WCAG audit, club pilot.
+- D5 Chains and Defend (during the pilot): PS-4, HY-3, SY-3 Repair drills (add them to `skill_drills.repair`); Defend on PS-3, HY-2, SY-2, CL-3 (set size per tier in `drills.v1.json`); `industry` on items for transfer checks; ~280 content pieces for Matt.
 - All schema changes must stay additive (new tables, enum values, columns).
-- Decided: next-case tier goes up when no dimension is needs_work and at least half are strong; the 14 case types are confirmed (same as the case product); D5 ships during the pilot. Golden-set sourcing for Defend/Repair is skipped for now (Matt).
-- Code vs PRD gap: the daily cap is 20 AI-graded sets (`AI_SETS_PER_DAY` in `lib/drills/sets/service.ts`); v2 says 150 AI-graded answers a day.
-- Merging `drills` into `main`: coordinate migration numbering with the teammate (see Database notes).
+- Code vs PRD gap: the daily cap is 20 AI-graded sets (`AI_SETS_PER_DAY` in `lib/drills/sets/service.ts`); v2 says 150 AI-graded answers a day. Change when building that part.
+- Merging `drills` into `main`: coordinate migration numbering with the teammate (see Database notes). Drills migrations now run 0009–0012.
 
 **How the AI-graded drills work** (details in the history below):
 - Content source: CSVs in `docs/drills-content/` (templates and README in `docs/drills-content-templates/`). `npm run drills:import -- docs/drills-content` writes `/drill-items` (questions) and `/drill-golden` (graded sample answers). Edit the CSVs, not the JSON, for drafts; a live item needs a new version (edit the JSON, bump `version`, status draft; Matt approves).
@@ -29,6 +29,7 @@
 - `npm run drills:golden -- --drill <ID>`: agreement gate, every check ≥90% (~$0.12–0.20 per drill).
 - `npm run drills:models -- --runs 3`: every model answer must score 100% with no change between runs (~$1.80).
 - `npm run drills:smoke:d2`: end to end against the real database (cents).
+- `npm run drills:smoke:d3`: the loop end to end against the real database (free; no AI calls).
 - Free: `npm run typecheck`, `npm test` (includes the model-answer unit test and the cross-drill scenario check), `npm run lint`, then `npm run db:seed-drill-items`.
 
 **Gotchas:**
@@ -257,3 +258,31 @@
 - Rubric: the case grader uses 3 levels (needs_work / meets_bar / strong), not 1–5, so Matt's "no dimension below 3, average 3.5+" needs restating. Left open in the PRD.
 - New endpoint paths chosen to match existing ones (`/api/drills/onboarding`, `/program`, `/workouts/today`, `/catalog`, `/suggested-next`, `/progress/summary`, `/lessons/...`). Browse drills sets reuse the `specific` source.
 - Follow-ups (Matt): keep all the kept build details; rubric bar = no needs_work and at least half strong; 14 case types confirmed; D5 moves into the pilot (until it ships, no Defend and no Repair stage). Golden answers question skipped for now.
+
+## D3 the loop (2026-10-11)
+
+- Matt's go-ahead; PRD v2 committed first (`8cb205b`). Pilot launches after D3 and D4; D5 ships during the pilot (until then: no Defend, no Repair stage).
+- Config: skill tree as `prerequisites` on each skill (cycle check at boot), `M.dodged_question` and `M.inconsistent_defense` (CL.pushback, minor; 67 tags), `skill_drills` gains a `repair` slot (all null until D5), new `stages` / `transfer` / `stuck` rule blocks. The 14 case types live in `lib/case-types.ts`, enforced on drill items, the case payload, the importer and (optional) `caseType` on case files.
+- Migration 0012 (additive, applied): enum values `practiced`, `paused`, `diagnostic`/`plan` sources; `skill_states` stage, practiced_at, transfer_due_at, low_streak, repair_sets, paused_for_prereq, prereq_sets, next_focus_tag; `drill_sets` stage, is_transfer_check; `prescriptions` stage.
+- Pure engine `lib/drills/progress/engine.ts` (states, stage moves, test-out, transfer checks, reviews, stuck rule, credit down, in-drill prescriptions, `nextSetFor`) and `case.ts` (prescription rules 1–6, case state updates). `store.ts` runs them inside `finalizeSet`'s transaction and in case ingestion (`ingest.ts`, idempotent). `startSet` takes `prescription_id`. New: `/drills/profile` page, `GET /api/skills/profile`, `PATCH /api/prescriptions/{id}`, results show skill changes.
+- Judgment calls to flag to Matt:
+  - Case types: `main` has no list; the shared list is drill content's 14.
+  - A new case supersedes case and diagnostic prescriptions, plus any prescription for a skill it re-prescribes; in-drill and plan prescriptions stay open.
+  - Test-out tier is max(student's tier on that drill, 2).
+  - Transfer checks avoid case types from the last 3 sets on that drill (items have no `industry` yet).
+  - Tie-break "lower state" uses the state after the case.
+  - Prescription reasons are generic ("…quote". That's a {tag}; this set practices {skill}.); per-tag lines come with lessons.
+  - Tier 1 sets neither extend nor break a streak.
+  - Multi-skill drills move every skill they score: the QN-4 smoke run took QN.arithmetic and QN.magnitude to Practiced alongside QN.setup.
+  - A single miss from another skill creates an in-drill prescription (per PRD; may be noisy).
+- PRD needs (not edited, needs Matt's go-ahead): `skill_states` extra columns (low_streak, repair_sets, prereq_sets, next_focus_tag) in the data model; the case-type list location; the supersede rule above.
+- Fixed the D1 smoke (it had broken when the D2 drills went live: it tried to answer PS-3 like a choice drill) and made the D1/D2 smokes clean up progress rows. Deleted progress rows left by tonight's smoke runs (4 throwaway students, no profiles or sets).
+
+## D3 review applied (2026-10-11)
+
+- Matt: only a drill's primary skills change state. `drills.v1.json` skills are now `{ id, primary }`; the loader exposes `skills` and `primary_skills`. Secondary: QN-4 (QN.arithmetic, QN.magnitude), QN-5 and EX-3 (QN.arithmetic). Boot fails if a drill has no primary skill, a skill is primary nowhere, or `skill_drills` points at a drill where the skill is only secondary.
+- Matt: cross-skill prescriptions use the case weighting (major +2, minor +1 by default severity); prescribe at 2+ in a set.
+- Matt approved the shared 14 case types (he'll tell the case-product owner); the only case file, `prof-001`, validates on both branches (it has no caseType yet). #2, #5, #6 agreed as built. `industry` on items is part of D4 content work.
+- PRD updated with Matt's go-ahead: primary skills, cross-skill weighting, supersede rule, extra `skill_states` columns, case-type list location.
+- Browser check: headless Chrome driven over the DevTools protocol (no new dependency; script kept in the session scratchpad only), with a throwaway Supabase user signed in by password, then deleted. Screenshots in `~/Desktop/drills-d3-screenshots/`. No console errors; no horizontal scroll at 390 px. The tab title is still the Next.js default "Create Next App" (app-wide, not drills).
+

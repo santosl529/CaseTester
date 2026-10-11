@@ -13,7 +13,10 @@ import { TAXONOMY_VERSION } from './config';
 export type DrillEvent =
   | 'drill_set_started' | 'drill_example_viewed' | 'drill_example_skipped' | 'drill_item_served'
   | 'drill_attempt_submitted' | 'drill_set_completed' | 'drill_set_expired'
-  | 'grading_job_completed' | 'grading_injection_suspected';
+  | 'grading_job_completed' | 'grading_injection_suspected'
+  // D3: the loop.
+  | 'skill_state_changed' | 'prescription_created' | 'prescription_dismissed' | 'prescription_completed'
+  | 'case_result_received' | 'transfer_check_completed' | 'prerequisite_prescribed' | 'transfer_pool_exhausted';
 
 const APP_VERSION = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'dev';
 

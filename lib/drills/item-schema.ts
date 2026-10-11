@@ -4,6 +4,7 @@
 // `model_answer`, `explanation` and `extras` are all server-only. Only
 // toPublicItem (lib/drills/public-item.ts) may shape an item for the client.
 import { z } from 'zod';
+import { CASE_TYPES } from '@/lib/case-types';
 import { ChartSpecSchema } from './chart-spec';
 import { InputTypeSchema, getDrill, getMistakeTag, isKnownTag, DRILLS_CONFIG } from './config';
 
@@ -102,7 +103,7 @@ export const ItemSchema = z.object({
   level: z.union([z.literal(1), z.literal(2)]),
   tier: Tier,
   skills: z.array(KnownSkill).min(1),
-  case_type: z.string().nullable(),
+  case_type: z.enum(CASE_TYPES).nullable(),
   prompt: z.string().min(1),
   exhibit: ChartSpecSchema.nullable(),
   input: InputSpecSchema,

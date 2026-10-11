@@ -2,6 +2,7 @@
 // item JSON and golden answers. Pure: the script in
 // scripts/import-drill-content.ts does the file reading and writing.
 import { z } from 'zod';
+import { CASE_TYPES, type CaseType } from '@/lib/case-types';
 import { cl3Item, hy2Item, ps3Item, qn5Item, sy2Item, type Cl3Content, type Hy2Action, type Hy2Content, type Ps3Content, type Qn5Content, type Sy2Content, QN5_CARD_ROLES, type Qn5CardRole } from './checklists';
 import { ItemSchema, type Item } from './item-schema';
 import type { StepResponse } from './sets/scoring';
@@ -42,6 +43,10 @@ const idOf = (id: string) => (isExample(id) ? id.replace(/^EXAMPLE-/, 'example-'
 const keep = (o: ImportOptions) => (r: Record<string, string>) => (r.item_id || r.answer_id) && (o.includeExamples || !isExample(r.item_id ?? r.answer_id));
 const yes = (v: string | undefined) => /^(y|yes|true|1)$/i.test((v ?? '').trim());
 const splitList = (v: string) => v.split(/[;|]/).map(s => s.trim()).filter(Boolean);
+const caseTypeOf = (v: string): CaseType => {
+  if (!(CASE_TYPES as readonly string[]).includes(v)) throw new Error(`case_type must be one of ${CASE_TYPES.join(', ')}, got "${v}"`);
+  return v as CaseType;
+};
 const tierOf = (v: string) => {
   const t = Number(v);
   if (![1, 2, 3].includes(t)) throw new Error(`tier must be 1, 2 or 3, got "${v}"`);
@@ -116,7 +121,7 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
     const areas = rowsFor('ps3-must-cover', r.item_id);
     if (areas.length < 4 || areas.length > 6) throw new Error(`needs 4–6 must-cover areas in ps3-must-cover.csv, has ${areas.length}`);
     return ps3Item({
-      item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: r.case_type, prompt: r.prompt,
+      item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: caseTypeOf(r.case_type), prompt: r.prompt,
       model_framework: r.model_framework, common_overlaps: r.common_overlaps,
       must_cover: areas.map(a => ({ area: a.area, what_counts: a.what_counts, also_accept: splitList(a.also_accept), critical: yes(a.critical) })),
     } satisfies Ps3Content);
@@ -132,7 +137,7 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
       throw new Error('the new fact must support at least one family (keep) and contradict at least one (revise or drop)');
     }
     return hy2Item({
-      item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: r.case_type, opening_facts: r.opening_facts,
+      item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: caseTypeOf(r.case_type), opening_facts: r.opening_facts,
       new_fact: r.new_fact, model_answer_stage1: r.model_answer_stage1, model_answer_stage2: r.model_answer_stage2,
       families: families.map((f, i) => ({ family: f.family, description: f.description, actions: actions[i] as Hy2Action[], reason: f.reason })),
     } satisfies Hy2Content);
@@ -144,7 +149,7 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
     if (facts.length < 5 || facts.length > 6) throw new Error(`needs 5–6 facts in sy2-facts.csv, has ${facts.length}`);
     if (irrelevant < 1 || irrelevant > 2) throw new Error(`1–2 facts must be marked not relevant (N), has ${irrelevant}`);
     return sy2Item({
-      item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: r.case_type, client_question: r.client_question,
+      item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: caseTypeOf(r.case_type), client_question: r.client_question,
       acceptable_recommendations: r.acceptable_recommendations, key_risks: r.key_risks, next_steps: r.next_steps,
       model_answer: r.model_answer, facts: facts.map(f => ({ fact: f.fact, relevant: yes(f.relevant), deciding: yes(f.deciding) })),
     } satisfies Sy2Content);
@@ -154,7 +159,7 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
     const drivers = rowsFor('cl3-drivers', r.item_id);
     if (drivers.length < 3 || drivers.length > 4) throw new Error(`needs 3–4 drivers in cl3-drivers.csv, has ${drivers.length}`);
     return cl3Item({
-      item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: r.case_type, situation: r.situation,
+      item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: caseTypeOf(r.case_type), situation: r.situation,
       best_starting_point: r.best_starting_point, reason_to_start_there: r.reason_to_start_there,
       specific_request_examples: r.specific_request_examples, vague_request_examples: r.vague_request_examples,
       model_answer: r.model_answer, drivers: drivers.map(d => ({ driver: d.driver, what_counts: d.what_counts, critical: yes(d.critical) })),
@@ -179,7 +184,7 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
       if (!cards.some(c => c.card === card && c.role === 'driver')) throw new Error(`accepted set uses card ${card}, which isn't a driver card`);
     }
     return qn5Item({
-      item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: r.case_type, prompt: r.prompt,
+      item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: caseTypeOf(r.case_type), prompt: r.prompt,
       accepted_driver_sets: sets, total_low: num(r.total_low, 'total_low'), total_high: num(r.total_high, 'total_high'),
       total_source: r.total_source, walkthrough: r.walkthrough, cards,
     } satisfies Qn5Content);

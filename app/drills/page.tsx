@@ -26,7 +26,10 @@ export default async function DrillsPage() {
     <main className="mx-auto w-full max-w-3xl space-y-6 p-6">
       <header className="flex items-baseline justify-between">
         <h1 className="text-xl font-semibold">Drills</h1>
-        <Link href="/" className="text-sm text-muted-foreground underline-offset-4 hover:underline">Back to cases</Link>
+        <span className="flex gap-4 text-sm">
+          <Link href="/drills/profile" className="underline-offset-4 hover:underline">Your skills and prescriptions</Link>
+          <Link href="/" className="text-muted-foreground underline-offset-4 hover:underline">Back to cases</Link>
+        </span>
       </header>
       {current && (
         <p className="rounded-lg border p-3 text-sm">

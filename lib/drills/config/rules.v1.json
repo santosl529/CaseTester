@@ -12,6 +12,26 @@
     "tier": 2,
     "drop_to_level1_below": 0.5
   },
+  "stages": {
+    "repair_to_construct_at_or_above": 0.7,
+    "max_repair_sets": 2,
+    "construct_to_repair_below": 0.8,
+    "construct_to_recognize_below": 0.5
+  },
+  "transfer": {
+    "unlock_after_days": 2,
+    "tier": 2,
+    "level1_tier": 3,
+    "pass_at_or_above": 0.8,
+    "demote_below": 0.6,
+    "retry_after_days": 2,
+    "avoid_case_types_from_last_sets": 3
+  },
+  "stuck": {
+    "low_score_below": 0.5,
+    "consecutive_sets": 2,
+    "resume_after_prereq_sets": 3
+  },
   "tiers": {
     "start": 1,
     "min": 1,
@@ -75,118 +95,147 @@
   "skill_drills": {
     "PS.mece": {
       "l1": "PS-1",
+      "repair": null,
       "l2": "PS-3"
     },
     "PS.case_specific": {
       "l1": "PS-1",
+      "repair": null,
       "l2": "PS-3"
     },
     "PS.depth": {
       "l1": null,
+      "repair": null,
       "l2": "PS-3"
     },
     "PS.clarifying_questions": {
       "l1": "PS-2",
+      "repair": null,
       "l2": null
     },
     "HY.form": {
       "l1": "HY-1",
+      "repair": null,
       "l2": "HY-2"
     },
     "HY.update": {
       "l1": null,
+      "repair": null,
       "l2": "HY-2"
     },
     "QN.arithmetic": {
       "l1": null,
+      "repair": null,
       "l2": "QN-3"
     },
     "QN.magnitude": {
       "l1": null,
+      "repair": null,
       "l2": "QN-3"
     },
     "QN.percentages": {
       "l1": null,
+      "repair": null,
       "l2": "QN-3"
     },
     "QN.growth": {
       "l1": null,
+      "repair": null,
       "l2": "QN-3"
     },
     "QN.setup": {
       "l1": "QN-1",
+      "repair": null,
       "l2": "QN-4"
     },
     "QN.sizing_structure": {
       "l1": null,
+      "repair": null,
       "l2": "QN-5"
     },
     "QN.assumptions": {
       "l1": null,
+      "repair": null,
       "l2": "QN-5"
     },
     "QN.sanity_check": {
       "l1": "QN-2",
+      "repair": null,
       "l2": "QN-5"
     },
     "EX.takeaway": {
       "l1": "EX-1",
+      "repair": null,
       "l2": "EX-4"
     },
     "EX.traps": {
       "l1": "EX-2",
+      "repair": null,
       "l2": null
     },
     "EX.extraction": {
       "l1": null,
+      "repair": null,
       "l2": "EX-3"
     },
     "BJ.so_what": {
       "l1": "BJ-1",
+      "repair": null,
       "l2": "BJ-3"
     },
     "BJ.risks": {
       "l1": "BJ-2",
+      "repair": null,
       "l2": null
     },
     "CR.volume": {
       "l1": null,
+      "repair": null,
       "l2": "CR-1"
     },
     "CR.structure": {
       "l1": null,
+      "repair": null,
       "l2": "CR-1"
     },
     "SY.answer_first": {
       "l1": "SY-1",
+      "repair": null,
       "l2": "SY-2"
     },
     "SY.evidence": {
       "l1": "SY-1",
+      "repair": null,
       "l2": "SY-2"
     },
     "SY.complete": {
       "l1": null,
+      "repair": null,
       "l2": "SY-2"
     },
     "SY.summary": {
       "l1": "SY-1",
+      "repair": null,
       "l2": null
     },
     "CM.concise": {
       "l1": "CM-1",
+      "repair": null,
       "l2": "CM-2"
     },
     "CL.next_step": {
       "l1": "CL-1",
+      "repair": null,
       "l2": null
     },
     "CL.data_requests": {
       "l1": null,
+      "repair": null,
       "l2": "CL-3"
     },
     "CL.pushback": {
       "l1": "CL-2",
+      "repair": null,
       "l2": null
     }
   },

@@ -6,8 +6,14 @@
       "name": "Spot the gap",
       "level": 1,
       "skills": [
-        "PS.mece",
-        "PS.case_specific"
+        {
+          "id": "PS.mece",
+          "primary": true
+        },
+        {
+          "id": "PS.case_specific",
+          "primary": true
+        }
       ],
       "input_types": [
         "single_choice"
@@ -29,7 +35,10 @@
       "name": "Clarifying questions",
       "level": 1,
       "skills": [
-        "PS.clarifying_questions"
+        {
+          "id": "PS.clarifying_questions",
+          "primary": true
+        }
       ],
       "input_types": [
         "multi_select"
@@ -51,9 +60,18 @@
       "name": "Framework builder",
       "level": 2,
       "skills": [
-        "PS.mece",
-        "PS.case_specific",
-        "PS.depth"
+        {
+          "id": "PS.mece",
+          "primary": true
+        },
+        {
+          "id": "PS.case_specific",
+          "primary": true
+        },
+        {
+          "id": "PS.depth",
+          "primary": true
+        }
       ],
       "input_types": [
         "structured_buckets"
@@ -79,7 +97,10 @@
       "name": "Pick the best hypothesis",
       "level": 1,
       "skills": [
-        "HY.form"
+        {
+          "id": "HY.form",
+          "primary": true
+        }
       ],
       "input_types": [
         "single_choice"
@@ -101,8 +122,14 @@
       "name": "Initial hypothesis",
       "level": 2,
       "skills": [
-        "HY.form",
-        "HY.update"
+        {
+          "id": "HY.form",
+          "primary": true
+        },
+        {
+          "id": "HY.update",
+          "primary": true
+        }
       ],
       "input_types": [
         "free_text",
@@ -137,7 +164,10 @@
       "name": "Setup only",
       "level": 1,
       "skills": [
-        "QN.setup"
+        {
+          "id": "QN.setup",
+          "primary": true
+        }
       ],
       "input_types": [
         "single_choice"
@@ -159,7 +189,10 @@
       "name": "Sanity check",
       "level": 1,
       "skills": [
-        "QN.sanity_check"
+        {
+          "id": "QN.sanity_check",
+          "primary": true
+        }
       ],
       "input_types": [
         "single_choice"
@@ -181,10 +214,22 @@
       "name": "Mental math",
       "level": 2,
       "skills": [
-        "QN.arithmetic",
-        "QN.magnitude",
-        "QN.percentages",
-        "QN.growth"
+        {
+          "id": "QN.arithmetic",
+          "primary": true
+        },
+        {
+          "id": "QN.magnitude",
+          "primary": true
+        },
+        {
+          "id": "QN.percentages",
+          "primary": true
+        },
+        {
+          "id": "QN.growth",
+          "primary": true
+        }
       ],
       "input_types": [
         "numeric"
@@ -206,9 +251,18 @@
       "name": "Consulting math",
       "level": 2,
       "skills": [
-        "QN.setup",
-        "QN.arithmetic",
-        "QN.magnitude"
+        {
+          "id": "QN.setup",
+          "primary": true
+        },
+        {
+          "id": "QN.arithmetic",
+          "primary": false
+        },
+        {
+          "id": "QN.magnitude",
+          "primary": false
+        }
       ],
       "input_types": [
         "single_choice",
@@ -231,10 +285,22 @@
       "name": "Market sizing",
       "level": 2,
       "skills": [
-        "QN.sizing_structure",
-        "QN.assumptions",
-        "QN.arithmetic",
-        "QN.sanity_check"
+        {
+          "id": "QN.sizing_structure",
+          "primary": true
+        },
+        {
+          "id": "QN.assumptions",
+          "primary": true
+        },
+        {
+          "id": "QN.arithmetic",
+          "primary": false
+        },
+        {
+          "id": "QN.sanity_check",
+          "primary": true
+        }
       ],
       "input_types": [
         "multi_select",
@@ -259,7 +325,10 @@
       "name": "Chart read",
       "level": 1,
       "skills": [
-        "EX.takeaway"
+        {
+          "id": "EX.takeaway",
+          "primary": true
+        }
       ],
       "input_types": [
         "single_choice"
@@ -281,7 +350,10 @@
       "name": "Exhibit traps",
       "level": 1,
       "skills": [
-        "EX.traps"
+        {
+          "id": "EX.traps",
+          "primary": true
+        }
       ],
       "input_types": [
         "single_choice",
@@ -304,8 +376,14 @@
       "name": "Needle in the table",
       "level": 2,
       "skills": [
-        "EX.extraction",
-        "QN.arithmetic"
+        {
+          "id": "EX.extraction",
+          "primary": true
+        },
+        {
+          "id": "QN.arithmetic",
+          "primary": false
+        }
       ],
       "input_types": [
         "numeric"
@@ -327,7 +405,10 @@
       "name": "Written chart takeaway",
       "level": 2,
       "skills": [
-        "EX.takeaway"
+        {
+          "id": "EX.takeaway",
+          "primary": true
+        }
       ],
       "input_types": [
         "free_text"
@@ -352,7 +433,10 @@
       "name": "\"So what?\"",
       "level": 1,
       "skills": [
-        "BJ.so_what"
+        {
+          "id": "BJ.so_what",
+          "primary": true
+        }
       ],
       "input_types": [
         "single_choice"
@@ -374,7 +458,10 @@
       "name": "Risks and next steps",
       "level": 1,
       "skills": [
-        "BJ.risks"
+        {
+          "id": "BJ.risks",
+          "primary": true
+        }
       ],
       "input_types": [
         "multi_select"
@@ -396,7 +483,10 @@
       "name": "Written \"So what?\"",
       "level": 2,
       "skills": [
-        "BJ.so_what"
+        {
+          "id": "BJ.so_what",
+          "primary": true
+        }
       ],
       "input_types": [
         "free_text"
@@ -417,8 +507,14 @@
       "name": "Bucketed brainstorm",
       "level": 2,
       "skills": [
-        "CR.volume",
-        "CR.structure"
+        {
+          "id": "CR.volume",
+          "primary": true
+        },
+        {
+          "id": "CR.structure",
+          "primary": true
+        }
       ],
       "input_types": [
         "grouped_ideas"
@@ -443,9 +539,18 @@
       "name": "Pick the best summary",
       "level": 1,
       "skills": [
-        "SY.answer_first",
-        "SY.evidence",
-        "SY.summary"
+        {
+          "id": "SY.answer_first",
+          "primary": true
+        },
+        {
+          "id": "SY.evidence",
+          "primary": true
+        },
+        {
+          "id": "SY.summary",
+          "primary": true
+        }
       ],
       "input_types": [
         "single_choice"
@@ -467,9 +572,18 @@
       "name": "60-second recommendation",
       "level": 2,
       "skills": [
-        "SY.answer_first",
-        "SY.evidence",
-        "SY.complete"
+        {
+          "id": "SY.answer_first",
+          "primary": true
+        },
+        {
+          "id": "SY.evidence",
+          "primary": true
+        },
+        {
+          "id": "SY.complete",
+          "primary": true
+        }
       ],
       "input_types": [
         "free_text"
@@ -494,7 +608,10 @@
       "name": "Pick the answer-first version",
       "level": 1,
       "skills": [
-        "CM.concise"
+        {
+          "id": "CM.concise",
+          "primary": true
+        }
       ],
       "input_types": [
         "single_choice"
@@ -516,7 +633,10 @@
       "name": "Answer-first rewrite",
       "level": 2,
       "skills": [
-        "CM.concise"
+        {
+          "id": "CM.concise",
+          "primary": true
+        }
       ],
       "input_types": [
         "free_text"
@@ -537,7 +657,10 @@
       "name": "What's next?",
       "level": 1,
       "skills": [
-        "CL.next_step"
+        {
+          "id": "CL.next_step",
+          "primary": true
+        }
       ],
       "input_types": [
         "single_choice"
@@ -559,7 +682,10 @@
       "name": "Hold or fold",
       "level": 1,
       "skills": [
-        "CL.pushback"
+        {
+          "id": "CL.pushback",
+          "primary": true
+        }
       ],
       "input_types": [
         "single_choice"
@@ -581,7 +707,10 @@
       "name": "What do you need to know?",
       "level": 2,
       "skills": [
-        "CL.data_requests"
+        {
+          "id": "CL.data_requests",
+          "primary": true
+        }
       ],
       "input_types": [
         "free_text"

@@ -8,6 +8,7 @@ Oct 11, 2026 · @Matt
 > - 2026-10-06: Matched to the D1 build: endpoint paths, `is_example`, `focus_skill` / `item_plan` / `pending_step` on drill sets, multi-step `input.steps`, rounded-form trap matching, resume and late-answer behavior, and the D1 results-screen action.
 > - 2026-10-10: After content review rounds 1 and 2: three new mistake tags (`M.ignores_deciding_fact`, `M.low_priority_next_step`, `M.irrelevant_driver`), QN-5 card roles, the wording checks for choice drills, and the similarity check that every authored item must pass before going live.
 > - 2026-10-11: D2 decisions: PS-3, HY-2, SY-2 and CL-3 grading rules, caps and red flags; one grading call per answer; tag severity defaults; prescription area limit.
+> - 2026-10-11: D3 decisions: primary skills per drill (only they change state), cross-skill prescriptions weighted as in a case, the supersede rule when a new case arrives, the extra `skill_states` columns, and where the case-type list lives.
 > - 2026-10-11: **v2 merged.** Adds the training program (diagnostic, tracks, plans, workouts, Practice on my own, lessons), the skill tree, drill chains with Repair drills, the Defend step, the Practiced state and transfer checks. Kept from v1: the PS-3, HY-2, SY-2 and CL-3 sections as built (Defend added), the content-review tags, and the build details from the revisions above. Matt's decisions applied: test-out at tier 2 (with Defend once it ships); grading stays at set completion; pilot with the current Level 1 pools; student time zone stored at signup; Browse cases belongs to the case product; set size by tier; taxonomy stays `v1`; skill tree approved.
 
 ## What's new in v2
@@ -960,6 +961,7 @@ A skill is Practiced after two consecutive Construct sets at 80% or higher, at t
 - Every item and every checklist check maps to one or more skills (checks map through their failure tag).
 - A set's score for a skill = the weighted average of the items and checks tied to that skill.
 - A set counts toward a skill only if it contains at least 3 items or checks for that skill.
+- **Primary skills.** Each drill marks every skill it scores as primary or secondary (`drills.v1.json`). Only a drill's primary skills change state from its sets. A secondary skill's scores and mistakes still count toward its skill score, top mistakes and prescriptions, but can't make it Practiced. For example, QN-4's primary skill is `QN.setup`; it also scores `QN.arithmetic` and `QN.magnitude`, which only QN-3 can move, so a student can't reach Practiced on arithmetic without doing mental math. Secondary skills today: QN-4 (`QN.arithmetic`, `QN.magnitude`), QN-5 and EX-3 (`QN.arithmetic`). The drill a skill's chain serves must have it as a primary skill.
 
 ### Skill states and transitions
 
@@ -1062,12 +1064,12 @@ Prescriptions from the diagnostic and the plan follow the Training program rules
 ### Prescriptions inside drills
 
 - If one mistake tag accounts for 40% or more of a completed set's misses, the next set for that skill focuses on that tag (for example, 70% of mental math items become zeros problems).
-- If a set reveals a mistake belonging to a different skill (for example, a zeros error in the QN-5 calculation step), that skill gets a prescription with priority +1, placed behind the case prescriptions.
+- If a set reveals mistakes belonging to a different skill (for example, a zeros error in the QN-5 calculation step), they are weighed as in a case: +2 per major miss, +1 per minor miss (each tag's default severity). At 2 or more (one major miss, or minor misses adding up to 2 in the set), that skill gets a prescription with priority +1, placed behind the case prescriptions. It is skipped if the skill already has an open prescription or the student dismissed its last one.
 
 ### Lifecycle
 
 - A prescription stays open until its skill reaches Mastered, or until a newer case regenerates the list. A prescription paused by the stuck rule resumes when its prerequisite reaches Practiced or after 3 prerequisite sets.
-- When a newer case arrives, open prescriptions are recalculated. A drill set already in progress is kept and finishes normally.
+- When a newer case arrives, open prescriptions are recalculated: the previous case's and the diagnostic's prescriptions are superseded, and so is any other prescription for a skill the new case prescribes. Prescriptions created inside drills and by the plan stay open. A drill set already in progress is kept and finishes normally.
 - Students can dismiss a prescription. Dismissals are logged and the skill is not re-prescribed until another case flags it.
 
 ### Picking the next case
@@ -1225,7 +1227,7 @@ The drills system needs 16 tables (17 with P1 disputes) plus 4 versioned config 
 ### Config files (versioned, loaded at startup)
 
 - `taxonomy.vN.json`: skill areas, skills, mistake tags (with default severity and skill mapping), prerequisites, deprecations.
-- `drills.vN.json`: per drill: id, name, level, stage, skills, input type, scoring type, set size and time limits per tier (set size varies by tier for drills with Defend), pass bar, Defend type, priority, live flag.
+- `drills.vN.json`: per drill: id, name, level, stage, skills (each marked primary or secondary), input type, scoring type, set size and time limits per tier (set size varies by tier for drills with Defend), pass bar, Defend type, priority, live flag.
 - `rules.vN.json`: mastery thresholds, tier step rules, stage moves, transfer delay and bars, spaced review intervals, prescription weights, stuck rule, workout mix and target minutes, the skill-keyed drill map (`skill_drills`), focusable tags, case-type-to-skill-area map.
 - `programs.vN.json`: tracks, assignment thresholds, the six-week plan (theme, focus areas, case targets, milestones per week), the Sprint day plan, compression rules, workouts per week by availability.
 
@@ -1243,7 +1245,7 @@ Config files live in the repo and are validated with zod at startup. Changing a 
 | `drill_attempts` | attempt\_id, set\_id, student\_id, position, idempotency\_key, item\_id + item\_version **or** template\_id + template\_version + seed (enforced by a check constraint), response (JSON), served\_at, time\_ms, time\_limit\_ms, timed\_out, skipped, score, step\_scores (JSON), mistake\_tags\[\], check\_results (JSON: check\_id, pass, evidence), red\_flags\[\], defend\_response (JSON: decision, text), defend\_time\_ms, defend\_score, defend\_check\_results (JSON), grading\_status, grader\_prompt\_version, model\_id, submitted\_at | One row per item answered; the Defend step is part of the same row. Never deleted |
 | `grading_jobs` | job\_id, set\_id, status, retries, input\_tokens, output\_tokens, cost\_usd, latency\_ms, error, created\_at | Tracks AI grading for a set |
 | `drill_tiers` | student\_id, drill\_id, current\_tier, updated\_at | Current tier per student per drill |
-| `skill_states` | student\_id, skill\_id, state (adds practiced), stage, l1\_passing\_streak, l2\_passing\_streak, last\_skill\_score, last\_practiced\_at, practiced\_at, transfer\_due\_at, next\_review\_at, paused\_for\_prereq, updated\_at | Current state per student per skill |
+| `skill_states` | student\_id, skill\_id, state (adds practiced), stage, l1\_passing\_streak, l2\_passing\_streak, last\_skill\_score, last\_practiced\_at, practiced\_at, transfer\_due\_at, next\_review\_at, low\_streak, repair\_sets, paused\_for\_prereq, prereq\_sets, next\_focus\_tag, updated\_at | Current state per student per skill. `low_streak`: sets in a row below 50% (stuck rule); `repair_sets`: Repair sets since entering Repair; `prereq_sets`: prerequisite sets since the stuck rule paused this skill; `next_focus_tag`: the tag the skill's next set focuses on |
 | `skill_state_events` | student\_id, skill\_id, from\_state, to\_state, reason, source\_type (set, case, review), source\_id, created\_at | Full history, for the profile and analytics |
 | `case_results` | case\_attempt\_id, student\_id, case\_id, case\_type, difficulty\_tier, rubric\_scores (JSON), skills\_observed\[\], findings (JSON), taxonomy\_version, received\_at | Written from the case grader payload |
 | `prescriptions` | prescription\_id, student\_id, skill\_id, drill\_id, level, stage, tier, focus\_tag, priority, reason\_text, evidence\_quote, source\_type (case, drill, diagnostic, plan), source\_id, status (open, in\_progress, completed, dismissed, superseded, paused), created\_at, closed\_at | Open prescriptions drive the workout's weak-spot slot |
@@ -1494,4 +1496,4 @@ Until D5 ships, Construct sets have no Defend step (so PS-3, HY-2 and CL-3 keep 
 - [ ] **Content review capacity:** About 280 new pieces (110 Repair items, 150 Defend follow-ups, 22 lessons) plus the Level 1 pools' growth to 80 before wider launch. @Matt reviews drill content.
 - [ ] **University data handling:** Confirm with legal how student data from partner schools must be handled.
 - [ ] **Firm-style toggles:** When should items start carrying `firm_style`?
-- [x] **Case types:** Confirmed 2026-10-11: the 14 case types are `profitability`, `growth_strategy`, `market_entry`, `market_sizing`, `pricing`, `cost_reduction`, `operations`, `new_product_launch`, `m_and_a`, `investment_decision`, `competitive_response`, `turnaround`, `public_sector`, `industry_analysis`, the same list as the case product. The item schema enforces it; the case-type-to-skill-area map (each type's main skill) still needs writing.
+- [x] **Case types:** Confirmed 2026-10-11: the 14 case types are `profitability`, `growth_strategy`, `market_entry`, `market_sizing`, `pricing`, `cost_reduction`, `operations`, `new_product_launch`, `m_and_a`, `investment_decision`, `competitive_response`, `turnaround`, `public_sector`, `industry_analysis`, the same list as the case product. It lives in `lib/case-types.ts`, shared by case files (`caseType`, optional until every case file has one) and drill items; the item schema enforces it; the case-type-to-skill-area map (each type's main skill) still needs writing.

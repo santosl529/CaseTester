@@ -7,6 +7,7 @@
 // 8 dimension keys from lib/scoring/rubric.ts with the 3-level rating. The PRD
 // example's numeric scores and key names are an open question ("Rubric scale").
 import { z } from 'zod';
+import { CASE_TYPES } from '@/lib/case-types';
 import { RUBRIC_DIMENSION_KEYS } from '@/lib/scoring/rubric';
 import { DRILLS_CONFIG, getMistakeTag } from './config';
 
@@ -16,7 +17,7 @@ export const CaseResultPayloadSchema = z.object({
   case_attempt_id: z.string().min(1),
   student_id: z.uuid(),
   case_id: z.string().min(1),
-  case_type: z.string().min(1).nullable(),
+  case_type: z.enum(CASE_TYPES).nullable(),
   difficulty_tier: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   completed_at: z.iso.datetime({ offset: true }),
   taxonomy_version: z.string(),

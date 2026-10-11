@@ -5,9 +5,10 @@
 //
 //   npx tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke.ts
 import { randomUUID } from 'crypto';
+import { D2_DRILLS } from '@/lib/drills/model-answers';
 import { and, eq } from 'drizzle-orm';
 import { db } from '@/db/client';
-import { analyticsEvents, drillAttempts, drillItems, drillSets, drillTiers, studentDrillSettings } from '@/db/schema';
+import { analyticsEvents, drillAttempts, drillItems, drillSets, drillTiers, prescriptions, skillStateEvents, skillStates, studentDrillSettings } from '@/db/schema';
 import { DRILLS_CONFIG } from '@/lib/drills/config';
 import { rebuildItem } from '@/lib/drills/generators/registry';
 import { ItemSchema, type Item, type Tier } from '@/lib/drills/item-schema';
@@ -127,15 +128,20 @@ async function runDrill(drillId: string, skillId: string, level: 1 | 2) {
 async function main() {
   try {
     await updateSettings(student, { time_multiplier: 1.5 });
-    const live = DRILLS_CONFIG.drills.drills.filter(d => d.live);
+    // The D1 drills; the D2 drills have their own smoke (drills:smoke:d2).
+    const live = DRILLS_CONFIG.drills.drills.filter(d => d.live && !D2_DRILLS.includes(d.id));
     for (const drill of live) await runDrill(drill.id, drill.skills[0], drill.level);
-    // CL.data_requests is trained only by CL-3, which isn't live yet.
-    await expectError('no_live_drill', () => startSet(student, { skill_id: 'CL.data_requests' }), 'skill with no live drill');
+    // CR.volume is trained only by CR-1 (P1), which isn't live yet.
+    await expectError('no_live_drill', () => startSet(student, { skill_id: 'CR.volume' }), 'skill with no live drill');
   } finally {
     const sets = await db.select({ id: drillSets.id }).from(drillSets).where(eq(drillSets.studentId, student));
     await db.delete(drillAttempts).where(eq(drillAttempts.studentId, student));
     for (const s of sets) await db.delete(drillSets).where(eq(drillSets.id, s.id));
     await db.delete(drillTiers).where(eq(drillTiers.studentId, student));
+    // Written by the progress engine when a set completes.
+    await db.delete(prescriptions).where(eq(prescriptions.studentId, student));
+    await db.delete(skillStateEvents).where(eq(skillStateEvents.studentId, student));
+    await db.delete(skillStates).where(eq(skillStates.studentId, student));
     await db.delete(studentDrillSettings).where(eq(studentDrillSettings.studentId, student));
     await db.delete(analyticsEvents).where(eq(analyticsEvents.userId, student));
     console.log(`cleaned up test student ${student}`);

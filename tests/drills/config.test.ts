@@ -10,10 +10,10 @@ const raw = () => ({ taxonomy: clone(taxonomyJson), drills: clone(drillsJson), r
 describe('drills config v1 (docs/prd-drills.md)', () => {
   const { taxonomy, drills } = DRILLS_CONFIG;
 
-  it('matches the PRD counts: 9 areas, 29 skills, 62 tags, 25 drills', () => {
+  it('matches the PRD counts: 9 areas, 29 skills, 67 tags, 25 drills', () => {
     expect(taxonomy.areas).toHaveLength(9);
     expect(taxonomy.skills).toHaveLength(29);
-    expect(taxonomy.mistake_tags).toHaveLength(65);
+    expect(taxonomy.mistake_tags).toHaveLength(67);
     expect(taxonomy.system_tags.map(t => t.id).sort()).toEqual(['M.skipped', 'M.timeout']);
     expect(drills.drills).toHaveLength(25);
     expect(drills.drills.filter(d => d.level === 1)).toHaveLength(13);
@@ -49,7 +49,51 @@ describe('drills config v1 (docs/prd-drills.md)', () => {
     expect(isKnownTag('M.made_up')).toBe(false);
   });
 
+  it('has the approved skill tree (PRD "Skill tree")', () => {
+    const tree = Object.fromEntries(taxonomy.skills.filter(s => s.prerequisites.length).map(s => [s.id, s.prerequisites]));
+    expect(tree).toEqual({
+      'PS.case_specific': ['PS.mece'], 'PS.depth': ['PS.mece'], 'HY.form': ['PS.case_specific'], 'HY.update': ['HY.form'],
+      'QN.magnitude': ['QN.arithmetic'], 'QN.percentages': ['QN.arithmetic'], 'QN.growth': ['QN.percentages'],
+      'QN.setup': ['QN.percentages'], 'QN.sizing_structure': ['PS.mece', 'QN.magnitude'], 'QN.assumptions': ['QN.magnitude'],
+      'QN.sanity_check': ['QN.magnitude'], 'EX.takeaway': ['EX.traps'], 'EX.extraction': ['QN.arithmetic'],
+      'BJ.so_what': ['EX.takeaway'], 'BJ.risks': ['BJ.so_what'], 'SY.evidence': ['EX.takeaway'],
+      'SY.complete': ['SY.answer_first', 'BJ.risks'], 'SY.summary': ['SY.answer_first'], 'CL.next_step': ['HY.form'],
+      'CL.data_requests': ['PS.mece'], 'CL.pushback': ['SY.evidence'], 'CR.structure': ['PS.mece'],
+    });
+  });
+
+  it('marks primary skills: secondary ones belong to another drill', () => {
+    const primary = Object.fromEntries(drills.drills.filter(d => d.primary_skills.length < d.skills.length).map(d => [d.id, d.primary_skills]));
+    expect(primary).toEqual({
+      'QN-4': ['QN.setup'], 'QN-5': ['QN.sizing_structure', 'QN.assumptions', 'QN.sanity_check'], 'EX-3': ['EX.extraction'],
+    });
+  });
+
+  it('has the two Defend tags under CL.pushback, minor by default', () => {
+    for (const id of ['M.dodged_question', 'M.inconsistent_defense']) {
+      expect(taxonomy.mistake_tags.find(t => t.id === id)).toMatchObject({ skill: 'CL.pushback', severity: 'minor' });
+    }
+  });
+
   describe('fails the boot on', () => {
+    it('a cycle in the skill tree', () => {
+      const r = raw();
+      r.taxonomy.skills.find(s => s.id === 'PS.mece')!.prerequisites = ['CR.structure'];
+      expect(() => parseDrillsConfig(r)).toThrow(/Skill tree has a cycle: PS.mece → CR.structure → PS.mece|Skill tree has a cycle: CR.structure → PS.mece → CR.structure/);
+    });
+
+    it('a skill_drills entry whose skill is only secondary in that drill', () => {
+      const r = raw();
+      (r.rules.skill_drills as Record<string, { l1: string | null; repair: string | null; l2: string | null }>)['QN.arithmetic'].l2 = 'QN-4';
+      expect(() => parseDrillsConfig(r)).toThrow(/QN.arithmetic is not a primary skill of QN-4/);
+    });
+
+    it('an unknown prerequisite', () => {
+      const r = raw();
+      r.taxonomy.skills.find(s => s.id === 'PS.depth')!.prerequisites = ['PS.vibes'];
+      expect(() => parseDrillsConfig(r)).toThrow(/Skill PS.depth: unknown prerequisite PS.vibes/);
+    });
+
     it('a tag mapped to a skill that does not exist', () => {
       const r = raw();
       r.taxonomy.mistake_tags[0].skill = 'PS.nonexistent';
@@ -70,7 +114,7 @@ describe('drills config v1 (docs/prd-drills.md)', () => {
 
     it('a skill_drills entry pointing at a drill of the wrong level', () => {
       const r = raw();
-      (r.rules.skill_drills as Record<string, { l1: string | null; l2: string | null }>)['PS.mece'].l2 = 'PS-1';
+      (r.rules.skill_drills as Record<string, { l1: string | null; repair: string | null; l2: string | null }>)['PS.mece'].l2 = 'PS-1';
       expect(() => parseDrillsConfig(r)).toThrow(/PS-1 is not a level 2 drill for PS.mece/);
     });
 

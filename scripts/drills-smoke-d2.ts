@@ -9,7 +9,7 @@
 import { randomUUID } from 'crypto';
 import { eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
-import { analyticsEvents, drillAttempts, drillSets, drillTiers, gradingJobs, studentDrillSettings } from '@/db/schema';
+import { analyticsEvents, drillAttempts, drillSets, drillTiers, gradingJobs, prescriptions, skillStateEvents, skillStates, studentDrillSettings } from '@/db/schema';
 import { D2_DRILLS, modelAnswerSteps } from '@/lib/drills/model-answers';
 import { loadAuthoredItems } from '@/lib/drills/authored';
 import { enqueueGrading, runGradingJob } from '@/lib/drills/grading/jobs';
@@ -125,6 +125,10 @@ async function main() {
       await db.delete(drillSets).where(inArray(drillSets.id, ids));
     }
     await db.delete(drillTiers).where(eq(drillTiers.studentId, student));
+    // Written by the progress engine when a set completes.
+    await db.delete(prescriptions).where(eq(prescriptions.studentId, student));
+    await db.delete(skillStateEvents).where(eq(skillStateEvents.studentId, student));
+    await db.delete(skillStates).where(eq(skillStates.studentId, student));
     await db.delete(studentDrillSettings).where(eq(studentDrillSettings.studentId, student));
     await db.delete(analyticsEvents).where(eq(analyticsEvents.userId, student));
     console.log(`cleaned up test student ${student}`);

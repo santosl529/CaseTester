@@ -3,12 +3,13 @@
 // drivers, driver cards. This module adds each drill's checklist, weights,
 // red flags and inputs exactly as the PRD's drill specs define them, so every
 // item of a drill is graded against the same rubric.
+import type { CaseType } from '@/lib/case-types';
 import type { ItemInput } from './item-schema';
 import { getDrill } from './config';
 import { formatEstimate } from './numeric';
 
 type Tier = 1 | 2 | 3;
-interface Base { item_id: string; tier: Tier; case_type: string }
+interface Base { item_id: string; tier: Tier; case_type: CaseType }
 const AUTHORSHIP = {
   author_of_record: 'Draft — awaiting human review', drafting_model: null,
   reviewed_by: null, reviewed_at: null, similarity_check: 'pending' as const,

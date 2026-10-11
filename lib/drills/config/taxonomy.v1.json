@@ -52,175 +52,250 @@
       "id": "PS.mece",
       "area": "PS",
       "name": "MECE structure",
-      "description": "Buckets don't overlap and nothing major is missing"
+      "description": "Buckets don't overlap and nothing major is missing",
+      "prerequisites": []
     },
     {
       "id": "PS.case_specific",
       "area": "PS",
       "name": "Case-specific structure",
-      "description": "Structure fits this case, not a canned framework"
+      "description": "Structure fits this case, not a canned framework",
+      "prerequisites": [
+        "PS.mece"
+      ]
     },
     {
       "id": "PS.depth",
       "area": "PS",
       "name": "Structure depth",
-      "description": "Each bucket has concrete sub-points"
+      "description": "Each bucket has concrete sub-points",
+      "prerequisites": [
+        "PS.mece"
+      ]
     },
     {
       "id": "PS.clarifying_questions",
       "area": "PS",
       "name": "Clarifying questions",
-      "description": "Asks the few questions that matter"
+      "description": "Asks the few questions that matter",
+      "prerequisites": []
     },
     {
       "id": "HY.form",
       "area": "HY",
       "name": "Forming a hypothesis",
-      "description": "States a directional, evidence-based, testable, tentative hypothesis"
+      "description": "States a directional, evidence-based, testable, tentative hypothesis",
+      "prerequisites": [
+        "PS.case_specific"
+      ]
     },
     {
       "id": "HY.update",
       "area": "HY",
       "name": "Updating a hypothesis",
-      "description": "Changes the hypothesis when data contradicts it, keeps it when data supports it"
+      "description": "Changes the hypothesis when data contradicts it, keeps it when data supports it",
+      "prerequisites": [
+        "HY.form"
+      ]
     },
     {
       "id": "QN.arithmetic",
       "area": "QN",
       "name": "Arithmetic",
-      "description": "Basic operations done correctly"
+      "description": "Basic operations done correctly",
+      "prerequisites": []
     },
     {
       "id": "QN.magnitude",
       "area": "QN",
       "name": "Zeros and units",
-      "description": "Zeros and units handled correctly"
+      "description": "Zeros and units handled correctly",
+      "prerequisites": [
+        "QN.arithmetic"
+      ]
     },
     {
       "id": "QN.percentages",
       "area": "QN",
       "name": "Percentages",
-      "description": "Percent change, percent of, percentage points"
+      "description": "Percent change, percent of, percentage points",
+      "prerequisites": [
+        "QN.arithmetic"
+      ]
     },
     {
       "id": "QN.growth",
       "area": "QN",
       "name": "Growth",
-      "description": "Growth rates and compounding"
+      "description": "Growth rates and compounding",
+      "prerequisites": [
+        "QN.percentages"
+      ]
     },
     {
       "id": "QN.setup",
       "area": "QN",
       "name": "Math setup",
-      "description": "Chooses the right formula before calculating"
+      "description": "Chooses the right formula before calculating",
+      "prerequisites": [
+        "QN.percentages"
+      ]
     },
     {
       "id": "QN.sizing_structure",
       "area": "QN",
       "name": "Sizing structure",
-      "description": "Builds a complete driver chain for an estimate"
+      "description": "Builds a complete driver chain for an estimate",
+      "prerequisites": [
+        "PS.mece",
+        "QN.magnitude"
+      ]
     },
     {
       "id": "QN.assumptions",
       "area": "QN",
       "name": "Sizing assumptions",
-      "description": "Makes reasonable estimation assumptions"
+      "description": "Makes reasonable estimation assumptions",
+      "prerequisites": [
+        "QN.magnitude"
+      ]
     },
     {
       "id": "QN.sanity_check",
       "area": "QN",
       "name": "Sanity checking",
-      "description": "Notices when a result is implausible"
+      "description": "Notices when a result is implausible",
+      "prerequisites": [
+        "QN.magnitude"
+      ]
     },
     {
       "id": "EX.takeaway",
       "area": "EX",
       "name": "Chart takeaway",
-      "description": "Finds the insight that matters"
+      "description": "Finds the insight that matters",
+      "prerequisites": [
+        "EX.traps"
+      ]
     },
     {
       "id": "EX.traps",
       "area": "EX",
       "name": "Exhibit traps",
-      "description": "Catches units, axes and footnotes"
+      "description": "Catches units, axes and footnotes",
+      "prerequisites": []
     },
     {
       "id": "EX.extraction",
       "area": "EX",
       "name": "Data extraction",
-      "description": "Pulls the right number from dense data"
+      "description": "Pulls the right number from dense data",
+      "prerequisites": [
+        "QN.arithmetic"
+      ]
     },
     {
       "id": "BJ.so_what",
       "area": "BJ",
       "name": "So what",
-      "description": "States what a finding means for the client"
+      "description": "States what a finding means for the client",
+      "prerequisites": [
+        "EX.takeaway"
+      ]
     },
     {
       "id": "BJ.risks",
       "area": "BJ",
       "name": "Risks and next steps",
-      "description": "Names specific, relevant risks and next steps"
+      "description": "Names specific, relevant risks and next steps",
+      "prerequisites": [
+        "BJ.so_what"
+      ]
     },
     {
       "id": "CR.volume",
       "area": "CR",
       "name": "Idea volume",
-      "description": "Generates enough distinct ideas"
+      "description": "Generates enough distinct ideas",
+      "prerequisites": []
     },
     {
       "id": "CR.structure",
       "area": "CR",
       "name": "Idea structure",
-      "description": "Groups ideas into clear, non-overlapping categories"
+      "description": "Groups ideas into clear, non-overlapping categories",
+      "prerequisites": [
+        "PS.mece"
+      ]
     },
     {
       "id": "SY.answer_first",
       "area": "SY",
       "name": "Answer first",
-      "description": "Leads with a clear recommendation"
+      "description": "Leads with a clear recommendation",
+      "prerequisites": []
     },
     {
       "id": "SY.evidence",
       "area": "SY",
       "name": "Supporting evidence",
-      "description": "Supports it with the right facts and numbers"
+      "description": "Supports it with the right facts and numbers",
+      "prerequisites": [
+        "EX.takeaway"
+      ]
     },
     {
       "id": "SY.complete",
       "area": "SY",
       "name": "Complete recommendation",
-      "description": "Includes a risk and a next step"
+      "description": "Includes a risk and a next step",
+      "prerequisites": [
+        "SY.answer_first",
+        "BJ.risks"
+      ]
     },
     {
       "id": "SY.summary",
       "area": "SY",
       "name": "Mid-case summary",
-      "description": "Summarizes progress accurately mid-case"
+      "description": "Summarizes progress accurately mid-case",
+      "prerequisites": [
+        "SY.answer_first"
+      ]
     },
     {
       "id": "CM.concise",
       "area": "CM",
       "name": "Concise delivery",
-      "description": "Says it briefly, conclusion first"
+      "description": "Says it briefly, conclusion first",
+      "prerequisites": []
     },
     {
       "id": "CL.next_step",
       "area": "CL",
       "name": "Driving next steps",
-      "description": "Proposes a logical next step without being prompted"
+      "description": "Proposes a logical next step without being prompted",
+      "prerequisites": [
+        "HY.form"
+      ]
     },
     {
       "id": "CL.data_requests",
       "area": "CL",
       "name": "Data requests",
-      "description": "Asks for specific, prioritized data"
+      "description": "Asks for specific, prioritized data",
+      "prerequisites": [
+        "PS.mece"
+      ]
     },
     {
       "id": "CL.pushback",
       "area": "CL",
       "name": "Handling pushback",
-      "description": "Holds when right, updates when wrong, uses evidence"
+      "description": "Holds when right, updates when wrong, uses evidence",
+      "prerequisites": [
+        "SY.evidence"
+      ]
     }
   ],
   "mistake_tags": [
@@ -676,6 +751,20 @@
       "id": "M.no_evidence_in_defense",
       "skill": "CL.pushback",
       "label": "no evidence in defense",
+      "severity": "minor",
+      "deprecated": false
+    },
+    {
+      "id": "M.dodged_question",
+      "skill": "CL.pushback",
+      "label": "dodged the question",
+      "severity": "minor",
+      "deprecated": false
+    },
+    {
+      "id": "M.inconsistent_defense",
+      "skill": "CL.pushback",
+      "label": "defense inconsistent with your answer",
       "severity": "minor",
       "deprecated": false
     }
