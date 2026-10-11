@@ -37,9 +37,9 @@ export const TaxonomySchema = z.object({
     skill: SkillId,
     // Plain-word name for results copy ("2 of your 3 misses were unit errors").
     label: z.string().min(1),
-    // Product sign-off pending (PRD open question "Tag severity"); required
-    // before the prescription engine ships in D3.
-    severity: z.enum(['minor', 'major']).nullable(),
+    // Default severity; the case grader may adjust it per finding (PRD
+    // "What the case grader must send").
+    severity: z.enum(['minor', 'major']),
     deprecated: z.boolean(),
   })),
   // M.timeout and M.skipped: logged on attempts but mapped to no skill.

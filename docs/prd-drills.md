@@ -684,16 +684,16 @@ The transcript-grading agent must emit this payload when a case is graded. The d
 
 - `skills_observed` lists every skill the case gave the student a chance to show, whether or not they made mistakes. It is needed to set skills to Validated.
 - `rubric_scores` uses the case grader's format: the 8 dimension keys from `lib/scoring/rubric.ts` (`structure`, `quantitative`, `dataExhibit`, `judgment`, `creativity`, `synthesis`, `communication`, `pushback`), each rated `needs_work`, `meets_bar` or `strong`. Dimensions the grader couldn't rate are left out.
-- `severity` is `minor` or `major`, defined per tag in the taxonomy file.
+- `severity` is `minor` or `major`. Each tag's default is set in the taxonomy file. The case grader may downgrade a finding to `minor` if the candidate corrected it themselves or it didn't change the conclusion, and may upgrade `M.waited_for_interviewer` to `major` in candidate-led cases. The finding carries the final severity, and the prescription rules use it, not the default.
 - `evidence` must be an exact quote from the transcript. The drills service shows it to the student in the prescription reason.
 - The grader changes needed to emit this payload are deferred; the case grader will be updated later. Until then, drills are built and tested against fixture payloads.
 
 ### Prescription rules
 
-1. Map each finding's tag to its skill.
-2. Give each skill a priority score: +2 per major finding, +1 per minor finding, +2 if the same skill was flagged in the previous case, +1 if the skill was Mastered or Validated (a regression).
+1. Map each finding's tag to its skill. Count each mistake tag once per case: if the grader reports the same tag more than once, it counts as one finding, major if any of them is major.
+2. Give each skill a priority score: +2 per major tag, +1 per minor tag (using each finding's final severity), +2 if the same skill was flagged in the previous case, +1 if the skill was Mastered or Validated (a regression).
 3. Remove skills with no live drill. Their findings still appear in case feedback.
-4. Take the 3 highest-scoring skills. Ties go to the skill in the lower state, then to the skill whose drill is listed first in the catalog.
+4. Take the 3 highest-scoring skills, with no more than 2 from the same skill area (PS, QN, EX and so on). If a third skill would be the area's third, skip it and take the next-highest skill from a different area. If there is none, prescribe only 2. Ties go to the skill in the lower state, then to the skill whose drill is listed first in the catalog.
 5. For each skill, choose the drill from the skill-keyed drill map in config (`skill_drills`: each skill's Level 1 and Level 2 drill, for example `PS.case_specific` → PS-1 / PS-3), and the level and tier from the Mastery rules. Every tag maps to exactly one skill, so the skill decides the drill. If the finding's tag is listed in `focusable_tags` (for example, `M.zeros_error` → QN-3), the set focuses on that tag.
 6. Write the reason from a template using the tag and the evidence quote: "In your last case you said '…two million divided by fifty dollars.' Breakeven uses contribution per unit, not price."
 
@@ -1029,7 +1029,7 @@ The build runs in five phases, D0 to D4. Auto-checked drills ship before AI-grad
 
 - [ ] **Rubric scale:** Payload format decided: the grader's 3-level ratings. Still open: what counts as "meeting the bar" at each difficulty tier (for example, every dimension `meets_bar` or better)? Needed for next-case selection.
 - [ ] **Grader changes:** How much work is it for the transcript-grading agent to emit skill tags, severity, `skills_observed` and exact evidence quotes? (Deferred: the grader will be updated later.)
-- [ ] **Tag severity:** Which mistake tags are major vs minor? Needs product sign-off before D3.
+- [x] **Tag severity:** Which mistake tags are major vs minor? Decided 2026-10-11: 35 major, 30 minor, set as defaults in `taxonomy.v1.json` (reasons in `docs/drills-tag-severity.md`). The case grader may adjust them per finding (see "What the case grader must send").
 - [ ] **Mastery bar:** Are 80% and two consecutive sets the right bar? Validate with pilot data and adjust in config.
 - [ ] **First-time users:** Should MVP require a full case before drills, or bring the diagnostic sampler forward from P1?
 - [ ] **Free vs paid:** Are drills limited for free users, and if so, how?

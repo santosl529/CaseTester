@@ -5,8 +5,8 @@
 Live: PS-1, HY-1, EX-1, SY-1, CL-1 (225 authored items approved; shared CaseTester database, in sync with /drill-items). D2 drills are built but off until Matt's content arrives.
 
 Open items, in order:
-1. **Tag severity:** first pass drafted in `docs/drills-tag-severity-draft.md` (33 major, 32 minor, one-line reason each). Waiting for Matt's corrections; then write the values into `lib/drills/config/taxonomy.v1.json` (all `severity: null` today). Needed before D3.
-2. **Waiting on Matt:** D2 content in `docs/drills-content-templates`.
+1. **Waiting on Matt:** D2 content in `docs/drills-content-templates`.
+2. **Next build phase:** D3 (the loop) is unblocked on severity. Prescription rules now include: each tag counts once per case (major if any instance is major); no more than 2 of 3 prescriptions from one skill area (skip to the next-highest skill in another area, else prescribe 2).
 
 How Matt likes to work: plain, short explanations; he reviews items on `drill-review.html` (`npm run drills:review`, "Waiting for your review" box) and sends decisions by item ID; commit and push to `drills` when asked (GitHub push works).
 
@@ -90,3 +90,9 @@ How Matt likes to work: plain, short explanations; he reviews items on `drill-re
 - Matt kept both SY-2 scenario pairs (`example-sy2-01` with `sy1-0028` and `cl1-0021`) as recorded. PRD "Wording checks" updated to 33% with Matt's go-ahead.
 - Matt approved all 11 reworded items: live, older versions retired (11 retired in the database).
 - `drills:smoke:d2` passed again with credit restored (PS-3, HY-2, SY-2, CL-3, QN-5 all 100%; outage retry path OK).
+
+## Tag severity decided (2026-10-11)
+
+- Matt approved the first pass with `M.premature_solution` and `M.implication_off_objective` moved to major: 35 major, 30 minor, now in `taxonomy.v1.json`; the schema no longer allows `null`. Reasons in `docs/drills-tag-severity.md` (renamed from the draft).
+- Taxonomy values are defaults. The case grader may downgrade a finding to minor (self-corrected, or didn't change the conclusion) and upgrade `M.waited_for_interviewer` to major in candidate-led cases; the finding carries the final severity. Grader changes are still deferred, so nothing enforces this yet.
+- PRD "Prescription rules" updated: tags counted once per case; max 2 prescriptions per skill area. The third-slot fallback (next-highest skill in another area, else only 2) was my suggestion, approved by Matt.

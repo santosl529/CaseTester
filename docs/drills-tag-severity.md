@@ -1,6 +1,6 @@
-# Mistake tag severity: first pass (draft for Matt)
+# Mistake tag severity
 
-Status: draft, not applied. Every tag in `lib/drills/config/taxonomy.v1.json` still has `severity: null`. Once Matt signs off, these values go into the taxonomy file. The prescription engine (D3) is the first thing that uses them.
+Status: approved by Matt on 2026-10-11 with two changes (`M.premature_solution` and `M.implication_off_objective` moved to major), and applied to `lib/drills/config/taxonomy.v1.json`. These are defaults: the case grader may downgrade a finding to minor if the candidate corrected it themselves or it didn't change the conclusion, and may upgrade `M.waited_for_interviewer` to major in candidate-led cases. The finding carries the final severity. The prescription engine (D3) is the first thing that uses them.
 
 **Why it matters:** when the app picks drills after a case, a major mistake adds 2 to its skill's priority and a minor one adds 1 (`docs/prd-drills.md`, "Prescription rules").
 
@@ -8,13 +8,11 @@ Status: draft, not applied. Every tag in `lib/drills/config/taxonomy.v1.json` st
 - **Major:** it changes the answer, sends the case down the wrong path, or would sink an MBB interview on its own.
 - **Minor:** the answer survives. It costs points on polish, efficiency or depth.
 
-**Totals:** 33 major, 32 minor. Math, exhibit and fact-handling mistakes are mostly major, so prescriptions will lean toward QN and EX drills. That's a deliberate choice, and it's worth a look.
-
-To change one, edit the Proposed column (or send the tag IDs).
+**Totals:** 35 major, 30 minor. Math, exhibit and fact-handling mistakes are mostly major, so prescriptions will lean toward QN and EX drills. That's a deliberate choice, and it's worth a look.
 
 ## Structure (PS)
 
-| Tag | Proposed | Why |
+| Tag | Severity | Why |
 |---|---|---|
 | `M.overlapping_buckets` | minor | Analysis gets duplicated, but nothing is missed. |
 | `M.missing_bucket` | **major** | The missing bucket can hold the answer. |
@@ -27,7 +25,7 @@ To change one, edit the Proposed column (or send the tag IDs).
 
 ## Hypothesis (HY)
 
-| Tag | Proposed | Why |
+| Tag | Severity | Why |
 |---|---|---|
 | `M.no_hypothesis` | **major** | Interviewer-led cases expect the candidate to drive by hypothesis. Without one, the analysis drifts. |
 | `M.restates_facts` | minor | A weak hypothesis, but not a wrong one. |
@@ -40,7 +38,7 @@ To change one, edit the Proposed column (or send the tag IDs).
 
 ## Quantitative (QN)
 
-| Tag | Proposed | Why |
+| Tag | Severity | Why |
 |---|---|---|
 | `M.arithmetic_error` | **major** | An uncorrected math error is a classic reason to reject a candidate, and it changes the number. |
 | `M.zeros_error` | **major** | Off by 10× or more. |
@@ -59,7 +57,7 @@ To change one, edit the Proposed column (or send the tag IDs).
 
 ## Exhibits (EX)
 
-| Tag | Proposed | Why |
+| Tag | Severity | Why |
 |---|---|---|
 | `M.trivial_takeaway` | minor | Correct but shallow: it reads a number instead of giving the insight. |
 | `M.misread_trend` | **major** | The takeaway is wrong. |
@@ -74,16 +72,16 @@ To change one, edit the Proposed column (or send the tag IDs).
 
 ## Business judgment (BJ)
 
-| Tag | Proposed | Why |
+| Tag | Severity | Why |
 |---|---|---|
 | `M.no_implication` | minor | The analysis is right but stops short of "so what". |
-| `M.implication_off_objective` | minor | A real implication, aimed at the wrong goal. |
+| `M.implication_off_objective` | **major** | A real implication, but aimed at the wrong goal, so it doesn't answer the client's question. |
 | `M.generic_risk` | minor | Weak but not wrong. |
 | `M.missed_key_risk` | minor | The recommendation can stand. It's thinner without the risk. |
 
 ## Creativity (CR)
 
-| Tag | Proposed | Why |
+| Tag | Severity | Why |
 |---|---|---|
 | `M.too_few_ideas` | minor | Depth, not correctness. |
 | `M.unstructured_ideas` | minor | Presentation. |
@@ -91,7 +89,7 @@ To change one, edit the Proposed column (or send the tag IDs).
 
 ## Synthesis (SY)
 
-| Tag | Proposed | Why |
+| Tag | Severity | Why |
 |---|---|---|
 | `M.buried_recommendation` | minor | The right answer is there, just in the wrong place. |
 | `M.hedged_recommendation` | **major** | Not committing to an answer is a common reason to reject a candidate. |
@@ -103,21 +101,21 @@ To change one, edit the Proposed column (or send the tag IDs).
 
 ## Communication (CM)
 
-| Tag | Proposed | Why |
+| Tag | Severity | Why |
 |---|---|---|
 | `M.rambling` | minor | Delivery. |
 | `M.over_word_limit` | minor | Delivery. |
 
 ## Driving the case (CL)
 
-| Tag | Proposed | Why |
+| Tag | Severity | Why |
 |---|---|---|
 | `M.waited_for_interviewer` | minor | Matters less in interviewer-led cases, which is the MVP mode. |
 | `M.illogical_next_step` | **major** | Takes the case off course. |
 | `M.low_priority_next_step` | minor | Reasonable, just not the best next move. |
 | `M.vague_data_request` | minor | The interviewer asks for clarification. It costs time. |
 | `M.laundry_list` | minor | Unfocused, but the right data is usually in the list. |
-| `M.premature_solution` | minor | Jumps ahead. Recoverable once the data comes in. |
+| `M.premature_solution` | **major** | Jumps to an answer before the data that should decide it. |
 | `M.caved_to_invalid_pushback` | **major** | Drops a correct answer under pressure. Interviewers test for this on purpose. |
 | `M.ignored_valid_pushback` | **major** | Keeps a wrong answer after being told why it's wrong. |
 | `M.no_evidence_in_defense` | minor | The position may be right, just poorly defended. |
