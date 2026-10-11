@@ -1,5 +1,18 @@
 # Drills branch progress
 
+## Where things stand (updated 2026-10-10) — start here
+
+Live: PS-1, HY-1, EX-1, SY-1, CL-1 (225 authored items approved; shared CaseTester database, in sync with /drill-items). D2 drills are built but off until Matt's content arrives.
+
+Open items, in order:
+1. **API credit.** The key in `.env.local` belongs to Anthropic organization `e2cd3877-6ed9-45a7-8d2d-ee82b5cf01b5`, which has no credit; Matt bought credit, apparently in another organization. Before any Claude call, check the key's organization (the `anthropic-organization-id` response header, e.g. from `client.models.list().withResponse()`) and test one cheap call (`npm run drills:similarity -- --no-web example-sy2-01`). Never read or print the key.
+2. **Similarity check with web search** (`npm run drills:similarity`, about $30): no item has `similarity_method: "web"` yet. Run it, then send Matt only the flagged items (flagged live items drop to `in_review` automatically). Then `npm run drills:smoke:d2`.
+3. **Rule-player maximum 33%** (Matt's request; `RULE_PLAYER_MAX` in `lib/drills/content-checks.ts` is still 0.4). Current scores: CL-1 28%, HY-1 22%, PS-1 34%, SY-1 35%, EX-1 39%. Offer made: reword a few solved items in PS-1, EX-1, SY-1 (new versions), then lower to 0.33. Waiting for Matt's go-ahead.
+4. **For Matt to look at:** the two `scenario-reviewed.json` pairs involving the new SY-2 example (`example-sy2-01` with `sy1-0028` and `cl1-0021`).
+5. **Waiting on Matt:** D2 content in `docs/drills-content-templates`; tag severity decision before D3.
+
+How Matt likes to work: plain, short explanations; he reviews items on `drill-review.html` (`npm run drills:review`, "Waiting for your review" box) and sends decisions by item ID; commit and push to `drills` when asked (GitHub push works).
+
 ## Database notes
 
 **2026-10-07 — migrations on the shared CaseTester Supabase project (Matt's decision)**
