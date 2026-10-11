@@ -32,11 +32,11 @@ describe('drills config v1 (docs/prd-drills.md)', () => {
     expect(ai).toEqual(['CL-3', 'CR-1', 'HY-2', 'PS-3', 'SY-2']);
   });
 
-  it("makes drills live once their pools are approved; the other D2 drills wait for theirs", () => {
-    expect(drills.drills.filter(d => d.live).map(d => d.id).sort()).toEqual(['CL-1', 'EX-1', 'EX-2', 'EX-3', 'HY-1', 'PS-1', 'PS-3', 'QN-1', 'QN-3', 'QN-4', 'SY-1']);
+  it("makes drills live once their pools are approved", () => {
+    expect(drills.drills.filter(d => d.live).map(d => d.id).sort()).toEqual(['CL-1', 'CL-3', 'EX-1', 'EX-2', 'EX-3', 'HY-1', 'HY-2', 'PS-1', 'PS-3', 'QN-1', 'QN-3', 'QN-4', 'QN-5', 'SY-1', 'SY-2']);
     expect(hasLiveLevel2Drill('QN.percentages')).toBe(true);
     expect(hasLiveLevel2Drill('PS.mece')).toBe(true);
-    expect(hasLiveLevel2Drill('HY.form')).toBe(false);
+    expect(hasLiveLevel2Drill('HY.form')).toBe(true);
   });
 
   it('is internally consistent', () => {

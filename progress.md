@@ -1,12 +1,12 @@
 # Drills branch progress
 
-## Where things stand (updated 2026-10-11) — PS-3 live — start here
+## Where things stand (updated 2026-10-11) — start here
 
-Live: PS-1, HY-1, EX-1, SY-1, CL-1 (225 authored items approved; shared CaseTester database, in sync with /drill-items). D2 drills are built but off until Matt's content arrives.
+Live: all Level 1 drills (PS-1, HY-1, EX-1, SY-1, CL-1) and all five D2 drills (PS-3, HY-2, SY-2, CL-3, QN-5). Shared CaseTester database, in sync with /drill-items. Grader `drills-grader-v19`, one call per answer (HY-2: plus a stage-1-only family call).
 
 Open items, in order:
-1. **Matt to approve** HY-2, SY-2, CL-3, QN-5 questions to go live.
-2. **Next build phase:** D3 (the loop).
+1. **D3 (the loop) is on hold: do not start until Matt says so** (Matt, 2026-10-11).
+2. When content changes: re-run `npm run drills:golden`, `npm run drills:models -- --runs 3` and `npm run drills:smoke:d2`; changing the stored shape of a key needs a re-seed or new versions before grading works on it.
 
 How Matt likes to work: plain, short explanations; he reviews items on `drill-review.html` (`npm run drills:review`, "Waiting for your review" box) and sends decisions by item ID; commit and push to `drills` when asked (GitHub push works).
 
@@ -212,3 +212,8 @@ How Matt likes to work: plain, short explanations; he reviews items on `drill-re
 - CL-3 two-driver cap confirmed by a test on cl3-0011: covering either driver avoids the cap, neither caps at 60%.
 - Found: the grader let stage 2 leak into the stage 1 family (hy2-0015, hy2-0036), which would mark students who revise correctly as wrong. HY-2's family is now classified in a separate call that sees only the opening facts, the families, the grading rules and stage 1 (`buildFamilyBlock`). HY-2 grading now takes two calls per answer (~$0.006 per answer). PRD HY-2 section says so. Grader `drills-grader-v19`.
 - Final: all four gates pass (HY-2 family 97%, update_reason 97%); all model answers 100% with no change across three runs; smoke passes.
+
+## D2 drills live (2026-10-11)
+
+- Matt approved HY-2 (40), SY-2 (30), CL-3 (40) and QN-5 (30): live, reviewed by Matthew Santos; drills switched on in `drills.v1.json`; config test expects all 15 live drills. Seeded (140 updated). Smoke passes on the live drills.
+- Matt: don't start D3 until he says so.
