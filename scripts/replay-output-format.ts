@@ -35,7 +35,7 @@ import { changeFigures } from '@/lib/orchestrator/numeric-provenance';
 import { resolveRequests } from '@/lib/agent/models/turn-schema';
 import type { VerifiedFigure } from '@/lib/orchestrator/recompute';
 import { writeOpener, OPENER_TURN_NOTE, openerGate } from '@/lib/agent/opener';
-import { INTERVIEWER_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
+import { FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { TURN_SCHEMA } from '@/lib/agent/models/turn-schema';
 import { stripMetaLeak, rewriteSystemLanguage } from '@/lib/orchestrator/audit';
 import { OpenAIInterviewerModel, CerebrasInterviewerModel } from '@/lib/agent/models/cerebras';
@@ -266,7 +266,9 @@ async function firstTokenMs(s: Sample, candidateText: string): Promise<number | 
 async function bareFirstTokenMs(): Promise<number | null> {
   const t0 = Date.now();
   const stream = anthropic.beta.messages.stream({
-    model: INTERVIEWER_MODEL_ID, max_tokens: 1024,
+    // Sonnet's bare first token (its between_tools / fallback settings) — pinned
+    // since the default interviewer became Haiku 5.5 (11 Oct).
+    model: 'claude-sonnet-5-5', max_tokens: 1024,
     system: 'You are a case interviewer. Reply in the JSON format with a short question.',
     messages: [{ role: 'user', content: 'Okay.' }],
     output_config: { format: { type: 'json_schema', schema: TURN_SCHEMA } },

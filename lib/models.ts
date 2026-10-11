@@ -2,11 +2,22 @@
 // 2 Oct 2026, Lorenzo's call). The cheap classifiers (coverage, data requests,
 // distress, hint check) stay on Haiku 4.5 and are configured in their modules.
 
-// Live interviewer: Sonnet 5.5 without thinking — faster and cheaper than the
-// Opus 4.8 it replaces, for the M2 latency budget. Haiku 4.5 was dropped in July
-// for missing live math errors; the deterministic math backstops (recompute,
-// verified figures, unit check) now carry most of that load.
-export const INTERVIEWER_MODEL_ID = 'claude-sonnet-5-5';
+// Live interviewer: Haiku 5.5 since 11 Oct 2026 (Lorenzo's call) — the model
+// the voice pilot runs, first useful content ~1.25s vs Sonnet's ~2.1s on the
+// 8 Oct screen. Before: Sonnet 5.5 without thinking (Oct), Opus 4.8 (July),
+// Haiku 4.5 (dropped in July for missing live math errors; the deterministic
+// math backstops — recompute, verified figures, unit check — now carry most of
+// that load). Sonnet stays selectable: INTERVIEWER_PROVIDER=anthropic-sonnet55.
+export const INTERVIEWER_MODEL_ID = 'claude-haiku-5-5';
+
+// The interviewer request settings each model needs. Haiku 5.5: thinking
+// 'disabled' (it rejects 'between_tools'), effort 'medium', no server-side
+// fallback (it has none). Sonnet 5.5 (and any other id): 'between_tools' is its
+// thinking-off switch, fallbacks on.
+export function interviewerRequestOptions(modelId: string): { thinking: 'between_tools' | 'disabled'; effort?: 'low' | 'medium' | 'high'; fallbacks: boolean } {
+  if (modelId === 'claude-haiku-5-5') return { thinking: 'disabled', effort: 'medium', fallbacks: false };
+  return { thinking: 'between_tools', fallbacks: true };
+}
 
 // Scoring: judge, claim verifier, and dimension reconciliation on Opus 5.5.
 // Thinking is always on for this model (adaptive); its effort default is

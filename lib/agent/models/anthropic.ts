@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { InterviewerModel, TurnContext, TurnEvent, TurnValidation } from './interface';
-import { INTERVIEWER_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
+import { INTERVIEWER_MODEL_ID, FALLBACK_BETA, FALLBACKS, interviewerRequestOptions } from '@/lib/models';
 import { TURN_SCHEMA, parseTurn, toRequests, unknownIds, type ModelTurn } from './turn-schema';
 import { TurnStreamParser } from './turn-stream';
 import { collectTurn, NEUTRAL_TURN } from './turn-events';
@@ -12,11 +12,10 @@ export const TURN_KEYS = new Set(['move', 'requests', 'exhibit', 'rescue_item', 
 
 export type Attempt = { turn: ModelTurn | null; refused: boolean; unknown: string[] };
 
-// Request settings that differ by model. The defaults are production's Sonnet
-// 5.5 request, unchanged. Experiment (8 Oct): Haiku 5.5 runs with thinking
-// 'disabled' (accepted at effort high or below; it rejects 'between_tools'),
-// effort 'medium' (its default), and no fallbacks (Haiku 5.5 has no
-// server-side fallback).
+// Request settings that differ by model. Unset fields take the model's own
+// settings (lib/models.ts interviewerRequestOptions): Haiku 5.5 — production
+// since 11 Oct — thinking 'disabled' (it rejects 'between_tools'), effort
+// 'medium', no fallbacks; Sonnet 5.5 — 'between_tools', fallbacks on.
 export type AnthropicRequestOptions = {
   thinking?: 'between_tools' | 'disabled';
   effort?: 'low' | 'medium' | 'high';
@@ -33,7 +32,7 @@ export class AnthropicInterviewerModel implements InterviewerModel {
     this.client = anthropicClient();
     this.modelId = modelId;
     this.layout = layout;
-    this.options = options;
+    this.options = { ...interviewerRequestOptions(modelId), ...options };
   }
 
   async runTurn(ctx: TurnContext): Promise<ModelTurn> {
