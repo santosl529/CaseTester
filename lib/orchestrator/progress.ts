@@ -45,6 +45,14 @@ export function derivePhase(current: Phase, e: ProgressEvidence): Phase {
 // 'code_rec_ask' when code asked for the recommendation.
 export type TurnMove = Move | 'code_rec_ask';
 
+// v4.10 (round-3): a move label alone no longer counts — the delivered text
+// has to do what the label says (batch 18: a "which lever matters most?"
+// labelled brainstorm opened the end gate with no brainstorm asked). Code's
+// own asks (code_rec_ask, code's stage asks recorded as moves) are trusted.
+const BRAINSTORM_TEXT = /\b(?:what|how)\s+else\b|\bwhat\s+other\s+(?:ways|options|levers|ideas|things|moves|actions)\b|\bother\s+ways\s+(?:to|could|might|can)\b|\bas many (?:options|ideas)\b/i;
+const RISK_TEXT = /\b(?:risk|go wrong|change your mind|wrong about|break (?:it|that|this)|test (?:it|that|this))\b/i;
+const REC_TEXT = /\b(?:recommend\w*|tell the (?:ceo|client)|should (?:they|the client|the company|brew)|what would you do|bottom.?line)\b/i;
+
 export function stagesFromTurns(
   interviewerTurns: { turnIndex: number; text: string }[],
   moves: Record<number, TurnMove>,
@@ -53,15 +61,9 @@ export function stagesFromTurns(
   let brainstormAsked = false, riskAsked = false, recommendationAskCount = 0;
   for (const t of interviewerTurns) {
     const m = moves[t.turnIndex];
-    if (m !== undefined) {
-      brainstormAsked ||= m === 'brainstorm';
-      riskAsked ||= m === 'risk';
-      if (m === 'recommendation' || m === 'code_rec_ask') recommendationAskCount++;
-    } else {
-      brainstormAsked ||= asksBrainstorm(t.text);
-      riskAsked ||= asksRisk(t.text);
-      if (asksRecommendationAsk(t.text)) recommendationAskCount++;
-    }
+    brainstormAsked ||= asksBrainstorm(t.text) || (m === 'brainstorm' && BRAINSTORM_TEXT.test(t.text));
+    riskAsked ||= asksRisk(t.text) || (m === 'risk' && t.text.includes('?') && RISK_TEXT.test(t.text));
+    if (m === 'code_rec_ask' || asksRecommendationAsk(t.text) || (m === 'recommendation' && t.text.includes('?') && REC_TEXT.test(t.text))) recommendationAskCount++;
   }
   return { brainstormAsked, riskAsked, recommendationAsked: recommendationAskCount > 0, recommendationAskCount, recommendationReceived };
 }

@@ -37,6 +37,23 @@ const CONTINUES = /\?|\bfor now\b|\bback to\b|\bmeanwhile\b|\bin the meantime\b|
 const CASE_COMPLETE = /\b(the case is (now )?(complete|over|finished|done)|that completes the case)\b/i;
 const LEAVE_IT_THERE = /\bwe'?ll leave (it|that|things|the \w+) there\b/i;
 
+// v4.10 (batch 18: Trevor, Preston, Spencer, Bianca asked how they were
+// being assessed, and the one-line answer — "you'll get a full written report
+// afterward" — was withheld as a goodbye). A question about assessment or
+// feedback in the candidate's message…
+const ASSESSMENT_WORDS = /\b(?:scor\w*|grad(?:e|ed|ing)\b|rat(?:e|ed|ing)\b|rubric|percentile|evaluat\w*|assess\w*|feedback|report|right track|on track|how am i doing|how (?:did|do) i do|(?:hit|hitting) the bar|land(?:s|ing)? me|relative to (?:others|other candidates)|(?:most|other) candidates|strong on every|keep pursuing|a strong start|how (?:i|i'?m) (?:did|doing|compare))\b/i;
+export function asksAboutAssessment(candidateText: string): boolean {
+  return candidateText.split(/(?<=[.!?])\s+|\n+/).some(s => s.includes('?') && ASSESSMENT_WORDS.test(s));
+}
+
+// …gets its report hand-off through, mid-case: a sentence that hands off to
+// the written report, with no goodbye in it and no verdict on their work.
+const VERDICT = /\b(?:holds?(?: together| up)?|solid|strong|good|great|sound|clean|excellent|well done|nice|impressive|on track)\b/i;
+export function isReportAnswer(sentence: string): boolean {
+  return REPORT_CLOSE.test(sentence) && !STRONG_CLOSE.test(sentence) && !CASE_COMPLETE.test(sentence)
+    && !LEAVE_IT_THERE.test(sentence) && !VERDICT.test(sentence);
+}
+
 export function isClosingTurn(text: string): boolean {
   if (STRONG_CLOSE.test(text) || CASE_COMPLETE.test(text)) return true;
   return (REPORT_CLOSE.test(text) || LEAVE_IT_THERE.test(text)) && !CONTINUES.test(text);

@@ -14,8 +14,12 @@ import { checkMathSteps } from './deterministic';
 import { assembleReport } from './report';
 import { summarizeAssists, summarizeCoverage, summarizePressureTest } from './assists';
 import { summarizeDataRequests } from './data-coverage';
-import { buildInterviewerMarks, formatInterviewerMarksSection, dropClaimsOnMarkedTurns } from './interviewer-errors';
+import { buildInterviewerMarks, formatInterviewerMarksSection, dropClaimsOnMarkedTurns, type InterviewerMark } from './interviewer-errors';
 import { buildChallengeMarks, verifyCandidateTurns, genuineErrorSpans, formatClaimChecksSection } from './challenge-marks';
+import { applyStageCaps, formatStageRecordSection, reconstructStages } from './stage-caps';
+import { exhibitsShown } from '@/db/schema';
+import type { StageRecord } from '@/lib/orchestrator/stage-evidence';
+import type { Phase } from '@/lib/orchestrator/state-machine';
 import { applyCaveatFloor } from './caveat-floor';
 import { applyAnswerKeyPass } from './answer-key-pass';
 import { applyStrongGate } from './strong-gate';
@@ -105,6 +109,20 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   const transcript = repairedTranscript;
   const mathResults = checkMathSteps(transcript, caseData.mathSteps, revealedRows.map(r => r.ledgerItemId));
   const interventions = interventionRows.map(r => ({ subtype: r.subtype, phase: r.phase, payloadJsonb: r.payloadJsonb }));
+  // Rule 9 / 18A (v4.10): what actually happened, stage by stage — the
+  // session's own record, or rebuilt from the transcript for sessions recorded
+  // before it existed — and whether the candidate ended the interview early.
+  const flags = session.flagsJsonb as Record<string, unknown>;
+  const partial = Boolean(flags.partial);
+  const exhibitRows = await db.query.exhibitsShown.findMany({ where: eq(exhibitsShown.sessionId, sessionId) });
+  const phaseRows = await db.query.sessionEvents.findMany({ where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'check')) });
+  const phaseAt = (turnIndex: number) => (phaseRows.find(e => e.turnIndex === turnIndex)?.phase ?? 'ANALYSIS') as Phase;
+  const stageRecord = (flags.stageEvidence as StageRecord | undefined) ?? reconstructStages({
+    turns: turns.map(t => ({ role: t.role, text: t.text, turnIndex: t.turnIndex, timestampMs: t.timestampMs })),
+    exhibitShownAtMs: exhibitRows.map(e => e.shownAtMs), revealedAtMs: revealedRows.map(r => r.revealedAtMs),
+    pressureTest: flags.pressureTest as never, caseTexts: [caseData.prompt, ...caseData.dataLedger.map(d => d.value)], phaseAt,
+  });
+  const stageSection = formatStageRecordSection(stageRecord, partial ? { exitTurn: flags.exitTurn as number | undefined } : null);
   const interventionSummary = [summarizeAssists(interventions), summarizeCoverage(interventions), summarizePressureTest(interventions, transcript)]
     .filter(Boolean)
     .join('\n\n');
@@ -173,11 +191,12 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
       dataCoverage.requestedUnanswered,
     ),
     ...buildChallengeMarks(transcript, caseData, revealedBefore, verification),
+    ...exitMarks(transcript, interventionRows),
   ];
   if (marks.length > 0) console.warn('[score] interviewer-error marks:', JSON.stringify(marks.map(m => [m.kind, m.interviewerTurn])));
 
   const rawRubric = await runJudge(
-    transcript, caseData, revealedIds, mathResults, [interventionSummary, formatClaimChecksSection(verification)].filter(Boolean).join('\n\n'), dataCoverage,
+    transcript, caseData, revealedIds, mathResults, [interventionSummary, stageSection, formatClaimChecksSection(verification)].filter(Boolean).join('\n\n'), dataCoverage,
     formatInterviewerMarksSection(marks),
     u => logUsage({ ...u }),
   );
@@ -231,8 +250,12 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   const strongGate = applyStrongGate(reconciledRubric, candidateTexts);
   if (strongGate.downgraded.length > 0) console.warn('[score] strong ratings lowered by the checklist gate:', JSON.stringify(strongGate.downgraded));
   if (strongGate.overallCapped) console.warn('[score] overall rating capped:', JSON.stringify(strongGate.overallCapped));
-  // Rule 9 floor (v4.3) — enforced in code, after every text pass.
-  const { rubric, floored } = applyCaveatFloor(strongGate.rubric);
+  // Rule 9 (v4.10): a dimension whose stage never happened is rated only on
+  // real evidence, else not assessed; a partial interview has no overall.
+  const caps = applyStageCaps(strongGate.rubric, stageRecord, { partial });
+  if (caps.notAssessed.length > 0) console.warn('[score] not assessed — stage never happened, no evidence:', JSON.stringify(caps.notAssessed));
+  // Rule 9 floor (v4.3 → v4.10: evidence-based) — enforced in code, after every text pass.
+  const { rubric, floored, unassessed } = applyCaveatFloor(caps.rubric);
   if (floored.length > 0) console.warn('[score] caveated dimensions floored at meets_bar:', JSON.stringify(floored));
   if (merges.length > 0) console.warn('[score] reconciliation merged both-sides claims:', JSON.stringify(merges));
   if (gapDrops.length > 0) console.warn('[score] reconciliation dropped coverage-gap faults:', JSON.stringify(gapDrops));
@@ -268,6 +291,11 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
     unsupportedChallenges: marks.filter(m => m.kind === 'unsupported_challenge').length,
     markClaimDrops: markDrops.length,
     caveatFloors: floored.length,
+    caveatUnassessed: unassessed.length,
+    // v4.10: stage evidence and partial interviews.
+    stageNotAssessed: caps.notAssessed.length,
+    stageCaveated: caps.caveated.length,
+    partial,
     gapClaimDrops: gapDrops.length,
     // v4.5: answer-key anchoring rate and un-administered-stage faults removed.
     answerKeyDrops: answerKey.removed.length,
@@ -280,4 +308,16 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   };
 
   return { rubric, report, mathResults, qa, strongGate, answerKey };
+}
+
+// Rule 18A (v4.10): the candidate's request to stop — and the exchange about
+// it — is never evidence (interviewer-errors.ts marks).
+function exitMarks(transcript: { role: string; turnIndex: number }[], rows: { subtype: string; turnIndex: number | null }[]): InterviewerMark[] {
+  const turnsOf = (subtypes: string[]) => rows.filter(r => subtypes.includes(r.subtype) && r.turnIndex !== null).map(r => r.turnIndex!);
+  const asked = turnsOf(['exit_clarify', 'refusal_offer']);
+  const replies = asked.map(t => transcript.find(x => x.role === 'candidate' && x.turnIndex > t + 1)?.turnIndex).filter((t): t is number => t !== undefined);
+  const turns = [...new Set([...turnsOf(['candidate_exit']), ...asked, ...replies])].filter(t => transcript.some(x => x.role === 'candidate' && x.turnIndex === t));
+  if (turns.length === 0) return [];
+  return [{ kind: 'candidate_exit', interviewerTurn: null, candidateTurns: turns,
+    note: 'The candidate asked to stop, or was asked whether to stop. Asking to stop is never graded: do not mention, rate or penalize it, and do not use these turns as evidence.' }];
 }

@@ -22,7 +22,7 @@ import { enforceNumericProvenance, changeFigures } from './numeric-provenance';
 import { challengeVerdict } from './probe-guard';
 import { withholdAssumptionChallenges } from './assumption-guard';
 import { suppliesRecommendation } from './synthesis-guard';
-import { isClosingTurn } from './spoken-close';
+import { isClosingTurn, isReportAnswer, asksAboutAssessment } from './spoken-close';
 import { hasCloseCue } from '@/lib/agent/prompts/scripts';
 import { handoffSentences } from './data-ledger';
 import { promisesExhibit } from './exhibits';
@@ -40,6 +40,7 @@ export type GateContext = {
   openItems: OpenRequestItem[];
   phase: Phase;
   acknowledged?: boolean;  // voice already spoke a backchannel this turn
+  metaAsked?: boolean;     // the candidate asked how they're assessed (a report hand-off may answer it)
 };
 
 // A say sentence that is nothing but an acknowledgment ("Understood.") —
@@ -88,7 +89,7 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   }, new Set(), opts.previous);
   if (challenge && !('explainKey' in challenge)) return challenge.test === 'unsupported_challenge' ? 'unsupported_challenge' : 'probe_guard';
   if (withholdAssumptionChallenges(sentence, g.openItems).withheld.length > 0) return 'assumption_guard';
-  if (hasCloseCue(sentence) || isClosingTurn(sentence)) return 'close_cue';
+  if ((hasCloseCue(sentence) || isClosingTurn(sentence)) && !(g.metaAsked && isReportAnswer(sentence))) return 'close_cue';
   // Data lines come between "say" and the question, so only "say" can double
   // them; a probe question about data ("what would be available to test
   // that?") is the interviewer's job.
@@ -120,6 +121,8 @@ export function gateContext(plan: ModelPlan, extraRevealed: string[] = []): Gate
     openItems: state.openDataRequests.map(r => ({ ledgerItemId: r.ledgerItemId, label: r.label })),
     phase: ctx.currentPhase,
     acknowledged: Boolean(ctx.acknowledged),
+    // Only on a turn the case continues past (model turns are never the close).
+    metaAsked: state.kind === 'model' && asksAboutAssessment(ctx.candidateText),
   };
 }
 

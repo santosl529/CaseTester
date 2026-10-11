@@ -1,0 +1,135 @@
+// Stage evidence in scoring (docs/interviewer-behavior.md Rule 9, v4.10;
+// round-3 fix 10). Batch 18: the exhibit was never shown in 8 interviews, yet
+// all 8 were rated on Data & Exhibit from numbers read aloud; one report said
+// the brainstorm was never asked and rated Creativity "strong" anyway.
+//
+// The judge is told what actually happened, stage by stage, from the
+// session's own record (lib/orchestrator/stage-evidence.ts) — not from move
+// labels, and "exhibit shown" is never "exhibit interpreted". Then, in code:
+//   - a dimension whose stage was administered (delivered, whatever the
+//     candidate did with it — answered, declined, unable) is rated as judged:
+//     not doing it when asked is performance (Rule 13);
+//   - a dimension whose stage never happened is rated only on real evidence
+//     elsewhere — quoted, surviving the audits — including spontaneous work
+//     (a brainstorm the candidate offered unasked); with no such evidence it
+//     is "not assessed", never an invented rating and never an automatic
+//     "meets bar";
+//   - a partial interview (the candidate ended it, Rule 18A) has no overall
+//     rating.
+import type { RubricScores } from './judge';
+import type { RubricDimensionKey } from './rubric';
+import { RUBRIC_DIMENSION_LABELS } from './rubric';
+import { INITIAL_STAGES, STAGES, updateStages, type StageEntry, type StageKey, type StageRecord } from '@/lib/orchestrator/stage-evidence';
+import { evaluateStall, INITIAL_STALL_STATE } from '@/lib/orchestrator/stall';
+import { candidateFiguresOf } from '@/lib/orchestrator/math-talk';
+import { INITIAL_PRESSURE_TEST, type PressureTestState } from '@/lib/orchestrator/pressure-test';
+import type { Phase } from '@/lib/orchestrator/state-machine';
+
+// The stage each dimension is primarily scored at (rubric stages). Judgment,
+// communication and pushback are read across the whole interview.
+export const DIMENSION_STAGE: Partial<Record<RubricDimensionKey, StageKey>> = {
+  structure: 'structure',
+  quantitative: 'analysis',
+  dataExhibit: 'exhibit',
+  creativity: 'brainstorm',
+  synthesis: 'recommendation',
+};
+
+const STAGE_LABEL: Record<StageKey, string> = {
+  structure: 'Structure (the opening question)', pressure_test: 'Pressure test on the structure', analysis: 'Analysis (case data released and worked)',
+  exhibit: 'Exhibit', brainstorm: 'Brainstorm', recommendation: 'Recommendation', risk: 'Risk to the recommendation',
+};
+
+export function administered(e: StageEntry | undefined): boolean {
+  return Boolean(e && ((e.delivered && e.outcome !== 'time_up') || e.spontaneous));
+}
+
+function describe(e: StageEntry): string {
+  if (!e.delivered) return e.spontaneous ? 'not asked, but the candidate did it unprompted' : e.outcome === 'time_up' ? 'never reached — time ran out' : 'never administered';
+  const at = e.deliveredAt !== undefined ? ` at turn ${e.deliveredAt}` : '';
+  const by = e.codeAsked ? ' (asked by the system)' : '';
+  switch (e.outcome) {
+    case 'answered': return `administered${at}${by}; the candidate engaged with it`;
+    case 'declined': return `administered${at}${by}; the candidate declined it`;
+    case 'unable': return `administered${at}${by}; the candidate could not do it`;
+    case 'waived': return `administered${at}; closed by the system's bound without an answer (waived — not answered, not a weakness by itself)`;
+    case 'time_up': return `administered${at}; time ran out before an answer`;
+    default: return `administered${at}${by}; no reply to it yet when the interview ended`;
+  }
+}
+
+export function formatStageRecordSection(rec: StageRecord, partial: { exitTurn?: number } | null): string {
+  const lines = STAGES.map(k => `- ${STAGE_LABEL[k]}: ${describe(rec[k] ?? { delivered: false })}`);
+  const notReached = Object.entries(DIMENSION_STAGE).filter(([, k]) => !administered(rec[k!])).map(([d]) => RUBRIC_DIMENSION_LABELS[d as RubricDimensionKey]);
+  const parts = [`STAGE RECORD (from the session's own log — what was actually put to the candidate, not what the interviewer intended):
+${lines.join('\n')}
+How to score from it: an exhibit shown is not an exhibit interpreted — rate Data & Exhibit Interpretation on what the candidate actually did with the data. A dimension whose stage was never administered may be rated only on real, quoted evidence from elsewhere in the interview (work the candidate did unprompted counts); with none, set notAssessed with a coverageCaveat saying the stage never happened — do not guess a rating. A stage that was administered and that the candidate declined or could not do is performance, not a coverage gap.${notReached.length ? `\nDimensions whose stage never happened: ${notReached.join(', ')}.` : ''}`];
+  if (partial) {
+    parts.push(`PARTIAL INTERVIEW: the candidate chose to end the interview${partial.exitTurn !== undefined ? ` at turn ${partial.exitTurn}` : ''}. Score only what happened before it. Dimensions whose stage was not reached are notAssessed unless there is real evidence elsewhere. Never mention, rate or penalize the decision to stop, or anything said about stopping; the topFix is about the work they did. The overall rating will not be shown.`);
+  }
+  return parts.join('\n\n');
+}
+
+const quoted = (items: { quotes: string[] }[]) => items.some(i => i.quotes.some(q => q.trim().length > 0));
+
+export function applyStageCaps(
+  rubric: RubricScores,
+  rec: StageRecord,
+  opts: { partial: boolean },
+): { rubric: RubricScores; notAssessed: RubricDimensionKey[]; caveated: RubricDimensionKey[] } {
+  const out = structuredClone(rubric);
+  const notAssessed: RubricDimensionKey[] = [];
+  const caveated: RubricDimensionKey[] = [];
+  for (const [key, stage] of Object.entries(DIMENSION_STAGE) as [RubricDimensionKey, StageKey][]) {
+    const dim = out[key];
+    if (dim.notAssessed || administered(rec[stage])) continue;
+    const label = STAGE_LABEL[stage].toLowerCase();
+    if (!quoted(dim.wentWell) && !quoted(dim.needsWork)) {
+      dim.notAssessed = true;
+      dim.coverageCaveat ||= opts.partial
+        ? `The interview ended before the ${label} stage, so this wasn't assessed.`
+        : `The ${label} stage never happened in this interview, so this wasn't assessed.`;
+      notAssessed.push(key);
+    } else if (!dim.coverageCaveat) {
+      dim.coverageCaveat = `The ${label} stage never happened in this interview; this rating rests on what you did elsewhere.`;
+      caveated.push(key);
+    }
+  }
+  if (opts.partial) out.overallRating = null;
+  return { rubric: out, notAssessed, caveated };
+}
+
+// A stage record rebuilt from a transcript, for sessions recorded before the
+// record existed (re-grading batch 18). Same rules as the live update.
+export function reconstructStages(p: {
+  turns: { role: string; text: string; turnIndex: number; timestampMs: number }[];
+  exhibitShownAtMs: number[];
+  revealedAtMs: number[];
+  pressureTest: Partial<PressureTestState> | undefined;
+  caseTexts: string[];
+  phaseAt?: (turnIndex: number) => Phase;
+}): StageRecord {
+  let rec: StageRecord = structuredClone(INITIAL_STAGES);
+  let stall = INITIAL_STALL_STATE;
+  const pt = { ...INITIAL_PRESSURE_TEST, ...p.pressureTest } as PressureTestState;
+  const turns = [...p.turns].sort((a, b) => a.turnIndex - b.turnIndex);
+  let lastMs = turns[0]?.timestampMs ?? 0;
+  for (let i = 0; i < turns.length; i++) {
+    const t = turns[i];
+    if (t.role !== 'interviewer' || t.turnIndex === 0) { if (t.role === 'interviewer') lastMs = t.timestampMs; continue; }
+    const cand = turns.slice(0, i).reverse().find(x => x.role === 'candidate');
+    if (!cand) { lastMs = t.timestampMs; continue; }
+    stall = evaluateStall(cand.text, p.phaseAt?.(cand.turnIndex) ?? 'RECOMMENDATION', stall).state;
+    const inTurn = (ms: number) => ms > lastMs && ms <= t.timestampMs + 1;
+    rec = updateStages(rec, {
+      turnIndex: t.turnIndex, candidateText: cand.text, question: t.text,
+      exhibitShown: p.exhibitShownAtMs.some(inTurn), released: p.revealedAtMs.some(inTurn),
+      recAsked: false, recommendationDelivered: stall.recommendationDelivered,
+      // The probe's outcome as it ended; its turn as logged.
+      pressureTest: (pt.askedAt ?? Infinity) <= t.turnIndex ? pt : { ...INITIAL_PRESSURE_TEST, structureGiven: pt.structureGiven && (pt.askedAt ?? 0) <= t.turnIndex },
+      candidateFigures: candidateFiguresOf(turns.slice(0, i).filter(x => x.role === 'candidate').map(x => x.text), p.caseTexts).length,
+    });
+    lastMs = t.timestampMs;
+  }
+  return rec;
+}

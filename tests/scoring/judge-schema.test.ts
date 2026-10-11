@@ -55,11 +55,20 @@ describe('judge structured output', () => {
   });
 
   it('returns the parsed rubric', () => {
-    const scores = RubricScoresSchema.parse(validScores());
+    const scores = JUDGE_OUTPUT_FORMAT.parse(JSON.stringify(validScores()));
     expect(readJudgeOutput({ parsed_output: scores, stop_reason: 'end_turn' })).toBe(scores);
   });
 
   it('names the stop reason when nothing parsed (refusal, empty reply)', () => {
     expect(() => readJudgeOutput({ parsed_output: null, stop_reason: 'refusal' })).toThrow(/refusal/);
+  });
+});
+
+// Rule 18A (v4.10): a partial interview's report has no overall rating; the
+// judge itself must still give one (the code drops it).
+describe('partial reports', () => {
+  it('a stored rubric may have a null overall rating; the judge output may not', () => {
+    expect(RubricScoresSchema.safeParse({ ...validScores(), overallRating: null }).success).toBe(true);
+    expect(() => JUDGE_OUTPUT_FORMAT.parse(JSON.stringify({ ...validScores(), overallRating: null }))).toThrow();
   });
 });

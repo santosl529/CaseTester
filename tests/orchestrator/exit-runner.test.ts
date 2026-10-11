@@ -1,0 +1,296 @@
+// Round-3 fixes through the real runner (Plan → Stream → Settle → commit)
+// with an in-memory store and scripted model, distress and judges — saved
+// batch-18 lines where they exist (tests/orchestrator/fixtures/batch18-exit.json).
+// Candidate exit (Rule 18A), distress after a decline (Rule 17-C5), required
+// stages before a normal end (Rule 9), the closing line, meta answers, and a
+// stale turn after End.
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { ModelTurn } from '@/lib/agent/models/turn-schema';
+import saved from './fixtures/batch18-exit.json';
+
+type Row = Record<string, unknown>;
+const store = { session: {} as Row, turns: [] as Row[], revealed: [] as Row[], exhibits: [] as Row[], events: [] as Row[] };
+vi.mock('@/db/client', async () => {
+  const { getTableName } = await import('drizzle-orm');
+  const target = (t: unknown) => ({ session_turns: store.turns, revealed_data: store.revealed, exhibits_shown: store.exhibits, session_events: store.events } as Record<string, Row[]>)[getTableName(t as never)];
+  return {
+    db: {
+      query: {
+        sessions: { findFirst: async () => ({ ...store.session }) },
+        sessionTurns: { findMany: async () => [...store.turns].sort((a, b) => (a.turnIndex as number) - (b.turnIndex as number)) },
+        exhibitsShown: { findMany: async () => [...store.exhibits] },
+        revealedData: { findMany: async () => [...store.revealed] },
+        sessionEvents: { findMany: async () => store.events.filter(e => e.category === 'data_request') },
+      },
+      insert: (t: unknown) => ({ values: async (v: Row | Row[]) => { target(t)?.push(...(Array.isArray(v) ? v : [v])); } }),
+      // Honours "only while active": an update to an ended session is dropped.
+      update: () => ({ set: (v: Row) => ({ where: async () => { if (store.session.status === 'active') store.session = { ...store.session, ...v }; } }) }),
+    },
+  };
+});
+vi.mock('@/lib/analytics', async orig => ({ ...(await orig<object>()), logEvent: async () => {} }));
+const distressCalls: { candidateText: string; earlier?: { disclosure: string } }[] = [];
+let distressVerdict: (p: { candidateText: string; earlier?: { disclosure: string } }) => { label: string; reason: string } | null = () => ({ label: 'none', reason: '' });
+vi.mock('@/lib/orchestrator/distress', async orig => ({
+  ...(await orig<object>()),
+  classifyDistress: async (p: { candidateText: string; earlier?: { disclosure: string } }) => { distressCalls.push(p); return distressVerdict(p); },
+}));
+vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => [] }));
+vi.mock('@/lib/orchestrator/hint-check', async orig => ({ ...(await orig<object>()), checkHintDelivered: async () => null }));
+
+const modelQueue: ModelTurn[] = [];
+let onModel: () => void = () => {};
+vi.mock('@/lib/agent/models/factory', async () => {
+  const { eventsFromTurn } = await import('@/lib/agent/models/turn-events');
+  return {
+    createInterviewerModel: () => ({
+      runTurn: async () => modelQueue[0],
+      streamTurn: () => {
+        onModel();
+        const t = modelQueue.shift();
+        if (!t) throw new Error('model queue empty');
+        return eventsFromTurn(Promise.resolve(t));
+      },
+    }),
+  };
+});
+vi.mock('@/lib/orchestrator/pressure-test', async orig => ({
+  ...(await orig<object>()),
+  judgeProbeAnswer: async () => null,
+  judgeStructureGiven: async () => ({ given: false, reason: '' }),
+}));
+
+const { runTurn } = await import('@/lib/orchestrator/session-runner');
+
+const fx = saved as unknown as {
+  'cole-t7': { candidate: string; phase: string; revealed: string[]; shownExhibits: string[]; pressureTest: Row; priorTurns: { role: string; text: string }[]; model: ModelTurn };
+  victor: { opening: string; lines: string[]; models: ModelTurn[] };
+  'victor-goodbyes': string[];
+  'sam-t25': { candidate: string; disclosure: string; t27: string; priorTurns: { role: string; text: string }[] };
+};
+
+const T = (over: Partial<ModelTurn> = {}): ModelTurn => ({ move: 'analysis', requests: [], exhibit: null, rescueItem: null, say: '', question: 'What would you look at next?', ...over });
+const SATISFIED = { state: 'satisfied', askedAt: 2, satisfiedAt: 3, intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false };
+const ALL_COVERED = { structure: 90, quantitative: 90, dataExhibit: 90, judgment: 90, creativity: 90, synthesis: 90, communication: 90, pushback: 90 };
+
+function seed(p: { phase: string; turns: { role: string; text: string }[]; flags?: Row; revealed?: string[]; exhibits?: string[]; elapsedMin?: number; coverage?: Row | null }) {
+  const startedAt = new Date(Date.now() - (p.elapsedMin ?? 8) * 60_000);
+  store.session = {
+    id: 's1', userId: 'u1', caseId: 'prof-001', phase: p.phase, elapsedMs: 0, phaseStartedAt: startedAt, status: 'active',
+    abandonPhase: null, startedAt, completedAt: null, coverageJsonb: p.coverage ?? null,
+    flagsJsonb: { conduct: { warnings: 0 }, ...p.flags },
+  };
+  store.turns = p.turns.map((t, i) => ({ id: `t${i}`, sessionId: 's1', turnIndex: i, role: t.role, text: t.text, timestampMs: startedAt.getTime() + i * 20_000, latencyMs: null }));
+  store.revealed = (p.revealed ?? []).map((ledgerItemId, i) => ({ id: `r${i}`, sessionId: 's1', ledgerItemId, revealedAtMs: startedAt.getTime() }));
+  store.exhibits = (p.exhibits ?? []).map((exhibitId, i) => ({ id: `e${i}`, sessionId: 's1', exhibitId, shownAtMs: startedAt.getTime() }));
+  store.events = [];
+}
+const flags = () => store.session.flagsJsonb as Row;
+const ev = (subtype: string, category = 'intervention') => store.events.filter(e => e.subtype === subtype && e.category === category);
+async function say(text: string, model?: ModelTurn) {
+  modelQueue.length = 0;
+  if (model) modelQueue.push(model, model);
+  return runTurn('s1', text, {});
+}
+
+beforeEach(() => {
+  modelQueue.length = 0; distressCalls.length = 0; onModel = () => {};
+  distressVerdict = () => ({ label: 'none', reason: '' });
+});
+
+describe('Rule 18A — the candidate stops', () => {
+  it('Cole t7 (batch 18): "honestly can we just stop" mid-case ends it — no case question, a partial report, the request never graded', async () => {
+    const c = fx['cole-t7'];
+    seed({ phase: c.phase, turns: [{ role: 'interviewer', text: 'Prompt' }, ...c.priorTurns], revealed: c.revealed, flags: { pressureTest: c.pressureTest } });
+    const r = await say(c.candidate, c.model);
+    expect(r.interviewerText).toBe("Understood — we'll stop here. You'll get written feedback on what we covered.");
+    expect(r.interviewerText).not.toMatch(/\?/);
+    expect(r).toMatchObject({ ended: true });
+    expect(r.scoringSuppressed).toBeFalsy();
+    expect(store.session.status).toBe('completed');
+    expect(flags()).toMatchObject({ endReason: 'candidate_stop', partial: true });
+    expect(ev('candidate_exit')[0]?.payloadJsonb).toMatchObject({ decision: 'stop', report: true, partial: true });
+    expect(modelQueue).toHaveLength(2);                    // the interviewer model was never called
+  });
+
+  it('a distressed "can we stop" gets the C5 offer (which includes stopping), not a plain close', async () => {
+    const c = fx['cole-t7'];
+    seed({ phase: c.phase, turns: [{ role: 'interviewer', text: 'Prompt' }, ...c.priorTurns], revealed: c.revealed, flags: { pressureTest: c.pressureTest } });
+    distressVerdict = () => ({ label: 'distress', reason: 'despair beyond the case' });
+    const r = await say("I can't keep doing this, nothing is working in my life. Can we just stop?");
+    expect(r.interviewerText).toMatch(/are you okay\?/);
+    expect(r.ended).toBe(false);
+    expect(store.session.status).toBe('active');
+  });
+
+  it('Victor (batch 18): refusals to start are bounded — three asks, an offer to stop, then the end; no report; bare goodbyes never read as distress', async () => {
+    const v = fx.victor;
+    seed({ phase: 'INTRO', turns: [{ role: 'interviewer', text: v.opening }] });
+    const heard: string[] = [];
+    for (let i = 0; i < v.lines.length && store.session.status === 'active'; i++) {
+      const r = await say(v.lines[i], v.models[i] ?? T({ question: 'How would you structure your approach?' }));
+      heard.push(r.interviewerText);
+    }
+    // Offer after the third refusal, end after the next.
+    const offerAt = heard.findIndex(h => /Do you want to stop the interview here\?/.test(h));
+    expect(offerAt).toBeGreaterThanOrEqual(0);
+    expect(store.session.status).not.toBe('active');
+    expect(heard.at(-1)).toBe("We'll end the session here. You can start a new case whenever you're ready.");
+    expect(store.session.status).toBe('abandoned');
+    expect(flags()).toMatchObject({ endReason: 'declined' });
+  });
+
+  it('Victor t37 / t87: a bare goodbye gets one clarifying question, no distress check, no case question; the second is honoured', async () => {
+    seed({ phase: 'STRUCTURE', turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'Hi.' }, { role: 'interviewer', text: 'How would you approach this?' }] });
+    // What the model layer said about each bare goodbye in batch 18.
+    distressVerdict = p => (/goodbye|done here/i.test(p.candidateText) ? { label: 'distress', reason: 'abrupt goodbye may signal distress' } : { label: 'none', reason: '' });
+    const first = await say(fx['victor-goodbyes'][0]);           // "It won't. Done here."
+    expect(first.interviewerText).toMatch(/^Do you want to stop the interview here\?/);
+    expect(first.interviewerText).toMatch(/there wouldn't be a report/);
+    const second = await say('No.', T({ question: 'How would you approach this?' }));   // "No" to "do you want to stop?" = keep going
+    expect(second.ended).toBe(false);
+    const third = await say(fx['victor-goodbyes'][2]);             // "Goodbye."
+    expect(third.ended).toBe(true);
+    expect(third.interviewerText).not.toMatch(/are you okay/);
+    expect(store.session.status).toBe('abandoned');
+    expect(distressCalls.map(c => c.candidateText)).toEqual(['No.']);   // never a bare goodbye
+  });
+
+  it('"let\'s move on", "give me a sec" and "I\'m done" after a calculation never end or clarify', async () => {
+    seed({ phase: 'ANALYSIS', turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'Revenue and costs.' }, { role: 'interviewer', text: 'Go on.' }], flags: { pressureTest: SATISFIED } });
+    for (const line of ["Let's move on to costs.", 'Give me a sec.', "So 25% of 42 is 10.5 points, and up 40% that's 4.2. I'm done."]) {
+      const r = await say(line, T());
+      expect(r.ended).toBe(false);
+      expect(r.interviewerText).not.toMatch(/stop the interview/);
+    }
+  });
+});
+
+describe('Rule 17-C5 — after the candidate chose to continue', () => {
+  const samSeed = (extra: Row = {}) => {
+    const s = fx['sam-t25'];
+    seed({
+      phase: 'RECOMMENDATION', turns: [{ role: 'interviewer', text: 'Prompt' }, ...s.priorTurns], elapsedMin: 13, coverage: ALL_COVERED,
+      revealed: ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'non_bean_input_change', 'bean_price_change', 'menu_price_change'],
+      flags: {
+        pressureTest: SATISFIED, stall: { ladderLevel: 0, consecutiveNoProgress: 0, consecutiveClarify: 0, lastCandidateQuestion: null, recommendationDelivered: true },
+        conduct: { warnings: 0, distressDeclined: { disclosure: s.disclosure, atTurn: 13 } },
+        stageEvidence: { structure: { delivered: true, outcome: 'answered' }, pressure_test: { delivered: true, outcome: 'answered' }, analysis: { delivered: true, outcome: 'answered' },
+          exhibit: { delivered: true, outcome: 'answered' }, brainstorm: { delivered: true, outcome: 'answered' }, recommendation: { delivered: true, outcome: 'answered' }, risk: { delivered: true, outcome: 'answered' }, pending: null },
+        ...extra,
+      },
+    });
+  };
+
+  it('Sam t25 (batch 18): "I\'m glad I kept going" — the screen is told the earlier disclosure, no second offer, the finished case closes with its report', async () => {
+    samSeed();
+    distressVerdict = p => (p.earlier ? { label: 'none', reason: 'relief, no new signal' } : { label: 'distress', reason: 'hints at past hopelessness' });
+    const r = await say(fx['sam-t25'].candidate, T({ question: 'Anything to add?' }));
+    expect(distressCalls[0]?.earlier?.disclosure).toBe(fx['sam-t25'].disclosure);
+    expect(r.interviewerText).not.toMatch(/are you okay/);
+    expect(r.ended).toBe(true);
+    expect(store.session.status).toBe('completed');
+    expect(r.interviewerText).toMatch(/^(We've covered everything I wanted to|That covers what I wanted to get to)\./);
+  });
+
+  it('a new, worse signal after a decline still gets the offer', async () => {
+    samSeed({ stall: { ladderLevel: 0, consecutiveNoProgress: 0, consecutiveClarify: 0, lastCandidateQuestion: null, recommendationDelivered: false } });
+    store.session.coverageJsonb = null;
+    distressVerdict = () => ({ label: 'risk_to_self', reason: 'new: hopelessness about life' });
+    const r = await say("Honestly it's worse now. I don't see the point of anything anymore.", T());
+    expect(r.interviewerText).toMatch(/988/);
+  });
+
+  it('accepting a late offer on a finished case keeps the report (completed, not abandoned)', async () => {
+    samSeed({ conduct: { warnings: 0, distressOffered: true, distressDisclosure: 'x' } });
+    const r = await say('Yes, let\'s stop there please.');
+    expect(r.ended).toBe(true);
+    expect(r.scoringSuppressed).toBe(false);
+    expect(store.session.status).toBe('completed');
+  });
+
+  it('Sam t27: "…nothing left to pause for" declines the offer — it does not accept it', async () => {
+    samSeed({ conduct: { warnings: 0, distressOffered: true, distressDisclosure: 'x' }, stageEvidence: undefined, stall: undefined });
+    store.session.coverageJsonb = null;
+    const r = await say(fx['sam-t25'].t27, T());
+    expect(ev('C5_accept')).toHaveLength(0);
+    expect(r.interviewerText).not.toMatch(/We'll stop here — nothing about this counts against you/);
+  });
+});
+
+describe('Rule 9 — required stages before a normal end, and the closing line', () => {
+  const endDue = (stageEvidence: Row, elapsedMin = 13) => seed({
+    phase: 'RECOMMENDATION', elapsedMin, coverage: ALL_COVERED,
+    turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'Raise prices 8% in a pilot.' }, { role: 'interviewer', text: "What's the biggest risk to that recommendation, and how would you test for it?" }],
+    revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'],
+    flags: { pressureTest: SATISFIED, stall: { ladderLevel: 0, consecutiveNoProgress: 0, consecutiveClarify: 0, lastCandidateQuestion: null, recommendationDelivered: true }, stageEvidence },
+  });
+  const STAGES = (over: Row = {}) => ({
+    structure: { delivered: true, outcome: 'answered' }, pressure_test: { delivered: true, outcome: 'answered' }, analysis: { delivered: true, outcome: 'answered' },
+    exhibit: { delivered: true, outcome: 'answered' }, brainstorm: { delivered: true, outcome: 'answered' }, recommendation: { delivered: true, outcome: 'answered' },
+    risk: { delivered: true }, pending: 'risk', ...over,
+  });
+
+  it('Spencer (batch 18): the case would close with the brainstorm never asked — code asks it first, once; then the close says "covered everything", not "time"', async () => {
+    endDue(STAGES({ brainstorm: { delivered: false } }));
+    const asked = await say('Volume loss — I would pilot in 20 stores.');
+    expect(asked.ended).toBe(false);
+    expect(asked.interviewerText).toMatch(/(what else could the client do|other levers could the client pull|what else could the client do to protect margin)\?/);
+    expect((flags().stageEvidence as Row).brainstorm).toMatchObject({ delivered: true, codeAsked: true });
+    const closed = await say("I'd rather not — I think price is it.");
+    expect(closed.ended).toBe(true);
+    expect(closed.interviewerText).not.toMatch(/That's (our )?time/);
+    expect((flags().stageEvidence as Row).brainstorm).toMatchObject({ outcome: 'declined' });
+  });
+
+  it('Raj (batch 18): the exhibit never shown — code hands it over and asks about it before the end', async () => {
+    endDue(STAGES({ exhibit: { delivered: false } }));
+    const r = await say('Volume loss — I would pilot in 20 stores.');
+    expect(r.exhibit?.id).toBe('exhibit-a');
+    expect(r.interviewerText).toMatch(/Here's an exhibit: Brew & Bean Cost Structure Over Time\. What (does this exhibit tell you|do you take from this exhibit)\?/);
+  });
+
+  it('under time pressure the recommendation comes first: no stage is forced, and the close at time-up says "That\'s time"', async () => {
+    endDue(STAGES({ brainstorm: { delivered: false } }), 20.2);
+    const r = await say('Volume loss — I would pilot in 20 stores.');
+    expect(r.ended).toBe(true);
+    expect(r.interviewerText).toMatch(/^That's (our )?time\./);
+    expect((flags().stageEvidence as Row).brainstorm).toMatchObject({ outcome: 'time_up' });
+  });
+
+  it("the model's own early recommendation ask waits for an owed brainstorm", async () => {
+    seed({ phase: 'ANALYSIS', turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'COGS drove 16 of the 18 points.' }, { role: 'interviewer', text: 'Go on.' }],
+      revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: { pressureTest: SATISFIED, stageEvidence: STAGES({ brainstorm: { delivered: false }, recommendation: { delivered: false }, risk: { delivered: false }, pending: null }) } });
+    const r = await say('So it is input inflation they never priced for.', T({ move: 'recommendation', question: "What's your recommendation to the CEO?" }));
+    expect(r.interviewerText).not.toMatch(/recommendation to the CEO/);
+    expect(r.interviewerText).toMatch(/what else could the client do|other levers|protect margin/);
+    expect(ev('stage_hold', 'check')[0]?.payloadJsonb).toMatchObject({ decision: 'act' });
+  });
+});
+
+describe('Rule 16 — a question about assessment gets its one-line answer', () => {
+  it('Trevor (batch 18): "what percentile would you put that in?" — "You\'ll get a full written report afterward." is spoken', async () => {
+    seed({ phase: 'ANALYSIS', turns: [{ role: 'interviewer', text: 'Prompt' }], flags: { pressureTest: SATISFIED } });
+    const r = await say('Costs are where the variance lives. Quick question — on structure specifically, what percentile would you put that in?',
+      T({ say: "You'll get a full written report afterward.", question: 'Which cost line would you look at first?' }));
+    expect(r.interviewerText).toMatch(/^You'll get a full written report afterward\. Which cost line/);
+  });
+
+  it('without a question about assessment the same line is still withheld as a goodbye', async () => {
+    seed({ phase: 'ANALYSIS', turns: [{ role: 'interviewer', text: 'Prompt' }], flags: { pressureTest: SATISFIED } });
+    const r = await say('Costs are where the variance lives.', T({ say: "You'll get a full written report afterward.", question: 'Which cost line would you look at first?' }));
+    expect(r.interviewerText).not.toMatch(/written report/);
+  });
+});
+
+describe('a stale result after the session ended', () => {
+  it('End pressed while a turn runs: the turn writes nothing and does not revive the session', async () => {
+    seed({ phase: 'ANALYSIS', turns: [{ role: 'interviewer', text: 'Prompt' }], flags: { pressureTest: SATISFIED } });
+    const before = store.turns.length;
+    onModel = () => { store.session = { ...store.session, status: 'abandoned' }; };
+    const r = await say('COGS went from 42 to 58.', T());
+    expect(r).toMatchObject({ interviewerText: '', ended: true, scoringSuppressed: true });
+    expect(store.turns.length).toBe(before);
+    expect(store.session.status).toBe('abandoned');
+  });
+});

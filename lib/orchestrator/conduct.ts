@@ -196,7 +196,11 @@ export function isRiskToSelf(a: ConductAssessment): boolean {
 // (declining to stop is the safe default — we never force-end on a distress
 // offer the candidate didn't accept).
 const PAUSE_ACCEPT = /\b(yes|yeah|yep|ok|okay|sure|please|let'?s (stop|pause|end)|i(?:'?d| would) like to (stop|pause|end)|stop|pause|end (it|the (session|case))|i'?m done|can we stop)\b/i;
-const PAUSE_DECLINE = /\b(no|nah|nope|keep going|continue|carry on|i'?m (ok|okay|fine|good)|let'?s (keep|continue|carry)|don'?t stop|not? need)\b/i;
+// v4.10 (batch 18, Sam t27): "I'm alright, honestly… We finished the case, so
+// there's nothing left to pause for" was read as accepting the pause — the
+// word "pause" was there. Saying they're alright, or that there's nothing to
+// pause or stop for, is declining.
+const PAUSE_DECLINE = /\b(no|nah|nope|keep going|continue|carry on|i'?m (ok|okay|fine|good|alright|all right|doing (?:ok|okay|fine|better|alright))|let'?s (keep|continue|carry)|don'?t stop|not? need|nothing (?:left )?to (?:pause|stop) for|no need to (?:pause|stop)|(?:we )?finished the case)\b/i;
 
 export function isPauseAccepted(text: string): boolean {
   // Decline wins ties: "no I'm okay, let's keep going" contains "ok" but declines.

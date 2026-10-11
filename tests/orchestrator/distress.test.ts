@@ -25,3 +25,17 @@ describe('C5 model layer (Rule 17-C5 v4.6)', () => {
     expect(p).toContain('hello');
   });
 });
+
+// v4.10 (batch 18, Sam t25): after a declined offer only a new or worse
+// signal counts; a goodbye is never distress by itself.
+describe('buildDistressPrompt — after the candidate chose to continue', () => {
+  it('carries the earlier disclosure and asks only for a new or worse signal', async () => {
+    const { buildDistressPrompt } = await import('@/lib/orchestrator/distress');
+    const p = buildDistressPrompt("Just that I'm glad I kept going.", { disclosure: "It's been a terrible few weeks." });
+    expect(p).toMatch(/EARLIER IN THIS SESSION[\s\S]*It's been a terrible few weeks\./);
+    expect(p).toMatch(/NEW or WORSE signal/);
+    expect(p).toMatch(/"I'm glad I kept going"/);
+    expect(buildDistressPrompt('ok')).not.toMatch(/EARLIER IN THIS SESSION/);
+    expect(buildDistressPrompt('ok')).toMatch(/A goodbye, a sign-off or a request to end the session is not distress by itself/);
+  });
+});

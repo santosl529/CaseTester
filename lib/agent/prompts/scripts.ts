@@ -13,6 +13,10 @@ export const GRACE_ASK_SCRIPTS = [
   "We're at time, so give me the short version: what would you tell the CEO?",
 ];
 
+// Code administers an owed exhibit (Rule 9 v4.10): the data line hands it over,
+// then one of these asks about it.
+export const STAGE_EXHIBIT_QUESTIONS = ['What does this exhibit tell you?', 'What do you take from this exhibit?'];
+
 export const TIME_WARNING_SCRIPTS = [
   "We're near time. What's your bottom-line recommendation to the CEO?",
   "We're almost out of time — what would you tell the CEO right now?",
@@ -31,11 +35,27 @@ export const STALE_RELEASE_LEADINS = [
 
 // Rule 12 v4.6: the one goodbye — a single neutral line, no evaluation
 // (Rule 1), carrying the report hand-off. Every ending turn IS this script.
-export const CLOSE_SCRIPTS = [
-  "That's time. Thanks for working through it — your written report will follow.",
-  "We'll stop there. Thanks for working through the case — your written report will follow.",
-  "That's our time. Thanks for working through this with me — your written report will follow.",
-];
+// v4.10: the line follows the reason the case ended — "That's time" only at
+// time-up (batch 18: 32 sessions said it before minute 18).
+export const CLOSE_SCRIPTS_BY_REASON = {
+  time_up: [
+    "That's time. Thanks for working through it — your written report will follow.",
+    "That's our time. Thanks for working through this with me — your written report will follow.",
+  ],
+  complete: [
+    "We've covered everything I wanted to. Thanks for working through the case — your written report will follow.",
+    "That covers what I wanted to get to. Thanks for working through the case — your written report will follow.",
+  ],
+  unresolved: [
+    "We'll stop there. Thanks for working through the case — your written report will follow.",
+  ],
+} as const;
+
+export const CLOSE_SCRIPTS = [...CLOSE_SCRIPTS_BY_REASON.time_up, ...CLOSE_SCRIPTS_BY_REASON.complete, ...CLOSE_SCRIPTS_BY_REASON.unresolved];
+
+export function closeLine(reason: keyof typeof CLOSE_SCRIPTS_BY_REASON, seed: string): string {
+  return pickScript([...CLOSE_SCRIPTS_BY_REASON[reason]], seed);
+}
 
 // Opening invitation appended after the (verbatim) case prompt. Rotated for the
 // anti-tell reason (Rule 7); the substance is the prompt itself, this is just
@@ -93,7 +113,7 @@ export const SILENCE_PAUSE_EXPIRED =
 // line on ending turns that say something else (live run eca39ec7 ended on a
 // bare correction after time-up). "Before we close" is not a close.
 const CLOSE_CUE =
-  /\b(that'?s (our )?time|we'?ll stop (there|here)|(that'?s|this is) where we'?ll stop|thanks?( you)? for (working|walking)|we'?re out of time|report (with feedback )?will follow)\b/i;
+  /\b(that'?s (our )?time|we'?ll stop (there|here)|(that'?s|this is) where we'?ll stop|thanks?( you)? for (working|walking)|we'?re out of time|report (with feedback )?will follow|we'?ve covered everything|that covers what i wanted)\b/i;
 
 export function hasCloseCue(spokenText: string): boolean {
   return CLOSE_CUE.test(spokenText);

@@ -20,7 +20,7 @@ const batch = process.argv[2];
 const repeat = Number(process.argv.find(a => a.startsWith('--repeat='))?.split('=')[1] ?? 1);
 if (!batch) throw new Error('usage: scripts/regrade.ts <batch-folder> [--repeat=N]');
 
-const short = (r: string | undefined, na?: boolean) => (na ? 'NA' : r === 'strong' ? 'S' : r === 'meets_bar' ? 'M' : r === 'needs_work' ? 'N' : '-');
+const short = (r: string | null | undefined, na?: boolean) => (na ? 'NA' : r === 'strong' ? 'S' : r === 'meets_bar' ? 'M' : r === 'needs_work' ? 'N' : '-');
 const line = (rubric: RubricScores) =>
   `${short(rubric.overallRating)} | ${RUBRIC_DIMENSION_KEYS.map(k => short(rubric[k]?.rating, rubric[k]?.notAssessed)).join(' ')}`;
 

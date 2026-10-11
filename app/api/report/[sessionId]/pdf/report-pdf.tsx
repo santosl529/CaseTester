@@ -6,6 +6,7 @@ export type ReportPdfProps = {
   caseTitle: string;
   completedAt: string;
   overallRating: string | null;
+  partial?: boolean;      // Rule 18A: the candidate ended early — no overall rating
   topFix: string | null;
   dimensions: ReportDimension[];
   modelAnswer: { structure?: string; recommendation?: string } | null;
@@ -62,7 +63,7 @@ export function ReportPdf(props: ReportPdfProps) {
       <Page size="A4" style={styles.page}>
         <Text style={styles.h1}>Interview Feedback</Text>
         <Text style={styles.subtitle}>
-          {props.caseTitle} · {props.completedAt} · Overall: {formatRating(props.overallRating)}
+          {props.caseTitle} · {props.completedAt} · {props.partial ? 'Partial interview — no overall rating' : `Overall: ${formatRating(props.overallRating)}`}
         </Text>
 
         {props.topFix && (

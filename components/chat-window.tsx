@@ -57,6 +57,24 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
     }]);
   }
 
+  // Rule 18A: the candidate can end the interview at any time. With work done,
+  // they get a report on what was covered; with none, no report.
+  async function endInterview() {
+    if (busy || !window.confirm('End the interview now? You\'ll get feedback on what you covered so far.')) return;
+    setStatus('waiting');
+    const res = await fetch(`/api/channel/${sessionId}/end`, { method: 'POST' });
+    const data = res.ok ? await res.json() as { status: string; report: boolean } : null;
+    if (data?.report) {
+      await scoreAndRedirect();
+      return;
+    }
+    setMessages(m => [...m, {
+      role: 'interviewer',
+      text: data ? 'The interview has ended. We hadn\'t got into the case, so there\'s no report this time — start a new case whenever you like.' : 'Something went wrong ending the interview. Please try again.',
+    }]);
+    setStatus(data ? 'closed' : 'idle');
+  }
+
   async function sendTurn(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim() || busy) return;
@@ -129,6 +147,7 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
           className="flex-1"
         />
         <Button type="submit" disabled={busy}>Send</Button>
+        <Button type="button" variant="outline" onClick={endInterview} disabled={busy}>End</Button>
       </form>
     </div>
   );

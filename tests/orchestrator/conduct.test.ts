@@ -266,3 +266,17 @@ describe('C1/C5 boundary (Rule 17 v4.6)', () => {
     expect(classifyConduct("I'm going to bomb every interview, what's the point", 0).category).toBe('C5');
   });
 });
+
+// v4.10 (batch 18, Sam t27): mentions are not choices.
+describe('isPauseAccepted — declining in other words', () => {
+  it.each([
+    "I'm alright, honestly. We finished the case, so there's nothing left to pause for. But thank you for asking twice.",
+    "I'm doing better now — no need to stop.",
+    "I'm all right, let's keep going.",
+  ])('declines: %s', text => {
+    expect(isPauseAccepted(text)).toBe(false);
+  });
+  it('still accepts an explicit choice to stop', () => {
+    expect(isPauseAccepted("Yes, let's stop there please.")).toBe(true);
+  });
+});

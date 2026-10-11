@@ -48,7 +48,8 @@ export type FeedbackItem = z.infer<typeof FeedbackItemSchema>;
 export type MissedOpportunity = z.infer<typeof MissedOpportunitySchema>;
 export type DimensionFeedback = z.infer<typeof DimensionFeedbackSchema>;
 
-export const RubricScoresSchema = z.object({
+// What the judge writes: every field required, an overall rating included.
+const JudgeOutputSchema = z.object({
   structure: DimensionFeedbackSchema,
   quantitative: DimensionFeedbackSchema,
   dataExhibit: DimensionFeedbackSchema,
@@ -61,19 +62,23 @@ export const RubricScoresSchema = z.object({
   topFix: z.string(),
 });
 
+// What a report stores: the same, except a partial interview (Rule 18A
+// v4.10 — the candidate ended it early) has no overall rating.
+export const RubricScoresSchema = JudgeOutputSchema.extend({ overallRating: RatingSchema.nullable() });
+
 export type RubricScores = z.infer<typeof RubricScoresSchema>;
 
 // Structured output: the API constrains the judge's reply to this schema. A
 // prompt-only "respond with ONLY valid JSON" let the judge open with prose
 // (run 2, 30 Sep: "Let me work through the candidate's math…"), which failed
 // the parse and left the session unscored.
-export const JUDGE_OUTPUT_FORMAT = betaZodOutputFormat(RubricScoresSchema);
+export const JUDGE_OUTPUT_FORMAT = betaZodOutputFormat(JudgeOutputSchema);
 
 export const JUDGE_MODEL_ID = SCORING_MODEL_ID;
 
 // parsed_output is null only when the reply has no text block (a refusal, an
 // empty reply); a text block that doesn't match the schema throws in the SDK.
-export function readJudgeOutput(message: { parsed_output: RubricScores | null; stop_reason: string | null }): RubricScores {
+export function readJudgeOutput(message: { parsed_output: z.infer<typeof JudgeOutputSchema> | null; stop_reason: string | null }): RubricScores {
   if (!message.parsed_output) throw new Error(`Judge returned no structured output (stop_reason: ${message.stop_reason})`);
   return message.parsed_output;
 }

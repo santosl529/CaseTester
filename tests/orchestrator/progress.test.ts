@@ -27,12 +27,19 @@ describe('derivePhase', () => {
 });
 
 describe('stagesFromTurns', () => {
-  it('reads stages from recorded moves', () => {
+  // v4.10: a label counts only when the delivered text does what it says.
+  it('reads stages from recorded moves the text corroborates', () => {
     const s = stagesFromTurns([
-      { turnIndex: 3, text: 'Is that MECE?' }, { turnIndex: 9, text: 'Which lever matters most?' },
-      { turnIndex: 11, text: 'Anything else?' },
+      { turnIndex: 3, text: 'Is that MECE?' }, { turnIndex: 9, text: 'What other ways could Brew & Bean protect margin?' },
+      { turnIndex: 11, text: 'So what should they do first?' },
     ], { 3: 'pressure_test', 9: 'brainstorm', 11: 'recommendation' }, false);
     expect(s).toMatchObject({ brainstormAsked: true, riskAsked: false, recommendationAsked: true, recommendationAskCount: 1 });
+  });
+  it('a label alone is not a stage (batch 18: "which lever matters most?" labelled brainstorm)', () => {
+    const s = stagesFromTurns([
+      { turnIndex: 9, text: 'Which lever matters most?' }, { turnIndex: 11, text: 'Anything else?' },
+    ], { 9: 'brainstorm', 11: 'recommendation' }, false);
+    expect(s).toMatchObject({ brainstormAsked: false, recommendationAsked: false, recommendationAskCount: 0 });
   });
   it('counts code recommendation asks', () => {
     const s = stagesFromTurns([{ turnIndex: 5, text: 'Okay.' }], { 5: 'code_rec_ask' }, false);

@@ -49,6 +49,7 @@ export async function renderReportPdf(sessionId: string): Promise<{ buffer: Buff
       caseTitle: caseData.title,
       completedAt: (session.completedAt ?? session.startedAt).toISOString().slice(0, 10),
       overallRating: score.overallRating,
+      partial: Boolean((session.flagsJsonb as Record<string, unknown> | null)?.partial),
       topFix: score.topFix,
       dimensions: reportDimensions(score),
       modelAnswer: score.modelAnswerJsonb as { structure?: string; recommendation?: string } | null,

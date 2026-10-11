@@ -3,6 +3,7 @@
 // session-runner.ts.
 import type { sessions } from '@/db/schema';
 import type { CheckLog } from './check-log';
+import type { DistressVerdict } from './distress';
 import type { Phase } from './state-machine';
 
 export type ExhibitDisplay = {
@@ -27,7 +28,13 @@ export type TurnResult = {
   dataRequestsClassified?: boolean;
 };
 
-export type ConductFlags = { warnings?: number; distressOffered?: boolean; distressOfferedAtMs?: number; category?: string };
+export type ConductFlags = {
+  warnings?: number; distressOffered?: boolean; distressOfferedAtMs?: number; category?: string;
+  // What the candidate said that drew the C5 offer, and — once they chose to
+  // continue — that disclosure, so only a new or worse signal re-offers (v4.10).
+  distressDisclosure?: string;
+  distressDeclined?: { disclosure: string; atTurn: number };
+};
 
 // A session event decided during the turn, written at commit.
 export type PendingEvent = {
@@ -69,6 +76,10 @@ export type ScriptedPlan = {
   // (offers, warnings); decided — it stands regardless, because it rests on
   // the candidate's words (termination, the close after an accepted pause).
   delivery?: 'required' | 'decided';
+  // An exit turn (Rule 18A) waits for the distress verdict on the message: a
+  // distressed "can we stop" gets the C5 offer — which includes stopping —
+  // instead of a plain close (session-runner.ts).
+  distressCheck?: Promise<DistressVerdict | null>;
 };
 
 // One delivered piece of the interviewer's turn (D3: reveals are booked when

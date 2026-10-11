@@ -19,7 +19,8 @@ export type MarkKind =
   | 'unanswered_request'   // available data requested and never provided (Rule 11)
   | 'conduct_warning'      // C2 warning — not the report's call (Rule 17)
   | 'conceded_error'       // interviewer conceded the candidate was right (Rule 16)
-  | 'wellbeing';           // C5 disclosure and exchange — excluded entirely
+  | 'wellbeing'            // C5 disclosure and exchange — excluded entirely
+  | 'candidate_exit';      // the candidate's request to stop (Rule 18A) — never graded
 
 export type InterviewerMark = {
   kind: MarkKind;

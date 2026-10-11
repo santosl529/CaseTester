@@ -12,11 +12,26 @@ function rubric(overrides: Partial<Record<string, unknown>>): RubricScores {
 }
 
 describe('applyCaveatFloor (Rule 9, v4.3)', () => {
-  it("raises a caveated needs_work dimension to meets_bar (Maya c230fe12's Synthesis)", () => {
-    const r = rubric({ synthesis: dim('needs_work', { coverageCaveat: 'The candidate was never asked for a recommendation.' }) });
+  // v4.10: evidence decides, never the gap alone.
+  const q = (point: string) => [{ point, quotes: ['a real quote'] }];
+  it("raises a caveated needs_work dimension to meets_bar when only strengths are quoted (Maya c230fe12's Synthesis)", () => {
+    const r = rubric({ synthesis: dim('needs_work', { coverageCaveat: 'The candidate was never asked for a recommendation.', wentWell: q('Clear lead') }) });
     const { rubric: out, floored } = applyCaveatFloor(r);
     expect(out.synthesis.rating).toBe('meets_bar');
     expect(floored).toEqual(['synthesis']);
+  });
+
+  it('keeps needs_work when a quoted weakness survived the audits (rated on evidence, not on the gap)', () => {
+    const r = rubric({ synthesis: dim('needs_work', { coverageCaveat: 'Never asked.', needsWork: q('No answer first') }) });
+    expect(applyCaveatFloor(r).rubric.synthesis.rating).toBe('needs_work');
+  });
+
+  it('with no evidence at all the dimension is not assessed — never an automatic meets_bar', () => {
+    const r = rubric({ synthesis: dim('needs_work', { coverageCaveat: 'Never asked.' }) });
+    const { rubric: out, floored, unassessed } = applyCaveatFloor(r);
+    expect(out.synthesis.notAssessed).toBe(true);
+    expect(floored).toEqual([]);
+    expect(unassessed).toEqual(['synthesis']);
   });
 
   it('leaves an uncaveated needs_work dimension alone', () => {

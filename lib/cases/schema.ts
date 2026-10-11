@@ -132,6 +132,11 @@ export const CaseSchema = z.object({
     phrases: z.array(z.string().min(3)).min(1),
   })).default([]),
   pacing: PacingSchema.optional(),
+  // Case format (Rule 9 v4.10): interviewer-led cases owe the exhibit and the
+  // brainstorm before a normal end (lib/orchestrator/stage-evidence.ts);
+  // candidate-led cases leave the order to the candidate. Only interviewer-led
+  // cases exist so far.
+  format: z.enum(['interviewer_led', 'candidate_led']).default('interviewer_led'),
   // Rule 2/14 unit check (lib/orchestrator/unit-check.ts): cost lines whose
   // shares candidates convert into points of revenue, and the ledger item that
   // gives that line's own share of revenue (its timeframes give the values).

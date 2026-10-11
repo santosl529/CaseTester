@@ -45,14 +45,20 @@ export default async function ReportPage({ params }: { params: Promise<{ session
   };
 
   const DIMENSIONS = reportDimensions(score);
+  // Rule 18A: the candidate ended the interview early — feedback on what was covered.
+  const partial = Boolean((session.flagsJsonb as Record<string, unknown> | null)?.partial);
 
   return (
     <main className="max-w-2xl mx-auto py-8 px-4 space-y-6">
       <div className="flex items-center gap-3">
         <h1 className="text-2xl font-bold">Interview Feedback</h1>
-        <Badge variant={RATING_COLOR[score.overallRating ?? 'meets_bar'] as 'destructive' | 'secondary' | 'default'}>
-          {score.overallRating ? RATING_LABELS[score.overallRating as Rating] : null}
-        </Badge>
+        {partial ? (
+          <Badge variant="outline">Partial interview — no overall rating</Badge>
+        ) : (
+          <Badge variant={RATING_COLOR[score.overallRating ?? 'meets_bar'] as 'destructive' | 'secondary' | 'default'}>
+            {score.overallRating ? RATING_LABELS[score.overallRating as Rating] : null}
+          </Badge>
+        )}
         <a
           href={`/api/report/${sessionId}/pdf`}
           download

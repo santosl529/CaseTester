@@ -40,6 +40,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   const [needsClick, setNeedsClick] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [scoring, setScoring] = useState(false);
+  const [endedWithReport, setEndedWithReport] = useState(false);
   const roomRef = useRef<Room | null>(null);
   const audioBox = useRef<HTMLDivElement | null>(null);
   const confirmed = useRef(new Set<string>());
@@ -149,10 +150,13 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     }
   }
 
+  // Rule 18A: ending keeps a report on what was covered, when there is one.
   async function end() {
-    await fetch(`/api/voice/${sessionId}/end`, { method: 'POST' }).catch(() => {});
+    const res = await fetch(`/api/voice/${sessionId}/end`, { method: 'POST' }).catch(() => null);
+    const data = res?.ok ? await res.json().catch(() => null) as { report?: boolean } | null : null;
     roomRef.current?.disconnect();
     setLocal('ended');
+    setEndedWithReport(Boolean(data?.report));
   }
 
   async function score() {
@@ -197,7 +201,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
         {local === 'idle' && <Button onClick={start}>Start</Button>}
         {needsClick && local === 'live' && <Button onClick={enableAudio}>Click to enable audio</Button>}
         {local === 'live' && !caseOver && <Button variant="outline" onClick={end}>End</Button>}
-        {view.canScore && <Button onClick={score} disabled={scoring}>{scoring ? 'Scoring…' : 'Score this interview'}</Button>}
+        {(view.canScore || endedWithReport) && <Button onClick={score} disabled={scoring}>{scoring ? 'Scoring…' : 'Score this interview'}</Button>}
         <span className="ml-auto text-xs text-neutral-400">
           {view.latency ? `first sound ${view.latency.firstSoundMs ?? '–'}ms · first useful ${view.latency.firstUsefulMs ?? '–'}ms` : ''}
         </span>

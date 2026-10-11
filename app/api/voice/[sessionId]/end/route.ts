@@ -3,12 +3,14 @@ import { and, eq } from 'drizzle-orm';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { db } from '@/db/client';
 import { sessions } from '@/db/schema';
-import { logEvent } from '@/lib/analytics';
+import { endByCandidate } from '@/lib/orchestrator/session-end';
 
-// The candidate ends a voice interview (spec 2026-10-08-voice-phase-b §5.8):
-// an active session becomes abandoned — excluded from scoring, as an accepted
-// pause is. The browser disconnects after this; the agent cuts its turn, and
-// Settle's status re-check keeps a late turn from reviving the session.
+// The candidate ends a voice interview (spec 2026-10-08-voice-phase-b §5.8;
+// Rule 18A v4.10): the session ends without another case question. With
+// something assessable done it is completed, with a report on what was
+// covered; otherwise abandoned, no report (lib/orchestrator/session-end.ts).
+// The browser disconnects after this; the agent cuts its turn, and Settle's
+// status re-check keeps a late turn from reviving the session.
 export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
@@ -22,11 +24,7 @@ export async function POST(
     where: and(eq(sessions.id, sessionId), eq(sessions.userId, user.id)),
   });
   if (!session) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  if (session.status !== 'active') return NextResponse.json({ status: session.status });
 
-  await db.update(sessions)
-    .set({ status: 'abandoned', completedAt: new Date(), abandonPhase: session.phase })
-    .where(and(eq(sessions.id, sessionId), eq(sessions.status, 'active')));
-  await logEvent('case_abandoned', { reason: 'candidate_ended_voice', phase: session.phase }, { sessionId, userId: user.id });
-  return NextResponse.json({ status: 'abandoned' });
+  const end = await endByCandidate(sessionId, user.id, 'voice_button');
+  return NextResponse.json(end);
 }

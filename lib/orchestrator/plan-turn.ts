@@ -14,10 +14,13 @@ import { checkStatedArithmetic } from './arithmetic-check';
 import { candidateFiguresOf } from './math-talk';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
-import { evaluateStall, INITIAL_STALL_STATE, type StallState } from './stall';
+import { evaluateStall, revertUndeliveredRung, INITIAL_STALL_STATE, type StallState } from './stall';
 import { resumeOnCandidateTurn, effectiveElapsedMs, isSilenceLine, INITIAL_SILENCE_STATE, type SilenceState } from './silence';
-import { classifyConduct, isPauseAccepted, isRiskToSelf } from './conduct';
+import { classifyConduct, isPauseAccepted, isRiskToSelf, type ConductAssessment } from './conduct';
 import { classifyDistress, type DistressVerdict } from './distress';
+import { classifyExitIntent, isBareSignOff, isRefusalToStart, exitReplyChoice, EXIT_CLARIFY, EXIT_CLOSE, REFUSAL_OFFER } from './candidate-exit';
+import { missingRequiredStages, INITIAL_STAGES, type StageKey, type StageRecord } from './stage-evidence';
+import { caseFinished, hasAssessableEvidence } from './session-outcome';
 import { explicitRequestCues } from './request-signal';
 import { judgeProbeAnswer, judgeStructureGiven, probeAsHeard, INITIAL_PRESSURE_TEST, type PressureTestState } from './pressure-test';
 import { logEvent } from '@/lib/analytics';
@@ -30,7 +33,11 @@ import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
 
 // What Plan decides a model-turn slot is (spec 2026-10-06 §6). 'model' and
 // 'rec_ask' call the interviewer model; the rest are written by code.
-export type TurnKind = 'model' | 'rec_ask' | 'close' | 'grace_ask' | 'time_warning' | 'rung1';
+export type TurnKind = 'model' | 'rec_ask' | 'close' | 'grace_ask' | 'time_warning' | 'rung1' | 'stage_exhibit' | 'stage_brainstorm';
+
+// Why the case closes, so the closing line is true (v4.10; batch 18: 32
+// sessions said "That's time" before minute 18).
+export type CloseReason = 'time_up' | 'complete' | 'unresolved';
 
 export type TurnReads = {
   session: typeof sessions.$inferSelect | undefined;
@@ -110,21 +117,27 @@ export function planTurn(reads: TurnReads, candidateText: string, deps: PlanDeps
     const accepted = isPauseAccepted(candidateText);
     checks.record('c5_pause_reply', accepted, 'candidate accepted the pause/stop offer');
     if (accepted) {
-      ctx.events.push({ category: 'conduct', subtype: 'C5_accept', payload: { reason: 'distress_pause_accepted' } });
-      later(() => logEvent('case_abandoned', { reason: 'distress_pause_accepted', phase: currentPhase },
+      // A finished case keeps its report (v4.10; batch 18, Sam: closing
+      // gratitude drew a late offer and the finished case closed abandoned).
+      // The C5 exchange itself is still excluded from scoring.
+      const finished = caseFinished(flags, turnRows.filter(t => t.role === 'interviewer').map(t => ({ turnIndex: t.turnIndex, text: t.text })));
+      ctx.events.push({ category: 'conduct', subtype: 'C5_accept', payload: { reason: 'distress_pause_accepted', finished } });
+      later(() => logEvent(finished ? 'case_complete' : 'case_abandoned', { reason: 'distress_pause_accepted', phase: currentPhase },
         { sessionId, userId: session.userId }));
       return {
         kind: 'scripted', ctx, interviewerText: DISTRESS_CLOSE, delivery: 'decided',
         sessionUpdate: {
-          status: 'abandoned', // Rule 19: excluded from scoring, NOT failed/incomplete
+          status: finished ? 'completed' : 'abandoned', // Rule 19: an unfinished case is excluded from scoring, NOT failed
           completedAt: new Date(),
-          flagsJsonb: { ...flags, conduct: { ...conduct, distressOffered: false } },
+          flagsJsonb: { ...flags, conduct: { ...conduct, distressOffered: false }, ...(finished ? { endReason: 'distress_stop_after_case' } : {}) },
         },
-        result: { interviewerText: DISTRESS_CLOSE, phase: currentPhase, ended: true, auditPassed: true, scoringSuppressed: true },
+        result: { interviewerText: DISTRESS_CLOSE, phase: currentPhase, ended: true, auditPassed: true, scoringSuppressed: !finished },
       };
     }
-    // Declined — clear the offer and fall through to normal processing.
+    // Declined — clear the offer and fall through to normal processing. What
+    // they disclosed is kept: only a new or worse signal offers again.
     conduct.distressOffered = false;
+    conduct.distressDeclined = { disclosure: conduct.distressDisclosure ?? '', atTurn: nextTurnIndex };
   }
 
   // ── Conduct pre-check (Rule 17) — intercepts before any case rule ─────────
@@ -171,14 +184,129 @@ export function planTurn(reads: TurnReads, candidateText: string, deps: PlanDeps
   }
 
   // Rule 17-C5: the scripted pause offer, regex layer (the model layer is in
-  // stream-turn / session-runner via scriptedOffer).
+  // stream-turn / session-runner via scriptedOffer). After the candidate chose
+  // to continue, a regex hit that isn't self-harm goes to the model layer with
+  // the earlier disclosure: it offers again only for a new or worse signal
+  // (the regex floor stands if that check fails).
+  let regexC5AfterDecline: ConductAssessment | undefined;
   if (assessment.action === 'offer_pause') {
-    checks.skip('conduct_model', 'regex floor already fired C5');
-    return scriptedOfferFor(ctx, isRiskToSelf(assessment), { reason: assessment.reason, layer: 'regex' });
+    if (conduct.distressDeclined && assessment.reason !== 'self_harm' && deps.classify !== false) {
+      regexC5AfterDecline = assessment;
+      checks.act('c5_after_decline', 'regex C5 after a declined offer — the model layer decides whether it is a new signal', { reason: assessment.reason });
+    } else {
+      checks.skip('conduct_model', 'regex floor already fired C5');
+      return scriptedOfferFor(ctx, isRiskToSelf(assessment), { reason: assessment.reason, layer: 'regex' });
+    }
   }
   // assessment.action === 'ignore' (none / C1): proceed with the normal case turn.
 
-  return modelPlan(ctx, reads, { repliedToDistressOffer, conductRedirectHint, silenceState: resumed.state, classify: deps.classify !== false });
+  // ── The candidate stops (Rule 18A) — after conduct, before any case rule ──
+  const exitPlanned = planExit(ctx, reads, deps);
+  if (exitPlanned) return exitPlanned;
+
+  return modelPlan(ctx, reads, { repliedToDistressOffer, conductRedirectHint, silenceState: resumed.state, classify: deps.classify !== false, regexC5AfterDecline });
+}
+
+// Exit state, persisted in flags.exit (Rule 18A).
+export type ExitState = {
+  pending?: 'ambiguous' | 'refusal' | null;  // a clarifying question waits for its answer
+  clarified?: boolean;                        // the one ambiguous-statement clarification was used
+  refusals?: number;                          // consecutive refusals to start the case
+  refusalOffered?: boolean;                   // the bound's offer to stop was made
+};
+
+// The case hasn't started: no structure on the table and no probe asked.
+function caseNotStarted(flags: Record<string, unknown>, phase: Phase): boolean {
+  const pt = { ...INITIAL_PRESSURE_TEST, ...(flags.pressureTest as Partial<PressureTestState> | undefined) };
+  const rec = (flags.stageEvidence as StageRecord | undefined) ?? INITIAL_STAGES;
+  return pt.state === 'not_asked' && !pt.structureGiven && !rec.structure.outcome && !rec.analysis.delivered
+    && (['INTRO', 'CLARIFY', 'STRUCTURE'] as Phase[]).includes(phase);
+}
+
+// Rule 18A (round-3): explicit stop → end; a bare sign-off → one clarifying
+// question (once a session; after a recommendation, or once it was asked, the
+// sign-off is honoured); refusing to start → the opening question at most
+// three times, then an offer to stop, then the end. No case question in any
+// of these turns. A distress verdict on the message takes precedence (the C5
+// offer includes stopping) — the runner awaits it before speaking.
+function planExit(ctx: TurnCtx, reads: TurnReads, deps: PlanDeps): ScriptedPlan | null {
+  const { candidateText, flags, currentPhase, checks } = ctx;
+  const exit: ExitState = { ...(flags.exit as ExitState | undefined) };
+  const intent = classifyExitIntent(candidateText);
+  const notStarted = caseNotStarted(flags, currentPhase);
+  const refusal = notStarted && isRefusalToStart(candidateText);
+  const recommendationIn = Boolean((flags.stall as StallState | undefined)?.recommendationDelivered);
+  const distressCheck = () => (deps.classify === false || isBareSignOff(candidateText) ? undefined
+    : classifyDistress({ candidateText, earlier: ctx.conduct.distressDeclined,
+      onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId: ctx.sessionId, userId: ctx.userId }); } }));
+
+  let decision: 'stop' | 'clarify' | 'refusal_offer' | 'declined' | null = null;
+  let why = '';
+  if (exit.pending) {
+    const choice = exitReplyChoice(candidateText);
+    checks.record('exit_reply', choice === 'stop', `reply to the stop question: ${choice}`, { pending: exit.pending });
+    const wasRefusal = exit.pending === 'refusal';
+    exit.pending = null;
+    if (choice === 'stop') { decision = 'stop'; why = 'confirmed stopping'; }
+    else if (wasRefusal && refusal) { decision = 'declined'; why = 'still refusing after the offer to stop'; }
+    else if (wasRefusal) exit.refusals = 0;
+  }
+  if (!decision) {
+    if (intent.kind === 'stop') { decision = 'stop'; why = intent.reason; }
+    else if (intent.kind === 'ambiguous') {
+      if (recommendationIn || exit.clarified) { decision = 'stop'; why = recommendationIn ? 'sign-off after the recommendation' : 'sign-off after the clarification was used'; }
+      else { decision = 'clarify'; why = 'bare sign-off'; }
+    } else if (refusal) {
+      exit.refusals = (exit.refusals ?? 0) + 1;
+      if (exit.refusalOffered) { decision = 'declined'; why = 'refusing after the offer to stop'; }
+      else if (exit.refusals >= 3) { decision = 'refusal_offer'; why = `refused to start ${exit.refusals} times`; }
+    } else if (notStarted) {
+      exit.refusals = 0;
+    }
+  }
+  checks.record('candidate_exit', decision !== null, decision ? `${decision}: ${why}` : 'no exit', {
+    intent: intent.kind, refusal, refusals: exit.refusals ?? 0, decision,
+  });
+  if (!decision) {
+    // Counters move with every message; nothing else changes.
+    if (JSON.stringify(exit) !== JSON.stringify(flags.exit ?? {})) flags.exit = exit;
+    return null;
+  }
+
+  const evidence = hasAssessableEvidence(flags);
+  const result = (text: string, ended: boolean, scoringSuppressed?: boolean) =>
+    ({ interviewerText: text, phase: currentPhase, ended, auditPassed: true, ...(scoringSuppressed !== undefined ? { scoringSuppressed } : {}) });
+
+  if (decision === 'clarify' || decision === 'refusal_offer') {
+    const text = decision === 'refusal_offer' ? REFUSAL_OFFER : evidence ? EXIT_CLARIFY.withReport : EXIT_CLARIFY.noReport;
+    const next: ExitState = decision === 'clarify'
+      ? { ...exit, pending: 'ambiguous', clarified: true }
+      : { ...exit, pending: 'refusal', refusalOffered: true };
+    ctx.events.push({ category: 'intervention', subtype: decision === 'clarify' ? 'exit_clarify' : 'refusal_offer', payload: { why } });
+    return {
+      kind: 'scripted', ctx, interviewerText: text, delivery: 'required', distressCheck: distressCheck(),
+      sessionUpdate: { flagsJsonb: { ...flags, exit: next } },
+      result: result(text, false),
+    };
+  }
+
+  // stop / declined: the session ends here. With assessable evidence the
+  // candidate gets a report on what was covered (no overall rating when the
+  // case was cut short); with none, no report. The request is never graded.
+  const report = decision === 'stop' && evidence;
+  const text = decision === 'declined' ? EXIT_CLOSE.declined : report ? EXIT_CLOSE.withReport : EXIT_CLOSE.noReport;
+  const endReason = decision === 'declined' ? 'declined' : 'candidate_stop';
+  const partial = report && !caseFinished(flags, reads.turnRows.filter(t => t.role === 'interviewer').map(t => ({ turnIndex: t.turnIndex, text: t.text })));
+  ctx.events.push({ category: 'intervention', subtype: 'candidate_exit', payload: { decision, why, via: 'message', report, partial } });
+  return {
+    kind: 'scripted', ctx, interviewerText: text, delivery: 'decided', distressCheck: distressCheck(),
+    sessionUpdate: {
+      status: report ? 'completed' : 'abandoned',
+      completedAt: new Date(),
+      flagsJsonb: { ...flags, exit: { ...exit, pending: null }, endReason, partial, exitTurn: ctx.nextTurnIndex },
+    },
+    result: result(text, true, !report),
+  };
 }
 
 // Rule 17-C5: the scripted pause offer, from either detection layer.
@@ -187,7 +315,7 @@ export function scriptedOfferFor(ctx: TurnCtx, riskToSelf: boolean, payload: Rec
   ctx.events.push({ category: 'conduct', subtype: 'C5', payload });
   return {
     kind: 'scripted', ctx, interviewerText: offer, delivery: 'required',
-    sessionUpdate: { flagsJsonb: { ...ctx.flags, conduct: { ...ctx.conduct, distressOffered: true, distressOfferedAtMs: Date.now() } } },
+    sessionUpdate: { flagsJsonb: { ...ctx.flags, conduct: { ...ctx.conduct, distressOffered: true, distressOfferedAtMs: Date.now(), distressDisclosure: ctx.candidateText } } },
     result: { interviewerText: offer, phase: ctx.currentPhase, ended: false, auditPassed: true },
   };
 }
@@ -196,7 +324,7 @@ export function scriptedOffer(plan: ModelPlan, riskToSelf: boolean, payload: Rec
   return scriptedOfferFor(plan.ctx, riskToSelf, payload);
 }
 
-function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOffer: boolean; conductRedirectHint: string | undefined; silenceState: SilenceState; classify: boolean }) {
+function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOffer: boolean; conductRedirectHint: string | undefined; silenceState: SilenceState; classify: boolean; regexC5AfterDecline?: ConductAssessment }) {
   const { session: s, turnRows, exhibitRows, revealedRows, dataRequestEventRows } = reads;
   const session = s!;
   const { sessionId, candidateText, now, currentPhase, flags, checks } = ctx;
@@ -310,7 +438,17 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Rule 13 stall ladder: evaluate BEFORE the model turn so a triggered rung's
   // guidance goes into this turn's prompt.
   const priorStall = (flags.stall as StallState | undefined) ?? INITIAL_STALL_STATE;
-  const stallDecision = evaluateStall(candidateText, currentPhase, priorStall);
+  const rawStall = evaluateStall(candidateText, currentPhase, priorStall);
+  // One ladder at a time (v4.10, KF-1; batch 18 v3, Destiny t20: a stall
+  // rung-3 rescue released COGS on the turn the pressure-test gate deferred
+  // the rest and the narrowed probe was asked). While the probe is open its
+  // own bounded ladder — re-ask, narrowed probe, waiver — is the escalation;
+  // the stall ladder waits (no rung spent) and resumes after.
+  const ptOpen = (flags.pressureTest as Partial<PressureTestState> | undefined)?.state === 'awaiting';
+  const stallDecision = ptOpen && rawStall.intervene
+    ? { ...rawStall, intervene: false, rung: undefined, guidance: undefined, state: revertUndeliveredRung(rawStall.state, priorStall) }
+    : rawStall;
+  if (ptOpen && rawStall.intervene) checks.act('stall_deferred', 'stall rung withheld: the pressure-test ladder owns this turn', { rung: rawStall.rung });
   const recommendationReceived = stallDecision.state.recommendationDelivered;
 
   // Rule 12 v4.6: a received recommendation plus an administered brainstorm
@@ -372,13 +510,28 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   });
   const closeDue = (timeUp && !graceDue)
     || (mayEnd && ((recommendationReceived && stages.riskAsked) || recommendationUnresolved(stages)));
-  const kind: TurnKind = closeDue ? 'close'
+  // Required stages before a normal end (v4.10, Rule 9; batch 18: the exhibit
+  // never shown in 8 runs, the brainstorm never asked in 1): when the case
+  // would close or code would ask for the recommendation, a stage never put to
+  // the candidate is administered first — once, by code; whatever the reply
+  // (answered, declined, unable) resolves it. Not under time pressure: the
+  // recommendation comes first then, and the stage is recorded as time_up.
+  const stageRecord = (flags.stageEvidence as StageRecord | undefined) ?? INITIAL_STAGES;
+  const stagesEnforced = (flags.stagesEnforced as Partial<Record<StageKey, boolean>> | undefined) ?? {};
+  const owedStage = missingRequiredStages(stageRecord, { hasExhibit: caseData.exhibits.length > 0, format: caseData.format })
+    .find(k => !stagesEnforced[k]);
+  const ptClosed = pressureTest.state === 'satisfied' || pressureTest.state === 'waived';
+  const stageDue = owedStage !== undefined && ptClosed && !timeUp && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)
+    && (closeDue || awaitingRecAsk);
+  const kind: TurnKind = closeDue && !stageDue ? 'close'
     : graceDue ? 'grace_ask'
       : shouldFireTimeWarning && !recommendationReceived ? 'time_warning'
-        : awaitingRecAsk ? 'rec_ask'
-          : stallDecision.intervene && stallDecision.rung === 1 && lastQuestion ? 'rung1'
-            : 'model';
-  checks.record('turn_kind', kind !== 'model', `turn decided by code: ${kind}`, { kind, timeUp, mayEnd, ...stages });
+        : stageDue ? (owedStage === 'exhibit' ? 'stage_exhibit' : 'stage_brainstorm')
+          : awaitingRecAsk ? 'rec_ask'
+            : stallDecision.intervene && stallDecision.rung === 1 && lastQuestion ? 'rung1'
+              : 'model';
+  const closeReason: CloseReason = timeUp ? 'time_up' : recommendationUnresolved(stages) && !recommendationReceived ? 'unresolved' : 'complete';
+  checks.record('turn_kind', kind !== 'model', `turn decided by code: ${kind}`, { kind, timeUp, mayEnd, owedStage: owedStage ?? null, ...stages });
 
   checks.record('stall', Boolean(stallDecision.intervene), `rung ${stallDecision.rung ?? '-'} decided`, {
     rung: stallDecision.rung ?? null,
@@ -400,12 +553,23 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
 
   // Rule 17-C5 model layer (v4.6): runs in parallel with the interviewer call;
   // a distress verdict discards the draft before anything is delivered (D1).
-  const distress: Promise<DistressVerdict | null> = repliedToDistressOffer || !extra.classify
+  // After a declined offer it is told the earlier disclosure (only a new or
+  // worse signal counts); a regex C5 hit after a decline that this check can't
+  // judge (it failed) keeps the regex floor.
+  const declined = ctx.conduct.distressDeclined;
+  const regexC5 = extra.regexC5AfterDecline;
+  // A bare goodbye is not distress by itself (v4.10; batch 18, Victor: seven
+  // "Goodbye."s read as possible distress) — the exit path handles it; this is
+  // the backstop if one reaches a model turn.
+  const distress: Promise<DistressVerdict | null> = repliedToDistressOffer || !extra.classify || isBareSignOff(candidateText)
     ? Promise.resolve(null)
     : classifyDistress({
       candidateText,
+      earlier: declined,
       onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId: session.userId }); },
-    });
+    }).then(v => (v === null && regexC5
+      ? { label: isRiskToSelf(regexC5) ? 'risk_to_self' as const : 'distress' as const, reason: `regex floor (${regexC5.reason}); model check unavailable` }
+      : v));
 
   // No same-turn request classification on model turns (6 Oct): the model
   // declares the requests and code decides; the classifier here only fed a
@@ -426,7 +590,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
       derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
-      conductRedirectHint, history, turnRows, distress, kind, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
+      conductRedirectHint, history, turnRows, distress, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,
     },
   };

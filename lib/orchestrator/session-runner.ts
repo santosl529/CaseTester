@@ -13,8 +13,9 @@ import { logEvent, inDraftScope } from '@/lib/analytics';
 import type { Phase } from './state-machine';
 import { streamInterviewerTurn } from '@/lib/agent/interviewer';
 import { createInterviewerModel } from '@/lib/agent/models/factory';
-import { SILENCE_PAUSE_EXPIRED, CLOSE_SCRIPTS, GRACE_ASK_SCRIPTS, TIME_WARNING_SCRIPTS, pickScript } from '@/lib/agent/prompts/scripts';
-import { planTurn, scriptedOffer, type ModelPlan, type TurnReads } from './plan-turn';
+import { SILENCE_PAUSE_EXPIRED, GRACE_ASK_SCRIPTS, TIME_WARNING_SCRIPTS, STAGE_EXHIBIT_QUESTIONS, closeLine, pickScript } from '@/lib/agent/prompts/scripts';
+import { BLOCKED_CLOSE_PROBES } from './spoken-close';
+import { planTurn, scriptedOffer, scriptedOfferFor, type ModelPlan, type TurnReads } from './plan-turn';
 import { planFingerprint, type DraftGate } from './speculation';
 import { promptContextFor } from './prompt-context';
 import { TurnRecorder, type TurnRecord, type TurnStateBefore } from './turn-record';
@@ -212,9 +213,22 @@ async function runTurnBody(
   }
   if (plan.kind === 'scripted') {
     if (!plan.interviewerText) return done(await commit(plan, null)); // inactive session: nothing said
-    if (sink) await sink({ text: plan.interviewerText, revealIds: [], kind: 'scripted' }).catch(() => {});
-    if (rec) safe(rec, 'segment', () => rec.segment({ text: plan.interviewerText, revealIds: [], kind: 'scripted' }));
-    return done(await commit(plan, await hear(plan)));
+    // An exit turn (Rule 18A): a distress verdict on the message takes
+    // precedence — the C5 offer includes stopping.
+    let scripted: ScriptedPlan = plan;
+    if (plan.distressCheck) {
+      const verdict = await timer.time('distress_verdict', plan.distressCheck);
+      plan.ctx.checks.record('conduct_model', isDistressVerdict(verdict), verdict ? `C5 by model: ${verdict.label}` : 'no verdict', { ...(verdict ?? {}) });
+      if (isDistressVerdict(verdict)) {
+        // The exit's own events go: the offer is what happened.
+        plan.ctx.events.length = 0;
+        plan.ctx.checks.record('exit_superseded', true, 'distress on the exit message — the C5 offer instead');
+        scripted = scriptedOfferFor(plan.ctx, verdict.label === 'risk_to_self', { reason: verdict.reason, label: verdict.label, layer: 'model', onExit: true });
+      }
+    }
+    if (sink) await sink({ text: scripted.interviewerText, revealIds: [], kind: 'scripted' }).catch(() => {});
+    if (rec) safe(rec, 'segment', () => rec.segment({ text: scripted.interviewerText, revealIds: [], kind: 'scripted' }));
+    return done(await commit(scripted, await hear(scripted)));
   }
 
   const { ctx, state } = plan;
@@ -368,7 +382,8 @@ async function runTurnBody(
   }, report));
 }
 
-const CODE_WRITTEN_KINDS = new Set(['close', 'grace_ask', 'time_warning', 'rung1']);
+const CODE_WRITTEN_KINDS = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm']);
+
 
 // A code-written turn as a turn of the interviewer's shape: the message's data
 // requests (answered by Settle's data line) and the scripted line.
@@ -378,11 +393,15 @@ function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null
   const requests = (detected ?? [])
     .filter(r => r.explicit) // a code-written turn answers asks, it doesn't offer
     .map(r => ({ what: r.what, itemIds: r.ledgerItemIds, explicit: true, respond: 'release' as const }));
-  const question = state.kind === 'close' ? pickScript(CLOSE_SCRIPTS, seed)
+  const question = state.kind === 'close' ? closeLine(state.closeReason, seed)
     : state.kind === 'grace_ask' ? pickScript(GRACE_ASK_SCRIPTS, seed)
       : state.kind === 'time_warning' ? pickScript(TIME_WARNING_SCRIPTS, seed)
-        : `Take your time. The question on the table is ${restate(state.lastQuestion ?? '')}`;
-  return { move: 'other', requests, exhibit: null, rescueItem: null, say: '', question };
+        : state.kind === 'stage_brainstorm' ? pickScript([...BLOCKED_CLOSE_PROBES.brainstorm], seed)
+          : state.kind === 'stage_exhibit' ? pickScript(STAGE_EXHIBIT_QUESTIONS, seed)
+            : `Take your time. The question on the table is ${restate(state.lastQuestion ?? '')}`;
+  // The owed exhibit is handed over by code's own data line ("Here's an exhibit: …").
+  const exhibit = state.kind === 'stage_exhibit' ? state.caseData.exhibits.find(e => !state.shownExhibitIds.has(e.id))?.id ?? null : null;
+  return { move: 'other', requests, exhibit, rescueItem: null, say: '', question };
 }
 
 // "Which line moved most?" → "which line moved most?" (and no doubled lead-in).
