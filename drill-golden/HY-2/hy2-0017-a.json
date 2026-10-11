@@ -3,7 +3,7 @@
   "item_id": "hy2-0017",
   "drill_id": "HY-2",
   "answer_type": "normal",
-  "notes": "Names a cause but uses none of the given facts (cancellations doubled, prices unchanged), so evidence-based fails (rule 2).",
+  "notes": "Evidence-based passes: 'cheaper options now that DIY cameras exist' ties the cause to the facts (rule 2). The stage 2 reason restates the new fact with no conclusion (rule 5).",
   "responses": [
     {
       "type": "text",
@@ -20,10 +20,10 @@
   ],
   "labels": {
     "directional": true,
-    "evidence_based": false,
+    "evidence_based": true,
     "testable": true,
     "tentative": true,
-    "update_reason": true
+    "update_reason": false
   },
   "red_flags": {
     "restates_facts": false,

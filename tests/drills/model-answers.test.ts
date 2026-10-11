@@ -50,3 +50,26 @@ describe('every D2 model answer scores 100% against its own key', () => {
     });
   }
 });
+
+describe('CL-3 with two starting drivers', () => {
+  const cl3 = items.find(i => i.item_id === 'cl3-0011')!;
+  const s = steps(cl3);
+  const critical = cl3.extras.critical_checks as string[];
+  const scoreWith = (failing: string[]) => {
+    const g = perfect(cl3, s);
+    for (const id of failing) g.checks[id] = { pass: false, evidence: '' };
+    return applyGrade(cl3, s, false, g);
+  };
+  const capped = (r: ReturnType<typeof scoreWith>) => r.check_results.red_flags.find(f => f.id === 'missed_critical_driver')!.present;
+
+  it('has two critical drivers', () => expect(critical).toHaveLength(2));
+  it('is not capped when the answer covers either one', () => {
+    expect(capped(scoreWith([critical[0]]))).toBe(false);
+    expect(capped(scoreWith([critical[1]]))).toBe(false);
+  });
+  it('is capped at 60% only when it covers neither', () => {
+    const r = scoreWith(critical);
+    expect(capped(r)).toBe(true);
+    expect(r.score).toBeLessThanOrEqual(0.6);
+  });
+});

@@ -5,7 +5,7 @@
 Live: PS-1, HY-1, EX-1, SY-1, CL-1 (225 authored items approved; shared CaseTester database, in sync with /drill-items). D2 drills are built but off until Matt's content arrives.
 
 Open items, in order:
-1. **For Matt:** (a) hy2-0017-a evidence-based: Matt set N; the grader says Y, quoting "cheaper options now that DIY cameras exist". (b) Still undecided from earlier: hy2-0006-a and hy2-0017-a update_reason (Claude thinks N; grader agrees), hy2-0020-a (misread conclusion). (c) Approve HY-2, SY-2, CL-3, QN-5 questions to go live.
+1. **Matt to approve** HY-2, SY-2, CL-3, QN-5 questions to go live.
 2. **Next build phase:** D3 (the loop).
 
 How Matt likes to work: plain, short explanations; he reviews items on `drill-review.html` (`npm run drills:review`, "Waiting for your review" box) and sends decisions by item ID; commit and push to `drills` when asked (GitHub push works).
@@ -204,3 +204,11 @@ How Matt likes to work: plain, short explanations; he reviews items on `drill-re
 - Gates on drills-grader-v16: PS-3, HY-2, SY-2, CL-3 all ≥90%. All model answers score 100% with no change across three runs. Smoke passes.
 - Lesson: changing the stored shape of a key (`action` → `actions`) breaks grading for items already in the database until they are re-seeded (the smoke caught a job failing on stale HY-2 drafts). For live items, a key-format change needs a re-seed or new versions.
 - PRD HY-2, SY-2, CL-3 sections updated to match.
+
+## Last fixes (2026-10-11)
+
+- Matt: hy2-0017-a evidence Y; hy2-0006-a and hy2-0017-a update_reason N; hy2-0020-a left to Claude: passes (rule 5 now says a misread conclusion counts, since the decision check catches the wrong update, so the mistake counts once).
+- sy2-0017 and sy2-0030 "irrelevant" facts were relevant; replaced (app rating 4.7 stars; lockers open 24 hours).
+- CL-3 two-driver cap confirmed by a test on cl3-0011: covering either driver avoids the cap, neither caps at 60%.
+- Found: the grader let stage 2 leak into the stage 1 family (hy2-0015, hy2-0036), which would mark students who revise correctly as wrong. HY-2's family is now classified in a separate call that sees only the opening facts, the families, the grading rules and stage 1 (`buildFamilyBlock`). HY-2 grading now takes two calls per answer (~$0.006 per answer). PRD HY-2 section says so. Grader `drills-grader-v19`.
+- Final: all four gates pass (HY-2 family 97%, update_reason 97%); all model answers 100% with no change across three runs; smoke passes.

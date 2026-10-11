@@ -6,7 +6,7 @@ import { CL3_GRADING_RULES, HY2_GRADING_RULES, hy2DecisionTag, PS3_GRADING_RULES
 import type { Item } from '@/lib/drills/item-schema';
 import { ScoringError, scoreItem, scoreStep, type StepResponse, type StepResult } from '@/lib/drills/sets/scoring';
 import { applyGrade, numbersIn, type ItemGrade } from '@/lib/drills/grading/apply';
-import { buildItemBlock, familyName, gradeSet, GradingError, quoteFound, type CallModel } from '@/lib/drills/grading/grader';
+import { buildFamilyBlock, buildItemBlock, familyName, gradeSet, GradingError, quoteFound, type CallModel } from '@/lib/drills/grading/grader';
 import { stepLimitMs, startsStage, stepStartedAt } from '@/lib/drills/sets/timing';
 import { getDrill } from '@/lib/drills/config';
 
@@ -326,6 +326,27 @@ describe('the grading call', () => {
     expect(ps3).toContain('A generic word alone');
     const bare = { ...item('CL-3'), extras: { ...item('CL-3').extras, grading_rules: undefined } };
     expect(buildItemBlock({ key: 'c1', item: bare, steps: [scoreStep(bare, 0, { type: 'text', value: 'Start with COGS.' }, false)] })).not.toContain('<grading_rules>');
+  });
+
+  it('classifies the HY-2 family from stage 1 alone, without stage 2 or the new fact', async () => {
+    const hy = item('HY-2');
+    const s = steps(hy, [{ type: 'text', value: 'Customers likely buy less per visit.' }, { type: 'choice', option_id: 'revise' }, { type: 'text', value: 'Prices were cut, so it is discounting.' }]);
+    const e = { key: 'h1', item: hy, steps: s };
+    const block = buildFamilyBlock(e);
+    expect(block).toContain('Customers likely buy less per visit.');
+    expect(block).not.toContain('Prices were cut');
+    expect(block).not.toContain(String(hy.extras.new_fact));
+    // The main call names one family; the stage-1-only call names another, and wins.
+    const call: CallModel = async (_system, user) => {
+      const familyCall = user.includes('only classify');
+      return { output: { items: [{
+        item_key: 'answer',
+        checks: familyCall ? [] : hy.checks.filter(c => c.detection === 'ai').map(c => ({ check_id: c.check_id, pass: false, evidence: '' })),
+        red_flags: familyCall ? [] : hy.red_flags.filter(f => f.detection === 'ai').map(f => ({ id: f.id, present: false, evidence: '' })),
+        hypothesis_family: familyCall ? 'Buying less per customer' : 'Lower prices', backup_family: null, injection_suspected: false,
+      }] }, usage: { input_tokens: 1, output_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } };
+    };
+    expect((await gradeSet([e], call)).grades.get('h1')!.family).toBe('Buying less per customer');
   });
 
   it('maps a family echoed with its description back to the family name', () => {

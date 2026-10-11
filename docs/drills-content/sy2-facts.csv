@@ -84,7 +84,7 @@ sy2-0017,"Each new city costs about $500,000 to launch and takes 2 years to brea
 sy2-0017,45% of current customers say they'd book dog training through the app,Y,N
 sy2-0017,"Training sessions earn the app $25 per booking, against $8 for pet-sitting",Y,Y
 sy2-0017,"Trainers would need vetting, which takes 3 weeks per trainer",Y,N
-sy2-0017,"The app has 120,000 active customers",N,N
+sy2-0017,The app's average rating is 4.7 stars,N,N
 sy2-0018,Vinyl sales grew 10% a year for five years,Y,N
 sy2-0018,Pressing plants have 6-month waitlists for new orders,Y,Y
 sy2-0018,A new pressing line costs $1.5M and can press 1 million records a year at a $1.20 margin each,Y,N
@@ -149,4 +149,4 @@ sy2-0030,Lockers in apartment buildings are 85% full on average; lockers in stor
 sy2-0030,"Each locker costs $8,000 to install and earns $2,500 a year when 80% full",Y,N
 sy2-0030,"Building owners have offered 2,500 new apartment sites",Y,N
 sy2-0030,Carriers pay us $1 per parcel delivered,Y,N
-sy2-0030,Carriers delivered 15% more parcels through our lockers this year,N,N
+sy2-0030,Most of our lockers are open 24 hours a day,N,N

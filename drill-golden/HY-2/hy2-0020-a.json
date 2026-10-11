@@ -3,7 +3,7 @@
   "item_id": "hy2-0020",
   "drill_id": "HY-2",
   "answer_type": "normal",
-  "notes": "The reason uses the new fact, so the reason check passes (rule 5), but it misreads it: the decision check catches keep as the wrong update.",
+  "notes": "The reason uses the new fact and draws a conclusion from it, a wrong one: the reason check passes (rule 5) and the decision check catches keep as the wrong update, so the mistake is counted once.",
   "responses": [
     {
       "type": "text",

@@ -15,7 +15,7 @@ import { answerText, itemSteps, type StepResult } from '../sets/scoring';
 import type { ItemGrade } from './apply';
 
 // Bump on any change to the prompt or output schema; stored on every grade.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v16';
+export const GRADER_PROMPT_VERSION = 'drills-grader-v19';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 
@@ -92,6 +92,23 @@ export function buildItemBlock(e: GradingEntry): string {
   });
   parts.push('</item>');
   return parts.join('\n');
+}
+
+// HY-2's family call: only the opening facts, the families and the stage 1
+// answer. The grader never sees stage 2 or the new fact here, so a correct
+// revision can't pull stage 1 into the family the student revised to.
+export function buildFamilyBlock(e: GradingEntry): string {
+  const families = e.item.extras.families as { family: string; description: string }[];
+  return [
+    '<item key="answer">',
+    `<question>${e.item.prompt}</question>`,
+    ...((e.item.extras.grading_rules as string[] | undefined)?.length ? [`<grading_rules>\n${(e.item.extras.grading_rules as string[]).map(r => `- ${r}`).join('\n')}\n</grading_rules>`] : []),
+    `<hypothesis_families>\n${families.map(f => `- ${f.family}: ${f.description}`).join('\n')}\n</hypothesis_families>`,
+    '<checks>\n(none: only classify the hypothesis)\n</checks>',
+    '<red_flags>\n(none)\n</red_flags>',
+    `<student_answer stage="1">\n${fence(answerText(e.steps[0]?.response ?? { type: 'empty' })) || '(blank)'}\n</student_answer>`,
+    '</item>',
+  ].join('\n');
 }
 
 export { normalizeQuote, quoteFound } from './quotes';
@@ -206,6 +223,20 @@ export async function gradeSet(entries: GradingEntry[], call: CallModel = anthro
     throw new GradingError(last instanceof Error ? last.message : String(last));
   };
 
+  // HY-2: the family comes from a call that sees only stage 1 (see
+  // buildFamilyBlock). If it fails twice, the main call's family is used.
+  const classify = async (e: GradingEntry) => {
+    for (let i = 0; i < 2; i++) {
+      const res = await call(SYSTEM, `<items>\n${buildFamilyBlock(e)}\n</items>`);
+      usage.calls++;
+      for (const k of Object.keys(res.usage) as (keyof typeof res.usage)[]) usage[k] += res.usage[k];
+      const out = res.output && OutputSchema.safeParse(res.output);
+      const item = out?.success ? out.data.items[0] : undefined;
+      if (item?.hypothesis_family) return item;
+    }
+    throw new GradingError('family classification failed');
+  };
+
   const gradeOne = async (e: GradingEntry): Promise<ItemGrade> => {
     let out = await ask(e, 3);
     const firstBad = badQuotes(e, out);
@@ -218,11 +249,12 @@ export async function gradeSet(entries: GradingEntry[], call: CallModel = anthro
       out = (await ask(e, 1, note).catch(() => null)) ?? out;
     }
     const bad = new Set(badQuotes(e, out));
+    const families = e.item.extras.families ? await classify(e).catch(() => null) : null;
     return {
       checks: Object.fromEntries(out.checks.map(c => [c.check_id, { pass: c.pass && !bad.has(c.check_id), evidence: c.evidence }])),
       red_flags: Object.fromEntries(out.red_flags.map(f => [f.id, { pass: f.present && !bad.has(f.id), evidence: f.evidence }])),
-      family: familyName(e.item, out.hypothesis_family),
-      backup_family: familyName(e.item, out.backup_family),
+      family: familyName(e.item, families ? families.hypothesis_family : out.hypothesis_family),
+      backup_family: familyName(e.item, families ? families.backup_family : out.backup_family),
       injection_suspected: out.injection_suspected,
       qa_flags: [...bad],
     };

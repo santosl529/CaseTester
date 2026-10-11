@@ -11,7 +11,7 @@
     "SY.complete"
   ],
   "case_type": "investment_decision",
-  "prompt": "The client asks: \"Should our parcel-locker network expand from 2,000 to 5,000 lockers?\"\n\nFact sheet:\n- Lockers in apartment buildings are 85% full on average; lockers in stores are 30% full\n- Each locker costs $8,000 to install and earns $2,500 a year when 80% full\n- Building owners have offered 2,500 new apartment sites\n- Carriers pay us $1 per parcel delivered\n- Carriers delivered 15% more parcels through our lockers this year\n\nGive your recommendation.",
+  "prompt": "The client asks: \"Should our parcel-locker network expand from 2,000 to 5,000 lockers?\"\n\nFact sheet:\n- Lockers in apartment buildings are 85% full on average; lockers in stores are 30% full\n- Each locker costs $8,000 to install and earns $2,500 a year when 80% full\n- Building owners have offered 2,500 new apartment sites\n- Carriers pay us $1 per parcel delivered\n- Most of our lockers are open 24 hours a day\n\nGive your recommendation.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -52,7 +52,7 @@
     },
     {
       "check_id": "leaves_out_irrelevant",
-      "question": "Does the answer avoid using the irrelevant facts (Carriers delivered 15% more parcels through our lockers this year) as reasons or support? Mentioning one only to dismiss it is fine.",
+      "question": "Does the answer avoid using the irrelevant facts (Most of our lockers are open 24 hours a day) as reasons or support? Mentioning one only to dismiss it is fine.",
       "weight": 0.15,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "Leave out facts that don't bear on the decision.",
@@ -160,7 +160,7 @@
         "deciding": false
       },
       {
-        "fact": "Carriers delivered 15% more parcels through our lockers this year",
+        "fact": "Most of our lockers are open 24 hours a day",
         "relevant": false,
         "deciding": false
       }
