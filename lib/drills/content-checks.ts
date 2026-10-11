@@ -184,7 +184,7 @@ export function phraseCueProblems(items: Item[]): string[] {
 // the option is the longest or shortest) and picks the option whose wording
 // looks most like a right answer. Scored leave-one-out, so it only finds
 // patterns that carry over to an item it hasn't seen, as a student would.
-export const RULE_PLAYER_MAX = 0.4;
+export const RULE_PLAYER_MAX = 0.33;
 
 export interface RulePlayerScore { drill: string; score: number; chance: number; items: number; solved: string[] }
 

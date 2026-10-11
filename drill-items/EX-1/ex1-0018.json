@@ -1,6 +1,6 @@
 {
   "item_id": "ex1-0018",
-  "version": 2,
+  "version": 3,
   "drill_id": "EX-1",
   "status": "live",
   "level": 1,
@@ -55,7 +55,7 @@
     },
     {
       "id": "b",
-      "text": "Plus earns $700k a month, more than Basic's $600k",
+      "text": "Plus brings in $700k a month, ahead of Basic's $600k",
       "correct": true,
       "feedback": "Right. Monthly revenue: Basic $10 × 60,000 = $600k, Plus $25 × 28,000 = $700k, Pro $40 × 5,000 = $200k."
     },
@@ -90,7 +90,8 @@
     "reviewed_at": "2026-10-10",
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

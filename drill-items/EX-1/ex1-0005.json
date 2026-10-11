@@ -1,6 +1,6 @@
 {
   "item_id": "ex1-0005",
-  "version": 1,
+  "version": 2,
   "drill_id": "EX-1",
   "status": "live",
   "level": 1,
@@ -54,7 +54,7 @@
   "options": [
     {
       "id": "a",
-      "text": "Growth comes from more customers; spend per customer slipped",
+      "text": "Growth comes from more customers, even as spend per customer slipped",
       "correct": true,
       "feedback": "Right. Customers grew 72% (50k to 86k) and revenue 60% (100 to 160), so revenue per customer fell from about $2,000 to $1,860."
     },
@@ -96,7 +96,8 @@
     "reviewed_at": "2026-10-10",
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

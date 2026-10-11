@@ -1,15 +1,12 @@
 # Drills branch progress
 
-## Where things stand (updated 2026-10-10) — start here
+## Where things stand (updated 2026-10-11) — start here
 
 Live: PS-1, HY-1, EX-1, SY-1, CL-1 (225 authored items approved; shared CaseTester database, in sync with /drill-items). D2 drills are built but off until Matt's content arrives.
 
 Open items, in order:
-1. **API credit.** The key in `.env.local` belongs to Anthropic organization `e2cd3877-6ed9-45a7-8d2d-ee82b5cf01b5`, which has no credit; Matt bought credit, apparently in another organization. Before any Claude call, check the key's organization (the `anthropic-organization-id` response header, e.g. from `client.models.list().withResponse()`) and test one cheap call (`npm run drills:similarity -- --no-web example-sy2-01`). Never read or print the key.
-2. **Similarity check with web search** (`npm run drills:similarity`, about $30): no item has `similarity_method: "web"` yet. Run it, then send Matt only the flagged items (flagged live items drop to `in_review` automatically). Then `npm run drills:smoke:d2`.
-3. **Rule-player maximum 33%** (Matt's request; `RULE_PLAYER_MAX` in `lib/drills/content-checks.ts` is still 0.4). Current scores: CL-1 28%, HY-1 22%, PS-1 34%, SY-1 35%, EX-1 39%. Offer made: reword a few solved items in PS-1, EX-1, SY-1 (new versions), then lower to 0.33. Waiting for Matt's go-ahead.
-4. **For Matt to look at:** the two `scenario-reviewed.json` pairs involving the new SY-2 example (`example-sy2-01` with `sy1-0028` and `cl1-0021`).
-5. **Waiting on Matt:** D2 content in `docs/drills-content-templates`; tag severity decision before D3.
+1. **Tag severity:** first pass drafted in `docs/drills-tag-severity-draft.md` (33 major, 32 minor, one-line reason each). Waiting for Matt's corrections; then write the values into `lib/drills/config/taxonomy.v1.json` (all `severity: null` today). Needed before D3.
+2. **Waiting on Matt:** D2 content in `docs/drills-content-templates`.
 
 How Matt likes to work: plain, short explanations; he reviews items on `drill-review.html` (`npm run drills:review`, "Waiting for your review" box) and sends decisions by item ID; commit and push to `drills` when asked (GitHub push works).
 
@@ -75,3 +72,21 @@ How Matt likes to work: plain, short explanations; he reviews items on `drill-re
 - 23 CL-1 items and sy1-0011 reused another drill's scenario; each keeps its reasoning in a new industry with new numbers. Also changed for the same reason: cl1-0007 ($12M synergies), ex1-0018 (plan figures), ps1-0019 (76%→84%), ps1-0040 (self-storage). 27 new versions, seeded, older versions retired.
 - New cross-drill scenario check (`scenarioOverlaps` in content-checks); 19 checked pairs recorded in `drill-items/scenario-reviewed.json` with reasons.
 - Similarity check now searches the web by default and records `similarity_method`. It flagged the pharmacy case once search was on. **The full rerun stopped: the Anthropic API credit ran out.** All items still show "passed" from the knowledge-only check; none has `similarity_method: web`. After topping up credit, run `npm run drills:similarity` (about $30); it picks up every item not yet web-checked. `drills:smoke:d2` and `drills:golden` also need credit.
+
+## Targeted web similarity check (2026-10-11)
+
+- API credit works again (a test call succeeded; the key's organization wasn't checked, since that check was blocked).
+- Matt decided against the full $30 web run: the manual review already compared all 225 items from memory and web-searched the 22 most distinctive scenarios. Only the 28 items rewritten after that review (the 27 originality-fix versions plus the trampoline-park SY-2 example) were web-checked: all passed, none flagged (about $3.40). The other ~197 items stay `similarity_method: knowledge` by choice. Rerun the full check only if Matt wants every item web-checked before a wider launch.
+- Database synced (28 authorship records updated).
+
+## Rule-player maximum lowered to 33% (2026-10-11)
+
+- `RULE_PLAYER_MAX` is 0.33 (Matt's request); the HY-1 test now uses the constant.
+- Scores before → after: PS-1 34% → 28%, EX-1 39% → 28%, SY-1 35% → 25% (CL-1 28%, HY-1 22% unchanged).
+- 11 items reworded, one option each (two in none), as new draft versions; current live versions stay live until Matt approves. Main real tell removed: EX-1 right answers were the only ones with a semicolon (4 of 4); now none have one. Other edits are small word changes the rule player was keying on (e.g. "comes after the decision" in PS-1, "hold 70%" in SY-1).
+- All 11 passed the web similarity check (~$0.92); seeded as drafts (11 inserted).
+- Remaining patterns the rule player doesn't fully catch but a student might: PS-1 "Bucket 3 doesn't belong" and "both fixed and variable" overlaps are almost always wrong; EX-1 wrong options often state "the most/largest" or a cause the chart can't show. Worth watching when writing new items.
+- Scratch diagnostic approach (not committed): score rewordings in memory with `rulePlayer` before editing files.
+- Matt kept both SY-2 scenario pairs (`example-sy2-01` with `sy1-0028` and `cl1-0021`) as recorded. PRD "Wording checks" updated to 33% with Matt's go-ahead.
+- Matt approved all 11 reworded items: live, older versions retired (11 retired in the database).
+- `drills:smoke:d2` passed again with credit restored (PS-3, HY-2, SY-2, CL-3, QN-5 all 100%; outage retry path OK).

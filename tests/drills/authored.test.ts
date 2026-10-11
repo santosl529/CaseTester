@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { contentCheckProblems, loadAuthoredItems, loadReviewedScenarioPairs, parseAuthoredItems } from '@/lib/drills/authored';
-import { lengthCueProblems, oddOneOutCues, phraseCues, rulePlayer, scenarioOverlaps } from '@/lib/drills/content-checks';
+import { RULE_PLAYER_MAX, lengthCueProblems, oddOneOutCues, phraseCues, rulePlayer, scenarioOverlaps } from '@/lib/drills/content-checks';
 import { getDrill } from '@/lib/drills/config';
 
 describe('authored drill items (/drill-items)', () => {
@@ -93,7 +93,7 @@ describe('wording checks', () => {
 
   it('a solver that never reads the case beats a marked pool and not a clean one', () => {
     expect(rulePlayer(marked)[0].score).toBe(1);
-    expect(rulePlayer(pool)[0].score).toBeLessThanOrEqual(0.4);
+    expect(rulePlayer(pool)[0].score).toBeLessThanOrEqual(RULE_PLAYER_MAX);
   });
 });
 

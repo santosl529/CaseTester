@@ -1,6 +1,6 @@
 {
   "item_id": "ex1-0010",
-  "version": 1,
+  "version": 2,
   "drill_id": "EX-1",
   "status": "live",
   "level": 1,
@@ -65,7 +65,7 @@
     },
     {
       "id": "b",
-      "text": "The rival cut prices 20%; the client held at $10",
+      "text": "The rival cut prices 20%, but the client held at $10",
       "correct": true,
       "feedback": "Right. The competitor fell from $10 to $8 (−20%); the client stayed at $10."
     },
@@ -100,7 +100,8 @@
     "reviewed_at": "2026-10-10",
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

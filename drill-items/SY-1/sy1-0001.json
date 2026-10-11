@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0001",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -19,7 +19,7 @@
   "options": [
     {
       "id": "a",
-      "text": "Don't enter Canada now. The 5-year payback misses our 3-year hurdle, and two incumbents hold 70%.",
+      "text": "Don't enter Canada now. The 5-year payback misses our 3-year hurdle, and two incumbents control 70%.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with the facts that decide it: the payback misses the hurdle in a slow, concentrated market."
     },
@@ -64,7 +64,8 @@
     "reviewed_at": "2026-10-10",
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

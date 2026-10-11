@@ -64,7 +64,8 @@
     "reviewed_at": "2026-10-10",
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

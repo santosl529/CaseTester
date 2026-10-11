@@ -1,6 +1,6 @@
 {
   "item_id": "ex1-0035",
-  "version": 1,
+  "version": 2,
   "drill_id": "EX-1",
   "status": "live",
   "level": 1,
@@ -58,7 +58,7 @@
     },
     {
       "id": "c",
-      "text": "C earns back its $6M in three years; A and B take longer",
+      "text": "Only C earns back its $6M within three years",
       "correct": true,
       "feedback": "Right. Payback = investment ÷ annual cash flow: A 15 ÷ 3 = 5 years, B 10 ÷ 2.5 = 4 years, C 6 ÷ 2 = 3 years."
     },
@@ -86,7 +86,8 @@
     "reviewed_at": "2026-10-10",
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

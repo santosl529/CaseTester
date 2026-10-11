@@ -1,6 +1,6 @@
 {
   "item_id": "ex1-0042",
-  "version": 1,
+  "version": 2,
   "drill_id": "EX-1",
   "status": "live",
   "level": 1,
@@ -54,7 +54,7 @@
     },
     {
       "id": "b",
-      "text": "Driver pay added all of the $3 rise; fuel and vehicles cancel out",
+      "text": "Driver pay added all of the $3 rise, with fuel and vehicles canceling out",
       "correct": true,
       "feedback": "Right. Total cost went from $12 to $15. Driver pay rose $3 (5 to 8), fuel rose $1 and vehicle costs fell $1."
     },
@@ -89,7 +89,8 @@
     "reviewed_at": "2026-10-10",
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

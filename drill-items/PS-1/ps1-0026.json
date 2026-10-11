@@ -1,6 +1,6 @@
 {
   "item_id": "ps1-0026",
-  "version": 1,
+  "version": 2,
   "drill_id": "PS-1",
   "status": "live",
   "level": 1,
@@ -25,7 +25,7 @@
     },
     {
       "id": "b",
-      "text": "Bucket 4 doesn't belong: the ads' athlete comes after the launch decision",
+      "text": "Bucket 4 doesn't belong: choosing the ads' athlete only matters once the launch is decided",
       "correct": true,
       "feedback": "Right. Picking a face for the ads is launch execution. Replace it with the launch economics: price, margin and expected volume."
     },
@@ -61,7 +61,8 @@
     "reviewed_at": "2026-10-10",
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

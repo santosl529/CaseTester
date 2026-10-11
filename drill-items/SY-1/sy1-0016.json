@@ -1,6 +1,6 @@
 {
   "item_id": "sy1-0016",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-1",
   "status": "live",
   "level": 1,
@@ -40,7 +40,7 @@
     },
     {
       "id": "d",
-      "text": "Offer the annual plan. $480 up front beats the $450 the average monthly customer pays over 9 months.",
+      "text": "Offer the annual plan. $480 up front beats the $450 the average monthly customer pays during a 9-month stay.",
       "correct": true,
       "feedback": "Right. It leads with the answer and compares revenue per customer."
     }
@@ -64,7 +64,8 @@
     "reviewed_at": "2026-10-10",
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,
