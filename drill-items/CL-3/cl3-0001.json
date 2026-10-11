@@ -134,7 +134,7 @@
       "step": 0
     }
   ],
-  "model_answer": "With revenue flat, the $1.2M drop is in costs. I'd split costs into ingredients per cup, labor, and rent and utilities. I'd start with ingredient cost per cup by month over two years, since ingredients are the biggest cost, then labor hours per store.",
+  "model_answer": "With revenue flat, the drop is likely in costs, but I'd confirm price and mix too. I'd split profit into price per cup, ingredients per cup, labor, and rent. I'd start with ingredient cost per cup by month for two years, since ingredients are the biggest cost.",
   "explanation": "Drivers: Ingredient cost per cup, Labor, Rent and utilities, Price and mix. Start with Ingredient cost per cup: Revenue is flat, so the drop is in costs, and ingredients are the biggest cost in a self-serve shop. Specific: Ingredient cost per cup by month for two years; labor hours per store by month. Vague: Cost information; store data.",
   "extras": {
     "drivers": [

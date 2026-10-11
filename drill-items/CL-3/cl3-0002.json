@@ -134,7 +134,7 @@
       "step": 0
     }
   ],
-  "model_answer": "I'd split delivery time into days from order to dispatch, carrier transit, and delays from items out of stock. I'd start with order-to-dispatch days by week, this quarter against last, since that's the part we control and shows whether the delay is ours.",
+  "model_answer": "I'd split delivery time into order-to-dispatch days, carrier transit, stock-outs, and order volume against capacity. I'd start with order-to-dispatch days by week, this quarter against last, since that's the part we control and shows whether the delay is ours.",
   "explanation": "Drivers: Time from order to dispatch, Carrier transit time, Stock-outs, Order volume. Start with Time from order to dispatch: It splits our own delay from the carrier's, and it's the part we control. Specific: Days from order to dispatch by week, this quarter against last; carrier transit days by region. Vague: Shipping data; warehouse information.",
   "extras": {
     "drivers": [

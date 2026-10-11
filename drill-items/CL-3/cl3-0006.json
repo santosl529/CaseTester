@@ -134,7 +134,7 @@
       "step": 0
     }
   ],
-  "model_answer": "I'd split revenue into new customers, repeat purchases per customer, and order value. I'd start with first-time visitors and their conversion rate by month for two years, since only a fifth of sales come from new customers, so winning new buyers is likely the gap.",
+  "model_answer": "I'd split revenue into new customers, repeat purchases, order value, and new product ranges. I'd start with first-time visitors and their conversion rate by month for two years, since only a fifth of sales come from new customers, so winning new buyers is likely the gap.",
   "explanation": "Drivers: New customers, Repeat purchases, Order value, New products. Start with New customers: Doubling needs many more buyers, and only a fifth of sales come from new ones, so acquisition looks weak. Specific: First-time visitors and their conversion rate by month for two years; repeat orders per customer per year. Vague: Customer data; sales information.",
   "extras": {
     "drivers": [

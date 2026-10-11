@@ -58,7 +58,7 @@
       "id": "1",
       "text": "Commercial passenger aircraft in service worldwide",
       "correct": true,
-      "feedback": "A driver: Reasoning: a rough estimate of 25,000 to 30,000 jets; the least certain base figure here"
+      "feedback": "A driver: Cirium, Oct 2024: about 26,100 aircraft with 30+ seats in service worldwide, including some freighters, so roughly 24,000 passenger aircraft. https://www.businesswire.com/news/home/20241022030312/en/"
     },
     {
       "id": "2",
@@ -101,7 +101,7 @@
     }
   ],
   "numeric": {
-    "answer": 3043906250,
+    "answer": 2711843749.9999995,
     "tolerance_type": "relative",
     "tolerance_value": 0.02,
     "percent_format": "none",
@@ -109,8 +109,8 @@
   },
   "checks": [],
   "red_flags": [],
-  "model_answer": "27.5k (commercial passenger aircraft in service worldwide) × 175 (seats per aircraft) × 0.11 (share of seats replaced each year) × 5.5k (average price per replacement seat) ≈ $2.91B",
-  "explanation": "27.5k (commercial passenger aircraft in service worldwide) × 175 (seats per aircraft) × 0.11 (share of seats replaced each year) × 5.5k (average price per replacement seat) ≈ $2.91B. A believable total is 1.5B–5.8B (Derived: the central driver values give about $2.91B; the range allows a factor of 2 either way for the least certain driver (average price per replacement seat)).",
+  "model_answer": "24.5k (commercial passenger aircraft in service worldwide) × 175 (seats per aircraft) × 0.11 (share of seats replaced each year) × 5.5k (average price per replacement seat) ≈ $2.59B",
+  "explanation": "24.5k (commercial passenger aircraft in service worldwide) × 175 (seats per aircraft) × 0.11 (share of seats replaced each year) × 5.5k (average price per replacement seat) ≈ $2.59B. A believable total is 1.3B–5.2B (Derived: the central driver values give about $2.59B; the range allows a factor of 2 either way for the least certain driver (average price per replacement seat)).",
   "extras": {
     "accepted_sets": [
       [
@@ -122,10 +122,10 @@
     ],
     "ranges": {
       "1": {
-        "low": 25000,
-        "high": 30000,
+        "low": 22000,
+        "high": 27000,
         "unit": "aircraft",
-        "source": "Reasoning: a rough estimate of 25,000 to 30,000 jets; the least certain base figure here"
+        "source": "Cirium, Oct 2024: about 26,100 aircraft with 30+ seats in service worldwide, including some freighters, so roughly 24,000 passenger aircraft. https://www.businesswire.com/news/home/20241022030312/en/"
       },
       "2": {
         "low": 150,
@@ -147,9 +147,9 @@
       }
     },
     "benchmark": {
-      "low": 1500000000,
-      "high": 5800000000,
-      "source": "Derived: the central driver values give about $2.91B; the range allows a factor of 2 either way for the least certain driver (average price per replacement seat)"
+      "low": 1300000000,
+      "high": 5200000000,
+      "source": "Derived: the central driver values give about $2.59B; the range allows a factor of 2 either way for the least certain driver (average price per replacement seat)"
     },
     "step_skills": [
       [

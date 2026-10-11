@@ -139,7 +139,7 @@
       "evidence": "whole"
     }
   ],
-  "model_answer": "Stage 1: Customers likely left for a faster supplier, as next-day delivery becomes the norm. I'd ask lost customers who they switched to and why.\nStage 2: Keep: they moved to a marketplace that delivers next day, at prices within 2%.",
+  "model_answer": "Stage 1: The 15% of customers lost likely left for a supplier that delivers faster. I'd ask lost customers who they switched to and why.\nStage 2: Keep: lost customers moved to a next-day marketplace at prices within 2%, so speed, not price, drove them away.",
   "explanation": "The new fact: Lost customers moved to an online marketplace that delivers the next day; the wholesaler delivers in 3 days. Prices at the two are within 2%. Lower prices elsewhere: drop (Prices are within 2%). Faster delivery elsewhere: keep (The marketplace delivers next day against 3 days). Poor account service: revise (Possible, but customers moved for speed).",
   "extras": {
     "families": [

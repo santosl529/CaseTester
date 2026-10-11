@@ -139,7 +139,7 @@
       "evidence": "whole"
     }
   ],
-  "model_answer": "Stage 1: With arrivals up only 5%, longer waits more likely come from slower unloading at the berth. I'd compare crane moves per hour with last year.\nStage 2: Revise: cranes are at normal speed. The yard is full because containers wait 9 days for pickup.",
+  "model_answer": "Stage 1: With arrivals up only 5%, longer waits more likely come from slower unloading at the berth. I'd compare crane moves per hour with last year.\nStage 2: Drop: cranes work at normal speed. The yard is full because containers wait 9 days for pickup.",
   "explanation": "The new fact: Cranes work at normal speed, but containers sit in the yard 9 days instead of 4 because truckers can't get appointments to collect them, so the yard is full. More ships: revise (Arrivals rose only 5%; the yard is the constraint). Slower cranes: drop (Cranes work at normal speed). Full yard: keep (Containers sit 9 days instead of 4).",
   "extras": {
     "families": [

@@ -139,7 +139,7 @@
       "evidence": "whole"
     }
   ],
-  "model_answer": "Stage 1: Existing customers likely cut spending because of budget cuts in a weaker economy. I'd compare spending changes by customer industry and size.\nStage 2: Drop: customers who adopted the new console kept expanding. The fall is among the 70% who never adopted it.",
+  "model_answer": "Stage 1: Retention fell from 115% to 98% while new customers grew 40%, so existing customers likely cut budgets in a weaker economy. I'd compare spending changes by customer industry and size.\nStage 2: Drop: customers who adopted the new console kept expanding. The fall is among the 70% who never adopted it.",
   "explanation": "The new fact: Customers who adopted the new admin console kept expanding as before. 70% of customers never adopted it after it replaced the old console, and their spending fell. Weaker economy: drop (Customers on the new console kept expanding). Console change: keep (Spending fell among the 70% who never adopted it). Rivals winning accounts: revise (Possible, but spending follows console adoption).",
   "extras": {
     "families": [

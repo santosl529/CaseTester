@@ -5,10 +5,9 @@
 Live: PS-1, HY-1, EX-1, SY-1, CL-1 (225 authored items approved; shared CaseTester database, in sync with /drill-items). D2 drills are built but off until Matt's content arrives.
 
 Open items, in order:
-1. **Matt to check every graded answer** for PS-3 (already live), HY-2, SY-2 and CL-3: all grades were written by Claude, and a few were changed after seeing the grader's output (listed in "Who graded the D2 answers"). Until Matt has checked them, the golden gates measure agreement with Claude's labels. Then the HY-2, SY-2, CL-3 and QN-5 questions for approval to go live.
-2. **QN-5 figures:** all named sources reworded as reasoning (list sent to Matt 2026-10-11). Matt may want some verified with links instead.
-3. **Small follow-up:** a PS-3 smoke set answered with model frameworks scored 88%, not 100%; find which question's model framework misses a check.
-4. **Next build phase:** D3 (the loop).
+1. **Matt to check every graded answer** (PS-3, HY-2, SY-2, CL-3; all Claude's, see "Who graded the D2 answers"), then approve HY-2, SY-2, CL-3, QN-5 questions, and ps3-0003 v2 / ps3-0007 v2 (model-framework fixes).
+2. **Grader instability in batches (decision for Matt):** the same perfect answer can lose 15–40 points depending on which answers share its grading call (HY-2 worst: 7–11 of 41 model answers below 100% in batches of 4, different ones each run; 2 of 41 graded alone). Grading alone fixes that but shifts calibration: HY-2 update_reason falls to 74% and CL-3 specific_requests to 77% on the golden sets. Production stays at one call per set (PRD) until decided. Next step proposed: look at why those two checks change when graded alone, then re-run both modes.
+3. **Next build phase:** D3 (the loop).
 
 How Matt likes to work: plain, short explanations; he reviews items on `drill-review.html` (`npm run drills:review`, "Waiting for your review" box) and sends decisions by item ID; commit and push to `drills` when asked (GitHub push works).
 
@@ -165,3 +164,11 @@ How Matt likes to work: plain, short explanations; he reviews items on `drill-re
 
 - Claude wrote and graded all 123 golden answers (PS-3 30, HY-2 30, SY-2 33, CL-3 30); Matt chose "Claude drafts, Matt checks every grade" but has not yet checked them grade by grade (PS-3 was approved as a whole).
 - Labels Claude changed after seeing grader disagreements (each to match a written rule, but after the fact): PS-3 none after the rules were set; HY-2 update_reason on 0008-a, 0023-a, 0036-a (Y→N, rule 5 then extended); SY-2 two_to_three_reasons on 0013-a and 0029-a (N→Y, after the reasons rule changed); CL-3 specific_requests on 0029-a (N→Y, note had contradicted the grade).
+
+## Model answers must score 100% (2026-10-11)
+
+- Matt asked which PS-3 question's model framework scored 88%, and for a test that every model framework scores 100% against its key.
+- `lib/drills/model-answers.ts` turns an item's key into an answer (shared by the smoke test). `tests/drills/model-answers.test.ts`: all 185 D2 items score 100% on everything code settles (QN-5 fully), plus a check that the test catches a bad model. `npm run drills:models` (paid, ~$0.45) grades every AI-graded model answer with the real grader.
+- Found: ps3-0003 (law firm; fifth bucket "How spending is approved" not in the key, overlaps outside services) and ps3-0007 (blood center; "peaks" in two buckets). Fixed as v2 drafts (v1 stays live). Importer now keeps a draft's version number. 17 HY-2/SY-2/CL-3 draft model answers fixed (missing CL-3 drivers, stage 1 not using a given fact, two causes with no lead, hy2-0035 decision contradicting its own family, hy2-0032 reason not saying what the fact means); all re-passed similarity.
+- QN-5 ranges per Matt: bananas 25–100, electricity 13–22¢. qn5-0022 means the world (card and prompt both say so); looked up Cirium Oct 2024 (26,100 aircraft of 30+ seats in service incl. some freighters) and set 22,000–27,000 with the link.
+- `--batch N` option on drills:models and drills:golden for the batching experiment.

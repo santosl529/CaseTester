@@ -76,7 +76,7 @@
       "id": "4",
       "text": "Price of electricity",
       "correct": true,
-      "feedback": "A driver: Reasoning: household electricity typically costs about 13 to 18 cents per kWh"
+      "feedback": "A driver: Reasoning: household electricity typically costs about 13 to 22 cents per kWh, depending on the state"
     },
     {
       "id": "5",
@@ -94,7 +94,7 @@
     }
   ],
   "numeric": {
-    "answer": 6206200000,
+    "answer": 7007000000,
     "tolerance_type": "relative",
     "tolerance_value": 0.02,
     "percent_format": "none",
@@ -134,9 +134,9 @@
       },
       "4": {
         "low": 0.13,
-        "high": 0.18,
+        "high": 0.22,
         "unit": "dollars per kilowatt-hour",
-        "source": "Reasoning: household electricity typically costs about 13 to 18 cents per kWh"
+        "source": "Reasoning: household electricity typically costs about 13 to 22 cents per kWh, depending on the state"
       }
     },
     "benchmark": {

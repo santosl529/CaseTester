@@ -36,6 +36,8 @@ for (const item of items) {
     // Same case and model answer: keep the review record (drafting model,
     // similarity check). A changed case starts over and is checked again.
     if (existing.prompt === item.prompt && existing.model_answer === item.model_answer) item.authorship = existing.authorship;
+    // A draft may be a new version of a live item: keep its version number.
+    item.version = existing.version;
   }
   if (!dryRun) {
     fs.mkdirSync(path.dirname(file), { recursive: true });

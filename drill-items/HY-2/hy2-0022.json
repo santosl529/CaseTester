@@ -139,7 +139,7 @@
       "evidence": "whole"
     }
   ],
-  "model_answer": "Stage 1: Selling 4,000 instead of 50,000 likely means the $3,000 price is too high for most households. I'd compare how many quotes turn into sales at different prices.\nStage 2: Drop: 30% of quotes became sales, above plan, so price isn't it. Far fewer homes have room for one.",
+  "model_answer": "Stage 1: Selling 4,000 saunas against 50,000 planned likely means the $3,000 price is too high for most households. I'd compare how many quotes turn into sales at different prices.\nStage 2: Drop: 30% of quotes became sales, above plan, so price isn't it. Far fewer homes have room for one.",
   "explanation": "The new fact: 30% of people who asked for a quote bought, above the 20% planned. But quote requests were 85% below plan, because most homes on the target list have no room for a sauna. Price too high: drop (30% of quotes turned into sales, above plan). Market overestimated: keep (Most target homes have no room for one). Weak marketing: revise (Possible, but most homes on the list can't fit one).",
   "extras": {
     "families": [

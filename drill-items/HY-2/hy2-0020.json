@@ -139,7 +139,7 @@
       "evidence": "whole"
     }
   ],
-  "model_answer": "Stage 1: Repairs likely take longer because crews are fixing fewer potholes per day. I'd compare repairs per crew per day with last year.\nStage 2: Drop: crews fix as many as before. Reports doubled after the new app, so the backlog grew.",
+  "model_answer": "Stage 1: Repairs now take 30 days instead of 10, likely because crews are fixing fewer potholes per day. I'd compare repairs per crew per day with last year.\nStage 2: Drop: crews fix as many as before. Reports doubled after the new app, so the backlog grew.",
   "explanation": "The new fact: Crews fix as many potholes per day as last year, but reported potholes doubled after the city launched a phone app for reporting them. Slower crews: drop (Crews fix as many per day as last year). More reports: keep (Reports doubled after the app launched). Worse roads: revise (Reports doubled with the app, so more reporting, not just more potholes).",
   "extras": {
     "families": [

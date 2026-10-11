@@ -139,7 +139,7 @@
       "evidence": "whole"
     }
   ],
-  "model_answer": "Stage 1: The new students are likely less prepared for college work, so more of them leave. I'd compare dropout for new students with others, by placement-test score.\nStage 2: Revise: dropout rose only for program students, who work 25 hours a week, so the cause is work pressure.",
+  "model_answer": "Stage 1: With enrollment up 15%, the added students are likely less prepared for college work, so more leave. I'd compare first-year dropout for new and other students, by placement-test score.\nStage 2: Revise: dropout rose only for program students, who work 25 hours a week, so the cause is work pressure.",
   "explanation": "The new fact: Dropout rose only among students who enrolled through a new free-tuition program; it was flat for everyone else. Program students work 25 hours a week on average. Weaker preparation: revise (The rise is among program students, but the fact points to work hours). Work and money pressure: keep (Program students work 25 hours a week, and only they drop out more). Worse teaching: drop (Dropout was flat for everyone else).",
   "extras": {
     "families": [

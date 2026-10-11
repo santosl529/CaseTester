@@ -139,7 +139,7 @@
       "evidence": "whole"
     }
   ],
-  "model_answer": "Stage 1: Revenue barely rose, likely because many hourly parkers left at the higher rate. I'd compare hourly parkers before and after the change.\nStage 2: Revise: hourly parkers fell 30%, but cheaper city meters opened next door the same month, so the cause is the meters.",
+  "model_answer": "Stage 1: Revenue rose only 2% on a 20% price rise, likely because hourly parkers are price-sensitive and many stopped using our garage at the higher rate. I'd compare hourly parkers before and after the change.\nStage 2: Revise: hourly parkers fell 30%, but cheaper city meters opened next door the same month, so the cause is the meters.",
   "explanation": "The new fact: Daily and monthly parking revenue rose 18%, but short-stay hourly parkers fell 30% in the same month the city added cheaper street meters next door. Hourly parkers left because of the price: revise (They left as cheaper meters opened next door). Cheaper option next door: keep (Hourly parkers fell 30% as the meters opened). Less downtown traffic: drop (Daily and monthly revenue rose 18%).",
   "extras": {
     "families": [

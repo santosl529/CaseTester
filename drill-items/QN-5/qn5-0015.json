@@ -95,7 +95,7 @@
     }
   ],
   "numeric": {
-    "answer": 5443750000,
+    "answer": 6804687500,
     "tolerance_type": "relative",
     "tolerance_value": 0.02,
     "percent_format": "none",
@@ -122,7 +122,7 @@
       },
       "2": {
         "low": 25,
-        "high": 75,
+        "high": 100,
         "unit": "bananas",
         "source": "Reasoning: about one banana a week per person on average, about 40 a year"
       },

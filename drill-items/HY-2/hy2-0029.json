@@ -139,7 +139,7 @@
       "evidence": "whole"
     }
   ],
-  "model_answer": "Stage 1: Inspections likely fell behind because inspectors have less time for inspections, perhaps from fewer inspectors or more travel. I'd compare inspector hours spent inspecting with last year.\nStage 2: Keep: headcount and inspection time are unchanged, but driving now takes 30% of inspectors' days since offices closed.",
+  "model_answer": "Stage 1: Inspections likely fell 30% behind because inspectors now spend more of their day traveling between restaurants. I'd compare inspector hours spent driving and inspecting with last year.\nStage 2: Keep: headcount and inspection time are unchanged, but driving now takes 30% of inspectors' days since offices closed.",
   "explanation": "The new fact: Inspector headcount and time per inspection are unchanged, but inspectors now spend 30% of their working days driving after the agency closed 4 of its 10 regional offices. Fewer inspectors: drop (Headcount is unchanged). More travel time: keep (Driving takes 30% of their days since offices closed). Longer inspections: drop (Time per inspection is unchanged).",
   "extras": {
     "families": [

@@ -139,7 +139,7 @@
       "evidence": "whole"
     }
   ],
-  "model_answer": "Stage 1: With wages flat, cost per building likely rose because crews spend more time on each building. I'd compare hours on site per building with last year.\nStage 2: Drop: hours on site are unchanged. Travel between buildings doubled, so the cost is travel time.",
+  "model_answer": "Stage 1: With wage rates flat, the 15% rise in cost per building likely comes from crews spending more hours in each building. I'd compare hours on site per building with last year.\nStage 2: Drop: hours on site are unchanged. Travel between buildings doubled, so the cost is travel time.",
   "explanation": "The new fact: Hours spent inside each building are unchanged, but travel time between buildings doubled after the company won contracts spread over a wider area. More hours per building: drop (Hours inside each building are unchanged). More travel time: keep (Travel time doubled with the wider area). Higher supply costs: revise (Possible, but the fact shows the change is in travel time).",
   "extras": {
     "families": [

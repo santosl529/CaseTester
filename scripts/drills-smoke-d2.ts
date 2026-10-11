@@ -10,7 +10,7 @@ import { randomUUID } from 'crypto';
 import { eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { analyticsEvents, drillAttempts, drillSets, drillTiers, gradingJobs, studentDrillSettings } from '@/db/schema';
-import { parseFramework } from '@/lib/drills/content-import';
+import { D2_DRILLS, modelAnswerSteps } from '@/lib/drills/model-answers';
 import { loadAuthoredItems } from '@/lib/drills/authored';
 import { enqueueGrading, runGradingJob } from '@/lib/drills/grading/jobs';
 import type { CallModel } from '@/lib/drills/grading/grader';
@@ -49,25 +49,12 @@ const ANSWERS: Record<string, StepResponse[]> = {
   ],
 };
 
-// Each question is answered from its own key (model answer, or for QN-5 the
-// accepted cards, a value inside each range and their product), so the run
-// checks grading rather than an answer written for a different question.
-const d2Items = loadAuthoredItems().filter(i => ['PS-3', 'HY-2', 'SY-2', 'CL-3', 'QN-5'].includes(i.drill_id));
+// Each question is answered from its own key, so the run checks grading
+// rather than an answer written for a different question.
+const d2Items = loadAuthoredItems().filter(i => D2_DRILLS.includes(i.drill_id));
 function keyAnswers(drillId: string, prompt: string): StepResponse[] {
   const item = d2Items.find(i => i.drill_id === drillId && i.prompt === prompt);
-  if (!item) return ANSWERS[drillId];
-  const model = item.model_answer ?? '';
-  if (drillId === 'PS-3') return [parseFramework(model)];
-  if (drillId === 'SY-2' || drillId === 'CL-3') return [{ type: 'text', value: model }];
-  if (drillId === 'HY-2') {
-    const [stage1, stage2] = model.split('\n').map(l => l.replace(/^Stage [12]: /, ''));
-    return [{ type: 'text', value: stage1 }, { type: 'choice', option_id: stage2.split(':')[0].toLowerCase() }, { type: 'text', value: stage2 }];
-  }
-  const { accepted_sets, ranges } = item.extras as { accepted_sets: string[][]; ranges: Record<string, { low: number; high: number }> };
-  const cards = accepted_sets[0];
-  const values = Object.fromEntries(cards.map(c => [c, String((ranges[c].low + ranges[c].high) / 2)]));
-  const total = cards.reduce((a, c) => a * Number(values[c]), 1);
-  return [{ type: 'choices', option_ids: cards }, { type: 'numbers', values }, { type: 'numeric', value: String(total) }, { type: 'choice', option_id: 'reasonable' }];
+  return item ? modelAnswerSteps(item) : ANSWERS[drillId];
 }
 
 // Answers every item in the set (a live drill plans a full set; a draft-only

@@ -139,7 +139,7 @@
       "evidence": "whole"
     }
   ],
-  "model_answer": "Stage 1: Buyers likely canceled because reviews of the truck's range disappointed them. I'd compare cancellations before and after the main reviews came out.\nStage 2: Revise: cancellations track waiting time. Buyers who waited under 3 months canceled at 3%, so it's the 9-month wait.",
+  "model_answer": "Stage 1: With orders beating plan, the 25% cancellation rate likely comes from buyers put off by reviews of the truck's range after ordering. I'd compare cancellations before and after the main reviews came out.\nStage 2: Revise: cancellations track waiting time. Buyers who waited under 3 months canceled at 3%, so it's the 9-month wait.",
   "explanation": "The new fact: Cancellations rose sharply once delivery waits stretched from 3 to 9 months. Buyers who got their trucks within 3 months canceled at 3%. Disappointing reviews: revise (Cancellations track the wait, not the reviews). Long delivery waits: keep (Waits stretched to 9 months; quick deliveries canceled at 3%). Price too high: drop (Buyers who got trucks quickly almost never canceled).",
   "extras": {
     "families": [
