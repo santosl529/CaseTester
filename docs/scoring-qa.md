@@ -181,6 +181,44 @@ after the judge (the prompt already says so and Maya `c230fe12` still got
 overall rating is still the judge's holistic call, instructed to ignore
 not-assessed dimensions; it is not recomputed in code after the floor.
 
+**v4.10 (11 Oct): evidence-based, never an invented rating.** The floor
+lifted every caveated `needs_work` to `meets_bar` — an automatic rating where
+the evidence was missing. Now: a caveated `needs_work` becomes `meets_bar`
+only when quoted strengths remain and no quoted weakness survived the audits
+(the low rating rested on the gap); with a surviving weakness it stays
+`needs_work` (rated on evidence); with no evidence at all it is not assessed.
+
+### Stage caps and partial reports [implemented 11 Oct: `lib/scoring/stage-caps.ts`, after the strong gate, before the caveat floor]
+
+(Rule 9 / 18A, v4.10.) Batch 18: 8 interviews with no exhibit were rated on
+Data & Exhibit from numbers read aloud; a report that said the brainstorm
+was never asked rated Creativity "strong". The judge now gets the session's
+stage record (`flags.stageEvidence`, or one rebuilt from the transcript for
+older sessions): what was put to the candidate and how they responded, with
+"an exhibit shown is not an exhibit interpreted" and "waived is not answered,
+not a weakness by itself". Then in code, for structure, quantitative, data &
+exhibit, creativity and synthesis (the dimensions with one primary stage):
+- stage administered (whatever the reply) → as judged;
+- stage never happened → kept only with quoted evidence (spontaneous work
+  counts) and a caveat; otherwise **not assessed**.
+A **partial interview** (the candidate ended it, `flags.partial`) is told so,
+its exit exchange is marked never-graded, and its overall rating is NULL
+(shown "Partial interview — no overall rating"). QA metrics:
+`stageNotAssessed`, `stageCaveated`, `caveatUnassessed`, `partial`.
+
+### Challenge marks [implemented 11 Oct: `lib/scoring/challenge-marks.ts`, with interviewer-error marking]
+
+(Rule 2/3, v4.10.) The batch-18 marker fired in none of the 14 interviews with
+wrong math challenges. Each delivered interviewer sentence that doubts the
+candidate's math is checked against the verification recomputed from the
+transcript (case steps, stated arithmetic, unit conversions — the live
+functions): on verified math → `confirmed_interviewer_error` (the next
+candidate turn protected; a quote resting on a clause a check flagged is
+still the candidate's); on unverified math → `unsupported_challenge`, in its
+own judge section, nothing dropped; on flagged math → no mark. The judge also
+gets the claims code settled. QA metrics: `confirmedChallengeErrors`,
+`unsupportedChallenges`.
+
 ### Answer-key and caveat-text pass [implemented: `lib/scoring/answer-key-pass.ts`, before reconciliation]
 
 (Rule 3 v4.5.) The model answer holds examples, not requirements. Batch 2:
@@ -401,13 +439,21 @@ Injection attempts are logged verbatim by the conduct track
   only — never surfaced to the client or report (Rule 18, FERPA). The report/
   score paths query `intervention` category only.
 
+- **v4.10:** a C5 accept once the case is finished (recommendation in, risk
+  asked) completes the session with its report — the exchange still
+  excluded. A candidate-ended session (Rule 18A) completes with a report on
+  what was covered when something assessable happened (partial when cut
+  short), else it is abandoned; its exit exchange is marked never-graded
+  (`candidate_exit`).
+
 Deferred: full **pause/resume** (Rule 19) — a C5 accept currently ends the
 session as `abandoned` rather than preserving resumable state, because there's
 no resume UI yet. Technical (voice-dropout) pause is M2. The deterministic
-conduct classifier is a first-pass screen; the doc's **model-tiebreaker** for
-ambiguous cases (Rule 17) is not built — the lexicons need human review with
-the real population before production, especially C3 (terminates) and C5
-(the safety-critical false-negative).
+conduct classifier is a first-pass screen; **v4.10 builds the model layer**
+(`conduct-model.ts`: the C3 backstop and the tiebreaker for ambiguous stems),
+not yet evaluated on real messages — the lexicons and that layer still need
+human review with the real population before production, especially C3
+(terminates) and C5 (the safety-critical false-negative).
 
 ## Live coverage agent (steer + end gate) [implemented: `lib/scoring/coverage.ts`]
 

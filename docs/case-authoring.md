@@ -169,9 +169,51 @@ false revenue-per-store error in most reports. Each step now declares:
   clause — safe because it can only confirm a correct figure. Flags stay
   clause-scoped. Spoken numbers are normalized first ("ten and a half").
 
+- `quantity`, `timeframe` (v4.10) — what the figure is ("net profit margin
+  today") and its period (`current` / `prior` / `change`). A recompute flag
+  names the candidate's claim in these terms, in the logs and for scoring.
+  Server-only.
+
 Before shipping a case, replay the checks over real transcripts and confirm
 zero false live flags — see the v4.3 replay in `docs/interviewer-behavior.md`
 Rule 2.
+
+## `shareBases` — the unit check's base lines (v4.10)
+
+A share OF a cost line converted into points of revenue must be multiplied by
+that line's own share of revenue (beans at 25% of COGS, COGS at 42% of revenue
+→ 10.5 points). The unit check (`lib/orchestrator/unit-check.ts`) does that
+arithmetic itself, so it needs to know which lines candidates take shares of
+and which ledger item gives each line's share of revenue:
+
+```json
+"shareBases": [{ "name": "COGS", "aliases": ["cost of goods sold", "cost of goods"], "item": "cogs_pct" }]
+```
+
+The values come from the base item's `timeframes` (prof-001: 58 current, 42
+prior), and the check runs only once that item is revealed — the candidate
+can't convert with a base they don't have. Without `shareBases` a case has no
+nested-percentage check (and no keyword fallback: the v4.6 detector is gone).
+
+## Labels say what the item is (v4.10)
+
+The model maps requests to items by their labels, and so does the data-request
+classifier. A label must describe the quantity — a composition, a level, a
+change — not a category two items share. prof-001 had "COGS breakdown: coffee
+beans as a share of COGS" and "COGS breakdown: other input cost changes …":
+asking for "the COGS split" released the 37.5% price change in 7 batch-18
+runs. They are now "Composition of COGS: coffee beans' share of COGS" and
+"Price change of the other inputs (dairy, packaging, food) over 2 years". No
+unique-prefix rule is enforced at load: two items may legitimately share
+words; the label just has to say what each one is. Don't repeat the period in
+the label (`labelWithPeriod` adds it from `timeframes`).
+
+## Case format (v4.10)
+
+`format`: `interviewer_led` (default) or `candidate_led`. An interviewer-led
+case owes the exhibit (if it has one) and the brainstorm before a normal end;
+code administers an owed stage once (interviewer-behavior Rule 9). A
+candidate-led case owes nothing. Only interviewer-led cases exist so far.
 
 ## Pacing config (optional)
 
