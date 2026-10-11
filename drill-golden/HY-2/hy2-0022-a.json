@@ -1,0 +1,34 @@
+{
+  "answer_id": "hy2-0022-a",
+  "item_id": "hy2-0022",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "'Points to' frames it as something to check (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Selling 4,000 instead of 50,000 points to a price too high for most households. I'd compare quote-to-sale rates at different prices."
+    },
+    {
+      "type": "choice",
+      "option_id": "drop"
+    },
+    {
+      "type": "text",
+      "value": "30% of quotes became sales, above plan, so price isn't it; far fewer homes asked for quotes."
+    }
+  ],
+  "labels": {
+    "directional": true,
+    "evidence_based": true,
+    "testable": true,
+    "tentative": true,
+    "update_reason": true
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": false,
+    "off_topic": false
+  },
+  "family": "Price too high"
+}

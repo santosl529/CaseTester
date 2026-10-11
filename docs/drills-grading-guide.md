@@ -48,3 +48,37 @@ How to grade the sample answers for the AI-graded drills (the golden sets in `dr
     - *ps3-0005-a:* two headings with no sub-points.
 
 Fewer than 2 buckets is also capped (30%) by code.
+
+## HY-2 Initial hypothesis
+
+The update decision (keep, revise or drop) is HY-2's critical element. Code scores it at 25% from the family the grader assigns, so HY-2 has no separate critical-area cap. "Other" accepts revise or drop.
+
+1. **(grader)** Directional: the cause says what changed and through which driver ("customers buy fewer units per visit"). A generic cause ("operational problems", "market conditions", "costs went up") is not directional, and neither is the facts re-stated as a ratio ("fewer appointments end in a sale", "revenue per customer fell").
+   - *hy2-0003-a:* "Waits are longer." names no cause.
+   - *hy2-0013-a:* "fewer appointments end in a sale" re-states revenue down and appointments up as a ratio.
+   - *hy2-0015-a:* "Price elasticity." is a label, not what changed.
+2. **(grader)** Evidence-based: the hypothesis uses at least one given fact and contradicts none. A cause that a given fact rules out fails.
+   - *hy2-0007-a:* "unhappy with the service" uses none of the given facts (car sales steady, 15% fewer visits).
+   - *hy2-0018-a:* "the new students" uses the 15% enrollment rise, so it passes.
+3. **(grader)** Testable: it names the data or comparison that would confirm or reject it ("units per customer by month"). "Look into it" or "analyze the data" is not enough.
+   - *hy2-0010-a:* "I'd check all of them" names no data.
+   - *hy2-0004-a:* "visits by day" is enough.
+4. **(grader)** Tentative: it is framed as something to check ("likely", "my hypothesis is", "I would test") while leading with one cause. Stating it as settled fact fails; so do two causes with neither as the lead.
+   - *hy2-0019-a:* "Refill sales are low because few stores stock refills." is stated as settled fact.
+   - *hy2-0004-a:* price leads and weather is a "maybe", so it passes.
+5. **(grader)** Update reason: it uses the new fact (its content or its number) and says what it means for the hypothesis. Restating the decision ("I keep it because it still makes sense") fails, and so does a fix with no hypothesis behind it ("so reopen them").
+   - *hy2-0025-a:* "Yes." fails.
+   - *hy2-0008-a*, *hy2-0023-a*, *hy2-0036-a:* fixes ("so reopen them") fail.
+   - *hy2-0020-a:* uses the new fact but misreads it: the reason passes, and the decision check catches the wrong update.
+6. **(grader)** Hypothesis family: classify stage 1 by its mechanism, not its wording. If it names a lead cause and a backup, use the lead.
+   - *hy2-0027-a:* "losing shoppers ... or it lost shelf space" is classified by its lead, losing shoppers.
+   - *hy2-0015-a:* "Price elasticity." is the price family by its mechanism.
+7. **(grader)** Off-topic: stage 1 offers no cause for what happened, for example it proposes a fix or answers a different question. Restating the facts is the restates_facts red flag instead.
+   - *hy2-0008-a*, *hy2-0023-a*, *hy2-0036-a:* fixes or policy proposals with no cause.
+8. **(grader)** Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item.
+   - *hy2-0006-a*, *hy2-0019-a*, *hy2-0028-a.*
+
+### Red flags and caps
+
+9. **Off-topic (stage 1 capped at 20%):** see rule 7. Logged as `M.no_hypothesis`.
+10. **Restates the facts (stage 1 capped at 30%)** and **three or more causes with no lead (stage 1 capped at 50%)**, as in the PRD.

@@ -19,13 +19,17 @@ for (const file of fs.readdirSync(dir).filter(f => f.endsWith('.csv'))) {
 }
 const { items, golden, problems } = importContent(tables, { includeExamples });
 
+// An item's content, apart from its review state and version.
+const content = (i: Record<string, unknown>) => JSON.stringify({ ...i, status: undefined, authorship: undefined, version: undefined });
+
 let written = 0, kept = 0;
 for (const item of items) {
   const file = path.join('drill-items', item.drill_id, `${item.item_id}.json`);
   if (fs.existsSync(file)) {
     const existing = JSON.parse(fs.readFileSync(file, 'utf-8'));
     if (existing.status !== 'draft') {
-      problems.push({ file, row: item.item_id, message: `already ${existing.status}; edit the JSON and bump "version" instead of re-importing` });
+      // Unchanged content is fine; a change to a reviewed item needs a new version.
+      if (content(existing) !== content(item)) problems.push({ file, row: item.item_id, message: `already ${existing.status}; edit the JSON and bump "version" instead of re-importing` });
       kept++;
       continue;
     }

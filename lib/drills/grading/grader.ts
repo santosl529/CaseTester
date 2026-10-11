@@ -15,7 +15,7 @@ import { answerText, itemSteps, type StepResult } from '../sets/scoring';
 import type { ItemGrade } from './apply';
 
 // Bump on any change to the prompt or output schema; stored on every grade.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v5';
+export const GRADER_PROMPT_VERSION = 'drills-grader-v6';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 
@@ -163,10 +163,22 @@ export function anthropicCaller(client = new Anthropic()): CallModel {
   };
 }
 
+// The grader sometimes echoes a family with its description ("Lower prices:
+// discounts cut revenue"); map it back to the family's name so the update
+// decision is scored against the right family.
+export function familyName(item: Item, raw: string | null): string | null {
+  if (raw === null) return null;
+  const families = (item.extras.families as { family: string }[] | undefined) ?? [];
+  const t = raw.trim().toLowerCase();
+  const hit = families.find(f => t === f.family.toLowerCase() || t.startsWith(`${f.family.toLowerCase()}:`));
+  return hit ? hit.family : raw.trim();
+}
+
 export class GradingError extends Error {}
 
 // Grades a set's written answers. Malformed or incomplete output is retried
-// up to twice (PRD "Schema validation"); items with unverified quotes are
+// up to twice (PRD "Schema validation"), then each answer is graded on its
+// own; items with unverified quotes are
 // re-asked once, then those checks count as failed and are flagged for QA.
 export async function gradeSet(entries: GradingEntry[], call: CallModel = anthropicCaller()): Promise<SetGrade> {
   const usage: GradingUsage = { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0, calls: 0 };
@@ -194,7 +206,17 @@ export async function gradeSet(entries: GradingEntry[], call: CallModel = anthro
     throw new GradingError(last instanceof Error ? last.message : String(last));
   };
 
-  const results = await ask(entries, 3);
+  let results: Map<string, Output['items'][number]>;
+  try {
+    results = await ask(entries, 3);
+  } catch (e) {
+    // At temperature 0 a batch can come back incomplete every time (seen with
+    // an injection answer in the batch); the same answers graded one at a
+    // time come back whole.
+    if (entries.length === 1) throw e;
+    results = new Map();
+    for (const entry of entries) for (const [k, v] of await ask([entry], 2)) results.set(k, v);
+  }
   const firstBad = new Map(entries.map(e => [e.key, badQuotes(e, results.get(e.key)!)]));
   const retry = entries.filter(e => firstBad.get(e.key)!.length > 0);
   if (retry.length) {
@@ -217,7 +239,7 @@ export async function gradeSet(entries: GradingEntry[], call: CallModel = anthro
     grades.set(e.key, {
       checks: Object.fromEntries(out.checks.map(c => [c.check_id, { pass: c.pass && !bad.has(c.check_id), evidence: c.evidence }])),
       red_flags: Object.fromEntries(out.red_flags.map(f => [f.id, { pass: f.present && !bad.has(f.id), evidence: f.evidence }])),
-      family: out.hypothesis_family,
+      family: familyName(e.item, out.hypothesis_family),
       injection_suspected: out.injection_suspected,
       qa_flags: [...bad],
     });

@@ -119,10 +119,26 @@ export interface Hy2Content extends Base {
   families: { family: string; description: string; action: Hy2Action; reason: string }[];
 }
 
+// An off-topic stage 1 caps stage 1, like PS-3's off-topic flag.
+export const HY2_OFF_TOPIC_CAP = 0.2;
+
 export const HY2_CHOICES = [
   { id: 'keep', text: 'Keep my hypothesis' },
   { id: 'revise', text: 'Revise it' },
   { id: 'drop', text: 'Drop it' },
+];
+
+// The grading guide's HY-2 rules (docs/drills-grading-guide.md), sent to the
+// grader with every HY-2 item. Keep the two in step.
+export const HY2_GRADING_RULES = [
+  'Directional: the cause says what changed and through which driver ("customers buy fewer units per visit"). A generic cause ("operational problems", "market conditions", "costs went up") is not directional, and neither is the facts re-stated as a ratio ("fewer appointments end in a sale", "revenue per customer fell").',
+  'Evidence-based: the hypothesis uses at least one given fact and contradicts none. A cause that a given fact rules out fails.',
+  'Testable: it names the data or comparison that would confirm or reject it ("units per customer by month"). "Look into it" or "analyze the data" is not enough.',
+  'Tentative: it is framed as something to check ("likely", "my hypothesis is", "I would test") while leading with one cause. Stating it as settled fact fails; so do two causes with neither as the lead.',
+  'Update reason: it uses the new fact (its content or its number) and says what it means for the hypothesis. Restating the decision ("I keep it because it still makes sense") fails, and so does a fix with no hypothesis behind it ("so reopen them").',
+  'Hypothesis family: classify stage 1 by its mechanism, not its wording. If it names a lead cause and a backup, use the lead.',
+  'Off-topic: stage 1 offers no cause for what happened, for example it proposes a fix or answers a different question. Restating the facts is the restates_facts red flag instead.',
+  'Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item.',
 ];
 
 // PRD HY-2: stage 1 is 60% (four checks at 15%), stage 2 is 40% (the update
@@ -145,7 +161,7 @@ export function hy2Item(c: Hy2Content): ItemInput {
         question: `Does the hypothesis name a specific likely cause, either one of the listed hypothesis families or another specific cause consistent with the facts?`,
         feedback: 'Name a specific likely cause, not a restatement of what happened.' },
       { check_id: 'evidence_based', step: 0, weight: 0.15, fail_tag: 'M.ignores_facts',
-        question: 'Does the hypothesis use the facts given in the prompt?', feedback: 'Tie the hypothesis to the facts you were given.' },
+        question: 'Does the hypothesis use at least one of the facts given in the question? Quote the student\'s own words that use it, not the question.', feedback: 'Tie the hypothesis to the facts you were given.' },
       { check_id: 'testable', step: 0, weight: 0.15, fail_tag: 'M.untestable_hypothesis',
         question: 'Is it clear what data would confirm or reject the hypothesis?', feedback: 'Say what data would confirm or reject it.' },
       { check_id: 'tentative', step: 0, weight: 0.15, fail_tag: 'M.overconfident_hypothesis',
@@ -157,10 +173,11 @@ export function hy2Item(c: Hy2Content): ItemInput {
     red_flags: [
       { id: 'restates_facts', step: 0, definition: 'Stage 1 only restates the facts and names no cause.', cap: 0.3, tag: 'M.restates_facts', detection: 'ai' },
       { id: 'three_plus_causes', step: 0, definition: 'Stage 1 lists three or more causes without picking one.', cap: 0.5, tag: 'M.shotgun_hypotheses', detection: 'ai' },
+      { id: 'off_topic', step: 0, definition: 'Stage 1 offers no cause for what happened: it proposes a fix or answers a different question.', cap: HY2_OFF_TOPIC_CAP, tag: 'M.no_hypothesis', detection: 'ai' },
     ],
     model_answer: `Stage 1: ${c.model_answer_stage1}\nStage 2: ${c.model_answer_stage2}`,
     explanation: `The new fact: ${c.new_fact} ${c.families.map(f => `${f.family}: ${f.action} (${f.reason}).`).join(' ')}`,
-    extras: { families: c.families, new_fact: c.new_fact },
+    extras: { families: c.families, new_fact: c.new_fact, grading_rules: HY2_GRADING_RULES },
   };
 }
 

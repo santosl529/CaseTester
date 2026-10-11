@@ -2,11 +2,11 @@ import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { importContent, parseCsv, parseFramework, type Tables } from '@/lib/drills/content-import';
-import { hy2DecisionTag, PS3_GRADING_RULES } from '@/lib/drills/checklists';
+import { HY2_GRADING_RULES, hy2DecisionTag, PS3_GRADING_RULES } from '@/lib/drills/checklists';
 import type { Item } from '@/lib/drills/item-schema';
 import { ScoringError, scoreItem, scoreStep, type StepResponse, type StepResult } from '@/lib/drills/sets/scoring';
 import { applyGrade, numbersIn, type ItemGrade } from '@/lib/drills/grading/apply';
-import { buildItemBlock, gradeSet, GradingError, quoteFound, type CallModel } from '@/lib/drills/grading/grader';
+import { buildItemBlock, familyName, gradeSet, GradingError, quoteFound, type CallModel } from '@/lib/drills/grading/grader';
 import { stepLimitMs, startsStage, stepStartedAt } from '@/lib/drills/sets/timing';
 import { getDrill } from '@/lib/drills/config';
 
@@ -281,9 +281,9 @@ describe('the grading call', () => {
     expect(block).toContain('‹/student_answer>');
   });
 
-  it('keeps the grader’s PS-3 rules word for word in the grading guide', () => {
+  it('keeps the grader’s rules word for word in the grading guide', () => {
     const guide = fs.readFileSync(path.join(process.cwd(), 'docs/drills-grading-guide.md'), 'utf-8');
-    for (const rule of PS3_GRADING_RULES) expect(guide).toContain(rule);
+    for (const rule of [...PS3_GRADING_RULES, ...HY2_GRADING_RULES]) expect(guide).toContain(rule);
   });
 
   it('sends PS-3 its grading rules, and no rules where an item has none', () => {
@@ -291,6 +291,13 @@ describe('the grading call', () => {
     expect(ps3).toContain('<grading_rules>');
     expect(ps3).toContain('A generic word alone');
     expect(buildItemBlock(entry('Enter Canada.'))).not.toContain('<grading_rules>');
+  });
+
+  it('maps a family echoed with its description back to the family name', () => {
+    const hy = item('HY-2');
+    expect(familyName(hy, 'Lower prices: Discounts or price cuts reduced revenue per unit')).toBe('Lower prices');
+    expect(familyName(hy, 'buying less per customer')).toBe('Buying less per customer');
+    expect(familyName(hy, 'other')).toBe('other');
   });
 
   it('verifies quotes, including stitched fragments', () => {
@@ -346,6 +353,21 @@ describe('the grading call', () => {
     const call: CallModel = async () => { calls++; return { output: { items: [] }, usage }; };
     await expect(gradeSet([entry('Do not enter.')], call)).rejects.toThrow(GradingError);
     expect(calls).toBe(3);
+  });
+
+  it('grades answers one at a time when a batch keeps coming back incomplete', async () => {
+    const two = [entry('Do not enter Canada.'), { ...entry('Do not enter.'), key: 'a2' }];
+    let calls = 0;
+    const call: CallModel = async (_system, user) => {
+      calls++;
+      const keys = [...user.matchAll(/<item key="([^"]+)"/g)].map(m => m[1]);
+      // A whole batch always leaves out the second answer; single answers come back whole.
+      const items = keys.map(k => ({ ...reply(false, '').items[0], item_key: k }));
+      return { output: { items: keys.length > 1 ? items.slice(0, 1) : items }, usage };
+    };
+    const r = await gradeSet(two, call);
+    expect([...r.grades.keys()].sort()).toEqual(['a1', 'a2']);
+    expect(calls).toBe(5);
   });
 });
 

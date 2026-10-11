@@ -73,7 +73,7 @@
     },
     {
       "check_id": "evidence_based",
-      "question": "Does the hypothesis use the facts given in the prompt?",
+      "question": "Does the hypothesis use at least one of the facts given in the question? Quote the student's own words that use it, not the question.",
       "weight": 0.15,
       "fail_tag": "M.ignores_facts",
       "feedback": "Tie the hypothesis to the facts you were given.",
@@ -128,6 +128,14 @@
       "tag": "M.shotgun_hypotheses",
       "detection": "ai",
       "step": 0
+    },
+    {
+      "id": "off_topic",
+      "definition": "Stage 1 offers no cause for what happened: it proposes a fix or answers a different question.",
+      "cap": 0.2,
+      "tag": "M.no_hypothesis",
+      "detection": "ai",
+      "step": 0
     }
   ],
   "model_answer": "Stage 1: Revenue per customer likely fell, probably because customers are buying less per visit. I would check units and spend per customer by segment.\nStage 2: Keep: units per customer fell 20% at flat prices, which confirms that customers are buying less.",
@@ -153,7 +161,17 @@
         "reason": "Flat unit price argues against it; units per customer is the driver"
       }
     ],
-    "new_fact": "Price per unit is flat; units bought per customer fell 20%."
+    "new_fact": "Price per unit is flat; units bought per customer fell 20%.",
+    "grading_rules": [
+      "Directional: the cause says what changed and through which driver (\"customers buy fewer units per visit\"). A generic cause (\"operational problems\", \"market conditions\", \"costs went up\") is not directional, and neither is the facts re-stated as a ratio (\"fewer appointments end in a sale\", \"revenue per customer fell\").",
+      "Evidence-based: the hypothesis uses at least one given fact and contradicts none. A cause that a given fact rules out fails.",
+      "Testable: it names the data or comparison that would confirm or reject it (\"units per customer by month\"). \"Look into it\" or \"analyze the data\" is not enough.",
+      "Tentative: it is framed as something to check (\"likely\", \"my hypothesis is\", \"I would test\") while leading with one cause. Stating it as settled fact fails; so do two causes with neither as the lead.",
+      "Update reason: it uses the new fact (its content or its number) and says what it means for the hypothesis. Restating the decision (\"I keep it because it still makes sense\") fails, and so does a fix with no hypothesis behind it (\"so reopen them\").",
+      "Hypothesis family: classify stage 1 by its mechanism, not its wording. If it names a lead cause and a backup, use the lead.",
+      "Off-topic: stage 1 offers no cause for what happened, for example it proposes a fix or answers a different question. Restating the facts is the restates_facts red flag instead.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
   },
   "sources": [],
   "authorship": {

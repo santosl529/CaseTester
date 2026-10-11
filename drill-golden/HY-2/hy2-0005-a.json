@@ -1,0 +1,34 @@
+{
+  "answer_id": "hy2-0005-a",
+  "item_id": "hy2-0005",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "More tutors won't help if students want lessons at times the new tutors don't offer. I'd compare the slots students search for with tutor availability."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Failed searches rose to 25%, mostly for evenings, and new tutors teach days, so it's a timing mismatch."
+    }
+  ],
+  "labels": {
+    "directional": true,
+    "evidence_based": true,
+    "testable": true,
+    "tentative": true,
+    "update_reason": true
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": false,
+    "off_topic": false
+  },
+  "family": "Timing mismatch"
+}

@@ -213,7 +213,7 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
   gold('hy2-graded-answers.csv', t['hy2-graded-answers'] ?? [], r => ({
     responses: [{ type: 'text', value: r.stage1_answer }, { type: 'choice', option_id: r.stage2_action.toLowerCase() }, { type: 'text', value: r.stage2_answer }],
     labels: { directional: yes(r.directional), evidence_based: yes(r.evidence_based), testable: yes(r.testable), tentative: yes(r.tentative), update_reason: yes(r.update_reason_uses_new_fact) },
-    red_flags: { restates_facts: yes(r.red_flag_restates_facts), three_plus_causes: yes(r.red_flag_three_plus_causes) },
+    red_flags: { restates_facts: yes(r.red_flag_restates_facts), three_plus_causes: yes(r.red_flag_three_plus_causes), off_topic: yes(r.red_flag_off_topic) },
     family: r.family || 'other',
   }));
   gold('sy2-graded-answers.csv', t['sy2-graded-answers'] ?? [], r => ({

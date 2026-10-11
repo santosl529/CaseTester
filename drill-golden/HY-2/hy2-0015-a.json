@@ -1,0 +1,34 @@
+{
+  "answer_id": "hy2-0015-a",
+  "item_id": "hy2-0015",
+  "drill_id": "HY-2",
+  "answer_type": "short",
+  "notes": "A label, not what changed and through which driver, so directional fails (rule 1); the family is still price by its mechanism (rule 6). The reason mentions the new fact but doesn't say what it means (rule 5).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Price elasticity."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Hourly parkers left."
+    }
+  ],
+  "labels": {
+    "directional": false,
+    "evidence_based": false,
+    "testable": false,
+    "tentative": false,
+    "update_reason": false
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": false,
+    "off_topic": false
+  },
+  "family": "Hourly parkers left because of the price"
+}

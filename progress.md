@@ -126,3 +126,12 @@ How Matt likes to work: plain, short explanations; he reviews items on `drill-re
 
 - Matt approved all 40 questions and the 30 graded answers. Items live (author and reviewer Matthew Santos, 2026-10-11), `PS-3` `live: true`, seeded (40 updated). Config test now expects PS-3 live; `hasLiveLevel2Drill('PS.mece')` is true.
 - `drills:smoke:d2` answers every item in a set (PS-3 sets now have 4 items) and answers PS-3 questions with their own model framework; passes.
+
+## HY-2 content (2026-10-11)
+
+- 40 questions (hy2-0001–0040, tiers 12/16/12, all 14 case types), each new fact supporting one family and ruling out another; 30 graded answers (17 normal, 4 borderline, 3 short, 3 off_topic, 3 injection). All 40 passed web similarity. Drafts, awaiting Matt's review.
+- PS-3 rules carried over: off-topic red flag (stage 1 capped at 20%, `M.no_hypothesis`); HY-2 grading rules 1–8 sent to the grader and in the guide (generic causes and ratio re-statements aren't directional; "analyze the data" isn't testable; a fix isn't an update reason). Critical element = the update decision (already 25%, code-scored), so no extra cap.
+- Scenario check: hy2-0023 rewritten (was a minor-league hockey team, too close to ps3-0014) as a ballet company; hy2-0040 lost its "private equity" detail; 3 word-only pairs recorded.
+- Grader fixes found by the gate: family names echoed with their description are mapped back (`familyName`) — this was mis-scoring the live update decision; the evidence-based check asks for the student's words, not the question's; a batch that keeps coming back incomplete is regraded one answer at a time. Grader `drills-grader-v6`.
+- Gate: all HY-2 checks ≥90% (evidence_based exactly 90%, 28/31). PS-3 re-run unchanged.
+- Importer: unchanged live items are skipped quietly.

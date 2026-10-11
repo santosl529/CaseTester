@@ -139,6 +139,27 @@
         "ps3-0007"
       ],
       "reason": "Shared words only (center, minute, without): a call center cutting phone waits without hiring (EX-1) vs a blood donation center shortening donor visits without weakening screening (PS-3). Different clients and no shared figures."
+    },
+    {
+      "items": [
+        "cl1-0001",
+        "hy2-0007"
+      ],
+      "reason": "Shared words only (held, steady) and a coincidental 15: a paint maker whose profit fell (CL-1) vs car-dealership service departments losing routine visits to cheaper rivals (HY-2)."
+    },
+    {
+      "items": [
+        "cl1-0026",
+        "hy2-0034"
+      ],
+      "reason": "Both mention existing customers spending, but different clients and questions: growing a B2B software firm 50% with no mid-market product (CL-1) vs a cloud-storage company whose retention fell after a console change (HY-2)."
+    },
+    {
+      "items": [
+        "ex1-0014",
+        "hy2-0007"
+      ],
+      "reason": "\"Department\" means budget departments (EX-1) and dealership service departments (HY-2); 15 and 25 are coincidence."
     }
   ]
 }

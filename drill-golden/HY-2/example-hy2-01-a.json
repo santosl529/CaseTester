@@ -27,7 +27,8 @@
   },
   "red_flags": {
     "restates_facts": false,
-    "three_plus_causes": false
+    "three_plus_causes": false,
+    "off_topic": false
   },
   "family": "Lower prices"
 }

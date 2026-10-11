@@ -1,0 +1,34 @@
+{
+  "answer_id": "hy2-0023-a",
+  "item_id": "hy2-0023",
+  "drill_id": "HY-2",
+  "answer_type": "off_topic",
+  "notes": "Proposes fixes with no cause: off-topic flag (rule 7). Stage 2 is a fix (rule 5). Drop is accepted for 'other'.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "The company should cut ticket prices and stage more popular shows to bring audiences back."
+    },
+    {
+      "type": "choice",
+      "option_id": "drop"
+    },
+    {
+      "type": "text",
+      "value": "Weekday shows hurt sales, so move them back to Saturdays."
+    }
+  ],
+  "labels": {
+    "directional": false,
+    "evidence_based": false,
+    "testable": false,
+    "tentative": false,
+    "update_reason": false
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": false,
+    "off_topic": true
+  },
+  "family": "other"
+}
