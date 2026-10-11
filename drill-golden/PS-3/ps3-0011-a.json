@@ -1,0 +1,57 @@
+{
+  "answer_id": "ps3-0011-a",
+  "item_id": "ps3-0011",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "All four areas, including the critical one (cost per pizza). Revenue and cost buckets are expected on a profitability case and the sub-points are specific (rule 11).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Price",
+          "points": [
+            "promotions",
+            "retailer discounts",
+            "cheaper pizzas selling more"
+          ]
+        },
+        {
+          "title": "Cost per pizza",
+          "points": [
+            "cheese and flour prices",
+            "packaging",
+            "factory labor per pizza"
+          ]
+        },
+        {
+          "title": "Distribution",
+          "points": [
+            "frozen trucking",
+            "retailer fees"
+          ]
+        },
+        {
+          "title": "Product lines",
+          "points": [
+            "margin by brand and pizza type"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": true,
+    "cover_2": true,
+    "cover_3": true,
+    "cover_4": true,
+    "no_overlap": true,
+    "case_specific": true,
+    "concrete_subpoints": true
+  },
+  "red_flags": {
+    "generic_framework": false,
+    "off_topic": false
+  },
+  "family": null
+}

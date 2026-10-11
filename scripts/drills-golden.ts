@@ -10,7 +10,7 @@ import fs from 'fs';
 import path from 'path';
 import { GoldenAnswerSchema, type GoldenAnswer } from '@/lib/drills/content-import';
 import { ItemSchema, type Item } from '@/lib/drills/item-schema';
-import { codeChecks } from '@/lib/drills/grading/apply';
+import { applyGrade } from '@/lib/drills/grading/apply';
 import { gradeSet, type GradingEntry } from '@/lib/drills/grading/grader';
 import { itemSteps, type StepResult } from '@/lib/drills/sets/scoring';
 
@@ -58,13 +58,16 @@ async function main() {
       for (const e of entries) {
         const g = batch.find(b => b.answer_id === e.key)!;
         const grade = result.grades.get(e.key)!;
-        const code = codeChecks(e.item, e.steps);
+        // The final verdicts students would see: AI answers plus code rules.
+        const final = applyGrade(e.item, e.steps, false, grade).check_results;
+        const checkPass = new Map(final.checks.map(c => [c.check_id, c.pass]));
+        const flagPresent = new Map(final.red_flags.map(f => [f.id, f.present]));
         for (const [id, human] of Object.entries(g.labels)) {
-          const machine = (code.checks[id] ?? grade.checks[id])?.pass ?? false;
+          const machine = checkPass.get(id) ?? false;
           count(drill, kind(id), machine === human, `${g.answer_id} ${id}: human ${human ? 'Y' : 'N'}, grader ${machine ? 'Y' : 'N'}${grade.checks[id]?.evidence ? ` ("${grade.checks[id].evidence}")` : ''}`);
         }
         for (const [id, human] of Object.entries(g.red_flags)) {
-          const machine = (code.red_flags[id] ?? grade.red_flags[id])?.pass ?? false;
+          const machine = flagPresent.get(id) ?? false;
           count(drill, `red flag ${id}`, machine === human, `${g.answer_id} red flag ${id}: human ${human ? 'Y' : 'N'}, grader ${machine ? 'Y' : 'N'}`);
         }
         if (drill === 'HY-2' && g.family) {

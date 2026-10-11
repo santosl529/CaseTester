@@ -1,0 +1,53 @@
+{
+  "answer_id": "ps3-0018-a",
+  "item_id": "ps3-0018",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Strong answer: all four areas, including the critical one (spend per wedding).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Weddings",
+          "points": [
+            "about 2 million US weddings a year"
+          ]
+        },
+        {
+          "title": "Professional photographer",
+          "points": [
+            "share that hire one vs a friend"
+          ]
+        },
+        {
+          "title": "Average fee",
+          "points": [
+            "budget vs luxury packages",
+            "albums"
+          ]
+        },
+        {
+          "title": "Check",
+          "points": [
+            "photographers × weddings each × fee"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": true,
+    "cover_2": true,
+    "cover_3": true,
+    "cover_4": true,
+    "no_overlap": true,
+    "case_specific": true,
+    "concrete_subpoints": true
+  },
+  "red_flags": {
+    "generic_framework": false,
+    "off_topic": false
+  },
+  "family": null
+}

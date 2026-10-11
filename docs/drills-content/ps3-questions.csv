@@ -1,0 +1,197 @@
+item_id,tier,case_type,prompt,model_framework,common_overlaps
+ps3-0001,1,profitability,A chain of 60 tire and auto-repair shops saw operating profit fall from $18M to $12M over two years. The number of cars it services each year has held steady.,"Revenue per car: mix of tires vs repairs; prices and discounts; add-on services sold
+Variable costs per car: parts and tire costs; technician hours per job
+Fixed costs: rent; equipment; managers and admin
+Where the drop sits: which shops or regions; which service lines","Technician pay can sit in variable or fixed costs; pick one. Discounts belong in revenue, not costs."
+ps3-0002,1,market_entry,"A Spanish olive oil producer sells all its oil in bulk to other brands. It is deciding whether to launch its own brand in US supermarkets, aiming for $30M in yearly sales within five years.","US demand: size and growth of premium olive oil; what shoppers pay for Spanish origin
+Competition: Italian and Spanish brands; supermarkets' own labels
+Getting on shelves: distributors; supermarket listing fees and margins
+Economics: branded price and margin per bottle vs bulk; marketing and import costs
+Effect on today's business: bulk buyers who would become competitors; capacity",Retailer margins can land in both getting on shelves and economics; keep the fees under shelf access and the per-bottle math under economics.
+ps3-0003,1,cost_reduction,A law firm with 300 lawyers wants to cut its non-salary costs by 20%. Those costs total $15M a year.,"Office space: rent per lawyer; unused desks with hybrid work
+Technology and research: legal databases; software licenses actually used
+Outside services: temp staff; document review vendors; couriers and printing
+Travel and events: client travel; conferences; firm events
+How spending is approved: who can sign contracts; combining vendors for better terms",Document review software can sit under technology or outside services; pick one.
+ps3-0004,2,pricing,A publisher of school math textbooks is launching a digital version of its middle-school course. It must set a yearly per-student price to sell to school districts.,"Value to districts: teacher time saved; test-score gains; replacing print and workbook costs
+Alternatives: rival digital courses and their prices; free resources; keeping print
+Our costs: platform and hosting; content updates; teacher training and support
+How districts buy: per-student budgets; multi-year adoption cycles; who signs off
+Effect on print sales: districts switching from print; bundling print and digital","Print savings show up in value to districts and in effect on print sales: value is the district's saving, the print effect is the publisher's lost revenue."
+ps3-0005,2,growth_strategy,A family-owned chain of 25 hardware stores wants to grow profit 25% in three years without opening new stores.,"Contractors: share of local trade spending; trade accounts; job-site delivery
+DIY shoppers: visits per year; basket size; seasonal projects
+New services: tool rental; key cutting and repairs; installation referrals
+Online: order online, pick up in store; local delivery
+Margin: own-label products; pricing on items shoppers don't compare",Delivery can appear under contractors and online; keep job-site delivery with contractors.
+ps3-0006,2,m_and_a,A dairy cooperative owned by 400 farms is deciding whether to buy a regional cheese maker for $90M. The co-op often has more milk than it can sell.,"The cheese maker alone: sales growth; margins; customer concentration
+Fit with the co-op: using surplus milk; savings on milk now sold at a loss
+Price vs value: cash flows plus synergies against $90M
+Risks: integrating plants; key staff; cheese price swings
+Farmer-owners: funding the deal; whether members support it",Surplus-milk savings can be counted in both fit and value; size them under fit and only add them up under price vs value.
+ps3-0007,2,operations,"A blood donation center's donors spend 75 minutes per visit on average, and many don't come back. It wants to cut the visit to 45 minutes without weakening safety screening.","When donors arrive: walk-ins vs appointments; peak hours
+Time per step: check-in; health questionnaire and screening; donation; recovery
+Staff and chairs: staff per shift against peaks; donation chairs in use
+Work before the visit: questionnaire online beforehand; repeated checks
+Donor return: which waits drive donors away; reminders and rebooking",Peaks appear in arrivals and capacity; describe the peaks under arrivals and the staffing response under capacity.
+ps3-0008,3,public_sector,A city of 1.5 million people had 60 traffic deaths last year. The mayor wants to halve that number within five years.,"Where deaths happen: pedestrians, drivers or cyclists; locations; times; speeds
+Street design: speed limits; crossings; protected bike lanes
+Enforcement: speed and red-light cameras; impaired driving
+Driver behavior: campaigns on speeding and phone use
+Funding and support: cost of each fix; council and public backing",Speed shows up in design and enforcement; keep the limit and road layout under design and the policing under enforcement.
+ps3-0009,3,investment_decision,A family investment office is deciding whether to buy 12 marinas on the US Gulf Coast for $150M. It wants at least an 8% yearly cash return.,"Demand and competition: slip occupancy and waitlists; boat ownership trends; permits limiting new marinas
+Revenue: slip rents; fuel; repairs; dry storage
+Costs: staff; dredging and dock repairs; insurance
+Return vs price: cash flow against $150M; the 8% target; exit value
+Storm risk: hurricane damage; rising insurance costs",Insurance appears under costs and storm risk; put today's premium under costs and the risk of it rising or being withdrawn under storm risk.
+ps3-0010,3,new_product_launch,"A state university is deciding whether to launch a fully online master's degree in data science. It needs about 1,000 students a year to break even.","Student demand: working adults wanting the degree; tuition they'd pay; employer support
+Competition: other online master's programs; bootcamps and certificates
+Economics: tuition against course production, faculty, platform and marketing; path to 1,000 students
+Ability to deliver: faculty capacity; online teaching experience; platform partners
+Risks to the university: reputation if quality slips; effect on the on-campus program",Marketing cost sits in economics; don't repeat it under demand.
+ps3-0011,1,profitability,"A frozen-pizza maker's sales grew 10% over two years, but its operating margin fell from 14% to 8%.","Price and mix: price per pizza; promotions and retailer discounts; shift to cheaper lines
+Cost per pizza: cheese, flour and packaging; factory labor and energy per pizza
+Selling and delivery: freezer trucking; retailer fees; marketing
+Where margin fell: by product line; by retailer",Retailer discounts and retailer fees can both sit under selling; keep price cuts under price and fixed fees under selling.
+ps3-0012,1,market_entry,A Brazilian açaí-bowl chain with 200 stores at home is deciding whether to open in Portugal. It wants 40 stores there within five years.,"Demand in Portugal: interest in açaí and healthy snacks; locals vs tourists; seasons
+Competition: juice bars; smoothie and frozen-yogurt chains
+Store economics: sales per store; rent in Lisbon and Porto; payback per store
+Supply and setup: importing frozen açaí; franchise or own stores
+Brand fit: whether a Brazilian concept appeals beyond Brazilians","Rent sits in store economics, not in setup; setup is about supply and the entry model."
+ps3-0013,1,cost_reduction,A public school district spends $40M a year on student buses. It must cut that by 10% without dropping service for any student who qualifies.,"Routes: number of routes; stops per route; combining routes
+School start times: staggering bells so each bus runs more routes
+Buses and fuel: fleet size; maintenance; fuel per mile
+Drivers: pay and overtime; part-time vs full-time
+Contractors: outsourced routes; contractor rates",Fleet size follows from routes and start times; size it under buses only after routes are set.
+ps3-0014,1,pricing,A minor-league baseball team is moving to a new stadium with 30% more seats. It must set ticket prices for the first season.,"What fans would pay: season-ticket holders; families; groups and businesses
+Seat types: premium boxes; field level; lawn seats
+Filling the extra seats: attendance by game; weekends vs weekdays
+Spending per fan: food and drink; parking; merchandise
+Comparisons: old stadium prices; other local entertainment",Weekend vs weekday demand belongs under filling seats; what each fan group would pay belongs under willingness to pay.
+ps3-0015,1,growth_strategy,"A regional credit union with 80,000 members wants to grow its loans 30% in three years without taking on riskier borrowers.","Current members: members with no loan; share of their borrowing we hold
+New members: local employers; young people opening first accounts
+Loan products: car loans; home loans; small-business loans
+Channels: online applications; car-dealer partners; approval speed
+Risk and funding: keeping credit standards; deposits to fund new loans",Dealer partners can sit under channels or car loans; keep them under channels.
+ps3-0016,1,new_product_launch,A premium luggage brand is deciding whether to launch a service that rents its suitcases for single trips. It wants the service profitable within two years.,"Demand: occasional travelers; trip types; price per rental
+Economics: rental price vs two-way shipping, cleaning and repairs; suitcases needed
+Competition: other rental services; buying a cheap suitcase
+Operations: delivery and pickup; cleaning; damage
+Effect on sales: renters who would have bought; rentals that lead to purchases",Cleaning and repairs appear in economics and operations; put their cost under economics and the process under operations.
+ps3-0017,1,operations,A food bank takes six weeks on average to get donated food from its warehouse to partner pantries. It wants to cut that to two weeks.,"Incoming donations: volume by week; spikes after holidays; sorting backlog
+Warehouse steps: receiving; sorting; inspecting; storing
+Volunteers and staff: shifts; training; sorting speed
+Orders and delivery: how pantries order; truck routes and frequency",Sorting speed belongs under volunteers and staff; the sorting step's waiting time belongs under warehouse steps.
+ps3-0018,1,market_sizing,"A camera-equipment company wants to estimate the yearly US market for wedding photography, in dollars.","Weddings: weddings per year
+Share hiring a photographer: professionals vs friends; small ceremonies
+Spend per wedding: budget, mid-range and luxury packages; albums and extras
+Check: photographers × weddings each × average fee",Small ceremonies affect the share that hire a photographer; don't also cut the number of weddings for them.
+ps3-0019,1,competitive_response,"A national tax-preparation chain with 4,000 offices faces a new free online filing tool from the government. It wants to know how to respond.","Who will switch: simple vs complex returns; customers' comfort online
+Revenue at risk: share of revenue from simple returns; fees per return
+Our edge: in-person help; audit support; refund advances
+Response options: lower prices on simple returns; focus on complex returns; our own free tier
+Offices: offices to close or convert; seasonal staff",Who will switch and revenue at risk overlap if both size the threat; keep segments under who will switch and dollars under revenue at risk.
+ps3-0020,2,turnaround,A mid-size toy maker has lost money for three years since its biggest retail customer went bankrupt. Its bank wants a turnaround plan within 90 days.,"Cash: weeks of cash left; inventory to sell down; payment terms
+Where it loses money: products; channels; customers
+Replacing lost sales: other retailers; online; licensing deals
+Cost base: factories and warehouses sized for old volume; overhead
+The bank: loan terms; what it needs to see in 90 days",Selling down inventory raises cash and cuts costs; count it under cash.
+ps3-0021,2,m_and_a,A national heating and air-conditioning services company is deciding whether to buy 12 local contractors for $60M in total.,"The contractors: revenue; margins; customer lists; dependence on owners
+Synergies: shared dispatch and buying; selling service plans
+Price vs value: earnings and synergies against $60M
+Integration: keeping technicians and owners; systems; local brands
+Risks: technician shortages; local reputation after the sale",Keeping owners shows up in integration and risks; plan it under integration and size the downside under risks.
+ps3-0022,2,industry_analysis,A private equity fund asks whether the North American pickleball-court construction industry is attractive to invest in.,"Demand: players and growth; courts needed vs built; who pays
+Staying power: fad or lasting sport; converting tennis courts
+Competition: number of builders; ease of entry; price pressure
+Margins: price per court; materials; labor
+Customers: cities, clubs and homeowners; their budgets",Converting tennis courts is both demand and a cheaper substitute for new courts; keep it under staying power.
+ps3-0023,2,public_sector,A state's wait for a driver's license road test averages nine weeks. The governor wants it under three weeks within a year.,"Demand: tests booked per week; retests after failing; no-shows
+Examiners: number; tests per examiner per day; vacation and turnover
+Sites and slots: locations; hours; weekend slots
+Booking rules: no-show penalties; waiting periods before retests
+Outside testers: driving schools or contractors giving tests",No-shows appear in demand and booking rules; count them under demand and the penalty under booking rules.
+ps3-0024,2,investment_decision,A private school-bus operator with 200 diesel buses is deciding whether to switch to electric buses over five years. Electric buses cost about three times as much.,"Cost over each bus's life: purchase price; fuel vs electricity; maintenance
+Subsidies: federal and state grants; utility programs
+Charging: depot chargers; grid upgrades; route range
+Contracts: what school districts want; contract length vs bus life
+Risks: battery life; resale value; cold-weather range",Range appears under charging and risks; put route needs under charging and winter loss under risks.
+ps3-0025,2,pricing,A cybersecurity software company sells to small businesses at $8 per device per month. It is considering charging per employee instead.,"Revenue effect: customers with many vs few devices per employee; net change
+Customer value: what a breach costs a small business
+Competitors: how rivals charge; comparisons customers make
+Customer reaction: who would pay more; churn; moving existing customers
+Ease of selling: simpler quotes; billing changes",Who pays more shows up in revenue effect and reaction; size it under revenue and the churn risk under reaction.
+ps3-0026,2,growth_strategy,A family-run hot-sauce maker sells in 300 grocery stores. It wants to triple its revenue within four years.,"More stores: regional and national grocery chains; distributors
+Sales per store: shelf placement; in-store tastings; best-selling flavors
+New channels: online store; restaurants and food service
+New products: new flavors; marinades; gift packs
+Making three times as much: kitchen capacity; co-packer; cash to fund inventory",Restaurants can sit under new channels or more stores; keep them under new channels.
+ps3-0027,2,operations,An online car-parts retailer gets 18% of its orders returned. It wants returns under 10% within a year.,"Why parts come back: wrong fit; damaged; changed mind
+Fitment data: vehicle lookup accuracy; descriptions and photos
+Fulfillment: wrong part picked; damage in packing
+Customer help: chat before buying; installation guides
+Return policy: free returns; restocking fees",Wrong fit can come from fitment data or picking errors; split it by cause before fixing either.
+ps3-0028,2,new_product_launch,"A car insurer is deciding whether to launch insurance priced on how customers drive, measured by a phone app.","Customer uptake: safe drivers wanting discounts; privacy worries
+Claims savings: whether app data predicts claims; discounts vs claims saved
+Effect on current customers: who switches; what is left on standard plans
+Competitors: rivals' app programs; their discounts
+Rollout: regulators; data security; app build",Safe drivers switching is both uptake and effect on current customers; count sign-ups under uptake and the mix left behind under effect.
+ps3-0029,2,market_entry,A home-care agency whose nurses visit elderly patients in Ohio is deciding whether to expand into Pennsylvania. It wants $25M of revenue there in four years.,"Demand: elderly population; need for home visits
+Who pays: Medicare; Medicaid rates in Pennsylvania; private pay
+Competition: local agencies; hospital-owned services
+Nurses: hiring in a tight market; pay rates
+Entry route: buy a local agency or start fresh; state license; hospital referrals",Licensing can sit under who pays or entry route; keep it under entry route.
+ps3-0030,2,cost_reduction,A copper mine's cost per ton of copper rose 25% in three years. Management wants to get back to the old level.,"Ore quality: copper per ton of rock; deeper pits
+Volume: tons mined and processed; plant uptime
+Inputs: diesel; electricity; explosives; tires
+Labor and contractors: headcount; contractor rates; overtime
+Maintenance: equipment age; breakdowns; spare parts",Breakdowns cut volume and raise maintenance cost; count lost tons under volume and repair cost under maintenance.
+ps3-0031,2,competitive_response,"A chain of 300 tutoring centers charges $300 a month per student. AI tutoring apps now offer homework help for $20 a month, and the chain wants to know how to respond.","Who is at risk: homework help vs test prep vs struggling students
+Size and speed: enrollment trends; app quality; parents' trust
+What apps can't do: accountability; human tutors; progress reports for parents
+Options: own app; hybrid plans; lower-priced tier; focus on test prep
+Centers: rent; tutor schedules if enrollment falls",Parents' trust shows up in size and speed and in what apps can't do; keep trust in apps under size and speed.
+ps3-0032,3,public_sector,A country's health ministry wants to raise childhood vaccination rates from 78% to 95% within four years.,"Who is missed: regions; rural vs urban; income; which doses are skipped
+Access: clinic distance and hours; mobile teams; vaccine stock
+Parents: trust; reminders; community leaders
+Health system: nurses; records that track missed doses; school-entry checks
+Funding and incentives: budget; benefits linked to vaccination",Reminders need records of missed doses; keep the records under health system and the messages under parents.
+ps3-0033,3,m_and_a,"A large accounting firm is deciding whether to buy a 200-lawyer law firm for $150M, now that its state allows accountants to own law firms.","Strategic logic: legal work for tax and advisory clients; clients wanting both
+The law firm: revenue per lawyer; clients; partner earnings
+Price vs value: $150M against profit after partner pay, plus synergies
+Rules and conflicts: audit independence; legal ethics; other states' rules
+People: keeping partners after the sale; culture",Cross-selling shows up in strategic logic and price vs value; describe it under logic and count it only under value.
+ps3-0034,3,market_sizing,"An investor wants to estimate the yearly global market for replacement batteries for electric cars in 2030, in dollars.","Electric cars on the road in 2030: fleet by age; sales growth to 2030
+Share needing a new battery: battery life in years and miles; warranties
+Replace, repair or scrap: module repairs; scrapping older cars
+Price per battery: cost per kWh in 2030; pack size
+Check: compare with today's replacements by region","Warranties change who pays, not how many batteries are replaced; keep them out of the count unless sizing who pays."
+ps3-0035,3,turnaround,A city runs six public golf courses that together lose $3M a year. The council wants them to break even within three years or it will close some.,"Course by course: rounds played; revenue and cost per course
+Revenue: green fees; resident vs visitor prices; food, lessons and events
+Costs: grounds staff; water; equipment; shared management
+Options per course: outside operator; sell or reuse the land; close
+Public goals: affordable golf; green space; residents' views",Rounds played belong under course by course; prices and extra sales belong under revenue.
+ps3-0036,3,industry_analysis,A sovereign wealth fund asks whether satellite internet for rural households is an attractive industry to invest in for the next 10 years.,"Demand: rural homes without good broadband; willingness to pay; subsidies
+Substitutes: fiber and 5G reaching rural areas
+Economics: satellite launch and replacement costs vs revenue per subscriber
+Structure: few players; scale advantages; spectrum rights
+Risks: regulation; space debris; technology shifts",Subsidies show up in demand and risks; count subsidized demand under demand and policy changes under risks.
+ps3-0037,3,investment_decision,"A city water utility must replace 40,000 lead pipes. It is deciding whether to spend $400M doing it all in five years or spread the work over 15 years.","Health risk: children exposed while pipes wait; which neighborhoods first
+Cost: borrowing; contractor prices when rushing; federal funds
+Water bills: rate increases; low-income customers
+Capacity: contractors and crews; street disruption
+Rules: federal deadlines; legal liability",Federal funds affect cost and rules; count the money under cost and the deadlines under rules.
+ps3-0038,3,profitability,"A professional soccer club went from a $20M profit to a $5M loss in two years, even though attendance hit a record.","Matchday revenue: ticket prices; hospitality; spending per fan
+Other revenue: TV rights; sponsors; merchandise; prize money
+Player costs: wages; transfer fees spread over contracts
+Other costs: stadium; travel; staff
+What changed: league finish; new contracts; one-off items",Prize money depends on league finish; count the money under other revenue and the cause under what changed.
+ps3-0039,3,new_product_launch,A national logistics company is deciding whether to launch drone delivery of medical supplies to 500 rural clinics.,"Clinic needs: urgent items; how often; current delivery times
+Economics: cost per drone flight vs vans; price customers pay
+Approvals: aviation rules; flying beyond sight; medical handling
+Operations: range; weather; landing sites; drone fleet
+Who pays: health systems; governments; grants",Price paid appears in economics and who pays; size it under economics and name the payer under who pays.
+ps3-0040,3,growth_strategy,A specialty chemicals maker gets 40% of its revenue from a solvent that regulators will ban in five years. It wants to replace that revenue.,"Current customers: what they will switch to; our share of their spending
+Replacement product: developing a safer solvent; approval time; plant changes
+New markets: other products from the same plants and know-how
+Acquisitions: buying makers of compliant products
+Time and money: five-year timeline; R&D and capital budget",Approval time sits in replacement product and in time and money; keep it with the product.

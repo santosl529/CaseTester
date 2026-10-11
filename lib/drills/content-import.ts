@@ -40,7 +40,7 @@ export interface ImportProblem { file: string; row: string; message: string }
 const isExample = (id: string) => id.startsWith('EXAMPLE-');
 const idOf = (id: string) => (isExample(id) ? id.replace(/^EXAMPLE-/, 'example-') : id);
 const keep = (o: ImportOptions) => (r: Record<string, string>) => (r.item_id || r.answer_id) && (o.includeExamples || !isExample(r.item_id ?? r.answer_id));
-const yes = (v: string) => /^(y|yes|true|1)$/i.test(v.trim());
+const yes = (v: string | undefined) => /^(y|yes|true|1)$/i.test((v ?? '').trim());
 const splitList = (v: string) => v.split(/[;|]/).map(s => s.trim()).filter(Boolean);
 const tierOf = (v: string) => {
   const t = Number(v);
@@ -118,7 +118,7 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
     return ps3Item({
       item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: r.case_type, prompt: r.prompt,
       model_framework: r.model_framework, common_overlaps: r.common_overlaps,
-      must_cover: areas.map(a => ({ area: a.area, what_counts: a.what_counts, also_accept: splitList(a.also_accept) })),
+      must_cover: areas.map(a => ({ area: a.area, what_counts: a.what_counts, also_accept: splitList(a.also_accept), critical: yes(a.critical) })),
     } satisfies Ps3Content);
   });
 
@@ -207,7 +207,7 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
   gold('ps3-graded-answers.csv', t['ps3-graded-answers'] ?? [], (r, item) => ({
     responses: [parseFramework(r.answer)],
     labels: { ...named(item, 'cover', 'area', r.areas_covered), no_overlap: yes(r.no_overlap), case_specific: yes(r.case_specific), concrete_subpoints: yes(r.concrete_subpoints) },
-    red_flags: (item.red_flags.some(f => f.id === 'generic_profit_tree') ? { generic_profit_tree: yes(r.red_flag_generic_profit_tree) } : {}) as Record<string, boolean>,
+    red_flags: { generic_framework: yes(r.red_flag_generic_framework), off_topic: yes(r.red_flag_off_topic) },
     family: null,
   }));
   gold('hy2-graded-answers.csv', t['hy2-graded-answers'] ?? [], r => ({

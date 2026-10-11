@@ -1,0 +1,55 @@
+{
+  "answer_id": "ps3-0036-a",
+  "item_id": "ps3-0036",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Covers the critical area, substitutes. Costs sets capital against revenue per subscriber (rule 4). Misses regulation.",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Demand",
+          "points": [
+            "rural homes without broadband",
+            "what they pay today"
+          ]
+        },
+        {
+          "title": "Threat from fiber and 5G",
+          "points": [
+            "government programs extending fiber"
+          ]
+        },
+        {
+          "title": "Costs",
+          "points": [
+            "launching and replacing satellites vs revenue per subscriber"
+          ]
+        },
+        {
+          "title": "Players",
+          "points": [
+            "few companies",
+            "huge scale needed"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": true,
+    "cover_2": true,
+    "cover_3": true,
+    "cover_4": true,
+    "cover_5": false,
+    "no_overlap": true,
+    "case_specific": true,
+    "concrete_subpoints": true
+  },
+  "red_flags": {
+    "generic_framework": false,
+    "off_topic": false
+  },
+  "family": null
+}

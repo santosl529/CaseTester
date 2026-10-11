@@ -1,0 +1,49 @@
+{
+  "answer_id": "ps3-0007-a",
+  "item_id": "ps3-0007",
+  "drill_id": "PS-3",
+  "answer_type": "off_topic",
+  "notes": "Answers a different question (recruiting donors, not shortening the visit): off-topic flag (rule 10). Covers no area, so it also misses the critical area. Sub-points are concrete and the three buckets don't overlap.",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Marketing",
+          "points": [
+            "social media ads",
+            "campus blood drives"
+          ]
+        },
+        {
+          "title": "Partnerships",
+          "points": [
+            "employers",
+            "churches and community groups"
+          ]
+        },
+        {
+          "title": "Rewards",
+          "points": [
+            "gift cards",
+            "points for repeat donors"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": false,
+    "cover_2": false,
+    "cover_3": false,
+    "cover_4": false,
+    "no_overlap": true,
+    "case_specific": false,
+    "concrete_subpoints": true
+  },
+  "red_flags": {
+    "generic_framework": false,
+    "off_topic": true
+  },
+  "family": null
+}

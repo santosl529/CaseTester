@@ -296,14 +296,19 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 | Check | Weight | Failed check logs |
 | --- | --- | --- |
 | Covers each must-cover area in the key (one check per area, 4–6 areas) | 50% split evenly | `M.missing_bucket` |
-| No two buckets substantially overlap | 15% | `M.overlapping_buckets` |
-| Every bucket is specific to this case and objective | 20% | `M.generic_framework` or `M.irrelevant_bucket` |
+| No two buckets substantially overlap. Passes only if at least 3 buckets have sub-points (checked by code); above that, the AI judges overlap | 15% | `M.overlapping_buckets` |
+| Every bucket is specific to this case and objective, judged on its heading and sub-points together | 20% | `M.generic_framework` or `M.irrelevant_bucket` |
 | Every bucket has at least one concrete sub-point | 15% | `M.shallow_structure` |
 
-- **Red flags:** Top level is a generic revenue/cost profit tree on a non-profitability prompt (cap at 0.4, `M.generic_framework`). Fewer than 2 buckets (cap at 0.3, checked by code).
+- **Red flags:**
+  - Generic framework: a memorized general-purpose framework (revenue/cost profit tree, market-entry list, SWOT, 4Ps, 3Cs, five forces) whose headings and sub-points aren't adapted to the case. Applies to every case type; on profitability prompts, revenue and cost buckets are flagged only if their sub-points are generic too (cap at 0.4, `M.generic_framework`).
+  - Off-topic: the framework answers a different question (cap at 0.2, `M.irrelevant_bucket`).
+  - Missed critical area: each item marks one must-cover area as critical (the one that answers the decision); if its cover check fails, cap at 0.6 (`M.missing_bucket`, checked by code from that check).
+  - Fewer than 2 buckets (cap at 0.3, checked by code).
+- **Grading rules:** An area counts only when the answer ties it to this case (a generic word such as "costs" alone doesn't count), and the full PS-3 rules in `docs/drills-grading-guide.md` decide the borderline calls. Rules the AI applies are sent with every PS-3 item, word for word as in the guide.
 - **Deterministic pre-checks:** Code checks bucket count, empty buckets and word caps before the AI call.
 - **Results show:** Each check with quoted evidence, and the key's model framework.
-- **Answer key:** Must-cover areas (each with a short description and acceptable synonyms), common overlap pairs, model framework.
+- **Answer key:** Must-cover areas (each with a short description and acceptable synonyms, one marked critical), common overlap pairs, model framework.
 - **Item source:** Authored, aligned to the 14 case types. AI-drafted, human QA.
 
 ### HY-1 Pick the best hypothesis
@@ -753,7 +758,7 @@ Items come from two sources: code generators for anything numeric (unlimited and
      "weight": 0.10, "fail_tag": "M.missing_bucket", "feedback": "You didn't test whether members want this."}
   ],
   "red_flags": [
-    {"id": "generic_profit_tree", "definition": "Top level is only revenue and costs",
+    {"id": "generic_framework", "definition": "A memorized framework not adapted to this case",
      "cap": 0.4, "tag": "M.generic_framework", "detection": "ai"}
   ],
   "model_answer": "...",

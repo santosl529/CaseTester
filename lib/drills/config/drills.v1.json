@@ -72,7 +72,7 @@
       "pass_bar": 0.8,
       "priority": "P0",
       "item_source": "authored",
-      "live": false
+      "live": true
     },
     {
       "id": "HY-1",

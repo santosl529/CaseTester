@@ -1,0 +1,55 @@
+{
+  "answer_id": "ps3-0025-a",
+  "item_id": "ps3-0025",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Covers the critical area: it compares customers who would pay more with those who would pay less. Misses ease of selling.",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Revenue change",
+          "points": [
+            "firms with many devices per employee pay less",
+            "few-device firms pay more"
+          ]
+        },
+        {
+          "title": "Competitors",
+          "points": [
+            "how rivals price",
+            "per-user is common"
+          ]
+        },
+        {
+          "title": "Reaction",
+          "points": [
+            "firms that would pay more may leave"
+          ]
+        },
+        {
+          "title": "Value",
+          "points": [
+            "cost of a breach for a small firm"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": true,
+    "cover_2": true,
+    "cover_3": true,
+    "cover_4": true,
+    "cover_5": false,
+    "no_overlap": true,
+    "case_specific": true,
+    "concrete_subpoints": true
+  },
+  "red_flags": {
+    "generic_framework": false,
+    "off_topic": false
+  },
+  "family": null
+}

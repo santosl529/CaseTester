@@ -132,6 +132,13 @@
         "sy1-0028"
       ],
       "reason": "Both add a service in hours when the business is closed, but different clients and figures: burger restaurants adding breakfast ($20k setup, $30k a year) vs trampoline parks hosting school groups (120 groups at $600 against $40k of costs, with a museum price risk)."
+    },
+    {
+      "items": [
+        "ex1-0037",
+        "ps3-0007"
+      ],
+      "reason": "Shared words only (center, minute, without): a call center cutting phone waits without hiring (EX-1) vs a blood donation center shortening donor visits without weakening screening (PS-3). Different clients and no shared figures."
     }
   ]
 }

@@ -1,0 +1,51 @@
+{
+  "answer_id": "ps3-0013-a",
+  "item_id": "ps3-0013",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "A memorized cost list with nothing about buses: generic-framework flag (rule 11). Generic words alone don't cover any area (rule 1), including the critical one, route design. Sub-points restate generic cost lines (rule 7). Three distinct buckets with sub-points, so no overlap passes.",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Labor costs",
+          "points": [
+            "salaries",
+            "benefits"
+          ]
+        },
+        {
+          "title": "Materials",
+          "points": [
+            "supplies",
+            "inventory"
+          ]
+        },
+        {
+          "title": "Overhead",
+          "points": [
+            "rent",
+            "utilities",
+            "admin"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": false,
+    "cover_2": false,
+    "cover_3": false,
+    "cover_4": false,
+    "cover_5": false,
+    "no_overlap": true,
+    "case_specific": false,
+    "concrete_subpoints": false
+  },
+  "red_flags": {
+    "generic_framework": true,
+    "off_topic": false
+  },
+  "family": null
+}

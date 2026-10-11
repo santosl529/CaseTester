@@ -8,7 +8,7 @@
 // grader put the stage 1 hypothesis in.
 import { getMistakeTag } from '../config';
 import type { Item } from '../item-schema';
-import { hy2DecisionTag, type Hy2Content } from '../checklists';
+import { hy2DecisionTag, PS3_INJECTION_FAILS, PS3_NO_OVERLAP_MIN_BUCKETS, type Hy2Content } from '../checklists';
 import { parseNumericInput } from '../numeric';
 import { answerText, itemSteps, type ItemResult, type StepResult } from '../sets/scoring';
 
@@ -59,6 +59,13 @@ export function codeChecks(item: Item, steps: StepResult[]): { checks: Record<st
       checks[check.check_id] = { pass: hit !== undefined, evidence: hit !== undefined ? String(hit) : '' };
     }
   }
+  if (item.drill_id === 'PS-3' && item.checks.some(c => c.check_id === 'no_overlap')) {
+    // "No overlap" earns credit only with 3+ buckets that have sub-points;
+    // above that, the AI judges overlap.
+    const r = steps[0]?.response;
+    const full = r?.type === 'buckets' ? r.buckets.filter(b => b.title.trim() && b.points.some(p => p.trim())).length : 0;
+    if (full < PS3_NO_OVERLAP_MIN_BUCKETS) checks.no_overlap = { pass: false, evidence: '' };
+  }
   for (const flag of item.red_flags.filter(f => f.detection === 'code')) {
     if (flag.id === 'fewer_than_two_buckets') {
       const r = steps[flag.step]?.response;
@@ -76,7 +83,11 @@ export function applyGrade(item: Item, steps: StepResult[], timedOut: boolean, g
   const written = steps.map(s => answerText(s.response));
   const blank = written.every((w, i) => !w && spec[i].type !== 'single_choice');
   const code = codeChecks(item, steps);
-  const verdict = (id: string) => code.checks[id] ?? grade?.checks[id] ?? { pass: false, evidence: '' };
+  // PS-3: text addressed to the grader sits in a bucket that is neither
+  // case-specific nor concrete (grading guide rule 9).
+  const injected = item.drill_id === 'PS-3' && grade?.injection_suspected;
+  const verdict = (id: string) => (injected && PS3_INJECTION_FAILS.includes(id) ? { pass: false, evidence: '' } : null)
+    ?? code.checks[id] ?? grade?.checks[id] ?? { pass: false, evidence: '' };
   const flagged = (id: string) => code.red_flags[id] ?? grade?.red_flags[id] ?? { pass: false, evidence: '' };
 
   const checks = item.checks.map(c => {
@@ -85,7 +96,10 @@ export function applyGrade(item: Item, steps: StepResult[], timedOut: boolean, g
     return { check_id: c.check_id, pass: v.pass, evidence: v.pass ? v.evidence : '', by: c.detection, weight: c.weight, step: c.step, fail_tag: c.fail_tag };
   });
   const redFlags = item.red_flags.map(f => {
-    const v = written[f.step] ? flagged(f.id) : { pass: false, evidence: '' };
+    // PS-3: missing the critical area is read off that area's cover check.
+    const missedCritical = f.id === 'missed_critical_area' ? !checks.find(c => c.check_id === item.extras.critical_check)?.pass : null;
+    const v = !written[f.step] ? { pass: false, evidence: '' }
+      : missedCritical !== null ? { pass: missedCritical, evidence: '' } : flagged(f.id);
     return { id: f.id, present: v.pass, evidence: v.evidence, cap: f.cap, step: f.step, tag: f.tag };
   });
 

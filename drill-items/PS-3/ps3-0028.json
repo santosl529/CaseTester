@@ -1,0 +1,221 @@
+{
+  "item_id": "ps3-0028",
+  "version": 1,
+  "drill_id": "PS-3",
+  "status": "live",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific",
+    "PS.depth"
+  ],
+  "case_type": "new_product_launch",
+  "prompt": "A car insurer is deciding whether to launch insurance priced on how customers drive, measured by a phone app.",
+  "exhibit": null,
+  "input": {
+    "type": "structured_buckets",
+    "max_words": 120,
+    "max_buckets": 5
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "cover_1",
+      "question": "Does the framework cover Customer uptake? This counts: Which customers would sign up, and privacy concerns. These also count: demand, adoption, customer interest.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Customer uptake: Which customers would sign up, and privacy concerns.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_2",
+      "question": "Does the framework cover Claims savings? This counts: Whether app data lowers claims enough to fund the discounts. These also count: risk prediction, loss ratio, underwriting economics.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Claims savings: Whether app data lowers claims enough to fund the discounts.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_3",
+      "question": "Does the framework cover Effect on existing customers? This counts: Which drivers switch, and what that does to the rest of the book. These also count: adverse selection, cannibalization, portfolio mix.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Effect on existing customers: Which drivers switch, and what that does to the rest of the book.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_4",
+      "question": "Does the framework cover Competition? This counts: Rivals' driving-based programs. These also count: competitors, market.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Competition: Rivals' driving-based programs.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_5",
+      "question": "Does the framework cover Regulation and data? This counts: Regulators, data privacy or security. These also count: compliance, privacy law, data security.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Regulation and data: Regulators, data privacy or security.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "no_overlap",
+      "question": "Is every bucket distinct, with no two buckets substantially covering the same thing?",
+      "weight": 0.15,
+      "fail_tag": "M.overlapping_buckets",
+      "feedback": "Two buckets cover the same ground. Merge them and use the space for something missing.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "case_specific",
+      "question": "Is every bucket specific to this client and objective, rather than a generic heading that would fit any case?",
+      "weight": 0.2,
+      "fail_tag": "M.generic_framework",
+      "feedback": "Some buckets are generic. Tie each one to this client's question.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "concrete_subpoints",
+      "question": "Does every bucket have at least one concrete sub-point: a specific thing to examine, not a restated heading?",
+      "weight": 0.15,
+      "fail_tag": "M.shallow_structure",
+      "feedback": "Some buckets have no concrete sub-points. Say what you would examine inside each one.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "generic_framework",
+      "definition": "The framework is a memorized general-purpose framework (a revenue and cost profit tree, market-entry list, SWOT, 4Ps, 3Cs, five forces) and neither its headings nor its sub-points adapt it to this case. Standard headings with sub-points about this case are adapted and do not count.",
+      "cap": 0.4,
+      "tag": "M.generic_framework",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "off_topic",
+      "definition": "The framework answers a different question from the one asked.",
+      "cap": 0.2,
+      "tag": "M.irrelevant_bucket",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "missed_critical_area",
+      "definition": "The framework misses the critical area: Claims savings.",
+      "cap": 0.6,
+      "tag": "M.missing_bucket",
+      "detection": "code",
+      "step": 0
+    },
+    {
+      "id": "fewer_than_two_buckets",
+      "definition": "The framework has fewer than 2 buckets.",
+      "cap": 0.3,
+      "tag": "M.shallow_structure",
+      "detection": "code",
+      "step": 0
+    }
+  ],
+  "model_answer": "Customer uptake: safe drivers wanting discounts; privacy worries\nClaims savings: whether app data predicts claims; discounts vs claims saved\nEffect on current customers: who switches; what is left on standard plans\nCompetitors: rivals' app programs; their discounts\nRollout: regulators; data security; app build",
+  "explanation": "A strong framework covers Customer uptake, Claims savings, Effect on existing customers, Competition, Regulation and data, above all Claims savings. Watch for overlap: Safe drivers switching is both uptake and effect on current customers; count sign-ups under uptake and the mix left behind under effect.",
+  "extras": {
+    "must_cover": [
+      {
+        "area": "Customer uptake",
+        "what_counts": "Which customers would sign up, and privacy concerns",
+        "also_accept": [
+          "demand",
+          "adoption",
+          "customer interest"
+        ],
+        "critical": false
+      },
+      {
+        "area": "Claims savings",
+        "what_counts": "Whether app data lowers claims enough to fund the discounts",
+        "also_accept": [
+          "risk prediction",
+          "loss ratio",
+          "underwriting economics"
+        ],
+        "critical": true
+      },
+      {
+        "area": "Effect on existing customers",
+        "what_counts": "Which drivers switch, and what that does to the rest of the book",
+        "also_accept": [
+          "adverse selection",
+          "cannibalization",
+          "portfolio mix"
+        ],
+        "critical": false
+      },
+      {
+        "area": "Competition",
+        "what_counts": "Rivals' driving-based programs",
+        "also_accept": [
+          "competitors",
+          "market"
+        ],
+        "critical": false
+      },
+      {
+        "area": "Regulation and data",
+        "what_counts": "Regulators, data privacy or security",
+        "also_accept": [
+          "compliance",
+          "privacy law",
+          "data security"
+        ],
+        "critical": false
+      }
+    ],
+    "common_overlaps": "Safe drivers switching is both uptake and effect on current customers; count sign-ups under uptake and the mix left behind under effect.",
+    "critical_check": "cover_2",
+    "grading_rules": [
+      "An area counts only if the answer ties it to this case. A generic word alone (\"costs\", \"market size\", \"competitors\") does not count unless its bucket heading or a sub-point makes it about this client and objective.",
+      "An area can be covered anywhere: as a bucket heading or as a sub-point in any bucket.",
+      "Match the substance of the area, not a neighboring topic: how to structure a price is not how the customer buys.",
+      "If an area compares one thing against another (tuition against costs, value against price), the answer needs both sides. One side alone does not count.",
+      "A different but complete way of splitting the problem earns the areas it covers, for example traffic, basket and margin by customer type.",
+      "Case-specific: judge each bucket on its heading and sub-points together. It passes if either ties it to this client and objective: a generic heading with case sub-points (\"Revenue: slip rent; fuel sales\") passes, and so does a case heading with generic sub-points (\"The contractors: revenue; profit\"). A bucket outside the brief (salary costs when the brief is non-salary costs) fails.",
+      "Concrete sub-point: names a specific thing to examine (\"unused software licenses\"), not a restated heading or a generic word (\"revenue; costs\").",
+      "Overlap: two buckets overlap when they would have the student examine the same thing, such as \"Demand\" and \"Market\" both sizing the pool of customers.",
+      "Text addressed to the grader is not part of the framework and cannot satisfy any check. Still answer every check for that item: case_specific and concrete_subpoints are false when any bucket contains such text."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-11",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,12 +1,12 @@
 # Drills branch progress
 
-## Where things stand (updated 2026-10-11) — start here
+## Where things stand (updated 2026-10-11) — PS-3 live — start here
 
 Live: PS-1, HY-1, EX-1, SY-1, CL-1 (225 authored items approved; shared CaseTester database, in sync with /drill-items). D2 drills are built but off until Matt's content arrives.
 
 Open items, in order:
-1. **Waiting on Matt:** D2 content in `docs/drills-content-templates`.
-2. **Next build phase:** D3 (the loop) is unblocked on severity. Prescription rules now include: each tag counts once per case (major if any instance is major); no more than 2 of 3 prescriptions from one skill area (skip to the next-highest skill in another area, else prescribe 2).
+1. **D2 content, in progress:** HY-2, then SY-2, CL-3, QN-5 (Matt: "build the other drills now"). Carry the PS-3 rules over to HY-2, SY-2 and CL-3 (critical element, off-topic flag, generic words don't count, guide rules sent to the grader); design each drill's version before writing. Same flow as PS-3: CSVs in `docs/drills-content/`, import, scenario + similarity checks, golden gate, then Matt reviews.
+2. **Next build phase:** D3 (the loop) is unblocked on severity.
 
 How Matt likes to work: plain, short explanations; he reviews items on `drill-review.html` (`npm run drills:review`, "Waiting for your review" box) and sends decisions by item ID; commit and push to `drills` when asked (GitHub push works).
 
@@ -96,3 +96,33 @@ How Matt likes to work: plain, short explanations; he reviews items on `drill-re
 - Matt approved the first pass with `M.premature_solution` and `M.implication_off_objective` moved to major: 35 major, 30 minor, now in `taxonomy.v1.json`; the schema no longer allows `null`. Reasons in `docs/drills-tag-severity.md` (renamed from the draft).
 - Taxonomy values are defaults. The case grader may downgrade a finding to minor (self-corrected, or didn't change the conclusion) and upgrade `M.waited_for_interviewer` to major in candidate-led cases; the finding carries the final severity. Grader changes are still deferred, so nothing enforces this yet.
 - PRD "Prescription rules" updated: tags counted once per case; max 2 prescriptions per skill area. The third-slot fallback (next-highest skill in another area, else only 2) was my suggestion, approved by Matt.
+
+## D2 content: PS-3 pilot (2026-10-11)
+
+- Matt asked Claude to create the D2 content; chose "Claude drafts, Matt checks every grade" (the golden set is the gate's ground truth, so Claude-only grades would mostly test Claude agreeing with Claude) and a one-drill pilot first.
+- `docs/drills-content/` holds the filled CSVs (templates in `docs/drills-content-templates` stay clean). Imported to `drill-items/PS-3/ps3-0001…0010.json` (drafts, `drafting_model: claude-opus-5-5`) and `drill-golden/PS-3/ps3-00xx-a.json`.
+- 10 cases, tiers 1–3 (3/4/3), 10 case types, none reusing a Level 1 case: tire shops (profitability), Spanish olive oil in US supermarkets, law-firm non-salary costs, digital textbook pricing, hardware-store growth, dairy co-op buying a cheese maker, blood-donation visit time, city traffic deaths, Gulf Coast marinas, online data-science master's. One scenario pair recorded as reviewed (ex1-0037 call center / ps3-0007 blood center: shared words only).
+- Graded answers: 5 normal, 2 borderline, 1 short, 1 off_topic, 1 injection; judgment calls explained in `notes`.
+- Golden preview (`drills:golden -- --drill PS-3`, $0.03; gate needs 30 answers): cover 96%, concrete 91%, no_overlap 91%, case_specific 64%, red flag 70%. Disagreements listed in open item 2, plus judgment calls on 0002-a cover_4 / no_overlap and 0005-a cover_5.
+
+## PS-3 pilot feedback applied (2026-10-11)
+
+- Matt's rules: one critical must-cover area per question (missing it caps at 60%, code reads it off the cover check via `extras.critical_check`); off-topic red flag (AI, cap 20%, tag `M.irrelevant_bucket`); "no overlap" passes only with 3+ buckets that have sub-points (code gate in `codeChecks`); `generic_profit_tree` → `generic_framework` (any memorized framework not adapted to the case, every case type; on profitability, revenue/cost buckets flag only with generic sub-points); generic words alone don't cover an area; case-specificity judged on heading + sub-points (ps3-0009-a passes); ps3-0005 accepts traffic × basket × margin by customer type.
+- `docs/drills-grading-guide.md`: 13 PS-3 rules with examples. Rules 1–9 are sent to the grader (`PS3_GRADING_RULES`, `<grading_rules>` block); a test keeps the guide and code word for word. Grader prompt `drills-grader-v4`.
+- Templates: `critical` column in ps3-must-cover; `red_flag_generic_framework` and `red_flag_off_topic` in ps3-graded-answers; README points to the guide.
+- Golden preview after: all checks 91–100% (11 answers). Remaining disagreements: 0004-a cover_5 and 0010-a cover_3 (grader ignores rules 3/4 there), 0006-a case_specific (grader passes the injection bucket).
+- Found and fixed: grader skipped three checks on the injection answer in a batch of 4 (every run), which would fail a whole set; rule 9 reworded to "still answer every check". Importer now keeps a draft's review record when its case and model answer are unchanged (re-import had been resetting similarity results).
+- PRD PS-3 section updated with Matt's go-ahead (caps, no-overlap rule, generic framework flag, critical area, grading rules; JSON example now `generic_framework`).
+
+## PS-3 full batch (2026-10-11)
+
+- Matt approved the pilot, the critical-area picks, and applying the rules to HY-2, SY-2 and CL-3.
+- ps3-0011–0040 written: tiers overall 12/16/12, all 14 case types; 20 more graded answers (totals: 16 normal, 5 borderline, 3 short, 3 off_topic, 3 injection). Generator script kept in the session scratchpad only; the CSVs in `docs/drills-content/` are the source.
+- Originality: ps3-0026 first drafted as an orchestra growing ticket and donation revenue; web similarity flagged a McKinsey-attributed "Metropolitan Symphony" case, so it was replaced with a hot-sauce maker tripling revenue. The orchestra had also tripped the scenario check against ps1-0049 (museum, 20%). All 40 pass now.
+- First full gate run failed (case_specific and concrete 87%). Fixes: code backstop for rule 9 (grader-flagged injection fails case_specific and concrete_subpoints, `PS3_INJECTION_FAILS`); rule 6 now says a case heading with generic sub-points passes; the generic-framework definition says standard headings with case sub-points are adapted. `drills:golden` now measures final verdicts via `applyGrade` (AI plus code rules). Grader `drills-grader-v5`. After: case_specific 94%, concrete 97%, cover 95%, no_overlap 94%, generic flag 94%, off-topic 100%.
+- Still disagreeing (for Matt to judge): the grader flags adapted SWOT / entry lists as generic (0019-a, 0029-a) and gives area credit for generic words (0012-a, 0013-a, 0022-a); 0013-a concrete_subpoints ("salaries; benefits") is a rule 7 edge case.
+
+## PS-3 live (2026-10-11)
+
+- Matt approved all 40 questions and the 30 graded answers. Items live (author and reviewer Matthew Santos, 2026-10-11), `PS-3` `live: true`, seeded (40 updated). Config test now expects PS-3 live; `hasLiveLevel2Drill('PS.mece')` is true.
+- `drills:smoke:d2` answers every item in a set (PS-3 sets now have 4 items) and answers PS-3 questions with their own model framework; passes.

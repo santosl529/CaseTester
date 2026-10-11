@@ -1,0 +1,222 @@
+{
+  "item_id": "ps3-0032",
+  "version": 1,
+  "drill_id": "PS-3",
+  "status": "live",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific",
+    "PS.depth"
+  ],
+  "case_type": "public_sector",
+  "prompt": "A country's health ministry wants to raise childhood vaccination rates from 78% to 95% within four years.",
+  "exhibit": null,
+  "input": {
+    "type": "structured_buckets",
+    "max_words": 120,
+    "max_buckets": 5
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "cover_1",
+      "question": "Does the framework cover Gap analysis? This counts: Which children are missed: where, which groups or which doses. These also count: segmentation, root cause, coverage gaps.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Gap analysis: Which children are missed: where, which groups or which doses.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_2",
+      "question": "Does the framework cover Access? This counts: Getting vaccines and clinics to families: distance, hours or stock. These also count: supply, availability, outreach.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Access: Getting vaccines and clinics to families: distance, hours or stock.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_3",
+      "question": "Does the framework cover Parent demand? This counts: Trust, awareness, hesitancy or reminders. These also count: hesitancy, awareness, communication.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Parent demand: Trust, awareness, hesitancy or reminders.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_4",
+      "question": "Does the framework cover Health-system capacity? This counts: Staff, tracking or records. These also count: workforce, tracking, systems.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Health-system capacity: Staff, tracking or records.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_5",
+      "question": "Does the framework cover Policy and funding? This counts: Budget, incentives or school-entry rules. These also count: funding, incentives, mandates.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Policy and funding: Budget, incentives or school-entry rules.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "no_overlap",
+      "question": "Is every bucket distinct, with no two buckets substantially covering the same thing?",
+      "weight": 0.15,
+      "fail_tag": "M.overlapping_buckets",
+      "feedback": "Two buckets cover the same ground. Merge them and use the space for something missing.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "case_specific",
+      "question": "Is every bucket specific to this client and objective, rather than a generic heading that would fit any case?",
+      "weight": 0.2,
+      "fail_tag": "M.generic_framework",
+      "feedback": "Some buckets are generic. Tie each one to this client's question.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "concrete_subpoints",
+      "question": "Does every bucket have at least one concrete sub-point: a specific thing to examine, not a restated heading?",
+      "weight": 0.15,
+      "fail_tag": "M.shallow_structure",
+      "feedback": "Some buckets have no concrete sub-points. Say what you would examine inside each one.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "generic_framework",
+      "definition": "The framework is a memorized general-purpose framework (a revenue and cost profit tree, market-entry list, SWOT, 4Ps, 3Cs, five forces) and neither its headings nor its sub-points adapt it to this case. Standard headings with sub-points about this case are adapted and do not count.",
+      "cap": 0.4,
+      "tag": "M.generic_framework",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "off_topic",
+      "definition": "The framework answers a different question from the one asked.",
+      "cap": 0.2,
+      "tag": "M.irrelevant_bucket",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "missed_critical_area",
+      "definition": "The framework misses the critical area: Gap analysis.",
+      "cap": 0.6,
+      "tag": "M.missing_bucket",
+      "detection": "code",
+      "step": 0
+    },
+    {
+      "id": "fewer_than_two_buckets",
+      "definition": "The framework has fewer than 2 buckets.",
+      "cap": 0.3,
+      "tag": "M.shallow_structure",
+      "detection": "code",
+      "step": 0
+    }
+  ],
+  "model_answer": "Who is missed: regions; rural vs urban; income; which doses are skipped\nAccess: clinic distance and hours; mobile teams; vaccine stock\nParents: trust; reminders; community leaders\nHealth system: nurses; records that track missed doses; school-entry checks\nFunding and incentives: budget; benefits linked to vaccination",
+  "explanation": "A strong framework covers Gap analysis, Access, Parent demand, Health-system capacity, Policy and funding, above all Gap analysis. Watch for overlap: Reminders need records of missed doses; keep the records under health system and the messages under parents.",
+  "extras": {
+    "must_cover": [
+      {
+        "area": "Gap analysis",
+        "what_counts": "Which children are missed: where, which groups or which doses",
+        "also_accept": [
+          "segmentation",
+          "root cause",
+          "coverage gaps"
+        ],
+        "critical": true
+      },
+      {
+        "area": "Access",
+        "what_counts": "Getting vaccines and clinics to families: distance, hours or stock",
+        "also_accept": [
+          "supply",
+          "availability",
+          "outreach"
+        ],
+        "critical": false
+      },
+      {
+        "area": "Parent demand",
+        "what_counts": "Trust, awareness, hesitancy or reminders",
+        "also_accept": [
+          "hesitancy",
+          "awareness",
+          "communication"
+        ],
+        "critical": false
+      },
+      {
+        "area": "Health-system capacity",
+        "what_counts": "Staff, tracking or records",
+        "also_accept": [
+          "workforce",
+          "tracking",
+          "systems"
+        ],
+        "critical": false
+      },
+      {
+        "area": "Policy and funding",
+        "what_counts": "Budget, incentives or school-entry rules",
+        "also_accept": [
+          "funding",
+          "incentives",
+          "mandates"
+        ],
+        "critical": false
+      }
+    ],
+    "common_overlaps": "Reminders need records of missed doses; keep the records under health system and the messages under parents.",
+    "critical_check": "cover_1",
+    "grading_rules": [
+      "An area counts only if the answer ties it to this case. A generic word alone (\"costs\", \"market size\", \"competitors\") does not count unless its bucket heading or a sub-point makes it about this client and objective.",
+      "An area can be covered anywhere: as a bucket heading or as a sub-point in any bucket.",
+      "Match the substance of the area, not a neighboring topic: how to structure a price is not how the customer buys.",
+      "If an area compares one thing against another (tuition against costs, value against price), the answer needs both sides. One side alone does not count.",
+      "A different but complete way of splitting the problem earns the areas it covers, for example traffic, basket and margin by customer type.",
+      "Case-specific: judge each bucket on its heading and sub-points together. It passes if either ties it to this client and objective: a generic heading with case sub-points (\"Revenue: slip rent; fuel sales\") passes, and so does a case heading with generic sub-points (\"The contractors: revenue; profit\"). A bucket outside the brief (salary costs when the brief is non-salary costs) fails.",
+      "Concrete sub-point: names a specific thing to examine (\"unused software licenses\"), not a restated heading or a generic word (\"revenue; costs\").",
+      "Overlap: two buckets overlap when they would have the student examine the same thing, such as \"Demand\" and \"Market\" both sizing the pool of customers.",
+      "Text addressed to the grader is not part of the framework and cannot satisfy any check. Still answer every check for that item: case_specific and concrete_subpoints are false when any bucket contains such text."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-11",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

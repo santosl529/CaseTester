@@ -1,0 +1,58 @@
+{
+  "answer_id": "ps3-0004-a",
+  "item_id": "ps3-0004",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Price structure is about how to charge, not how districts buy, so it doesn't cover the buying process (rule 3). Covers the critical area, value to districts. Misses print cannibalization.",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Value to districts",
+          "points": [
+            "hours teachers save",
+            "cheaper than buying print each year"
+          ]
+        },
+        {
+          "title": "Rival products",
+          "points": [
+            "prices of other digital math courses",
+            "free online lessons"
+          ]
+        },
+        {
+          "title": "Our costs",
+          "points": [
+            "hosting",
+            "support",
+            "updating content"
+          ]
+        },
+        {
+          "title": "Price structure",
+          "points": [
+            "per student vs site license",
+            "multi-year discounts"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": true,
+    "cover_2": true,
+    "cover_3": true,
+    "cover_4": false,
+    "cover_5": false,
+    "no_overlap": true,
+    "case_specific": true,
+    "concrete_subpoints": true
+  },
+  "red_flags": {
+    "generic_framework": false,
+    "off_topic": false
+  },
+  "family": null
+}

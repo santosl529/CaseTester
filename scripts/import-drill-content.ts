@@ -29,6 +29,9 @@ for (const item of items) {
       kept++;
       continue;
     }
+    // Same case and model answer: keep the review record (drafting model,
+    // similarity check). A changed case starts over and is checked again.
+    if (existing.prompt === item.prompt && existing.model_answer === item.model_answer) item.authorship = existing.authorship;
   }
   if (!dryRun) {
     fs.mkdirSync(path.dirname(file), { recursive: true });

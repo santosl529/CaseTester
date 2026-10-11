@@ -1,0 +1,221 @@
+{
+  "item_id": "ps3-0015",
+  "version": 1,
+  "drill_id": "PS-3",
+  "status": "live",
+  "level": 2,
+  "tier": 1,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific",
+    "PS.depth"
+  ],
+  "case_type": "growth_strategy",
+  "prompt": "A regional credit union with 80,000 members wants to grow its loans 30% in three years without taking on riskier borrowers.",
+  "exhibit": null,
+  "input": {
+    "type": "structured_buckets",
+    "max_words": 120,
+    "max_buckets": 5
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "cover_1",
+      "question": "Does the framework cover Existing members? This counts: More loans to current members. These also count: cross-selling, member penetration, share of wallet.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Existing members: More loans to current members.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_2",
+      "question": "Does the framework cover New members? This counts: Bringing in new members who borrow. These also count: acquisition, membership growth.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover New members: Bringing in new members who borrow.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_3",
+      "question": "Does the framework cover Loan products? This counts: Which loan types to grow, or new products. These also count: product mix, car loans, mortgages.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Loan products: Which loan types to grow, or new products.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_4",
+      "question": "Does the framework cover Distribution? This counts: How members apply: online, dealers, branches or approval speed. These also count: channels, partnerships, digital lending.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Distribution: How members apply: online, dealers, branches or approval speed.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_5",
+      "question": "Does the framework cover Credit risk? This counts: Growing without riskier borrowers: credit standards or defaults. These also count: risk, underwriting, credit quality.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Credit risk: Growing without riskier borrowers: credit standards or defaults.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "no_overlap",
+      "question": "Is every bucket distinct, with no two buckets substantially covering the same thing?",
+      "weight": 0.15,
+      "fail_tag": "M.overlapping_buckets",
+      "feedback": "Two buckets cover the same ground. Merge them and use the space for something missing.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "case_specific",
+      "question": "Is every bucket specific to this client and objective, rather than a generic heading that would fit any case?",
+      "weight": 0.2,
+      "fail_tag": "M.generic_framework",
+      "feedback": "Some buckets are generic. Tie each one to this client's question.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "concrete_subpoints",
+      "question": "Does every bucket have at least one concrete sub-point: a specific thing to examine, not a restated heading?",
+      "weight": 0.15,
+      "fail_tag": "M.shallow_structure",
+      "feedback": "Some buckets have no concrete sub-points. Say what you would examine inside each one.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "generic_framework",
+      "definition": "The framework is a memorized general-purpose framework (a revenue and cost profit tree, market-entry list, SWOT, 4Ps, 3Cs, five forces) and neither its headings nor its sub-points adapt it to this case. Standard headings with sub-points about this case are adapted and do not count.",
+      "cap": 0.4,
+      "tag": "M.generic_framework",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "off_topic",
+      "definition": "The framework answers a different question from the one asked.",
+      "cap": 0.2,
+      "tag": "M.irrelevant_bucket",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "missed_critical_area",
+      "definition": "The framework misses the critical area: Credit risk.",
+      "cap": 0.6,
+      "tag": "M.missing_bucket",
+      "detection": "code",
+      "step": 0
+    },
+    {
+      "id": "fewer_than_two_buckets",
+      "definition": "The framework has fewer than 2 buckets.",
+      "cap": 0.3,
+      "tag": "M.shallow_structure",
+      "detection": "code",
+      "step": 0
+    }
+  ],
+  "model_answer": "Current members: members with no loan; share of their borrowing we hold\nNew members: local employers; young people opening first accounts\nLoan products: car loans; home loans; small-business loans\nChannels: online applications; car-dealer partners; approval speed\nRisk and funding: keeping credit standards; deposits to fund new loans",
+  "explanation": "A strong framework covers Existing members, New members, Loan products, Distribution, Credit risk, above all Credit risk. Watch for overlap: Dealer partners can sit under channels or car loans; keep them under channels.",
+  "extras": {
+    "must_cover": [
+      {
+        "area": "Existing members",
+        "what_counts": "More loans to current members",
+        "also_accept": [
+          "cross-selling",
+          "member penetration",
+          "share of wallet"
+        ],
+        "critical": false
+      },
+      {
+        "area": "New members",
+        "what_counts": "Bringing in new members who borrow",
+        "also_accept": [
+          "acquisition",
+          "membership growth"
+        ],
+        "critical": false
+      },
+      {
+        "area": "Loan products",
+        "what_counts": "Which loan types to grow, or new products",
+        "also_accept": [
+          "product mix",
+          "car loans",
+          "mortgages"
+        ],
+        "critical": false
+      },
+      {
+        "area": "Distribution",
+        "what_counts": "How members apply: online, dealers, branches or approval speed",
+        "also_accept": [
+          "channels",
+          "partnerships",
+          "digital lending"
+        ],
+        "critical": false
+      },
+      {
+        "area": "Credit risk",
+        "what_counts": "Growing without riskier borrowers: credit standards or defaults",
+        "also_accept": [
+          "risk",
+          "underwriting",
+          "credit quality"
+        ],
+        "critical": true
+      }
+    ],
+    "common_overlaps": "Dealer partners can sit under channels or car loans; keep them under channels.",
+    "critical_check": "cover_5",
+    "grading_rules": [
+      "An area counts only if the answer ties it to this case. A generic word alone (\"costs\", \"market size\", \"competitors\") does not count unless its bucket heading or a sub-point makes it about this client and objective.",
+      "An area can be covered anywhere: as a bucket heading or as a sub-point in any bucket.",
+      "Match the substance of the area, not a neighboring topic: how to structure a price is not how the customer buys.",
+      "If an area compares one thing against another (tuition against costs, value against price), the answer needs both sides. One side alone does not count.",
+      "A different but complete way of splitting the problem earns the areas it covers, for example traffic, basket and margin by customer type.",
+      "Case-specific: judge each bucket on its heading and sub-points together. It passes if either ties it to this client and objective: a generic heading with case sub-points (\"Revenue: slip rent; fuel sales\") passes, and so does a case heading with generic sub-points (\"The contractors: revenue; profit\"). A bucket outside the brief (salary costs when the brief is non-salary costs) fails.",
+      "Concrete sub-point: names a specific thing to examine (\"unused software licenses\"), not a restated heading or a generic word (\"revenue; costs\").",
+      "Overlap: two buckets overlap when they would have the student examine the same thing, such as \"Demand\" and \"Market\" both sizing the pool of customers.",
+      "Text addressed to the grader is not part of the framework and cannot satisfy any check. Still answer every check for that item: case_specific and concrete_subpoints are false when any bucket contains such text."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-11",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

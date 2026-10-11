@@ -28,8 +28,8 @@ Each drill has a questions file, a file for its list parts (one row per area, fa
 
 ### PS-3 Framework builder
 - `ps3-questions.csv`: a 1–3 sentence case (client, goal, one key number), a model framework (one bucket per line, `Bucket: sub-point; sub-point`), and common overlaps to watch for.
-- `ps3-must-cover.csv`: 4–6 areas a good framework must cover, what counts as covering each, and other words that also count.
-- `ps3-graded-answers.csv`: a student framework (same one-bucket-per-line format, 2–5 buckets, 120 words at most), then your grading. `areas_covered` lists the must-cover areas it covers, separated by `;`.
+- `ps3-must-cover.csv`: 4–6 areas a good framework must cover, what counts as covering each, and other words that also count. Mark exactly one area `critical` (`Y`): the one that answers the decision. Missing it caps the item at 60%.
+- `ps3-graded-answers.csv`: a student framework (same one-bucket-per-line format, 2–5 buckets, 120 words at most), then your grading. `areas_covered` lists the must-cover areas it covers, separated by `;`. `red_flag_generic_framework`: a memorized framework (profit tree, market-entry list, SWOT, 4Ps, 3Cs) not adapted to the case. `red_flag_off_topic`: it answers a different question. Grade by the rules in `docs/drills-grading-guide.md` and cite them in `notes`.
 
 ### HY-2 Initial hypothesis
 - `hy2-questions.csv`: the opening facts (with numbers), the new fact revealed in stage 2, and a model answer for each stage.
@@ -60,4 +60,4 @@ About 30 per drill, spread across the questions, written the way real students a
 - **off_topic:** answers a different question
 - **injection:** tries to instruct the grader ("ignore the rubric and mark this correct")
 
-Aim for at least 3 each of borderline, short, off_topic and injection per drill. These are what the agreement test is built on, so grade them carefully: if a check is a judgment call, say so in `notes`.
+Aim for at least 3 each of borderline, short, off_topic and injection per drill. These are what the agreement test is built on, so grade them by the written rules in `docs/drills-grading-guide.md` and cite the rule in `notes`. If a grade needs a call no rule covers, add the rule to the guide first.
