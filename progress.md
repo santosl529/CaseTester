@@ -1,14 +1,39 @@
 # Drills branch progress
 
-## Where things stand (updated 2026-10-11) — start here
+## Start here (updated 2026-10-11)
 
-Live: all Level 1 drills (PS-1, HY-1, EX-1, SY-1, CL-1) and all five D2 drills (PS-3, HY-2, SY-2, CL-3, QN-5). Shared CaseTester database, in sync with /drill-items. Grader `drills-grader-v19`, one call per answer (HY-2: plus a stage-1-only family call).
+**Status.** All 15 MVP drills are live: ten at Level 1 (PS-1, HY-1, EX-1, SY-1, CL-1, plus generated QN-1, QN-3, QN-4, EX-2, EX-3) and the five D2 drills (PS-3, HY-2, SY-2, CL-3, QN-5). Phases D0–D2 are done. Everything is committed and pushed to `drills`. Database (shared CaseTester Supabase project) is in sync with `/drill-items`.
 
-Open items, in order:
-1. **D3 (the loop) is on hold: do not start until Matt says so** (Matt, 2026-10-11).
-2. When content changes: re-run `npm run drills:golden`, `npm run drills:models -- --runs 3` and `npm run drills:smoke:d2`; changing the stored shape of a key needs a re-seed or new versions before grading works on it.
+**Do not start D3 until Matt says so** (Matt, 2026-10-11). Wait for his instruction.
 
-How Matt likes to work: plain, short explanations; he reviews items on `drill-review.html` (`npm run drills:review`, "Waiting for your review" box) and sends decisions by item ID; commit and push to `drills` when asked (GitHub push works).
+**What's left to build** (docs/prd-drills.md, "Build phases"):
+- D3 The loop: progress engine (skill states, tiers, reviews), prescription engine (uses the mistake-tag severities in `taxonomy.v1.json`), case-results ingestion, training home with Continue Training, skill profile, next-case card. Real case results need the case grader (on `main`) to emit the new payload; that work is deferred, so test with fixture payloads.
+- D4 Pilot launch: analytics events and reports, WCAG 2.1 AA audit, pilot with the university club.
+- P1: PS-2, QN-2, BJ-1, BJ-2, CR-1, CL-2, diagnostic sampler, grade disputes, 360 px support.
+- Open PRD questions for Matt: what "meeting the bar" means per case tier (needed for next-case selection); whether 80% on two consecutive sets is the right Mastered bar.
+- Merging `drills` into `main`: coordinate migration numbering with the teammate (see Database notes).
+
+**How the AI-graded drills work** (details in the history below):
+- Content source: CSVs in `docs/drills-content/` (templates and README in `docs/drills-content-templates/`). `npm run drills:import -- docs/drills-content` writes `/drill-items` (questions) and `/drill-golden` (graded sample answers). Edit the CSVs, not the JSON, for drafts; a live item needs a new version (edit the JSON, bump `version`, status draft; Matt approves).
+- Grading: `lib/drills/grading/grader.ts`, Haiku 4.5, temperature 0, prompt version `drills-grader-v19`. One call per answer, all under the neutral label "answer", so a score never depends on other answers or position. HY-2 also makes a stage-1-only call to classify the hypothesis family. Code settles what it can (`lib/drills/grading/apply.ts`): caps, the PS-3 no-overlap gate, injection backstop, critical area/driver caps, SY-2 first-sentence and fact-sheet-number checks.
+- Grading rules: `docs/drills-grading-guide.md`. The rules marked (grader) are sent to the grader word for word from `PS3/HY2/SY2/CL3_GRADING_RULES` in `lib/drills/checklists.ts`; a test keeps them identical. When a grade needs a call no rule covers, add a rule first.
+- All 123 graded sample answers were written by Claude and reviewed by Matt (his label changes are applied).
+
+**Checks to run after any content or grader change** (all paid, need API credit):
+- `npm run drills:similarity -- <ids>` for new or changed questions (~$0.12 each; changed prompts/model answers reset the result).
+- `npm run drills:golden -- --drill <ID>`: agreement gate, every check ≥90% (~$0.12–0.20 per drill).
+- `npm run drills:models -- --runs 3`: every model answer must score 100% with no change between runs (~$1.80).
+- `npm run drills:smoke:d2`: end to end against the real database (cents).
+- Free: `npm run typecheck`, `npm test` (includes the model-answer unit test and the cross-drill scenario check), `npm run lint`, then `npm run db:seed-drill-items`.
+
+**Gotchas:**
+- Changing the stored shape of an answer key breaks grading for items already in the database until re-seeded (live items need new versions).
+- Each grader-wording change shifts a few borderline answers; re-run the gates and `drills:models`.
+- Never name a source for a QN-5 figure unless it has been looked up (add the link); otherwise write it as reasoning.
+- One case, one drill: the scenario check (`scenarioOverlaps`) flags shared scenarios across all drills; record genuine non-overlaps in `drill-items/scenario-reviewed.json` with a reason.
+- API credit must be in the Anthropic organization that owns the key in `.env.local`. Never read or print the key.
+
+**How Matt likes to work:** plain, short explanations; reviews content as CSVs in Numbers (`docs/drills-content/`) and sends decisions by item ID; wants judgment calls flagged, not made silently; commit and push to `drills` only when asked.
 
 ## Database notes
 
@@ -19,6 +44,8 @@ How Matt likes to work: plain, short explanations; he reviews items on `drill-re
 - Migrations from the `drills` branch are allowed on the shared project **only if they are additive**: new tables, new enum types, new columns on drills tables. Never drop, rename or change the shape of anything `main`'s code uses.
 - Before any `db:migrate`, read the new migration's SQL and confirm it is additive.
 - At merge time, keep the drills migration files (0009, 0010, …) as they are; they are already applied on the shared project. Don't delete and regenerate them, or drizzle will try to create tables that already exist. If `main` has added its own migrations by then, coordinate the numbering with the teammate first.
+
+# History (oldest first)
 
 ## D2 (AI-graded drills)
 
