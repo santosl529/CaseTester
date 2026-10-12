@@ -1,6 +1,6 @@
 # Batch 20 — Sonnet 5.5 vs Haiku 5.5, head to head (plan, 12 Oct 2026)
 
-Status: **plan only — nothing launched, $0 spent.** Each wave needs its own
+Status: **approved 12 Oct (layout A, batch 19 frozen, blind review built) — no wave launched.** Each wave needs its own
 explicit go-ahead (one wave at a time, no chaining).
 
 ## Why
@@ -41,23 +41,23 @@ later with `live-run --finish=<sessionId>`).
 
 8 × 2 arms × 2 runs = **32 runs**.
 
-## Batch layout (decision needed)
+## Batch layout (decided: A)
 
 The manifest freezes one interviewer per batch version, and batch names must
 match `batch-N`. Two ways to keep the arms apart:
 
-- **A (recommended, small code change):** allow a suffix — `batch-20-haiku`
+- **A (chosen; built):** allow a suffix — `batch-20-haiku`
   and `batch-20-sonnet` (`assertBatchOpen`'s pattern becomes
   `^batch-\d+(?:-[a-z0-9]+)?$`, with a test). Each arm has its own manifest
   and ledger; the comparison is "batch 20" by name.
 - **B (no code):** `batch-20` = Haiku, `batch-21` = Sonnet.
 
-Either way: also freeze `batch-19` (`FROZEN_BATCHES`) so its records can't take
-a new wave by accident.
+`batch-19` is frozen too (`FROZEN_BATCHES`), so its records can't take a new
+wave by accident.
 
 ## Tooling to build before wave 1 (free; must be committed first — `scripts/` and `lib/` are in the code freeze, so a change after wave 1 splits the batch)
 
-1. **Blind review sheets** — `scripts/blind-review.ts`: reads the 32 runs (both
+1. **Blind review sheets (built)** — `scripts/blind-review.ts`: reads the 32 runs (both
    arms), assigns each a random code (`R01`…`R32`, shuffled with a seed
    kept in the key file), and writes one sheet per run
    (`batch-20-blind/R07.md`): per turn the candidate's message and what was
@@ -136,20 +136,20 @@ With layout A (`batch-20-haiku` / `batch-20-sonnet`):
 caffeinate -i npx tsx --env-file=.env.local scripts/persona-batch.ts --batch=batch-20-haiku --interviewer=haiku55-thinking-off --personas=15,40,54,51,10,6,7 --cap=7.5 --no-score
 mkdir -p "Case Interview Runs/test runs/batch-20-haiku"
 INTERVIEWER_EVAL_CONFIG=haiku55-thinking-off LLM_BUDGET_USD=7.5 LLM_BUDGET_FILE="$PWD/Case Interview Runs/test runs/batch-20-haiku/budget-ledger.jsonl" \
-  caffeinate -i npx tsx --env-file=.env.local scripts/live-run.ts --pace=human --no-score
+  caffeinate -i npx tsx --env-file=.env.local scripts/live-run.ts --batch-id=batch-20-haiku --pace=human --no-score
 
 # wave 2 — Sonnet, run 1
 caffeinate -i npx tsx --env-file=.env.local scripts/persona-batch.ts --batch=batch-20-sonnet --interviewer=sonnet55-baseline --personas=15,40,54,51,10,6,7 --cap=7.5 --no-score
 mkdir -p "Case Interview Runs/test runs/batch-20-sonnet"
 INTERVIEWER_EVAL_CONFIG=sonnet55-baseline LLM_BUDGET_USD=7.5 LLM_BUDGET_FILE="$PWD/Case Interview Runs/test runs/batch-20-sonnet/budget-ledger.jsonl" \
-  caffeinate -i npx tsx --env-file=.env.local scripts/live-run.ts --pace=human --no-score
+  caffeinate -i npx tsx --env-file=.env.local scripts/live-run.ts --batch-id=batch-20-sonnet --pace=human --no-score
 
 # waves 3 and 4 — the same commands with --rerun on persona-batch, and the default-candidate live-run again
 ```
 
 (The default-candidate live-run writes to `Case Interview Runs/default-candidate/`;
-the blind-review script picks those four runs up by session id from the
-wave's start time. Run it in a second terminal alongside the wave — 8
+`--batch-id` records the arm in its turn file, which is how the blind-review
+script picks those four runs up. Run it in a second terminal alongside the wave — 8
 concurrent, under the 10 that works.)
 
 Before wave 1: `--dry` on both persona-batch commands (no spend) to check
@@ -157,7 +157,10 @@ the plan, the model config and the cap.
 
 ## After the waves
 
-1. Run `scripts/blind-review.ts`; grade the 32 sheets blind into `grading.csv`.
+1. `npx tsx scripts/blind-review.ts --arms=batch-20-haiku,batch-20-sonnet` →
+   `Case Interview Runs/test runs/batch-20-blind/` (R01–R32.md, grading.csv,
+   KEY.json); grade the 32 sheets blind into `grading.csv`. (Tried on batch
+   19's 23 runs into a scratch folder: no sheet named a model.)
 2. Unblind with `KEY.json`; compute per-arm fault rates per turn, serious
    failures per run, and the computed counts and latency above.
 3. Decision input: keep Haiku 5.5, return to Sonnet 5.5, or keep Haiku with
@@ -167,6 +170,5 @@ the plan, the model config and the cap.
 
 `replay-output-format.ts`'s `model-ab` arm with an effort override (Haiku
 effort low vs medium) on 50 saved turns, warm + measured per arm: ~200 Haiku
-calls ≈ **$0.15–0.30**. Needs a small script change (an effort field on the
-A/B arm) — build it before batch-20 wave 1 (code freeze) or after the batch
-is complete.
+calls ≈ **$0.15–0.30**. Built: `REPLAY_ARM=effort-ab` (arms `haiku55-none-medium`, `haiku55-none-low`,
+`sonnet55`; override with `REPLAY_MODELS`).

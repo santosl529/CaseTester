@@ -152,7 +152,20 @@ describe('batches after batch 18, and the interviewer model check', () => {
     expect(() => planWave(w.manifest, { ...base, batch: 'batch-20', personaIds: [3] })).toThrow(/batch-19's, not batch-20's/);
     expect(() => assertBatchOpen('batch-18')).toThrow(/frozen/);
     expect(() => assertBatchOpen('')).toThrow(/must look like batch-19/);
-    expect(() => assertBatchOpen('batch-19')).not.toThrow();
+    expect(() => assertBatchOpen('batch-20')).not.toThrow();
+  });
+
+  // 12 Oct (batch-20 plan): one interviewer per batch version, so a head to
+  // head runs each arm as its own suffixed batch; batch 19 is frozen too.
+  it('a suffixed batch is one arm of a comparison; batch 19 is frozen like batch 18', async () => {
+    const { assertBatchOpen } = await import('@/lib/eval/batch-manifest');
+    expect(() => assertBatchOpen('batch-20-haiku')).not.toThrow();
+    expect(() => assertBatchOpen('batch-20-sonnet')).not.toThrow();
+    expect(() => assertBatchOpen('batch-19')).toThrow(/frozen/);
+    expect(() => assertBatchOpen('batch-19-haiku')).toThrow(/frozen/);
+    for (const bad of ['batch-20-', 'batch-20_haiku', 'batch-20-Haiku', 'batch-20-haiku-oct-12-runs-1-7', 'batch-x']) expect(() => assertBatchOpen(bad), bad).toThrow(/must look like/);
+    const w = planWave(null, { ...base, batch: 'batch-20-haiku', personaIds: [15, 40] });
+    expect(w.wave).toMatch(/^batch-20-haiku-[a-z]{3}-\d{2}-runs-1-2$/);
   });
 
   it('records requested and returned interviewer models per run; a mismatch fails the run', () => {

@@ -38,13 +38,18 @@ export function waveFolderName(date: Date, firstRun: number, lastRun: number, ba
   return `${batch}-${MONTHS[date.getMonth()]}-${String(date.getDate()).padStart(2, '0')}-runs-${firstRun}-${lastRun}`;
 }
 
-// Batches whose records are a frozen baseline: no new waves (11 Oct — batch
-// 18 is the Sonnet 5.5 baseline; the Haiku 5.5 evaluation is a new batch).
-export const FROZEN_BATCHES: ReadonlySet<string> = new Set(['batch-18']);
+// Batches whose records are frozen: no new waves, suffixed arms included
+// (11 Oct — batch 18 is the Sonnet 5.5 baseline; 12 Oct — batch 19, the Haiku
+// 5.5 validation the outside review read, stays as it was).
+export const FROZEN_BATCHES: ReadonlySet<string> = new Set(['batch-18', 'batch-19']);
 
+// "batch-N", or one arm of a head to head, "batch-N-<arm>" (12 Oct: a batch
+// version freezes one interviewer, so batch 20's Sonnet and Haiku arms are
+// batch-20-sonnet and batch-20-haiku).
 export function assertBatchOpen(batch: string): void {
-  if (!/^batch-\d+$/.test(batch)) throw new Error(`batch name "${batch}" must look like batch-19`);
-  if (FROZEN_BATCHES.has(batch)) throw new Error(`${batch} is frozen (the Sonnet 5.5 baseline) — run new waves under a new batch: --batch=<batch-N>`);
+  const m = /^(batch-\d+)(?:-[a-z0-9]+)?$/.exec(batch);
+  if (!m) throw new Error(`batch name "${batch}" must look like batch-19 or batch-20-haiku`);
+  if (FROZEN_BATCHES.has(m[1])) throw new Error(`${m[1]} is frozen — run new waves under a new batch: --batch=<batch-N>`);
 }
 
 export function planWave(m: Manifest | null, p: {

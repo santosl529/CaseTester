@@ -661,6 +661,10 @@ const CHALLENGERS: Record<string, () => InterviewerModel> = {
   // Haiku 5.5 (8 Oct): thinking explicitly disabled, effort medium (its default),
   // no fallbacks (it has no server-side fallback). Not between_tools.
   'haiku55-none-medium': () => new AnthropicInterviewerModel('claude-haiku-5-5', 'state-in-system', { thinking: 'disabled', effort: 'medium', fallbacks: false }),
+  // 12 Oct (batch-19 review, optional): Haiku 5.5's first token is ~1.1s live,
+  // no faster than Sonnet's — effort low against medium, Sonnet as reference.
+  'haiku55-none-low': () => new AnthropicInterviewerModel('claude-haiku-5-5', 'state-in-system', { thinking: 'disabled', effort: 'low', fallbacks: false }),
+  'sonnet55': () => new AnthropicInterviewerModel('claude-sonnet-5-5', 'state-in-system', { thinking: 'between_tools', fallbacks: true }),
   // Qwen 3.8 27B on Cerebras (8 Oct): reasoning off ("none"; the model's default is high).
   'qwen38-none': () => new CerebrasInterviewerModel('qwen-3.8-27b', 'none'),
   'qwen38-low': () => new CerebrasInterviewerModel('qwen-3.8-27b', 'low'),
@@ -705,7 +709,7 @@ async function main() {
   }
   const estCost = samples.reduce((n, s) => n + (buildSystemPrompt(s.ctx).length + s.history.reduce((m, h) => m + h.content.length, 0)) / 3.6, 0) * 2 / 1e6;
   console.log(`${all.length} reconstructable turns · sampling ${samples.length} · rough Sonnet input estimate ~$${estCost.toFixed(2)} (the run budget meters actual spend)`);
-  if (ARM === 'compact-ab' || ARM === 'model-ab' || ARM === 'screen-review') {
+  if (ARM === 'compact-ab' || ARM === 'model-ab' || ARM === 'screen-review' || ARM === 'effort-ab') {
     // Stratified by stage, weighted to where requests and math happen, and
     // spread over sessions within a stage (the first N are one session's
     // opening turns).
@@ -753,7 +757,15 @@ async function main() {
       screenReview(rows, spread, 'sonnet', Object.keys(rows[0].runs), process.env.REPLAY_TAG ?? 'saved');
       return;
     }
-    const arms: AbArm[] = ARM === 'compact-ab'
+    // REPLAY_ARM=effort-ab (12 Oct): REPLAY_MODELS arms only (default Haiku
+    // medium, Haiku low, Sonnet), the first the baseline; timings side by side.
+    const named = (n: string): AbArm => {
+      if (!CHALLENGERS[n]) throw new Error(`unknown REPLAY_MODELS entry ${n} (have ${Object.keys(CHALLENGERS).join(', ')})`);
+      return { name: n, model: CHALLENGERS[n](), promptVariant: 'full' };
+    };
+    const arms: AbArm[] = ARM === 'effort-ab'
+      ? (process.env.REPLAY_MODELS ?? 'haiku55-none-medium,haiku55-none-low,sonnet55').split(',').map(named)
+      : ARM === 'compact-ab'
       ? [{ name: 'full', model, promptVariant: 'full' }, { name: 'compact', model, promptVariant: 'compact' }]
       : [{ name: 'sonnet', model, promptVariant: 'full' }, ...(process.env.REPLAY_MODELS ?? 'luna-none,sol-none,gemini-low').split(',').map(n => {
         if (!CHALLENGERS[n]) throw new Error(`unknown REPLAY_MODELS entry ${n} (have ${Object.keys(CHALLENGERS).join(', ')})`);
