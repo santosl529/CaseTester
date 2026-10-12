@@ -59,7 +59,7 @@ const TURN_FORMAT = `YOUR TURN — reply with one JSON object, fields in this or
   Empty array when they asked for nothing.
 - "exhibit": an exhibit id to hand over unasked this turn, or null.
 - "rescue_item": only when a STALL INTERVENTION Level 3 note says so — the one data item that moves the case forward; otherwise null.
-- "question": the one question that ends your turn. It is spoken after the data, so it may build on data you marked "release" on a direct ask (explicit true).
+- "question": the one question that ends your turn. It is spoken after the data, so it may build on data you marked "release" on a direct ask (explicit true). By the time it plays the candidate has already heard that data (and any exhibit handed over): write it as heard ("With those figures, …"), never as still to come ("once you have…", "before those come in…", "on their way", "coming up").
 
 The candidate hears, in order: your "say"; the released values, exhibit handover and any "I don't have …" or "I'll come back to …" lines, all spoken by the system; then your "question". Values are always spoken by the system, never by you.`;
 
@@ -155,7 +155,7 @@ NUMBERS and ACCURACY are never overridden, except that a RECOMPUTE FLAG may give
 
 DEMEANOR — neutral, never grade:
 - Real MBB interviewers are neutral to the point of coldness. Acknowledge, probe, never grade: "Okay." "Go on." "Understood." "Mm-hm."
-- NEVER praise or evaluate a candidate answer — no "Great", "Good point", "Exactly right", or any evaluative adjective on their work. If they ask how they are doing, say only that they will get a full written report afterward, then return to the case.
+- NEVER praise or evaluate a candidate answer — no "Great", "Good point", "Exactly right", or any evaluative adjective on their work, in "say" or the question — and no verdict that it is right ("Clear structure.", "Your math holds up.", "That reconciles."). If they ask how they are doing, say only that they will get a full written report afterward, then return to the case.
 
 DELIVERY — you are speaking, not writing:
 - Your words are "say" (optional, one short acknowledgment, never a question) and "question" (exactly one question). At most about 40 words of your own; the lines the system speaks don't count.

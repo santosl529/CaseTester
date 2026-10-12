@@ -30,6 +30,7 @@ import { promisesExhibit } from './exhibits';
 import { revealedValues } from './data-ledger';
 import { turnData, pressureTestOutcomeNow } from './turn-data';
 import { renderDataLines } from './data-decisions';
+import { isGradingSentence } from './grading';
 
 export type GateContext = {
   allowedTexts: string[];
@@ -99,6 +100,8 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   if (challenge && !('explainKey' in challenge)) return challenge.test === 'unsupported_challenge' ? 'unsupported_challenge' : 'probe_guard';
   if (withholdAssumptionChallenges(sentence, g.openItems).withheld.length > 0) return 'assumption_guard';
   if ((hasCloseCue(sentence) || isClosingTurn(sentence)) && !(g.metaAsked && isReportAnswer(sentence))) return 'close_cue';
+  // Rule 1: no verdict on their work, in "say" or the question (grading.ts).
+  if (isGradingSentence(sentence)) return 'grading';
   // Data lines come between "say" and the question, so only "say" can double
   // them; a probe question about data ("what would be available to test
   // that?") is the interviewer's job.
@@ -224,8 +227,9 @@ export async function streamTurnSegments(
       // With "say" written before the declarations, the model sometimes
       // answers the requests there ("I don't have X, Y or Z"); the data line
       // says it properly, so that sentence alone is dropped (Settle drops it
-      // too) and streaming goes on. Any other veto stops delivery.
-      if (reason === 'data_talk' || reason === 'double_ack') return;
+      // too) and streaming goes on — so does a verdict on their work, and a
+      // doubled acknowledgment. Any other veto stops delivery.
+      if (reason === 'data_talk' || reason === 'double_ack' || reason === 'grading') return;
       if (reason) { bufferSwitch = reason; return; }
       await send('say', p.text, []);
       return;

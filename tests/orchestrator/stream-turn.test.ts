@@ -56,6 +56,12 @@ describe('vetoReason', () => {
     expect(vetoReason('Understood, that fills the gaps.', g({ acknowledged: true }))).toBe('double_ack');
     expect(vetoReason('Okay so the cost side moved.', g({ acknowledged: true }))).toBeNull();
   });
+  it('stops a verdict on their work in "say" and in the question (Rule 1, batch 19)', () => {
+    expect(vetoReason('Clear structure, with revenue and cost branches.', g())).toBe('grading');
+    expect(vetoReason('Your bean math holds up.', g(), { inQuestion: true })).toBe('grading');
+    expect(vetoReason('A cost-first split.', g())).toBeNull();
+    expect(vetoReason('Right.', g())).toBeNull();
+  });
   it('stops a fabricated candidate turn', () => expect(vetoReason('What else?\n\nuser Several levers.', g())).toBe('fabricated_turn'));
 });
 
@@ -109,6 +115,16 @@ describe('streamTurnSegments', () => {
       requests: [{ what: 'store count', itemIds: ['stores_count'], explicit: true, respond: 'release' }],
     }), undefined, sink);
     expect(got.map(s => s.text)).toEqual(['Okay.', expect.stringContaining('200 stores')]);
+    expect(out).toMatchObject({ kind: 'done', bufferSwitch: null, deliveredRevealIds: ['stores_count'] });
+  });
+
+  it('drops a verdict in "say" and keeps streaming', async () => {
+    const { got, sink } = collect();
+    const out = await run(T({
+      say: 'Clear structure, with revenue and cost branches.',
+      requests: [{ what: 'store count', itemIds: ['stores_count'], explicit: true, respond: 'release' }],
+    }), undefined, sink);
+    expect(got.map(s => s.text)).toEqual([expect.stringContaining('200 stores')]);
     expect(out).toMatchObject({ kind: 'done', bufferSwitch: null, deliveredRevealIds: ['stores_count'] });
   });
 

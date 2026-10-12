@@ -14,6 +14,8 @@
 //              the brainstorm was still owed, outside time pressure (v4.10
 //              withholds it; batch 18 predates that)
 //
+// The pending and grading detectors are Settle's own (pending-data.ts,
+// grading.ts), so a batch is measured by what the code now enforces.
 // Plus first-useful and first-token latency over model turns.
 //
 //   npx tsx scripts/review-counts.ts [--hits=pending|grading|offer] [--runs]
@@ -22,46 +24,20 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { readTurnFile } from '@/lib/eval/turn-file';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
-import { isBareAcknowledgment } from '@/lib/orchestrator/stream-turn';
+import { PENDING_DATA } from '@/lib/orchestrator/pending-data';
+import { isGradingSentence } from '@/lib/orchestrator/grading';
 import { asksRecommendationAsk, asksBrainstorm } from '@/lib/orchestrator/spoken-close';
 import { isUnderTimePressure } from '@/lib/orchestrator/pacing';
 import { TOTAL_CASE_MS } from '@/lib/orchestrator/state-machine';
 
 const ROOT = 'Case Interview Runs/test runs';
 
-// The object is data, not the candidate's own work ("once you have a number",
-// "before you rely on that", "before we use that weighted figure" stay out).
-const DATA_OBJECT = /(?:them|those|these|that|it|both|(?:the )?(?!(?:a|an|your|my|this|that)\b)[\w&' -]{0,30}?(?:figures?|numbers?|data|prices?|breakdown|split|history|change|share|percentages|line items|cost structure|count|revenue|exhibit))\b/.source;
-export const PENDING_DATA = new RegExp([
-  `\\bonce you(?:'ve| have)? (?:have|had|got|get|see|seen|read|look at|looked at|hear|heard)? ?${DATA_OBJECT}`,
-  /\bbefore (?:those|these|the|that|they|it)\b[^.?!]{0,30}\b(?:come|comes|arrive|arrives|land|lands)(?: in)?\b/.source,
-  `\\bbefore (?:we|you) (?:get to|get into|go into|look at|see|read|dig into) ${DATA_OBJECT}`,
-  /\b(?:are|is|'re|'s) on (?:their|its) way\b/.source,
-  /\bcoming (?:up|through)(?: now)?\b/.source,
-  /\b(?:you'?re|you are) about to (?:hear|see|get)\b/.source,
-  /\bwhen (?:those|these|they|the \w+) (?:come in|arrive|land)\b/.source,
-].join('|'), 'i');
-
-const GRADE = new RegExp([
-  /\b(?:clear(?:er|ly)?|clean(?:ly)?|good|great|nice|excellent|solid|strong|sound|sharp|crisp|tight|thorough|valid|reasonable|logical|well[- ](?:done|structured|reasoned))\b/.source,
-  /\b(?:that'?s|you'?re|you are|that is|it'?s|this is) (?:right|correct)\b|^right,\s|\bcorrect(?:ly)?\b/.source,
-  /\b(?:holds? up|holds? together|(?:that|it|this|math|logic|which|figure|number) holds)\b/.source,
-  /\b(?:ties? out|reconcil(?:es|ed)|checks? out|adds? up|closes? cleanly|closes the gap|makes sense|spot[- ]on|exactly right|on (?:the right )?track)\b/.source,
-  /\bholds(?=[.,!])|\bthe right (?:direction|one|question|call|instinct|place)\b|\baccounts for (?:all|the full|the whole|the entire)\b/.source,
-].join('|'), 'i');
-// A probe that only mentions a verdict word ("Walk me through whether that
-// holds…", "Suppose the pilot shows a clear gain") asks, it doesn't grade.
-const PROBE_OPENER = /^(?:walk me through|talk me through|tell me|explain|suppose|assume|say|imagine|what|how|why|which)\b/i;
-// Restating the candidate's claim back ("You said … accounts for the entire
-// decline", "…if volume holds") isn't a verdict on it.
-const RESTATEMENT = /^(?:before we go further, )?you(?:'ve)? (?:said|made clear|sized|assumed|argued)\b|\b(?:if|assuming) (?:volume|traffic|demand) holds\b/i;
-
 export function sentences(text: string): string[] {
   return text.split(/(?<=[.?!])\s+/).map(s => s.trim()).filter(Boolean);
 }
 
 export function gradingSentences(text: string): string[] {
-  return sentences(text).filter(s => !s.endsWith('?') && !isBareAcknowledgment(s) && !PROBE_OPENER.test(s) && !RESTATEMENT.test(s) && GRADE.test(s));
+  return sentences(text).filter(isGradingSentence);
 }
 
 type RunRef = { group: string; label: string; file: string };

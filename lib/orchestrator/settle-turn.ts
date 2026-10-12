@@ -33,6 +33,8 @@ import { renderDataLineParts, decisionRows } from './data-decisions';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
 import { turnData, pressureTestOutcomeNow } from './turn-data';
+import { isGradingSentence, gradingRemainder } from './grading';
+import { settlePendingData } from './pending-data';
 import { vetoReason, gateContext, isHandoverAnnouncement, isDeliveryClaim } from './stream-turn';
 import type { ModelTurn, Move } from '@/lib/agent/models/turn-schema';
 import type { TurnValidation } from '@/lib/agent/models/interface';
@@ -192,7 +194,14 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // The model's words, vetoed sentence by sentence (never rewritten).
   const withheld: { sentence: string; reason: string; field: 'say' | 'question' }[] = [];
   const keep = (text: string, field: 'say' | 'question') => {
-    const all = sentencesOf(text);
+    // A verdict that only sets up a challenge in the question keeps the
+    // challenge ("Your aggregate closes the gap, but your 37.5% was applied…"
+    // → "Your 37.5% was applied…"); any other verdict is withheld below.
+    const all = sentencesOf(text).map(s => {
+      const rest = field === 'question' && isGradingSentence(s) ? gradingRemainder(s) : null;
+      if (rest) withheld.push({ sentence: s, reason: 'grading', field });
+      return rest ?? s;
+    });
     let kept = all.filter((s, i) => {
       const reason = vetoReason(s, g, { inQuestion: field === 'question', previous: all[i - 1] });
       if (reason) withheld.push({ sentence: s, reason, field });
@@ -381,6 +390,32 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     if (stageAsked) withheld.push({ sentence: asked, reason: 'recommendation_held_for_stage', field: 'question' });
   }
   checks.record('stage_hold', Boolean(stageAsked), stageAsked ? `owed stage administered by code: ${stageAsked}` : 'no stage owed this turn', { owed: state.owedStage ?? null, kind });
+
+  // The question plays after the data line: on a turn that delivered data it
+  // must not treat it as still to come ("Once you have those figures…",
+  // "Before we get into the data:", "…on their way") — whoever wrote it, the
+  // model or code's own probe (pending-data.ts). Wording that names data still
+  // held this turn is true and stays.
+  if (!ended) {
+    const exhibitTitle = decisions.exhibit ? [decisions.exhibit.title] : [];
+    const pending = settlePendingData(question, {
+      deliveredThisTurn: figuresOut,
+      heldWhats: [...decisions.defers, ...decisions.gateDefers, ...decisions.offers],
+      releasedTexts: [
+        ...decisions.releases.flatMap(r => [r.value, caseData.dataLedger.find(i => i.id === r.id)?.label ?? '']),
+        ...decisions.restates.map(r => r.value), ...exhibitTitle,
+      ],
+    });
+    if (pending.changes.length > 0) {
+      const before = question;
+      question = pending.question ?? pickFallbackQuestion({ figuresDelivered: true, seed, last: state.lastQuestion ?? null });
+      for (const c of pending.changes) if (c.to === null) withheld.push({ sentence: c.from, reason: 'pending_data', field: 'question' });
+      // The probe on record is what was said.
+      if (pt.probe === before) pt.probe = question;
+      if (pt.followUps?.at(-1) === before) pt.followUps = [...pt.followUps.slice(0, -1), question];
+    }
+    checks.record('pending_data', pending.changes.length > 0, 'question rewritten: the data was delivered this turn', { changes: pending.changes });
+  }
 
   checks.record('vetoes', withheld.length > 0, 'sentences of the model\'s own withheld', { withheld });
   if (withheld.length > 0) console.warn('[runner] withheld:', JSON.stringify(withheld));
