@@ -9,6 +9,7 @@ import { RUBRIC_DIMENSION_KEYS } from '@/lib/scoring/rubric';
 import taxonomyJson from './config/taxonomy.v1.json';
 import drillsJson from './config/drills.v1.json';
 import rulesJson from './config/rules.v1.json';
+import programsJson from './config/programs.v1.json';
 
 const AREA_CODES = ['PS', 'HY', 'QN', 'EX', 'BJ', 'CR', 'SY', 'CM', 'CL'] as const;
 export type SkillAreaCode = (typeof AREA_CODES)[number];
@@ -171,7 +172,56 @@ export const RulesSchema = z.object({
   case_type_to_skill_area: z.record(z.string(), z.enum(AREA_CODES)),
 });
 
+const Milestone = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('plan_set') }),
+  z.object({ type: z.literal('skills'), skills: z.array(SkillId).min(1), state: z.enum(['practiced', 'mastered']) }),
+  z.object({ type: z.literal('earlier_milestones'), state: z.enum(['practiced', 'mastered']) }),
+  z.object({
+    type: z.literal('prescriptions'), state: z.enum(['practiced', 'mastered']),
+    tier3_passes: z.number().int().positive().optional(), final_case: z.boolean().optional(),
+  }),
+]);
+const TrackStart = z.enum(['recognize', 'placement', 'construct']);
+const WeekCounts = z.array(z.number().int().nonnegative()).length(7);   // weeks 0–6
+
+// The training program (PRD "Training program"): tracks, the six-week plan,
+// the Sprint days and the workout mix.
+export const ProgramsSchema = z.object({
+  version: z.string(),
+  assignment: z.object({ sprint_within_days: z.number().int().positive(), foundations_below_diagnostic: Share }),
+  availability: z.array(z.object({
+    id: z.string().min(1), label: z.string().min(1), workouts_per_week: z.number().int().positive(), default: z.boolean().optional(),
+  })).min(1),
+  workout: z.object({
+    target_minutes: z.number().positive(), sprint_target_minutes: z.number().positive(),
+    day_before_interview_minutes: z.number().positive(), min_sets: z.number().int().positive(),
+    max_sets: z.number().int().positive(), mix: z.object({ weak: Share, review: Share, unfamiliar: Share }),
+    minutes_per_item_factor: z.number().positive(), case_minutes: z.number().positive(),
+  }),
+  tracks: z.object({
+    foundations: z.object({ length_weeks: z.number().int().positive(), start: TrackStart, start_tier: z.number().int().min(1).max(3), lessons: z.enum(['auto', 'offered']), construct_gate: z.boolean(), cases_per_week: WeekCounts }),
+    standard: z.object({ length_weeks: z.number().int().positive(), start: TrackStart, start_tier: z.number().int().min(1).max(3), lessons: z.enum(['auto', 'offered']), construct_gate: z.boolean(), cases_per_week: WeekCounts }),
+    sprint: z.object({ length_days: z.number().int().positive(), start: TrackStart, start_tier: z.number().int().min(1).max(3), lessons: z.enum(['auto', 'offered']), construct_gate: z.boolean(), tiers: z.array(z.number().int().min(1).max(3)), review_only_within_days: z.number().int().nonnegative() }),
+    self_directed: z.object({ start: TrackStart, start_tier: z.number().int().min(1).max(3), lessons: z.enum(['auto', 'offered']), construct_gate: z.boolean() }),
+  }),
+  weeks: z.array(z.object({
+    week: z.number().int().nonnegative(), theme: z.string().min(1),
+    focus_areas: z.array(z.enum(AREA_CODES)), focus_skills: z.array(SkillId),
+    prefer_tier: z.number().int().min(1).max(3).optional(), transfer_all: z.boolean().optional(),
+    milestone: Milestone,
+  })),
+  sprint_days: z.array(z.object({
+    day: z.number().int().positive(),
+    activities: z.array(z.enum(['diagnostic', 'case', 'workout', 'review', 'light_review'])),
+    workout_minutes: z.number().nonnegative(), cases: z.number().int().nonnegative(),
+  })),
+  plan_prescription_priority: z.number(),
+  focus_priority_bonus: z.number(),
+  missed_milestone_bonus: z.number(),
+});
+
 export type Taxonomy = z.infer<typeof TaxonomySchema>;
+export type Programs = z.infer<typeof ProgramsSchema>;
 export type Drill = z.infer<typeof DrillsConfigSchema>['drills'][number];
 export type DrillsConfig = z.infer<typeof DrillsConfigSchema>;
 export type Rules = z.infer<typeof RulesSchema>;
@@ -182,6 +232,7 @@ export interface DrillsConfigBundle {
   taxonomy: Taxonomy;
   drills: DrillsConfig;
   rules: Rules;
+  programs: Programs;
 }
 
 function dupes(ids: string[]): string[] {
@@ -191,9 +242,9 @@ function dupes(ids: string[]): string[] {
 
 // Every cross-file rule from the PRD's taxonomy section. Returns problems rather
 // than throwing so tests can assert on each one.
-export function crossCheck({ taxonomy, drills, rules }: DrillsConfigBundle): string[] {
+export function crossCheck({ taxonomy, drills, rules, programs }: DrillsConfigBundle): string[] {
   const problems: string[] = [];
-  const versions = new Set([taxonomy.version, drills.version, rules.version]);
+  const versions = new Set([taxonomy.version, drills.version, rules.version, programs.version]);
   if (versions.size !== 1) problems.push(`Config versions differ: ${[...versions].join(', ')}`);
 
   const areaCodes = new Set(taxonomy.areas.map(a => a.code));
@@ -268,6 +319,18 @@ export function crossCheck({ taxonomy, drills, rules }: DrillsConfigBundle): str
     if (!areaCodes.has(area)) problems.push(`rules.case_type_to_skill_area.${caseType}: unknown area ${area}`);
   }
   if (rules.tiers.min > rules.tiers.start || rules.tiers.start > rules.tiers.max) problems.push('rules.tiers: start must sit between min and max');
+
+  programs.weeks.forEach((w, i) => {
+    if (w.week !== i) problems.push(`programs.weeks: week ${w.week} out of order (expected ${i})`);
+    for (const s of w.focus_skills) if (!skillIds.has(s)) problems.push(`programs.weeks.${w.week}: unknown focus skill ${s}`);
+    if (w.milestone.type === 'skills') for (const s of w.milestone.skills) if (!skillIds.has(s)) problems.push(`programs.weeks.${w.week}: unknown milestone skill ${s}`);
+  });
+  if (programs.weeks.length !== programs.tracks.standard.length_weeks + 1) problems.push('programs.weeks: needs week 0 plus one entry per plan week');
+  programs.sprint_days.forEach((d, i) => { if (d.day !== i + 1) problems.push(`programs.sprint_days: day ${d.day} out of order`); });
+  if (programs.sprint_days.length !== programs.tracks.sprint.length_days) problems.push('programs.sprint_days: one entry per Sprint day');
+  const mix = programs.workout.mix;
+  if (Math.abs(mix.weak + mix.review + mix.unfamiliar - 1) > 1e-9) problems.push('programs.workout.mix: shares must add up to 1');
+  if (programs.availability.filter(a => a.default).length !== 1) problems.push('programs.availability: exactly one default');
   return problems;
 }
 
@@ -293,7 +356,7 @@ export function prerequisiteCycle(taxonomy: Taxonomy): string[] | null {
   return null;
 }
 
-export function parseDrillsConfig(raw: { taxonomy: unknown; drills: unknown; rules: unknown }): DrillsConfigBundle {
+export function parseDrillsConfig(raw: { taxonomy: unknown; drills: unknown; rules: unknown; programs: unknown }): DrillsConfigBundle {
   const parse = <T>(name: string, schema: z.ZodType<T>, value: unknown): T => {
     const result = schema.safeParse(value);
     if (!result.success) throw new Error(`Malformed drills config ${name}: ${result.error.message}`);
@@ -303,6 +366,7 @@ export function parseDrillsConfig(raw: { taxonomy: unknown; drills: unknown; rul
     taxonomy: parse('taxonomy', TaxonomySchema, raw.taxonomy),
     drills: parse('drills', DrillsConfigSchema, raw.drills),
     rules: parse('rules', RulesSchema, raw.rules),
+    programs: parse('programs', ProgramsSchema, raw.programs),
   };
   const problems = crossCheck(bundle);
   if (problems.length) throw new Error(`Inconsistent drills config:\n- ${problems.join('\n- ')}`);
@@ -313,6 +377,7 @@ export const DRILLS_CONFIG: DrillsConfigBundle = parseDrillsConfig({
   taxonomy: taxonomyJson,
   drills: drillsJson,
   rules: rulesJson,
+  programs: programsJson,
 });
 
 export const TAXONOMY_VERSION = DRILLS_CONFIG.taxonomy.version;

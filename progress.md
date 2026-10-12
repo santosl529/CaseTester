@@ -8,7 +8,9 @@
 
 **D3 started 2026-10-11** (Matt's go-ahead). The pilot launches after D3 and D4; D5 ships during the pilot.
 
-**D3 is done and committed (2026-10-11).** Gate: `tests/drills/progress.test.ts` (scripted scenarios) and `npm run drills:smoke:d3`. Screenshots of "Your skills" and the results screen (desktop and phone) sent to Matt. **D4 started** (Matt's go-ahead).
+**D3 is done and committed (2026-10-11).** Gate: `tests/drills/progress.test.ts` (scripted scenarios) and `npm run drills:smoke:d3`. Screenshots of "Your skills" and the results screen (desktop and phone) sent to Matt.
+
+**D4 in progress (not committed).** Done: migration 0013 (applied), `programs.v1.json`, plan engine (`lib/drills/program/plan.ts`: tracks, six weeks with compression, Sprint days), workout builder (`workout.ts`: 50/25/25 mix, plan prescriptions, milestones), 23 scripted tests (`tests/drills/program.test.ts`, `workout.test.ts`). Next: DB layer and onboarding, then diagnostic, screens, lessons and `industry`. Waiting on Matt's answers to the D4 questions (history entry).
 
 **What's left to build** (docs/prd-drills.md, "Build phases"):
 - D4 Training program: onboarding (stores the browser time zone on `student_profiles`; sets the interview date), diagnostic, tracks and plans (`programs.v1.json`), Practice on my own, Browse drills (quick start uses `nextSetFor`), Program engine, workouts (50/25/25), training home, next-case card (needs `case_type_to_skill_area`), Learn library, 22 lessons.
@@ -285,4 +287,12 @@
 - Matt approved the shared 14 case types (he'll tell the case-product owner); the only case file, `prof-001`, validates on both branches (it has no caseType yet). #2, #5, #6 agreed as built. `industry` on items is part of D4 content work.
 - PRD updated with Matt's go-ahead: primary skills, cross-skill weighting, supersede rule, extra `skill_states` columns, case-type list location.
 - Browser check: headless Chrome driven over the DevTools protocol (no new dependency; script kept in the session scratchpad only), with a throwaway Supabase user signed in by password, then deleted. Screenshots in `~/Desktop/drills-d3-screenshots/`. No console errors; no horizontal scroll at 390 px. The tab title is still the Next.js default "Create Next App" (app-wide, not drills).
+
+## D4 started (2026-10-11)
+
+- Migration 0013 (additive, applied): `program_track` / `program_status` / `workout_status` enums; `student_programs` (one active per student), `workouts` (one per student per local date), `lessons`, `lesson_views`; `student_profiles.timezone`; `drill_sets` workout_id, slot; `drill_items` stage, industry.
+- `programs.v1.json` (4th config file, cross-checked at boot): assignment thresholds, availability (3/4/6 workouts), workout target minutes and mix, per-track start rules and case targets, the seven weeks with focus areas/skills and milestones, the Sprint days, plan priorities.
+- Plan engine: weeks run from the day after Week 0, 7 days each (not Monday-aligned). Compression keeps Weeks 5 and 6 and splits weeks 1–4 evenly into the weeks between; merged weeks join themes, focus and milestones and take the higher case target. Beyond 6 weeks, Readiness repeats. Sprint: day 1, days 2–5 (repeated or cut short), days 6, 7.
+- Workout builder fills slots by priority (weak spots, a due transfer check, review, other unfamiliar material) and shows them review → weak → unfamiliar. Transfer-due skills skip the weak slot. Week 5's tier 3 applies to weak-spot skills already Practiced. Foundations: new skills start at Recognize tier 1; Construct waits for prerequisites at Recognizes. Sprint: tier 2+, no Recognize; review-only on days 6–7 and within 2 days of the interview.
+- Questions sent to Matt: diagnostic structure (one short set per drill?), lesson review format, industry list and how to tag 400 items, the case-type → skill-area map, where the time zone is captured, and the judgment calls above.
 

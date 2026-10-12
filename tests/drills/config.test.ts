@@ -2,10 +2,11 @@ import { describe, it, expect } from 'vitest';
 import taxonomyJson from '@/lib/drills/config/taxonomy.v1.json';
 import drillsJson from '@/lib/drills/config/drills.v1.json';
 import rulesJson from '@/lib/drills/config/rules.v1.json';
+import programsJson from '@/lib/drills/config/programs.v1.json';
 import { DRILLS_CONFIG, crossCheck, parseDrillsConfig, hasLiveLevel2Drill, isKnownTag } from '@/lib/drills/config';
 
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v));
-const raw = () => ({ taxonomy: clone(taxonomyJson), drills: clone(drillsJson), rules: clone(rulesJson) });
+const raw = () => ({ taxonomy: clone(taxonomyJson), drills: clone(drillsJson), rules: clone(rulesJson), programs: clone(programsJson) });
 
 describe('drills config v1 (docs/prd-drills.md)', () => {
   const { taxonomy, drills } = DRILLS_CONFIG;

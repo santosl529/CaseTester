@@ -165,6 +165,9 @@ export const prescriptionStatusEnum = pgEnum('prescription_status', ['open', 'in
 export const studentProfiles = pgTable('student_profiles', {
   userId: uuid('user_id').primaryKey(),
   orgId: text('org_id'),
+  // The browser's IANA time zone, stored at signup (D4): workout days, the
+  // Monday summary and interview-date counts use it.
+  timezone: text('timezone'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }).enableRLS();
 
@@ -184,6 +187,8 @@ export const drillItems = pgTable('drill_items', {
   status: itemStatusEnum('status').notNull().default('draft'),
   // The drill's worked example (intro screen); never served in a set.
   isExample: boolean('is_example').notNull().default(false),
+  stage: text('stage'),                       // recognize | repair | construct
+  industry: text('industry'),                 // for transfer checks and the unfamiliar slot
   tier: integer('tier').notNull(),
   skills: text('skills').array().notNull(),
   payload: jsonb('payload').notNull(),        // full item incl. answer key — server-only
@@ -237,6 +242,9 @@ export const drillSets = pgTable('drill_sets', {
   source: drillSetSourceEnum('source').notNull(),
   // A transfer check (PRD "Transfer check"): unseen items, new case types.
   isTransferCheck: boolean('is_transfer_check').notNull().default(false),
+  // The workout this set belongs to, and its slot (D4 "Workouts").
+  workoutId: uuid('workout_id'),
+  slot: text('slot'),                         // weak | review | unfamiliar
   prescriptionId: uuid('prescription_id').references(() => prescriptions.id),
   // The skill the student picked (Practice something specific), which sets
   // the 70/30 composition on multi-skill drills, and a mistake-tag focus.
@@ -385,3 +393,71 @@ export const caseResults = pgTable('case_results', {
   completedAt: timestamp('completed_at', { withTimezone: true }).notNull(),
   receivedAt: timestamp('received_at', { withTimezone: true }).notNull().defaultNow(),
 }, t => [index('case_results_student_idx').on(t.studentId, t.completedAt)]).enableRLS();
+
+// ---------------------------------------------------------------------------
+// Drills D4: the training program (docs/prd-drills.md "Training program").
+// ---------------------------------------------------------------------------
+
+export const programTrackEnum = pgEnum('program_track', ['foundations', 'standard', 'sprint', 'self_directed']);
+export const programStatusEnum = pgEnum('program_status', ['active', 'completed', 'switched']);
+export const workoutStatusEnum = pgEnum('workout_status', ['planned', 'in_progress', 'completed', 'expired']);
+
+// One active row per student; a track switch closes the row and opens a new one.
+export const studentPrograms = pgTable('student_programs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  studentId: uuid('student_id').notNull(),
+  track: programTrackEnum('track').notNull(),
+  planVersion: text('plan_version').notNull(),
+  // Day 1 of the plan, in the student's time zone.
+  startDate: date('start_date').notNull(),
+  interviewDate: date('interview_date'),
+  workoutsPerWeek: integer('workouts_per_week'),
+  // Onboarding answer: '0', '1-5' or '6+'.
+  casesDone: text('cases_done'),
+  status: programStatusEnum('status').notNull().default('active'),
+  startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
+  endedAt: timestamp('ended_at', { withTimezone: true }),
+}, t => [
+  index('student_programs_student_idx').on(t.studentId, t.startedAt),
+  uniqueIndex('student_programs_one_active').on(t.studentId).where(sql`${t.status} = 'active'`),
+]).enableRLS();
+
+// One per student per day (the student's local date).
+export const workouts = pgTable('workouts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  studentId: uuid('student_id').notNull(),
+  programId: uuid('program_id').references(() => studentPrograms.id),
+  programWeek: integer('program_week'),
+  date: date('date').notNull(),
+  targetMinutes: integer('target_minutes').notNull(),
+  // [{ slot, drill_id, skill_id, stage, tier, kind, reason, minutes, set_id }]
+  blocks: jsonb('blocks').notNull().default([]),
+  status: workoutStatusEnum('status').notNull().default('planned'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+}, t => [uniqueIndex('workouts_student_date').on(t.studentId, t.date)]).enableRLS();
+
+// Versioned like items (PRD "Lessons").
+export const lessons = pgTable('lessons', {
+  lessonId: text('lesson_id').notNull(),
+  version: integer('version').notNull(),
+  skillId: text('skill_id').notNull(),
+  status: itemStatusEnum('status').notNull().default('draft'),
+  body: text('body').notNull(),
+  workedExample: text('worked_example').notNull(),
+  mistakes: jsonb('mistakes').notNull(),       // [{ tag, line }]
+  authorship: jsonb('authorship').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, t => [primaryKey({ columns: [t.lessonId, t.version] }), index('lessons_skill_idx').on(t.skillId, t.status)]).enableRLS();
+
+export const lessonViews = pgTable('lesson_views', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  studentId: uuid('student_id').notNull(),
+  lessonId: text('lesson_id').notNull(),
+  version: integer('version').notNull(),
+  source: text('source').notNull(),            // auto | intro | library | low_score
+  secondsOpen: integer('seconds_open'),
+  skipped: boolean('skipped').notNull().default(false),
+  viewedAt: timestamp('viewed_at', { withTimezone: true }).notNull().defaultNow(),
+}, t => [index('lesson_views_student_idx').on(t.studentId, t.viewedAt)]).enableRLS();
+
