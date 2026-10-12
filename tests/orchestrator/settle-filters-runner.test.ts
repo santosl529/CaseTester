@@ -176,3 +176,25 @@ describe('a misquote of revealed data is corrected by code, once (Rule 6 option 
     expect(flagsNow().misquoteCorrected).toEqual([]);
   });
 });
+
+describe('code-written lines (step 4, batch 19)', () => {
+  it('a replacement question fits the phase: mid-analysis, not "Where would you like to start the analysis?"', async () => {
+    seed({ phase: 'ANALYSIS', flags: SATISFIED });
+    const r = await say('I think it is mostly costs.', T({ say: 'Mm-hm.', question: 'Which of these cost lines moved the most?' }));
+    expect(r.interviewerText).toMatch(/^Mm-hm\. (What would you look at next, and why\?|Where does that leave your analysis\?|What's your next step from here\?)$/);
+  });
+
+  it('an exhibit that shows the held data gets no deferral line beside it (Camila t6)', async () => {
+    seed({ phase: 'ANALYSIS', flags: SATISFIED });
+    const r = await say('Do prices change, and can I see the cost lines?', T({
+      say: 'Right.', question: 'What do you take from it?',
+      requests: [
+        { what: 'menu price changes', itemIds: ['menu_price_change'], explicit: true, respond: 'release' },
+        { what: 'cost breakdown', itemIds: ['cogs_pct', 'labor_pct', 'overhead_pct'], explicit: true, respond: 'defer' },
+      ],
+      exhibit: 'exhibit-a',
+    }));
+    expect(r.interviewerText).toMatch(/Here's an exhibit: Brew & Bean Cost Structure Over Time\./);
+    expect(r.interviewerText).not.toMatch(/come back to/);
+  });
+});

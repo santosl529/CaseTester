@@ -234,7 +234,10 @@ export function decideData(p: {
   for (const { at, r, ledgerIds } of later) {
     // Items still held after this turn's releases; a request partly answered
     // by them gets no deferral line, but what it still holds stays tracked.
-    const held = ledgerIds.filter(id => !releasing.has(id));
+    // The exhibit handed over this turn delivers what it shows (step 4, batch
+    // 19: Camila t6 and Sofia t4 heard the exhibit and "I'll come back to the
+    // cost breakdown" in the same turn).
+    const held = ledgerIds.filter(id => !releasing.has(id) && !covered.has(id));
     const partlyReleased = held.length < ledgerIds.length;
     if (!r.explicit) {
       const offerable = held.filter(id => available(id) && !covered.has(id))
@@ -277,9 +280,31 @@ function spokenWhat(what: string): string {
   return keep ? what : what.charAt(0).toLowerCase() + what.slice(1);
 }
 
+// Catalog text read aloud is speech (step 4, batch 19: Camila t4 "COGS as %
+// of revenue … overhead / rent as % of revenue", Owen t24 "… price changes /
+// price elasticity data", Sam t10 "(dairy, packaging, food)"): a slash is
+// "or" in a refusal; elsewhere "and", or in a list of several its first term
+// ("COGS, labor and overhead as a percent of revenue", not "… and overhead and
+// rent …"); "as % of" is said, a parenthesis
+// inside becomes an aside and one at the end is dropped (it only clarifies,
+// and an unclosed aside runs into the next item). A figure's own "%" stays.
+function speakable(what: string, conj: 'and' | 'or', inList: boolean): string {
+  return what
+    .replace(/(\S+)\s*\/\s*(\S+)/g, (_, x: string, y: string) => (conj === 'or' ? `${x} or ${y}` : inList ? x : `${x} and ${y}`))
+    .replace(/\bas\s*%\s*of\b/gi, 'as a percent of')
+    .replace(/\s*\([^)]*\)\s*$/, '')
+    .replace(/\s*\(([^)]*)\)\s*/g, (_, inner: string) => ` — ${inner.replace(/,\s*([^,]+)$/, ' and $1')} — `)
+    .replace(/\s+/g, ' ').trim();
+}
+
 const joinWhat = (whats: string[], conj: 'and' | 'or') => {
-  const u = [...new Set(whats.map(spokenWhat))];
-  return u.length <= 1 ? (u[0] ?? '') : `${u.slice(0, -1).join(', ')} ${conj} ${u.at(-1)}`;
+  const inList = new Set(whats).size > 1;
+  const u = [...new Set(whats.map(w => spokenWhat(speakable(w, conj, inList))))];
+  if (u.length <= 1) return u[0] ?? '';
+  // A suffix every item shares is said once: "COGS and labor as a percent of revenue".
+  const tail = / as a (?:percent|share) of revenue$/i.exec(u[0])?.[0];
+  const items = tail && u.every(x => x.toLowerCase().endsWith(tail.toLowerCase())) ? u.map(x => x.slice(0, -tail.length)) : u;
+  return `${items.slice(0, -1).join(', ')} ${conj} ${items.at(-1)}${items === u ? '' : tail}`;
 };
 
 // The spoken data lines, in order: releases (earlier asks under one lead-in),

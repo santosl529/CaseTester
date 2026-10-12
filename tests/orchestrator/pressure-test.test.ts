@@ -1,10 +1,12 @@
 // Pressure-test state and gate — the pure parts (spec 2026-10-07-pressure-
 // test-and-request-guards). Multi-turn behaviour through the real runner is in
 // pressure-test-runner.test.ts.
+import { asksBrainstorm, asksRisk, asksRecommendationAsk } from '@/lib/orchestrator/spoken-close';
 import { describe, it, expect } from 'vitest';
 import {
   probeIntents, buildProbeJudgePrompt, parseProbeJudge, judgeProbeAnswer, isGatedItem, exhibitIsGated, probeAsHeard,
   pickFallbackQuestion, INITIAL_PRESSURE_TEST, FIGURES_QUESTIONS, NO_FIGURES_QUESTIONS,
+  ANALYSIS_QUESTIONS, BRAINSTORM_QUESTIONS, LATE_QUESTIONS, TIME_PRESSURE_QUESTIONS,
   buildStructureJudgePrompt, parseStructureJudge, judgeStructureGiven,
 } from '@/lib/orchestrator/pressure-test';
 import { createLedger } from '@/lib/orchestrator/data-ledger';
@@ -90,6 +92,28 @@ describe('fallback questions', () => {
       expect(q).not.toMatch(/figure|number/i);
     }
     expect(FIGURES_QUESTIONS).toContain(pickFallbackQuestion({ figuresDelivered: true, seed: 'x', last: null }));
+  });
+
+  // Batch 19 (step 4, 12 Oct): Owen t22 at 16:52, mid-analysis, heard "Where
+  // would you like to start the analysis?" — the replacement fits the phase
+  // and the clock, and never asks for a stage (that would count as administered).
+  it.each([
+    ['INTRO', NO_FIGURES_QUESTIONS], ['STRUCTURE', NO_FIGURES_QUESTIONS],
+    ['ANALYSIS', ANALYSIS_QUESTIONS], ['EXHIBIT', ANALYSIS_QUESTIONS],
+    ['BRAINSTORM', BRAINSTORM_QUESTIONS], ['RECOMMENDATION', LATE_QUESTIONS], ['WRAP', LATE_QUESTIONS],
+  ] as const)('with no figures out, a question that fits %s', (phase, pool) => {
+    for (let i = 0; i < 10; i++) expect(pool).toContain(pickFallbackQuestion({ figuresDelivered: false, seed: `s${i}`, last: null, phase }));
+  });
+  it('in the last minutes, a brief question whatever the phase (figures or not)', () => {
+    expect(TIME_PRESSURE_QUESTIONS).toContain(pickFallbackQuestion({ figuresDelivered: false, seed: 'x', last: null, phase: 'EXHIBIT', timePressure: true }));
+    expect(TIME_PRESSURE_QUESTIONS).toContain(pickFallbackQuestion({ figuresDelivered: true, seed: 'x', last: null, phase: 'ANALYSIS', timePressure: true }));
+  });
+  it('no replacement asks for the brainstorm, the risk or the recommendation, or reads as a structure probe late', () => {
+    for (const q of [...ANALYSIS_QUESTIONS, ...BRAINSTORM_QUESTIONS, ...LATE_QUESTIONS, ...TIME_PRESSURE_QUESTIONS, ...FIGURES_QUESTIONS, ...NO_FIGURES_QUESTIONS]) {
+      expect(asksBrainstorm(q), q).toBe(false);
+      expect(asksRisk(q), q).toBe(false);
+      expect(asksRecommendationAsk(q), q).toBe(false);
+    }
   });
 
   it('starts every session not asked', () => {

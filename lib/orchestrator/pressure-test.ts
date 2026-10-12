@@ -169,6 +169,14 @@ export function exhibitIsGated(ledger: DataLedger, covers: string[]): boolean {
 
 export const FIGURES_QUESTIONS = ['What do those figures tell you?', 'What do you take from those numbers?', 'Where do those numbers point you?'] as const;
 export const NO_FIGURES_QUESTIONS = ['Where would you like to start the analysis?', 'What would you look at first, and why?', 'Which part of the problem would you dig into first?'] as const;
+// Step 4 (batch 19, 12 Oct): the no-figures replacement fits the phase — Owen
+// t22 at 16:52, mid-analysis, heard "Where would you like to start the
+// analysis?" — and none asks for a stage (it would count as administered).
+export const ANALYSIS_QUESTIONS = ['What would you look at next, and why?', 'Where does that leave your analysis?', "What's your next step from here?"] as const;
+export const BRAINSTORM_QUESTIONS = ['Which of those would you pursue first, and why?', 'How would you prioritize those?', 'Which of those matters most, and why?'] as const;
+export const LATE_QUESTIONS = ['Walk me through the reasoning behind that.', "What's the strongest evidence for that?", 'What makes you confident in that?'] as const;
+// The last minutes (isUnderTimePressure): short, whatever went out.
+export const TIME_PRESSURE_QUESTIONS = ['Briefly, where does that leave you?', 'In a sentence, what does that tell you?'] as const;
 export const CODE_PROBES = [
   'Before we get into the data: what might be missing from your structure?',
   'Before we get into the data: which branch would you start with, and why?',
@@ -190,8 +198,13 @@ export function refersToFigures(question: string): boolean {
 }
 
 // A replacement question for a duplicate probe; never the last question asked.
-export function pickFallbackQuestion(p: { figuresDelivered: boolean; seed: string; last: string | null }): string {
-  const pool: readonly string[] = p.figuresDelivered ? FIGURES_QUESTIONS : NO_FIGURES_QUESTIONS;
+export function pickFallbackQuestion(p: { figuresDelivered: boolean; seed: string; last: string | null; phase?: Phase; timePressure?: boolean }): string {
+  const pool: readonly string[] = p.timePressure ? TIME_PRESSURE_QUESTIONS
+    : p.figuresDelivered ? FIGURES_QUESTIONS
+    : p.phase === 'ANALYSIS' || p.phase === 'EXHIBIT' ? ANALYSIS_QUESTIONS
+    : p.phase === 'BRAINSTORM' ? BRAINSTORM_QUESTIONS
+    : p.phase === 'RECOMMENDATION' || p.phase === 'WRAP' ? LATE_QUESTIONS
+    : NO_FIGURES_QUESTIONS;
   const first = pickScript([...pool], p.seed);
   return first !== p.last ? first : pool[(pool.indexOf(first) + 1) % pool.length];
 }

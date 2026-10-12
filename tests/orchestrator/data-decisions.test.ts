@@ -377,3 +377,55 @@ describe('mentionStatesNeed', () => {
     ['Beans were 25% of COGS, meaning 10.5 points of revenue at baseline.', 'Coffee bean price change over 2 years'],
   ])('not a need for the item: %s', (text, label) => expect(mentionStatesNeed(text, label)).toBe(false));
 });
+
+// Step 4 (batch 19, 12 Oct): Camila t6 and Sofia t4 heard the exhibit handed
+// over and "I'll come back to the cost breakdown shortly" in the same turn —
+// the exhibit delivered exactly that data.
+describe('no deferral for data the exhibit delivers this turn', () => {
+  it('a held ask whose items the exhibit shows gets no deferral line', () => {
+    const d = decideData(base({ requests: [
+      req({ what: 'store count', itemIds: ['stores_count'] }),
+      req({ what: 'the cost breakdown', itemIds: ['cogs_pct', 'labor_pct'], respond: 'defer' }),
+    ], exhibit: 'exhibit-a' }));
+    expect(renderDataLines(d, 's')).toEqual(['200 stores today.', "Here's an exhibit: Cost Structure Over Time."]);
+    expect(decisionRows(d).find(r => r.what === 'the cost breakdown')?.response).toBe('release');
+  });
+  it('a held ask the exhibit only partly shows still gets nothing promised twice', () => {
+    const d = decideData(base({ requests: [req({ what: 'costs and ticket', itemIds: ['cogs_pct', 'avg_ticket'], respond: 'defer' })], exhibit: 'exhibit-a' }));
+    expect(renderDataLines(d, 's')).toEqual(["Here's an exhibit: Cost Structure Over Time."]);
+  });
+});
+
+// Step 4: what code reads aloud is speech, not catalog text (Camila t4 "COGS
+// as % of revenue … overhead / rent as % of revenue"; Owen t24 "… price
+// changes / price elasticity data"; Sam t10 "(dairy, packaging, food)").
+describe('spoken whats', () => {
+  it('a slash is "or" in a refusal and "and" elsewhere; a percent sign is spoken', () => {
+    expect(renderDataLines(decideData(base({ requests: [req({ what: 'historical customer response to price changes / price elasticity data', itemIds: [] })] })), 's'))
+      .toEqual(["I don't have historical customer response to price changes or price elasticity data."]);
+    expect(renderDataLines(decideData(base({ requests: [req({ what: 'Overhead / rent as % of revenue', itemIds: ['cogs_pct'], respond: 'defer' })] })), 's'))
+      .toEqual(["I'll come back to overhead and rent as a percent of revenue shortly."]);
+  });
+  it('Camila t4 (batch 19): a gate deferral of three catalog labels reads as one phrase', () => {
+    expect(renderDataLines({ ...decideData(base()), gateDefers: ['COGS as % of revenue', 'Labor as % of revenue', 'Overhead / rent as % of revenue'] }, 's'))
+      .toEqual(["I'll share COGS, labor and overhead as a percent of revenue once we've settled your structure."]);
+  });
+  it('a suffix every item shares is said once', () => {
+    const d = decideData(base({ requests: [
+      req({ what: 'COGS as % of revenue', itemIds: ['cogs_pct'], respond: 'defer' }),
+      req({ what: 'Labor as % of revenue', itemIds: ['labor_pct'], respond: 'defer' }),
+    ] }));
+    expect(renderDataLines(d, 's')).toEqual(["I'll come back to COGS and labor as a percent of revenue shortly."]);
+  });
+  it('a parenthesis at the end is dropped; a figure keeps its percent sign', () => {
+    const d = decideData(base({ requests: [
+      req({ what: 'Pilot elasticity results (volume loss from price increase)', itemIds: [] }),
+      req({ what: 'whether the 15% growth is per store', itemIds: [] }),
+    ] }));
+    expect(renderDataLines(d, 's')).toEqual(["I don't have pilot elasticity results or whether the 15% growth is per store."]);
+  });
+  it('a parenthesis inside is read as an aside', () => {
+    const d = decideData(base({ requests: [req({ what: 'price change of the other inputs (dairy, packaging, food) over the two years', itemIds: ['bean_price_change'], explicit: false })], candidateText: "I'd want the bean price trend." }));
+    expect(renderDataLines(d, 's')).toEqual(["I can share price change of the other inputs — dairy, packaging and food — over the two years if you'd like."]);
+  });
+});
