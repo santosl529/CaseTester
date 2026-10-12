@@ -195,6 +195,37 @@ prior), and the check runs only once that item is revealed — the candidate
 can't convert with a base they don't have. Without `shareBases` a case has no
 nested-percentage check (and no keyword fallback: the v4.6 detector is gone).
 
+## `quoteAnchors` — the misquote check's item names (v4.11)
+
+When a candidate misstates a figure they were given ("COGS went from 42% to
+61%" when the exhibit says 58%), code corrects it once, in the ledger's own
+words (Rule 6 option 4, `lib/orchestrator/misquote.ts`). To recognise the
+quote it needs the words candidates use for each quotable item:
+
+```json
+"quoteAnchors": [
+  { "item": "cogs_pct", "names": ["cogs", "cost of goods sold", "cost of goods"], "kind": "level" },
+  { "item": "avg_ticket", "names": ["ticket", "average ticket", "transaction value"], "kind": "level" },
+  { "item": "bean_price_change", "names": ["beans", "bean prices", "bean costs"], "kind": "change" },
+  { "item": "bean_share_of_cogs", "names": ["beans", "bean share"], "kind": "level", "of": ["cogs", "cost of goods"] }
+]
+```
+
+- `names`: lower-case words a candidate would put right before the figure
+  ("COGS is …", "the ticket is …", "beans are up …"). Include the words
+  candidates actually say, not only the label's ("ticket" for the average
+  transaction value). A name may be shared by two items; a figure either
+  states is not a misquote.
+- `kind`: `level` for an item that states values ("58% … up from 42%");
+  `change` for one that states a change ("up 40%").
+- `of`: for a share item, what it is a share of — the quote must say so
+  ("beans were 25% of COGS").
+- The figures come from the item's `timeframes` (an item without timeframes
+  can't be an anchor — the case fails to load). A shown exhibit's column
+  counts too, matched by column name to the item's `names` ("COGS" → cogs).
+
+Without `quoteAnchors` a case has no misquote check.
+
 ## Labels say what the item is (v4.10)
 
 The model maps requests to items by their labels, and so does the data-request

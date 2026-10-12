@@ -1,4 +1,24 @@
-# Interviewer Behavior Rules (v4.10)
+# Interviewer Behavior Rules (v4.11)
+
+**v4.11 change (12 Oct 2026): Haiku 5.5 interviewer fixes from batch 19.** An
+outside review of batch 19 (24 runs, Haiku 5.5) against batch 18 v3 (Sonnet
+5.5), re-counted by hand from the run records (`scripts/review-counts.ts`).
+Each change is detailed in its rule:
+1. **Grading is withheld, not only forbidden (Rule 1).** A verdict on the
+   candidate's work in `say` or the question ("Clear structure.", "Your math
+   holds up.") is withheld by code (Haiku 1.08 a run vs Sonnet 0.71 on the
+   same personas).
+2. **A misquote of revealed data is corrected by code (Rule 6 option 4).** A
+   figure quoted for a revealed item that matches none of its figures gets one
+   flat sentence in the ledger's words (Tyler's "61%" for the exhibit's 58% ran
+   uncorrected into his recommendation).
+3. **The question treats this turn's data as heard (Rule 11).** "Once you have
+   those figures…" right after code read them out (21 of 24 Haiku runs vs 3 of
+   14 Sonnet runs) is rewritten or withheld, in the model's words and code's.
+4. **A passing mention is offered only for a stated need (Rule 11).** 17 of 24
+   Haiku runs heard "I can share X if you'd like" for data the candidate
+   hadn't asked for.
+
 
 **v4.10 change (11 Oct 2026): the round-3 fixes from batch 18.** Batch 18
 (62 personas, 10 Oct) ran on Sonnet 5.5 by mistake — it is the Sonnet
@@ -446,6 +466,21 @@ only acknowledges again — bare ("Understood.") or opening a comment
 **Interaction with Part III:** neutral ≠ hostile. Rescue hints (Rule 13) and
 plain corrections (Rules 6, 14) are delivered in the same flat register — no
 consolation, no praise, no apology.
+
+**Backstop — grading withheld (v4.11).** Batch 19 (Haiku 5.5) graded about
+once a run despite the prompt's ban ("Clear structure, with revenue and cost
+branches.", "Your bean math holds up", "The reconciliation ties out"). A
+sentence of the model's own words that passes a verdict on the candidate's
+work is withheld in `say` and in the question (veto `grading`,
+`lib/orchestrator/grading.ts`; Stream drops it and keeps streaming). A verdict
+that only sets up a challenge in the question ("Your aggregate closes the gap,
+but your 37.5% was applied to all non-bean COGS.") keeps the challenge, so the
+question after it still has its referent. Not grading: bare acknowledgments
+("Right.", "Understood."), neutral summaries of what they did ("A cost-first
+split."), probes that only mention a verdict word ("Walk me through whether
+that holds"), the candidate's claim said back ("You said … if volume holds"),
+doubt ("That doesn't add up"), flat corrections, and the interviewer
+conceding its own slip ("You're right, the figures never reached you").
 
 ## 2. Force structure and live math — with materiality scoping
 
@@ -971,6 +1006,29 @@ figure as given. Exactly four options:
    against a revealed value (Rule 2 correction validity, v4.3) — the model may
    not judge a misstatement on its own.
 
+**Option 4 decided and spoken by code (v4.11).** Batch 19: Tyler said COGS
+was "61%" (the exhibit: 58%) from t5 into his recommendation and was never
+corrected; the 58% was in the interviewer's prompt. A figure the candidate
+states for a ledger item already revealed to them, in quote form ("COGS went
+from 42% to 61%", "the ticket is $6.90"), that matches none of the item's
+figures — its stated figures, a shown exhibit's figures for it, its own change
+in points or relative terms, allowing rounding to the precision stated, and
+for a hedged figure only a round version ("roughly 40%" for 37.5% passes,
+"about 44%" for 42% doesn't) — is a misquote (`lib/orchestrator/misquote.ts`;
+the case's `quoteAnchors` name each item as candidates say it). Code speaks
+one flat sentence from the ledger's own wording, after `say` and before the
+data line: "To correct one figure: COGS is 58% of revenue today, up from 42%
+two years ago." Once per item per session; a repeat after the correction is
+logged for scoring (`misquote_repeated`), not corrected again. The model is
+told this turn not to repeat, correct, question or build on the figure.
+Derived figures never trigger it: points, multiples, relative changes,
+shares ("89% of the problem"), projections, hypotheticals, index
+restatements, sums, and anything computed in the same message. Measured over
+batches 12–19 against hand labels (`scripts/misquote-eval.ts`): precision
+0.86, recall 0.86 on the tuning set; the held-out set's first pass had
+precision 0.40 before its false-positive classes were fixed — batch 20 is the
+fresh test.
+
 Quoting a candidate's number back is allowed only when explicitly attributed
 as their claim, never as shared ground truth.
 
@@ -1400,6 +1458,31 @@ scope intact — "by year", "per store", "for drinks", "excluding new stores",
 "in California", or "two years ago" for a current-only item. An unmapped ask the model declared as
 "defer" is never refused: code says the generic "I'll come back to the data
 you've asked for once we've settled your structure", promising no item.
+**The question treats this turn's data as heard (v4.11).** The candidate
+hears `say`, then code's data line, then the question. Batch 19 (Haiku 5.5,
+21 of 24 runs): "Once you have those two figures, how much…", "Before those
+figures come in…", "Menu prices are on their way." right after the data was
+read out. On a turn that delivered data (a release, a restatement or an
+exhibit), wording in the question that treats it as still to come is
+rewritten — "Once you have X, …" → "With X, …"; "Before we get to X / before
+those land, …" dropped; "you're about to hear" → "you just heard" — or, with
+no clean rewrite ("…are coming up now"), withheld (a figures question if
+nothing is left). This applies to the model's question and to code's own
+lines (the code-asked probe "Before we get into the data: …"). Wording that
+names an item still held this turn (deferred, gated or offered) is true and
+stays (`lib/orchestrator/pending-data.ts`, check `pending_data`).
+
+**A passing mention is offered only for a stated need (v4.11).** Batch 19:
+17 of 24 Haiku runs heard "I can share X if you'd like" for data the
+candidate hadn't asked for (model-declared passing mentions). A mention is
+offered only when one sentence of the candidate's message both names the item
+— a distinctive word of its label, not a generic one like "revenue" or
+"price" — and states a need for it ("I'd want transaction data to confirm",
+"whether prices on the menu moved", "I'd check dairy first"). Otherwise no
+line is spoken; the mention is still logged and the item is released on an
+explicit ask (`mentionStatesNeed`, `data-decisions.ts`). Over batches 12–19
+this keeps 11 of 89 offered items, each a real soft ask.
+
 **Labels say what an item is; a qualified ask keeps its scope (v4.10).**
 Batch 18: asking for "the COGS split" also released the 37.5% input-price
 change in 7 runs — both items' labels began "COGS breakdown:", one a
@@ -2461,17 +2544,17 @@ with the structure question asked 16 times, and was graded.
 | # | Rule | Prompt | Deterministic backstop |
 |---|---|---|---|
 | — | Precedence hierarchy | global tiebreaker in prompt | n/a (resolves unanticipated collisions) |
-| 1 | No sycophancy | hard constraint | post-turn praise-word lint; **voice (7 Oct): acknowledgment and thinking filler chosen by code from neutral lists, skipped on conduct-floor flags; `double_ack` withholds a `say` that acknowledges again** |
+| 1 | No sycophancy | hard constraint | **v4.11: `grading` veto withholds a verdict in `say` or the question (a "…, but <challenge>" keeps the challenge)**; **voice (7 Oct): acknowledgment and thinking filler chosen by code from neutral lists, skipped on conduct-floor flags; `double_ack` withholds a `say` that acknowledges again** |
 | 2 | Structure + live math | phase gate, probe scoping; unit errors addressed, mode per Rule 14; **no valid flag, no correction; quote the actual figure** | ledger recompute hint **with source span + revealed-inputs gate; no unrevealed values in the hint**; probe gated on recompute flag; **v4.5: verified figures carry `recompute_ok` + `work_shown`; doubt probes on verified figures always withheld; explain probes allowed once per figure only when work not shown; one unflagged probe per session for unverifiable figures** |
 | 3 | No fabricated claims | attribution constraint | post-turn claim-vs-transcript audit; report-side: artifact detection → **interviewer-error marking** → evidence audit → omission verifier → **error-claim verifier** → reconciliation (cross-dimension repetition logged); **deterministic checks carry source spans**; **v4.5: answer-key and caveat-text pass strips needs-work items resting on a missing answer-key idea or an unadministered stage** |
 | 4 | ≤1 candidate task; Socratic default | constraint + rescue exception | 2+ question marks → QA flag (soft signal, not a gate) |
 | 5 | 1–3 sentence turns | word ceiling | length audit → shared exempt-turn whitelist |
-| 6 | Candidate numbers: 4 options | constraint; 6-correct only on orchestrator-confirmed mismatch | provenance audit, action-tiered, 3 valid provenances; covers digit numerals + normalized number words/ranges/multipliers; fuzzy magnitudes log-only; **block tier withholds + regenerates the turn** |
+| 6 | Candidate numbers: 4 options | constraint; 6-correct only on orchestrator-confirmed mismatch | provenance audit, action-tiered, 3 valid provenances; covers digit numerals + normalized number words/ranges/multipliers; fuzzy magnitudes log-only; **block tier withholds + regenerates the turn**; **v4.11: option 4 by code — a misquote of a revealed item (quote grammar over `quoteAnchors`) gets one flat ledger-worded correction, once per item; repeats logged** |
 | 7 | Structure probe, rotating | intent + phrase pools | probe-fired check per session |
 | 8 | Phase sync | stage guide; declared `move` | **v4.7: phase derived in code from declared moves, releases, exhibits and code asks (forward only)**; per-phase budget nudge; advancedLastTurn gates behavior shift only |
 | 9 | Administer scored phases | phase guide | stage-coverage log → coverageCaveat; **caveated dimension floored at meets_bar or reported not assessed** |
 | 10 | Labeled data read-outs | constraint | speakable-sentence ledger values at case load; **v4.7: every figure spoken by code from the approved wording; revealed = segment delivered** |
-| 11 | Release, refuse, or defer — never ignore; never substitute | declare every request | **v4.7: model declares, code decides and speaks every outcome (bounded: case holds it, explicit ask, ≤3 a turn); decisions logged as the turn's data_request rows; Haiku detection kept as a log-only audit**; open requests re-injected each turn and released before any recommendation ask and the close; ledger-exists + unanswered → coverageCaveat; challenges to assumptions about open requested items withheld |
+| 11 | Release, refuse, or defer — never ignore; never substitute | declare every request | **v4.7: model declares, code decides and speaks every outcome (bounded: case holds it, explicit ask, ≤3 a turn); decisions logged as the turn's data_request rows; Haiku detection kept as a log-only audit**; open requests re-injected each turn and released before any recommendation ask and the close; ledger-exists + unanswered → coverageCaveat; challenges to assumptions about open requested items withheld; **v4.11: a question that treats this turn's data as still to come is rewritten or withheld; a passing mention is offered only for a stated need** |
 | 12 | Close + time-boxing | the system closes; no goodbyes of the model's own | **v4.7: close, time warning and grace ask are code-written turns; coverage-complete ask supplied by code; a model goodbye is withheld**; warning trigger (text: 90s window); time-up grace ask when no ask was delivered; `recommendation_received` suppresses repeat asks; input closed after end; QA: one closing turn per session |
 | 13 | Stall ladder | ladder in prompt; Level 2 cap at synthesis; assisted ≠ covered; turns classified by content; data requests never clarifying; **v4.7: rung 1 code-written from the stored question; rung-3 rescue declared, released by code** | silence/no-progress triggers; clarifying-Q budget (question-only turns, verbatim-repeat excluded); **rungs logged at delivery with span; undelivered rungs logged `rung_not_delivered`, not scored; rung reason logged** |
 | 14 | Math bands + error class + 2-attempt cap | routing boundary (misquote → 6-correct); correction + fast-path scripts | bands, ≥2× magnitude threshold, and class assignment in recompute spec; attempt counter |
