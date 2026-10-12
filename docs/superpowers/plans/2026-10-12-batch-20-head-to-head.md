@@ -128,6 +128,11 @@ Arm L costs what arm H does (the simulator is most of a run).
 
 ## Waves (each its own go-ahead; laptop awake — `caffeinate -i`)
 
+Each wave takes **≈ 22–25 min** wall clock (batch-19 waves at human pace:
+18.6–21.8 min from first start to last turn; the 20-min case clock caps the
+slowest run; plus a minute of start-up). Six waves ≈ 2.5 h if run back to
+back.
+
 Interleaved so time-of-day or API drift doesn't fall on one arm:
 
 1. **Wave 1 — Haiku medium, run 1:** 7 personas + the default candidate (8 concurrent).

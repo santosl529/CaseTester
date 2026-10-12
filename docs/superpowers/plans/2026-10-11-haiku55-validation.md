@@ -1,7 +1,10 @@
 # Haiku 5.5 targeted validation of the round-3 fixes (plan, 11 Oct 2026)
 
-Status: **approved in principle by Lorenzo (11 Oct); no run launched, $0 spent.**
-Each wave still needs an explicit go-ahead (one wave at a time, no chaining).
+Status: **done and closed (12 Oct).** Waves 1, 2, 3+5 and the math reruns ran
+(24 runs + smoke, $8.58 of $15); the stages rerun wave was skipped. Batch 19
+is now frozen (`FROZEN_BATCHES`). Its outside review led to the batch-19
+review fixes (steps 0–4, `.superpowers/sdd/progress.md`) and to batch 20
+(`2026-10-12-batch-20-head-to-head.md`).
 
 ## Why
 
