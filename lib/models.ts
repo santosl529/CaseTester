@@ -2,13 +2,15 @@
 // 2 Oct 2026, Lorenzo's call). The cheap classifiers (coverage, data requests,
 // distress, hint check) stay on Haiku 4.5 and are configured in their modules.
 
-// Live interviewer: Haiku 5.5 since 11 Oct 2026 (Lorenzo's call) — the model
-// the voice pilot runs, first useful content ~1.25s vs Sonnet's ~2.1s on the
-// 8 Oct screen. Before: Sonnet 5.5 without thinking (Oct), Opus 4.8 (July),
-// Haiku 4.5 (dropped in July for missing live math errors; the deterministic
-// math backstops — recompute, verified figures, unit check — now carry most of
-// that load). Sonnet stays selectable: INTERVIEWER_PROVIDER=anthropic-sonnet55.
-export const INTERVIEWER_MODEL_ID = 'claude-haiku-5-5';
+// Live interviewer: Sonnet 5.5 without thinking again since 12 Oct 2026
+// (Lorenzo's call, after batch 20: Sonnet 20.7 D1–D9 faults per 100 turns vs
+// Haiku 5.5's 32.7, same serious failures) — the `sonnet55-baseline` config
+// below. History: Haiku 5.5 11–12 Oct (latency), Sonnet 5.5 (early Oct),
+// Opus 4.8 (July), Haiku 4.5 (dropped in July for missing live math errors;
+// the deterministic math backstops — recompute, verified figures, unit check —
+// now carry most of that load). Haiku 5.5 stays selectable:
+// INTERVIEWER_PROVIDER=anthropic-haiku55-none-medium, or the eval configs.
+export const INTERVIEWER_MODEL_ID = 'claude-sonnet-5-5';
 
 // The interviewer request settings each model needs. Haiku 5.5: thinking
 // 'disabled' (it rejects 'between_tools'), effort 'medium', no server-side
@@ -34,10 +36,11 @@ export type InterviewerEvalConfig = {
 };
 
 export const INTERVIEWER_EVAL_CONFIGS: Record<string, InterviewerEvalConfig> = {
-  // The pilot interviewer: Haiku 5.5, thinking disabled, effort medium, no
-  // server-side fallback (Haiku 5.5 has none).
+  // Haiku 5.5, thinking disabled, effort medium, no server-side fallback
+  // (Haiku 5.5 has none). The pilot interviewer 11–12 Oct.
   'haiku55-thinking-off': { model: 'claude-haiku-5-5', thinking: 'disabled', effort: 'medium', fallbacks: false },
-  // The batch-18 baseline: Sonnet 5.5 with thinking off (between_tools), fallbacks on.
+  // Sonnet 5.5 with thinking off (between_tools), fallbacks on — the batch-18
+  // baseline and, since 12 Oct, the production default (INTERVIEWER_MODEL_ID).
   'sonnet55-baseline': { model: 'claude-sonnet-5-5', thinking: 'between_tools', fallbacks: true },
   // Batch 20's third arm (12 Oct, Lorenzo): the pilot interviewer at effort
   // low — the replay showed no first-token gain on 8 turns; the head to head

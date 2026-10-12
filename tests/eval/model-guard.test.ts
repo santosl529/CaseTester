@@ -46,7 +46,7 @@ describe('the declared evaluation interviewer', () => {
 
   it('declaring an evaluation config switches nothing else', () => {
     createInterviewerModel(undefined, 'haiku55-thinking-off');
-    expect(INTERVIEWER_MODEL_ID).toBe('claude-haiku-5-5');
+    expect(INTERVIEWER_MODEL_ID).toBe('claude-sonnet-5-5');
     expect(SCORING_MODEL_ID).toBe('claude-opus-5-5');
     expect(BACKGROUND_MODEL_ID.data_request).toBe('claude-haiku-4-5');
     expect(BACKGROUND_MODEL_ID.coverage).toBe('claude-haiku-4-5-20251001');

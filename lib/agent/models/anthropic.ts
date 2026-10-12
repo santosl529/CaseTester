@@ -13,9 +13,9 @@ export const TURN_KEYS = new Set(['move', 'requests', 'exhibit', 'rescue_item', 
 export type Attempt = { turn: ModelTurn | null; refused: boolean; unknown: string[] };
 
 // Request settings that differ by model. Unset fields take the model's own
-// settings (lib/models.ts interviewerRequestOptions): Haiku 5.5 — production
-// since 11 Oct — thinking 'disabled' (it rejects 'between_tools'), effort
-// 'medium', no fallbacks; Sonnet 5.5 — 'between_tools', fallbacks on.
+// settings (lib/models.ts interviewerRequestOptions): Sonnet 5.5 — production
+// since 12 Oct — 'between_tools', fallbacks on; Haiku 5.5 — thinking
+// 'disabled' (it rejects 'between_tools'), effort 'medium', no fallbacks.
 export type AnthropicRequestOptions = {
   thinking?: 'between_tools' | 'disabled';
   effort?: 'low' | 'medium' | 'high';

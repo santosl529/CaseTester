@@ -268,7 +268,7 @@ async function bareFirstTokenMs(): Promise<number | null> {
   const t0 = Date.now();
   const stream = anthropic.beta.messages.stream({
     // Sonnet's bare first token (its between_tools / fallback settings) — pinned
-    // since the default interviewer became Haiku 5.5 (11 Oct).
+    // (pinned while the default interviewer was Haiku 5.5, 11–12 Oct).
     model: 'claude-sonnet-5-5', max_tokens: 1024,
     system: 'You are a case interviewer. Reply in the JSON format with a short question.',
     messages: [{ role: 'user', content: 'Okay.' }],
