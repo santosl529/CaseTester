@@ -10,7 +10,7 @@
 
 **D3 is done and committed (2026-10-11).** Gate: `tests/drills/progress.test.ts` (scripted scenarios) and `npm run drills:smoke:d3`. Screenshots of "Your skills" and the results screen (desktop and phone) sent to Matt.
 
-**D4 in progress (committed and pushed with this round).** Built and tested: program store and onboarding, training homes (plan and self-directed), settings, workout sets, next-case picker (with the approved case-type map), the diagnostic (10 parts, resumable, placement, prescriptions, Foundations switch), the Learn library with 22 draft lessons and a review page, industry tags on all items, retakes can't validate. Migrations 0013–0015 applied. Still to do: Browse drills redesign (catalog, quick start, pick exactly), remaining analytics events and reports (D6), Matt's lesson review. Screenshots in `~/Desktop/drills-d4-screenshots/`.
+**D4 is built** (committed and pushed). The D4 gate's scripted students pass (`drills:smoke:d4` Standard, `drills:smoke:tracks` Foundations and Sprint, `drills:smoke:diagnostic`). Matt: hold off on the next phase (D6) for now. Waiting on his lesson review (`/drills/review/lessons`, then `npm run db:seed-lessons`), which is the gate's last item. Screenshots in `~/Desktop/drills-d4-screenshots/`.
 
 **What's left to build** (docs/prd-drills.md, "Build phases"):
 - D4 Training program: onboarding (stores the browser time zone on `student_profiles`; sets the interview date), diagnostic, tracks and plans (`programs.v1.json`), Practice on my own, Browse drills (quick start uses `nextSetFor`), Program engine, workouts (50/25/25), training home, next-case card (needs `case_type_to_skill_area`), Learn library, 22 lessons.
@@ -319,4 +319,11 @@
 - PRD updated with Matt's go-ahead: retake rule; industries list and rules; case-type map; diagnostic as 10 resumable parts with placement, prescriptions and the Foundations switch (with the results-screen message); lessons as files with a review page; weekly case targets count completed case sessions; `diagnostics` table and `student_programs.current_week`.
 - Matt: when the diagnostic moves a student to Foundations, the diagnostic results say so ("Based on your diagnostic, we've started you on Foundations. You can switch to Standard anytime in settings."), while they are still on Foundations. `diagnostics.moved_to_track` (migration 0016, applied).
 - `docs/drills-content/lessons-review.md`: all 22 lessons in one file for Matt's first read (`npm run drills:lessons-doc` regenerates it). He approves on the review page.
+
+## D4: Browse drills and the track gate (2026-10-11)
+
+- Browse drills redesigned (`/drills/browse`, `GET /api/drills/catalog`, `lib/drills/program/catalog.ts`): areas → skills with state, Suggested badge (open prescription), lesson link, Quick start (`quick_start`), and "Pick a drill and tier" listing live drills by stage with allowed tiers (`lib/drills/program/tiers.ts`: up to one above the current tier, tier 1 or 2 the first time; the server refuses others with `tier_not_allowed`). The old skill picker component is gone. `drill_catalog_viewed` and `drill_set_started` with `browse` / `suggested` are logged.
+- `suggestion_started` (Suggested next card) and `next_case_card_clicked` (the card now goes through `GET /api/drills/next-case`, which logs and redirects to the case page) are logged.
+- Found and fixed: a plan student with no weak spots yet (e.g. Sprint day 2 after skipping the diagnostic and the baseline case, or Standard weeks 4–6 with no prescriptions) got an empty workout that the home showed as "Workout done". It now explains that workouts come from weak spots and links to the diagnostic and Browse drills. Added to the PRD with Matt's go-ahead.
+- `npm run drills:smoke:tracks` (free): Foundations (0 cases → Foundations, 3 workouts a week, no case in week 1, day 2 plan prescription MECE structure at PS-1 Recognize tier 1) and Sprint (10 days → Sprint, day order 1,2,3,4,5,2,3,4,6,7, no workout on day 1, empty day-2 workout without weak spots, 15-minute tier 2+ case-day workout after a case result).
 

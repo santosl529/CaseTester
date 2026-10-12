@@ -74,7 +74,7 @@ export default async function DrillsHomePage() {
             <h2 id="suggested" className="font-medium">Suggested next</h2>
             <p className="text-sm"><span className="font-medium">{home.suggested.skill_name}</span> · {home.suggested.drill_name} · about {Math.max(1, home.suggested.minutes)} min</p>
             <p className="text-sm text-muted-foreground">{home.suggested.reason}</p>
-            <StartSetButton body={{ skill_id: home.suggested.skill_id, quick_start: true }} label="Start" />
+            <StartSetButton body={{ skill_id: home.suggested.skill_id, quick_start: true, suggestion: true }} label="Start" />
           </section>
         )}
         {home.weaknesses.length > 0 && (
@@ -141,7 +141,18 @@ export default async function DrillsHomePage() {
       )}
       {!home.diagnose_today && d.status !== 'completed' && d.done > 0 && diagnosticCard('')}
 
-      {workout && (
+      {workout && workout.blocks.length === 0 && (
+        <section aria-labelledby="workout" className="space-y-2 rounded-lg border p-4">
+          <h2 id="workout" className="font-medium">Today&apos;s workout</h2>
+          <p className="text-sm">Nothing to work on yet: we build workouts from your weak spots. {d.status === 'completed' ? 'Take a case' : 'Take the diagnostic or a case'} so we can find them, or practice any skill in the meantime.</p>
+          <div className="flex flex-wrap gap-3">
+            {d.status !== 'completed' && <Link href="/drills/diagnostic" className={buttonVariants({ size: 'lg' })}>Take the diagnostic</Link>}
+            <Link href="/drills/browse" className={buttonVariants({ variant: 'outline', size: 'lg' })}>Browse drills</Link>
+          </div>
+        </section>
+      )}
+
+      {workout && workout.blocks.length > 0 && (
         <section aria-labelledby="workout" className="space-y-4 rounded-lg border p-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 id="workout" className="font-medium">Today&apos;s workout</h2>
@@ -184,7 +195,7 @@ export default async function DrillsHomePage() {
         <section aria-labelledby="case" className="space-y-2 rounded-lg border p-4">
           <h2 id="case" className="font-medium">{home.next_case.retake ? 'Take the case again' : 'Next case'}</h2>
           <p className="text-sm">{home.next_case.title}{home.next_case.retake && ': you have taken every case we have; another run shows what has changed.'}</p>
-          <Link href="/" className={buttonVariants({ variant: 'outline' })}>Go to cases</Link>
+          <Link href={`/api/drills/next-case?case=${encodeURIComponent(home.next_case.case_id)}`} className={buttonVariants({ variant: 'outline' })}>Go to cases</Link>
         </section>
       )}
 

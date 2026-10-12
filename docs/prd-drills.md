@@ -8,6 +8,7 @@ Oct 11, 2026 · @Matt
 > - 2026-10-06: Matched to the D1 build: endpoint paths, `is_example`, `focus_skill` / `item_plan` / `pending_step` on drill sets, multi-step `input.steps`, rounded-form trap matching, resume and late-answer behavior, and the D1 results-screen action.
 > - 2026-10-10: After content review rounds 1 and 2: three new mistake tags (`M.ignores_deciding_fact`, `M.low_priority_next_step`, `M.irrelevant_driver`), QN-5 card roles, the wording checks for choice drills, and the similarity check that every authored item must pass before going live.
 > - 2026-10-11: D2 decisions: PS-3, HY-2, SY-2 and CL-3 grading rules, caps and red flags; one grading call per answer; tag severity defaults; prescription area limit.
+> - 2026-10-11: The home's message when a workout is empty (no weak spots yet).
 > - 2026-10-11: D4 decisions: retakes can't validate a skill; industry tags (Matt's list and rules); the approved case-type map; the diagnostic as 10 resumable parts with placement, prescriptions and the move to Foundations; lessons as markdown files with a review page; weekly case targets count completed case sessions; new `diagnostics` table and `student_programs.current_week`.
 > - 2026-10-11: D3 decisions: primary skills per drill (only they change state), cross-skill prescriptions weighted as in a case, the supersede rule when a new case arrives, the extra `skill_states` columns, and where the case-type list lives.
 > - 2026-10-11: **v2 merged.** Adds the training program (diagnostic, tracks, plans, workouts, Practice on my own, lessons), the skill tree, drill chains with Repair drills, the Defend step, the Practiced state and transfer checks. Kept from v1: the PS-3, HY-2, SY-2 and CL-3 sections as built (Defend added), the content-review tags, and the build details from the revisions above. Matt's decisions applied: test-out at tier 2 (with Defend once it ships); grading stays at set completion; pilot with the current Level 1 pools; student time zone stored at signup; Browse cases belongs to the case product; set size by tier; taxonomy stays `v1`; skill tree approved.
@@ -260,6 +261,7 @@ Week 0 takes about 50 minutes (diagnostic + baseline case). At the default, the 
 - **Unfamiliar (25%):** a due transfer check if there is one (it may run past 25%). Otherwise a half-size set on a skill at Recognizes or above, using items from a case type and industry the student hasn't seen on that skill. If nothing qualifies, the time goes to weak spots.
 - **Order:** review (warm-up) → weak spots → unfamiliar.
 - The student can stop after any set. The workout stays open until midnight in the student's time zone; a new one is built the next day.
+- **No weak spots yet:** a student with nothing to work on (for example Sprint day 2 after skipping the diagnostic and the baseline case, or Standard weeks 4–6 with no prescriptions) gets an empty workout. The home says that workouts are built from weak spots, and links to the diagnostic (if not taken) and to Browse drills; it never shows an empty workout as done.
 - Sets started from Browse drills count toward skill progress but not toward weekly workout targets.
 
 ### Lessons

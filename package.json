@@ -22,6 +22,7 @@
     "drills:smoke:d3": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-d3.ts",
     "drills:smoke:d4": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-d4.ts",
     "drills:smoke:diagnostic": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-diagnostic.ts",
+    "drills:smoke:tracks": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-tracks.ts",
     "drills:similarity": "tsx --env-file=.env.local scripts/drills-similarity.ts",
     "drills:industry": "tsx --env-file=.env.local scripts/drills-industry.ts",
     "drills:lessons-doc": "tsx scripts/lessons-review-doc.ts",

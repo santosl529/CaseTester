@@ -22,6 +22,7 @@ import { resolveItem, planOf } from '@/lib/drills/grading/jobs';
 import { completeSet, fetchItem, setResults, startSet, submitAttempt } from '@/lib/drills/sets/service';
 import { changeProgram, nextCaseFor, onboard, programView, todayWorkout, workoutWithStatus } from '@/lib/drills/program/store';
 import { homeView } from '@/lib/drills/program/home';
+import { catalog } from '@/lib/drills/program/catalog';
 import type { WorkoutBlock } from '@/lib/drills/program/workout';
 import type { Tier } from '@/lib/drills/item-schema';
 
@@ -84,6 +85,21 @@ async function main() {
     check(status.status === 'in_progress' && status.blocks[0].status === 'done' && status.blocks[0].score === 1, `workout after block 0: ${status.status}, ${status.blocks[0].status}`);
     const results = await setResults(student, set_id);
     check(results.status === 'completed' && results.from_workout, 'results should offer "Continue workout"');
+
+    // Browse drills: the catalog marks prescribed skills Suggested; Pick exactly
+    // allows up to one tier above the current one (QN-4 is now at tier 3 after a perfect set).
+    const areas = await catalog(student);
+    const qnSetup = areas.flatMap(a => a.skills).find(s => s.id === 'QN.setup');
+    check(Boolean(qnSetup?.suggested) && qnSetup!.drills.some(d => d.drill_id === 'QN-4' && d.tiers.join() === '1,2,3'), `catalog QN.setup: ${JSON.stringify(qnSetup)}`);
+    const ex3 = areas.flatMap(a => a.skills).find(s => s.id === 'EX.extraction')?.drills.find(d => d.drill_id === 'EX-3');
+    check(ex3?.tiers.join() === '1,2', 'a first-time drill should allow tiers 1 and 2');
+    let refused = false;
+    try { await startSet(student, { drill_id: 'EX-3', skill_id: 'EX.extraction', tier: 3, browse: true }); } catch (e) { refused = (e as { code?: string }).code === 'tier_not_allowed'; }
+    check(refused, 'tier 3 on a first-time drill should be refused');
+    const picked = await startSet(student, { drill_id: 'EX-3', skill_id: 'EX.extraction', tier: 2, browse: true });
+    const [pickedSet] = await db.select().from(drillSets).where(eq(drillSets.id, picked.set_id));
+    check(pickedSet.tier === 2 && pickedSet.focusSkill === 'EX.extraction', `picked set: tier ${pickedSet.tier}, ${pickedSet.focusSkill}`);
+    await db.update(drillSets).set({ status: 'expired' }).where(eq(drillSets.id, picked.set_id));
 
     // The next case with one case in the library (not yet completed in the case product).
     const next = await nextCaseFor(student);

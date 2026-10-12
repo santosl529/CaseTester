@@ -31,6 +31,7 @@ import type { WorkoutBlock } from '../program/workout';
 import type { DiagnosticPart } from '../program/diagnostic';
 import { attachDiagnosticSet, diagnosticView, startDiagnostic } from '../program/diagnostic-store';
 import { lessonSkills } from '../program/lessons-store';
+import { allowedTiers } from '../program/tiers';
 import { z } from 'zod';
 
 export type { ItemFeedback, StepFeedback };
@@ -96,6 +97,12 @@ export const StartSetSchema = z.object({
   quick_start: z.boolean().optional(),
   // A part of the diagnostic (D4).
   diagnostic_part: z.number().int().nonnegative().optional(),
+  // Browse drills, "Pick exactly": a tier up to one above the student's
+  // current tier on the drill (tier 1 or 2 the first time).
+  tier: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
+  // Started from Browse drills, or from the Suggested next card (analytics).
+  browse: z.boolean().optional(),
+  suggestion: z.boolean().optional(),
 }).refine(b => b.skill_id || b.drill_id || b.prescription_id || b.workout_id || b.diagnostic_part !== undefined,
   'skill_id, drill_id, prescription_id, workout_id or diagnostic_part is required')
   .refine(b => !b.workout_id || b.block !== undefined, 'block is required with workout_id')
@@ -179,6 +186,10 @@ async function chooseSet(studentId: string, input: z.infer<typeof StartSetSchema
   if (!drill || !isLive(drill)) throw new DrillError('no_live_drill', 404, 'No drill is available for that skill and level yet');
   if (input.skill_id && !drill.skills.includes(input.skill_id)) throw new DrillError('bad_request', 400, `${drill.id} doesn't train ${input.skill_id}`);
   const [tierRow] = await db.select().from(drillTiers).where(and(eq(drillTiers.studentId, studentId), eq(drillTiers.drillId, drill.id)));
+  if (input.tier !== undefined && !allowedTiers(tierRow?.currentTier).includes(input.tier)) {
+    const max = Math.max(...allowedTiers(tierRow?.currentTier));
+    throw new DrillError('tier_not_allowed', 400, `You can pick up to tier ${max} on ${drill.name} for now`, { max_tier: max });
+  }
   let focusTag: string | null = null;
   if (input.skill_id) {
     const [state] = await db.select({ tag: skillStates.nextFocusTag }).from(skillStates)
@@ -186,7 +197,7 @@ async function chooseSet(studentId: string, input: z.infer<typeof StartSetSchema
     focusTag = focusFor(drill, state?.tag ?? null);
   }
   return {
-    drill, tier: (tierRow?.currentTier ?? rules.tiers.start) as Tier, source: 'specific', prescriptionId: null,
+    drill, tier: (input.tier ?? tierRow?.currentTier ?? rules.tiers.start) as Tier, source: 'specific', prescriptionId: null,
     focusSkill: input.skill_id ?? null, focusTag, kind: 'normal',
   };
 }
@@ -258,8 +269,19 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
     set_id: setId, drill_id: drill.id, level: drill.level, stage, tier, source: choice.source,
     prescription_id: choice.prescriptionId, focus_tag: choice.focusTag, transfer_check: kind === 'transfer',
     slot: choice.slot ?? null, workout_id: choice.workoutId ?? null, quick_start: input.quick_start ?? false,
+    browse: input.browse ?? false, suggested: input.browse ? await hasOpenPrescription(studentId, choice.focusSkill) : null,
   });
+  if (input.suggestion) {
+    await logDrillEvent(studentId, 'suggestion_started', { set_id: setId, drill_id: drill.id, skill_id: choice.focusSkill, kind });
+  }
   return { set_id: setId };
+}
+
+async function hasOpenPrescription(studentId: string, skillId: string | null): Promise<boolean> {
+  if (!skillId) return false;
+  const [row] = await db.select({ id: prescriptions.id }).from(prescriptions).where(and(eq(prescriptions.studentId, studentId),
+    eq(prescriptions.skillId, skillId), inArray(prescriptions.status, ['open', 'in_progress', 'paused']))).limit(1);
+  return Boolean(row);
 }
 
 // Records the set on its workout block; the workout is now in progress.
