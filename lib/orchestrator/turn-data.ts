@@ -143,5 +143,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     open: state.openDataRequests,
     gateHeld,
   });
-  return { ...decisions, gatedIds };
+  // Code's correction of a misquote (plan-turn.ts), on a model turn only.
+  const correction = state.kind === 'model' && state.misquote ? { item: state.misquote.item, text: state.misquote.text } : null;
+  return { ...decisions, correction, gatedIds };
 }

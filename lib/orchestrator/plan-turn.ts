@@ -29,6 +29,7 @@ import { TOTAL_CASE_MS, type Phase } from './state-machine';
 import { stageGateOpen, endAllowed, recommendationUnresolved } from './spoken-close';
 import { stagesFromTurns, type TurnMove } from './progress';
 import { CheckLog } from './check-log';
+import { findMisquotes, exhibitColumns, correctionLine, type QuoteAnchor } from './misquote';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
 import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
 
@@ -433,6 +434,29 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const verifiedPrev = (flags.lastVerified as VerifiedFigure[] | undefined) ?? [];
   const explainProbedBefore = new Set((flags.explainProbed as string[] | undefined) ?? []);
   const verifiedHint = formatVerifiedHint(verifiedNow, explainProbedBefore);
+  // Rule 6 option 4 (v4.11): a figure the candidate quotes wrong for an item
+  // already revealed is corrected by code, once per item per session — one
+  // flat sentence in the ledger's words, first in the data line (turn-data.ts).
+  // The model is told, so it neither repeats nor probes the figure. A repeat
+  // after the correction is logged for scoring, not corrected again.
+  const anchors = caseData.quoteAnchors as QuoteAnchor[];
+  const misquotesCorrected = new Set((flags.misquoteCorrected as string[] | undefined) ?? []);
+  const misquotes = anchors.length === 0 ? [] : findMisquotes(candidateText, {
+    anchors, ledger: caseData.dataLedger, revealedIds: new Set(revealedIdsNow),
+    exhibitColumns: exhibitColumns(anchors, caseData.exhibits.filter(e => shownExhibitIds.has(e.id)) as { data: Record<string, unknown>[] }[]),
+  });
+  const misquoteFound = misquotes.find(m => !misquotesCorrected.has(m.item)) ?? null;
+  const misquoteItem = misquoteFound ? caseData.dataLedger.find(d => d.id === misquoteFound.item) : undefined;
+  const misquote = misquoteFound && misquoteItem ? { ...misquoteFound, label: misquoteItem.label, text: correctionLine(misquoteItem.value) } : null;
+  for (const m of misquotes.filter(x => misquotesCorrected.has(x.item))) {
+    ctx.events.push({ category: 'intervention', subtype: 'misquote_repeated', payload: { item: m.item, cited: m.cited, sentence: m.sentence } });
+  }
+  checks.record('misquote', misquotes.length > 0, misquote ? 'misquote of revealed data — code corrects it' : 'misquote already corrected — logged', {
+    found: misquotes, correcting: misquote?.item ?? null, alreadyCorrected: [...misquotesCorrected],
+  });
+  const misquoteHint = misquote
+    ? `MISQUOTE: the candidate stated ${misquote.label} as "${misquote.cited}", which the data doesn't say. The system corrects it right after your "say", in the data's words: "${misquoteItem!.value}" Do not repeat, correct, question or build on their figure yourself; ask your question on the corrected data.`
+    : '';
   checks.record('verified_figures', verifiedNow.length > 0, 'recompute_ok sent to the interviewer', {
     verified: verifiedNow.map(v => ({ stepId: v.stepId, value: v.value, workShown: v.workShown, span: v.span })),
   });
@@ -608,7 +632,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       caseData, repliedToDistressOffer, shownExhibitIds, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
-      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures,
+      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, misquote, misquoteHint, misquotesCorrected,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,

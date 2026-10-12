@@ -63,3 +63,28 @@ describe('CaseSchema math-step source spans (v4.3)', () => {
     expect(result.success).toBe(false);
   });
 });
+
+// Rule 6 option 4 (v4.11): the misquote check's anchors must name a ledger
+// item that has figures to check against.
+describe('CaseSchema quoteAnchors', () => {
+  const base = getCaseById('prof-001');
+  it('accepts the anchors prof-001 ships', () => {
+    expect(CaseSchema.safeParse(base).success).toBe(true);
+    expect(base.quoteAnchors.map(q => q.item)).toContain('cogs_pct');
+  });
+  it('rejects an anchor for an unknown ledger item', () => {
+    const r = CaseSchema.safeParse({ ...base, quoteAnchors: [{ item: 'nope', names: ['nope'] }] });
+    expect(r.success).toBe(false);
+  });
+  it('rejects an anchor for an item with no timeframes (nothing to check against)', () => {
+    const r = CaseSchema.safeParse({ ...base, quoteAnchors: [{ item: 'menu_price_change', names: ['menu prices'] }] });
+    expect(r.success).toBe(false);
+  });
+  it('defaults the kind to level and the list to empty', () => {
+    const { quoteAnchors, ...rest } = base;
+    void quoteAnchors;
+    const r = CaseSchema.parse({ ...rest, quoteAnchors: [{ item: 'cogs_pct', names: ['cogs'] }] });
+    expect(r.quoteAnchors[0].kind).toBe('level');
+    expect(CaseSchema.parse(rest).quoteAnchors).toEqual([]);
+  });
+});

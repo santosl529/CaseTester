@@ -422,5 +422,94 @@
       "meets_bar": "Connects COGS data and pricing data to a specific recommendation with rationale.",
       "strong": "Delivers a 30-second recommendation that names the root cause, the two-lever solution, and the top risk — unprompted, at the end of the case."
     }
-  }
+  },
+  "quoteAnchors": [
+    {
+      "item": "cogs_pct",
+      "names": [
+        "cogs",
+        "cost of goods sold",
+        "cost of goods"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "labor_pct",
+      "names": [
+        "labor",
+        "labour"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "overhead_pct",
+      "names": [
+        "overhead",
+        "rent",
+        "occupancy"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "avg_ticket",
+      "names": [
+        "ticket",
+        "average ticket",
+        "transaction value",
+        "average transaction",
+        "atv"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "stores_count",
+      "names": [
+        "store count",
+        "footprint",
+        "stores"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "bean_price_change",
+      "names": [
+        "beans",
+        "bean prices",
+        "bean costs",
+        "bean cost",
+        "coffee beans",
+        "coffee prices",
+        "coffee costs",
+        "green coffee"
+      ],
+      "kind": "change"
+    },
+    {
+      "item": "non_bean_input_change",
+      "names": [
+        "other inputs",
+        "other input costs",
+        "non-bean inputs",
+        "non-bean costs",
+        "non-bean",
+        "dairy, packaging and food",
+        "dairy, packaging, and food",
+        "everything else"
+      ],
+      "kind": "change"
+    },
+    {
+      "item": "bean_share_of_cogs",
+      "names": [
+        "beans",
+        "coffee beans",
+        "bean share"
+      ],
+      "kind": "level",
+      "of": [
+        "cogs",
+        "cost of goods"
+      ]
+    }
+  ]
 }

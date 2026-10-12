@@ -438,6 +438,14 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     exhibit = { id: found.id, title: found.title, chartType: found.chartType, data: found.data as Record<string, unknown>[] };
     exhibitReveals = markExhibitReveals(ledger, found);
   }
+  // Rule 6 option 4: the correction went out in the data line — booked once
+  // per item, logged for scoring with what the candidate said.
+  const misquoteCorrectedSaved = decisions.correction && state.misquote
+    ? [...state.misquotesCorrected, decisions.correction.item]
+    : [...state.misquotesCorrected];
+  if (decisions.correction && state.misquote) {
+    ctx.events.push({ category: 'intervention', subtype: 'misquote_corrected', payload: { item: state.misquote.item, cited: state.misquote.cited, sentence: state.misquote.sentence, correction: decisions.correction.text } });
+  }
   checks.record('data_decisions', decisions.requests.length > 0 || decisions.exhibit !== null || decisions.releases.length > 0,
     'data decided by code', {
       releases: decisions.releases.map(r => r.id), exhibit: decisions.exhibit?.id ?? null,
@@ -665,6 +673,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
             stageEvidence: stagesSaved,
             stagesEnforced: stagesEnforcedSaved,
             unmappedToResolve: unmappedToResolveSaved,
+            misquoteCorrected: misquoteCorrectedSaved,
           },
         })
         .where(and(eq(sessions.id, sessionId), eq(sessions.status, 'active'))),

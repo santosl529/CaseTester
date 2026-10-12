@@ -1,7 +1,8 @@
 // Settle filters through the real runner (batch-19 review step 2, 12 Oct):
 // the question on a turn that delivered data doesn't treat it as still to
 // come (Haiku 5.5, 21 of 24 runs), and grading in "say" or the question is
-// withheld (Rule 1).
+// withheld (Rule 1); a misquote of revealed data gets code's flat correction
+// (Rule 6 option 4, v4.11).
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 
@@ -143,5 +144,35 @@ describe('grading is withheld (Rule 1)', () => {
     seed({ phase: 'EXHIBIT', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: SATISFIED });
     const r = await say('COGS 16, overhead 2, labor 0: that is 18.', T({ question: 'Your bean math holds up. Which input would you dig into first?' }));
     expect(r.interviewerText).toBe('Which input would you dig into first?');
+  });
+});
+
+const flagsNow = () => store.session.flagsJsonb as Row;
+const events = (subtype: string) => store.events.filter(e => e.category === 'intervention' && e.subtype === subtype);
+
+describe('a misquote of revealed data is corrected by code, once (Rule 6 option 4)', () => {
+  const COST = ['cogs_pct', 'labor_pct', 'overhead_pct'];
+  it('Tyler t5 (batch 19): "COGS goes from 42% to 61%" → one flat sentence in the data line, after say', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const r = await say('The whole story is COGS — it goes from 42% to 61% of revenue over two years.', T({ say: 'Mm-hm.', question: 'What sits inside COGS?' }));
+    expect(r.interviewerText).toBe('Mm-hm. To correct one figure: COGS is 58% of revenue today, up from 42% two years ago. What sits inside COGS?');
+    expect(prompts.at(-1)).toMatch(/MISQUOTE: the candidate stated COGS as % of revenue as "to 61%"/);
+    expect(flagsNow().misquoteCorrected).toEqual(['cogs_pct']);
+    expect(events('misquote_corrected')).toHaveLength(1);
+  });
+
+  it('a repeat after the correction is logged for scoring, not corrected again', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: { ...SATISFIED, misquoteCorrected: ['cogs_pct'] } });
+    const r = await say('COGS went from 42% to 61% of revenue, and that explains the decline.', T({ say: 'Mm-hm.', question: 'What sits inside COGS?' }));
+    expect(r.interviewerText).toBe('Mm-hm. What sits inside COGS?');
+    expect(events('misquote_repeated')).toMatchObject([{ payloadJsonb: { item: 'cogs_pct', cited: 'to 61%' } }]);
+    expect(flagsNow().misquoteCorrected).toEqual(['cogs_pct']);
+  });
+
+  it('a figure for data not yet revealed is the candidate\'s own claim — no correction', async () => {
+    seed({ phase: 'ANALYSIS', revealed: ['stores_count'], flags: SATISFIED });
+    const r = await say('I bet COGS went from 42% to 61% of revenue.', T({ say: 'Mm-hm.', question: 'What would you want to see?' }));
+    expect(r.interviewerText).toBe('Mm-hm. What would you want to see?');
+    expect(flagsNow().misquoteCorrected).toEqual([]);
   });
 });

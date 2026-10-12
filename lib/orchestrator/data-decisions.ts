@@ -143,6 +143,9 @@ export type DataDecisions = {
   gateDefers: string[];   // what, for asks the pressure-test gate holds: deferred with the reason (v3)
   unmappedDefer: boolean; // an explicit deferral the model couldn't map: a generic line, nothing promised
   offers: string[];       // what, for passing mentions of data the case holds
+  // Rule 6 option 4 (v4.11): code's correction of a misquoted revealed figure,
+  // spoken first in the data line (set by turn-data.ts on model turns).
+  correction?: { item: string; text: string } | null;
   requests: { request: DeclaredRequest; response: RequestResponse; ledgerItemIds: string[] }[];
 };
 
@@ -283,10 +286,11 @@ const joinWhat = (whats: string[], conj: 'and' | 'or') => {
 // the exhibit handover, refusals, deferrals, offers — each with what it
 // carries, so voice bookkeeping can tell which sentence a release is in
 // (spec 2026-10-08-voice-phase-b §5.3).
-export type DataLinePart = { kind: 'leadin' | 'release' | 'restate' | 'exhibit' | 'refusals' | 'defers' | 'offers'; ids: string[]; text: string };
+export type DataLinePart = { kind: 'correction' | 'leadin' | 'release' | 'restate' | 'exhibit' | 'refusals' | 'defers' | 'offers'; ids: string[]; text: string };
 
 export function renderDataLineParts(d: DataDecisions, seed: string): DataLinePart[] {
   const parts: DataLinePart[] = [];
+  if (d.correction) parts.push({ kind: 'correction', ids: [], text: d.correction.text });
   const earlier = d.releases.filter(r => r.earlier);
   if (earlier.length > 0) parts.push({ kind: 'leadin', ids: [], text: pickScript(STALE_RELEASE_LEADINS, seed) });
   for (const r of d.releases) parts.push({ kind: 'release', ids: [r.id], text: r.value });

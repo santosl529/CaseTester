@@ -146,6 +146,17 @@ export const CaseSchema = z.object({
     aliases: z.array(z.string().min(2)).default([]),
     item: z.string(),
   })).default([]),
+  // Rule 6 option 4 misquote check (lib/orchestrator/misquote.ts, v4.11): the
+  // words candidates use for each quotable ledger item, whether the item
+  // states levels or a change, and for a share item what it is a share of.
+  // The figures come from the item's timeframes. Without it the case has no
+  // misquote check.
+  quoteAnchors: z.array(z.object({
+    item: z.string(),
+    names: z.array(z.string().min(2)).min(1),
+    kind: z.enum(['level', 'change']).default('level'),
+    of: z.array(z.string().min(2)).optional(),
+  })).default([]),
   // Deprecated: the judge scores against the generic 8-dimension rubric in
   // lib/scoring/rubric.ts (docs/Case Interview Feedback Rubric.pdf). Per-case
   // anchors are tolerated in case files but no longer read.
@@ -159,6 +170,11 @@ export const CaseSchema = z.object({
   }));
   c.shareBases.forEach((b, i) => {
     if (!ledgerIds.has(b.item)) ctx.addIssue({ code: 'custom', path: ['shareBases', i, 'item'], message: `Unknown ledger item "${b.item}"` });
+  });
+  c.quoteAnchors.forEach((q, i) => {
+    if (!ledgerIds.has(q.item)) ctx.addIssue({ code: 'custom', path: ['quoteAnchors', i, 'item'], message: `Unknown ledger item "${q.item}"` });
+    const item = c.dataLedger.find(d => d.id === q.item);
+    if (item && Object.keys(item.timeframes ?? {}).length === 0) ctx.addIssue({ code: 'custom', path: ['quoteAnchors', i, 'item'], message: `"${q.item}" has no timeframes, so it has no figures to check` });
   });
 });
 

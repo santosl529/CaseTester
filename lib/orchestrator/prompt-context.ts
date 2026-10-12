@@ -20,7 +20,7 @@ export function promptContextFor(plan: ModelPlan): PromptContext {
     elapsedMs: state.elapsedMs,
     totalMs: TOTAL_CASE_MS,
     phaseBudgetsMs: state.phaseBudgetsMs,
-    recomputeHint: [state.recomputeHint, state.verifiedHint].filter(Boolean).join('\n\n') || undefined,
+    recomputeHint: [state.recomputeHint, state.verifiedHint, state.kind === 'model' ? state.misquoteHint : ''].filter(Boolean).join('\n\n') || undefined,
     stallGuidance: stallDecision.guidance,
     coverageSteer: state.coverageSteer,
     openDataRequestsHint: state.openDataRequestsHint,
