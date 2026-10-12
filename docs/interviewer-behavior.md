@@ -18,6 +18,9 @@ Each change is detailed in its rule:
 4. **A passing mention is offered only for a stated need (Rule 11).** 17 of 24
    Haiku runs heard "I can share X if you'd like" for data the candidate
    hadn't asked for.
+5. **Code's own lines (Rules 7, 11).** Replacement questions fit the phase and
+   the clock; refusals, deferrals and offers read as speech, not catalog text;
+   no deferral beside the exhibit that shows the data.
 
 
 **v4.10 change (11 Oct 2026): the round-3 fixes from batch 18.** Batch 18
@@ -1186,6 +1189,16 @@ the same reply. From v4.9:
   you") is replaced; delivery claims in `say` ("being sent", "come through")
   are withheld. The model is told, in any stage, that the probe is open and
   which figures the candidate has.
+- **A replacement question fits the phase and the clock (v4.11).** Batch 19:
+  Owen heard "Where would you like to start the analysis?" at 16:52,
+  mid-analysis, as code's replacement for a withheld question. Wherever code
+  replaces a question (a withheld challenge, a duplicate probe, the waiver, a
+  question about undelivered figures, a pending-data rewrite with nothing
+  left), it asks: early, where to start; during analysis or the exhibit, the
+  next step; in the brainstorm, priority among the levers; at the
+  recommendation, the reasoning behind it; in the last 90 seconds, a brief one;
+  figures delivered this turn, what they say. No replacement asks for a stage
+  (it would count as administered).
 - The answer check reads the probe as heard: the original plus code's re-ask
   and narrowed probe. A hedged pick with a reason answers a which-first
   question; a bare pick does not; declining one part of a compound probe
@@ -1471,6 +1484,17 @@ nothing is left). This applies to the model's question and to code's own
 lines (the code-asked probe "Before we get into the data: …"). Wording that
 names an item still held this turn (deferred, gated or offered) is true and
 stays (`lib/orchestrator/pending-data.ts`, check `pending_data`).
+
+**Data lines read as speech (v4.11).** Code reads what was asked as speech,
+not catalog text (batch 19: Camila heard "COGS as % of revenue, labor as % of
+revenue and overhead / rent as % of revenue"; Owen "… price changes / price
+elasticity data"): a slash is "or" in a refusal and "and" elsewhere (its first
+term in a list of several); "as % of" is said in words; a parenthesis inside
+is an aside and one at the end is dropped; a suffix shared by every item is
+said once ("I'll share COGS, labor and overhead as a percent of revenue once
+we've settled your structure."). A held ask whose items the exhibit handed
+over this turn shows gets no deferral line (Camila and Sofia heard the exhibit
+and "I'll come back to the cost breakdown" together).
 
 **A passing mention is offered only for a stated need (v4.11).** Batch 19:
 17 of 24 Haiku runs heard "I can share X if you'd like" for data the
