@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "cost_reduction",
+  "industry": null,
   "prompt": "The client asks: \"Which cost-cutting option should we pursue first?\" Fact sheet: renegotiating suppliers saves $8M a year and takes 6 months; closing two plants saves $15M a year, takes 2 years and costs $20M up front; cutting marketing saves $5M but risks sales; the target is $10M of savings this year; the company has 5,000 employees. Which is the best recommendation?",
   "exhibit": null,
   "input": {

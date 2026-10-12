@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "growth_strategy",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A children's swim school grew enrollment 20% this year, but revenue grew only 4%.",
   "exhibit": null,
   "input": {

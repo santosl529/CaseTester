@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "investment_decision",
+  "industry": "Logistics / Transportation",
   "prompt": "The client asks: \"Should our parcel-locker network expand from 2,000 to 5,000 lockers?\"\n\nFact sheet:\n- Lockers in apartment buildings are 85% full on average; lockers in stores are 30% full\n- Each locker costs $8,000 to install and earns $2,500 a year when 80% full\n- Building owners have offered 2,500 new apartment sites\n- Carriers pay us $1 per parcel delivered\n- Most of our lockers are open 24 hours a day\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

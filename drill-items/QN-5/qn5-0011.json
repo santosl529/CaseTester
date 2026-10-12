@@ -12,6 +12,7 @@
     "QN.sanity_check"
   ],
   "case_type": "market_sizing",
+  "industry": "Energy / Utilities",
   "prompt": "Estimate how much electricity US home refrigerators use each year, in kilowatt-hours.",
   "exhibit": null,
   "input": {

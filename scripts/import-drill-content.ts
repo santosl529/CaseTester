@@ -19,8 +19,8 @@ for (const file of fs.readdirSync(dir).filter(f => f.endsWith('.csv'))) {
 }
 const { items, golden, problems } = importContent(tables, { includeExamples });
 
-// An item's content, apart from its review state and version.
-const content = (i: Record<string, unknown>) => JSON.stringify({ ...i, status: undefined, authorship: undefined, version: undefined });
+// An item's content, apart from its review state, industry tag and version.
+const content = (i: Record<string, unknown>) => JSON.stringify({ ...i, status: undefined, authorship: undefined, version: undefined, industry: undefined });
 
 let written = 0, kept = 0;
 for (const item of items) {
@@ -36,6 +36,8 @@ for (const item of items) {
     // Same case and model answer: keep the review record (drafting model,
     // similarity check). A changed case starts over and is checked again.
     if (existing.prompt === item.prompt && existing.model_answer === item.model_answer) item.authorship = existing.authorship;
+    // The industry tag is set by npm run drills:industry and Matt's review, not the CSV.
+    if (existing.industry !== undefined && existing.prompt === item.prompt) (item as Record<string, unknown>).industry = existing.industry;
     // A draft may be a new version of a live item: keep its version number.
     item.version = existing.version;
   }

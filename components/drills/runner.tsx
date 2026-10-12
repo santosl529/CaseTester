@@ -1,5 +1,6 @@
 'use client';
 import { useCallback, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { DrillChart } from '@/components/drills/chart';
@@ -13,6 +14,9 @@ import type { ItemFeedback, StepFeedback, WorkedExample } from '@/lib/drills/set
 
 export interface RunnerView {
   set_id: string;
+  // A diagnostic part: no per-item feedback, back to the diagnostic after.
+  diagnostic: { part: number; of: number } | null;
+  lesson_skill: string | null;
   position: number;
   size: number;
   drill: { id: string; name: string; level: number };
@@ -109,8 +113,10 @@ export function DrillRunner({ view }: { view: RunnerView }) {
       setError(data.message ?? 'Could not finish the set.');
       return;
     }
-    router.push(`/drills/sets/${view.set_id}/results`);
-  }, [router, view.set_id]);
+    // A diagnostic part goes straight back to the diagnostic: no results screen.
+    router.push(view.diagnostic ? '/drills/diagnostic' : `/drills/sets/${view.set_id}/results`);
+    router.refresh();
+  }, [router, view.diagnostic, view.set_id]);
 
   const loadItem = useCallback(async (requested: number) => {
     setError('');
@@ -179,10 +185,16 @@ export function DrillRunner({ view }: { view: RunnerView }) {
       setLimitMs(data.time_limit_ms);
       return;
     }
+    // The diagnostic shows no per-item feedback: on to the next item.
+    if (view.diagnostic) {
+      if (loaded.position + 1 < loaded.size) loadItem(loaded.position + 1);
+      else finish();
+      return;
+    }
     setFinal(data as ItemFeedback);
     setPhase('feedback');
     requestAnimationFrame(() => headingRef.current?.focus());
-  }, [busy, current, draft, loadItem, loaded, phase, stepIndex, view.set_id]);
+  }, [busy, current, draft, finish, loadItem, loaded, phase, stepIndex, view.diagnostic, view.set_id]);
 
   const next = () => {
     if (!loaded) return;
@@ -204,18 +216,23 @@ export function DrillRunner({ view }: { view: RunnerView }) {
     return (
       <section className="space-y-5">
         <div className="space-y-1">
+          {view.diagnostic && <p className="text-sm text-muted-foreground">Diagnostic · Part {view.diagnostic.part} of {view.diagnostic.of}</p>}
           <h1 className="text-xl font-semibold">{view.drill.name}</h1>
           <p className="text-sm text-muted-foreground">
             Trains {view.skills.map(s => s.name).join(', ')}.
             {view.focus_skill && view.skills.length > 1 && ` You chose to practice ${view.focus_skill}.`}
           </p>
         </div>
-        <ul className="grid grid-cols-3 gap-3 text-sm">
+        <ul className={`grid gap-3 text-sm ${view.diagnostic ? 'grid-cols-2' : 'grid-cols-3'}`}>
           <li className="rounded-lg border p-3"><span className="block text-muted-foreground">Items</span><span className="font-medium">{view.size}</span></li>
           <li className="rounded-lg border p-3"><span className="block text-muted-foreground">Time per item</span><span className="font-medium">{time}</span></li>
-          <li className="rounded-lg border p-3"><span className="block text-muted-foreground">Pass bar</span><span className="font-medium">{Math.round(view.pass_bar * 100)}%</span></li>
+          {!view.diagnostic && <li className="rounded-lg border p-3"><span className="block text-muted-foreground">Pass bar</span><span className="font-medium">{Math.round(view.pass_bar * 100)}%</span></li>}
         </ul>
-        {view.ai_graded && (
+        {view.diagnostic && <p className="text-sm text-muted-foreground">No feedback during the diagnostic: answer and move on. You&apos;ll see where you start at the end.</p>}
+        {view.lesson_skill && (
+          <p className="text-sm"><Link href={`/drills/learn/${encodeURIComponent(view.lesson_skill)}?source=intro`} className="underline underline-offset-4">Read the 3-min lesson</Link> first if this skill is new to you.</p>
+        )}
+        {!view.diagnostic && view.ai_graded && (
           <p className="text-sm text-muted-foreground">Your written answers are graded together after the last item, so there is no feedback until then.</p>
         )}
         {view.example && showExample && (
@@ -255,7 +272,7 @@ export function DrillRunner({ view }: { view: RunnerView }) {
   return (
     <section className="space-y-5">
       <div className="flex items-baseline justify-between text-sm text-muted-foreground">
-        <span>{view.drill.name}</span>
+        <span>{view.diagnostic ? `Diagnostic · Part ${view.diagnostic.part} of ${view.diagnostic.of}` : view.drill.name}</span>
         <span>Item {loaded.position + 1} of {loaded.size}</span>
       </div>
       <h1 ref={headingRef} tabIndex={-1} className="whitespace-pre-line text-base font-medium leading-relaxed outline-none">{item.prompt}</h1>
@@ -269,7 +286,7 @@ export function DrillRunner({ view }: { view: RunnerView }) {
           before the calculation); AI-graded ones are just saved. */}
       {steps.map((s, i) => (
         <div key={i} className="space-y-1 rounded-lg border p-3 text-sm">
-          {s.pending ? (
+          {s.pending || view.diagnostic ? (
             <p className="font-medium">Step {i + 1}: saved</p>
           ) : (
             <>

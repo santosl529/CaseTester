@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "public_sector",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "A national health service's waiting list for hip replacements grew from 18 weeks to 30.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

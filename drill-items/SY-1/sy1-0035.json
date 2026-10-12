@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "growth_strategy",
+  "industry": "Other",
   "prompt": "Mid-case: A gym chain wants to grow revenue. You've found that membership is flat at 50,000, but revenue per member rose 8% thanks to personal training. You also learned the gyms are open 24 hours. You haven't looked at new locations. Which is the best summary?",
   "exhibit": null,
   "input": {

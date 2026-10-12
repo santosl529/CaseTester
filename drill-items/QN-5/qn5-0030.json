@@ -12,6 +12,7 @@
     "QN.sanity_check"
   ],
   "case_type": "market_sizing",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "Estimate how many units of red blood cells are transfused in US hospitals each year.",
   "exhibit": null,
   "input": {

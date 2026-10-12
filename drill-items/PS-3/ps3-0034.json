@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "market_sizing",
+  "industry": "Industrials / Manufacturing",
   "prompt": "An investor wants to estimate the yearly global market for replacement batteries for electric cars in 2030, in dollars.",
   "exhibit": null,
   "input": {

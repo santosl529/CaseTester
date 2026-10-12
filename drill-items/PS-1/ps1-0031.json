@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "market_entry",
+  "industry": "Financial Services",
   "prompt": "A US pet insurance company is deciding whether to enter Germany. The candidate's framework: (1) Revenue: price and volume; (2) Fixed costs; (3) Variable costs. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

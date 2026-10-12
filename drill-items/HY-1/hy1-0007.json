@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "cost_reduction",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "A hospital's supply costs rose 18% in two years. Patient volumes and the number of items used per patient were both flat. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "The city wants to raise its overall recycling rate. Which takeaway matters most?",
   "exhibit": {
     "type": "bar",

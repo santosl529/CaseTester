@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "First-year dropout at a state's community colleges rose from 25% to 35% in two years, while enrollment rose 15%.",
   "exhibit": null,
   "input": {

@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "The client asks: \"Should we launch the protein bar?\" Fact sheet: the target market is $300M; expected share is 3% by year two; the margin would be 40%; launch costs are $5M; the bar beat the leading brands 60 to 40 in a taste test; the company's last launch was a sparkling water. Which is the best recommendation?",
   "exhibit": null,
   "input": {

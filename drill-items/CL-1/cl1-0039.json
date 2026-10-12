@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "industry_analysis",
+  "industry": "Consumer / CPG",
   "prompt": "Objective: assess whether the plant-based meat industry is attractive. What you've learned: sales grew fast until 2021 and have fallen since. Latest finding: repeat purchase rates are low. What is the best next step?",
   "exhibit": null,
   "input": {

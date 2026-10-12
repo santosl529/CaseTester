@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "m_and_a",
+  "industry": "Telecom / Media",
   "prompt": "A media company is deciding whether to buy a popular podcast network. The candidate's framework: (1) Size and growth of the podcast market; (2) Competing podcast networks; (3) Cost of producing new shows; (4) The company's ability to win listeners. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

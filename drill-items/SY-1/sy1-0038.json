@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "public_sector",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "Mid-case: A hospital wants to cut ER waiting times. You've found that 40% of ER visits are non-urgent and could go to urgent care clinics. You also learned the hospital has a helicopter pad. You haven't looked at ER staffing. Which is the best summary?",
   "exhibit": null,
   "input": {

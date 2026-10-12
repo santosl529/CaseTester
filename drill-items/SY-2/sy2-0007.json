@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "growth_strategy",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "The client asks: \"Should our pottery studio open a second studio or add evening classes at the current one?\"\n\nFact sheet:\n- Evening classes at the current studio are fully booked, with a 120-person waitlist\n- Adding evening classes needs two more kilns at $30,000; a second studio would cost $400,000\n- Each evening class brings in $9,000 a year\n- The second-studio site is 25 miles away, in a town with no pottery studio\n- The studio switched to a new booking app last year\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

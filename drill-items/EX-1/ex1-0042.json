@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "cost_reduction",
+  "industry": "Logistics / Transportation",
   "prompt": "The client wants to know why its cost per delivery rose. Which takeaway matters most?",
   "exhibit": {
     "type": "stacked_bar",

@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "profitability",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "A network of blood-testing labs saw profit fall 20% this year, while test volume rose 15%.",
   "exhibit": null,
   "input": {

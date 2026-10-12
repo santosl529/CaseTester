@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "pricing",
+  "industry": "Telecom / Media",
   "prompt": "Objective: decide whether a newspaper should raise its digital subscription price 25%. What you've learned: a survey says 5% of subscribers would cancel. Latest finding: revenue would rise about 19%. What is the best next step?",
   "exhibit": null,
   "input": {

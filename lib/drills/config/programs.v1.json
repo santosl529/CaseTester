@@ -4,10 +4,72 @@
     "sprint_within_days": 14,
     "foundations_below_diagnostic": 0.5
   },
+  "diagnostic": {
+    "tier": 2,
+    "parts": [
+      {
+        "drill": "PS-1",
+        "items": 3
+      },
+      {
+        "drill": "HY-1",
+        "items": 3
+      },
+      {
+        "drill": "EX-1",
+        "items": 3
+      },
+      {
+        "drill": "SY-1",
+        "items": 3
+      },
+      {
+        "drill": "CL-1",
+        "items": 3
+      },
+      {
+        "drill": "QN-1",
+        "items": 2
+      },
+      {
+        "drill": "QN-3",
+        "items": 3
+      },
+      {
+        "drill": "EX-2",
+        "items": 2
+      },
+      {
+        "drill": "PS-3",
+        "items": 1
+      },
+      {
+        "drill": "SY-2",
+        "items": 1
+      }
+    ],
+    "min_items_or_checks": 2,
+    "recognize_below": 0.5,
+    "construct_at_or_above": 0.8,
+    "max_prescriptions": 3
+  },
   "availability": [
-    { "id": "light", "label": "About 1.5–2 hours", "workouts_per_week": 3 },
-    { "id": "standard", "label": "About 2–2.5 hours", "workouts_per_week": 4, "default": true },
-    { "id": "heavy", "label": "About 3 hours", "workouts_per_week": 6 }
+    {
+      "id": "light",
+      "label": "About 1.5–2 hours",
+      "workouts_per_week": 3
+    },
+    {
+      "id": "standard",
+      "label": "About 2–2.5 hours",
+      "workouts_per_week": 4,
+      "default": true
+    },
+    {
+      "id": "heavy",
+      "label": "About 3 hours",
+      "workouts_per_week": 6
+    }
   ],
   "workout": {
     "target_minutes": 20,
@@ -15,7 +77,11 @@
     "day_before_interview_minutes": 15,
     "min_sets": 2,
     "max_sets": 4,
-    "mix": { "weak": 0.5, "review": 0.25, "unfamiliar": 0.25 },
+    "mix": {
+      "weak": 0.5,
+      "review": 0.25,
+      "unfamiliar": 0.25
+    },
     "minutes_per_item_factor": 0.8,
     "case_minutes": 35
   },
@@ -26,7 +92,15 @@
       "start_tier": 1,
       "lessons": "auto",
       "construct_gate": true,
-      "cases_per_week": [0, 0, 1, 1, 2, 2, 2]
+      "cases_per_week": [
+        0,
+        0,
+        1,
+        1,
+        2,
+        2,
+        2
+      ]
     },
     "standard": {
       "length_weeks": 6,
@@ -34,7 +108,15 @@
       "start_tier": 2,
       "lessons": "offered",
       "construct_gate": false,
-      "cases_per_week": [1, 1, 1, 1, 2, 2, 2]
+      "cases_per_week": [
+        1,
+        1,
+        1,
+        1,
+        2,
+        2,
+        2
+      ]
     },
     "sprint": {
       "length_days": 7,
@@ -42,7 +124,10 @@
       "start_tier": 2,
       "lessons": "offered",
       "construct_gate": false,
-      "tiers": [2, 3],
+      "tiers": [
+        2,
+        3
+      ],
       "review_only_within_days": 2
     },
     "self_directed": {
@@ -53,43 +138,170 @@
     }
   },
   "weeks": [
-    { "week": 0, "theme": "Diagnose", "focus_areas": [], "focus_skills": [], "milestone": { "type": "plan_set" } },
     {
-      "week": 1, "theme": "Structure and math",
-      "focus_areas": ["PS"], "focus_skills": ["QN.setup", "QN.percentages", "QN.magnitude"],
-      "milestone": { "type": "skills", "skills": ["PS.mece", "PS.case_specific", "QN.setup"], "state": "practiced" }
+      "week": 0,
+      "theme": "Diagnose",
+      "focus_areas": [],
+      "focus_skills": [],
+      "milestone": {
+        "type": "plan_set"
+      }
     },
     {
-      "week": 2, "theme": "Hypotheses and exhibits",
-      "focus_areas": ["HY", "EX"], "focus_skills": ["QN.sizing_structure"],
-      "milestone": { "type": "skills", "skills": ["HY.form", "EX.takeaway", "QN.sizing_structure"], "state": "practiced" }
+      "week": 1,
+      "theme": "Structure and math",
+      "focus_areas": [
+        "PS"
+      ],
+      "focus_skills": [
+        "QN.setup",
+        "QN.percentages",
+        "QN.magnitude"
+      ],
+      "milestone": {
+        "type": "skills",
+        "skills": [
+          "PS.mece",
+          "PS.case_specific",
+          "QN.setup"
+        ],
+        "state": "practiced"
+      }
     },
     {
-      "week": 3, "theme": "Judgment and synthesis",
-      "focus_areas": ["SY", "CL", "BJ"], "focus_skills": [],
-      "milestone": { "type": "skills", "skills": ["SY.answer_first", "SY.evidence", "CL.next_step"], "state": "practiced" }
+      "week": 2,
+      "theme": "Hypotheses and exhibits",
+      "focus_areas": [
+        "HY",
+        "EX"
+      ],
+      "focus_skills": [
+        "QN.sizing_structure"
+      ],
+      "milestone": {
+        "type": "skills",
+        "skills": [
+          "HY.form",
+          "EX.takeaway",
+          "QN.sizing_structure"
+        ],
+        "state": "practiced"
+      }
     },
     {
-      "week": 4, "theme": "Integration", "focus_areas": [], "focus_skills": [],
-      "milestone": { "type": "earlier_milestones", "state": "practiced" }
+      "week": 3,
+      "theme": "Judgment and synthesis",
+      "focus_areas": [
+        "SY",
+        "CL",
+        "BJ"
+      ],
+      "focus_skills": [],
+      "milestone": {
+        "type": "skills",
+        "skills": [
+          "SY.answer_first",
+          "SY.evidence",
+          "CL.next_step"
+        ],
+        "state": "practiced"
+      }
     },
     {
-      "week": 5, "theme": "Interview performance", "focus_areas": [], "focus_skills": [], "prefer_tier": 3,
-      "milestone": { "type": "prescriptions", "state": "practiced", "tier3_passes": 3 }
+      "week": 4,
+      "theme": "Integration",
+      "focus_areas": [],
+      "focus_skills": [],
+      "milestone": {
+        "type": "earlier_milestones",
+        "state": "practiced"
+      }
     },
     {
-      "week": 6, "theme": "Readiness", "focus_areas": [], "focus_skills": [], "transfer_all": true,
-      "milestone": { "type": "prescriptions", "state": "mastered", "final_case": true }
+      "week": 5,
+      "theme": "Interview performance",
+      "focus_areas": [],
+      "focus_skills": [],
+      "prefer_tier": 3,
+      "milestone": {
+        "type": "prescriptions",
+        "state": "practiced",
+        "tier3_passes": 3
+      }
+    },
+    {
+      "week": 6,
+      "theme": "Readiness",
+      "focus_areas": [],
+      "focus_skills": [],
+      "transfer_all": true,
+      "milestone": {
+        "type": "prescriptions",
+        "state": "mastered",
+        "final_case": true
+      }
     }
   ],
   "sprint_days": [
-    { "day": 1, "activities": ["diagnostic", "case"], "workout_minutes": 0, "cases": 1 },
-    { "day": 2, "activities": ["workout"], "workout_minutes": 30, "cases": 0 },
-    { "day": 3, "activities": ["case", "workout"], "workout_minutes": 15, "cases": 1 },
-    { "day": 4, "activities": ["workout"], "workout_minutes": 30, "cases": 0 },
-    { "day": 5, "activities": ["case", "workout"], "workout_minutes": 15, "cases": 1 },
-    { "day": 6, "activities": ["review"], "workout_minutes": 20, "cases": 0 },
-    { "day": 7, "activities": ["light_review"], "workout_minutes": 15, "cases": 0 }
+    {
+      "day": 1,
+      "activities": [
+        "diagnostic",
+        "case"
+      ],
+      "workout_minutes": 0,
+      "cases": 1
+    },
+    {
+      "day": 2,
+      "activities": [
+        "workout"
+      ],
+      "workout_minutes": 30,
+      "cases": 0
+    },
+    {
+      "day": 3,
+      "activities": [
+        "case",
+        "workout"
+      ],
+      "workout_minutes": 15,
+      "cases": 1
+    },
+    {
+      "day": 4,
+      "activities": [
+        "workout"
+      ],
+      "workout_minutes": 30,
+      "cases": 0
+    },
+    {
+      "day": 5,
+      "activities": [
+        "case",
+        "workout"
+      ],
+      "workout_minutes": 15,
+      "cases": 1
+    },
+    {
+      "day": 6,
+      "activities": [
+        "review"
+      ],
+      "workout_minutes": 20,
+      "cases": 0
+    },
+    {
+      "day": 7,
+      "activities": [
+        "light_review"
+      ],
+      "workout_minutes": 15,
+      "cases": 0
+    }
   ],
   "plan_prescription_priority": 1,
   "focus_priority_bonus": 2,

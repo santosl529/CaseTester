@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "A carmaker launched an electric pickup. Orders beat plan, but 25% of buyers canceled before delivery.",
   "exhibit": null,
   "input": {

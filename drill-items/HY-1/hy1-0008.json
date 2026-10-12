@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "profitability",
+  "industry": "Tech / SaaS",
   "prompt": "A software company's revenue grew 25%, but its operating margin fell from 20% to 8%. Headcount grew 60%. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

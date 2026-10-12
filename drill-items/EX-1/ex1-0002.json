@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "market_entry",
+  "industry": null,
   "prompt": "The client is choosing which region to enter first. Which takeaway matters most?",
   "exhibit": {
     "type": "line",

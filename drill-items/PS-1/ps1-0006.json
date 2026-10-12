@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "A sportswear brand is deciding whether to launch a line of smart running shoes with built-in sensors. The candidate's framework: (1) Runner demand for sensor-equipped shoes; (2) Price runners would pay; (3) Manufacturing and sensor costs; (4) Customer interest in smart running gear. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

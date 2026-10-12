@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "m_and_a",
+  "industry": "Other",
   "prompt": "A large accounting firm is deciding whether to buy a 200-lawyer law firm for $150M, now that its state allows accountants to own law firms.",
   "exhibit": null,
   "input": {

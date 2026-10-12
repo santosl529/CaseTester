@@ -111,6 +111,12 @@ describe('case → skill states (PRD "Updating skill state from cases")', () => 
     expect(u.progress.get('SY.answer_first')!.next_review_at).toBeNull();
   });
 
+  it("doesn't validate on a retake, but still drops a flagged skill", () => {
+    const before = progress({ skill_id: 'PS.mece', state: 'mastered' }, { skill_id: 'QN.setup', state: 'mastered' });
+    const u = applyCase(before, caseWith([['M.wrong_formula', 'minor']], { skills_observed: ['PS.mece', 'QN.setup'] }), null, at(0), true);
+    expect(u.transitions.map(t => [t.skill_id, t.to])).toEqual([['QN.setup', 'recognizes']]);
+  });
+
   it('validates a Mastered skill the case observed with no findings, and leaves other states alone', () => {
     const before = progress({ skill_id: 'PS.mece', state: 'mastered' }, { skill_id: 'QN.setup', state: 'practiced' });
     const u = applyCase(before, caseWith([], { skills_observed: ['PS.mece', 'QN.setup'] }), null, at(0));

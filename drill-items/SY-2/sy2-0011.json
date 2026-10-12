@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "profitability",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "The client asks: \"How should our catering company restore its profit margin?\"\n\nFact sheet:\n- Margin fell from 15% to 6% in two years\n- Food costs held at 30% of revenue\n- Event-staff overtime doubled after we began taking same-week bookings, which are now 40% of events\n- Our prices haven't risen in two years, while competitors raised theirs 8%\n- Corporate clients make up 55% of revenue\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

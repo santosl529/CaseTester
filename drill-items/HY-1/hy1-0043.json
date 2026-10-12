@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "operations",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "A clinic's patient visits rose 15%, doctors' hours were unchanged, average visit length was unchanged, and average wait time doubled. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

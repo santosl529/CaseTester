@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "investment_decision",
+  "industry": "Energy / Utilities",
   "prompt": "A coastal city is deciding whether to build a $300M desalination plant.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

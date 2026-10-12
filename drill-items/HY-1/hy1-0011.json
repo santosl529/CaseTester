@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "operations",
+  "industry": "Industrials / Manufacturing",
   "prompt": "A factory's output per shift fell 12% after it installed new packing machines. Machine downtime is reported as normal. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

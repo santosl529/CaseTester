@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "market_entry",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A Korean bakery-café chain opened 30 cafés in the US. Average sales per café are half of plan.",
   "exhibit": null,
   "input": {

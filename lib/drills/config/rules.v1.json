@@ -246,5 +246,20 @@
     "M.growth_error": "QN-3",
     "M.arithmetic_error": "QN-3"
   },
-  "case_type_to_skill_area": {}
+  "case_type_to_skill_area": {
+    "profitability": "QN",
+    "cost_reduction": "QN",
+    "pricing": "QN",
+    "investment_decision": "QN",
+    "market_sizing": "QN",
+    "market_entry": "PS",
+    "growth_strategy": "PS",
+    "public_sector": "PS",
+    "operations": "PS",
+    "m_and_a": "BJ",
+    "new_product_launch": "BJ",
+    "turnaround": "HY",
+    "competitive_response": "HY",
+    "industry_analysis": "EX"
+  }
 }

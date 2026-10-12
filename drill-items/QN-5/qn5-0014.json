@@ -12,6 +12,7 @@
     "QN.sanity_check"
   ],
   "case_type": "market_sizing",
+  "industry": "Other",
   "prompt": "Estimate annual US spending on professional lawn-care services for homes.",
   "exhibit": null,
   "input": {

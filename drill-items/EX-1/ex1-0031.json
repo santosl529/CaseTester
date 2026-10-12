@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "profitability",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "The client wants to know which products earn the weakest margins. Which takeaway matters most?",
   "exhibit": {
     "type": "bar",

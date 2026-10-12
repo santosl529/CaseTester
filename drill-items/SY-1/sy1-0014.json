@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "growth_strategy",
+  "industry": null,
   "prompt": "The client asks: \"Which market should we enter next, Brazil or Mexico?\" Fact sheet: Brazil's market is $1B, growing 4% a year, with a 25% import tariff; Mexico's market is $600M, growing 9% a year, with no tariff; our distribution partner already operates in Mexico; our largest shareholder is based in Spain. Which is the best recommendation?",
   "exhibit": null,
   "input": {

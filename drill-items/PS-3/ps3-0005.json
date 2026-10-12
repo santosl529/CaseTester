@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "growth_strategy",
+  "industry": "Retail / E-commerce",
   "prompt": "A family-owned chain of 25 hardware stores wants to grow profit 25% in three years without opening new stores.",
   "exhibit": null,
   "input": {

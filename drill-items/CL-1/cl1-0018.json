@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "profitability",
+  "industry": "Other",
   "prompt": "Objective: find why an engineering consultancy's margin fell from 18% to 9%. What you've learned: revenue grew 20%. Latest finding: headcount grew 45%, mostly junior engineers. What is the best next step?",
   "exhibit": null,
   "input": {

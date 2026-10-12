@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "profitability",
+  "industry": null,
   "prompt": "The client wants to know why profit fell from 2024 to 2025. Which takeaway matters most?",
   "exhibit": {
     "type": "waterfall",

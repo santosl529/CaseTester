@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "new_product_launch",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "The client asks: \"Should our burger restaurants add breakfast?\" Fact sheet: adding breakfast costs $20k per restaurant; breakfast would earn about $30k a year per restaurant; the restaurants are currently closed in the morning; the breakfast market grows 5% a year; the chain's head office moved to Denver this year. Which is the best recommendation?",
   "exhibit": null,
   "input": {

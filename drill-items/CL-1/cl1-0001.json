@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "profitability",
+  "industry": "Industrials / Manufacturing",
   "prompt": "Objective: find why a paint maker's profit fell 15%. What you've learned: revenue is flat. Latest finding: cost of goods sold rose 18% while other costs held steady. What is the best next step?",
   "exhibit": null,
   "input": {

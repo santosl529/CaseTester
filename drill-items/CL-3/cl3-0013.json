@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "profitability",
+  "industry": "Telecom / Media",
   "prompt": "A regional TV station's profit fell 40% in two years, while its viewership held steady.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "operations",
+  "industry": "Retail / E-commerce",
   "prompt": "Objective: cut checkout wait times at a grocery chain. What you've learned: wait times average 9 minutes at peak hours. Latest finding: only half the checkouts are staffed at peak. What is the best next step?",
   "exhibit": null,
   "input": {

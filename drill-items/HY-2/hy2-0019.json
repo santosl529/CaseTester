@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "A cosmetics brand launched a refillable lipstick. Sales of the lipstick are on plan, but refill sales are 70% below plan.",
   "exhibit": null,
   "input": {

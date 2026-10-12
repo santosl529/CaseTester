@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "operations",
+  "industry": "Logistics / Transportation",
   "prompt": "Objective: find why a parts distributor's same-day shipping rate fell from 92% to 70%. What you've learned: order volume is flat and couriers report normal pickup times. Latest finding: order picking time doubled after new handheld scanners were introduced. What is the best next step?",
   "exhibit": null,
   "input": {

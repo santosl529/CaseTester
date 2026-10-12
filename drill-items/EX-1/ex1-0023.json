@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "market_entry",
+  "industry": "Other",
   "prompt": "The client wants to pick a city for its first pet grooming salons. Which takeaway matters most?",
   "exhibit": {
     "type": "table",

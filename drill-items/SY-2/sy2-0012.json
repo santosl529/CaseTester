@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "pricing",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "The client asks: \"Should our music school switch from per-lesson pricing to a $150 monthly membership?\"\n\nFact sheet:\n- Students take 3.1 lessons a month on average, at $45 each\n- Missed lessons, now 15% of bookings, earn nothing under per-lesson pricing\n- Two nearby schools sell monthly memberships at $140 to $160\n- Enrollment grew 6% last year\n- The membership would cover up to 4 lessons a month\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

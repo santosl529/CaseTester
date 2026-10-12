@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "pricing",
+  "industry": "Logistics / Transportation",
   "prompt": "After a 10% fare increase, a ferry operator's revenue per passenger rose 10% this year, but its total ticket revenue was flat. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

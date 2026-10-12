@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "cost_reduction",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "A health insurer's administrative cost per member is 30% higher than its peers'.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

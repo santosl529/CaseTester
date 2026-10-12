@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "industry_analysis",
+  "industry": "Consumer / CPG",
   "prompt": "US sales of new upright pianos fell 40% over five years, while the number of children taking piano lessons was flat.",
   "exhibit": null,
   "input": {

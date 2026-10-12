@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A national park service wants to reduce overcrowding at its three most visited parks. The candidate's framework: (1) Product; (2) Price; (3) Place; (4) Promotion. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

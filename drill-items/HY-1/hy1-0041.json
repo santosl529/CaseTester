@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "growth_strategy",
+  "industry": "Retail / E-commerce",
   "prompt": "A subscription box company's revenue grew 20% this year while its customer count grew 50%. The price of a box was unchanged. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

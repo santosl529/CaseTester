@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "market_entry",
+  "industry": "Retail / E-commerce",
   "prompt": "The client asks: \"Should our UK online plant shop start shipping to Germany?\"\n\nFact sheet:\n- Shipping a plant to Germany costs £14 per order, against £6 in the UK\n- The average order is £35, at a 40% gross margin\n- Germany's online plant market is twice the size of the UK's\n- Each shipment to the EU now needs a health certificate costing £3\n- Our warehouse is in Kent\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

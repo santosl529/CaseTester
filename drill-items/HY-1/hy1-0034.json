@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "cost_reduction",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A university's energy costs rose 25% in a year, while energy prices rose 10%. It opened two new buildings. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A state's restaurant food-safety inspections fell 30% behind schedule in a year.",
   "exhibit": null,
   "input": {

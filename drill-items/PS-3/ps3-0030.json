@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "cost_reduction",
+  "industry": "Energy / Utilities",
   "prompt": "A copper mine's cost per ton of copper rose 25% in three years. Management wants to get back to the old level.",
   "exhibit": null,
   "input": {

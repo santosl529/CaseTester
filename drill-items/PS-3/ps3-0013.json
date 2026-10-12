@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "cost_reduction",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A public school district spends $40M a year on student buses. It must cut that by 10% without dropping service for any student who qualifies.",
   "exhibit": null,
   "input": {

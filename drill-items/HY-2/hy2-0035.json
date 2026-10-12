@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "operations",
+  "industry": "Logistics / Transportation",
   "prompt": "Ships at a container port now wait 4 days on average for a berth, up from 1 day, while ship arrivals rose 5%.",
   "exhibit": null,
   "input": {

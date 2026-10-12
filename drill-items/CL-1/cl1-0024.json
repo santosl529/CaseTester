@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "competitive_response",
+  "industry": "Logistics / Transportation",
   "prompt": "Objective: respond to a new rival in a city's bike-courier market. What you've learned: share fell from 55% to 40%. Latest finding: the losses are concentrated in weekend deliveries, where the rival pays riders more. What is the best next step?",
   "exhibit": null,
   "input": {

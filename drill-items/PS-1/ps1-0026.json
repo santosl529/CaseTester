@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "A snack company is deciding whether to launch a high-protein chip. The candidate's framework: (1) Competing protein snacks; (2) Cost to make and distribute the chip; (3) Consumer demand for high-protein snacks; (4) Which athlete should front the launch ads. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "pricing",
+  "industry": "Other",
   "prompt": "Objective: decide whether a gym should add a cheaper off-peak membership. What you've learned: peak hours are full while mornings and afternoons are 30% used. Latest finding: a survey shows 25% of non-members would join at a lower off-peak price. What is the best next step?",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "competitive_response",
+  "industry": null,
   "prompt": "The client wants to know how serious a new rival is. Which takeaway matters most?",
   "exhibit": {
     "type": "line",

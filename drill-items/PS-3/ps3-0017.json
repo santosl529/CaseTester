@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "operations",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A food bank takes six weeks on average to get donated food from its warehouse to partner pantries. It wants to cut that to two weeks.",
   "exhibit": null,
   "input": {

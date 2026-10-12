@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "The client asks: \"Should the state fund a job training program for unemployed adults?\" Fact sheet: the program costs $5,000 per participant; participants earn $6,000 a year more afterward; the state income tax rate is 10%; participants work about 10 more years on average; benefit payments fall by $2,000 a year for two years; the program was designed by a university. Which is the best recommendation?",
   "exhibit": null,
   "input": {

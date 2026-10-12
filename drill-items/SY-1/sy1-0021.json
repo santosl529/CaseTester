@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "market_entry",
+  "industry": "Tech / SaaS",
   "prompt": "The client asks: \"Should we launch our ride-hailing app in a new city?\" Fact sheet: the city has 2 million people; the incumbent holds 85% share; drivers earn 20% more with the incumbent; acquiring a customer would cost $40, against a $35 lifetime value; entry requires a $5M license; the city hosts a large music festival. Which is the best recommendation?",
   "exhibit": null,
   "input": {

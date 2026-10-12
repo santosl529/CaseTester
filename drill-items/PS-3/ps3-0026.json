@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "growth_strategy",
+  "industry": "Consumer / CPG",
   "prompt": "A family-run hot-sauce maker sells in 300 grocery stores. It wants to triple its revenue within four years.",
   "exhibit": null,
   "input": {

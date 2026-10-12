@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "competitive_response",
+  "industry": "Retail / E-commerce",
   "prompt": "The client asks: \"Should our sporting-goods chain match online prices?\"\n\nFact sheet:\n- 30% of shoppers check prices on their phones in our stores\n- Online prices are on average 12% lower on the items shoppers check most\n- Matching on those items would cut gross profit by $2M a year\n- In a 10-store test, matching raised sales of matched items 25% and added accessory sales worth $2.6M of profit if rolled out\n- The chain sponsors a local marathon\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

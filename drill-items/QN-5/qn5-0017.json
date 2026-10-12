@@ -12,6 +12,7 @@
     "QN.sanity_check"
   ],
   "case_type": "market_sizing",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "Estimate how many eye exams for glasses or contact lenses are given in the US each year.",
   "exhibit": null,
   "input": {

@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "market_entry",
+  "industry": "Consumer / CPG",
   "prompt": "A European e-bike maker is deciding whether to enter the US market. The candidate's framework: (1) US demand for e-bikes; (2) Competitors and their market shares; (3) Costs of distribution, marketing and import duties. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

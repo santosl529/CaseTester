@@ -1,43 +1,194 @@
 import Link from 'next/link';
-import { DRILLS_CONFIG } from '@/lib/drills/config';
-import { drillForSkill, inProgressSet, settingsFor } from '@/lib/drills/sets/service';
+import { redirect } from 'next/navigation';
 import { studentOrRedirect } from '@/lib/drills/session';
-import { DrillPicker, type PickerArea } from '@/components/drills/picker';
+import { homeView } from '@/lib/drills/program/home';
+import { getDrill } from '@/lib/drills/config';
+import { buttonVariants } from '@/components/ui/button';
+import { StartSetButton } from '@/components/drills/start-set-button';
 
-// "Practice something specific" (docs/prd-drills.md): pick a skill area, then
-// a skill; the system picks the drill and tier, and the student can override
-// the level. Only skills with a live drill are listed.
-export default async function DrillsPage() {
+const TRACK = { foundations: 'Foundations', standard: 'Standard', sprint: 'Sprint', self_directed: 'Practice on my own' } as const;
+const SLOT = { review: 'Review', weak: 'Weak spot', unfamiliar: 'Something new' } as const;
+const STATE = { not_started: 'Not started', learning: 'Learning', recognizes: 'Recognizes', practiced: 'Practiced', mastered: 'Mastered', validated: 'Validated' } as const;
+const pct = (x: number) => `${Math.round(x * 100)}%`;
+const dateLabel = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+
+// The training home (docs/prd-drills.md "Training home", "What the home
+// serves", "Practice on my own").
+export default async function DrillsHomePage() {
   const studentId = await studentOrRedirect();
-  const [current, settings] = await Promise.all([inProgressSet(studentId), settingsFor(studentId)]);
-  const { areas, skills } = DRILLS_CONFIG.taxonomy;
+  const home = await homeView(studentId);
+  if (home.kind === 'onboarding') redirect('/drills/start');
 
-  const pickerAreas: PickerArea[] = areas.map(area => ({
-    code: area.code,
-    name: area.name,
-    skills: skills.filter(s => s.area === area.code).flatMap(s => {
-      const l1 = drillForSkill(s.id, 1), l2 = drillForSkill(s.id, 2);
-      if (!l1 && !l2) return [];
-      return [{ id: s.id, name: s.name, description: s.description, levels: { 1: l1?.name ?? null, 2: l2?.name ?? null } }];
-    }),
-  })).filter(a => a.skills.length > 0);
+  const nav = (
+    <nav className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+      <Link href="/drills/browse" className="underline-offset-4 hover:underline">Browse drills</Link>
+      <Link href="/drills/learn" className="underline-offset-4 hover:underline">Learn</Link>
+      <Link href="/drills/profile" className="underline-offset-4 hover:underline">Your skills</Link>
+      <Link href="/drills/settings" className="underline-offset-4 hover:underline">Settings</Link>
+      <Link href="/" className="text-muted-foreground underline-offset-4 hover:underline">Cases</Link>
+    </nav>
+  );
+  const resume = home.resume && (
+    <p className="rounded-lg border p-3 text-sm">
+      You have a {home.resume.drill_name} set in progress.{' '}
+      <Link href={`/drills/sets/${home.resume.set_id}`} className="font-medium underline underline-offset-4">Resume it</Link>
+    </p>
+  );
+  const d = home.diagnostic;
+  const diagnosticCard = (lead: string) => (d.status === 'completed' ? null : (
+    <section aria-labelledby="diag" className="space-y-2 rounded-lg border p-4">
+      <h2 id="diag" className="font-medium">{d.done > 0 ? `Diagnostic: part ${Math.min(d.done + 1, d.of)} of ${d.of}` : 'Find your starting point'}</h2>
+      <p className="text-sm">{d.done > 0 ? 'Pick up where you stopped. You have been placed from the parts you finished.' : lead}</p>
+      <Link href="/drills/diagnostic" className={buttonVariants({ variant: d.done > 0 ? 'default' : 'outline' })}>{d.done > 0 ? 'Continue the diagnostic' : 'Start the diagnostic'}</Link>
+    </section>
+  ));
+  const weakest = home.weakest && (
+    <section aria-labelledby="weakest" className="space-y-1">
+      <h2 id="weakest" className="font-medium">Your weakest skill right now</h2>
+      <p className="text-sm">{home.weakest.skill_name}: {home.weakest.mistake}, {home.weakest.count}× recently.</p>
+      {home.weakest.evidence && <p className="text-sm text-muted-foreground">Last time you said: “{home.weakest.evidence}”</p>}
+    </section>
+  );
+
+  if (home.kind === 'self_directed') {
+    return (
+      <main className="mx-auto w-full max-w-3xl space-y-8 p-4 sm:p-6">
+        <header className="space-y-2">
+          <h1 className="text-xl font-semibold">Practice on my own</h1>
+          {nav}
+        </header>
+        {resume}
+        {(d.status === 'not_started' || (d.status !== 'completed' && d.done > 0)) && diagnosticCard('A 15-minute check that shows where each skill starts, so suggestions fit you from day one.')}
+        {home.summary && (
+          <section aria-labelledby="summary" className="space-y-1 rounded-lg border p-4">
+            <h2 id="summary" className="font-medium">Your week</h2>
+            <p className="text-sm">{home.summary.sets} drill sets and {home.summary.cases} cases in the last 7 days.{home.summary.weakest && ` Weakest skill: ${home.summary.weakest}.`}</p>
+            {home.summary.moved_up.length > 0 && <p className="text-sm">Moved up: {home.summary.moved_up.map(m => `${m.skill_name} (${STATE[m.state]})`).join(', ')}.</p>}
+          </section>
+        )}
+        {home.offer_sprint && (
+          <p className="rounded-lg border p-3 text-sm">Your interview is in {home.interview_days_out} days. A 7-day Sprint plan could help. <Link href="/drills/settings" className="font-medium underline underline-offset-4">Switch to Sprint</Link></p>
+        )}
+        {home.suggested && (
+          <section aria-labelledby="suggested" className="space-y-3 rounded-lg border p-4">
+            <h2 id="suggested" className="font-medium">Suggested next</h2>
+            <p className="text-sm"><span className="font-medium">{home.suggested.skill_name}</span> · {home.suggested.drill_name} · about {Math.max(1, home.suggested.minutes)} min</p>
+            <p className="text-sm text-muted-foreground">{home.suggested.reason}</p>
+            <StartSetButton body={{ skill_id: home.suggested.skill_id, quick_start: true }} label="Start" />
+          </section>
+        )}
+        {home.weaknesses.length > 0 && (
+          <section aria-labelledby="weak" className="space-y-2">
+            <h2 id="weak" className="font-medium">Your weaknesses</h2>
+            <ol className="list-decimal space-y-1 pl-5 text-sm">
+              {home.weaknesses.map(w => <li key={w.tag}>{w.skill_name}: {w.label} ({w.count}×)</li>)}
+            </ol>
+          </section>
+        )}
+        <section aria-labelledby="progress" className="space-y-1">
+          <h2 id="progress" className="font-medium">Your progress</h2>
+          <p className="text-sm">{home.counts.practiced} skills at Practiced or above, {home.counts.mastered} Mastered.</p>
+          {home.moved_up.length > 0 && <p className="text-sm text-muted-foreground">This week: {home.moved_up.map(m => `${m.skill_name} → ${STATE[m.state]}`).join(', ')}.</p>}
+        </section>
+        {home.due.length > 0 && (
+          <section aria-labelledby="due" className="space-y-2">
+            <h2 id="due" className="font-medium">Due now</h2>
+            <ul className="space-y-2">
+              {home.due.map(d => (
+                <li key={d.skill_id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3 text-sm">
+                  <span>{d.skill_name}: {d.what}</span>
+                  <StartSetButton body={{ skill_id: d.skill_id, quick_start: true }} label="Start" size="sm" variant="outline" />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+        {weakest}
+        <div className="flex flex-wrap gap-3">
+          <Link href="/drills/browse" className={buttonVariants({ variant: 'outline' })}>Browse drills</Link>
+          <Link href="/" className={buttonVariants({ variant: 'ghost' })}>Browse cases</Link>
+        </div>
+      </main>
+    );
+  }
+
+  const { program, week_status: ws, workout } = home;
+  const header = program.plan.kind === 'days'
+    ? `Sprint · Day ${program.sprint_day_index} of ${program.plan.days.length}`
+    : `${TRACK[program.track]} · Week ${program.week?.week ?? 0} of ${program.total_weeks} · ${program.week?.theme ?? ''}`;
+  const next = workout?.blocks.findIndex(b => b.status !== 'done') ?? -1;
+  const started = workout?.blocks.some(b => b.status !== 'todo');
 
   return (
-    <main className="mx-auto w-full max-w-3xl space-y-6 p-6">
-      <header className="flex items-baseline justify-between">
-        <h1 className="text-xl font-semibold">Drills</h1>
-        <span className="flex gap-4 text-sm">
-          <Link href="/drills/profile" className="underline-offset-4 hover:underline">Your skills and prescriptions</Link>
-          <Link href="/" className="text-muted-foreground underline-offset-4 hover:underline">Back to cases</Link>
-        </span>
+    <main className="mx-auto w-full max-w-3xl space-y-8 p-4 sm:p-6">
+      <header className="space-y-2">
+        <h1 className="text-xl font-semibold">{header}</h1>
+        {program.interview_date && <p className="text-sm text-muted-foreground">Interview: {dateLabel(program.interview_date)} ({program.interview_days_out} days)</p>}
+        {nav}
       </header>
-      {current && (
-        <p className="rounded-lg border p-3 text-sm">
-          You have a set in progress.{' '}
-          <Link href={`/drills/sets/${current.id}`} className="font-medium underline underline-offset-4">Resume it</Link>
-        </p>
+      {resume}
+
+      {home.diagnose_today && (
+        <section aria-labelledby="today" className="space-y-3 rounded-lg border p-4">
+          <h2 id="today" className="font-medium">Today: your starting point</h2>
+          <p className="text-sm">{d.status === 'completed'
+            ? 'Diagnostic done. Now take a baseline case so we can see how you do in a full interview. Your first workout is tomorrow.'
+            : 'Two things today: a 15-minute diagnostic, then a baseline case. Your first workout is tomorrow.'}</p>
+          {d.status !== 'completed' && (
+            <Link href="/drills/diagnostic" className={buttonVariants({ size: 'lg' })}>{d.done > 0 ? `Continue the diagnostic (part ${Math.min(d.done + 1, d.of)} of ${d.of})` : 'Start the diagnostic'}</Link>
+          )}
+        </section>
       )}
-      <DrillPicker areas={pickerAreas} timeMultiplier={settings.timeMultiplier} />
+      {!home.diagnose_today && d.status !== 'completed' && d.done > 0 && diagnosticCard('')}
+
+      {workout && (
+        <section aria-labelledby="workout" className="space-y-4 rounded-lg border p-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 id="workout" className="font-medium">Today&apos;s workout</h2>
+            <span className="text-sm text-muted-foreground">About {home.estimated_minutes} min · {workout.blocks.length} sets</span>
+          </div>
+          <ol className="space-y-3">
+            {workout.blocks.map((b, i) => (
+              <li key={i} className="space-y-1 text-sm">
+                <p className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span><span className="text-muted-foreground">{SLOT[b.slot]} · </span><span className="font-medium">{getDrill(b.drill_id).name}</span>{b.kind === 'transfer' && ' (transfer check)'}</span>
+                  <span className="text-muted-foreground">{b.status === 'done' ? `Done${b.score !== null ? `, ${pct(b.score)}` : ''}` : b.status === 'grading' ? 'Grading…' : b.status === 'in_progress' ? 'In progress' : `${Math.max(1, Math.round(b.minutes))} min`}</span>
+                </p>
+                <p className="text-muted-foreground">{b.reason}</p>
+              </li>
+            ))}
+          </ol>
+          {workout.status === 'completed' || next === -1
+            ? <p className="text-sm font-medium">Workout done. Nice work.</p>
+            : workout.blocks[next].status === 'todo'
+              ? home.lesson_first
+                ? <Link href={`/drills/learn/${encodeURIComponent(workout.blocks[next].skill_id)}?source=auto&workout=${workout.id}&block=${next}`} className={buttonVariants({ size: 'lg' })}>{started ? 'Continue workout' : "Start today's workout"}</Link>
+                : <StartSetButton body={{ workout_id: workout.id, block: next }} label={started ? 'Continue workout' : "Start today's workout"} size="lg" />
+              : workout.blocks[next].set_id && <Link href={`/drills/sets/${workout.blocks[next].set_id}`} className={buttonVariants({ size: 'lg' })}>Continue workout</Link>}
+        </section>
+      )}
+
+      {ws && (
+        <section aria-labelledby="week" className="space-y-2">
+          <h2 id="week" className="font-medium">This week</h2>
+          <p className="text-sm">{ws.workouts.done} of {ws.workouts.target} workouts, {ws.cases.done} of {ws.cases.target} cases.</p>
+          {ws.milestone_skills.length > 0 && (
+            <ul className="flex flex-wrap gap-2 text-sm">
+              {ws.milestone_skills.map(s => <li key={s.id} className="rounded-full border px-3 py-1">{s.name}: {STATE[s.state]}</li>)}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {home.next_case && (
+        <section aria-labelledby="case" className="space-y-2 rounded-lg border p-4">
+          <h2 id="case" className="font-medium">{home.next_case.retake ? 'Take the case again' : 'Next case'}</h2>
+          <p className="text-sm">{home.next_case.title}{home.next_case.retake && ': you have taken every case we have; another run shows what has changed.'}</p>
+          <Link href="/" className={buttonVariants({ variant: 'outline' })}>Go to cases</Link>
+        </section>
+      )}
+
+      {weakest}
     </main>
   );
 }

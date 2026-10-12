@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "operations",
+  "industry": null,
   "prompt": "Mid-case: Delivery times rose from 3 to 5 days. You've found that warehouse processing takes 2 extra days since a new system launched in March, and that carrier transit time is unchanged. You also learned the carrier rebranded in May. You haven't looked at staffing. Which is the best summary?",
   "exhibit": null,
   "input": {

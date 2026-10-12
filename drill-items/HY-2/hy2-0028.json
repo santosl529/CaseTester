@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "m_and_a",
+  "industry": "Financial Services",
   "prompt": "An insurance brokerage bought a smaller brokerage, expecting to keep 90% of its clients. It kept 65%.",
   "exhibit": null,
   "input": {

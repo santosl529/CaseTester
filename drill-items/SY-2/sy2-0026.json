@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "The client asks: \"Should the city turn one car lane on Main Street into a bus lane?\"\n\nFact sheet:\n- Buses on Main Street carry 18,000 riders a day; cars carry 22,000 people\n- Bus trips would be 8 minutes faster, and the city's model shows car trips 2 minutes slower\n- The change would cost $3M, mostly paint and signals\n- 40 shops fear losing curbside parking; 70% of their customers arrive on foot or by bus\n- A bike-share station opened on Main Street last year\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

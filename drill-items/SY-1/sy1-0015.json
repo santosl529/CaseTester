@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "operations",
+  "industry": null,
   "prompt": "The client asks: \"Should we outsource customer service?\" Fact sheet: in-house service costs $6M a year; an outsourcer quoted $4M a year; our satisfaction score is 85%; the outsourcer's clients average 70%; each point of satisfaction lost costs about $150k a year in churn; the outsourcer is based in Ireland. Which is the best recommendation?",
   "exhibit": null,
   "input": {

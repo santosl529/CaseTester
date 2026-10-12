@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "market_entry",
+  "industry": "Consumer / CPG",
   "prompt": "Objective: decide whether a beverage company should enter the energy-drink market. What you've learned: the market is $2B and growing 8% a year. Latest finding: the top two brands hold 75% share. What is the best next step?",
   "exhibit": null,
   "input": {

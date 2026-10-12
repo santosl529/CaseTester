@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "operations",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "The client asks: \"Should our cruise terminal add more check-in counters to cut waits?\"\n\nFact sheet:\n- Passengers wait 75 minutes on average at check-in on sailing days\n- 70% of the wait is at the security scanners, not the check-in desks\n- Adding 10 check-in counters would cost $1.5M\n- A second security-scanner lane would cost $400,000\n- The terminal gift shop's sales rose 10%\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

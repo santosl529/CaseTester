@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "operations",
+  "industry": "Industrials / Manufacturing",
   "prompt": "Objective: speed up a factory's changeovers between products. What you've learned: changeovers take 4 hours on average. Latest finding: half the time is spent waiting for tools and parts. What is the best next step?",
   "exhibit": null,
   "input": {

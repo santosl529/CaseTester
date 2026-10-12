@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "cost_reduction",
+  "industry": "Other",
   "prompt": "A law firm with 300 lawyers wants to cut its non-salary costs by 20%. Those costs total $15M a year.",
   "exhibit": null,
   "input": {

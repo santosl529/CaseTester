@@ -9,7 +9,7 @@ import 'server-only';
 import { randomUUID } from 'crypto';
 import { and, asc, desc, eq, inArray, isNull, lt, max, sql } from 'drizzle-orm';
 import { db } from '@/db/client';
-import { drillAttempts, drillItems, drillSets, drillTiers, prescriptions, skillStateEvents, skillStates, studentDrillSettings } from '@/db/schema';
+import { drillAttempts, drillItems, drillSets, drillTiers, prescriptions, skillStateEvents, skillStates, studentDrillSettings, workouts } from '@/db/schema';
 import { DRILLS_CONFIG, TAXONOMY_VERSION, getDrill, getSkill, type Drill } from '../config';
 import { ItemSchema, type Item, type Tier } from '../item-schema';
 import { toPublicItem, type PublicItem } from '../public-item';
@@ -27,6 +27,10 @@ import { logDrillEvent } from '../events';
 import { isLive, previewDrafts } from '../live';
 import { newProgress, nextSetFor, stageOfDrill, type SetKind } from '../progress/engine';
 import { loadProgress, loadTiers, progressContext } from '../progress/store';
+import type { WorkoutBlock } from '../program/workout';
+import type { DiagnosticPart } from '../program/diagnostic';
+import { attachDiagnosticSet, diagnosticView, startDiagnostic } from '../program/diagnostic-store';
+import { lessonSkills } from '../program/lessons-store';
 import { z } from 'zod';
 
 export type { ItemFeedback, StepFeedback };
@@ -84,21 +88,79 @@ export const StartSetSchema = z.object({
   drill_id: z.string().optional(),   // "Retry this set"
   level: z.union([z.literal(1), z.literal(2)]).optional(),
   prescription_id: z.uuid().optional(),
-}).refine(b => b.skill_id || b.drill_id || b.prescription_id, 'skill_id, drill_id or prescription_id is required');
+  // A block of today's workout (D4).
+  workout_id: z.uuid().optional(),
+  block: z.number().int().nonnegative().optional(),
+  // Quick start (Browse drills, Suggested next): the engine picks the drill,
+  // stage and tier for skill_id.
+  quick_start: z.boolean().optional(),
+  // A part of the diagnostic (D4).
+  diagnostic_part: z.number().int().nonnegative().optional(),
+}).refine(b => b.skill_id || b.drill_id || b.prescription_id || b.workout_id || b.diagnostic_part !== undefined,
+  'skill_id, drill_id, prescription_id, workout_id or diagnostic_part is required')
+  .refine(b => !b.workout_id || b.block !== undefined, 'block is required with workout_id')
+  .refine(b => !b.quick_start || b.skill_id, 'quick_start needs skill_id');
 
 // What a new set is: the drill and tier, and for a prescribed set the
 // progress engine's choice of stage, review or transfer check.
 interface SetChoice {
   drill: Drill;
   tier: Tier;
-  source: 'specific' | 'prescription' | 'review';
+  source: 'specific' | 'prescription' | 'review' | 'continue' | 'diagnostic';
   prescriptionId: string | null;
   focusSkill: string | null;
   focusTag: string | null;
   kind: SetKind;
+  size?: number;
+  workoutId?: string;
+  block?: number;
+  slot?: string;
+  diagnostic?: { id: string; part: number };
 }
 
 async function chooseSet(studentId: string, input: z.infer<typeof StartSetSchema>): Promise<SetChoice> {
+  if (input.diagnostic_part !== undefined) {
+    const diag = await startDiagnostic(studentId);
+    const part = (diag.parts as DiagnosticPart[])[input.diagnostic_part];
+    if (!part || part.done) throw new DrillError('not_found', 404, 'That part of the diagnostic is done');
+    const drill = getDrill(part.drill_id);
+    if (!isLive(drill)) throw new DrillError('no_live_drill', 404, 'That drill is not available');
+    return {
+      drill, tier: DRILLS_CONFIG.programs.diagnostic.tier as Tier, source: 'diagnostic', prescriptionId: null,
+      focusSkill: null, focusTag: null, kind: 'normal', size: part.size, diagnostic: { id: diag.id, part: input.diagnostic_part },
+    };
+  }
+  if (input.workout_id) {
+    // The block was planned when today's workout was built; tier and size come from it.
+    const [w] = await db.select().from(workouts).where(and(eq(workouts.id, input.workout_id), eq(workouts.studentId, studentId)));
+    const block = (w?.blocks as WorkoutBlock[] | undefined)?.[input.block!];
+    if (!w || !block || w.status === 'expired' || w.status === 'completed') throw new DrillError('not_found', 404, "That workout isn't open any more");
+    const drill = getDrill(block.drill_id);
+    if (!isLive(drill)) throw new DrillError('no_live_drill', 404, 'That drill is not available');
+    const [state] = await db.select({ tag: skillStates.nextFocusTag }).from(skillStates)
+      .where(and(eq(skillStates.studentId, studentId), eq(skillStates.skillId, block.skill_id)));
+    const rx = block.prescription_id
+      ? (await db.select({ focusTag: prescriptions.focusTag }).from(prescriptions).where(eq(prescriptions.id, block.prescription_id)))[0]
+      : undefined;
+    return {
+      drill, tier: block.tier as Tier, source: block.kind === 'review' ? 'review' : 'continue', prescriptionId: block.prescription_id,
+      focusSkill: block.skill_id, focusTag: focusFor(drill, rx?.focusTag ?? state?.tag ?? null), kind: block.kind, size: block.size,
+      workoutId: w.id, block: input.block, slot: block.slot,
+    };
+  }
+  if (input.quick_start) {
+    const [progress, tiers, ctx] = await Promise.all([loadProgress(db, studentId), loadTiers(db, studentId), progressContext(db, studentId)]);
+    const p = progress.get(input.skill_id!) ?? newProgress(input.skill_id!);
+    const next = nextSetFor(p, tiers, ctx);
+    if (!next) throw new DrillError('no_live_drill', 404, 'No drill is available for that skill yet');
+    const drill = getDrill(next.drill_id);
+    const [rx] = await db.select().from(prescriptions)
+      .where(and(eq(prescriptions.studentId, studentId), eq(prescriptions.skillId, p.skill_id), eq(prescriptions.status, 'open')));
+    return {
+      drill, tier: next.tier as Tier, source: next.kind === 'review' ? 'review' : rx ? 'prescription' : 'specific',
+      prescriptionId: rx?.id ?? null, focusSkill: p.skill_id, focusTag: focusFor(drill, rx?.focusTag ?? p.next_focus_tag), kind: next.kind,
+    };
+  }
   if (input.prescription_id) {
     const [rx] = await db.select().from(prescriptions)
       .where(and(eq(prescriptions.id, input.prescription_id), eq(prescriptions.studentId, studentId)));
@@ -165,13 +227,14 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
   }
 
   const setId = randomUUID();
-  const size = setSizeFor(drill, kind);
+  const size = choice.size ?? setSizeFor(drill, kind);
+  const fresh = kind === 'transfer' ? 'transfer' : choice.slot === 'unfamiliar' ? 'unfamiliar' : null;
 
   let plan: ItemRef[];
   if (drill.item_source === 'generated') {
     plan = planGenerated({ setId, drillId: drill.id, size, focusSkill: choice.focusSkill, focusTag: choice.focusTag });
   } else {
-    plan = await planAuthoredSet(studentId, setId, drill, size, tier, kind === 'transfer' ? choice.focusSkill : null);
+    plan = await planAuthoredSet(studentId, setId, drill, size, tier, fresh && choice.focusSkill ? { mode: fresh, skill: choice.focusSkill } : null);
     if (plan.length === 0) throw new DrillError('no_items', 404, 'No items are live for this drill yet');
   }
   const stage = choice.focusSkill ? stageOfDrill(drill.id, choice.focusSkill) : drill.level === 1 ? 'recognize' : 'construct';
@@ -181,7 +244,10 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
       id: setId, studentId, drillId: drill.id, level: drill.level, stage, tier, size: plan.length,
       source: choice.source, prescriptionId: choice.prescriptionId, isTransferCheck: kind === 'transfer',
       focusSkill: choice.focusSkill, focusTag: choice.focusTag, itemPlan: plan, taxonomyVersion: TAXONOMY_VERSION,
+      workoutId: choice.workoutId ?? null, slot: choice.slot ?? null,
     });
+    if (choice.workoutId !== undefined) await attachToWorkout(choice.workoutId, choice.block!, setId);
+    if (choice.diagnostic) await attachDiagnosticSet(choice.diagnostic.id, choice.diagnostic.part, setId);
   } catch (e) {
     // Lost a race with another tab: the unique index allows one in-progress set.
     const other = await inProgressSet(studentId);
@@ -191,15 +257,25 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
   await logDrillEvent(studentId, 'drill_set_started', {
     set_id: setId, drill_id: drill.id, level: drill.level, stage, tier, source: choice.source,
     prescription_id: choice.prescriptionId, focus_tag: choice.focusTag, transfer_check: kind === 'transfer',
+    slot: choice.slot ?? null, workout_id: choice.workoutId ?? null, quick_start: input.quick_start ?? false,
   });
   return { set_id: setId };
 }
 
-// Transfer checks (transferSkill set) use only items the student has never
-// seen, from case types not in their last 3 sets on that drill; if too few
-// qualify, the rest are the items seen longest ago (logged as
-// transfer_pool_exhausted).
-async function planAuthoredSet(studentId: string, setId: string, drill: Drill, size: number, tier: Tier, transferSkill: string | null = null): Promise<ItemRef[]> {
+// Records the set on its workout block; the workout is now in progress.
+async function attachToWorkout(workoutId: string, index: number, setId: string) {
+  await db.update(workouts).set({
+    blocks: sql`jsonb_set(${workouts.blocks}, ${`{${index},set_id}`}::text[], to_jsonb(${setId}::text))`,
+    status: sql`case when ${workouts.status} = 'planned' then 'in_progress'::workout_status else ${workouts.status} end`,
+  }).where(eq(workouts.id, workoutId));
+}
+
+// Transfer checks use only items the student has never seen, from case types
+// and industries not in their last 3 sets on that drill; if too few qualify,
+// the rest are the items seen longest ago (logged as transfer_pool_exhausted).
+// A workout's unfamiliar slot prefers the same items but may reuse seen ones.
+async function planAuthoredSet(studentId: string, setId: string, drill: Drill, size: number, tier: Tier,
+  fresh: { mode: 'transfer' | 'unfamiliar'; skill: string } | null = null): Promise<ItemRef[]> {
   // Latest live version of each item, never the worked example.
   const statuses = previewDrafts() ? ['live', 'draft', 'in_review'] as const : ['live'] as const;
   const rows = await db.select().from(drillItems)
@@ -209,7 +285,7 @@ async function planAuthoredSet(studentId: string, setId: string, drill: Drill, s
   for (const r of rows) if (!latest.has(r.itemId)) latest.set(r.itemId, r);
   const pool = [...latest.values()].map(r => ({
     item_id: r.itemId, version: r.version, tier: r.tier,
-    case_type: (r.payload as Item).case_type ?? null,
+    case_type: (r.payload as Item).case_type ?? null, industry: r.industry,
   }));
   const seen = pool.length
     ? await db.select({ itemId: drillAttempts.itemId, at: max(drillAttempts.submittedAt) }).from(drillAttempts)
@@ -217,18 +293,21 @@ async function planAuthoredSet(studentId: string, setId: string, drill: Drill, s
       .groupBy(drillAttempts.itemId)
     : [];
   const lastSeen = new Map(seen.filter(s => s.itemId && s.at).map(s => [s.itemId!, new Date(s.at!)]));
-  if (!transferSkill) return planAuthored({ setId, pool, lastSeen, size, tier, now: new Date() });
+  if (!fresh) return planAuthored({ setId, pool, lastSeen, size, tier, now: new Date() });
 
   const recent = await db.select({ plan: drillSets.itemPlan }).from(drillSets)
     .where(and(eq(drillSets.studentId, studentId), eq(drillSets.drillId, drill.id), eq(drillSets.status, 'completed')))
     .orderBy(desc(drillSets.completedAt)).limit(rules.transfer.avoid_case_types_from_last_sets);
-  const caseTypeOf = new Map(pool.map(p => [p.item_id, p.case_type]));
-  const avoid = new Set(recent.flatMap(r => (r.plan as ItemRef[]).flatMap(ref => ref.kind === 'authored' ? [caseTypeOf.get(ref.item_id)] : [])));
-  const unseen = pool.filter(p => !lastSeen.has(p.item_id) && !avoid.has(p.case_type));
+  const byId = new Map(pool.map(p => [p.item_id, p]));
+  const recentItems = recent.flatMap(r => (r.plan as ItemRef[]).flatMap(ref => (ref.kind === 'authored' && byId.has(ref.item_id) ? [byId.get(ref.item_id)!] : [])));
+  const avoidTypes = new Set(recentItems.map(i => i.case_type).filter(Boolean));
+  const avoidIndustries = new Set(recentItems.map(i => i.industry).filter(Boolean));
+  const familiar = (p: typeof pool[number]) => avoidTypes.has(p.case_type) || (p.industry !== null && avoidIndustries.has(p.industry));
+  const unseen = pool.filter(p => !lastSeen.has(p.item_id) && !familiar(p));
   if (unseen.length >= size) return planAuthored({ setId, pool: unseen, lastSeen, size, tier, now: new Date() });
-  await logDrillEvent(studentId, 'transfer_pool_exhausted', { skill_id: transferSkill, drill_id: drill.id });
+  if (fresh.mode === 'transfer') await logDrillEvent(studentId, 'transfer_pool_exhausted', { skill_id: fresh.skill, drill_id: drill.id });
   const oldest = (items: typeof pool) => [...items].sort((a, b) => (lastSeen.get(a.item_id)?.getTime() ?? 0) - (lastSeen.get(b.item_id)?.getTime() ?? 0));
-  const fill = [...unseen, ...oldest(pool.filter(p => lastSeen.has(p.item_id) && !avoid.has(p.case_type))), ...oldest(pool.filter(p => avoid.has(p.case_type)))];
+  const fill = [...unseen, ...oldest(pool.filter(p => lastSeen.has(p.item_id) && !familiar(p))), ...oldest(pool.filter(familiar))];
   return fill.slice(0, size).map(i => ({ kind: 'authored' as const, item_id: i.item_id, version: i.version }));
 }
 
@@ -281,7 +360,14 @@ export async function setView(studentId: string, setId: string) {
   const example = showExample ? await workedExample(drill) : null;
   if (example) await logDrillEvent(studentId, 'drill_example_viewed', { drill_id: drill.id });
   const limits = drillLimitsMs(drill, set.tier as Tier, settings.timeMultiplier);
+  const diagnostic = set.source === 'diagnostic' ? await diagnosticPartOf(studentId, set.id) : null;
+  // "Read the 3-min lesson" on the intro: the set's skill, or the drill's first
+  // primary skill that has a lesson.
+  const withLesson = diagnostic ? new Set<string>() : await lessonSkills();
+  const lessonSkill = [set.focusSkill, ...drill.primary_skills].find(id => id && withLesson.has(id)) ?? null;
   return {
+    diagnostic,
+    lesson_skill: lessonSkill,
     set_id: set.id, status: set.status, position: set.currentPosition, size: set.size, tier: set.tier,
     drill: { id: drill.id, name: drill.name, level: drill.level },
     skills: skills.map(s => ({ id: s.id, name: s.name })),
@@ -290,8 +376,14 @@ export async function setView(studentId: string, setId: string) {
     stage_limits_ms: limits,
     ai_graded: isAiGraded(drill),
     pass_bar: drill.pass_bar,
-    example,
+    example: diagnostic ? null : example,
   };
+}
+
+async function diagnosticPartOf(studentId: string, setId: string) {
+  const view = await diagnosticView(studentId);
+  const part = view?.parts.find(p => p.set_id === setId);
+  return part ? { part: part.index + 1, of: view!.parts.length } : null;
 }
 
 // -------------------------------------------------------- fetch an item
@@ -529,6 +621,9 @@ export async function setResults(studentId: string, setId: string) {
   const score = set.setScore ?? setScore(results);
   return {
     skill_changes: await skillChanges(studentId, set.id),
+    from_workout: set.workoutId !== null,
+    // A set below 50% offers the skill's lesson (PRD "Lessons").
+    lesson_skill: await lowScoreLesson(set, set.setScore ?? setScore(results)),
     set_id: set.id,
     status: 'completed' as const,
     drill: { id: drill.id, name: drill.name, level: drill.level },
@@ -550,6 +645,13 @@ export async function setResults(studentId: string, setId: string) {
       };
     }),
   };
+}
+
+async function lowScoreLesson(set: SetRow, score: number): Promise<{ id: string; name: string } | null> {
+  if (score >= DRILLS_CONFIG.rules.stages.construct_to_recognize_below - 1e-9) return null;
+  const withLesson = await lessonSkills();
+  const id = [set.focusSkill, ...getDrill(set.drillId).primary_skills].find(x => x && withLesson.has(x));
+  return id ? { id, name: getSkill(id).name } : null;
 }
 
 // "Breakeven: now Practiced. Transfer check unlocks Thursday."

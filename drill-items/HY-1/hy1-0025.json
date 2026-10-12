@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "pricing",
+  "industry": "Tech / SaaS",
   "prompt": "A software company moved from a one-time license of $1,200 to a $40-a-month subscription. New customers rose 50%, but first-year revenue per customer fell 60%. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

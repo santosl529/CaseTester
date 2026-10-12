@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "growth_strategy",
+  "industry": "Consumer / CPG",
   "prompt": "Objective: grow a winery's sales. What you've learned: restaurant sales fell 12% and online sales rose 30%, and restaurant wine sales are falling across the whole region. Latest finding: online now makes up 40% of sales. What is the best next step?",
   "exhibit": null,
   "input": {

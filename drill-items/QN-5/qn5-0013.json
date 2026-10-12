@@ -12,6 +12,7 @@
     "QN.sanity_check"
   ],
   "case_type": "market_sizing",
+  "industry": "Other",
   "prompt": "Estimate annual US spending on repairing cracked smartphone screens.",
   "exhibit": null,
   "input": {

@@ -6,6 +6,7 @@
 // (lib/cases/loader.ts).
 import { z } from 'zod';
 import { RUBRIC_DIMENSION_KEYS } from '@/lib/scoring/rubric';
+import { CASE_TYPES } from '@/lib/case-types';
 import taxonomyJson from './config/taxonomy.v1.json';
 import drillsJson from './config/drills.v1.json';
 import rulesJson from './config/rules.v1.json';
@@ -168,8 +169,9 @@ export const RulesSchema = z.object({
   // Tags a set can focus on ("70% of mental math items become zeros problems"),
   // and the drill that supports the focus.
   focusable_tags: z.record(TagId, DrillId),
-  // Filled in once the case types are defined (PRD "Picking the next case").
-  case_type_to_skill_area: z.record(z.string(), z.enum(AREA_CODES)),
+  // Each case type's main skill area (PRD "Picking the next case";
+  // docs/drills-case-type-map.md). Every case type must be mapped.
+  case_type_to_skill_area: z.record(z.enum(CASE_TYPES), z.enum(AREA_CODES)),
 });
 
 const Milestone = z.discriminatedUnion('type', [
@@ -189,6 +191,15 @@ const WeekCounts = z.array(z.number().int().nonnegative()).length(7);   // weeks
 export const ProgramsSchema = z.object({
   version: z.string(),
   assignment: z.object({ sprint_within_days: z.number().int().positive(), foundations_below_diagnostic: Share }),
+  // The diagnostic (PRD "Onboarding and diagnostic"): short parts, one drill each.
+  diagnostic: z.object({
+    tier: z.number().int().min(1).max(3),
+    parts: z.array(z.object({ drill: DrillId, items: z.number().int().positive() })).min(1),
+    min_items_or_checks: z.number().int().positive(),
+    recognize_below: Share,
+    construct_at_or_above: Share,
+    max_prescriptions: z.number().int().positive(),
+  }),
   availability: z.array(z.object({
     id: z.string().min(1), label: z.string().min(1), workouts_per_week: z.number().int().positive(), default: z.boolean().optional(),
   })).min(1),
@@ -318,6 +329,7 @@ export function crossCheck({ taxonomy, drills, rules, programs }: DrillsConfigBu
   for (const [caseType, area] of Object.entries(rules.case_type_to_skill_area)) {
     if (!areaCodes.has(area)) problems.push(`rules.case_type_to_skill_area.${caseType}: unknown area ${area}`);
   }
+  for (const t of CASE_TYPES) if (!(t in rules.case_type_to_skill_area)) problems.push(`rules.case_type_to_skill_area: missing ${t}`);
   if (rules.tiers.min > rules.tiers.start || rules.tiers.start > rules.tiers.max) problems.push('rules.tiers: start must sit between min and max');
 
   programs.weeks.forEach((w, i) => {
@@ -331,6 +343,7 @@ export function crossCheck({ taxonomy, drills, rules, programs }: DrillsConfigBu
   const mix = programs.workout.mix;
   if (Math.abs(mix.weak + mix.review + mix.unfamiliar - 1) > 1e-9) problems.push('programs.workout.mix: shares must add up to 1');
   if (programs.availability.filter(a => a.default).length !== 1) problems.push('programs.availability: exactly one default');
+  for (const part of programs.diagnostic.parts) if (!drillById.has(part.drill)) problems.push(`programs.diagnostic: unknown drill ${part.drill}`);
   return problems;
 }
 

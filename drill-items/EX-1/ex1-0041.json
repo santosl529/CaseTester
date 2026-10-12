@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "growth_strategy",
+  "industry": null,
   "prompt": "The client wants to move marketing budget to the channel that brings in the most revenue per dollar spent. Which takeaway matters most?",
   "exhibit": {
     "type": "grouped_bar",

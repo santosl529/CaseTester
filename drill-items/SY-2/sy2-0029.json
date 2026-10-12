@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "investment_decision",
+  "industry": "Industrials / Manufacturing",
   "prompt": "The client asks: \"Should our cement plant install carbon capture for $200M?\"\n\nFact sheet:\n- Carbon capture costs $200M to install and $15M a year to run\n- It would capture 1 million tons of CO2 a year\n- A government credit pays $85 for each ton captured, for 12 years\n- Cement prices rose 5% last year\n- Two states will require low-carbon cement for public projects from 2028\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

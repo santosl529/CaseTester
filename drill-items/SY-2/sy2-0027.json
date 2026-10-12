@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "profitability",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "The client asks: \"How should our business-events company restore profit?\"\n\nFact sheet:\n- Revenue grew 10% to $40M, but profit fell from $6M to $2M\n- The company added 12 smaller events this year; attendance per event is flat\n- The 12 new events lost $3.5M together; the 20 established events earned more than last year\n- Sponsorship revenue rose 15%\n- The company moved its head office to a new building\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

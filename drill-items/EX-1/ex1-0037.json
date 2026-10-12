@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "operations",
+  "industry": "Other",
   "prompt": "A call center wants to cut waiting times without hiring. Which takeaway matters most?",
   "exhibit": {
     "type": "line",

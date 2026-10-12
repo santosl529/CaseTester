@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "Objective: cut waiting times at a city passport office. What you've learned: 35% of visitors only need a simple renewal. Latest finding: nearby post offices could handle simple renewals and have spare counter time on weekday mornings. What is the best next step?",
   "exhibit": null,
   "input": {

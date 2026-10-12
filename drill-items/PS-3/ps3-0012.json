@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "market_entry",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A Brazilian açaí-bowl chain with 200 stores at home is deciding whether to open in Portugal. It wants 40 stores there within five years.",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "operations",
+  "industry": "Logistics / Transportation",
   "prompt": "An e-commerce warehouse's error rate on orders tripled after it hired 40 seasonal workers. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

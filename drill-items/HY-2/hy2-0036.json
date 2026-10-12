@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "pricing",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A city raised peak-hour road tolls 25% to cut congestion. Peak traffic fell only 3%.",
   "exhibit": null,
   "input": {

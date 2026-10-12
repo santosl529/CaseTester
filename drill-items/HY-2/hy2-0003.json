@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "operations",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "Customers at a train-station car-rental branch now wait 25 minutes at the counter, up from 10 last year. Rentals are up 3%.",
   "exhibit": null,
   "input": {

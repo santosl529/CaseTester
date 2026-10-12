@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "market_sizing",
+  "industry": "Other",
   "prompt": "A client wants to estimate the annual market for dog walking services in a large city. The candidate's framework: (1) Number of households in the city; (2) Share of households with a dog; (3) Price per walk. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

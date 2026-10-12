@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "m_and_a",
+  "industry": "Retail / E-commerce",
   "prompt": "Objective: decide whether a retailer should buy an online competitor. What you've learned: the competitor's sales grow 30% a year. Latest finding: it loses $20M a year. What is the best next step?",
   "exhibit": null,
   "input": {

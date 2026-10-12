@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "turnaround",
+  "industry": "Retail / E-commerce",
   "prompt": "Objective: turn around a struggling department store chain. What you've learned: the chain loses money in 40 of its 100 stores. Latest finding: the losing stores are mostly in malls with falling traffic. What is the best next step?",
   "exhibit": null,
   "input": {

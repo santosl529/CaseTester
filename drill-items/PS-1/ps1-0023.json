@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "pricing",
+  "industry": "Consumer / CPG",
   "prompt": "A luxury watch brand is setting the price for a new limited-edition model. The candidate's framework: (1) The cost of the brand's office lease; (2) What collectors would pay for scarcity; (3) Prices of comparable limited editions; (4) Production cost of the model. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

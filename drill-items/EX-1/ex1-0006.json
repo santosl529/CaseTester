@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "operations",
+  "industry": "Logistics / Transportation",
   "prompt": "The client wants to know why its company-wide on-time delivery rate fell this year. Which takeaway matters most?",
   "exhibit": {
     "type": "line",

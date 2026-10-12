@@ -12,6 +12,7 @@
     "QN.sanity_check"
   ],
   "case_type": "market_sizing",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "Estimate yearly US hospital spending on hand-sanitizer refills.",
   "exhibit": null,
   "input": {

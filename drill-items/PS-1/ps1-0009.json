@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "competitive_response",
+  "industry": "Financial Services",
   "prompt": "A national bank is losing young customers to a mobile-only bank and wants to respond. The candidate's framework: (1) Why young customers are switching; (2) What the mobile bank offers that the client doesn't; (3) The client's options to respond; (4) Features that attract young customers to the rival. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "cost_reduction",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "Objective: cut a hotel chain's costs by 10%. What you've learned: staff costs are 45% of total costs. Latest finding: staffing levels stay the same whether hotels are 40% or 90% full. What is the best next step?",
   "exhibit": null,
   "input": {

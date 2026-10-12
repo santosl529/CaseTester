@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "cost_reduction",
+  "industry": "Other",
   "prompt": "A commercial cleaning company's cost per building cleaned rose 15% this year, while wage rates were flat.",
   "exhibit": null,
   "input": {

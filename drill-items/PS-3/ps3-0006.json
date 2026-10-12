@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "m_and_a",
+  "industry": "Consumer / CPG",
   "prompt": "A dairy cooperative owned by 400 farms is deciding whether to buy a regional cheese maker for $90M. The co-op often has more milk than it can sell.",
   "exhibit": null,
   "input": {

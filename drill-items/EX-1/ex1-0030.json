@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "pricing",
+  "industry": null,
   "prompt": "The client keeps raising prices and asks whether it should continue. Which takeaway matters most?",
   "exhibit": {
     "type": "dual_axis",

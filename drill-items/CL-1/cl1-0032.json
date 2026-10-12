@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "Objective: decide whether a shampoo maker should launch solid shampoo bars. What you've learned: the target market is $150M. Latest finding: consumer tests show strong interest but low willingness to pay a premium. What is the best next step?",
   "exhibit": null,
   "input": {

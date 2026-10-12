@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "profitability",
+  "industry": "Other",
   "prompt": "Objective: find why a laundromat chain's revenue fell 12%. What you've learned: the number of loads washed is flat. Latest finding: customers have shifted from the large machines to the small ones. What is the best next step?",
   "exhibit": null,
   "input": {

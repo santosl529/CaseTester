@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "m_and_a",
+  "industry": "Retail / E-commerce",
   "prompt": "A national car-dealer group is deciding whether to buy an online used-car platform.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

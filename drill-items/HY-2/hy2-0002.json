@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "A sparkling-water brand launched a lemon flavor six months ago. It reached 60% of its first-month sales target, and sales have fallen 30% a month since.",
   "exhibit": null,
   "input": {

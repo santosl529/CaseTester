@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "investment_decision",
+  "industry": "Energy / Utilities",
   "prompt": "A city water utility must replace 40,000 lead pipes. It is deciding whether to spend $400M doing it all in five years or spread the work over 15 years.",
   "exhibit": null,
   "input": {

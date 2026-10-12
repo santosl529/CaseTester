@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "The client wants to know whether its new snack is a lasting success. Which takeaway matters most?",
   "exhibit": {
     "type": "bar",

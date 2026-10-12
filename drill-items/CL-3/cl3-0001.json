@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "profitability",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A chain of 25 frozen-yogurt shops saw profit fall from $3M to $1.8M in a year, while revenue held steady.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

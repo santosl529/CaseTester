@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "cost_reduction",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "An airline wants to cut operating costs by 10%. The candidate's framework: (1) Fuel costs; (2) Labor costs: pilots, crew and ground staff; (3) Aircraft ownership and maintenance; (4) Crew scheduling and staffing levels. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

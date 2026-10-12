@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "growth_strategy",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A coffee chain's morning sales are up 5%, but afternoon sales are down 20%. Two months ago, a bubble-tea chain opened next to most of its stores. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

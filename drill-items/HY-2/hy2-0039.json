@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "public_sector",
+  "industry": "Logistics / Transportation",
   "prompt": "A national rail operator's on-time rate fell from 90% to 78% in a year.",
   "exhibit": null,
   "input": {

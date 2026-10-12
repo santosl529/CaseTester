@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "profitability",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A professional soccer club went from a $20M profit to a $5M loss in two years, even though attendance hit a record.",
   "exhibit": null,
   "input": {

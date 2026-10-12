@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "growth_strategy",
+  "industry": "Logistics / Transportation",
   "prompt": "A national postal service with 4,000 branches wants non-mail revenue to reach 40% of its total.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

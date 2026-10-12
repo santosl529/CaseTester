@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "industry_analysis",
+  "industry": "Consumer / CPG",
   "prompt": "US sales of new motor homes fell 35% over two years, after record highs.",
   "exhibit": null,
   "input": {

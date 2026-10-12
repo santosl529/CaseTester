@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "Mid-case: The client is deciding whether to launch a smartwatch. You've sized demand at 2 million units a year and estimated that a 5% share, about 100,000 units, is realistic. You also learned the client makes headphones. You haven't looked at price or costs. Which is the best summary?",
   "exhibit": null,
   "input": {

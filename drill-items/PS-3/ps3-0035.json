@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "turnaround",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A city runs six public golf courses that together lose $3M a year. The council wants them to break even within three years or it will close some.",
   "exhibit": null,
   "input": {

@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "growth_strategy",
+  "industry": "Tech / SaaS",
   "prompt": "A software company's annual recurring revenue (ARR) grew 30% last year but only 12% this year. The candidate's framework: (1) New customers won; (2) Expansion revenue from existing customers; (3) Revenue lost to churn; (4) Net revenue retention. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

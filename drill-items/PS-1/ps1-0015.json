@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "m_and_a",
+  "industry": "Consumer / CPG",
   "prompt": "A beverage company is considering acquiring a fast-growing kombucha brand. The candidate's framework: (1) Size and growth of the kombucha market; (2) The brand's position and growth; (3) Synergies in distribution and production. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "competitive_response",
+  "industry": "Retail / E-commerce",
   "prompt": "The service departments of a chain of 25 car dealerships lost 15% of their visits in a year, while car sales held steady.",
   "exhibit": null,
   "input": {

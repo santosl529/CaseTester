@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "m_and_a",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "Objective: decide whether to buy a small bakery chain. What you've learned: the chain earns $2M a year. Latest finding: the asking price is $30M. What is the best next step?",
   "exhibit": null,
   "input": {

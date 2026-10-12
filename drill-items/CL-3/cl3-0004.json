@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "cost_reduction",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "Running costs for a city's 400 police cars rose 20% in three years, while the fleet's average age rose from 3 to 6 years.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

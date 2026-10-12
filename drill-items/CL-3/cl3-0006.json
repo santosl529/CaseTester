@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "growth_strategy",
+  "industry": "Retail / E-commerce",
   "prompt": "A craft-supply website wants to double revenue in three years. Today 80% of its sales come from repeat customers.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

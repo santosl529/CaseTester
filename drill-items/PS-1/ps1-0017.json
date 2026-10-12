@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "operations",
+  "industry": "Consumer / CPG",
   "prompt": "A furniture maker's on-time delivery rate fell from 95% to 80%. The candidate's framework: (1) Order planning and scheduling; (2) Production delays in the factory; (3) Shipping and carrier delays. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

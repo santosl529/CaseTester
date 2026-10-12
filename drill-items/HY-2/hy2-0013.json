@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "profitability",
+  "industry": "Retail / E-commerce",
   "prompt": "A wedding-dress shop's revenue fell 10% this year, while appointments rose 15%.",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A state's unemployment office processes claims in 21 days on average, against a 10-day target. Claims volume is flat, but staff fell 30%. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

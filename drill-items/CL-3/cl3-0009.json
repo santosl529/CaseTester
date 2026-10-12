@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "A sports-drink brand's zero-sugar version launched six months ago, and sales are 40% below plan.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

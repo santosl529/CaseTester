@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "profitability",
+  "industry": "Logistics / Transportation",
   "prompt": "A container-shipping line went from a $2B profit to a $300M loss in a year.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

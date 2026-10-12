@@ -8,6 +8,7 @@ import { db } from '@/db/client';
 import { studentProfiles } from '@/db/schema';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { DrillError } from './sets/service';
+import { ProgramError } from './program/store';
 
 // getClaims verifies the session token's signature locally (with the
 // project's cached signing keys), so most requests skip a round trip to the
@@ -31,6 +32,7 @@ export async function handle(fn: () => Promise<unknown>): Promise<NextResponse> 
     return NextResponse.json(await fn());
   } catch (e) {
     if (e instanceof DrillError) return NextResponse.json({ error: e.code, message: e.message, ...e.data }, { status: e.status });
+    if (e instanceof ProgramError) return NextResponse.json({ error: e.code, message: e.message }, { status: e.code === 'no_program' ? 404 : 400 });
     if (e instanceof z.ZodError) return NextResponse.json({ error: 'bad_request', message: z.prettifyError(e) }, { status: 400 });
     console.error('drills route failed', e);
     return NextResponse.json({ error: 'server_error', message: 'Something went wrong' }, { status: 500 });

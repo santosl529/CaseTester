@@ -12,6 +12,7 @@
     "QN.sanity_check"
   ],
   "case_type": "market_sizing",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "Estimate how many pizza deliveries are made each year in a city of 2 million people.",
   "exhibit": null,
   "input": {

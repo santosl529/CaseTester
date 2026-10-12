@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "growth_strategy",
+  "industry": "Tech / SaaS",
   "prompt": "A B2B payroll software company wants to grow revenue 50% in three years. The candidate's framework: (1) Company; (2) Customers; (3) Competitors. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

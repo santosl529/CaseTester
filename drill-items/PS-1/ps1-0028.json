@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "m_and_a",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "A hospital network is deciding whether to acquire a smaller rural hospital. The candidate's framework: (1) The rural hospital's finances and patient volumes; (2) Fit with the network's services and referrals; (3) Regulatory approval risk; (4) A campaign to announce the deal to the community. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

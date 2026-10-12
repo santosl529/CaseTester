@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "industry_analysis",
+  "industry": "Consumer / CPG",
   "prompt": "The client asks: \"Should we invest in the home fitness equipment industry?\" Fact sheet: industry sales fell 30% in each of the last two years; inventories are high; prices are falling 10% a year; the major players' margins fell from 20% to 2%; home workouts were popular on social media. Which is the best recommendation?",
   "exhibit": null,
   "input": {

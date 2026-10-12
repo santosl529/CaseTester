@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "market_entry",
+  "industry": "Consumer / CPG",
   "prompt": "A US snack brand launched in the UK a year ago. Trial was strong: 20% of shoppers bought it once. But only a quarter of those buyers bought it again. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

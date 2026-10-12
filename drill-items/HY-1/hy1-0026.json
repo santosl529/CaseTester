@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "cost_reduction",
+  "industry": "Logistics / Transportation",
   "prompt": "A trucking company's fuel cost per mile rose 12%, while diesel prices rose 4%. Its fleet's average age went from 4 to 7 years. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

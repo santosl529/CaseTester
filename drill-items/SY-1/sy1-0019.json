@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "The client asks: \"Should we launch the premium dog food line nationally?\" Fact sheet: the premium segment is worth $800M and growing 12% a year; the line reached 1% share in a test market; break-even requires a 2% share; the national launch costs $10M; our company sponsors a dog show. Which is the best recommendation?",
   "exhibit": null,
   "input": {

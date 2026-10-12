@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "operations",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "An ambulance service's average response time rose from 8 to 11 minutes this year. Calls rose 4%.",
   "exhibit": null,
   "input": {

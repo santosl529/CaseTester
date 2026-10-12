@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "market_entry",
+  "industry": "Retail / E-commerce",
   "prompt": "Objective: decide whether a US grocery chain should enter Mexico. What you've learned: the market is large and growing. Latest finding: local customers prefer small, frequent shopping trips at neighborhood stores. What is the best next step?",
   "exhibit": null,
   "input": {

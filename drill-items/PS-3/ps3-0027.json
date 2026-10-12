@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "operations",
+  "industry": "Retail / E-commerce",
   "prompt": "An online car-parts retailer gets 18% of its orders returned. It wants returns under 10% within a year.",
   "exhibit": null,
   "input": {

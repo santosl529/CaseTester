@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "m_and_a",
+  "industry": "Pharma / Biotech",
   "prompt": "The client asks: \"Should our medical-device company buy a startup for $80M to get its glucose-monitoring patch?\"\n\nFact sheet:\n- The patch is approved in Europe and awaits US approval, expected in 18 months\n- Our sales force already calls on the doctors who prescribe it\n- If approved in the US, the patch would add about $25M a year of profit by year 3\n- US regulators rejected the startup's first application over accuracy data\n- The startup's office is in Boston\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

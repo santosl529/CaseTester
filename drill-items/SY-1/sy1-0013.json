@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "turnaround",
+  "industry": null,
   "prompt": "The client asks: \"What should we do with our loss-making European division?\" Fact sheet: the division lost $20M last year; its revenue has fallen 10% a year for three years; a buyer has offered $50M; restructuring would cost $80M and might break even in three years; the division is 8% of group revenue; its head office is in Paris. Which is the best recommendation?",
   "exhibit": null,
   "input": {

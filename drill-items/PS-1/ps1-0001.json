@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "market_entry",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A national coffee chain is deciding whether to open cafés in airports. The candidate's framework: (1) Lease and operating costs at airports; (2) Rent and revenue-sharing terms with the airport; (3) Airport traveler demand and spending; (4) Competition from existing airport food outlets. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

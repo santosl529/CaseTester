@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "The client asks: \"Should our children's shoe brand launch a subscription that sends a new pair as feet grow?\"\n\nFact sheet:\n- Parents of children under 6 buy a new size every 4 months on average\n- In a survey, 25% of current customers said they'd subscribe at $45 a pair\n- Each subscriber needs a foot-measuring kit costing $6\n- 35% of test subscribers canceled within 3 months\n- Our shoe boxes are made from recycled card\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

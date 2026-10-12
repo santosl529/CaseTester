@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "m_and_a",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A national private-school group is deciding whether to buy 8 schools for $120M.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

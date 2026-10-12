@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "market_entry",
+  "industry": "Consumer / CPG",
   "prompt": "The client asks: \"Should our Texas barbecue-sauce brand start selling in Canadian supermarkets?\"\n\nFact sheet:\n- Canadian supermarket listing fees would cost $300,000 in the first year\n- A distributor projects $1.5M of first-year sales at a 30% gross margin, or $450,000\n- Barbecue-sauce sales in Canada grew 4% last year\n- Labels would need French text, a one-time cost of $40,000\n- The brand's US sales grew 12% last year\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

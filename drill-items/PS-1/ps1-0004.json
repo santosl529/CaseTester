@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "growth_strategy",
+  "industry": "Retail / E-commerce",
   "prompt": "A meal-kit company wants to double revenue in three years. The candidate's framework: (1) Grow the existing customer base; (2) Increase order frequency and basket size; (3) Launch new products such as ready-to-eat meals; (4) Increase revenue per customer. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "Objective: raise a county's adult literacy program completion rate. What you've learned: completion fell from 70% to 61%. Latest finding: the drop is concentrated in two programs run at rural libraries. What is the best next step?",
   "exhibit": null,
   "input": {

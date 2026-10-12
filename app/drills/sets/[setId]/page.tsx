@@ -15,7 +15,7 @@ export default async function DrillSetPage({ params }: { params: Promise<{ setId
 
   return (
     <main className="mx-auto w-full max-w-3xl space-y-6 p-6">
-      <nav className="text-sm"><Link href="/drills" className="text-muted-foreground underline-offset-4 hover:underline">← All drills</Link></nav>
+      <nav className="text-sm"><Link href="/drills" className="text-muted-foreground underline-offset-4 hover:underline">← Training home</Link></nav>
       {view.status === 'expired' ? (
         <p className="text-sm">This set expired after 24 hours. Your answers were saved. <Link href="/drills" className="underline underline-offset-4">Start a new one</Link>.</p>
       ) : (

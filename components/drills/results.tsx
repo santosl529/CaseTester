@@ -29,6 +29,9 @@ export function SetResults({ results }: { results: Results }) {
           {' '}Time: {seconds(results.time_ms)} of a {seconds(results.target_ms)} target.
         </p>
         {results.mistakes && <p className="text-sm">{results.mistakes.text}</p>}
+        {results.lesson_skill && (
+          <p className="text-sm">A tough set. <Link href={`/drills/learn/${encodeURIComponent(results.lesson_skill.id)}?source=low_score`} className="font-medium underline underline-offset-4">Read the 3-minute lesson on {results.lesson_skill.name.toLowerCase()}</Link> before the next one.</p>
+        )}
         {results.skill_changes.map(c => (
           <p key={`${c.skill_id}-${c.to}`} className="text-sm font-medium">
             {c.skill_name}: now {STATE_LABEL[c.to]}.
@@ -43,7 +46,7 @@ export function SetResults({ results }: { results: Results }) {
       </header>
 
       <div className="flex flex-wrap gap-3">
-        <Link href="/drills" className={buttonVariants({ size: 'lg' })}>Practice another skill</Link>
+        <Link href="/drills" className={buttonVariants({ size: 'lg' })}>{results.from_workout ? 'Continue workout' : 'Back to training'}</Link>
         <RetryButton drillId={results.drill.id} skillId={results.focus_skill} />
         <Link href="/" className={buttonVariants({ variant: 'ghost', size: 'lg' })}>Take a case</Link>
         <Link href="/drills/profile" className={buttonVariants({ variant: 'ghost', size: 'lg' })}>Your skills</Link>

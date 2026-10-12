@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "investment_decision",
+  "industry": "Retail / E-commerce",
   "prompt": "Objective: decide whether a florist should buy a refrigerated display case. What you've learned: the case costs $12,000. Latest finding: it would cut flower spoilage by $4,000 a year. What is the best next step?",
   "exhibit": null,
   "input": {

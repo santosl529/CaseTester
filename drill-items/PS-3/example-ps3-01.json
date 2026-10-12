@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "new_product_launch",
+  "industry": "Other",
   "prompt": "A regional gym chain is considering launching an at-home fitness subscription. Its goal is to add $10M in revenue within three years.",
   "exhibit": null,
   "input": {

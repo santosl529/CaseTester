@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "pricing",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "An airline cut fares 10% on one route, where most passengers are business travelers. Passengers rose 6%, and revenue on the route fell. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

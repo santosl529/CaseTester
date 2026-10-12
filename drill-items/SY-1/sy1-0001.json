@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "market_entry",
+  "industry": null,
   "prompt": "The client asks: \"Should we enter the Canadian market?\" Fact sheet: the Canadian market is worth $400M and growing 3% a year; entry would cost $60M; expected profit is $12M a year, a 5-year payback; the client's hurdle is a 3-year payback; two incumbents hold 70% share; the client is headquartered in Chicago. Which is the best recommendation?",
   "exhibit": null,
   "input": {

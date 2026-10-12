@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "profitability",
+  "industry": "Other",
   "prompt": "A chain of 40 bike-repair shops kept revenue flat last year, but profit fell 18%. The number of repairs was also flat.",
   "exhibit": null,
   "input": {

@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "profitability",
+  "industry": "Consumer / CPG",
   "prompt": "A frozen-pizza maker's sales grew 10% over two years, but its operating margin fell from 14% to 8%.",
   "exhibit": null,
   "input": {

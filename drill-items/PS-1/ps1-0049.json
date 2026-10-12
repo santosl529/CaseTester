@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "growth_strategy",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A national museum wants to raise attendance 20%. The candidate's framework: (1) Ticket revenue: visitors × price; (2) Exhibition and staff costs; (3) Donations and grants. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

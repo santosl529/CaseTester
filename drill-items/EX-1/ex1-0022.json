@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "profitability",
+  "industry": "Retail / E-commerce",
   "prompt": "The client wants to know which store is dragging down chain profit. Which takeaway matters most?",
   "exhibit": {
     "type": "table",

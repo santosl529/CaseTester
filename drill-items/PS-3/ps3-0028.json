@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "new_product_launch",
+  "industry": "Financial Services",
   "prompt": "A car insurer is deciding whether to launch insurance priced on how customers drive, measured by a phone app.",
   "exhibit": null,
   "input": {

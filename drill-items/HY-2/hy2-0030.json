@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "operations",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A theme park's average ride wait rose from 20 to 35 minutes this season, while attendance was flat.",
   "exhibit": null,
   "input": {

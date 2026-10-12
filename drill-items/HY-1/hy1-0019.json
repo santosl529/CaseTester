@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "investment_decision",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A hotel renovated half its rooms. Renovated rooms sell for 25% more per night and are 70% full, against 80% full for the old rooms. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

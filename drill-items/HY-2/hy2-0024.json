@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "investment_decision",
+  "industry": "Retail / E-commerce",
   "prompt": "A retailer replaced the lighting in its 30 stores with LEDs, expecting to cut store electricity use 30%. In the first year, use fell only 10%.",
   "exhibit": null,
   "input": {

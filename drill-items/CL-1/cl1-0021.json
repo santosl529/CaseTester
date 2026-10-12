@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "new_product_launch",
+  "industry": "Other",
   "prompt": "Objective: decide whether a hair-salon chain, now closed on Mondays, should open on Mondays for children's haircuts. What you've learned: opening would cost $8k per salon to set up. Latest finding: each salon would bring in about $12k a year on Mondays. What is the best next step?",
   "exhibit": null,
   "input": {

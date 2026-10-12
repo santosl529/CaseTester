@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "cost_reduction",
+  "industry": "Financial Services",
   "prompt": "Objective: cut an insurer's cost per claim. What you've learned: adjusters' pay is flat. Latest finding: average adjuster time per claim rose from 4 to 7 hours. What is the best next step?",
   "exhibit": null,
   "input": {

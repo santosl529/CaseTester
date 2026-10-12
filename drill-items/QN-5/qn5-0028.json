@@ -12,6 +12,7 @@
     "QN.sanity_check"
   ],
   "case_type": "market_sizing",
+  "industry": "Consumer / CPG",
   "prompt": "Estimate yearly US spending on replacing home water heaters, including installation.",
   "exhibit": null,
   "input": {

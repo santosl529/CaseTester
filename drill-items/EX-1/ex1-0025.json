@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "The state wants to know why its overall graduation rate fell. Which takeaway matters most?",
   "exhibit": {
     "type": "grouped_bar",

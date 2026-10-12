@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "growth_strategy",
+  "industry": "Consumer / CPG",
   "prompt": "A regional bakery brand wants to grow revenue 40% in three years. The candidate's framework: (1) Win more grocery shelf space in current regions; (2) Launch new product lines; (3) Expand into new regions; (4) Cut the cost of ingredients. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

@@ -12,6 +12,7 @@
     "QN.sanity_check"
   ],
   "case_type": "market_sizing",
+  "industry": "Consumer / CPG",
   "prompt": "Estimate annual US spending on new school backpacks for K-12 students.",
   "exhibit": null,
   "input": {

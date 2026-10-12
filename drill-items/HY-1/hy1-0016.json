@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "A beverage company's new energy drink sells well in convenience stores but poorly in supermarkets, where it has half the shelf space of rivals. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

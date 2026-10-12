@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "growth_strategy",
+  "industry": null,
   "prompt": "The client asks: \"Should we roll out the loyalty program?\" Fact sheet: the program costs $2M a year; in a pilot, 40% of customers joined; members visited 12% more often; annual revenue is $100M at a 25% margin; the program's app was built by an outside agency. Which is the best recommendation?",
   "exhibit": null,
   "input": {

@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "market_entry",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "A home-care agency whose nurses visit elderly patients in Ohio is deciding whether to expand into Pennsylvania. It wants $25M of revenue there in four years.",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "public_sector",
+  "industry": "Energy / Utilities",
   "prompt": "A country's electricity grid had twice as many outage minutes this year as five years ago.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

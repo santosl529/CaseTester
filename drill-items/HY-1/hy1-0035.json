@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "market_sizing",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A client estimates the city's coffee shop market at $40M from industry data. Its three stores make $3M a year, and it believes it has 25% share because it owns 3 of the city's 12 coffee shops. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

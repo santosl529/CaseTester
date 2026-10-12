@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "profitability",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "A hospital's revenue per patient fell 9% while patient numbers held steady. The share of patients on government insurance rose from 30% to 45%. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

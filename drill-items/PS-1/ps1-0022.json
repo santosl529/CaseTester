@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "profitability",
+  "industry": "Other",
   "prompt": "A car wash chain's profits fell 25% last year. The candidate's framework: (1) Revenue: cars washed and price per wash; (2) Costs: water, chemicals, labor and rent; (3) Plans to add a coffee kiosk at each site. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

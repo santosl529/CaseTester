@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "pricing",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A water park raised its day-ticket price 15% this summer. Ticket revenue fell 5%.",
   "exhibit": null,
   "input": {

@@ -18,6 +18,8 @@ import type { ItemResult, StepResult } from '../sets/scoring';
 import { nextTier, passed, setScore, skillScores } from '../sets/summary';
 import { applyGrade, type CheckResults } from './apply';
 import { applySetProgress } from '../progress/store';
+import { afterDiagnostic, markWorkoutProgress } from '../program/store';
+import { markDiagnosticMove, onDiagnosticSetDone } from '../program/diagnostic-store';
 import { gradeSet, type CallModel } from './grader';
 
 type SetRow = typeof drillSets.$inferSelect;
@@ -71,12 +73,23 @@ export async function finalizeSet(setId: string): Promise<boolean> {
     const now = new Date();
     await tx.update(drillSets).set({ status: 'completed', setScore: score, passed: passed(drill, score), skillScores: skills, completedAt: now })
       .where(eq(drillSets.id, set.id));
+    // A diagnostic part changes no tier or skill state; it places the student.
+    if (set.source === 'diagnostic') {
+      const diag = await onDiagnosticSetDone(tx, set, attempts.map((a, i) => ({ skills: items[a.position]?.skills ?? [], result: results[i] })));
+      return {
+        studentId: set.studentId, diagnosticScore: diag.completed,
+        props: { set_id: set.id, set_score: score, passed: passed(drill, score), duration_ms: now.getTime() - set.startedAt.getTime(), skill_scores: skills },
+        progress: diag.events,
+      };
+    }
     await tx.insert(drillTiers).values({ studentId: set.studentId, drillId: drill.id, currentTier: tier, updatedAt: now })
       .onConflictDoUpdate({ target: [drillTiers.studentId, drillTiers.drillId], set: { currentTier: tier, updatedAt: now } });
     // Skill states, stages, transfer and review dates, prescriptions.
     const progress = await applySetProgress(tx, set, results, skills);
+    const workout = set.workoutId ? await markWorkoutProgress(tx, set.workoutId) : null;
+    if (workout) progress.events.push({ type: 'workout_completed', props: workout.props });
     return {
-      studentId: set.studentId,
+      studentId: set.studentId, diagnosticScore: null as number | null,
       props: { set_id: set.id, set_score: score, passed: passed(drill, score), duration_ms: now.getTime() - set.startedAt.getTime(), skill_scores: skills },
       progress: progress.events,
     };
@@ -84,6 +97,9 @@ export async function finalizeSet(setId: string): Promise<boolean> {
   if (event) {
     await logDrillEvent(event.studentId, 'drill_set_completed', event.props);
     for (const e of event.progress) await logDrillEvent(event.studentId, e.type, e.props);
+    if (event.diagnosticScore !== null && await afterDiagnostic(event.studentId, event.diagnosticScore)) {
+      await markDiagnosticMove(event.studentId, 'foundations');
+    }
   }
   return event !== null;
 }

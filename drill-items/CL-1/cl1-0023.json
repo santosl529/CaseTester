@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "operations",
+  "industry": "Industrials / Manufacturing",
   "prompt": "Objective: reduce defects at an electronics factory. What you've learned: defects rose from 1% to 4%. Latest finding: the increase is on night shifts only. What is the best next step?",
   "exhibit": null,
   "input": {

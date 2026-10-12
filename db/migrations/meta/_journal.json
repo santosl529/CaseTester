@@ -99,6 +99,27 @@
       "when": 1791762237922,
       "tag": "0013_drills_d4_program",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791763344213,
+      "tag": "0014_drills_d4_current_week",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1791766672991,
+      "tag": "0015_drills_d4_diagnostic",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1791768478824,
+      "tag": "0016_drills_d4_diagnostic_move",
+      "breakpoints": true
     }
   ]
 }

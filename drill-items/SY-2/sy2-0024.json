@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "market_sizing",
+  "industry": "Tech / SaaS",
   "prompt": "The client asks: \"Should our startup build scheduling software for independent US tattoo studios?\"\n\nFact sheet:\n- There are about 20,000 tattoo studios in the US\n- Studios would pay about $60 a month, and about 20% say they'd switch from paper or free tools\n- That is about 4,000 studios at $720 a year, or roughly $2.9M of revenue a year at full uptake\n- Building and running the software would cost about $3M a year\n- Tattoos are most popular among people aged 18 to 34\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

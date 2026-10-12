@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "market_entry",
+  "industry": "Tech / SaaS",
   "prompt": "A meal-delivery app entered a new country a year ago and has 200,000 users. Only 15% have ordered more than once, against 45% in its home market.",
   "exhibit": null,
   "input": {

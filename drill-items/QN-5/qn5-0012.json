@@ -12,6 +12,7 @@
     "QN.sanity_check"
   ],
   "case_type": "market_sizing",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "Estimate annual US spending on college application fees.",
   "exhibit": null,
   "input": {

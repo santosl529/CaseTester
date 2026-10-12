@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A country's health ministry wants to raise childhood vaccination rates from 78% to 95% within four years.",
   "exhibit": null,
   "input": {

@@ -12,6 +12,7 @@
     "QN.sanity_check"
   ],
   "case_type": "market_sizing",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "Estimate yearly spending on lunches served in US public schools.",
   "exhibit": null,
   "input": {

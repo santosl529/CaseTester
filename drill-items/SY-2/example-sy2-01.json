@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "new_product_launch",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "The client asks: \"Should our trampoline parks open on weekday mornings for school field trips?\"\n\nFact sheet:\n- Each park would host about 120 school groups a year at $600 per group\n- Opening weekday mornings would add about $40k a year per park in staff and utilities\n- The parks are currently closed until noon on weekdays\n- Schools in the region already book field trips to two science museums at $450 per group\n- The chain changed its uniform supplier last year\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

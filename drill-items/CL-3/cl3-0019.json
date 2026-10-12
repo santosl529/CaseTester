@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "competitive_response",
+  "industry": "Financial Services",
   "prompt": "A regional bank lost 10% of its deposits in a year after an online bank began paying 4% interest.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

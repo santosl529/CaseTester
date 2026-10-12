@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "pricing",
+  "industry": "Tech / SaaS",
   "prompt": "The client asks: \"Should we raise the premium plan from $20 to $24 a month?\" Fact sheet: the plan has 50,000 subscribers; in a survey, 8% said they would cancel at $24; competitors charge $22–28; monthly churn is 2%; the app was redesigned last year. Which is the best recommendation?",
   "exhibit": null,
   "input": {

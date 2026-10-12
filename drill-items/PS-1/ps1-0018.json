@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "cost_reduction",
+  "industry": "Tech / SaaS",
   "prompt": "A software company wants to cut costs by 15%. The candidate's framework: (1) Employee costs: engineering, sales and support; (2) Office rent; (3) Marketing and events. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "growth_strategy",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "Objective: grow a bowling-alley chain's weekday evening sales. What you've learned: weekday evening sales fell 25% while weekends grew. Latest finding: an escape-room venue nearby started weekday evening discounts. What is the best next step?",
   "exhibit": null,
   "input": {

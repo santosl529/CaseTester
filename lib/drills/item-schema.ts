@@ -5,6 +5,7 @@
 // toPublicItem (lib/drills/public-item.ts) may shape an item for the client.
 import { z } from 'zod';
 import { CASE_TYPES } from '@/lib/case-types';
+import { INDUSTRIES } from './industries';
 import { ChartSpecSchema } from './chart-spec';
 import { InputTypeSchema, getDrill, getMistakeTag, isKnownTag, DRILLS_CONFIG } from './config';
 
@@ -104,6 +105,9 @@ export const ItemSchema = z.object({
   tier: Tier,
   skills: z.array(KnownSkill).min(1),
   case_type: z.enum(CASE_TYPES).nullable(),
+  // The client's industry (lib/drills/industries.ts); null when the item names
+  // no client. Review metadata: it can change without a new version.
+  industry: z.enum(INDUSTRIES).nullable().optional(),
   prompt: z.string().min(1),
   exhibit: ChartSpecSchema.nullable(),
   input: InputSpecSchema,

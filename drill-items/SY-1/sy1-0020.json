@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "cost_reduction",
+  "industry": "Retail / E-commerce",
   "prompt": "The client asks: \"Should we close our least profitable store?\" Fact sheet: the store loses $200k a year; breaking its lease costs $500k; about 30% of its customers would shift to nearby stores, adding $150k of profit; the store opened in 2010. Which is the best recommendation?",
   "exhibit": null,
   "input": {

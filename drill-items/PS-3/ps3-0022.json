@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "industry_analysis",
+  "industry": "Other",
   "prompt": "A private equity fund asks whether the North American pickleball-court construction industry is attractive to invest in.",
   "exhibit": null,
   "input": {

@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "profitability",
+  "industry": "Other",
   "prompt": "A chain of fitness studios has seen profits fall for two years. The candidate's framework: (1) Membership revenue: members × average fee; (2) Other revenue: retail and personal training; (3) Fixed costs: rent and equipment. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

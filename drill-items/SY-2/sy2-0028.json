@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "growth_strategy",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "The client asks: \"Should our 60-unit taco chain grow by franchising or by opening its own restaurants?\"\n\nFact sheet:\n- Our own restaurants cost $900,000 each to open and earn $250,000 a year\n- Franchising would bring 6% royalties on about $1.5M of sales per restaurant, $90,000 a year, at almost no capital cost\n- We have $9M, enough for 10 of our own restaurants in 3 years; franchisees have offered to open 40\n- Food-quality scores at franchised chains in the region average 10% lower\n- Two of the chain's restaurants are in airports\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

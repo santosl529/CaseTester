@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "profitability",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "The client asks: \"How should our regional bus-tour company restore profit?\"\n\nFact sheet:\n- Revenue is flat at $8M\n- Fuel and driver costs are flat\n- Commissions paid to online travel sites rose from 10% to 22% of revenue as bookings moved online\n- 70% of customers say they'd book directly if offered a 5% discount\n- Tour reviews average 4.5 stars\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

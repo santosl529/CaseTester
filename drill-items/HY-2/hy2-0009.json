@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "profitability",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A concert venue's revenue per show fell 12% this year, while attendance held at 90% of capacity.",
   "exhibit": null,
   "input": {

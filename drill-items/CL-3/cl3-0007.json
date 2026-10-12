@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A city's building-permit approvals now take 14 weeks on average, up from 6.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

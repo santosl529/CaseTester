@@ -12,6 +12,7 @@
     "QN.sanity_check"
   ],
   "case_type": "market_sizing",
+  "industry": "Other",
   "prompt": "Estimate yearly US spending on elevator maintenance.",
   "exhibit": null,
   "input": {

@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "m_and_a",
+  "industry": "Other",
   "prompt": "A private equity firm is deciding whether to buy a chain of veterinary clinics. The candidate's framework: (1) The target's financial performance; (2) The target's revenue growth and margins; (3) Attractiveness of the vet clinic market; (4) Synergies with the firm's other pet businesses. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

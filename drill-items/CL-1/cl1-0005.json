@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "growth_strategy",
+  "industry": "Tech / SaaS",
   "prompt": "Objective: help a language-learning app double revenue. What you've learned: paying users are flat because new subscriptions equal cancellations. Latest finding: 60% of new subscribers cancel within their first month. What is the best next step?",
   "exhibit": null,
   "input": {

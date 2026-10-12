@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "competitive_response",
+  "industry": "Retail / E-commerce",
   "prompt": "A regional chain of 15 mattress stores lost 20% of its sales after online mattress brands began selling at 30% less.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

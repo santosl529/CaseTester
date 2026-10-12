@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "m_and_a",
+  "industry": null,
   "prompt": "The client asks: \"Should we acquire RivalCo for $500M?\" Fact sheet: RivalCo is worth about $400M on its own; synergies are estimated at $15M a year, worth about $150M; integration would cost $60M; RivalCo earns $30M a year; RivalCo's CEO is a former colleague of our CEO. Which is the best recommendation?",
   "exhibit": null,
   "input": {

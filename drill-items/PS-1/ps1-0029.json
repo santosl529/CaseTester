@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "investment_decision",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A city is deciding whether to build a new public swimming pool. The candidate's framework: (1) The pool's opening-season marketing campaign; (2) Expected visitors and fees; (3) Construction cost; (4) Annual running costs; (5) Health and youth programs the pool would support. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "market_entry",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "The client asks: \"Should we open restaurants in Texas?\" Fact sheet: the Texas market is worth $2B and growing 6% a year; the top three players hold 20% share; each restaurant costs $1.5M and pays back in 3 years; our hurdle is a 4-year payback; we run 50 restaurants in California; one of our managers grew up in Texas. Which is the best recommendation?",
   "exhibit": null,
   "input": {

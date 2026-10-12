@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "profitability",
+  "industry": "Retail / E-commerce",
   "prompt": "An online furniture retailer's operating margin fell from 12% to 7%. The candidate's framework: (1) Prices and discounting by category; (2) Product costs from suppliers; (3) Delivery and returns costs; (4) Marketing and overhead; (5) Gross margin by category. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

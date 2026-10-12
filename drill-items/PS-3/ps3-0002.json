@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "market_entry",
+  "industry": "Consumer / CPG",
   "prompt": "A Spanish olive oil producer sells all its oil in bulk to other brands. It is deciding whether to launch its own brand in US supermarkets, aiming for $30M in yearly sales within five years.",
   "exhibit": null,
   "input": {

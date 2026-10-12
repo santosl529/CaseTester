@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "competitive_response",
+  "industry": "Other",
   "prompt": "Objective: respond to a rival office-cleaning firm that cut prices 15%. What you've learned: we've lost 6% of contracts in four months. Latest finding: the contracts lost were mostly single-office clients. What is the best next step?",
   "exhibit": null,
   "input": {

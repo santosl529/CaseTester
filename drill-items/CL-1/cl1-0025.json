@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "pricing",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "Objective: set the nightly price of new cabins at a national park campground. What you've learned: campers would pay about $20 more than for a tent site. Latest finding: each cabin takes the space of two tent sites. What is the best next step?",
   "exhibit": null,
   "input": {

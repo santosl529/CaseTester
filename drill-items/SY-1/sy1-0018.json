@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "competitive_response",
+  "industry": null,
   "prompt": "The client asks: \"How should we respond to a new low-cost rival?\" Fact sheet: the rival prices 30% below us; it targets small customers, who are 20% of our revenue and 5% of our profit; our large customers rate our service 9 out of 10; the rival has no service team; we have 200 sales staff. Which is the best recommendation?",
   "exhibit": null,
   "input": {

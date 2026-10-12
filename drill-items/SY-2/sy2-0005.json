@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "operations",
+  "industry": "Retail / E-commerce",
   "prompt": "The client asks: \"Should our print-on-demand T-shirt company add a weekend shift to clear its order backlog?\"\n\nFact sheet:\n- Orders now wait 9 days to ship, against a 3-day promise\n- The backlog is in printing: printers run 5 days a week at full capacity, while packing has spare time\n- A weekend printing shift would cost $18,000 a month and add 40% to printing capacity\n- Late orders get their shipping refunded, which costs $25,000 a month\n- Customer reviews average 4.6 stars\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

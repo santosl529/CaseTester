@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "competitive_response",
+  "industry": "Logistics / Transportation",
   "prompt": "The client asks: \"Should our moving company match a new app-based rival's 20% lower prices?\"\n\nFact sheet:\n- The rival uses contractor crews, and its reviews average 3.1 stars, against our 4.7\n- We've lost 6% of jobs since the rival launched, all of them small apartment moves\n- Small apartment moves earn a 10% margin; whole-house moves earn 25% and make up 70% of profit\n- Matching the rival's prices would cut our profit by about $1.2M a year\n- Fuel costs rose 6% this year\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

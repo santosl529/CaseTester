@@ -6,7 +6,7 @@
 import 'server-only';
 import { and, desc, eq, getTableColumns, inArray, lt, ne, sql } from 'drizzle-orm';
 import { db } from '@/db/client';
-import { caseResults, drillSets, drillTiers, prescriptions, skillStateEvents, skillStates, studentDrillSettings } from '@/db/schema';
+import { caseResults, drillSets, drillTiers, prescriptions, sessions, skillStateEvents, skillStates, studentDrillSettings } from '@/db/schema';
 import { DRILLS_CONFIG, TAXONOMY_VERSION, getDrill, getMistakeTag } from '../config';
 import { CaseResultPayloadSchema, type CaseResultPayload } from '../case-result';
 import type { DrillEvent } from '../events';
@@ -27,6 +27,9 @@ export interface PendingEvent { type: DrillEvent; props: Record<string, unknown>
 
 const rules = DRILLS_CONFIG.rules;
 const DAY = 86_400_000;
+// The session that produced this result finishes at about the same time; an
+// earlier session of the same case must have finished well before it.
+const RETAKE_GAP_MS = 10 * 60_000;
 
 function toProgress(r: StateRow): SkillProgress {
   return {
@@ -70,7 +73,7 @@ export async function progressContext(x: Exec, studentId: string, now = new Date
 const same = (a: SkillProgress | undefined, b: SkillProgress) => JSON.stringify(a) === JSON.stringify(b);
 const STATE_COLUMNS = getTableColumns(skillStates);
 
-async function saveProgress(x: Exec, studentId: string, before: ProgressMap, after: ProgressMap, transitions: Transition[],
+export async function saveProgress(x: Exec, studentId: string, before: ProgressMap, after: ProgressMap, transitions: Transition[],
   source: { type: 'set' | 'case' | 'review'; id: string }): Promise<PendingEvent[]> {
   const changed = [...after.values()].filter(p => !same(before.get(p.skill_id), p));
   if (changed.length) {
@@ -98,7 +101,7 @@ async function saveProgress(x: Exec, studentId: string, before: ProgressMap, aft
 
 const ACTIVE = ['open', 'in_progress', 'paused'] as const;
 
-async function activeFor(x: Exec, studentId: string, skillId: string) {
+export async function activeFor(x: Exec, studentId: string, skillId: string) {
   return x.select().from(prescriptions)
     .where(and(eq(prescriptions.studentId, studentId), eq(prescriptions.skillId, skillId), inArray(prescriptions.status, [...ACTIVE])));
 }
@@ -111,7 +114,7 @@ async function dismissedSinceLastCase(x: Exec, studentId: string, skillId: strin
   return latest?.status === 'dismissed';
 }
 
-async function createPrescription(x: Exec, studentId: string, progress: ProgressMap, tiers: Record<string, number>, ctx: Context, p: {
+export async function createPrescription(x: Exec, studentId: string, progress: ProgressMap, tiers: Record<string, number>, ctx: Context, p: {
   skill_id: string; priority: number; reason: string; evidence?: string | null; focus_tag?: string | null;
   source_type: PrescriptionSource; source_id: string;
 }): Promise<PendingEvent[]> {
@@ -138,6 +141,26 @@ async function closePrescriptions(x: Exec, studentId: string, where: ReturnType<
   return closed.map(r => ({ type: 'prescription_completed' as const, props: {
     prescription_id: r.id, skill_id: r.skillId, drill_id: r.drillId, source_type: r.sourceType, priority: r.priority,
   } }));
+}
+
+// The plan's own prescription (PRD "How the plan drives practice"): a plan
+// start moves the skill from Not started to Learning.
+export async function createPlanPrescription(tx: Tx, studentId: string, skillId: string, priority: number, reason: string): Promise<PendingEvent[]> {
+  const before = await loadProgress(tx, studentId, true);
+  const after: ProgressMap = new Map([...before].map(([k, v]) => [k, { ...v }]));
+  const p = after.get(skillId) ?? newProgress(skillId);
+  after.set(skillId, p);
+  const transitions: Transition[] = [];
+  if (p.state === 'not_started') {
+    transitions.push({ skill_id: skillId, from: 'not_started', to: 'learning', reason: 'plan start' });
+    p.state = 'learning';
+  }
+  const events = await saveProgress(tx, studentId, before, after, transitions, { type: 'set', id: 'plan' });
+  const ctx = await progressContext(tx, studentId);
+  events.push(...await createPrescription(tx, studentId, after, await loadTiers(tx, studentId), ctx, {
+    skill_id: skillId, priority, reason, source_type: 'plan', source_id: 'plan',
+  }));
+  return events;
 }
 
 // ------------------------------------------------------------ after a set
@@ -208,7 +231,7 @@ export async function applySetProgress(tx: Tx, set: SetRow, results: ItemResult[
 
 // ------------------------------------------------------------ case results
 
-export type IngestResult = { status: 'ingested' | 'duplicate'; prescriptions: number; events: PendingEvent[] };
+export type IngestResult = { status: 'ingested' | 'duplicate'; prescriptions: number; retake?: boolean; events: PendingEvent[] };
 
 // Case results ingestion (PRD "Internal interfaces"): validates the payload
 // against the taxonomy, stores it, updates skill states and regenerates
@@ -232,9 +255,20 @@ export async function ingestCaseResultTx(raw: unknown, now = new Date()): Promis
     // Only the previous case's findings matter (+2 for a skill flagged again).
     const previous = prevRow ? { ...payload, findings: (prevRow.findings as CaseResultPayload['findings']).filter(f => getMistakeTag(f.tag)) } : null;
 
+    // A retake: the student finished this case before (in an earlier case
+    // result, or an earlier completed session in the case product).
+    const completedAt = new Date(payload.completed_at);
+    const [earlierResult] = await tx.select({ id: caseResults.caseAttemptId }).from(caseResults).where(and(
+      eq(caseResults.studentId, studentId), eq(caseResults.caseId, payload.case_id),
+      ne(caseResults.caseAttemptId, payload.case_attempt_id), lt(caseResults.completedAt, completedAt))).limit(1);
+    const [earlierSession] = await tx.select({ id: sessions.id }).from(sessions).where(and(
+      eq(sessions.userId, studentId), eq(sessions.caseId, payload.case_id), eq(sessions.status, 'completed'),
+      lt(sessions.completedAt, new Date(completedAt.getTime() - RETAKE_GAP_MS)))).limit(1);
+    const retake = Boolean(earlierResult || earlierSession);
+
     const before = await loadProgress(tx, studentId, true);
     const ctx = await progressContext(tx, studentId, now);
-    const u = applyCase(before, payload, previous, ctx);
+    const u = applyCase(before, payload, previous, ctx, retake);
     const events: PendingEvent[] = [{ type: 'case_result_received', props: {
       case_attempt_id: payload.case_attempt_id, case_type: payload.case_type, difficulty_tier: payload.difficulty_tier,
       finding_count: payload.findings.length,
@@ -255,6 +289,6 @@ export async function ingestCaseResultTx(raw: unknown, now = new Date()): Promis
         source_type: 'case', source_id: payload.case_attempt_id,
       }));
     }
-    return { status: 'ingested' as const, prescriptions: u.prescriptions.length, events };
+    return { status: 'ingested' as const, prescriptions: u.prescriptions.length, retake, events };
   });
 }

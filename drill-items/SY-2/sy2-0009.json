@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "The client asks: \"Should the city extend its free downtown shuttle to the new stadium district?\"\n\nFact sheet:\n- Extending the route would cost $800,000 a year\n- The stadium district hosts about 120 event days a year with 15,000 visitors each\n- A survey found 40% of event visitors would ride the shuttle, cutting event-day parking demand by about 1,500 cars\n- Downtown hotel occupancy rose 4% last year\n- The stadium owner has offered to pay $300,000 a year toward the route\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

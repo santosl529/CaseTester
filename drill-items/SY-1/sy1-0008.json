@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "growth_strategy",
+  "industry": "Retail / E-commerce",
   "prompt": "The client asks: \"Should we start selling online?\" Fact sheet: online sales in the category grow 25% a year; 40% of our customers say they would buy online; setting up online sales costs $1M; expected first-year online sales are $4M at a 20% margin; we have 30 stores; our stores were renovated in 2021. Which is the best recommendation?",
   "exhibit": null,
   "input": {

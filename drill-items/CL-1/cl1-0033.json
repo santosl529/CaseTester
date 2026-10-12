@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "profitability",
+  "industry": "Retail / E-commerce",
   "prompt": "Objective: find why a garden-center chain's profit fell. What you've learned: plant sales rose 3% but total sales fell 8%. Latest finding: outdoor furniture sales fell 35%. What is the best next step?",
   "exhibit": null,
   "input": {

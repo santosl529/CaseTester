@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "growth_strategy",
+  "industry": "Other",
   "prompt": "A uniform-rental company serving businesses wants to grow revenue 25% in three years. It loses 15% of its accounts every year.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

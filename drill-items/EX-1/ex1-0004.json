@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "cost_reduction",
+  "industry": null,
   "prompt": "The client's costs are rising and it wants to know where to look first. Which takeaway matters most?",
   "exhibit": {
     "type": "stacked_bar",

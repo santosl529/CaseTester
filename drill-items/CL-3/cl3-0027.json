@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "operations",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A university IT help desk now takes 4 days to close a ticket, up from 1. Ticket volume and help-desk staffing are unchanged.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

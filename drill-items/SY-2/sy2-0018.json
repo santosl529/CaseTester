@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "industry_analysis",
+  "industry": "Industrials / Manufacturing",
   "prompt": "The client asks: \"Should our fund invest in a vinyl-record pressing plant?\"\n\nFact sheet:\n- Vinyl sales grew 10% a year for five years\n- Pressing plants have 6-month waitlists for new orders\n- A new pressing line costs $1.5M and can press 1 million records a year at a $1.20 margin each\n- Three new plants opened last year, adding 15% to industry capacity\n- Vinyl is especially popular with collectors of 1970s rock\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

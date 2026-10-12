@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "cost_reduction",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "Objective: cut a university's lab supply costs. What you've learned: lab supply costs rose 16% with research activity flat. Latest finding: prices paid for the top 30 items are 12% above negotiated contract prices. What is the best next step?",
   "exhibit": null,
   "input": {

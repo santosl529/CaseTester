@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "m_and_a",
+  "industry": "Consumer / CPG",
   "prompt": "A packaged-food company bought a snack brand last year, expecting 15% sales growth. The brand's sales have fallen 5% since the deal.",
   "exhibit": null,
   "input": {

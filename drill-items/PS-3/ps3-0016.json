@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "A premium luggage brand is deciding whether to launch a service that rents its suitcases for single trips. It wants the service profitable within two years.",
   "exhibit": null,
   "input": {

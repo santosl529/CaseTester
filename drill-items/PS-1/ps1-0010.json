@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "investment_decision",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A bakery chain is deciding whether to buy a second industrial oven line. The candidate's framework: (1) Cost of the oven and installation; (2) Upfront investment needed; (3) Extra demand the oven would serve; (4) Running costs: energy, labor and maintenance. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "market_entry",
+  "industry": "Financial Services",
   "prompt": "Objective: decide whether a European bank should enter the US. What you've learned: the US market is large but slow-growing. Latest finding: four incumbents hold 70% of deposits. What is the best next step?",
   "exhibit": null,
   "input": {

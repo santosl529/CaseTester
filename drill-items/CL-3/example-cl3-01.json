@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "profitability",
+  "industry": null,
   "prompt": "The client's operating margin declined from 20% to 11% over 3 years.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

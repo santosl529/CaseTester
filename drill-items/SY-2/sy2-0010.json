@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "m_and_a",
+  "industry": "Other",
   "prompt": "The client asks: \"Should our pest-control company buy a rival for $12M?\"\n\nFact sheet:\n- The rival earns $1.5M a year in profit\n- Combining routes would save about $700,000 a year, since both companies serve the same suburbs\n- We require acquisitions to pay back within 7 years\n- 30% of the rival's revenue comes from one property-management firm whose contract renews next year\n- The rival has 60 employees\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

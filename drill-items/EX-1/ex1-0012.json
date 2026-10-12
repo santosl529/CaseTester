@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "growth_strategy",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "The client wants to know where its growth is coming from. Which takeaway matters most?",
   "exhibit": {
     "type": "grouped_bar",

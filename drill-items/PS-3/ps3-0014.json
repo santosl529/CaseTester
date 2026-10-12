@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "pricing",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A minor-league baseball team is moving to a new stadium with 30% more seats. It must set ticket prices for the first season.",
   "exhibit": null,
   "input": {

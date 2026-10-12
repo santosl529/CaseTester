@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "cost_reduction",
+  "industry": "Other",
   "prompt": "A call center's cost per call rose 20%, while wages stayed the same. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

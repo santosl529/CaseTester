@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "competitive_response",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A chain of 300 tutoring centers charges $300 a month per student. AI tutoring apps now offer homework help for $20 a month, and the chain wants to know how to respond.",
   "exhibit": null,
   "input": {

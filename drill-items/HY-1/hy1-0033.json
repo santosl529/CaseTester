@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "profitability",
+  "industry": "Retail / E-commerce",
   "prompt": "A bookstore's sales of books rose 4%, but its total sales fell 6%. Last year, gifts and toys made up 30% of sales. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

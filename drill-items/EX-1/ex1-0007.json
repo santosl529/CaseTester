@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "m_and_a",
+  "industry": null,
   "prompt": "The client wants to acquire a target that is both growing fast and profitable. Which takeaway matters most?",
   "exhibit": {
     "type": "table",

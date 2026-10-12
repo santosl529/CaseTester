@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "pricing",
+  "industry": "Tech / SaaS",
   "prompt": "A software company wants to set the price for a new analytics add-on. The candidate's framework: (1) Engineering time needed to develop it; (2) Value the add-on creates for customers; (3) Prices of competing analytics tools; (4) Cost to build and support the add-on. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

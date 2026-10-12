@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "growth_strategy",
+  "industry": "Tech / SaaS",
   "prompt": "Objective: grow a B2B software company's revenue 50%. What you've learned: existing customers grow spending 5% a year. Latest finding: the company has no product for mid-sized firms, which are 40% of the market. What is the best next step?",
   "exhibit": null,
   "input": {

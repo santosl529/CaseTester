@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "m_and_a",
+  "industry": "Other",
   "prompt": "A waste-hauling company wants to know whether a rival priced at $40M is worth buying.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "growth_strategy",
+  "industry": "Retail / E-commerce",
   "prompt": "An online retailer's website traffic rose 30% this year, but orders were flat. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

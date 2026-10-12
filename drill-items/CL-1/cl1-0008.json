@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "Objective: decide whether to launch a smart thermostat. What you've learned: the market is 5 million units a year and the client could win 4%. Latest finding: that is about 200,000 units a year. What is the best next step?",
   "exhibit": null,
   "input": {

@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "pricing",
+  "industry": "Tech / SaaS",
   "prompt": "A cybersecurity software company sells to small businesses at $8 per device per month. It is considering charging per employee instead.",
   "exhibit": null,
   "input": {

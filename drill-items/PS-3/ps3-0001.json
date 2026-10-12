@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "profitability",
+  "industry": "Other",
   "prompt": "A chain of 60 tire and auto-repair shops saw operating profit fall from $18M to $12M over two years. The number of cars it services each year has held steady.",
   "exhibit": null,
   "input": {

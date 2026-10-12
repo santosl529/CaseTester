@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "The client is choosing a launch price for a new juice, based on a survey. Which takeaway matters most?",
   "exhibit": {
     "type": "bar",

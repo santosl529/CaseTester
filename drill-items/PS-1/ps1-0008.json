@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "operations",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "A hospital wants to cut emergency room waiting times. The candidate's framework: (1) Patient arrivals by hour; (2) Staffing levels during peak hours; (3) Doctor and nurse capacity by shift; (4) Triage and registration speed. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

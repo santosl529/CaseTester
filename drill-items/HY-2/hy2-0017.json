@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "competitive_response",
+  "industry": "Other",
   "prompt": "A home-security alarm company's cancellations doubled in a year. Its prices haven't changed.",
   "exhibit": null,
   "input": {

@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "cost_reduction",
+  "industry": "Consumer / CPG",
   "prompt": "A food manufacturer's packaging costs rose 18% this year. Volume was flat, and packaging-material prices rose only 3%.",
   "exhibit": null,
   "input": {

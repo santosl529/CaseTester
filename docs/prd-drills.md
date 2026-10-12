@@ -8,6 +8,7 @@ Oct 11, 2026 · @Matt
 > - 2026-10-06: Matched to the D1 build: endpoint paths, `is_example`, `focus_skill` / `item_plan` / `pending_step` on drill sets, multi-step `input.steps`, rounded-form trap matching, resume and late-answer behavior, and the D1 results-screen action.
 > - 2026-10-10: After content review rounds 1 and 2: three new mistake tags (`M.ignores_deciding_fact`, `M.low_priority_next_step`, `M.irrelevant_driver`), QN-5 card roles, the wording checks for choice drills, and the similarity check that every authored item must pass before going live.
 > - 2026-10-11: D2 decisions: PS-3, HY-2, SY-2 and CL-3 grading rules, caps and red flags; one grading call per answer; tag severity defaults; prescription area limit.
+> - 2026-10-11: D4 decisions: retakes can't validate a skill; industry tags (Matt's list and rules); the approved case-type map; the diagnostic as 10 resumable parts with placement, prescriptions and the move to Foundations; lessons as markdown files with a review page; weekly case targets count completed case sessions; new `diagnostics` table and `student_programs.current_week`.
 > - 2026-10-11: D3 decisions: primary skills per drill (only they change state), cross-skill prescriptions weighted as in a case, the supersede rule when a new case arrives, the extra `skill_states` columns, and where the case-type list lives.
 > - 2026-10-11: **v2 merged.** Adds the training program (diagnostic, tracks, plans, workouts, Practice on my own, lessons), the skill tree, drill chains with Repair drills, the Defend step, the Practiced state and transfer checks. Kept from v1: the PS-3, HY-2, SY-2 and CL-3 sections as built (Defend added), the content-review tags, and the build details from the revisions above. Matt's decisions applied: test-out at tier 2 (with Defend once it ships); grading stays at set completion; pilot with the current Level 1 pools; student time zone stored at signup; Browse cases belongs to the case product; set size by tier; taxonomy stays `v1`; skill tree approved.
 
@@ -191,11 +192,14 @@ Students who don't want a plan choose **Practice on my own** at onboarding or in
 ### Onboarding and diagnostic
 
 - **Questions:** follow a plan or practice on my own; interview date (optional); practice cases done (0, 1–5, 6+); and, for plans, time available per week (about 1.5–2, 2–2.5 or 3 hours, which sets 3, 4 or 6 workouts a week; the hours include planned cases).
-- **Time zone:** the browser's time zone is stored at signup. Workout days, the Monday summary and interview-date counts use it.
-- **Diagnostic:** about 15 minutes. 22 auto-checked items at tier 2 timing (3 each from PS-1, HY-1, EX-1, SY-1 and CL-1; 2 from QN-1; 3 from QN-3; 2 from EX-2) and 2 short Construct items (1 PS-3, 1 SY-2, no Defend). AI cost: 2 grading calls.
-- **Placement**, per skill with at least 2 diagnostic items or checks: below 50% → Recognize; 50–79% → Repair (Recognize tier 2 if the skill has no Repair drill); 80% or higher → Construct tier 2 test-out. Skills with no evidence use the track default.
-- Placement only moves skills from Not started to Learning. The diagnostic never grants Recognizes or higher, because 2–3 items are too few.
-- Diagnostic mistake tags create up to 3 prescriptions (source `diagnostic`, +1 per tag). The first case result replaces them.
+- **Time zone:** captured from the browser during drills onboarding, with no question to the student. Workout days, the Monday summary and interview-date counts use it.
+- **Diagnostic:** about 15 minutes, in 10 short parts, one drill each: 22 auto-checked items at tier 2 timing (3 each from PS-1, HY-1, EX-1, SY-1 and CL-1; 2 from QN-1; 3 from QN-3; 2 from EX-2) and 2 short Construct items (1 PS-3, 1 SY-2, no Defend). AI cost: 2 grading calls.
+- **One flow:** the parts run back to back as one flow ("Part 3 of 10") with no per-item feedback and no results screen between parts; placement shows at the end. Diagnostic sets change no tiers, streaks or skill states beyond placement.
+- **Stopping partway:** the student can stop at any time ("Stop for now"). They are placed from the parts they finished, and starting again resumes the same diagnostic.
+- **Placement**, per skill with at least 2 diagnostic items or checks: below 50% → Recognize tier 1; 50–79% → Repair (Recognize tier 2 if the skill has no Repair drill); 80% or higher → Construct tier 2 test-out. Skills with no evidence use the track default. Placement is redone each time a part finishes.
+- Placement only moves skills from Not started to Learning, and only skills the student hasn't practiced yet. The diagnostic never grants Recognizes or higher, because 2–3 items are too few.
+- Diagnostic mistake tags create up to 3 prescriptions when the last part finishes (source `diagnostic`, +1 per distinct tag, at most 2 from one skill area, none for a skill that already has one). The first case result replaces them.
+- **Overall score:** the average item score across all parts. A student placed on Standard at onboarding who has never switched track and scores below 50% moves to Foundations. The diagnostic results screen then says: "Based on your diagnostic, we've started you on Foundations. You can switch to Standard anytime in settings."
 - **Skip:** "I'll take a case first" skips the diagnostic; the track default placement is used.
 - **Baseline case:** Standard and Sprint schedule a first full case in Week 0 (Sprint: Day 1). Foundations offers it as optional.
 
@@ -211,7 +215,7 @@ Students who don't want a plan choose **Practice on my own** at onboarding or in
 | 5 | Interview performance | Weak spots; tier 3 (timed) sets | Every open prescription at Practiced; 3 skills with a tier 3 pass |
 | 6 | Readiness | Transfer checks and review, all areas | Every prescribed skill at Mastered; final case |
 
-- **Weekly targets:** the workouts per week chosen at onboarding, plus the track's planned cases. The default is about 2.5 hours a week in weeks 4–6 (4 workouts × 20 min + 2 cases × 35 min). Targets aren't tied to days; the home shows "3 of 4 workouts, 1 of 2 cases this week".
+- **Weekly targets:** the workouts per week chosen at onboarding, plus the track's planned cases. A case counts toward the target when the student completes a case session that week, retakes included (case results only arrive once the case grader sends them). The default is about 2.5 hours a week in weeks 4–6 (4 workouts × 20 min + 2 cases × 35 min). Targets aren't tied to days; the home shows "3 of 4 workouts, 1 of 2 cases this week".
 - **Milestones are targets, not locks.** At week rollover, milestone skills not yet met stay in the weak-spot pool with +1 priority.
 - Focus areas with no live drill are skipped (for example, BJ until BJ-1 ships).
 - **Compression:** if the interview is 15–41 days away, the plan keeps Week 0 and ends with Week 5 (Interview performance) and Week 6 (Readiness). The focus areas of weeks 1–4 are split evenly, in order, across the weeks left between them. If the interview is more than 6 weeks away, the plan runs as written and then repeats Readiness weeks.
@@ -265,6 +269,7 @@ Week 0 takes about 50 minutes (diagnostic + baseline case). At the default, the 
 - **When shown:** in Foundations, automatically before the first set of each skill (Skip allowed). In every track: from the drill intro, from the Learn library, and offered after any set below 50%.
 - **P0:** lessons for the 22 skills trained by P0 drills. Lessons for other skills ship with their drills.
 - Lessons are not scored and don't change skill states.
+- Students see a lesson only once it is approved (live).
 
 ## User experience and flows
 
@@ -972,7 +977,7 @@ A skill is Practiced after two consecutive Construct sets at 80% or higher, at t
 | Learning or Recognizes | Practiced | 2 consecutive Construct sets ≥ 80% on the skill, at T2 or above (Defend included). From Learning this is the test-out |
 | Practiced | Mastered | Transfer check ≥ 80% |
 | Practiced | Recognizes | Transfer check below 60%, or a full case logs any of the skill's mistake tags |
-| Mastered | Validated | The next full case marks the skill as observed and logs none of its mistake tags |
+| Mastered | Validated | The next full case marks the skill as observed and logs none of its mistake tags. A retake (a case the student has finished before) can't validate: the student may remember it |
 | Mastered or Validated | Recognizes | A full case logs any of the skill's mistake tags, or a spaced review scores below 60% |
 | Not started or Learning | Recognizes | Credit down: a skill that builds on this one reaches Mastered (see Skill tree) |
 
@@ -1080,14 +1085,22 @@ When the Next case card appears, it recommends one case:
 2. The same difficulty tier as the student's last case, or one tier higher if that case met the bar: no dimension rated `needs_work` and at least half of the rated dimensions `strong`.
 3. A case the student hasn't taken.
 
-This needs a `case_type` field on every case (added to the case schema) and a config map from each of the 14 case types' main skill to a skill area.
+This needs a `case_type` field on every case (the case schema's optional `caseType`) and a config map from each of the 14 case types to its main skill area (`case_type_to_skill_area` in `rules.v1.json`, approved by Matt on 2026-10-11; reasons in `docs/drills-case-type-map.md`):
 
-**Fallback while the case library is small.** Until enough cases exist for rules 1 and 2 to choose meaningfully, the card recommends any case the student hasn't taken.
+| Skill area | Case types |
+| --- | --- |
+| QN Quantitative Rigor | profitability, cost reduction, pricing, investment decision, market sizing |
+| PS Problem Structuring | market entry, growth strategy, public sector, operations |
+| BJ Business Judgment | M&A, new product launch (BJ drills arrive in P1) |
+| HY Hypothesis | turnaround, competitive response |
+| EX Exhibit Interpretation | industry analysis |
+
+**Small library.** The rules are relaxed in order (area, then tier) until a case qualifies. When the student has taken every case, the card offers the one taken longest ago as a retake. With no cases, there is no card. Nothing loops, including with the single case in the library today. The card links to the case page; drills can't start a case itself until the case product accepts a student who has already passed the club-code gate.
 
 ### Updating skill state from cases
 
 - Any finding on a Practiced, Mastered or Validated skill drops it to Recognizes.
-- A Mastered skill listed in `skills_observed` with no findings becomes Validated.
+- A Mastered skill listed in `skills_observed` with no findings becomes Validated, unless the case is a retake. A case is a retake when the student finished the same case before (an earlier case result, or an earlier completed case session). Retakes still log findings, can drop a skill, and count toward weekly case targets.
 - Rubric trends on the skill profile compare only cases in the same difficulty tier and appear after 2 or more such cases.
 
 ## Content system
@@ -1146,7 +1159,8 @@ Items come from two sources: code generators for anything numeric (unlimited and
 New in v2:
 
 - `stage` on every item: recognize, repair or construct.
-- `industry` on every authored item, used by the unfamiliar slot and transfer checks.
+- `industry` on every authored item, used by the unfamiliar slot and transfer checks: one of Consumer / CPG, Retail / E-commerce, Tech / SaaS, Pharma / Biotech, Healthcare Provider / Payor, Financial Services, Airlines / Travel / Hospitality, Industrials / Manufacturing, Logistics / Transportation, Energy / Utilities, Telecom / Media, Public / Education / Nonprofit, or Other; null when the item names no client. It is review metadata: it can change without a new item version.
+- Industry rules (Matt, 2026-10-11): restaurants, cafés, bakery chains, venues, attractions and sports teams → Airlines / Travel / Hospitality; apps and online platforms → Tech / SaaS, unless they sell their own goods (→ Retail / E-commerce); products households buy, including vehicles and farm products → Consumer / CPG, products businesses buy → Industrials / Manufacturing; schools, classes, lessons, tutoring and childcare → Public / Education / Nonprofit; a government running transport, hospitals or utilities → that sector, a government policy decision → Public; professional services, vet care, and consumer and local services (salons, gyms, laundromats, cleaning, repair, pest control) → Other; investor or fund clients → the industry being invested in. `npm run drills:industry` tags new items with these rules; a human checks the tags it is unsure about.
 - Repair items: `extras.flawed_answer`, `extras.flaw_tags` and `extras.derived_from` (the Level 1 item id).
 - Construct items with Defend: `defend` = {`type` (justify or challenge), `text`, `valid` and `reason` (challenge only), `checks` (when drill-specific), `model_reply`}. Defend text stays on the server until the main answer is submitted.
 - CL-4 items: step families, the new fact and the correct action per family, as in HY-2.
@@ -1180,6 +1194,8 @@ New in v2:
 - Format: `lesson_id`, `skill_id`, `version`, `status` (draft, in\_review, live, retired), `body` (markdown, 400 words or fewer), `worked_example`, `mistakes` (list of {tag, one-line explanation}), `authorship`.
 - Same workflow as authored items: AI-drafted from a lesson prompt and this PRD, reviewed by a human who becomes author of record, similarity-checked, versioned.
 - The reviewer confirms the pattern matches how the drill's answer keys grade, so lessons never teach something the checklists penalize.
+- Authoring: one markdown file per lesson in `/lessons` (front matter, then five sections: The idea, Why interviewers care, The pattern, Worked example, Common mistakes). Validation checks the 400-word limit, one common-mistake line for each of the skill's mistake tags (and no others), and a reviewer on live lessons. Worked examples use fresh scenarios, never a drill item's, so a lesson can't give away an item's answer.
+- Review: a review page in the app (local development only) shows each lesson exactly as students see it, with Approve and Request changes; decisions are written into the lesson file and published with `npm run db:seed-lessons`. A combined file for reading outside the app is generated by `npm run drills:lessons-doc` (`docs/drills-content/lessons-review.md`).
 
 ### Launch pool sizes (P0)
 
@@ -1222,7 +1238,7 @@ v2 adds about 110 Repair items, 150 Defend follow-ups and 22 lessons to review b
 
 ## Data model
 
-The drills system needs 16 tables (17 with P1 disputes) plus 4 versioned config files; the `drill_attempts` table is the most important, because it is the item-level record everything else is computed from.
+The drills system needs 17 tables (18 with P1 disputes) plus 4 versioned config files; the `drill_attempts` table is the most important, because it is the item-level record everything else is computed from.
 
 ### Config files (versioned, loaded at startup)
 
@@ -1249,10 +1265,11 @@ Config files live in the repo and are validated with zod at startup. Changing a 
 | `skill_state_events` | student\_id, skill\_id, from\_state, to\_state, reason, source\_type (set, case, review), source\_id, created\_at | Full history, for the profile and analytics |
 | `case_results` | case\_attempt\_id, student\_id, case\_id, case\_type, difficulty\_tier, rubric\_scores (JSON), skills\_observed\[\], findings (JSON), taxonomy\_version, received\_at | Written from the case grader payload |
 | `prescriptions` | prescription\_id, student\_id, skill\_id, drill\_id, level, stage, tier, focus\_tag, priority, reason\_text, evidence\_quote, source\_type (case, drill, diagnostic, plan), source\_id, status (open, in\_progress, completed, dismissed, superseded, paused), created\_at, closed\_at | Open prescriptions drive the workout's weak-spot slot |
-| `student_programs` (new) | student\_id, track (foundations, standard, sprint, self\_directed), plan\_version, started\_at, interview\_date, workouts\_per\_week, current\_week, status (active, completed, switched) | One active row per student; a track switch closes the row and opens a new one |
+| `student_programs` (new) | student\_id, track (foundations, standard, sprint, self\_directed), plan\_version, start\_date (local), started\_at, interview\_date, workouts\_per\_week, cases\_done, current\_week, status (active, completed, switched) | One active row per student; a track switch closes the row and opens a new one. `current_week` is the plan week the student was last seen in, for the week-rollover event |
 | `workouts` (new) | workout\_id, student\_id, program\_week, date (in the student's time zone), target\_minutes, blocks (JSON: slot, drill\_id, skill\_id, stage, tier, set\_id), status (planned, in\_progress, completed, expired) | One per student per day |
 | `lessons` (new) | lesson\_id, skill\_id, version, status, body, worked\_example, mistakes (JSON), authorship (JSON) | Versioned like items |
 | `lesson_views` (new) | student\_id, lesson\_id, version, source (auto, intro, library, low\_score), seconds\_open, skipped, viewed\_at |  |
+| `diagnostics` (new) | diagnostic\_id, student\_id, parts (JSON: drill\_id, size, set\_id, and per finished part its skill totals, item scores and missed tags), status (in\_progress, completed, skipped), overall\_score, placements (JSON), moved\_to\_track, started\_at, completed\_at | One in-progress diagnostic per student. Placement is redone as parts finish; a skipped one can be resumed |
 | `grade_disputes` (P1) | dispute\_id, attempt\_id, student\_comment, status, reviewer\_notes, created\_at | QA queue |
 
 The student's `org_id` (school or club) lives on `student_profiles`. It is set from the club code the first time the student passes the club-code gate (today, when starting a case) and isn't changed afterwards. Events read it from there.

@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "operations",
+  "industry": "Logistics / Transportation",
   "prompt": "A delivery company's on-time rate fell from 96% to 88% in six months. Order volume rose 25% over the same period. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

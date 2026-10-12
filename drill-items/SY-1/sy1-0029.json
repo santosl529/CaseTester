@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "cost_reduction",
+  "industry": null,
   "prompt": "The client asks: \"Should we move our call center offshore?\" Fact sheet: offshoring saves $5M a year; the move costs $8M once; satisfaction is expected to drop 10 points; each point of satisfaction lost costs $300k a year; our hurdle is a 3-year payback; the vendor has offices in three countries. Which is the best recommendation?",
   "exhibit": null,
   "input": {

@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "new_product_launch",
+  "industry": "Logistics / Transportation",
   "prompt": "A national logistics company is deciding whether to launch drone delivery of medical supplies to 500 rural clinics.",
   "exhibit": null,
   "input": {

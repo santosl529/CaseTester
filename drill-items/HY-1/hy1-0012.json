@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "market_entry",
+  "industry": "Financial Services",
   "prompt": "A bank opened 10 branches in a new city. Accounts opened per branch are 40% below plan, while foot traffic is on plan. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

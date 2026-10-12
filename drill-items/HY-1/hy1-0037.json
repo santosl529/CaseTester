@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "turnaround",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A regional airline has lost money for three years. Its planes fly 70% full, while the industry average is 82%. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

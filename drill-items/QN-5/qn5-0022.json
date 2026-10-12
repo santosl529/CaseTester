@@ -12,6 +12,7 @@
     "QN.sanity_check"
   ],
   "case_type": "market_sizing",
+  "industry": "Industrials / Manufacturing",
   "prompt": "Estimate the yearly global market for replacement passenger seats in commercial airliners, in dollars.",
   "exhibit": null,
   "input": {

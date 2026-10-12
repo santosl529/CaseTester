@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "market_entry",
+  "industry": "Retail / E-commerce",
   "prompt": "A grocery chain opened five stores in a new state. Traffic is on plan, but the average basket is 30% smaller than in its home state. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

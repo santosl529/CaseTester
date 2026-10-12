@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "operations",
+  "industry": null,
   "prompt": "The client asks: \"Should we automate our warehouse?\" Fact sheet: automation costs $12M; it cuts labor costs by $3M a year; it cuts the error rate from 2% to 0.5%, saving about $300k a year; our hurdle is a 4-year payback; order volume grows 15% a year; the warehouse is near the airport. Which is the best recommendation?",
   "exhibit": null,
   "input": {

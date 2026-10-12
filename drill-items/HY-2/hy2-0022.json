@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "market_sizing",
+  "industry": "Consumer / CPG",
   "prompt": "A startup estimated 50,000 US households would buy its $3,000 home sauna in its first year. It sold 4,000.",
   "exhibit": null,
   "input": {

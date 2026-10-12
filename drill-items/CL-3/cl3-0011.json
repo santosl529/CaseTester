@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "operations",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "Lunch lines in a school cafeteria now take 25 minutes, up from 10.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

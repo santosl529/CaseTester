@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "m_and_a",
+  "industry": null,
   "prompt": "A company's stock fell 15% after it announced a deal to buy a rival for $2B. Analysts estimate the rival is worth $1.5B on its own. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

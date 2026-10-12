@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "market_sizing",
+  "industry": "Consumer / CPG",
   "prompt": "Objective: estimate the annual market for school uniforms in a country. What you've learned: there are 10 million school students. Latest finding: about 60% of students attend schools that require uniforms. What is the best next step?",
   "exhibit": null,
   "input": {

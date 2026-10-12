@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "growth_strategy",
+  "industry": "Industrials / Manufacturing",
   "prompt": "A specialty chemicals maker gets 40% of its revenue from a solvent that regulators will ban in five years. It wants to replace that revenue.",
   "exhibit": null,
   "input": {

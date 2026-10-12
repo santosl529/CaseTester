@@ -12,6 +12,7 @@
     "QN.sanity_check"
   ],
   "case_type": "market_sizing",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "Estimate annual US spending on popcorn at movie theaters.",
   "exhibit": null,
   "input": {

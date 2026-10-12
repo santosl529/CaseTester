@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "pricing",
+  "industry": null,
   "prompt": "Mid-case: The client is deciding whether to raise prices 10%. You've estimated that volume would fall 5%, so revenue would rise about 4.5%. You also learned the product's packaging was updated last year. You haven't checked how competitors would react. Which is the best summary?",
   "exhibit": null,
   "input": {

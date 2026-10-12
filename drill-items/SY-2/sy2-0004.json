@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "cost_reduction",
+  "industry": "Other",
   "prompt": "The client asks: \"Should our 40-person accounting firm move to a smaller office when the lease ends?\"\n\nFact sheet:\n- Badge data show an average of 15 of the 40 desks in use on any day\n- The current lease costs $600,000 a year; an office half the size nearby costs $320,000\n- Moving would cost about $150,000 once\n- Staff surveys rate the current office kitchen highly\n- The current lease ends in 8 months\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

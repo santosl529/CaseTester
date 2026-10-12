@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "pricing",
+  "industry": "Telecom / Media",
   "prompt": "A streaming service raised its price by 15%. Subscribers fell by 3% in the following quarter. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

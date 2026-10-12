@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "growth_strategy",
+  "industry": "Retail / E-commerce",
   "prompt": "A warehouse club asks whether its revenue is growing. Which takeaway matters most?",
   "exhibit": {
     "type": "dual_axis",

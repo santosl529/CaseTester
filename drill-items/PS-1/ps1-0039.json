@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "turnaround",
+  "industry": "Retail / E-commerce",
   "prompt": "A struggling department store chain hires the team to plan a turnaround. The candidate's framework: (1) Strengths; (2) Weaknesses; (3) Opportunities; (4) Threats. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

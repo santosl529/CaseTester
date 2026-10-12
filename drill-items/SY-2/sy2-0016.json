@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "cost_reduction",
+  "industry": "Retail / E-commerce",
   "prompt": "The client asks: \"Should our 30-store shoe retailer close its central warehouse and ship online orders from stores?\"\n\nFact sheet:\n- The warehouse costs $2.4M a year to run\n- Shipping online orders from stores would add $1.6M a year in store labor and packaging\n- In a test, 1 in 8 orders picked in stores couldn't be filled because store stock records were wrong\n- Each unfilled online order loses $15 of profit, and 10% of those customers never return\n- The chain ships about 600,000 online orders a year\n- Store sales grew 3% last year\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

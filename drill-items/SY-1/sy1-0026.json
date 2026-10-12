@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "pricing",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "The client asks: \"Should we cut our coffee price from $4 to $3?\" Fact sheet: we sell 1,000 cups a day; each cup costs $1.50 to make; a survey suggests sales would rise to 1,200 cups a day at $3; our café uses fair-trade beans. Which is the best recommendation?",
   "exhibit": null,
   "input": {

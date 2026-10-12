@@ -12,6 +12,7 @@
     "QN.sanity_check"
   ],
   "case_type": "market_sizing",
+  "industry": "Consumer / CPG",
   "prompt": "Estimate how many printer ink cartridges US households buy each year.",
   "exhibit": null,
   "input": {

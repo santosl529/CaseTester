@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "growth_strategy",
+  "industry": "Tech / SaaS",
   "prompt": "A cloud-storage company's new business customers grew 40%, but spending by existing customers fell: net revenue retention dropped from 115% to 98%.",
   "exhibit": null,
   "input": {

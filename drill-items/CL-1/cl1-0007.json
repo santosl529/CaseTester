@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "m_and_a",
+  "industry": "Industrials / Manufacturing",
   "prompt": "Objective: decide whether a packaging maker should buy a rival for $250M. What you've learned: the target is worth about $210M on its own. Latest finding: cost synergies are estimated at $12M a year. What is the best next step?",
   "exhibit": null,
   "input": {

@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "The client asks: \"Should the county consolidate its 5 small animal shelters into 2 larger ones?\"\n\nFact sheet:\n- Running 5 shelters costs $6M a year; 2 larger ones would cost $4.2M after a $5M build\n- Adoption rates are highest at the 2 shelters near the largest towns\n- After consolidation, half of residents would drive more than 40 minutes to a shelter\n- Volunteer hours rose 10% last year\n- Two of the shelters need $2M of repairs within 3 years\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "profitability",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A sandwich chain's revenue is flat, but its profit fell 20%. Food costs rose from 30% to 32% of revenue. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

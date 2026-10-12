@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "market_entry",
+  "industry": null,
   "prompt": "Mid-case: You're assessing entry into Japan. You've sized the market at $1.2B, growing 5% a year, and found that two competitors hold 60% share. You also learned that Japan has a large tourism industry. You haven't looked at entry costs. Which is the best summary?",
   "exhibit": null,
   "input": {

@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A city of 1.5 million people had 60 traffic deaths last year. The mayor wants to halve that number within five years.",
   "exhibit": null,
   "input": {

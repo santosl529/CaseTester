@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "competitive_response",
+  "industry": "Tech / SaaS",
   "prompt": "A ride-hailing company's share in one city fell from 60% to 45% in six months after a rival cut prices 20%. The company's own prices were unchanged. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

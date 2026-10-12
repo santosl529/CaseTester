@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "operations",
+  "industry": "Other",
   "prompt": "An appliance-repair company's technicians now complete 3.1 jobs a day, down from 4.0.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

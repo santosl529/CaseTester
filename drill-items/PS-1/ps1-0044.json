@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "investment_decision",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A regional airline is deciding whether to add daily flights between two mid-size cities. The candidate's framework: (1) Passenger demand and fares on the route; (2) Cost per flight: fuel, crew and airport fees; (3) Other ways to travel, such as driving or other airlines; (4) The airline's brand awareness across the country. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

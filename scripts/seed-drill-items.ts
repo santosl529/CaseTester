@@ -1,8 +1,8 @@
 // Copies authored drill items from /drill-items into drill_items
 // (docs/prd-drills.md "Content system"). Idempotent:
 //   - a new item_id@version is inserted;
-//   - an existing one may only change status, is_example or authorship (the
-//     review record) — any other edit needs a new version, since attempts
+//   - an existing one may only change status, is_example, authorship (the
+//     review record) or industry — any other edit needs a new version, since attempts
 //     record the version they saw;
 //   - except a draft no attempt has used yet, which is updated in place;
 //   - when a newer version is live, older live versions are retired.
@@ -20,11 +20,12 @@ const canonical = (v: unknown): unknown =>
   Array.isArray(v) ? v.map(canonical)
     : v && typeof v === 'object' ? Object.fromEntries(Object.keys(v).sort().map(k => [k, canonical((v as Record<string, unknown>)[k])]))
     : v;
-// What students see and are scored on. Status, the example flag and the
-// authorship record (reviewer, similarity check) are review metadata, so they
-// can change without a new version.
-const content = (item: Item) => JSON.stringify(canonical({ ...item, status: undefined, is_example: undefined, authorship: undefined }));
-const meta = (item: Item) => JSON.stringify(canonical(item.authorship));
+// What students see and are scored on. Status, the example flag, the
+// authorship record (reviewer, similarity check) and the industry tag are
+// review metadata, so they can change without a new version.
+const content = (item: Item) => JSON.stringify(canonical({ ...item, status: undefined, is_example: undefined, authorship: undefined, industry: undefined }));
+const meta = (item: Item) => JSON.stringify(canonical({ authorship: item.authorship, industry: item.industry ?? null }));
+const stageOf = (item: Item) => (item.level === 1 ? 'recognize' : 'construct');
 
 async function main() {
   const items = loadAuthoredItems();
@@ -42,6 +43,7 @@ async function main() {
         itemId: item.item_id, version: item.version, drillId: item.drill_id, status: item.status,
         isExample: item.is_example, tier: item.tier, skills: item.skills, payload: item,
         authorship: item.authorship ?? {}, taxonomyVersion: TAXONOMY_VERSION,
+        stage: stageOf(item), industry: item.industry ?? null,
       });
       inserted++;
       continue;
@@ -50,15 +52,19 @@ async function main() {
       const [{ n }] = await db.select({ n: count() }).from(drillAttempts)
         .where(and(eq(drillAttempts.itemId, item.item_id), eq(drillAttempts.itemVersion, item.version)));
       if (row.status === 'draft' && n === 0) {
-        await db.update(drillItems).set({ payload: item, status: item.status, isExample: item.is_example, tier: item.tier, skills: item.skills }).where(where);
+        await db.update(drillItems).set({ payload: item, status: item.status, isExample: item.is_example, tier: item.tier, skills: item.skills, stage: stageOf(item), industry: item.industry ?? null }).where(where);
         updated++;
       } else {
         conflicts.push(`${item.item_id}@${item.version}: content changed; bump "version" to publish the edit`);
       }
       continue;
     }
-    if (row.status !== item.status || row.isExample !== item.is_example || meta(row.payload as Item) !== meta(item)) {
-      await db.update(drillItems).set({ status: item.status, isExample: item.is_example, authorship: item.authorship ?? {}, payload: item }).where(where);
+    if (row.status !== item.status || row.isExample !== item.is_example || meta(row.payload as Item) !== meta(item)
+      || row.stage !== stageOf(item) || row.industry !== (item.industry ?? null)) {
+      await db.update(drillItems).set({
+        status: item.status, isExample: item.is_example, authorship: item.authorship ?? {}, payload: item,
+        stage: stageOf(item), industry: item.industry ?? null,
+      }).where(where);
       updated++;
     } else {
       unchanged++;
@@ -76,7 +82,7 @@ async function main() {
     retired += rows.length;
   }
 
-  console.log(`drill items: ${inserted} inserted, ${updated} updated (status, example or authorship), ${unchanged} unchanged, ${retired} older versions retired, ${conflicts.length} conflicts`);
+  console.log(`drill items: ${inserted} inserted, ${updated} updated (status, example, authorship or industry), ${unchanged} unchanged, ${retired} older versions retired, ${conflicts.length} conflicts`);
   if (conflicts.length) {
     console.error(conflicts.join('\n'));
     process.exitCode = 1;

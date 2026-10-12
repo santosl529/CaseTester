@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "investment_decision",
+  "industry": "Consumer / CPG",
   "prompt": "A grain farm is deciding whether to build a $2M grain-drying and storage facility.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

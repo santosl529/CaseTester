@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "The client asks: \"Should our pasta-sauce company launch a frozen lasagna?\"\n\nFact sheet:\n- Making frozen lasagna needs a $2M freezer line\n- A test in 50 stores projects $3M a year of sales at a 25% margin, or $750,000 a year\n- Frozen-meal sales grew 2% last year\n- Our biggest retailer has offered freezer space in 300 stores\n- The company's pasta sauce holds 12% of its category\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

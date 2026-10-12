@@ -37,7 +37,10 @@ export function dedupeFindings(findings: Finding[]): Finding[] {
 
 const skillOf = (tag: string) => getMistakeTag(tag)!.skill;
 
-export function applyCase(before: ProgressMap, payload: CaseResultPayload, previous: CaseResultPayload | null, ctx: Context): CaseUpdate {
+// `retake`: the student has finished this case before. A retake can log
+// findings and drop a skill, but can't validate one: the student may
+// remember the case (Matt, 2026-10-11).
+export function applyCase(before: ProgressMap, payload: CaseResultPayload, previous: CaseResultPayload | null, ctx: Context, retake = false): CaseUpdate {
   const isLive = ctx.isLive ?? undefined;
   const progress: ProgressMap = new Map([...before].map(([k, v]) => [k, { ...v }]));
   const get = (id: string) => {
@@ -71,8 +74,8 @@ export function applyCase(before: ProgressMap, payload: CaseResultPayload, previ
       p.transfer_due_at = null; p.next_review_at = null;
     }
   }
-  // A Mastered skill observed with no findings becomes Validated.
-  for (const id of payload.skills_observed) {
+  // A Mastered skill observed with no findings becomes Validated (not on a retake).
+  for (const id of retake ? [] : payload.skills_observed) {
     if (stateBefore(id) === 'mastered' && !flagged.has(id)) move(id, 'validated', `case ${payload.case_id} used it with no mistakes`);
   }
 

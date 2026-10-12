@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "A yogurt brand launched a plant-based line. Sales reached 50% of target, and 70% of buyers were already buyers of the brand's dairy yogurt. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

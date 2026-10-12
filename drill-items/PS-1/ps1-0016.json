@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "A toothpaste maker is deciding whether to launch a subscription for refillable toothpaste tablets. The candidate's framework: (1) Consumer demand for refillable tablets; (2) Pricing compared with regular toothpaste; (3) Competitors already selling tablets. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

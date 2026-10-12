@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "pricing",
+  "industry": "Tech / SaaS",
   "prompt": "Objective: set a price for a new software add-on. What you've learned: the add-on saves a typical customer about $5,000 a year. Latest finding: competitors' similar tools cost $1,200–2,000 a year. What is the best next step?",
   "exhibit": null,
   "input": {

@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "pricing",
+  "industry": "Logistics / Transportation",
   "prompt": "A parking-garage operator raised downtown hourly rates 20%. Revenue rose only 2%.",
   "exhibit": null,
   "input": {

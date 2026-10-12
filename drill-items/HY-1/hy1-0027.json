@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "growth_strategy",
+  "industry": "Consumer / CPG",
   "prompt": "A children's clothing brand sells 70% of its products online. Online growth slowed from 30% to 5% a year, and new online customers fell by half, though ad spend was unchanged. Store sales grew 10%. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

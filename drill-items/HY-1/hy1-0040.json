@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "industry_analysis",
+  "industry": "Energy / Utilities",
   "prompt": "US home solar installations grew 30% a year for five years. This year they fell 10%, after the largest state ended its installation subsidy. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

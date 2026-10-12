@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "Objective: increase library card sign-ups across a county. What you've learned: 45% of residents hold a card. Latest finding: one town signs up only 15%. What is the best next step?",
   "exhibit": null,
   "input": {

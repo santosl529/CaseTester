@@ -414,6 +414,8 @@ export const studentPrograms = pgTable('student_programs', {
   workoutsPerWeek: integer('workouts_per_week'),
   // Onboarding answer: '0', '1-5' or '6+'.
   casesDone: text('cases_done'),
+  // The plan week the student was last seen in, for the week-rollover event.
+  currentWeek: integer('current_week').notNull().default(0),
   status: programStatusEnum('status').notNull().default('active'),
   startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
   endedAt: timestamp('ended_at', { withTimezone: true }),
@@ -460,4 +462,27 @@ export const lessonViews = pgTable('lesson_views', {
   skipped: boolean('skipped').notNull().default(false),
   viewedAt: timestamp('viewed_at', { withTimezone: true }).notNull().defaultNow(),
 }, t => [index('lesson_views_student_idx').on(t.studentId, t.viewedAt)]).enableRLS();
+
+export const diagnosticStatusEnum = pgEnum('diagnostic_status', ['in_progress', 'completed', 'skipped']);
+
+// The diagnostic (PRD "Onboarding and diagnostic"): one short set per part,
+// run back to back. Placement is recomputed as parts finish, so a student
+// who stops partway is placed from what they finished.
+export const diagnostics = pgTable('diagnostics', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  studentId: uuid('student_id').notNull(),
+  // [{ drill_id, size, set_id }]
+  parts: jsonb('parts').notNull(),
+  status: diagnosticStatusEnum('status').notNull().default('in_progress'),
+  overallScore: doublePrecision('overall_score'),
+  // { skill_id: { score, count, place } }
+  placements: jsonb('placements'),
+  // The track the diagnostic moved the student to (Standard → Foundations).
+  movedToTrack: programTrackEnum('moved_to_track'),
+  startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+}, t => [
+  index('diagnostics_student_idx').on(t.studentId, t.startedAt),
+  uniqueIndex('diagnostics_one_in_progress').on(t.studentId).where(sql`${t.status} = 'in_progress'`),
+]).enableRLS();
 

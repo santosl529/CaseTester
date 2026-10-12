@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "operations",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "A blood donation center's donors spend 75 minutes per visit on average, and many don't come back. It wants to cut the visit to 45 minutes without weakening safety screening.",
   "exhibit": null,
   "input": {

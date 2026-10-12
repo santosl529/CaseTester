@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "growth_strategy",
+  "industry": "Retail / E-commerce",
   "prompt": "The client wants to know where to invest for growth. Which takeaway matters most?",
   "exhibit": {
     "type": "stacked_bar",

@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "profitability",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A private school's yearly deficit grew from $1M to $3M in two years, while enrollment was flat.",
   "exhibit": null,
   "input": {

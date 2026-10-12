@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "profitability",
+  "industry": "Other",
   "prompt": "A gym chain's membership grew 10% last year, but revenue grew only 2%. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

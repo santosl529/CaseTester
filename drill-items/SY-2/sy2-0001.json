@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "investment_decision",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "The client asks: \"Should our dental lab buy a $250,000 3D printer for making crowns?\"\n\nFact sheet:\n- The printer costs $250,000, lasts about 7 years, and would save $70,000 a year in outsourced milling\n- Two technicians would need a 3-week training course\n- Turnaround for crowns would drop from 10 days to 4\n- The lab's main competitor raised crown prices 5% last year\n- The lab makes about 6,000 crowns a year, and volume has been steady for three years\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

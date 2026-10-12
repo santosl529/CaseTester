@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "growth_strategy",
+  "industry": "Financial Services",
   "prompt": "A regional credit union with 80,000 members wants to grow its loans 30% in three years without taking on riskier borrowers.",
   "exhibit": null,
   "input": {

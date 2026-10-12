@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "operations",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A restaurant's food waste doubled in three months. Its menu grew from 20 to 35 dishes over the same period. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

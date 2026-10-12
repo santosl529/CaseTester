@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "operations",
+  "industry": null,
   "prompt": "The client asks: \"Should our factory move to 24-hour operation?\" Fact sheet: demand is 20% above capacity; a night shift would add 30% capacity and cost $3M a year; serving the extra 20% of demand would add $8M a year in profit before the shift's cost; a new plant would cost $40M; the factory was built in 1990. Which is the best recommendation?",
   "exhibit": null,
   "input": {

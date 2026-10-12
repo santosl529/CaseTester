@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "competitive_response",
+  "industry": null,
   "prompt": "Customers are switching to a rival, and the client wants to know why. Which takeaway matters most?",
   "exhibit": {
     "type": "grouped_bar",

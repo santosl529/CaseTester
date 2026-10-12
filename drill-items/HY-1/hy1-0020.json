@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "m_and_a",
+  "industry": null,
   "prompt": "A company bought a competitor two years ago, expecting $20M a year in cost savings. Savings so far are $8M a year, and the two IT systems still run separately. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

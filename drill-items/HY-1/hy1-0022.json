@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "public_sector",
+  "industry": "Logistics / Transportation",
   "prompt": "A city's bus ridership fell 15% in two years while the population grew 3%. Average trip times rose 20%. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

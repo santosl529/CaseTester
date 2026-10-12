@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "operations",
+  "industry": null,
   "prompt": "The client wants to cut delivery time in the South. Which takeaway matters most?",
   "exhibit": {
     "type": "stacked_bar",

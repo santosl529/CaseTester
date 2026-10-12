@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "Visits to a city's recreation centers fell 25% in two years, while the number of members rose 10%.",
   "exhibit": null,
   "input": {

@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "profitability",
+  "industry": null,
   "prompt": "Revenue declined 12% last year, but the customer count increased 8%.",
   "exhibit": null,
   "input": {

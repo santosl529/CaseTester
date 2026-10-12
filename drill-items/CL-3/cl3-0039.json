@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "pricing",
+  "industry": "Logistics / Transportation",
   "prompt": "A European rail operator is setting prices for a new high-speed route that competes with budget airlines.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

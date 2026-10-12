@@ -16,7 +16,11 @@ export type DrillEvent =
   | 'grading_job_completed' | 'grading_injection_suspected'
   // D3: the loop.
   | 'skill_state_changed' | 'prescription_created' | 'prescription_dismissed' | 'prescription_completed'
-  | 'case_result_received' | 'transfer_check_completed' | 'prerequisite_prescribed' | 'transfer_pool_exhausted';
+  | 'case_result_received' | 'transfer_check_completed' | 'prerequisite_prescribed' | 'transfer_pool_exhausted'
+  // D4: the training program.
+  | 'onboarding_completed' | 'diagnostic_completed' | 'program_assigned' | 'program_switched' | 'program_week_started'
+  | 'workout_built' | 'workout_completed' | 'lesson_viewed' | 'lesson_skipped' | 'suggestion_shown' | 'suggestion_started'
+  | 'drill_catalog_viewed' | 'weekly_summary_viewed' | 'next_case_card_shown' | 'next_case_card_clicked';
 
 const APP_VERSION = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'dev';
 

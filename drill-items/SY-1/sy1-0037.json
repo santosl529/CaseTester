@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "m_and_a",
+  "industry": null,
   "prompt": "Mid-case: The client is evaluating an acquisition priced at $300M. You've valued the target at $250M on its own and found $40M of cost synergies. You also learned the target was founded by two engineers. You haven't assessed integration risks. Which is the best summary?",
   "exhibit": null,
   "input": {

@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "profitability",
+  "industry": null,
   "prompt": "The client asks: \"Should we drop our lowest-margin product?\" Fact sheet: product X earns a 5% margin and is 10% of revenue; 60% of product X buyers also buy product Y; product Y earns a 45% margin; in stores that stopped carrying X, Y sales fell 15%; product X launched in 2015. Which is the best recommendation?",
   "exhibit": null,
   "input": {

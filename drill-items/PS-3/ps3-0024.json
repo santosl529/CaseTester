@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "investment_decision",
+  "industry": "Logistics / Transportation",
   "prompt": "A private school-bus operator with 200 diesel buses is deciding whether to switch to electric buses over five years. Electric buses cost about three times as much.",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "investment_decision",
+  "industry": "Industrials / Manufacturing",
   "prompt": "A manufacturer's new plant runs at 55% of capacity a year after opening, with no unusual downtime. The demand forecast had assumed 85%. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

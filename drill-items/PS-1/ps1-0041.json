@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "market_entry",
+  "industry": "Consumer / CPG",
   "prompt": "A Korean skincare brand is deciding whether to sell in US drugstores. The candidate's framework: (1) US drugstore sales: shoppers × price per product; (2) Costs of shipping and import duties; (3) Drugstore shelf fees and marketing costs. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "growth_strategy",
+  "industry": null,
   "prompt": "The client wants to know which region added more revenue since 2020. In 2020, North had $200M of revenue and South $50M. Which takeaway matters most?",
   "exhibit": {
     "type": "line",

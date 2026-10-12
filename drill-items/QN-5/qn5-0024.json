@@ -12,6 +12,7 @@
     "QN.sanity_check"
   ],
   "case_type": "market_sizing",
+  "industry": "Energy / Utilities",
   "prompt": "Estimate how much US households spend each year on electricity for their TVs.",
   "exhibit": null,
   "input": {

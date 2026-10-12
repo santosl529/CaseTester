@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "pricing",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A wedding venue is booked every Saturday two years ahead but is half-empty on Fridays and Sundays. It is setting next year's prices.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

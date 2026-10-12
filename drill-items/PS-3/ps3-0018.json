@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "market_sizing",
+  "industry": "Consumer / CPG",
   "prompt": "A camera-equipment company wants to estimate the yearly US market for wedding photography, in dollars.",
   "exhibit": null,
   "input": {

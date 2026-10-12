@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "industry_analysis",
+  "industry": "Telecom / Media",
   "prompt": "A pension fund asks whether the US cell-tower industry is attractive for a 20-year investment.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

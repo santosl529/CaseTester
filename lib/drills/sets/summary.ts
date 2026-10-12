@@ -13,11 +13,12 @@ export function passed(drill: Drill, score: number): boolean {
   return score >= drill.pass_bar - 1e-9;
 }
 
-// A set's score for a skill is the weighted average of the items (or steps)
-// tied to it, and counts only with at least 3 of them (PRD). Skipped items
-// count as 0 for every skill the item trains.
-export function skillScores(attempts: { skills: string[]; result: ItemResult }[]): Record<string, { score: number; count: number }> {
-  const acc = new Map<string, { sum: number; weight: number; count: number }>();
+export type SkillTotals = Map<string, { sum: number; weight: number; count: number }>;
+
+// Per skill: the weighted sum of item (or step) scores, the weight, and how
+// many items or checks were tied to it. Skipped items count as 0 for every
+// skill the item trains.
+export function skillTotals(attempts: { skills: string[]; result: ItemResult }[], acc: SkillTotals = new Map()): SkillTotals {
   const add = (skill: string, score: number, weight: number) => {
     const a = acc.get(skill) ?? { sum: 0, weight: 0, count: 0 };
     acc.set(skill, { sum: a.sum + score * weight, weight: a.weight + weight, count: a.count + 1 });
@@ -27,7 +28,16 @@ export function skillScores(attempts: { skills: string[]; result: ItemResult }[]
     else if (result.skipped || result.steps.length === 0) for (const s of skills) add(s, 0, 1);
     else for (const step of result.steps) for (const s of step.skills) add(s, step.score, step.weight);
   }
-  const min = DRILLS_CONFIG.rules.mastery.min_items_or_checks_per_skill;
+  return acc;
+}
+
+// A set's score for a skill is the weighted average of the items (or steps)
+// tied to it, and counts only with at least 3 of them (PRD).
+export function skillScores(attempts: { skills: string[]; result: ItemResult }[], min = DRILLS_CONFIG.rules.mastery.min_items_or_checks_per_skill): Record<string, { score: number; count: number }> {
+  return scoresFromTotals(skillTotals(attempts), min);
+}
+
+export function scoresFromTotals(acc: SkillTotals, min: number): Record<string, { score: number; count: number }> {
   return Object.fromEntries([...acc]
     .filter(([, a]) => a.count >= min)
     .map(([skill, a]) => [skill, { score: Number((a.sum / a.weight).toFixed(4)), count: a.count }]));

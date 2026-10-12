@@ -22,7 +22,7 @@ export default async function SkillProfilePage() {
     <main className="mx-auto w-full max-w-3xl space-y-8 p-6">
       <header className="flex items-baseline justify-between">
         <h1 className="text-xl font-semibold">Your skills</h1>
-        <Link href="/drills" className="text-sm text-muted-foreground underline-offset-4 hover:underline">All drills</Link>
+        <Link href="/drills" className="text-sm text-muted-foreground underline-offset-4 hover:underline">Training home</Link>
       </header>
 
       <section aria-labelledby="rx" className="space-y-3">

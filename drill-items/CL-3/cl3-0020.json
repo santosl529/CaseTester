@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "A spirits company's new canned cocktails sell well at first, but only 15% of buyers buy again, against 35% for rival brands.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

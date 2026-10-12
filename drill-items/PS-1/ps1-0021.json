@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "market_entry",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A Japanese ramen chain is deciding whether to open restaurants in Canada. The candidate's framework: (1) Canadian demand for ramen; (2) How the chain financed its growth in Japan; (3) Local competition; (4) Costs of opening and running restaurants. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

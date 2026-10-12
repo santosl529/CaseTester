@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "profitability",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "Objective: find why a driving-school chain's profit fell. What you've learned: revenue rose 6%. Latest finding: costs rose 14%, mostly instructor pay after a new contract. What is the best next step?",
   "exhibit": null,
   "input": {

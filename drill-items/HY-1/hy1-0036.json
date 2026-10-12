@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "growth_strategy",
+  "industry": "Consumer / CPG",
   "prompt": "A craft brewery's sales in bars fell 10%, while its supermarket sales rose 25%. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

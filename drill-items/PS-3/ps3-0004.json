@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "pricing",
+  "industry": "Telecom / Media",
   "prompt": "A publisher of school math textbooks is launching a digital version of its middle-school course. It must set a yearly per-student price to sell to school districts.",
   "exhibit": null,
   "input": {

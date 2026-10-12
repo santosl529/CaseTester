@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "competitive_response",
+  "industry": "Pharma / Biotech",
   "prompt": "A drug company's best-selling drug faces its first generic competitor in 12 months.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "new_product_launch",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A state university is deciding whether to launch a fully online master's degree in data science. It needs about 1,000 students a year to break even.",
   "exhibit": null,
   "input": {

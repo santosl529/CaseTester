@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "growth_strategy",
+  "industry": "Consumer / CPG",
   "prompt": "A regional ice-cream maker's grocery sales grew 2% this year, while its category grew 10%.",
   "exhibit": null,
   "input": {

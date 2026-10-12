@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "operations",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A city's pothole repairs now take 30 days on average, up from 10 last year.",
   "exhibit": null,
   "input": {

@@ -11,6 +11,7 @@
     "SY.summary"
   ],
   "case_type": "investment_decision",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "The client asks: \"Should the hospital build a new surgical wing?\" Fact sheet: the wing costs $120M and adds 8 operating rooms; current operating rooms run at 95% with a 6-week waitlist; each operating room earns about $3M a year in profit; the hurdle is a 7-year payback; the hospital won a quality award in 2024. Which is the best recommendation?",
   "exhibit": null,
   "input": {

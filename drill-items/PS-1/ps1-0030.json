@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "competitive_response",
+  "industry": "Retail / E-commerce",
   "prompt": "A grocery delivery app saw a new rival offer free delivery in its biggest city. The candidate's framework: (1) How many customers are switching; (2) Long-term trends in online grocery adoption; (3) The rival's economics: can it sustain free delivery?; (4) The client's response options. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

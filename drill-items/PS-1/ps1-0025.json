@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "cost_reduction",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A hotel chain wants to reduce operating costs. The candidate's framework: (1) Staff costs; (2) Energy and utilities; (3) Guest satisfaction scores from last year; (4) Supplies and laundry. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "turnaround",
+  "industry": "Retail / E-commerce",
   "prompt": "A clothing retailer's inventory has grown 35% in a year while sales fell 5%. Markdowns doubled. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

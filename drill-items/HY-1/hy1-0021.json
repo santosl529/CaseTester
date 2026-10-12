@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "profitability",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "A dental practice's patient visits grew 8%, but profit fell 10%. It hired two hygienists last year. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

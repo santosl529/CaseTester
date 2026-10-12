@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "m_and_a",
+  "industry": null,
   "prompt": "The board asks where the deal's value comes from. Which takeaway matters most?",
   "exhibit": {
     "type": "bar",

@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "investment_decision",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A family investment office is deciding whether to buy 12 marinas on the US Gulf Coast for $150M. It wants at least an 8% yearly cash return.",
   "exhibit": null,
   "input": {

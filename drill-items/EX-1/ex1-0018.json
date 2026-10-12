@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "pricing",
+  "industry": null,
   "prompt": "The client wants to know which plan matters most for its revenue. Which takeaway matters most?",
   "exhibit": {
     "type": "table",

@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "investment_decision",
+  "industry": "Consumer / CPG",
   "prompt": "Objective: decide whether a bottling company should build a third bottling line. What you've learned: Line A runs at 97% utilization. Latest finding: Line B runs at 58%. What is the best next step?",
   "exhibit": null,
   "input": {

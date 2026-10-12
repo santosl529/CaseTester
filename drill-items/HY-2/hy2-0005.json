@@ -10,6 +10,7 @@
     "HY.update"
   ],
   "case_type": "growth_strategy",
+  "industry": "Tech / SaaS",
   "prompt": "An online language-tutoring marketplace added 30% more tutors this year, but booked lessons grew only 5%.",
   "exhibit": null,
   "input": {

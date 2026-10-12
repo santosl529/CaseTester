@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "industry_analysis",
+  "industry": "Telecom / Media",
   "prompt": "A sovereign wealth fund asks whether satellite internet for rural households is an attractive industry to invest in for the next 10 years.",
   "exhibit": null,
   "input": {

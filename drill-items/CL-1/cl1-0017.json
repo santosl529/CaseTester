@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "cost_reduction",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "Objective: cut an airline's costs by 8%. What you've learned: fuel is 30% of costs and labor 35%. Latest finding: the fleet is 15 years old on average, and older planes burn about 20% more fuel. What is the best next step?",
   "exhibit": null,
   "input": {

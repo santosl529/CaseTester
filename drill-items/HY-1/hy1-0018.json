@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "growth_strategy",
+  "industry": "Retail / E-commerce",
   "prompt": "A meal-kit company acquires customers at $90 each. Half cancel within two months, and the average customer orders four boxes with $25 margin each. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

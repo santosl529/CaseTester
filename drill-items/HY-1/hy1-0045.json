@@ -9,6 +9,7 @@
     "HY.form"
   ],
   "case_type": "growth_strategy",
+  "industry": "Tech / SaaS",
   "prompt": "A software company's monthly churn rate fell from 3% to 2%, yet it now loses more customers each month than it did a year ago. Which is the strongest initial hypothesis?",
   "exhibit": null,
   "input": {

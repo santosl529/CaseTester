@@ -10,6 +10,7 @@
     "PS.case_specific"
   ],
   "case_type": "growth_strategy",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "A boutique hotel group wants to grow profit by 30%. The candidate's framework: (1) Raise room rates; (2) Increase occupancy; (3) Cut operating costs. What is the flaw in this framework?",
   "exhibit": null,
   "input": {

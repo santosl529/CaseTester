@@ -11,6 +11,7 @@
     "SY.complete"
   ],
   "case_type": "pricing",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "The client asks: \"Should our indoor golf-simulator studio raise its peak hourly rate from $50 to $60?\"\n\nFact sheet:\n- Peak hours (weekday evenings and weekends) are 95% booked, with a waitlist most nights\n- Off-peak hours are 35% booked\n- A competing studio 20 minutes away charges $65 an hour at peak\n- Off-peak lesson bookings rose 8% this year\n- About 60% of peak bookings come from members of local golf leagues\n\nGive your recommendation.",
   "exhibit": null,
   "input": {

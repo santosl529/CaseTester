@@ -11,6 +11,7 @@
     "PS.depth"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "A state's wait for a driver's license road test averages nine weeks. The governor wants it under three weeks within a year.",
   "exhibit": null,
   "input": {
