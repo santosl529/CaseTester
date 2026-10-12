@@ -1,0 +1,724 @@
+[
+ {
+  "run": "batch-18-oct-10-runs-12-13/06-destiny-the-blank-slate",
+  "turn": 39,
+  "item": "overhead_pct",
+  "cited": "is 36",
+  "misquote": false,
+  "sentence": "Labor plus overhead is 36 fixed."
+ },
+ {
+  "run": "batch-18-oct-10-runs-14-21/02-tobias-the-silent-thinker",
+  "turn": 15,
+  "item": "cogs_pct",
+  "cited": "is 66",
+  "misquote": false,
+  "sentence": "And if the trend continues, next year COGS is 66 and the company is roughly 2 points underwater."
+ },
+ {
+  "run": "batch-18-oct-10-runs-14-21/04-hannah-the-apologizer",
+  "turn": 15,
+  "item": "cogs_pct",
+  "cited": "is 48.7%",
+  "misquote": false,
+  "sentence": "Half of that is roughly 19%: revenue 119, COGS still 58, so COGS is 48.7% of revenue \u2014 about 9 points recovered."
+ },
+ {
+  "run": "batch-18-oct-10-runs-2-11/02-tobias-the-silent-thinker",
+  "turn": 14,
+  "item": "cogs_pct",
+  "cited": "at 100",
+  "misquote": false,
+  "sentence": "Index COGS at 100 2 years ago: beans 25, everything else 75."
+ },
+ {
+  "run": "batch-18-oct-10-runs-2-11/04-hannah-the-apologizer",
+  "turn": 9,
+  "item": "cogs_pct",
+  "cited": "is 66",
+  "misquote": false,
+  "sentence": "It's a steady grind, and if it continues at the same rate, next year COGS is 66 and profit is negative 3."
+ },
+ {
+  "run": "batch-18-oct-10-runs-2-11/04-hannah-the-apologizer",
+  "turn": 15,
+  "item": "cogs_pct",
+  "cited": "66",
+  "misquote": false,
+  "sentence": "Holding price isn't a neutral choice \u2014 on the current run rate they're at COGS 66 and roughly negative 3% profit next year."
+ },
+ {
+  "run": "batch-18-oct-10-runs-22-31/12-wei-the-precisionist",
+  "turn": 5,
+  "item": "cogs_pct",
+  "cited": "is nearly 9",
+  "misquote": false,
+  "sentence": "So COGS is nearly 9-tenths of the problem."
+ },
+ {
+  "run": "batch-18-oct-10-runs-22-31/12-wei-the-precisionist",
+  "turn": 7,
+  "item": "overhead_pct",
+  "cited": "11.1111%",
+  "misquote": false,
+  "sentence": "COGS is 16.0000 \u00f7 18.0000 = 88.8889%, overhead 11.1111%."
+ },
+ {
+  "run": "batch-18-oct-10-runs-22-31/12-wei-the-precisionist",
+  "turn": 17,
+  "item": "overhead_pct",
+  "cited": "16.1000",
+  "misquote": false,
+  "sentence": "Overhead 16.1000 I'll treat as fixed."
+ },
+ {
+  "run": "batch-18-oct-10-runs-22-31/15-tyler-the-misquoter",
+  "turn": 5,
+  "item": "cogs_pct",
+  "cited": "to 55%",
+  "misquote": true,
+  "sentence": "You said COGS went from 42% to 55% of revenue, so that's a 13-point swing."
+ },
+ {
+  "run": "batch-18-oct-10-runs-22-31/16-amara-the-self-corrector",
+  "turn": 11,
+  "item": "cogs_pct",
+  "cited": "is 66",
+  "misquote": false,
+  "sentence": "What worries me is the trajectory \u2014 if nothing changes, next year COGS is 66 and profit is roughly negative 3."
+ },
+ {
+  "run": "batch-18-oct-10-runs-42-51/27-noor-the-brainstorm-refuser",
+  "turn": 9,
+  "item": "cogs_pct",
+  "cited": "is 66%",
+  "misquote": false,
+  "sentence": "The linearity also suggests input inflation that's ongoing rather than a one-time shock \u2014 which means if nothing changes, next year COGS is 66% and they're at negative margin."
+ },
+ {
+  "run": "batch-18-oct-10-runs-52-61/33-omar-the-quoter",
+  "turn": 13,
+  "item": "cogs_pct",
+  "cited": "is roughly 66",
+  "misquote": false,
+  "sentence": "If nothing changes, next year COGS is roughly 66 and profit goes negative, around minus 2."
+ },
+ {
+  "run": "batch-18-oct-10-runs-52-61/33-omar-the-quoter",
+  "turn": 21,
+  "item": "overhead_pct",
+  "cited": "36",
+  "misquote": false,
+  "sentence": "Roughly: start at revenue 100, COGS 58, labor and overhead 36, profit 6."
+ },
+ {
+  "run": "batch-18-oct-10-runs-52-61/34-preston-the-warning-arguer",
+  "turn": 11,
+  "item": "cogs_pct",
+  "cited": "66",
+  "misquote": false,
+  "sentence": "Second, extrapolate one more year: COGS 66, overhead 15, labor 22 \u2014 that's 103."
+ },
+ {
+  "run": "batch-18-oct-10-runs-52-61/34-preston-the-warning-arguer",
+  "turn": 11,
+  "item": "overhead_pct",
+  "cited": "15",
+  "misquote": false,
+  "sentence": "Second, extrapolate one more year: COGS 66, overhead 15, labor 22 \u2014 that's 103."
+ },
+ {
+  "run": "batch-18-oct-10-runs-52-61/36-carmen-the-dropout",
+  "turn": 13,
+  "item": "overhead_pct",
+  "cited": "15%",
+  "misquote": false,
+  "sentence": "Second, and more urgent: if the trend continues one more year, COGS hits 66%, overhead 15%, and profit goes to \u22123%."
+ },
+ {
+  "run": "batch-18-oct-10-runs-52-61/39-ethan-the-role-reverser",
+  "turn": 9,
+  "item": "cogs_pct",
+  "cited": "100",
+  "misquote": false,
+  "sentence": "Call COGS 100 2 years ago: beans 25, other 75."
+ },
+ {
+  "run": "batch-18-oct-10-runs-62-71/47-bianca-the-defensive-personalizer",
+  "turn": 9,
+  "item": "cogs_pct",
+  "cited": "is 66%",
+  "misquote": false,
+  "sentence": "And at that rate, next year's COGS is 66% and the company is losing money."
+ },
+ {
+  "run": "batch-18-oct-10-runs-62-71/50-harrison-the-clock-negotiator",
+  "turn": 9,
+  "item": "cogs_pct",
+  "cited": "is 66",
+  "misquote": false,
+  "sentence": "If the trend holds, next year COGS is 66 and the client is at negative 3% \u2014 they're roughly 12 months from losing money."
+ },
+ {
+  "run": "batch-18-oct-10-runs-72-81/53-fiona-the-hypothesis-reverser",
+  "turn": 15,
+  "item": "cogs_pct",
+  "cited": "66.7",
+  "misquote": false,
+  "sentence": "Sizing it, indexing revenue at 115 today: COGS 66.7, labor 25.3, overhead 16.1, profit 6.9."
+ },
+ {
+  "run": "batch-18-oct-10-runs-72-81/53-fiona-the-hypothesis-reverser",
+  "turn": 15,
+  "item": "labor_pct",
+  "cited": "25.3",
+  "misquote": false,
+  "sentence": "Sizing it, indexing revenue at 115 today: COGS 66.7, labor 25.3, overhead 16.1, profit 6.9."
+ },
+ {
+  "run": "batch-18-oct-10-runs-72-81/53-fiona-the-hypothesis-reverser",
+  "turn": 15,
+  "item": "overhead_pct",
+  "cited": "16.1",
+  "misquote": false,
+  "sentence": "Sizing it, indexing revenue at 115 today: COGS 66.7, labor 25.3, overhead 16.1, profit 6.9."
+ },
+ {
+  "run": "batch-18-oct-10-runs-72-81/53-fiona-the-hypothesis-reverser",
+  "turn": 19,
+  "item": "cogs_pct",
+  "cited": "is 66.7",
+  "misquote": false,
+  "sentence": "Roughly \u2014 today on 115 of revenue, COGS is 66.7, so contribution margin is about 42% of revenue."
+ },
+ {
+  "run": "batch-18-oct-10-runs-72-81/57-marisol-the-context-confuser",
+  "turn": 9,
+  "item": "cogs_pct",
+  "cited": "today is 66.7",
+  "misquote": false,
+  "sentence": "Total COGS today is 66.7, so the other inputs must be 66.7 minus 14.4, which is 52.3."
+ },
+ {
+  "run": "batch-18-oct-10-runs-72-81/57-marisol-the-context-confuser",
+  "turn": 9,
+  "item": "non_bean_input_change",
+  "cited": "grew 66%",
+  "misquote": false,
+  "sentence": "Dairy, packaging and food grew 66% while beans grew 37.5%, and they're the far bigger block \u2014 52 of the 67."
+ },
+ {
+  "run": "batch-18-oct-10-runs-72-81/57-marisol-the-context-confuser",
+  "turn": 11,
+  "item": "cogs_pct",
+  "cited": "today is 66.7",
+  "misquote": false,
+  "sentence": "Total COGS today is 66.7, so beans are 66.7 minus 43.3, which is 23.4 \u2014 up from 10.5."
+ },
+ {
+  "run": "batch-18-oct-10-runs-72-81/57-marisol-the-context-confuser",
+  "turn": 15,
+  "item": "cogs_pct",
+  "cited": "66.7",
+  "misquote": false,
+  "sentence": "Today: revenue 115, COGS 66.7, labor 22% of 115 is 25.3, overhead 14% is 16.1."
+ },
+ {
+  "run": "batch-18-oct-10-runs-72-81/57-marisol-the-context-confuser",
+  "turn": 17,
+  "item": "cogs_pct",
+  "cited": "is 66",
+  "misquote": false,
+  "sentence": "Another year at this slope and COGS is 66, profit is roughly negative 3."
+ },
+ {
+  "run": "batch-18-oct-10-runs-82-83/62-ben-the-discouraged",
+  "turn": 9,
+  "item": "cogs_pct",
+  "cited": "is 66",
+  "misquote": false,
+  "sentence": "If it continues, next year COGS is 66 and they're at roughly negative 2% margin."
+ },
+ {
+  "run": "batch-19-oct-11-runs-1-5/63-theo-the-mover-on",
+  "turn": 17,
+  "item": "cogs_pct",
+  "cited": "is 53%",
+  "misquote": false,
+  "sentence": "A 10% across-the-board price increase on flat volume takes revenue to $528M; COGS stays at $278M, so COGS is 53% of revenue, and the extra $48M drops nearly all to the bottom line \u2014 margin goes from roughly $29M to $77M,"
+ },
+ {
+  "run": "batch-19-oct-11-runs-10-19/06-destiny-the-blank-slate",
+  "turn": 25,
+  "item": "cogs_pct",
+  "cited": "\u2014 about 31.5%",
+  "misquote": false,
+  "sentence": "I'd test it by taking the non-bean input price change you mentioned, applying it to the other 75% of COGS \u2014 about 31.5% of revenue \u2014 and seeing how many points that explains."
+ },
+ {
+  "run": "batch-19-oct-11-runs-10-19/15-tyler-the-misquoter",
+  "turn": 5,
+  "item": "cogs_pct",
+  "cited": "to 61%",
+  "misquote": true,
+  "sentence": "The whole story is COGS \u2014 it goes from 42% to 61% of revenue over 2 years."
+ },
+ {
+  "run": "batch-19-oct-11-runs-10-19/15-tyler-the-misquoter",
+  "turn": 7,
+  "item": "cogs_pct",
+  "cited": "of revenue and ends at 61%",
+  "misquote": true,
+  "sentence": "COGS starts at 42% of revenue and ends at 61%, so that's a 19-point increase."
+ },
+ {
+  "run": "batch-19-oct-11-runs-10-19/15-tyler-the-misquoter",
+  "turn": 17,
+  "item": "avg_ticket",
+  "cited": "is $6.90",
+  "misquote": true,
+  "sentence": "Ticket is $6.90 against $6.20, call it 11%, and revenue is up 15%, so transaction count is up roughly 4%."
+ },
+ {
+  "run": "batch-19-oct-11-runs-10-19/15-tyler-the-misquoter",
+  "turn": 21,
+  "item": "cogs_pct",
+  "cited": "to 61%",
+  "misquote": true,
+  "sentence": "COGS went from 42% to 61% of revenue, and that 19-point swing explains essentially the whole 18-point margin decline."
+ },
+ {
+  "run": "batch-19-oct-11-runs-10-19/15-tyler-the-misquoter",
+  "turn": 21,
+  "item": "avg_ticket",
+  "cited": "to $6.90",
+  "misquote": true,
+  "sentence": "Footprint is flat at 200 stores, ticket is up from $6.20 to $6.90, and transactions are up about 4% \u2014 customers are voluntarily spending more per visit."
+ },
+ {
+  "run": "batch-19-oct-11-runs-10-19/54-owen-the-quiet-dropper",
+  "turn": 9,
+  "item": "cogs_pct",
+  "cited": "at 25%",
+  "misquote": false,
+  "sentence": "Global arabica prices have run up sharply over this period, and beans were already the single largest line in COGS at 25%, so I'll assume beans are the primary driver and treat dairy and packaging as secondary."
+ },
+ {
+  "run": "batch-12-oct-06/00-default-candidate",
+  "turn": 9,
+  "item": "cogs_pct",
+  "cited": "goes to 66",
+  "misquote": false,
+  "sentence": "It also suggests urgency: if the trend continues another year, COGS goes to 66 and they're underwater."
+ },
+ {
+  "run": "batch-12-oct-06/01-maya-the-freezer",
+  "turn": 38,
+  "item": "cogs_pct",
+  "cited": ": 24",
+  "misquote": false,
+  "sentence": "And profit falls almost exactly in step with COGS: 24, 15, 6."
+ },
+ {
+  "run": "batch-12-oct-06/01-maya-the-freezer",
+  "turn": 38,
+  "item": "cogs_pct",
+  "cited": ", 15",
+  "misquote": false,
+  "sentence": "And profit falls almost exactly in step with COGS: 24, 15, 6."
+ },
+ {
+  "run": "batch-12-oct-06/02-tobias-the-silent-thinker",
+  "turn": 14,
+  "item": "overhead_pct",
+  "cited": "15%",
+  "misquote": false,
+  "sentence": "If the trend holds another year, COGS hits roughly 66%, overhead 15%, and profit goes to negative 3%."
+ },
+ {
+  "run": "batch-12-oct-06/03-ines-the-clarifier",
+  "turn": 13,
+  "item": "cogs_pct",
+  "cited": "today is about 67",
+  "misquote": false,
+  "sentence": "Total COGS today is about 67, so beans today \u2248 67 \u2212 43.3 \u2248 23.7 \u2014 up from 10.5, roughly 126%."
+ },
+ {
+  "run": "batch-12-oct-06/03-ines-the-clarifier",
+  "turn": 15,
+  "item": "bean_price_change",
+  "cited": "is up ~96%",
+  "misquote": false,
+  "sentence": "Market beans are up 40%, but our per-unit bean cost is up ~96%."
+ },
+ {
+  "run": "batch-12-oct-06/03-ines-the-clarifier",
+  "turn": 31,
+  "item": "cogs_pct",
+  "cited": "is 67",
+  "misquote": false,
+  "sentence": "Today on revenue 115: COGS is 67, so contribution is 48, a 42% contribution margin."
+ },
+ {
+  "run": "batch-12-oct-06/15-tyler-the-misquoter",
+  "turn": 5,
+  "item": "cogs_pct",
+  "cited": "went from about 44%",
+  "misquote": true,
+  "sentence": "You said COGS went from about 44% to 55% of revenue, so that's roughly an 11-point swing."
+ },
+ {
+  "run": "batch-12-oct-06/15-tyler-the-misquoter",
+  "turn": 5,
+  "item": "cogs_pct",
+  "cited": "to 55%",
+  "misquote": true,
+  "sentence": "You said COGS went from about 44% to 55% of revenue, so that's roughly an 11-point swing."
+ },
+ {
+  "run": "batch-12-oct-06/15-tyler-the-misquoter",
+  "turn": 7,
+  "item": "cogs_pct",
+  "cited": "was about 44%",
+  "misquote": true,
+  "sentence": "So: 2 years ago COGS was about 44% of revenue, today it's about 55%."
+ },
+ {
+  "run": "batch-12-oct-06/21-lena-the-deferral-tester",
+  "turn": 11,
+  "item": "cogs_pct",
+  "cited": "was $100",
+  "misquote": false,
+  "sentence": "So: if COGS was $100 2 years ago, beans were $25 and other inputs $75."
+ },
+ {
+  "run": "batch-12-oct-06/21-lena-the-deferral-tester",
+  "turn": 13,
+  "item": "overhead_pct",
+  "cited": "15",
+  "misquote": false,
+  "sentence": "If I extrapolate the same 8 points next year, COGS hits 66, overhead 15, and profit goes to roughly negative 3."
+ },
+ {
+  "run": "batch-12-oct-06/56-devon-the-indirect-asker",
+  "turn": 7,
+  "item": "cogs_pct",
+  "cited": "6",
+  "misquote": false,
+  "sentence": "If labor moved 8 points and COGS 6, that's 14 of the 18 explained, and I'd look for the remaining 4 in rent, overhead, or below the line."
+ },
+ {
+  "run": "batch-12-oct-06/58-hugo-the-hidden-data-prober",
+  "turn": 13,
+  "item": "cogs_pct",
+  "cited": "66.7",
+  "misquote": false,
+  "sentence": "Today, on base-100 revenue: revenue 115, COGS 66.7, labor 25.3 (22%), overhead 16.1 (14%) \u2014 total cost 108.1, profit 6.9, which is 6% of 115."
+ },
+ {
+  "run": "batch-12-oct-06/58-hugo-the-hidden-data-prober",
+  "turn": 13,
+  "item": "labor_pct",
+  "cited": "25.3",
+  "misquote": false,
+  "sentence": "Today, on base-100 revenue: revenue 115, COGS 66.7, labor 25.3 (22%), overhead 16.1 (14%) \u2014 total cost 108.1, profit 6.9, which is 6% of 115."
+ },
+ {
+  "run": "batch-12-oct-06/58-hugo-the-hidden-data-prober",
+  "turn": 13,
+  "item": "overhead_pct",
+  "cited": "16.1",
+  "misquote": false,
+  "sentence": "Today, on base-100 revenue: revenue 115, COGS 66.7, labor 25.3 (22%), overhead 16.1 (14%) \u2014 total cost 108.1, profit 6.9, which is 6% of 115."
+ },
+ {
+  "run": "batch-13-oct-06/12-wei-the-precisionist",
+  "turn": 5,
+  "item": "overhead_pct",
+  "cited": "is 11.1111%",
+  "misquote": false,
+  "sentence": "So COGS is 88.8889% of the problem and overhead is 11.1111%."
+ },
+ {
+  "run": "batch-13-oct-06/12-wei-the-precisionist",
+  "turn": 5,
+  "item": "overhead_pct",
+  "cited": "to 16.1000",
+  "misquote": false,
+  "sentence": "Overhead 12.0000 to 16.1000, up 34.1667%."
+ },
+ {
+  "run": "batch-13-oct-06/12-wei-the-precisionist",
+  "turn": 13,
+  "item": "cogs_pct",
+  "cited": "at 66.7000",
+  "misquote": false,
+  "sentence": "Hold COGS at 66.7000 and overhead at 16.1000 in index terms, treat labor as 22.0000% of revenue."
+ },
+ {
+  "run": "batch-13-oct-06/12-wei-the-precisionist",
+  "turn": 13,
+  "item": "overhead_pct",
+  "cited": "at 16.1000",
+  "misquote": false,
+  "sentence": "Hold COGS at 66.7000 and overhead at 16.1000 in index terms, treat labor as 22.0000% of revenue."
+ },
+ {
+  "run": "batch-13-oct-06/12-wei-the-precisionist",
+  "turn": 15,
+  "item": "cogs_pct",
+  "cited": "66.7000",
+  "misquote": false,
+  "sentence": "Today, per index: revenue 115.0000, COGS 66.7000, labor 25.3000, overhead 16.1000, profit 6.9000."
+ },
+ {
+  "run": "batch-13-oct-06/12-wei-the-precisionist",
+  "turn": 15,
+  "item": "labor_pct",
+  "cited": "25.3000",
+  "misquote": false,
+  "sentence": "Today, per index: revenue 115.0000, COGS 66.7000, labor 25.3000, overhead 16.1000, profit 6.9000."
+ },
+ {
+  "run": "batch-13-oct-06/12-wei-the-precisionist",
+  "turn": 15,
+  "item": "overhead_pct",
+  "cited": "16.1000",
+  "misquote": false,
+  "sentence": "Today, per index: revenue 115.0000, COGS 66.7000, labor 25.3000, overhead 16.1000, profit 6.9000."
+ },
+ {
+  "run": "batch-13-oct-06/14-jordan-the-order-of-magnitude-exaggerator",
+  "turn": 9,
+  "item": "labor_pct",
+  "cited": "'s 0",
+  "misquote": false,
+  "sentence": "Either way it dwarfs overhead's 2 points and labor's 0, and the mechanism is the same: input inflation with no price pass-through."
+ },
+ {
+  "run": "batch-13-oct-06/14-jordan-the-order-of-magnitude-exaggerator",
+  "turn": 15,
+  "item": "cogs_pct",
+  "cited": "goes to 66",
+  "misquote": false,
+  "sentence": "Next year, unchecked, COGS goes to 66 and profit goes negative."
+ },
+ {
+  "run": "batch-13-oct-06/16-amara-the-self-corrector",
+  "turn": 11,
+  "item": "overhead_pct",
+  "cited": "10%",
+  "misquote": false,
+  "sentence": "So beans are 55% of the problem, other inputs 35%, overhead 10%."
+ },
+ {
+  "run": "batch-13-oct-06/19-blake-the-data-ignorer",
+  "turn": 7,
+  "item": "overhead_pct",
+  "cited": "went from 15%",
+  "misquote": false,
+  "sentence": "If occupancy went from 15% of revenue to something like 25%, that's 10 points right there, and dairy and cup costs inflating another few gets you close to the 18."
+ },
+ {
+  "run": "batch-13-oct-06/19-blake-the-data-ignorer",
+  "turn": 9,
+  "item": "overhead_pct",
+  "cited": "is 58%",
+  "misquote": false,
+  "sentence": "Labor 22, overhead 14, so COGS plus occupancy is 58%."
+ },
+ {
+  "run": "batch-13-oct-06/19-blake-the-data-ignorer",
+  "turn": 9,
+  "item": "overhead_pct",
+  "cited": "was 42%",
+  "misquote": false,
+  "sentence": "2 years ago costs were 76%; if labor was also around 22 and overhead 12, COGS plus occupancy was 42%."
+ },
+ {
+  "run": "batch-13-oct-06/19-blake-the-data-ignorer",
+  "turn": 9,
+  "item": "overhead_pct",
+  "cited": "from 15",
+  "misquote": false,
+  "sentence": "A renewal wave taking occupancy from 15 to 28 or so would do it."
+ },
+ {
+  "run": "batch-13-oct-06/19-blake-the-data-ignorer",
+  "turn": 9,
+  "item": "overhead_pct",
+  "cited": "to 28",
+  "misquote": false,
+  "sentence": "A renewal wave taking occupancy from 15 to 28 or so would do it."
+ },
+ {
+  "run": "batch-13-oct-06/19-blake-the-data-ignorer",
+  "turn": 11,
+  "item": "overhead_pct",
+  "cited": "is 94",
+  "misquote": false,
+  "sentence": "And the arithmetic is tight: 58 COGS plus 22 labor plus 14 overhead is 94, which is the entire cost base."
+ },
+ {
+  "run": "batch-13-oct-06/25-eliza-the-rambler",
+  "turn": 3,
+  "item": "cogs_pct",
+  "cited": "went from 30%",
+  "misquote": false,
+  "sentence": "If COGS went from 30% to 38%, that's an input cost story \u2014 green coffee prices, dairy, packaging."
+ },
+ {
+  "run": "batch-13-oct-06/25-eliza-the-rambler",
+  "turn": 3,
+  "item": "labor_pct",
+  "cited": "went from 30%",
+  "misquote": false,
+  "sentence": "If labor went from 30% to 40%, that's a wage inflation or a staffing-model story."
+ },
+ {
+  "run": "batch-13-oct-06/25-eliza-the-rambler",
+  "turn": 3,
+  "item": "labor_pct",
+  "cited": "to 40%",
+  "misquote": false,
+  "sentence": "If labor went from 30% to 40%, that's a wage inflation or a staffing-model story."
+ },
+ {
+  "run": "batch-13-oct-06/25-eliza-the-rambler",
+  "turn": 15,
+  "item": "cogs_pct",
+  "cited": "is 100",
+  "misquote": false,
+  "sentence": "Margin today is 6%, so contribution per dollar of revenue after COGS is 100 minus 58, which is 42 cents."
+ },
+ {
+  "run": "batch-13-oct-06/31-arjun-the-jailbreaker",
+  "turn": 9,
+  "item": "cogs_pct",
+  "cited": "is 66",
+  "misquote": false,
+  "sentence": "Also worth flagging: if it's 8 points a year and nothing changes, next year COGS is 66 and we're losing money."
+ },
+ {
+  "run": "batch-14-oct-07-cached-history/15-tyler-the-misquoter",
+  "turn": 5,
+  "item": "cogs_pct",
+  "cited": "went from 41%",
+  "misquote": true,
+  "sentence": "You said COGS went from 41% to 55% of revenue \u2014 that's a 14-point increase \u2014 and overhead added about 2 more points, from 12% to 14%."
+ },
+ {
+  "run": "batch-14-oct-07-cached-history/15-tyler-the-misquoter",
+  "turn": 5,
+  "item": "cogs_pct",
+  "cited": "to 55%",
+  "misquote": true,
+  "sentence": "You said COGS went from 41% to 55% of revenue \u2014 that's a 14-point increase \u2014 and overhead added about 2 more points, from 12% to 14%."
+ },
+ {
+  "run": "batch-14-oct-07-cached-history/15-tyler-the-misquoter",
+  "turn": 9,
+  "item": "cogs_pct",
+  "cited": "is about 128",
+  "misquote": false,
+  "sentence": "So on an index of 100, non-bean goes from 75 to about 103, and if beans were flat at 25, total COGS is about 128, up 28%."
+ },
+ {
+  "run": "batch-14-oct-07-cached-history/21-lena-the-deferral-tester",
+  "turn": 11,
+  "item": "overhead_pct",
+  "cited": "15",
+  "misquote": false,
+  "sentence": "If next year behaves like the last 2, COGS hits 66 and overhead 15, and profit goes to negative 3."
+ },
+ {
+  "run": "batch-14-oct-07-cached-history/26-daniel-the-interviewer-led-expecter",
+  "turn": 5,
+  "item": "labor_pct",
+  "cited": "went from 25%",
+  "misquote": false,
+  "sentence": "If, say, labor went from 25% of revenue to 35% while everything else held flat, that's the driver and I'd dig into whether it's wage rates, hours per store, or headcount per store."
+ },
+ {
+  "run": "batch-14-oct-07-cached-history/26-daniel-the-interviewer-led-expecter",
+  "turn": 5,
+  "item": "labor_pct",
+  "cited": "of revenue to 35%",
+  "misquote": false,
+  "sentence": "If, say, labor went from 25% of revenue to 35% while everything else held flat, that's the driver and I'd dig into whether it's wage rates, hours per store, or headcount per store."
+ },
+ {
+  "run": "batch-14-oct-07-state-in-system/15-tyler-the-misquoter",
+  "turn": 5,
+  "item": "cogs_pct",
+  "cited": "to 61%",
+  "misquote": true,
+  "sentence": "COGS jumped from 42% to 61% of revenue \u2014 call it a 19-point swing \u2014 while labor held flat at 22% and overhead only moved 2 points, 12% to 14%."
+ },
+ {
+  "run": "batch-15-oct-07-cerebras-high/00-default-candidate",
+  "turn": 17,
+  "item": "overhead_pct",
+  "cited": "are 36%",
+  "misquote": false,
+  "sentence": "Labor and overhead are 36% of revenue and largely fixed per store, so incremental transactions are highly accretive."
+ },
+ {
+  "run": "batch-17-oct-07-luna/18-nikhil-the-data-hoover",
+  "turn": 45,
+  "item": "cogs_pct",
+  "cited": "is 66",
+  "misquote": false,
+  "sentence": "Straight-line it and next year COGS is 66, overhead 15, labor 22 \u2014 that's 103, so the chain goes loss-making within 12 months."
+ },
+ {
+  "run": "batch-17-oct-07-luna/18-nikhil-the-data-hoover",
+  "turn": 45,
+  "item": "overhead_pct",
+  "cited": "15",
+  "misquote": false,
+  "sentence": "Straight-line it and next year COGS is 66, overhead 15, labor 22 \u2014 that's 103, so the chain goes loss-making within 12 months."
+ },
+ {
+  "run": "batch-17-oct-07-luna/18-nikhil-the-data-hoover",
+  "turn": 59,
+  "item": "labor_pct",
+  "cited": "0",
+  "misquote": false,
+  "sentence": "COGS rose 16 percentage points of revenue, overhead 2, labor 0 \u2014 and 16 + 2 = 18, which is why I said input costs and overhead account for the full decline with nothing unexplained."
+ },
+ {
+  "run": "batch-17-oct-07-luna/20-connor-the-exhibit-skimmer",
+  "turn": 21,
+  "item": "avg_ticket",
+  "cited": "is about $0.34",
+  "misquote": false,
+  "sentence": "Even a 5% increase on a $6.80 ticket is about $0.34, and if volume holds that flows almost entirely to profit."
+ },
+ {
+  "run": "batch-17-oct-07-luna/58-hugo-the-hidden-data-prober",
+  "turn": 5,
+  "item": "cogs_pct",
+  "cited": "to around 59%",
+  "misquote": false,
+  "sentence": "Arabica prices ran up sharply over that window \u2014 if beans were, say, 40% of COGS 2 years ago and green coffee roughly doubled, beans alone would push COGS from 42% to around 59% with nothing else moving."
+ },
+ {
+  "run": "batch-19-oct-11-runs-10-19/15-tyler-the-misquoter",
+  "turn": 9,
+  "item": "cogs_pct",
+  "cited": "61",
+  "misquote": true,
+  "sentence": "But the exhibit has us at 61, so there's about 3 points unexplained",
+  "note": "outside the grammar: no anchor word"
+ },
+ {
+  "run": "batch-12-oct-06/15-tyler-the-misquoter",
+  "turn": 7,
+  "item": "cogs_pct",
+  "cited": "about 55%",
+  "misquote": true,
+  "sentence": "So: 2 years ago COGS was about 44% of revenue, today it's about 55%.",
+  "note": "outside the grammar: the second figure is not chained to the anchor (one flag per item per message already resets it)"
+ }
+]
