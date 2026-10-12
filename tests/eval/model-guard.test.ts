@@ -17,6 +17,17 @@ describe('the declared evaluation interviewer', () => {
     expect(m.options).toEqual({ thinking: 'disabled', effort: 'medium', fallbacks: false });
   });
 
+  // Batch 20 (12 Oct): a third arm — Haiku 5.5 at effort low; the only
+  // difference from haiku55-thinking-off is the effort the request carries.
+  it('haiku55-effort-low is Haiku 5.5 with thinking disabled, effort low, no fallbacks', () => {
+    expect(evalInterviewer('haiku55-effort-low')).toEqual({
+      config: 'haiku55-effort-low', model: 'claude-haiku-5-5', thinking: 'disabled', effort: 'low', fallbacks: false,
+    });
+    const m = createInterviewerModel(undefined, 'haiku55-effort-low') as unknown as { modelId: string; options: unknown };
+    expect(m.modelId).toBe('claude-haiku-5-5');
+    expect(m.options).toEqual({ thinking: 'disabled', effort: 'low', fallbacks: false });
+  });
+
   it('the Sonnet baseline is selectable the same way', () => {
     const m = createInterviewerModel(undefined, 'sonnet55-baseline') as unknown as { modelId: string; options: unknown };
     expect(m.modelId).toBe('claude-sonnet-5-5');

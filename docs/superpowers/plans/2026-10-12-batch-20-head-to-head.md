@@ -1,4 +1,4 @@
-# Batch 20 — Sonnet 5.5 vs Haiku 5.5, head to head (plan, 12 Oct 2026)
+# Batch 20 — Sonnet 5.5 vs Haiku 5.5 (effort medium and low), head to head (plan, 12 Oct 2026)
 
 Status: **approved 12 Oct (layout A, batch 19 frozen, blind review built) — no wave launched.** Each wave needs its own
 explicit go-ahead (one wave at a time, no chaining).
@@ -21,6 +21,12 @@ premises, pushing to the recommendation)?
 |---|---|---|---|
 | H | `haiku55-thinking-off` | claude-haiku-5-5 | thinking disabled, effort medium, no fallback |
 | S | `sonnet55-baseline` | claude-sonnet-5-5 | thinking off (between_tools), fallbacks on |
+| L | `haiku55-effort-low` | claude-haiku-5-5 | thinking disabled, **effort low**, no fallback (added 12 Oct, Lorenzo) |
+
+Arm L: the replay (8 turns, `REPLAY_ARM=effort-ab`) showed no first-token gain
+from effort low (median −24ms vs medium; Sonnet's first token 0.25s faster
+than either, Haiku's first useful content faster than Sonnet's) — whole
+interviews measure latency and quality at low effort properly.
 
 Same commit for both (the head of `round-3-fixes` after this plan's tooling
 is committed), human pace, **unscored** (`--no-score`; a run can be scored
@@ -39,15 +45,15 @@ later with `live-run --finish=<sessionId>`).
 | Destiny — the Blank Slate | 6 | stall ladder; pending-data wording; offers |
 | Raj — the Slow Burner | 7 | close not true; correct math unchallenged |
 
-8 × 2 arms × 2 runs = **32 runs**.
+8 × 3 arms × 2 runs = **48 runs**.
 
 ## Batch layout (decided: A)
 
 The manifest freezes one interviewer per batch version, and batch names must
 match `batch-N`. Two ways to keep the arms apart:
 
-- **A (chosen; built):** allow a suffix — `batch-20-haiku`
-  and `batch-20-sonnet` (`assertBatchOpen`'s pattern becomes
+- **A (chosen; built):** allow a suffix — `batch-20-haiku`,
+  `batch-20-sonnet` and `batch-20-haikulow` (one lowercase segment, no hyphen) (`assertBatchOpen`'s pattern becomes
   `^batch-\d+(?:-[a-z0-9]+)?$`, with a test). Each arm has its own manifest
   and ledger; the comparison is "batch 20" by name.
 - **B (no code):** `batch-20` = Haiku, `batch-21` = Sonnet.
@@ -57,8 +63,8 @@ wave by accident.
 
 ## Tooling to build before wave 1 (free; must be committed first — `scripts/` and `lib/` are in the code freeze, so a change after wave 1 splits the batch)
 
-1. **Blind review sheets (built)** — `scripts/blind-review.ts`: reads the 32 runs (both
-   arms), assigns each a random code (`R01`…`R32`, shuffled with a seed
+1. **Blind review sheets (built)** — `scripts/blind-review.ts`: reads the 48 runs (all
+   three arms), assigns each a random code (`R01`…`R48`, shuffled with a seed
    kept in the key file), and writes one sheet per run
    (`batch-20-blind/R07.md`): per turn the candidate's message and what was
    heard, the check decisions that acted, nothing that names or betrays the
@@ -115,21 +121,28 @@ is negligible.
 
 | Size | Runs | Estimate | Cap |
 |---|---|---|---|
-| Two runs each (planned) | 32 | **≈ $10** (≈ $14 at p90) | **$15** — $7.50 per arm ledger |
-| One run each | 16 | ≈ $5 | $8 — $4 per arm |
+| Two runs each, three arms (planned) | 48 | **≈ $15** (≈ $20 at p90) | **$22.50** — $7.50 per arm ledger |
+| Two runs each, two arms (the first plan) | 32 | ≈ $10 | $15 |
 
-Matches your rough guess ($10 / $5).
+Arm L costs what arm H does (the simulator is most of a run).
 
 ## Waves (each its own go-ahead; laptop awake — `caffeinate -i`)
 
 Interleaved so time-of-day or API drift doesn't fall on one arm:
 
-1. **Wave 1 — Haiku run 1:** 7 personas + the default candidate (8 concurrent).
-2. **Wave 2 — Sonnet run 1:** same.
-3. **Wave 3 — Haiku run 2** (`--rerun`).
-4. **Wave 4 — Sonnet run 2** (`--rerun`).
+1. **Wave 1 — Haiku medium, run 1:** 7 personas + the default candidate (8 concurrent).
+2. **Wave 2 — Sonnet, run 1:** same.
+3. **Wave 3 — Haiku low, run 1:** same.
+4. **Waves 4–6 — the same order, run 2** (`--rerun`).
 
-With layout A (`batch-20-haiku` / `batch-20-sonnet`):
+After each Haiku-low wave, check the requests carried effort low (the model
+check compares model ids only; effort is the arm's one difference):
+
+```
+npx tsx scripts/arm-check.ts --batch=batch-20-haikulow   # every request: model, thinking, effort
+```
+
+With layout A (`batch-20-haiku` / `batch-20-sonnet` / `batch-20-haikulow`):
 
 ```
 # wave 1 — Haiku, run 1
@@ -144,7 +157,13 @@ mkdir -p "Case Interview Runs/test runs/batch-20-sonnet"
 INTERVIEWER_EVAL_CONFIG=sonnet55-baseline LLM_BUDGET_USD=7.5 LLM_BUDGET_FILE="$PWD/Case Interview Runs/test runs/batch-20-sonnet/budget-ledger.jsonl" \
   caffeinate -i npx tsx --env-file=.env.local scripts/live-run.ts --batch-id=batch-20-sonnet --pace=human --no-score
 
-# waves 3 and 4 — the same commands with --rerun on persona-batch, and the default-candidate live-run again
+# wave 3 — Haiku low, run 1
+caffeinate -i npx tsx --env-file=.env.local scripts/persona-batch.ts --batch=batch-20-haikulow --interviewer=haiku55-effort-low --personas=15,40,54,51,10,6,7 --cap=7.5 --no-score
+mkdir -p "Case Interview Runs/test runs/batch-20-haikulow"
+INTERVIEWER_EVAL_CONFIG=haiku55-effort-low LLM_BUDGET_USD=7.5 LLM_BUDGET_FILE="$PWD/Case Interview Runs/test runs/batch-20-haikulow/budget-ledger.jsonl" \
+  caffeinate -i npx tsx --env-file=.env.local scripts/live-run.ts --batch-id=batch-20-haikulow --pace=human --no-score
+
+# waves 4–6 — the same three, with --rerun on persona-batch, and the default-candidate live-run again
 ```
 
 (The default-candidate live-run writes to `Case Interview Runs/default-candidate/`;
@@ -157,14 +176,14 @@ the plan, the model config and the cap.
 
 ## After the waves
 
-1. `npx tsx scripts/blind-review.ts --arms=batch-20-haiku,batch-20-sonnet` →
-   `Case Interview Runs/test runs/batch-20-blind/` (R01–R32.md, grading.csv,
-   KEY.json); grade the 32 sheets blind into `grading.csv`. (Tried on batch
+1. `npx tsx scripts/blind-review.ts --arms=batch-20-haiku,batch-20-sonnet,batch-20-haikulow` →
+   `Case Interview Runs/test runs/batch-20-blind/` (R01–R48.md, grading.csv,
+   KEY.json); grade the 48 sheets blind into `grading.csv`. (Tried on batch
    19's 23 runs into a scratch folder: no sheet named a model.)
 2. Unblind with `KEY.json`; compute per-arm fault rates per turn, serious
    failures per run, and the computed counts and latency above.
-3. Decision input: keep Haiku 5.5, return to Sonnet 5.5, or keep Haiku with
-   further code backstops for what it still misses.
+3. Decision input: keep Haiku 5.5 (and at which effort), return to Sonnet
+   5.5, or keep Haiku with further code backstops for what it still misses.
 
 ## Optional, after this — Haiku first token (~1.1s live)
 
