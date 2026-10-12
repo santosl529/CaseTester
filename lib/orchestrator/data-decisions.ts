@@ -54,6 +54,22 @@ const labelWords = (s: string): string[] => s.toLowerCase().replace(/%/g, ' perc
   .map(w => LABEL_NUMBERS[w] ?? w)
   .filter(w => !LABEL_IGNORED.has(w));
 
+// A passing mention is offered only when the candidate stated a need for it
+// (Lorenzo's rule, 12 Oct): one sentence of their message names the item — a
+// distinctive word of its label, not a generic one like "revenue" or "price" —
+// and asks for it in statement form ("I'd want transaction data to confirm",
+// "whether prices on the menu moved", "I'd check dairy first"). Batch 19:
+// 17 of 24 Haiku runs heard offers of data nobody asked for; over batches
+// 18–19 this keeps 8 of 60 offered items, each a real soft ask.
+const GENERIC_LABEL_WORDS = new Set(['price', 'change', 'cost', 'revenue', 'percent', 'total', 'average', 'number', 'other', 'over', 'year', 'period', 'current', 'prior', 'share', 'rate', 'data', 'value', 'input']);
+const NEED_CUE = /\b(?:i'?d (?:want|need|check|look|ask|pull|get|like)|i (?:want|need)|we'?d need|do we (?:have|know)|is there|can (?:i|we) (?:get|see)|would (?:want|need)|whether|needs? to (?:know|see|check)|still need|data on|data to confirm)\b/i;
+const contentWords = (s: string) => (s.toLowerCase().match(/[a-z][a-z-]+/g) ?? []).map(w => (w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w));
+export function mentionStatesNeed(candidateText: string, label: string): boolean {
+  const named = new Set(contentWords(label).filter(w => w.length >= 4 && !GENERIC_LABEL_WORDS.has(w) && !LABEL_IGNORED.has(w)));
+  if (named.size === 0) return false;
+  return candidateText.split(/(?<=[.?!])\s+|\n+/).some(s => NEED_CUE.test(s) && contentWords(s).some(w => named.has(w)));
+}
+
 export function labelMatch(what: string, items: { id: string; label: string; timeframes?: Record<string, string> }[]): string | null {
   const asked = new Set(labelWords(what));
   const hits = items.filter(i => {
@@ -140,6 +156,7 @@ export function decideData(p: {
   shownExhibitIds: Set<string>;
   open: RequestedUnanswered[];      // explicit asks from earlier turns still unreleased
   gateHeld?: Set<string>;           // whats of requests the pressure-test gate turned into deferrals
+  candidateText: string;           // the candidate's message: a mention is offered only when it states a need for the item
   cap?: number;
 }): DataDecisions {
   const cap = p.cap ?? RELEASE_CAP;
@@ -217,7 +234,8 @@ export function decideData(p: {
     const held = ledgerIds.filter(id => !releasing.has(id));
     const partlyReleased = held.length < ledgerIds.length;
     if (!r.explicit) {
-      const offerable = held.filter(id => available(id) && !covered.has(id));
+      const offerable = held.filter(id => available(id) && !covered.has(id))
+        .filter(id => mentionStatesNeed(p.candidateText, itemById.get(id)?.label ?? ''));
       if (offerable.length > 0 && r.respond === 'release' && !partlyReleased) offers.push(r.what);
     } else if (held.some(available) && !partlyReleased) {
       (p.gateHeld?.has(r.what) ? gateDefers : defers).push(r.what);

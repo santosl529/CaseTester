@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decideData, renderDataLines, decisionRows, labelMatch, outsideAskScope } from '@/lib/orchestrator/data-decisions';
+import { decideData, renderDataLines, decisionRows, labelMatch, outsideAskScope, mentionStatesNeed } from '@/lib/orchestrator/data-decisions';
 import { createLedger, reveal, type LedgerItem } from '@/lib/orchestrator/data-ledger';
 import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
 
@@ -18,7 +18,7 @@ const EXHIBITS = [{ id: 'exhibit-a', title: 'Cost Structure Over Time', coversLe
 const req = (over: Partial<DeclaredRequest>): DeclaredRequest => ({ what: 'the data', itemIds: [], explicit: true, respond: 'release', ...over });
 const base = (over: Partial<Parameters<typeof decideData>[0]> = {}) => ({
   requests: [] as DeclaredRequest[], exhibit: null, rescueItem: null, rung3: false,
-  ledger: createLedger(ITEMS), exhibits: EXHIBITS, shownExhibitIds: new Set<string>(), open: [], ...over,
+  ledger: createLedger(ITEMS), exhibits: EXHIBITS, shownExhibitIds: new Set<string>(), open: [], candidateText: '', ...over,
 });
 
 describe('decideData', () => {
@@ -39,10 +39,27 @@ describe('decideData', () => {
     expect(renderDataLines(d, 's')).toEqual(["I don't have transaction volume by store or competitor pricing."]);
   });
 
-  it('never releases a passing mention — offers it instead', () => {
-    const d = decideData(base({ requests: [req({ what: 'the average ticket', itemIds: ['avg_ticket'], explicit: false })] }));
+  it('never releases a passing mention — offers it when the candidate states a need for it (Tyler t14, batch 19)', () => {
+    const d = decideData(base({
+      requests: [req({ what: 'the average ticket', itemIds: ['avg_ticket'], explicit: false })],
+      candidateText: "Specialty coffee is a habitual purchase, so I'd expect inelastic demand, but I'd want transaction data to confirm.",
+    }));
     expect(d.releases).toEqual([]);
     expect(renderDataLines(d, 's')).toEqual(["I can share the average ticket if you'd like."]);
+  });
+
+  // Batch 19: 17 of 24 Haiku runs heard offers of data nobody asked for
+  // (Lorenzo's rule, 12 Oct): a mention is offered only when one sentence
+  // names the item and states a need for it; otherwise no line.
+  it.each([
+    ['Jasmine t14 — the need is for something else', 'Volume holding roughly flat and revenue growth coming from traffic, not just new stores. Still need elasticity data.'],
+    ['Sam t10 — no ask at all', "Thank you. I'm okay. I'd rather keep going, if that's alright."],
+    ['named without a need', 'Ticket went up because people buy more items, so transaction value rose.'],
+    ['a need, but in another sentence', "Transaction value rose. I'd want to see the store count next."],
+  ])('says nothing for a mention that is not a stated need: %s', (_, candidateText) => {
+    const d = decideData(base({ requests: [req({ what: 'the average ticket', itemIds: ['avg_ticket'], explicit: false })], candidateText }));
+    expect(d.offers).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual([]);
   });
 
   it('ignores a passing mention of data the case does not hold', () => {
@@ -130,7 +147,7 @@ describe('decideData', () => {
       req({ what: 'the ticket', itemIds: ['avg_ticket'], explicit: false }),
       req({ what: 'bean prices', itemIds: ['bean_price_change'], respond: 'defer' }),
       req({ what: 'stores', itemIds: ['stores_count'] }),
-    ] }));
+    ], candidateText: "I'd want transaction data too." }));
     expect(renderDataLines(d, 's')).toEqual([
       '200 stores today.', "I don't have NPS.", "I'll come back to bean prices shortly.", "I can share the ticket if you'd like.",
     ]);
@@ -174,7 +191,7 @@ describe('spoken lists lower-case the first letter of each item', () => {
       req({ what: 'Pilot elasticity results', itemIds: [] }), req({ what: 'Competitor pricing actions', itemIds: [] }),
       req({ what: 'Bean prices', itemIds: ['bean_price_change'], respond: 'defer' }),
       req({ what: 'Average ticket', itemIds: ['avg_ticket'], explicit: false }),
-    ] }));
+    ], candidateText: "I'd want transaction data too." }));
     expect(renderDataLines(d, 's')).toEqual([
       "I don't have pilot elasticity results or competitor pricing actions.",
       "I'll come back to bean prices shortly.",
@@ -343,4 +360,20 @@ describe('outsideAskScope', () => {
   ])('in scope: "%s"', (what, item) => {
     expect(outsideAskScope(what, item)).toBe(false);
   });
+});
+
+describe('mentionStatesNeed', () => {
+  it.each([
+    ["I'd want the COGS line broken out by component: green coffee, dairy, syrups and packaging.", 'Coffee bean price change over 2 years'],
+    ['And it matters whether prices on the menu moved at all, because input costs rose.', 'Menu price changes'],
+    ["I'd check milk and dairy first.", 'Price change of the other inputs (dairy, packaging, food) over 2 years'],
+  ])('a need for the item: %s', (text, label) => expect(mentionStatesNeed(text, label)).toBe(true));
+
+  it.each([
+    // generic label words don't name an item
+    ["I'd want to understand the revenue picture first.", 'Total annual revenue'],
+    ['Other inputs were 75% of COGS, so 0.75 × 42 = 31.5% of revenue.', 'Total annual revenue'],
+    // the item named in passing, in the candidate's own math
+    ['Beans were 25% of COGS, meaning 10.5 points of revenue at baseline.', 'Coffee bean price change over 2 years'],
+  ])('not a need for the item: %s', (text, label) => expect(mentionStatesNeed(text, label)).toBe(false));
 });

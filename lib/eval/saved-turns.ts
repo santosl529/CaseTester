@@ -23,6 +23,7 @@ export type SavedTurn = {
   exhibit: string | null;
   defers: string[];
   offers: string[];
+  offeredItemIds: string[];    // ledger ids of the passing mentions code offered (the model's implicit requests named in `offers`)
   refusals: string[];
   source: 'turn_file' | 'log';
 };
@@ -54,7 +55,9 @@ export function loadSavedTurns(dir: string): SavedTurn[] {
         run: label(dir), turn: t.turnIndex + 1, kind: t.stateBefore.kind, phase: t.stateBefore.phase, elapsedMs: t.stateBefore.elapsedMs,
         candidateText: t.candidateText,
         modelSay: model ? t.parsedTurn?.say ?? null : null, modelQuestion: model ? t.parsedTurn?.question ?? null : null,
-        deliveredSay: say || null, question: tail || null, heard: t.savedLine, ...dd, source: 'turn_file' as const,
+        deliveredSay: say || null, question: tail || null, heard: t.savedLine, ...dd,
+        offeredItemIds: (t.parsedTurn?.requests ?? []).filter(r => !r.explicit && dd.offers.includes(r.what)).flatMap(r => r.itemIds),
+        source: 'turn_file' as const,
       };
     });
   }
@@ -73,7 +76,7 @@ export function loadSavedTurns(dir: string): SavedTurn[] {
   if (groups.length !== latency.length) return [];
   return latency.map((lat, k) => {
     const raws = groups[k];
-    let parsed: { say?: string; question?: string } | null = null;
+    let parsed: { say?: string; question?: string; requests?: { what: string; item_ids?: string[]; explicit?: boolean }[] } | null = null;
     try { parsed = raws.length ? JSON.parse(raws[raws.length - 1]) : null; } catch { parsed = null; }
     const kind = lat.kind ?? (raws.length ? 'model' : 'scripted');
     const heard = run.turns.find(t => t.turnIndex === lat.turnIndex && t.role === 'interviewer')?.text ?? '';
@@ -83,7 +86,9 @@ export function loadSavedTurns(dir: string): SavedTurn[] {
       run: label(dir), turn: lat.turnIndex, kind, phase: lat.phase ?? '', elapsedMs: null,
       candidateText: run.turns.find(t => t.turnIndex === lat.turnIndex - 1 && t.role === 'candidate')?.text ?? '',
       modelSay: kind === 'model' ? parsed?.say ?? null : null, modelQuestion: q,
-      deliveredSay: null, question: q && heard.includes(q.trim()) ? q.trim() : null, heard, ...dd, source: 'log' as const,
+      deliveredSay: null, question: q && heard.includes(q.trim()) ? q.trim() : null, heard, ...dd,
+      offeredItemIds: (parsed?.requests ?? []).filter(r => !r.explicit && dd.offers.includes(r.what)).flatMap(r => r.item_ids ?? []),
+      source: 'log' as const,
     };
   });
 }

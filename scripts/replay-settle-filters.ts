@@ -1,6 +1,8 @@
 // Replays two Settle filters over saved runs (12 Oct, batch-19 review step 2):
 //   pending — the question on a turn that delivered data, rewritten where it
 //             treats the data as still to come (lib/orchestrator/pending-data.ts)
+//   offers  — a passing mention offered only when the candidate's message
+//             states a need for the item (data-decisions.ts mentionStatesNeed)
 //   grading — sentences of "say" and the question that grade the candidate's
 //             work, withheld (lib/orchestrator/grading.ts; in the question a
 //             "…, but <challenge>" keeps the challenge)
@@ -12,12 +14,14 @@ import path from 'node:path';
 import { loadSavedTurns, savedRunDirs, type SavedTurn } from '@/lib/eval/saved-turns';
 import { settlePendingData, PENDING_DATA } from '@/lib/orchestrator/pending-data';
 import { isGradingSentence, gradingRemainder } from '@/lib/orchestrator/grading';
+import { mentionStatesNeed } from '@/lib/orchestrator/data-decisions';
 import { getCaseById } from '@/lib/cases/loader';
 import { readFileSync, readdirSync } from 'node:fs';
 
 const ROOT = 'Case Interview Runs/test runs';
 const args = process.argv.slice(2);
 const only = args.find(a => a.startsWith('--only='))?.split('=')[1];
+const on = (f: string) => !only || only === f;
 const batches = args.find(a => a.startsWith('--batches='))?.split('=')[1].split(',')
   ?? ['batch-12', 'batch-13', 'batch-14', 'batch-15', 'batch-16', 'batch-17', 'batch-18', 'batch-19'];
 
@@ -28,13 +32,13 @@ function caseIdOf(dir: string): string {
   return (JSON.parse(readFileSync(path.join(dir, f), 'utf8')) as { session: { caseId: string } }).session.caseId;
 }
 
-type Tally = { runs: number; modelTurns: number; pendingTurns: number; pendingDropped: number; pendingKept: number; pendingNoDelivery: number; gradingSay: number; gradingQuestion: number; questionEmptied: number; gradingRuns: Set<string>; pendingRuns: Set<string> };
+type Tally = { runs: number; modelTurns: number; pendingTurns: number; pendingDropped: number; pendingKept: number; pendingNoDelivery: number; gradingSay: number; gradingQuestion: number; questionEmptied: number; gradingRuns: Set<string>; pendingRuns: Set<string>; offerTurns: number; offerItems: number; offersKept: number; offerRunsAfter: Set<string>; offerRunsBefore: Set<string> };
 const tally: Record<string, Tally> = {};
 const lines: string[] = [];
 
 for (const dir of savedRunDirs(ROOT, batches)) {
   const batch = path.basename(path.dirname(dir)).slice(0, 8);
-  const t = (tally[batch] ??= { runs: 0, modelTurns: 0, pendingTurns: 0, pendingDropped: 0, pendingKept: 0, pendingNoDelivery: 0, gradingSay: 0, gradingQuestion: 0, questionEmptied: 0, gradingRuns: new Set(), pendingRuns: new Set() });
+  const t = (tally[batch] ??= { runs: 0, modelTurns: 0, pendingTurns: 0, pendingDropped: 0, pendingKept: 0, pendingNoDelivery: 0, gradingSay: 0, gradingQuestion: 0, questionEmptied: 0, gradingRuns: new Set(), pendingRuns: new Set(), offerTurns: 0, offerItems: 0, offersKept: 0, offerRunsAfter: new Set(), offerRunsBefore: new Set() });
   t.runs++;
   const ledger = getCaseById(caseIdOf(dir)).dataLedger as { id: string; label: string; value: string }[];
   const exhibits = getCaseById(caseIdOf(dir)).exhibits as { id: string; title: string }[];
@@ -43,7 +47,7 @@ for (const dir of savedRunDirs(ROOT, batches)) {
     if (turn.kind === 'model') t.modelTurns++;
     const where = `${turn.run} t${turn.turn} ${turn.phase}${turn.kind !== 'model' ? ` [${turn.kind}]` : ''}`;
     // pending — every turn's question, code-written ones included
-    if (turn.question && only !== 'grading') {
+    if (turn.question && on('pending')) {
       const released = turn.releases.map(id => ledger.find(i => i.id === id)).filter((i): i is NonNullable<typeof i> => Boolean(i));
       const ctx = {
         deliveredThisTurn: turn.releases.length > 0 || turn.exhibit !== null,
@@ -60,8 +64,20 @@ for (const dir of savedRunDirs(ROOT, batches)) {
         else t.pendingNoDelivery++;
       }
     }
+    // offers — what code would still offer under the stated-need rule
+    if (turn.offeredItemIds.length > 0 && on('offers')) {
+      t.offerTurns++; t.offerRunsBefore.add(turn.run);
+      for (const id of turn.offeredItemIds) {
+        const item = ledger.find(i => i.id === id);
+        if (!item) continue;
+        t.offerItems++;
+        const kept = mentionStatesNeed(turn.candidateText, item.label);
+        if (kept) { t.offersKept++; t.offerRunsAfter.add(turn.run); }
+        lines.push(`OFFER ${kept ? 'kept   ' : 'dropped'} ${where} ${id} ⟵ ${turn.candidateText.replace(/\s+/g, ' ').slice(0, 200)}`);
+      }
+    }
     // grading — the model's own words only
-    if (turn.kind === 'model' && only !== 'pending') {
+    if (turn.kind === 'model' && on('grading')) {
       const say = turn.deliveredSay ?? (turn.modelSay && turn.heard.includes(turn.modelSay.trim()) ? turn.modelSay : '');
       const q = turn.question ?? '';
       const sayHits = sentences(say ?? '').filter(isGradingSentence);
@@ -78,9 +94,9 @@ for (const dir of savedRunDirs(ROOT, batches)) {
   }
 }
 
-console.log('| batch | runs | model turns | pending: turns rewritten (runs) / of which question emptied / kept (names held) / no delivery (untouched) | grading: say / question sentences (runs) / question left without a question |');
-console.log('|---|---|---|---|---|');
+console.log('| batch | runs | model turns | pending: turns rewritten (runs) / of which question emptied / kept (names held) / no delivery (untouched) | grading: say / question sentences (runs) / question left without a question | offers: items kept / offered (runs after / before) |');
+console.log('|---|---|---|---|---|---|');
 for (const [b, t] of Object.entries(tally)) {
-  console.log(`| ${b} | ${t.runs} | ${t.modelTurns} | ${t.pendingTurns} (${t.pendingRuns.size}) / ${t.pendingDropped} / ${t.pendingKept} / ${t.pendingNoDelivery} | ${t.gradingSay} / ${t.gradingQuestion} (${t.gradingRuns.size}) / ${t.questionEmptied} |`);
+  console.log(`| ${b} | ${t.runs} | ${t.modelTurns} | ${t.pendingTurns} (${t.pendingRuns.size}) / ${t.pendingDropped} / ${t.pendingKept} / ${t.pendingNoDelivery} | ${t.gradingSay} / ${t.gradingQuestion} (${t.gradingRuns.size}) / ${t.questionEmptied} | ${t.offersKept} / ${t.offerItems} (${t.offerRunsAfter.size} / ${t.offerRunsBefore.size}) |`);
 }
 console.log('\n' + lines.join('\n'));

@@ -133,6 +133,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   const modelExhibit = turn.exhibit ? resolve(turn.exhibit) : null;
   const decisions = decideData({
     requests,
+    candidateText: ctx.candidateText,
     exhibit: modelExhibit && !(gateOn && gated(modelExhibit)) ? modelExhibit : null,
     rescueItem: turn.rescueItem ? resolve(turn.rescueItem) : null,
     rung3: Boolean(state.stallDecision.intervene && state.stallDecision.rung === 3),

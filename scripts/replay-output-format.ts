@@ -408,6 +408,7 @@ function sampleLedger(s: Sample) {
 function decisionsOf(s: Sample, t: ModelTurn) {
   return decideData({
     requests: resolveRequests(t.requests, resolveCase),
+    candidateText: s.candidateText,
     exhibit: t.exhibit ? resolveCase(t.exhibit) : null,
     rescueItem: null, rung3: false,
     ledger: sampleLedger(s),
