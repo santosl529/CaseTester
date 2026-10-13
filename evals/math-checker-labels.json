@@ -209,10 +209,16 @@
   "id": "default-candidate/live-run-2026-10-12-1c9184cf#t18",
   "run": "default-candidate/live-run-2026-10-12-1c9184cf",
   "t": 18,
-  "label": "correct",
+  "label": "error",
   "sources": [
-   "precision persona default (batch-20-sonnet)"
-  ]
+   "precision persona default (batch-20-sonnet)",
+   "relabelled error after reading (a real error the grading missed)"
+  ],
+  "match": [
+   "16% lift"
+  ],
+  "claim": "restoring the full 16 points would need roughly a 16% lift (≈20.5%)",
+  "note": "found by the checker; the grading marked it correct"
  },
  {
   "id": "default-candidate/live-run-2026-10-12-1c9184cf#t2",
@@ -1288,10 +1294,16 @@
   "id": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f#t20",
   "run": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f",
   "t": 20,
-  "label": "correct",
+  "label": "error",
   "sources": [
-   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
-  ]
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)",
+   "relabelled error after reading (a real error the grading missed)"
+  ],
+  "match": [
+   "five points"
+  ],
+  "claim": "at 10% with flat volume we recover about five points of margin (8.5) — his t10 error, repeated in the recommendation",
+  "note": "per-message label: the run's D6 grade counts it once, at t10"
  },
  {
   "id": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f#t4",

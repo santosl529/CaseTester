@@ -6,12 +6,20 @@
 // right under the candidate's stated assumption, or withdrawn in the message);
 // `label: 'error'` marks a real error the grading missed (Lorenzo, 13 Oct).
 // Keyed by label id ("<run id>#t<N>"); scripts/build-math-labels.ts merges it.
+//
+// Labels are per MESSAGE (Lorenzo, 13 Oct): a wrong claim the candidate
+// repeats is an error in every message it appears in — unlike the per-run D6
+// grading, which counts a repeated error once. So a recall count here can
+// exceed a run's D6 count (Owen R44: t10 and t20 carry the same error).
 export type MathLabelKey = { match?: string[]; claim?: string; mustNotFlag?: string[]; borderline?: boolean; label?: 'correct' | 'error'; note?: string };
 
 export const MATH_LABEL_KEYS: Record<string, MathLabelKey> = {
   "test runs/batch-5-oct-02/57-marisol-the-context-confuser/live-run-2026-10-03-71b929ea#t8": { match: ["14.5"], claim: "the 25% share of COGS (two years ago) applied to today's 58% COGS line: 14.5% of revenue — a period mix (the D6 detector reads it since the period flag, 13 Oct)" },
   // Real errors the batch-20 grading missed, found by the Sonnet checker's flags (read 13 Oct; relabelled by Lorenzo).
   "default-candidate/live-run-2026-10-12-0bfe5f38#t20": { label: 'error', match: ["fully explained"], claim: "the 18-point decline is fully explained by input inflation, 4.2 + 11.8 (16; overhead the other 2) — the claim graded D6 in Destiny R31", mustNotFlag: ["4.2", "11.8"], note: "found by the checker; the grading marked the run's math all correct" },
+  // Relabelled errors after the rerun (Lorenzo, 13 Oct): a repeat of a graded error, and a real error the checker caught.
+  "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f#t20": { label: 'error', match: ["five points"], claim: "at 10% with flat volume we recover about five points of margin (8.5) — his t10 error, repeated in the recommendation", note: "per-message label: the run's D6 grade counts it once, at t10" },
+  "default-candidate/live-run-2026-10-12-1c9184cf#t18": { label: 'error', match: ["16% lift"], claim: "restoring the full 16 points would need roughly a 16% lift (≈20.5%)", note: "found by the checker; the grading marked it correct" },
   "default-candidate/live-run-2026-10-12-33f7479b#t18": { label: 'error', match: ["whole 18-point", "18-point"], claim: "the whole 18-point margin decline sits in COGS (16; overhead the other 2)", note: "found by the checker; not in the R19 grades" },
   "test runs/batch-20-sonnet-oct-12-runs-8-14/10-sofia-the-unit-confuser/live-run-2026-10-12-fed6e8ac#t18": { match: ["can't close"], claim: "commodity inflation at plausible magnitudes can't close a 16-point gap (it does: 4.2 + 11.8) — conceptual, rests on her assumed dairy share", mustNotFlag: ["12.6", "4.4", "8.6"], borderline: true },
   "default-candidate/live-run-2026-09-14-58cb8061#t24": { match: ["5.3"], claim: "a 10% price rise recovers 5.3 points of margin (8.5)" },

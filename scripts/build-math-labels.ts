@@ -15,6 +15,9 @@
 //             Camila t8). A flag on a precision message is a false flag unless
 //             reading shows a real error the grading missed — every one is listed.
 //
+// Per message, not per run (Lorenzo, 13 Oct): a repeated error is an error in
+// every message it appears in (the per-run D6 grading counts it once).
+//
 //   npx tsx scripts/build-math-labels.ts [--dump]   writes evals/math-checker-labels.json
 import { readFileSync, writeFileSync } from 'node:fs';
 import { loadCorpus, type CorpusRun } from '@/lib/eval/run-corpus';
