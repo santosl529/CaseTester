@@ -22,6 +22,7 @@
 // 8 Oct Qwen screen: "beans at 42% of COGS" passed because 42 is allowed).
 import { normalizeNumberWords } from '@/lib/number-words';
 import { exhibitColumns, findMisquotes, type QuoteAnchor } from './misquote';
+import { findCellMisquotes } from './cell-lookup';
 
 export type Unit = 'percent' | 'dollar' | 'count' | 'plain';
 type Direction = 'up' | 'down' | 'flat';
@@ -53,6 +54,7 @@ export type FactBase = {
   ledger: { id: string; value: string; timeframes?: Record<string, string> }[];
   promptLedger: { id: string; value: string; timeframes?: Record<string, string> }[];
   exhibits: { id: string; data: Record<string, unknown>[]; coversLedgerItems?: string[] }[];
+  answers: number[];                      // every math step's answers (cell lookup: derived, never a misquote)
 };
 
 type CaseInput = {
@@ -157,6 +159,7 @@ export function buildFactBase(c: CaseInput): FactBase {
   return {
     quantities, groups: fa.groups.map(g => ({ names: g.names.map(lc), items: g.items })), drivers: fa.drivers,
     anchors, ledger: c.dataLedger, promptLedger, exhibits: c.exhibits,
+    answers: c.mathSteps.flatMap(s => [s.answer, ...(s.altAnswers ?? [])]),
   };
 }
 
@@ -506,6 +509,10 @@ export function findCandidateMisquotes(text: string, fb: FactBase, revealedIds: 
   }).filter(m => !(fb.promptLedger.some(p => p.id === m.item) && /\b(?:contribution|gross|operating|unit|per[- ]drink|product|ebitda|target|drink|food|beverage)\s+margins?\b/i.test(m.sentence)))
     .filter(m => quoteFits(m, fb))
     .map(m => ({ items: [m.item], cited: m.cited, sentence: m.sentence, kind: 'quote' as const }));
+  // Exact lookup of table cells and ledger figures (cell-lookup.ts; Lorenzo, 13 Oct after Larkspur).
+  for (const m of findCellMisquotes(text, { dataLedger: fb.ledger, exhibits: fb.exhibits, mathSteps: fb.answers.map(answer => ({ answer })) }, [...revealed], shownExhibitIds)) {
+    if (!out.some(o => o.items.includes(m.items[0]) || o.cited.endsWith(m.cited))) out.push(m);
+  }
   let lastLevel: Quantity[] = [];
   // A message worked on an index restates every figure on its own base.
   if (INDEXING.test(text)) return [];

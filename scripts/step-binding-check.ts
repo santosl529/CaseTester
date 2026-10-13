@@ -4,13 +4,16 @@
 // --root, with what had been revealed when the message was written, and over
 // the new-case e2e scripts' candidate messages (everything revealed). Lists
 // every step and arithmetic flag — the claim, the bound step, and its label
-// from --labels (real / false, hand-read) — and the precision per case.
+// from --labels (real / false, hand-read) — and the precision per case. With
+// --misquotes: every misquote flag instead (the quote grammar and the exact
+// cell lookup), labelled from evals/misquote-labels.json.
 //
 //   npx tsx scripts/step-binding-check.ts "--root=Case Interview Runs/test runs/batch-22-larkspur-oct-13-runs-1-9" [--labels=evals/step-binding-labels.json] [--json]
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { getCaseById } from '@/lib/cases/loader';
 import { checkCandidateMath } from '@/lib/orchestrator/recompute';
+import { factBaseFor, findCandidateMisquotes } from '@/lib/orchestrator/fact-check';
 import { readTurnFile } from '@/lib/eval/turn-file';
 import { runFiles } from '@/lib/eval/run-corpus';
 
@@ -19,7 +22,8 @@ export type BindingFlag = { source: string; caseId: string; turn: number; kind: 
 
 const arg = (k: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3);
 const root = arg('root') ?? 'Case Interview Runs';
-const labelsPath = arg('labels') ?? 'evals/step-binding-labels.json';
+const MISQUOTES = process.argv.includes('--misquotes');
+const labelsPath = arg('labels') ?? (MISQUOTES ? 'evals/misquote-labels.json' : 'evals/step-binding-labels.json');
 
 // The e2e scripts (tests/orchestrator/new-cases-e2e.test.ts): the candidate's messages, the same for every new case.
 const E2E_MESSAGES = [
@@ -33,7 +37,12 @@ const E2E_MESSAGES = [
 
 export const labelKey = (f: Pick<BindingFlag, 'source' | 'turn' | 'kind' | 'stepId' | 'value'>) => `${f.source}#t${f.turn}|${f.kind}|${f.stepId}|${f.value}`;
 
-function flagsOf(source: string, caseId: string, turn: number, text: string, revealed: string[]): BindingFlag[] {
+function flagsOf(source: string, caseId: string, turn: number, text: string, revealed: string[], shown: string[] = []): BindingFlag[] {
+  if (MISQUOTES) {
+    const c = getCaseById(caseId);
+    return findCandidateMisquotes(text, factBaseFor(c as never), new Set(revealed), shown)
+      .map(m => ({ source, caseId, turn, kind: 'misquote', stepId: m.items[0], value: parseFloat(m.cited.replace(/[^\d.]/g, '')) || 0, expected: 0, span: `${m.cited} — ${m.sentence}` }));
+  }
   const m = checkCandidateMath(text, getCaseById(caseId), revealed);
   return [...m.reportOnly, ...m.flags]
     .filter(f => (f.kind ?? 'step') === 'step' || f.kind === 'arithmetic')
@@ -48,13 +57,14 @@ export function collect(): BindingFlag[] {
     const run = JSON.parse(readFileSync(file, 'utf8')) as { session: { caseId: string } };
     const source = path.relative(root, file).replace(/\.json$/, '');
     for (const t of readTurnFile(tf).turns) {
-      const s = t.stateBefore as { revealedIds?: string[] };
-      out.push(...flagsOf(source, run.session.caseId, t.turnIndex, t.candidateText, s.revealedIds ?? []));
+      const s = t.stateBefore as { revealedIds?: string[]; shownExhibitIds?: string[] };
+      out.push(...flagsOf(source, run.session.caseId, t.turnIndex, t.candidateText, s.revealedIds ?? [], s.shownExhibitIds ?? []));
     }
   }
   for (const caseId of ['prof-002', 'entry-001', 'pricing-001', 'launch-001']) {
     const all = getCaseById(caseId).dataLedger.map(d => d.id);
-    E2E_MESSAGES.forEach((text, i) => out.push(...flagsOf(`e2e/${caseId}`, caseId, i, text, all)));
+    const shown = getCaseById(caseId).exhibits.map(e => e.id);
+    E2E_MESSAGES.forEach((text, i) => out.push(...flagsOf(`e2e/${caseId}`, caseId, i, text, all, shown)));
   }
   return out;
 }
