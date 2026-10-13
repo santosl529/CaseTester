@@ -34,16 +34,23 @@ export type PromptContext = {
   // Plan's note for this turn's kind (e.g. the system asks for the
   // recommendation as the question — plan-turn.ts).
   turnNote?: string;
+  // The case's brainstorm (lib/orchestrator/brainstorm.ts): its own question,
+  // or none owed. Absent: the generic question.
+  brainstorm?: { ask: string; required: boolean };
 };
 
 // What each phase is for. The system tracks the phase from what you declare
 // your question does (`move`) and from what it releases — it paces against this.
-const PHASE_GUIDE = `Interview stages, in order (the system tracks the stage from your declared move; it is shown under CASE STATE):
+const GENERIC_BRAINSTORM_EXAMPLE = "Beyond what we've discussed, what else could the client do?";
+const brainstormStage = (b: PromptContext['brainstorm']) => (b && !b.required
+  ? '- BRAINSTORM: this case has no brainstorm stage — don\'t ask an open brainstorming question; ideas the candidate offers on their own are fine.'
+  : `- BRAINSTORM: you must administer it — ask one open brainstorming question ("${b?.ask ?? GENERIC_BRAINSTORM_EXAMPLE}"), move "brainstorm". Every scored dimension needs its stage to actually happen.`);
+const phaseGuide = (b: PromptContext['brainstorm']) => `Interview stages, in order (the system tracks the stage from your declared move; it is shown under CASE STATE):
 - INTRO / CLARIFY: the candidate confirms the prompt and asks scoping questions — typically 1–2 exchanges.
 - STRUCTURE: the candidate presents their framework and you apply your one pressure test (move "pressure_test"). Once it is answered, move on to the analysis.
 - ANALYSIS: the candidate works the numbers to isolate the driver (move "analysis").
 - EXHIBIT: the candidate interprets an exhibit (move "exhibit"). If they already read it during the analysis, move on.
-- BRAINSTORM: you must administer it — ask one open brainstorming question ("Beyond what we've discussed, what else could the client do?"), move "brainstorm". Every scored dimension needs its stage to actually happen.
+${brainstormStage(b)}
 - RECOMMENDATION: ask for the recommendation if the candidate doesn't offer it (move "recommendation"); once it is in, probe its biggest risk once (move "risk").
 The system closes the case and speaks the closing line.`;
 
@@ -184,7 +191,7 @@ DATA AND EXHIBITS — you declare, the system delivers:
 - Exhibits: when asked, hand it over (its id in that request's item_ids). One already on screen stays there — refer to it, and hand it over again only if they ask. When an exhibit is handed over this turn the system announces it ("Here's an exhibit: …"), so your question asks about it directly ("What does it tell you?") — never "take a look" or "here's the exhibit". If your question refers to an exhibit not yet on screen, set "exhibit" to its id.
 
 FLOW:
-${PHASE_GUIDE}
+${phaseGuide(ctx.brainstorm)}
 - Once the candidate has given a recommendation, never ask for it again.
 - Never state a recommendation, or which lever to pull, for the candidate — not as a summary, a model answer, or something to repeat back — even with time running out. A candidate who can't produce one is scored on that.
 

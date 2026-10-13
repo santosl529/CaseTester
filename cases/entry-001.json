@@ -787,6 +787,9 @@
     }
   },
   "format": "interviewer_led",
+  "brainstorm": {
+    "ask": "If Aldermoor builds its own team, how could it reduce the risk of a slow start?"
+  },
   "analysisCore": {
     "items": [
       "funnel_rates",

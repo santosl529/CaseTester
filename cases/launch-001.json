@@ -854,6 +854,9 @@
     }
   },
   "format": "interviewer_led",
+  "brainstorm": {
+    "ask": "What could Hollis Bay do to get shoppers to try its chickpea snacks — and to keep buying them?"
+  },
   "analysisCore": {
     "items": [
       "bag_price",

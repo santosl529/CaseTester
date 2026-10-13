@@ -17,6 +17,7 @@
 // reads the record; missing evidence becomes "not assessed", never an
 // invented rating (lib/scoring/stage-caps.ts).
 import { asksBrainstorm, asksForConclusion, asksRiskQuestion } from './spoken-close';
+import { asksCaseBrainstorm } from './brainstorm';
 import { classifyTurn } from './stall';
 import { isRefusalToStart } from './candidate-exit';
 import type { PressureTestState } from './pressure-test';
@@ -70,6 +71,7 @@ export type StageTurn = {
   candidateFigures: number;     // figures the candidate derived so far (math-talk.ts)
   codeAsked?: StageKey;         // code administered this stage this turn
   ended?: 'time_up' | null;     // the session closed this turn at time-up
+  brainstormAsks?: string[];    // the case's own brainstorm question (brainstorm.ts)
 };
 
 export function updateStages(prev: StageRecord | undefined, t: StageTurn): StageRecord {
@@ -113,7 +115,7 @@ export function updateStages(prev: StageRecord | undefined, t: StageTurn): Stage
     if (!r[k].outcome) { r.pending = k; r.pendingReplies = 0; }
   };
   if (t.exhibitShown) deliver('exhibit', t.codeAsked === 'exhibit');
-  if (t.codeAsked === 'brainstorm' || asksBrainstormNow(t.question)) deliver('brainstorm', t.codeAsked === 'brainstorm');
+  if (t.codeAsked === 'brainstorm' || asksBrainstormNow(t.question) || asksCaseBrainstorm(t.question, t.brainstormAsks ?? [])) deliver('brainstorm', t.codeAsked === 'brainstorm');
   // As the end gate reads them (progress.ts): a recommendation ask in any
   // wording; the risk question once a recommendation is on the table.
   if (t.recAsked || asksForConclusion(t.question)) deliver('recommendation');
@@ -136,13 +138,13 @@ export function anyAssessable(r: StageRecord | undefined): boolean {
 }
 
 // The stages the case still owes before a normal end (interviewer-led): the
-// exhibit (when the case has one) and the brainstorm, each once — answered,
-// declined or unable all resolve it.
-export function missingRequiredStages(r: StageRecord | undefined, p: { hasExhibit: boolean; format?: 'interviewer_led' | 'candidate_led' }): StageKey[] {
+// exhibit (when the case has one) and the brainstorm (unless the case has no
+// brainstorm module), each once — answered, declined or unable all resolve it.
+export function missingRequiredStages(r: StageRecord | undefined, p: { hasExhibit: boolean; format?: 'interviewer_led' | 'candidate_led'; brainstormRequired?: boolean }): StageKey[] {
   if (p.format === 'candidate_led') return [];
   const rec = r ?? INITIAL_STAGES;
   const out: StageKey[] = [];
   if (p.hasExhibit && !rec.exhibit.delivered) out.push('exhibit');
-  if (!rec.brainstorm.delivered) out.push('brainstorm');
+  if (!rec.brainstorm.delivered && p.brainstormRequired !== false) out.push('brainstorm');
   return out;
 }

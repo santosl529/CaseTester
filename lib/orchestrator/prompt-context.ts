@@ -7,6 +7,7 @@ import { revealedValues, unrevealedItems } from './data-ledger';
 import { TOTAL_CASE_MS } from './state-machine';
 import { turnNoteFor } from './turn-note';
 import { exhibitReady } from './data-decisions';
+import { brainstormAsks, brainstormRequired } from './brainstorm';
 
 export function promptContextFor(plan: ModelPlan): PromptContext {
   const { ctx, state } = plan;
@@ -28,5 +29,6 @@ export function promptContextFor(plan: ModelPlan): PromptContext {
     openDataRequestsHint: state.openDataRequestsHint,
     conductRedirectHint: state.conductRedirectHint,
     turnNote: turnNoteFor(state.kind, ctx.acknowledged, { pressureTest: state.pressureTest.state, phase: ctx.currentPhase }),
+    brainstorm: { ask: brainstormAsks(caseData)[0], required: brainstormRequired(caseData) },
   };
 }

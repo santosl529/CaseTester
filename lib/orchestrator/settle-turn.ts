@@ -30,6 +30,7 @@ import { pickScript, STAGE_EXHIBIT_QUESTIONS } from '@/lib/agent/prompts/scripts
 import { BLOCKED_CLOSE_PROBES, asksForConclusion } from './spoken-close';
 import { updateStages, type StageKey, type StageRecord } from './stage-evidence';
 import { renderDataLineParts, decisionRows, nextReadyExhibit } from './data-decisions';
+import { brainstormAsks } from './brainstorm';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
 import { turnData, pressureTestOutcomeNow } from './turn-data';
@@ -392,7 +393,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   } else if (!codeWritten && kind === 'model' && state.owedStage && state.ptClosed && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) && asksForConclusion(question)) {
     const asked = question;
     if (state.owedStage === 'brainstorm') {
-      question = pickScript([...BLOCKED_CLOSE_PROBES.brainstorm], seed);
+      question = pickScript(brainstormAsks(caseData), seed);
       stageAsked = 'brainstorm';
     } else if (!decisions.exhibit) {
       heldForExhibit = nextReadyExhibit(caseData.exhibits, state.shownExhibitIds, ledger);
@@ -638,7 +639,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       turnIndex: nextTurnIndex + 1, candidateText, question: qHeard ? question : '', exhibitShown: exhibitSaved !== undefined,
       released: bookedReveals.length + exhibitRevealsSaved.length > 0, recAsked: ASKS_RECOMMENDATION.has(kind) && qHeard,
       recommendationDelivered: stallSaved.recommendationDelivered, pressureTest: ptSaved, candidateFigures: state.candidateFigures.length,
-      codeAsked: stageAskedSaved, ended: endedSaved && state.timeUp ? 'time_up' : null,
+      codeAsked: stageAskedSaved, ended: endedSaved && state.timeUp ? 'time_up' : null, brainstormAsks: brainstormAsks(caseData),
     });
     const stagesEnforcedSaved = stageAskedSaved ? { ...state.stagesEnforced, [stageAskedSaved]: true } : state.stagesEnforced;
     // KF-4 (v4.10): when the gate closes this turn, the unmapped asks it held

@@ -14,7 +14,6 @@ import type { Phase } from './state-machine';
 import { streamInterviewerTurn } from '@/lib/agent/interviewer';
 import { createInterviewerModel } from '@/lib/agent/models/factory';
 import { SILENCE_PAUSE_EXPIRED, GRACE_ASK_SCRIPTS, TIME_WARNING_SCRIPTS, STAGE_EXHIBIT_QUESTIONS, closeLine, pickScript } from '@/lib/agent/prompts/scripts';
-import { BLOCKED_CLOSE_PROBES } from './spoken-close';
 import { planTurn, scriptedOffer, scriptedOfferFor, terminationPlanFor, type ModelPlan, type TurnReads } from './plan-turn';
 import { conductEnds } from './stream-turn';
 import type { ConductModelVerdict } from './conduct-model';
@@ -23,6 +22,7 @@ import { promptContextFor } from './prompt-context';
 import { TurnRecorder, type TurnRecord, type TurnStateBefore } from './turn-record';
 import { revealedValues } from './data-ledger';
 import { nextReadyExhibit } from './data-decisions';
+import { brainstormAsks } from './brainstorm';
 import { streamTurnSegments } from './stream-turn';
 import { settleTurn, commitScripted, logSessionEvent, type TurnUsage, type ModelOutcome } from './settle-turn';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
@@ -429,7 +429,7 @@ function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null
   const question = state.kind === 'close' ? closeLine(state.closeReason, seed)
     : state.kind === 'grace_ask' ? pickScript(GRACE_ASK_SCRIPTS, seed)
       : state.kind === 'time_warning' ? pickScript(TIME_WARNING_SCRIPTS, seed)
-        : state.kind === 'stage_brainstorm' ? pickScript([...BLOCKED_CLOSE_PROBES.brainstorm], seed)
+        : state.kind === 'stage_brainstorm' ? pickScript(brainstormAsks(state.caseData), seed)
           : state.kind === 'stage_exhibit' ? pickScript(STAGE_EXHIBIT_QUESTIONS, seed)
           : state.kind === 'stage_analysis' && state.caseData.analysisCore ? state.caseData.analysisCore.ask
             : state.kind === 'rec_revision' ? pickScript([...REC_REVISION_QUESTIONS], seed)

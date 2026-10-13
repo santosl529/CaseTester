@@ -146,6 +146,15 @@ export const CaseSchema = z.object({
   // candidate-led cases leave the order to the candidate. Only interviewer-led
   // cases exist so far.
   format: z.enum(['interviewer_led', 'candidate_led']).default('interviewer_led'),
+  // The brainstorm (new cases, 13 Oct; lib/orchestrator/brainstorm.ts): the
+  // case's own brainstorm question — code's stage line (several rotate), and
+  // the brainstorm when the interviewer asks it — and whether the case owes
+  // one (false: no brainstorm module, as in Quillpath). Without it: the
+  // generic question, owed.
+  brainstorm: z.object({
+    ask: z.union([z.string().min(1), z.array(z.string().min(1)).min(1)]).optional(),
+    required: z.boolean().default(true),
+  }).optional(),
   // The core analysis (fact guards Phase 5, 12 Oct): the ledger items the case
   // turns on — no recommendation ask and no close before they are out, unless
   // the clock is out (batch 20: recommendations asked at 7 min with the COGS

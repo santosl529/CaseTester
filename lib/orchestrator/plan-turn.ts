@@ -31,6 +31,7 @@ import { stageGateOpen, endAllowed, recommendationUnresolved, asksRecommendation
 import { stagesFromTurns, type TurnMove } from './progress';
 import { CheckLog } from './check-log';
 import { nextReadyExhibit } from './data-decisions';
+import { brainstormAsks, brainstormRequired } from './brainstorm';
 import { correctionLines } from './misquote';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
@@ -562,8 +563,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     turnRows.filter(t => t.role === 'interviewer').map(t => ({ turnIndex: t.turnIndex, text: t.text })),
     moves,
     recommendationReceived,
+    brainstormAsks(caseData),
   );
-  const stageGate = stageGateOpen(stages) && elapsedMs >= COVERAGE_MIN_GUARD_MS;
+  const stageGate = stageGateOpen(stages, { brainstormRequired: brainstormRequired(caseData) }) && elapsedMs >= COVERAGE_MIN_GUARD_MS;
   const mayEnd = endAllowed({ coverageMayEnd, timeUp, stageGate, stages });
   // Fact guards Phase 5 (batch 20 R33, R32): a recommendation the interviewer
   // never asked for — volunteered mid-case — is asked for by code before the
@@ -594,7 +596,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const stageRecord = (flags.stageEvidence as StageRecord | undefined) ?? INITIAL_STAGES;
   const stagesEnforced = (flags.stagesEnforced as Partial<Record<StageKey, boolean>> | undefined) ?? {};
   // The exhibit stage is owed only while an exhibit is ready to hand over (release order).
-  const owedStage = missingRequiredStages(stageRecord, { hasExhibit: nextReadyExhibit(caseData.exhibits, shownExhibitIds, ledger) !== undefined, format: caseData.format })
+  const owedStage = missingRequiredStages(stageRecord, { hasExhibit: nextReadyExhibit(caseData.exhibits, shownExhibitIds, ledger) !== undefined, format: caseData.format, brainstormRequired: brainstormRequired(caseData) })
     .find(k => !stagesEnforced[k]);
   const ptClosed = pressureTest.state === 'satisfied' || pressureTest.state === 'waived';
   const stageDue = owedStage !== undefined && ptClosed && !timeUp && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)

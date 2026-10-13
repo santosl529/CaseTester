@@ -91,6 +91,13 @@ describe('scorecard', () => {
     expect(scorecardRow({ runId: 'r', turnFile: null, run: run() }).stagesSource).toBe('transcript');
   });
 
+  it('no stage_skipped for a missing brainstorm on a case with no brainstorm module (Quillpath)', () => {
+    const gate = { category: 'check', subtype: 'end_gate', turnIndex: 5, payloadJsonb: { decision: 'pass', detail: { riskAsked: true, brainstormAsked: false, recommendationAsked: true, recommendationAskCount: 1, recommendationReceived: true } } };
+    const skipped = (caseId: string) => scorecardRow({ runId: 'r', turnFile: null, run: run({ session: { id: 's', status: 'completed', caseId }, events: [gate] }) }).codeFlags.some(f => f.kind === 'stage_skipped');
+    expect(skipped('pricing-001')).toBe(false);
+    expect(skipped('launch-001')).toBe(true);
+  });
+
   it('counts llm_usage rows with unpriced models without adding cost', () => {
     const row = scorecardRow({ runId: 'r', turnFile: null, run: run({ analytics: [{ eventType: 'llm_usage', payloadJsonb: { model: 'mystery-model', inputTokens: 5, outputTokens: 5 } }] }) });
     expect(row.performance.unpricedUsageCalls).toBe(1);

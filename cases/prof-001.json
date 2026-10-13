@@ -360,6 +360,13 @@
       "WRAP": 40000
     }
   },
+  "brainstorm": {
+    "ask": [
+      "Beyond what we've discussed, what else could the client do?",
+      "What other levers could the client pull here?",
+      "Beyond pricing, what else could the client do to protect margin?"
+    ]
+  },
   "shareBases": [
     {
       "name": "COGS",

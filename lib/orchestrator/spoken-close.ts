@@ -150,8 +150,9 @@ export function recommendationUnresolved(s: StageAdministration): boolean {
   return !s.recommendationReceived && s.recommendationAskCount >= RECOMMENDATION_ASK_LIMIT;
 }
 
-export function stageGateOpen(s: StageAdministration): boolean {
-  if (!s.brainstormAsked) return false;
+// A case without a brainstorm module (brainstorm.required false) owes none.
+export function stageGateOpen(s: StageAdministration, opts: { brainstormRequired?: boolean } = {}): boolean {
+  if (!s.brainstormAsked && opts.brainstormRequired !== false) return false;
   return s.recommendationReceived ? s.riskAsked : recommendationUnresolved(s);
 }
 
@@ -165,12 +166,15 @@ export function endAllowed(p: { coverageMayEnd: boolean; timeUp: boolean; stageG
   return p.coverageMayEnd && (p.stages.recommendationAsked || p.stages.recommendationReceived);
 }
 
+// Case-neutral (new cases, 13 Oct): a case's own question is its
+// brainstorm.ask (brainstorm.ts); prof-001's profitability line lives there.
+export const GENERIC_BRAINSTORM_ASKS = [
+  "Beyond what we've discussed, what else could the client do?",
+  'What other levers could the client pull here?',
+] as const;
+
 export const BLOCKED_CLOSE_PROBES = {
-  brainstorm: [
-    "Beyond what we've discussed, what else could the client do?",
-    'What other levers could the client pull here?',
-    "Beyond pricing, what else could the client do to protect margin?",
-  ],
+  brainstorm: GENERIC_BRAINSTORM_ASKS,
   recommendation: [
     "Pull it together — what's your recommendation to the CEO?",
     'Based on what you have, what would you tell the CEO to do?',

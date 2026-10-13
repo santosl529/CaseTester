@@ -999,6 +999,9 @@
     }
   },
   "format": "interviewer_led",
+  "brainstorm": {
+    "required": false
+  },
   "analysisCore": {
     "items": [
       "plan_prices_costs",
