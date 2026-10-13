@@ -23,7 +23,7 @@ import { brainstormAsks, brainstormRequired, asksCaseBrainstorm, type CaseBrains
 
 export type FlowFlag = { rule: 'D7' | 'STAGE' | 'CLOSE' | 'LOOP'; t: number; sub: string; text: string };
 
-type CaseLike = { exhibits: { id: string }[]; analysisCore?: { items: string[]; minItems?: number; ask?: string }; format?: string } & CaseBrainstorm;
+type CaseLike = { exhibits: { id: string; required?: boolean }[]; analysisCore?: { items: string[]; minItems?: number; ask?: string }; format?: string } & CaseBrainstorm;
 
 const questionOf = (t: CorpusTurn) => t.segments.filter(s => s.kind === 'question' || s.kind === 'scripted').map(s => s.text).join(' ')
   || t.segments.filter(s => s.kind !== 'data').map(s => s.text).join(' ');
@@ -50,6 +50,10 @@ export function checkFlowRun(run: CorpusRun, c: CaseLike): FlowFlag[] {
   const interviewerLed = (c.format ?? 'interviewer_led') === 'interviewer_led';
   const caseAsks = c.brainstorm?.ask !== undefined ? brainstormAsks(c) : [];
   // A case with no brainstorm module owes none.
+  // Required exhibits (13 Oct) are owed one by one; otherwise any one exhibit.
+  const required = c.exhibits.filter(e => e.required).map(e => e.id);
+  const shownIds = new Set<string>();
+  const exhibitOwed = () => (hasExhibit && !exhibitShown) || required.some(id => !shownIds.has(id));
   let exhibitShown = false, brainstormAsked = !brainstormRequired(c), riskAsked = false, recAsked = false;
   let closedAt: number | null = null, lastOwed = '', steered = false;
   let streak: { tag: string; n: number }[] = [];
@@ -63,12 +67,13 @@ export function checkFlowRun(run: CorpusRun, c: CaseLike): FlowFlag[] {
     const timeUp = (t.elapsedMs !== undefined && t.elapsedMs >= TOTAL_CASE_MS) || closeReason === 'time_up';
     const late = t.elapsedMs !== undefined && TOTAL_CASE_MS - t.elapsedMs < LOAD_SHED_REMAINING_MS;
     exhibitShown ||= t.shownBefore.length > 0 || t.exhibitNow !== null;
+    for (const id of [...t.shownBefore, ...(t.exhibitNow ? [t.exhibitNow] : [])]) shownIds.add(id);
     if (closedAt !== null) { flags.push({ rule: 'CLOSE', t: t.t, sub: 'continues_after_close', text: q.slice(0, 200) }); closedAt = null; }
     // D7: a call for the conclusion with a stage or the core analysis owed.
     if ((asksForConclusion(q) || CODE_REC.has(t.kind)) && interviewerLed && !late && !AFTER_REC.has(t.kind)) {
       const owed = [
         ...(!brainstormAsked ? ['brainstorm'] : []),
-        ...(hasExhibit && !exhibitShown ? ['exhibit'] : []),
+        ...(exhibitOwed() ? ['exhibit'] : []),
         // Once code has asked back to the analysis, moving on is the rule.
         ...(!coreAttempted && !steered ? ['analysis'] : []),
       ].join('+');
@@ -100,7 +105,7 @@ export function checkFlowRun(run: CorpusRun, c: CaseLike): FlowFlag[] {
   }
   if (run.status === 'completed' && interviewerLed && turns.length > 0) {
     const missing = [
-      ...(hasExhibit && !exhibitShown ? ['exhibit'] : []),
+      ...(exhibitOwed() ? ['exhibit'] : []),
       ...(!brainstormAsked ? ['brainstorm'] : []),
       ...(!recAsked ? ['recommendation'] : []),
       ...(!riskAsked ? ['risk'] : []),

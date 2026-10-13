@@ -68,7 +68,8 @@ function seed(p: { caseId: string; phase: string; flags?: Row; revealed?: string
     id: 's1', userId: 'u1', caseId: p.caseId, phase: p.phase, elapsedMs: 0, phaseStartedAt: startedAt, status: 'active',
     abandonPhase: null, startedAt, completedAt: null, coverageJsonb: p.coverage ?? null, flagsJsonb: { conduct: { warnings: 0 }, ...p.flags },
   };
-  store.turns = turns.map((t, i) => ({ id: `t${i}`, sessionId: 's1', turnIndex: i, role: t.role, text: t.text, timestampMs: startedAt.getTime() + i * 20_000, latencyMs: null }));
+  // Turns just before now: a gap since the last line would be credited as a silence pause and slow the clock.
+  store.turns = turns.map((t, i) => ({ id: `t${i}`, sessionId: 's1', turnIndex: i, role: t.role, text: t.text, timestampMs: Date.now() - (turns.length - i) * 20_000, latencyMs: null }));
   store.revealed = (p.revealed ?? []).map((ledgerItemId, i) => ({ id: `r${i}`, sessionId: 's1', ledgerItemId, revealedAtMs: startedAt.getTime() }));
   store.exhibits = (p.shown ?? []).map((exhibitId, i) => ({ id: `e${i}`, sessionId: 's1', exhibitId, shownAtMs: startedAt.getTime() }));
   store.events = [];
@@ -122,9 +123,10 @@ describe('exhibit release order through the runner (Larkspur 1 → 2 → 3)', ()
 });
 
 describe('the recommendation ask does not force out data still waiting on the order', () => {
+  // Under time pressure (no required-exhibit hold): Exhibit 2 goes out with the ask, Exhibit 3's data stays waiting.
   it("an open ask for the new-route plan stays held at code's recommendation ask while Exhibit 2 isn't out", async () => {
     const ALL_COVERED = { structure: 90, quantitative: 90, dataExhibit: 90, judgment: 90, creativity: 90, synthesis: 90, communication: 90, pushback: 90 };
-    seed({ caseId: 'prof-002', phase: 'ANALYSIS', elapsedMin: 13, coverage: ALL_COVERED, shown: ['exhibit-1'],
+    seed({ caseId: 'prof-002', phase: 'ANALYSIS', elapsedMin: 18.7, coverage: ALL_COVERED, shown: ['exhibit-1'],
       revealed: ['route_results_lakeport', 'route_results_port_avery', 'lakeport_fare'],
       flags: { ...PT_SATISFIED, stageEvidence: {
         structure: { delivered: true, outcome: 'answered' }, pressure_test: { delivered: true, outcome: 'answered' }, analysis: { delivered: true, outcome: 'answered' },
@@ -132,6 +134,7 @@ describe('the recommendation ask does not force out data still waiting on the or
     store.events.push({ category: 'data_request', subtype: 'defer', turnIndex: 1, payloadJsonb: { what: 'the new-route plan', ledgerItemIds: ['new_routes_plan'], interviewerTurnIndex: 2, revealedByNow: false, explicit: true } });
     const r = await say('So the fare cut explains it.', T());
     expect(r.interviewerText).toMatch(/recommendation|tell the CEO/i);
+    expect(r.interviewerText).toMatch(/Here's an exhibit: Hub–Lakeport/);
     expect(store.revealed.map(x => x.ledgerItemId)).not.toContain('new_routes_plan');
     expect(r.interviewerText).not.toMatch(/come back to/);
   });
@@ -146,7 +149,7 @@ const stageRecord = () => (store.session.flagsJsonb as Row).stageEvidence as Rec
 
 describe("each case's own brainstorm", () => {
   it("code's brainstorm stage line is Aldermoor's own question, not a generic or profitability one", async () => {
-    seed({ caseId: 'entry-001', phase: 'ANALYSIS', elapsedMin: 13, coverage: ALL_COVERED, shown: ['exhibit-1'],
+    seed({ caseId: 'entry-001', phase: 'ANALYSIS', elapsedMin: 13, coverage: ALL_COVERED, shown: ['exhibit-1', 'exhibit-2', 'exhibit-3'],
       revealed: ['funnel_rates', 'peak_share_forecast', 'kelvexa_pricing'], flags: { ...PT_SATISFIED, stageEvidence: stagesWith({}) } });
     const r = await say('So the US market clears the bar.');
     expect(r.interviewerText).toBe('If Aldermoor builds its own team, how could it reduce the risk of a slow start?');
@@ -154,7 +157,7 @@ describe("each case's own brainstorm", () => {
   });
 
   it("the model asking Hollis Bay's own question is the brainstorm: code doesn't ask another", async () => {
-    seed({ caseId: 'launch-001', phase: 'EXHIBIT', elapsedMin: 12, shown: ['exhibit-1', 'exhibit-2'],
+    seed({ caseId: 'launch-001', phase: 'EXHIBIT', elapsedMin: 12, shown: ['exhibit-1', 'exhibit-2', 'exhibit-3'],
       revealed: ['bag_price', 'variable_costs', 'launch_costs', 'purchase_intent', 'planning_assumptions'], flags: { ...PT_SATISFIED, stageEvidence: stagesWith({}) } });
     await say('Break-even looks reachable.', T({ move: 'brainstorm', question: 'What could Hollis Bay do to get shoppers to try its chickpea snacks — and to keep buying them?' }));
     expect(stageRecord().brainstorm.delivered).toBe(true);
@@ -165,7 +168,7 @@ describe("each case's own brainstorm", () => {
   });
 
   it("the model's early recommendation ask, held for the brainstorm, becomes Hollis Bay's question", async () => {
-    seed({ caseId: 'launch-001', phase: 'EXHIBIT', elapsedMin: 12, shown: ['exhibit-1', 'exhibit-2'],
+    seed({ caseId: 'launch-001', phase: 'EXHIBIT', elapsedMin: 12, shown: ['exhibit-1', 'exhibit-2', 'exhibit-3'],
       revealed: ['bag_price', 'variable_costs', 'launch_costs', 'purchase_intent', 'planning_assumptions'], flags: { ...PT_SATISFIED, stageEvidence: stagesWith({}) } });
     const r = await say('So it breaks even.', T({ move: 'recommendation', question: "What's your recommendation to the client?" }));
     expect(r.interviewerText).toBe('What could Hollis Bay do to get shoppers to try its chickpea snacks — and to keep buying them?');
@@ -229,5 +232,46 @@ describe("code's brainstorm waits a turn when its own data line hands over data 
     const next = await say('That closes it: broad inflation explains all 16 points.');
     expect(next.interviewerText).toMatch(/what else could the client do|other levers|protect margin/i);
     expect(stageRecord().brainstorm).toMatchObject({ delivered: true, codeAsked: true });
+  });
+});
+
+describe('required exhibits (Lorenzo, 13 Oct)', () => {
+  const RISKED = (over: Row = {}) => ({ ...PT_SATISFIED, stageEvidence: stagesWith({ brainstorm: { delivered: true, outcome: 'answered' }, recommendation: { delivered: true, outcome: 'answered' }, risk: { delivered: true }, pending: 'risk' }),
+    stall: { ladderLevel: 0, consecutiveNoProgress: 0, consecutiveClarify: 0, lastCandidateQuestion: null, recommendationDelivered: true }, ...over });
+  const TURNS = [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'Fares fell.' },
+    { role: 'interviewer', text: "What else could Larkspur do to make sure it's profitable in the first year?" }, { role: 'candidate', text: 'Phase the exit.' },
+    { role: 'interviewer', text: "What's your recommendation to the client?" }, { role: 'candidate', text: 'I recommend exiting both routes.' },
+    { role: 'interviewer', text: "What's the biggest risk to that recommendation, and how would you test for it?" }];
+  const CORE = ['route_results_lakeport', 'route_results_port_avery', 'lakeport_fare'];
+
+  it('the case does not close while a required exhibit is unshown: code hands it over, then closes', async () => {
+    seed({ caseId: 'prof-002', phase: 'RECOMMENDATION', elapsedMin: 12, shown: ['exhibit-1', 'exhibit-2'], revealed: CORE, turns: TURNS, flags: RISKED() });
+    const r = await say('The risk is ramp-up; I would phase it.');
+    expect(r.ended).toBe(false);
+    expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2', 'exhibit-3']);
+    expect(r.interviewerText).toMatch(/^Here's an exhibit: Proposed new routes/);
+    const next = await say('It adds about $11.8M.');
+    expect(next.ended).toBe(true);
+  });
+
+  it('under time pressure there is no hold: the next required exhibit goes out with the recommendation ask', async () => {
+    seed({ caseId: 'prof-002', phase: 'ANALYSIS', elapsedMin: 18.7, shown: ['exhibit-1'], revealed: CORE, flags: PT_SATISFIED });
+    const r = await say('So the fare cut explains it.', T({ move: 'recommendation', question: "What's your recommendation to the CEO?" }));
+    expect(r.interviewerText).toMatch(/^Here's an exhibit: Hub–Lakeport.*\(\$\)\. .*recommendation to the CEO\?$/);   // the time warning is the ask here
+    expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2']);
+  });
+
+  it("…and with the model's own recommendation ask once the time warning has gone out", async () => {
+    const LOW = { structure: 20, quantitative: 20, dataExhibit: 20, judgment: 20, creativity: 20, synthesis: 20, communication: 20, pushback: 20 };   // code doesn't ask
+    seed({ caseId: 'prof-002', phase: 'ANALYSIS', elapsedMin: 18.9, coverage: LOW, shown: ['exhibit-1'], revealed: CORE, flags: { ...PT_SATISFIED, timeWarningFired: true } });
+    const r = await say('So the fare cut explains it.', T({ move: 'recommendation', question: "What's your recommendation to the CEO?" }));
+    expect(r.interviewerText).toMatch(/^Here's an exhibit: Hub–Lakeport.*\(\$\)\. What's your recommendation to the CEO\?$/);
+  });
+
+  it('not at time-up: the close is not held', async () => {
+    seed({ caseId: 'prof-002', phase: 'RECOMMENDATION', elapsedMin: 20.5, shown: ['exhibit-1', 'exhibit-2'], revealed: CORE, turns: TURNS, flags: RISKED() });
+    const r = await say('The risk is ramp-up.');
+    expect(r.ended).toBe(true);
+    expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2']);
   });
 });

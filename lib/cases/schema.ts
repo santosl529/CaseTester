@@ -113,6 +113,11 @@ const ExhibitSchema = z.object({
   // exhibit nor an item only it shows is released, by any path.
   after: z.array(z.string()).optional(),
   requiresItems: z.array(z.string()).optional(),
+  // Owed before the case ends (Lorenzo, 13 Oct): an unshown required exhibit
+  // holds the recommendation ask and the close — code hands it over, in order;
+  // under time pressure it goes out with the recommendation ask instead. A
+  // required exhibit's `after` exhibits must be required too.
+  required: z.boolean().optional(),
 });
 
 const RubricAnchorSchema = z.object({
@@ -262,6 +267,9 @@ export const CaseSchema = z.object({
     (e.after ?? []).forEach((id, j) => {
       const at = c.exhibits.findIndex(x => x.id === id);
       if (at < 0 || at >= i) ctx.addIssue({ code: 'custom', path: ['exhibits', i, 'after', j], message: `"${id}" is not an exhibit earlier in the list` });
+    });
+    if (e.required) (e.after ?? []).forEach((id, j) => {
+      if (c.exhibits.find(x => x.id === id)?.required !== true) ctx.addIssue({ code: 'custom', path: ['exhibits', i, 'after', j], message: `"${id}" comes before required "${e.id}", so it must be required too` });
     });
     (e.requiresItems ?? []).forEach((id, j) => {
       if (!ledgerIds.has(id)) ctx.addIssue({ code: 'custom', path: ['exhibits', i, 'requiresItems', j], message: `Unknown ledger item "${id}"` });

@@ -100,6 +100,10 @@ describe('CaseSchema exhibit release order', () => {
     expect(CaseSchema.safeParse(exhibits(e => { e[1].after = ['exhibit-2']; })).success).toBe(false);
     expect(CaseSchema.safeParse(exhibits(e => { e[0].after = ['exhibit-3']; })).success).toBe(false);
   });
+  it("a required exhibit's predecessors must be required too", () => {
+    expect(CaseSchema.safeParse(exhibits(e => { e[0].required = false; })).success).toBe(false);
+    expect(CaseSchema.safeParse(exhibits(e => { e[2].required = false; })).success).toBe(true);
+  });
   it('rejects an unknown exhibit or ledger item', () => {
     expect(CaseSchema.safeParse(exhibits(e => { e[1].after = ['exhibit-9']; })).success).toBe(false);
     expect(CaseSchema.safeParse(exhibits(e => { e[1].requiresItems = ['nope']; })).success).toBe(false);

@@ -732,6 +732,7 @@
         "network_totals",
         "fixed_costs"
       ],
+      "required": true,
       "data": [
         {
           "Route": "Hub–Cedar Bluff",
@@ -822,6 +823,7 @@
       "after": [
         "exhibit-1"
       ],
+      "required": true,
       "data": [
         {
           "Item": "Seats per flight",
@@ -888,6 +890,7 @@
       "after": [
         "exhibit-2"
       ],
+      "required": true,
       "data": [
         {
           "Item": "Seats per flight",

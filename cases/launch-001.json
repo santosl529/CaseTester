@@ -585,6 +585,7 @@
         "launch_costs",
         "recipe_cost"
       ],
+      "required": true,
       "data": [
         {
           "Item": "Price Hollis Bay receives from retailers (per bag)",
@@ -637,6 +638,7 @@
         "survey_design",
         "planning_assumptions"
       ],
+      "required": true,
       "data": [
         {
           "Question": "How likely to buy?",
@@ -743,6 +745,7 @@
         "exhibit-1",
         "exhibit-2"
       ],
+      "required": true,
       "data": [
         {
           "Item": "What it is",

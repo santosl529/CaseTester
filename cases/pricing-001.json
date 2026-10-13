@@ -813,6 +813,7 @@
         "plan_cac",
         "ltv_definition"
       ],
+      "required": true,
       "data": [
         {
           "": "Monthly price",
@@ -847,6 +848,7 @@
         "starter_cohort",
         "cohort_notes"
       ],
+      "required": true,
       "data": [
         {
           "Cohort": "Pro (1,050 at sign-up)",
@@ -904,6 +906,7 @@
       "coversLedgerItems": [
         "new_customers_by_plan"
       ],
+      "required": true,
       "data": [
         {
           "Period": "2024 (before Starter launched)",
@@ -933,6 +936,7 @@
         "exhibit-2",
         "exhibit-3"
       ],
+      "required": true,
       "data": [
         {
           "Group": "Control",

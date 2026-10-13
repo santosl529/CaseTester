@@ -437,7 +437,7 @@ function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null
               : recMath ? recMathLine(recMath.flag, 'probe')
             : `Take your time. ${restateOnTable(state.lastQuestion ?? '')}`;
   // The owed exhibit is handed over by code's own data line ("Here's an exhibit: …").
-  const exhibit = state.kind === 'stage_exhibit' ? nextReadyExhibit(state.caseData.exhibits, state.shownExhibitIds, state.ledger)?.id ?? null : null;
+  const exhibit = state.kind === 'stage_exhibit' ? state.requiredExhibit ?? nextReadyExhibit(state.caseData.exhibits, state.shownExhibitIds, state.ledger)?.id ?? null : null;
   // Rule 14 past its probe: the figure, flat, before the revision question.
   const say = recMath?.action === 'correct' ? recMathLine(recMath.flag, 'correct') : '';
   return { move: 'other', requests, exhibit, rescueItem: null, say, question };

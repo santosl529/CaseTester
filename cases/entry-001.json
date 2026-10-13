@@ -588,6 +588,7 @@
         "peak_share_forecast",
         "kelvexa_pricing"
       ],
+      "required": true,
       "data": [
         {
           "Stage": "US adults",
@@ -638,6 +639,7 @@
         "reasons_to_prescribe",
         "barriers_to_prescribing"
       ],
+      "required": true,
       "data": [
         {
           "Question": "Reason to prescribe",
@@ -700,6 +702,7 @@
       "after": [
         "exhibit-1"
       ],
+      "required": true,
       "data": [
         {
           "": "Who sells Kelvexa",

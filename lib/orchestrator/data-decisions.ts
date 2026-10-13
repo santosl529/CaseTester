@@ -138,7 +138,7 @@ export function outsideAskScope(what: string, item: { label: string; timeframes?
   return false;
 }
 
-export type ExhibitInfo = { id: string; title: string; coversLedgerItems?: string[]; after?: string[]; requiresItems?: string[] };
+export type ExhibitInfo = { id: string; title: string; coversLedgerItems?: string[]; after?: string[]; requiresItems?: string[]; required?: boolean };
 
 // Release order (new cases, 13 Oct; the case's exhibit `after` / `requiresItems`):
 // an exhibit is ready once every exhibit it comes after is out — shown, or all
@@ -154,6 +154,13 @@ export function exhibitReady(e: ExhibitInfo, exhibits: ExhibitInfo[], shown: Set
 // first not yet shown whose turn has come.
 export function nextReadyExhibit<E extends ExhibitInfo>(exhibits: E[], shown: Set<string>, ledger: DataLedger): E | undefined {
   return exhibits.find(e => !shown.has(e.id) && exhibitReady(e, exhibits, shown, ledger));
+}
+
+// The next required exhibit still owed, when its turn has come (a required
+// exhibit's predecessors are required, so the first unshown one is next).
+export function nextRequiredExhibit<E extends ExhibitInfo>(exhibits: E[], shown: Set<string>, ledger: DataLedger): E | undefined {
+  const next = exhibits.find(e => e.required && !shown.has(e.id));
+  return next && exhibitReady(next, exhibits, shown, ledger) ? next : undefined;
 }
 
 // An item still unreleased that only exhibits not yet ready show waits with them.

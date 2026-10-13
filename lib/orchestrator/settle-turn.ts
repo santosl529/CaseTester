@@ -398,7 +398,18 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // R23), and first the case's core analysis (code's one line back to it).
   let stageAsked: StageKey | undefined = kind === 'stage_exhibit' ? 'exhibit' : kind === 'stage_brainstorm' ? 'brainstorm' : kind === 'stage_analysis' ? 'analysis' : undefined;
   let heldForExhibit: (typeof caseData.exhibits)[number] | undefined;
-  if (!codeWritten && kind === 'model' && state.analysisOwed && caseData.analysisCore && asksForConclusion(question)) {
+  // A required exhibit still owed holds the model's early ask first (13 Oct):
+  // it is handed over (or, if an exhibit goes out this turn, asked about) —
+  // once the pressure test is closed, else the exhibit would be held.
+  const requiredOwed = state.requiredExhibit ? caseData.exhibits.find(e => e.id === state.requiredExhibit) : undefined;
+  const gateClosedNow = satisfiedNow || waiving || ptPrev.state === 'waived';
+  if (!codeWritten && kind === 'model' && requiredOwed && gateClosedNow && asksForConclusion(question)) {
+    withheld.push({ sentence: question, reason: 'recommendation_held_for_stage', field: 'question' });
+    if (decisions.exhibit) question = pickScript(STAGE_EXHIBIT_QUESTIONS, seed);
+    else { heldForExhibit = requiredOwed; question = `Here's an exhibit: ${requiredOwed.title}. ${pickScript(STAGE_EXHIBIT_QUESTIONS, seed)}`; }
+    modelQuestion = '';
+    stageAsked = 'exhibit';
+  } else if (!codeWritten && kind === 'model' && state.analysisOwed && caseData.analysisCore && asksForConclusion(question)) {
     withheld.push({ sentence: question, reason: 'recommendation_held_for_stage', field: 'question' });
     question = caseData.analysisCore.ask;
     modelQuestion = '';
@@ -429,6 +440,14 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       question = pickFallbackQuestion({ figuresDelivered: true, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase });
       modelQuestion = '';
     }
+  }
+  // Under time pressure a required exhibit still owed is not a hold: it goes
+  // out with the recommendation ask, the candidate's to use (13 Oct).
+  const pressureEx = state.pressureExhibit ? caseData.exhibits.find(e => e.id === state.pressureExhibit) : undefined;
+  if (pressureEx && !ended && !decisions.exhibit && !heldForExhibit
+    && (ASKS_RECOMMENDATION.has(kind) || (kind === 'model' && asksForConclusion(question)))) {
+    heldForExhibit = pressureEx;
+    question = `Here's an exhibit: ${pressureEx.title}. ${question}`;
   }
   // Code's brainstorm line on a turn whose own data line hands over data
   // (batch 21 D8, Fiona t14: the decisive other-input figure, then "What other

@@ -2,9 +2,9 @@
 // database, the interviewer model and the background classifiers mocked —
 // the model's turns are scripted, so every decision below is code's. Per
 // case: the pressure test, the guide's exhibit order (an exhibit asked for
-// early is held), the analysis gate (an early recommendation ask is held for
-// the core analysis), the case's own brainstorm (none for Quillpath), the
-// recommendation, its risk question and the close. No paid calls.
+// early is held), the required exhibits (a recommendation ask while one is
+// owed is held and code hands it over), the case's own brainstorm (none for
+// Quillpath), the recommendation, its risk question and the close. No paid calls.
 import { describe, it, expect, vi } from 'vitest';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 
@@ -119,21 +119,35 @@ describe.each(SCRIPTS)('$caseId from prompt to close', s => {
     expect((flags().pressureTest as Row).state).toBe('awaiting');
     judgeVerdict = { answered: true, reason: 'names a missing branch' };
 
-    // The analysis gate: a recommendation ask before the core analysis is held.
+    const title = (id: string) => c.exhibits.find(e => e.id === id)!.title;
+    const earlyAsk = async () => {
+      const early = await at(min++, `Could I see ${s.early.ask}?`, M({ requests: [ask(s.early.ask, [s.early.exhibit])], exhibit: s.early.exhibit }));
+      expect(shown(), `${s.early.exhibit} before its turn`).not.toContain(s.early.exhibit);
+      expect(early.interviewerText).toMatch(new RegExp(`I'll come back to ${s.early.ask} shortly\\.`));
+    };
+    if (s.early.after === 0) await earlyAsk();
+
+    // The analysis gate: a recommendation ask before the core analysis is held —
+    // every exhibit here is required, so code hands over the first one.
     expect(core.items.filter(x => revealed().includes(x)).length).toBeLessThan(core.minItems ?? core.items.length);
     const held = await at(min++, 'I think I already see the answer.', REC);
-    expect(held.interviewerText).toContain(core.ask);
+    expect(shown()).toEqual([s.order[0][0]]);
+    expect(held.interviewerText).toContain(`Here's an exhibit: ${title(s.order[0][0])}.`);
+    expect(held.interviewerText).not.toMatch(/recommendation/i);
 
-    // The exhibits in the guide's order; the early one is held until its turn.
+    // The rest in the guide's order: the candidate asks for each but the last;
+    // the early one is held until its turn; the last is owed, so a
+    // recommendation ask is held for it and code hands it over.
     for (const [i, [id, what]] of s.order.entries()) {
-      if (i === s.early.after) {
-        const early = await at(min++, `Could I see ${s.early.ask}?`, M({ requests: [ask(s.early.ask, [s.early.exhibit])], exhibit: s.early.exhibit }));
-        expect(shown(), `${s.early.exhibit} before its turn`).not.toContain(s.early.exhibit);
-        expect(early.interviewerText).toMatch(new RegExp(`I'll come back to ${s.early.ask} shortly\\.`));
-      }
-      const r = await at(min++, `Could I see ${what}?`, M({ move: 'exhibit', requests: [ask(what, [id])], question: 'What does it tell you?' }));
+      if (i === 0) continue;
+      if (i === s.early.after) await earlyAsk();
+      const last = i === s.order.length - 1;
+      const r = last
+        ? await at(min++, 'I have enough to recommend now.', REC)
+        : await at(min++, `Could I see ${what}?`, M({ move: 'exhibit', requests: [ask(what, [id])], question: 'What does it tell you?' }));
       expect(shown().at(-1)).toBe(id);
-      expect(r.interviewerText).toContain(`Here's an exhibit: ${c.exhibits.find(e => e.id === id)!.title}.`);
+      expect(r.interviewerText).toContain(`Here's an exhibit: ${title(id)}.`);
+      if (last) expect(r.interviewerText).not.toMatch(/recommendation/i);
       expect(r.exhibit?.notes ?? null).toBe(c.exhibits.find(e => e.id === id)!.notes ?? null);
     }
     expect(shown()).toEqual(s.order.map(([id]) => id));
