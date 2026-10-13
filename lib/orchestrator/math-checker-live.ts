@@ -365,16 +365,18 @@ export function formatCheckerHint(s: CheckerSelection): string {
 // line: code's correction when it wrote one, else a neutral probe on the
 // figure as said now.
 export type ClosedRestatement = { key: string; said: string; correction: string | null };
-const unitOfSaid = (text: string) => /%|percent/i.test(text) ? '%' : /\bpoints?\b/i.test(text) ? 'points' : '';
+// A figure's unit as written: money ($, M), a percent, points — or none.
+const unitOfSaid = (text: string) => /%|percent/i.test(text) ? '%' : /\bpoints?\b/i.test(text) ? 'points' : /\$|\d\s*(?:m|mn|million|bn|billion)\b/i.test(text) ? 'money' : '';
 export function closedErrorRestated(text: string, closed: string[], keys: Record<string, CheckerKeyEntry>, rows: CheckerRow[]): ClosedRestatement | null {
   const flagRows = rows.filter(r => (r.category ?? MATH_CHECKER_CATEGORY) === MATH_CHECKER_CATEGORY && r.subtype === 'flag').map(r => r.payloadJsonb as CheckerDecision);
-  const said = [...normalizeNumberWords(text).matchAll(/(\d+(?:\.\d+)?)(?:\s*(%|percent\b)|[\s-]*(?:percentage\s+)?(points?)\b)?/gi)]
-    .map(m => ({ value: parseFloat(m[1]), unit: m[2] ? '%' : m[3] ? 'points' : '', text: m[0].trim() }));
+  const said = [...normalizeNumberWords(text).matchAll(/(\$\s?)?(\d+(?:\.\d+)?)(?:\s*(%|percent\b)|[\s-]*(?:percentage\s+)?(points?)\b|\s?(m|mn|million|bn|billion)\b)?/gi)]
+    .map(m => ({ value: parseFloat(m[2]), unit: m[3] ? '%' : m[4] ? 'points' : m[1] || m[5] ? 'money' : '', text: m[0].trim() }));
   for (const key of closed) {
     const figures = keys[key]?.figures ?? [];
+    // In a unit the claim was said in — never a bare number (Larkspur: "two separate effects" matched "$2M").
     const flags = flagRows.filter(d => d.key === key);
-    const units = new Set<string>(flags.map(d => unitOfSaid(d.candidateValue)));
-    const hit = said.find(s => figures.some(f => same(s.value, f)) && units.has(s.unit));
+    const units = new Set<string>(flags.map(d => unitOfSaid(d.candidateValue)).filter(Boolean));
+    const hit = said.find(s => units.has(s.unit) && figures.some(f => same(s.value, f)));
     if (hit) return { key, said: hit.text, correction: flags.find(d => d.outcome === 'correct')?.line ?? null };
   }
   return null;

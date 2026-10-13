@@ -493,3 +493,15 @@ describe("code's pricing math in the checker's input", () => {
     expect(u).not.toMatch(/CODE'S PRICING MATH/);
   });
 });
+
+// Larkspur (13 Oct, replay; Jasmine b14baac7 t35): the checker called "$2.8M
+// at half the planned contribution" an error while its own derivation ended
+// "Candidate's figure is correct." A verdict that contradicts itself is no flag.
+describe('a self-contradicting verdict', () => {
+  it('is dropped', () => {
+    const c = claim({ span: 'or ~$2.8M even at half the planned contribution', candidateValue: '$2.8M', correctValue: -2.2, derivation: "The four healthy routes give $17.8M, plus $5M, less $20M = $2.8M. Recheck: 17.8+5-20 = 2.8. Candidate's figure is correct." });
+    const [v] = vetCheckerClaims([c], { caseData: getCaseById('prof-002'), revealedIds: [], shownExhibitIds: [], candidateTexts: ['or ~$2.8M even at half the planned contribution'] });
+    expect(v.flag).toBe(false);
+    expect(v.vetNotes.join(' ')).toMatch(/own derivation/);
+  });
+});

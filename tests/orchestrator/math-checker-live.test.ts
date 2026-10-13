@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  checkerKey, isStale, modelProbed, planCheckerFlags, startMathCheck, formatCheckerHint, liveCheckerConfig,
+  checkerKey, isStale, modelProbed, planCheckerFlags, startMathCheck, formatCheckerHint, liveCheckerConfig, closedErrorRestated,
   MATH_CHECKER_CATEGORY, type CheckerRow, type CheckerPlanInput, type VerdictPayload,
 } from '@/lib/orchestrator/math-checker-live';
 import type { CheckerClaim, VettedClaim } from '@/lib/orchestrator/math-checker';
@@ -413,5 +413,26 @@ describe('one flag per error, across messages', () => {
     const p = planCheckerFlags(input({ rows: [forty(5, 'about 22 points')], keys: seen, turnRows: rows({ turnIndex: 5, role: 'candidate', text: 'About 22 points.' }), candidateTurnIndex: 7, candidateText: 'Next.', candidateFigures: [22] }));
     expect(p.selected).toMatchObject({ key: 'checker:about 22 points', attempt: 1, action: 'probe' });
     expect(p.keys['checker:about 22 points']).toEqual({ figures: [22], since: 5 });
+  });
+});
+
+// Larkspur (13 Oct, replay): Jordan 9ab76a39's recommendation heard "Before
+// we wrap up — walk me through how you got to 2." — a closed flag on "two
+// separate effects" matched his correct "$2M in year one".
+describe('a closed error in the recommendation: the same unit, never a bare number', () => {
+  const row = (key: string, candidateValue: string): CheckerRow => ({ category: MATH_CHECKER_CATEGORY, subtype: 'flag', turnIndex: 5, payloadJsonb: { id: '3:0', candidateTurnIndex: 3, outcome: 'unresolved', reason: 'left for the report', span: '', candidateValue, key, changesConclusion: true } });
+  it('a claim with no unit matches nothing ("two separate effects" vs "$2M")', () => {
+    const k = 'checker:two separate effects';
+    expect(closedErrorRestated('Worth $2M in year one at a 60% ramp.', [k], { [k]: { figures: [2], since: 3 } }, [row(k, 'revenue loss and contribution loss are two separate effects')])).toBeNull();
+    expect(closedErrorRestated('Exit the two contested routes.', [k], { [k]: { figures: [2], since: 3 } }, [row(k, 'revenue loss and contribution loss are two separate effects')])).toBeNull();
+  });
+  it('money matches money: "$48M" again is the closed $48M', () => {
+    const k = 'checker:$48m';
+    expect(closedErrorRestated('Damage I size at $48M of lost margin.', [k], { [k]: { figures: [48], since: 3 } }, [row(k, '$48M')])).toMatchObject({ key: k, said: '$48M' });
+    expect(closedErrorRestated('Fares fell 48% on Lakeport.', [k], { [k]: { figures: [48], since: 3 } }, [row(k, '$48M')])).toBeNull();
+  });
+  it('a figure said in words matches it in digits ("forty points" closed, "40 points" again)', () => {
+    const k = 'checker:forty points';
+    expect(closedErrorRestated('It carries about 40 points of pressure.', [k], { [k]: { figures: [40], since: 3 } }, [row(k, 'forty points')])).toMatchObject({ said: '40 points' });
   });
 });

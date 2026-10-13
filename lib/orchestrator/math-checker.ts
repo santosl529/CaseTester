@@ -255,6 +255,8 @@ export function allowedSources(ctx: VetContext): string[] {
   return [ctx.caseData.prompt, ...revealed, ...changeFigures(revealed), ...exhibits, ...ctx.candidateTexts];
 }
 
+const SELF_CLEARED = /\b(?:the\s+)?candidate'?s?\s+(?:figure|claim|number|math|answer|value)\s+(?:is|was)\s+(?:correct|right)\b|\b(?:their|the candidate's) (?:figure|claim) holds\b/i;
+
 // A flag is an error the checker is sure enough of to act on.
 export function isActionable(c: CheckerClaim): boolean {
   return c.verdict === 'error' && c.confidence !== 'low';
@@ -544,7 +546,9 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
   const target = changeFigures([ctx.caseData.prompt]);
   return claims.map(c => {
     const vetNotes: string[] = [];
-    const tolerated = isActionable(c) ? withinTolerance(c, ctx) : null;
+    // A verdict whose own derivation finds the candidate right is no flag (Larkspur, Jasmine b14baac7 t35: "Candidate's figure is correct.").
+    const selfCleared = isActionable(c) && SELF_CLEARED.test(c.derivation) ? "the checker's own derivation finds it correct" : null;
+    const tolerated = isActionable(c) ? selfCleared ?? withinTolerance(c, ctx) : null;
     if (tolerated) vetNotes.push(`flag dropped — ${tolerated}`);
     const flag = isActionable(c) && !tolerated;
     if (!flag) return { ...c, flag, probeLine: null, correctionLine: null, correctionFigure: null, pointerLine: null, hintLine: null, vetNotes };
