@@ -170,6 +170,16 @@ export function checkStatedArithmetic(rawText: string): ArithmeticClaim[] {
             const asFactors = evaluate({ ...left, nums: left.nums.map((n, i) => (left!.pctAt.includes(i) ? 1 + n / 100 : n)) });
             if (asFactors !== null && verdictFor(rv, asFactors, true, approx) === 'correct') verdict = 'correct';
           }
+          // The whole written as 1 beside figures in points: "1 − 94/1.10 = 1 −
+          // 85.5 = 14.5% margin" is 100 − 85.5 (default candidate ee081845 t17
+          // was flagged; the claim is right). Only a 1 that is its own term.
+          if (verdict !== 'correct' && left.nums.some(n => n > 1)) {
+            const l = left;
+            const wholes = l.nums.map((_, i) => i).filter(i => l.nums[i] === 1
+              && (i === 0 || l.ops[i - 1] === '+' || l.ops[i - 1] === '-') && (i === l.ops.length || l.ops[i] === '+' || l.ops[i] === '-'));
+            const asHundred = wholes.length > 0 ? evaluate({ ...l, nums: l.nums.map((n, i) => (wholes.includes(i) ? 100 : n)) }) : null;
+            if (asHundred !== null && verdictFor(rv, asHundred, pct, approx) === 'correct') verdict = 'correct';
+          }
           claims.push({
             span: sentence, expression: left.raw.join(' '), stated: rv, computed: lv,
             verdict, approximate: approx, selfCorrected: false,

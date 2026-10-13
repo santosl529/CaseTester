@@ -31,8 +31,27 @@ describe('verified correct — rounding, percent shorthand, growth, scale', () =
     ['16 of the 18 points is 89%. And 16/18 = 89%.', [['16 / 18', 89, 'correct']]],
     ['Holding volume, I need revenue of 451 ÷ 0.76 = $594M — a 23.7% price increase.', [['451 / 0.76', 594e6, 'correct']]],
     ['Margin: 100 − 58 − 22 − 14 = 6.', [['100 - 58 - 22 - 14', 6, 'correct']]],
+    // The whole written as 1 beside figures in points (default candidate ee081845 t17, 12 Oct: flagged, the claim right).
+    ['A more realistic staged view: a 10% increase gives 1 − 94/1.10 = 1 − 85.5 = 14.5% margin, so roughly 8.5 points recovered.', [['1 - 85.5', 14.5, 'correct']]],
+    ['So the new margin is 1 − 94/1.10 ≈ 14.5%.', [['1 - 94 / 1.10', 14.5, 'correct']]],
   ])('%s', (text, expected) => {
     expect(checkStatedArithmetic(text).map(c => [c.expression, c.stated, c.verdict])).toEqual(expected);
+  });
+});
+
+describe('the whole as 1 is read as 100 only where it is its own term beside figures in points', () => {
+  it('still wrong when no reading gives the result: 1 − 85.5 = 20', () => {
+    expect(verdicts('So 1 − 85.5 = 20% margin.')).toEqual([['1 - 85.5', 20, 'incorrect', false]]);
+  });
+  it('a 1 that multiplies is not the whole: 1 × 85.5 = 14.5 is wrong', () => {
+    expect(verdicts('So 1 × 85.5 = 14.5.')).toEqual([['1 × 85.5', 14.5, 'incorrect', false]]);
+  });
+  it('beside shares written as fractions, 1 is already the whole: 1 − 0.855 = 14.5%; and 1 − 0.5 = 99.5 is wrong', () => {
+    expect(verdicts('Margin is 1 − 0.855 = 14.5%.')).toEqual([['1 - 0.855', 14.5, 'correct', false]]);
+    expect(verdicts('So 1 − 0.5 = 99.5.')).toEqual([['1 - 0.5', 99.5, 'incorrect', false]]);
+  });
+  it('a 1 inside a product is not the whole: 1 × 0.5 + 14 = 64 is wrong', () => {
+    expect(verdicts('So 1 × 0.5 + 14 = 64.')).toEqual([['1 × 0.5 + 14', 64, 'incorrect', false]]);
   });
 });
 
