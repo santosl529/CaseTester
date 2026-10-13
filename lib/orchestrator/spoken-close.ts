@@ -87,9 +87,10 @@ const REC_ASK =
 // "the CEO wants your recommendation", and a lever choice — "which single lever
 // would you start with", "the most credible lever to close the gap". Not "which
 // branch would you start with" (structure). For holding an early ask only; the
-// end gate keeps counting REC_ASK.
+// end gate keeps counting REC_ASK. Batch 21 (Jasmine t22): "give the CEO one
+// sentence on what to do first" — the ask for what to do, not for the diagnosis.
 const CONCLUSION_ASK =
-  /\bwhat do you recommend\b(?!\s+(?:we|i|us|as|in|looking)\b)(?!\s+to\s+(?!the\s+(?:ceo|client|board|company)\b))|\bpulling it (?:all )?together\b|\b(?:wants|needs|give me|hear|asks? (?:you )?for) your (?:\w+ )?recommendation\b|\bwhich\s+(?:single\s+|one\s+|of\s+(?:your|these|those|the)\s+)?(?:levers?|options?|moves?|actions?)\b[^?]{0,60}\b(?:first|start|prioriti[sz]e|pull|lead with)\b|\bmost credible lever\b|\bwhat would you do first\b|\bas the (?:primary|main|final|headline) recommendation\b|\brecommendation in front of the (?:ceo|client|board)\b/i;
+  /\bwhat do you recommend\b(?!\s+(?:we|i|us|as|in|looking)\b)(?!\s+to\s+(?!the\s+(?:ceo|client|board|company)\b))|\bpulling it (?:all )?together\b|\b(?:wants|needs|give me|hear|asks? (?:you )?for) your (?:\w+ )?recommendation\b|\bwhich\s+(?:single\s+|one\s+|of\s+(?:your|these|those|the)\s+)?(?:levers?|options?|moves?|actions?)\b[^?]{0,60}\b(?:first|start|prioriti[sz]e|pull|lead with)\b|\bmost credible lever\b|\bwhat would you do first\b|\bas the (?:primary|main|final|headline) recommendation\b|\brecommendation in front of the (?:ceo|client|board)\b|\b(?:one|a single|a one-line) (?:sentence|line)\b[^?]{0,40}?\bwhat (?:to do|(?:should|would|could) (?:the client|the company|the ceo|they) do|would you have (?:them|the client|the company|the ceo) do)\b/i;
 export function asksForConclusion(text: string): boolean { return REC_ASK.test(text) || CONCLUSION_ASK.test(text); }
 
 // The risk question as a stage (fact guards Phase 5; batch 20 grading): the
