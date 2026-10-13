@@ -26,8 +26,8 @@ import { changeFigures } from './numeric-provenance';
 import { classifyMathTalk } from './math-talk';
 
 export const MATH_CHECKER_CATEGORY = 'math_checker';
-// Proposed (Claude, 13 Oct; awaiting Lorenzo's ruling): the slowest call in
-// the evaluation took 19.6 s. A verdict later than this is of no use.
+// Lorenzo, 13 Oct (approved): 30 s — the slowest call in the evaluation took
+// 19.6 s. Every timeout is logged (an error row, and the runner's warning).
 export const MATH_CHECKER_TIMEOUT_MS = 30_000;
 
 // The checker's configuration for live sessions: MATH_CHECKER_CONFIG names one
@@ -116,7 +116,7 @@ export function caseNumbersOf(caseData: Pick<CheckerCase, 'prompt' | 'dataLedger
   return numbersOf([caseData.prompt, ...texts, ...changeFigures(texts)].join(' '));
 }
 
-// Proposed (Claude, 13 Oct; awaiting Lorenzo's ruling): a flag is raised only
+// Lorenzo, 13 Oct (approved): a flag is raised only
 // while at most this many candidate messages have followed the claim — held
 // longer (a code flag took every turn), it expires to the report (replay:
 // Sofia b20 140fb90d, a probe six messages late).

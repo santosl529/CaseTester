@@ -101,6 +101,9 @@ if (!process.env.REPLAY_CHECKER) process.env.MATH_CHECKER_CONFIG = 'off';
 const rawClaim = (c: Row) => ({ pointer: '', actualShare: null, codeQuantity: { kind: 'none', stepId: null, price: null, target: null }, ...c });
 const checkerTally = { started: 0, pendingAtReturn: 0, recorded: 0, noVerdict: 0, landedNext: 0, landedLater: 0, neverLanded: 0 };
 let checkerOut: Row[] = [];
+// Per run: replay turn index of a candidate message → its saved index and clock
+// (they drift where the saved run had silence check-ins the replay doesn't).
+const replayIndex = new Map<number, { saved: number; ms: number }>();
 const FILTER = process.env.REPLAY_FILTER ?? '';
 const enabled = process.env.REPLAY_RUNNER === '1' && !!OUT && existsSync(ROOT);
 
@@ -129,6 +132,7 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
   store.turns = run.turns.filter(t => t.turnIndex < firstIndex).map(t => ({ id: `t${t.turnIndex}`, sessionId: sid, turnIndex: t.turnIndex, role: t.role, text: t.text, timestampMs: Date.now(), latencyMs: null }));
   void opening;
   store.revealed = []; store.exhibits = []; store.events = [];
+  replayIndex.clear();
   const records: TurnRecord[] = [];
   let diverged = 0;
   for (const [k, r] of saved.entries()) {
@@ -155,6 +159,8 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
     currentKey = `${path.relative(ROOT, file).replace(/\.json$/, '')}#t${r.turnIndex + 1}`;
     const deferred: (() => Promise<void>)[] = [];
     const startedBefore = pendingChecks.length;
+    // The replay's own turn index for this message (a verdict row carries it) → the saved one and its clock.
+    replayIndex.set(store.turns.length, { saved: r.turnIndex, ms: r.stateBefore.elapsedMs ?? 0 });
     await runTurn(sid, r.candidateText, { onTurnRecord: x => { rec = x; }, defer: t => { deferred.push(t); } });
     // The turn has returned: its check is still pending (nothing awaited it).
     const started = pendingChecks.splice(startedBefore);
@@ -187,7 +193,7 @@ function checkerReport(file: string, records: TurnRecord[], saved: { turnIndex: 
   const events = store.events.filter(e => e.category === 'math_checker');
   const elapsed = saved.map(x => ({ t: x.turnIndex, ms: x.stateBefore.elapsedMs ?? 0 }));
   for (const v of events.filter(e => e.subtype === 'verdict')) {
-    const n = v.turnIndex as number;
+    const n = replayIndex.get(v.turnIndex as number)?.saved ?? (v.turnIndex as number);
     const next = elapsed.find(x => x.t > n);
     const landed = elapsed.find(x => x.t > n && x.ms >= (v.landsAtMs as number));
     if (!landed) checkerTally.neverLanded++;

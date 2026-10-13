@@ -365,6 +365,23 @@ export function boundInput(c: CheckerClaim): number | null {
   return null;
 }
 
+// Lorenzo, 13 Oct: the input code computes from must be the candidate's —
+// stated in the claim's span, or in its sentence when exactly one figure
+// there in the input's unit (a % for a price change or a target margin,
+// points for a target gain) is that input ("A 10% price increase takes revenue
+// to 110 … — that's 5.3 points back": the span is the clause after the dash).
+// Returns why it isn't bound, or null.
+function unbound(c: CheckerClaim, input: number, message: string): string | null {
+  if (numbersOf(c.span).some(n => near(n, input))) return null;
+  const span = normalizeNumberWords(c.span).trim().toLowerCase();
+  const sentence = normalizeNumberWords(message).split(/(?<=[.!?])\s+|\n+/)
+    .find(x => { const l = x.toLowerCase(); return l.includes(span) || (span.length >= 20 && l.includes(span.slice(0, 20))); });
+  const inUnit = c.codeQuantity.kind === 'needed_for_gain' ? /(\d+(?:\.\d+)?)\s*(?:-|\s)?(?:percentage\s+)?points?\b/gi : /(\d+(?:\.\d+)?)\s*(?:%|percent\b)/gi;
+  const matching = sentence ? [...sentence.matchAll(inUnit)].map(m => parseFloat(m[1])).filter(n => near(n, input)) : [];
+  if (matching.length === 1) return null;
+  return matching.length > 1 ? `the claim's sentence states ${input} twice — which one the claim rests on is unclear` : `the claim's span (and sentence) doesn't state the ${input} code computes from`;
+}
+
 // Lorenzo, 13 Oct: code writes the correction from its own figure for the
 // quantity the checker names, naming the quantity and its input ("A 10% price
 // rise lifts margin about 8.5 points, not 5.") — the checker's arithmetic is
@@ -444,9 +461,10 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
         .filter(({ value }) => Math.abs(value - mine) <= Math.max(0.5, 0.03 * Math.abs(value)))
         .sort((p, q) => Math.abs(p.value - mine!) - Math.abs(q.value - mine!));
       const input = boundInput(c);
+      const unboundWhy = input === null ? null : unbound(c, input, ctx.candidateTexts.at(-1) ?? '');
       const said = numbersOf(ctx.candidateTexts.join(' '));
       if (agreeing.length === 0) vetNotes.push(`probe only: code computes ${code.values.map(round).join(' / ')}, the checker said ${mine}`);
-      else if (input !== null && !numbersOf(c.span).some(n => near(n, input))) vetNotes.push(`probe only: the claim's span doesn't state the ${input} code computes from`);
+      else if (unboundWhy) vetNotes.push(`probe only: ${unboundWhy}`);
       else {
         const written = codeCorrection(c, agreeing[0], ctx);
         if (!written) vetNotes.push(`no correction: no figure of theirs in "${c.candidateValue}" (or no quantity to name)`);

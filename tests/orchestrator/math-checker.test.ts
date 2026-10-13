@@ -196,14 +196,49 @@ describe('code writes the correction', () => {
     expect(v.correctionLine).toBeNull();
   });
 
-  it("binding: the price or target code computes from must be in the claim's span", () => {
+  it("binding: the price or target code computes from must be in the claim's span — or its sentence (below)", () => {
     const [price] = vetCheckerClaims([claim({ span: 'that recovers about 5 points', candidateValue: '5 points', correctValue: 8.5, codeQuantity: gain(10) })],
       ctx(['A 10% price increase. That recovers about 5 points.']));
     expect(price.correctionLine).toBeNull();
-    expect(price.vetNotes.join(' ')).toMatch(/span doesn't state the 10 code computes from/);
+    expect(price.vetNotes.join(' ')).toMatch(/doesn't state the 10 code computes from/);
+    // Eliza b13 t12: the target is in an earlier sentence.
     const [target] = vetCheckerClaims([claim({ span: 'roughly 10–12% on menu prices to restore margin', candidateValue: '10–12%', correctValue: 23.7, codeQuantity: { kind: 'needed_for_margin', stepId: null, price: null, target: 24 } })],
-      ctx(['To get back to 24% margin: roughly 10–12% on menu prices to restore margin.']));
+      ctx(['To get back to 24% margin I need more. Roughly 10–12% on menu prices to restore margin.']));
     expect(target.correctionLine).toBeNull();
+  });
+
+  // Lorenzo, 13 Oct: bind to the claim's sentence when exactly one figure in
+  // the input's unit there is the input the checker named; else the span.
+  it('the sentence binds when exactly one figure there is the input (5 replay losses: the price before a dash, the clause after it)', () => {
+    const text = 'A 10% price increase takes revenue to 110, COGS falls to 52.7% of revenue — that\'s 5.3 points of margin back from one move.';
+    const [v] = vetCheckerClaims([claim({ span: "that's 5.3 points of margin back from one move", candidateValue: '5.3 points', correctValue: 8.5, codeQuantity: gain(10) })], ctx([text]));
+    expect(v.correctionLine).toBe('A 10% price rise lifts margin about 8.5 points, not 5.3.');
+    const [t] = vetCheckerClaims([claim({ span: 'roughly 10–12% on menu prices to restore margin', candidateValue: '10–12%', correctValue: 23.7, codeQuantity: { kind: 'needed_for_margin', stepId: null, price: null, target: 24 } })],
+      ctx(['To get back to 24% margin: roughly 10–12% on menu prices to restore margin.']));
+    expect(t.correctionLine).toBe('Getting back to a 24% margin takes about a 23.7% price rise, not 10–12%.');
+    // A target gain is in points.
+    const [g] = vetCheckerClaims([claim({ span: 'would need roughly a 16% lift', candidateValue: '16%', correctValue: 20.5, codeQuantity: { kind: 'needed_for_gain', stepId: null, price: null, target: 16 } })],
+      ctx(['Restoring the full 16 points would need roughly a 16% lift.']));
+    expect(g.correctionLine).toBe('Recovering 16 points of margin takes about a 20.5% price rise, not 16%.');
+    const [g25] = vetCheckerClaims([claim({ span: 'would need roughly a 25% lift', candidateValue: '25%', correctValue: 20.5, codeQuantity: { kind: 'needed_for_gain', stepId: null, price: null, target: 16 } })],
+      ctx(['Getting the full 16 points back would need roughly a 25% lift.']));
+    expect(g25.correctionLine).toBe('Recovering 16 points of margin takes about a 20.5% price rise, not 25%.');
+  });
+
+  it('two prices in one sentence: binds to the one the checker named; two of the same figure — the span decides', () => {
+    const text = 'A 10% rise recovers about 5 points and a 20% rise would be closer to ten points.';
+    const [ten] = vetCheckerClaims([claim({ span: 'recovers about 5 points', candidateValue: 'about 5 points', correctValue: 8.5, codeQuantity: gain(10) })], ctx([text]));
+    expect(ten.correctionLine).toBe('A 10% price rise lifts margin about 8.5 points, not 5.');
+    const [twenty] = vetCheckerClaims([claim({ span: 'would be closer to ten points', candidateValue: 'ten points', correctValue: 15.7, codeQuantity: gain(20) })], ctx([text]));
+    expect(twenty.correctionLine).toBe('A 20% price rise lifts margin about 15.7 points, not 10.');
+    // A price the sentence doesn't hold: unbound.
+    const [twelve] = vetCheckerClaims([claim({ span: 'recovers about 5 points', candidateValue: 'about 5 points', correctValue: 9.9, codeQuantity: gain(12) })], ctx([text]));
+    expect(twelve.correctionLine).toBeNull();
+    // 10% twice — the price and a volume loss: which one the claim rests on is unclear, and the span doesn't say.
+    const twice = 'A 10% rise with 10% fewer transactions still recovers about 5 points.';
+    const [amb] = vetCheckerClaims([claim({ span: 'still recovers about 5 points', candidateValue: 'about 5 points', correctValue: 8.5, codeQuantity: gain(10) })], ctx([twice]));
+    expect(amb.correctionLine).toBeNull();
+    expect(amb.vetNotes.join(' ')).toMatch(/the claim's sentence states 10 twice/);
   });
 
   it("a math step whose inputs aren't all revealed: probe only", () => {

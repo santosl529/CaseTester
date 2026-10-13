@@ -474,7 +474,9 @@ function lowerFirst(s: string): string {
 
 // The math checker's result as a session event (math-checker-live.ts): the
 // verdict for the next turns to read, or the error — logged, no effect.
+// Every timeout and error is logged (Lorenzo, 13 Oct: the 30 s timeout).
 async function logCheckerRow(sessionId: string, candidateTurnIndex: number, phase: Phase, r: CheckerJobResult): Promise<void> {
+  if (r.subtype === 'error') console.warn(`[math-checker] ${r.payload.timedOut ? 'timeout' : 'error'} on message ${candidateTurnIndex} after ${r.payload.latencyMs}ms (no effect on any turn): ${r.payload.error}`);
   await db.insert(sessionEvents).values({ sessionId, category: MATH_CHECKER_CATEGORY, subtype: r.subtype, turnIndex: candidateTurnIndex, phase, payloadJsonb: r.payload });
 }
 

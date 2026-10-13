@@ -122,10 +122,13 @@ describe('the verdict lands and the next turn reads it', () => {
     expect(prompts.at(-1)).toMatch(/MATH CHECK FLAG/);
   });
 
-  it('an error is an error row and changes nothing', async () => {
+  it('an error is an error row and changes nothing — and is logged', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     await runTurn('s1', CLAIM);
     calls[0].reject(new Error('overloaded'));
     await flush(); await flush();
+    expect(warn).toHaveBeenCalledWith(expect.stringMatching(/\[math-checker\] error on message 3/));
+    warn.mockRestore();
     expect(checkerRows()).toEqual([expect.objectContaining({ subtype: 'error', payloadJsonb: expect.objectContaining({ error: 'overloaded' }) })]);
     await runTurn('s1', 'Next I would look at the competitive response.');
     expect(prompts.at(-1)).not.toMatch(/MATH CHECK FLAG/);
