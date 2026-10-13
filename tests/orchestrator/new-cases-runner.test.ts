@@ -31,6 +31,15 @@ const classified: unknown[][] = [];
 vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => classified.shift() ?? [] }));
 vi.mock('@/lib/orchestrator/hint-check', async orig => ({ ...(await orig<object>()), checkHintDelivered: async () => null }));
 vi.mock('@/lib/orchestrator/math-checker', async orig => ({ ...(await orig<object>()), checkMathClaims: async () => { throw new Error('no math checker calls in tests'); } }));
+// A Hollis Bay variant no case ships: its first exhibit waits for the
+// brainstorm and none is required — the exhibit-stage paths that read the
+// release order (Plan's owed stage, Settle's held conclusion ask, code's stage line).
+vi.mock('@/lib/cases/loader', async orig => {
+  const real = await orig<typeof import('@/lib/cases/loader')>();
+  const hollis = real.getCaseById('launch-001');
+  const variant = { ...hollis, id: 'launch-variant', exhibits: hollis.exhibits.map((e, i) => ({ ...e, required: false, after: i === 0 ? ['brainstorm'] : [`exhibit-${i}`] })) };
+  return { ...real, getCaseById: (id: string) => (id === 'launch-variant' ? variant : real.getCaseById(id)) };
+});
 
 const modelQueue: ModelTurn[] = [];
 const prompts: string[] = [];
@@ -118,7 +127,7 @@ describe('exhibit release order through the runner (Larkspur 1 → 2 → 3)', ()
   it('the model is told which exhibits are not yet available', async () => {
     seed({ caseId: 'prof-002', phase: 'ANALYSIS', flags: PT_SATISFIED, shown: ['exhibit-1'] });
     await say('Okay.', T());
-    expect(prompts.at(-1)).toMatch(/id: "exhibit-3" — [^\n]*\(not yet — it comes after the earlier exhibits/);
+    expect(prompts.at(-1)).toMatch(/id: "exhibit-3" — [^\n]*\(not yet — its turn in the case's order hasn't come/);
     expect(prompts.at(-1)).not.toMatch(/id: "exhibit-2" — [^\n]*\(not yet/);
   });
 });
@@ -274,5 +283,93 @@ describe('required exhibits (Lorenzo, 13 Oct)', () => {
     const r = await say('The risk is ramp-up.');
     expect(r.ended).toBe(true);
     expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2']);
+  });
+});
+
+// Hollis Bay's guide asks the brainstorm before Exhibit 3: sampling is a
+// likely brainstorm answer, and the sampling proposal shown first gives it
+// away (Lorenzo, 13 Oct). Exhibit 3 comes after the brainstorm; under time
+// pressure it goes out with the recommendation ask, as other required exhibits do.
+describe('Hollis Bay: the sampling exhibit after the brainstorm', () => {
+  const CORE_OUT = ['bag_price', 'variable_costs', 'launch_costs', 'purchase_intent', 'planning_assumptions'];
+  const BEFORE = { caseId: 'launch-001', phase: 'EXHIBIT', elapsedMin: 12, coverage: ALL_COVERED, shown: ['exhibit-1', 'exhibit-2'], revealed: CORE_OUT };
+
+  it('a recommendation ask with Exhibit 3 owed gets the brainstorm first, then the exhibit, then the ask', async () => {
+    seed({ ...BEFORE, flags: { ...PT_SATISFIED, stageEvidence: stagesWith({}) } });
+    const r = await say('So it breaks even in year one.', T({ move: 'recommendation', question: "What's your recommendation to the client?" }));
+    expect(r.interviewerText).toBe('What could Hollis Bay do to get shoppers to try its chickpea snacks — and to keep buying them?');
+    expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2']);
+    const next = await say('Sampling in stores, a trial-size bag, recipe ideas on the pack.', T({ move: 'recommendation', question: "What's your recommendation to the client?" }));
+    expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2', 'exhibit-3']);
+    expect(next.interviewerText).toMatch(/^Here's an exhibit: Proposal — In-store sampling program/);
+    expect(next.interviewerText).not.toMatch(/recommendation/i);
+  });
+
+  it('the candidate asking for the sampling proposal before the brainstorm is told it comes later', async () => {
+    seed({ ...BEFORE, coverage: null, flags: { ...PT_SATISFIED, stageEvidence: stagesWith({}) } });   // nothing due: a model turn
+    const r = await say('Could I see the sampling proposal?', T({ requests: [{ what: 'the sampling proposal', itemIds: ['exhibit-3'], explicit: true, respond: 'release' }], exhibit: 'exhibit-3' }));
+    expect(shownIds()).not.toContain('exhibit-3');
+    expect(r.interviewerText).toMatch(/I'll come back to the sampling proposal shortly\./);
+    expect(prompts.at(-1)).toMatch(/exhibit-3[^\n]*not yet/i);
+  });
+
+  it('once the brainstorm was asked, the sampling proposal goes out when asked for', async () => {
+    seed({ ...BEFORE, flags: { ...PT_SATISFIED, stageEvidence: stagesWith({ brainstorm: { delivered: true, outcome: 'answered' } }) } });
+    await say('Could I see the sampling proposal?', T({ requests: [{ what: 'the sampling proposal', itemIds: ['exhibit-3'], explicit: true, respond: 'release' }], exhibit: 'exhibit-3' }));
+    expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2', 'exhibit-3']);
+  });
+
+  it('the model is told Exhibit 3 is not yet available until the brainstorm was asked', async () => {
+    seed({ ...BEFORE, coverage: null, flags: { ...PT_SATISFIED, stageEvidence: stagesWith({ brainstorm: { delivered: true, outcome: 'answered' } }) } });
+    await say('Okay.', T());
+    expect(prompts.at(-1)).not.toMatch(/id: "exhibit-3" — [^\n]*\(not yet/);
+    seed({ ...BEFORE, coverage: null, flags: { ...PT_SATISFIED, stageEvidence: stagesWith({}) } });
+    await say('Okay.', T());
+    expect(prompts.at(-1)).toMatch(/id: "exhibit-3" — [^\n]*\(not yet — its turn in the case's order hasn't come/);
+  });
+
+  it('an open ask for the sampling plan waits for the brainstorm, then goes out', async () => {
+    const open = { category: 'data_request', subtype: 'defer', turnIndex: 1, payloadJsonb: { what: 'the sampling plan', ledgerItemIds: ['sampling_program'], interviewerTurnIndex: 2, revealedByNow: false, explicit: true } };
+    seed({ ...BEFORE, coverage: null, flags: { ...PT_SATISFIED, stageEvidence: stagesWith({}) } });
+    store.events.push(open);
+    await say('Okay, the survey says trial is the issue.', T());
+    expect(store.revealed.map(x => x.ledgerItemId)).not.toContain('sampling_program');
+    seed({ ...BEFORE, coverage: null, flags: { ...PT_SATISFIED, stageEvidence: stagesWith({ brainstorm: { delivered: true, outcome: 'answered' } }) } });
+    store.events.push(open);
+    await say('Okay, the survey says trial is the issue.', T());
+    expect(store.revealed.map(x => x.ledgerItemId)).toContain('sampling_program');
+  });
+
+  it('under time pressure, no brainstorm asked: Exhibit 3 goes out with the recommendation ask', async () => {
+    seed({ ...BEFORE, elapsedMin: 18.7, flags: { ...PT_SATISFIED, stageEvidence: stagesWith({}) } });
+    const r = await say('So it breaks even.', T({ move: 'recommendation', question: "What's your recommendation to the CEO?" }));
+    expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2', 'exhibit-3']);
+    expect(r.interviewerText).toMatch(/^Here's an exhibit: Proposal — In-store sampling program.*recommendation to the CEO\?$/);
+  });
+});
+
+describe('an exhibit-stage exhibit that waits for the brainstorm (variant: Exhibit 1 after the brainstorm, none required)', () => {
+  const NOTHING_SHOWN = { caseId: 'launch-variant', phase: 'ANALYSIS', elapsedMin: 12, revealed: ['bag_price', 'variable_costs', 'launch_costs', 'purchase_intent', 'planning_assumptions'] };
+  const NO_EXHIBIT = (over: Row = {}) => ({ ...PT_SATISFIED, stageEvidence: stagesWith({ exhibit: { delivered: false }, ...over }) });
+
+  it('before the brainstorm no exhibit is owed: code asks the brainstorm', async () => {
+    seed({ ...NOTHING_SHOWN, coverage: ALL_COVERED, flags: NO_EXHIBIT() });
+    const r = await say('So it breaks even.');
+    expect(r.interviewerText).toBe('What could Hollis Bay do to get shoppers to try its chickpea snacks — and to keep buying them?');
+    expect(shownIds()).toEqual([]);
+  });
+
+  it("after it, the exhibit stage is owed and code's stage line hands Exhibit 1 over", async () => {
+    seed({ ...NOTHING_SHOWN, coverage: ALL_COVERED, flags: NO_EXHIBIT({ brainstorm: { delivered: true, outcome: 'answered' } }) });
+    const r = await say('So it breaks even.');
+    expect(shownIds()).toEqual(['exhibit-1']);
+    expect(r.interviewerText).toMatch(/^Here's an exhibit: Roasted chickpea snacks/);
+  });
+
+  it("the model's early recommendation ask is held for Exhibit 1 once the brainstorm was asked", async () => {
+    seed({ ...NOTHING_SHOWN, coverage: null, flags: NO_EXHIBIT({ brainstorm: { delivered: true, outcome: 'answered' } }) });
+    const r = await say('So it breaks even.', T({ move: 'recommendation', question: "What's your recommendation to the client?" }));
+    expect(r.interviewerText).toMatch(/Here's an exhibit: Roasted chickpea snacks/);
+    expect(r.interviewerText).not.toMatch(/recommendation/i);
   });
 });

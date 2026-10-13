@@ -94,6 +94,12 @@ const MathStepSchema = z.object({
   timeframe: z.enum(['current', 'prior', 'change']).optional(),
 });
 
+// Stages an exhibit's `after` may name besides earlier exhibits (13 Oct).
+export const ORDER_STAGES = ['brainstorm'] as const;
+export function isOrderStage(id: string): id is typeof ORDER_STAGES[number] {
+  return (ORDER_STAGES as readonly string[]).includes(id);
+}
+
 const ExhibitSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -109,8 +115,10 @@ const ExhibitSchema = z.object({
   coversLedgerItems: z.array(z.string()).optional(),
   // Release order (new cases, 13 Oct; lib/orchestrator/data-decisions.ts
   // exhibitReady): exhibits that must be out first (each earlier in the list),
-  // and ledger items that must be released first. Until then neither the
-  // exhibit nor an item only it shows is released, by any path.
+  // or a stage (ORDER_STAGES: "brainstorm" — Hollis Bay's sampling exhibit
+  // would give the brainstorm away), and ledger items that must be released
+  // first. Until then neither the exhibit nor an item only it shows is
+  // released, by any path.
   after: z.array(z.string()).optional(),
   requiresItems: z.array(z.string()).optional(),
   // Owed before the case ends (Lorenzo, 13 Oct): an unshown required exhibit
@@ -265,11 +273,16 @@ export const CaseSchema = z.object({
   });
   c.exhibits.forEach((e, i) => {
     (e.after ?? []).forEach((id, j) => {
+      if (isOrderStage(id)) {
+        // A case without a brainstorm never has it out: the exhibit would wait forever.
+        if (c.brainstorm?.required === false || c.format === 'candidate_led') ctx.addIssue({ code: 'custom', path: ['exhibits', i, 'after', j], message: `"${id}": this case has no brainstorm stage` });
+        return;
+      }
       const at = c.exhibits.findIndex(x => x.id === id);
       if (at < 0 || at >= i) ctx.addIssue({ code: 'custom', path: ['exhibits', i, 'after', j], message: `"${id}" is not an exhibit earlier in the list` });
     });
     if (e.required) (e.after ?? []).forEach((id, j) => {
-      if (c.exhibits.find(x => x.id === id)?.required !== true) ctx.addIssue({ code: 'custom', path: ['exhibits', i, 'after', j], message: `"${id}" comes before required "${e.id}", so it must be required too` });
+      if (!isOrderStage(id) && c.exhibits.find(x => x.id === id)?.required !== true) ctx.addIssue({ code: 'custom', path: ['exhibits', i, 'after', j], message: `"${id}" comes before required "${e.id}", so it must be required too` });
     });
     (e.requiresItems ?? []).forEach((id, j) => {
       if (!ledgerIds.has(id)) ctx.addIssue({ code: 'custom', path: ['exhibits', i, 'requiresItems', j], message: `Unknown ledger item "${id}"` });

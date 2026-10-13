@@ -121,7 +121,7 @@ export function buildPromptParts(ctx: PromptContext): { stable: string; turn: st
     : 'All case data has been released.';
 
   const exhibitSection = ctx.exhibits.length > 0
-    ? `EXHIBITS:\n${ctx.exhibits.map(e => `- id: "${e.id}" — ${e.title}${e.shown ? ' (already on the candidate\'s screen — refer to it, don\'t hand it over again)' : e.notYet ? ' (not yet — it comes after the earlier exhibits; don\'t hand it over or mention it)' : ''}`).join('\n')}`
+    ? `EXHIBITS:\n${ctx.exhibits.map(e => `- id: "${e.id}" — ${e.title}${e.shown ? ' (already on the candidate\'s screen — refer to it, don\'t hand it over again)' : e.notYet ? ' (not yet — its turn in the case\'s order hasn\'t come; don\'t hand it over or mention it)' : ''}`).join('\n')}`
     : '';
 
   // Fallback for callers that don't pass case-config budgets (older tests,

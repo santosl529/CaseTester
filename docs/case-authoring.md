@@ -230,13 +230,18 @@ Without `quoteAnchors` a case has no misquote check.
 
 An exhibit that must not come before others lists them in `after` (each
 earlier in the `exhibits` list — no cycles), and any ledger items that must be
-out first in `requiresItems`. Until then code releases neither the exhibit nor
+out first in `requiresItems`. `after` may also name the `brainstorm` stage: the
+exhibit then waits until the brainstorm has been asked (by code or the
+interviewer) — use it when the exhibit would give the brainstorm away (Hollis
+Bay's sampling proposal). Under time pressure that wait is dropped, so a
+required exhibit still goes out with the recommendation ask. Only a case whose
+brainstorm is owed may use it (the loader rejects it otherwise). Until then code releases neither the exhibit nor
 an item only it shows, on any path (a request, an ask covering its data, the
 model's handover); an ask for it is deferred out loud, and the model is told it
 is "not yet". A predecessor counts as out once shown, or once all of its data
 has been read out as lines. Author the order the guide's release rules give:
 Larkspur 1 → 2 → 3, Aldermoor 3 after 1, Quillpath 4 after 1–3, Hollis 3 after
-1 and 2.
+1, 2 and the brainstorm.
 
 `required: true` makes an exhibit owed before the case ends (Lorenzo, 13 Oct):
 while it is unshown, code hands it over in place of a recommendation ask or a

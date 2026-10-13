@@ -114,6 +114,8 @@ type Script = {
   // an exhibit asked for before its turn
   early: { exhibit: string; ask: string; after: number };   // asked once `after` exhibits are out
   brainstorm: string | null;
+  // the exhibit the case's brainstorm comes before (its `after` names the brainstorm)
+  brainstormBefore?: string;
 };
 
 const SCRIPTS: Script[] = [
@@ -126,7 +128,7 @@ const SCRIPTS: Script[] = [
   { caseId: 'pricing-001', brainstorm: null,
     order: [['exhibit-1', 'the economics of each plan'], ['exhibit-2', 'the cohort retention'], ['exhibit-3', 'new customers by plan'], ['exhibit-4', 'the price test results']],
     early: { exhibit: 'exhibit-4', ask: 'the price test results', after: 2 } },
-  { caseId: 'launch-001', brainstorm: 'What could Hollis Bay do to get shoppers to try its chickpea snacks — and to keep buying them?',
+  { caseId: 'launch-001', brainstorm: 'What could Hollis Bay do to get shoppers to try its chickpea snacks — and to keep buying them?', brainstormBefore: 'exhibit-3',
     order: [['exhibit-1', 'the bag economics and launch costs'], ['exhibit-2', 'the shopper survey'], ['exhibit-3', 'the sampling proposal']],
     early: { exhibit: 'exhibit-3', ask: 'the sampling proposal', after: 1 } },
 ];
@@ -167,8 +169,15 @@ describe.each(SCRIPTS.flatMap(s => (['correct', 'error'] as const).map(v => ({ .
       if (i === 0) continue;
       if (i === s.early.after) await earlyAsk();
       const last = i === s.order.length - 1;
+      if (s.brainstormBefore === id) {
+        // The exhibit waits for the brainstorm: a recommendation ask is held for the brainstorm first.
+        const b = await at(min++, 'I have enough to recommend now.', REC);
+        expect(b.interviewerText).toBe(`Mm-hm. ${s.brainstorm}`);
+        expect(shown()).not.toContain(id);
+        expect(stage('brainstorm')).toMatchObject({ delivered: true });
+      }
       const r = last
-        ? await at(min++, 'I have enough to recommend now.', REC)
+        ? await at(min++, s.brainstormBefore === id ? 'Sampling in stores, a trial-size bag, recipe ideas on the pack.' : 'I have enough to recommend now.', REC)
         : await at(min++, `Could I see ${what}?`, M({ move: 'exhibit', requests: [ask(what, [id])], question: 'What does it tell you?' }));
       expect(shown().at(-1)).toBe(id);
       expect(r.interviewerText).toContain(`Here's an exhibit: ${title(id)}.`);
@@ -180,14 +189,14 @@ describe.each(SCRIPTS.flatMap(s => (['correct', 'error'] as const).map(v => ({ .
 
     // The recommendation ask: held once for the case's own brainstorm, if it has one.
     const asked = await at(min++, 'The numbers point one way; I can see the answer now.', REC);
-    if (s.brainstorm) {
+    if (s.brainstorm && !s.brainstormBefore) {
       expect(asked.interviewerText).toBe(`Mm-hm. ${s.brainstorm}`);
       expect(stage('brainstorm')).toMatchObject({ delivered: true });
       const again = await at(min++, 'First, a phased approach; second, partner for reach; third, protect the core.', REC);
       expect(again.interviewerText).toMatch(/what's your recommendation to the CEO\?$/);
     } else {
       expect(asked.interviewerText).toMatch(/what's your recommendation to the CEO\?$/);
-      expect(stage('brainstorm').delivered).toBe(false);
+      expect(stage('brainstorm').delivered).toBe(s.brainstorm !== null);
     }
     expect(asked.interviewerText).not.toMatch(/what else could the client do|other levers could the client|protect margin/i);
 

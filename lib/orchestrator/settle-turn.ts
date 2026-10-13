@@ -421,7 +421,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       modelQuestion = '';
       stageAsked = 'brainstorm';
     } else if (!decisions.exhibit) {
-      heldForExhibit = nextReadyExhibit(caseData.exhibits, state.shownExhibitIds, ledger);
+      heldForExhibit = nextReadyExhibit(caseData.exhibits, state.shownExhibitIds, ledger, state.stagesOut);
       if (heldForExhibit) {
         question = `Here's an exhibit: ${heldForExhibit.title}. ${pickScript(STAGE_EXHIBIT_QUESTIONS, seed)}`;
         modelQuestion = '';

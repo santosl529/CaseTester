@@ -1390,7 +1390,10 @@ never mentioned or penalized.
 
 **Exhibits in the case's release order (v4.12).** An exhibit goes out only
 when its turn has come: every exhibit it comes after (`after`) is out — shown,
-or all its data already read — and every item it requires is released. Until
+or all its data already read — the brainstorm has been asked if it comes after
+the brainstorm (Hollis Bay's sampling proposal would give the brainstorm away;
+13 Oct; the wait is dropped under time pressure), and every item it requires is
+released. Until
 then neither the exhibit nor an item only it shows is released, by any path:
 a request, an ask covering its data, the interviewer's own handover, or code's
 exhibit stage; the interviewer is told it is "not yet". Larkspur's Exhibit 3

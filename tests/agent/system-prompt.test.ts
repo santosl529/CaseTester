@@ -155,7 +155,7 @@ describe('exhibits already shown', () => {
       { id: 'exhibit-2', title: 'One flight', notYet: true },
     ] }));
     expect(p).toContain('- id: "exhibit-1" — Results by route\n');
-    expect(p).toContain('- id: "exhibit-2" — One flight (not yet — it comes after the earlier exhibits; don\'t hand it over or mention it)');
+    expect(p).toContain('- id: "exhibit-2" — One flight (not yet — its turn in the case\'s order hasn\'t come; don\'t hand it over or mention it)');
   });
 });
 

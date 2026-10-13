@@ -108,6 +108,14 @@ describe('CaseSchema exhibit release order', () => {
     expect(CaseSchema.safeParse(exhibits(e => { e[1].after = ['exhibit-9']; })).success).toBe(false);
     expect(CaseSchema.safeParse(exhibits(e => { e[1].requiresItems = ['nope']; })).success).toBe(false);
   });
+  it('an exhibit may come after the brainstorm — only in a case that has one', () => {
+    const hollis = getCaseById('launch-001');
+    expect(hollis.exhibits.find(e => e.id === 'exhibit-3')!.after).toEqual(['exhibit-1', 'exhibit-2', 'brainstorm']);
+    expect(CaseSchema.safeParse(exhibits(e => { e[2].after = ['exhibit-2', 'brainstorm']; })).success).toBe(true);
+    const quill = getCaseById('pricing-001');
+    const e = structuredClone(quill.exhibits); e[3].after = [...(e[3].after ?? []), 'brainstorm'];
+    expect(CaseSchema.safeParse({ ...quill, exhibits: e }).success).toBe(false);   // no brainstorm: it would never be out
+  });
 });
 
 describe('CaseSchema exhibit notes', () => {

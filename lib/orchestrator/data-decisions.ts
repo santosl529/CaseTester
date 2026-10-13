@@ -13,6 +13,7 @@ import type { RequestedUnanswered } from '@/lib/scoring/data-coverage';
 import type { RequestResponse } from './data-requests';
 import { canReveal, type DataLedger } from './data-ledger';
 import { pickScript, STALE_RELEASE_LEADINS } from '@/lib/agent/prompts/scripts';
+import { isOrderStage } from '@/lib/cases/schema';
 
 export const RELEASE_CAP = 3;
 
@@ -142,32 +143,38 @@ export type ExhibitInfo = { id: string; title: string; coversLedgerItems?: strin
 
 // Release order (new cases, 13 Oct; the case's exhibit `after` / `requiresItems`):
 // an exhibit is ready once every exhibit it comes after is out — shown, or all
-// of its data already released as lines — and every item it requires is out.
-// Larkspur's Exhibit 3 before the per-flight math gives the answer away.
-export function exhibitReady(e: ExhibitInfo, exhibits: ExhibitInfo[], shown: Set<string>, ledger: DataLedger): boolean {
+// of its data already released as lines — every stage it comes after is out
+// (`stagesOut`, from Plan: Hollis Bay's sampling exhibit after the brainstorm),
+// and every item it requires is out. Larkspur's Exhibit 3 before the
+// per-flight math gives the answer away.
+const NO_STAGES: ReadonlySet<string> = new Set();
+export function exhibitReady(e: ExhibitInfo, exhibits: ExhibitInfo[], shown: Set<string>, ledger: DataLedger, stagesOut: ReadonlySet<string> = NO_STAGES): boolean {
   const out = (x: ExhibitInfo) => shown.has(x.id) || ((x.coversLedgerItems ?? []).length > 0 && (x.coversLedgerItems ?? []).every(id => ledger.revealed.has(id)));
-  return (e.after ?? []).every(id => { const x = exhibits.find(y => y.id === id); return x === undefined || out(x); })
+  return (e.after ?? []).every(id => {
+    if (isOrderStage(id)) return stagesOut.has(id);
+    const x = exhibits.find(y => y.id === id); return x === undefined || out(x);
+  })
     && (e.requiresItems ?? []).every(id => ledger.revealed.has(id));
 }
 
 // The exhibit code hands over when it administers the exhibit stage: the
 // first not yet shown whose turn has come.
-export function nextReadyExhibit<E extends ExhibitInfo>(exhibits: E[], shown: Set<string>, ledger: DataLedger): E | undefined {
-  return exhibits.find(e => !shown.has(e.id) && exhibitReady(e, exhibits, shown, ledger));
+export function nextReadyExhibit<E extends ExhibitInfo>(exhibits: E[], shown: Set<string>, ledger: DataLedger, stagesOut: ReadonlySet<string> = NO_STAGES): E | undefined {
+  return exhibits.find(e => !shown.has(e.id) && exhibitReady(e, exhibits, shown, ledger, stagesOut));
 }
 
 // The next required exhibit still owed, when its turn has come (a required
 // exhibit's predecessors are required, so the first unshown one is next).
-export function nextRequiredExhibit<E extends ExhibitInfo>(exhibits: E[], shown: Set<string>, ledger: DataLedger): E | undefined {
+export function nextRequiredExhibit<E extends ExhibitInfo>(exhibits: E[], shown: Set<string>, ledger: DataLedger, stagesOut: ReadonlySet<string> = NO_STAGES): E | undefined {
   const next = exhibits.find(e => e.required && !shown.has(e.id));
-  return next && exhibitReady(next, exhibits, shown, ledger) ? next : undefined;
+  return next && exhibitReady(next, exhibits, shown, ledger, stagesOut) ? next : undefined;
 }
 
 // An item still unreleased that only exhibits not yet ready show waits with them.
-export function heldForOrder(id: string, exhibits: ExhibitInfo[], shown: Set<string>, ledger: DataLedger): boolean {
+export function heldForOrder(id: string, exhibits: ExhibitInfo[], shown: Set<string>, ledger: DataLedger, stagesOut: ReadonlySet<string> = NO_STAGES): boolean {
   if (ledger.revealed.has(id)) return false;
   const covering = exhibits.filter(e => (e.coversLedgerItems ?? []).includes(id));
-  return covering.length > 0 && covering.every(e => !shown.has(e.id) && !exhibitReady(e, exhibits, shown, ledger));
+  return covering.length > 0 && covering.every(e => !shown.has(e.id) && !exhibitReady(e, exhibits, shown, ledger, stagesOut));
 }
 
 export type DataDecisions = {
@@ -193,6 +200,7 @@ export function decideData(p: {
   ledger: DataLedger;
   exhibits: ExhibitInfo[];
   shownExhibitIds: Set<string>;
+  stagesOut?: ReadonlySet<string>;  // stages an exhibit's `after` may wait on that are out (Plan's stagesOut)
   open: RequestedUnanswered[];      // explicit asks from earlier turns still unreleased
   gateHeld?: Set<string>;           // whats of requests the pressure-test gate turned into deferrals
   candidateText: string;           // the candidate's message: a mention is offered only when it states a need for the item
@@ -209,7 +217,7 @@ export function decideData(p: {
   // two or more of its items, still unreleased, in one explicit ask); else the
   // model's handover.
   // Only an exhibit whose turn has come (exhibitReady) goes out, by any path.
-  const ready = (id: string) => exhibitById.has(id) && !p.shownExhibitIds.has(id) && exhibitReady(exhibitById.get(id)!, p.exhibits, p.shownExhibitIds, p.ledger);
+  const ready = (id: string) => exhibitById.has(id) && !p.shownExhibitIds.has(id) && exhibitReady(exhibitById.get(id)!, p.exhibits, p.shownExhibitIds, p.ledger, p.stagesOut);
   const explicitIds = p.requests.filter(r => r.explicit && r.respond === 'release').flatMap(r => r.itemIds);
   const requestedExhibit = explicitIds.find(ready);
   const coveringExhibit = p.exhibits.find(e => ready(e.id)
@@ -243,7 +251,7 @@ export function decideData(p: {
     return item ? item.spoken ?? spokenItemName(item.label) : r.what;
   };
   // Waiting on the release order: an item only an exhibit not yet ready shows, or that exhibit itself.
-  const orderHeld = (id: string) => (itemById.has(id) ? heldForOrder(id, p.exhibits, p.shownExhibitIds, p.ledger)
+  const orderHeld = (id: string) => (itemById.has(id) ? heldForOrder(id, p.exhibits, p.shownExhibitIds, p.ledger, p.stagesOut)
     : exhibitById.has(id) && !p.shownExhibitIds.has(id) && id !== exhibit?.id && !ready(id));
 
   // Two passes: every direct release first, then deferrals and offers, so a

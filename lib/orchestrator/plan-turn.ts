@@ -626,8 +626,15 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // recommendation comes first then, and the stage is recorded as time_up.
   const stageRecord = (flags.stageEvidence as StageRecord | undefined) ?? INITIAL_STAGES;
   const stagesEnforced = (flags.stagesEnforced as Partial<Record<StageKey, boolean>> | undefined) ?? {};
+  // Stages out for the exhibit release order (an exhibit's `after` may name
+  // the brainstorm — Hollis Bay's sampling exhibit, Lorenzo 13 Oct): asked, or
+  // enforced by code. Under time pressure the wait is dropped — code no longer
+  // administers the brainstorm then, and a required exhibit goes out with the
+  // recommendation ask like the others.
+  const stagesOut: ReadonlySet<string> = new Set(stageRecord.brainstorm.delivered || stagesEnforced.brainstorm
+    || timeUp || isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) ? ['brainstorm'] : []);
   // The exhibit stage is owed only while an exhibit is ready to hand over (release order).
-  const owedStage = missingRequiredStages(stageRecord, { hasExhibit: nextReadyExhibit(caseData.exhibits, shownExhibitIds, ledger) !== undefined, format: caseData.format, brainstormRequired: brainstormRequired(caseData) })
+  const owedStage = missingRequiredStages(stageRecord, { hasExhibit: nextReadyExhibit(caseData.exhibits, shownExhibitIds, ledger, stagesOut) !== undefined, format: caseData.format, brainstormRequired: brainstormRequired(caseData) })
     .find(k => !stagesEnforced[k]);
   const ptClosed = pressureTest.state === 'satisfied' || pressureTest.state === 'waived';
   const stageDue = owedStage !== undefined && ptClosed && !timeUp && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)
@@ -663,7 +670,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // release order) instead of asking for the recommendation or closing; the
   // model's own early ask is held for it in Settle. Under time pressure no
   // hold: it goes out with the recommendation ask (Settle). Not at time-up.
-  const requiredNext = nextRequiredExhibit(caseData.exhibits, shownExhibitIds, ledger);
+  const requiredNext = nextRequiredExhibit(caseData.exhibits, shownExhibitIds, ledger, stagesOut);
   const underTimePressure = isUnderTimePressure(elapsedMs, TOTAL_CASE_MS);
   const requiredExhibit = requiredNext && !timeUp && !underTimePressure ? requiredNext.id : undefined;
   const pressureExhibit = requiredNext && !timeUp && underTimePressure ? requiredNext.id : undefined;
@@ -783,7 +790,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     kind: 'model' as const,
     ctx,
     state: {
-      caseData, repliedToDistressOffer, shownExhibitIds, ledger, catalog, dataRequestRows,
+      caseData, repliedToDistressOffer, shownExhibitIds, stagesOut, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
       derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, recMathProbe, analysisOwed, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,

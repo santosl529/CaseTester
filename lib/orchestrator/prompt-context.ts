@@ -18,7 +18,7 @@ export function promptContextFor(plan: ModelPlan): PromptContext {
     revealedValues: revealedValues(ledger),
     unrevealedItems: unrevealedItems(ledger),
     exhibits: caseData.exhibits.map(e => ({ id: e.id, title: e.title, shown: state.shownExhibitIds.has(e.id),
-      ...(!state.shownExhibitIds.has(e.id) && !exhibitReady(e, caseData.exhibits, state.shownExhibitIds, ledger) ? { notYet: true } : {}) })),
+      ...(!state.shownExhibitIds.has(e.id) && !exhibitReady(e, caseData.exhibits, state.shownExhibitIds, ledger, state.stagesOut) ? { notYet: true } : {}) })),
     advancedLastTurn: Boolean(ctx.flags.advancedLastTurn),
     elapsedMs: state.elapsedMs,
     totalMs: TOTAL_CASE_MS,

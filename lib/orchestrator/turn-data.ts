@@ -63,7 +63,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   const exhibits: ExhibitInfo[] = state.caseData.exhibits.map(e => ({ id: e.id, title: e.title, coversLedgerItems: e.coversLedgerItems, after: e.after, requiresItems: e.requiresItems }));
   // An open ask whose data waits on the exhibit order is not forced out (it
   // would be deferred out loud every turn); it goes once its exhibit is ready.
-  const waiting = (id: string) => heldForOrder(id, exhibits, state.shownExhibitIds, ledger);
+  const waiting = (id: string) => heldForOrder(id, exhibits, state.shownExhibitIds, ledger, state.stagesOut);
 
   // An unmapped explicit ask (item_ids []) that names exactly one catalog
   // label is that item (v3, batch 18 Maya t6): an empty mapping is the
@@ -189,6 +189,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     ledger,
     exhibits,
     shownExhibitIds: state.shownExhibitIds,
+    stagesOut: state.stagesOut,
     open: state.openDataRequests,
     gateHeld,
   });

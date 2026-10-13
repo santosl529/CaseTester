@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decideData, renderDataLines, decisionRows, labelMatch, outsideAskScope, mentionStatesNeed, exhibitReady, heldForOrder, nextReadyExhibit } from '@/lib/orchestrator/data-decisions';
+import { decideData, renderDataLines, decisionRows, labelMatch, outsideAskScope, mentionStatesNeed, exhibitReady, heldForOrder, nextReadyExhibit, nextRequiredExhibit } from '@/lib/orchestrator/data-decisions';
 import { createLedger, reveal, type LedgerItem } from '@/lib/orchestrator/data-ledger';
 import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
 
@@ -528,6 +528,23 @@ describe('exhibit release order', () => {
     expect(heldForOrder('leases', OEX, new Set(), l)).toBe(false);
     reveal(l, 'fare');
     expect(heldForOrder('fare', OEX, new Set(), l)).toBe(false);   // already out: a re-ask restates it
+  });
+
+  it('an exhibit after the brainstorm waits until the brainstorm counts as out, by every path', () => {
+    const l = createLedger(OITEMS);
+    const ex = [OEX[0], { ...OEX[1], after: ['exhibit-1', 'brainstorm'], required: true }];
+    const shown = new Set(['exhibit-1']);
+    const out = new Set(['brainstorm']);
+    expect(exhibitReady(ex[1], ex, shown, l)).toBe(false);
+    expect(exhibitReady(ex[1], ex, shown, l, out)).toBe(true);
+    expect(nextReadyExhibit(ex, shown, l)).toBeUndefined();
+    expect(nextReadyExhibit(ex, shown, l, out)?.id).toBe('exhibit-2');
+    expect(nextRequiredExhibit(ex, shown, l)).toBeUndefined();
+    expect(nextRequiredExhibit(ex, shown, l, out)?.id).toBe('exhibit-2');
+    expect(heldForOrder('fare', ex, shown, l)).toBe(true);
+    expect(heldForOrder('fare', ex, shown, l, out)).toBe(false);
+    expect(decideData(ob({ exhibits: ex, shownExhibitIds: shown, exhibit: 'exhibit-2' })).exhibit).toBeNull();
+    expect(decideData(ob({ exhibits: ex, shownExhibitIds: shown, exhibit: 'exhibit-2', stagesOut: out })).exhibit?.id).toBe('exhibit-2');
   });
 });
 

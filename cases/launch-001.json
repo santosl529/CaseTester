@@ -743,7 +743,8 @@
       ],
       "after": [
         "exhibit-1",
-        "exhibit-2"
+        "exhibit-2",
+        "brainstorm"
       ],
       "required": true,
       "data": [
