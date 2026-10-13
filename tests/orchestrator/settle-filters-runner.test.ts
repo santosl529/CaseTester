@@ -451,6 +451,30 @@ describe('no refusal names data the case holds (fact checks F3)', () => {
     expect(r.interviewerText).not.toMatch(/I don't have COGS breakdown/);
   });
 
+  // Lorenzo, 13 Oct (Step 4: Jordan 099f33e9 t6–t8, Owen 9b08959d t6 — "COGS
+  // split by input category" released the bean share only, then "I don't have
+  // COGS split by input category" was false): the same ask releases the same
+  // items every time, and an ask whose items are partly out is answered, never refused.
+  const THREE = [/Coffee beans were 25% of COGS two years ago\./, /Raw coffee bean costs are up 40% over the past two years\./, /Other input costs — dairy, packaging, and food — are up 37\.5% over the past two years\./];
+  it.each([
+    ['the split of COGS by input category', ['bean_share_of_cogs']],
+    ['COGS split by input category', ['bean_share_of_cogs', 'non_bean_input_change']],
+    ['the composition of COGS', ['bean_share_of_cogs']],
+    ["what's inside COGS", []],
+  ] as [string, string[]][])('"%s" releases the bean share, the bean price change and the other inputs\' change', async (what, itemIds) => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const r = await say('Do we have a split of COGS by input category?', T({ say: 'Mm-hm.', requests: [ask(what, itemIds)], question: 'What does it tell you?' }));
+    for (const line of THREE) expect(r.interviewerText).toMatch(line);
+  });
+
+  it('the ask with its share already out: the rest goes out — no refusal (Jordan t7)', async () => {
+    seed({ phase: 'EXHIBIT', revealed: [...COST, 'bean_share_of_cogs'], flags: SATISFIED });
+    const r = await say("That's why I want the bean split.", T({ say: 'Mm-hm.', requests: [ask('COGS split by input category', ['bean_price_change', 'non_bean_input_change'])], question: 'What does it tell you?' }));
+    expect(r.interviewerText).not.toMatch(/I don't have/);
+    expect(r.interviewerText).toMatch(/Raw coffee bean costs are up 40%/);
+    expect(r.interviewerText).toMatch(/Other input costs — dairy, packaging, and food — are up 37\.5%/);
+  });
+
   it('"the number of stores over the 2 years" is the store count (batch 18 Maya t7)', async () => {
     seed({ phase: 'CLARIFY', flags: SATISFIED });
     const r = await say('Has the number of stores changed over the two years?', T({ say: 'Sure.', requests: [ask('the number of stores over the 2 years')], question: 'How would you structure it?' }));

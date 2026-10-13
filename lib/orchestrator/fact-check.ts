@@ -700,7 +700,8 @@ export function findFalseRefusals(text: string, fb: FactBase, revealed: Set<stri
 const FINER_BEFORE = /\b(?:per[- ]unit|unit|regional|store[- ]level|item[- ]level|category|segment|cohort|dollar|absolute|gross|contribution|operating|variable|fixed|same[- ]store|new[- ]store|competitor|competitors'|industry|historical|future|projected|forecast|target|drink|food|product|daypart|channel|weekly|monthly|quarterly|sku|retail|itemi[sz]ed|detailed|full|complete|granular|exact)\s+$/i;
 
 // The items an ask names through a group ("what's inside COGS", "COGS
-// breakdown by input", "the cost breakdown"), unless something finer
+// breakdown by input", "the cost breakdown"; "by input category" is the same
+// breakdown — Lorenzo, 13 Oct, Jordan 099f33e9 t6–t8), unless something finer
 // qualifies the group: "variable-versus-fixed split within COGS", "the
 // current split of COGS", "cost breakdown by store".
 export function groupItemsAsked(what: string, fb: FactBase): string[] {
@@ -708,7 +709,8 @@ export function groupItemsAsked(what: string, fb: FactBase): string[] {
   return uniq(nameHits(what, fb, { groups: true }).filter(h => h.group).filter(h => {
     const a = Math.max(lower.lastIndexOf(',', h.start - 1), lower.lastIndexOf(';', h.start - 1));
     const end = lower.indexOf(',', h.end);
-    const entry = lower.slice(a + 1, end < 0 ? lower.length : end).replace(h.name, ' ');
+    // "<…by input> category" names the same breakdown, not a finer cut.
+    const entry = lower.slice(a + 1, end < 0 ? lower.length : end).replace(/(?:input|ingredient|cost|component)s?$/.test(h.name) ? new RegExp(`${h.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:\\s+categor(?:y|ies))?`) : h.name, ' ');
     return !FINER_WORDS.test(entry) && !/\b(?:today|current(?:ly)?|now|this year)\b/.test(entry);
   }).flatMap(h => h.quantities.map(q => q.id)));
 }
