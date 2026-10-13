@@ -27,7 +27,7 @@ describe('correct work is not flagged (batch 18: the doubted conversions)', () =
     '25% of COGS isn\'t 25 points of revenue.',
     '37.5% on 75% of COGS raises total COGS by 28% of COGS, not 28 points of revenue.',
     // quoted, not claimed (batch 20 d8ee5c25 t11)
-    'What I did the second time was take 40% of 25% and call the answer "10 percentage points of revenue" — but 25% is a share of COGS, not of revenue.',
+    'Beans are 25% of COGS, up 40%. What I did the second time was take 40% of 25% and call the answer "10 percentage points of revenue" — but 25% is a share of COGS, not of revenue.',
   ])('a conversion the candidate denies is no unit error: %s', text => {
     expect(run(text).flags).toEqual([]);
   });
