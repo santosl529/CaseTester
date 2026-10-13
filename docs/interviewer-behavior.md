@@ -2243,6 +2243,13 @@ probe, if the first didn't resolve the error, may name a component the
 candidate raised earlier, as a hint ("…and where does overhead sit?"). After
 that, the correction or the report, as above.
 
+**A closed error in the final recommendation (13 Oct, Lorenzo; Jordan
+099f33e9 t25).** An error already corrected, or left for the report after two
+probes, that comes back in the reply to the recommendation ask gets one more
+flag there: code's correction again and "Does that change your
+recommendation?" (or, with no correction, "Before we wrap up — walk me through
+how you got to <figure>."). One flag, once a case; not when time is up.
+
 **Fast path (time pressure, case-breaking class only):** when the phase budget
 is exceeded, case-breaking errors skip the Socratic probe entirely and get an
 immediate one-sentence correction — "Quick correction — that's about 2 points,

@@ -347,3 +347,28 @@ export function formatCheckerHint(s: CheckerSelection): string {
       : `- Earlier the candidate said ${said}; a check in code found it wrong. This overrides the no-correction rule: say this in "say", once, as written — "${s.line}" — then continue. No probe, no consolation, no figure of your own.`;
   return `MATH CHECK FLAG (a background check of an earlier message, vetted in code):\n${line}`;
 }
+
+// Lorenzo, 13 Oct (Step-4 rulings; Jordan 099f33e9 t25, "about 40 points of
+// pressure" again in his recommendation after code corrected it at t7): an
+// error past Rule 14 — corrected once, or left for the report after two probes
+// — gets one more flag when it comes back in the final recommendation. Found
+// in code, not by the checker (its verdict on the recommendation lands after
+// the close): a closed flag's figure in the reply, in a unit the candidate
+// said it in ("about 40 points"; "inputs ran 40%" is another quantity). The
+// line: code's correction when it wrote one, else a neutral probe on the
+// figure as said now.
+export type ClosedRestatement = { key: string; said: string; correction: string | null };
+const unitOfSaid = (text: string) => /%|percent/i.test(text) ? '%' : /\bpoints?\b/i.test(text) ? 'points' : '';
+export function closedErrorRestated(text: string, closed: string[], keys: Record<string, CheckerKeyEntry>, rows: CheckerRow[]): ClosedRestatement | null {
+  const flagRows = rows.filter(r => (r.category ?? MATH_CHECKER_CATEGORY) === MATH_CHECKER_CATEGORY && r.subtype === 'flag').map(r => r.payloadJsonb as CheckerDecision);
+  const said = [...normalizeNumberWords(text).matchAll(/(\d+(?:\.\d+)?)(?:\s*(%|percent\b)|[\s-]*(?:percentage\s+)?(points?)\b)?/gi)]
+    .map(m => ({ value: parseFloat(m[1]), unit: m[2] ? '%' : m[3] ? 'points' : '', text: m[0].trim() }));
+  for (const key of closed) {
+    const figures = keys[key]?.figures ?? [];
+    const flags = flagRows.filter(d => d.key === key);
+    const units = new Set<string>(flags.map(d => unitOfSaid(d.candidateValue)));
+    const hit = said.find(s => figures.some(f => same(s.value, f)) && units.has(s.unit));
+    if (hit) return { key, said: hit.text, correction: flags.find(d => d.outcome === 'correct')?.line ?? null };
+  }
+  return null;
+}

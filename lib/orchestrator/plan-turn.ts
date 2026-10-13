@@ -30,8 +30,8 @@ import { CheckLog } from './check-log';
 import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
 import { brainstormAsks, brainstormRequired } from './brainstorm';
 import { correctionLines } from './misquote';
-import { statesQuantitativeClaim } from './math-checker';
-import { startMathCheck, planCheckerFlags, formatCheckerHint, liveCheckerConfig, checkerKey, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry } from './math-checker-live';
+import { statesQuantitativeClaim, numbersOf } from './math-checker';
+import { startMathCheck, planCheckerFlags, formatCheckerHint, liveCheckerConfig, checkerKey, closedErrorRestated, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
 import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
@@ -71,7 +71,7 @@ export type ModelState = ModelPlan['state'];
 
 // The recommendation's math probe: a deterministic flag, or the math checker's
 // (in place of the close).
-export type RecMathProbe = { flag: RecomputeFlag; action: RecomputeAction } | { checker: CheckerSelection; action: 'probe' | 'correct' };
+export type RecMathProbe = { flag: RecomputeFlag; action: RecomputeAction } | { checker: CheckerSelection; action: 'probe' | 'correct' } | { closed: ClosedRestatement; action: 'probe' | 'correct' };
 
 // Rule 6 option 4: how many times code corrects one item's misquote in a session.
 export const MISQUOTE_CORRECTIONS_PER_ITEM = 2;
@@ -671,9 +671,16 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const recMathFlag = replyToRecAsk && !flags.recMathProbed && !timeUp && !recRevisionDue
     ? recomputeFlags.find(f => recomputeAction(f, recomputeAttempts[f.stepId] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)) !== 'shed')
     : undefined;
+  // An error past Rule 14 said again in the recommendation (Lorenzo, 13 Oct;
+  // Jordan 099f33e9 t25): one more flag, under the same once-a-case rule.
+  const closedRec = replyToRecAsk && !flags.recMathProbed && !timeUp && !recRevisionDue && !recMathFlag
+    ? closedErrorRestated(candidateText, closedKeys, checkerPlan.keys, reads.checkerEventRows ?? [])
+    : null;
   let recMathProbe: RecMathProbe | null = recMathFlag
     ? { flag: recMathFlag, action: recomputeAction(recMathFlag, recomputeAttempts[recMathFlag.stepId] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)) }
+    : closedRec ? { closed: closedRec, action: closedRec.correction ? 'correct' : 'probe' }
     : null;
+  if (closedRec?.correction) derivedValueTexts.push(...numbersOf(closedRec.correction).map(String));
   const analysisDue = analysisOwed && (closeDue || awaitingRecAsk);
   // Required exhibits (Lorenzo, 13 Oct): an unshown one is owed in the
   // analysis gate and the end gate — code hands the next one over (in the

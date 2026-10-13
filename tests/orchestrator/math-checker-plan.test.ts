@@ -127,6 +127,21 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
   });
 });
 
+describe('a closed error said again in the recommendation (Lorenzo, 13 Oct; Jordan 099f33e9 t25)', () => {
+  it("code's correction again, its figure licensed for the provenance audit", () => {
+    const reads = readsFixture({
+      phase: 'RECOMMENDATION', elapsedMs: 17 * 60 * 1000, revealed: COSTS,
+      flags: { moves: { 4: 'brainstorm', 8: 'risk' }, stagesEnforced: { analysis: true, exhibit: true, brainstorm: true }, mathChecker: { handled: ['3:0'], keys: { 'pricing:gain': { figures: [5], since: 3 } }, closed: ['pricing:gain'] } },
+      extraTurns: [{ role: 'candidate', text: CLAIM }, { role: 'interviewer', text: 'What would you recommend to the CEO?' }],
+    });
+    const row = { id: 'f5', sessionId: 's1', category: 'math_checker', subtype: 'flag', turnIndex: 5, phase: 'ANALYSIS', payloadJsonb: { id: '3:0', outcome: 'correct', key: 'pricing:gain', candidateValue: 'about 5 points', line: flagged.correctionLine } };
+    const p = modelState(planTurn({ ...reads, checkerEventRows: [row] } as unknown as TurnReads, 'My recommendation: raise prices. That gets about 5 points back.', deps()));
+    expect(p.state.kind).toBe('rec_math_probe');
+    expect(p.state.recMathProbe).toEqual({ closed: { key: 'pricing:gain', said: '5 points', correction: flagged.correctionLine }, action: 'correct' });
+    expect(p.state.derivedValueTexts).toContain('8.5');
+  });
+});
+
 describe('the check starts on a gated message, beside the model call', () => {
   it('handed to the background channel with the message index; the plan does not wait for it', () => {
     const jobs: CheckerJob[] = [];

@@ -447,7 +447,8 @@ function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null
   // The math checker's flag in place of the close: its vetted line, said by code.
   const recLine = (action: 'probe' | 'correct') => !recMath ? ''
     : 'checker' in recMath ? (action === 'probe' ? `Before we wrap up — ${lowerFirst(recMath.checker.line)}` : recMath.checker.line)
-      : recMathLine(recMath.flag, action);
+      : 'closed' in recMath ? (action === 'probe' || !recMath.closed.correction ? `Before we wrap up — walk me through how you got to ${recMath.closed.said}.` : recMath.closed.correction)
+        : recMathLine(recMath.flag, action);
   const requests = (detected ?? [])
     .filter(r => r.explicit) // a code-written turn answers asks, it doesn't offer
     .map(r => ({ what: r.what, itemIds: r.ledgerItemIds, explicit: true, respond: 'release' as const }));

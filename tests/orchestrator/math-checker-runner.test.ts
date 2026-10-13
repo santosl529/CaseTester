@@ -201,3 +201,98 @@ describe('the correction is said once: its flag closes', () => {
     expect((store.session.flagsJsonb as Row).mathChecker).toMatchObject({ closed: [expect.any(String)] });
   });
 });
+
+// Lorenzo, 13 Oct (Step-4 rulings; Jordan 099f33e9 t25 — "about 40 points of
+// pressure" again in his recommendation, corrected at t7): an error already
+// corrected, or closed after two probes, gets one more flag when it comes back
+// in the final recommendation — matched in code by the closed flag's figures
+// in the unit they were said in; the checker's own verdict lands after the close.
+describe('a closed error said again in the final recommendation: one flag', () => {
+  beforeEach(seed);
+  const KEY = 'cogs_dollar_impact';
+  const CORRECTION = 'COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.';
+  const flagRow = (turnIndex: number, payload: Row) => ({ sessionId: 's1', category: 'math_checker', subtype: 'flag', turnIndex, phase: 'ANALYSIS', payloadJsonb: { candidateTurnIndex: turnIndex - 2, span: 'about 40 points of margin erosion', changesConclusion: true, key: KEY, ...payload } });
+  const corrected = [flagRow(5, { id: '3:0', outcome: 'correct', reason: 'attempt 2', candidateValue: 'about 40 points', line: CORRECTION })];
+  const leftForReport = [
+    flagRow(5, { id: '3:0', outcome: 'probe', reason: 'attempt 1', candidateValue: 'about 40 points', line: 'Walk me through how you got to about 40 points.' }),
+    flagRow(7, { id: '5:0', outcome: 'unresolved', reason: 'attempt 3: no correction code can write, no pointer — left for the report', candidateValue: '~40 points' }),
+  ];
+  const atRecommendation = (o: { events: Row[]; flags?: Row; minutes?: number; asked?: string }) => {
+    const startedAt = new Date(Date.now() - (o.minutes ?? 17) * 60_000);
+    store.session = {
+      ...store.session, phase: 'RECOMMENDATION', startedAt,
+      flagsJsonb: {
+        ...(store.session.flagsJsonb as Row), moves: { 4: 'brainstorm', 8: 'risk' }, stagesEnforced: { analysis: true, exhibit: true, brainstorm: true },
+        mathChecker: { handled: ['3:0', '5:0'], keys: { [KEY]: { figures: [40], since: 3 } }, closed: [KEY] }, ...o.flags,
+      },
+    };
+    const more = [
+      { role: 'candidate', text: 'From 42 to 58 is 38% growth, call it about 40 points of margin erosion from COGS.' }, { role: 'interviewer', text: 'Walk me through that.' },
+      { role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What else could they do?' },
+      { role: 'candidate', text: 'The biggest risk is volume.' }, { role: 'interviewer', text: o.asked ?? 'What would you recommend to the CEO?' },
+    ];
+    store.turns.push(...more.map((t, i) => ({ id: `x${i}`, sessionId: 's1', turnIndex: 3 + i, role: t.role, text: t.text, timestampMs: startedAt.getTime() + i * 20_000, latencyMs: null })));
+    store.events.push(...o.events);
+  };
+  const REC = "My recommendation: fix COGS first. It's carrying about 40 points of pressure on the business, so procurement and pricing together.";
+
+  it('corrected before: code says its correction again and asks once whether the recommendation changes', async () => {
+    atRecommendation({ events: corrected });
+    const r = await runTurn('s1', REC);
+    expect(r.ended).toBe(false);
+    expect(r.interviewerText).toMatch(/^COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base\. (Does that change your recommendation|Would that change your recommendation at all)\?$/);
+    expect((store.session.flagsJsonb as Row).recMathProbed).toBe(true);
+  });
+
+  it('left for the report: one neutral probe on the figure, before the case moves on', async () => {
+    atRecommendation({ events: leftForReport });
+    const r = await runTurn('s1', REC);
+    expect(r.interviewerText).toBe('Before we wrap up — walk me through how you got to 40 points.');
+    expect((store.session.flagsJsonb as Row).recMathProbed).toBe(true);
+  });
+
+  it('another figure in the same unit is not the error ("16 points")', async () => {
+    atRecommendation({ events: corrected });
+    const r = await runTurn('s1', 'My recommendation: fix COGS first. It cost us 16 points of margin, so procurement and pricing together.');
+    expect(r.interviewerText).not.toMatch(/COGS rose 16 points|Before we wrap up/);
+  });
+
+  it("the correction is the closed flag's own, not another flag's", async () => {
+    const other = flagRow(9, { id: '7:0', outcome: 'correct', reason: 'attempt 2', candidateValue: 'about 5 points', line: 'A 10% price rise lifts margin about 8.5 points, not 5.', key: 'pricing:gain' });
+    atRecommendation({ events: [other, ...corrected] });
+    const r = await runTurn('s1', REC);
+    expect(r.interviewerText).toMatch(/^COGS rose 16 points/);
+  });
+
+  it("code's figure in the correction is licensed again (8.5 is no revealed figure)", async () => {
+    const gain = [flagRow(5, { id: '3:0', outcome: 'correct', reason: 'attempt 2', candidateValue: 'about 5 points', line: 'A 10% price rise lifts margin about 8.5 points, not 5.', key: 'pricing:gain' })];
+    atRecommendation({ events: gain, flags: { mathChecker: { handled: ['3:0'], keys: { 'pricing:gain': { figures: [5], since: 3 } }, closed: ['pricing:gain'] } } });
+    const r = await runTurn('s1', 'My recommendation: raise menu prices. That gets us about 5 points back, and procurement does the rest.');
+    expect(r.interviewerText).toMatch(/^A 10% price rise lifts margin about 8\.5 points, not 5\. (Does that change your recommendation|Would that change your recommendation at all)\?$/);
+  });
+
+  it('the figure in another unit is not the error ("inputs ran 40%")', async () => {
+    atRecommendation({ events: corrected });
+    const r = await runTurn('s1', 'My recommendation: fix COGS first. Inputs ran 40%, so procurement and pricing together.');
+    expect(r.interviewerText).not.toMatch(/COGS rose 16 points|Before we wrap up/);
+  });
+
+  it('once a case: after one recommendation flag, the next goes on normally', async () => {
+    atRecommendation({ events: corrected, flags: { recMathProbed: true } });
+    const r = await runTurn('s1', REC);
+    expect(r.interviewerText).not.toMatch(/COGS rose 16 points|Before we wrap up/);
+  });
+
+  it('only in the reply to a recommendation ask', async () => {
+    atRecommendation({ events: corrected, asked: 'What else would you look at?' });
+    const r = await runTurn('s1', REC);
+    expect(r.interviewerText).not.toMatch(/COGS rose 16 points|Before we wrap up/);
+  });
+
+  it('not when time is up (Jordan t25: the close came at time-up) — the rule is unchanged', async () => {
+    atRecommendation({ events: corrected, minutes: 21, flags: { graceAskFired: true } });
+    const r = await runTurn('s1', REC);
+    expect(r.ended).toBe(true);
+    expect(r.interviewerText).not.toMatch(/COGS rose 16 points|Before we wrap up/);
+  });
+});
