@@ -422,6 +422,43 @@ export function codeCorrection(c: CheckerClaim, at: { value: number; index: numb
   return line ? { line, figure: x, theirs } : null;
 }
 
+// A probe asks about the candidate's own claim (Lorenzo, 13 Oct; 0bfe5f38 t21
+// "…and where does overhead sit?" pointed at the missing line): it names no
+// case component (a content word of a ledger label the prompt doesn't use)
+// and no figure the candidate hasn't raised, and carries no arithmetic. The
+// pointer (Rule 14's second attempt) is the line that may name revealed data.
+// Function words, and the words a neutral probe is made of — never a component.
+const PLAIN_WORDS = new Set(`a an the of to and or in on for with by at as is are be was were its it this that these those what when why how who where which
+from per over into about after before between than then there their they them our your you my one two three four five six seven eight nine ten
+first second third new old other each any all some most more less few long short top just only also very much many not no yes would could should
+can may might will make made take get got has have had do does did done use used using say said says come came go goes went see let know think
+walk through figure number base based measured measure against sized size calculation calculate compare compared relate fit add added account explain
+assume assumed assumption period year today ago now point percent percentage share rise risen rose fall fell increase decrease change changed gap
+margin revenue price cost profit total growth grow grew level ratio whole part rest mean same different value average annual rate time way result
+lose lost loss gain recover recovery restore full half quarter because been hasn isn doesn roughly around slightly nearly almost both since while often
+usually under until instead either every enough sure good actually probably likely kind bit expected current main large small lower low high higher
+question answer case data`.split(/\s+/));
+const wordsOf = (text: string) => (text.toLowerCase().match(/[a-z]+/g) ?? []).map(w => (w.length > 3 && w.endsWith('s') && !/(?:ss|is|us)$/.test(w) ? w.slice(0, -1) : w));
+// The case's own vocabulary a probe could point with: ledger labels, spoken
+// names and values, and exhibit titles — less plain words and the prompt's.
+export function caseComponents(c: CheckerCase): Set<string> {
+  const prompt = new Set(wordsOf(c.prompt));
+  const text = [...c.dataLedger.flatMap(d => [d.label, d.value, (d as { spoken?: string }).spoken ?? '']), ...c.exhibits.map(e => e.title)].join(' ');
+  return new Set(wordsOf(text).filter(w => w.length >= 3 && !PLAIN_WORDS.has(w) && !prompt.has(w)));
+}
+const ARITHMETIC = /[=+×÷*]|\d\s*\/\s*\d/;
+export function probeLeads(probe: string, span: string, ctx: VetContext, components: Set<string>): string | null {
+  if (ARITHMETIC.test(probe)) return 'carries arithmetic';
+  const theirWords = new Set([...ctx.candidateTexts, span].flatMap(wordsOf));
+  const named = [...new Set(wordsOf(probe))].filter(w => components.has(w) && !theirWords.has(w));
+  if (named.length) return `names ${named.join(', ')}`;
+  const theirNumbers = ctx.candidateTexts.flatMap(numbersOf);
+  const figures = numbersOf(probe).filter(n => !theirNumbers.some(a => near(n, a)));
+  return figures.length ? `names ${figures.join(', ')}, not theirs` : null;
+}
+// The neutral fallback quotes their figure only when it is a figure, not their working.
+const SHORT_FIGURE = /^(?:about |roughly |around |~)?[\d.,]+(?:\s*[–-]\s*[\d.,]+)?\s*(?:%|percent|points?|x)?$/i;
+
 // What a flagged claim may put in the interviewer's mouth (FR-4). The probe
 // and the pointer probe are the checker's drafts: each passes the provenance
 // audit (only figures the candidate has) and the truth check (no false fact
@@ -436,6 +473,7 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
   const fb = buildFactBase(ctx.caseData as never);
   const revealed = new Set(ctx.revealedIds);
   const speakable = (line: string, extra: string[] = []) => !enforceNumericProvenance(line, [...sources, ...extra]).blocked && findFalseFacts(line, fb, revealed).length === 0;
+  const components = caseComponents(ctx.caseData);
   return claims.map(c => {
     const vetNotes: string[] = [];
     const tolerated = isActionable(c) ? withinTolerance(c, ctx) : null;
@@ -444,9 +482,12 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
     if (!flag) return { ...c, flag, probeLine: null, correctionLine: null, correctionFigure: null, pointerLine: null, vetNotes };
     let probeLine: string | null = c.probe.trim() || null;
     if (probeLine && !speakable(probeLine)) { vetNotes.push(`probe withheld (provenance/truth): ${probeLine}`); probeLine = null; }
+    const leads = probeLine ? probeLeads(probeLine, c.span, ctx, components) : null;
+    if (probeLine && leads) { vetNotes.push(`probe withheld (leads: ${leads}): ${probeLine}`); probeLine = null; }
     if (!probeLine) {
-      const own = c.candidateValue && numbersOf(c.candidateValue).every(n => allowedNumbers.some(a => near(n, a))) ? c.candidateValue : '';
-      probeLine = own ? `Walk me through how you got to ${own}.` : 'Walk me through that calculation.';
+      const value = c.candidateValue.trim();
+      const own = SHORT_FIGURE.test(value) && numbersOf(value).every(n => allowedNumbers.some(a => near(n, a))) ? value : '';
+      probeLine = own ? `Walk me through how you got to ${own}.` : numbersOf(c.span).length ? 'Walk me through that calculation.' : 'Walk me through how you got there.';
     }
     let correctionLine: string | null = null;
     let correctionFigure: string | null = null;

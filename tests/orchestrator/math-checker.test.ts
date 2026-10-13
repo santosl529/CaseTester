@@ -95,6 +95,45 @@ describe('FR-4: what a flag may put in the interviewer\'s mouth', () => {
     expect(v.probeLine).toBe('Walk me through how you got to 10–12%.');
   });
 
+  // Lorenzo, 13 Oct (0bfe5f38 t21: "…and where does overhead sit?"): a probe
+  // asks about the candidate's own claim — it names no component or figure
+  // they haven't raised, and carries no arithmetic.
+  describe('a probe never leads', () => {
+    const said = 'The 18-point margin decline is fully explained by input cost inflation — 4.2 points from beans up 40%, 11.8 points from dairy, packaging and food up 37.5%.';
+    const full = claim({
+      span: said, candidateValue: 'fully (4.2 + 11.8 = 16 points of the 18)', actualShare: 0.89,
+      probe: 'You said the 18-point decline is fully explained by input cost inflation. How do the 4.2 and 11.8 points add up against the 18, and where does overhead sit?',
+    });
+    it('a probe naming a cost line they never raised is replaced — and the fallback never splices their arithmetic', () => {
+      const [v] = vetCheckerClaims([full], ctx({ candidateTexts: [said] }));
+      expect(v.probeLine).toBe('Walk me through that calculation.');
+      expect(v.vetNotes.join(' ')).toMatch(/names overhead/);
+    });
+    it('the same probe without the component they never raised is kept', () => {
+      const probe = 'You said the 18-point decline is fully explained by input cost inflation. How do the 4.2 and 11.8 points add up against the 18?';
+      const [v] = vetCheckerClaims([claim({ ...full, probe })], ctx({ candidateTexts: [said] }));
+      expect(v.probeLine).toBe(probe);
+    });
+    it('a component they raised in an earlier message may be named', () => {
+      const probe = 'You said the 18-point decline is fully explained by input costs. Where does overhead come in?';
+      const [v] = vetCheckerClaims([claim({ ...full, probe })], ctx({ candidateTexts: ['Overhead moved 2 points.', said] }));
+      expect(v.probeLine).toBe(probe);
+    });
+    it('a revealed figure they never said is not named', () => {
+      const [v] = vetCheckerClaims([claim({ ...fiona, probe: 'With COGS at 58% of revenue, how does 10–12% restore the 24% margin?' })], ctx({ candidateTexts: ['COGS is the issue.', 'To get back to 24% margin I need roughly 10–12% on menu prices.'] }));
+      expect(v.probeLine).toBe('Walk me through how you got to 10–12%.');
+    });
+    it('a probe with arithmetic in it is replaced', () => {
+      const [v] = vetCheckerClaims([claim({ ...full, probe: 'You said 4.2 + 11.8 covers the 18. How?' })], ctx({ candidateTexts: [said] }));
+      expect(v.probeLine).toBe('Walk me through that calculation.');
+    });
+    it('a word quantity with no figure of theirs falls back to a plain ask', () => {
+      const text = 'Pricing gets us most of the gap back.';
+      const [v] = vetCheckerClaims([claim({ span: text, candidateValue: 'most of the gap', actualShare: 0.3, probe: 'With overhead up 2 points, how much does pricing recover?' })], ctx({ candidateTexts: [text] }));
+      expect(v.probeLine).toBe('Walk me through how you got there.');
+    });
+  });
+
   it('correct, unverifiable and low-confidence claims raise no flag and carry no lines', () => {
     const vs = vetCheckerClaims([claim({ verdict: 'correct', probe: 'x' }), claim({ verdict: 'unverifiable' }), claim({ confidence: 'low' })], ctx());
     expect(vs.map(v => v.flag)).toEqual([false, false, false]);
