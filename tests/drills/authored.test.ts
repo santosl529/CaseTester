@@ -2,6 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { contentCheckProblems, loadAuthoredItems, loadPaddingTypes, loadReviewedScenarioPairs, parseAuthoredItems } from '@/lib/drills/authored';
 import { RULE_PLAYER_MAX, lengthCueProblems, oddOneOutCues, phraseCues, rulePlayer, scenarioOverlaps } from '@/lib/drills/content-checks';
 import { getDrill } from '@/lib/drills/config';
+import fs from 'fs';
+import path from 'path';
+import { parseCsv } from '@/lib/drills/content-import';
+import { REVIEW_SHEET_COLUMNS, reviewSheetRows } from '@/lib/drills/review-sheet';
 
 describe('authored drill items (/drill-items)', () => {
   const items = loadAuthoredItems();
@@ -111,5 +115,19 @@ describe('one case, one drill', () => {
   it('stops flagging a pair once it is recorded as reviewed', () => {
     const reviewed = [...loadReviewedScenarioPairs(), { items: ['cl1-copy', hy.item_id] as [string, string], reason: 'checked: different scenario' }];
     expect(scenarioOverlaps([...items, copy], reviewed)).toEqual([]);
+  });
+});
+
+describe('the SY-1 drafts review sheet', () => {
+  it('matches the draft items (regenerate with npm run drills:review-sheet)', () => {
+    const file = path.join(process.cwd(), 'docs/drills-content/sy1-drafts-review.csv');
+    if (!fs.existsSync(file)) return;
+    const sheet = parseCsv(fs.readFileSync(file, 'utf-8'));
+    const rows = reviewSheetRows(loadAuthoredItems(), 'SY-1');
+    expect(sheet.map(r => r.item_id)).toEqual(rows.map(r => r.item_id));
+    for (const r of rows) {
+      const s = sheet.find(x => x.item_id === r.item_id)!;
+      for (const c of REVIEW_SHEET_COLUMNS.filter(c => c !== 'what_changed')) expect(`${r.item_id} ${c}: ${s[c] ?? ''}`).toBe(`${r.item_id} ${c}: ${r[c] ?? ''}`);
+    }
   });
 });

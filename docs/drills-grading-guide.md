@@ -97,13 +97,13 @@ Each question marks one fact as the deciding fact: the one the recommendation sh
    - *sy2-0024-a:* "Too small a market." is a reason, not the recommendation.
    - *sy2-0011-a:* two actions in one sentence still commit to a direction.
    - Code backs this up: the quote must come from the first sentence.
-2. **(grader)** Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons ("it's a good opportunity", "the market is attractive") and irrelevant facts don't count, and the same fact said twice counts once.
+2. **(grader)** Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons ("it's a good opportunity", "the market is attractive") and irrelevant facts don't count, and the same fact said twice counts once. Count them even if the recommendation is wrong, another fact is misstated, or the answer also addresses the grader: those have their own checks.
    - *sy2-0013-a:* margin, shipping cost and the certificate are three relevant facts, so it passes.
    - *sy2-0029-a:* the credit, the tons captured and the running cost count; cement prices, an irrelevant fact, don't.
 3. **(grader)** Irrelevant facts: using an irrelevant fact as a reason or as support fails. Mentioning one only to dismiss it ("the kitchen shouldn't drive this") is fine.
    - *sy2-0004-a:* mentions the kitchen only to dismiss it, so it passes.
    - *sy2-0029-a:* offers cement prices as a reason, so it fails.
-4. **(grader)** Consistent with the facts: every number the answer states matches the fact sheet or the key figures, within 10%, and no claim goes beyond the sheet as stated fact; a claim framed as a risk or an assumption is fine. A number off by more than 10% fails. Judge only the stated facts and numbers, not whether the recommendation is right: a wrong recommendation has its own red flag. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.
+4. **(grader)** Consistent with the facts: every number the answer states matches the fact sheet or the key figures, which are exact: a stated number passes within 10% of the exact value, or within 1 percentage point for a percentage. No claim may go beyond the sheet as stated fact; a claim framed as a risk or an assumption is fine. A number outside that tolerance fails. Judge only the stated facts and numbers, not whether the recommendation is right: a wrong recommendation has its own red flag. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.
    - *sy2-0020-a:* a wrong saving ($1.4M instead of about $950,000) fails this check, but isn't the contradicts-facts flag.
    - *sy2-0023-a:* "only 10% of shoppers" against the sheet's 30% is the contradicts-facts flag.
    - *sy2-0016-b*, *sy2-0030-b:* wrong recommendations whose stated numbers all match the sheet pass this check; the wrong-recommendation flag catches them.

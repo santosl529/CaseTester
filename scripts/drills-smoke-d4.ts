@@ -8,6 +8,7 @@
 // everything it wrote.
 //
 //   npm run drills:smoke:d4
+import './smoke-log';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';

@@ -6,11 +6,13 @@
 // the set "delayed" and a later run finishes it. Deletes everything it wrote.
 //
 //   npm run drills:smoke:d2      (makes a few Haiku calls, about $0.02)
+import './smoke-log';
 import { randomUUID } from 'crypto';
 import { eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { analyticsEvents, drillAttempts, drillSets, drillTiers, gradingJobs, prescriptions, skillStateEvents, skillStates, studentDrillSettings } from '@/db/schema';
 import { D2_DRILLS, modelAnswerSteps } from '@/lib/drills/model-answers';
+import { withDefend } from '@/lib/drills/defend';
 import { loadAuthoredItems } from '@/lib/drills/authored';
 import { enqueueGrading, runGradingJob } from '@/lib/drills/grading/jobs';
 import type { CallModel } from '@/lib/drills/grading/grader';
@@ -52,9 +54,12 @@ const ANSWERS: Record<string, StepResponse[]> = {
 // Each question is answered from its own key, so the run checks grading
 // rather than an answer written for a different question.
 const d2Items = loadAuthoredItems().filter(i => D2_DRILLS.includes(i.drill_id));
-function keyAnswers(drillId: string, prompt: string): StepResponse[] {
+// A set at tier 2 or 3 runs the Defend follow-up on items that have one, so
+// those items need the follow-up answered too (withDefend's model steps).
+function keyAnswers(drillId: string, prompt: string, withFollowup = false): StepResponse[] {
   const item = d2Items.find(i => i.drill_id === drillId && i.prompt === prompt);
-  return item ? modelAnswerSteps(item) : ANSWERS[drillId];
+  if (!item) return ANSWERS[drillId];
+  return modelAnswerSteps(withFollowup && item.defend ? withDefend(item) : item);
 }
 
 // Answers every item in the set (a live drill plans a full set; a draft-only
@@ -71,7 +76,7 @@ async function answerSet(setId: string, drillId: string, key = 'k') {
     }
     const leaked = KEY_FIELDS.filter(k => keysDeep(fetched.item).has(k));
     check(leaked.length === 0, `${drillId}: item response leaks ${leaked.join(', ')}`);
-    const answers = keyAnswers(drillId, fetched.item.prompt);
+    const answers = keyAnswers(drillId, fetched.item.prompt, Boolean(fetched.item.input.steps?.some(st => st.defend)));
     for (const [i, response] of answers.entries()) {
       last = await submitAttempt(student, setId, { position, idempotency_key: `${key}-${drillId}-${position}-${i}`, step: i, response, skip: false, timed_out: false });
       if (i < answers.length - 1) {
@@ -80,6 +85,9 @@ async function answerSet(setId: string, drillId: string, key = 'k') {
       }
     }
   }
+  // Every item must be finished and saved, or later checks test an empty set.
+  const [set] = await db.select({ size: drillSets.size, position: drillSets.currentPosition }).from(drillSets).where(eq(drillSets.id, setId));
+  check(set.position === set.size, `${drillId}: only ${set.position} of ${set.size} items were finished`);
   return last;
 }
 
@@ -93,7 +101,11 @@ async function main() {
       const done = await completeSet(student, set_id);
       // Outside a request the grading job runs inline, so the set is graded now.
       const results = await setResults(student, set_id);
-      if (results.status !== 'completed') { failures.push(`${drillId}: set still ${results.status} after ${done.status}`); continue; }
+      if (results.status !== 'completed') {
+        const jobs = await db.select().from(gradingJobs).where(eq(gradingJobs.setId, set_id));
+        failures.push(`${drillId}: set still ${results.status} after ${done.status}; grading jobs: ${JSON.stringify(jobs.map(j => ({ status: j.status, retries: j.retries, error: j.error })))}`);
+        continue;
+      }
       const fb = results.items[0].feedback;
       if (aiGraded) {
         check(Boolean(fb.grading), `${drillId}: no graded checks on results`);

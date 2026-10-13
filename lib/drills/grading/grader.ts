@@ -22,8 +22,10 @@ import type { ItemGrade } from './apply';
 // evidence, one slip counted once, kept substance); v25 his second (vague
 // follow-ups fail only the data and result checks). The Construct drills'
 // main-answer calls are unchanged from v19, except SY-2's from v26 (key
-// figures in the input, consistency judged within 10% of them).
-export const GRADER_PROMPT_VERSION = 'drills-grader-v26';
+// figures in the input, consistency judged within 10% of them; v27: exact
+// figures, percentages within 1 point; v28: reasons counted whatever else is
+// wrong).
+export const GRADER_PROMPT_VERSION = 'drills-grader-v28';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 
@@ -115,7 +117,7 @@ export function buildItemBlock(e: GradingEntry): string {
   }
   // SY-2: figures worked out from the sheet, to check the student's numbers against.
   const figures = item.extras.key_figures as string[] | undefined;
-  if (figures?.length) parts.push(`<key_figures>\nWorked out from the fact sheet. Use them only to check the numbers the answer states; they are not reasons the answer must give.\n${figures.map(f => `- ${f}`).join('\n')}\n</key_figures>`);
+  if (figures?.length) parts.push(`<key_figures>\nExact figures worked out from the fact sheet. Use them only to check the numbers the answer states (within 10%, or 1 percentage point for a percentage); they are not reasons the answer must give.\n${figures.map(f => `- ${f}`).join('\n')}\n</key_figures>`);
   const rules = item.extras.grading_rules as string[] | undefined;
   if (rules?.length) parts.push(`<grading_rules>\n${rules.map(r => `- ${r}`).join('\n')}\n</grading_rules>`);
   parts.push(`<checks>\n${aiChecks.map(c => `- check_id "${c.check_id}"${stageNote(item, c.step)}${c.evidence === 'whole' ? ' [judges the whole answer]' : ''}: ${c.question}`).join('\n')}\n</checks>`);

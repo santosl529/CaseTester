@@ -62,7 +62,7 @@
     },
     {
       "check_id": "consistent_with_facts",
-      "question": "Does every number the answer states match the fact sheet or the key figures, within 10%, with no claim going beyond the sheet as stated fact? Judge only stated facts and numbers, not whether the recommendation is right.",
+      "question": "Does every number the answer states match the fact sheet or the key figures (within 10% of the exact value, or 1 percentage point for a percentage), with no claim going beyond the sheet as stated fact? Judge only stated facts and numbers, not whether the recommendation is right.",
       "weight": 0.15,
       "fail_tag": "M.unsupported_recommendation",
       "feedback": "Some points go beyond or against the fact sheet.",
@@ -167,14 +167,14 @@
     ],
     "acceptable_recommendations": "Hold off on a full launch; pilot it to fix early cancellations",
     "key_figures": [
-      "Revenue per subscriber ≈ $135 a year (3 pairs at $45)",
-      "65% of test subscribers stayed past 3 months"
+      "Revenue per subscriber = $135 a year (3 pairs × $45)",
+      "Stayed past 3 months = 65% (100% − 35%)"
     ],
     "grading_rules": [
       "Recommendation first: the first sentence commits to a course of action that answers the client's question. Context or a restated question first fails. A condition (\"open, starting with a pilot\") is fine if it still picks a direction.",
-      "Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons (\"it's a good opportunity\", \"the market is attractive\") and irrelevant facts don't count, and the same fact said twice counts once.",
+      "Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons (\"it's a good opportunity\", \"the market is attractive\") and irrelevant facts don't count, and the same fact said twice counts once. Count them even if the recommendation is wrong, another fact is misstated, or the answer also addresses the grader: those have their own checks.",
       "Irrelevant facts: using an irrelevant fact as a reason or as support fails. Mentioning one only to dismiss it (\"the kitchen shouldn't drive this\") is fine.",
-      "Consistent with the facts: every number the answer states matches the fact sheet or the key figures, within 10%, and no claim goes beyond the sheet as stated fact; a claim framed as a risk or an assumption is fine. A number off by more than 10% fails. Judge only the stated facts and numbers, not whether the recommendation is right: a wrong recommendation has its own red flag. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.",
+      "Consistent with the facts: every number the answer states matches the fact sheet or the key figures, which are exact: a stated number passes within 10% of the exact value, or within 1 percentage point for a percentage. No claim may go beyond the sheet as stated fact; a claim framed as a risk or an assumption is fine. A number outside that tolerance fails. Judge only the stated facts and numbers, not whether the recommendation is right: a wrong recommendation has its own red flag. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.",
       "Risk: names something specific that could make the recommendation wrong (\"schools may not pay $600 when museums charge $450\"). \"There are risks\" fails.",
       "Next step: a concrete action (\"pilot in 5 parks and track bookings\"). \"Do more analysis\" fails.",
       "Deciding fact: the answer uses the deciding fact, by its content or its number, as part of its case. Mentioning it only in passing, without using it to decide, does not count.",

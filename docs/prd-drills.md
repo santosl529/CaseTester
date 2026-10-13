@@ -745,11 +745,11 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 | Gives 2–3 supporting reasons | 15% | `M.unsupported_recommendation` |
 | Reasons cite numbers from the fact sheet (code pre-check: at least one fact-sheet number appears) | 15% | `M.unsupported_recommendation` |
 | Doesn't use the irrelevant facts as reasons (mentioning one only to dismiss it is fine) | 15% | `M.irrelevant_facts` |
-| Every number the answer states matches the fact sheet or the key figures (within 10%), and no claim goes beyond the sheet | 15% | `M.unsupported_recommendation` |
+| Every number the answer states matches the fact sheet or the key figures (within 10% of the exact value, or 1 percentage point for a percentage), and no claim goes beyond the sheet | 15% | `M.unsupported_recommendation` |
 | Includes a risk | 10% | `M.missing_risk_or_next_step` |
 | Includes a next step | 10% | `M.missing_risk_or_next_step` |
 
-- **Consistency:** judges only stated facts and numbers, not whether the recommendation is right (a wrong recommendation has its own red flag). The key lists the figures worked out from the sheet ("direct-booking saving ≈ $950K", "pressing line payback ≈ 15 months"), and the grader sees them, so it checks a student's numbers against them instead of redoing the math.
+- **Consistency:** judges only stated facts and numbers, not whether the recommendation is right (a wrong recommendation has its own red flag). The key lists the figures worked out from the sheet as exact values ("direct-booking saving = $952,000", "pressing line payback = 15 months"), and the grader sees them, so it checks a student's numbers against them, within 10% or 1 percentage point for a percentage, instead of redoing the math.
 - **Reasons:** "2–3 supporting reasons" is counted as distinct relevant facts from the fact sheet (or numbers worked out from them) used as support; two or more pass. Generic reasons and irrelevant facts don't count.
 - **Red flags:** No clear position, for example "it depends" (cap 0.4, `M.hedged_recommendation`). A claim that contradicts the fact sheet (cap 0.5); a wrong calculation fails the consistency check instead. Wrong recommendation: the answer recommends a different action from the key's acceptable recommendation(s) (cap 0.5, `M.unsupported_recommendation`). Misses the deciding fact: each item marks one relevant fact as deciding, and an answer that never uses it is capped at 0.6 (`M.ignores_deciding_fact`). Off-topic: the answer addresses a different question (cap 0.2); an off-topic answer is not also flagged for no clear position or a wrong recommendation (code enforces this).
 - **Deterministic backstops:** The recommendation-first check passes only on a quote from the first sentence.

@@ -9,6 +9,7 @@
 // No AI calls. Deletes everything it wrote.
 //
 //   npm run drills:smoke:tracks
+import './smoke-log';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';

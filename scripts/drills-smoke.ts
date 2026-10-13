@@ -4,6 +4,7 @@
 // everything it wrote.
 //
 //   npx tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke.ts
+import './smoke-log';
 import { randomUUID } from 'crypto';
 import { D2_DRILLS } from '@/lib/drills/model-answers';
 import { and, eq } from 'drizzle-orm';

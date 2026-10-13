@@ -7,6 +7,7 @@
 // answers (about $0.01). Deletes everything it wrote.
 //
 //   npm run drills:smoke:diagnostic
+import './smoke-log';
 import { randomUUID } from 'crypto';
 import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';

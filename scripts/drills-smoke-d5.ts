@@ -15,6 +15,7 @@
 // Deletes everything it wrote.
 //
 //   npm run drills:smoke:d5      (makes Haiku calls, about $0.05)
+import './smoke-log';
 import { randomUUID } from 'crypto';
 import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
