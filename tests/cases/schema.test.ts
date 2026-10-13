@@ -88,3 +88,37 @@ describe('CaseSchema quoteAnchors', () => {
     expect(CaseSchema.parse(rest).quoteAnchors).toEqual([]);
   });
 });
+
+describe('CaseSchema exhibit release order', () => {
+  const base = getCaseById('prof-002');
+  const exhibits = (patch: (e: typeof base.exhibits) => void) => { const e = structuredClone(base.exhibits); patch(e); return { ...base, exhibits: e }; };
+  it('accepts the order Larkspur ships (1 → 2 → 3)', () => {
+    expect(CaseSchema.safeParse(base).success).toBe(true);
+    expect(base.exhibits.map(e => e.after ?? [])).toEqual([[], ['exhibit-1'], ['exhibit-2']]);
+  });
+  it('rejects an exhibit that comes after itself or a later one (no cycles)', () => {
+    expect(CaseSchema.safeParse(exhibits(e => { e[1].after = ['exhibit-2']; })).success).toBe(false);
+    expect(CaseSchema.safeParse(exhibits(e => { e[0].after = ['exhibit-3']; })).success).toBe(false);
+  });
+  it("a required exhibit's predecessors must be required too", () => {
+    expect(CaseSchema.safeParse(exhibits(e => { e[0].required = false; })).success).toBe(false);
+    expect(CaseSchema.safeParse(exhibits(e => { e[2].required = false; })).success).toBe(true);
+  });
+  it('rejects an unknown exhibit or ledger item', () => {
+    expect(CaseSchema.safeParse(exhibits(e => { e[1].after = ['exhibit-9']; })).success).toBe(false);
+    expect(CaseSchema.safeParse(exhibits(e => { e[1].requiresItems = ['nope']; })).success).toBe(false);
+  });
+});
+
+describe('CaseSchema exhibit notes', () => {
+  const base = getCaseById('prof-002');
+  it("carries the PDFs' footnotes as notes, out of the spoken title", () => {
+    const e1 = base.exhibits[0];
+    expect(e1.notes).toMatch(/^Flights per year were the same in FY2023 and FY2025\./);
+    expect(e1.title).not.toMatch(/contribution =/i);
+  });
+  it('rejects an empty note', () => {
+    const e = structuredClone(base.exhibits); e[0].notes = '';
+    expect(CaseSchema.safeParse({ ...base, exhibits: e }).success).toBe(false);
+  });
+});

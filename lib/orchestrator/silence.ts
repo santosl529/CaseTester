@@ -98,9 +98,23 @@ const CHECK_IN = 'Still with me? Take your time.';
 // again ("The question on the table: the question on the table is…").
 export function checkInText(lastInterviewerText: string | null, storedQuestion?: string | null): string {
   const raw = storedQuestion?.trim() || lastInterviewerText?.match(/[^.?!]*\?/g)?.at(-1)?.trim();
-  const question = raw?.replace(/^(?:take your time\.\s*)?the question on the table(?: is|:)\s*/i, '').trim();
+  const question = raw ? withoutLeadIn(raw) : '';
   if (!question) return CHECK_IN;
-  return `${CHECK_IN} The question on the table: ${question.charAt(0).toLowerCase()}${question.slice(1)}`;
+  return `${CHECK_IN} The question on the table: ${lowerQuestionWord(question)}`;
+}
+
+// A question said again mid-sentence (batch 21 D8, Destiny t4: "The question
+// on the table is lay out the main areas…"). Its first letter is lowered only
+// when it opens with a question word ("how would you…") — never an
+// imperative's, a name's or an acronym's ("COGS", "Hollis Bay"); "is" joins
+// only one sentence that opens with a question word, anything else follows a colon.
+const QUESTION_WORD = /^(?:what|which|how|why|where|who|whose|when|whether|is|are|was|were|do|does|did|can|could|would|should|will|has|have)\b/i;
+const withoutLeadIn = (q: string) => q.trim().replace(/^(?:take your time\.\s*)?the question on the table(?: is|:)\s*/i, '').trim();
+const lowerQuestionWord = (q: string) => (QUESTION_WORD.test(q) ? q.charAt(0).toLowerCase() + q.slice(1) : q);
+export function restateOnTable(stored: string): string {
+  const q = withoutLeadIn(stored);
+  const oneSentence = q.split(/(?<=[.?!])\s+/).filter(Boolean).length === 1;
+  return QUESTION_WORD.test(q) && oneSentence ? `The question on the table is ${lowerQuestionWord(q)}` : `The question on the table: ${q}`;
 }
 
 // The scripted silence lines (check-in, pause): the model never sees them in

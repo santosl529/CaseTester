@@ -371,6 +371,13 @@ export const PERSONAS: Persona[] = [
     brief: `A solid, brisk candidate who talks in short transitions. Several times say things like "let's move on", "give me a sec", "okay, next", "I'm done with that part", "that's it for costs", and once, right after finishing a calculation, "done." Never ask to stop or end the interview, and finish the whole case through to a recommendation.`,
     tests: 'Rule 18A false positives (v4.10): none of these may end the interview or draw "Do you want to stop the interview here?" — at most one clarifying question in the session, answered "no" and the case continues. The session must end normally, with a full report.',
   },
+  // Case-neutral variant of 15 (Lorenzo, 13 Oct): Tyler's brief names COGS and
+  // revenue, which only fit prof-001; this one works on any case. 15 is unchanged.
+  {
+    id: 64, name: 'Tyler — the Misquoter (case-neutral)',
+    brief: `Misstate figures the interviewer has already given you — in a data line or on an exhibit — believing you're quoting them: e.g. "you said it was X" with X a few points or a few percent off what you were shown. Do it once early in the analysis, and later with a second figure, off by about 4%. Build your next calculations on the misremembered figures, and carry one of them into your recommendation. Your reasoning method is otherwise fine.`,
+    tests: 'Rule 6 option 4 on any case: misquotes of revealed data are corrected by code in one flat sentence (up to twice per item), never a Socratic probe; a recommendation resting on a misquote gets the correction and one chance to revise.',
+  },
 ];
 
 export function getPersona(id: number): Persona {

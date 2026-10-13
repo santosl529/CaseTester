@@ -16,7 +16,7 @@ import { summarizeAssists, summarizeCoverage, summarizePressureTest } from './as
 import { summarizeDataRequests } from './data-coverage';
 import { buildInterviewerMarks, formatInterviewerMarksSection, dropClaimsOnMarkedTurns, type InterviewerMark } from './interviewer-errors';
 import { buildChallengeMarks, verifyCandidateTurns, genuineErrorSpans, formatClaimChecksSection } from './challenge-marks';
-import { applyStageCaps, formatStageRecordSection, reconstructStages } from './stage-caps';
+import { applyStageCaps, formatStageRecordSection, reconstructStages, stagesNotInCase } from './stage-caps';
 import { exhibitsShown } from '@/db/schema';
 import type { StageRecord } from '@/lib/orchestrator/stage-evidence';
 import type { Phase } from '@/lib/orchestrator/state-machine';
@@ -122,7 +122,9 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
     exhibitShownAtMs: exhibitRows.map(e => e.shownAtMs), revealedAtMs: revealedRows.map(r => r.revealedAtMs),
     pressureTest: flags.pressureTest as never, caseTexts: [caseData.prompt, ...caseData.dataLedger.map(d => d.value)], phaseAt,
   });
-  const stageSection = formatStageRecordSection(stageRecord, partial ? { exitTurn: flags.exitTurn as number | undefined } : null);
+  // A case with no brainstorm module (Quillpath): the stage is not part of it.
+  const notInCase = stagesNotInCase(caseData);
+  const stageSection = formatStageRecordSection(stageRecord, partial ? { exitTurn: flags.exitTurn as number | undefined } : null, { notInCase });
   const interventionSummary = [summarizeAssists(interventions), summarizeCoverage(interventions), summarizePressureTest(interventions, transcript)]
     .filter(Boolean)
     .join('\n\n');
@@ -252,7 +254,7 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   if (strongGate.overallCapped) console.warn('[score] overall rating capped:', JSON.stringify(strongGate.overallCapped));
   // Rule 9 (v4.10): a dimension whose stage never happened is rated only on
   // real evidence, else not assessed; a partial interview has no overall.
-  const caps = applyStageCaps(strongGate.rubric, stageRecord, { partial });
+  const caps = applyStageCaps(strongGate.rubric, stageRecord, { partial, notInCase });
   if (caps.notAssessed.length > 0) console.warn('[score] not assessed — stage never happened, no evidence:', JSON.stringify(caps.notAssessed));
   // Rule 9 floor (v4.3 → v4.10: evidence-based) — enforced in code, after every text pass.
   const { rubric, floored, unassessed } = applyCaveatFloor(caps.rubric);

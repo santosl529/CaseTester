@@ -143,13 +143,14 @@ describe('ledger labels agree with their timeframes', () => {
 });
 
 // ── All cases ───────────────────────────────────────────────────────────────
-// Every number on screen (an exhibit's cells and title) must be in the prompt
+// Every number on screen (an exhibit's cells, title and notes) must be in the prompt
 // or in a ledger sentence the exhibit covers: showing the exhibit releases
 // those sentences, and only released numbers pass the provenance audit, so an
 // uncovered on-screen figure is one the interviewer could never cite.
 import { loadCases } from '@/lib/cases/loader';
-// Calendar years and period labels ("2 years ago") are not case figures.
-const numbersIn = (t: string) => new Set([...t.replace(/\b(?:19|20)\d{2}\b|\b\d+ years ago\b/g, ' ').replace(/(\d),(\d{3})/g, '$1$2').matchAll(/\d+(?:\.\d+)?/g)].map(m => Number(m[0])));
+// Calendar years, period labels ("2 years ago") and exhibit references ("the
+// launch costs in Exhibit 1", in notes) are not case figures.
+const numbersIn = (t: string) => new Set([...t.replace(/\b(?:19|20)\d{2}\b|\b\d+ years ago\b|\bExhibits? \d+\b/g, ' ').replace(/(\d),(\d{3})/g, '$1$2').matchAll(/\d+(?:\.\d+)?/g)].map(m => Number(m[0])));
 
 // Known, not yet fixed (12 Oct): prof-001's exhibit shows last year's COGS 50,
 // overhead 13 and profit 15, which no ledger sentence states — the
@@ -168,14 +169,42 @@ describe('every case', () => {
         }
       });
 
-      it('exhibits cover ledger items that exist, and every on-screen number is in the prompt or a covered sentence', () => {
+      it('exhibits cover ledger items that exist, and every on-screen number (cells, title, notes) is in the prompt or a covered sentence', () => {
         const ids = new Set(c.dataLedger.map(d => d.id));
         for (const e of c.exhibits) {
           for (const id of e.coversLedgerItems ?? []) expect(ids.has(id), `${e.id} covers unknown ${id}`).toBe(true);
           const allowed = numbersIn([c.prompt, ...c.dataLedger.filter(d => (e.coversLedgerItems ?? []).includes(d.id)).map(d => d.value)].join(' '));
-          const shown = [e.title, ...e.data.flatMap(r => Object.values(r).map(String))].join(' ');
+          const shown = [e.title, e.notes ?? '', ...e.data.flatMap(r => Object.values(r).map(String))].join(' ');
           for (const n of numbersIn(shown)) if (n !== 0 && n !== 100 && !KNOWN_UNCOVERED[`${c.id}/${e.id}`]?.includes(n)) expect(allowed.has(n), `${e.id}: ${n} on screen but in no covered sentence`).toBe(true);
         }
+      });
+
+      // FR-4: the interviewer never receives an unreleased figure. Labels and
+      // exhibit titles are in its prompt before anything is released, and
+      // code's own stage lines are spoken whenever they fire — so their
+      // figures must be the prompt's (13 Oct: "Survey: purchase intent at
+      // $3.99", "… sign-ups per month at $40 and $60", "% of 200 specialists").
+      it('labels, exhibit titles and code-written stage lines carry no figure the prompt lacks', () => {
+        const allowed = numbersIn(c.prompt);
+        const asks = [c.analysisCore?.ask ?? '', ...[c.brainstorm?.ask ?? []].flat()];
+        for (const [where, text] of [...c.dataLedger.flatMap(d => [[d.id, d.label], [`${d.id} spoken`, d.spoken ?? '']]), ...c.exhibits.map(e => [e.id, e.title]), ...asks.map(a => ['stage line', a])]) {
+          for (const n of numbersIn(text.replace(/\b\d+ (?:years?|months?|weeks?)\b/g, ' '))) expect(allowed.has(n), `${where}: ${n} in "${text}" but not in the prompt`).toBe(true);
+        }
+      });
+
+      // Every step names the ledger items it is derived from (Lorenzo, 13 Oct):
+      // a step with none is checked from the first turn, before its figures are out.
+      // Hold lines say an item by its authored name (Lorenzo, 13 Oct): every
+      // item has one, a noun phrase said mid-sentence ("I'll come back to ___ shortly").
+      it('every ledger item has a spoken name', () => {
+        for (const d of c.dataLedger) {
+          expect(d.spoken, `${d.id} has no spoken name`).toBeTruthy();
+          expect(d.spoken!, `${d.id}: no end punctuation`).not.toMatch(/[.?!:;]$/);
+        }
+      });
+
+      it('every math step lists its inputs', () => {
+        for (const m of c.mathSteps) expect(m.inputs.length, `${m.id} has no inputs`).toBeGreaterThan(0);
       });
 
       it('phase budgets, if present, sum to the total case time', () => {

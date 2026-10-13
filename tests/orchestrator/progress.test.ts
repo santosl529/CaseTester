@@ -82,6 +82,21 @@ describe('stagesFromTurns', () => {
     expect(raj.riskAsked).toBe(true);
     expect(stagesFromTurns([{ turnIndex: 5, text: 'What would you recommend we look at next?' }], {}, false).recommendationAskCount).toBe(0);
   });
+  // Batch 21 Jasmine t22 → t24: not recognised, so code asked again right after the answer.
+  it.each([
+    'If you had to give the CEO one sentence on what to do first and why, what would it be?',
+    'In one sentence, what should the client do first?',
+    'Give the CEO a single line: what would you have them do?',
+  ])('a one-sentence ask for what to do is a recommendation ask: %s', text => {
+    expect(stagesFromTurns([{ turnIndex: 22, text }], {}, false).recommendationAskCount).toBe(1);
+  });
+  it.each([
+    'In one sentence, what drove the margin decline?',
+    'Give me one sentence on what the exhibit tells you.',
+    'Which data would you look at first?',
+  ])('not one for the diagnosis or the analysis: %s', text => {
+    expect(stagesFromTurns([{ turnIndex: 22, text }], {}, false).recommendationAskCount).toBe(0);
+  });
   it('an analysis "Suppose the test shows…" before any recommendation ask is no risk question, even once one is received (6a7fd865 replay)', () => {
     const s = stagesFromTurns([
       { turnIndex: 18, text: 'Suppose the mix test shows mix explains only a small share. What would you do then?' },

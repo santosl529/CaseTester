@@ -32,6 +32,11 @@ export function ExhibitTable({ exhibit }: { exhibit: ExhibitDisplay }) {
           </tbody>
         </table>
       </div>
+      {exhibit.notes && (
+        <p className="px-3 py-2 border-t border-neutral-200 text-neutral-500 leading-snug">
+          {exhibit.notes}
+        </p>
+      )}
     </div>
   );
 }

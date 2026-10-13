@@ -149,6 +149,14 @@ describe('exhibits already shown', () => {
     expect(p).toContain('- id: "exhibit-a" — Cost structure over time (already on the candidate\'s screen');
     expect(p).toContain('- id: "exhibit-b" — Store map\n');
   });
+  it('marks an exhibit whose turn in the release order has not come (new cases, 13 Oct)', () => {
+    const p = buildSystemPrompt(ctx({ exhibits: [
+      { id: 'exhibit-1', title: 'Results by route' },
+      { id: 'exhibit-2', title: 'One flight', notYet: true },
+    ] }));
+    expect(p).toContain('- id: "exhibit-1" — Results by route\n');
+    expect(p).toContain('- id: "exhibit-2" — One flight (not yet — it comes after the earlier exhibits; don\'t hand it over or mention it)');
+  });
 });
 
 // Latency plan step 3: the fixed instructions are a cacheable prefix, so
@@ -239,5 +247,22 @@ describe('buildSystemPrompt batch-12 fixes', () => {
   it('counts "I\'d want X" as a direct ask and keeps questions off offered data', () => {
     expect(stable).toContain('"I\'d want the cost split"');
     expect(stable).toContain('Offered data is not released: never build your question on it');
+  });
+});
+
+// New cases (13 Oct): the brainstorm line is the case's own question, or says the case has none.
+describe('the brainstorm stage per case', () => {
+  it("asks the case's own question", () => {
+    const p = buildSystemPrompt(ctx({ brainstorm: { ask: 'What could Hollis Bay do to get shoppers to try its chickpea snacks — and to keep buying them?', required: true } }));
+    expect(p).toContain('ask one open brainstorming question ("What could Hollis Bay do to get shoppers to try its chickpea snacks — and to keep buying them?"), move "brainstorm"');
+    expect(p).not.toContain('Beyond what we\'ve discussed');
+  });
+  it('a case with no brainstorm module says so', () => {
+    const p = buildSystemPrompt(ctx({ brainstorm: { ask: 'unused', required: false } }));
+    expect(p).toContain('this case has no brainstorm stage');
+    expect(p).not.toMatch(/you must administer it — ask one open brainstorming question/);
+  });
+  it("prof-001's first line is the generic example: its prompt is unchanged", () => {
+    expect(buildSystemPrompt(ctx({ brainstorm: { ask: "Beyond what we've discussed, what else could the client do?", required: true } }))).toBe(buildSystemPrompt(ctx({})));
   });
 });

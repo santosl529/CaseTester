@@ -226,6 +226,56 @@ quote it needs the words candidates use for each quotable item:
 
 Without `quoteAnchors` a case has no misquote check.
 
+## Exhibit release order and notes (13 Oct)
+
+An exhibit that must not come before others lists them in `after` (each
+earlier in the `exhibits` list — no cycles), and any ledger items that must be
+out first in `requiresItems`. Until then code releases neither the exhibit nor
+an item only it shows, on any path (a request, an ask covering its data, the
+model's handover); an ask for it is deferred out loud, and the model is told it
+is "not yet". A predecessor counts as out once shown, or once all of its data
+has been read out as lines. Author the order the guide's release rules give:
+Larkspur 1 → 2 → 3, Aldermoor 3 after 1, Quillpath 4 after 1–3, Hollis 3 after
+1 and 2.
+
+`required: true` makes an exhibit owed before the case ends (Lorenzo, 13 Oct):
+while it is unshown, code hands it over in place of a recommendation ask or a
+close (with the ask, under time pressure). Its `after` exhibits must be
+required too. The four AI Casing cases mark every exhibit required — each
+opens a module of the guide. prof-001 marks none (one exhibit owed, as before).
+
+Footnotes go in `notes` (one paragraph, shown under the table, never spoken),
+not in the title: the title is read aloud at handover ("Here's an exhibit: …")
+and sits in the interviewer's prompt before anything is released. Every figure
+in the notes must be in a sentence the exhibit covers, like its cells
+(consistency test).
+
+## No unreleased figure in a label, an exhibit title or a stage line (FR-4)
+
+Labels and exhibit titles are in the interviewer's prompt from the first turn;
+`analysisCore.ask` and `brainstorm.ask` are spoken whenever code needs them.
+None may carry a figure the case prompt doesn't state (years and period counts
+like "over 2 years" aside) — "Survey: purchase intent at $3.99" told the model
+the price before the exhibit was shown. Put the figure in the ledger sentence,
+the exhibit's cells or its notes. Enforced for every case in
+`tests/cases/consistency.test.ts`.
+
+## Every item has a spoken name (13 Oct)
+
+`spoken` is the item's name in a promise — "I'll come back to ___ shortly",
+"I'll share ___ once we've settled your structure", "I can share ___ if you'd
+like": a noun phrase, lower-case unless it opens with a name, no end
+punctuation, no figure the prompt lacks, and nothing the candidate should
+find out ("what changed on those two routes", not "a new competitor"). Every
+item in every case has one (consistency test).
+
+## Every math step lists its inputs (13 Oct)
+
+`inputs` is required in practice: a step with none is checked from the first
+turn, before its figures are out (consistency test). A prompt-derivable step
+lists the ledger items that confirm it (prof-002's operating-profit swing:
+the network totals and fixed costs).
+
 ## Labels say what the item is (v4.10)
 
 The model maps requests to items by their labels, and so does the data-request
@@ -246,6 +296,19 @@ case owes the exhibit (if it has one) and the brainstorm before a normal end;
 code administers an owed stage once (interviewer-behavior Rule 9). A
 candidate-led case owes nothing. Only interviewer-led cases exist so far.
 
+## The brainstorm (13 Oct)
+
+`brainstorm.ask`: the case's own brainstorm question, from the guide ("What
+could Hollis Bay do to get shoppers to try its chickpea snacks — and to keep
+buying them?"). Code asks it when the brainstorm is owed, the model's prompt
+shows it, and it counts as the brainstorm when the interviewer asks it in
+close wording. Several lines rotate (prof-001 keeps its three). Without it the
+generic question is asked, which is case-neutral. `brainstorm.required: false`
+for a case with no brainstorm module (Quillpath): nothing is owed, and the
+case can close without one; scoring tells the judge the stage is "not part of
+this case" and rates Creativity on evidence elsewhere, with the caveat "This
+case has no brainstorm stage" (or not assessed).
+
 ## Pacing config (optional)
 
 Cases may set `pacing.phaseBudgetsMs` (per-phase time budgets, must sum to the
@@ -253,7 +316,10 @@ total case time, `TOTAL_CASE_MS` — currently 20 minutes — enforced by
 `tests/cases/consistency.test.ts`) and
 `pacing.timeWarningMs` (default 30s before time runs out). Omitted entirely,
 the orchestrator falls back to an even split across the 8 active phases and
-the 30s default warning (`lib/orchestrator/pacing.ts`). Prefer setting
+the 30s default warning (`lib/orchestrator/pacing.ts`). The clock is one for
+every case: the AI Casing cases were written for 25 minutes and run at 20, with
+their budgets scaled (Lorenzo, 13 Oct). Wave reports give each stage's minute
+per run (`scripts/stage-minutes.ts`). Prefer setting
 `phaseBudgetsMs` for any case where structuring or analysis legitimately needs
 more than an even 1/8th share of the clock — a uniform default fires spurious
 pacing nudges during a healthy opening on an analysis-heavy case.

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decideData, renderDataLines, decisionRows, labelMatch, outsideAskScope, mentionStatesNeed } from '@/lib/orchestrator/data-decisions';
+import { decideData, renderDataLines, decisionRows, labelMatch, outsideAskScope, mentionStatesNeed, exhibitReady, heldForOrder, nextReadyExhibit } from '@/lib/orchestrator/data-decisions';
 import { createLedger, reveal, type LedgerItem } from '@/lib/orchestrator/data-ledger';
 import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
 
@@ -419,7 +419,7 @@ describe('spoken whats', () => {
   });
   it('a catalog heading before a colon is not said (remapped asks, 12 Oct)', () => {
     expect(renderDataLines({ ...decideData(base()), gateDefers: ["Composition of COGS: coffee beans' share of COGS", 'Coffee bean price change over 2 years'] }, 's'))
-      .toEqual(["I'll share coffee beans' share of COGS and coffee bean price change over 2 years once we've settled your structure."]);
+      .toEqual(["I'll share coffee beans' share of COGS and coffee bean price change once we've settled your structure."]);   // no period qualifier in a promise (batch 21 D8)
   });
   it('a suffix every item shares is said once', () => {
     const d = decideData(base({ requests: [
@@ -436,7 +436,162 @@ describe('spoken whats', () => {
     expect(renderDataLines(d, 's')).toEqual(["I don't have pilot elasticity results or whether the 15% growth is per store."]);
   });
   it('a parenthesis inside is read as an aside', () => {
-    const d = decideData(base({ requests: [req({ what: 'price change of the other inputs (dairy, packaging, food) over the two years', itemIds: ['bean_price_change'], explicit: false })], candidateText: "I'd want the bean price trend." }));
-    expect(renderDataLines(d, 's')).toEqual(["I can share price change of the other inputs — dairy, packaging and food — over the two years if you'd like."]);
+    const d = decideData(base({ requests: [req({ what: 'price change of the other inputs (dairy, packaging, food) by supplier', itemIds: ['bean_price_change'], explicit: false })], candidateText: "I'd want the bean price trend." }));
+    expect(renderDataLines(d, 's')).toEqual(["I can share price change of the other inputs — dairy, packaging and food — by supplier if you'd like."]);
+  });
+});
+
+// New cases (13 Oct): an exhibit may come only after others (Larkspur's
+// Exhibit 3 before the per-flight math gives the answer away). Every path —
+// a requested exhibit, one shown for the data it covers, the model's own
+// handover — waits; so does an item that only a waiting exhibit shows.
+describe('exhibit release order', () => {
+  const OITEMS: LedgerItem[] = [
+    { id: 'routes', label: 'Results by route', value: 'Lakeport lost $1.2M.', releaseWhen: 'ANALYSIS' },
+    { id: 'totals', label: 'Network totals', value: 'The network lost $4M.', releaseWhen: 'ANALYSIS' },
+    { id: 'fare', label: 'Lakeport fare', value: 'The Lakeport fare is $120.', releaseWhen: 'ANALYSIS' },
+    { id: 'seats', label: 'Lakeport seats and load', value: 'Each flight has 80 seats, 75% full.', releaseWhen: 'ANALYSIS' },
+    { id: 'plan', label: 'New route plan', value: 'New routes would fly 5,000 flights.', releaseWhen: 'ANALYSIS' },
+    { id: 'plan_cost', label: 'New route cost', value: 'Each new-route flight costs $9,200.', releaseWhen: 'ANALYSIS' },
+    { id: 'leases', label: 'Aircraft leases', value: 'Leases run three more years.', releaseWhen: 'CLARIFY' },
+  ];
+  const OEX = [
+    { id: 'exhibit-1', title: 'Results by route', coversLedgerItems: ['routes', 'totals'] },
+    { id: 'exhibit-2', title: 'One Lakeport flight', coversLedgerItems: ['fare', 'seats'], after: ['exhibit-1'] },
+    { id: 'exhibit-3', title: 'New routes', coversLedgerItems: ['plan', 'plan_cost'], after: ['exhibit-2'] },
+  ];
+  const ob = (over: Partial<Parameters<typeof decideData>[0]> = {}) => base({ ledger: createLedger(OITEMS), exhibits: OEX, ...over });
+
+  it('a requested exhibit whose predecessor is not out is deferred, not shown', () => {
+    const d = decideData(ob({ requests: [req({ what: 'the new-route estimates', itemIds: ['exhibit-3'] })], shownExhibitIds: new Set(['exhibit-1']) }));
+    expect(d.exhibit).toBeNull();
+    expect(renderDataLines(d, 's')).toEqual(["I'll come back to the new-route estimates shortly."]);
+    expect(decisionRows(d)[0].response).toBe('defer');
+  });
+
+  it('once its predecessors are shown the requested exhibit goes out', () => {
+    const d = decideData(ob({ requests: [req({ what: 'the new-route estimates', itemIds: ['exhibit-3'] })], shownExhibitIds: new Set(['exhibit-1', 'exhibit-2']) }));
+    expect(d.exhibit?.id).toBe('exhibit-3');
+  });
+
+  it("a predecessor counts as out once all of its data was released as lines", () => {
+    const l = createLedger(OITEMS); reveal(l, 'fare'); reveal(l, 'seats');
+    const d = decideData(ob({ ledger: l, requests: [req({ what: 'the new-route estimates', itemIds: ['exhibit-3'] })], shownExhibitIds: new Set(['exhibit-1']) }));
+    expect(d.exhibit?.id).toBe('exhibit-3');
+  });
+
+  it('an ask for two items of a waiting exhibit gets neither the exhibit nor the values', () => {
+    const d = decideData(ob({ requests: [req({ what: 'the new-route economics', itemIds: ['plan', 'plan_cost'] })] }));
+    expect(d.exhibit).toBeNull();
+    expect(d.releases).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual(["I'll come back to the new-route economics shortly."]);
+  });
+
+  it("an item only a waiting exhibit shows is held; one an exhibit doesn't show is released", () => {
+    const d = decideData(ob({ requests: [req({ what: 'the fare', itemIds: ['fare'] }), req({ what: 'the leases', itemIds: ['leases'] })] }));
+    expect(d.releases.map(r => r.id)).toEqual(['leases']);
+    expect(renderDataLines(d, 's')).toEqual(['Leases run three more years.', "I'll come back to the fare shortly."]);
+  });
+
+  it("the model's handover of a waiting exhibit is dropped; of a ready one, shown", () => {
+    expect(decideData(ob({ exhibit: 'exhibit-2' })).exhibit).toBeNull();
+    expect(decideData(ob({ exhibit: 'exhibit-2', shownExhibitIds: new Set(['exhibit-1']) })).exhibit?.id).toBe('exhibit-2');
+  });
+
+  it('no offer and no rescue release for an item a waiting exhibit shows', () => {
+    const offered = decideData(ob({ requests: [req({ what: 'the fare', itemIds: ['fare'], explicit: false })], candidateText: "I'd want the Lakeport fare to check." }));
+    expect(offered.offers).toEqual([]);
+    expect(decideData(ob({ rescueItem: 'fare', rung3: true })).releases).toEqual([]);
+  });
+
+  it('requiresItems: an exhibit waits for ledger items to be out', () => {
+    const ex = [{ id: 'exhibit-1', title: 'Results by route', coversLedgerItems: ['routes'], requiresItems: ['leases'] }];
+    expect(decideData(ob({ exhibits: ex, exhibit: 'exhibit-1' })).exhibit).toBeNull();
+    const l = createLedger(OITEMS); reveal(l, 'leases');
+    expect(decideData(ob({ exhibits: ex, ledger: l, exhibit: 'exhibit-1' })).exhibit?.id).toBe('exhibit-1');
+  });
+
+  it("code's exhibit stage hands over the first exhibit whose turn has come", () => {
+    const l = createLedger(OITEMS);
+    expect(nextReadyExhibit(OEX, new Set(), l)?.id).toBe('exhibit-1');
+    expect(nextReadyExhibit(OEX, new Set(['exhibit-1']), l)?.id).toBe('exhibit-2');
+    const waiting = [{ ...OEX[0], requiresItems: ['leases'] }, OEX[1]];
+    expect(nextReadyExhibit(waiting, new Set(), l)).toBeUndefined();
+  });
+
+  it('exhibitReady / heldForOrder read the same order', () => {
+    const l = createLedger(OITEMS);
+    expect(exhibitReady(OEX[1], OEX, new Set(), l)).toBe(false);
+    expect(exhibitReady(OEX[1], OEX, new Set(['exhibit-1']), l)).toBe(true);
+    expect(heldForOrder('fare', OEX, new Set(), l)).toBe(true);
+    expect(heldForOrder('fare', OEX, new Set(['exhibit-1']), l)).toBe(false);
+    expect(heldForOrder('leases', OEX, new Set(), l)).toBe(false);
+    reveal(l, 'fare');
+    expect(heldForOrder('fare', OEX, new Set(), l)).toBe(false);   // already out: a re-ask restates it
+  });
+});
+
+// Batch 21 D8 (Anika t6, t10): hold lines read catalog wording aloud — "I'll
+// share COGS as a percent of revenue, both years, labor as a percent of
+// revenue, both years and …", "I'll come back to coffee bean price change over
+// 2 years shortly". A promise says what it promises in speech: no period
+// qualifier (the data line states the periods), and an item's catalog label
+// becomes its spoken name. Refusals and the logged wording are unchanged.
+describe('promises say the item, not its catalog label', () => {
+  const PITEMS: LedgerItem[] = [
+    { id: 'cogs_pct', label: 'COGS as % of revenue', value: 'COGS is 58% of revenue.', releaseWhen: 'ANALYSIS' },
+    { id: 'labor_pct', label: 'Labor as % of revenue', value: 'Labor is 22% of revenue.', releaseWhen: 'ANALYSIS' },
+    { id: 'overhead_pct', label: 'Overhead / rent as % of revenue', value: 'Overhead is 14% of revenue.', releaseWhen: 'ANALYSIS' },
+    { id: 'bean_price_change', label: 'Coffee bean price change over 2 years', value: 'Bean costs are up 40%.', releaseWhen: 'EXHIBIT' },
+    { id: 'bean_share', label: "Composition of COGS: coffee beans' share of COGS", value: 'Beans were 25% of COGS.', releaseWhen: 'EXHIBIT' },
+    { id: 'lakeport', label: 'Hub–Lakeport results: revenue, contribution and flights', value: 'Lakeport lost $1.2M.', releaseWhen: 'ANALYSIS' },
+    { id: 'option_a', label: 'Entry Option A: build its own US team — terms', value: 'Option A costs $90M a year.', releaseWhen: 'ANALYSIS' },
+    { id: 'kelvexa', label: "Kelvexa's forecast peak share of eligible patients", value: 'Kelvexa would reach 20%.', releaseWhen: 'ANALYSIS' },
+    { id: 'liked', label: 'Survey: what shoppers like most', value: 'Shoppers like the crunch most.', releaseWhen: 'ANALYSIS' },
+  ];
+  const pb = (over: Partial<Parameters<typeof decideData>[0]> = {}) => base({ ledger: createLedger(PITEMS), exhibits: [], ...over });
+  const defer = (what: string, id: string) => req({ what, itemIds: [id], respond: 'defer' });
+
+  it('Anika t6: the period qualifiers go, the shared suffix is said once', () => {
+    const d = decideData(pb({ requests: [
+      req({ what: 'COGS as a percent of revenue, both years', itemIds: ['cogs_pct'] }),
+      req({ what: 'labor as a percent of revenue, both years', itemIds: ['labor_pct'] }),
+      req({ what: 'overhead and rent as a percent of revenue, both years', itemIds: ['overhead_pct'] }),
+    ].map(r => ({ ...r, respond: 'defer' as const })), gateHeld: new Set(['COGS as a percent of revenue, both years', 'labor as a percent of revenue, both years', 'overhead and rent as a percent of revenue, both years']) }));
+    expect(renderDataLines(d, 's')).toEqual(["I'll share COGS, labor, and overhead and rent as a percent of revenue once we've settled your structure."]);
+  });
+
+  it.each([
+    ['Coffee bean price change over 2 years', 'bean_price_change', "I'll come back to the coffee bean price change shortly."],   // Anika t10
+    ["Composition of COGS: coffee beans' share of COGS", 'bean_share', "I'll come back to the coffee beans' share of COGS shortly."],
+    ['Hub–Lakeport results: revenue, contribution and flights', 'lakeport', "I'll come back to the Hub–Lakeport results shortly."],
+    ['Entry Option A: build its own US team — terms', 'option_a', "I'll come back to Entry Option A shortly."],
+    ["Kelvexa's forecast peak share of eligible patients", 'kelvexa', "I'll come back to Kelvexa's forecast peak share of eligible patients shortly."],
+    ['Survey: what shoppers like most', 'liked', "I'll come back to what shoppers like most shortly."],
+    ['COGS as % of revenue', 'cogs_pct', "I'll come back to COGS as a percent of revenue shortly."],
+  ])('a label is said as the item: %s', (label, id, line) => {
+    expect(renderDataLines(decideData(pb({ requests: [defer(label, id)] })), 's')).toEqual([line]);
+  });
+
+  it.each([
+    ['menu price history over the two years', 'menu price history'],
+    ['the cost breakdown by component, then versus now', 'the cost breakdown by component'],
+    ['store count two years ago versus today', 'store count'],
+    ['COGS as a percent of revenue by year', 'COGS as a percent of revenue'],
+  ])('a promise drops the period: %s', (what, said) => {
+    expect(renderDataLines(decideData(pb({ requests: [defer(what, 'cogs_pct')] })), 's')).toEqual([`I'll come back to ${said} shortly.`]);
+  });
+
+  it("an item's authored spoken name wins over the derived one (Lorenzo, 13 Oct: a derived name can give the finding away)", () => {
+    const items: LedgerItem[] = [{ id: 'competitor_entry', label: 'What changed on the problem routes: a new competitor', value: 'A low-cost airline entered.', releaseWhen: 'CLARIFY', spoken: 'what changed on those two routes' }];
+    const d = decideData(pb({ ledger: createLedger(items), requests: [defer('What changed on the problem routes: a new competitor', 'competitor_entry')] }));
+    expect(renderDataLines(d, 's')).toEqual(["I'll come back to what changed on those two routes shortly."]);
+  });
+
+  it("the candidate's own wording and the logged what are kept; refusals keep their periods", () => {
+    const d = decideData(pb({ requests: [defer('the bean price trend', 'bean_price_change'), req({ what: 'store counts today and two years ago', itemIds: [] })] }));
+    expect(renderDataLines(d, 's')).toEqual(["I don't have store counts today and two years ago.", "I'll come back to the bean price trend shortly."]);
+    const labelled = decideData(pb({ requests: [defer('Coffee bean price change over 2 years', 'bean_price_change')] }));
+    expect(decisionRows(labelled)[0].what).toBe('Coffee bean price change over 2 years');
   });
 });

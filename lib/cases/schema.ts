@@ -38,6 +38,11 @@ const LedgerItemSchema = z.object({
   // each figure the value states, keyed by the figure as written — e.g.
   // { "58": "current", "42": "prior" }. Feeds the timeframe check.
   timeframes: z.record(z.string(), z.enum(['current', 'prior', 'change', 'both'])).optional(),
+  // The item's name in a promise — "I'll come back to ___ shortly", "I'll share
+  // ___ once …", "I can share ___ if you'd like" (13 Oct). Authored, because a
+  // name derived from the label can read badly or give the finding away
+  // ("a new competitor"). Without it: spokenItemName(label).
+  spoken: z.string().min(2).optional(),
 }).superRefine((item, ctx) => {
   if (!isSpeakableSentence(item.value)) {
     ctx.addIssue({
@@ -94,10 +99,25 @@ const ExhibitSchema = z.object({
   title: z.string(),
   chartType: z.enum(['bar', 'line', 'table', 'pie']),
   data: z.array(z.record(z.string(), z.unknown())),    // client-safe display data
+  // The exhibit's footnotes (definitions, units, "each percentage applies to
+  // the stage above"), shown under the table — client-safe, never spoken. Any
+  // figure in them must be in a sentence the exhibit covers (consistency test).
+  notes: z.string().min(1).optional(),
   interpretationKey: z.string(),           // server-only insight
   // Ledger item ids whose figures this exhibit displays — showing the exhibit
   // releases them (docs/case-authoring.md, interviewer-behavior Rule 11).
   coversLedgerItems: z.array(z.string()).optional(),
+  // Release order (new cases, 13 Oct; lib/orchestrator/data-decisions.ts
+  // exhibitReady): exhibits that must be out first (each earlier in the list),
+  // and ledger items that must be released first. Until then neither the
+  // exhibit nor an item only it shows is released, by any path.
+  after: z.array(z.string()).optional(),
+  requiresItems: z.array(z.string()).optional(),
+  // Owed before the case ends (Lorenzo, 13 Oct): an unshown required exhibit
+  // holds the recommendation ask and the close — code hands it over, in order;
+  // under time pressure it goes out with the recommendation ask instead. A
+  // required exhibit's `after` exhibits must be required too.
+  required: z.boolean().optional(),
 });
 
 const RubricAnchorSchema = z.object({
@@ -140,6 +160,15 @@ export const CaseSchema = z.object({
   // candidate-led cases leave the order to the candidate. Only interviewer-led
   // cases exist so far.
   format: z.enum(['interviewer_led', 'candidate_led']).default('interviewer_led'),
+  // The brainstorm (new cases, 13 Oct; lib/orchestrator/brainstorm.ts): the
+  // case's own brainstorm question — code's stage line (several rotate), and
+  // the brainstorm when the interviewer asks it — and whether the case owes
+  // one (false: no brainstorm module, as in Quillpath). Without it: the
+  // generic question, owed.
+  brainstorm: z.object({
+    ask: z.union([z.string().min(1), z.array(z.string().min(1)).min(1)]).optional(),
+    required: z.boolean().default(true),
+  }).optional(),
   // The core analysis (fact guards Phase 5, 12 Oct): the ledger items the case
   // turns on — no recommendation ask and no close before they are out, unless
   // the clock is out (batch 20: recommendations asked at 7 min with the COGS
@@ -233,6 +262,18 @@ export const CaseSchema = z.object({
     if (!ledgerIds.has(q.item)) ctx.addIssue({ code: 'custom', path: ['quoteAnchors', i, 'item'], message: `Unknown ledger item "${q.item}"` });
     const item = c.dataLedger.find(d => d.id === q.item);
     if (item && Object.keys(item.timeframes ?? {}).length === 0) ctx.addIssue({ code: 'custom', path: ['quoteAnchors', i, 'item'], message: `"${q.item}" has no timeframes, so it has no figures to check` });
+  });
+  c.exhibits.forEach((e, i) => {
+    (e.after ?? []).forEach((id, j) => {
+      const at = c.exhibits.findIndex(x => x.id === id);
+      if (at < 0 || at >= i) ctx.addIssue({ code: 'custom', path: ['exhibits', i, 'after', j], message: `"${id}" is not an exhibit earlier in the list` });
+    });
+    if (e.required) (e.after ?? []).forEach((id, j) => {
+      if (c.exhibits.find(x => x.id === id)?.required !== true) ctx.addIssue({ code: 'custom', path: ['exhibits', i, 'after', j], message: `"${id}" comes before required "${e.id}", so it must be required too` });
+    });
+    (e.requiresItems ?? []).forEach((id, j) => {
+      if (!ledgerIds.has(id)) ctx.addIssue({ code: 'custom', path: ['exhibits', i, 'requiresItems', j], message: `Unknown ledger item "${id}"` });
+    });
   });
   c.analysisCore?.items.forEach((id, i) => {
     if (!ledgerIds.has(id)) ctx.addIssue({ code: 'custom', path: ['analysisCore', 'items', i], message: `Unknown ledger item "${id}"` });

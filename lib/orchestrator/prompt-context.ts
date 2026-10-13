@@ -6,6 +6,8 @@ import type { ModelPlan } from './plan-turn';
 import { revealedValues, unrevealedItems } from './data-ledger';
 import { TOTAL_CASE_MS } from './state-machine';
 import { turnNoteFor } from './turn-note';
+import { exhibitReady } from './data-decisions';
+import { brainstormAsks, brainstormRequired } from './brainstorm';
 
 export function promptContextFor(plan: ModelPlan): PromptContext {
   const { ctx, state } = plan;
@@ -15,7 +17,8 @@ export function promptContextFor(plan: ModelPlan): PromptContext {
     currentPhase: ctx.currentPhase,
     revealedValues: revealedValues(ledger),
     unrevealedItems: unrevealedItems(ledger),
-    exhibits: caseData.exhibits.map(e => ({ id: e.id, title: e.title, shown: state.shownExhibitIds.has(e.id) })),
+    exhibits: caseData.exhibits.map(e => ({ id: e.id, title: e.title, shown: state.shownExhibitIds.has(e.id),
+      ...(!state.shownExhibitIds.has(e.id) && !exhibitReady(e, caseData.exhibits, state.shownExhibitIds, ledger) ? { notYet: true } : {}) })),
     advancedLastTurn: Boolean(ctx.flags.advancedLastTurn),
     elapsedMs: state.elapsedMs,
     totalMs: TOTAL_CASE_MS,
@@ -26,5 +29,6 @@ export function promptContextFor(plan: ModelPlan): PromptContext {
     openDataRequestsHint: state.openDataRequestsHint,
     conductRedirectHint: state.conductRedirectHint,
     turnNote: turnNoteFor(state.kind, ctx.acknowledged, { pressureTest: state.pressureTest.state, phase: ctx.currentPhase }),
+    brainstorm: { ask: brainstormAsks(caseData)[0], required: brainstormRequired(caseData) },
   };
 }

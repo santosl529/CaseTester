@@ -20,6 +20,7 @@ import type { RubricScores } from './judge';
 import type { RubricDimensionKey } from './rubric';
 import { RUBRIC_DIMENSION_LABELS } from './rubric';
 import { INITIAL_STAGES, STAGES, updateStages, type StageEntry, type StageKey, type StageRecord } from '@/lib/orchestrator/stage-evidence';
+import { brainstormRequired, type CaseBrainstorm } from '@/lib/orchestrator/brainstorm';
 import { evaluateStall, INITIAL_STALL_STATE } from '@/lib/orchestrator/stall';
 import { candidateFiguresOf } from '@/lib/orchestrator/math-talk';
 import { INITIAL_PRESSURE_TEST, type PressureTestState } from '@/lib/orchestrator/pressure-test';
@@ -58,12 +59,23 @@ function describe(e: StageEntry): string {
   }
 }
 
-export function formatStageRecordSection(rec: StageRecord, partial: { exitTurn?: number } | null): string {
-  const lines = STAGES.map(k => `- ${STAGE_LABEL[k]}: ${describe(rec[k] ?? { delivered: false })}`);
-  const notReached = Object.entries(DIMENSION_STAGE).filter(([, k]) => !administered(rec[k!])).map(([d]) => RUBRIC_DIMENSION_LABELS[d as RubricDimensionKey]);
+// The stages a case has no module for: the brainstorm when brainstorm.required is false.
+export function stagesNotInCase(c: CaseBrainstorm): StageKey[] {
+  return brainstormRequired(c) ? [] : ['brainstorm'];
+}
+
+// `notInCase`: stages the case has no module for (brainstorm.required false,
+// Quillpath) — "not part of this case", not "never administered" (Lorenzo, 13 Oct).
+export function formatStageRecordSection(rec: StageRecord, partial: { exitTurn?: number } | null, opts: { notInCase?: StageKey[] } = {}): string {
+  const notInCase = new Set(opts.notInCase ?? []);
+  const outOfCase = (k: StageKey) => notInCase.has(k) && !administered(rec[k]);
+  const lines = STAGES.map(k => `- ${STAGE_LABEL[k]}: ${outOfCase(k) ? 'not part of this case' : describe(rec[k] ?? { delivered: false })}`);
+  const dims = (pick: (k: StageKey) => boolean) => Object.entries(DIMENSION_STAGE).filter(([, k]) => pick(k!)).map(([d]) => RUBRIC_DIMENSION_LABELS[d as RubricDimensionKey]);
+  const notReached = dims(k => !administered(rec[k]) && !outOfCase(k));
+  const notPart = dims(outOfCase);
   const parts = [`STAGE RECORD (from the session's own log — what was actually put to the candidate, not what the interviewer intended):
 ${lines.join('\n')}
-How to score from it: an exhibit shown is not an exhibit interpreted — rate Data & Exhibit Interpretation on what the candidate actually did with the data. A dimension whose stage was never administered may be rated only on real, quoted evidence from elsewhere in the interview (work the candidate did unprompted counts); with none, set notAssessed with a coverageCaveat saying the stage never happened — do not guess a rating. A stage that was administered and that the candidate declined or could not do is performance, not a coverage gap.${notReached.length ? `\nDimensions whose stage never happened: ${notReached.join(', ')}.` : ''}`];
+How to score from it: an exhibit shown is not an exhibit interpreted — rate Data & Exhibit Interpretation on what the candidate actually did with the data. A dimension whose stage was never administered may be rated only on real, quoted evidence from elsewhere in the interview (work the candidate did unprompted counts); with none, set notAssessed with a coverageCaveat saying the stage never happened — do not guess a rating. A stage that was administered and that the candidate declined or could not do is performance, not a coverage gap.${notReached.length ? `\nDimensions whose stage never happened: ${notReached.join(', ')}.` : ''}${notPart.length ? `\nDimensions whose stage is not part of this case: ${notPart.join(', ')} — rate only on real, quoted evidence from elsewhere; with none, set notAssessed.` : ''}`];
   if (partial) {
     parts.push(`PARTIAL INTERVIEW: the candidate chose to end the interview${partial.exitTurn !== undefined ? ` at turn ${partial.exitTurn}` : ''}. Score only what happened before it. Dimensions whose stage was not reached are notAssessed unless there is real evidence elsewhere. Never mention, rate or penalize the decision to stop, or anything said about stopping; the topFix is about the work they did. The overall rating will not be shown.`);
   }
@@ -75,7 +87,7 @@ const quoted = (items: { quotes: string[] }[]) => items.some(i => i.quotes.some(
 export function applyStageCaps(
   rubric: RubricScores,
   rec: StageRecord,
-  opts: { partial: boolean },
+  opts: { partial: boolean; notInCase?: StageKey[] },
 ): { rubric: RubricScores; notAssessed: RubricDimensionKey[]; caveated: RubricDimensionKey[] } {
   const out = structuredClone(rubric);
   const notAssessed: RubricDimensionKey[] = [];
@@ -84,14 +96,17 @@ export function applyStageCaps(
     const dim = out[key];
     if (dim.notAssessed || administered(rec[stage])) continue;
     const label = STAGE_LABEL[stage].toLowerCase();
+    const notInCase = opts.notInCase?.includes(stage) ?? false;
     if (!quoted(dim.wentWell) && !quoted(dim.needsWork)) {
       dim.notAssessed = true;
-      dim.coverageCaveat ||= opts.partial
+      dim.coverageCaveat ||= notInCase ? `This case has no ${label} stage, so this wasn't assessed.`
+        : opts.partial
         ? `The interview ended before the ${label} stage, so this wasn't assessed.`
         : `The ${label} stage never happened in this interview, so this wasn't assessed.`;
       notAssessed.push(key);
     } else if (!dim.coverageCaveat) {
-      dim.coverageCaveat = `The ${label} stage never happened in this interview; this rating rests on what you did elsewhere.`;
+      dim.coverageCaveat = notInCase ? `This case has no ${label} stage; this rating rests on what you did elsewhere.`
+        : `The ${label} stage never happened in this interview; this rating rests on what you did elsewhere.`;
       caveated.push(key);
     }
   }

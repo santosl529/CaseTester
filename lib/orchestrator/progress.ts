@@ -6,6 +6,7 @@
 import { PHASES, type Phase } from './state-machine';
 import type { Move } from '@/lib/agent/models/turn-schema';
 import { asksBrainstorm, asksForConclusion, asksRiskQuestion, type StageAdministration } from './spoken-close';
+import { asksCaseBrainstorm } from './brainstorm';
 
 const MOVE_PHASE: Partial<Record<Move, Phase>> = {
   clarify: 'CLARIFY',
@@ -57,11 +58,12 @@ export function stagesFromTurns(
   interviewerTurns: { turnIndex: number; text: string }[],
   moves: Record<number, TurnMove>,
   recommendationReceived: boolean,
+  caseBrainstormAsks: string[] = [],   // the case's own brainstorm question (brainstorm.ts)
 ): StageAdministration {
   let brainstormAsked = false, riskAsked = false, recommendationAskCount = 0;
   for (const t of interviewerTurns) {
     const m = moves[t.turnIndex];
-    brainstormAsked ||= asksBrainstorm(t.text) || (m === 'brainstorm' && BRAINSTORM_TEXT.test(t.text));
+    brainstormAsked ||= asksBrainstorm(t.text) || (m === 'brainstorm' && BRAINSTORM_TEXT.test(t.text)) || asksCaseBrainstorm(t.text, caseBrainstormAsks);
     // Fact guards Phase 5 (batch 20): a risk question labelled recommendation is
     // no recommendation ask (R36 "…the biggest risk to recommending it now?");
     // the risk question counts once a recommendation has been asked, or in

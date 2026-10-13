@@ -138,7 +138,37 @@ export function outsideAskScope(what: string, item: { label: string; timeframes?
   return false;
 }
 
-export type ExhibitInfo = { id: string; title: string; coversLedgerItems?: string[] };
+export type ExhibitInfo = { id: string; title: string; coversLedgerItems?: string[]; after?: string[]; requiresItems?: string[]; required?: boolean };
+
+// Release order (new cases, 13 Oct; the case's exhibit `after` / `requiresItems`):
+// an exhibit is ready once every exhibit it comes after is out — shown, or all
+// of its data already released as lines — and every item it requires is out.
+// Larkspur's Exhibit 3 before the per-flight math gives the answer away.
+export function exhibitReady(e: ExhibitInfo, exhibits: ExhibitInfo[], shown: Set<string>, ledger: DataLedger): boolean {
+  const out = (x: ExhibitInfo) => shown.has(x.id) || ((x.coversLedgerItems ?? []).length > 0 && (x.coversLedgerItems ?? []).every(id => ledger.revealed.has(id)));
+  return (e.after ?? []).every(id => { const x = exhibits.find(y => y.id === id); return x === undefined || out(x); })
+    && (e.requiresItems ?? []).every(id => ledger.revealed.has(id));
+}
+
+// The exhibit code hands over when it administers the exhibit stage: the
+// first not yet shown whose turn has come.
+export function nextReadyExhibit<E extends ExhibitInfo>(exhibits: E[], shown: Set<string>, ledger: DataLedger): E | undefined {
+  return exhibits.find(e => !shown.has(e.id) && exhibitReady(e, exhibits, shown, ledger));
+}
+
+// The next required exhibit still owed, when its turn has come (a required
+// exhibit's predecessors are required, so the first unshown one is next).
+export function nextRequiredExhibit<E extends ExhibitInfo>(exhibits: E[], shown: Set<string>, ledger: DataLedger): E | undefined {
+  const next = exhibits.find(e => e.required && !shown.has(e.id));
+  return next && exhibitReady(next, exhibits, shown, ledger) ? next : undefined;
+}
+
+// An item still unreleased that only exhibits not yet ready show waits with them.
+export function heldForOrder(id: string, exhibits: ExhibitInfo[], shown: Set<string>, ledger: DataLedger): boolean {
+  if (ledger.revealed.has(id)) return false;
+  const covering = exhibits.filter(e => (e.coversLedgerItems ?? []).includes(id));
+  return covering.length > 0 && covering.every(e => !shown.has(e.id) && !exhibitReady(e, exhibits, shown, ledger));
+}
 
 export type DataDecisions = {
   releases: { id: string; value: string; earlier: boolean }[];
@@ -178,11 +208,13 @@ export function decideData(p: {
   // batch 18 read the cost lines aloud and never showed the chart in 8 runs;
   // two or more of its items, still unreleased, in one explicit ask); else the
   // model's handover.
+  // Only an exhibit whose turn has come (exhibitReady) goes out, by any path.
+  const ready = (id: string) => exhibitById.has(id) && !p.shownExhibitIds.has(id) && exhibitReady(exhibitById.get(id)!, p.exhibits, p.shownExhibitIds, p.ledger);
   const explicitIds = p.requests.filter(r => r.explicit && r.respond === 'release').flatMap(r => r.itemIds);
-  const requestedExhibit = explicitIds.find(id => exhibitById.has(id) && !p.shownExhibitIds.has(id));
-  const coveringExhibit = p.exhibits.find(e => !p.shownExhibitIds.has(e.id)
+  const requestedExhibit = explicitIds.find(ready);
+  const coveringExhibit = p.exhibits.find(e => ready(e.id)
     && (e.coversLedgerItems ?? []).filter(id => explicitIds.includes(id) && canReveal(p.ledger, id)).length >= 2)?.id;
-  const exhibitId = requestedExhibit ?? coveringExhibit ?? (p.exhibit && exhibitById.has(p.exhibit) && !p.shownExhibitIds.has(p.exhibit) ? p.exhibit : null);
+  const exhibitId = requestedExhibit ?? coveringExhibit ?? (p.exhibit && ready(p.exhibit) ? p.exhibit : null);
   const exhibit = exhibitId
     ? { id: exhibitId, title: exhibitById.get(exhibitId)!.title, covers: exhibitById.get(exhibitId)!.coversLedgerItems ?? [] }
     : null;
@@ -203,6 +235,16 @@ export function decideData(p: {
   const decided: DataDecisions['requests'] = [];
 
   const available = (id: string) => itemById.has(id) && canReveal(p.ledger, id) && !releasing.has(id);
+  // What a promise says: an ask worded as an item's catalog label is said as the
+// item — its authored spoken name, else spokenItemName.
+  const norm = (x: string) => x.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const promised = (r: DeclaredRequest, ids: string[]) => {
+    const item = ids.map(id => itemById.get(id)).find(i => i !== undefined && norm(i.label) === norm(r.what));
+    return item ? item.spoken ?? spokenItemName(item.label) : r.what;
+  };
+  // Waiting on the release order: an item only an exhibit not yet ready shows, or that exhibit itself.
+  const orderHeld = (id: string) => (itemById.has(id) ? heldForOrder(id, p.exhibits, p.shownExhibitIds, p.ledger)
+    : exhibitById.has(id) && !p.shownExhibitIds.has(id) && id !== exhibit?.id && !ready(id));
 
   // Two passes: every direct release first, then deferrals and offers, so a
   // request is never deferred or offered for an item released this same turn
@@ -221,7 +263,7 @@ export function decideData(p: {
       return;
     }
     if (!r.explicit || r.respond === 'defer') { later.push({ at, r, ledgerIds }); return; }
-    let heldOver = false;
+    let heldOver = exhibitIds.some(orderHeld);
     for (const id of ledgerIds) {
       if (covered.has(id)) continue;
       if (restatable(id)) {
@@ -229,11 +271,11 @@ export function decideData(p: {
         continue;
       }
       if (!available(id)) continue;
-      if (releases.length >= cap) { heldOver = true; continue; }
+      if (orderHeld(id) || releases.length >= cap) { heldOver = true; continue; }
       releases.push({ id, value: itemById.get(id)!.value, earlier: openIds.has(id) });
       releasing.add(id);
     }
-    if (heldOver) defers.push(r.what);
+    if (heldOver) defers.push(promised(r, ledgerIds));
     decidedAt.push({ at, d: { request: r, response: heldOver ? 'defer' : 'release', ledgerItemIds: ledgerIds } });
   });
 
@@ -246,11 +288,11 @@ export function decideData(p: {
     const held = ledgerIds.filter(id => !releasing.has(id) && !covered.has(id));
     const partlyReleased = held.length < ledgerIds.length;
     if (!r.explicit) {
-      const offerable = held.filter(id => available(id) && !covered.has(id))
+      const offerable = held.filter(id => available(id) && !covered.has(id) && !orderHeld(id))
         .filter(id => mentionStatesNeed(p.candidateText, itemById.get(id)?.label ?? ''));
-      if (offerable.length > 0 && r.respond === 'release' && !partlyReleased) offers.push(r.what);
+      if (offerable.length > 0 && r.respond === 'release' && !partlyReleased) offers.push(promised(r, ledgerIds));
     } else if (held.some(available) && !partlyReleased) {
-      (p.gateHeld?.has(r.what) ? gateDefers : defers).push(r.what);
+      (p.gateHeld?.has(r.what) ? gateDefers : defers).push(promised(r, ledgerIds));
     }
     decidedAt.push({ at, d: held.length === 0 && ledgerIds.length > 0
       ? { request: r, response: 'release', ledgerItemIds: ledgerIds }
@@ -258,7 +300,7 @@ export function decideData(p: {
   }
   decided.push(...decidedAt.sort((x, y) => x.at - y.at).map(x => x.d));
 
-  if (p.rung3 && p.rescueItem && available(p.rescueItem) && !covered.has(p.rescueItem) && releases.length < cap) {
+  if (p.rung3 && p.rescueItem && available(p.rescueItem) && !covered.has(p.rescueItem) && !orderHeld(p.rescueItem) && releases.length < cap) {
     releases.push({ id: p.rescueItem, value: itemById.get(p.rescueItem)!.value, earlier: false });
   }
 
@@ -282,6 +324,7 @@ function spokenWhat(what: string): string {
     || /\d/.test(first)
     || (letters.length >= 2 && letters === letters.toUpperCase())
     || /[A-Z]/.test(first.slice(1))
+    || /^[A-Z][a-z]+['’]s$/.test(first)   // a possessive name: "Kelvexa's", "Larkspur's"
     || /^[A-Z]/.test(next);
   return keep ? what : what.charAt(0).toLowerCase() + what.slice(1);
 }
@@ -296,7 +339,10 @@ function spokenWhat(what: string): string {
 // and an unclosed aside runs into the next item). A figure's own "%" stays.
 // A catalog heading before a colon is dropped (fact checks, 12 Oct: remapped asks are said back in labels).
 function speakable(what: string, conj: 'and' | 'or', inList: boolean): string {
-  return what
+  // A promise names the item; the data line will state its periods (batch 21 D8,
+  // Anika t6: "COGS as a percent of revenue, both years, labor …, both years").
+  // A refusal keeps them: they may be exactly what the case lacks.
+  return (conj === 'and' ? what.replace(PERIOD_TAIL, '') : what)
     // A catalog heading before a colon isn't said: "Composition of COGS: coffee beans' share of COGS".
     .replace(/^[A-Z][^:]{2,40}:\s+(?=\S)/, '')
     .replace(/(\S+)\s*\/\s*(\S+)/g, (_, x: string, y: string) => (conj === 'or' ? `${x} or ${y}` : inList ? x : `${x} and ${y}`))
@@ -306,6 +352,27 @@ function speakable(what: string, conj: 'and' | 'or', inList: boolean): string {
     .replace(/\s+/g, ' ').trim();
 }
 
+// A catalog label said as the item it names, in a promise (batch 21 D8, Anika
+// t10: "I'll come back to coffee bean price change over 2 years shortly"): no
+// period qualifier; a heading before a colon is the name when what follows
+// lists details ("Hub–Lakeport results: revenue, contribution and flights"),
+// else what follows is ("Composition of COGS: coffee beans' share of COGS");
+// "the" before a common noun, not before a share of revenue, an acronym, a
+// possessive name, a multi-word name or a question word.
+const PERIOD_TAIL = /,?\s*(?:(?:for |in )?(?:both|each of the two) years|by year|over (?:the )?(?:(?:past|last) )?(?:2|two) years|(?:today|now) (?:and|versus|vs\.?) (?:2|two) years ago|(?:2|two) years ago (?:and|versus|vs\.?) (?:today|now)|then (?:and|versus|vs\.?) now)\s*$/i;
+export function spokenItemName(label: string): string {
+  let s = label.replace(PERIOD_TAIL, '').trim();
+  const head = /^([^:]{3,60}):\s+(.+)$/.exec(s);
+  if (head) s = /,|\s(?:and|—|–)\s/.test(head[2]) ? head[1] : head[2];
+  s = s.replace(/\s*\([^)]*\)\s*$/, '').trim();
+  const first = s.split(/\s+/)[0] ?? '';
+  const letters = first.replace(/[^A-Za-z]/g, '');
+  const bare = /^(?:the|a|an|what|how|when|why|who|where|which|whether|its|their|our|your)$/i.test(first)
+    || /['’]s$/.test(first) || /\d/.test(first) || (letters.length >= 2 && letters === letters.toUpperCase())
+    || /\bas (?:%|a percent(?:age)?|a share) of\b/i.test(s) || /^[A-Z]/.test(s.split(/\s+/)[1] ?? '');   // a name: "Entry Option A"
+  return bare ? s : `the ${spokenWhat(s)}`;
+}
+
 const joinWhat = (whats: string[], conj: 'and' | 'or') => {
   const inList = new Set(whats).size > 1;
   const u = [...new Set(whats.map(w => spokenWhat(speakable(w, conj, inList))))];
@@ -313,7 +380,9 @@ const joinWhat = (whats: string[], conj: 'and' | 'or') => {
   // A suffix every item shares is said once: "COGS and labor as a percent of revenue".
   const tail = / as a (?:percent|share) of revenue$/i.exec(u[0])?.[0];
   const items = tail && u.every(x => x.toLowerCase().endsWith(tail.toLowerCase())) ? u.map(x => x.slice(0, -tail.length)) : u;
-  return `${items.slice(0, -1).join(', ')} ${conj} ${items.at(-1)}${items === u ? '' : tail}`;
+  // An item that has its own "and" gets a comma before the last ("COGS, labor, and overhead and rent").
+  const serial = items.length > 2 && items.some(x => / and /.test(x)) ? ',' : '';
+  return `${items.slice(0, -1).join(', ')}${serial} ${conj} ${items.at(-1)}${items === u ? '' : tail}`;
 };
 
 // The spoken data lines, in order: releases (earlier asks under one lead-in),

@@ -30,6 +30,8 @@ import { TOTAL_CASE_MS, type Phase } from './state-machine';
 import { stageGateOpen, endAllowed, recommendationUnresolved, asksRecommendationAsk } from './spoken-close';
 import { stagesFromTurns, type TurnMove } from './progress';
 import { CheckLog } from './check-log';
+import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
+import { brainstormAsks, brainstormRequired } from './brainstorm';
 import { correctionLines } from './misquote';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
@@ -561,8 +563,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     turnRows.filter(t => t.role === 'interviewer').map(t => ({ turnIndex: t.turnIndex, text: t.text })),
     moves,
     recommendationReceived,
+    brainstormAsks(caseData),
   );
-  const stageGate = stageGateOpen(stages) && elapsedMs >= COVERAGE_MIN_GUARD_MS;
+  const stageGate = stageGateOpen(stages, { brainstormRequired: brainstormRequired(caseData) }) && elapsedMs >= COVERAGE_MIN_GUARD_MS;
   const mayEnd = endAllowed({ coverageMayEnd, timeUp, stageGate, stages });
   // Fact guards Phase 5 (batch 20 R33, R32): a recommendation the interviewer
   // never asked for — volunteered mid-case — is asked for by code before the
@@ -592,7 +595,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // recommendation comes first then, and the stage is recorded as time_up.
   const stageRecord = (flags.stageEvidence as StageRecord | undefined) ?? INITIAL_STAGES;
   const stagesEnforced = (flags.stagesEnforced as Partial<Record<StageKey, boolean>> | undefined) ?? {};
-  const owedStage = missingRequiredStages(stageRecord, { hasExhibit: caseData.exhibits.length > 0, format: caseData.format })
+  // The exhibit stage is owed only while an exhibit is ready to hand over (release order).
+  const owedStage = missingRequiredStages(stageRecord, { hasExhibit: nextReadyExhibit(caseData.exhibits, shownExhibitIds, ledger) !== undefined, format: caseData.format, brainstormRequired: brainstormRequired(caseData) })
     .find(k => !stagesEnforced[k]);
   const ptClosed = pressureTest.state === 'satisfied' || pressureTest.state === 'waived';
   const stageDue = owedStage !== undefined && ptClosed && !timeUp && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)
@@ -623,8 +627,19 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     ? { flag: recMathFlag, action: recomputeAction(recMathFlag, recomputeAttempts[recMathFlag.stepId] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)) }
     : null;
   const analysisDue = analysisOwed && (closeDue || awaitingRecAsk);
+  // Required exhibits (Lorenzo, 13 Oct): an unshown one is owed in the
+  // analysis gate and the end gate — code hands the next one over (in the
+  // release order) instead of asking for the recommendation or closing; the
+  // model's own early ask is held for it in Settle. Under time pressure no
+  // hold: it goes out with the recommendation ask (Settle). Not at time-up.
+  const requiredNext = nextRequiredExhibit(caseData.exhibits, shownExhibitIds, ledger);
+  const underTimePressure = isUnderTimePressure(elapsedMs, TOTAL_CASE_MS);
+  const requiredExhibit = requiredNext && !timeUp && !underTimePressure ? requiredNext.id : undefined;
+  const pressureExhibit = requiredNext && !timeUp && underTimePressure ? requiredNext.id : undefined;
+  const requiredExhibitDue = requiredExhibit !== undefined && ptClosed && (closeDue || awaitingRecAsk);
   const kind: TurnKind = recRevisionDue ? 'rec_revision'
     : recMathProbe ? 'rec_math_probe'
+    : requiredExhibitDue ? 'stage_exhibit'
     : analysisDue ? 'stage_analysis'
     : closeDue && !stageDue ? 'close'
     : graceDue ? 'grace_ask'
@@ -709,7 +724,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       caseData, repliedToDistressOffer, shownExhibitIds, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
-      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, recMathProbe, analysisOwed, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
+      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, recMathProbe, analysisOwed, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,

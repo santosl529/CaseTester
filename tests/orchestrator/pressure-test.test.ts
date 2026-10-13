@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import {
   probeIntents, buildProbeJudgePrompt, parseProbeJudge, judgeProbeAnswer, isGatedItem, exhibitIsGated, probeAsHeard,
   pickFallbackQuestion, INITIAL_PRESSURE_TEST, FIGURES_QUESTIONS, NO_FIGURES_QUESTIONS,
-  ANALYSIS_QUESTIONS, BRAINSTORM_QUESTIONS, LATE_QUESTIONS, TIME_PRESSURE_QUESTIONS,
+  ANALYSIS_QUESTIONS, BRAINSTORM_QUESTIONS, LATE_QUESTIONS, TIME_PRESSURE_QUESTIONS, HYPOTHESIS_QUESTIONS,
   buildStructureJudgePrompt, parseStructureJudge, judgeStructureGiven,
 } from '@/lib/orchestrator/pressure-test';
 import { createLedger } from '@/lib/orchestrator/data-ledger';
@@ -187,5 +187,31 @@ describe('probe judge prompt (v3)', () => {
     const p = buildProbeJudgePrompt(probeAsHeard({ ...INITIAL_PRESSURE_TEST, state: 'awaiting', probe: 'Is that MECE?', followUps: ['Let me make it concrete: name one thing your structure doesn\'t cover yet.'] }), ['Rent.']);
     expect(p).toContain('Asked again as: Let me make it concrete');
     expect(p).toMatch(/"Asked again as:" .*same/i);
+  });
+});
+
+// Batch 21 D8 (Anika t4): the model's question was withheld and the fallback
+// asked "What would you look at first, and why?" right after she had answered
+// which lever she'd prioritize.
+describe('the fallback never re-asks where to start right after it was answered', () => {
+  const answeredWhereToStart = { figuresDelivered: false, phase: 'STRUCTURE' as const, last: 'Which of your four levers do you prioritize, and what makes you confident the problem sits there?', lastAnswered: true };
+  it.each(['a', 'b', 'c', 'd', 'e', 'f'])('seed %s', seed => {
+    const q = pickFallbackQuestion({ ...answeredWhereToStart, seed });
+    expect(q).not.toMatch(/\b(?:first|start|prioriti[sz]e)\b/i);
+    expect(probeIntents(q)).toEqual([]);   // and no stage or probe
+  });
+  it('still may when the last ask was not answered (a stall), or was not about where to start', () => {
+    const pool = new Set(['a', 'b', 'c', 'd', 'e', 'f'].map(seed => pickFallbackQuestion({ ...answeredWhereToStart, lastAnswered: false, seed })));
+    expect([...pool].some(q => /first/.test(q))).toBe(true);
+    const other = new Set(['a', 'b', 'c', 'd', 'e', 'f'].map(seed => pickFallbackQuestion({ ...answeredWhereToStart, last: 'What might be missing from your structure?', seed })));
+    expect([...other].some(q => /first/.test(q))).toBe(true);
+  });
+});
+
+describe('fallback wording is case-neutral (13 Oct)', () => {
+  it('no fallback question assumes the case is a "problem"', () => {
+    for (const q of [...FIGURES_QUESTIONS, ...NO_FIGURES_QUESTIONS, ...ANALYSIS_QUESTIONS, ...BRAINSTORM_QUESTIONS, ...LATE_QUESTIONS, ...TIME_PRESSURE_QUESTIONS, ...HYPOTHESIS_QUESTIONS]) {
+      expect(q).not.toMatch(/\bproblem\b/i);
+    }
   });
 });

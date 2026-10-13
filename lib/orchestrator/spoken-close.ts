@@ -87,9 +87,10 @@ const REC_ASK =
 // "the CEO wants your recommendation", and a lever choice — "which single lever
 // would you start with", "the most credible lever to close the gap". Not "which
 // branch would you start with" (structure). For holding an early ask only; the
-// end gate keeps counting REC_ASK.
+// end gate keeps counting REC_ASK. Batch 21 (Jasmine t22): "give the CEO one
+// sentence on what to do first" — the ask for what to do, not for the diagnosis.
 const CONCLUSION_ASK =
-  /\bwhat do you recommend\b(?!\s+(?:we|i|us|as|in|looking)\b)(?!\s+to\s+(?!the\s+(?:ceo|client|board|company)\b))|\bpulling it (?:all )?together\b|\b(?:wants|needs|give me|hear|asks? (?:you )?for) your (?:\w+ )?recommendation\b|\bwhich\s+(?:single\s+|one\s+|of\s+(?:your|these|those|the)\s+)?(?:levers?|options?|moves?|actions?)\b[^?]{0,60}\b(?:first|start|prioriti[sz]e|pull|lead with)\b|\bmost credible lever\b|\bwhat would you do first\b|\bas the (?:primary|main|final|headline) recommendation\b|\brecommendation in front of the (?:ceo|client|board)\b/i;
+  /\bwhat do you recommend\b(?!\s+(?:we|i|us|as|in|looking)\b)(?!\s+to\s+(?!the\s+(?:ceo|client|board|company)\b))|\bpulling it (?:all )?together\b|\b(?:wants|needs|give me|hear|asks? (?:you )?for) your (?:\w+ )?recommendation\b|\bwhich\s+(?:single\s+|one\s+|of\s+(?:your|these|those|the)\s+)?(?:levers?|options?|moves?|actions?)\b[^?]{0,60}\b(?:first|start|prioriti[sz]e|pull|lead with)\b|\bmost credible lever\b|\bwhat would you do first\b|\bas the (?:primary|main|final|headline) recommendation\b|\brecommendation in front of the (?:ceo|client|board)\b|\b(?:one|a single|a one-line) (?:sentence|line)\b[^?]{0,40}?\bwhat (?:to do|(?:should|would|could) (?:the client|the company|the ceo|they) do|would you have (?:them|the client|the company|the ceo) do)\b/i;
 export function asksForConclusion(text: string): boolean { return REC_ASK.test(text) || CONCLUSION_ASK.test(text); }
 
 // The risk question as a stage (fact guards Phase 5; batch 20 grading): the
@@ -150,8 +151,9 @@ export function recommendationUnresolved(s: StageAdministration): boolean {
   return !s.recommendationReceived && s.recommendationAskCount >= RECOMMENDATION_ASK_LIMIT;
 }
 
-export function stageGateOpen(s: StageAdministration): boolean {
-  if (!s.brainstormAsked) return false;
+// A case without a brainstorm module (brainstorm.required false) owes none.
+export function stageGateOpen(s: StageAdministration, opts: { brainstormRequired?: boolean } = {}): boolean {
+  if (!s.brainstormAsked && opts.brainstormRequired !== false) return false;
   return s.recommendationReceived ? s.riskAsked : recommendationUnresolved(s);
 }
 
@@ -165,12 +167,15 @@ export function endAllowed(p: { coverageMayEnd: boolean; timeUp: boolean; stageG
   return p.coverageMayEnd && (p.stages.recommendationAsked || p.stages.recommendationReceived);
 }
 
+// Case-neutral (new cases, 13 Oct): a case's own question is its
+// brainstorm.ask (brainstorm.ts); prof-001's profitability line lives there.
+export const GENERIC_BRAINSTORM_ASKS = [
+  "Beyond what we've discussed, what else could the client do?",
+  'What other levers could the client pull here?',
+] as const;
+
 export const BLOCKED_CLOSE_PROBES = {
-  brainstorm: [
-    "Beyond what we've discussed, what else could the client do?",
-    'What other levers could the client pull here?',
-    "Beyond pricing, what else could the client do to protect margin?",
-  ],
+  brainstorm: GENERIC_BRAINSTORM_ASKS,
   recommendation: [
     "Pull it together — what's your recommendation to the CEO?",
     'Based on what you have, what would you tell the CEO to do?',

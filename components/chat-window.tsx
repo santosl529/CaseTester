@@ -10,6 +10,7 @@ type ExhibitDisplay = {
   title: string;
   chartType: string;
   data: Record<string, unknown>[];
+  notes?: string;
 };
 
 type Message =

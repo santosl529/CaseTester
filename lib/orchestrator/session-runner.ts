@@ -4,7 +4,7 @@ import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } fr
 import { and, eq } from 'drizzle-orm';
 import { recordSilenceStall, INITIAL_STALL_STATE, type StallState } from './stall';
 import {
-  evaluateSilence, checkInText, pauseText, INITIAL_SILENCE_STATE, type SilenceAction, type SilenceState,
+  evaluateSilence, checkInText, pauseText, restateOnTable, INITIAL_SILENCE_STATE, type SilenceAction, type SilenceState,
 } from './silence';
 import { isDistressVerdict, type DistressVerdict } from './distress';
 import { classifyDataRequests, type DetectedDataRequest } from './data-requests';
@@ -14,7 +14,6 @@ import type { Phase } from './state-machine';
 import { streamInterviewerTurn } from '@/lib/agent/interviewer';
 import { createInterviewerModel } from '@/lib/agent/models/factory';
 import { SILENCE_PAUSE_EXPIRED, GRACE_ASK_SCRIPTS, TIME_WARNING_SCRIPTS, STAGE_EXHIBIT_QUESTIONS, closeLine, pickScript } from '@/lib/agent/prompts/scripts';
-import { BLOCKED_CLOSE_PROBES } from './spoken-close';
 import { planTurn, scriptedOffer, scriptedOfferFor, terminationPlanFor, type ModelPlan, type TurnReads } from './plan-turn';
 import { conductEnds } from './stream-turn';
 import type { ConductModelVerdict } from './conduct-model';
@@ -22,6 +21,8 @@ import { planFingerprint, type DraftGate } from './speculation';
 import { promptContextFor } from './prompt-context';
 import { TurnRecorder, type TurnRecord, type TurnStateBefore } from './turn-record';
 import { revealedValues } from './data-ledger';
+import { nextReadyExhibit } from './data-decisions';
+import { brainstormAsks } from './brainstorm';
 import { streamTurnSegments } from './stream-turn';
 import { settleTurn, commitScripted, logSessionEvent, type TurnUsage, type ModelOutcome } from './settle-turn';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
@@ -428,26 +429,20 @@ function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null
   const question = state.kind === 'close' ? closeLine(state.closeReason, seed)
     : state.kind === 'grace_ask' ? pickScript(GRACE_ASK_SCRIPTS, seed)
       : state.kind === 'time_warning' ? pickScript(TIME_WARNING_SCRIPTS, seed)
-        : state.kind === 'stage_brainstorm' ? pickScript([...BLOCKED_CLOSE_PROBES.brainstorm], seed)
+        : state.kind === 'stage_brainstorm' ? pickScript(brainstormAsks(state.caseData), seed)
           : state.kind === 'stage_exhibit' ? pickScript(STAGE_EXHIBIT_QUESTIONS, seed)
           : state.kind === 'stage_analysis' && state.caseData.analysisCore ? state.caseData.analysisCore.ask
             : state.kind === 'rec_revision' ? pickScript([...REC_REVISION_QUESTIONS], seed)
               : recMath?.action === 'correct' ? pickScript([...REC_MATH_REVISION_QUESTIONS], seed)
               : recMath ? recMathLine(recMath.flag, 'probe')
-            : `Take your time. The question on the table is ${restate(state.lastQuestion ?? '')}`;
+            : `Take your time. ${restateOnTable(state.lastQuestion ?? '')}`;
   // The owed exhibit is handed over by code's own data line ("Here's an exhibit: …").
-  const exhibit = state.kind === 'stage_exhibit' ? state.caseData.exhibits.find(e => !state.shownExhibitIds.has(e.id))?.id ?? null : null;
+  const exhibit = state.kind === 'stage_exhibit' ? state.requiredExhibit ?? nextReadyExhibit(state.caseData.exhibits, state.shownExhibitIds, state.ledger)?.id ?? null : null;
   // Rule 14 past its probe: the figure, flat, before the revision question.
   const say = recMath?.action === 'correct' ? recMathLine(recMath.flag, 'correct') : '';
   return { move: 'other', requests, exhibit, rescueItem: null, say, question };
 }
 
-
-// "Which line moved most?" → "which line moved most?" (and no doubled lead-in).
-function restate(q: string): string {
-  const core = q.trim().replace(/^(?:take your time\.\s*)?the question on the table(?: is|:)\s*/i, '');
-  return core.charAt(0).toLowerCase() + core.slice(1);
-}
 
 // Text-mode silence (lib/orchestrator/silence.ts): the channel reports that the
 // candidate has been silent `silentMs` since the interviewer's last turn. No

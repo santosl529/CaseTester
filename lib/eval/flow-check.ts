@@ -19,10 +19,11 @@ import { TOTAL_CASE_MS } from '@/lib/orchestrator/state-machine';
 import { LOAD_SHED_REMAINING_MS } from '@/lib/orchestrator/pacing';
 import { CLOSE_SCRIPTS_BY_REASON, hasCloseCue } from '@/lib/agent/prompts/scripts';
 import { askIntents } from '@/lib/orchestrator/ask-intent';
+import { brainstormAsks, brainstormRequired, asksCaseBrainstorm, type CaseBrainstorm } from '@/lib/orchestrator/brainstorm';
 
 export type FlowFlag = { rule: 'D7' | 'STAGE' | 'CLOSE' | 'LOOP'; t: number; sub: string; text: string };
 
-type CaseLike = { exhibits: { id: string }[]; analysisCore?: { items: string[]; minItems?: number; ask?: string }; format?: string };
+type CaseLike = { exhibits: { id: string; required?: boolean }[]; analysisCore?: { items: string[]; minItems?: number; ask?: string }; format?: string } & CaseBrainstorm;
 
 const questionOf = (t: CorpusTurn) => t.segments.filter(s => s.kind === 'question' || s.kind === 'scripted').map(s => s.text).join(' ')
   || t.segments.filter(s => s.kind !== 'data').map(s => s.text).join(' ');
@@ -35,7 +36,9 @@ const CLOSE_WORDS = /\bthat closes (?:the case|out|the recommendation)\b|\bwe'?l
 // "Of the risks you've named, which would most likely derail this plan?" is
 // the risk question; "what does that imply for your recommendation" is not.
 const BRAINSTORM_MOVE = /\b(?:what|how)\s+else\b|\bwhat\s+other\s+(?:ways|options|levers|ideas|things|moves|actions)\b/i;
-const asksBrainstormStage = (t: CorpusTurn, q: string) => asksBrainstorm(q) || t.kind === 'stage_brainstorm' || (t.move === 'brainstorm' && BRAINSTORM_MOVE.test(q));
+// The case's own brainstorm question counts too (new cases, 13 Oct).
+const asksBrainstormStage = (t: CorpusTurn, q: string, caseAsks: string[]) => asksBrainstorm(q) || t.kind === 'stage_brainstorm' || (t.move === 'brainstorm' && BRAINSTORM_MOVE.test(q))
+  || asksCaseBrainstorm(q, caseAsks);
 const asksRecStage = (t: CorpusTurn, q: string) => asksForConclusion(q) || CODE_REC.has(t.kind) || namesCandidateRecommendation(q);
 
 export function checkFlowRun(run: CorpusRun, c: CaseLike): FlowFlag[] {
@@ -45,7 +48,13 @@ export function checkFlowRun(run: CorpusRun, c: CaseLike): FlowFlag[] {
   const minCore = c.analysisCore?.minItems ?? core.length;
   const hasExhibit = c.exhibits.length > 0;
   const interviewerLed = (c.format ?? 'interviewer_led') === 'interviewer_led';
-  let exhibitShown = false, brainstormAsked = false, riskAsked = false, recAsked = false;
+  const caseAsks = c.brainstorm?.ask !== undefined ? brainstormAsks(c) : [];
+  // A case with no brainstorm module owes none.
+  // Required exhibits (13 Oct) are owed one by one; otherwise any one exhibit.
+  const required = c.exhibits.filter(e => e.required).map(e => e.id);
+  const shownIds = new Set<string>();
+  const exhibitOwed = () => (hasExhibit && !exhibitShown) || required.some(id => !shownIds.has(id));
+  let exhibitShown = false, brainstormAsked = !brainstormRequired(c), riskAsked = false, recAsked = false;
   let closedAt: number | null = null, lastOwed = '', steered = false;
   let streak: { tag: string; n: number }[] = [];
   for (const t of turns) {
@@ -58,12 +67,13 @@ export function checkFlowRun(run: CorpusRun, c: CaseLike): FlowFlag[] {
     const timeUp = (t.elapsedMs !== undefined && t.elapsedMs >= TOTAL_CASE_MS) || closeReason === 'time_up';
     const late = t.elapsedMs !== undefined && TOTAL_CASE_MS - t.elapsedMs < LOAD_SHED_REMAINING_MS;
     exhibitShown ||= t.shownBefore.length > 0 || t.exhibitNow !== null;
+    for (const id of [...t.shownBefore, ...(t.exhibitNow ? [t.exhibitNow] : [])]) shownIds.add(id);
     if (closedAt !== null) { flags.push({ rule: 'CLOSE', t: t.t, sub: 'continues_after_close', text: q.slice(0, 200) }); closedAt = null; }
     // D7: a call for the conclusion with a stage or the core analysis owed.
     if ((asksForConclusion(q) || CODE_REC.has(t.kind)) && interviewerLed && !late && !AFTER_REC.has(t.kind)) {
       const owed = [
         ...(!brainstormAsked ? ['brainstorm'] : []),
-        ...(hasExhibit && !exhibitShown ? ['exhibit'] : []),
+        ...(exhibitOwed() ? ['exhibit'] : []),
         // Once code has asked back to the analysis, moving on is the rule.
         ...(!coreAttempted && !steered ? ['analysis'] : []),
       ].join('+');
@@ -78,7 +88,7 @@ export function checkFlowRun(run: CorpusRun, c: CaseLike): FlowFlag[] {
       flags.push({ rule: 'CLOSE', t: t.t, sub: 'model_close_line', text: modelText.slice(0, 200) });
     }
     steered ||= t.kind === 'stage_analysis' || (c.analysisCore?.ask !== undefined && q.includes(c.analysisCore.ask));
-    brainstormAsked ||= asksBrainstormStage(t, q);
+    brainstormAsked ||= asksBrainstormStage(t, q, caseAsks);
     recAsked ||= asksRecStage(t, q);
     riskAsked ||= asksRiskQuestion(q, recAsked);
     if (t.kind === 'close') {
@@ -95,7 +105,7 @@ export function checkFlowRun(run: CorpusRun, c: CaseLike): FlowFlag[] {
   }
   if (run.status === 'completed' && interviewerLed && turns.length > 0) {
     const missing = [
-      ...(hasExhibit && !exhibitShown ? ['exhibit'] : []),
+      ...(exhibitOwed() ? ['exhibit'] : []),
       ...(!brainstormAsked ? ['brainstorm'] : []),
       ...(!recAsked ? ['recommendation'] : []),
       ...(!riskAsked ? ['risk'] : []),

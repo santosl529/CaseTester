@@ -240,7 +240,8 @@ describe('bounded fallbacks', () => {
     for (let i = 0; i < 4; i++) {
       heard.push(await turn('Could I get the cost breakdown?', T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'What else would you want?' })));
     }
-    expect(heard.filter(h => /Before we (get into|go further into) the data, .*structure/.test(h))).toHaveLength(1);
+    // Code asks once; a stall rung-1 restate of that ask ("The question on the table: Before we…") is not a second ask.
+    expect(heard.filter(h => !/question on the table/.test(h) && /Before we (get into|go further into) the data, .*structure/.test(h))).toHaveLength(1);
     expect(heard.some(h => /might be missing|which branch|break this structure/.test(h))).toBe(false);
     expect(pt()).toMatchObject({ state: 'not_asked', codeAsked: false, structureAsked: true });
     expect(revealed()).not.toContain('cogs_pct');

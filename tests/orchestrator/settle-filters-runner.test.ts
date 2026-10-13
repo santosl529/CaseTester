@@ -477,6 +477,90 @@ describe('no refusal names data the case holds (fact checks F3)', () => {
   });
 });
 
+describe('the fallback does not re-ask what was just answered (batch 21 D8, Anika t4)', () => {
+  it("the model's question withheld after she named where she'd start → a fallback that isn't \"what would you look at first\"", async () => {
+    seed({ phase: 'STRUCTURE', flags: { lastQuestion: 'Which of your four levers do you prioritize, and what makes you confident the problem sits there rather than in the others?' } });
+    const r = await say("Cost per cup, and the reason is arithmetic on what you've already given me. Revenue is up 15%, so stores × cups × price has grown. Meanwhile margin went 24% to 6% — an 18-point swing. Do we have a cost breakdown as a percent of revenue for both years?", T({
+      say: '', requests: [{ what: 'the cost breakdown as a percent of revenue', itemIds: ['cogs_pct', 'labor_pct', 'overhead_pct'], explicit: true, respond: 'release' }],
+      question: 'With those figures in front of you, which cost line is driving the margin decline, and how do you size its contribution?',
+    }));
+    expect(r.interviewerText).toMatch(/once we've settled your structure\./);
+    expect(r.interviewerText).not.toMatch(/first|start|in front of you/i);
+    expect(r.interviewerText).toMatch(/\?$/);
+  });
+});
+
+describe('a code-written fallback never marks the pressure test asked (Lorenzo, 13 Oct)', () => {
+  it('the probe-like no-figures fallback ("Which area … first?") replacing a withheld question leaves the test not asked', async () => {
+    let probeLike = 0;
+    for (let i = 0; i < 12; i++) {
+      seed({ phase: 'STRUCTURE' });
+      modelQueue.length = 0;
+      const m = T({ say: 'Mm-hm.', question: 'With those figures in front of you, which cost line is driving it?' });
+      modelQueue.push(m, m);
+      const r = await runTurn(`seed-${i}`, 'Revenue, costs, and then the store base.', {});
+      const pt = (store.session.flagsJsonb as Record<string, { state: string }>).pressureTest;
+      if (/\bwhich (?:part|area)\b[^?]*\bfirst\b/i.test(r.interviewerText)) probeLike++;
+      expect(pt?.state ?? 'not_asked').toBe('not_asked');
+    }
+    expect(probeLike).toBeGreaterThan(0);   // the case under test occurred
+  });
+  it("a probe-like fallback doesn't stop code asking its own probe (gate held data twice, structure given)", async () => {
+    let probeLike = 0;
+    for (let i = 0; i < 12; i++) {
+      seed({ phase: 'STRUCTURE', flags: { pressureTest: { state: 'not_asked', reasks: 0, codeAsked: false, gatedTurns: 1, structureGiven: true, structureAsked: false } } });
+      modelQueue.length = 0;
+      const m = T({ say: 'Mm-hm.', requests: [{ what: 'the cost breakdown', itemIds: ['cogs_pct', 'labor_pct', 'overhead_pct'], explicit: true, respond: 'release' }],
+        question: 'With those figures in front of you, which cost line is driving it?' });
+      modelQueue.push(m, m);
+      const r = await runTurn(`code-probe-${i}`, 'Could I get the cost breakdown?', {});
+      if (/which (?:part|area)[^?]*first/i.test(r.interviewerText)) probeLike++;
+      expect((store.session.flagsJsonb as Record<string, { state: string; codeAsked: boolean }>).pressureTest).toMatchObject({ state: 'awaiting', codeAsked: true });
+    }
+    expect(probeLike).toBe(0);   // code's probe replaced the fallback every time
+  });
+  it("the model's probe kept in front of a code-appended question still counts", async () => {
+    seed({ phase: 'STRUCTURE' });
+    await say('Revenue, costs, and then the store base.', T({ say: 'Mm-hm.', question: "Tell me what might be missing from your structure. With those figures in front of you, where would you start?" }));
+    expect((store.session.flagsJsonb as Record<string, { state: string }>).pressureTest.state).toBe('awaiting');
+  });
+  it("the model's own probe still marks it asked; so does code's own probe", async () => {
+    seed({ phase: 'STRUCTURE' });
+    await say('Revenue, costs, and then the store base.', T({ move: 'pressure_test', question: 'Which branch would you start with, and why?' }));
+    expect((store.session.flagsJsonb as Record<string, { state: string }>).pressureTest.state).toBe('awaiting');
+  });
+});
+
+describe("one refusal, code's (batch 21 D8, Raj t14)", () => {
+  const COST = ['cogs_pct', 'labor_pct', 'overhead_pct'];
+  const ASK = { what: 'price elasticity and competitor pricing', itemIds: [], explicit: true, respond: 'release' as const };
+  it('a refusal in the model\'s "say" is withheld: code\'s data line refuses', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const r = await say('Do we have any read on price elasticity, or what competitors have done on price?', T({
+      say: "Right. Elasticity and competitor pricing aren't something I have in this case.", requests: [ASK], question: 'What else could Brew & Bean do to close the gap?',
+    }));
+    expect(r.interviewerText).toBe("Right. I don't have price elasticity and competitor pricing. What else could Brew & Bean do to close the gap?");
+  });
+  it("a refusal statement in the question is withheld when code's line refuses this turn", async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const r = await say('Do we have competitor pricing?', T({
+      say: 'Mm-hm.', requests: [{ ...ASK, what: 'competitor pricing' }], question: "Competitor pricing isn't something I have. What else would you look at?",
+    }));
+    expect(r.interviewerText).toBe("Mm-hm. I don't have competitor pricing. What else would you look at?");
+  });
+  it('setting aside a claim the candidate invented is no refusal (batch 21 Omar t16)', async () => {
+    seed({ phase: 'RECOMMENDATION', revealed: COST, flags: SATISFIED });
+    const q = "You mentioned a franchisee telling corporate to go to hell, which I haven't said and which isn't in the case, so set that aside. What else would you look at?";
+    const r = await say('Do we have margin split by ownership type?', T({ say: 'Mm-hm.', requests: [{ ...ASK, what: 'margin split by ownership type' }], question: q }));
+    expect(r.interviewerText).toContain(q);
+  });
+  it("it stays when it is the only answer (no ask declared, code refuses nothing)", async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const r = await say('Do we have competitor pricing?', T({ say: 'Mm-hm.', question: "Competitor pricing isn't something I have. What else would you look at?" }));
+    expect(r.interviewerText).toBe("Mm-hm. Competitor pricing isn't something I have. What else would you look at?");
+  });
+});
+
 describe('no refusal names data the case holds — a declared deferral too', () => {
   it('"coffee bean, dairy, packaging, and waste shares of COGS, today and two years ago" declared defer (batch 20 R28 t38)', async () => {
     seed({ phase: 'RECOMMENDATION', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: SATISFIED });
@@ -510,6 +594,18 @@ describe('the question agrees with what code delivered (fact checks F4)', () => 
     const r = await say('Beans are the lever.', T({ say: 'Mm-hm.', question: 'With those figures, does bean sourcing still look like the right lead lever?' }));
     expect(r.interviewerText).not.toMatch(/With those figures/);
     expect(withheldFor('undelivered_claim').length).toBeGreaterThan(0);
+  });
+
+  it('"With that in hand" after code held the data, nothing delivered, is withheld (batch 21 Marcus t6)', async () => {
+    seed({ phase: 'STRUCTURE' });
+    const r = await say("If I had to test one thing first, it'd be the menu-price history — do we have that?", T({
+      say: 'Understood.', requests: [{ what: 'menu price changes', itemIds: ['menu_price_change'], explicit: true, respond: 'release' }],
+      question: 'With that in hand, what does it tell you about your pricing hypothesis, and what would you want to look at next?',
+    }));
+    expect(r.interviewerText).toMatch(/I'll share menu price changes once we've settled your structure\./);
+    expect(r.interviewerText).not.toMatch(/With that in hand/);
+    expect(r.interviewerText).toMatch(/\?$/);
+    expect(withheldFor('undelivered_claim')).toHaveLength(1);
   });
 
   it('a true claim stays: the figure went out this turn', async () => {

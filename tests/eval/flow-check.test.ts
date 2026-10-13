@@ -79,3 +79,41 @@ describe('flow detectors (batch 20 grading)', () => {
     expect(rules(run(withData, 'active'))).toEqual([]);
   });
 });
+
+// New cases (13 Oct): the case's own brainstorm question counts, and a case
+// with no brainstorm module owes none.
+describe('flow detectors on the new cases', () => {
+  const hollis = getCaseById('launch-001') as never;
+  const quill = getCaseById('pricing-001') as never;
+  // Every exhibit of the new cases is required (13 Oct): all shown here.
+  const shown = { shownBefore: ['exhibit-1', 'exhibit-2', 'exhibit-3', 'exhibit-4'] };
+  const rec = (core: string[]) => T("What's your recommendation to the client?", { revealedBefore: core, ...shown });
+  const risk = (core: string[]) => T("What's the biggest risk to that recommendation?", { revealedBefore: core, ...shown });
+  const close = (core: string[]) => T("We've covered everything I wanted to. Thanks for working through the case — your written report will follow.", { kind: 'close', revealedBefore: core, ...shown });
+  it("Hollis Bay's own brainstorm question is the brainstorm", () => {
+    const core = ['bag_price', 'variable_costs', 'launch_costs', 'purchase_intent'];
+    const bs = T('What could Hollis Bay do to get shoppers to try its chickpea snacks — and to keep buying them?', { revealedBefore: core, ...shown });
+    expect(checkFlowRun(run([bs, rec(core), risk(core), close(core)]), hollis).map(f => `${f.rule}:${f.sub}`)).toEqual([]);
+    expect(checkFlowRun(run([rec(core), risk(core), close(core)]), hollis).map(f => `${f.rule}:${f.sub}`)).toEqual(['D7:brainstorm', 'STAGE:brainstorm']);
+  });
+  it('Quillpath owes no brainstorm', () => {
+    const core = ['plan_prices_costs', 'plan_cac', 'starter_cohort'];
+    expect(checkFlowRun(run([rec(core), risk(core), close(core)]), quill).map(f => `${f.rule}:${f.sub}`)).toEqual([]);
+  });
+});
+
+describe('required exhibits are owed one by one (13 Oct)', () => {
+  const lark = getCaseById('prof-002') as never;
+  const core = ['route_results_lakeport', 'route_results_port_avery', 'lakeport_fare'];
+  const at = (shownBefore: string[]) => ({ revealedBefore: core, shownBefore });
+  const bs = (o: object) => T("What else could Larkspur do to make sure it's profitable in the first year?", o);
+  const rec = (o: object) => T("What's your recommendation to the client?", o);
+  const risk = (o: object) => T("What's the biggest risk to that recommendation?", o);
+  const close = (o: object) => T("We've covered everything I wanted to. Thanks for working through the case — your written report will follow.", { kind: 'close', ...o });
+  it('a run that never showed Exhibit 3 owes it (D7 and STAGE); all three shown owes nothing', () => {
+    const two = at(['exhibit-1', 'exhibit-2']);
+    expect(checkFlowRun(run([bs(two), rec(two), risk(two), close(two)]), lark).map(f => `${f.rule}:${f.sub}`)).toEqual(['D7:exhibit', 'STAGE:exhibit']);
+    const all = at(['exhibit-1', 'exhibit-2', 'exhibit-3']);
+    expect(checkFlowRun(run([bs(all), rec(all), risk(all), close(all)]), lark).map(f => `${f.rule}:${f.sub}`)).toEqual([]);
+  });
+});

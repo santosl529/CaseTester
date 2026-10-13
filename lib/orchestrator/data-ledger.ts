@@ -6,6 +6,7 @@ export type LedgerItem = {
   value: string;
   releaseWhen: Phase; // pacing hint; enforced only by Rule 11 same-turn resolution (data-requests.ts), not on the model's reveals
   timeframes?: Record<string, 'current' | 'prior' | 'change' | 'both'>;
+  spoken?: string;    // the item's name in a hold line ("the coffee bean price change")
 };
 
 export type DataLedger = {

@@ -67,7 +67,12 @@ export function isBareAcknowledgment(sentence: string): boolean {
 // weren't, and no code line says so). Redelivery claims too (v3 recheck,
 // Destiny: "Here they are again." with nothing after it) — on an explicit
 // re-ask code restates the data itself ("As I mentioned: …").
-export const DATA_TALK = /\b(i don'?t have|that'?s not in the information|isn'?t something i have|i'?ll come back to|come back to (that|it)|(is|are) available|i'?ll (give|share|show) you|let me (give|share|show|pull)|being sent|on (its|their) way|(come|came|coming) through|in front of you|i'?ve (sent|shared)|(sending|pasting) (them|those|it|that)|here (they|it|that|those) (are|is)|(let me|i'?ll) (repeat|restate|re-?share)|(in|on) my (last|previous|earlier) message|(they'?re|they are|it'?s|it is) on the table)\b/i;
+// Not "isn't in the case": the question may set aside a claim the candidate
+// invented ("…which I haven't said and which isn't in the case" — batch 21 Omar t16).
+const REFUSAL_TALK = /\b(?:i don'?t have|we don'?t have|(?:isn'?t|aren'?t|is not|are not|not) (?:something|anything|data|information) (?:i|we) (?:have|hold)|(?:isn'?t|aren'?t|is not|are not) available)\b/i;
+// Refusals in any wording count (batch 21 Raj t14: "Elasticity and competitor
+// pricing aren't something I have in this case." then code's own "I don't have …").
+export const DATA_TALK = /\b(i don'?t have|we don'?t have|that'?s not in the information|(?:isn'?t|aren'?t|is not|are not|not) (?:something|anything|data|information) (?:i|we) (?:have|hold)|(?:isn'?t|aren'?t|is not|are not) (?:available|part of (?:this|the) case|in (?:this|the) case)|i'?ll come back to|come back to (that|it)|(is|are) available|i'?ll (give|share|show) you|let me (give|share|show|pull)|being sent|on (its|their) way|(come|came|coming) through|in front of you|i'?ve (sent|shared)|(sending|pasting) (them|those|it|that)|here (they|it|that|those) (are|is)|(let me|i'?ll) (repeat|restate|re-?share)|(in|on) my (last|previous|earlier) message|(they'?re|they are|it'?s|it is) on the table)\b/i;
 
 // A statement in the question that hands something over ("Here's the cost
 // structure over time.", "Take a look at this exhibit.") — code already
@@ -122,6 +127,9 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   // them; a probe question about data ("what would be available to test
   // that?") is the interviewer's job.
   if (!opts.inQuestion && (DATA_TALK.test(sentence) || handoffSentences(sentence).length > 0 || promisesExhibit(sentence))) return 'data_talk';
+  // …and a refusal statement in the question doubles code's own refusal on a
+  // turn whose data line refuses (Settle only — it knows the data line).
+  if (opts.inQuestion && g.facts?.delivery?.refusedNow && !sentence.trim().endsWith('?') && REFUSAL_TALK.test(sentence)) return 'data_talk';
   if (['BRAINSTORM', 'RECOMMENDATION', 'WRAP'].includes(g.phase) && suppliesRecommendation(sentence)) return 'synthesis';
   if (!opts.inQuestion && sentence.trim().endsWith('?')) return 'question_in_say';
   if (!opts.inQuestion && g.acknowledged && isBareAcknowledgment(sentence)) return 'double_ack';

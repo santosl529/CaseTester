@@ -33,3 +33,11 @@ describe('evals/persona-bands.json', () => {
     }
   });
 });
+
+describe('the case-neutral Tyler (64, 13 Oct)', () => {
+  it('is new, names nothing from prof-001, and leaves 15 as it was', async () => {
+    const { getPersona } = await import('@/scripts/personas');
+    expect(getPersona(64).brief).not.toMatch(/COGS|coffee|bean|menu|store|revenue|Brew/i);
+    expect(getPersona(15).brief).toMatch(/COGS/);
+  });
+});

@@ -168,7 +168,8 @@ export function exhibitIsGated(ledger: DataLedger, covers: string[]): boolean {
 // ---- bounded fallbacks ----
 
 export const FIGURES_QUESTIONS = ['What do those figures tell you?', 'What do you take from those numbers?', 'Where do those numbers point you?'] as const;
-export const NO_FIGURES_QUESTIONS = ['Where would you like to start the analysis?', 'What would you look at first, and why?', 'Which part of the problem would you dig into first?'] as const;
+// Case-neutral wording (13 Oct): not every case is a "problem" (a launch, an entry, a pricing decision).
+export const NO_FIGURES_QUESTIONS = ['Where would you like to start the analysis?', 'What would you look at first, and why?', 'Which area would you dig into first?'] as const;
 // Step 4 (batch 19, 12 Oct): the no-figures replacement fits the phase — Owen
 // t22 at 16:52, mid-analysis, heard "Where would you like to start the
 // analysis?" — and none asks for a stage (it would count as administered).
@@ -198,13 +199,23 @@ export function refersToFigures(question: string): boolean {
 }
 
 // A replacement question for a duplicate probe; never the last question asked.
-export function pickFallbackQuestion(p: { figuresDelivered: boolean; seed: string; last: string | null; phase?: Phase; timePressure?: boolean }): string {
-  const pool: readonly string[] = p.timePressure ? TIME_PRESSURE_QUESTIONS
+// The candidate just answered where to start (batch 21 D8, Anika t4: "Which
+// of your four levers do you prioritize…?" answered, then the fallback "What
+// would you look at first, and why?"): no where-to-start ask again; when the
+// whole pool is one, a question on what they expect to find (no stage, no probe).
+const WHERE_TO_START = /\b(?:first|start|prioriti[sz]e|matters most|most important)\b/i;
+export const HYPOTHESIS_QUESTIONS = ["What's your working hypothesis, and why?", 'What do you expect that analysis to show, and why?', 'Why do you expect the answer to sit there?'] as const;
+
+export function pickFallbackQuestion(p: { figuresDelivered: boolean; seed: string; last: string | null; phase?: Phase; timePressure?: boolean; lastAnswered?: boolean }): string {
+  const phasePool: readonly string[] = p.timePressure ? TIME_PRESSURE_QUESTIONS
     : p.figuresDelivered ? FIGURES_QUESTIONS
     : p.phase === 'ANALYSIS' || p.phase === 'EXHIBIT' ? ANALYSIS_QUESTIONS
     : p.phase === 'BRAINSTORM' ? BRAINSTORM_QUESTIONS
     : p.phase === 'RECOMMENDATION' || p.phase === 'WRAP' ? LATE_QUESTIONS
     : NO_FIGURES_QUESTIONS;
+  const answeredStart = Boolean(p.lastAnswered && p.last && WHERE_TO_START.test(p.last));
+  const left = answeredStart ? phasePool.filter(q => !WHERE_TO_START.test(q)) : phasePool;
+  const pool: readonly string[] = left.length > 0 ? left : p.phase === 'BRAINSTORM' ? LATE_QUESTIONS : HYPOTHESIS_QUESTIONS;
   const first = pickScript([...pool], p.seed);
   return first !== p.last ? first : pool[(pool.indexOf(first) + 1) % pool.length];
 }

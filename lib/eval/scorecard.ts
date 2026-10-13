@@ -4,6 +4,8 @@
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
 import type { TurnFileHeader, TurnFileEnd } from './turn-file';
 import { stageAdministration } from '@/lib/orchestrator/spoken-close';
+import { brainstormRequired } from '@/lib/orchestrator/brainstorm';
+import { getCaseById } from '@/lib/cases/loader';
 import { isBareAcknowledgment } from '@/lib/orchestrator/stream-turn';
 import { isSilenceLine } from '@/lib/orchestrator/silence';
 import { costOf, isPriced } from '@/lib/llm-pricing';
@@ -12,7 +14,7 @@ export const DIMENSIONS = ['structure', 'quantitative', 'dataExhibit', 'judgment
 export type Dimension = typeof DIMENSIONS[number];
 
 export type RunRecord = {
-  session: { id: string; status: string };
+  session: { id: string; status: string; caseId?: string };
   turns: { turnIndex: number; role: string; text: string }[];
   score: Record<string, unknown> | null;
   events: { category: string; subtype: string; turnIndex: number | null; payloadJsonb: Record<string, unknown> }[];
@@ -156,7 +158,9 @@ export function scorecardRow(p: { runId: string; run: RunRecord; turnFile: { hea
     flags.push({ turnIndex: probes[p.lastIndex].turnIndex, kind: 'repeated_short_probe', detail: `short probe asked ${p.count} times (under ${MIN_LOOP_TOKENS} words, so not a loop): "${p.question}"` });
   }
   const noProgress = records ? longestNoProgress(records) : null;
-  if (completion === 'ended' && (!stages.brainstormAsked || !stages.recommendationAsked)) {
+  // A case with no brainstorm module (Quillpath) skips none by not asking one.
+  const owesBrainstorm = (() => { try { return run.session.caseId ? brainstormRequired(getCaseById(run.session.caseId)) : true; } catch { return true; } })();
+  if (completion === 'ended' && ((owesBrainstorm && !stages.brainstormAsked) || !stages.recommendationAsked)) {
     flags.push({ turnIndex: null, kind: 'stage_skipped', detail: `brainstorm asked: ${stages.brainstormAsked}, recommendation asked: ${stages.recommendationAsked}` });
   }
 
