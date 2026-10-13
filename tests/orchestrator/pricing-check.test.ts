@@ -91,3 +91,20 @@ describe('pricing claims — false alarms read outside batch 20', () => {
     ['A 10% price increase is the lever. That takes them from 6% to 16%.', ['new_margin:incorrect']],
   ])('still an error: %s', (text, expected) => expect(verdicts(text)).toEqual(expected));
 });
+
+// The pricing answers as pure functions (math checker, 13 Oct): what the
+// checker is given for the price changes a message names, and what a checker
+// correction must agree with before it is spoken.
+describe('pricing answers from the cost structure', () => {
+  it('prof-001 with every cost line revealed', async () => {
+    const { pricingAnswers, pricingValues: pv } = await import('@/lib/orchestrator/pricing-check');
+    const { getCaseById } = await import('@/lib/cases/loader');
+    const v = pv(getCaseById('prof-001'), new Set(['cogs_pct', 'labor_pct', 'overhead_pct']))!;
+    const a = pricingAnswers(v);
+    expect(a.gain(10)[0]).toBeCloseTo(8.55, 1);
+    expect(a.newMargin(10)[0]).toBeCloseTo(14.5, 1);
+    expect(a.neededForMargin(24)).toBeCloseTo(23.7, 1);
+    expect(a.neededForGain(16)).toBeCloseTo(20.5, 1);   // "restoring the full 16 points": a 22% margin
+    expect(a.breakeven(10)).toEqual([19.2, 33.3]);
+  });
+});

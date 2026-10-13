@@ -129,6 +129,7 @@ const missingKeys: string[] = [];
 for (const l of out) {
   const k = MATH_LABEL_KEYS[l.id];
   if (k?.label === 'correct' && l.label === 'error') { l.sources.push('relabelled correct after reading'); }
+  if (k?.label === 'error' && l.label === 'correct') { l.sources.push('relabelled error after reading (a real error the grading missed)'); }
   if (k) Object.assign(l, k);
   else if (l.label === 'error') missingKeys.push(l.id);
 }

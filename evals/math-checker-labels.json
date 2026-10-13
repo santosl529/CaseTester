@@ -109,10 +109,20 @@
   "id": "default-candidate/live-run-2026-10-12-0bfe5f38#t20",
   "run": "default-candidate/live-run-2026-10-12-0bfe5f38",
   "t": 20,
-  "label": "correct",
+  "label": "error",
   "sources": [
-   "precision persona default (batch-20-haiku)"
-  ]
+   "precision persona default (batch-20-haiku)",
+   "relabelled error after reading (a real error the grading missed)"
+  ],
+  "match": [
+   "fully explained"
+  ],
+  "claim": "the 18-point decline is fully explained by input inflation, 4.2 + 11.8 (16; overhead the other 2) — the claim graded D6 in Destiny R31",
+  "mustNotFlag": [
+   "4.2",
+   "11.8"
+  ],
+  "note": "found by the checker; the grading marked the run's math all correct"
  },
  {
   "id": "default-candidate/live-run-2026-10-12-0bfe5f38#t22",
@@ -304,10 +314,17 @@
   "id": "default-candidate/live-run-2026-10-12-33f7479b#t18",
   "run": "default-candidate/live-run-2026-10-12-33f7479b",
   "t": 18,
-  "label": "correct",
+  "label": "error",
   "sources": [
-   "precision persona default (batch-20-sonnet)"
-  ]
+   "precision persona default (batch-20-sonnet)",
+   "relabelled error after reading (a real error the grading missed)"
+  ],
+  "match": [
+   "whole 18-point",
+   "18-point"
+  ],
+  "claim": "the whole 18-point margin decline sits in COGS (16; overhead the other 2)",
+  "note": "found by the checker; not in the R19 grades"
  },
  {
   "id": "default-candidate/live-run-2026-10-12-33f7479b#t2",
@@ -3127,7 +3144,8 @@
   "t": 12,
   "label": "error",
   "sources": [
-   "batch-21 hand read D6; re-grade"
+   "batch-21 hand read D6; re-grade",
+   "D6 detector (confirmed, Phase 4)"
   ],
   "match": [
    "7–8%"
@@ -3486,7 +3504,8 @@
   "t": 8,
   "label": "error",
   "sources": [
-   "batch-21 hand read D6; re-grade"
+   "batch-21 hand read D6; re-grade",
+   "D6 detector (confirmed, Phase 4)"
   ],
   "match": [
    "22.1",
@@ -3526,6 +3545,19 @@
    "$19M"
   ],
   "claim": "4% of COGS reads through as 4 points of revenue (2.3); $19M"
+ },
+ {
+  "id": "test runs/batch-5-oct-02/57-marisol-the-context-confuser/live-run-2026-10-03-71b929ea#t8",
+  "run": "test runs/batch-5-oct-02/57-marisol-the-context-confuser/live-run-2026-10-03-71b929ea",
+  "t": 8,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "14.5"
+  ],
+  "claim": "the 25% share of COGS (two years ago) applied to today's 58% COGS line: 14.5% of revenue — a period mix (the D6 detector reads it since the period flag, 13 Oct)"
  },
  {
   "id": "test runs/batch-7-oct-03/09-derek-the-bulldozer/live-run-2026-10-03-b5ebe6b8#t22",

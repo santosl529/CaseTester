@@ -85,12 +85,16 @@ const otherPercent = (s: string) => /\d\s*(?:%|percent)/i.test(s
   .replace(new RegExp(String.raw`\b${NUM}\s*(?:%|percent)\s+(?:of\s+)?(?:the\s+)?(?:volume|transactions?|traffic|cups|customers|units|visits)`, 'gi'), '')
   .replace(VOLUME_LOSS_G, ''));
 
-export function checkPricingClaims(rawText: string, v: PricingModelValues): PricingClaim[] {
-  const out: PricingClaim[] = [];
-  const sentences = normalizeNumberWords(rawText).replace(/[‘’]/g, "'").split(/(?<=[.?!])\s+|\n+/).map(s => s.trim()).filter(Boolean);
+// The answers to a price change, from the cost structure (13 Oct: shared by
+// this check, the math checker's input and its correction gate). gain: points
+// of margin a P% price rise recovers (at flat volume every cost line is fixed
+// in dollars; with a volume loss the variable lines shrink with it, one answer
+// per accepted variable set); newMargin: today's margin plus it; neededFor*:
+// the price rise for a target margin or a target gain; breakeven: the volume
+// loss at which the rise leaves contribution unchanged, per variable set.
+export function pricingAnswers(v: PricingModelValues) {
   const C = v.costBase / 100;
-  const gainAt = (p: number, loss = 0) => {
-    // At flat volume every cost line is fixed in dollars; with a volume loss the variable lines shrink with it.
+  const gain = (p: number, loss = 0): number[] => {
     if (loss === 0) return [100 * C * (p / 100) / (1 + p / 100)];
     return v.contributions.map(cm => {
       const variable = 100 - cm, fixed = v.costBase - variable;
@@ -98,6 +102,22 @@ export function checkPricingClaims(rawText: string, v: PricingModelValues): Pric
       return 100 * (rev - variable * (1 - loss / 100) - fixed) / rev - v.margin;
     });
   };
+  const neededForMargin = (t: number) => Math.round(1000 * ((v.costBase / (100 - t)) - 1)) / 10;
+  return {
+    gain,
+    newMargin: (p: number, loss = 0) => gain(p, loss).map(g => v.margin + g),
+    neededForMargin,
+    neededForGain: (g: number) => neededForMargin(v.margin + g),
+    breakeven: (p: number) => v.contributions.map(cm => Math.round(1000 * (1 - cm / (cm + p))) / 10),
+    dollars: (p: number) => v.revenue === undefined ? null : Math.round(v.revenue * p) / 100,
+  };
+}
+
+export function checkPricingClaims(rawText: string, v: PricingModelValues): PricingClaim[] {
+  const out: PricingClaim[] = [];
+  const sentences = normalizeNumberWords(rawText).replace(/[‘’]/g, "'").split(/(?<=[.?!])\s+|\n+/).map(s => s.trim()).filter(Boolean);
+  const answers = pricingAnswers(v);
+  const gainAt = answers.gain;
   for (const [i, s] of sentences.entries()) {
     const prev = sentences[i - 1] ?? '';
     // The price change: this sentence, else one of the two before ("Say we take a
@@ -121,7 +141,7 @@ export function checkPricingClaims(rawText: string, v: PricingModelValues): Pric
     if (be && p !== null && !/\bdepends\b/i.test(s) && /\b(?:worse off|break\s?even|breakeven|made it worse|self-defeating|net negative|margin[- ]neutral|neutral|flat|kill|wash|before (?:we|I|they)'re|still (?:be )?(?:ahead|flat))\b/i.test(s)) {
       const x = Number(be[1]);
       const hi = be[2] !== undefined ? Number(be[2]) : undefined;
-      const expected = v.contributions.map(cm => Math.round(1000 * (1 - cm / (cm + p))) / 10);
+      const expected = answers.breakeven(p);
       // Revenue held flat ("still hold revenue flat", "revenue falls") breaks even at P/(1+P).
       if (/\brevenue\b/i.test(s)) expected.push(Math.round(1000 * p / (100 + p)) / 10);
       push({ kind: 'breakeven', price: p, stated: x, ...(hi !== undefined ? { statedHi: hi } : {}), expected }, t => Math.max(2.5, 0.15 * t));
@@ -177,7 +197,7 @@ export function checkPricingClaims(rawText: string, v: PricingModelValues): Pric
     if (/\b(?:cogs|cost of goods)\b[^.]{0,20}\bback to\b/i.test(window)) continue;
     const t = Number(target);
     if (!(t > v.margin && t < 60)) continue;
-    const expected = [Math.round(1000 * ((v.costBase / (100 - t)) - 1)) / 10];
+    const expected = [answers.neededForMargin(t)];
     const stated = Number(need[1]);
     out.push({ kind: 'needed', price: stated, stated, expected, verdict: fits(stated, undefined, expected, x => Math.max(2, 0.12 * x)) ? 'correct' : 'incorrect', span: s.slice(0, 240) });
   }

@@ -6,6 +6,7 @@
 // saved runs: the interviewer is never called.
 //
 //   npx tsx scripts/eval-math-checker.ts --dry [--arms=sonnet55-medium,opus55-medium] [--set=all|recall|precision] [--limit=N]
+//   ... --ids=<file>   only the label ids listed (one per line)
 //   LLM_BUDGET_USD=<cap> npx tsx --env-file=<main checkout>/.env.local scripts/eval-math-checker.ts --out=<dir> [...]
 //
 // Reports per arm (the pick order of the brief):
@@ -42,6 +43,8 @@ const SET = arg('set') ?? 'all';
 const LIMIT = Number(arg('limit') ?? 0);
 const OUT = arg('out');
 const CONCURRENCY = Number(arg('concurrency') ?? 6);
+// --ids=<file>: only these label ids (one per line), e.g. a rerun of chosen messages.
+const IDS = arg('ids') ? new Set(readFileSync(arg('ids')!, 'utf8').split('\n').map(x => x.trim()).filter(Boolean)) : null;
 // Output tokens per call for the estimate: adaptive thinking at medium plus
 // the JSON (≈150 tokens a claim). No measured figure yet — the paid run
 // replaces it; an assumption, stated in the report.
@@ -72,7 +75,9 @@ function judgeQuotes(run: CorpusRun): Item['judge'] {
 
 function buildItems(): Item[] {
   const labels = (JSON.parse(readFileSync('evals/math-checker-labels.json', 'utf8')) as MathLabel[])
-    .filter(l => SET === 'all' || (SET === 'recall' ? l.label === 'error' : l.label === 'correct'));
+    .filter(l => SET === 'all' || (SET === 'recall' ? l.label === 'error' : l.label === 'correct'))
+    .filter(l => !IDS || IDS.has(l.id));
+  if (IDS) for (const id of IDS) if (!labels.some(l => l.id === id)) throw new Error(`--ids: no label ${id}`);
   const { runs } = loadCorpus(ROOT, id => getCaseById(id) as never);
   const byId = new Map(runs.map(r => [r.id, r]));
   const items = labels.map(label => {
@@ -92,6 +97,8 @@ function buildItems(): Item[] {
       input: { revealedIds: t.revealedBefore, shownExhibitIds: t.shownBefore, transcript, message: t.candidateText },
     };
   });
+  // With --ids, in the file's order: a capped run spends on the first ones first.
+  if (IDS) { const order = [...IDS]; items.sort((a, b) => order.indexOf(a.label.id) - order.indexOf(b.label.id)); }
   return LIMIT ? items.slice(0, LIMIT) : items;
 }
 
