@@ -45,7 +45,8 @@ export function checkDataTurn(t: CorpusTurn, fb: FactBase, opts: { openBefore?: 
   const words = t.segments.filter(s => s.kind !== 'data');
   const dataText = data.map(s => s.text).join(' ');
   const delivered = new Set(t.releasedNow);
-  const deliveredAny = delivered.size > 0 || !!t.exhibitNow;
+  // A restatement ("As I mentioned: …") or a correction hands data over too.
+  const deliveredAny = delivered.size > 0 || !!t.exhibitNow || data.some(s => EARLIER.test(s.text) || /\bTo correct (?:one|two) figures?\b/.test(s.text));
   const known = new Set([...t.revealedBefore, ...t.releasedNow]);
 
   // D1: pending wording about data the candidate already has.

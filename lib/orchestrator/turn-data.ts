@@ -6,7 +6,7 @@ import type { ModelTurn, DeclaredRequest } from '@/lib/agent/models/turn-schema'
 import { resolveRequests } from '@/lib/agent/models/turn-schema';
 import type { ModelPlan } from './plan-turn';
 import { decideData, exactResolver, labelMatch, outsideAskScope, RELEASE_CAP, type DataDecisions } from './data-decisions';
-import { findFalseRefusals } from './fact-check';
+import { findFalseRefusals, groupItemsAsked } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT } from './pressure-test';
 import { planForcedReleases } from './data-requests';
 import { revealedValues } from './data-ledger';
@@ -69,6 +69,27 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     const id = labelMatch(r.what, ledger.items);
     return id ? { ...r, itemIds: [id] } : r;
   });
+  // An ask that names a group of items (the case's factAnchors groups: "what's
+  // inside COGS", "COGS breakdown by input", "the cost breakdown") is answered
+  // with every item of the group the case holds (Phase 3, Lorenzo: a COGS-by-
+  // input ask releases the bean share, the bean price change and the other
+  // inputs' change — the scope check had kept only the share). The release
+  // cap still applies; the rest is deferred out loud.
+  const fbGroups = state.factBase;
+  const grouped = new Map<string, Set<string>>();
+  requests = requests.flatMap(r => {
+    if (!r.explicit) return [r];
+    const groupIds = groupItemsAsked(r.what, fbGroups).filter(id => ledger.items.some(i => i.id === id));
+    const add = groupIds.filter(id => !r.itemIds.includes(id));
+    if (add.length === 0) return [r];
+    // One ask per item, in its own label — said back without the candidate's
+    // wording, which may carry a cut the case doesn't hold ("… and unit cost per pound").
+    const ids = [...new Set([...r.itemIds, ...add])];
+    const asks = ids.map(id => ({ ...r, itemIds: [id], what: ledger.items.find(i => i.id === id)?.label ?? r.what }));
+    for (const a of asks) grouped.set(a.what, new Set(ids));
+    return asks;
+  });
+  if (grouped.size > 0) plan.ctx.checks.record('request_group', true, 'asks naming a group of items — every item of it', { groups: [...grouped].map(([what, ids]) => ({ what, ids: [...ids] })) });
   // A qualified ask keeps its scope (v4.10): an item it can't answer — the
   // whole when a split of it was asked for, a cut it doesn't have — is not
   // what was requested, released or restated (data-decisions.ts).

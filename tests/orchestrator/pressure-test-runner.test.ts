@@ -99,7 +99,8 @@ describe('pressure-test state', () => {
     const heard = await turn('Probably something is missing, yeah. Could I get the cost breakdown?', T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'Which part of the structure would you add to?' }));
     expect(pt()?.state).toBe('awaiting');
     expect(revealed()).not.toContain('cogs_pct');
-    expect(heard).toMatch(/I'll share the cost breakdown once we've settled your structure\./);   // v3: the reason, out loud
+    // v3: the reason, out loud — the cost breakdown named by its lines (a group ask, 12 Oct).
+    expect(heard).toMatch(/I'll share COGS, labor and overhead as a percent of revenue once we've settled your structure\./);
   });
 
   it('is satisfied by a partial answer to a compound probe, and the held data is then released', async () => {
@@ -178,8 +179,9 @@ describe('bounded fallbacks', () => {
     expect(heard[0]).toMatch(/Before I share that data/);
     expect(heard[1]).toMatch(/Let me make it concrete/);
     expect(heard[2]).toMatch(/Let's leave the structure there\./);
-    expect(heard[2]).toMatch(/COGS/);
-    for (const h of heard.slice(0, 2)) expect(h).toMatch(/I'll share the cost breakdown once we've settled your structure\./);
+    // The waiver releases what was held: the three cost lines, as their exhibit (a group ask, 12 Oct).
+    expect(heard[2]).toMatch(/COGS|Here's an exhibit: Brew & Bean Cost Structure/);
+    for (const h of heard.slice(0, 2)) expect(h).toMatch(/I'll share COGS, labor and overhead as a percent of revenue once we've settled your structure\./);
     expect(heard.filter(h => /MECE/.test(h))).toHaveLength(0);
     expect(pt()).toMatchObject({ state: 'waived', awaitingReplies: 3 });
     expect(pt()?.satisfiedAt).toBeUndefined();

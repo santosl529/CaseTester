@@ -696,6 +696,20 @@ export function findFalseRefusals(text: string, fb: FactBase, revealed: Set<stri
 
 const FINER_BEFORE = /\b(?:per[- ]unit|unit|regional|store[- ]level|item[- ]level|category|segment|cohort|dollar|absolute|gross|contribution|operating|variable|fixed|same[- ]store|new[- ]store|competitor|competitors'|industry|historical|future|projected|forecast|target|drink|food|product|daypart|channel|weekly|monthly|quarterly|sku|retail|itemi[sz]ed|detailed|full|complete|granular|exact)\s+$/i;
 
+// The items an ask names through a group ("what's inside COGS", "COGS
+// breakdown by input", "the cost breakdown"), unless something finer
+// qualifies the group: "variable-versus-fixed split within COGS", "the
+// current split of COGS", "cost breakdown by store".
+export function groupItemsAsked(what: string, fb: FactBase): string[] {
+  const lower = lc(what).replace(/-/g, ' ');
+  return uniq(nameHits(what, fb, { groups: true }).filter(h => h.group).filter(h => {
+    const a = Math.max(lower.lastIndexOf(',', h.start - 1), lower.lastIndexOf(';', h.start - 1));
+    const end = lower.indexOf(',', h.end);
+    const entry = lower.slice(a + 1, end < 0 ? lower.length : end).replace(h.name, ' ');
+    return !FINER_WORDS.test(entry) && !/\b(?:today|current(?:ly)?|now|this year)\b/.test(entry);
+  }).flatMap(h => h.quantities.map(q => q.id)));
+}
+
 // ---------------------------------------------------------------- F4
 
 export type ClaimFlag = { claim: string; items: string[]; sentence: string; why: 'not_released' | 'no_exhibit' | 'nothing_delivered' };

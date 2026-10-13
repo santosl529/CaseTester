@@ -382,7 +382,8 @@ describe('no refusal names data the case holds (fact checks F3)', () => {
     }));
     expect(r.interviewerText).not.toMatch(/I don't have what's inside COGS/);
     expect(r.interviewerText).toMatch(/Coffee beans were 25% of COGS two years ago/);
-    expect(check('refusal_remapped')).toMatchObject({ decision: 'act' });
+    // Answered as a group ask now ("what's inside COGS" names the COGS inputs).
+    expect(check('request_group') ?? check('refusal_remapped')).toMatchObject({ decision: 'act' });
   });
 
   it('"COGS breakdown by input — beans, dairy, cups and food" maps to the bean share (R23 t8)', async () => {
@@ -461,5 +462,29 @@ describe('the question agrees with what code delivered (fact checks F4)', () => 
       question: 'With the bean price change in hand, how much of the COGS increase do beans explain?',
     }));
     expect(r.interviewerText).toMatch(/With the bean price change in hand, how much of the COGS increase do beans explain\?$/);
+  });
+});
+
+describe('an ask naming a group gets every item of it (Phase 3: "COGS by input" → share, bean price, other inputs)', () => {
+  const COST = ['cogs_pct', 'labor_pct', 'overhead_pct'];
+  it('"a breakdown of COGS by input" mapped by the model to the bean share alone releases all three', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const r = await say('Do we have a breakdown of COGS by input?', T({
+      say: 'Mm-hm.', requests: [{ what: 'COGS breakdown by input', itemIds: ['bean_share_of_cogs'], explicit: true, respond: 'release' }], question: 'Which input do you expect moved most?',
+    }));
+    expect(r.interviewerText).toMatch(/Coffee beans were 25% of COGS two years ago/);
+    expect(r.interviewerText).toMatch(/Raw coffee bean costs are up 40%/);
+    expect(r.interviewerText).toMatch(/Other input costs — dairy, packaging, and food — are up 37\.5%/);
+  });
+  it('"what\'s inside COGS" before the pressure test holds all three with the reason', async () => {
+    seed({ phase: 'STRUCTURE', flags: { pressureTest: { state: 'awaiting', reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false, askedAt: 0 } } });
+    const r = await say("What's inside COGS?", T({ say: 'Mm-hm.', requests: [{ what: "what's inside COGS", itemIds: ['bean_share_of_cogs'], explicit: true, respond: 'release' }], question: 'Is that structure MECE?' }));
+    expect(r.interviewerText).toMatch(/once we've settled your structure/);
+    expect(r.interviewerText).not.toMatch(/25% of COGS|up 40%|37\.5%/);
+  });
+  it('an ask for one item stays one item', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const r = await say('What happened to bean prices?', T({ say: 'Mm-hm.', requests: [{ what: 'bean price change', itemIds: ['bean_price_change'], explicit: true, respond: 'release' }], question: 'What does that tell you?' }));
+    expect(r.interviewerText).not.toMatch(/25% of COGS|37\.5%/);
   });
 });
