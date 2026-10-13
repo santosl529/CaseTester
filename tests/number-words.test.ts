@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeNumberWords } from '@/lib/number-words';
+import { normalizeNumberWords, articleFor } from '@/lib/number-words';
 
 describe('normalizeNumberWords (v4.6: number words count — Yuki, and M2 speech-to-text)', () => {
   it('rewrites Yuki\'s spoken figures as digits', () => {
@@ -39,4 +39,11 @@ describe('normalizeNumberWords (v4.6: number words count — Yuki, and M2 speech
     expect(normalizeNumberWords('about $0.5 million per store')).toBe('about $0.5 million per store');
     expect(normalizeNumberWords('a hundred stores')).toBe('a hundred stores');
   });
+});
+
+// Lorenzo, 13 Oct (Step-4 rulings, 4a; Sofia 3f57efeb: "you said a 18% price
+// rise"): "a" or "an" before a figure as it is spoken.
+describe('the article before a spoken figure', () => {
+  it.each([8, 11, 18, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 800, '8,000', 8.5, 11.5, 18000, '11,000'])('an %s', n => expect(articleFor(n)).toBe('an'));
+  it.each([1, 7, 10, 100, 110, 1100, 12, 28, 0.8, '1,000', 180])('a %s', n => expect(articleFor(n)).toBe('a'));
 });

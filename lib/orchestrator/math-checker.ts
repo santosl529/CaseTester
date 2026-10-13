@@ -23,7 +23,7 @@ import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
 import { anthropicClient } from '@/lib/anthropic-client';
 import { FALLBACK_BETA, FALLBACKS, type MathCheckerConfig } from '@/lib/models';
 import type { OnUsage } from '@/lib/llm-usage';
-import { normalizeNumberWords } from '@/lib/number-words';
+import { normalizeNumberWords, articleFor } from '@/lib/number-words';
 import { enforceNumericProvenance, changeFigures } from './numeric-provenance';
 import { buildFactBase, findFalseFacts, type FactBase } from './fact-check';
 import { pricingAnswers, pricingValues } from './pricing-check';
@@ -330,6 +330,9 @@ export function withinTolerance(c: CheckerClaim, ctx: VetContext): string | null
   return hit ? `within tolerance: theirs ${hit.lo === hit.hi ? hit.lo : `${hit.lo}–${hit.hi}`}, correct ${correct.lo === correct.hi ? correct.lo : `${correct.lo}–${correct.hi}`}` : null;
 }
 
+// "A" / "An" opening a line.
+const An = (figure: number | string | null) => articleFor(figure ?? '') === 'an' ? 'An' : 'A';
+
 // A figure as code speaks it: one decimal, two significant digits under 1.
 function spokenFigure(x: number): string {
   return String(Math.abs(x) >= 1 ? Math.round(x * 10) / 10 : Number(x.toPrecision(2)));
@@ -403,13 +406,13 @@ export function codeCorrection(c: CheckerClaim, at: { value: number; index: numb
   const q = c.codeQuantity;
   const line = (() => {
     switch (q.kind) {
-      case 'gain': return `A ${q.price}% price rise lifts margin about ${x} points, not ${bare}.`;
-      case 'new_margin': return `A ${q.price}% price rise takes margin to about ${x}%, not ${bare}.`;
-      case 'needed_for_margin': return `Getting back to a ${q.target}% margin takes about a ${x}% price rise, not ${bare}.`;
-      case 'needed_for_gain': return `Recovering ${q.target} points of margin takes about a ${x}% price rise, not ${bare}.`;
+      case 'gain': return `${An(q.price)} ${q.price}% price rise lifts margin about ${x} points, not ${bare}.`;
+      case 'new_margin': return `${An(q.price)} ${q.price}% price rise takes margin to about ${x}%, not ${bare}.`;
+      case 'needed_for_margin': return `Getting back to ${articleFor(q.target!)} ${q.target}% margin takes about ${articleFor(x)} ${x}% price rise, not ${bare}.`;
+      case 'needed_for_gain': return `Recovering ${q.target} points of margin takes about ${articleFor(x)} ${x}% price rise, not ${bare}.`;
       case 'breakeven': {
         const set = ctx.caseData.pricingModel?.variableSets[at.index] ?? [];
-        return `With ${set.map(id => lineName(ctx, id)).join(' and ')} varying with volume, a ${q.price}% price rise breaks even at about a ${x}% volume loss, not ${bare}.`;
+        return `With ${set.map(id => lineName(ctx, id)).join(' and ')} varying with volume, ${articleFor(q.price!)} ${q.price}% price rise breaks even at about ${articleFor(x)} ${x}% volume loss, not ${bare}.`;
       }
       case 'step': {
         const quantity = ctx.caseData.mathSteps.find(st => st.id === q.stepId)?.quantity?.replace(/\s*\([^)]*\)/g, '').trim();

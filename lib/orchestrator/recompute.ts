@@ -1,6 +1,6 @@
 import { classifyError, type MathStepInput, type ErrorClass } from '@/lib/scoring/deterministic';
 import { assignSpans, findStepSpans, inputsRevealed } from '@/lib/scoring/math-spans';
-import { normalizeNumberWords } from '@/lib/number-words';
+import { normalizeNumberWords, articleFor } from '@/lib/number-words';
 import { checkStatedArithmetic, type ArithmeticClaim } from './arithmetic-check';
 import { checkNestedConversions, formatUnitFlagLine, type ShareBase, type UnitFlag, type UnitVerified } from './unit-check';
 import { checkPricingClaims, pricingValues, type PricingClaim } from './pricing-check';
@@ -125,11 +125,11 @@ const statedOf = (c: PricingClaim) => c.statedHi !== undefined ? `${c.stated}–
 function pricingClaimText(c: PricingClaim): string {
   const x = statedOf(c);
   switch (c.kind) {
-    case 'gain': return `a ${c.price}% price rise recovers ${x} points of margin`;
-    case 'new_margin': return `a ${c.price}% price rise takes margin to ${x}%`;
-    case 'needed': return `a ${x}% price rise reaches their target margin`;
-    case 'dollars': return `a ${c.price}% price rise is worth $${x}M`;
-    case 'breakeven': return `a ${c.price}% price rise breaks even at a ${x}% volume loss`;
+    case 'gain': return `${articleFor(c.price)} ${c.price}% price rise recovers ${x} points of margin`;
+    case 'new_margin': return `${articleFor(c.price)} ${c.price}% price rise takes margin to ${x}%`;
+    case 'needed': return `${articleFor(x)} ${x}% price rise reaches their target margin`;
+    case 'dollars': return `${articleFor(c.price)} ${c.price}% price rise is worth $${x}M`;
+    case 'breakeven': return `${articleFor(c.price)} ${c.price}% price rise breaks even at ${articleFor(x)} ${x}% volume loss`;
   }
 }
 

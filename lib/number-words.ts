@@ -114,3 +114,14 @@ export function normalizeNumberWords(text: string): string {
     return parts.join(' ');
   });
 }
+
+// "a" or "an" before a figure as it is spoken (Lorenzo, 13 Oct; Sofia
+// 3f57efeb: "a 18% price rise"): "an" when the spoken figure starts with a
+// vowel sound — eight…, eighty…, eleven, eighteen — read by its leading group
+// of thousands (8 → an, 800 → an, 8,000 → an, 11,000 → an; 110 → a, 1,100 → a).
+// A range is read by its first figure.
+export function articleFor(figure: number | string): 'a' | 'an' {
+  const digits = String(figure).match(/\d+/)?.[0] ?? ''; // "8,000" → 8: the comma group is the leading group
+  const lead = digits.slice(0, digits.length % 3 || 3);
+  return digits.startsWith('8') || lead === '11' || lead === '18' ? 'an' : 'a';
+}
