@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { checkCandidateMath, formatVerifiedHint, verifiedForMessage } from '@/lib/orchestrator/recompute';
+import { checkCandidateMath, formatVerifiedHint, verifiedForMessage, attemptKey } from '@/lib/orchestrator/recompute';
 import { getCaseById } from '@/lib/cases/loader';
 
 // Math checker step 1 (13 Oct): a figure is verified only when it is the
@@ -124,8 +124,8 @@ describe('a period flag (Marisol t8) is corrected by the period fact, never a fi
     const m = checkCandidateMath(marisol, prof, ALL);
     const f = m.flags.find(x => x.unit?.period);
     expect(f).toBeDefined();
-    expect(formatRecomputeHint([f!], { attempts: { [f!.stepId]: 1 } }).hint).toMatch(/Which year's COGS does that 25% share belong to/);
-    const second = formatRecomputeHint([f!], { attempts: { [f!.stepId]: 2 } });
+    expect(formatRecomputeHint([f!], { attempts: { [attemptKey(f!)]: 1 } }).hint).toMatch(/Which year's COGS does that 25% share belong to/);
+    const second = formatRecomputeHint([f!], { attempts: { [attemptKey(f!)]: 2 } });
     expect(second.hint).toContain('That 25% share of COGS is from two years ago, when COGS was 42% of revenue.');
     expect(second.hint).not.toMatch(/closer to 10\.5/);
     expect(second.derivedValues).toEqual([]);
@@ -150,6 +150,6 @@ describe('a break-even range (Tyler b21 t12) keeps both ends in what the intervi
     expect(f).toBeDefined();
     expect(recMathLine(f, 'probe')).toContain('a 10% price rise breaks even at a 7–8% volume loss');
     expect(formatRecomputeHint([f]).hint).toContain('a 10% price rise breaks even at a 7–8% volume loss');
-    expect(formatRecomputeHint([f], { attempts: { [f.stepId]: 2 } }).hint).toBe('');
+    expect(formatRecomputeHint([f], { attempts: { [attemptKey(f)]: 2 } }).hint).toBe('');
   });
 });

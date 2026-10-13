@@ -20,7 +20,7 @@ import {
   checkMathClaims, vetCheckerClaims, codeComputed, boundInput, numbersOf,
   type CheckerCase, type CheckerClaim, type CheckerInput, type CheckerResult, type VetContext, type VettedClaim,
 } from './math-checker';
-import { recomputeAction, type CandidateMath, type RecomputeAttempts, type RecomputeFlag } from './recompute';
+import { recomputeAction, attemptKey, type CandidateMath, type RecomputeAttempts, type RecomputeFlag } from './recompute';
 import { checkPricingClaims, pricingValues } from './pricing-check';
 import { changeFigures } from './numeric-provenance';
 import { classifyMathTalk } from './math-talk';
@@ -72,7 +72,7 @@ export function startMathCheck(p: {
       candidateTurnIndex: p.candidateTurnIndex, latencyMs: r.latencyMs, model: r.model,
       claims: vetCheckerClaims(r.claims, p.vet),
       codeFlags: [
-        ...p.codeMath.flags.map(f => ({ key: f.stepId, value: f.candidateValue, span: f.span })),
+        ...p.codeMath.flags.map(f => ({ key: attemptKey(f), value: f.candidateValue, span: f.span })),
         ...(p.misquotes ?? []).flatMap(m => numbersOf(m.cited).slice(0, 1).map(value => ({ key: `misquote:${m.item}`, value, span: m.sentence }))),
       ],
       stamps: p.codeMath.verified.map(v => ({ stepId: v.stepId, value: v.value, span: v.span })),
@@ -88,11 +88,14 @@ export function startMathCheck(p: {
 
 // Rule 14's counter key, shared with the deterministic checks (recompute.ts):
 // a math step's id, a pricing claim's kind, else the claim in their words.
+// The step or pricing kind plus the claimed value (Lorenzo, 13 Oct: the same
+// flag is the bound step and the value — attemptKey).
 export function checkerKey(c: CheckerClaim): string {
   const q = c.codeQuantity;
-  if (q.kind === 'step' && q.stepId) return q.stepId;
-  if (q.kind === 'gain' || q.kind === 'new_margin' || q.kind === 'breakeven') return `pricing:${q.kind}`;
-  if (q.kind === 'needed_for_margin' || q.kind === 'needed_for_gain') return 'pricing:needed';
+  const at = (k: string) => { const v = claimFigures(c)[0]; return v === undefined ? k : attemptKey({ stepId: k, candidateValue: v }); };
+  if (q.kind === 'step' && q.stepId) return at(q.stepId);
+  if (q.kind === 'gain' || q.kind === 'new_margin' || q.kind === 'breakeven') return at(`pricing:${q.kind}`);
+  if (q.kind === 'needed_for_margin' || q.kind === 'needed_for_gain') return at('pricing:needed');
   return `checker:${normalizeNumberWords(c.candidateValue).toLowerCase().trim()}`;
 }
 

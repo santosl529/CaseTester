@@ -47,7 +47,7 @@ describe('a landed verdict on a model turn', () => {
     const p = modelState(planTurn(withVerdict(analysis(), [verdict(3)]), 'Next I would look at competitors.', deps()));
     expect(p.state.kind).toBe('model');
     expect(p.state.recomputeHint).toMatch(/MATH CHECK FLAG[\s\S]*Which cost lines did you include\?/);
-    expect(p.state.recomputeAttempts['pricing:gain']).toBe(1);
+    expect(p.state.recomputeAttempts['pricing:gain@5']).toBe(1);
     expect((p.ctx.flags.mathChecker as { handled: string[] }).handled).toEqual(['3:0']);
     expect(p.ctx.events).toContainEqual(expect.objectContaining({ category: 'math_checker', subtype: 'flag', payload: expect.objectContaining({ id: '3:0', outcome: 'probe' }) }));
     // A doubt on the figure is licensed now (probe-guard.ts).
@@ -55,7 +55,7 @@ describe('a landed verdict on a model turn', () => {
   });
 
   it('past the probe: code\'s correction, its figure licensed for the provenance audit', () => {
-    const p = modelState(planTurn(withVerdict(analysis({ recomputeAttempts: { 'pricing:gain': 1 } }), [verdict(3)]), 'Next I would look at competitors.', deps()));
+    const p = modelState(planTurn(withVerdict(analysis({ recomputeAttempts: { 'pricing:gain@5': 1 } }), [verdict(3)]), 'Next I would look at competitors.', deps()));
     expect(p.state.recomputeHint).toContain('"A 10% price rise lifts margin about 8.5 points, not 5."');
     expect(p.state.derivedValueTexts).toContain('8.5');
   });
@@ -63,7 +63,7 @@ describe('a landed verdict on a model turn', () => {
   // Lorenzo, 13 Oct (Larkspur review, item 1): a deterministic flag past its
   // probe says nothing, so it doesn't hold the checker's correction back.
   it('a silent deterministic flag on this message does not hold the checker\'s correction', () => {
-    const p = modelState(planTurn(withVerdict(analysis({ recomputeAttempts: { 'pricing:gain': 1, 'arith:58 / 42': 1 } }), [verdict(3)]), 'So 58 divided by 42 is 1.6.', deps()));
+    const p = modelState(planTurn(withVerdict(analysis({ recomputeAttempts: { 'pricing:gain@5': 1, 'arith:58 / 42@1.6': 1 } }), [verdict(3)]), 'So 58 divided by 42 is 1.6.', deps()));
     expect(p.state.recomputeHint).toContain('"A 10% price rise lifts margin about 8.5 points, not 5."');
     expect(p.state.recomputeHint).not.toMatch(/RECOMPUTE FLAG/);
   });

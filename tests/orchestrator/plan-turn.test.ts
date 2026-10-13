@@ -150,10 +150,10 @@ describe('planTurn pricing claims', () => {
   });
 
   it('wrong again after the probe: code says nothing — the correction is the checker\'s (Lorenzo, 13 Oct)', () => {
-    const s = plan(WRONG, { flags: { recomputeAttempts: { 'pricing:gain': 1 } } });
+    const s = plan(WRONG, { flags: { recomputeAttempts: { 'pricing:gain@5': 1 } } });
     expect(s.recomputeHint ?? '').not.toMatch(/closer to|RECOMPUTE FLAG/);
     expect(s.derivedValueTexts).not.toContain('8.5');
-    expect(s.recomputeAttempts['pricing:gain']).toBe(2);
+    expect(s.recomputeAttempts['pricing:gain@5']).toBe(2);
   });
 
   it('a right claim is a verified figure', () => {

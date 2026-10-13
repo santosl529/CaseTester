@@ -8,7 +8,7 @@ import { formatOpenRequestsHint, formatUnmappedHint } from './data-requests';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
 import { createLedger, reveal, revealedValues, labelWithPeriod } from './data-ledger';
-import { checkCandidateMath, formatRecomputeHint, recordAttempts, formatVerifiedHint, recomputeAction, flagSpeaks, type RecomputeAttempts, type RecomputeFlag, type RecomputeAction, type VerifiedFigure } from './recompute';
+import { checkCandidateMath, formatRecomputeHint, recordAttempts, formatVerifiedHint, recomputeAction, flagSpeaks, attemptKey, type RecomputeAttempts, type RecomputeFlag, type RecomputeAction, type VerifiedFigure } from './recompute';
 import { candidateFiguresOf } from './math-talk';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
@@ -421,7 +421,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   for (const f of recomputeFlags) {
     ctx.events.push({ category: 'intervention', subtype: 'recompute_flag', payload: {
       kind: f.kind ?? 'step', stepId: f.stepId, candidateValue: f.candidateValue, expected: f.expected, errorClass: f.errorClass,
-      span: f.span, attempt: recomputeAttempts[f.stepId], claim: f.claim ?? null,
+      span: f.span, attempt: recomputeAttempts[attemptKey(f)], claim: f.claim ?? null,
     } });
   }
   checks.record('recompute_report_only', candidateMath.reportOnly.length > 0, 'step flags on a case whose binding is not validated — logged, not raised', {
@@ -531,7 +531,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const checkerPlan = planCheckerFlags({
     rows: (reads.checkerEventRows ?? []).filter(r => r.category === MATH_CHECKER_CATEGORY),
     handled: checkerHandled, turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
-    currentFlags: recomputeFlags.filter(f => flagSpeaks(f, recomputeAttempts[f.stepId] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS))), codeLineThisTurn: misquote !== null, attempts: recomputeAttempts, underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
+    currentFlags: recomputeFlags.filter(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS))), codeLineThisTurn: misquote !== null, attempts: recomputeAttempts, underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
     candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed,
   });
   // A flag past Rule 14 (corrected once, or left for the report) is closed:
@@ -672,7 +672,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Rule 14's probe, the figure and a chance to revise — before the case moves
   // on. Once a case; not when time is up; a shed minor error stays shed.
   const recMathFlag = replyToRecAsk && !flags.recMathProbed && !timeUp && !recRevisionDue
-    ? recomputeFlags.find(f => flagSpeaks(f, recomputeAttempts[f.stepId] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)))
+    ? recomputeFlags.find(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)))
     : undefined;
   // An error past Rule 14 said again in the recommendation (Lorenzo, 13 Oct;
   // Jordan 099f33e9 t25): one more flag, under the same once-a-case rule.
@@ -680,7 +680,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     ? closedErrorRestated(candidateText, closedKeys, checkerPlan.keys, reads.checkerEventRows ?? [])
     : null;
   let recMathProbe: RecMathProbe | null = recMathFlag
-    ? { flag: recMathFlag, action: recomputeAction(recMathFlag, recomputeAttempts[recMathFlag.stepId] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)) }
+    ? { flag: recMathFlag, action: recomputeAction(recMathFlag, recomputeAttempts[attemptKey(recMathFlag)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)) }
     : closedRec ? { closed: closedRec, action: closedRec.correction ? 'correct' : 'probe' }
     : null;
   if (closedRec?.correction) derivedValueTexts.push(...numbersOf(closedRec.correction).map(String));

@@ -94,7 +94,7 @@ describe('formatRecomputeHint (Rule 14 attempts, v4.3)', () => {
   });
 
   it('never carries the step description (persona run 6caca9a1 leaked $480M from it)', () => {
-    const { hint } = formatRecomputeHint([cb, minor], { attempts: { a: 2, b: 2 } });
+    const { hint } = formatRecomputeHint([cb, minor], { attempts: { 'a@0.5': 1, 'b@60': 1 } });
     expect(hint).not.toMatch(/480|200 stores|desc b/);
   });
 
@@ -108,7 +108,7 @@ describe('formatRecomputeHint (Rule 14 attempts, v4.3)', () => {
   // Lorenzo, 13 Oct (Larkspur review, item 1): past the probe a step flag
   // says nothing — the correction comes only through the math checker.
   it('second wrong statement: no code correction, no derived figure', () => {
-    const r = formatRecomputeHint([minor], { attempts: { b: 2 } });
+    const r = formatRecomputeHint([minor], { attempts: { 'b@60': 2 } });
     expect(r.hint).toBe('');
     expect(r.derivedValues).toEqual([]);
   });
@@ -137,13 +137,13 @@ describe('flagsFromPricing (fact guards Phase 4)', () => {
     expect(probe).toMatch(/a 10% price rise recovers 5 points of margin in .*sized that price move/);
     expect(probe).not.toContain('8.5');
     // Past the probe: no code correction (Lorenzo, 13 Oct) — the checker's, if it agrees.
-    expect(formatRecomputeHint([f], { attempts: { 'pricing:gain': 2 } }).hint).toBe('');
+    expect(formatRecomputeHint([f], { attempts: { 'pricing:gain@5': 2 } }).hint).toBe('');
   });
 });
 
 describe('recordAttempts', () => {
-  it('counts wrong statements per step across turns', () => {
+  it('counts wrong statements per step and claimed value across turns (Lorenzo, 13 Oct)', () => {
     const f = { stepId: 'a', description: '', expected: 1, candidateValue: 2, errorClass: 'minor' as const, span: '' };
-    expect(recordAttempts(recordAttempts({}, [f]), [f])).toEqual({ a: 2 });
+    expect(recordAttempts(recordAttempts({}, [f]), [f])).toEqual({ 'a@2': 2 });
   });
 });

@@ -348,7 +348,7 @@ describe('a math error in the recommendation gets one probe before the case move
     expect(r.ended).toBe(false);
     expect(r.interviewerText).toBe('Before we wrap up — you said a 10% price rise recovers 5 points of margin. Walk me through how you sized that.');
     expect(flagsNow().recMathProbed).toBe(true);
-    expect(flagsNow().recomputeAttempts).toEqual({ 'pricing:gain': 1 });
+    expect(flagsNow().recomputeAttempts).toEqual({ 'pricing:gain@5': 1 });
   });
 
   it('a wrong figure of a math step is probed as the candidate wrote it', async () => {
@@ -362,14 +362,14 @@ describe('a math error in the recommendation gets one probe before the case move
   // figure on its own — past the probe the case goes on; the math checker's
   // agreed correction is the only one.
   it('wrong again after a probe: no code correction, the turn goes on', async () => {
-    seed({ phase: 'RECOMMENDATION', revealed: COSTS, flags: { ...SATISFIED, recomputeAttempts: { 'pricing:gain': 1 } } });
+    seed({ phase: 'RECOMMENDATION', revealed: COSTS, flags: { ...SATISFIED, recomputeAttempts: { 'pricing:gain@5': 1 } } });
     recAsked();
     const r = await say(REC, T({ move: 'risk', say: 'Mm-hm.', question: "What's the biggest risk to that?" }));
     expect(r.interviewerText).toBe("Mm-hm. What's the biggest risk to that?");
   });
 
   it('a unit slip past its probe is corrected without a figure that depends on the year', async () => {
-    seed({ phase: 'RECOMMENDATION', revealed: COSTS, flags: { ...SATISFIED, recomputeAttempts: { 'unit:COGS': 1 } } });
+    seed({ phase: 'RECOMMENDATION', revealed: COSTS, flags: { ...SATISFIED, recomputeAttempts: { 'unit:COGS@25': 1 } } });
     recAsked();
     const r = await say('My recommendation: hedge beans first. Beans are 25% of COGS, so 25 points of revenue sit in beans.', T({ move: 'risk' }));
     expect(r.interviewerText).toMatch(/^That's 25% of COGS, not 25 points of revenue\. (Does that change your recommendation|Would that change your recommendation at all)\?$/);

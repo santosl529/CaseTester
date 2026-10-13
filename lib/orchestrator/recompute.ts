@@ -203,9 +203,15 @@ export function recMathLine(f: RecomputeFlag, action: 'probe' | 'correct'): stri
 // Socratic rounds on one calculation).
 export type RecomputeAttempts = Record<string, number>;
 
+// Lorenzo, 13 Oct (Larkspur review, item 4; Owen c2cdbcc3 escalated on a
+// first mention): the same flag is the bound step plus the claimed value — a
+// new wrong figure for the step is a new error. Shared with the math checker
+// (checkerKey).
+export const attemptKey = (f: Pick<RecomputeFlag, 'stepId' | 'candidateValue'>) => `${f.stepId}@${Math.round(f.candidateValue * 100) / 100}`;
+
 export function recordAttempts(prior: RecomputeAttempts, flags: RecomputeFlag[]): RecomputeAttempts {
   const next = { ...prior };
-  for (const f of flags) next[f.stepId] = (next[f.stepId] ?? 0) + 1;
+  for (const f of flags) next[attemptKey(f)] = (next[attemptKey(f)] ?? 0) + 1;
   return next;
 }
 
@@ -249,7 +255,7 @@ export function formatRecomputeHint(
   const lines: string[] = [];
   const derivedValues: string[] = [];
   for (const f of flags) {
-    const attempt = opts.attempts?.[f.stepId] ?? 1;
+    const attempt = opts.attempts?.[attemptKey(f)] ?? 1;
     const action = recomputeAction(f, attempt, Boolean(opts.underTimePressure));
     if (action === 'shed' || !flagSpeaks(f, attempt, Boolean(opts.underTimePressure))) continue;
     if (f.kind === 'unit' && f.unit && action === 'probe') { lines.push(formatUnitFlagLine(f.unit)); continue; }

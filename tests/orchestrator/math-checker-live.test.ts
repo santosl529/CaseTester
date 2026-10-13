@@ -37,13 +37,13 @@ const input = (over: Partial<CheckerPlanInput> = {}): CheckerPlanInput => ({
   ...over,
 });
 
-describe('the Rule 14 key — shared with the deterministic checks', () => {
+describe('the Rule 14 key — shared with the deterministic checks: the step or kind plus the claimed value (Lorenzo, 13 Oct)', () => {
   const c = (kind: CheckerClaim['codeQuantity']['kind'], stepId: string | null = null) => vetted({ codeQuantity: { kind, stepId, price: 10, target: 24 } });
   it.each([
-    ['gain', 'pricing:gain'], ['new_margin', 'pricing:new_margin'], ['needed_for_margin', 'pricing:needed'], ['needed_for_gain', 'pricing:needed'], ['breakeven', 'pricing:breakeven'],
+    ['gain', 'pricing:gain@5'], ['new_margin', 'pricing:new_margin@5'], ['needed_for_margin', 'pricing:needed@5'], ['needed_for_gain', 'pricing:needed@5'], ['breakeven', 'pricing:breakeven@5'],
   ] as const)('%s → %s', (kind, key) => expect(checkerKey(c(kind))).toBe(key));
   it('a math step → its id; nothing code computes → the claim in the candidate\'s words', () => {
-    expect(checkerKey(c('step', 'bean_points_added'))).toBe('bean_points_added');
+    expect(checkerKey(c('step', 'bean_points_added'))).toBe('bean_points_added@5');
     expect(checkerKey(vetted({ codeQuantity: { kind: 'none', stepId: null, price: null, target: null }, candidateValue: 'The whole 18 points' }))).toBe('checker:the whole 18 points');
   });
 });
@@ -54,7 +54,7 @@ describe('a verdict lands on the next turn as a Rule 14 flag', () => {
     expect(p.selected?.action).toBe('probe');
     expect(p.selected?.line).toBe(vetted().probeLine);
     expect(p.selected?.attempt).toBe(1);
-    expect(p.selected?.key).toBe('pricing:gain');
+    expect(p.selected?.key).toBe('pricing:gain@5');
     expect(p.selected?.id).toBe('3:0');
     expect(p.flaggedFigures).toEqual(expect.arrayContaining([5]));
   });
@@ -73,7 +73,7 @@ describe('a verdict lands on the next turn as a Rule 14 flag', () => {
   });
 
   it('second attempt — the shared counter: a deterministic flag on the same key earlier → the code-written correction', () => {
-    const p = planCheckerFlags(input({ attempts: { 'pricing:gain': 1 } }));
+    const p = planCheckerFlags(input({ attempts: { 'pricing:gain@5': 1 } }));
     expect(p.selected?.action).toBe('correct');
     expect(p.selected?.line).toBe('A 10% price rise lifts margin about 8.5 points, not 5.');
     expect(p.selected?.derived).toEqual(['8.5']);
@@ -89,10 +89,10 @@ describe('a verdict lands on the next turn as a Rule 14 flag', () => {
 
   it('second attempt with no correction: the pointer probe; with neither: unresolved, for the report', () => {
     const noCorrection = { correctionLine: null, correctionFigure: null };
-    const withPointer = planCheckerFlags(input({ attempts: { 'pricing:gain': 1 }, rows: [verdictRow(3, [vetted({ ...noCorrection, pointerLine: 'How does that fit with labor at 22% of revenue?' })])] }));
+    const withPointer = planCheckerFlags(input({ attempts: { 'pricing:gain@5': 1 }, rows: [verdictRow(3, [vetted({ ...noCorrection, pointerLine: 'How does that fit with labor at 22% of revenue?' })])] }));
     expect(withPointer.selected?.action).toBe('pointer');
     expect(withPointer.selected?.line).toBe('How does that fit with labor at 22% of revenue?');
-    const neither = planCheckerFlags(input({ attempts: { 'pricing:gain': 1 }, rows: [verdictRow(3, [vetted(noCorrection)])] }));
+    const neither = planCheckerFlags(input({ attempts: { 'pricing:gain@5': 1 }, rows: [verdictRow(3, [vetted(noCorrection)])] }));
     expect(neither.selected).toBeNull();
     expect(neither.decisions).toEqual([expect.objectContaining({ id: '3:0', outcome: 'unresolved' })]);
     expect(neither.handledNow).toContain('3:0');
@@ -104,13 +104,13 @@ describe('a verdict lands on the next turn as a Rule 14 flag', () => {
     const hint = 'You said 5 points. How does that sit with the overhead you mentioned?';
     const noCorrection = { correctionLine: null, correctionFigure: null, hintLine: hint };
     it('second attempt, no correction and no pointer: the hint', () => {
-      const p = planCheckerFlags(input({ attempts: { 'pricing:gain': 1 }, rows: [verdictRow(3, [vetted(noCorrection)])] }));
+      const p = planCheckerFlags(input({ attempts: { 'pricing:gain@5': 1 }, rows: [verdictRow(3, [vetted(noCorrection)])] }));
       expect(p.selected).toMatchObject({ action: 'hint', line: hint, attempt: 2 });
     });
     it('the pointer comes before the hint; the correction before both', () => {
-      const pointer = planCheckerFlags(input({ attempts: { 'pricing:gain': 1 }, rows: [verdictRow(3, [vetted({ ...noCorrection, pointerLine: 'How does that fit with labor at 22% of revenue?' })])] }));
+      const pointer = planCheckerFlags(input({ attempts: { 'pricing:gain@5': 1 }, rows: [verdictRow(3, [vetted({ ...noCorrection, pointerLine: 'How does that fit with labor at 22% of revenue?' })])] }));
       expect(pointer.selected?.action).toBe('pointer');
-      const corrected = planCheckerFlags(input({ attempts: { 'pricing:gain': 1 }, rows: [verdictRow(3, [vetted({ hintLine: hint })])] }));
+      const corrected = planCheckerFlags(input({ attempts: { 'pricing:gain@5': 1 }, rows: [verdictRow(3, [vetted({ hintLine: hint })])] }));
       expect(corrected.selected?.action).toBe('correct');
     });
     it('never the first probe — not even under time pressure, when the probe is skipped', () => {
@@ -120,19 +120,19 @@ describe('a verdict lands on the next turn as a Rule 14 flag', () => {
       expect(rushed.decisions[0].outcome).toBe('unresolved');
     });
     it('past the second probe: unresolved, for the report', () => {
-      const p = planCheckerFlags(input({ attempts: { 'pricing:gain': 2 }, rows: [verdictRow(3, [vetted(noCorrection)])] }));
+      const p = planCheckerFlags(input({ attempts: { 'pricing:gain@5': 2 }, rows: [verdictRow(3, [vetted(noCorrection)])] }));
       expect(p.selected).toBeNull();
       expect(p.decisions[0].outcome).toBe('unresolved');
     });
     it('the model is told to ask it once, as written', () => {
-      const s = planCheckerFlags(input({ attempts: { 'pricing:gain': 1 }, rows: [verdictRow(3, [vetted(noCorrection)])] })).selected!;
+      const s = planCheckerFlags(input({ attempts: { 'pricing:gain@5': 1 }, rows: [verdictRow(3, [vetted(noCorrection)])] })).selected!;
       expect(formatCheckerHint(s)).toContain(`"${hint}"`);
       expect(formatCheckerHint(s)).toMatch(/still unresolved after a probe/);
     });
   });
 
   it('past the pointer, with no correction: unresolved', () => {
-    const p = planCheckerFlags(input({ attempts: { 'pricing:gain': 2 }, rows: [verdictRow(3, [vetted({ correctionLine: null, correctionFigure: null, pointerLine: 'How does that fit with labor at 22% of revenue?' })])] }));
+    const p = planCheckerFlags(input({ attempts: { 'pricing:gain@5': 2 }, rows: [verdictRow(3, [vetted({ correctionLine: null, correctionFigure: null, pointerLine: 'How does that fit with labor at 22% of revenue?' })])] }));
     expect(p.selected).toBeNull();
     expect(p.decisions[0].outcome).toBe('unresolved');
   });
@@ -169,16 +169,21 @@ describe('one checker probe per turn', () => {
 // correction (code's probe was the first attempt); without one it is a duplicate.
 describe('dedupe with the deterministic checks — one probe per claim', () => {
   it('a code flag on the same message and key: dropped, logged — unless an agreed correction comes with it', () => {
-    const noCorrection = planCheckerFlags(input({ rows: [verdictRow(3, [vetted({ correctionLine: null, correctionFigure: null })], { codeFlags: [{ key: 'pricing:gain', value: 5, span: 'recovers about 5 points' }] })] }));
+    const noCorrection = planCheckerFlags(input({ rows: [verdictRow(3, [vetted({ correctionLine: null, correctionFigure: null })], { codeFlags: [{ key: 'pricing:gain@5', value: 5, span: 'recovers about 5 points' }] })] }));
     expect(noCorrection.selected).toBeNull();
     expect(noCorrection.decisions[0]).toEqual(expect.objectContaining({ outcome: 'dedupe' }));
     expect(noCorrection.handledNow).toContain('3:0');
-    const agreed = planCheckerFlags(input({ rows: [verdictRow(3, [vetted()], { codeFlags: [{ key: 'pricing:gain', value: 5, span: 'recovers about 5 points' }] })] }));
+    const agreed = planCheckerFlags(input({ rows: [verdictRow(3, [vetted()], { codeFlags: [{ key: 'pricing:gain@5', value: 5, span: 'recovers about 5 points' }] })] }));
     expect(agreed.selected).toMatchObject({ action: 'correct', attempt: 2, line: 'A 10% price rise lifts margin about 8.5 points, not 5.' });
   });
   it("a figure code corrected as a misquote in the message: dropped (replay: Tyler b19 \"revenue grew about 19%\")", () => {
     const tyler = vetted({ span: 'Revenue grew about 19% over the period', candidateValue: '19%', correctValue: 15, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
     const p = planCheckerFlags(input({ rows: [verdictRow(3, [tyler], { codeFlags: [{ key: 'misquote:revenue_growth', value: 19, span: 'Revenue grew about 19% over the period' }] })] }));
+    expect(p.decisions[0].outcome).toBe('dedupe');
+  });
+  it('matched by key when their figure is also a case figure ("about 40 points" — beans rose 40%)', () => {
+    const forty = vetted({ span: 'about 40 points of margin erosion', candidateValue: 'about 40 points', correctValue: 16, correctionLine: null, correctionFigure: null, codeQuantity: { kind: 'step', stepId: 'cogs_dollar_impact', price: null, target: null } });
+    const p = planCheckerFlags(input({ rows: [verdictRow(3, [forty], { codeFlags: [{ key: 'cogs_dollar_impact@40', value: 40, span: 'x' }] })] }));
     expect(p.decisions[0].outcome).toBe('dedupe');
   });
   it('a code flag on the same figure (another key): never a second probe — the correction or nothing', () => {
@@ -282,7 +287,7 @@ describe('the hint the interviewer model gets', () => {
     expect(formatCheckerHint(p)).toMatch(/^MATH CHECK FLAG/);
     expect(formatCheckerHint(p)).toContain(`"${vetted().probeLine}"`);
     expect(formatCheckerHint(p)).toMatch(/Do not correct it or say the right figure/);
-    const c = planCheckerFlags(input({ attempts: { 'pricing:gain': 1 } })).selected!;
+    const c = planCheckerFlags(input({ attempts: { 'pricing:gain@5': 1 } })).selected!;
     expect(formatCheckerHint(c)).toMatch(/overrides the no-correction rule/);
     expect(formatCheckerHint(c)).toContain('"A 10% price rise lifts margin about 8.5 points, not 5."');
   });
@@ -306,6 +311,12 @@ describe('the background check', () => {
     expect(v.candidateTurnIndex).toBe(3);
     expect(v.claims[0].flag).toBe(true);
     expect(v.claims[0].correctionLine).toBe('A 10% price rise lifts margin about 8.5 points, not 5.');
+  });
+
+  it("code's flags are keyed by step and claimed value, as the checker keys its claims", async () => {
+    const codeMath = { ...base.codeMath, flags: [{ kind: 'step' as const, stepId: 'cogs_dollar_impact', description: '', expected: 76.8, candidateValue: 40, errorClass: 'case_breaking' as const, span: 'about 40 points' }] };
+    const r = await startMathCheck({ ...base, codeMath, check: async () => ({ claims: [raw()], model: 'm', latencyMs: 1, stopReason: 'end_turn' }) }).result;
+    expect((r.payload as VerdictPayload).codeFlags).toEqual([{ key: 'cogs_dollar_impact@40', value: 40, span: 'about 40 points' }]);
   });
 
   it('an error or a timeout resolves to an error row — never a rejection', async () => {
