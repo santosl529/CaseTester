@@ -1,6 +1,6 @@
 {
   "item_id": "sy2-0011",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-2",
   "status": "draft",
   "level": 2,
@@ -186,7 +186,7 @@
   "sources": [],
   "authorship": {
     "author_of_record": "Draft — awaiting human review",
-    "drafting_model": null,
+    "drafting_model": "claude-opus-5-5",
     "reviewed_by": null,
     "reviewed_at": null,
     "similarity_check": "passed",

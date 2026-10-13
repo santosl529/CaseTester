@@ -34,6 +34,10 @@ describe('drills config v1 (docs/prd-drills.md)', () => {
     expect(ai).toEqual(['CL-3', 'CR-1', 'EX-5', 'HY-2', 'HY-3', 'PS-3', 'PS-4', 'SY-2', 'SY-3']);
   });
 
+  it('keeps Defend off for live students until D5 passes its gate, with human-written golden answers (Matt, 2026-10-12)', () => {
+    expect(drills.drills.filter(d => d.defend?.live).map(d => d.id)).toEqual([]);
+  });
+
   it('gives PS-3, HY-2, SY-2 and CL-3 a Defend step, one item shorter at T2 and T3 (PRD "Defend step")', () => {
     const defend = Object.fromEntries(drills.drills.filter(d => d.defend).map(d => [d.id, [d.defend!.type, d.set_size, ...d.defend!.set_size]]));
     expect(defend).toEqual({

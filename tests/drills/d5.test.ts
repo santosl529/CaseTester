@@ -11,6 +11,7 @@ import { ItemSchema, type Item } from '@/lib/drills/item-schema';
 import { challengeTag, defendParts, defendRuns, setSizeAt, withDefend } from '@/lib/drills/defend';
 import { applyGrade, firstSentence, unchangedRepair, type ItemGrade } from '@/lib/drills/grading/apply';
 import { addressedToGrader } from '@/lib/drills/grading/injection';
+import { gradingRunProblem } from '@/lib/drills/grading/run-checks';
 import { challengeCueProblems, challengeSpeaker, datedFactProblems, paddingTypeProblems, staleDurationProblems } from '@/lib/drills/content-checks';
 import { buildDefendBlock, buildItemBlock, gradeSet, type CallKind, type CallModel } from '@/lib/drills/grading/grader';
 import { modelAnswerSteps } from '@/lib/drills/model-answers';
@@ -378,5 +379,19 @@ describe('stale durations (content-checks.ts staleDurationProblems)', () => {
     expect(staleDurationProblems([restated], padding, 2027).length).toBeGreaterThan(0);
     const fine = { ...base, explanation: `${base.explanation} Prices could rise over the next three years, with a 3-year payback.` };
     expect(staleDurationProblems([fine], padding, 2026)).toEqual([]);
+  });
+});
+
+describe('grading runs need answers to grade (grading/run-checks.ts)', () => {
+  it('fails a run on an unfinished set', () => {
+    expect(gradingRunProblem(3, 0, 0)).toBe('grading run on an unfinished set: 0 of 3 items answered');
+    expect(gradingRunProblem(3, 2, 2)).toMatch(/unfinished set: 2 of 3/);
+  });
+  it('fails a run with nothing left to grade', () => {
+    expect(gradingRunProblem(3, 3, 0)).toBe('grading run with nothing to grade: all 3 answers are already graded');
+  });
+  it('lets a finished set with answers pending be graded', () => {
+    expect(gradingRunProblem(3, 3, 3)).toBeNull();
+    expect(gradingRunProblem(3, 3, 1)).toBeNull();
   });
 });

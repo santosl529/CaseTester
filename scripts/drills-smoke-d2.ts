@@ -128,6 +128,14 @@ async function main() {
     check(await runGradingJob(jobId) === 'succeeded', 'retry run did not succeed');
     check((await setResults(student, set_id)).status === 'completed', 'set not completed after the retry');
     console.log('failure path: delayed, then graded on retry');
+
+    // A grading run with nothing to grade fails loudly (grading/run-checks.ts).
+    const { set_id: unfinished } = await startSet(student, { drill_id: 'PS-3' });
+    const emptyJob = await enqueueGrading(unfinished);
+    check(await runGradingJob(emptyJob, broken) === 'failed', 'grading an unfinished set did not fail');
+    const [job] = await db.select().from(gradingJobs).where(eq(gradingJobs.id, emptyJob));
+    check(/unfinished set: 0 of \d+ items answered/.test(job.error ?? ''), `grading an unfinished set failed without saying why (${job.error})`);
+    console.log('empty grading run: failed, with the reason recorded');
   } finally {
     const sets = await db.select({ id: drillSets.id }).from(drillSets).where(eq(drillSets.studentId, student));
     const ids = sets.map(s => s.id);

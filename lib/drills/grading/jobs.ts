@@ -22,6 +22,7 @@ import { applySetProgress } from '../progress/store';
 import { afterDiagnostic, markWorkoutProgress } from '../program/store';
 import { markDiagnosticMove, onDiagnosticSetDone } from '../program/diagnostic-store';
 import { gradeSet, type CallModel } from './grader';
+import { gradingRunProblem } from './run-checks';
 
 type SetRow = typeof drillSets.$inferSelect;
 type AttemptRow = typeof drillAttempts.$inferSelect;
@@ -161,6 +162,19 @@ export async function runGradingJob(jobId: string, call?: CallModel): Promise<'s
     .where(and(eq(drillAttempts.setId, job.setId), inArray(drillAttempts.gradingStatus, ['pending', 'delayed'])))
     .orderBy(asc(drillAttempts.position));
   const started = Date.now();
+  // Nothing to grade is an error, not a success (run-checks.ts). If every
+  // answer is already graded (a run that died after grading them), the set is
+  // still finished so the student isn't left waiting, but the job fails.
+  const [{ answered }] = await db.select({ answered: sql<number>`count(*)::int` }).from(drillAttempts).where(eq(drillAttempts.setId, job.setId));
+  const problem = gradingRunProblem(set.size, answered, attempts.length);
+  if (problem) {
+    await db.update(gradingJobs).set({ status: 'failed', retries: job.retries + 1, error: problem, latencyMs: Date.now() - started })
+      .where(eq(gradingJobs.id, job.id));
+    void logDrillEvent(set.studentId, 'grading_job_completed', { job_id: job.id, status: 'failed', retries: job.retries + 1, latency_ms: Date.now() - started, error: problem });
+    console.error(`drills: grading job ${job.id} failed`, problem);
+    if (answered >= set.size) await finalizeSet(job.setId);
+    return 'failed';
+  }
   try {
     const items = await Promise.all(attempts.map(a => resolveItem(planOf(set)[a.position], set.tier as Tier)));
     const entries = attempts.map((a, i) => ({ key: `a${a.position + 1}`, item: items[i], steps: (a.stepScores as StepResult[]) ?? [] }));
