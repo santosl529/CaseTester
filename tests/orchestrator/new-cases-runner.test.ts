@@ -216,3 +216,18 @@ describe('exhibit notes reach the screen', () => {
     expect(r.interviewerText).not.toMatch(/Contribution = revenue/);   // shown, never spoken
   });
 });
+
+describe("code's brainstorm waits a turn when its own data line hands over data (batch 21 D8, Fiona t14)", () => {
+  it('the decisive figure goes out with a question about it; the brainstorm comes next turn', async () => {
+    seed({ caseId: 'prof-001', phase: 'EXHIBIT', elapsedMin: 11, coverage: ALL_COVERED, shown: ['exhibit-a'],
+      revealed: ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'bean_price_change'], flags: { ...PT_SATISFIED, stageEvidence: stagesWith({}) } });
+    classified.push([{ what: 'the other input price changes', ledgerItemIds: ['non_bean_input_change'], explicit: true, response: 'release' }]);
+    const r = await say("So yes — please share the other input price changes. That's the test.");
+    expect(r.interviewerText).toMatch(/^Other input costs — dairy, packaging, and food — are up 37\.5% over the past two years\. /);
+    expect(r.interviewerText).not.toMatch(/what else could the client do|other levers|protect margin/i);
+    expect(stageRecord().brainstorm.delivered).toBe(false);
+    const next = await say('That closes it: broad inflation explains all 16 points.');
+    expect(next.interviewerText).toMatch(/what else could the client do|other levers|protect margin/i);
+    expect(stageRecord().brainstorm).toMatchObject({ delivered: true, codeAsked: true });
+  });
+});

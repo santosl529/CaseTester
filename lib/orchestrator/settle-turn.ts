@@ -417,7 +417,18 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       question = pickFallbackQuestion({ figuresDelivered: true, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase });
     }
   }
-  checks.record('stage_hold', Boolean(stageAsked), stageAsked ? `owed stage administered by code: ${stageAsked}` : 'no stage owed this turn', { owed: state.owedStage ?? null, kind });
+  // Code's brainstorm line on a turn whose own data line hands over data
+  // (batch 21 D8, Fiona t14: the decisive other-input figure, then "What other
+  // levers could the client pull here?") asks about the figures; the
+  // brainstorm, not yet administered, comes next turn.
+  let stageWaited = false;
+  if (kind === 'stage_brainstorm' && (decisions.releases.length > 0 || decisions.exhibit !== null)) {
+    question = pickFallbackQuestion({ figuresDelivered: true, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase });
+    stageAsked = undefined;
+    stageWaited = true;
+  }
+  checks.record('stage_hold', Boolean(stageAsked), stageAsked ? `owed stage administered by code: ${stageAsked}`
+    : stageWaited ? 'data went out this turn — the brainstorm waits a turn' : 'no stage owed this turn', { owed: state.owedStage ?? null, kind });
 
   // The question plays after the data line: on a turn that delivered data it
   // must not treat it as still to come ("Once you have those figures…",
