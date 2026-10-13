@@ -3,7 +3,7 @@
   "item_id": "sy2-0030",
   "drill_id": "SY-2",
   "answer_type": "normal",
-  "notes": "Putting new lockers in stores goes against the key (apartment buildings): wrong-recommendation flag (rule 9). It ignores that store lockers are only 30% full (rule 7), and the 3-year payback assumes 80% full, which store lockers aren't (rule 4).",
+  "notes": "Putting new lockers in stores goes against the key (apartment buildings): wrong-recommendation flag (rule 9). It ignores that store lockers are only 30% full (rule 7). Every number it states matches the sheet, so it passes consistency (rule 4 judges stated numbers, not the recommendation).",
   "responses": [
     {
       "type": "text",
@@ -15,7 +15,7 @@
     "two_to_three_reasons": true,
     "cites_numbers": true,
     "leaves_out_irrelevant": true,
-    "consistent_with_facts": false,
+    "consistent_with_facts": true,
     "includes_risk": true,
     "includes_next_step": true
   },

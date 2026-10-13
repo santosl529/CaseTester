@@ -103,9 +103,11 @@ Each question marks one fact as the deciding fact: the one the recommendation sh
 3. **(grader)** Irrelevant facts: using an irrelevant fact as a reason or as support fails. Mentioning one only to dismiss it ("the kitchen shouldn't drive this") is fine.
    - *sy2-0004-a:* mentions the kitchen only to dismiss it, so it passes.
    - *sy2-0029-a:* offers cement prices as a reason, so it fails.
-4. **(grader)** Consistent with the facts: every number and claim matches the fact sheet or follows from it. A wrong calculation fails, and so does a claim beyond the sheet stated as fact, unless it is framed as a risk or an assumption. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.
+4. **(grader)** Consistent with the facts: every number the answer states matches the fact sheet or the key figures, within 10%, and no claim goes beyond the sheet as stated fact; a claim framed as a risk or an assumption is fine. A number off by more than 10% fails. Judge only the stated facts and numbers, not whether the recommendation is right: a wrong recommendation has its own red flag. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.
    - *sy2-0020-a:* a wrong saving ($1.4M instead of about $950,000) fails this check, but isn't the contradicts-facts flag.
    - *sy2-0023-a:* "only 10% of shoppers" against the sheet's 30% is the contradicts-facts flag.
+   - *sy2-0016-b*, *sy2-0030-b:* wrong recommendations whose stated numbers all match the sheet pass this check; the wrong-recommendation flag catches them.
+   - *sy2-0018-a:* "pays back in about 15 months" matches the key figure ($1.5M ÷ $1.2M a year), so it passes.
 5. **(grader)** Risk: names something specific that could make the recommendation wrong ("schools may not pay $600 when museums charge $450"). "There are risks" fails.
    - *sy2-0013-a:* Germany's market size, offered as a reason to keep going, isn't a risk to the recommendation.
 6. **(grader)** Next step: a concrete action ("pilot in 5 parks and track bookings"). "Do more analysis" fails.

@@ -11,7 +11,7 @@
     "SY.complete"
   ],
   "case_type": "investment_decision",
-  "prompt": "The client asks: \"Should our parcel-locker network expand from 2,000 to 5,000 lockers?\"\n\nFact sheet:\n- Lockers in apartment buildings are 85% full on average; lockers in stores are 30% full\n- Each locker costs $8,000 to install and earns $2,500 a year when 80% full\n- Building owners have offered 2,500 new apartment sites\n- Carriers pay us $1 per parcel delivered\n- Online parcel volumes in the country grew 7% last year\n\nGive your recommendation.",
+  "prompt": "The client asks: \"Should our parcel-locker network expand from 2,000 to 5,000 lockers?\"\n\nFact sheet:\n- Lockers in apartment buildings are 85% full on average; lockers in stores are 30% full\n- Each locker costs $8,000 to install and earns $2,500 a year when 80% full\n- Building owners have offered 2,500 new apartment sites\n- Carriers pay us $1 per parcel delivered\n- The company placed its first 50 lockers in train stations in 2016\n\nGive your recommendation.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -52,7 +52,7 @@
     },
     {
       "check_id": "leaves_out_irrelevant",
-      "question": "Does the answer avoid using the irrelevant facts (Online parcel volumes in the country grew 7% last year) as reasons or support? Mentioning one only to dismiss it is fine.",
+      "question": "Does the answer avoid using the irrelevant facts (The company placed its first 50 lockers in train stations in 2016) as reasons or support? Mentioning one only to dismiss it is fine.",
       "weight": 0.15,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "Leave out facts that don't bear on the decision.",
@@ -62,7 +62,7 @@
     },
     {
       "check_id": "consistent_with_facts",
-      "question": "Are all the supporting points consistent with the fact sheet?",
+      "question": "Does every number the answer states match the fact sheet or the key figures, within 10%, with no claim going beyond the sheet as stated fact? Judge only stated facts and numbers, not whether the recommendation is right.",
       "weight": 0.15,
       "fail_tag": "M.unsupported_recommendation",
       "feedback": "Some points go beyond or against the fact sheet.",
@@ -160,17 +160,21 @@
         "deciding": false
       },
       {
-        "fact": "Online parcel volumes in the country grew 7% last year",
+        "fact": "The company placed its first 50 lockers in train stations in 2016",
         "relevant": false,
         "deciding": false
       }
     ],
     "acceptable_recommendations": "Expand, putting new lockers in apartment buildings",
+    "key_figures": [
+      "Locker payback ≈ 3.2 years ($8,000 ÷ $2,500)",
+      "3,000 new lockers to reach 5,000"
+    ],
     "grading_rules": [
       "Recommendation first: the first sentence commits to a course of action that answers the client's question. Context or a restated question first fails. A condition (\"open, starting with a pilot\") is fine if it still picks a direction.",
       "Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons (\"it's a good opportunity\", \"the market is attractive\") and irrelevant facts don't count, and the same fact said twice counts once.",
       "Irrelevant facts: using an irrelevant fact as a reason or as support fails. Mentioning one only to dismiss it (\"the kitchen shouldn't drive this\") is fine.",
-      "Consistent with the facts: every number and claim matches the fact sheet or follows from it. A wrong calculation fails, and so does a claim beyond the sheet stated as fact, unless it is framed as a risk or an assumption. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.",
+      "Consistent with the facts: every number the answer states matches the fact sheet or the key figures, within 10%, and no claim goes beyond the sheet as stated fact; a claim framed as a risk or an assumption is fine. A number off by more than 10% fails. Judge only the stated facts and numbers, not whether the recommendation is right: a wrong recommendation has its own red flag. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.",
       "Risk: names something specific that could make the recommendation wrong (\"schools may not pay $600 when museums charge $450\"). \"There are risks\" fails.",
       "Next step: a concrete action (\"pilot in 5 parks and track bookings\"). \"Do more analysis\" fails.",
       "Deciding fact: the answer uses the deciding fact, by its content or its number, as part of its case. Mentioning it only in passing, without using it to decide, does not count.",

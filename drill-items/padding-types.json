@@ -404,8 +404,8 @@
     ],
     "sy2-0025": [
       {
-        "fact": "The startup's founder previously sold a heart-monitor company to a rival device maker",
-        "type": "people"
+        "fact": "Diabetes affects about 1 in 10 US adults",
+        "type": "outside_context"
       }
     ],
     "sy2-0026": [
@@ -434,8 +434,8 @@
     ],
     "sy2-0030": [
       {
-        "fact": "Online parcel volumes in the country grew 7% last year",
-        "type": "outside_context"
+        "fact": "The company placed its first 50 lockers in train stations in 2016",
+        "type": "history"
       }
     ],
     "sy3-0001": [

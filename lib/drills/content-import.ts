@@ -159,6 +159,7 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
       item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: caseTypeOf(r.case_type), client_question: r.client_question,
       acceptable_recommendations: r.acceptable_recommendations, key_risks: r.key_risks, next_steps: r.next_steps,
       model_answer: r.model_answer, facts: facts.map(f => ({ fact: f.fact, relevant: yes(f.relevant), deciding: yes(f.deciding) })),
+      key_figures: splitList(r.key_figures ?? ''),
     } satisfies Sy2Content);
   });
 

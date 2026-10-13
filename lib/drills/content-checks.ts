@@ -459,9 +459,56 @@ export function datedFactProblems(items: Item[], padding: PaddingTypes): string[
   return problems;
 }
 
+// Absolute years go stale: "since 2023" stays true, but an option that says
+// "in three years" is wrong once the calendar turns. Where a relevant fact
+// carries a year, no other text in the item (options, feedback, explanation,
+// model answers, the flawed answer, the follow-up) may restate it as a
+// duration: a clause that shares a word with the dated fact and says "N
+// years", where N is within a year of the time since it. Re-run yearly.
+const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+// Elapsed time ("in three years", "for 3 years", "the past three years",
+// "three years ago"), not a span like "a 5-year payback" or "the next five years".
+const N = '(\\d{1,2}|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)';
+const DURATION = new RegExp(`\\b(?:(?<!next\\s)(?:in|for|over|past|last)\\s+(?:the\\s+(?:past|last)\\s+)?${N}\\s+years?\\b|${N}\\s+years?\\s+ago\\b)`, 'gi');
+const COMMON = new Set(['about', 'after', 'since', 'their', 'there', 'these', 'which', 'would', 'could', 'years', 'year', 'every', 'other', 'still', 'while', 'where']);
+const contentWords = (s: string) => new Set((s.toLowerCase().match(/[a-z]{5,}/g) ?? []).filter(w => !COMMON.has(w)));
+
+function itemTexts(item: Item): string[] {
+  const extras = item.extras as Record<string, unknown>;
+  return [
+    ...item.options.flatMap(o => [o.text, o.feedback]), item.explanation, item.model_answer ?? '',
+    typeof extras.flawed_answer === 'string' ? extras.flawed_answer : '',
+    item.defend?.text ?? '', item.defend?.reason ?? '', item.defend?.model_reply ?? '',
+  ].filter(Boolean);
+}
+
+export function staleDurationProblems(items: Item[], padding: PaddingTypes | null, year = new Date().getFullYear()): string[] {
+  const problems: string[] = [];
+  for (const item of items) {
+    const pads = (padding?.facts[item.item_id] ?? []).map(e => factText(e.fact));
+    const dated = caseFacts(item).filter(f => YEAR.test(f) && !pads.some(p => factText(f).includes(p) || p.includes(factText(f))));
+    for (const fact of dated) {
+      const since = Number(fact.match(YEAR)![0]);
+      const words = contentWords(fact);
+      for (const text of itemTexts(item)) {
+        for (const clause of text.split(/[,;:.]|\bwhile\b|\bbut\b/i)) {
+          if (![...contentWords(clause)].some(w => words.has(w))) continue;
+          for (const m of clause.matchAll(DURATION)) {
+            const raw = (m[1] ?? m[2]).toLowerCase();
+            const n = /\d/.test(raw) ? Number(raw) : NUMBER_WORDS.indexOf(raw);
+            if (Math.abs(n - (year - since)) <= 1) problems.push(`${item.item_id}: "${clause.trim()}" restates "${fact}" as a duration; keep the year, or reword`);
+          }
+        }
+      }
+    }
+  }
+  return problems;
+}
+
 // Every content check, for validation and the seed script: wording within
-// each pool, scenarios across drills, Challenge cues, padding variety and dates.
+// each pool, scenarios across drills, Challenge cues, padding variety, dates
+// and stale durations.
 export function contentCheckProblems(items: Item[], reviewedPairs: ReviewedPair[] = [], padding: PaddingTypes | null = null): string[] {
   return [...lengthCueProblems(items), ...phraseCueProblems(items), ...rulePlayerProblems(items), ...scenarioProblems(items, reviewedPairs), ...challengeCueProblems(items),
-    ...(padding ? [...paddingTypeProblems(items, padding), ...datedFactProblems(items, padding)] : [])];
+    ...(padding ? [...paddingTypeProblems(items, padding), ...datedFactProblems(items, padding)] : []), ...staleDurationProblems(items, padding)];
 }

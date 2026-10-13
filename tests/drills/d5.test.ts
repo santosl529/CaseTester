@@ -11,7 +11,7 @@ import { ItemSchema, type Item } from '@/lib/drills/item-schema';
 import { challengeTag, defendParts, defendRuns, setSizeAt, withDefend } from '@/lib/drills/defend';
 import { applyGrade, firstSentence, unchangedRepair, type ItemGrade } from '@/lib/drills/grading/apply';
 import { addressedToGrader } from '@/lib/drills/grading/injection';
-import { challengeCueProblems, challengeSpeaker, datedFactProblems, paddingTypeProblems } from '@/lib/drills/content-checks';
+import { challengeCueProblems, challengeSpeaker, datedFactProblems, paddingTypeProblems, staleDurationProblems } from '@/lib/drills/content-checks';
 import { buildDefendBlock, buildItemBlock, gradeSet, type CallKind, type CallModel } from '@/lib/drills/grading/grader';
 import { modelAnswerSteps } from '@/lib/drills/model-answers';
 import { repairHint, toPublicItem } from '@/lib/drills/public-item';
@@ -364,5 +364,19 @@ describe('dates are no shortcut (content-checks.ts datedFactProblems)', () => {
   it('fails a pool where every dated fact is padding', () => {
     const undated = items.map(i => (i.drill_id === 'SY-1' ? { ...i, prompt: i.prompt.replace(/ since (19|20)\d\d/g, '').replace(/in a (19|20)\d\d test/, 'in a past test') } : i));
     expect(datedFactProblems(undated, padding).join(' ')).toMatch(/SY-1: only 0 of \d+ facts with a year are relevant/);
+  });
+});
+
+describe('stale durations (content-checks.ts staleDurationProblems)', () => {
+  const items = loadAuthoredItems();
+  const padding = loadPaddingTypes();
+  it('passes on the authored items', () => expect(staleDurationProblems(items, padding)).toEqual([]));
+  it('flags a dated fact restated as elapsed time, and not a span or a forecast', () => {
+    const base = items.find(i => i.item_id === 'sy1-0003')!;
+    const restated = { ...base, explanation: `${base.explanation} Our prices have not moved in three years.` };
+    expect(staleDurationProblems([restated], padding, 2026).join(' ')).toMatch(/restates "menu prices haven't changed since 2023"/);
+    expect(staleDurationProblems([restated], padding, 2027).length).toBeGreaterThan(0);
+    const fine = { ...base, explanation: `${base.explanation} Prices could rise over the next three years, with a 3-year payback.` };
+    expect(staleDurationProblems([fine], padding, 2026)).toEqual([]);
   });
 });

@@ -34,7 +34,7 @@
     },
     {
       "id": "c",
-      "text": "Raise menu prices about 8%, like competitors. Ingredients are up 35% while our prices have not moved in three years.",
+      "text": "Raise menu prices about 8%, like competitors. Ingredients are up 35% while our prices have not moved since 2023.",
       "correct": true,
       "feedback": "Right. It leads with the answer and backs it with the facts that decide it."
     },
@@ -50,7 +50,7 @@
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Full answer: Raise menu prices about 8%, in line with competitors. Ingredient costs are up 35%, our prices haven't moved in three years, and traffic is flat, so the $4M drop is a cost problem, not a demand problem. The main risk is that price-sensitive customers trade down, so the next step is to test the increase in a group of stores first. What would change the answer: a sharp traffic drop in the test stores.",
+  "explanation": "Full answer: Raise menu prices about 8%, in line with competitors. Ingredient costs are up 35%, our prices haven't moved since 2023, and traffic is flat, so the $4M drop is a cost problem, not a demand problem. The main risk is that price-sensitive customers trade down, so the next step is to test the increase in a group of stores first. What would change the answer: a sharp traffic drop in the test stores.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [

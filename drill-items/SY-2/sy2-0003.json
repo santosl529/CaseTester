@@ -1,8 +1,8 @@
 {
   "item_id": "sy2-0003",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-2",
-  "status": "live",
+  "status": "draft",
   "level": 2,
   "tier": 1,
   "skills": [
@@ -63,7 +63,7 @@
     },
     {
       "check_id": "consistent_with_facts",
-      "question": "Are all the supporting points consistent with the fact sheet?",
+      "question": "Does every number the answer states match the fact sheet or the key figures, within 10%, with no claim going beyond the sheet as stated fact? Judge only stated facts and numbers, not whether the recommendation is right.",
       "weight": 0.15,
       "fail_tag": "M.unsupported_recommendation",
       "feedback": "Some points go beyond or against the fact sheet.",
@@ -167,11 +167,15 @@
       }
     ],
     "acceptable_recommendations": "Enter Canada, starting with one province",
+    "key_figures": [
+      "First-year gross margin $450,000 against $340,000 of first-year costs ($300,000 + $40,000)",
+      "First-year net ≈ $110,000"
+    ],
     "grading_rules": [
       "Recommendation first: the first sentence commits to a course of action that answers the client's question. Context or a restated question first fails. A condition (\"open, starting with a pilot\") is fine if it still picks a direction.",
       "Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons (\"it's a good opportunity\", \"the market is attractive\") and irrelevant facts don't count, and the same fact said twice counts once.",
       "Irrelevant facts: using an irrelevant fact as a reason or as support fails. Mentioning one only to dismiss it (\"the kitchen shouldn't drive this\") is fine.",
-      "Consistent with the facts: every number and claim matches the fact sheet or follows from it. A wrong calculation fails, and so does a claim beyond the sheet stated as fact, unless it is framed as a risk or an assumption. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.",
+      "Consistent with the facts: every number the answer states matches the fact sheet or the key figures, within 10%, and no claim goes beyond the sheet as stated fact; a claim framed as a risk or an assumption is fine. A number off by more than 10% fails. Judge only the stated facts and numbers, not whether the recommendation is right: a wrong recommendation has its own red flag. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.",
       "Risk: names something specific that could make the recommendation wrong (\"schools may not pay $600 when museums charge $450\"). \"There are risks\" fails.",
       "Next step: a concrete action (\"pilot in 5 parks and track bookings\"). \"Do more analysis\" fails.",
       "Deciding fact: the answer uses the deciding fact, by its content or its number, as part of its case. Mentioning it only in passing, without using it to decide, does not count.",
@@ -182,10 +186,10 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-11",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
     "similarity_checked_at": "2026-10-11",

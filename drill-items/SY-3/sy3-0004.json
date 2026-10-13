@@ -52,7 +52,7 @@
     }
   ],
   "red_flags": [],
-  "model_answer": "Raise menu prices about 8%, like competitors. Flour and butter are up 35% while our prices haven't moved in three years.",
+  "model_answer": "Raise menu prices about 8%, like competitors. Flour and butter are up 35% while our prices haven't moved since 2023.",
   "explanation": "The flaw: it takes no position. What was right: the competitors' 8% price rise.",
   "extras": {
     "derived_from": "sy1-0003",

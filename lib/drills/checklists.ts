@@ -206,6 +206,10 @@ export interface Sy2Content extends Base {
   model_answer: string;
   // deciding: the fact that decides the question (exactly one, and relevant).
   facts: { fact: string; relevant: boolean; deciding: boolean }[];
+  // Figures worked out from the sheet ("direct-booking saving ≈ $950K"), so
+  // the grader checks a student's numbers against them instead of redoing
+  // the math.
+  key_figures?: string[];
 }
 
 export const SY2_CAPS = { misses_deciding_fact: 0.6, off_topic: 0.2, wrong_recommendation: 0.5 };
@@ -223,7 +227,7 @@ export const SY2_GRADING_RULES = [
   'Recommendation first: the first sentence commits to a course of action that answers the client\'s question. Context or a restated question first fails. A condition ("open, starting with a pilot") is fine if it still picks a direction.',
   'Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons ("it\'s a good opportunity", "the market is attractive") and irrelevant facts don\'t count, and the same fact said twice counts once.',
   'Irrelevant facts: using an irrelevant fact as a reason or as support fails. Mentioning one only to dismiss it ("the kitchen shouldn\'t drive this") is fine.',
-  'Consistent with the facts: every number and claim matches the fact sheet or follows from it. A wrong calculation fails, and so does a claim beyond the sheet stated as fact, unless it is framed as a risk or an assumption. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.',
+  'Consistent with the facts: every number the answer states matches the fact sheet or the key figures, within 10%, and no claim goes beyond the sheet as stated fact; a claim framed as a risk or an assumption is fine. A number off by more than 10% fails. Judge only the stated facts and numbers, not whether the recommendation is right: a wrong recommendation has its own red flag. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.',
   'Risk: names something specific that could make the recommendation wrong ("schools may not pay $600 when museums charge $450"). "There are risks" fails.',
   'Next step: a concrete action ("pilot in 5 parks and track bookings"). "Do more analysis" fails.',
   'Deciding fact: the answer uses the deciding fact, by its content or its number, as part of its case. Mentioning it only in passing, without using it to decide, does not count.',
@@ -249,7 +253,7 @@ export function sy2Item(c: Sy2Content): ItemInput {
         fail_tag: 'M.unsupported_recommendation', feedback: 'Use the numbers from the fact sheet to support your reasons.' },
       { check_id: 'leaves_out_irrelevant', question: `Does the answer avoid using the irrelevant facts (${list(c.facts.filter(f => !f.relevant).map(f => f.fact))}) as reasons or support? Mentioning one only to dismiss it is fine.`,
         evidence: 'whole' as const, weight: 0.15, fail_tag: 'M.irrelevant_facts', feedback: "Leave out facts that don't bear on the decision." },
-      { check_id: 'consistent_with_facts', question: 'Are all the supporting points consistent with the fact sheet?', evidence: 'whole' as const, weight: 0.15,
+      { check_id: 'consistent_with_facts', question: 'Does every number the answer states match the fact sheet or the key figures, within 10%, with no claim going beyond the sheet as stated fact? Judge only stated facts and numbers, not whether the recommendation is right.', evidence: 'whole' as const, weight: 0.15,
         fail_tag: 'M.unsupported_recommendation', feedback: 'Some points go beyond or against the fact sheet.' },
       { check_id: 'includes_risk', question: 'Does the answer name a risk?', weight: 0.1,
         fail_tag: 'M.missing_risk_or_next_step', feedback: 'Name the main risk to your recommendation.' },
@@ -265,7 +269,7 @@ export function sy2Item(c: Sy2Content): ItemInput {
     ],
     model_answer: c.model_answer,
     explanation: `Acceptable recommendation: ${sy2Acceptable(c.acceptable_recommendations).join(', or ')}. The deciding fact: ${deciding[0].fact}. Key risks: ${c.key_risks}. Next steps: ${c.next_steps}.`,
-    extras: { facts: c.facts, acceptable_recommendations: c.acceptable_recommendations, grading_rules: SY2_GRADING_RULES },
+    extras: { facts: c.facts, acceptable_recommendations: c.acceptable_recommendations, key_figures: c.key_figures ?? [], grading_rules: SY2_GRADING_RULES },
   };
 }
 
