@@ -12,6 +12,7 @@ export type ExhibitDisplay = {
   title: string;
   chartType: string;
   data: Record<string, unknown>[];
+  notes?: string;   // the exhibit's footnotes, shown under the table
 };
 
 export type TurnResult = {

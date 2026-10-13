@@ -474,7 +474,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   const exhibitId = decisions.exhibit?.id ?? heldForExhibit?.id;
   if (exhibitId) {
     const found = caseData.exhibits.find(e => e.id === exhibitId)!;
-    exhibit = { id: found.id, title: found.title, chartType: found.chartType, data: found.data as Record<string, unknown>[] };
+    exhibit = { id: found.id, title: found.title, chartType: found.chartType, data: found.data as Record<string, unknown>[], ...(found.notes ? { notes: found.notes } : {}) };
     exhibitReveals = markExhibitReveals(ledger, found);
   }
   // Rule 6 option 4: the correction went out in the data line — booked once

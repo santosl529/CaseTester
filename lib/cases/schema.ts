@@ -94,6 +94,10 @@ const ExhibitSchema = z.object({
   title: z.string(),
   chartType: z.enum(['bar', 'line', 'table', 'pie']),
   data: z.array(z.record(z.string(), z.unknown())),    // client-safe display data
+  // The exhibit's footnotes (definitions, units, "each percentage applies to
+  // the stage above"), shown under the table — client-safe, never spoken. Any
+  // figure in them must be in a sentence the exhibit covers (consistency test).
+  notes: z.string().min(1).optional(),
   interpretationKey: z.string(),           // server-only insight
   // Ledger item ids whose figures this exhibit displays — showing the exhibit
   // releases them (docs/case-authoring.md, interviewer-behavior Rule 11).

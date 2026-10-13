@@ -784,7 +784,7 @@
   "exhibits": [
     {
       "id": "exhibit-1",
-      "title": "Quillpath — Economics of each plan ($ per customer; LTV = monthly gross margin × expected lifetime in months ≈ margin ÷ monthly cancellation rate)",
+      "title": "Quillpath — Economics of each plan ($ per customer)",
       "chartType": "table",
       "coversLedgerItems": [
         "plan_prices_costs",
@@ -813,11 +813,12 @@
           "Starter": "Online, on their own"
         }
       ],
+      "notes": "Lifetime value (LTV) = monthly gross margin × expected lifetime in months. Expected lifetime ≈ 1 ÷ monthly cancellation rate. Gross margin = price − cost to serve. Acquisition cost per customer does not change with volume.",
       "interpretationKey": "Gross margin = price − cost to serve: Pro $80, Starter $30 a month. With the cohort table: Pro LTV = $80 ÷ 2% = $4,000 vs. $1,200 CAC (3.3×); Starter LTV = $30 ÷ 5% = $600 vs. $300 (2.0×). Use margin, not price. Acquisition cost per customer does not change with volume."
     },
     {
       "id": "exhibit-2",
-      "title": "Customers who signed up in January–March 2025 — Status over their first year (% of each plan's starting customers)",
+      "title": "Customers who signed up in January–March 2025 — Status over their first year (% of each plan's starting customers, by months since sign-up)",
       "chartType": "table",
       "coversLedgerItems": [
         "pro_cohort",
@@ -871,6 +872,7 @@
           "Month 12": "40"
         }
       ],
+      "notes": "Cancellation rates have stayed roughly steady from month to month — in any month, about the same share of the customers still on each plan cancels. Very few Starter customers upgrade after month 12. Upgraded customers then behave like Pro customers. Finance's method for upgrades: value a Starter sign-up at its Starter LTV, plus one Pro LTV for each customer who upgrades.",
       "interpretationKey": "Read churn from the Cancelled rows: Pro 2% a month (0.98^12 ≈ 78.5%), Starter 5% — not 6%: the 1% who upgraded didn't leave. 20% of Starter customers upgrade to Pro within a year, which Starter's standalone LTV leaves out; finance values a Starter sign-up at its Starter LTV plus one Pro LTV per upgrade: $600 + 20% × $4,000 = $1,400 (4.7×). Cancellation rates are roughly steady month to month; very few upgrade after month 12; upgraded customers behave like Pro customers."
     },
     {
@@ -898,7 +900,7 @@
     },
     {
       "id": "exhibit-4",
-      "title": "Starter price test — New customers per month (eight-week test, August–September 2026; visitors split at random; scaled to full traffic)",
+      "title": "Starter price test — New customers per month (eight-week test, August–September 2026)",
       "chartType": "table",
       "coversLedgerItems": [
         "price_test_results",
@@ -923,6 +925,7 @@
           "Starter sign-ups / month": "800"
         }
       ],
+      "notes": "Groups: website visitors split at random. Results are scaled to Quillpath's full website traffic. Starter's cost to serve ($10 a month) and acquisition cost ($300) are the same at either price. Because the test lasted only eight weeks, cancellation and upgrade rates for customers who signed up at $60 can't be measured yet.",
       "interpretationKey": "At $60: Starter margin $50, standalone LTV $1,000, plus $800 of upgrade value, net $1,500 per sign-up; 400 × $2,800 + 800 × $1,500 = $2.32M vs. $2.08M at $40 (+$0.24M, +12%) — fewer Starter sign-ups, each worth more, and 50 more customers choose Pro; $60 is inside competitors' $50–$70. Cost to serve ($10) and CAC ($300) are unchanged; churn and upgrade rates at $60 can't be measured yet — $60 holds unless Starter churn rises above ~7% or upgrades fall below 12.5%."
     }
   ],

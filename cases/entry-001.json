@@ -556,7 +556,7 @@
   "exhibits": [
     {
       "id": "exhibit-1",
-      "title": "Corlan's disease — US patient funnel and Kelvexa pricing (peak year, about five years after launch; each percentage applies to the stage above)",
+      "title": "Corlan's disease — US patient funnel and Kelvexa pricing (US adults; peak year, about five years after launch)",
       "chartType": "table",
       "coversLedgerItems": [
         "us_adults",
@@ -602,11 +602,12 @@
           "Size, or share of the stage above": "Full year"
         }
       ],
+      "notes": "Each percentage applies to the stage directly above it. Net sales = revenue after discounts and rebates. “On Kelvexa at peak” is Aldermoor's forecast share of eligible patients.",
       "interpretationKey": "250M × 1.6% = 4.0M with the disease → 2.0M diagnosed → 1.0M treated → 200,000 moderate-to-severe (eligible) → 40,000 on Kelvexa at a 20% peak share. Net price = $10,000 × 80% = $8,000, so peak net sales ≈ $320M: clears the $300M bar by only $20M (~6%); the bar is met at an 18.75% share. Net sales are after discounts and rebates — that is what the bar measures. The funnel leaks most at diagnosis and treatment (half each)."
     },
     {
       "id": "exhibit-2",
-      "title": "US specialist survey — Reasons for and against prescribing Kelvexa (% of 200 specialists; up to two answers each)",
+      "title": "US specialist survey — Reasons for and against prescribing Kelvexa (% of specialists naming each reason, n = 200)",
       "chartType": "table",
       "coversLedgerItems": [
         "survey_design",
@@ -660,11 +661,12 @@
           "% of specialists": "9%"
         }
       ],
+      "notes": "Survey of 200 US specialists who treat Corlan's disease. Each specialist could choose up to two answers per question, so percentages add up to more than 100%. “Local support” means sales reps and nurse educators who help doctors and patients get started.",
       "interpretationKey": "Doctors like the product — the once-daily pill is the top reason (64%) — but the top barriers are insurance coverage (58%) and no local support from the company (41%): access and presence, which Aldermoor doesn't have in the US. 27% want more US experience first, so uptake starts slowly; with only 1.25 points of cushion over the $300M bar, the 20% share needs both barriers fixed. Percentages add up to more than 100% (up to two answers); price (11% / 15%) is well behind coverage and support. 'Local support' means sales reps and nurse educators."
     },
     {
       "id": "exhibit-3",
-      "title": "US entry options for Kelvexa (peak year, about five years after launch; net price $8,000 per patient per year under both)",
+      "title": "US entry options for Kelvexa (peak year, about five years after launch)",
       "chartType": "table",
       "coversLedgerItems": [
         "option_a",
@@ -701,6 +703,7 @@
           "Option B — Partner with a US company": "About 6 months"
         }
       ],
+      "notes": "Net price is $8,000 per patient per year under both options. Product cost is small and similar under both options — ignore it. Eligible patients are the moderate-to-severe patients in Exhibit 1.",
       "interpretationKey": "Option A: 40,000 × $8,000 = $320M, all to Aldermoor, minus $80M selling costs = $240M a year at peak. Option B: 50,000 × $8,000 = $400M of sales at a 30% royalty = $120M. Building earns about $120M more per year (double), and stays ahead unless share falls below 12.5% (25,000 patients). The partner sells more but keeps 70%; trade-offs are speed (6 months vs. 12–18), execution risk (no US experience) and long-term platform value (two more drugs for the same specialists). Product cost is small and similar — ignore it."
     }
   ],

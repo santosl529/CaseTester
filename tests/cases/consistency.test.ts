@@ -143,13 +143,14 @@ describe('ledger labels agree with their timeframes', () => {
 });
 
 // ── All cases ───────────────────────────────────────────────────────────────
-// Every number on screen (an exhibit's cells and title) must be in the prompt
+// Every number on screen (an exhibit's cells, title and notes) must be in the prompt
 // or in a ledger sentence the exhibit covers: showing the exhibit releases
 // those sentences, and only released numbers pass the provenance audit, so an
 // uncovered on-screen figure is one the interviewer could never cite.
 import { loadCases } from '@/lib/cases/loader';
-// Calendar years and period labels ("2 years ago") are not case figures.
-const numbersIn = (t: string) => new Set([...t.replace(/\b(?:19|20)\d{2}\b|\b\d+ years ago\b/g, ' ').replace(/(\d),(\d{3})/g, '$1$2').matchAll(/\d+(?:\.\d+)?/g)].map(m => Number(m[0])));
+// Calendar years, period labels ("2 years ago") and exhibit references ("the
+// launch costs in Exhibit 1", in notes) are not case figures.
+const numbersIn = (t: string) => new Set([...t.replace(/\b(?:19|20)\d{2}\b|\b\d+ years ago\b|\bExhibits? \d+\b/g, ' ').replace(/(\d),(\d{3})/g, '$1$2').matchAll(/\d+(?:\.\d+)?/g)].map(m => Number(m[0])));
 
 // Known, not yet fixed (12 Oct): prof-001's exhibit shows last year's COGS 50,
 // overhead 13 and profit 15, which no ledger sentence states — the
@@ -168,12 +169,12 @@ describe('every case', () => {
         }
       });
 
-      it('exhibits cover ledger items that exist, and every on-screen number is in the prompt or a covered sentence', () => {
+      it('exhibits cover ledger items that exist, and every on-screen number (cells, title, notes) is in the prompt or a covered sentence', () => {
         const ids = new Set(c.dataLedger.map(d => d.id));
         for (const e of c.exhibits) {
           for (const id of e.coversLedgerItems ?? []) expect(ids.has(id), `${e.id} covers unknown ${id}`).toBe(true);
           const allowed = numbersIn([c.prompt, ...c.dataLedger.filter(d => (e.coversLedgerItems ?? []).includes(d.id)).map(d => d.value)].join(' '));
-          const shown = [e.title, ...e.data.flatMap(r => Object.values(r).map(String))].join(' ');
+          const shown = [e.title, e.notes ?? '', ...e.data.flatMap(r => Object.values(r).map(String))].join(' ');
           for (const n of numbersIn(shown)) if (n !== 0 && n !== 100 && !KNOWN_UNCOVERED[`${c.id}/${e.id}`]?.includes(n)) expect(allowed.has(n), `${e.id}: ${n} on screen but in no covered sentence`).toBe(true);
         }
       });

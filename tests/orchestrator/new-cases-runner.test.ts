@@ -207,3 +207,12 @@ describe('the case brainstorm reaches the end gate and the model', () => {
     expect(stables.at(-1)).toContain('this case has no brainstorm stage');
   });
 });
+
+describe('exhibit notes reach the screen', () => {
+  it("Larkspur's Exhibit 1 goes out with its footnotes", async () => {
+    seed({ caseId: 'prof-002', phase: 'ANALYSIS', flags: PT_SATISFIED });
+    const r = await say('Which routes are losing money?', T({ exhibit: 'exhibit-1' }));
+    expect(r.exhibit?.notes).toMatch(/Contribution = revenue − variable costs/);
+    expect(r.interviewerText).not.toMatch(/Contribution = revenue/);   // shown, never spoken
+  });
+});

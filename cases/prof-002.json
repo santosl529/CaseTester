@@ -693,7 +693,7 @@
   "exhibits": [
     {
       "id": "exhibit-1",
-      "title": "Larkspur Air — Results by route, FY2023 vs. FY2025 ($ millions; contribution = revenue − variable costs)",
+      "title": "Larkspur Air — Results by route, FY2023 vs. FY2025 ($ millions unless noted)",
       "chartType": "table",
       "coversLedgerItems": [
         "route_results_lakeport",
@@ -776,6 +776,7 @@
           "Contribution FY2025": "(4.0)"
         }
       ],
+      "notes": "Flights per year were the same in FY2023 and FY2025. Revenue includes ticket fares and extras (bags, seat selection, snacks). Contribution = revenue − variable costs (fuel, crew, maintenance, landing and airport fees). Fixed costs include aircraft leases, hub facilities and corporate overhead. Parentheses denote negative values.",
       "interpretationKey": "Revenue fell $24M and contribution fell $24M with fixed costs flat at $20M, so operating profit fell $24M and costs per flight didn't move. The whole decline is on Hub–Lakeport (−$9.6M) and Hub–Port Avery (−$14.4M); the other four routes net to zero. Those were the most profitable routes: ~30% contribution margins and $22.2M of $40M contribution (~55%) on 5,000 of 14,000 flights (~36%). With planes as full as before, the fare is the prime suspect. Parentheses denote negative values; revenue includes fares and extras; flights per year were the same in both years."
     },
     {
@@ -883,6 +884,7 @@
           "Planning estimate": "5,000"
         }
       ],
+      "notes": "The 5,000 flights would use the aircraft time freed by exiting Hub–Lakeport (2,000 flights) and Hub–Port Avery (3,000 flights). No other airline currently flies nonstop on either new route. Aircraft lease and other fixed costs would not change.",
       "interpretationKey": "New route: 56 passengers × $200 − $9,200 = +$2,000 per flight, × 5,000 = +$10.0M a year. Exiting removes today's −$1.8M (Lakeport −$1.2M, Port Avery −$0.6M), so the improvement is +$11.8M and operating profit ≈ +$7.8M at full run rate; leases continue, so fixed costs are unchanged. $2,000 per flight is in line with the uncontested routes (~$1,840–$2,200). The 5,000 flights use the aircraft time freed by exiting Hub–Lakeport (2,000) and Hub–Port Avery (3,000); no other airline flies either route nonstop."
     }
   ],

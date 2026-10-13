@@ -105,3 +105,16 @@ describe('CaseSchema exhibit release order', () => {
     expect(CaseSchema.safeParse(exhibits(e => { e[1].requiresItems = ['nope']; })).success).toBe(false);
   });
 });
+
+describe('CaseSchema exhibit notes', () => {
+  const base = getCaseById('prof-002');
+  it("carries the PDFs' footnotes as notes, out of the spoken title", () => {
+    const e1 = base.exhibits[0];
+    expect(e1.notes).toMatch(/^Flights per year were the same in FY2023 and FY2025\./);
+    expect(e1.title).not.toMatch(/contribution =/i);
+  });
+  it('rejects an empty note', () => {
+    const e = structuredClone(base.exhibits); e[0].notes = '';
+    expect(CaseSchema.safeParse({ ...base, exhibits: e }).success).toBe(false);
+  });
+});
