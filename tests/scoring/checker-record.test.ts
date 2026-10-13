@@ -31,19 +31,27 @@ describe('the judge reads the checker\'s flags and what became of them', () => {
     expect(s).not.toContain('"x"');
     expect(s.match(/turn \d/g)).toHaveLength(1);
   });
+  it('a flag that expired behind other checks says so', () => {
+    expect(formatCheckerSection([verdict(3, [claim()]), flag('3:0', 'expired')])).toContain('Not raised in the interview (it waited behind other checks and expired).');
+  });
   it('nothing flagged: no section', () => {
     expect(formatCheckerSection([verdict(3, [claim({ flag: false, verdict: 'correct' })])])).toBe('');
   });
 });
 
 describe('deterministic first, in scoring too', () => {
-  const rows = [verdict(3, [claim({ span: '58 / 110 = 52.7%, so about 5 points back', candidateValue: 'about 5 points', correctValue: 8.5 })])];
+  const rows = [verdict(3, [claim({ span: '58 / 110 = 52.7%, so about 5 points back', candidateValue: 'about 5 points', correctValue: 8.5, actualShare: null })])];
   it('a stamp on a figure the checker found wrong is dropped', () => {
     const v = new Map<number, TurnVerification>([[3, { flags: [], verified: [
       { stepId: 'arith:58 / 110', scope: 'arithmetic', value: 52.7, span: '58 / 110 = 52.7%', workShown: true, operands: [] },
       { stepId: 'arith:x', scope: 'arithmetic', value: 5, span: 'about 5 points back', workShown: true, operands: [] },
     ] }]]);
     expect(dropCheckerStamps(v, rows).get(3)!.verified.map(x => x.value)).toEqual([52.7]);
+  });
+  it('a word quantity drops no stamp (its figures can be right)', () => {
+    const fully = [verdict(3, [claim({ candidateValue: 'fully (4.2 + 11.8 = 16 points of the 18)', actualShare: 0.89 })])];
+    const v = new Map<number, TurnVerification>([[3, { flags: [], verified: [{ stepId: 'bean_points_added', scope: 'claim', value: 4.2, span: 'x', workShown: false, operands: [] }] }]]);
+    expect(dropCheckerStamps(v, fully).get(3)!.verified).toHaveLength(1);
   });
   it('a doubt on a checker-flagged figure is a supported challenge, not an unsupported one', () => {
     const prof = getCaseById('prof-001');
@@ -55,7 +63,7 @@ describe('deterministic first, in scoring too', () => {
     const none = () => [] as string[];
     const without = buildChallengeMarks(turns, prof, none);
     expect(without.map(m => m.kind)).toEqual(['unsupported_challenge']);
-    const withChecker = buildChallengeMarks(turns, prof, none, undefined, checkerFlaggedFigures([verdict(3, [claim()])]));
+    const withChecker = buildChallengeMarks(turns, prof, none, undefined, checkerFlaggedFigures([verdict(3, [claim({ candidateValue: '18 points in COGS', actualShare: null })])]));
     expect(withChecker).toEqual([]);
   });
 });

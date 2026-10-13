@@ -57,6 +57,8 @@ export type CheckerJob = { candidateTurnIndex: number; result: Promise<CheckerJo
 export function startMathCheck(p: {
   caseData: CheckerCase & { factAnchors?: unknown; quoteAnchors?: unknown };
   input: CheckerInput; vet: VetContext; candidateTurnIndex: number; codeMath: CandidateMath;
+  // The message's misquotes code corrects (fact-check.ts F2): code flags too.
+  misquotes?: { item: string; cited: string; sentence: string }[];
   config: MathCheckerConfig; timeoutMs?: number; onUsage?: OnUsage;
   check?: (a: Parameters<typeof checkMathClaims>[0]) => Promise<CheckerResult>;
 }): CheckerJob {
@@ -69,7 +71,10 @@ export function startMathCheck(p: {
     .then((r): CheckerJobResult => ({ subtype: 'verdict', payload: {
       candidateTurnIndex: p.candidateTurnIndex, latencyMs: r.latencyMs, model: r.model,
       claims: vetCheckerClaims(r.claims, p.vet),
-      codeFlags: p.codeMath.flags.map(f => ({ key: f.stepId, value: f.candidateValue, span: f.span })),
+      codeFlags: [
+        ...p.codeMath.flags.map(f => ({ key: f.stepId, value: f.candidateValue, span: f.span })),
+        ...(p.misquotes ?? []).flatMap(m => numbersOf(m.cited).slice(0, 1).map(value => ({ key: `misquote:${m.item}`, value, span: m.sentence }))),
+      ],
       stamps: p.codeMath.verified.map(v => ({ stepId: v.stepId, value: v.value, span: v.span })),
     } }))
     .catch((e: unknown): CheckerJobResult => ({ subtype: 'error', payload: {
@@ -93,18 +98,36 @@ export function checkerKey(c: CheckerClaim): string {
 
 const same = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.05, Math.abs(b) * 0.01);
 
-// The claim's own figures: the numbers in their value, less the input code
-// computes from ("a 10% rise … 5 points" → 5).
-function figuresOf(c: CheckerClaim): number[] {
+// The claim's own figures — what a stamp or a doubt is about: the numbers in
+// their value, less the input code computes from ("a 10% rise … 5 points" →
+// 5) and the case's own figures they quote ("about 11% (6 + 5)" → 11, 5). A
+// word quantity has none: its error is the words ("fully explained … 4.2 +
+// 11.8" — both right; replay, 0bfe5f38 t19).
+export function claimFigures(c: CheckerClaim, caseNumbers: number[] = []): number[] {
+  if (c.actualShare !== null) return [];
   const input = boundInput(c);
-  return numbersOf(c.candidateValue).filter(n => input === null || !same(n, input));
+  return numbersOf(c.candidateValue).filter(n => (input === null || !same(n, input)) && !caseNumbers.some(x => same(n, x)));
 }
+const figuresOf = (c: CheckerClaim) => claimFigures(c);
+
+// The case's figures the candidate has: the prompt, released lines and their changes.
+export function caseNumbersOf(caseData: Pick<CheckerCase, 'prompt' | 'dataLedger'>, revealedIds: string[]): number[] {
+  const texts = caseData.dataLedger.filter(d => revealedIds.includes(d.id)).map(d => d.value);
+  return numbersOf([caseData.prompt, ...texts, ...changeFigures(texts)].join(' '));
+}
+
+// Proposed (Claude, 13 Oct; awaiting Lorenzo's ruling): a flag is raised only
+// while at most this many candidate messages have followed the claim — held
+// longer (a code flag took every turn), it expires to the report (replay:
+// Sofia b20 140fb90d, a probe six messages late).
+export const CHECKER_MAX_WAIT_MESSAGES = 2;
 
 const sentencesOf = (text: string) => normalizeNumberWords(text).split(/(?<=[.!?])\s+|\n+/).map(s => s.trim()).filter(Boolean);
 // The candidate takes a claim back or redoes it.
-const WITHDRAWN = /\b(?:scratch that|i take (?:that|it) back|i was wrong|i mis-?(?:spoke|calculated|stated|read|sized)|let me (?:redo|correct|fix|recalculate|re-?do|re-?check|re-?run)|correction:|sorry,? (?:i meant|that should be|that'?s wrong))\b/i;
-// "Actually", "wait" — a revision only with a figure in the sentence.
-const REVISING = /\b(?:actually|wait|on second thought)\b/i;
+const WITHDRAWN = /\b(?:scratch that|i take (?:that|it) back|i was wrong|i mis-?(?:spoke|calculated|stated|read|sized)|let me (?:redo|correct|fix|recalculate|re-?do|re-?check|re-?run)|correction:|sorry,? (?:i meant|that should be|that'?s wrong)|(?:that'?s|that was) my (?:error|mistake)|my (?:error|mistake|bad)\b|you'?re right\b)/i;
+// "Actually, …", "Wait — …" opening a sentence with a figure in it: a revision
+// ("may actually be a smaller part" mid-sentence is not — replay, Sofia b20).
+const REVISING = /^(?:actually|wait|on second thought)\b/i;
 
 // Has the candidate revised or withdrawn the claim since? Read in every
 // candidate message after it: a withdrawal, a revision with a figure, the
@@ -114,8 +137,7 @@ const REVISING = /\b(?:actually|wait|on second thought)\b/i;
 export function isStale(c: CheckerClaim, laterTexts: string[], caseData: CheckerCase, revealedIds: string[]): string | null {
   const ctx: VetContext = { caseData, revealedIds, shownExhibitIds: [], candidateTexts: [] };
   const right = [...(codeComputed(c, ctx)?.values ?? []), c.correctValue, c.correctLow, c.correctHigh].filter((x): x is number => x !== null);
-  const revealedTexts = caseData.dataLedger.filter(d => revealedIds.includes(d.id)).map(d => d.value);
-  const caseFigures = numbersOf([caseData.prompt, ...revealedTexts, ...changeFigures(revealedTexts)].join(' '));
+  const caseFigures = caseNumbersOf(caseData, revealedIds);
   const rightToCheck = right.filter(r => !caseFigures.some(x => same(r, x)));
   const pm = pricingValues(caseData, new Set(revealedIds));
   const q = c.codeQuantity;
@@ -156,7 +178,7 @@ export function modelProbed(c: CheckerClaim, interviewerTexts: string[], candida
 
 export type CheckerRow = { category?: string; subtype: string; turnIndex: number | null; payloadJsonb: unknown };
 
-export type CheckerOutcome = 'probe' | 'correct' | 'pointer' | 'unresolved' | 'shed' | 'stale' | 'dedupe' | 'disagrees_with_code' | 'unresolved_at_close';
+export type CheckerOutcome = 'probe' | 'correct' | 'pointer' | 'unresolved' | 'shed' | 'stale' | 'expired' | 'dedupe' | 'disagrees_with_code' | 'unresolved_at_close';
 export type CheckerDecision = {
   id: string; candidateTurnIndex: number; outcome: CheckerOutcome; reason: string;
   span: string; candidateValue: string; key: string; changesConclusion: boolean; line?: string;
@@ -172,6 +194,7 @@ export type CheckerPlanInput = {
   turnRows: { turnIndex: number; role: string; text: string }[];
   candidateText: string; candidateTurnIndex: number;
   currentFlags: RecomputeFlag[];      // the deterministic flags on this message
+  codeLineThisTurn?: boolean;         // code corrects a misquote this turn
   attempts: RecomputeAttempts;        // Rule 14's counter, this message's flags counted
   underTimePressure: boolean;
   candidateFigures: number[];
@@ -197,6 +220,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const flaggedFigures: number[] = [];
   const droppedStamps: CheckerPlan['droppedStamps'] = [];
   const eligible: { id: string; n: number; c: VettedClaim }[] = [];
+  const caseNumbers = caseNumbersOf(p.caseData, p.revealedIds);
   const verdicts = p.rows
     .filter(r => (r.category ?? MATH_CHECKER_CATEGORY) === MATH_CHECKER_CATEGORY && r.subtype === 'verdict')
     .map(r => r.payloadJsonb as VerdictPayload)
@@ -207,7 +231,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     v.claims.forEach((c, i) => {
       const id = `${v.candidateTurnIndex}:${i}`;
       if (handled.has(id)) return;
-      const figs = figuresOf(c);
+      const figs = claimFigures(c, caseNumbers);
       const codeFlag = v.codeFlags.find(f => f.key === checkerKey(c) || figs.some(x => same(x, f.value)));
       if (!c.flag) {
         // Deterministic first: a code flag stands whatever the checker says.
@@ -229,16 +253,22 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
         handled.add(id);
         return;
       }
+      if (later.length > CHECKER_MAX_WAIT_MESSAGES) {
+        decisions.push(decision(id, v.candidateTurnIndex, c, 'expired', `${later.length} messages since the claim`));
+        handled.add(id);
+        return;
+      }
       flaggedFigures.push(...figs);
       eligible.push({ id, n: v.candidateTurnIndex, c });
     });
   }
   // One checker probe a turn, conclusion-changing first; none beside a
-  // deterministic flag on this message (that is the turn's probe).
+  // deterministic flag on this message (that is the turn's probe) or a
+  // misquote code corrects this turn (one math line a turn).
   eligible.sort((a, b) => Number(b.c.changesConclusion) - Number(a.c.changesConclusion) || a.n - b.n);
   let selected: CheckerSelection | null = null;
   const waiting = [...eligible];
-  while (!selected && p.currentFlags.length === 0 && waiting.length > 0) {
+  while (!selected && p.currentFlags.length === 0 && !p.codeLineThisTurn && waiting.length > 0) {
     const { id, n, c } = waiting.shift()!;
     const key = checkerKey(c);
     const interviewerSince = p.turnRows.filter(t => t.role === 'interviewer' && t.turnIndex > n).map(t => t.text);

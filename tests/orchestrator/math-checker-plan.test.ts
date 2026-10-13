@@ -60,6 +60,13 @@ describe('a landed verdict on a model turn', () => {
     expect(p.state.derivedValueTexts).toContain('8.5');
   });
 
+  it('held while code corrects a misquote this turn — one math line a turn', () => {
+    const p = modelState(planTurn(withVerdict(analysis(), [verdict(3)]), "Revenue grew about 19% over the period, so volume is clearly healthy — that's a decent sign demand isn't fragile.", deps()));
+    expect(p.state.misquote).not.toBeNull();
+    expect(p.state.recomputeHint ?? '').not.toMatch(/MATH CHECK FLAG/);
+    expect(p.ctx.flags.mathChecker).toBeUndefined();
+  });
+
   it('not raised again once handled', () => {
     const p = modelState(planTurn(withVerdict(analysis({ mathChecker: { handled: ['3:0'] } }), [verdict(3)]), 'Next I would look at competitors.', deps()));
     expect(p.state.recomputeHint ?? '').not.toMatch(/MATH CHECK FLAG/);

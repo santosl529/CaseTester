@@ -17,6 +17,7 @@ import { summarizeDataRequests } from './data-coverage';
 import { buildInterviewerMarks, formatInterviewerMarksSection, dropClaimsOnMarkedTurns, type InterviewerMark } from './interviewer-errors';
 import { buildChallengeMarks, verifyCandidateTurns, genuineErrorSpans, formatClaimChecksSection } from './challenge-marks';
 import { formatCheckerSection, checkerFlaggedFigures, dropCheckerStamps } from './checker-record';
+import { caseNumbersOf } from '@/lib/orchestrator/math-checker-live';
 import { applyStageCaps, formatStageRecordSection, reconstructStages } from './stage-caps';
 import { exhibitsShown } from '@/db/schema';
 import type { StageRecord } from '@/lib/orchestrator/stage-evidence';
@@ -187,14 +188,15 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   // The math checker's record (checker-record.ts): its flags and their
   // outcomes for the judge; a stamp it found wrong no longer counts.
   const checkerRows = markEvents.filter(e => e.category === 'math_checker');
-  const verification = dropCheckerStamps(verifyCandidateTurns(transcript, caseData, revealedBefore), checkerRows);
+  const caseNumbers = caseNumbersOf(caseData, revealedIds);
+  const verification = dropCheckerStamps(verifyCandidateTurns(transcript, caseData, revealedBefore), checkerRows, caseNumbers);
   const marks = [
     ...buildInterviewerMarks(
       transcript,
       markEvents.map(e => ({ category: e.category, subtype: e.subtype, turnIndex: e.turnIndex })),
       dataCoverage.requestedUnanswered,
     ),
-    ...buildChallengeMarks(transcript, caseData, revealedBefore, verification, checkerFlaggedFigures(checkerRows)),
+    ...buildChallengeMarks(transcript, caseData, revealedBefore, verification, checkerFlaggedFigures(checkerRows, caseNumbers)),
     ...exitMarks(transcript, interventionRows),
   ];
   if (marks.length > 0) console.warn('[score] interviewer-error marks:', JSON.stringify(marks.map(m => [m.kind, m.interviewerTurn])));

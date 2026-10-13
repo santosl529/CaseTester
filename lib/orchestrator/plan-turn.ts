@@ -509,6 +509,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     const shown = [...shownExhibitIds];
     ctx.background(startMathCheck({
       caseData, candidateTurnIndex: ctx.nextTurnIndex, codeMath: candidateMath, config: checkerConfig,
+      misquotes: found.map(m => ({ item: m.items[0], cited: m.cited, sentence: m.sentence })),
       input: {
         revealedIds: revealedIdsNow, shownExhibitIds: shown, message: candidateText,
         transcript: turnRows.filter(t => !(t.role === 'interviewer' && isSilenceLine(t.text)))
@@ -524,7 +525,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const checkerPlan = planCheckerFlags({
     rows: (reads.checkerEventRows ?? []).filter(r => r.category === MATH_CHECKER_CATEGORY),
     handled: checkerHandled, turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
-    currentFlags: recomputeFlags, attempts: recomputeAttempts, underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
+    currentFlags: recomputeFlags, codeLineThisTurn: misquote !== null, attempts: recomputeAttempts, underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
     candidateFigures, caseData, revealedIds: revealedIdsNow,
   });
   // Deterministic first: a stamp the checker found wrong no longer protects

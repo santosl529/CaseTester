@@ -10,12 +10,13 @@
 //     (dedupe) are theirs, and left out here.
 import type { VettedClaim } from '@/lib/orchestrator/math-checker';
 import type { VerdictPayload, CheckerDecision } from '@/lib/orchestrator/math-checker-live';
-import { numbersOf, boundInput } from '@/lib/orchestrator/math-checker';
+import { claimFigures } from '@/lib/orchestrator/math-checker-live';
 import type { TurnVerification } from './challenge-marks';
+
+const same = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.05, Math.abs(b) * 0.01);
 
 export type CheckerEventRow = { category: string; subtype: string; turnIndex: number | null; payloadJsonb: unknown };
 
-const same = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.05, Math.abs(b) * 0.01);
 
 type Flagged = { id: string; turn: number; claim: VettedClaim; outcomes: CheckerDecision[] };
 
@@ -28,18 +29,17 @@ function flaggedClaims(rows: CheckerEventRow[]): Flagged[] {
     .filter(f => f.claim.flag && !f.outcomes.some(d => d.outcome === 'dedupe' || d.outcome === 'disagrees_with_code'));
 }
 
-const figuresOf = (c: VettedClaim) => { const input = boundInput(c); return numbersOf(c.candidateValue).filter(n => input === null || !same(n, input)); };
-
-// The candidate figures the checker flagged, by candidate turn.
-export function checkerFlaggedFigures(rows: CheckerEventRow[]): Map<number, number[]> {
+// The candidate figures the checker flagged, by candidate turn (a word
+// quantity has none; `caseNumbers`: the case's figures, quoted not derived).
+export function checkerFlaggedFigures(rows: CheckerEventRow[], caseNumbers: number[] = []): Map<number, number[]> {
   const out = new Map<number, number[]>();
-  for (const f of flaggedClaims(rows)) out.set(f.turn, [...(out.get(f.turn) ?? []), ...figuresOf(f.claim)]);
+  for (const f of flaggedClaims(rows)) out.set(f.turn, [...(out.get(f.turn) ?? []), ...claimFigures(f.claim, caseNumbers)]);
   return out;
 }
 
 // Verification without the stamps the checker found wrong.
-export function dropCheckerStamps(v: Map<number, TurnVerification>, rows: CheckerEventRow[]): Map<number, TurnVerification> {
-  const flagged = checkerFlaggedFigures(rows);
+export function dropCheckerStamps(v: Map<number, TurnVerification>, rows: CheckerEventRow[], caseNumbers: number[] = []): Map<number, TurnVerification> {
+  const flagged = checkerFlaggedFigures(rows, caseNumbers);
   return new Map([...v].map(([turn, x]) => [turn, { ...x, verified: x.verified.filter(s => !(flagged.get(turn) ?? []).some(n => same(n, s.value))) }]));
 }
 
@@ -50,6 +50,7 @@ function outcomeText(outcomes: CheckerDecision[]): string {
   if (has('stale')) return 'The candidate revised or withdrew it since.';
   if (has('pointer')) return 'Probed twice (the second time against the data); not corrected.';
   if (has('probe')) return 'Probed; not corrected.';
+  if (has('expired')) return 'Not raised in the interview (it waited behind other checks and expired).';
   if (has('shed')) return 'Not raised in the interview (minor, under time pressure).';
   if (has('unresolved_at_close')) return 'Not raised in the interview (the case closed first).';
   return 'Not raised in the interview (the check landed after the case moved on).';

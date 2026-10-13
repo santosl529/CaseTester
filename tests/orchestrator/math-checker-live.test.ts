@@ -119,6 +119,11 @@ describe('one checker probe per turn', () => {
     expect(p.selected?.id).toBe('3:1');
     expect(p.handledNow).not.toContain('3:0');
   });
+  it('none while code corrects a misquote this turn — one math line a turn (replay: Tyler b19 t17)', () => {
+    const p = planCheckerFlags(input({ codeLineThisTurn: true }));
+    expect(p.selected).toBeNull();
+    expect(p.waiting).toHaveLength(1);
+  });
   it('none while a deterministic flag fired on this message — it is the turn\'s probe', () => {
     const p = planCheckerFlags(input({ currentFlags: [{ kind: 'arithmetic', stepId: 'arith:16 / 18', description: '', expected: 0.89, candidateValue: 1.6, errorClass: 'case_breaking', span: '16 / 18 = 1.6%' }] }));
     expect(p.selected).toBeNull();
@@ -133,9 +138,40 @@ describe('dedupe with the deterministic checks — one probe per claim', () => {
     expect(p.decisions[0]).toEqual(expect.objectContaining({ outcome: 'dedupe' }));
     expect(p.handledNow).toContain('3:0');
   });
+  it("a figure code corrected as a misquote in the message: dropped (replay: Tyler b19 \"revenue grew about 19%\")", () => {
+    const tyler = vetted({ span: 'Revenue grew about 19% over the period', candidateValue: '19%', correctValue: 15, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
+    const p = planCheckerFlags(input({ rows: [verdictRow(3, [tyler], { codeFlags: [{ key: 'misquote:revenue_growth', value: 19, span: 'Revenue grew about 19% over the period' }] })] }));
+    expect(p.decisions[0].outcome).toBe('dedupe');
+  });
   it('a code flag on the same figure (another key): dropped', () => {
     const p = planCheckerFlags(input({ rows: [verdictRow(3, [vetted()], { codeFlags: [{ key: 'arith:58 / 110', value: 5, span: 'about 5 points' }] })] }));
     expect(p.decisions[0].outcome).toBe('dedupe');
+  });
+});
+
+describe("the claim's own figures", () => {
+  it('a word quantity carries none: its error is the words (replay: 0bfe5f38 t19 "fully explained", 4.2 and 11.8 correct)', () => {
+    const fully = vetted({ span: 'The 18-point decline is fully explained by input inflation — 4.2 points from beans, 11.8 from other inputs', candidateValue: 'fully (4.2 + 11.8 = 16 points of the 18)', correctValue: 0.89, actualShare: 0.89, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
+    const p = planCheckerFlags(input({ rows: [verdictRow(3, [fully], { stamps: [{ stepId: 'bean_points_added', value: 4.2, span: 'x' }, { stepId: 'non_bean_points_added', value: 11.8, span: 'x' }] })] }));
+    expect(p.droppedStamps).toEqual([]);
+    expect(p.flaggedFigures).toEqual([]);
+    expect(p.selected?.id).toBe('3:0');
+  });
+  it("a case figure in their value is a quote, not their figure (\"about 11% (6 + 5)\" — 6 is today's margin)", () => {
+    const p = planCheckerFlags(input({ rows: [verdictRow(3, [vetted({ candidateValue: 'about 11% (6 + 5)', codeQuantity: { kind: 'none', stepId: null, price: null, target: null } })])] }));
+    expect([...p.flaggedFigures].sort()).toEqual([11, 5].sort());
+  });
+});
+
+describe('a flag that waited too long expires (proposed: two later messages)', () => {
+  it('raised on the first or second message after the claim; after that, expired — for the report', () => {
+    const turnRows = [...input().turnRows, { turnIndex: 5, role: 'candidate' as const, text: 'Next, competitors.' }, { turnIndex: 6, role: 'interviewer' as const, text: 'Go on.' }];
+    expect(planCheckerFlags(input({ turnRows, candidateTurnIndex: 7, candidateText: 'And the stores.' })).selected?.id).toBe('3:0');
+    const longer = [...turnRows, { turnIndex: 7, role: 'candidate' as const, text: 'And the stores.' }, { turnIndex: 8, role: 'interviewer' as const, text: 'Go on.' }];
+    const p = planCheckerFlags(input({ turnRows: longer, candidateTurnIndex: 9, candidateText: 'And the menu.' }));
+    expect(p.selected).toBeNull();
+    expect(p.decisions[0]).toEqual(expect.objectContaining({ id: '3:0', outcome: 'expired' }));
+    expect(p.handledNow).toContain('3:0');
   });
 });
 
@@ -159,6 +195,8 @@ describe('the stale check — a late verdict on a claim since revised or withdra
     'Scratch that, I mis-sized the gain.',
     'Actually, a 10% rise is closer to 8.5 points once labor and overhead shrink too.',
     'Let me redo the price math.',
+    // Tyler b19 t15, after code corrected his "revenue grew 19%".
+    "You're right, that's my error — the prompt said 15% and I don't have a source for 19%.",
   ])('withdrawn or revised: %s', text => expect(stale(text)).not.toBeNull());
   it('the right figure stated since', () => expect(stale('So the gain is 8.5 points.')).not.toBeNull());
   it('the same pricing claim restated (same kind, same price)', () => expect(stale('A 10% price rise recovers 8 points of margin.')).not.toBeNull());
@@ -167,6 +205,9 @@ describe('the stale check — a late verdict on a claim since revised or withdra
     'Actually, I would also look at competitors.',
     'A 15% price rise recovers more.',
     'A 15% price rise recovers about 12 points of margin.',  // another price: another claim
+    // Replay, Sofia b20 140fb90d t13 and 3f57efeb t11: "actually" mid-sentence, a figure about something else.
+    'That more than covers the 16-point move, which suggests beans may actually be a smaller part of the story than I assumed.',
+    'Volume growth actually masked the problem on the top line, which is probably why it took 2 years to surface.',
   ])('not stale: %s', text => expect(stale(text)).toBeNull());
   it("the right figure doesn't count when it is also a case figure (16 is COGS's rise)", () => {
     const whole = vetted({ span: 'the whole 18 points sits in COGS', candidateValue: 'the whole 18 points', correctValue: 16, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
@@ -216,9 +257,10 @@ describe('the background check', () => {
   };
   const raw = (): CheckerClaim => { const { flag: _f, probeLine: _p, correctionLine: _c, correctionFigure: _g, pointerLine: _q, vetNotes: _v, ...c } = vetted(); void _f; void _p; void _c; void _g; void _q; void _v; return { ...c, probe: 'How did you get 5 points?' }; };
 
-  it('a verdict: the claims vetted at the message, the code flags and stamps of the message', async () => {
-    const job = startMathCheck({ ...base, check: async () => ({ claims: [raw()], model: 'claude-sonnet-5-5', latencyMs: 5000, stopReason: 'end_turn' }) });
+  it('a verdict: the claims vetted at the message, the code flags (misquotes too) and stamps of the message', async () => {
+    const job = startMathCheck({ ...base, misquotes: [{ item: 'revenue_growth', cited: 'grew about 19%', sentence: 'Revenue grew about 19%.' }], check: async () => ({ claims: [raw()], model: 'claude-sonnet-5-5', latencyMs: 5000, stopReason: 'end_turn' }) });
     const r = await job.result;
+    expect((r.payload as VerdictPayload).codeFlags).toEqual([{ key: 'misquote:revenue_growth', value: 19, span: 'Revenue grew about 19%.' }]);
     expect(r.subtype).toBe('verdict');
     const v = r.payload as VerdictPayload;
     expect(v.candidateTurnIndex).toBe(3);
