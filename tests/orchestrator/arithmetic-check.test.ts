@@ -50,6 +50,26 @@ describe('the whole as 1 is read as 100 only where it is its own term beside fig
     expect(verdicts('Margin is 1 − 0.855 = 14.5%.')).toEqual([['1 - 0.855', 14.5, 'correct', false]]);
     expect(verdicts('So 1 − 0.5 = 99.5.')).toEqual([['1 - 0.5', 99.5, 'incorrect', false]]);
   });
+  // Lorenzo, 13 Oct: "rose 1 point", "a 1-point drop" and "1 in 4" are not the whole.
+  it('"rose 1 point": a 1 that is added is a point, not the whole — 13 + 1 = 113 is wrong, 13 + 1 = 14 right', () => {
+    expect(verdicts('Overhead rose 1 point, so 13 + 1 = 113.')).toEqual([['13 + 1', 113, 'incorrect', false]]);
+    expect(verdicts('Overhead rose 1 point, so 13 + 1 = 14.')).toEqual([['13 + 1', 14, 'correct', false]]);
+  });
+  it('only a 1 is the whole: 50 − 35.5 = 64.5 is wrong', () => {
+    expect(verdicts('So 50 − 35.5 = 64.5.')).toEqual([['50 - 35.5', 64.5, 'incorrect', false]]);
+  });
+  it('a 1 written with a unit is that unit, not the whole: 1 point − 85.5 = 14.5 is wrong', () => {
+    expect(verdicts('After the rise, 1 point − 85.5 = 14.5.')).toEqual([['1 point - 85.5', 14.5, 'incorrect', false]]);
+  });
+  it('"a 1-point drop": the glued 1 is no operand; a subtracted 1 is a point', () => {
+    expect(verdicts('Margin after a 1-point drop − 85.5 = 14.5.')).toEqual([]);
+    expect(verdicts('A 1-point drop takes 6 − 1 = 5.')).toEqual([['6 - 1', 5, 'correct', false]]);
+    expect(verdicts('A 1-point drop takes 6 − 1 = 105.')).toEqual([['6 - 1', 105, 'incorrect', false]]);
+  });
+  it('"1 in 4": a ratio, not the whole — 1 + 4 = 104 is wrong, 1 / 4 = 25% right', () => {
+    expect(verdicts('One in 4 stores: 1 + 4 = 104.')).toEqual([['1 + 4', 104, 'incorrect', false]]);
+    expect(verdicts('That is 1 in 4, so 1 / 4 = 25%.')).toEqual([['1 / 4', 25, 'correct', false]]);
+  });
   it('a 1 inside a product is not the whole: 1 × 0.5 + 14 = 64 is wrong', () => {
     expect(verdicts('So 1 × 0.5 + 14 = 64.')).toEqual([['1 × 0.5 + 14', 64, 'incorrect', false]]);
   });

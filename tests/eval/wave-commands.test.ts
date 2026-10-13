@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { mkdtempSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { liveRunArgs, scoresPersona, parseScoreIds, findRunDir, runIdOf, TEST_RUNS_DIR } from '@/lib/eval/wave-commands';
+import { liveRunArgs, scoresPersona, parseScoreIds, findRunDir, runIdOf, waveEstimate, CHECKER_CALLS_PER_RUN, TEST_RUNS_DIR } from '@/lib/eval/wave-commands';
 import { toFaultRecords } from '@/lib/eval/prescreen';
 import type { RunRecord } from '@/lib/eval/scorecard';
 
@@ -58,5 +58,27 @@ describe('wave commands', () => {
     const ids = [a, b].map(id => toFaultRecords(id, run, null, [proposal]).kept[0].id);
     expect(new Set(ids).size).toBe(2);
     expect(ids[0]).toBe('batch-18-oct-09-runs-1-10/03-ines-the-clarifier-t2-0');
+  });
+});
+
+// Lorenzo, 13 Oct: the printed estimate counts the math checker's calls, which
+// the budget meter counts too.
+describe('the wave estimate', () => {
+  const sonnet = { model: 'claude-sonnet-5-5', effort: 'medium' as const };
+  it('runs plus the checker: calls per run × the measured cost of a call', () => {
+    const e = waveEstimate({ scored: 2, unscored: 8, checker: sonnet });
+    expect(e.runsUsd).toBeCloseTo(2 * 0.77 + 8 * 0.30, 6);
+    expect(e.checkerCalls).toBe(10 * CHECKER_CALLS_PER_RUN);
+    expect(e.checkerUsd).toBeCloseTo(10 * CHECKER_CALLS_PER_RUN * 0.0187, 6);
+    expect(e.totalUsd).toBeCloseTo(e.runsUsd + e.checkerUsd, 6);
+  });
+  it('the checker switched off: runs only', () => {
+    const e = waveEstimate({ scored: 0, unscored: 3, checker: null });
+    expect(e.checkerCalls).toBe(0);
+    expect(e.checkerUsd).toBe(0);
+    expect(e.totalUsd).toBeCloseTo(0.9, 6);
+  });
+  it('a checker model with no measured cost is refused, not guessed', () => {
+    expect(() => waveEstimate({ scored: 0, unscored: 1, checker: { model: 'claude-opus-5-5', effort: 'medium' } })).toThrow(/no measured cost/);
   });
 });

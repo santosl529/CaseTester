@@ -3,7 +3,8 @@
 //
 //   npx tsx --env-file=.env.local scripts/persona-batch.ts --batch=batch-19 --interviewer=haiku55-thinking-off --personas=1,2,3 --cap=65 [--case=entry-001] [--pace=fast] [--new-version=v2] [--rerun] [--no-score] [--score=1,3] [--dry]
 //
-// Costs real money (≈ $0.77 per persona scored, ≈ $0.30 unscored). --dry prints the plan only.
+// Costs real money (≈ $0.77 per persona scored, ≈ $0.30 unscored, plus the
+// math checker's calls — lib/eval/wave-commands.ts waveEstimate). --dry prints the plan only.
 // --no-score: no run is scored (live-run --no-score; score one later with
 // live-run --finish=<sessionId>). --score=<ids>: only these personas are scored.
 // --interviewer names the evaluation interviewer (lib/models.ts
@@ -18,7 +19,8 @@ import path from 'node:path';
 import { readFileSync } from 'node:fs';
 import { planWave, markWaveResults, loadManifest, saveManifest, fileHash, assertBatchOpen, type PersonaEntry } from '@/lib/eval/batch-manifest';
 import { evalInterviewer, type ModelCheck } from '@/lib/eval/model-guard';
-import { liveRunArgs, findRunDir, scoresPersona, parseScoreIds } from '@/lib/eval/wave-commands';
+import { liveRunArgs, findRunDir, scoresPersona, parseScoreIds, waveEstimate } from '@/lib/eval/wave-commands';
+import { liveCheckerConfig } from '@/lib/orchestrator/math-checker-live';
 import { gitInfo, codeDirty, codeChangedSince } from '@/lib/eval/git-info';
 import { SCORING_MODEL_ID } from '@/lib/models';
 import { PERSONAS } from './personas';
@@ -28,8 +30,6 @@ const arg = (n: string) => process.argv.find(a => a.startsWith(`--${n}=`))?.spli
 const RUNS = 'Case Interview Runs/test runs';
 const BATCH = arg('batch') ?? '';
 const BATCH_DIR = path.join(RUNS, BATCH);
-const SCORED_USD = 0.77;
-const UNSCORED_USD = 0.30;
 
 // The model check live-run wrote into the run record (null: none recorded).
 function modelCheckOf(runDir: string): ModelCheck | null {
@@ -88,7 +88,10 @@ async function main() {
   console.log(`[wave] interviewer: ${interviewer.config} = ${interviewer.model} (thinking ${interviewer.thinking}${interviewer.effort ? `, effort ${interviewer.effort}` : ''}, fallbacks ${interviewer.fallbacks ? 'on' : 'off'})`);
   const scoredRuns = entries.filter(e => scored(e.personaId));
   console.log(`[wave] scored: ${scoredRuns.length ? scoredRuns.map(e => `#${e.runNumber}=persona ${e.personaId}`).join(', ') : 'none'} · unscored: ${entries.length - scoredRuns.length}`);
-  console.log(`[wave] estimate ≈ $${(scoredRuns.length * SCORED_USD + (entries.length - scoredRuns.length) * UNSCORED_USD).toFixed(2)} · batch cap $${cap} (ledger ${BATCH_DIR}/budget-ledger.jsonl)`);
+  // The children inherit this environment: the checker they will run (MATH_CHECKER_CONFIG).
+  const checker = liveCheckerConfig(process.env);
+  const est = waveEstimate({ scored: scoredRuns.length, unscored: entries.length - scoredRuns.length, checker });
+  console.log(`[wave] estimate ≈ $${est.totalUsd.toFixed(2)} (runs $${est.runsUsd.toFixed(2)} + math checker ${checker ? `${checker.model}, ≈${est.checkerCalls} calls $${est.checkerUsd.toFixed(2)}` : 'off $0.00'}) · batch cap $${cap} (ledger ${BATCH_DIR}/budget-ledger.jsonl)`);
   if (process.argv.includes('--dry')) return;
   // Presence only — the value is never printed.
   if (!process.env.ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY is not set — run with npx tsx --env-file=.env.local scripts/persona-batch.ts …');
