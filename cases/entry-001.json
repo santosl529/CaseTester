@@ -607,7 +607,7 @@
     },
     {
       "id": "exhibit-2",
-      "title": "US specialist survey — Reasons for and against prescribing Kelvexa (% of specialists naming each reason, n = 200)",
+      "title": "US specialist survey — Reasons for and against prescribing Kelvexa (% of specialists naming each reason)",
       "chartType": "table",
       "coversLedgerItems": [
         "survey_design",

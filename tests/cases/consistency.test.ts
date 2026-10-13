@@ -179,6 +179,19 @@ describe('every case', () => {
         }
       });
 
+      // FR-4: the interviewer never receives an unreleased figure. Labels and
+      // exhibit titles are in its prompt before anything is released, and
+      // code's own stage lines are spoken whenever they fire — so their
+      // figures must be the prompt's (13 Oct: "Survey: purchase intent at
+      // $3.99", "… sign-ups per month at $40 and $60", "% of 200 specialists").
+      it('labels, exhibit titles and code-written stage lines carry no figure the prompt lacks', () => {
+        const allowed = numbersIn(c.prompt);
+        const asks = [c.analysisCore?.ask ?? '', ...[c.brainstorm?.ask ?? []].flat()];
+        for (const [where, text] of [...c.dataLedger.map(d => [d.id, d.label]), ...c.exhibits.map(e => [e.id, e.title]), ...asks.map(a => ['stage line', a])]) {
+          for (const n of numbersIn(text.replace(/\b\d+ (?:years?|months?|weeks?)\b/g, ' '))) expect(allowed.has(n), `${where}: ${n} in "${text}" but not in the prompt`).toBe(true);
+        }
+      });
+
       it('phase budgets, if present, sum to the total case time', () => {
         const b = c.pacing?.phaseBudgetsMs;
         if (b) expect(Object.values(b).reduce((a, x) => a + (x ?? 0), 0)).toBe(TOTAL_CASE_MS);

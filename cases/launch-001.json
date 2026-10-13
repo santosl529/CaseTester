@@ -98,7 +98,7 @@
     },
     {
       "id": "purchase_intent",
-      "label": "Survey: purchase intent at $3.99",
+      "label": "Survey: purchase intent at the shelf price",
       "value": "Asked how likely they are to buy at $3.99 a bag, 10% of shoppers said definitely, 20% probably, 30% might or might not, 25% probably not and 15% definitely not.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -555,7 +555,7 @@
   "exhibits": [
     {
       "id": "exhibit-1",
-      "title": "Roasted chickpea snacks — Economics of one 5-ounce bag and first-year launch costs",
+      "title": "Roasted chickpea snacks — Economics of one bag and first-year launch costs",
       "chartType": "table",
       "coversLedgerItems": [
         "bag_price",
@@ -601,12 +601,12 @@
           "Amount": "$1.2 million"
         }
       ],
-      "notes": "Shoppers would pay about $3.99 per bag in stores; retailers keep the difference between that and the $3.00 Hollis Bay receives. Ingredient, packaging, roasting and freight costs rise with every bag made; launch costs do not.",
+      "notes": "One bag is 5 ounces. Shoppers would pay about $3.99 per bag in stores; retailers keep the difference between that and the $3.00 Hollis Bay receives. Ingredient, packaging, roasting and freight costs rise with every bag made; launch costs do not.",
       "interpretationKey": "Contribution per bag = $3.00 − ($0.70 + $0.30 + $0.30 + $0.20) = $1.50 (50% of the price Hollis Bay receives — healthy; the risk is volume, not margin). Launch costs that count = $3.0M + $4.5M + $1.5M = $9.0M; the $1.2M recipe development is already spent and doesn't change with the decision. Break-even = $9.0M ÷ $1.50 = 6.0 million bags (~115,000 a week). Use the $3.00 Hollis Bay receives, not the $3.99 shoppers pay. Per-bag costs rise with every bag; launch costs do not."
     },
     {
       "id": "exhibit-2",
-      "title": "Snack shopper survey — Roasted chickpea snacks at $3.99 per bag (% of 1,000 snack shoppers in Hollis Bay's region) and planning assumptions from past launches",
+      "title": "Snack shopper survey — Roasted chickpea snacks at the shelf price (% of snack shoppers in Hollis Bay's region) and planning assumptions from past launches",
       "chartType": "table",
       "coversLedgerItems": [
         "purchase_intent",
@@ -707,7 +707,7 @@
           "Value": "3"
         }
       ],
-      "notes": "Each survey response represents one household. In the “like” and “hesitate” questions, shoppers could pick up to two answers, so percentages add up to more than 100%.",
+      "notes": "1,000 snack shoppers in Hollis Bay's region, asked about roasted chickpea snacks at $3.99 per bag. Each survey response represents one household. In the “like” and “hesitate” questions, shoppers could pick up to two answers, so percentages add up to more than 100%.",
       "interpretationKey": "Stated intent overstates buying: 30% say definitely or probably, but with past conversion rates (10% × 60%) + (20% × 20%) = 10% of 30M households buy = 3.0M × 3 bags = 9.0M bags, 1.5× break-even (≈ $4.5M profit). The forecast leans on repeat: each buying household must buy at least 2 bags — at one bag each Hollis Bay sells 3.0M and loses ~$4.5M — and the top hesitation is taste (45%). Lead with protein (52%) and lower fat (40%). Like/hesitate answers allow two picks, so they add to more than 100%."
     },
     {

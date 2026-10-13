@@ -123,7 +123,7 @@
     },
     {
       "id": "price_test_results",
-      "label": "Starter price test results: sign-ups per month at $40 and $60",
+      "label": "Starter price test results: sign-ups per month at each test price",
       "value": "In the eight-week price test, sign-ups per month were 350 Pro and 1,000 Starter at a $40 Starter price, and 400 Pro and 800 Starter at $60, scaled to Quillpath's full website traffic.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
