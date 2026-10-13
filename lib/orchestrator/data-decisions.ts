@@ -138,7 +138,30 @@ export function outsideAskScope(what: string, item: { label: string; timeframes?
   return false;
 }
 
-export type ExhibitInfo = { id: string; title: string; coversLedgerItems?: string[] };
+export type ExhibitInfo = { id: string; title: string; coversLedgerItems?: string[]; after?: string[]; requiresItems?: string[] };
+
+// Release order (new cases, 13 Oct; the case's exhibit `after` / `requiresItems`):
+// an exhibit is ready once every exhibit it comes after is out — shown, or all
+// of its data already released as lines — and every item it requires is out.
+// Larkspur's Exhibit 3 before the per-flight math gives the answer away.
+export function exhibitReady(e: ExhibitInfo, exhibits: ExhibitInfo[], shown: Set<string>, ledger: DataLedger): boolean {
+  const out = (x: ExhibitInfo) => shown.has(x.id) || ((x.coversLedgerItems ?? []).length > 0 && (x.coversLedgerItems ?? []).every(id => ledger.revealed.has(id)));
+  return (e.after ?? []).every(id => { const x = exhibits.find(y => y.id === id); return x === undefined || out(x); })
+    && (e.requiresItems ?? []).every(id => ledger.revealed.has(id));
+}
+
+// The exhibit code hands over when it administers the exhibit stage: the
+// first not yet shown whose turn has come.
+export function nextReadyExhibit<E extends ExhibitInfo>(exhibits: E[], shown: Set<string>, ledger: DataLedger): E | undefined {
+  return exhibits.find(e => !shown.has(e.id) && exhibitReady(e, exhibits, shown, ledger));
+}
+
+// An item still unreleased that only exhibits not yet ready show waits with them.
+export function heldForOrder(id: string, exhibits: ExhibitInfo[], shown: Set<string>, ledger: DataLedger): boolean {
+  if (ledger.revealed.has(id)) return false;
+  const covering = exhibits.filter(e => (e.coversLedgerItems ?? []).includes(id));
+  return covering.length > 0 && covering.every(e => !shown.has(e.id) && !exhibitReady(e, exhibits, shown, ledger));
+}
 
 export type DataDecisions = {
   releases: { id: string; value: string; earlier: boolean }[];
@@ -178,11 +201,13 @@ export function decideData(p: {
   // batch 18 read the cost lines aloud and never showed the chart in 8 runs;
   // two or more of its items, still unreleased, in one explicit ask); else the
   // model's handover.
+  // Only an exhibit whose turn has come (exhibitReady) goes out, by any path.
+  const ready = (id: string) => exhibitById.has(id) && !p.shownExhibitIds.has(id) && exhibitReady(exhibitById.get(id)!, p.exhibits, p.shownExhibitIds, p.ledger);
   const explicitIds = p.requests.filter(r => r.explicit && r.respond === 'release').flatMap(r => r.itemIds);
-  const requestedExhibit = explicitIds.find(id => exhibitById.has(id) && !p.shownExhibitIds.has(id));
-  const coveringExhibit = p.exhibits.find(e => !p.shownExhibitIds.has(e.id)
+  const requestedExhibit = explicitIds.find(ready);
+  const coveringExhibit = p.exhibits.find(e => ready(e.id)
     && (e.coversLedgerItems ?? []).filter(id => explicitIds.includes(id) && canReveal(p.ledger, id)).length >= 2)?.id;
-  const exhibitId = requestedExhibit ?? coveringExhibit ?? (p.exhibit && exhibitById.has(p.exhibit) && !p.shownExhibitIds.has(p.exhibit) ? p.exhibit : null);
+  const exhibitId = requestedExhibit ?? coveringExhibit ?? (p.exhibit && ready(p.exhibit) ? p.exhibit : null);
   const exhibit = exhibitId
     ? { id: exhibitId, title: exhibitById.get(exhibitId)!.title, covers: exhibitById.get(exhibitId)!.coversLedgerItems ?? [] }
     : null;
@@ -203,6 +228,9 @@ export function decideData(p: {
   const decided: DataDecisions['requests'] = [];
 
   const available = (id: string) => itemById.has(id) && canReveal(p.ledger, id) && !releasing.has(id);
+  // Waiting on the release order: an item only an exhibit not yet ready shows, or that exhibit itself.
+  const orderHeld = (id: string) => (itemById.has(id) ? heldForOrder(id, p.exhibits, p.shownExhibitIds, p.ledger)
+    : exhibitById.has(id) && !p.shownExhibitIds.has(id) && id !== exhibit?.id && !ready(id));
 
   // Two passes: every direct release first, then deferrals and offers, so a
   // request is never deferred or offered for an item released this same turn
@@ -221,7 +249,7 @@ export function decideData(p: {
       return;
     }
     if (!r.explicit || r.respond === 'defer') { later.push({ at, r, ledgerIds }); return; }
-    let heldOver = false;
+    let heldOver = exhibitIds.some(orderHeld);
     for (const id of ledgerIds) {
       if (covered.has(id)) continue;
       if (restatable(id)) {
@@ -229,7 +257,7 @@ export function decideData(p: {
         continue;
       }
       if (!available(id)) continue;
-      if (releases.length >= cap) { heldOver = true; continue; }
+      if (orderHeld(id) || releases.length >= cap) { heldOver = true; continue; }
       releases.push({ id, value: itemById.get(id)!.value, earlier: openIds.has(id) });
       releasing.add(id);
     }
@@ -246,7 +274,7 @@ export function decideData(p: {
     const held = ledgerIds.filter(id => !releasing.has(id) && !covered.has(id));
     const partlyReleased = held.length < ledgerIds.length;
     if (!r.explicit) {
-      const offerable = held.filter(id => available(id) && !covered.has(id))
+      const offerable = held.filter(id => available(id) && !covered.has(id) && !orderHeld(id))
         .filter(id => mentionStatesNeed(p.candidateText, itemById.get(id)?.label ?? ''));
       if (offerable.length > 0 && r.respond === 'release' && !partlyReleased) offers.push(r.what);
     } else if (held.some(available) && !partlyReleased) {
@@ -258,7 +286,7 @@ export function decideData(p: {
   }
   decided.push(...decidedAt.sort((x, y) => x.at - y.at).map(x => x.d));
 
-  if (p.rung3 && p.rescueItem && available(p.rescueItem) && !covered.has(p.rescueItem) && releases.length < cap) {
+  if (p.rung3 && p.rescueItem && available(p.rescueItem) && !covered.has(p.rescueItem) && !orderHeld(p.rescueItem) && releases.length < cap) {
     releases.push({ id: p.rescueItem, value: itemById.get(p.rescueItem)!.value, earlier: false });
   }
 

@@ -98,6 +98,12 @@ const ExhibitSchema = z.object({
   // Ledger item ids whose figures this exhibit displays — showing the exhibit
   // releases them (docs/case-authoring.md, interviewer-behavior Rule 11).
   coversLedgerItems: z.array(z.string()).optional(),
+  // Release order (new cases, 13 Oct; lib/orchestrator/data-decisions.ts
+  // exhibitReady): exhibits that must be out first (each earlier in the list),
+  // and ledger items that must be released first. Until then neither the
+  // exhibit nor an item only it shows is released, by any path.
+  after: z.array(z.string()).optional(),
+  requiresItems: z.array(z.string()).optional(),
 });
 
 const RubricAnchorSchema = z.object({
@@ -233,6 +239,15 @@ export const CaseSchema = z.object({
     if (!ledgerIds.has(q.item)) ctx.addIssue({ code: 'custom', path: ['quoteAnchors', i, 'item'], message: `Unknown ledger item "${q.item}"` });
     const item = c.dataLedger.find(d => d.id === q.item);
     if (item && Object.keys(item.timeframes ?? {}).length === 0) ctx.addIssue({ code: 'custom', path: ['quoteAnchors', i, 'item'], message: `"${q.item}" has no timeframes, so it has no figures to check` });
+  });
+  c.exhibits.forEach((e, i) => {
+    (e.after ?? []).forEach((id, j) => {
+      const at = c.exhibits.findIndex(x => x.id === id);
+      if (at < 0 || at >= i) ctx.addIssue({ code: 'custom', path: ['exhibits', i, 'after', j], message: `"${id}" is not an exhibit earlier in the list` });
+    });
+    (e.requiresItems ?? []).forEach((id, j) => {
+      if (!ledgerIds.has(id)) ctx.addIssue({ code: 'custom', path: ['exhibits', i, 'requiresItems', j], message: `Unknown ledger item "${id}"` });
+    });
   });
   c.analysisCore?.items.forEach((id, i) => {
     if (!ledgerIds.has(id)) ctx.addIssue({ code: 'custom', path: ['analysisCore', 'items', i], message: `Unknown ledger item "${id}"` });

@@ -30,6 +30,7 @@ import { TOTAL_CASE_MS, type Phase } from './state-machine';
 import { stageGateOpen, endAllowed, recommendationUnresolved, asksRecommendationAsk } from './spoken-close';
 import { stagesFromTurns, type TurnMove } from './progress';
 import { CheckLog } from './check-log';
+import { nextReadyExhibit } from './data-decisions';
 import { correctionLines } from './misquote';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
@@ -592,7 +593,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // recommendation comes first then, and the stage is recorded as time_up.
   const stageRecord = (flags.stageEvidence as StageRecord | undefined) ?? INITIAL_STAGES;
   const stagesEnforced = (flags.stagesEnforced as Partial<Record<StageKey, boolean>> | undefined) ?? {};
-  const owedStage = missingRequiredStages(stageRecord, { hasExhibit: caseData.exhibits.length > 0, format: caseData.format })
+  // The exhibit stage is owed only while an exhibit is ready to hand over (release order).
+  const owedStage = missingRequiredStages(stageRecord, { hasExhibit: nextReadyExhibit(caseData.exhibits, shownExhibitIds, ledger) !== undefined, format: caseData.format })
     .find(k => !stagesEnforced[k]);
   const ptClosed = pressureTest.state === 'satisfied' || pressureTest.state === 'waived';
   const stageDue = owedStage !== undefined && ptClosed && !timeUp && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)

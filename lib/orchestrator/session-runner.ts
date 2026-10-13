@@ -22,6 +22,7 @@ import { planFingerprint, type DraftGate } from './speculation';
 import { promptContextFor } from './prompt-context';
 import { TurnRecorder, type TurnRecord, type TurnStateBefore } from './turn-record';
 import { revealedValues } from './data-ledger';
+import { nextReadyExhibit } from './data-decisions';
 import { streamTurnSegments } from './stream-turn';
 import { settleTurn, commitScripted, logSessionEvent, type TurnUsage, type ModelOutcome } from './settle-turn';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
@@ -436,7 +437,7 @@ function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null
               : recMath ? recMathLine(recMath.flag, 'probe')
             : `Take your time. The question on the table is ${restate(state.lastQuestion ?? '')}`;
   // The owed exhibit is handed over by code's own data line ("Here's an exhibit: …").
-  const exhibit = state.kind === 'stage_exhibit' ? state.caseData.exhibits.find(e => !state.shownExhibitIds.has(e.id))?.id ?? null : null;
+  const exhibit = state.kind === 'stage_exhibit' ? nextReadyExhibit(state.caseData.exhibits, state.shownExhibitIds, state.ledger)?.id ?? null : null;
   // Rule 14 past its probe: the figure, flat, before the revision question.
   const say = recMath?.action === 'correct' ? recMathLine(recMath.flag, 'correct') : '';
   return { move: 'other', requests, exhibit, rescueItem: null, say, question };

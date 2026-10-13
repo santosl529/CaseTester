@@ -788,6 +788,9 @@
         "extras_revenue",
         "lakeport_variable_cost"
       ],
+      "after": [
+        "exhibit-1"
+      ],
       "data": [
         {
           "Item": "Seats per flight",
@@ -850,6 +853,9 @@
         "new_routes_plan",
         "new_routes_cost_flights",
         "new_routes_context"
+      ],
+      "after": [
+        "exhibit-2"
       ],
       "data": [
         {

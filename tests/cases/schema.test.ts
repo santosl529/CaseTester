@@ -88,3 +88,20 @@ describe('CaseSchema quoteAnchors', () => {
     expect(CaseSchema.parse(rest).quoteAnchors).toEqual([]);
   });
 });
+
+describe('CaseSchema exhibit release order', () => {
+  const base = getCaseById('prof-002');
+  const exhibits = (patch: (e: typeof base.exhibits) => void) => { const e = structuredClone(base.exhibits); patch(e); return { ...base, exhibits: e }; };
+  it('accepts the order Larkspur ships (1 → 2 → 3)', () => {
+    expect(CaseSchema.safeParse(base).success).toBe(true);
+    expect(base.exhibits.map(e => e.after ?? [])).toEqual([[], ['exhibit-1'], ['exhibit-2']]);
+  });
+  it('rejects an exhibit that comes after itself or a later one (no cycles)', () => {
+    expect(CaseSchema.safeParse(exhibits(e => { e[1].after = ['exhibit-2']; })).success).toBe(false);
+    expect(CaseSchema.safeParse(exhibits(e => { e[0].after = ['exhibit-3']; })).success).toBe(false);
+  });
+  it('rejects an unknown exhibit or ledger item', () => {
+    expect(CaseSchema.safeParse(exhibits(e => { e[1].after = ['exhibit-9']; })).success).toBe(false);
+    expect(CaseSchema.safeParse(exhibits(e => { e[1].requiresItems = ['nope']; })).success).toBe(false);
+  });
+});

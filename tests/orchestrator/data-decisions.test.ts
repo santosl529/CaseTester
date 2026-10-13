@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decideData, renderDataLines, decisionRows, labelMatch, outsideAskScope, mentionStatesNeed } from '@/lib/orchestrator/data-decisions';
+import { decideData, renderDataLines, decisionRows, labelMatch, outsideAskScope, mentionStatesNeed, exhibitReady, heldForOrder, nextReadyExhibit } from '@/lib/orchestrator/data-decisions';
 import { createLedger, reveal, type LedgerItem } from '@/lib/orchestrator/data-ledger';
 import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
 
@@ -438,5 +438,95 @@ describe('spoken whats', () => {
   it('a parenthesis inside is read as an aside', () => {
     const d = decideData(base({ requests: [req({ what: 'price change of the other inputs (dairy, packaging, food) over the two years', itemIds: ['bean_price_change'], explicit: false })], candidateText: "I'd want the bean price trend." }));
     expect(renderDataLines(d, 's')).toEqual(["I can share price change of the other inputs — dairy, packaging and food — over the two years if you'd like."]);
+  });
+});
+
+// New cases (13 Oct): an exhibit may come only after others (Larkspur's
+// Exhibit 3 before the per-flight math gives the answer away). Every path —
+// a requested exhibit, one shown for the data it covers, the model's own
+// handover — waits; so does an item that only a waiting exhibit shows.
+describe('exhibit release order', () => {
+  const OITEMS: LedgerItem[] = [
+    { id: 'routes', label: 'Results by route', value: 'Lakeport lost $1.2M.', releaseWhen: 'ANALYSIS' },
+    { id: 'totals', label: 'Network totals', value: 'The network lost $4M.', releaseWhen: 'ANALYSIS' },
+    { id: 'fare', label: 'Lakeport fare', value: 'The Lakeport fare is $120.', releaseWhen: 'ANALYSIS' },
+    { id: 'seats', label: 'Lakeport seats and load', value: 'Each flight has 80 seats, 75% full.', releaseWhen: 'ANALYSIS' },
+    { id: 'plan', label: 'New route plan', value: 'New routes would fly 5,000 flights.', releaseWhen: 'ANALYSIS' },
+    { id: 'plan_cost', label: 'New route cost', value: 'Each new-route flight costs $9,200.', releaseWhen: 'ANALYSIS' },
+    { id: 'leases', label: 'Aircraft leases', value: 'Leases run three more years.', releaseWhen: 'CLARIFY' },
+  ];
+  const OEX = [
+    { id: 'exhibit-1', title: 'Results by route', coversLedgerItems: ['routes', 'totals'] },
+    { id: 'exhibit-2', title: 'One Lakeport flight', coversLedgerItems: ['fare', 'seats'], after: ['exhibit-1'] },
+    { id: 'exhibit-3', title: 'New routes', coversLedgerItems: ['plan', 'plan_cost'], after: ['exhibit-2'] },
+  ];
+  const ob = (over: Partial<Parameters<typeof decideData>[0]> = {}) => base({ ledger: createLedger(OITEMS), exhibits: OEX, ...over });
+
+  it('a requested exhibit whose predecessor is not out is deferred, not shown', () => {
+    const d = decideData(ob({ requests: [req({ what: 'the new-route estimates', itemIds: ['exhibit-3'] })], shownExhibitIds: new Set(['exhibit-1']) }));
+    expect(d.exhibit).toBeNull();
+    expect(renderDataLines(d, 's')).toEqual(["I'll come back to the new-route estimates shortly."]);
+    expect(decisionRows(d)[0].response).toBe('defer');
+  });
+
+  it('once its predecessors are shown the requested exhibit goes out', () => {
+    const d = decideData(ob({ requests: [req({ what: 'the new-route estimates', itemIds: ['exhibit-3'] })], shownExhibitIds: new Set(['exhibit-1', 'exhibit-2']) }));
+    expect(d.exhibit?.id).toBe('exhibit-3');
+  });
+
+  it("a predecessor counts as out once all of its data was released as lines", () => {
+    const l = createLedger(OITEMS); reveal(l, 'fare'); reveal(l, 'seats');
+    const d = decideData(ob({ ledger: l, requests: [req({ what: 'the new-route estimates', itemIds: ['exhibit-3'] })], shownExhibitIds: new Set(['exhibit-1']) }));
+    expect(d.exhibit?.id).toBe('exhibit-3');
+  });
+
+  it('an ask for two items of a waiting exhibit gets neither the exhibit nor the values', () => {
+    const d = decideData(ob({ requests: [req({ what: 'the new-route economics', itemIds: ['plan', 'plan_cost'] })] }));
+    expect(d.exhibit).toBeNull();
+    expect(d.releases).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual(["I'll come back to the new-route economics shortly."]);
+  });
+
+  it("an item only a waiting exhibit shows is held; one an exhibit doesn't show is released", () => {
+    const d = decideData(ob({ requests: [req({ what: 'the fare', itemIds: ['fare'] }), req({ what: 'the leases', itemIds: ['leases'] })] }));
+    expect(d.releases.map(r => r.id)).toEqual(['leases']);
+    expect(renderDataLines(d, 's')).toEqual(['Leases run three more years.', "I'll come back to the fare shortly."]);
+  });
+
+  it("the model's handover of a waiting exhibit is dropped; of a ready one, shown", () => {
+    expect(decideData(ob({ exhibit: 'exhibit-2' })).exhibit).toBeNull();
+    expect(decideData(ob({ exhibit: 'exhibit-2', shownExhibitIds: new Set(['exhibit-1']) })).exhibit?.id).toBe('exhibit-2');
+  });
+
+  it('no offer and no rescue release for an item a waiting exhibit shows', () => {
+    const offered = decideData(ob({ requests: [req({ what: 'the fare', itemIds: ['fare'], explicit: false })], candidateText: "I'd want the Lakeport fare to check." }));
+    expect(offered.offers).toEqual([]);
+    expect(decideData(ob({ rescueItem: 'fare', rung3: true })).releases).toEqual([]);
+  });
+
+  it('requiresItems: an exhibit waits for ledger items to be out', () => {
+    const ex = [{ id: 'exhibit-1', title: 'Results by route', coversLedgerItems: ['routes'], requiresItems: ['leases'] }];
+    expect(decideData(ob({ exhibits: ex, exhibit: 'exhibit-1' })).exhibit).toBeNull();
+    const l = createLedger(OITEMS); reveal(l, 'leases');
+    expect(decideData(ob({ exhibits: ex, ledger: l, exhibit: 'exhibit-1' })).exhibit?.id).toBe('exhibit-1');
+  });
+
+  it("code's exhibit stage hands over the first exhibit whose turn has come", () => {
+    const l = createLedger(OITEMS);
+    expect(nextReadyExhibit(OEX, new Set(), l)?.id).toBe('exhibit-1');
+    expect(nextReadyExhibit(OEX, new Set(['exhibit-1']), l)?.id).toBe('exhibit-2');
+    const waiting = [{ ...OEX[0], requiresItems: ['leases'] }, OEX[1]];
+    expect(nextReadyExhibit(waiting, new Set(), l)).toBeUndefined();
+  });
+
+  it('exhibitReady / heldForOrder read the same order', () => {
+    const l = createLedger(OITEMS);
+    expect(exhibitReady(OEX[1], OEX, new Set(), l)).toBe(false);
+    expect(exhibitReady(OEX[1], OEX, new Set(['exhibit-1']), l)).toBe(true);
+    expect(heldForOrder('fare', OEX, new Set(), l)).toBe(true);
+    expect(heldForOrder('fare', OEX, new Set(['exhibit-1']), l)).toBe(false);
+    expect(heldForOrder('leases', OEX, new Set(), l)).toBe(false);
+    reveal(l, 'fare');
+    expect(heldForOrder('fare', OEX, new Set(), l)).toBe(false);   // already out: a re-ask restates it
   });
 });

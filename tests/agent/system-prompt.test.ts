@@ -149,6 +149,14 @@ describe('exhibits already shown', () => {
     expect(p).toContain('- id: "exhibit-a" — Cost structure over time (already on the candidate\'s screen');
     expect(p).toContain('- id: "exhibit-b" — Store map\n');
   });
+  it('marks an exhibit whose turn in the release order has not come (new cases, 13 Oct)', () => {
+    const p = buildSystemPrompt(ctx({ exhibits: [
+      { id: 'exhibit-1', title: 'Results by route' },
+      { id: 'exhibit-2', title: 'One flight', notYet: true },
+    ] }));
+    expect(p).toContain('- id: "exhibit-1" — Results by route\n');
+    expect(p).toContain('- id: "exhibit-2" — One flight (not yet — it comes after the earlier exhibits; don\'t hand it over or mention it)');
+  });
 });
 
 // Latency plan step 3: the fixed instructions are a cacheable prefix, so

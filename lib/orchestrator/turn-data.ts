@@ -5,7 +5,7 @@
 import type { ModelTurn, DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import { resolveRequests } from '@/lib/agent/models/turn-schema';
 import type { ModelPlan } from './plan-turn';
-import { decideData, exactResolver, labelMatch, outsideAskScope, RELEASE_CAP, type DataDecisions } from './data-decisions';
+import { decideData, exactResolver, labelMatch, outsideAskScope, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo } from './data-decisions';
 import { findFalseRefusals, groupItemsAsked } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT } from './pressure-test';
 import { planForcedReleases } from './data-requests';
@@ -60,6 +60,10 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   const gated = (id: string) => (exhibitCovers.has(id) ? exhibitIsGated(ledger, exhibitCovers.get(id)!) : isGatedItem(ledger, id));
   const gatedIds: string[] = [];
   const gateHeld = new Set<string>();
+  const exhibits: ExhibitInfo[] = state.caseData.exhibits.map(e => ({ id: e.id, title: e.title, coversLedgerItems: e.coversLedgerItems, after: e.after, requiresItems: e.requiresItems }));
+  // An open ask whose data waits on the exhibit order is not forced out (it
+  // would be deferred out loud every turn); it goes once its exhibit is ready.
+  const waiting = (id: string) => heldForOrder(id, exhibits, state.shownExhibitIds, ledger);
 
   // An unmapped explicit ask (item_ids []) that names exactly one catalog
   // label is that item (v3, batch 18 Maya t6): an empty mapping is the
@@ -151,7 +155,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   if (forcesOpen) {
     const declared = new Set(requests.flatMap(r => r.itemIds));
     for (const id of planForcedReleases(state.openDataRequests, revealed, { currentTurnIndex: ctx.nextTurnIndex })) {
-      if (declared.has(id)) continue;
+      if (declared.has(id) || waiting(id)) continue;
       const open = state.openDataRequests.find(o => o.ledgerItemId === id)!;
       requests.push({ what: open.what, itemIds: [id], explicit: true, respond: 'release' });
     }
@@ -166,7 +170,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
         .flatMap(r => r.itemIds).filter(id => ledger.items.some(i => i.id === id) && !revealed.has(id)).length;
       const room = Math.max(0, RELEASE_CAP - releasing);
       const pending = planForcedReleases(state.openDataRequests, revealed, { currentTurnIndex: ctx.nextTurnIndex, cap: Infinity })
-        .filter(id => !declared.has(id) && !(gateOn && gated(id)));
+        .filter(id => !declared.has(id) && !(gateOn && gated(id)) && !waiting(id));
       // Over the cap: deferred out loud, released on a later turn (v3).
       pending.forEach((id, i) => {
         const open = state.openDataRequests.find(o => o.ledgerItemId === id)!;
@@ -183,7 +187,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     rescueItem: turn.rescueItem ? resolve(turn.rescueItem) : null,
     rung3: Boolean(state.stallDecision.intervene && state.stallDecision.rung === 3),
     ledger,
-    exhibits: state.caseData.exhibits.map(e => ({ id: e.id, title: e.title, coversLedgerItems: (e as { coversLedgerItems?: string[] }).coversLedgerItems })),
+    exhibits,
     shownExhibitIds: state.shownExhibitIds,
     open: state.openDataRequests,
     gateHeld,

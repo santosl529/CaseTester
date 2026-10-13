@@ -8,7 +8,7 @@ export type PromptContext = {
   currentPhase: Phase;
   revealedValues: Record<string, string>;             // id → value (already disclosed)
   unrevealedItems: { id: string; label: string }[];   // ids + labels of items not yet revealed
-  exhibits: { id: string; title: string; shown?: boolean }[]; // id + title only; shown = already on the candidate's screen
+  exhibits: { id: string; title: string; shown?: boolean; notYet?: boolean }[]; // id + title only; shown = already on the candidate's screen; notYet = its turn in the release order hasn't come
   advancedLastTurn: boolean; // the phase moved on the previous turn — no visible gear-shift
   elapsedMs: number;   // real wall-clock time since the session started
   totalMs: number;     // hard time limit for the whole case
@@ -114,7 +114,7 @@ export function buildPromptParts(ctx: PromptContext): { stable: string; turn: st
     : 'All case data has been released.';
 
   const exhibitSection = ctx.exhibits.length > 0
-    ? `EXHIBITS:\n${ctx.exhibits.map(e => `- id: "${e.id}" — ${e.title}${e.shown ? ' (already on the candidate\'s screen — refer to it, don\'t hand it over again)' : ''}`).join('\n')}`
+    ? `EXHIBITS:\n${ctx.exhibits.map(e => `- id: "${e.id}" — ${e.title}${e.shown ? ' (already on the candidate\'s screen — refer to it, don\'t hand it over again)' : e.notYet ? ' (not yet — it comes after the earlier exhibits; don\'t hand it over or mention it)' : ''}`).join('\n')}`
     : '';
 
   // Fallback for callers that don't pass case-config budgets (older tests,

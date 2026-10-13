@@ -29,7 +29,7 @@ import { toCheckEventRows } from './check-log';
 import { pickScript, STAGE_EXHIBIT_QUESTIONS } from '@/lib/agent/prompts/scripts';
 import { BLOCKED_CLOSE_PROBES, asksForConclusion } from './spoken-close';
 import { updateStages, type StageKey, type StageRecord } from './stage-evidence';
-import { renderDataLineParts, decisionRows } from './data-decisions';
+import { renderDataLineParts, decisionRows, nextReadyExhibit } from './data-decisions';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
 import { turnData, pressureTestOutcomeNow } from './turn-data';
@@ -395,7 +395,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       question = pickScript([...BLOCKED_CLOSE_PROBES.brainstorm], seed);
       stageAsked = 'brainstorm';
     } else if (!decisions.exhibit) {
-      heldForExhibit = caseData.exhibits.find(e => !state.shownExhibitIds.has(e.id));
+      heldForExhibit = nextReadyExhibit(caseData.exhibits, state.shownExhibitIds, ledger);
       if (heldForExhibit) {
         question = `Here's an exhibit: ${heldForExhibit.title}. ${pickScript(STAGE_EXHIBIT_QUESTIONS, seed)}`;
         stageAsked = 'exhibit';
