@@ -31,6 +31,7 @@ export type CorpusTurn = {
   exhibitNow: string | null;   // an exhibit handed over this turn
   seeded: boolean;             // copied from another run by a prefix seed — not this run's interviewer
   openBefore?: string[];       // ledger ids of explicit asks still open before this turn (turn files only)
+  elapsedMs?: number;          // case clock before this turn (turn files; records: from the turn's timestamp)
 };
 
 export type CorpusRun = {
@@ -154,6 +155,7 @@ function fromTurnFile(p: string, covers: (exhibitId: string) => string[]): { tur
       move: r.parsedTurn?.move ?? null, segments, heard: r.savedLine,
       revealedBefore: r.stateBefore.revealedIds, releasedNow, shownBefore: r.stateBefore.shownExhibitIds, exhibitNow, seeded: false,
       openBefore: r.stateBefore.openDataRequests.map(o => o.ledgerItemId),
+      elapsedMs: r.stateBefore.elapsedMs ?? undefined,
     };
   });
   return { turns: out, header };
@@ -186,6 +188,7 @@ function fromRecord(run: RunJson, ledger: LedgerLike, covers: (exhibitId: string
       out.push({
         t: t.turnIndex, candidateText: prev.text, phase: lat?.phase ?? '', kind: lat?.kind ?? '', move: moves[String(t.turnIndex)] ?? null,
         segments, heard: t.text, revealedBefore: [...revealed], releasedNow, shownBefore: [...shown], exhibitNow, seeded: false,
+        elapsedMs: Number.isFinite(Date.parse(run.session.startedAt)) ? t.timestampMs - Date.parse(run.session.startedAt) : undefined,
       });
     }
     for (const id of releasedNow) revealed.add(id);

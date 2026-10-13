@@ -818,6 +818,15 @@
       }
     ]
   },
+  "analysisCore": {
+    "items": [
+      "bean_share_of_cogs",
+      "bean_price_change",
+      "non_bean_input_change"
+    ],
+    "minItems": 2,
+    "ask": "Before we get to a recommendation: what's driving the margin drop, and what would you need to know to pin it down?"
+  },
   "pricingModel": {
     "costItems": [
       "cogs_pct",

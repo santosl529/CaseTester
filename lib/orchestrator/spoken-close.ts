@@ -82,6 +82,36 @@ const RISK_ASK =
 const REC_ASK =
   /\b(bottom.?line recommendation|recommendation to the (ceo|client)|final recommendation|what(?:'?s| is) your recommendation|give me your recommendation|what would you (tell|recommend) (to )?the (ceo|client)|pull it together|what would your (?:\w+ )?recommendation be|what would you recommend(?=\s*(?:[?.!]|[,;:\u2014\u2013]\s*(?!to\b)(?:and\b|what should\b|(?:\w+ ?){1,3}\?)|$))|what would you recommend (?!(?:we|i|us|to|as|in|looking)\b)[\w&' ]{1,40}?(?<!\bto) do)\b/i;
 
+// A call for the candidate's conclusion, wider than the counted ask (fact
+// guards Phase 5, batch 20 D7): "what do you recommend the client do",
+// "the CEO wants your recommendation", and a lever choice — "which single lever
+// would you start with", "the most credible lever to close the gap". Not "which
+// branch would you start with" (structure). For holding an early ask only; the
+// end gate keeps counting REC_ASK.
+const CONCLUSION_ASK =
+  /\bwhat do you recommend\b(?!\s+(?:we|i|us|to|as|in|looking)\b)|\b(?:wants|needs|give me|hear|asks? (?:you )?for) your (?:\w+ )?recommendation\b|\bwhich\s+(?:single\s+|one\s+|of\s+(?:your|these|those|the)\s+)?(?:levers?|options?|moves?|actions?)\b[^?]{0,60}\b(?:first|start|prioriti[sz]e|pull|lead with)\b|\bmost credible lever\b|\bwhat would you do first\b|\bas the (?:primary|main|final|headline) recommendation\b/i;
+export function asksForConclusion(text: string): boolean { return REC_ASK.test(text) || CONCLUSION_ASK.test(text); }
+
+// The risk question as a stage (fact guards Phase 5; batch 20 grading): the
+// strict asks, a contingency on the plan ("If the pilot shows traffic falling,
+// at what point would you stop the price increase?"), or "which of the risks
+// you've named would derail this". Not an analysis "…and how would you test
+// that?" (R16, R18: counted as the risk question, so the case closed with none
+// asked).
+const RISK_STAGE =
+  /\b(?:biggest risk|key risk|main risk|what could go wrong|what would change your mind|what would make you wrong|how would you de-?risk|risks? (?:to|of|with|in) (?:that|this|your) (?:recommendation|plan)|how would you test (?:the|your|that|this) (?:recommendation|plan|price increase|pricing move)|derail|risks? you'?ve (?:named|raised|flagged))\b/i;
+const CONTINGENCY = /\bif\b[^?]{0,140}?\b(?:what (?:would|do) you do|would you (?:stop|pause|pull back|roll back|change course|adjust)|how would you (?:decide|respond|react|adjust)|what'?s your fallback)\b/i;
+// afterRecommendation: a contingency counts only once a recommendation is on the table.
+export function asksRiskQuestion(text: string, afterRecommendation = true): boolean {
+  return RISK_STAGE.test(text) || (afterRecommendation && CONTINGENCY.test(text));
+}
+// A risk question that names a recommendation already made ("You're
+// recommending an 11% price increase … the single biggest risk to that
+// recommendation?") — the recommendation stage happened, volunteered.
+export function namesCandidateRecommendation(text: string): boolean {
+  return asksRiskQuestion(text) && /\byou'?re recommending\b|\b(?:your|that) recommendation\b/i.test(text);
+}
+
 export function asksBrainstorm(text: string): boolean { return BRAINSTORM_ASK.test(text); }
 export function asksRisk(text: string): boolean { return RISK_ASK.test(text); }
 export function asksRecommendationAsk(text: string): boolean { return REC_ASK.test(text); }

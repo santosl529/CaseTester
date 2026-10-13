@@ -140,6 +140,17 @@ export const CaseSchema = z.object({
   // candidate-led cases leave the order to the candidate. Only interviewer-led
   // cases exist so far.
   format: z.enum(['interviewer_led', 'candidate_led']).default('interviewer_led'),
+  // The core analysis (fact guards Phase 5, 12 Oct): the ledger items the case
+  // turns on — no recommendation ask and no close before they are out, unless
+  // the clock is out (batch 20: recommendations asked at 7 min with the COGS
+  // split never released). `ask` is code's one line back to it.
+  analysisCore: z.object({
+    items: z.array(z.string()).min(1),
+    // Attempted once this many of the items are out (default: all). Batch 20
+    // grading: two of the three COGS inputs out is the analysis attempted.
+    minItems: z.number().int().min(1).optional(),
+    ask: z.string().min(1),
+  }).optional(),
   // Rule 2/14 unit check (lib/orchestrator/unit-check.ts): cost lines whose
   // shares candidates convert into points of revenue, and the ledger item that
   // gives that line's own share of revenue (its timeframes give the values).
@@ -222,6 +233,9 @@ export const CaseSchema = z.object({
     if (!ledgerIds.has(q.item)) ctx.addIssue({ code: 'custom', path: ['quoteAnchors', i, 'item'], message: `Unknown ledger item "${q.item}"` });
     const item = c.dataLedger.find(d => d.id === q.item);
     if (item && Object.keys(item.timeframes ?? {}).length === 0) ctx.addIssue({ code: 'custom', path: ['quoteAnchors', i, 'item'], message: `"${q.item}" has no timeframes, so it has no figures to check` });
+  });
+  c.analysisCore?.items.forEach((id, i) => {
+    if (!ledgerIds.has(id)) ctx.addIssue({ code: 'custom', path: ['analysisCore', 'items', i], message: `Unknown ledger item "${id}"` });
   });
   if (c.pricingModel) {
     const pm = c.pricingModel;
