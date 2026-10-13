@@ -72,6 +72,11 @@ describe('checkRecomputeForTurn', () => {
       expect(flags.map(f => f.stepId)).toEqual(['cogs_dollar_impact']);
     });
 
+    it('never reads another cost line\'s dollars as the COGS impact (batch 20 R01 t14)', () => {
+      expect(checkRecomputeForTurn('And overhead, which drifted 2 points, worth maybe $10M.', prof, ALL)).toEqual([]);
+      expect(checkRecomputeForTurn('Labor crept up a point, so that hit is about $5M.', prof, ALL)).toEqual([]);
+    });
+
     it('never checks the prompt-fact margin steps live', () => {
       expect(checkRecomputeForTurn('To get back to a 15% margin we need pricing.', prof, ALL)).toEqual([]);
     });

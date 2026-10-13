@@ -66,6 +66,9 @@ const MathStepSchema = z.object({
   // Without cues, any number anywhere counted — the 27–28 Sep persona runs'
   // false corrections and false report errors.
   cues: z.array(z.string().min(2)).min(1),
+  // A sentence naming one of these is about another quantity, not this step
+  // ("And overhead, which drifted 2 points, worth maybe $10M" is no COGS impact).
+  notCues: z.array(z.string().min(2)).optional(),
   unit: z.union([z.enum(['percent', 'points', 'usd']), z.array(z.enum(['percent', 'points', 'usd'])).min(1)]).optional(),
   // Ledger items the step is derived from; the step is checked only once all
   // are revealed. Empty = derivable from the case prompt alone.

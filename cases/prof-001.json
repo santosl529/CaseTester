@@ -160,6 +160,13 @@
         "worth",
         "costing"
       ],
+      "notCues": [
+        "overhead",
+        "labor",
+        "labour",
+        "wage",
+        "rent"
+      ],
       "unit": "usd",
       "inputs": [
         "cogs_pct",

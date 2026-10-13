@@ -20,6 +20,7 @@ export type SpanStep = {
   id: string;
   description: string;
   cues?: string[];
+  notCues?: string[]; // a sentence naming one of these is about another quantity ("overhead … worth maybe $10M")
   unit?: MathUnit | MathUnit[]; // several: the step is stated either way ("10.5% of revenue" / "10.5 points")
 };
 
@@ -77,8 +78,12 @@ export function findStepSpans(rawText: string, step: SpanStep, scope: 'clause' |
   const text = normalizeNumberWords(rawText);
   const cues = cuesFor(step);
   const units = step.unit === undefined ? undefined : Array.isArray(step.unit) ? step.unit : [step.unit];
+  const notCues = (step.notCues ?? []).map(c => c.toLowerCase());
   const matches: SpanMatch[] = [];
-  for (const raw of text.split(scope === 'clause' ? CLAUSE_SPLIT : SENTENCE_SPLIT)) {
+  const pieces = text.split(SENTENCE_SPLIT)
+    .filter(sentence => !notCues.some(c => cueCharIndexes(sentence, c).length > 0))
+    .flatMap(sentence => scope === 'clause' ? sentence.split(CLAUSE_SPLIT) : [sentence]);
+  for (const raw of pieces) {
     const clause = raw.trim();
     if (!clause) continue;
     const cueAt = cues.flatMap(c => cueCharIndexes(clause, c));
