@@ -228,6 +228,12 @@ export function decideData(p: {
   const decided: DataDecisions['requests'] = [];
 
   const available = (id: string) => itemById.has(id) && canReveal(p.ledger, id) && !releasing.has(id);
+  // What a promise says: an ask worded as an item's catalog label is said as the item (spokenItemName).
+  const norm = (x: string) => x.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const promised = (r: DeclaredRequest, ids: string[]) => {
+    const label = ids.map(id => itemById.get(id)?.label).find((l): l is string => l !== undefined && norm(l) === norm(r.what));
+    return label ? spokenItemName(label) : r.what;
+  };
   // Waiting on the release order: an item only an exhibit not yet ready shows, or that exhibit itself.
   const orderHeld = (id: string) => (itemById.has(id) ? heldForOrder(id, p.exhibits, p.shownExhibitIds, p.ledger)
     : exhibitById.has(id) && !p.shownExhibitIds.has(id) && id !== exhibit?.id && !ready(id));
@@ -261,7 +267,7 @@ export function decideData(p: {
       releases.push({ id, value: itemById.get(id)!.value, earlier: openIds.has(id) });
       releasing.add(id);
     }
-    if (heldOver) defers.push(r.what);
+    if (heldOver) defers.push(promised(r, ledgerIds));
     decidedAt.push({ at, d: { request: r, response: heldOver ? 'defer' : 'release', ledgerItemIds: ledgerIds } });
   });
 
@@ -276,9 +282,9 @@ export function decideData(p: {
     if (!r.explicit) {
       const offerable = held.filter(id => available(id) && !covered.has(id) && !orderHeld(id))
         .filter(id => mentionStatesNeed(p.candidateText, itemById.get(id)?.label ?? ''));
-      if (offerable.length > 0 && r.respond === 'release' && !partlyReleased) offers.push(r.what);
+      if (offerable.length > 0 && r.respond === 'release' && !partlyReleased) offers.push(promised(r, ledgerIds));
     } else if (held.some(available) && !partlyReleased) {
-      (p.gateHeld?.has(r.what) ? gateDefers : defers).push(r.what);
+      (p.gateHeld?.has(r.what) ? gateDefers : defers).push(promised(r, ledgerIds));
     }
     decidedAt.push({ at, d: held.length === 0 && ledgerIds.length > 0
       ? { request: r, response: 'release', ledgerItemIds: ledgerIds }
@@ -310,6 +316,7 @@ function spokenWhat(what: string): string {
     || /\d/.test(first)
     || (letters.length >= 2 && letters === letters.toUpperCase())
     || /[A-Z]/.test(first.slice(1))
+    || /^[A-Z][a-z]+['’]s$/.test(first)   // a possessive name: "Kelvexa's", "Larkspur's"
     || /^[A-Z]/.test(next);
   return keep ? what : what.charAt(0).toLowerCase() + what.slice(1);
 }
@@ -324,7 +331,10 @@ function spokenWhat(what: string): string {
 // and an unclosed aside runs into the next item). A figure's own "%" stays.
 // A catalog heading before a colon is dropped (fact checks, 12 Oct: remapped asks are said back in labels).
 function speakable(what: string, conj: 'and' | 'or', inList: boolean): string {
-  return what
+  // A promise names the item; the data line will state its periods (batch 21 D8,
+  // Anika t6: "COGS as a percent of revenue, both years, labor …, both years").
+  // A refusal keeps them: they may be exactly what the case lacks.
+  return (conj === 'and' ? what.replace(PERIOD_TAIL, '') : what)
     // A catalog heading before a colon isn't said: "Composition of COGS: coffee beans' share of COGS".
     .replace(/^[A-Z][^:]{2,40}:\s+(?=\S)/, '')
     .replace(/(\S+)\s*\/\s*(\S+)/g, (_, x: string, y: string) => (conj === 'or' ? `${x} or ${y}` : inList ? x : `${x} and ${y}`))
@@ -334,6 +344,27 @@ function speakable(what: string, conj: 'and' | 'or', inList: boolean): string {
     .replace(/\s+/g, ' ').trim();
 }
 
+// A catalog label said as the item it names, in a promise (batch 21 D8, Anika
+// t10: "I'll come back to coffee bean price change over 2 years shortly"): no
+// period qualifier; a heading before a colon is the name when what follows
+// lists details ("Hub–Lakeport results: revenue, contribution and flights"),
+// else what follows is ("Composition of COGS: coffee beans' share of COGS");
+// "the" before a common noun, not before a share of revenue, an acronym, a
+// possessive name, a multi-word name or a question word.
+const PERIOD_TAIL = /,?\s*(?:(?:for |in )?(?:both|each of the two) years|by year|over (?:the )?(?:(?:past|last) )?(?:2|two) years|(?:today|now) (?:and|versus|vs\.?) (?:2|two) years ago|(?:2|two) years ago (?:and|versus|vs\.?) (?:today|now)|then (?:and|versus|vs\.?) now)\s*$/i;
+export function spokenItemName(label: string): string {
+  let s = label.replace(PERIOD_TAIL, '').trim();
+  const head = /^([^:]{3,60}):\s+(.+)$/.exec(s);
+  if (head) s = /,|\s(?:and|—|–)\s/.test(head[2]) ? head[1] : head[2];
+  s = s.replace(/\s*\([^)]*\)\s*$/, '').trim();
+  const first = s.split(/\s+/)[0] ?? '';
+  const letters = first.replace(/[^A-Za-z]/g, '');
+  const bare = /^(?:the|a|an|what|how|when|why|who|where|which|whether|its|their|our|your)$/i.test(first)
+    || /['’]s$/.test(first) || /\d/.test(first) || (letters.length >= 2 && letters === letters.toUpperCase())
+    || /\bas (?:%|a percent(?:age)?|a share) of\b/i.test(s) || /^[A-Z]/.test(s.split(/\s+/)[1] ?? '');   // a name: "Entry Option A"
+  return bare ? s : `the ${spokenWhat(s)}`;
+}
+
 const joinWhat = (whats: string[], conj: 'and' | 'or') => {
   const inList = new Set(whats).size > 1;
   const u = [...new Set(whats.map(w => spokenWhat(speakable(w, conj, inList))))];
@@ -341,7 +372,9 @@ const joinWhat = (whats: string[], conj: 'and' | 'or') => {
   // A suffix every item shares is said once: "COGS and labor as a percent of revenue".
   const tail = / as a (?:percent|share) of revenue$/i.exec(u[0])?.[0];
   const items = tail && u.every(x => x.toLowerCase().endsWith(tail.toLowerCase())) ? u.map(x => x.slice(0, -tail.length)) : u;
-  return `${items.slice(0, -1).join(', ')} ${conj} ${items.at(-1)}${items === u ? '' : tail}`;
+  // An item that has its own "and" gets a comma before the last ("COGS, labor, and overhead and rent").
+  const serial = items.length > 2 && items.some(x => / and /.test(x)) ? ',' : '';
+  return `${items.slice(0, -1).join(', ')}${serial} ${conj} ${items.at(-1)}${items === u ? '' : tail}`;
 };
 
 // The spoken data lines, in order: releases (earlier asks under one lead-in),
