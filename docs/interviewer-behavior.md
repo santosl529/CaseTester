@@ -1,4 +1,15 @@
-# Interviewer Behavior Rules (v4.11)
+# Interviewer Behavior Rules (v4.12)
+
+**v4.12 change (13 Oct 2026): the AI Casing cases (Larkspur Air, Aldermoor
+Pharma, Quillpath, Hollis Bay) — approved by Lorenzo, 13 Oct.** Each change is
+detailed in its rule:
+1. **The brainstorm is the case's own question (Rule 9).** Code asks the
+   case's brainstorm question and counts it as the brainstorm when the
+   interviewer asks it; a case with no brainstorm module owes none.
+2. **Exhibits follow the case's release order, and required exhibits are owed
+   (Rules 9, 10, 11).** No exhibit — nor data only it shows — goes out before
+   its turn; an unshown required exhibit holds the recommendation ask and the
+   close, and code hands it over.
 
 **v4.11 change (12 Oct 2026): Haiku 5.5 interviewer fixes from batch 19.** An
 outside review of batch 19 (24 runs, Haiku 5.5) against batch 18 v3 (Sonnet
@@ -1331,6 +1342,27 @@ no new endless gate. Under time pressure (the final 90 seconds) the
 recommendation comes first and an owed stage is recorded as `time_up`. A
 candidate-led case owes nothing (no such case exists yet).
 
+**The brainstorm is the case's own question (v4.12).** A case may carry its
+guide's brainstorm question (`brainstorm.ask`, case-authoring): code asks it
+when the brainstorm is owed (not a generic line — the generic pool is
+case-neutral), the interviewer's prompt shows it, and the interviewer asking
+it in close wording counts as the brainstorm. A case with no brainstorm
+module (`brainstorm.required: false`, Quillpath) owes none: the end gate
+doesn't wait for one, and scoring tells the judge the stage is **not part of
+this case** (not "never administered") — Creativity is rated on real evidence
+elsewhere or not assessed, with the caveat "This case has no brainstorm stage".
+
+**Required exhibits are owed (v4.12).** A case may mark exhibits `required`
+(the AI Casing cases mark all of theirs: each opens a module of the guide).
+While one is unshown it is owed in the analysis gate and the end gate: when
+code would ask for the recommendation or close, it hands over the next
+required exhibit instead (in the release order, Rule 10; "Here's an exhibit:
+… What does this exhibit tell you?"), and the model's own early
+recommendation ask is held the same way — before the core-analysis line.
+Under time pressure there is no hold: the next required exhibit goes out
+with the recommendation ask, the candidate's to use. At time-up nothing is
+owed. A case without required exhibits owes one exhibit, as before.
+
 **Scoring from the record (v4.10).** The judge gets the record ("an exhibit
 shown is not an exhibit interpreted"; "waived — not answered, not a weakness
 by itself"). Then, in code (`lib/scoring/stage-caps.ts`): a dimension whose
@@ -1355,6 +1387,17 @@ never mentioned or penalized.
 # Part II — Data delivery
 
 ## 10. Every figure is delivered with its label, unit, and timeframe — spoken
+
+**Exhibits in the case's release order (v4.12).** An exhibit goes out only
+when its turn has come: every exhibit it comes after (`after`) is out — shown,
+or all its data already read — and every item it requires is released. Until
+then neither the exhibit nor an item only it shows is released, by any path:
+a request, an ask covering its data, the interviewer's own handover, or code's
+exhibit stage; the interviewer is told it is "not yet". Larkspur's Exhibit 3
+shown before the per-flight math gives the answer away. Required exhibits
+(Rule 9) are handed over in this order. An exhibit's footnotes (`notes`) are
+shown under its table, never spoken; its title is spoken at handover and
+carries no figure the case prompt doesn't state (FR-4).
 
 **v4.7 enforcement:** every figure is spoken by code from the ledger's approved
 wording, between the model's `say` and its question; the model never writes a
@@ -1471,6 +1514,17 @@ scope intact — "by year", "per store", "for drinks", "excluding new stores",
 "in California", or "two years ago" for a current-only item. An unmapped ask the model declared as
 "defer" is never refused: code says the generic "I'll come back to the data
 you've asked for once we've settled your structure", promising no item.
+**Asks that must wait for the release order (v4.12).** An explicit ask for
+an exhibit, or for data only an exhibit not yet due shows (Rule 10), is
+deferred out loud ("I'll come back to the planning estimates for the new
+routes shortly") — never refused, offered or rescued; it is not forced out on
+later turns (or at the recommendation ask) while it waits, and goes out once
+its turn has come. A required exhibit still owed is handed over by code
+(Rule 9). Promises name an item as speech: an ask worded as an item's catalog
+label is said by the item's authored spoken name ("the coffee bean price
+change", not "coffee bean price change over 2 years"), and period qualifiers
+are dropped from deferrals, holds and offers (refusals keep them).
+
 **The question treats this turn's data as heard (v4.11).** The candidate
 hears `say`, then code's data line, then the question. Batch 19 (Haiku 5.5,
 21 of 24 runs): "Once you have those two figures, how much…", "Before those
@@ -2615,7 +2669,7 @@ classification and reason), rung delivery, conduct (both C5 layers),
 timeframe check, style audit. Console logging stays for local runs; the
 `check` event is the record of truth, and the persona log export prints it.
 
-## Implementation status register (v4.6, updated v4.10)
+## Implementation status register (v4.6, updated v4.12)
 
 The table above states what each rule's backstop *should* be. The persona runs
 (13 sessions, 11 personas, 27–28 Sep 2026, on code including every commit
@@ -2660,6 +2714,9 @@ warning, and the C5 classifier all exist in code).
 | **Data scope, labels, exhibits, claims** | 10, 11 | **Built in v4.10** — `outsideAskScope`, prof-001 labels, exhibit for its data, unmapped asks handed back, delivery claims checked against delivery; repeat restate merged and scoped | The COGS over-map (7 runs), Tyler, KF-3, KF-4 |
 | **Truthful close, meta answer, stale turns** | 12, 16 | **Built in v4.10** — `closeLine(reason)`, `isReportAnswer` + `asksAboutAssessment`, conditional session updates + stale-turn drop | 32 early "That's time"; Trevor, Preston, Spencer, Bianca |
 | **Declared evaluation interviewer** | V | **Built in v4.10** — `INTERVIEWER_EVAL_CONFIGS`, requested vs returned model per call, run fails on a mismatch / unpriced model; batch 18 frozen as the Sonnet baseline | Batch 18 ran on Sonnet when Haiku 5.5 was meant |
+| Exhibit release order | 10, 11 | **Built in v4.12** — `after` / `requiresItems`; `exhibitReady`, `heldForOrder` in `data-decisions.ts` on every release path; waiting asks deferred, not forced | Larkspur Exhibit 3 before the per-flight math (case review, 12 Oct) |
+| Required exhibits | 9, 10 | **Built in v4.12** — `required`; next one handed over by code instead of a recommendation ask or close, the model's early ask held; with the ask under time pressure | AI Casing guides: each exhibit opens a module |
+| Case brainstorm | 9 | **Built in v4.12** — `brainstorm` {ask, required} (`brainstorm.ts`); stage gate, owed stage, detectors, scorecard, stage record ("not part of this case") | Case review, 12 Oct: guides' own questions unrecognised; Quillpath has none |
 
 **v4.5 build order** (for the five new rows): (1) rung delivery check and
 progress classification together — both are needed to stop the phantom rescue,
