@@ -561,8 +561,11 @@ export function findCandidateMisquotes(text: string, fb: FactBase, revealedIds: 
       if (preIn) { fig = preIn[1]; at = preIn.index; }
       if (!fig) continue;
       const f = parseFig(fig);
-      // "rose 42 to 58 points of revenue" is a chain of levels, not a change.
-      if (!f || f.unit !== 'points' || f.hi !== undefined) continue;
+      // "rose 42 to 58 points of revenue" is a chain of levels, not a change;
+      // a range before a change noun is a range of changes ("a 38 to 40 point
+      // swing in COGS" — batch 21 Jordan t6, probed five times and never given
+      // the figure), wrong when the true change is outside it.
+      if (!f || f.unit !== 'points' || (f.hi !== undefined && verb)) continue;
       if (POINTS_HYPOTHETICAL.test(clauseBefore(s, at)) || /\b(?:of the|out of)\s*$/.test(before)) continue;
       if (figureFits(f, qs, 'pointChange', s)) continue;
       out.push({ items: qs.map(q => q.id), cited: `${hit.name} ${f.text}`, sentence: s.slice(0, 220), kind: 'pointChange' });
