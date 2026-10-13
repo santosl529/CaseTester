@@ -7,6 +7,8 @@
 //
 //   npx tsx scripts/eval-math-checker.ts --dry [--arms=sonnet55-medium,opus55-medium] [--set=all|recall|precision] [--limit=N]
 //   ... --ids=<file>   only the label ids listed (one per line)
+//   npx tsx scripts/eval-math-checker.ts --revet=<a.jsonl>[,<b.jsonl>]   $0: re-vet recorded
+//       verdicts under the current vetting rules (a later file wins for the same id)
 //   LLM_BUDGET_USD=<cap> npx tsx --env-file=<main checkout>/.env.local scripts/eval-math-checker.ts --out=<dir> [...]
 //
 // Reports per arm (the pick order of the brief):
@@ -30,7 +32,7 @@ import { requireRunBudget, BudgetExceededError } from '@/lib/llm-budget';
 import { asksRecommendationAsk } from '@/lib/orchestrator/spoken-close';
 import {
   buildCheckerSystem, buildCheckerUser, checkMathClaims, vetCheckerClaims, statesQuantitativeClaim,
-  type CheckerInput, type CheckerTurn, type VettedClaim,
+  type CheckerClaim, type CheckerInput, type CheckerTurn, type VettedClaim,
 } from '@/lib/orchestrator/math-checker';
 import type { MathLabel } from './build-math-labels';
 import type { LlmUsage } from '@/lib/llm-usage';
@@ -44,7 +46,11 @@ const LIMIT = Number(arg('limit') ?? 0);
 const OUT = arg('out');
 const CONCURRENCY = Number(arg('concurrency') ?? 6);
 // --ids=<file>: only these label ids (one per line), e.g. a rerun of chosen messages.
-const IDS = arg('ids') ? new Set(readFileSync(arg('ids')!, 'utf8').split('\n').map(x => x.trim()).filter(Boolean)) : null;
+// --revet=<files>: recorded verdicts (an earlier run's jsonl), re-vetted — no calls.
+const REVET = arg('revet')?.split(',') ?? null;
+type Recorded = { id: string; latencyMs: number; usd: number; model: string; error?: string; claims: Partial<CheckerClaim>[] };
+const recorded = REVET ? new Map(REVET.flatMap(f => readFileSync(f, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l) as Recorded)).map(r => [r.id, r])) : null;
+const IDS = recorded ? new Set(recorded.keys()) : arg('ids') ? new Set(readFileSync(arg('ids')!, 'utf8').split('\n').map(x => x.trim()).filter(Boolean)) : null;
 // Output tokens per call for the estimate: adaptive thinking at medium plus
 // the JSON (≈150 tokens a claim). No measured figure yet — the paid run
 // replaces it; an assumption, stated in the report.
@@ -160,7 +166,16 @@ function report(arm: string, outs: Outcome[], perInterview: number) {
   const agree = judged.filter(x => (x.judge === 'wrong') === x.flag).length;
   console.log(`5. agreement with the scoring judge (claims quoted in its quantitative verdicts): ${judged.length ? `${agree}/${judged.length}` : 'none in this set'}`);
   const vet = ok.flatMap(o => o.claims.filter(c => c.flag)).map(c => c.vetNotes).flat();
-  console.log(`FR-4 vetting: ${flagged.filter(x => x.c.correctionLine).length} corrections kept, ${vet.filter(n => n.startsWith('correction dropped')).length} dropped, ${vet.filter(n => n.startsWith('probe withheld')).length} probes replaced`);
+  console.log(`FR-4 vetting: ${flagged.filter(x => x.c.correctionLine).length} code-written corrections, ${vet.filter(n => n.startsWith('correction withheld')).length} withheld (provenance/truth), ${flagged.filter(x => x.c.pointerLine).length} pointer probes kept, ${vet.filter(n => n.startsWith('pointer dropped')).length} dropped, ${vet.filter(n => n.startsWith('probe withheld')).length} probes replaced`);
+  // Every line that would go out, for reading.
+  for (const { o, c } of flagged) {
+    console.log(`   LINES ${o.item.label.id} [${o.item.label.label}] "${c.span}" (${c.codeQuantity.kind}${c.codeQuantity.stepId ? ` ${c.codeQuantity.stepId}` : ''}${c.codeQuantity.price !== null ? ` price ${c.codeQuantity.price}` : ''}${c.codeQuantity.target !== null ? ` target ${c.codeQuantity.target}` : ''})`);
+    console.log(`      probe: ${c.probeLine}`);
+    if (c.correctionLine) console.log(`      correction (code): ${c.correctionLine}`);
+    if (c.pointerLine) console.log(`      pointer: ${c.pointerLine}`);
+    for (const n of c.vetNotes) console.log(`      · ${n}`);
+  }
+  for (const { o, c } of claims.filter(x => !x.c.flag && x.c.vetNotes.length)) console.log(`   DROPPED ${o.item.label.id} [${o.item.label.label}] "${c.span}": ${c.vetNotes.join('; ')}`);
 }
 
 async function main() {
@@ -177,6 +192,23 @@ async function main() {
   }
   console.log(`  total estimated $${total.toFixed(2)}`);
   if (DRY) return;
+  if (recorded) {
+    // Recorded before a field existed: its neutral value.
+    const asClaim = (c: Partial<CheckerClaim>): CheckerClaim => ({
+      pointer: '', actualShare: null, codeQuantity: { kind: 'none', stepId: null, price: null, target: null }, ...c,
+    } as CheckerClaim);
+    const outs: Outcome[] = items.map(item => {
+      const r = recorded.get(item.label.id)!;
+      const caseData = getCaseById(item.run.caseId);
+      const claims = vetCheckerClaims(r.claims.map(asClaim), {
+        caseData, revealedIds: item.input.revealedIds, shownExhibitIds: item.input.shownExhibitIds,
+        candidateTexts: [...item.input.transcript.filter(t => t.role === 'candidate').map(t => t.text), item.input.message],
+      });
+      return { item, claims, latencyMs: r.latencyMs, usd: r.usd, model: r.model, error: r.error };
+    });
+    report(`revet (${REVET!.join(', ')})`, outs, perInterview);
+    return;
+  }
   cfgs.forEach(c => assertPriced(c.cfg.model));
   const budget = requireRunBudget('eval-math-checker');
   if (OUT && !existsSync(OUT)) mkdirSync(OUT, { recursive: true });

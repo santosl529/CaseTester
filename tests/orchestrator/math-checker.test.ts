@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  statesQuantitativeClaim, buildCheckerSystem, buildCheckerUser, evalExpression, vetCheckerClaims, isActionable,
+  statesQuantitativeClaim, buildCheckerSystem, buildCheckerUser, vetCheckerClaims, isActionable,
   CheckerOutputSchema, type CheckerClaim, type VetContext,
 } from '@/lib/orchestrator/math-checker';
 import { MATH_CHECKER_CONFIGS } from '@/lib/models';
@@ -11,7 +11,7 @@ const COSTS = ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'm
 
 const claim = (over: Partial<CheckerClaim>): CheckerClaim => ({
   span: '', quantity: '', candidateValue: '', assumptions: '', verdict: 'error', correctValue: null, correctLow: null, correctHigh: null,
-  unit: 'percent', derivation: '', errorType: 'conceptual', changesConclusion: true, confidence: 'high', probe: '', correction: '', correctExpression: '',
+  unit: 'percent', derivation: '', errorType: 'conceptual', changesConclusion: true, confidence: 'high', probe: '', pointer: '',
   codeQuantity: { kind: 'none', stepId: null, price: null, target: null }, actualShare: null,
   ...over,
 });
@@ -68,27 +68,6 @@ describe('the input — the full case, server-side', () => {
   });
 });
 
-describe('evalExpression (no eval)', () => {
-  it.each([
-    ['(110 - 94) / 110 * 100', 14.545],
-    ['94 / 0.76', 123.68],
-    ['25% × 42', 10.5],
-    ['1 - 42 / 52', 0.1923],
-    ['31.5 * 1.375 - 31.5', 11.8125],
-  ])('%s', (expr, value) => expect(evalExpression(expr)!.value).toBeCloseTo(value, 2));
-
-  it('records intermediate results as derivations', () => {
-    expect(evalExpression('(58 + 22 + 14) / (100 - 24)')!.steps.map(x => Math.round(x * 10) / 10)).toEqual(expect.arrayContaining([94, 76, 1.2]));
-  });
-
-  it("a correction's expression must start from figures the candidate has, not derived ones stated as given", () => {
-    // 94 and 76 aren't figures the candidate was given; 58 + 22 + 14 and 100 − 24 are.
-    expect(evalExpression('94 / 76')!.numbers).toEqual([94, 76]);
-  });
-
-  it.each(['process.exit()', '2 +', 'abc', '', '(1 + 2'])('rejects %s', expr => expect(evalExpression(expr)).toBeNull());
-});
-
 describe('FR-4: what a flag may put in the interviewer\'s mouth', () => {
   const ctx = (over: Partial<VetContext> = {}): VetContext => ({
     caseData: prof, revealedIds: COSTS, shownExhibitIds: [], candidateTexts: ['To get back to 24% margin I need roughly 10–12% on menu prices.'], ...over,
@@ -96,37 +75,13 @@ describe('FR-4: what a flag may put in the interviewer\'s mouth', () => {
   const fiona = claim({
     span: 'roughly 10–12% on menu prices to restore margin', candidateValue: '10–12%', correctValue: 23.7,
     probe: 'You said 10–12% restores the 24% margin. Walk me through how you sized that.',
-    correction: "It's closer to 23.7%, not 10–12%: costs are 94 of today's 100, and they need to be 76% of revenue.",
-    correctExpression: '((58 + 22 + 14) / (100 - 24) - 1) * 100',
     codeQuantity: { kind: 'needed_for_margin', stepId: null, price: null, target: 24 },
   });
 
-  it('keeps a probe and a correction that use only what the candidate has, and a correct derivation of it', () => {
+  it('keeps a probe that uses only what the candidate has', () => {
     const [v] = vetCheckerClaims([fiona], ctx());
     expect(v.flag).toBe(true);
     expect(v.probeLine).toBe(fiona.probe);
-    expect(v.correctionLine).toBe(fiona.correction);
-  });
-
-  it('a correction needing unrevealed data is dropped — the probe alone goes out', () => {
-    // Code agrees on 23.7%, but the expression runs through unrevealed revenue ($480M).
-    const revenue = claim({ ...fiona, correction: "It's closer to 23.7%, not 10–12%: $480M of revenue has to carry $451M of cost at a 24% margin.", correctExpression: '(480 * 0.94 / (480 * 0.76) - 1) * 100' });
-    const [v] = vetCheckerClaims([revenue], ctx());
-    expect(v.correctionLine).toBeNull();
-    expect(v.probeLine).toBe(fiona.probe);
-    expect(v.vetNotes.join(' ')).toMatch(/doesn't have/);
-  });
-
-  it("a correction whose expression doesn't give its figure is dropped", () => {
-    const [v] = vetCheckerClaims([claim({ ...fiona, correctValue: 30 })], ctx());
-    expect(v.correctionLine).toBeNull();
-    const [w] = vetCheckerClaims([claim({ ...fiona, correctExpression: '94 / 76' })], ctx());
-    expect(w.correctionLine).toBeNull();
-  });
-
-  it('a correction stating a figure the expression does not license is dropped', () => {
-    const [v] = vetCheckerClaims([claim({ ...fiona, correction: "It's closer to 23.7%, not 10–12%, and revenue is $480M." })], ctx());
-    expect(v.correctionLine).toBeNull();
   });
 
   it('a probe carrying an unrevealed figure is replaced by a neutral one in the candidate\'s words', () => {
@@ -143,60 +98,164 @@ describe('FR-4: what a flag may put in the interviewer\'s mouth', () => {
   it('correct, unverifiable and low-confidence claims raise no flag and carry no lines', () => {
     const vs = vetCheckerClaims([claim({ verdict: 'correct', probe: 'x' }), claim({ verdict: 'unverifiable' }), claim({ confidence: 'low' })], ctx());
     expect(vs.map(v => v.flag)).toEqual([false, false, false]);
-    expect(vs.every(v => v.probeLine === null && v.correctionLine === null)).toBe(true);
+    expect(vs.every(v => v.probeLine === null && v.correctionLine === null && v.pointerLine === null)).toBe(true);
     expect(isActionable(claim({ confidence: 'medium' }))).toBe(true);
   });
 });
 
-// Lorenzo, 13 Oct (after the partial Sonnet run): a correction is spoken only
-// when code computes the same quantity itself and agrees; a flag whose own
-// correct value is within tolerance of the candidate's figure is dropped; word
-// quantities get a margin.
-describe('a correction needs code to compute the same quantity and agree', () => {
-  const ctx = (): VetContext => ({ caseData: prof, revealedIds: COSTS, shownExhibitIds: [], candidateTexts: ['Restoring the full 16 points would need roughly a 16% lift.'] });
-  const lift = claim({
-    span: 'restoring the full 16 points would need roughly a 16% lift', candidateValue: '16%', correctValue: 38.1,
-    probe: 'You said a 16% lift restores the full 16 points. Walk me through how you sized that.',
-    correction: "It's closer to 38%, not 16%, because COGS dollars stay fixed, so price must rise until COGS is 42% of revenue.",
-    correctExpression: '(58 / 42 - 1) * 100',
+// Lorenzo, 13 Oct (rulings after the rerun): code writes the correction
+// whenever it computes the quantity the checker names — the checker's own
+// arithmetic is never spoken. Only when every input to code's computation is
+// revealed; through the truth guard like any other line.
+describe('code writes the correction', () => {
+  const ctx = (texts: string[], over: Partial<VetContext> = {}): VetContext => ({ caseData: prof, revealedIds: COSTS, shownExhibitIds: [], candidateTexts: texts, ...over });
+
+  it('batch 20 1c9184cf t18: the checker said "closer to 38%"; code says 20.5% for 16 points', () => {
+    const text = 'Restoring the full 16 points would need roughly a 16% lift.';
+    const [v] = vetCheckerClaims([claim({
+      span: 'restoring the full 16 points would need roughly a 16% lift', candidateValue: '16%', correctValue: 38.1,
+      probe: 'You said a 16% lift restores the full 16 points. Walk me through how you sized that.',
+      codeQuantity: { kind: 'needed_for_gain', stepId: null, price: null, target: 16 },
+    })], ctx([text]));
+    expect(v.flag).toBe(true);
+    expect(v.correctionLine).toBe("It's closer to 20.5%, not 16%.");
+    expect(v.vetNotes.join(' ')).toMatch(/checker said 38\.1/);
   });
 
-  it('batch 20 1c9184cf t18: "closer to 38%" — code computes 20.5% for 16 points (or 23.7% for 24%), so only the probe goes out', () => {
-    for (const codeQuantity of [
-      { kind: 'needed_for_gain' as const, stepId: null, price: null, target: 16 },
-      { kind: 'needed_for_margin' as const, stepId: null, price: null, target: 24 },
-      { kind: 'none' as const, stepId: null, price: null, target: null },
-    ]) {
-      const [v] = vetCheckerClaims([claim({ ...lift, codeQuantity })], ctx());
-      expect(v.flag).toBe(true);
-      expect(v.correctionLine).toBeNull();
-      expect(v.probeLine).toBe(lift.probe);
-    }
+  it('a gain in points: "It\'s closer to 8.5 points, not 5 points." — hedges dropped from their figure', () => {
+    const [v] = vetCheckerClaims([claim({
+      span: 'a 10% price increase recovers about 5 points', candidateValue: 'about 5 points', correctValue: 5.3,
+      codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null },
+    })], ctx(['A 10% price increase recovers about 5 points.']));
+    expect(v.correctionLine).toBe("It's closer to 8.5 points, not 5 points.");
   });
 
-  it('a correction code agrees with is spoken — a pricing answer and a math step', () => {
-    const [fiona] = vetCheckerClaims([claim({
-      span: 'roughly 10–12% on menu prices to restore margin', candidateValue: '10–12%', correctValue: 23.7, probe: 'How did you size 10–12%?',
-      correction: "It's closer to 23.7%, not 10–12%.", correctExpression: '((58 + 22 + 14) / (100 - 24) - 1) * 100',
-      codeQuantity: { kind: 'needed_for_margin', stepId: null, price: null, target: 24 },
-    })], { ...ctx(), candidateTexts: ['roughly 10–12% on menu prices to restore margin'] });
-    expect(fiona.correctionLine).toBe("It's closer to 23.7%, not 10–12%.");
-    const [sofia] = vetCheckerClaims([claim({
-      span: '40% of 25%, which is 10 percentage points of revenue', candidateValue: '10 percentage points', correctValue: 4.2, unit: 'points', probe: 'How did you get 10 points?',
-      correction: "It's closer to 4.2 points of revenue, not 10.", correctExpression: '0.25 * 42 * 0.40',
+  it('a value with several figures: the one in the quantity\'s unit, as they said it (replay: Sofia b20 t16, 58cb… "per 10% of price")', () => {
+    const gain = { kind: 'gain' as const, stepId: null, price: 10, target: null };
+    const [sofia] = vetCheckerClaims([claim({ candidateValue: '5 points gain, 11% margin', correctValue: 8.5, codeQuantity: gain })], ctx(['call it five points of margin back, going from 6% to roughly 11%']));
+    expect(sofia.correctionLine).toBe("It's closer to 8.5 points, not 5 points.");
+    const [per] = vetCheckerClaims([claim({ candidateValue: '5 points of margin per 10% of price', correctValue: 8.5, codeQuantity: gain })], ctx(['Each 10 points of price is roughly 5 points of margin.']));
+    expect(per.correctionLine).toBe("It's closer to 8.5 points, not 5 points.");
+    const [margin] = vetCheckerClaims([claim({ candidateValue: '5 points gain, 11% margin', correctValue: 14.5, codeQuantity: { ...gain, kind: 'new_margin' } })], ctx(['call it five points of margin back, going from 6% to roughly 11%']));
+    expect(margin.correctionLine).toBe("It's closer to 14.5%, not 11%.");
+  });
+
+  it("of code's accepted answers, the one nearest theirs (break-even: 19.2% with COGS variable, 33.3% with labor too)", () => {
+    const be = { kind: 'breakeven' as const, stepId: null, price: 10, target: null };
+    const [low] = vetCheckerClaims([claim({ candidateValue: '10%', correctValue: 19.2, codeQuantity: be })], ctx(['a 10% rise breaks even if we lose 10% of volume']));
+    expect(low.correctionLine).toBe("It's closer to 19.2%, not 10%.");
+    const [high] = vetCheckerClaims([claim({ candidateValue: '45%', correctValue: 33.3, codeQuantity: be })], ctx(['a 10% rise breaks even if we lose 45% of volume']));
+    expect(high.correctionLine).toBe("It's closer to 33.3%, not 45%.");
+  });
+
+  it('their figure without a unit gets the quantity\'s unit', () => {
+    const [v] = vetCheckerClaims([claim({ candidateValue: '5', correctValue: 8.5, codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null } })], ctx(['a 10% rise gives back 5']));
+    expect(v.correctionLine).toBe("It's closer to 8.5 points, not 5.");
+  });
+
+  it('a range: "It\'s closer to 23.7%, not 10–12%."', () => {
+    const [v] = vetCheckerClaims([claim({ candidateValue: '10–12%', correctValue: 23.7, codeQuantity: { kind: 'needed_for_margin', stepId: null, price: null, target: 24 } })], ctx(['roughly 10–12% on menu prices to restore margin']));
+    expect(v.correctionLine).toBe("It's closer to 23.7%, not 10–12%.");
+  });
+
+  it('a math step, in their units', () => {
+    const [v] = vetCheckerClaims([claim({
+      span: '40% of 25%, which is 10 percentage points of revenue', candidateValue: '10 percentage points', correctValue: 4.2,
       codeQuantity: { kind: 'step', stepId: 'bean_points_added', price: null, target: null },
-    })], { ...ctx(), candidateTexts: ['40% of 25%, which is 10 percentage points of revenue'] });
-    expect(sofia.correctionLine).toBe("It's closer to 4.2 points of revenue, not 10.");
+    })], ctx(['40% of 25%, which is 10 percentage points of revenue']));
+    expect(v.correctionLine).toBe("It's closer to 4.2 percentage points, not 10 percentage points.");
   });
 
-  it("a math step whose inputs aren't revealed computes nothing: probe only", () => {
+  it("code's figure, not the checker's: \"20% → ten points\" (checker 16.3, code 15.7)", () => {
+    const [v] = vetCheckerClaims([claim({ candidateValue: 'ten points', correctValue: 16.3, codeQuantity: { kind: 'gain', stepId: null, price: 20, target: null } })], ctx(['a 20% price rise is worth ten points']));
+    expect(v.correctionLine).toBe("It's closer to 15.7 points, not 10 points.");
+  });
+
+  it("a math step whose inputs aren't all revealed: probe only", () => {
     const [v] = vetCheckerClaims([claim({
       span: '10 percentage points', candidateValue: '10 percentage points', correctValue: 4.2, probe: 'How did you get 10 points?',
-      correction: "It's closer to 4.2 points of revenue, not 10.", correctExpression: '0.25 * 42 * 0.40',
       codeQuantity: { kind: 'step', stepId: 'bean_points_added', price: null, target: null },
-    // The candidate said 40% themselves (so the expression's figures pass); the bean price change isn't released, so code has no step answer.
-    })], { ...ctx(), revealedIds: ['cogs_pct', 'bean_share_of_cogs'], candidateTexts: ['If beans rose 40%, that is 40% of 25%, which is 10 percentage points'] });
+    })], ctx(['If beans rose 40%, that is 40% of 25%, which is 10 percentage points'], { revealedIds: ['cogs_pct', 'bean_share_of_cogs'] }));
+    expect(v.flag).toBe(true);
     expect(v.correctionLine).toBeNull();
+    expect(v.probeLine).toBe('How did you get 10 points?');
+  });
+
+  it('a step with no declared inputs computes nothing (its inputs can\'t be shown revealed)', () => {
+    const p2 = getCaseById('prof-002');
+    const [v] = vetCheckerClaims([claim({ candidateValue: '$30M', correctValue: 24, codeQuantity: { kind: 'step', stepId: 'op_profit_swing', price: null, target: null } })],
+      { caseData: p2, revealedIds: p2.dataLedger.map(d => d.id), shownExhibitIds: [], candidateTexts: ['a $30M swing'] });
+    expect(v.correctionLine).toBeNull();
+  });
+
+  it('pricing answers need every cost line revealed: probe only before', () => {
+    const [v] = vetCheckerClaims([claim({ candidateValue: '5 points', correctValue: 8.5, codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null } })],
+      ctx(['a 10% rise recovers 5 points'], { revealedIds: ['cogs_pct', 'labor_pct'] }));
+    expect(v.correctionLine).toBeNull();
+  });
+
+  it('the line is the figure and its unit, never the words around it ("a 30% bean increase" → "30%")', () => {
+    const [v] = vetCheckerClaims([claim({ candidateValue: 'a 30% bean increase', correctValue: 40, codeQuantity: { kind: 'step', stepId: 'bean_share_of_revenue', price: null, target: null } })],
+      ctx(['That is a 30% bean increase.']));
+    expect(v.correctionLine).toBe("It's closer to 10.5%, not 30%.");
+  });
+
+  it("their figure must be one they said (provenance on the candidate's side of the line)", () => {
+    const [v] = vetCheckerClaims([claim({ candidateValue: '7 points', correctValue: 8.5, codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null } })], ctx(['a 10% rise recovers 5 points']));
+    expect(v.correctionLine).toBeNull();
+  });
+});
+
+describe('deterministic first: code\'s computation decides the flag', () => {
+  const ctx = (texts: string[]): VetContext => ({ caseData: prof, revealedIds: COSTS, shownExhibitIds: [], candidateTexts: texts });
+  it("their figure within code's tolerance is no flag, whatever the checker's value", () => {
+    const [v] = vetCheckerClaims([claim({ candidateValue: 'about 8 points', correctValue: 5.3, codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null } })], ctx(['a 10% rise recovers about 8 points']));
+    expect(v.flag).toBe(false);
+    expect(v.vetNotes.join(' ')).toMatch(/code computes 8\.5/);
+  });
+  it("outside code's tolerance it stays a flag even when the checker's own value is near theirs", () => {
+    const [v] = vetCheckerClaims([claim({ candidateValue: '5 points', correctValue: 5.3, codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null } })], ctx(['a 10% rise recovers 5 points']));
+    expect(v.flag).toBe(true);
+    expect(v.correctionLine).toBe("It's closer to 8.5 points, not 5 points.");
+  });
+});
+
+// Lorenzo, 13 Oct: when code can't compute the quantity, Rule 14's second
+// attempt is a pointer probe — it names revealed data the claim conflicts with.
+// The checker drafts it; provenance and truth apply.
+describe('the pointer probe', () => {
+  const ctx = (over: Partial<VetContext> = {}): VetContext => ({ caseData: prof, revealedIds: COSTS, shownExhibitIds: [], candidateTexts: ['The whole 18-point decline sits in COGS.'], ...over });
+  const whole = claim({
+    span: 'the whole 18-point decline sits in COGS', candidateValue: '18 points', correctValue: 16, actualShare: 0.89,
+    probe: 'You said the whole 18 points sits in COGS. Walk me through that.',
+    pointer: 'How does that fit with overhead going from 12% to 14% of revenue?',
+  });
+  it('kept when code computes nothing and it names a revealed figure', () => {
+    const [v] = vetCheckerClaims([whole], ctx());
+    expect(v.correctionLine).toBeNull();
+    expect(v.pointerLine).toBe(whole.pointer);
+  });
+  it('dropped when it carries an unrevealed figure', () => {
+    const [v] = vetCheckerClaims([claim({ ...whole, pointer: 'How does that fit with $480M of revenue?' })], ctx());
+    expect(v.pointerLine).toBeNull();
+  });
+  it('dropped when it states a false case fact', () => {
+    const [v] = vetCheckerClaims([claim({ ...whole, pointer: 'Given overhead at 22% of revenue, how does that fit?' })], ctx());
+    expect(v.pointerLine).toBeNull();
+  });
+  it("dropped when it names no revealed figure — only the candidate's own", () => {
+    const [v] = vetCheckerClaims([claim({ ...whole, pointer: 'Are you sure about the 18 points?' })], ctx());
+    expect(v.pointerLine).toBeNull();
+  });
+  it('dropped when it is not a question', () => {
+    const [v] = vetCheckerClaims([claim({ ...whole, pointer: 'Overhead went from 12% to 14% of revenue.' })], ctx());
+    expect(v.pointerLine).toBeNull();
+  });
+  it('none when code writes the correction', () => {
+    const [v] = vetCheckerClaims([claim({ candidateValue: '5 points', correctValue: 8.5, pointer: 'How does that fit with labor at 22% of revenue?', codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null } })],
+      ctx({ candidateTexts: ['a 10% rise recovers 5 points'] }));
+    expect(v.correctionLine).not.toBeNull();
+    expect(v.pointerLine).toBeNull();
   });
 });
 

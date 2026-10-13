@@ -9,12 +9,12 @@
 //
 // Server-side only: its input is the whole case — the ledger with every value,
 // exhibits, math steps with their answers, the pricing model — plus what has
-// been revealed, the transcript and the message. What it may say back is vetted
-// in code (vetCheckerClaims): the probe and the correction pass the provenance
-// audit and the truth check, and a correction stands only when its figure is
-// a correct derivation of revealed figures, recomputed here (FR-4). A
-// correction that would need unrevealed data is dropped and the probe alone
-// goes out.
+// been revealed, the transcript and the message. What reaches the candidate is
+// vetted in code (vetCheckerClaims, FR-4): the checker drafts the probe and a
+// pointer probe, which pass the provenance audit and the truth check; a
+// correction is written by code from its own computation of the quantity the
+// checker names, never from the checker's arithmetic (Lorenzo, 13 Oct), and
+// only once every input to it is revealed.
 //
 // Not wired into the live turn yet: the evaluation picks the model first
 // (scripts/eval-math-checker.ts; MATH_CHECKER_CONFIGS in lib/models.ts).
@@ -86,13 +86,12 @@ HOW TO JUDGE
 - A claim is "correct", "error", or "unverifiable". Confidence "high" only when you have recomputed it from the case data and are certain.
 - "changesConclusion": would the corrected figure change their diagnosis or recommendation (which driver dominates, whether a lever closes the gap, the price needed)?
 - An error states the correct figure: "correctValue" (or "correctLow"/"correctHigh"), and for a word quantity ("over half", "most of", "all of") "actualShare", the true share of the whole the words refer to (0–1). An error you can't put a figure on is not an error — mark it "unverifiable".
-- "codeQuantity": name the quantity in the case's terms when it is one — a math step ("step" with its id), or a price change's result: "gain" (points of margin a "price"% rise recovers at flat volume), "new_margin" (the margin after it), "needed_for_margin" (the price rise for a "target" margin, %), "needed_for_gain" (the price rise to recover "target" points of margin), "breakeven" (the volume loss at which a "price"% rise breaks even). Else "none". Code computes these itself and speaks a correction only when it agrees with yours.
+- "codeQuantity": name the quantity in the case's terms when it is one — a math step ("step" with its id), or a price change's result: "gain" (points of margin a "price"% rise recovers at flat volume), "new_margin" (the margin after it), "needed_for_margin" (the price rise for a "target" margin, %), "needed_for_gain" (the price rise to recover "target" points of margin), "breakeven" (the volume loss at which a "price"% rise breaks even). Else "none". Code computes these itself and writes any correction from its own figure.
 - When the message names a price change, code's own pricing math for it is listed with the message (CODE'S PRICING MATH): use it.
 
 WHAT THE INTERVIEWER MAY SAY (for an error only; empty strings otherwise)
 - "probe": one neutral spoken question, at most 25 words, that names the candidate's own figure as they said it and asks how they got it or what base or period it rests on. Never says or implies it is wrong, never states a new figure; it may use only the candidate's figures and figures revealed to them.
-- "correction": one flat spoken sentence in the candidate's units — "It's closer to X, not Y." plus at most a short reason — using only figures revealed to the candidate and the corrected figure. If correcting would need any figure not revealed to the candidate, leave it empty.
-- "correctExpression": plain arithmetic (numbers, + - * / and parentheses only) that evaluates to the corrected figure, using only figures revealed to the candidate, figures the candidate stated as assumptions, and constants like 1 or 100. Empty when "correction" is empty. Code recomputes it; a correction whose expression doesn't check out is not spoken.
+- "pointer": one neutral spoken question, at most 30 words, that names a figure revealed to the candidate (in the prompt, a released data line or a shown exhibit) which their claim doesn't account for — "How does that fit with <that figure>?". Never says or implies the claim is wrong, never states the right figure or any figure not revealed to them. It is asked if they repeat the error and code can't compute the right figure itself.
 
 THE CASE (${c.id}) — the candidate sees only what is revealed to them
 PROMPT (shown to the candidate at the start): ${c.prompt}
@@ -183,8 +182,7 @@ const CheckerClaimSchema = z.object({
   changesConclusion: z.boolean(),
   confidence: z.enum(['high', 'medium', 'low']),
   probe: z.string(),
-  correction: z.string(),
-  correctExpression: z.string(),
+  pointer: z.string(),              // a probe naming revealed data the claim conflicts with
   codeQuantity: z.object({
     kind: z.enum(['step', 'gain', 'new_margin', 'needed_for_margin', 'needed_for_gain', 'breakeven', 'none']),
     stepId: z.string().nullable(),
@@ -228,48 +226,6 @@ export async function checkMathClaims(p: {
 
 // ── FR-4: what the interviewer may say ──────────────────────────────────────
 
-// A plain arithmetic expression, evaluated by a small parser (never as code):
-// numbers (a trailing % divides by 100), + - * / × ÷ and parentheses. Returns
-// its value, its leaf numbers, and every intermediate result ("(58 + 22 + 14)
-// / 76" → 80, 94) — each a derivation of the leaves. null when it isn't one.
-export function evalExpression(expr: string): { value: number; numbers: number[]; steps: number[] } | null {
-  const src = expr.replace(/[×x]/g, '*').replace(/÷/g, '/').replace(/−/g, '-').replace(/,(?=\d{3})/g, '');
-  const tokens = src.match(/\d+(?:\.\d+)?%?|[-+*/()]|\S/g) ?? [];
-  const numbers: number[] = [];
-  const steps: number[] = [];
-  let i = 0;
-  const peek = () => tokens[i];
-  const factor = (): number => {
-    const t = tokens[i++];
-    if (t === '(') { const v = sum(); if (tokens[i++] !== ')') throw new Error('paren'); return v; }
-    if (t === '-') return -factor();
-    if (t !== undefined && /^\d/.test(t)) {
-      const n = parseFloat(t);
-      numbers.push(n);
-      return t.endsWith('%') ? n / 100 : n;
-    }
-    throw new Error(`token ${t}`);
-  };
-  const product = (): number => {
-    let v = factor();
-    while (peek() === '*' || peek() === '/') { const op = tokens[i++]; const r = factor(); v = op === '*' ? v * r : v / r; steps.push(v); }
-    return v;
-  };
-  const sum = (): number => {
-    let v = product();
-    while (peek() === '+' || peek() === '-') { const op = tokens[i++]; const r = product(); v = op === '+' ? v + r : v - r; steps.push(v); }
-    return v;
-  };
-  try {
-    if (tokens.length === 0) return null;
-    const value = sum();
-    if (i !== tokens.length || !Number.isFinite(value)) return null;
-    return { value, numbers, steps };
-  } catch {
-    return null;
-  }
-}
-
 export type VetContext = {
   caseData: CheckerCase & { factAnchors?: unknown; quoteAnchors?: unknown };
   revealedIds: string[];
@@ -279,8 +235,9 @@ export type VetContext = {
 
 export type VettedClaim = CheckerClaim & {
   flag: boolean;                // an error the interviewer should act on
-  probeLine: string | null;     // safe to speak
-  correctionLine: string | null;
+  probeLine: string | null;     // safe to speak: Rule 14's first attempt
+  correctionLine: string | null; // written by code: the second attempt when code computes the quantity
+  pointerLine: string | null;   // the second attempt when it doesn't
   vetNotes: string[];           // why a line was replaced or dropped
 };
 
@@ -310,7 +267,8 @@ export function codeComputed(c: CheckerClaim, ctx: VetContext): { values: number
   if (q.kind === 'none') return null;
   if (q.kind === 'step') {
     const step = ctx.caseData.mathSteps.find(st => st.id === q.stepId);
-    if (!step || !inputsRevealed(step, ctx.revealedIds)) return null;
+    // Every input revealed — a step that declares none can't show it.
+    if (!step?.inputs?.length || !inputsRevealed(step, ctx.revealedIds)) return null;
     return { values: [step.answer, ...(step.altAnswers ?? [])], tol: () => step.tolerance };
   }
   const v = pricingValues(ctx.caseData, new Set(ctx.revealedIds));
@@ -354,24 +312,74 @@ export function withinTolerance(c: CheckerClaim, ctx: VetContext): string | null
     const holds = how === 'atLeast' ? c.actualShare >= claimed - WORD_QUANTITY_MARGIN : Math.abs(c.actualShare - claimed) <= WORD_QUANTITY_MARGIN;
     return holds ? `word quantity holds: ${c.actualShare} of the whole against ${claimed} (${how}, margin ${WORD_QUANTITY_MARGIN})` : null;
   }
+  const theirs = candidateFigures(c.candidateValue);
+  // Deterministic first: when code computes the quantity, its figure decides.
+  const code = codeComputed(c, ctx);
+  if (code) {
+    if (theirs.length === 0) return 'no figure of theirs to check';
+    const inBand = theirs.find(f => code.values.some(x => f.lo - code.tol(x) <= x && x <= f.hi + code.tol(x)));
+    return inBand ? `code computes ${code.values.map(round).join(' / ')}: theirs ${inBand.lo === inBand.hi ? inBand.lo : `${inBand.lo}–${inBand.hi}`} is within tolerance` : null;
+  }
   const correct = c.correctValue !== null ? { lo: c.correctValue, hi: c.correctValue }
     : c.correctLow !== null && c.correctHigh !== null ? { lo: c.correctLow, hi: c.correctHigh } : null;
   if (!correct) return words ? 'no actual share for a word quantity' : 'no correct figure to check';
-  const tol = codeComputed(c, ctx)?.tol ?? ((x: number) => Math.max(0.5, 0.05 * Math.abs(x)));
-  const theirs = candidateFigures(c.candidateValue);
+  const tol = (x: number) => Math.max(0.5, 0.05 * Math.abs(x));
   const hit = theirs.find(f => f.lo - tol(correct.hi) <= correct.hi && correct.lo <= f.hi + tol(correct.lo));
   return hit ? `within tolerance: theirs ${hit.lo === hit.hi ? hit.lo : `${hit.lo}–${hit.hi}`}, correct ${correct.lo === correct.hi ? correct.lo : `${correct.lo}–${correct.hi}`}` : null;
 }
 
-// The probe and correction a flagged claim may put in the interviewer's mouth.
-// Each passes the provenance audit (only figures the candidate has) and the
-// truth check (no false fact about the case). The correction stands only when
-// its expression recomputes to its figure from figures the candidate has —
-// otherwise the probe alone goes out. A probe that fails is replaced with a
-// neutral one in the candidate's own words.
+// A figure as code speaks it: one decimal, two significant digits under 1.
+function spokenFigure(x: number): string {
+  return String(Math.abs(x) >= 1 ? Math.round(x * 10) / 10 : Number(x.toPrecision(2)));
+}
+
+const FIGURE = /\d[\d,]*(?:\.\d+)?(?:\s*%?\s*(?:to|-|–)\s*\d[\d,]*(?:\.\d+)?)?/;
+// A figure as said, with its unit: "10–12%", "5 points", "10 percentage points", "$70 million".
+const FIGURE_SAID = /(?:\$\s?)?\d[\d,]*(?:\.\d+)?(?:\s*%?\s*(?:to|-|–)\s*\d[\d,]*(?:\.\d+)?)?(?:\s?%|\s+(?:percentage\s+)?points?\b|\s+percent\b|\s?(?:million|billion|m|bn|k)\b)?/gi;
+const HAS_UNIT = /[%$]|\bpercent|\bpoints?\b|\b(?:million|billion)\b|\d\s*(?:m|bn|k)\b/i;
+
+// The unit of the quantity, for a figure the candidate said without one.
+function unitOf(c: CheckerClaim, ctx: VetContext): string {
+  const q = c.codeQuantity;
+  if (q.kind === 'gain') return ' points';
+  if (q.kind !== 'step') return '%';
+  const u = ctx.caseData.mathSteps.find(st => st.id === q.stepId) as { unit?: string | string[] } | undefined;
+  const first = Array.isArray(u?.unit) ? u.unit[0] : u?.unit;
+  return first === 'percent' ? '%' : first === 'points' ? ' points' : '';
+}
+
+// Lorenzo, 13 Oct: code writes the correction from its own figure for the
+// quantity the checker names ("It's closer to 8.5 points, not 5."), in the
+// candidate's units — the checker's arithmetic is never spoken. Their figure
+// is the one in the checker's value stated in the quantity's unit ("5 points
+// gain, 11% margin" → "5 points" for a gain), as they said it, without the
+// words around it; of code's accepted answers, the one nearest theirs. null
+// when their value has no figure.
+export function codeCorrection(c: CheckerClaim, code: { values: number[] }, ctx: VetContext): { line: string; figure: string } | null {
+  const said = [...normalizeNumberWords(c.candidateValue).matchAll(FIGURE_SAID)].map(m => m[0].trim());
+  const unit = unitOf(c, ctx);
+  const inUnit = said.filter(x => unit === '%' ? /%|percent/i.test(x) : unit === ' points' ? /point/i.test(x) : true);
+  const theirs = said.length === 1 ? said[0] : inUnit[0] ?? said[0];
+  if (!theirs) return null;
+  const [f] = candidateFigures(theirs);
+  const mid = (f.lo + f.hi) / 2;
+  const value = code.values.reduce((a, b) => Math.abs(b - mid) < Math.abs(a - mid) ? b : a);
+  const figure = spokenFigure(value);
+  const closer = HAS_UNIT.test(theirs) ? theirs.replace(FIGURE, figure) : `${figure}${unit}`;
+  return { line: `It's closer to ${closer}, not ${theirs}.`, figure };
+}
+
+// What a flagged claim may put in the interviewer's mouth (FR-4). The probe
+// and the pointer probe are the checker's drafts: each passes the provenance
+// audit (only figures the candidate has) and the truth check (no false fact
+// about the case); a probe that fails is replaced with a neutral one in the
+// candidate's own words, a pointer that fails is dropped. The correction is
+// code's, and goes through the same checks.
 export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): VettedClaim[] {
   const sources = allowedSources(ctx);
   const allowedNumbers = numbersOf(sources.join(' '));
+  // What the candidate was given (not their own words): a pointer names one of these.
+  const revealedNumbers = numbersOf(allowedSources({ ...ctx, candidateTexts: [] }).join(' '));
   const fb = buildFactBase(ctx.caseData as never);
   const revealed = new Set(ctx.revealedIds);
   const speakable = (line: string, extra: string[] = []) => !enforceNumericProvenance(line, [...sources, ...extra]).blocked && findFalseFacts(line, fb, revealed).length === 0;
@@ -380,42 +388,34 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
     const tolerated = isActionable(c) ? withinTolerance(c, ctx) : null;
     if (tolerated) vetNotes.push(`flag dropped — ${tolerated}`);
     const flag = isActionable(c) && !tolerated;
-    if (!flag) return { ...c, flag, probeLine: null, correctionLine: null, vetNotes };
+    if (!flag) return { ...c, flag, probeLine: null, correctionLine: null, pointerLine: null, vetNotes };
     let probeLine: string | null = c.probe.trim() || null;
     if (probeLine && !speakable(probeLine)) { vetNotes.push(`probe withheld (provenance/truth): ${probeLine}`); probeLine = null; }
     if (!probeLine) {
       const own = c.candidateValue && numbersOf(c.candidateValue).every(n => allowedNumbers.some(a => near(n, a))) ? c.candidateValue : '';
       probeLine = own ? `Walk me through how you got to ${own}.` : 'Walk me through that calculation.';
     }
-    let correctionLine: string | null = c.correction.trim() || null;
-    // Lorenzo, 13 Oct: a correction is spoken only when code computes the same
-    // quantity itself and agrees (batch 20 1c9184cf t18: "closer to 38%" for a
-    // price that restores 16 points — 20.5% — passed every other check).
-    if (correctionLine) {
-      const code = codeComputed(c, ctx);
+    let correctionLine: string | null = null;
+    const code = codeComputed(c, ctx);
+    if (!code) vetNotes.push(`no correction: code computes nothing for ${c.codeQuantity.kind}${c.codeQuantity.stepId ? ` ${c.codeQuantity.stepId}` : ''}`);
+    else {
       const mine = c.correctValue ?? (c.correctLow !== null && c.correctHigh !== null ? (c.correctLow + c.correctHigh) / 2 : null);
-      const agreeTol = (x: number) => Math.max(0.5, 0.03 * Math.abs(x));
-      if (!code) { vetNotes.push(`probe only: code computes nothing for ${c.codeQuantity.kind}${c.codeQuantity.stepId ? ` ${c.codeQuantity.stepId}` : ''}`); correctionLine = null; }
-      else if (mine === null || !code.values.some(x => Math.abs(x - mine) <= agreeTol(x))) {
-        vetNotes.push(`probe only: code computes ${code.values.map(round).join(' / ')}, the checker ${mine}`); correctionLine = null;
+      if (mine === null || !code.values.some(x => Math.abs(x - mine) <= Math.max(0.5, 0.03 * Math.abs(x)))) {
+        vetNotes.push(`code computes ${code.values.map(round).join(' / ')}, the checker said ${mine} — code's figure is the one spoken`);
       }
+      const written = codeCorrection(c, code, ctx);
+      if (!written) vetNotes.push(`no correction: no figure of theirs in "${c.candidateValue}"`);
+      else if (!speakable(written.line, [written.figure])) vetNotes.push(`correction withheld (provenance/truth): ${written.line}`);
+      else correctionLine = written.line;
     }
-    if (correctionLine) {
-      const ev = evalExpression(c.correctExpression);
-      const target = c.correctValue ?? (c.correctLow !== null && c.correctHigh !== null ? (c.correctLow + c.correctHigh) / 2 : null);
-      const constants = [1, 100, 0.5, 2];
-      if (!ev) { vetNotes.push(`correction dropped: no expression to recompute ("${c.correctExpression}")`); correctionLine = null; }
-      else if (ev.numbers.some(n => !constants.includes(n) && !allowedNumbers.some(a => near(n, a) || near(n * 100, a) || near(n, a * 100)))) {
-        vetNotes.push(`correction dropped: its expression uses a figure the candidate doesn't have (${c.correctExpression})`); correctionLine = null;
-      } else if (target === null || !(near(ev.value, target) || near(ev.value * 100, target) || near(ev.value, target * 100) || Math.abs(round(ev.value) - round(target)) <= 0.1)) {
-        vetNotes.push(`correction dropped: ${c.correctExpression} = ${round(ev.value)}, not ${target}`); correctionLine = null;
-      } else {
-        // The expression's intermediate results are derivations of figures the
-        // candidate has ("costs are 94 of 100" = 58 + 22 + 14): speakable.
-        const derived = [...ev.steps, ev.value, ev.value * 100].flatMap(v => [String(round(v)), String(Math.round(v))]);
-        if (!speakable(correctionLine, derived)) { vetNotes.push(`correction dropped (provenance/truth): ${correctionLine}`); correctionLine = null; }
-      }
+    let pointerLine: string | null = null;
+    const pointer = c.pointer.trim();
+    if (!correctionLine && pointer) {
+      if (!pointer.endsWith('?')) vetNotes.push(`pointer dropped (not a question): ${pointer}`);
+      else if (!speakable(pointer)) vetNotes.push(`pointer dropped (provenance/truth): ${pointer}`);
+      else if (!numbersOf(pointer).some(n => revealedNumbers.some(a => near(n, a)))) vetNotes.push(`pointer dropped (names no revealed figure): ${pointer}`);
+      else pointerLine = pointer;
     }
-    return { ...c, flag, probeLine, correctionLine, vetNotes };
+    return { ...c, flag, probeLine, correctionLine, pointerLine, vetNotes };
   });
 }
