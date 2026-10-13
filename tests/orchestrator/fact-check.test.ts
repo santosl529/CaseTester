@@ -163,6 +163,17 @@ describe('F4 — delivery claims without delivery', () => {
     expect(why('What does the cost structure exhibit tell you about the drivers?', ctx({ exhibitShown: false, revealed: new Set() }))).toEqual(expect.arrayContaining(['no_exhibit']));
     expect(why('Here\'s the menu price history.')).toEqual(['not_released']);
   });
+  // Batch 21 Marcus t6: "I'll share menu price changes … once we've settled
+  // your structure. With that in hand, what does it tell you…?" Bare "that"
+  // can be anything said — but on a turn that held data and delivered none,
+  // it is the held data.
+  it('a bare "with that in hand" after a deferral, nothing delivered (Marcus t6)', () => {
+    expect(why('With that in hand, what does it tell you about your pricing hypothesis?', ctx({ deferredNow: true }))).toEqual(['nothing_delivered']);
+    expect(why('Now that you have that, what would you look at next?', ctx({ deferredNow: true }))).toEqual(['nothing_delivered']);
+    // Not when nothing was held, or when something went out this turn.
+    expect(why('With that in hand, what does it tell you about your pricing hypothesis?')).toEqual([]);
+    expect(why('With that in hand, what does it tell you about your pricing hypothesis?', ctx({ deferredNow: true, deliveredNow: true }))).toEqual([]);
+  });
   it('true claims pass', () => {
     expect(why('With the cost breakdown in front of you, which line moved?', ctx({ deliveredNow: true }))).toEqual([]);
     expect(why('With the COGS composition in front of you, which input would you check first?', ctx({ revealed: new Set([...COST_LINES, 'bean_share_of_cogs']) }))).toEqual([]);

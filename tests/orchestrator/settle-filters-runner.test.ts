@@ -555,6 +555,18 @@ describe('the question agrees with what code delivered (fact checks F4)', () => 
     expect(withheldFor('undelivered_claim').length).toBeGreaterThan(0);
   });
 
+  it('"With that in hand" after code held the data, nothing delivered, is withheld (batch 21 Marcus t6)', async () => {
+    seed({ phase: 'STRUCTURE' });
+    const r = await say("If I had to test one thing first, it'd be the menu-price history — do we have that?", T({
+      say: 'Understood.', requests: [{ what: 'menu price changes', itemIds: ['menu_price_change'], explicit: true, respond: 'release' }],
+      question: 'With that in hand, what does it tell you about your pricing hypothesis, and what would you want to look at next?',
+    }));
+    expect(r.interviewerText).toMatch(/I'll share menu price changes once we've settled your structure\./);
+    expect(r.interviewerText).not.toMatch(/With that in hand/);
+    expect(r.interviewerText).toMatch(/\?$/);
+    expect(withheldFor('undelivered_claim')).toHaveLength(1);
+  });
+
   it('a true claim stays: the figure went out this turn', async () => {
     seed({ phase: 'EXHIBIT', revealed: [...COST, 'bean_share_of_cogs'], flags: SATISFIED });
     const r = await say('What did bean prices do?', T({

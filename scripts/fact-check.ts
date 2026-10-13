@@ -91,6 +91,7 @@ export function checkRun(run: CorpusRun): Flag[] {
       deliveredNow: t.releasedNow.length > 0 || !!t.exhibitNow || t.segments.some(s => /\bTo correct (?:one|two) figures?\b/.test(s.text))
         || t.segments.some(s => s.kind === 'data' && /\b(?:As I mentioned|You asked about this earlier|Coming back to what you asked for)\b/.test(s.text)),
       deliveredPrev: false, refusedNow: t.segments.some(s => /\bI don't have\b/i.test(s.text)),
+      deferredNow: t.segments.some(s => s.kind === 'data' && /\b(?:I'll come back to|I'll share .* once we've settled|I can share .* if you'd like|Let's settle your structure before)\b/.test(s.text)),
     };
     // F2 on the message this turn answers.
     const c = t.candidateText;

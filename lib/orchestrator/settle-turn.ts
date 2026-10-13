@@ -191,6 +191,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     revealed: gBase.facts.revealed, exhibitShown: state.shownExhibitIds.size > 0 || decisions.exhibit !== null,
     deliveredNow: decisions.releases.length > 0 || decisions.exhibit !== null || decisions.restates.length > 0 || decisions.correction != null,
     deliveredPrev: false, refusedNow: decisions.refusals.length > 0,
+    deferredNow: decisions.defers.length + decisions.gateDefers.length + decisions.offers.length > 0 || decisions.unmappedDefer,
   } } } : gBase;
 
   // The model's words, vetoed sentence by sentence (never rewritten).

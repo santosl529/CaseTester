@@ -720,6 +720,7 @@ export type DeliveryContext = {
   deliveredNow: boolean;        // this turn released data or showed an exhibit
   deliveredPrev: boolean;       // the previous interviewer turn did
   refusedNow: boolean;          // this turn refused data
+  deferredNow?: boolean;        // this turn held data for later (a deferral, the gate's hold, an offer)
 };
 
 const CLAIMS: RegExp[] = [
@@ -766,6 +767,11 @@ export function findUndeliveredClaims(text: string, fb: FactBase, ctx: DeliveryC
         // "With those figures" means this turn's: nothing delivered, nothing to
         // hold — unless they are the candidate's ("With those numbers, your arithmetic…").
         if (!ctx.deliveredNow && !/^\W*(?:\w+\W+){0,2}your\b/i.test(s.slice(m.index + m[0].length))) flag(m[0], [], 'nothing_delivered');
+      } else if (ctx.deferredNow && !ctx.deliveredNow && /^(?:that|this|it)$/i.test(ref)) {
+        // Bare "that" can be anything said — but on a turn that held data and
+        // delivered none, it is the held data (batch 21 Marcus t6: "I'll share
+        // menu price changes … once we've settled your structure. With that in hand, …").
+        flag(m[0], [], 'nothing_delivered');
       }
     }
     if (!ctx.exhibitShown && EXHIBIT_REF.test(s) && !/\b(?:I'll|I will|let me|once|when)\b[^.?]*\b(?:exhibit|chart)\b/i.test(s)) flag(EXHIBIT_REF.exec(s)![0], [], 'no_exhibit');
