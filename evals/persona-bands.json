@@ -3287,6 +3287,55 @@
         "confidence": "medium",
         "reason": ""
       }
+    },
+    "64": {
+      "structure": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "quantitative": {
+        "expect": [
+          "needs_work",
+          "meets_bar"
+        ],
+        "confidence": "medium",
+        "reason": "\"Build your next calculations on the misremembered figures\"; method otherwise fine"
+      },
+      "dataExhibit": {
+        "expect": [
+          "needs_work"
+        ],
+        "confidence": "medium",
+        "reason": "\"Misstate figures the interviewer has already given you\" (misread data and exhibit figures)"
+      },
+      "judgment": {
+        "expect": [
+          "meets_bar"
+        ],
+        "confidence": "medium",
+        "reason": "\"Your reasoning method is otherwise fine\""
+      },
+      "creativity": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "communication": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "synthesis": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "pushback": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      }
     }
   }
 }
