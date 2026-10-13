@@ -258,7 +258,10 @@
         "gap"
       ],
       "unit": "usd",
-      "inputs": [],
+      "inputs": [
+        "network_totals",
+        "fixed_costs"
+      ],
       "live": false,
       "quantity": "the swing in operating profit (and the revenue drop), FY2023 to FY2025",
       "timeframe": "change"

@@ -192,6 +192,12 @@ describe('every case', () => {
         }
       });
 
+      // Every step names the ledger items it is derived from (Lorenzo, 13 Oct):
+      // a step with none is checked from the first turn, before its figures are out.
+      it('every math step lists its inputs', () => {
+        for (const m of c.mathSteps) expect(m.inputs.length, `${m.id} has no inputs`).toBeGreaterThan(0);
+      });
+
       it('phase budgets, if present, sum to the total case time', () => {
         const b = c.pacing?.phaseBudgetsMs;
         if (b) expect(Object.values(b).reduce((a, x) => a + (x ?? 0), 0)).toBe(TOTAL_CASE_MS);
