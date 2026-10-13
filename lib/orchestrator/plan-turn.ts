@@ -8,10 +8,7 @@ import { formatOpenRequestsHint, formatUnmappedHint } from './data-requests';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
 import { createLedger, reveal, revealedValues, labelWithPeriod } from './data-ledger';
-import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts, checkVerifiedForTurn, formatVerifiedHint, flagsFromUnitCheck, flagsFromArithmetic, flagsFromPricing, verifiedFromChecks, recomputeAction, type RecomputeAttempts, type VerifiedFigure } from './recompute';
-import { checkNestedConversions } from './unit-check';
-import { checkStatedArithmetic } from './arithmetic-check';
-import { checkPricingClaims, pricingValues } from './pricing-check';
+import { checkCandidateMath, formatRecomputeHint, recordAttempts, formatVerifiedHint, recomputeAction, type RecomputeAttempts, type VerifiedFigure } from './recompute';
 import { candidateFiguresOf } from './math-talk';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
@@ -393,20 +390,12 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // work in 9 batch-18 interviews). Each figure ends up verified correct,
   // flagged incorrect, or unverified — and only a flag licenses doubt
   // (probe-guard.ts).
-  const revealedIdsNow = Object.keys(revealedValues(ledger));
-  const stepFlags = checkRecomputeForTurn(candidateText, caseData.mathSteps, revealedIdsNow);
-  const arithmetic = checkStatedArithmetic(candidateText);
-  const units = checkNestedConversions(candidateText, { bases: caseData.shareBases, items: caseData.dataLedger, revealedIds: revealedIdsNow });
   // Pricing claims (12 Oct): a price change's stated result against the case's
   // cost structure, once every cost line is out (pricing-check.ts).
-  const pricingModel = pricingValues(caseData, new Set(revealedIdsNow));
-  const pricing = pricingModel ? checkPricingClaims(candidateText, pricingModel) : [];
-  const recomputeFlags = [
-    ...stepFlags,
-    ...flagsFromUnitCheck(units.flags),
-    ...flagsFromArithmetic(arithmetic).filter(a => !stepFlags.some(f => f.candidateValue === a.candidateValue)),
-  ];
-  recomputeFlags.push(...flagsFromPricing(pricing).filter(p => !recomputeFlags.some(f => f.candidateValue === p.candidateValue)));
+  const revealedIdsNow = Object.keys(revealedValues(ledger));
+  const candidateMath = checkCandidateMath(candidateText, caseData, revealedIdsNow);
+  const { arithmetic, units, pricing } = candidateMath;
+  const recomputeFlags = candidateMath.flags;
   // Rule 14: the attempt counter is orchestrator state, not model judgment.
   const recomputeAttempts = recordAttempts((flags.recomputeAttempts as RecomputeAttempts | undefined) ?? {}, recomputeFlags);
   const { hint: recomputeHint, derivedValues: derivedValueTexts } = formatRecomputeHint(recomputeFlags, {
@@ -439,11 +428,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Rule 2 v4.5/v4.6: the other half of the signal — figures the candidate
   // stated correctly (recompute_ok), with whether the work was shown. Doubt
   // probes on these are banned and withheld before send (probe-guard.ts).
-  const stepVerified = checkVerifiedForTurn(candidateText, caseData.mathSteps, revealedIdsNow);
-  const verifiedNow = [
-    ...stepVerified,
-    ...verifiedFromChecks(arithmetic, units.verified, pricing).filter(v => !stepVerified.some(x => Math.abs(x.value - v.value) < 1e-9)),
-  ];
+  const verifiedNow = candidateMath.verified;
   const verifiedPrev = (flags.lastVerified as VerifiedFigure[] | undefined) ?? [];
   const explainProbedBefore = new Set((flags.explainProbed as string[] | undefined) ?? []);
   const verifiedHint = formatVerifiedHint(verifiedNow, explainProbedBefore);

@@ -77,7 +77,7 @@ export function checkNestedConversions(
   rawText: string,
   p: {
     bases: ShareBase[];
-    items: { id: string; timeframes?: Record<string, string> }[];
+    items: { id: string; value?: string; timeframes?: Record<string, string> }[];
     revealedIds: Iterable<string>;
   },
 ): { flags: UnitFlag[]; verified: UnitVerified[] } {
@@ -94,6 +94,22 @@ export function checkNestedConversions(
     const values = baseValues(p.items.find(i => i.id === base.item)?.timeframes);
     if (values.length === 0) continue;
     const names = [base.name, ...base.aliases].map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+    // The period of a share the case states of this base ("Coffee beans were
+    // 25% of COGS two years ago"), or of its complement ("the other 75%"): a
+    // share converts only at the base of its own period. Marisol t8 (batch
+    // 21): "25% of COGS, so against the current 58, that's 14.5 points" mixes
+    // the old mix with today's COGS and was verified correct.
+    const sharePeriod = (share: number): 'current' | 'prior' | undefined => {
+      for (const item of p.items.filter(i => revealed.has(i.id) && i.value)) {
+        for (const [fig, tf] of Object.entries(item.timeframes ?? {})) {
+          if (tf !== 'current' && tf !== 'prior') continue;
+          const f = parseFloat(fig);
+          const statesShare = new RegExp(`(?<![\\d.])${fig.replace('.', '\\.')}\\s*(?:%|percent)\\s+of\\s+(?:the\\s+|total\\s+)?(?:${names})\\b`, 'i').test(item.value!);
+          if (statesShare && (Math.abs(f - share) < 1e-9 || Math.abs(100 - f - share) < 1e-9)) return tf;
+        }
+      }
+      return undefined;
+    };
     // "25% of COGS" — not "10% of COGS growth", which is itself a result.
     const SHARE = new RegExp(`${NUM}${PCT}\\s+of\\s+(?:total\\s+|the\\s+|our\\s+|their\\s+)?(?:${names})\\b(?!\\s+(?:growth|increase|change|inflation|rise))`, 'gi');
     const CHANGE = new RegExp(String.raw`(?:\b(?:up|rose|risen|rising|increased|increasing|grew|grown|jumped|climbed|inflated|spiked)\s+(?:by\s+)?(?:about\s+|roughly\s+|~)?${NUM}${PCT}|${NUM}${PCT}\s+(?:rise|increase|jump|inflation|spike|hike|higher)\b|\+\s?${NUM}${PCT})`, 'gi');
@@ -127,7 +143,8 @@ export function checkNestedConversions(
         // share: the share restated as revenue points; delta: share × change; level: share × (1 + change).
         const unconverted: { value: number; share: number; change?: number; form: 'share' | 'delta' | 'level' }[] = [];
         for (const s of shares) {
-          for (const b of values) {
+          const period = sharePeriod(s);
+          for (const b of values.filter(v => period === undefined || v.timeframe === period)) {
             converted.push({ value: s * b.value / 100, share: s, base: b });
             for (const c of changes) {
               converted.push({ value: s * b.value / 100 * c / 100, share: s, change: c, base: b });
