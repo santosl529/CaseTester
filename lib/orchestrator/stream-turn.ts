@@ -30,7 +30,7 @@ import { promisesExhibit } from './exhibits';
 import { revealedValues } from './data-ledger';
 import { turnData, pressureTestOutcomeNow } from './turn-data';
 import { renderDataLines } from './data-decisions';
-import { findFalseFacts, findEchoes, type FactBase, type Echo } from './fact-check';
+import { findFalseFacts, findEchoes, findFalseRefusals, type FactBase, type Echo } from './fact-check';
 import { isGradingSentence } from './grading';
 
 export type GateContext = {
@@ -101,6 +101,8 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   // provenance check passes these when the number was said by anyone.
   if (g.facts && (findFalseFacts(sentence, g.facts.fb, g.facts.revealed).length > 0 || findEchoes(sentence, g.facts.echoes, g.facts.fb).length > 0
     || findEchoes(sentence, g.facts.correcting ?? [], g.facts.fb, { strict: true }).length > 0)) return 'false_fact';
+  // A refusal of data the case holds, in the model's own words (code's data line answers asks).
+  if (g.facts && findFalseRefusals(sentence, g.facts.fb, g.facts.revealed).length > 0) return 'false_refusal';
   // Doubt on the candidate's math only with a flag behind it (probe-guard.ts):
   // on a verified figure "probe_guard", on an unverified one "unsupported_challenge".
   const challenge = challengeVerdict(sentence, {

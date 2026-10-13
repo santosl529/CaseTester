@@ -410,6 +410,10 @@ describe('spoken whats', () => {
     expect(renderDataLines({ ...decideData(base()), gateDefers: ['COGS as % of revenue', 'Labor as % of revenue', 'Overhead / rent as % of revenue'] }, 's'))
       .toEqual(["I'll share COGS, labor and overhead as a percent of revenue once we've settled your structure."]);
   });
+  it('a catalog heading before a colon is not said (remapped asks, 12 Oct)', () => {
+    expect(renderDataLines({ ...decideData(base()), gateDefers: ["Composition of COGS: coffee beans' share of COGS", 'Coffee bean price change over 2 years'] }, 's'))
+      .toEqual(["I'll share coffee beans' share of COGS and coffee bean price change over 2 years once we've settled your structure."]);
+  });
   it('a suffix every item shares is said once', () => {
     const d = decideData(base({ requests: [
       req({ what: 'COGS as % of revenue', itemIds: ['cogs_pct'], respond: 'defer' }),

@@ -370,3 +370,63 @@ describe('no misquote is left standing at the goodbye', () => {
     expect(r.interviewerText).not.toMatch(/19%/);
   });
 });
+
+describe('no refusal names data the case holds (fact checks F3)', () => {
+  const COST = ['cogs_pct', 'labor_pct', 'overhead_pct'];
+  const ask = (what: string, itemIds: string[] = []) => ({ what, itemIds, explicit: true, respond: 'release' as const });
+
+  it('"what\'s inside COGS" is answered with what the case holds, not refused (batch 20 R10 t8)', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const r = await say("Do we have data on what's inside COGS — bean cost per pound and dairy?", T({
+      say: 'Got it.', requests: [ask("what's inside COGS, bean cost per pound and dairy")], question: 'What would you expect to find?',
+    }));
+    expect(r.interviewerText).not.toMatch(/I don't have what's inside COGS/);
+    expect(r.interviewerText).toMatch(/Coffee beans were 25% of COGS two years ago/);
+    expect(check('refusal_remapped')).toMatchObject({ decision: 'act' });
+  });
+
+  it('"COGS breakdown by input — beans, dairy, cups and food" maps to the bean share (R23 t8)', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const r = await say('Do we have that COGS breakdown?', T({ say: 'Mm-hm.', requests: [ask('COGS breakdown by input — beans, dairy, cups and food — and unit cost per pound')], question: 'What does it tell you?' }));
+    expect(r.interviewerText).toMatch(/Coffee beans were 25% of COGS two years ago/);
+    expect(r.interviewerText).not.toMatch(/I don't have COGS breakdown/);
+  });
+
+  it('"the number of stores over the 2 years" is the store count (batch 18 Maya t7)', async () => {
+    seed({ phase: 'CLARIFY', flags: SATISFIED });
+    const r = await say('Has the number of stores changed over the two years?', T({ say: 'Sure.', requests: [ask('the number of stores over the 2 years')], question: 'How would you structure it?' }));
+    expect(r.interviewerText).toMatch(/200 stores today/);
+    expect(r.interviewerText).not.toMatch(/I don't have/);
+  });
+
+  it('a finer cut than the case holds is still refused ("bean share of COGS today")', async () => {
+    seed({ phase: 'EXHIBIT', revealed: [...COST, 'bean_share_of_cogs'], flags: SATISFIED });
+    const r = await say('Do we know the bean share of COGS today?', T({ say: 'Mm-hm.', requests: [ask('bean share of COGS today')], question: 'What would you estimate?' }));
+    expect(r.interviewerText).toMatch(/I don't have bean share of COGS today\./);
+  });
+
+  it('before the pressure test is satisfied, a remapped ask is held with its reason, not refused', async () => {
+    seed({ phase: 'STRUCTURE', flags: { pressureTest: { state: 'awaiting', reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false, askedAt: 0 } } });
+    const r = await say("Could I see what's inside COGS?", T({ say: 'Mm-hm.', requests: [ask("what's inside COGS")], question: 'Is that structure MECE?' }));
+    expect(r.interviewerText).not.toMatch(/I don't have|what's inside COGS/);
+    expect(r.interviewerText).toMatch(/once we've settled your structure/);
+  });
+
+  it('a false refusal in the model\'s own question is withheld', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const r = await say('Okay.', T({ say: 'Mm-hm.', question: "I don't have the menu price history. What would you look at next?" }));
+    expect(r.interviewerText).toBe('Mm-hm. What would you look at next?');
+  });
+});
+
+describe('no refusal names data the case holds — a declared deferral too', () => {
+  it('"coffee bean, dairy, packaging, and waste shares of COGS, today and two years ago" declared defer (batch 20 R28 t38)', async () => {
+    seed({ phase: 'RECOMMENDATION', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: SATISFIED });
+    const r = await say('Their point shares of COGS today versus two years ago.', T({
+      say: 'Got it.', requests: [{ what: 'coffee bean, dairy, packaging, and waste shares of COGS, today and two years ago', itemIds: [], explicit: true, respond: 'defer' }],
+      question: 'How would you rank the levers?',
+    }));
+    expect(r.interviewerText).not.toMatch(/I don't have coffee bean/);
+    expect(r.interviewerText).toMatch(/Coffee beans were 25% of COGS two years ago/);
+  });
+});

@@ -6,6 +6,7 @@ import type { ModelTurn, DeclaredRequest } from '@/lib/agent/models/turn-schema'
 import { resolveRequests } from '@/lib/agent/models/turn-schema';
 import type { ModelPlan } from './plan-turn';
 import { decideData, exactResolver, labelMatch, outsideAskScope, RELEASE_CAP, type DataDecisions } from './data-decisions';
+import { findFalseRefusals } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT } from './pressure-test';
 import { planForcedReleases } from './data-requests';
 import { revealedValues } from './data-ledger';
@@ -79,6 +80,29 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     return { ...r, itemIds: r.itemIds.filter(id => !out.includes(id)) };
   });
   if (scoped.length > 0) plan.ctx.checks.act('request_scope', 'items outside a qualified ask dropped from it', { scoped });
+  // No refusal names data the case holds (fact checks F3, 12 Oct; batch 20:
+  // "I don't have what's inside COGS", "…COGS breakdown by input — beans, …",
+  // "…coffee bean … shares of COGS, today and two years ago"; batch 18: "…the
+  // number of stores over the 2 years"). An explicit ask left with no item
+  // would be refused out loud: read the refusal it would become, and map the
+  // ask to the held items it names — released, restated, or held by the gate
+  // like any other ask. What it names finer than the case (per pound, by
+  // store, today's share) still gets the refusal.
+  const fb = state.factBase;
+  const revealedNow = new Set(Object.keys(revealedValues(ledger)));
+  const remapped: { what: string; ids: string[] }[] = [];
+  requests = requests.flatMap(r => {
+    // Declared release or defer alike: after the pressure test a deferral becomes a release (below).
+    if (!r.explicit || r.itemIds.length > 0) return [r];
+    const ids = [...new Set(findFalseRefusals(`I don't have ${r.what}.`, fb, revealedNow).flatMap(f => f.items))]
+      .filter(id => ledger.items.some(i => i.id === id));
+    if (ids.length === 0) return [r];
+    remapped.push({ what: r.what, ids });
+    // One ask per item, in its own label — a deferral must not promise the
+    // finer cut the case doesn't hold ("bean cost per pound").
+    return ids.map(id => ({ ...r, itemIds: [id], what: ledger.items.find(i => i.id === id)!.label }));
+  });
+  if (remapped.length > 0) plan.ctx.checks.act('refusal_remapped', 'an ask code would have refused names data the case holds — mapped to it', { remapped });
   // After the pressure test, nothing is premature: a declared deferral is
   // released (or refused, when the case doesn't hold the data).
   if (satisfied) requests = requests.map(r => (r.respond === 'defer' ? { ...r, respond: 'release' as const } : r));

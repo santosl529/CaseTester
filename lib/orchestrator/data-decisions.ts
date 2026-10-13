@@ -288,8 +288,11 @@ function spokenWhat(what: string): string {
 // rent …"); "as % of" is said, a parenthesis
 // inside becomes an aside and one at the end is dropped (it only clarifies,
 // and an unclosed aside runs into the next item). A figure's own "%" stays.
+// A catalog heading before a colon is dropped (fact checks, 12 Oct: remapped asks are said back in labels).
 function speakable(what: string, conj: 'and' | 'or', inList: boolean): string {
   return what
+    // A catalog heading before a colon isn't said: "Composition of COGS: coffee beans' share of COGS".
+    .replace(/^[A-Z][^:]{2,40}:\s+(?=\S)/, '')
     .replace(/(\S+)\s*\/\s*(\S+)/g, (_, x: string, y: string) => (conj === 'or' ? `${x} or ${y}` : inList ? x : `${x} and ${y}`))
     .replace(/\bas\s*%\s*of\b/gi, 'as a percent of')
     .replace(/\s*\([^)]*\)\s*$/, '')
