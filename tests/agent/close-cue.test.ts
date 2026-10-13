@@ -21,6 +21,27 @@ describe('hasCloseCue', () => {
     expect(hasCloseCue("That's all I need from you on the case.")).toBe(true);
   });
 
+  // Lorenzo, 13 Oct (Step 4, Jasmine 35897f4a t18 — said mid-case with stages
+  // owed, then the case went on; and the other closing lines a scan of every
+  // saved run found).
+  it.each([
+    "That's all I have on the case.",
+    "That's all I have.",
+    "We're done here.",
+    'Thanks, that covers it.',
+    "That's it from me.",
+    "That's all for today.",
+    'That wraps it up.',
+  ])('recognizes a closing line: %s', s => expect(hasCloseCue(s)).toBe(true));
+  it.each([
+    "That's all I have on competitor pricing.",
+    "Once we're done here with costs, what would you look at?",
+    'That covers costs; what about revenue?',
+    "That's all right.",
+    'Before we wrap up, what is the single biggest risk to your recommendation?',
+    "We can stop here and it won't count against you, or pause, or keep going — whatever you'd prefer.",
+  ])('not a close: %s', s => expect(hasCloseCue(s)).toBe(false));
+
   it('does not treat a correction as a close, even one that says "before we close"', () => {
     expect(hasCloseCue('One flag before we close. The COGS dollar increase you computed includes normal growth — the margin problem is the 16-point compression, a different quantity than the $103M.')).toBe(false);
   });

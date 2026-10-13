@@ -269,10 +269,11 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     // Prevented, not delivered: logged apart from the interviewer errors scoring marks (interviewer-errors.ts).
     ctx.events.push({ category: 'intervention', subtype: w.reason === 'probe_guard' ? 'challenge_on_verified_blocked' : 'unsupported_challenge_blocked', payload: { sentence: w.sentence, field: w.field } });
   }
-  // A question withheld for a false fact is replaced by one that fits the phase
+  // A question withheld for a false fact — or for closing the case mid-case
+  // (Jasmine 35897f4a t18 "That's all I have on the case.") — is replaced by one that fits the phase
   // (after whatever statement of the question is left: "Per-unit costs aren't
   // something I have directly." still needs a question after it).
-  if (!codeWritten && kind !== 'rec_ask' && !question.trim().endsWith('?') && withheld.some(w => w.field === 'question' && (w.reason === 'false_fact' || w.reason === 'undelivered_claim' || w.reason === 'false_refusal'))) {
+  if (!codeWritten && kind !== 'rec_ask' && !question.trim().endsWith('?') && withheld.some(w => w.field === 'question' && (w.reason === 'false_fact' || w.reason === 'undelivered_claim' || w.reason === 'false_refusal' || w.reason === 'close_cue'))) {
     const fallback = pickFallbackQuestion({ figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
     modelQuestion = question;
     question = question ? `${question} ${fallback}` : fallback;

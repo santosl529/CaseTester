@@ -106,8 +106,15 @@ describe('settleTurn composition', () => {
   });
 
   it('a vetoed question becomes "Go on."', async () => {
-    const s = await settle(T({ question: "That's our time, thanks for working through it." }));
+    const s = await settle(T({ question: 'Your structure is solid.' }));
     expect(s.spokenText).toBe('Go on.');
+  });
+
+  // Lorenzo, 13 Oct (Jasmine 35897f4a t18): a close said mid-case is withheld and a question takes its place.
+  it('a closing question mid-case is replaced by a question that fits the phase', async () => {
+    const s = await settle(T({ question: "That's our time, thanks for working through it." }));
+    expect(s.spokenText).not.toMatch(/our time/);
+    expect(s.spokenText).toMatch(/\?$/);
   });
 
   it('on a rec_ask turn the question is the scripted recommendation ask', async () => {

@@ -111,9 +111,11 @@ export const SILENCE_PAUSE_EXPIRED =
 
 // Rule 12: does this turn already close the case? Used to guarantee a close
 // line on ending turns that say something else (live run eca39ec7 ended on a
-// bare correction after time-up). "Before we close" is not a close.
+// bare correction after time-up). "Before we close" is not a close. Lorenzo,
+// 13 Oct (Jasmine 35897f4a t18 "That's all I have on the case." with stages
+// owed): every closing-sounding line a scan of the saved runs found.
 const CLOSE_CUE =
-  /\b(that'?s (our )?time|we'?ll stop (there|here)|(that'?s|this is) where we'?ll stop|thanks?( you)? for (working|walking)|we'?re out of time|report (with feedback )?will follow|we'?ve covered everything|that covers what i wanted|that closes (?:the case|out|the recommendation)|that'?s all i need(?: from you)?(?: on (?:the|this) case)?(?=[.!]))\b/i;
+  /\b(that'?s (our )?time|we'?ll stop (there|here)|(that'?s|this is) where we'?ll stop|thanks?( you)? for (working|walking)|we'?re out of time|report (with feedback )?will follow|we'?ve covered everything|that covers what i wanted|that closes (?:the case|out|the recommendation)|that'?s all i need(?: from you)?(?: on (?:the|this) case)?(?=[.!])|that'?s all i have(?: (?:on|for) (?:the|this) case| for (?:you|today|now))?(?=[.!])|we'?re (?:all )?done(?: here)?(?=[.!])|that covers it(?=[.!])|that'?s (?:it|all) (?:from me|for (?:today|now|the case|this case))(?=[.!])|that wraps (?:it|things|us) up)\b/i;
 
 export function hasCloseCue(spokenText: string): boolean {
   return CLOSE_CUE.test(spokenText);

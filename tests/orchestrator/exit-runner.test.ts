@@ -328,6 +328,14 @@ describe('the recommendation waits for the core analysis', () => {
     expect(r.interviewerText).toMatch(/most important number/);
   });
 
+  it('Jasmine 35897f4a t18: the model\'s "That\'s all I have on the case." with stages owed is withheld; a question goes out', async () => {
+    early({ stagesEnforced: { analysis: true } });
+    const r = await say('Store-level profit, not revenue.', T({ move: 'other', say: '', question: "That's all I have on the case." }));
+    expect(r.ended).toBe(false);
+    expect(r.interviewerText).not.toMatch(/all I have/);
+    expect(r.interviewerText).toMatch(/\?$/);
+  });
+
   it("R14: code's own end with the COGS inputs never out → the line back to the analysis, not the close", async () => {
     seed({ phase: 'RECOMMENDATION', elapsedMin: 13, coverage: ALL_COVERED, revealed: COST_LINES,
       turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'Beans.' }, { role: 'interviewer', text: "What's your recommendation to the client?" },
