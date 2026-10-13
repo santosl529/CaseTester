@@ -12,7 +12,7 @@
   ],
   "case_type": "new_product_launch",
   "industry": "Airlines / Travel / Hospitality",
-  "prompt": "The client asks: \"Should our burger restaurants add breakfast?\" Fact sheet: adding breakfast costs $20k per restaurant; breakfast would earn about $30k a year per restaurant; the restaurants are currently closed in the morning; the breakfast market grows 5% a year; a rival chain's breakfast menu won a national award last year. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should our burger restaurants add breakfast?\" Fact sheet: adding breakfast costs $20k per restaurant; breakfast would earn about $30k a year per restaurant; the restaurants have been closed in the morning since 2019; the breakfast market grows 5% a year; the chain sells about 2 million burgers a month. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -27,10 +27,10 @@
     },
     {
       "id": "b",
-      "text": "Add breakfast. A rival chain's breakfast menu just won a national award, which shows breakfast is a winning idea.",
+      "text": "Add breakfast. We sell about 2 million burgers a month, so customers clearly love the brand.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "A rival's award doesn't decide this. The payback does."
+      "feedback": "Burger sales don't decide this. The payback does."
     },
     {
       "id": "c",
@@ -54,7 +54,7 @@
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "A rival chain's breakfast menu won a national award last year."
+      "The chain sells about 2 million burgers a month."
     ]
   },
   "sources": [],

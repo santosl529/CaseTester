@@ -11,7 +11,7 @@
   ],
   "case_type": "turnaround",
   "industry": null,
-  "prompt": "The client asks: \"What should we do with our loss-making European division?\" Fact sheet: the division lost $20M last year; its revenue has fallen 10% a year for three years; a buyer has offered $50M; restructuring would cost $80M and might break even in three years; the division is 8% of group revenue; its brand is well known in France.\n\nA candidate gave the recommendation below. Fix it.",
+  "prompt": "The client asks: \"What should we do with our loss-making European division?\" Fact sheet: the division lost $20M last year; its revenue has fallen 10% a year since 2023; a buyer has offered $50M; restructuring would cost $80M and might break even in three years; the division is 8% of group revenue; the group bought the division in 2015 for $150M.\n\nA candidate gave the recommendation below. Fix it.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -32,17 +32,17 @@
     },
     {
       "check_id": "fix_2",
-      "question": "The original had this flaw: it pads the case with a fact that doesn't bear on the decision: the brand's fame in France. Does the edited answer fix it? One way to fix it: removes the brand's fame in France, or mentions it only to dismiss it. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it leans on a fact that doesn't bear on the decision: what the group paid for the division in 2015. Does the edited answer fix it? One way to fix it: removes the 2015 purchase price, or mentions it only to dismiss it. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
       "weight": 0.25,
       "fail_tag": "M.irrelevant_facts",
-      "feedback": "The flaw is still there: it pads the case with a fact that doesn't bear on the decision: the brand's fame in France.",
+      "feedback": "The flaw is still there: it leans on a fact that doesn't bear on the decision: what the group paid for the division in 2015.",
       "step": 0,
       "detection": "ai",
       "evidence": "whole"
     },
     {
       "check_id": "no_new_flaw",
-      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: buried recommendation, hedged recommendation, irrelevant facts, unsupported recommendation, ignored the deciding fact? The original's own flaws (the recommendation comes last instead of first; it pads the case with a fact that doesn't bear on the decision: the brand's fame in France) don't count as new, even if the edit leaves them in place or rewords them, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
+      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: buried recommendation, hedged recommendation, irrelevant facts, unsupported recommendation, ignored the deciding fact? The original's own flaws (the recommendation comes last instead of first; it leans on a fact that doesn't bear on the decision: what the group paid for the division in 2015) don't count as new, even if the edit leaves them in place or rewords them, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
       "weight": 0.3,
       "fail_tag": "M.buried_recommendation",
       "feedback": "Your edit added a new flaw. Change only what needs fixing.",
@@ -63,10 +63,10 @@
   ],
   "red_flags": [],
   "model_answer": "Sell the division for the $50M offered. It lost $20M last year, revenue falls 10% a year, and restructuring would cost $80M for break-even at best.",
-  "explanation": "The flaws: the recommendation comes last instead of first; it pads the case with a fact that doesn't bear on the decision: the brand's fame in France. What was right: the figures it uses: the $20M loss, revenue falling 10% a year, the $80M cost of restructuring and the $50M offer.",
+  "explanation": "The flaws: the recommendation comes last instead of first; it leans on a fact that doesn't bear on the decision: what the group paid for the division in 2015. What was right: the figures it uses: the $20M loss, revenue falling 10% a year, the $80M cost of restructuring and the $50M offer.",
   "extras": {
     "derived_from": "sy1-0013",
-    "flawed_answer": "With $20M of losses, revenue down 10% a year and restructuring costing $80M for break-even at best, the $50M offer is better, and the brand is well known in France, so buyers will want it. We should sell.",
+    "flawed_answer": "With $20M of losses, revenue down 10% a year and restructuring costing $80M for break-even at best, the $50M offer is better, and $50M at least recovers a third of the $150M we paid in 2015. We should sell.",
     "flaws": [
       {
         "tag": "M.buried_recommendation",
@@ -75,8 +75,8 @@
       },
       {
         "tag": "M.irrelevant_facts",
-        "hint": "it pads the case with a fact that doesn't bear on the decision: the brand's fame in France",
-        "fix": "removes the brand's fame in France, or mentions it only to dismiss it"
+        "hint": "it leans on a fact that doesn't bear on the decision: what the group paid for the division in 2015",
+        "fix": "removes the 2015 purchase price, or mentions it only to dismiss it"
       }
     ],
     "right_parts": "the figures it uses: the $20M loss, revenue falling 10% a year, the $80M cost of restructuring and the $50M offer",

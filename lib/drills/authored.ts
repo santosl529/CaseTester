@@ -8,7 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import { z } from 'zod';
 import { ItemSchema, type Item } from './item-schema';
-import type { ReviewedPair } from './content-checks';
+import type { PaddingTypes, ReviewedPair } from './content-checks';
 import { getDrill } from './config';
 
 export const DRILL_ITEMS_DIR = path.join(process.cwd(), 'drill-items');
@@ -51,6 +51,12 @@ export function loadAuthoredItems(dir = DRILL_ITEMS_DIR): Item[] {
 // The wording checks (length, phrase, rule player) live in content-checks.ts,
 // which the review page script can import too.
 export { contentCheckProblems, lengthCueProblems } from './content-checks';
+
+// The type of each SY item's irrelevant fact (content-checks.ts paddingTypeProblems).
+export const PADDING_TYPES_FILE = path.join(DRILL_ITEMS_DIR, 'padding-types.json');
+export function loadPaddingTypes(file = PADDING_TYPES_FILE): PaddingTypes {
+  return JSON.parse(fs.readFileSync(file, 'utf-8')) as PaddingTypes;
+}
 
 // Cross-drill item pairs a human has checked and recorded as different
 // scenarios, so the scenario check stops flagging them.

@@ -12,7 +12,7 @@
   ],
   "case_type": "cost_reduction",
   "industry": null,
-  "prompt": "The client asks: \"Should we move our call center offshore?\" Fact sheet: offshoring saves $5M a year; the move costs $8M once; satisfaction is expected to drop 10 points; each point of satisfaction lost costs $300k a year; our hurdle is a 3-year payback; the vendor runs call centers for two of our competitors. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should we move our call center offshore?\" Fact sheet: offshoring saves $5M a year; the move costs $8M once; satisfaction is expected to drop 10 points; each point of satisfaction lost costs $300k a year; our hurdle is a 3-year payback; the call center's $1M renovation finished last year. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -22,21 +22,21 @@
       "id": "a",
       "text": "Leave the call center where it is. A 10-point satisfaction drop cuts the $5M saving to $2M, so payback takes 4 years, beyond the hurdle.",
       "correct": true,
-      "feedback": "Right. It leads with the answer and nets the churn cost before computing payback."
+      "feedback": "Right. It leads with the answer and nets the satisfaction cost before computing payback."
     },
     {
       "id": "b",
       "text": "Move offshore. $5M a year of savings pays back in under 2 years on the one-time $8M move, well inside the hurdle.",
       "correct": false,
       "tag": "M.ignores_deciding_fact",
-      "feedback": "It ignores the $3M a year of churn from the satisfaction drop."
+      "feedback": "It ignores the $3M a year the satisfaction drop costs."
     },
     {
       "id": "c",
-      "text": "Move offshore. The vendor already runs call centers for two of our competitors, so its service is proven.",
+      "text": "Keep the call center at home. We just spent $1M renovating it, and moving now would waste that.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "Who else uses the vendor doesn't change the payback, which misses the hurdle."
+      "feedback": "The renovation is paid for either way. The satisfaction cost, which pushes payback past the hurdle, decides this."
     },
     {
       "id": "d",
@@ -50,11 +50,11 @@
   "checks": [],
   "red_flags": [],
   "model_answer": null,
-  "explanation": "Full answer: Don't move the call center offshore. A 10-point satisfaction drop costs $3M a year, cutting the $5M saving to $2M, so the $8M move pays back in 4 years, beyond the 3-year hurdle. The main risk is that costs at home keep rising, so the next step is to look for savings through self-service and better scheduling. What would change the answer: a vendor that keeps the satisfaction drop under about 8 points.",
+  "explanation": "Full answer: Don't move the call center offshore. A 10-point satisfaction drop costs $3M a year, cutting the $5M saving to $2M, so the $8M move pays back in 4 years, beyond the 3-year hurdle. The main risk is that costs at home keep rising, so the next step is to look for savings through self-service and better scheduling. What would change the answer: a vendor that keeps the satisfaction drop to about 7 points or fewer.",
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "The vendor runs call centers for two of our competitors."
+      "The call center's $1M renovation finished last year."
     ]
   },
   "sources": [],

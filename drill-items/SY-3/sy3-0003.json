@@ -11,7 +11,7 @@
   ],
   "case_type": "new_product_launch",
   "industry": "Airlines / Travel / Hospitality",
-  "prompt": "The client asks: \"Should our burger restaurants add breakfast?\" Fact sheet: adding breakfast costs $20k per restaurant; breakfast would earn about $30k a year per restaurant; the restaurants are currently closed in the morning; the breakfast market grows 5% a year; a rival chain's breakfast menu won a national award last year.\n\nA candidate gave the recommendation below. Fix it.",
+  "prompt": "The client asks: \"Should our burger restaurants add breakfast?\" Fact sheet: adding breakfast costs $20k per restaurant; breakfast would earn about $30k a year per restaurant; the restaurants have been closed in the morning since 2019; the breakfast market grows 5% a year; the chain sells about 2 million burgers a month.\n\nA candidate gave the recommendation below. Fix it.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -22,17 +22,17 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: its only reason, a rival's award, doesn't bear on the decision. Does the edited answer fix it? One way to fix it: backs the recommendation with the facts that decide it: $20k per restaurant earning about $30k a year, in hours the restaurants are now closed. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: its only reason, burger sales, doesn't bear on the decision. Does the edited answer fix it? One way to fix it: backs the recommendation with the facts that decide it: $20k per restaurant earning about $30k a year, in hours the restaurants are now closed. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
       "weight": 0.5,
       "fail_tag": "M.unsupported_recommendation",
-      "feedback": "The flaw is still there: its only reason, a rival's award, doesn't bear on the decision.",
+      "feedback": "The flaw is still there: its only reason, burger sales, doesn't bear on the decision.",
       "step": 0,
       "detection": "ai",
       "evidence": "quote"
     },
     {
       "check_id": "no_new_flaw",
-      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: buried recommendation, hedged recommendation, irrelevant facts, unsupported recommendation, ignored the deciding fact? The original's own flaw (its only reason, a rival's award, doesn't bear on the decision) doesn't count as new, even if the edit leaves it in place or rewords it, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
+      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: buried recommendation, hedged recommendation, irrelevant facts, unsupported recommendation, ignored the deciding fact? The original's own flaw (its only reason, burger sales, doesn't bear on the decision) doesn't count as new, even if the edit leaves it in place or rewords it, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
       "weight": 0.3,
       "fail_tag": "M.buried_recommendation",
       "feedback": "Your edit added a new flaw. Change only what needs fixing.",
@@ -53,14 +53,14 @@
   ],
   "red_flags": [],
   "model_answer": "Add breakfast. It costs $20k per restaurant and earns about $30k a year, in morning hours when the restaurants are closed now.",
-  "explanation": "The flaw: its only reason, a rival's award, doesn't bear on the decision. What was right: the recommendation to add breakfast.",
+  "explanation": "The flaw: its only reason, burger sales, doesn't bear on the decision. What was right: the recommendation to add breakfast.",
   "extras": {
     "derived_from": "sy1-0028",
-    "flawed_answer": "Add breakfast. A rival chain's breakfast menu just won a national award, so breakfast is clearly a winning idea.",
+    "flawed_answer": "Add breakfast. We sell about 2 million burgers a month, so customers clearly love the brand.",
     "flaws": [
       {
         "tag": "M.unsupported_recommendation",
-        "hint": "its only reason, a rival's award, doesn't bear on the decision",
+        "hint": "its only reason, burger sales, doesn't bear on the decision",
         "fix": "backs the recommendation with the facts that decide it: $20k per restaurant earning about $30k a year, in hours the restaurants are now closed"
       }
     ],

@@ -2,7 +2,7 @@ item_id,fact,relevant,deciding
 sy2-0001,"The printer costs $250,000, lasts about 7 years, and would save $70,000 a year in outsourced milling",Y,Y
 sy2-0001,Two technicians would need a 3-week training course,Y,N
 sy2-0001,Turnaround for crowns would drop from 10 days to 4,Y,N
-sy2-0001,The lab's main competitor raised crown prices 5% last year,N,N
+sy2-0001,Most dental labs in the region still outsource their milling,N,N
 sy2-0001,"The lab makes about 6,000 crowns a year, and volume has been steady for three years",Y,N
 sy2-0002,"Peak hours (weekday evenings and weekends) are 95% booked, with a waitlist most nights",Y,Y
 sy2-0002,Off-peak hours are 35% booked,Y,N
@@ -23,7 +23,7 @@ sy2-0005,"Orders now wait 9 days to ship, against a 3-day promise",Y,N
 sy2-0005,"The backlog is in printing: printers run 5 days a week at full capacity, while packing has spare time",Y,Y
 sy2-0005,"A weekend printing shift would cost $18,000 a month and add 40% to printing capacity",Y,N
 sy2-0005,"Late orders get their shipping refunded, which costs $25,000 a month",Y,N
-sy2-0005,Customer reviews average 4.6 stars,N,N
+sy2-0005,"The printers the company runs today, bought for $60,000, are fully paid off",N,N
 sy2-0006,Making frozen lasagna needs a $2M freezer line,Y,N
 sy2-0006,"A test in 50 stores projects $3M a year of sales at a 25% margin, or $750,000 a year",Y,Y
 sy2-0006,Frozen-meal sales grew 2% last year,Y,N
@@ -51,29 +51,29 @@ sy2-0010,30% of the rival's revenue comes from one property-management firm whos
 sy2-0010,The rival has 60 employees,N,N
 sy2-0011,Margin fell from 15% to 6% in two years,Y,N
 sy2-0011,Food costs held at 30% of revenue,Y,N
-sy2-0011,"Event-staff overtime doubled after we began taking same-week bookings, which are now 40% of events",Y,Y
+sy2-0011,"Event-staff overtime doubled after we began taking same-week bookings in 2024, which are now 40% of events",Y,Y
 sy2-0011,"Our prices haven't risen in two years, while competitors raised theirs 8%",Y,N
-sy2-0011,Corporate clients make up 55% of revenue,N,N
+sy2-0011,"The company paid $120,000 to fit out its kitchen in 2021",N,N
 sy2-0012,"Students take 3.1 lessons a month on average, at $45 each",Y,N
 sy2-0012,"Missed lessons, now 15% of bookings, earn nothing under per-lesson pricing",Y,Y
 sy2-0012,Two nearby schools sell monthly memberships at $140 to $160,Y,N
-sy2-0012,Enrollment grew 6% last year,N,N
+sy2-0012,The school bought its building for $1.2M in 2016,N,N
 sy2-0012,The membership would cover up to 4 lessons a month,Y,N
 sy2-0013,"Shipping a plant to Germany costs £14 per order, against £6 in the UK",Y,Y
 sy2-0013,"The average order is £35, at a 40% gross margin",Y,N
 sy2-0013,Germany's online plant market is twice the size of the UK's,Y,N
-sy2-0013,Each shipment to the EU now needs a health certificate costing £3,Y,N
-sy2-0013,Our warehouse is in Kent,N,N
+sy2-0013,"Since 2021, each shipment to the EU needs a health certificate costing £3",Y,N
+sy2-0013,"We have already spent £25,000 translating our website into German",N,N
 sy2-0014,Passengers wait 75 minutes on average at check-in on sailing days,Y,N
 sy2-0014,"70% of the wait is at the security scanners, not the check-in desks",Y,Y
 sy2-0014,Adding 10 check-in counters would cost $1.5M,Y,N
 sy2-0014,"A second security-scanner lane would cost $400,000",Y,N
-sy2-0014,The terminal gift shop's sales rose 10%,N,N
+sy2-0014,The terminal spent $2M on new signage in 2022,N,N
 sy2-0015,Parents of children under 6 buy a new size every 4 months on average,Y,N
 sy2-0015,"In a survey, 25% of current customers said they'd subscribe at $45 a pair",Y,N
 sy2-0015,Each subscriber needs a foot-measuring kit costing $6,Y,N
 sy2-0015,35% of test subscribers canceled within 3 months,Y,Y
-sy2-0015,Our shoe boxes are made from recycled card,N,N
+sy2-0015,"Designing the foot-measuring kit has already cost $40,000",N,N
 sy2-0016,The warehouse costs $2.4M a year to run,Y,N
 sy2-0016,Shipping online orders from stores would add $1.6M a year in store labor and packaging,Y,N
 sy2-0016,"In a test, 1 in 8 orders picked in stores couldn't be filled because store stock records were wrong",Y,Y
@@ -84,12 +84,12 @@ sy2-0017,"Each new city costs about $500,000 to launch and takes 2 years to brea
 sy2-0017,45% of current customers say they'd book dog training through the app,Y,N
 sy2-0017,"Training sessions earn the app $25 per booking, against $8 for pet-sitting",Y,Y
 sy2-0017,"Trainers would need vetting, which takes 3 weeks per trainer",Y,N
-sy2-0017,The app's average rating is 4.7 stars,N,N
+sy2-0017,Dog ownership in the US grew 4% last year,N,N
 sy2-0018,Vinyl sales grew 10% a year for five years,Y,N
 sy2-0018,Pressing plants have 6-month waitlists for new orders,Y,Y
 sy2-0018,A new pressing line costs $1.5M and can press 1 million records a year at a $1.20 margin each,Y,N
 sy2-0018,"Three new plants opened last year, adding 15% to industry capacity",Y,N
-sy2-0018,Vinyl is especially popular with collectors of 1970s rock,N,N
+sy2-0018,"Due diligence on the plant has cost the fund $80,000 so far",N,N
 sy2-0019,"4 of the 15 showrooms cause 80% of the losses, all in malls that lost their anchor stores",Y,Y
 sy2-0019,The other 11 showrooms are profitable,Y,N
 sy2-0019,Online rentals grew 30% last year and are now 25% of revenue,Y,N
@@ -97,9 +97,9 @@ sy2-0019,Closing a showroom early costs about 6 months' rent,Y,N
 sy2-0019,The chain's delivery vans are leased through 2027,N,N
 sy2-0020,Revenue is flat at $8M,Y,N
 sy2-0020,Fuel and driver costs are flat,Y,N
-sy2-0020,Commissions paid to online travel sites rose from 10% to 22% of revenue as bookings moved online,Y,Y
+sy2-0020,Commissions paid to online travel sites rose from 10% to 22% of revenue since 2021 as bookings moved online,Y,Y
 sy2-0020,70% of customers say they'd book directly if offered a 5% discount,Y,N
-sy2-0020,Tour reviews average 4.5 stars,N,N
+sy2-0020,The company bought its 12 coaches for $3.6M in 2022,N,N
 sy2-0021,Running 5 shelters costs $6M a year; 2 larger ones would cost $4.2M after a $5M build,Y,Y
 sy2-0021,Adoption rates are highest at the 2 shelters near the largest towns,Y,N
 sy2-0021,"After consolidation, half of residents would drive more than 40 minutes to a shelter",Y,N
@@ -113,8 +113,8 @@ sy2-0022,Lumber prices rose 4% last year,N,N
 sy2-0023,30% of shoppers check prices on their phones in our stores,Y,N
 sy2-0023,Online prices are on average 12% lower on the items shoppers check most,Y,N
 sy2-0023,Matching on those items would cut gross profit by $2M a year,Y,N
-sy2-0023,"In a 10-store test, matching raised sales of matched items 25% and added accessory sales worth $2.6M of profit if rolled out",Y,Y
-sy2-0023,The chain sponsors a local marathon,N,N
+sy2-0023,"In a 10-store test in 2025, matching raised sales of matched items 25% and added accessory sales worth $2.6M of profit if rolled out",Y,Y
+sy2-0023,Online sporting-goods sales grew 9% last year,N,N
 sy2-0024,"There are about 20,000 tattoo studios in the US",Y,N
 sy2-0024,"Studios would pay about $60 a month, and about 20% say they'd switch from paper or free tools",Y,N
 sy2-0024,"That is about 4,000 studios at $720 a year, or roughly $2.9M of revenue a year at full uptake",Y,Y
@@ -123,8 +123,8 @@ sy2-0024,Tattoos are most popular among people aged 18 to 34,N,N
 sy2-0025,"The patch is approved in Europe and awaits US approval, expected in 18 months",Y,N
 sy2-0025,Our sales force already calls on the doctors who prescribe it,Y,N
 sy2-0025,"If approved in the US, the patch would add about $25M a year of profit by year 3",Y,N
-sy2-0025,US regulators rejected the startup's first application over accuracy data,Y,Y
-sy2-0025,The startup's office is in Boston,N,N
+sy2-0025,US regulators rejected the startup's first application in 2024 over accuracy data,Y,Y
+sy2-0025,The startup's founder previously sold a heart-monitor company to a rival device maker,N,N
 sy2-0026,"Buses on Main Street carry 18,000 riders a day; cars carry 22,000 people",Y,N
 sy2-0026,"Bus trips would be 8 minutes faster, and the city's model shows car trips 2 minutes slower",Y,Y
 sy2-0026,"The change would cost $3M, mostly paint and signals",Y,N
@@ -134,7 +134,7 @@ sy2-0027,"Revenue grew 10% to $40M, but profit fell from $6M to $2M",Y,N
 sy2-0027,The company added 12 smaller events this year; attendance per event is flat,Y,N
 sy2-0027,The 12 new events lost $3.5M together; the 20 established events earned more than last year,Y,Y
 sy2-0027,Sponsorship revenue rose 15%,Y,N
-sy2-0027,The company moved its head office to a new building,N,N
+sy2-0027,Non-refundable venue deposits for next year's 12 new events are already paid,N,N
 sy2-0028,"Our own restaurants cost $900,000 each to open and earn $250,000 a year",Y,N
 sy2-0028,"Franchising would bring 6% royalties on about $1.5M of sales per restaurant, $90,000 a year, at almost no capital cost",Y,N
 sy2-0028,"We have $9M, enough for 10 of our own restaurants in 3 years; franchisees have offered to open 40",Y,Y
@@ -149,4 +149,4 @@ sy2-0030,Lockers in apartment buildings are 85% full on average; lockers in stor
 sy2-0030,"Each locker costs $8,000 to install and earns $2,500 a year when 80% full",Y,N
 sy2-0030,"Building owners have offered 2,500 new apartment sites",Y,N
 sy2-0030,Carriers pay us $1 per parcel delivered,Y,N
-sy2-0030,Most of our lockers are open 24 hours a day,N,N
+sy2-0030,Online parcel volumes in the country grew 7% last year,N,N

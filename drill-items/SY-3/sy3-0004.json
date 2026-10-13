@@ -11,7 +11,7 @@
   ],
   "case_type": "profitability",
   "industry": "Airlines / Travel / Hospitality",
-  "prompt": "The client asks: \"How should we restore profit at our bakery chain?\" Fact sheet: profit fell from $10M to $6M in two years; flour and butter costs are up 35%; menu prices haven't changed in three years; competitors raised prices 8% on average; store traffic is flat; the chain's croissants won a regional baking prize last year.\n\nA candidate gave the recommendation below. Fix it.",
+  "prompt": "The client asks: \"How should we restore profit at our bakery chain?\" Fact sheet: profit fell from $10M to $6M in two years; flour and butter costs are up 35%; menu prices haven't changed since 2023; competitors raised prices 8% on average; store traffic is flat; the chain spent $1.2M on new ovens in 2022.\n\nA candidate gave the recommendation below. Fix it.",
   "exhibit": null,
   "input": {
     "type": "free_text",

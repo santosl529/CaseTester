@@ -11,7 +11,7 @@
   ],
   "case_type": "pricing",
   "industry": null,
-  "prompt": "The client asks: \"Should we offer a 20% discount for paying a year up front?\" Fact sheet: the monthly plan is $50; the average monthly customer stays 9 months; the annual plan at 20% off would be $480; 40% of surveyed customers would choose the annual plan; in a past test, customers who chose an annual plan had stayed about as long as average; the company's cash reserves cover 18 months of costs.\n\nA candidate gave the recommendation below. Fix it.",
+  "prompt": "The client asks: \"Should we offer a 20% discount for paying a year up front?\" Fact sheet: the monthly plan is $50; the average monthly customer stays 9 months; the annual plan at 20% off would be $480; 40% of surveyed customers would choose the annual plan; in a 2025 test, customers who chose an annual plan had stayed about as long as average; the company has about 12,000 monthly customers.\n\nA candidate gave the recommendation below. Fix it.",
   "exhibit": null,
   "input": {
     "type": "free_text",

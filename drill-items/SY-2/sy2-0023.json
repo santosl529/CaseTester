@@ -11,8 +11,7 @@
     "SY.complete"
   ],
   "case_type": "competitive_response",
-  "industry": "Retail / E-commerce",
-  "prompt": "The client asks: \"Should our sporting-goods chain match online prices?\"\n\nFact sheet:\n- 30% of shoppers check prices on their phones in our stores\n- Online prices are on average 12% lower on the items shoppers check most\n- Matching on those items would cut gross profit by $2M a year\n- In a 10-store test, matching raised sales of matched items 25% and added accessory sales worth $2.6M of profit if rolled out\n- The chain sponsors a local marathon\n\nGive your recommendation.",
+  "prompt": "The client asks: \"Should our sporting-goods chain match online prices?\"\n\nFact sheet:\n- 30% of shoppers check prices on their phones in our stores\n- Online prices are on average 12% lower on the items shoppers check most\n- Matching on those items would cut gross profit by $2M a year\n- In a 10-store test in 2025, matching raised sales of matched items 25% and added accessory sales worth $2.6M of profit if rolled out\n- Online sporting-goods sales grew 9% last year\n\nGive your recommendation.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -53,7 +52,7 @@
     },
     {
       "check_id": "leaves_out_irrelevant",
-      "question": "Does the answer avoid using the irrelevant facts (The chain sponsors a local marathon) as reasons or support? Mentioning one only to dismiss it is fine.",
+      "question": "Does the answer avoid using the irrelevant facts (Online sporting-goods sales grew 9% last year) as reasons or support? Mentioning one only to dismiss it is fine.",
       "weight": 0.15,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "Leave out facts that don't bear on the decision.",
@@ -111,7 +110,7 @@
     },
     {
       "id": "misses_deciding_fact",
-      "definition": "Present when the answer never uses the deciding fact, neither its content nor its numbers. The deciding fact: In a 10-store test, matching raised sales of matched items 25% and added accessory sales worth $2.6M of profit if rolled out.",
+      "definition": "Present when the answer never uses the deciding fact, neither its content nor its numbers. The deciding fact: In a 10-store test in 2025, matching raised sales of matched items 25% and added accessory sales worth $2.6M of profit if rolled out.",
       "cap": 0.6,
       "tag": "M.ignores_deciding_fact",
       "detection": "ai",
@@ -137,7 +136,7 @@
     }
   ],
   "model_answer": "Match online prices on the items shoppers check most. In a 10-store test, matching raised sales of those items 25% and brought shoppers who bought full-price accessories, worth $2.6M of profit chain-wide against the $2M of gross profit matching gives up. 30% of shoppers check prices on their phones, so the gap is visible. The main risk is that online sellers cut further. The next step is to roll it out and track accessory sales.",
-  "explanation": "Acceptable recommendation: Price-match on the most-checked items. The deciding fact: In a 10-store test, matching raised sales of matched items 25% and added accessory sales worth $2.6M of profit if rolled out. Key risks: Online sellers could cut prices further. Next steps: Roll out matching on the most-checked items and track accessory sales.",
+  "explanation": "Acceptable recommendation: Price-match on the most-checked items. The deciding fact: In a 10-store test in 2025, matching raised sales of matched items 25% and added accessory sales worth $2.6M of profit if rolled out. Key risks: Online sellers could cut prices further. Next steps: Roll out matching on the most-checked items and track accessory sales.",
   "extras": {
     "facts": [
       {
@@ -156,12 +155,12 @@
         "deciding": false
       },
       {
-        "fact": "In a 10-store test, matching raised sales of matched items 25% and added accessory sales worth $2.6M of profit if rolled out",
+        "fact": "In a 10-store test in 2025, matching raised sales of matched items 25% and added accessory sales worth $2.6M of profit if rolled out",
         "relevant": true,
         "deciding": true
       },
       {
-        "fact": "The chain sponsors a local marathon",
+        "fact": "Online sporting-goods sales grew 9% last year",
         "relevant": false,
         "deciding": false
       }
@@ -183,12 +182,12 @@
   "sources": [],
   "authorship": {
     "author_of_record": "Draft — awaiting human review",
-    "drafting_model": "claude-opus-5-5",
+    "drafting_model": null,
     "reviewed_by": null,
     "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-10-13",
     "similarity_method": "web"
   },
   "generator": null,

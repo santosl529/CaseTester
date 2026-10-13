@@ -12,7 +12,7 @@
   ],
   "case_type": "turnaround",
   "industry": null,
-  "prompt": "The client asks: \"What should we do with our loss-making European division?\" Fact sheet: the division lost $20M last year; its revenue has fallen 10% a year for three years; a buyer has offered $50M; restructuring would cost $80M and might break even in three years; the division is 8% of group revenue; its brand is well known in France. Which is the best recommendation?",
+  "prompt": "The client asks: \"What should we do with our loss-making European division?\" Fact sheet: the division lost $20M last year; its revenue has fallen 10% a year since 2023; a buyer has offered $50M; restructuring would cost $80M and might break even in three years; the division is 8% of group revenue; the group bought the division in 2015 for $150M. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -20,7 +20,7 @@
   "options": [
     {
       "id": "a",
-      "text": "Sell the division for the $50M offered. It lost $20M, revenue falls 10% a year, and restructuring costs $80M.",
+      "text": "Sell the division for the $50M offered. It lost $20M, revenue falls 10% a year, and restructuring costs $80M for break-even at best.",
       "correct": true,
       "feedback": "Right. It leads with the answer and compares the two options on their numbers."
     },
@@ -33,10 +33,10 @@
     },
     {
       "id": "c",
-      "text": "Sell the division. Its brand is well known in France, so buyers will pay well for it now.",
+      "text": "Hold on to the division for now. We paid $150M for it in 2015, and selling at $50M would lock in a $100M loss.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "The brand's fame doesn't decide this. The losses and the two options' numbers do."
+      "feedback": "The $150M is spent whatever we do. Only the $50M offer against $80M of restructuring for break-even at best decides this."
     },
     {
       "id": "d",
@@ -54,7 +54,7 @@
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "The division's brand is well known in France."
+      "The group bought the division in 2015 for $150M."
     ]
   },
   "sources": [],

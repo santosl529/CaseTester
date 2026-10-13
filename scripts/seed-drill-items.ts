@@ -11,7 +11,7 @@
 import { and, count, eq, lt } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { drillAttempts, drillItems } from '@/db/schema';
-import { contentCheckProblems, loadAuthoredItems, loadReviewedScenarioPairs } from '@/lib/drills/authored';
+import { contentCheckProblems, loadAuthoredItems, loadPaddingTypes, loadReviewedScenarioPairs } from '@/lib/drills/authored';
 import { TAXONOMY_VERSION, getDrill } from '@/lib/drills/config';
 import type { Item } from '@/lib/drills/item-schema';
 
@@ -30,7 +30,7 @@ const stageOf = (item: Item) => getDrill(item.drill_id).stage;
 async function main() {
   const items = loadAuthoredItems();
   // A pool whose wording gives answers away isn't ready, even as drafts.
-  const cues = contentCheckProblems(items, loadReviewedScenarioPairs());
+  const cues = contentCheckProblems(items, loadReviewedScenarioPairs(), loadPaddingTypes());
   if (cues.length) throw new Error(`Content checks failed:\n${cues.join('\n')}`);
   let inserted = 0, updated = 0, unchanged = 0;
   const conflicts: string[] = [];

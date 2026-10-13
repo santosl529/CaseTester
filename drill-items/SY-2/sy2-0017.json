@@ -1,8 +1,8 @@
 {
   "item_id": "sy2-0017",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-2",
-  "status": "live",
+  "status": "draft",
   "level": 2,
   "tier": 2,
   "skills": [
@@ -11,8 +11,7 @@
     "SY.complete"
   ],
   "case_type": "growth_strategy",
-  "industry": "Tech / SaaS",
-  "prompt": "The client asks: \"Should our pet-sitting app expand to two new cities or add dog-training services?\"\n\nFact sheet:\n- Each new city costs about $500,000 to launch and takes 2 years to break even\n- 45% of current customers say they'd book dog training through the app\n- Training sessions earn the app $25 per booking, against $8 for pet-sitting\n- Trainers would need vetting, which takes 3 weeks per trainer\n- The app's average rating is 4.7 stars\n\nGive your recommendation.",
+  "prompt": "The client asks: \"Should our pet-sitting app expand to two new cities or add dog-training services?\"\n\nFact sheet:\n- Each new city costs about $500,000 to launch and takes 2 years to break even\n- 45% of current customers say they'd book dog training through the app\n- Training sessions earn the app $25 per booking, against $8 for pet-sitting\n- Trainers would need vetting, which takes 3 weeks per trainer\n- Dog ownership in the US grew 4% last year\n\nGive your recommendation.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -53,7 +52,7 @@
     },
     {
       "check_id": "leaves_out_irrelevant",
-      "question": "Does the answer avoid using the irrelevant facts (The app's average rating is 4.7 stars) as reasons or support? Mentioning one only to dismiss it is fine.",
+      "question": "Does the answer avoid using the irrelevant facts (Dog ownership in the US grew 4% last year) as reasons or support? Mentioning one only to dismiss it is fine.",
       "weight": 0.15,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "Leave out facts that don't bear on the decision.",
@@ -161,7 +160,7 @@
         "deciding": false
       },
       {
-        "fact": "The app's average rating is 4.7 stars",
+        "fact": "Dog ownership in the US grew 4% last year",
         "relevant": false,
         "deciding": false
       }
@@ -182,13 +181,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
-    "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-11",
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-10-13",
     "similarity_method": "web"
   },
   "generator": null,

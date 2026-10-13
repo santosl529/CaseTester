@@ -11,8 +11,7 @@
     "SY.complete"
   ],
   "case_type": "pricing",
-  "industry": "Public / Education / Nonprofit",
-  "prompt": "The client asks: \"Should our music school switch from per-lesson pricing to a $150 monthly membership?\"\n\nFact sheet:\n- Students take 3.1 lessons a month on average, at $45 each\n- Missed lessons, now 15% of bookings, earn nothing under per-lesson pricing\n- Two nearby schools sell monthly memberships at $140 to $160\n- Enrollment grew 6% last year\n- The membership would cover up to 4 lessons a month\n\nGive your recommendation.",
+  "prompt": "The client asks: \"Should our music school switch from per-lesson pricing to a $150 monthly membership?\"\n\nFact sheet:\n- Students take 3.1 lessons a month on average, at $45 each\n- Missed lessons, now 15% of bookings, earn nothing under per-lesson pricing\n- Two nearby schools sell monthly memberships at $140 to $160\n- The school bought its building for $1.2M in 2016\n- The membership would cover up to 4 lessons a month\n\nGive your recommendation.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -53,7 +52,7 @@
     },
     {
       "check_id": "leaves_out_irrelevant",
-      "question": "Does the answer avoid using the irrelevant facts (Enrollment grew 6% last year) as reasons or support? Mentioning one only to dismiss it is fine.",
+      "question": "Does the answer avoid using the irrelevant facts (The school bought its building for $1.2M in 2016) as reasons or support? Mentioning one only to dismiss it is fine.",
       "weight": 0.15,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "Leave out facts that don't bear on the decision.",
@@ -156,7 +155,7 @@
         "deciding": false
       },
       {
-        "fact": "Enrollment grew 6% last year",
+        "fact": "The school bought its building for $1.2M in 2016",
         "relevant": false,
         "deciding": false
       },
@@ -183,12 +182,12 @@
   "sources": [],
   "authorship": {
     "author_of_record": "Draft — awaiting human review",
-    "drafting_model": "claude-opus-5-5",
+    "drafting_model": null,
     "reviewed_by": null,
     "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-10-13",
     "similarity_method": "web"
   },
   "generator": null,

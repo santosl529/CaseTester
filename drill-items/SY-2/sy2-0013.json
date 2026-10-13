@@ -11,8 +11,7 @@
     "SY.complete"
   ],
   "case_type": "market_entry",
-  "industry": "Retail / E-commerce",
-  "prompt": "The client asks: \"Should our UK online plant shop start shipping to Germany?\"\n\nFact sheet:\n- Shipping a plant to Germany costs £14 per order, against £6 in the UK\n- The average order is £35, at a 40% gross margin\n- Germany's online plant market is twice the size of the UK's\n- Each shipment to the EU now needs a health certificate costing £3\n- Our warehouse is in Kent\n\nGive your recommendation.",
+  "prompt": "The client asks: \"Should our UK online plant shop start shipping to Germany?\"\n\nFact sheet:\n- Shipping a plant to Germany costs £14 per order, against £6 in the UK\n- The average order is £35, at a 40% gross margin\n- Germany's online plant market is twice the size of the UK's\n- Since 2021, each shipment to the EU needs a health certificate costing £3\n- We have already spent £25,000 translating our website into German\n\nGive your recommendation.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -53,7 +52,7 @@
     },
     {
       "check_id": "leaves_out_irrelevant",
-      "question": "Does the answer avoid using the irrelevant facts (Our warehouse is in Kent) as reasons or support? Mentioning one only to dismiss it is fine.",
+      "question": "Does the answer avoid using the irrelevant facts (We have already spent £25,000 translating our website into German) as reasons or support? Mentioning one only to dismiss it is fine.",
       "weight": 0.15,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "Leave out facts that don't bear on the decision.",
@@ -156,12 +155,12 @@
         "deciding": false
       },
       {
-        "fact": "Each shipment to the EU now needs a health certificate costing £3",
+        "fact": "Since 2021, each shipment to the EU needs a health certificate costing £3",
         "relevant": true,
         "deciding": false
       },
       {
-        "fact": "Our warehouse is in Kent",
+        "fact": "We have already spent £25,000 translating our website into German",
         "relevant": false,
         "deciding": false
       }
@@ -183,12 +182,12 @@
   "sources": [],
   "authorship": {
     "author_of_record": "Draft — awaiting human review",
-    "drafting_model": "claude-opus-5-5",
+    "drafting_model": null,
     "reviewed_by": null,
     "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-10-13",
     "similarity_method": "web"
   },
   "generator": null,

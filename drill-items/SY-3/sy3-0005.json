@@ -11,7 +11,7 @@
   ],
   "case_type": "public_sector",
   "industry": "Public / Education / Nonprofit",
-  "prompt": "The client asks: \"Should the city build a new downtown parking garage or upgrade its existing garages?\" Fact sheet: a new garage costs $30M and adds 600 spaces; upgrading existing garages with space-guidance signs costs $6M and cuts the time to find a space 30% for 25,000 drivers a week; downtown visits fell 12% as parking searches got longer; a neighboring city built a garage last year that is full on weekends.\n\nA candidate gave the recommendation below. Fix it.",
+  "prompt": "The client asks: \"Should the city build a new downtown parking garage or upgrade its existing garages?\" Fact sheet: a new garage costs $30M and adds 600 spaces; upgrading existing garages with space-guidance signs costs $6M and cuts the time to find a space 30% for 25,000 drivers a week; downtown visits fell 12% as parking searches got longer; the city already owns the land under its main garage, which cost $1.7M.\n\nA candidate gave the recommendation below. Fix it.",
   "exhibit": null,
   "input": {
     "type": "free_text",

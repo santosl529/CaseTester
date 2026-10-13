@@ -371,8 +371,97 @@ export function challengeCueProblems(items: Item[]): string[] {
   return problems;
 }
 
+// SY padding (the irrelevant fact in SY-1, SY-2 and SY-3 cases): each one is
+// typed in drill-items/padding-types.json (review metadata, so tagging needs
+// no new item versions), and no one type may dominate a drill's pool, or the
+// padding becomes a pattern students learn to skip (logos, then awards).
+export interface PaddingTypes { types: Record<string, string>; facts: Record<string, { fact: string; type: string }[]> }
+export const PADDING_POOL_MIN = 10;
+export const PADDING_MAX_SHARE = 0.3;
+const PADDING_DRILLS = ['SY-1', 'SY-2', 'SY-3'];
+
+// The item's irrelevant facts as the item records them; SY-3 items keep
+// theirs only in the prompt.
+function paddingOf(item: Item): string[] | null {
+  if (item.drill_id === 'SY-1') return (item.extras.irrelevant_facts as string[] | undefined) ?? [];
+  if (item.drill_id === 'SY-2') return ((item.extras.facts as { fact: string; relevant: boolean }[] | undefined) ?? []).filter(f => !f.relevant).map(f => f.fact);
+  return null;
+}
+
+export function paddingTypeProblems(items: Item[], padding: PaddingTypes): string[] {
+  const problems: string[] = [];
+  const byDrill = new Map<string, string[]>();
+  for (const item of items.filter(i => PADDING_DRILLS.includes(i.drill_id))) {
+    const entries = padding.facts[item.item_id];
+    if (!entries?.length) { problems.push(`${item.item_id}: type its irrelevant fact in drill-items/padding-types.json`); continue; }
+    const recorded = paddingOf(item);
+    const norm = (s: string) => s.toLowerCase().replace(/[.\s]+$/, '').trim();
+    const matches = recorded
+      ? recorded.length === entries.length && recorded.every(f => entries.some(e => norm(e.fact) === norm(f)))
+      : entries.every(e => item.prompt.toLowerCase().includes(norm(e.fact)));
+    if (!matches) problems.push(`${item.item_id}: drill-items/padding-types.json doesn't match the item's irrelevant fact`);
+    for (const e of entries) {
+      if (!(e.type in padding.types)) problems.push(`${item.item_id}: unknown padding type ${e.type}`);
+      byDrill.set(item.drill_id, [...(byDrill.get(item.drill_id) ?? []), e.type]);
+    }
+  }
+  for (const [drill, types] of byDrill) {
+    if (types.length < PADDING_POOL_MIN) continue;
+    const counts = new Map<string, number>();
+    for (const t of types) counts.set(t, (counts.get(t) ?? 0) + 1);
+    for (const [t, n] of counts) {
+      if (n / types.length > PADDING_MAX_SHARE + 1e-9) problems.push(`${drill}: ${n} of ${types.length} irrelevant facts are ${t}; no type may be more than ${Math.round(PADDING_MAX_SHARE * 100)}%`);
+    }
+  }
+  return problems;
+}
+
+// Dates must not be a shortcut (Matt, 2026-10-12): if every fact with a year
+// in it were padding, "past date = ignore" would work. In each SY pool, at
+// least 30% of the facts that carry a year must be relevant, and at most half
+// of the sunk-cost padding may carry one ("spent $X in [year]" every time).
+export const DATED_FACTS_MIN = 4;
+export const DATED_RELEVANT_MIN = 0.3;
+export const SUNK_DATED_MAX = 0.5;
+const YEAR = /\b(19|20)\d\d\b/;
+const factText = (s: string) => s.toLowerCase().replace(/[^a-z0-9$%£]+/g, ' ').trim();
+
+// A case's facts: SY-2's fact list, the "Fact sheet:" list in SY-1 and SY-3,
+// or the sentences of an SY-1 mid-case summary.
+export function caseFacts(item: Item): string[] {
+  if (item.drill_id === 'SY-2') return ((item.extras.facts as { fact: string }[] | undefined) ?? []).map(f => f.fact);
+  const p = item.prompt;
+  if (p.includes('Fact sheet:')) return p.split('Fact sheet:')[1].split(/Which is the best|\n\n/)[0].split(';').map(f => f.trim()).filter(Boolean);
+  return p.split(/(?<=[.!?])\s+/).map(f => f.trim()).filter(Boolean);
+}
+
+export function datedFactProblems(items: Item[], padding: PaddingTypes): string[] {
+  const problems: string[] = [];
+  for (const drill of PADDING_DRILLS) {
+    const pool = items.filter(i => i.drill_id === drill);
+    let dated = 0, datedRelevant = 0, sunk = 0, sunkDated = 0;
+    for (const item of pool) {
+      const pads = (padding.facts[item.item_id] ?? []).map(e => ({ text: factText(e.fact), type: e.type }));
+      for (const fact of caseFacts(item)) {
+        const t = factText(fact);
+        const pad = pads.find(p => t.includes(p.text) || p.text.includes(t));
+        if (YEAR.test(fact)) { dated++; if (!pad) datedRelevant++; }
+        if (pad?.type === 'sunk_cost') { sunk++; if (YEAR.test(fact)) sunkDated++; }
+      }
+    }
+    if (dated >= DATED_FACTS_MIN && datedRelevant / dated < DATED_RELEVANT_MIN - 1e-9) {
+      problems.push(`${drill}: only ${datedRelevant} of ${dated} facts with a year are relevant; date some relevant facts too, so a past date isn't a cue to ignore`);
+    }
+    if (sunk >= DATED_FACTS_MIN && sunkDated / sunk > SUNK_DATED_MAX + 1e-9) {
+      problems.push(`${drill}: ${sunkDated} of ${sunk} sunk costs carry a year; write some without one`);
+    }
+  }
+  return problems;
+}
+
 // Every content check, for validation and the seed script: wording within
-// each pool, scenarios across drills, and Challenge cues.
-export function contentCheckProblems(items: Item[], reviewedPairs: ReviewedPair[] = []): string[] {
-  return [...lengthCueProblems(items), ...phraseCueProblems(items), ...rulePlayerProblems(items), ...scenarioProblems(items, reviewedPairs), ...challengeCueProblems(items)];
+// each pool, scenarios across drills, Challenge cues, padding variety and dates.
+export function contentCheckProblems(items: Item[], reviewedPairs: ReviewedPair[] = [], padding: PaddingTypes | null = null): string[] {
+  return [...lengthCueProblems(items), ...phraseCueProblems(items), ...rulePlayerProblems(items), ...scenarioProblems(items, reviewedPairs), ...challengeCueProblems(items),
+    ...(padding ? [...paddingTypeProblems(items, padding), ...datedFactProblems(items, padding)] : [])];
 }

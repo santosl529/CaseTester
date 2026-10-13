@@ -1,8 +1,8 @@
 {
   "item_id": "sy2-0001",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-2",
-  "status": "live",
+  "status": "draft",
   "level": 2,
   "tier": 1,
   "skills": [
@@ -11,8 +11,7 @@
     "SY.complete"
   ],
   "case_type": "investment_decision",
-  "industry": "Healthcare Provider / Payor",
-  "prompt": "The client asks: \"Should our dental lab buy a $250,000 3D printer for making crowns?\"\n\nFact sheet:\n- The printer costs $250,000, lasts about 7 years, and would save $70,000 a year in outsourced milling\n- Two technicians would need a 3-week training course\n- Turnaround for crowns would drop from 10 days to 4\n- The lab's main competitor raised crown prices 5% last year\n- The lab makes about 6,000 crowns a year, and volume has been steady for three years\n\nGive your recommendation.",
+  "prompt": "The client asks: \"Should our dental lab buy a $250,000 3D printer for making crowns?\"\n\nFact sheet:\n- The printer costs $250,000, lasts about 7 years, and would save $70,000 a year in outsourced milling\n- Two technicians would need a 3-week training course\n- Turnaround for crowns would drop from 10 days to 4\n- Most dental labs in the region still outsource their milling\n- The lab makes about 6,000 crowns a year, and volume has been steady for three years\n\nGive your recommendation.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -53,7 +52,7 @@
     },
     {
       "check_id": "leaves_out_irrelevant",
-      "question": "Does the answer avoid using the irrelevant facts (The lab's main competitor raised crown prices 5% last year) as reasons or support? Mentioning one only to dismiss it is fine.",
+      "question": "Does the answer avoid using the irrelevant facts (Most dental labs in the region still outsource their milling) as reasons or support? Mentioning one only to dismiss it is fine.",
       "weight": 0.15,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "Leave out facts that don't bear on the decision.",
@@ -156,7 +155,7 @@
         "deciding": false
       },
       {
-        "fact": "The lab's main competitor raised crown prices 5% last year",
+        "fact": "Most dental labs in the region still outsource their milling",
         "relevant": false,
         "deciding": false
       },
@@ -182,13 +181,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
-    "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-11",
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-10-13",
     "similarity_method": "web"
   },
   "generator": null,

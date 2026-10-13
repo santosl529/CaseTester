@@ -3,11 +3,11 @@
   "item_id": "sy3-0010",
   "drill_id": "SY-3",
   "answer_type": "normal",
-  "notes": "Recommendation now first (flaw 1); the brand's fame in France is still used as a reason (flaw 2).",
+  "notes": "Recommendation now first (flaw 1); the $150M paid in 2015 is still used as a reason (flaw 2).",
   "responses": [
     {
       "type": "text",
-      "value": "We should sell. With $20M of losses, revenue down 10% a year and restructuring costing $80M, the $50M offer is better, and the brand is well known in France."
+      "value": "We should sell. With $20M of losses, revenue down 10% a year and restructuring costing $80M, the $50M offer is better, and it at least recovers a third of the $150M we paid in 2015."
     }
   ],
   "labels": {

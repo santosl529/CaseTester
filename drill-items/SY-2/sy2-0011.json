@@ -11,8 +11,7 @@
     "SY.complete"
   ],
   "case_type": "profitability",
-  "industry": "Airlines / Travel / Hospitality",
-  "prompt": "The client asks: \"How should our catering company restore its profit margin?\"\n\nFact sheet:\n- Margin fell from 15% to 6% in two years\n- Food costs held at 30% of revenue\n- Event-staff overtime doubled after we began taking same-week bookings, which are now 40% of events\n- Our prices haven't risen in two years, while competitors raised theirs 8%\n- Corporate clients make up 55% of revenue\n\nGive your recommendation.",
+  "prompt": "The client asks: \"How should our catering company restore its profit margin?\"\n\nFact sheet:\n- Margin fell from 15% to 6% in two years\n- Food costs held at 30% of revenue\n- Event-staff overtime doubled after we began taking same-week bookings in 2024, which are now 40% of events\n- Our prices haven't risen in two years, while competitors raised theirs 8%\n- The company paid $120,000 to fit out its kitchen in 2021\n\nGive your recommendation.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -53,7 +52,7 @@
     },
     {
       "check_id": "leaves_out_irrelevant",
-      "question": "Does the answer avoid using the irrelevant facts (Corporate clients make up 55% of revenue) as reasons or support? Mentioning one only to dismiss it is fine.",
+      "question": "Does the answer avoid using the irrelevant facts (The company paid $120,000 to fit out its kitchen in 2021) as reasons or support? Mentioning one only to dismiss it is fine.",
       "weight": 0.15,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "Leave out facts that don't bear on the decision.",
@@ -111,7 +110,7 @@
     },
     {
       "id": "misses_deciding_fact",
-      "definition": "Present when the answer never uses the deciding fact, neither its content nor its numbers. The deciding fact: Event-staff overtime doubled after we began taking same-week bookings, which are now 40% of events.",
+      "definition": "Present when the answer never uses the deciding fact, neither its content nor its numbers. The deciding fact: Event-staff overtime doubled after we began taking same-week bookings in 2024, which are now 40% of events.",
       "cap": 0.6,
       "tag": "M.ignores_deciding_fact",
       "detection": "ai",
@@ -137,7 +136,7 @@
     }
   ],
   "model_answer": "Charge a premium for same-week bookings and raise prices about 8%. Margin fell from 15% to 6% while food costs held at 30% of revenue; the cause is overtime, which doubled once same-week bookings grew to 40% of events. Our prices haven't moved in two years while competitors raised theirs 8%. The main risk is that clients balk at the rush fee. The next step is to test it on new same-week bookings for a quarter.",
-  "explanation": "Acceptable recommendation: Charge a premium for same-week bookings, or Raise prices to match competitors' 8% increase. The deciding fact: Event-staff overtime doubled after we began taking same-week bookings, which are now 40% of events. Key risks: Clients may push back on a rush fee or higher prices. Next steps: Model a rush fee for same-week events and test it on new bookings.",
+  "explanation": "Acceptable recommendation: Charge a premium for same-week bookings, or Raise prices to match competitors' 8% increase. The deciding fact: Event-staff overtime doubled after we began taking same-week bookings in 2024, which are now 40% of events. Key risks: Clients may push back on a rush fee or higher prices. Next steps: Model a rush fee for same-week events and test it on new bookings.",
   "extras": {
     "facts": [
       {
@@ -151,7 +150,7 @@
         "deciding": false
       },
       {
-        "fact": "Event-staff overtime doubled after we began taking same-week bookings, which are now 40% of events",
+        "fact": "Event-staff overtime doubled after we began taking same-week bookings in 2024, which are now 40% of events",
         "relevant": true,
         "deciding": true
       },
@@ -161,7 +160,7 @@
         "deciding": false
       },
       {
-        "fact": "Corporate clients make up 55% of revenue",
+        "fact": "The company paid $120,000 to fit out its kitchen in 2021",
         "relevant": false,
         "deciding": false
       }
@@ -183,12 +182,12 @@
   "sources": [],
   "authorship": {
     "author_of_record": "Draft — awaiting human review",
-    "drafting_model": "claude-opus-5-5",
+    "drafting_model": null,
     "reviewed_by": null,
     "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-10-13",
     "similarity_method": "web"
   },
   "generator": null,

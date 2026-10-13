@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { contentCheckProblems, loadAuthoredItems, loadReviewedScenarioPairs, parseAuthoredItems } from '@/lib/drills/authored';
+import { contentCheckProblems, loadAuthoredItems, loadPaddingTypes, loadReviewedScenarioPairs, parseAuthoredItems } from '@/lib/drills/authored';
 import { RULE_PLAYER_MAX, lengthCueProblems, oddOneOutCues, phraseCues, rulePlayer, scenarioOverlaps } from '@/lib/drills/content-checks';
 import { getDrill } from '@/lib/drills/config';
 
@@ -54,7 +54,7 @@ describe('authored drill items (/drill-items)', () => {
   });
 
   it('gives no answer away through wording (length, phrases, rule player)', () => {
-    expect(contentCheckProblems(items, loadReviewedScenarioPairs())).toEqual([]);
+    expect(contentCheckProblems(items, loadReviewedScenarioPairs(), loadPaddingTypes())).toEqual([]);
   });
 
   it('flags a pool where the right answer is usually the longest', () => {

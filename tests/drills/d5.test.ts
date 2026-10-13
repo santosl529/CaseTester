@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { importContent, parseCsv, type Tables } from '@/lib/drills/content-import';
-import { loadAuthoredItems } from '@/lib/drills/authored';
+import { loadAuthoredItems, loadPaddingTypes } from '@/lib/drills/authored';
 import {
   CHALLENGE_GRADING_RULES, HY2_DEFEND_GRADING_RULES, HY3_GRADING_RULES, JUSTIFY_GRADING_RULES, PS4_GRADING_RULES,
   REPAIR_GRADING_RULES, SY3_GRADING_RULES, defendFor,
@@ -11,7 +11,7 @@ import { ItemSchema, type Item } from '@/lib/drills/item-schema';
 import { challengeTag, defendParts, defendRuns, setSizeAt, withDefend } from '@/lib/drills/defend';
 import { applyGrade, firstSentence, unchangedRepair, type ItemGrade } from '@/lib/drills/grading/apply';
 import { addressedToGrader } from '@/lib/drills/grading/injection';
-import { challengeCueProblems, challengeSpeaker } from '@/lib/drills/content-checks';
+import { challengeCueProblems, challengeSpeaker, datedFactProblems, paddingTypeProblems } from '@/lib/drills/content-checks';
 import { buildDefendBlock, buildItemBlock, gradeSet, type CallKind, type CallModel } from '@/lib/drills/grading/grader';
 import { modelAnswerSteps } from '@/lib/drills/model-answers';
 import { repairHint, toPublicItem } from '@/lib/drills/public-item';
@@ -338,5 +338,31 @@ describe('Challenge cues (content-checks.ts challengeCueProblems)', () => {
     expect(challengeSpeaker('Our CFO says the payout is one-time.')).toBe('insider');
     expect(challengeSpeaker('A lumber-market analyst says prices rose only 4%.')).toBe('outsider');
     expect(challengeSpeaker('Prices rose only 4%.')).toBeNull();
+  });
+});
+
+describe('SY padding variety (content-checks.ts paddingTypeProblems)', () => {
+  const items = loadAuthoredItems();
+  const padding = loadPaddingTypes();
+  it('passes on the SY pools, with every irrelevant fact typed', () => {
+    expect(paddingTypeProblems(items, padding)).toEqual([]);
+  });
+  it('fails a pool where one type dominates', () => {
+    const awards = { ...padding, facts: Object.fromEntries(Object.entries(padding.facts).map(([id, fs]) => [id, id.startsWith('sy1-') ? fs.map(f => ({ ...f, type: 'award_or_rating' })) : fs])) };
+    expect(paddingTypeProblems(items, awards).join(' ')).toMatch(/SY-1: 40 of 40 irrelevant facts are award_or_rating/);
+  });
+  it('fails a tag that no longer matches the item', () => {
+    const stale = { ...padding, facts: { ...padding.facts, 'sy1-0003': [{ fact: "The chain's croissants won a regional baking prize last year.", type: 'award_or_rating' }] } };
+    expect(paddingTypeProblems(items, stale)).toContain("sy1-0003: drill-items/padding-types.json doesn't match the item's irrelevant fact");
+  });
+});
+
+describe('dates are no shortcut (content-checks.ts datedFactProblems)', () => {
+  const items = loadAuthoredItems();
+  const padding = loadPaddingTypes();
+  it('passes on the SY pools', () => expect(datedFactProblems(items, padding)).toEqual([]));
+  it('fails a pool where every dated fact is padding', () => {
+    const undated = items.map(i => (i.drill_id === 'SY-1' ? { ...i, prompt: i.prompt.replace(/ since (19|20)\d\d/g, '').replace(/in a (19|20)\d\d test/, 'in a past test') } : i));
+    expect(datedFactProblems(undated, padding).join(' ')).toMatch(/SY-1: only 0 of \d+ facts with a year are relevant/);
   });
 });

@@ -1,8 +1,8 @@
 {
   "item_id": "sy2-0005",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-2",
-  "status": "live",
+  "status": "draft",
   "level": 2,
   "tier": 1,
   "skills": [
@@ -11,8 +11,7 @@
     "SY.complete"
   ],
   "case_type": "operations",
-  "industry": "Retail / E-commerce",
-  "prompt": "The client asks: \"Should our print-on-demand T-shirt company add a weekend shift to clear its order backlog?\"\n\nFact sheet:\n- Orders now wait 9 days to ship, against a 3-day promise\n- The backlog is in printing: printers run 5 days a week at full capacity, while packing has spare time\n- A weekend printing shift would cost $18,000 a month and add 40% to printing capacity\n- Late orders get their shipping refunded, which costs $25,000 a month\n- Customer reviews average 4.6 stars\n\nGive your recommendation.",
+  "prompt": "The client asks: \"Should our print-on-demand T-shirt company add a weekend shift to clear its order backlog?\"\n\nFact sheet:\n- Orders now wait 9 days to ship, against a 3-day promise\n- The backlog is in printing: printers run 5 days a week at full capacity, while packing has spare time\n- A weekend printing shift would cost $18,000 a month and add 40% to printing capacity\n- Late orders get their shipping refunded, which costs $25,000 a month\n- The printers the company runs today, bought for $60,000, are fully paid off\n\nGive your recommendation.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -53,7 +52,7 @@
     },
     {
       "check_id": "leaves_out_irrelevant",
-      "question": "Does the answer avoid using the irrelevant facts (Customer reviews average 4.6 stars) as reasons or support? Mentioning one only to dismiss it is fine.",
+      "question": "Does the answer avoid using the irrelevant facts (The printers the company runs today, bought for $60,000, are fully paid off) as reasons or support? Mentioning one only to dismiss it is fine.",
       "weight": 0.15,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "Leave out facts that don't bear on the decision.",
@@ -161,7 +160,7 @@
         "deciding": false
       },
       {
-        "fact": "Customer reviews average 4.6 stars",
+        "fact": "The printers the company runs today, bought for $60,000, are fully paid off",
         "relevant": false,
         "deciding": false
       }
@@ -182,13 +181,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
-    "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-11",
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-10-13",
     "similarity_method": "web"
   },
   "generator": null,

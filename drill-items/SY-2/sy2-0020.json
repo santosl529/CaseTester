@@ -1,8 +1,8 @@
 {
   "item_id": "sy2-0020",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-2",
-  "status": "live",
+  "status": "draft",
   "level": 2,
   "tier": 2,
   "skills": [
@@ -11,8 +11,7 @@
     "SY.complete"
   ],
   "case_type": "profitability",
-  "industry": "Airlines / Travel / Hospitality",
-  "prompt": "The client asks: \"How should our regional bus-tour company restore profit?\"\n\nFact sheet:\n- Revenue is flat at $8M\n- Fuel and driver costs are flat\n- Commissions paid to online travel sites rose from 10% to 22% of revenue as bookings moved online\n- 70% of customers say they'd book directly if offered a 5% discount\n- Tour reviews average 4.5 stars\n\nGive your recommendation.",
+  "prompt": "The client asks: \"How should our regional bus-tour company restore profit?\"\n\nFact sheet:\n- Revenue is flat at $8M\n- Fuel and driver costs are flat\n- Commissions paid to online travel sites rose from 10% to 22% of revenue since 2021 as bookings moved online\n- 70% of customers say they'd book directly if offered a 5% discount\n- The company bought its 12 coaches for $3.6M in 2022\n\nGive your recommendation.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -53,7 +52,7 @@
     },
     {
       "check_id": "leaves_out_irrelevant",
-      "question": "Does the answer avoid using the irrelevant facts (Tour reviews average 4.5 stars) as reasons or support? Mentioning one only to dismiss it is fine.",
+      "question": "Does the answer avoid using the irrelevant facts (The company bought its 12 coaches for $3.6M in 2022) as reasons or support? Mentioning one only to dismiss it is fine.",
       "weight": 0.15,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "Leave out facts that don't bear on the decision.",
@@ -111,7 +110,7 @@
     },
     {
       "id": "misses_deciding_fact",
-      "definition": "Present when the answer never uses the deciding fact, neither its content nor its numbers. The deciding fact: Commissions paid to online travel sites rose from 10% to 22% of revenue as bookings moved online.",
+      "definition": "Present when the answer never uses the deciding fact, neither its content nor its numbers. The deciding fact: Commissions paid to online travel sites rose from 10% to 22% of revenue since 2021 as bookings moved online.",
       "cap": 0.6,
       "tag": "M.ignores_deciding_fact",
       "detection": "ai",
@@ -137,7 +136,7 @@
     }
   ],
   "model_answer": "Move customers to direct booking with a 5% discount. Commissions to online travel sites rose from 10% to 22% of revenue, while revenue, fuel and driver costs were flat, so commissions explain the drop. 70% of customers say they'd book directly for 5% off; moving $5.6M of bookings from a 22% commission to a 5% discount saves about $950,000 a year. The main risk is that the sites rank us lower. The next step is to launch direct booking and track how many bookings move.",
-  "explanation": "Acceptable recommendation: Move customers to direct booking with a 5% discount. The deciding fact: Commissions paid to online travel sites rose from 10% to 22% of revenue as bookings moved online. Key risks: Travel sites may rank the company lower. Next steps: Launch direct booking with the discount and track the share of bookings that move.",
+  "explanation": "Acceptable recommendation: Move customers to direct booking with a 5% discount. The deciding fact: Commissions paid to online travel sites rose from 10% to 22% of revenue since 2021 as bookings moved online. Key risks: Travel sites may rank the company lower. Next steps: Launch direct booking with the discount and track the share of bookings that move.",
   "extras": {
     "facts": [
       {
@@ -151,7 +150,7 @@
         "deciding": false
       },
       {
-        "fact": "Commissions paid to online travel sites rose from 10% to 22% of revenue as bookings moved online",
+        "fact": "Commissions paid to online travel sites rose from 10% to 22% of revenue since 2021 as bookings moved online",
         "relevant": true,
         "deciding": true
       },
@@ -161,7 +160,7 @@
         "deciding": false
       },
       {
-        "fact": "Tour reviews average 4.5 stars",
+        "fact": "The company bought its 12 coaches for $3.6M in 2022",
         "relevant": false,
         "deciding": false
       }
@@ -182,13 +181,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
-    "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-11",
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-10-13",
     "similarity_method": "web"
   },
   "generator": null,

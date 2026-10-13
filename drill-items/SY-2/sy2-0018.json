@@ -1,8 +1,8 @@
 {
   "item_id": "sy2-0018",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-2",
-  "status": "live",
+  "status": "draft",
   "level": 2,
   "tier": 2,
   "skills": [
@@ -11,8 +11,7 @@
     "SY.complete"
   ],
   "case_type": "industry_analysis",
-  "industry": "Industrials / Manufacturing",
-  "prompt": "The client asks: \"Should our fund invest in a vinyl-record pressing plant?\"\n\nFact sheet:\n- Vinyl sales grew 10% a year for five years\n- Pressing plants have 6-month waitlists for new orders\n- A new pressing line costs $1.5M and can press 1 million records a year at a $1.20 margin each\n- Three new plants opened last year, adding 15% to industry capacity\n- Vinyl is especially popular with collectors of 1970s rock\n\nGive your recommendation.",
+  "prompt": "The client asks: \"Should our fund invest in a vinyl-record pressing plant?\"\n\nFact sheet:\n- Vinyl sales grew 10% a year for five years\n- Pressing plants have 6-month waitlists for new orders\n- A new pressing line costs $1.5M and can press 1 million records a year at a $1.20 margin each\n- Three new plants opened last year, adding 15% to industry capacity\n- Due diligence on the plant has cost the fund $80,000 so far\n\nGive your recommendation.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -53,7 +52,7 @@
     },
     {
       "check_id": "leaves_out_irrelevant",
-      "question": "Does the answer avoid using the irrelevant facts (Vinyl is especially popular with collectors of 1970s rock) as reasons or support? Mentioning one only to dismiss it is fine.",
+      "question": "Does the answer avoid using the irrelevant facts (Due diligence on the plant has cost the fund $80,000 so far) as reasons or support? Mentioning one only to dismiss it is fine.",
       "weight": 0.15,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "Leave out facts that don't bear on the decision.",
@@ -161,7 +160,7 @@
         "deciding": false
       },
       {
-        "fact": "Vinyl is especially popular with collectors of 1970s rock",
+        "fact": "Due diligence on the plant has cost the fund $80,000 so far",
         "relevant": false,
         "deciding": false
       }
@@ -182,13 +181,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
-    "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-11",
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-10-13",
     "similarity_method": "web"
   },
   "generator": null,

@@ -12,7 +12,7 @@
   ],
   "case_type": "market_entry",
   "industry": null,
-  "prompt": "The client asks: \"Should we enter the Canadian market?\" Fact sheet: the Canadian market is worth $400M and growing 3% a year; entry would cost $60M; expected profit is $12M a year, a 5-year payback; the client's hurdle is a 3-year payback; two incumbents hold 70% share; the client's products won a Canadian design award last year. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should we enter the Canadian market?\" Fact sheet: the Canadian market is worth $400M and growing 3% a year; entry would cost $60M; expected profit is $12M a year, a 5-year payback; the client has used a 3-year payback hurdle since 2020; two incumbents hold 70% share; Canada has about 40 million people. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -33,10 +33,10 @@
     },
     {
       "id": "c",
-      "text": "Enter Canada. Our products already won a Canadian design award last year, and at $400M the market is big enough to justify $60M.",
+      "text": "Enter Canada. With about 40 million people, the market is big enough to justify $60M.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "A design award doesn't change the economics. The payback still misses the hurdle."
+      "feedback": "Population doesn't change the economics. The payback still misses the hurdle."
     },
     {
       "id": "d",
@@ -54,7 +54,7 @@
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "The client's products won a Canadian design award last year."
+      "Canada has about 40 million people."
     ]
   },
   "sources": [],

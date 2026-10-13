@@ -3,11 +3,11 @@
   "item_id": "sy3-0006",
   "drill_id": "SY-3",
   "answer_type": "normal",
-  "notes": "Day-shift turnover is still used as support (rule 16).",
+  "notes": "The plant manager's tenure is still used as support (rule 16).",
   "responses": [
     {
       "type": "text",
-      "value": "Add a night shift: serving the 20% of demand we turn away adds $8M of profit for $3M a year, without a $40M plant, and our day-shift staff have the region's lowest turnover."
+      "value": "Add a night shift: serving the 20% of demand we turn away adds $8M of profit for $3M a year, without a $40M plant, and our plant manager has run the factory for 20 years."
     }
   ],
   "labels": {

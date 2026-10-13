@@ -11,8 +11,7 @@
     "SY.complete"
   ],
   "case_type": "m_and_a",
-  "industry": "Pharma / Biotech",
-  "prompt": "The client asks: \"Should our medical-device company buy a startup for $80M to get its glucose-monitoring patch?\"\n\nFact sheet:\n- The patch is approved in Europe and awaits US approval, expected in 18 months\n- Our sales force already calls on the doctors who prescribe it\n- If approved in the US, the patch would add about $25M a year of profit by year 3\n- US regulators rejected the startup's first application over accuracy data\n- The startup's office is in Boston\n\nGive your recommendation.",
+  "prompt": "The client asks: \"Should our medical-device company buy a startup for $80M to get its glucose-monitoring patch?\"\n\nFact sheet:\n- The patch is approved in Europe and awaits US approval, expected in 18 months\n- Our sales force already calls on the doctors who prescribe it\n- If approved in the US, the patch would add about $25M a year of profit by year 3\n- US regulators rejected the startup's first application in 2024 over accuracy data\n- The startup's founder previously sold a heart-monitor company to a rival device maker\n\nGive your recommendation.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -53,7 +52,7 @@
     },
     {
       "check_id": "leaves_out_irrelevant",
-      "question": "Does the answer avoid using the irrelevant facts (The startup's office is in Boston) as reasons or support? Mentioning one only to dismiss it is fine.",
+      "question": "Does the answer avoid using the irrelevant facts (The startup's founder previously sold a heart-monitor company to a rival device maker) as reasons or support? Mentioning one only to dismiss it is fine.",
       "weight": 0.15,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "Leave out facts that don't bear on the decision.",
@@ -111,7 +110,7 @@
     },
     {
       "id": "misses_deciding_fact",
-      "definition": "Present when the answer never uses the deciding fact, neither its content nor its numbers. The deciding fact: US regulators rejected the startup's first application over accuracy data.",
+      "definition": "Present when the answer never uses the deciding fact, neither its content nor its numbers. The deciding fact: US regulators rejected the startup's first application in 2024 over accuracy data.",
       "cap": 0.6,
       "tag": "M.ignores_deciding_fact",
       "detection": "ai",
@@ -137,7 +136,7 @@
     }
   ],
   "model_answer": "Buy the startup, but tie most of the $80M to US approval. Approved, the patch adds about $25M a year of profit by year 3, and our sales force already calls on the doctors who prescribe it. But regulators rejected its first US application over accuracy data, so approval is the main risk. The next step is for our regulatory team to review the accuracy data and structure the deal so most of the price is paid on approval.",
-  "explanation": "Acceptable recommendation: Buy, with most of the price tied to US approval, or Wait for US approval, then bid. The deciding fact: US regulators rejected the startup's first application over accuracy data. Key risks: US approval may fail again. Next steps: Have the regulatory team review the accuracy data and structure an earn-out.",
+  "explanation": "Acceptable recommendation: Buy, with most of the price tied to US approval, or Wait for US approval, then bid. The deciding fact: US regulators rejected the startup's first application in 2024 over accuracy data. Key risks: US approval may fail again. Next steps: Have the regulatory team review the accuracy data and structure an earn-out.",
   "extras": {
     "facts": [
       {
@@ -156,12 +155,12 @@
         "deciding": false
       },
       {
-        "fact": "US regulators rejected the startup's first application over accuracy data",
+        "fact": "US regulators rejected the startup's first application in 2024 over accuracy data",
         "relevant": true,
         "deciding": true
       },
       {
-        "fact": "The startup's office is in Boston",
+        "fact": "The startup's founder previously sold a heart-monitor company to a rival device maker",
         "relevant": false,
         "deciding": false
       }
@@ -183,12 +182,12 @@
   "sources": [],
   "authorship": {
     "author_of_record": "Draft — awaiting human review",
-    "drafting_model": "claude-opus-5-5",
+    "drafting_model": null,
     "reviewed_by": null,
     "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-10-13",
     "similarity_method": "web"
   },
   "generator": null,

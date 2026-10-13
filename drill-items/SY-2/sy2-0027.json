@@ -1,8 +1,8 @@
 {
   "item_id": "sy2-0027",
-  "version": 1,
+  "version": 2,
   "drill_id": "SY-2",
-  "status": "live",
+  "status": "draft",
   "level": 2,
   "tier": 3,
   "skills": [
@@ -11,8 +11,7 @@
     "SY.complete"
   ],
   "case_type": "profitability",
-  "industry": "Airlines / Travel / Hospitality",
-  "prompt": "The client asks: \"How should our business-events company restore profit?\"\n\nFact sheet:\n- Revenue grew 10% to $40M, but profit fell from $6M to $2M\n- The company added 12 smaller events this year; attendance per event is flat\n- The 12 new events lost $3.5M together; the 20 established events earned more than last year\n- Sponsorship revenue rose 15%\n- The company moved its head office to a new building\n\nGive your recommendation.",
+  "prompt": "The client asks: \"How should our business-events company restore profit?\"\n\nFact sheet:\n- Revenue grew 10% to $40M, but profit fell from $6M to $2M\n- The company added 12 smaller events this year; attendance per event is flat\n- The 12 new events lost $3.5M together; the 20 established events earned more than last year\n- Sponsorship revenue rose 15%\n- Non-refundable venue deposits for next year's 12 new events are already paid\n\nGive your recommendation.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -53,7 +52,7 @@
     },
     {
       "check_id": "leaves_out_irrelevant",
-      "question": "Does the answer avoid using the irrelevant facts (The company moved its head office to a new building) as reasons or support? Mentioning one only to dismiss it is fine.",
+      "question": "Does the answer avoid using the irrelevant facts (Non-refundable venue deposits for next year's 12 new events are already paid) as reasons or support? Mentioning one only to dismiss it is fine.",
       "weight": 0.15,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "Leave out facts that don't bear on the decision.",
@@ -161,7 +160,7 @@
         "deciding": false
       },
       {
-        "fact": "The company moved its head office to a new building",
+        "fact": "Non-refundable venue deposits for next year's 12 new events are already paid",
         "relevant": false,
         "deciding": false
       }
@@ -182,13 +181,13 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
-    "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-11",
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-10-13",
     "similarity_method": "web"
   },
   "generator": null,

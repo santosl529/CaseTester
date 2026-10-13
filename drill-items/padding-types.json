@@ -1,0 +1,502 @@
+{
+  "about": "Review metadata: the type of each SY item's irrelevant (padding) fact, for the padding-variety content check (lib/drills/content-checks.ts paddingTypeProblems). Every irrelevant fact must pass the partner test: interesting, but it doesn't change the answer.",
+  "types": {
+    "neutral_number": "a number outside the decision's math (category growth, customer count)",
+    "sunk_cost": "money already spent that the decision can't recover",
+    "history": "when something happened (opened, built, launched, redesigned)",
+    "people": "who works for, founded, designed or knows the business",
+    "location": "where something is based or sits",
+    "branding": "brand, marketing or sponsorship",
+    "award_or_rating": "awards, prizes, reviews or ratings",
+    "operations_detail": "how the business runs, unrelated to the decision (hours, materials, leases)",
+    "outside_context": "facts about the market or place outside the business"
+  },
+  "facts": {
+    "sy1-0001": [
+      {
+        "fact": "Canada has about 40 million people.",
+        "type": "neutral_number"
+      }
+    ],
+    "sy1-0002": [
+      {
+        "fact": "The app was redesigned last year.",
+        "type": "history"
+      }
+    ],
+    "sy1-0003": [
+      {
+        "fact": "The chain spent $1.2M on new ovens in 2022.",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy1-0004": [
+      {
+        "fact": "The supplier was founded in 1950.",
+        "type": "history"
+      }
+    ],
+    "sy1-0005": [
+      {
+        "fact": "RivalCo's CEO is a former colleague of our CEO.",
+        "type": "people"
+      }
+    ],
+    "sy1-0006": [
+      {
+        "fact": "The company's last launch was a sparkling water.",
+        "type": "history"
+      }
+    ],
+    "sy1-0007": [
+      {
+        "fact": "The company has 5,000 employees.",
+        "type": "people"
+      }
+    ],
+    "sy1-0008": [
+      {
+        "fact": "Our stores were renovated in 2021.",
+        "type": "history"
+      }
+    ],
+    "sy1-0009": [
+      {
+        "fact": "The factory was built in 1990.",
+        "type": "history"
+      }
+    ],
+    "sy1-0010": [
+      {
+        "fact": "Analysts expect the category to grow 3% next year.",
+        "type": "neutral_number"
+      }
+    ],
+    "sy1-0011": [
+      {
+        "fact": "The city already owns the land under its main garage, which cost $1.7M.",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy1-0012": [
+      {
+        "fact": "One of our managers grew up in Texas.",
+        "type": "people"
+      }
+    ],
+    "sy1-0013": [
+      {
+        "fact": "The group bought the division in 2015 for $150M.",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy1-0014": [
+      {
+        "fact": "Our largest shareholder is based in Spain.",
+        "type": "location"
+      }
+    ],
+    "sy1-0015": [
+      {
+        "fact": "The outsourcer is based in Ireland.",
+        "type": "location"
+      }
+    ],
+    "sy1-0016": [
+      {
+        "fact": "The company has about 12,000 monthly customers.",
+        "type": "neutral_number"
+      }
+    ],
+    "sy1-0017": [
+      {
+        "fact": "The hospital won a quality award in 2024.",
+        "type": "award_or_rating"
+      }
+    ],
+    "sy1-0018": [
+      {
+        "fact": "We have 200 sales staff.",
+        "type": "people"
+      }
+    ],
+    "sy1-0019": [
+      {
+        "fact": "Our company sponsors a dog show.",
+        "type": "branding"
+      }
+    ],
+    "sy1-0020": [
+      {
+        "fact": "The store opened in 2010.",
+        "type": "history"
+      }
+    ],
+    "sy1-0021": [
+      {
+        "fact": "The city hosts a large music festival each year.",
+        "type": "outside_context"
+      }
+    ],
+    "sy1-0022": [
+      {
+        "fact": "Product X launched in 2015.",
+        "type": "history"
+      }
+    ],
+    "sy1-0023": [
+      {
+        "fact": "The warehouse is near the airport.",
+        "type": "location"
+      }
+    ],
+    "sy1-0024": [
+      {
+        "fact": "The program's app was built by an outside agency.",
+        "type": "people"
+      }
+    ],
+    "sy1-0025": [
+      {
+        "fact": "The program was designed by a university.",
+        "type": "people"
+      }
+    ],
+    "sy1-0026": [
+      {
+        "fact": "Our café uses fair-trade beans.",
+        "type": "operations_detail"
+      }
+    ],
+    "sy1-0027": [
+      {
+        "fact": "The distributor sponsors a local soccer team.",
+        "type": "branding"
+      }
+    ],
+    "sy1-0028": [
+      {
+        "fact": "The chain sells about 2 million burgers a month.",
+        "type": "neutral_number"
+      }
+    ],
+    "sy1-0029": [
+      {
+        "fact": "The call center's $1M renovation finished last year.",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy1-0030": [
+      {
+        "fact": "Home workouts were popular on social media.",
+        "type": "outside_context"
+      }
+    ],
+    "sy1-0031": [
+      {
+        "fact": "The client opened two stores in 2019.",
+        "type": "history"
+      }
+    ],
+    "sy1-0032": [
+      {
+        "fact": "Japan has a large tourism industry.",
+        "type": "outside_context"
+      }
+    ],
+    "sy1-0033": [
+      {
+        "fact": "The carrier rebranded in May.",
+        "type": "branding"
+      }
+    ],
+    "sy1-0034": [
+      {
+        "fact": "The product's packaging was updated last year.",
+        "type": "branding"
+      }
+    ],
+    "sy1-0035": [
+      {
+        "fact": "The chain's gyms are open 24 hours.",
+        "type": "operations_detail"
+      }
+    ],
+    "sy1-0036": [
+      {
+        "fact": "The company makes its products in Ohio.",
+        "type": "location"
+      }
+    ],
+    "sy1-0037": [
+      {
+        "fact": "The target was founded by two engineers.",
+        "type": "people"
+      }
+    ],
+    "sy1-0038": [
+      {
+        "fact": "The hospital has a helicopter pad.",
+        "type": "operations_detail"
+      }
+    ],
+    "sy1-0039": [
+      {
+        "fact": "The client also makes headphones.",
+        "type": "operations_detail"
+      }
+    ],
+    "sy1-0040": [
+      {
+        "fact": "The dealer delivers the van for free.",
+        "type": "operations_detail"
+      }
+    ],
+    "example-sy2-01": [
+      {
+        "fact": "The chain changed its uniform supplier last year",
+        "type": "history"
+      }
+    ],
+    "sy2-0001": [
+      {
+        "fact": "Most dental labs in the region still outsource their milling",
+        "type": "outside_context"
+      }
+    ],
+    "sy2-0002": [
+      {
+        "fact": "Off-peak lesson bookings rose 8% this year",
+        "type": "neutral_number"
+      }
+    ],
+    "sy2-0003": [
+      {
+        "fact": "The brand's US sales grew 12% last year",
+        "type": "neutral_number"
+      }
+    ],
+    "sy2-0004": [
+      {
+        "fact": "Staff surveys rate the current office kitchen highly",
+        "type": "award_or_rating"
+      }
+    ],
+    "sy2-0005": [
+      {
+        "fact": "The printers the company runs today, bought for $60,000, are fully paid off",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy2-0006": [
+      {
+        "fact": "The company's pasta sauce holds 12% of its category",
+        "type": "neutral_number"
+      }
+    ],
+    "sy2-0007": [
+      {
+        "fact": "The studio switched to a new booking app last year",
+        "type": "history"
+      }
+    ],
+    "sy2-0008": [
+      {
+        "fact": "Fuel costs rose 6% this year",
+        "type": "neutral_number"
+      }
+    ],
+    "sy2-0009": [
+      {
+        "fact": "Downtown hotel occupancy rose 4% last year",
+        "type": "neutral_number"
+      }
+    ],
+    "sy2-0010": [
+      {
+        "fact": "The rival has 60 employees",
+        "type": "people"
+      }
+    ],
+    "sy2-0011": [
+      {
+        "fact": "The company paid $120,000 to fit out its kitchen in 2021",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy2-0012": [
+      {
+        "fact": "The school bought its building for $1.2M in 2016",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy2-0013": [
+      {
+        "fact": "We have already spent £25,000 translating our website into German",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy2-0014": [
+      {
+        "fact": "The terminal spent $2M on new signage in 2022",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy2-0015": [
+      {
+        "fact": "Designing the foot-measuring kit has already cost $40,000",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy2-0016": [
+      {
+        "fact": "Store sales grew 3% last year",
+        "type": "neutral_number"
+      }
+    ],
+    "sy2-0017": [
+      {
+        "fact": "Dog ownership in the US grew 4% last year",
+        "type": "outside_context"
+      }
+    ],
+    "sy2-0018": [
+      {
+        "fact": "Due diligence on the plant has cost the fund $80,000 so far",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy2-0019": [
+      {
+        "fact": "The chain's delivery vans are leased through 2027",
+        "type": "operations_detail"
+      }
+    ],
+    "sy2-0020": [
+      {
+        "fact": "The company bought its 12 coaches for $3.6M in 2022",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy2-0021": [
+      {
+        "fact": "Volunteer hours rose 10% last year",
+        "type": "neutral_number"
+      }
+    ],
+    "sy2-0022": [
+      {
+        "fact": "Lumber prices rose 4% last year",
+        "type": "neutral_number"
+      }
+    ],
+    "sy2-0023": [
+      {
+        "fact": "Online sporting-goods sales grew 9% last year",
+        "type": "outside_context"
+      }
+    ],
+    "sy2-0024": [
+      {
+        "fact": "Tattoos are most popular among people aged 18 to 34",
+        "type": "outside_context"
+      }
+    ],
+    "sy2-0025": [
+      {
+        "fact": "The startup's founder previously sold a heart-monitor company to a rival device maker",
+        "type": "people"
+      }
+    ],
+    "sy2-0026": [
+      {
+        "fact": "A bike-share station opened on Main Street last year",
+        "type": "outside_context"
+      }
+    ],
+    "sy2-0027": [
+      {
+        "fact": "Non-refundable venue deposits for next year's 12 new events are already paid",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy2-0028": [
+      {
+        "fact": "Two of the chain's restaurants are in airports",
+        "type": "location"
+      }
+    ],
+    "sy2-0029": [
+      {
+        "fact": "Cement prices rose 5% last year",
+        "type": "neutral_number"
+      }
+    ],
+    "sy2-0030": [
+      {
+        "fact": "Online parcel volumes in the country grew 7% last year",
+        "type": "outside_context"
+      }
+    ],
+    "sy3-0001": [
+      {
+        "fact": "premium sign-ups doubled after a TV campaign last spring",
+        "type": "branding"
+      }
+    ],
+    "sy3-0002": [
+      {
+        "fact": "the store is the chain's first location",
+        "type": "history"
+      }
+    ],
+    "sy3-0003": [
+      {
+        "fact": "the chain sells about 2 million burgers a month",
+        "type": "neutral_number"
+      }
+    ],
+    "sy3-0004": [
+      {
+        "fact": "the chain spent $1.2M on new ovens in 2022",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy3-0005": [
+      {
+        "fact": "the city already owns the land under its main garage, which cost $1.7M",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy3-0006": [
+      {
+        "fact": "the plant manager has run the factory for 20 years",
+        "type": "people"
+      }
+    ],
+    "sy3-0007": [
+      {
+        "fact": "the company has about 12,000 monthly customers",
+        "type": "neutral_number"
+      }
+    ],
+    "sy3-0008": [
+      {
+        "fact": "analysts expect the category to grow 3% next year",
+        "type": "neutral_number"
+      }
+    ],
+    "sy3-0009": [
+      {
+        "fact": "a rival's loyalty program has 2 million members",
+        "type": "outside_context"
+      }
+    ],
+    "sy3-0010": [
+      {
+        "fact": "the group bought the division in 2015 for $150M",
+        "type": "sunk_cost"
+      }
+    ]
+  }
+}

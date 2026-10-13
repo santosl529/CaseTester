@@ -11,7 +11,7 @@
   ],
   "case_type": "operations",
   "industry": null,
-  "prompt": "The client asks: \"Should our factory move to 24-hour operation?\" Fact sheet: demand is 20% above capacity; a night shift would add 30% capacity and cost $3M a year; serving the extra 20% of demand would add $8M a year in profit before the shift's cost; a new plant would cost $40M; day-shift workers have the region's lowest turnover.\n\nA candidate gave the recommendation below. Fix it.",
+  "prompt": "The client asks: \"Should our factory move to 24-hour operation?\" Fact sheet: demand is 20% above capacity; a night shift would add 30% capacity and cost $3M a year; serving the extra 20% of demand would add $8M a year in profit before the shift's cost; a new plant would cost $40M; the plant manager has run the factory for 20 years.\n\nA candidate gave the recommendation below. Fix it.",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -22,17 +22,17 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it pads the case with a fact that doesn't bear on the decision: day-shift turnover. Does the edited answer fix it? One way to fix it: removes the day-shift turnover, or mentions it only to dismiss it. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it pads the case with a fact that doesn't bear on the decision: the plant manager's tenure. Does the edited answer fix it? One way to fix it: removes the plant manager's tenure, or mentions it only to dismiss it. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
       "weight": 0.5,
       "fail_tag": "M.irrelevant_facts",
-      "feedback": "The flaw is still there: it pads the case with a fact that doesn't bear on the decision: day-shift turnover.",
+      "feedback": "The flaw is still there: it pads the case with a fact that doesn't bear on the decision: the plant manager's tenure.",
       "step": 0,
       "detection": "ai",
       "evidence": "whole"
     },
     {
       "check_id": "no_new_flaw",
-      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: buried recommendation, hedged recommendation, irrelevant facts, unsupported recommendation, ignored the deciding fact? The original's own flaw (it pads the case with a fact that doesn't bear on the decision: day-shift turnover) doesn't count as new, even if the edit leaves it in place or rewords it, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
+      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: buried recommendation, hedged recommendation, irrelevant facts, unsupported recommendation, ignored the deciding fact? The original's own flaw (it pads the case with a fact that doesn't bear on the decision: the plant manager's tenure) doesn't count as new, even if the edit leaves it in place or rewords it, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
       "weight": 0.3,
       "fail_tag": "M.buried_recommendation",
       "feedback": "Your edit added a new flaw. Change only what needs fixing.",
@@ -53,15 +53,15 @@
   ],
   "red_flags": [],
   "model_answer": "Add a night shift. Serving the 20% of demand we turn away adds $8M of profit for $3M a year, without a $40M plant.",
-  "explanation": "The flaw: it pads the case with a fact that doesn't bear on the decision: day-shift turnover. What was right: the recommendation and the $8M against $3M comparison, without a $40M plant.",
+  "explanation": "The flaw: it pads the case with a fact that doesn't bear on the decision: the plant manager's tenure. What was right: the recommendation and the $8M against $3M comparison, without a $40M plant.",
   "extras": {
     "derived_from": "sy1-0009",
-    "flawed_answer": "Add a night shift. Serving the 20% of demand we turn away adds $8M of profit for $3M a year, without a $40M plant. Our day-shift workers also have the region's lowest turnover.",
+    "flawed_answer": "Add a night shift. Serving the 20% of demand we turn away adds $8M of profit for $3M a year, without a $40M plant. Our plant manager has also run the factory for 20 years.",
     "flaws": [
       {
         "tag": "M.irrelevant_facts",
-        "hint": "it pads the case with a fact that doesn't bear on the decision: day-shift turnover",
-        "fix": "removes the day-shift turnover, or mentions it only to dismiss it"
+        "hint": "it pads the case with a fact that doesn't bear on the decision: the plant manager's tenure",
+        "fix": "removes the plant manager's tenure, or mentions it only to dismiss it"
       }
     ],
     "right_parts": "the recommendation and the $8M against $3M comparison, without a $40M plant",

@@ -1,12 +1,12 @@
 item_id,tag,hint,fix
 sy3-0001,M.buried_recommendation,the recommendation comes last instead of first,"opens with the recommendation to raise the price to $24, then gives the numbers"
 sy3-0002,M.hedged_recommendation,it takes no position,"commits to one course of action, such as closing the store"
-sy3-0003,M.unsupported_recommendation,"its only reason, a rival's award, doesn't bear on the decision","backs the recommendation with the facts that decide it: $20k per restaurant earning about $30k a year, in hours the restaurants are now closed"
+sy3-0003,M.unsupported_recommendation,"its only reason, burger sales, doesn't bear on the decision","backs the recommendation with the facts that decide it: $20k per restaurant earning about $30k a year, in hours the restaurants are now closed"
 sy3-0004,M.hedged_recommendation,it takes no position,"commits to one course of action, such as raising prices about 8%"
 sy3-0005,M.buried_recommendation,the recommendation comes last instead of first,"opens with the recommendation to upgrade the existing garages first, then gives the numbers"
-sy3-0006,M.irrelevant_facts,it pads the case with a fact that doesn't bear on the decision: day-shift turnover,"removes the day-shift turnover, or mentions it only to dismiss it"
+sy3-0006,M.irrelevant_facts,it pads the case with a fact that doesn't bear on the decision: the plant manager's tenure,"removes the plant manager's tenure, or mentions it only to dismiss it"
 sy3-0007,M.ignores_deciding_fact,"it ignores the deciding fact: the average monthly customer stays only 9 months, paying $450","uses the 9-month stay ($450 against $480 up front) to decide, which means offering the annual plan"
 sy3-0008,M.hedged_recommendation,it takes no position,"commits to one course of action, such as holding the price"
 sy3-0009,M.ignores_deciding_fact,"it ignores the deciding fact: the extra visits add about $1.2M of profit, less than the $2M a year the program costs","uses the profit the extra visits add, about $1.2M against the $2M cost, to decide, which means not rolling it out as it is"
 sy3-0010,M.buried_recommendation,the recommendation comes last instead of first,opens with the recommendation to sell the division for $50M
-sy3-0010,M.irrelevant_facts,it pads the case with a fact that doesn't bear on the decision: the brand's fame in France,"removes the brand's fame in France, or mentions it only to dismiss it"
+sy3-0010,M.irrelevant_facts,it leans on a fact that doesn't bear on the decision: what the group paid for the division in 2015,"removes the 2015 purchase price, or mentions it only to dismiss it"

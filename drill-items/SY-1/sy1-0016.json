@@ -12,7 +12,7 @@
   ],
   "case_type": "pricing",
   "industry": null,
-  "prompt": "The client asks: \"Should we offer a 20% discount for paying a year up front?\" Fact sheet: the monthly plan is $50; the average monthly customer stays 9 months; the annual plan at 20% off would be $480; 40% of surveyed customers would choose the annual plan; in a past test, customers who chose an annual plan had stayed about as long as average; the company's cash reserves cover 18 months of costs. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should we offer a 20% discount for paying a year up front?\" Fact sheet: the monthly plan is $50; the average monthly customer stays 9 months; the annual plan at 20% off would be $480; 40% of surveyed customers would choose the annual plan; in a 2025 test, customers who chose an annual plan had stayed about as long as average; the company has about 12,000 monthly customers. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -27,10 +27,10 @@
     },
     {
       "id": "b",
-      "text": "Offer the annual plan. Our cash reserves cover only 18 months of costs, so cash up front will help.",
+      "text": "Offer the annual plan. With about 12,000 monthly customers, even a small share switching brings in a lot of cash up front.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "Cash reserves don't decide this. The $480 against $450 comparison does."
+      "feedback": "The customer count doesn't decide this. The $480 against $450 comparison does."
     },
     {
       "id": "c",
@@ -54,7 +54,7 @@
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "The company's cash reserves cover 18 months of costs."
+      "The company has about 12,000 monthly customers."
     ]
   },
   "sources": [],
