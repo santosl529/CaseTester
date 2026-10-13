@@ -22,9 +22,10 @@ import {
 } from '@/lib/orchestrator/fact-check';
 import { asksRecommendationAsk } from '@/lib/orchestrator/spoken-close';
 import { checkDataTurn } from '@/lib/eval/data-check';
+import { checkMathTurn } from '@/lib/eval/math-check';
 
 export type Flag = {
-  rule: 'F1' | 'F2-next' | 'F2-rec' | 'F3' | 'F4' | 'D1' | 'D3' | 'D9';
+  rule: 'F1' | 'F2-next' | 'F2-rec' | 'F3' | 'F4' | 'D1' | 'D3' | 'D6' | 'D9';
   sub: string;
   run: string;
   group: string;
@@ -114,6 +115,7 @@ export function checkRun(run: CorpusRun): Flag[] {
       for (const f of findFalseRefusals(seg.text, fb, revealed)) flags.push({ ...base, rule: 'F3', sub: 'refusal', t: t.t, author: `${seg.kind}/${seg.author}`, items: f.items, cited: f.refused, sentence: f.sentence });
     }
     for (const f of checkDataTurn(t, fb, { openBefore: t.openBefore })) flags.push({ ...base, rule: f.rule, sub: f.sub, t: t.t, author: 'turn', items: f.items, cited: f.sub, sentence: f.text });
+    for (const m of checkMathTurn(t, getCaseById(run.caseId) as never)) if (!m.handled) flags.push({ ...base, rule: 'D6', sub: m.error.kind, t: t.t, author: 'candidate', items: [], cited: `${m.error.what}: ${m.error.stated} vs ${m.error.expected.join('/')}`, sentence: m.error.span });
   }
   return flags;
 }
@@ -212,7 +214,7 @@ function main() {
   const perTurn = new Map<string, Flag>();
   for (const f of flags) perTurn.set(`${f.run}|${f.t}|${f.rule}`, f);
   for (const f of perTurn.values()) { const row = rows.get(`${f.group} · ${f.model}`)!; row.c[f.rule] = (row.c[f.rule] ?? 0) + 1; }
-  const rules = ['F1', 'F2-next', 'F2-rec', 'F3', 'F4', 'D1', 'D3', 'D9'];
+  const rules = ['F1', 'F2-next', 'F2-rec', 'F3', 'F4', 'D1', 'D3', 'D6', 'D9'];
   console.log(`\n${'batch · model'.padEnd(46)} runs turns  ${rules.map(r => r.padStart(8)).join('')}   (turns flagged / per 100 turns)`);
   for (const [k, v] of [...rows.entries()].sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true }))) {
     console.log(`${k.padEnd(46)} ${String(v.runs).padStart(4)} ${String(v.turns).padStart(5)}  ${rules.map(r => `${v.c[r] ?? 0}/${((100 * (v.c[r] ?? 0)) / Math.max(1, v.turns)).toFixed(1)}`.padStart(8)).join('')}`);

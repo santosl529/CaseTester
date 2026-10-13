@@ -191,6 +191,16 @@ export const CaseSchema = z.object({
       parts: z.array(z.object({ names: z.array(z.string().min(2)).min(1), value: z.number() })).min(2),
     })).default([]),
   }).optional(),
+  // Pricing math (lib/orchestrator/pricing-check.ts, 12 Oct): the cost lines a
+  // price change leaves fixed in dollars at flat volume (their current shares
+  // of revenue sum to the cost base), and the cost lines that may be treated
+  // as variable with volume for a break-even — each set an accepted answer.
+  // Without it the case has no pricing check.
+  pricingModel: z.object({
+    costItems: z.array(z.string()).min(1),
+    variableSets: z.array(z.array(z.string()).min(1)).min(1),
+    revenueItem: z.string().optional(),
+  }).optional(),
   // Deprecated: the judge scores against the generic 8-dimension rubric in
   // lib/scoring/rubric.ts (docs/Case Interview Feedback Rubric.pdf). Per-case
   // anchors are tolerated in case files but no longer read.
@@ -210,6 +220,12 @@ export const CaseSchema = z.object({
     const item = c.dataLedger.find(d => d.id === q.item);
     if (item && Object.keys(item.timeframes ?? {}).length === 0) ctx.addIssue({ code: 'custom', path: ['quoteAnchors', i, 'item'], message: `"${q.item}" has no timeframes, so it has no figures to check` });
   });
+  if (c.pricingModel) {
+    const pm = c.pricingModel;
+    [...pm.costItems, ...pm.variableSets.flat(), ...(pm.revenueItem ? [pm.revenueItem] : [])].forEach(id => {
+      if (!ledgerIds.has(id)) ctx.addIssue({ code: 'custom', path: ['pricingModel'], message: `Unknown ledger item "${id}"` });
+    });
+  }
   const f = c.factAnchors;
   if (f) {
     const factIds = new Set([...ledgerIds, ...f.promptFacts.map(p => p.id)]);

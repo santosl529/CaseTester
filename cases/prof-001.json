@@ -810,5 +810,22 @@
         ]
       }
     ]
+  },
+  "pricingModel": {
+    "costItems": [
+      "cogs_pct",
+      "labor_pct",
+      "overhead_pct"
+    ],
+    "variableSets": [
+      [
+        "cogs_pct"
+      ],
+      [
+        "cogs_pct",
+        "labor_pct"
+      ]
+    ],
+    "revenueItem": "revenue_total"
   }
 }
