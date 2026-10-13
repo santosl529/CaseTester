@@ -783,19 +783,22 @@ const PROBE = /\b(?:walk me through|how (?:did|do) you get|how you got|where doe
 
 // F1 echo: the interviewer repeating a still-uncorrected misquote as a fact
 // ("16 of the 19 points" after the candidate's "19-point COGS increase").
-export function findEchoes(text: string, echoes: Echo[], fb: FactBase): FactFlag[] {
+// strict: on the turn code corrects the item, even a probe of the wrong figure
+// contradicts the correction just spoken ("To correct one figure: COGS is 58%…
+// walk me through how you got from 42% and 61%").
+export function findEchoes(text: string, echoes: Echo[], fb: FactBase, opts: { strict?: boolean } = {}): FactFlag[] {
   const out: FactFlag[] = [];
   if (!echoes.length) return out;
   for (const s of sentencesOf(text)) {
     // A probe of the figure, or doubt about it ("depends on the 61% being exact"), isn't adopting it.
-    if (PROBE.test(s) || /\bnot\s+\$?\d/i.test(s) || /\b(?:exact|accurate|precise|correct|right|depends on|hold up|holds)\b/i.test(s)) continue;
+    if (!opts.strict && (PROBE.test(s) || /\bnot\s+\$?\d/i.test(s) || /\b(?:exact|accurate|precise|correct|right|depends on|hold up|holds)\b/i.test(s))) continue;
     for (const e of echoes) {
       const re = e.change
         ? new RegExp(`(?<![\\d.])${escape(String(e.value))}(?:\\.0)?[- ]?(?:percentage[- ])?points?\\b`, 'i')
         : new RegExp(`(?<![\\d.])${escape(String(e.value))}(?:\\.0)?\\s*(?:%|percent)`, 'i');
       const m = re.exec(s);
       if (!m) continue;
-      if (!e.change && !nameHits(s, fb).some(h => h.quantities.some(q => e.items.includes(q.id)))) continue;
+      if (!e.change && !opts.strict && !nameHits(s, fb).some(h => h.quantities.some(q => e.items.includes(q.id)))) continue;
       out.push({ rule: 'F1-number', items: e.items, cited: `echo ${m[0]} (from ${e.cited})`, sentence: s });
     }
   }

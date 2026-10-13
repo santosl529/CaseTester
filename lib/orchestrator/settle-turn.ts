@@ -153,9 +153,9 @@ export type Settled = {
   persist: (latency: { firstSegmentMs: number | null; streamed: boolean }, heard?: HeardReport | null) => Promise<TurnResult>;
 };
 
-const CODE_WRITTEN = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm']);
+const CODE_WRITTEN = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm', 'rec_revision']);
 // Code's own stage asks, recorded as moves it is sure of.
-const STAGE_MOVE: Partial<Record<string, Move>> = { stage_exhibit: 'exhibit', stage_brainstorm: 'brainstorm' };
+const STAGE_MOVE: Partial<Record<string, Move>> = { stage_exhibit: 'exhibit', stage_brainstorm: 'brainstorm', rec_revision: 'recommendation' };
 
 // A figure the candidate gave as a result in this message ("= 53.8", "is
 // about 1.6%", "so 38%") — not an input or an index base ("index this to 100").
@@ -447,11 +447,12 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   }
   // Rule 6 option 4: the correction went out in the data line — booked once
   // per item, logged for scoring with what the candidate said.
-  const misquoteCorrectedSaved = decisions.correction && state.misquote
-    ? [...state.misquotesCorrected, decisions.correction.item]
-    : [...state.misquotesCorrected];
+  const correctedItems = decisions.correction ? decisions.correction.items ?? [decisions.correction.item] : [];
+  const misquoteCorrectedSaved = [...state.misquotesCorrected, ...correctedItems];
   if (decisions.correction && state.misquote) {
-    ctx.events.push({ category: 'intervention', subtype: 'misquote_corrected', payload: { item: state.misquote.item, cited: state.misquote.cited, sentence: state.misquote.sentence, correction: decisions.correction.text } });
+    for (const m of state.misquote.all) {
+      ctx.events.push({ category: 'intervention', subtype: 'misquote_corrected', payload: { item: m.item, cited: m.cited, sentence: m.sentence, correction: decisions.correction.text } });
+    }
   }
   checks.record('data_decisions', decisions.requests.length > 0 || decisions.exhibit !== null || decisions.releases.length > 0,
     'data decided by code', {
@@ -669,6 +670,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
             advancedLastTurn: advancedThisTurn,
             timeWarningFired: Boolean(flags.timeWarningFired) || (kind === 'time_warning' && qHeard),
             graceAskFired: Boolean(flags.graceAskFired) || (kind === 'grace_ask' && qHeard),
+            recRevisionAsked: Boolean(flags.recRevisionAsked) || (kind === 'rec_revision' && qHeard),
             recomputeAttempts,
             lastVerified: verifiedNow,
             flaggedFigures: state.flaggedFigures,
@@ -682,7 +684,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
             unmappedToResolve: unmappedToResolveSaved,
             misquoteCorrected: misquoteCorrectedSaved,
             // Misquoted figures still standing: closed when code corrects the item.
-            factEchoes: state.factEchoes.filter(e => !(decisions.correction && e.items.includes(decisions.correction.item))).slice(-12),
+            factEchoes: state.factEchoes.filter(e => !e.items.some(i => correctedItems.includes(i))).slice(-12),
           },
         })
         .where(and(eq(sessions.id, sessionId), eq(sessions.status, 'active'))),

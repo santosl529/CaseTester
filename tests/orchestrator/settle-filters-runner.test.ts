@@ -161,12 +161,38 @@ describe('a misquote of revealed data is corrected by code, once (Rule 6 option 
     expect(events('misquote_corrected')).toHaveLength(1);
   });
 
-  it('a repeat after the correction is logged for scoring, not corrected again', async () => {
+  it('a repeat after one correction is corrected again (batch 20 R05: "from 42 to 60" after the t6 correction)', async () => {
     seed({ phase: 'EXHIBIT', revealed: COST, flags: { ...SATISFIED, misquoteCorrected: ['cogs_pct'] } });
+    const r = await say('COGS went from 42% to 61% of revenue, and that explains the decline.', T({ say: 'Mm-hm.', question: 'What sits inside COGS?' }));
+    expect(r.interviewerText).toBe('Mm-hm. To correct one figure: COGS is 58% of revenue today, up from 42% two years ago. What sits inside COGS?');
+    expect(flagsNow().misquoteCorrected).toEqual(['cogs_pct', 'cogs_pct']);
+  });
+
+  it('after two corrections of an item a repeat is logged for scoring, not corrected a third time', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: { ...SATISFIED, misquoteCorrected: ['cogs_pct', 'cogs_pct'] } });
     const r = await say('COGS went from 42% to 61% of revenue, and that explains the decline.', T({ say: 'Mm-hm.', question: 'What sits inside COGS?' }));
     expect(r.interviewerText).toBe('Mm-hm. What sits inside COGS?');
     expect(events('misquote_repeated')).toMatchObject([{ payloadJsonb: { item: 'cogs_pct', cited: 'to 61%' } }]);
-    expect(flagsNow().misquoteCorrected).toEqual(['cogs_pct']);
+    expect(flagsNow().misquoteCorrected).toEqual(['cogs_pct', 'cogs_pct']);
+  });
+
+  it('the forms the grammar missed live are corrected (batch 20: pronoun chain, change in points, prompt fact)', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const a = await say("COGS is the driver. It goes from 42% two years ago to 61% currently — that's a 19-point increase.", T({ say: 'Right.', question: 'What sits inside COGS?' }));
+    expect(a.interviewerText).toMatch(/^Right\. To correct one figure: COGS is 58% of revenue today, up from 42% two years ago\. What sits inside COGS\?$/);
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const b = await say("So the question becomes why COGS rose 19 points.", T({ say: 'Right.', question: 'What sits inside COGS?' }));
+    expect(b.interviewerText).toMatch(/To correct one figure: COGS is 58%/);
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const c = await say("Risks: they've grown revenue 19% with flat prices.", T({ say: 'Right.', question: 'What else?' }));
+    expect(c.interviewerText).toBe('Right. To correct one figure: revenue grew 15% over the past two years. What else?');
+  });
+
+  it('two items misquoted in one message are corrected in one line', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const r = await say('COGS went from 42% to 61%. Revenue grew about 19% on volume.', T({ say: 'Right.', question: 'What else?' }));
+    expect(r.interviewerText).toBe('Right. To correct two figures: COGS is 58% of revenue today, up from 42% two years ago. And revenue grew 15% over the past two years. What else?');
+    expect(flagsNow().misquoteCorrected).toEqual(['cogs_pct', 'revenue_growth']);
   });
 
   it('a figure for data not yet revealed is the candidate\'s own claim — no correction', async () => {
@@ -263,7 +289,84 @@ describe('the truth guard leaves a question to answer', () => {
     const r = await say('COGS rose 19 points, I think. Do we have per-unit costs?', T({
       say: 'Understood.', question: "Per-unit costs aren't something I have directly. Which one is large enough to drive a 19-point COGS climb on its own?",
     }));
-    expect(r.interviewerText).toMatch(/^Understood\. Per-unit costs aren't something I have directly\. .+\?$/);
+    expect(r.interviewerText).toMatch(/^Understood\. To correct one figure: COGS is 58%.*\. Per-unit costs aren't something I have directly\. .+\?$/);
     expect(r.interviewerText).not.toMatch(/19-point/);
+  });
+});
+
+describe('the misquote correction is spoken on a code-written close (batch 20 R21 t26, R47 t22)', () => {
+  it('a misquote in the final answer gets its correction before the goodbye', async () => {
+    seed({ phase: 'RECOMMENDATION', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: { ...SATISFIED, graceAskFired: true } });
+    store.session = { ...store.session, startedAt: new Date(Date.now() - 25 * 60_000) };
+    const r = await say('My recommendation: COGS went from 42% to 61% of revenue, so raise prices.', T());
+    expect(r.ended).toBe(true);
+    expect(r.interviewerText).toMatch(/^To correct one figure: COGS is 58% of revenue today, up from 42% two years ago\. .+report/);
+    expect(flagsNow().misquoteCorrected).toEqual(['cogs_pct']);
+  });
+});
+
+describe('a recommendation resting on a misquote gets one chance to revise (batch 20 R05, R42)', () => {
+  const recAsked = () => { store.turns[store.turns.length - 1] = { ...store.turns[store.turns.length - 1], text: "Pull it together — what's your recommendation to the CEO?" }; };
+  const REC = "My recommendation: raise prices. They've grown revenue 19% with flat prices, so demand is healthy.";
+
+  it('the correction, then "does your recommendation change?" — not the close', async () => {
+    seed({ phase: 'RECOMMENDATION', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: SATISFIED });
+    recAsked();
+    const r = await say(REC, T({ move: 'risk', question: "What's the biggest risk to that?" }));
+    expect(r.ended).toBe(false);
+    expect(r.interviewerText).toMatch(/^To correct one figure: revenue grew 15% over the past two years\. (With that corrected, does your recommendation change|Given the corrected figure, would you change your recommendation)\?$/);
+    expect(flagsNow().recRevisionAsked).toBe(true);
+  });
+
+  it('asked once: a second misquoted answer is corrected but the case goes on normally', async () => {
+    seed({ phase: 'RECOMMENDATION', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: { ...SATISFIED, recRevisionAsked: true } });
+    recAsked();
+    const r = await say(REC, T({ move: 'risk', say: 'Mm-hm.', question: "What's the biggest risk to that?" }));
+    expect(r.interviewerText).toBe("Mm-hm. To correct one figure: revenue grew 15% over the past two years. What's the biggest risk to that?");
+  });
+
+  it('when time is up the correction still precedes the close', async () => {
+    seed({ phase: 'RECOMMENDATION', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: { ...SATISFIED, graceAskFired: true } });
+    store.session = { ...store.session, startedAt: new Date(Date.now() - 25 * 60_000) };
+    recAsked();
+    const r = await say(REC, T());
+    expect(r.ended).toBe(true);
+    expect(r.interviewerText).toMatch(/^To correct one figure: revenue grew 15% over the past two years\. .+report/);
+  });
+});
+
+describe('the correction cap never applies to the recommendation (batch 20 R30, R47 replays)', () => {
+  it('an item corrected twice already is corrected again in the reply to a recommendation ask', async () => {
+    seed({ phase: 'RECOMMENDATION', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: { ...SATISFIED, misquoteCorrected: ['cogs_pct', 'cogs_pct'], recRevisionAsked: true } });
+    store.turns[store.turns.length - 1] = { ...store.turns[store.turns.length - 1], text: "What's your recommendation to the client?" };
+    const r = await say('My recommendation: COGS went from 42% to 61% of revenue, so raise prices.', T({ move: 'risk', say: 'Mm-hm.', question: "What's the biggest risk?" }));
+    expect(r.interviewerText).toBe("Mm-hm. To correct one figure: COGS is 58% of revenue today, up from 42% two years ago. What's the biggest risk?");
+  });
+});
+
+describe('nothing repeats a figure on the turn code corrects it', () => {
+  it('a probe of the wrong figure is withheld after the correction (batch 20 R21 t6 replay)', async () => {
+    seed({ phase: 'EXHIBIT', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: SATISFIED });
+    const r = await say("COGS is the driver. It goes from 42% two years ago to 61% currently — that's a 19-point increase.", T({
+      say: 'Right.', question: 'Walk me through how you got from 42% and 61% to a 19-point COGS increase.',
+    }));
+    expect(r.interviewerText).toMatch(/^Right\. To correct one figure: COGS is 58% of revenue today, up from 42% two years ago\. .+\?$/);
+    expect(r.interviewerText).not.toMatch(/61%|19-point/);
+  });
+});
+
+describe('no misquote is left standing at the goodbye', () => {
+  it('the close corrects an item already corrected twice (batch 20 R42 c21 replay)', async () => {
+    seed({ phase: 'RECOMMENDATION', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: { ...SATISFIED, graceAskFired: true, misquoteCorrected: ['revenue_growth', 'revenue_growth'] } });
+    store.session = { ...store.session, startedAt: new Date(Date.now() - 25 * 60_000) };
+    const r = await say('Revenue is up 19% with margin collapsing.', T());
+    expect(r.ended).toBe(true);
+    expect(r.interviewerText).toMatch(/^To correct one figure: revenue grew 15% over the past two years\. /);
+  });
+  it('on the correcting turn a bare probe of the wrong figure goes too ("Walk me through where the 19% comes from")', async () => {
+    seed({ phase: 'EXHIBIT', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: SATISFIED });
+    const r = await say('Revenue grew about 19% over the period, so volume is healthy.', T({ say: 'Mm-hm.', question: 'Walk me through where the 19% comes from.' }));
+    expect(r.interviewerText).toMatch(/^Mm-hm\. To correct one figure: revenue grew 15% over the past two years\. .+\?$/);
+    expect(r.interviewerText).not.toMatch(/19%/);
   });
 });

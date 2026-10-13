@@ -179,6 +179,8 @@ export const CaseSchema = z.object({
       kind: z.enum(['level', 'change']),
       unit: z.enum(['percent', 'dollar', 'count']),
       values: z.record(z.string(), z.enum(['current', 'prior', 'change', 'both'])),
+      // The fact in one sentence, from the prompt's own figures: what code says to correct a misquote of it.
+      say: z.string().min(5),
     })).default([]),
     names: z.record(z.string(), z.array(z.string().min(2))).default({}),
     groups: z.array(z.object({ names: z.array(z.string().min(2)).min(1), items: z.array(z.string()).min(1) })).default([]),
@@ -218,6 +220,10 @@ export const CaseSchema = z.object({
         const inPrompt = new RegExp(`(?<![\\d.])${v.replace('.', '\\.')}(?![\\d])`).test(c.prompt);
         const inExhibit = c.exhibits.some(e => JSON.stringify(e.data).includes(`:${v}`));
         if (!inPrompt && !inExhibit) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'promptFacts', i, 'values', v], message: `${v} is not stated in the prompt or an exhibit` });
+      }
+      // The correction sentence adds no figure the fact doesn't state (FR-4).
+      for (const n of p.say.match(/\d+(?:\.\d+)?/g) ?? []) {
+        if (!(n in p.values)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'promptFacts', i, 'say'], message: `"${n}" in say is not one of the fact's figures` });
       }
     });
     for (const id of Object.keys(f.names)) if (!ledgerIds.has(id)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'names', id], message: `Unknown ledger item "${id}"` });

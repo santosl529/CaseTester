@@ -26,17 +26,17 @@ import { explicitRequestCues } from './request-signal';
 import { judgeProbeAnswer, judgeStructureGiven, probeAsHeard, INITIAL_PRESSURE_TEST, type PressureTestState } from './pressure-test';
 import { logEvent } from '@/lib/analytics';
 import { TOTAL_CASE_MS, type Phase } from './state-machine';
-import { stageGateOpen, endAllowed, recommendationUnresolved } from './spoken-close';
+import { stageGateOpen, endAllowed, recommendationUnresolved, asksRecommendationAsk } from './spoken-close';
 import { stagesFromTurns, type TurnMove } from './progress';
 import { CheckLog } from './check-log';
-import { findMisquotes, exhibitColumns, correctionLine, type QuoteAnchor } from './misquote';
+import { correctionLines } from './misquote';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
 import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
 
 // What Plan decides a model-turn slot is (spec 2026-10-06 §6). 'model' and
 // 'rec_ask' call the interviewer model; the rest are written by code.
-export type TurnKind = 'model' | 'rec_ask' | 'close' | 'grace_ask' | 'time_warning' | 'rung1' | 'stage_exhibit' | 'stage_brainstorm';
+export type TurnKind = 'model' | 'rec_ask' | 'close' | 'grace_ask' | 'time_warning' | 'rung1' | 'stage_exhibit' | 'stage_brainstorm' | 'rec_revision';
 
 // Why the case closes, so the closing line is true (v4.10; batch 18: 32
 // sessions said "That's time" before minute 18).
@@ -63,6 +63,9 @@ export type PlanDeps = {
 
 export type ModelPlan = ReturnType<typeof modelPlan>;
 export type ModelState = ModelPlan['state'];
+
+// Rule 6 option 4: how many times code corrects one item's misquote in a session.
+export const MISQUOTE_CORRECTIONS_PER_ITEM = 2;
 export type TurnPlan = ScriptedPlan | ModelPlan;
 
 export function planTurn(reads: TurnReads, candidateText: string, deps: PlanDeps): TurnPlan {
@@ -435,36 +438,49 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const verifiedPrev = (flags.lastVerified as VerifiedFigure[] | undefined) ?? [];
   const explainProbedBefore = new Set((flags.explainProbed as string[] | undefined) ?? []);
   const verifiedHint = formatVerifiedHint(verifiedNow, explainProbedBefore);
-  // Rule 6 option 4 (v4.11): a figure the candidate quotes wrong for an item
-  // already revealed is corrected by code, once per item per session — one
-  // flat sentence in the ledger's words, first in the data line (turn-data.ts).
-  // The model is told, so it neither repeats nor probes the figure. A repeat
-  // after the correction is logged for scoring, not corrected again.
-  const anchors = caseData.quoteAnchors as QuoteAnchor[];
-  const misquotesCorrected = new Set((flags.misquoteCorrected as string[] | undefined) ?? []);
-  const misquotes = anchors.length === 0 ? [] : findMisquotes(candidateText, {
-    anchors, ledger: caseData.dataLedger, revealedIds: new Set(revealedIdsNow),
-    exhibitColumns: exhibitColumns(anchors, caseData.exhibits.filter(e => shownExhibitIds.has(e.id)) as { data: Record<string, unknown>[] }[]),
-  });
-  const misquoteFound = misquotes.find(m => !misquotesCorrected.has(m.item)) ?? null;
-  const misquoteItem = misquoteFound ? caseData.dataLedger.find(d => d.id === misquoteFound.item) : undefined;
-  const misquote = misquoteFound && misquoteItem ? { ...misquoteFound, label: misquoteItem.label, text: correctionLine(misquoteItem.value) } : null;
-  for (const m of misquotes.filter(x => misquotesCorrected.has(x.item))) {
-    ctx.events.push({ category: 'intervention', subtype: 'misquote_repeated', payload: { item: m.item, cited: m.cited, sentence: m.sentence } });
-  }
-  checks.record('misquote', misquotes.length > 0, misquote ? 'misquote of revealed data — code corrects it' : 'misquote already corrected — logged', {
-    found: misquotes, correcting: misquote?.item ?? null, alreadyCorrected: [...misquotesCorrected],
-  });
-  // The truth check's inputs (fact-check.ts): the case's facts, and the
-  // figures this message misquoted — the interviewer must not repeat them as fact.
+  // Rule 6 option 4 (v4.11; widened 12 Oct after batch 20, where Tyler's
+  // misquotes went uncorrected in 6 of 6 runs): a figure the candidate quotes
+  // wrong for an item already revealed, or for a prompt fact, is corrected by
+  // code — one flat sentence in the data's own words, first in the data line
+  // (turn-data.ts), on every kind of turn, so before any recommendation ask.
+  // Read with the fact checks' grammar (fact-check.ts F2: pronoun chains,
+  // changes in points, prompt facts). An item misquoted again after its
+  // correction is corrected again, up to MISQUOTE_CORRECTIONS_PER_ITEM; past
+  // that a repeat is logged for scoring. At most two items a turn.
   const factBase = factBaseFor(caseData as never);
-  // Echoes stay open from earlier messages until code corrects the item (settle-turn.ts).
+  const misquotesCorrected = (flags.misquoteCorrected as string[] | undefined) ?? [];
+  const timesCorrected = (id: string) => misquotesCorrected.filter(x => x === id).length;
+  const found = findCandidateMisquotes(candidateText, factBase, new Set(revealedIdsNow), [...shownExhibitIds]);
+  // The wording that corrects an item: the ledger's value, or the prompt fact's sentence.
+  const wordingOf = (id: string) => caseData.dataLedger.find(d => d.id === id)?.value
+    ?? caseData.factAnchors?.promptFacts.find(p => p.id === id)?.say;
+  const labelOf = (id: string) => caseData.dataLedger.find(d => d.id === id)?.label ?? caseData.factAnchors?.promptFacts.find(p => p.id === id)?.names[0] ?? id;
+  const perItem: { item: string; cited: string; sentence: string }[] = [];
+  for (const m of found) {
+    const item = m.items.find(id => wordingOf(id) !== undefined);
+    if (item && !perItem.some(x => x.item === item)) perItem.push({ item, cited: m.cited, sentence: m.sentence });
+  }
+  // The reply to a recommendation ask is always corrected: a misquote must not stand in the recommendation.
+  const lastAsked = [...turnRows].reverse().find(t => t.role === 'interviewer');
+  const flagsMoves = (flags.moves as Record<number, TurnMove> | undefined) ?? {};
+  const replyToRecAsk = lastAsked !== undefined && (flagsMoves[lastAsked.turnIndex] === 'recommendation' || asksRecommendationAsk(lastAsked.text));
+  const capped = perItem.filter(m => replyToRecAsk || timesCorrected(m.item) < MISQUOTE_CORRECTIONS_PER_ITEM).slice(0, 2);
+  const misquoteOf = (list: typeof perItem) => list.length > 0 ? {
+    ...list[0], label: labelOf(list[0].item), items: list.map(m => m.item), all: list,
+    text: correctionLines(list.map(m => wordingOf(m.item)!)),
+  } : null;
+  // Let: the close lifts the cap too (decided below) — no misquote is left standing at the goodbye.
+  let correcting = capped;
+  let misquote = misquoteOf(correcting);
+  // The truth check's inputs (fact-check.ts): the case's facts, and the
+  // figures misquoted and not yet corrected — the interviewer must not repeat
+  // them as fact. They stay open until code corrects the item (settle-turn.ts).
   const factEchoes = [
     ...((flags.factEchoes as Echo[] | undefined) ?? []),
-    ...findCandidateMisquotes(candidateText, factBase, new Set(revealedIdsNow), [...shownExhibitIds]).flatMap(m => echoesOf(m, factBase)),
+    ...found.flatMap(m => echoesOf(m, factBase)),
   ];
   const misquoteHint = misquote
-    ? `MISQUOTE: the candidate stated ${misquote.label} as "${misquote.cited}", which the data doesn't say. The system corrects it right after your "say", in the data's words: "${misquoteItem!.value}" Do not repeat, correct, question or build on their figure yourself; ask your question on the corrected data.`
+    ? `MISQUOTE: the candidate stated ${misquote.all.map(m => `${labelOf(m.item)} as "${m.cited}"`).join(' and ')}, which the data doesn't say. The system corrects it right after your "say", in the data's words: "${misquote.text}" Do not repeat, correct, question or build on their figure yourself; ask your question on the corrected data.`
     : '';
   checks.record('verified_figures', verifiedNow.length > 0, 'recompute_ok sent to the interviewer', {
     verified: verifiedNow.map(v => ({ stepId: v.stepId, value: v.value, workShown: v.workShown, span: v.span })),
@@ -568,13 +584,29 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const ptClosed = pressureTest.state === 'satisfied' || pressureTest.state === 'waived';
   const stageDue = owedStage !== undefined && ptClosed && !timeUp && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)
     && (closeDue || awaitingRecAsk);
-  const kind: TurnKind = closeDue && !stageDue ? 'close'
+  // A recommendation that rests on a misquote (batch 20: Tyler's "revenue grew
+  // 19%" said first in the final answer, R42, R05): code corrects the figure
+  // and asks once whether the recommendation changes, rather than moving on or
+  // closing on it. Not when time is up — the correction still goes out first.
+  const recRevisionDue = misquote !== null && replyToRecAsk && !flags.recRevisionAsked && !timeUp;
+  const kind: TurnKind = recRevisionDue ? 'rec_revision'
+    : closeDue && !stageDue ? 'close'
     : graceDue ? 'grace_ask'
       : shouldFireTimeWarning && !recommendationReceived ? 'time_warning'
         : stageDue ? (owedStage === 'exhibit' ? 'stage_exhibit' : 'stage_brainstorm')
           : awaitingRecAsk ? 'rec_ask'
             : stallDecision.intervene && stallDecision.rung === 1 && lastQuestion ? 'rung1'
               : 'model';
+  if (kind === 'close' && correcting.length < Math.min(2, perItem.length)) {
+    correcting = perItem.slice(0, 2);
+    misquote = misquoteOf(correcting);
+  }
+  for (const m of perItem.filter(x => !correcting.includes(x))) {
+    ctx.events.push({ category: 'intervention', subtype: 'misquote_repeated', payload: { item: m.item, cited: m.cited, sentence: m.sentence } });
+  }
+  checks.record('misquote', perItem.length > 0, misquote ? 'misquote of revealed data — code corrects it' : 'misquote corrected twice already — logged', {
+    found, correcting: correcting.map(m => m.item), alreadyCorrected: misquotesCorrected,
+  });
   const closeReason: CloseReason = timeUp ? 'time_up' : recommendationUnresolved(stages) && !recommendationReceived ? 'unresolved' : 'complete';
   checks.record('turn_kind', kind !== 'model', `turn decided by code: ${kind}`, { kind, timeUp, mayEnd, owedStage: owedStage ?? null, ...stages });
 

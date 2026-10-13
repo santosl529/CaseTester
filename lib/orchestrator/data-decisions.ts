@@ -145,7 +145,7 @@ export type DataDecisions = {
   offers: string[];       // what, for passing mentions of data the case holds
   // Rule 6 option 4 (v4.11): code's correction of a misquoted revealed figure,
   // spoken first in the data line (set by turn-data.ts on model turns).
-  correction?: { item: string; text: string } | null;
+  correction?: { item: string; items?: string[]; text: string } | null;
   requests: { request: DeclaredRequest; response: RequestResponse; ledgerItemIds: string[] }[];
 };
 

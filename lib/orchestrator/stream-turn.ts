@@ -46,7 +46,7 @@ export type GateContext = {
   metaAsked?: boolean;     // the candidate asked how they're assessed (a report hand-off may answer it)
   // The truth check (fact-check.ts F1): the case's facts, what has been
   // revealed (ids), and the figures of misquotes still standing.
-  facts?: { fb: FactBase; revealed: Set<string>; echoes: Echo[] };
+  facts?: { fb: FactBase; revealed: Set<string>; echoes: Echo[]; correcting?: Echo[] };
 };
 
 // A say sentence that is nothing but an acknowledgment ("Understood.") —
@@ -99,7 +99,8 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   // A figure, direction or driver claim the case data contradicts, or a
   // standing misquote repeated as fact ("the 19-point COGS increase"): the
   // provenance check passes these when the number was said by anyone.
-  if (g.facts && (findFalseFacts(sentence, g.facts.fb, g.facts.revealed).length > 0 || findEchoes(sentence, g.facts.echoes, g.facts.fb).length > 0)) return 'false_fact';
+  if (g.facts && (findFalseFacts(sentence, g.facts.fb, g.facts.revealed).length > 0 || findEchoes(sentence, g.facts.echoes, g.facts.fb).length > 0
+    || findEchoes(sentence, g.facts.correcting ?? [], g.facts.fb, { strict: true }).length > 0)) return 'false_fact';
   // Doubt on the candidate's math only with a flag behind it (probe-guard.ts):
   // on a verified figure "probe_guard", on an unverified one "unsupported_challenge".
   const challenge = challengeVerdict(sentence, {
@@ -144,7 +145,11 @@ export function gateContext(plan: ModelPlan, extraRevealed: string[] = [], extra
     acknowledged: Boolean(ctx.acknowledged),
     // Only on a turn the case continues past (model turns are never the close).
     metaAsked: state.kind === 'model' && asksAboutAssessment(ctx.candidateText),
-    facts: { fb: state.factBase, revealed: revealedIds, echoes: state.factEchoes },
+    facts: {
+      fb: state.factBase, revealed: revealedIds, echoes: state.factEchoes,
+      // The figures of the items code corrects this turn: unsayable, probe or not.
+      correcting: state.misquote ? state.factEchoes.filter(e => e.items.some(i => state.misquote!.items.includes(i))) : [],
+    },
   };
 }
 

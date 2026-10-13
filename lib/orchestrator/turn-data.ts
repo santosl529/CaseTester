@@ -143,7 +143,9 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     open: state.openDataRequests,
     gateHeld,
   });
-  // Code's correction of a misquote (plan-turn.ts), on a model turn only.
-  const correction = state.kind === 'model' && state.misquote ? { item: state.misquote.item, text: state.misquote.text } : null;
+  // Code's correction of a misquote (plan-turn.ts), on any turn that answers
+  // the message — a code-written close or recommendation ask included (batch 20:
+  // R21 and R47's corrections were decided at the close and never spoken).
+  const correction = state.misquote ? { item: state.misquote.item, items: state.misquote.items, text: state.misquote.text } : null;
   return { ...decisions, correction, gatedIds };
 }

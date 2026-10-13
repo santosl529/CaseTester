@@ -179,6 +179,15 @@ export function findMisquotes(text: string, c: MisquoteContext): Misquote[] {
 // The correction code speaks: one flat sentence in the ledger's own words
 // (Rule 6 option 4 — a factual reset, no discussion). FR-4: the value is
 // already revealed, so it adds no new figure.
+// One or two corrections in one data line: "To correct two figures: COGS is
+// 58% of revenue today, up from 42% two years ago. And revenue grew 15% over
+// the past two years."
+export function correctionLines(values: string[]): string {
+  if (values.length <= 1) return correctionLine(values[0] ?? '');
+  const lower = (v: string) => { const first = v.split(/\s+/)[0] ?? ''; return first === first.toUpperCase() && /[A-Z]/.test(first) ? v : v.charAt(0).toLowerCase() + v.slice(1); };
+  return `To correct two figures: ${lower(values[0].trim())} And ${lower(values[1].trim())}`;
+}
+
 export function correctionLine(value: string): string {
   const v = value.trim();
   const first = v.split(/\s+/)[0] ?? '';

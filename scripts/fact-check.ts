@@ -83,7 +83,8 @@ export function checkRun(run: CorpusRun): Flag[] {
     const revealed = new Set([...t.revealedBefore, ...t.releasedNow]);
     const ctx = {
       revealed, exhibitShown: t.shownBefore.length > 0 || !!t.exhibitNow,
-      deliveredNow: t.releasedNow.length > 0 || !!t.exhibitNow,
+      // A correction line delivers the item's figure too ("Given the corrected figure, …").
+      deliveredNow: t.releasedNow.length > 0 || !!t.exhibitNow || t.segments.some(s => /\bTo correct (?:one|two) figures?\b/.test(s.text)),
       deliveredPrev: false, refusedNow: t.segments.some(s => /\bI don't have\b/i.test(s.text)),
     };
     // F2 on the message this turn answers.

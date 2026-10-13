@@ -527,7 +527,8 @@
         "unit": "percent",
         "values": {
           "15": "change"
-        }
+        },
+        "say": "Revenue grew 15% over the past two years."
       },
       {
         "id": "net_margin",
@@ -544,7 +545,8 @@
         "values": {
           "24": "prior",
           "6": "current"
-        }
+        },
+        "say": "Net profit margin fell from 24% to 6% over the past two years."
       },
       {
         "id": "locations",
@@ -557,7 +559,8 @@
         "unit": "count",
         "values": {
           "200": "current"
-        }
+        },
+        "say": "Brew & Bean has 200 locations."
       }
     ],
     "names": {

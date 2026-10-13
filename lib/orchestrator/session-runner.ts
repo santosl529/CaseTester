@@ -407,7 +407,9 @@ async function runTurnBody(
   }, report));
 }
 
-const CODE_WRITTEN_KINDS = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm']);
+const CODE_WRITTEN_KINDS = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm', 'rec_revision']);
+// After code corrects a misquote in the recommendation: one chance to revise it.
+const REC_REVISION_QUESTIONS = ['With that corrected, does your recommendation change?', 'Given the corrected figure, would you change your recommendation?'] as const;
 
 
 // A code-written turn as a turn of the interviewer's shape: the message's data
@@ -423,6 +425,7 @@ function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null
       : state.kind === 'time_warning' ? pickScript(TIME_WARNING_SCRIPTS, seed)
         : state.kind === 'stage_brainstorm' ? pickScript([...BLOCKED_CLOSE_PROBES.brainstorm], seed)
           : state.kind === 'stage_exhibit' ? pickScript(STAGE_EXHIBIT_QUESTIONS, seed)
+            : state.kind === 'rec_revision' ? pickScript([...REC_REVISION_QUESTIONS], seed)
             : `Take your time. The question on the table is ${restate(state.lastQuestion ?? '')}`;
   // The owed exhibit is handed over by code's own data line ("Here's an exhibit: …").
   const exhibit = state.kind === 'stage_exhibit' ? state.caseData.exhibits.find(e => !state.shownExhibitIds.has(e.id))?.id ?? null : null;
