@@ -410,7 +410,7 @@
 ## D5 pilot: SY-2 and SY-1 published (2026-10-12)
 
 - Matt approved the rule 2 sentence and publishing the 30 SY-2 drafts and 8 SY-1 drafts, on condition that Defend stays off for live students.
-- Defend off, verified: `defend.live` is false for PS-3, HY-2, SY-2 and CL-3 (new config test pins it until Matt switches it on); draft preview never runs in production. Ten tier 2–3 SY-2 sets started without preview planned no follow-up items. The 10 SY-2 items with Challenges carry their `defend` key, dormant.
+- Defend off, verified: `defend.live` is false for PS-3, HY-2, SY-2 and CL-3 (new config test pins it until Matt switches it on); draft preview never runs in production. Five tier 2–3 SY-2 sets started without preview planned no follow-up items. The 10 SY-2 items with Challenges carry their `defend` key, dormant.
 - Empty grading runs now fail: `lib/drills/grading/run-checks.ts` `gradingRunProblem` (unfinished set, or nothing pending); `runGradingJob` marks the job failed with the reason and logs it. If every answer was already graded (a run that died after grading), the set is still finalized so the student isn't stuck. Unit tests in d5.test.ts; the D2 smoke checks a real unfinished set fails with its reason recorded.
 - Published (live, reviewed by Matthew Santos, 2026-10-12): sy2-0001–0030 v2; sy1-0001 v4, 0003 v3, 0010 v3, 0011 v4, 0013 v3, 0016 v4, 0028 v3, 0029 v3. Seed: 38 live, 28 older versions retired; database has exactly one live version per item. The SY-1 drafts review sheet is now empty (no drafts).
 - Still draft: PS-4, HY-3, SY-3 (pilot), and the follow-up versions of PS-3, HY-2 and CL-3 items.
