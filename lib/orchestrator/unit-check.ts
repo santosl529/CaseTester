@@ -118,6 +118,9 @@ export function checkNestedConversions(
         if (hit !== undefined) verified.push({ span: sentence, stated, expected: round1(hit) });
       }
       for (const m of sentence.matchAll(RESULT)) {
+        // Denied or quoted, not claimed: "that's 10% of COGS, not 10 points of
+        // revenue", 'call the answer "10 percentage points of revenue" — but…'.
+        if (/(?:\b(?:not|isn't|aren't|wasn't|never)\s+(?:about\s+|roughly\s+|~\s*)?|["“])$/i.test(sentence.slice(0, m.index))) continue;
         const stated = parseFloat(m[1] ?? m[2]);
         const units = /margin/i.test(m[0]) ? 'points of margin' : 'points of revenue';
         const converted: { value: number; share: number; change?: number; base: BaseValue }[] = [];

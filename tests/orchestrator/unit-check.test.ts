@@ -21,6 +21,17 @@ describe('correct work is not flagged (batch 18: the doubted conversions)', () =
     expect(run(turns[id].text, turns[id].revealed).flags).toEqual([]);
   });
 
+  it.each([
+    // the candidate correcting their own slip (batch 19 Sofia d8ee5c25 t11, Derek 3baae0b8 t11, 140fb90d t11 replays)
+    'Beans at 25% of COGS rising 40% raises total COGS by 10% — that\'s 10% of COGS, not 10 points of revenue.',
+    '25% of COGS isn\'t 25 points of revenue.',
+    '37.5% on 75% of COGS raises total COGS by 28% of COGS, not 28 points of revenue.',
+    // quoted, not claimed (batch 20 d8ee5c25 t11)
+    'What I did the second time was take 40% of 25% and call the answer "10 percentage points of revenue" — but 25% is a share of COGS, not of revenue.',
+  ])('a conversion the candidate denies is no unit error: %s', text => {
+    expect(run(text).flags).toEqual([]);
+  });
+
   it('a result in points of COGS is a different quantity, not a unit error', () => {
     expect(run('Beans are 25% of COGS, up 40%, so that contributes 0.25 × 40 = 10 points of COGS growth.').flags).toEqual([]);
   });
