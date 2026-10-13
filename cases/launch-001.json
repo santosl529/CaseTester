@@ -1,0 +1,1051 @@
+{
+  "id": "launch-001",
+  "title": "Hollis Bay Snacks New Product Launch",
+  "firmStyle": "mckinsey",
+  "difficulty": "easy",
+  "prompt": "Our client is Hollis Bay Snacks, a regional US snack company best known for its kettle-cooked potato chips. Hollis Bay sells about $300 million a year through grocery stores and mass retailers in the Northeast and Midwest. Chip sales have been flat for several years, while “better-for-you” snacks are growing quickly. Hollis Bay has developed a line of roasted chickpea snacks — crunchy, high in protein and lower in fat than chips — and is deciding whether to launch them next spring. The board will approve the launch only if it breaks even in its first year. The CEO has asked us whether Hollis Bay should launch, and what it should do to make the launch a success.",
+  "interviewerNotes": "Source: AI Casing Case 07 (v1.0, Oct 2026), interviewer-led mode; main skill is creativity — protect at least 3 minutes for the brainstorm. Break-even: contribution per bag = $3.00 − ($0.70 + $0.30 + $0.30 + $0.20) = $1.50; first-year launch costs = $3.0M + $4.5M + $1.5M = $9.0M (the $1.2M of recipe development is already spent and doesn't count); break-even = 6.0 million bags. Demand: (10% × 60%) + (20% × 20%) = 10% of 30M households = 3.0M buying households × 3 bags = 9.0M bags — 1.5× break-even, ≈ $4.5M profit. Risk: repeat buying — break-even needs 2 bags per buying household, and 45% aren't sure they'd like the taste (70% like it in blind tests). Sampling: 500,000 extra households × 3 bags × $1.50 = $2.25M − $1.5M = +$0.75M (break-even 1.0M bags). Recommendation: launch, built around trial — sampling, promotion on Hollis Bay's own chip bags, a 'high protein, less fat' message. Release order in the guide: Exhibits 1 (bag economics) and 2 (shopper survey) in either order; Exhibit 3 (sampling proposal) only in the brainstorm module, after both, when the candidate proposes sampling or after their ideas.",
+  "dataLedger": [
+    {
+      "id": "product",
+      "label": "The product",
+      "value": "The product is roasted chickpea snacks in 5-ounce bags, launching in three flavors, with about twice the protein of chips and less fat.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "channels",
+      "label": "Where it would be sold",
+      "value": "The new line is for the same grocery and mass-retail stores that carry Hollis Bay chips.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "manufacturing",
+      "label": "Manufacturing",
+      "value": "Chickpeas can't run on the chip fryers, so Hollis Bay would lease a new roasting line, which is about six months from being ready.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "breakeven_definition",
+      "label": "What \"break even in year one\" means",
+      "value": "Breaking even in year one means first-year profit from the new line, after its own costs, has to be zero or better.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "why_now",
+      "label": "Why now",
+      "value": "Chip sales are flat, better-for-you snacks are growing quickly, and Hollis Bay's largest retailers have asked for healthier options.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "competition_general",
+      "label": "Competition in general",
+      "value": "Several small better-for-you brands are selling roasted chickpea snacks, and no large national brand is dominant in this kind of snack in Hollis Bay's stores.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "longer_term_goals",
+      "label": "Hollis Bay's goals beyond year one",
+      "value": "Hollis Bay's hope is that the line becomes a growth platform for more better-for-you snacks.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "bag_price",
+      "label": "Price Hollis Bay receives per bag (and the shelf price)",
+      "value": "The price Hollis Bay receives from retailers is $3.00 per 5-ounce bag; shoppers would pay about $3.99 in stores, and retailers keep the difference.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "3.00": "current",
+        "3.99": "current"
+      }
+    },
+    {
+      "id": "variable_costs",
+      "label": "Variable costs per bag: ingredients, packaging, roasting, freight",
+      "value": "Variable costs per bag are $0.70 for ingredients, $0.30 for packaging, $0.30 for roasting labor and energy, and $0.20 for freight to retailers, and they rise with every bag made.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "0.70": "current",
+        "0.30": "current",
+        "0.20": "current"
+      }
+    },
+    {
+      "id": "launch_costs",
+      "label": "First-year launch costs: roasting line, marketing, shelf fees",
+      "value": "First-year launch costs are $3.0 million for the new roasting line (lease and staff), $4.5 million for marketing and advertising, and $1.5 million in shelf fees paid to retailers to stock the new line.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "3.0": "current",
+        "4.5": "current",
+        "1.5": "current"
+      }
+    },
+    {
+      "id": "recipe_cost",
+      "label": "Recipe development (already spent)",
+      "value": "Recipe development was $1.2 million, already spent last year.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "1.2": "prior"
+      }
+    },
+    {
+      "id": "purchase_intent",
+      "label": "Survey: purchase intent at $3.99",
+      "value": "Asked how likely they are to buy at $3.99 a bag, 10% of shoppers said definitely, 20% probably, 30% might or might not, 25% probably not and 15% definitely not.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "10": "current",
+        "20": "current",
+        "30": "current",
+        "25": "current",
+        "15": "current"
+      }
+    },
+    {
+      "id": "liked_most",
+      "label": "Survey: what shoppers like most",
+      "value": "What shoppers like most is high protein (52%), less fat than chips (40%), the crunch, like chips (31%), and being good for kids' lunches (18%).",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "52": "current",
+        "40": "current",
+        "31": "current",
+        "18": "current"
+      }
+    },
+    {
+      "id": "hesitations",
+      "label": "Survey: what makes shoppers hesitate",
+      "value": "The top hesitations are not being sure they'd like the taste (45%), the price being a bit high (22%), being happy with current snacks (20%), and not thinking of Hollis Bay for healthy snacks (12%).",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "45": "current",
+        "22": "current",
+        "20": "current",
+        "12": "current"
+      }
+    },
+    {
+      "id": "survey_design",
+      "label": "Survey design",
+      "value": "The survey is of 1,000 snack shoppers in Hollis Bay's region; each response represents one household, and in the like and hesitate questions shoppers could pick up to two answers.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "1,000": "current"
+      }
+    },
+    {
+      "id": "planning_assumptions",
+      "label": "Planning assumptions: households, conversion rates, bags per household",
+      "value": "Planning assumptions from Hollis Bay's past launches are: 30 million households shop in stores carrying Hollis Bay; 60% of “definitely would buy” and 20% of “probably would buy” shoppers actually buy in year one, and none of the others do; and each buying household averages 3 bags in year one.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "30": "current",
+        "60": "current",
+        "20": "current",
+        "3": "current"
+      }
+    },
+    {
+      "id": "sampling_program",
+      "label": "In-store sampling proposal: scope, cost, extra households, bags",
+      "value": "The sampling proposal is staffed tasting tables in 500 stores over 10 weekends at launch, costing $1.5 million, and it is expected to bring 500,000 extra buying households in year one, each buying 3 bags, on top of the survey-based forecast; the cost is in addition to the launch costs.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "1.5": "current",
+        "500,000": "current",
+        "3": "current"
+      }
+    },
+    {
+      "id": "cannibalization",
+      "label": "Cannibalization of Hollis Bay chips",
+      "value": "Fewer than 5% of chickpea-snack purchases are expected to replace a bag of Hollis Bay's own chips — small enough to ignore for this decision.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "survey_reliability",
+      "label": "How reliable the survey is",
+      "value": "The 1,000 shoppers are a match for the mix in Hollis Bay's stores, and the conversion rates are from Hollis Bay's last five launches.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {}
+    },
+    {
+      "id": "taste_test",
+      "label": "Taste test results",
+      "value": "In blind taste tests, 70% of people who tried the snack were positive, rating it good or very good.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {
+        "70": "current"
+      }
+    },
+    {
+      "id": "competitor_prices",
+      "label": "Competitor prices",
+      "value": "Competing roasted chickpea snacks are priced at $4.29–$4.99 per 5-ounce bag.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "retailer_support",
+      "label": "Retailer support",
+      "value": "Hollis Bay's two largest retail partners have agreed to stock the line in all their stores, provided Hollis Bay pays the shelf fees.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    }
+  ],
+  "mathSteps": [
+    {
+      "id": "variable_cost_per_bag",
+      "description": "Variable cost per bag = $0.70 + $0.30 + $0.30 + $0.20 = $1.50",
+      "answer": 1.5,
+      "tolerance": 0.02,
+      "cues": [
+        "variable cost",
+        "cost per bag",
+        "costs per bag",
+        "to make"
+      ],
+      "notCues": [
+        "shelf",
+        "sampling",
+        "program"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "variable_costs"
+      ],
+      "verifyOnly": true,
+      "quantity": "variable cost per bag",
+      "timeframe": "current"
+    },
+    {
+      "id": "contribution_per_bag",
+      "description": "Contribution per bag = $3.00 price to retailers − $1.50 = $1.50",
+      "answer": 1.5,
+      "tolerance": 0.02,
+      "cues": [
+        "contribution",
+        "per bag",
+        "each bag",
+        "a bag",
+        "margin",
+        "earn",
+        "keep"
+      ],
+      "notCues": [
+        "shelf fee",
+        "shelf fees",
+        "sampling",
+        "program",
+        "million"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "bag_price",
+        "variable_costs"
+      ],
+      "quantity": "contribution per bag",
+      "timeframe": "current"
+    },
+    {
+      "id": "launch_costs_total",
+      "description": "First-year launch costs = $3.0M + $4.5M + $1.5M = $9.0M (the $1.2M recipe development is already spent and excluded)",
+      "answer": 9.0,
+      "tolerance": 0.1,
+      "altAnswers": [
+        9000000
+      ],
+      "cues": [
+        "launch cost",
+        "launch costs",
+        "fixed",
+        "investment",
+        "total cost",
+        "to cover",
+        "upfront"
+      ],
+      "notCues": [
+        "sampling",
+        "program"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "launch_costs"
+      ],
+      "quantity": "first-year launch costs that count for the decision",
+      "timeframe": "current"
+    },
+    {
+      "id": "breakeven_bags",
+      "description": "Break-even volume = $9.0M ÷ $1.50 = 6.0 million bags",
+      "answer": 6.0,
+      "tolerance": 0.2,
+      "altAnswers": [
+        6000000
+      ],
+      "cues": [
+        "break-even",
+        "breakeven",
+        "break even",
+        "bags",
+        "to cover"
+      ],
+      "notCues": [
+        "sampling",
+        "program",
+        "each household",
+        "per household",
+        "per buyer"
+      ],
+      "inputs": [
+        "bag_price",
+        "variable_costs",
+        "launch_costs"
+      ],
+      "quantity": "bags Hollis Bay must sell in year one to break even",
+      "timeframe": "current"
+    },
+    {
+      "id": "buying_share",
+      "description": "Share of households who actually buy in year one = 10% × 60% + 20% × 20% = 6% + 4% = 10%",
+      "answer": 10,
+      "tolerance": 0.3,
+      "cues": [
+        "actually buy",
+        "will buy",
+        "really buy",
+        "buying households",
+        "convert",
+        "conversion"
+      ],
+      "unit": "percent",
+      "inputs": [
+        "purchase_intent",
+        "planning_assumptions"
+      ],
+      "quantity": "share of households that actually buy in year one",
+      "timeframe": "current"
+    },
+    {
+      "id": "buying_households",
+      "description": "Buying households = 30 million × 10% = 3.0 million",
+      "answer": 3.0,
+      "tolerance": 0.1,
+      "altAnswers": [
+        3000000
+      ],
+      "cues": [
+        "households",
+        "buyers",
+        "buying households",
+        "customers"
+      ],
+      "notCues": [
+        "extra",
+        "sampling",
+        "program",
+        "bags each",
+        "per household"
+      ],
+      "inputs": [
+        "purchase_intent",
+        "planning_assumptions"
+      ],
+      "quantity": "households that buy in year one",
+      "timeframe": "current"
+    },
+    {
+      "id": "yearone_bags",
+      "description": "Year-one bags = 3.0 million households × 3 bags = 9.0 million",
+      "answer": 9.0,
+      "tolerance": 0.5,
+      "altAnswers": [
+        9000000
+      ],
+      "cues": [
+        "bags",
+        "year one",
+        "first year",
+        "demand",
+        "sell",
+        "volume"
+      ],
+      "notCues": [
+        "sampling",
+        "program",
+        "extra",
+        "27"
+      ],
+      "inputs": [
+        "purchase_intent",
+        "planning_assumptions"
+      ],
+      "quantity": "bags Hollis Bay is likely to sell in year one",
+      "timeframe": "current"
+    },
+    {
+      "id": "yearone_profit",
+      "description": "Year-one profit = (9.0M − 6.0M) × $1.50 ≈ $4.5M",
+      "answer": 4.5,
+      "tolerance": 0.2,
+      "altAnswers": [
+        4500000
+      ],
+      "cues": [
+        "profit",
+        "make",
+        "earn",
+        "surplus",
+        "above break-even",
+        "cushion"
+      ],
+      "notCues": [
+        "lose",
+        "loss",
+        "losing",
+        "once",
+        "one bag",
+        "sampling",
+        "marketing"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "bag_price",
+        "variable_costs",
+        "launch_costs",
+        "purchase_intent",
+        "planning_assumptions"
+      ],
+      "quantity": "first-year profit of the launch",
+      "timeframe": "current"
+    },
+    {
+      "id": "repeat_threshold",
+      "description": "Bags each buying household must buy to break even = 6.0M ÷ 3.0M = 2",
+      "answer": 2,
+      "tolerance": 0.1,
+      "cues": [
+        "each household",
+        "per household",
+        "per buyer",
+        "each buyer",
+        "bags each",
+        "repeat",
+        "at least"
+      ],
+      "inputs": [
+        "bag_price",
+        "variable_costs",
+        "launch_costs",
+        "purchase_intent",
+        "planning_assumptions"
+      ],
+      "quantity": "bags each buying household must buy for the launch to break even",
+      "timeframe": "current"
+    },
+    {
+      "id": "sampling_extra_bags",
+      "description": "Extra bags from sampling = 500,000 households × 3 bags = 1.5 million",
+      "answer": 1.5,
+      "tolerance": 0.05,
+      "altAnswers": [
+        1500000
+      ],
+      "cues": [
+        "extra bags",
+        "additional bags",
+        "more bags",
+        "incremental bags"
+      ],
+      "inputs": [
+        "sampling_program"
+      ],
+      "verifyOnly": true,
+      "quantity": "extra bags from the sampling program",
+      "timeframe": "current"
+    },
+    {
+      "id": "sampling_contribution",
+      "description": "Extra contribution from sampling = 1.5 million bags × $1.50 = $2.25M",
+      "answer": 2.25,
+      "tolerance": 0.05,
+      "altAnswers": [
+        2250000
+      ],
+      "cues": [
+        "extra contribution",
+        "additional contribution",
+        "contribution",
+        "brings in",
+        "generates"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "sampling_program",
+        "bag_price",
+        "variable_costs"
+      ],
+      "quantity": "extra contribution from the sampling program",
+      "timeframe": "current"
+    },
+    {
+      "id": "sampling_net_gain",
+      "description": "Net gain from sampling = $2.25M − $1.5M = +$0.75M",
+      "answer": 0.75,
+      "tolerance": 0.05,
+      "altAnswers": [
+        750000,
+        750
+      ],
+      "cues": [
+        "net",
+        "gain",
+        "pays for itself",
+        "pay for itself",
+        "profit",
+        "after the cost",
+        "nets"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "sampling_program",
+        "bag_price",
+        "variable_costs"
+      ],
+      "quantity": "net gain from the sampling program in year one",
+      "timeframe": "current"
+    },
+    {
+      "id": "sampling_breakeven_bags",
+      "description": "Bags needed to cover the sampling cost = $1.5M ÷ $1.50 = 1.0 million (≈ 333,000 households)",
+      "answer": 1.0,
+      "tolerance": 0.05,
+      "altAnswers": [
+        1000000
+      ],
+      "cues": [
+        "cover the cost",
+        "pay back",
+        "payback",
+        "break even",
+        "break-even",
+        "breakeven",
+        "to cover"
+      ],
+      "inputs": [
+        "sampling_program",
+        "bag_price",
+        "variable_costs"
+      ],
+      "verifyOnly": true,
+      "quantity": "bags the sampling program must add to pay for itself",
+      "timeframe": "current"
+    }
+  ],
+  "exhibits": [
+    {
+      "id": "exhibit-1",
+      "title": "Roasted chickpea snacks — Economics of one 5-ounce bag and first-year launch costs (shoppers pay about $3.99 in stores; retailers keep the difference)",
+      "chartType": "table",
+      "coversLedgerItems": [
+        "bag_price",
+        "variable_costs",
+        "launch_costs",
+        "recipe_cost"
+      ],
+      "data": [
+        {
+          "Item": "Price Hollis Bay receives from retailers (per bag)",
+          "Amount": "$3.00"
+        },
+        {
+          "Item": "Ingredients (chickpeas, oil, seasoning) (per bag)",
+          "Amount": "$0.70"
+        },
+        {
+          "Item": "Packaging (per bag)",
+          "Amount": "$0.30"
+        },
+        {
+          "Item": "Roasting labor and energy (per bag)",
+          "Amount": "$0.30"
+        },
+        {
+          "Item": "Freight to retailers (per bag)",
+          "Amount": "$0.20"
+        },
+        {
+          "Item": "New roasting line (lease and staff) — first-year launch cost",
+          "Amount": "$3.0 million"
+        },
+        {
+          "Item": "Marketing and advertising — first-year launch cost",
+          "Amount": "$4.5 million"
+        },
+        {
+          "Item": "Shelf fees paid to retailers to stock the new line — first-year launch cost",
+          "Amount": "$1.5 million"
+        },
+        {
+          "Item": "Recipe development (already spent last year)",
+          "Amount": "$1.2 million"
+        }
+      ],
+      "interpretationKey": "Contribution per bag = $3.00 − ($0.70 + $0.30 + $0.30 + $0.20) = $1.50 (50% of the price Hollis Bay receives — healthy; the risk is volume, not margin). Launch costs that count = $3.0M + $4.5M + $1.5M = $9.0M; the $1.2M recipe development is already spent and doesn't change with the decision. Break-even = $9.0M ÷ $1.50 = 6.0 million bags (~115,000 a week). Use the $3.00 Hollis Bay receives, not the $3.99 shoppers pay. Per-bag costs rise with every bag; launch costs do not."
+    },
+    {
+      "id": "exhibit-2",
+      "title": "Snack shopper survey — Roasted chickpea snacks at $3.99 per bag (1,000 shoppers in Hollis Bay's region; one household each) and planning assumptions from past launches",
+      "chartType": "table",
+      "coversLedgerItems": [
+        "purchase_intent",
+        "liked_most",
+        "hesitations",
+        "survey_design",
+        "planning_assumptions"
+      ],
+      "data": [
+        {
+          "Question": "How likely to buy?",
+          "Answer": "Definitely would buy",
+          "Value": "10%"
+        },
+        {
+          "Question": "How likely to buy?",
+          "Answer": "Probably would buy",
+          "Value": "20%"
+        },
+        {
+          "Question": "How likely to buy?",
+          "Answer": "Might or might not buy",
+          "Value": "30%"
+        },
+        {
+          "Question": "How likely to buy?",
+          "Answer": "Probably would not buy",
+          "Value": "25%"
+        },
+        {
+          "Question": "How likely to buy?",
+          "Answer": "Definitely would not buy",
+          "Value": "15%"
+        },
+        {
+          "Question": "Like most (up to two answers)",
+          "Answer": "High in protein",
+          "Value": "52%"
+        },
+        {
+          "Question": "Like most (up to two answers)",
+          "Answer": "Less fat than chips",
+          "Value": "40%"
+        },
+        {
+          "Question": "Like most (up to two answers)",
+          "Answer": "Crunchy, like chips",
+          "Value": "31%"
+        },
+        {
+          "Question": "Like most (up to two answers)",
+          "Answer": "Good for kids' lunches",
+          "Value": "18%"
+        },
+        {
+          "Question": "Hesitate (up to two answers)",
+          "Answer": "Not sure I'd like the taste",
+          "Value": "45%"
+        },
+        {
+          "Question": "Hesitate (up to two answers)",
+          "Answer": "Price is a bit high",
+          "Value": "22%"
+        },
+        {
+          "Question": "Hesitate (up to two answers)",
+          "Answer": "Happy with my current snacks",
+          "Value": "20%"
+        },
+        {
+          "Question": "Hesitate (up to two answers)",
+          "Answer": "Don't think of Hollis Bay for healthy snacks",
+          "Value": "12%"
+        },
+        {
+          "Question": "Planning assumption",
+          "Answer": "Households that shop in stores carrying Hollis Bay",
+          "Value": "30 million"
+        },
+        {
+          "Question": "Planning assumption",
+          "Answer": "Share of \"definitely would buy\" who actually buy in year one",
+          "Value": "60%"
+        },
+        {
+          "Question": "Planning assumption",
+          "Answer": "Share of \"probably would buy\" who actually buy in year one",
+          "Value": "20%"
+        },
+        {
+          "Question": "Planning assumption",
+          "Answer": "Share of all other answers who buy in year one",
+          "Value": "0%"
+        },
+        {
+          "Question": "Planning assumption",
+          "Answer": "Average bags bought per buying household in year one",
+          "Value": "3"
+        }
+      ],
+      "interpretationKey": "Stated intent overstates buying: 30% say definitely or probably, but with past conversion rates (10% × 60%) + (20% × 20%) = 10% of 30M households buy = 3.0M × 3 bags = 9.0M bags, 1.5× break-even (≈ $4.5M profit). The forecast leans on repeat: each buying household must buy at least 2 bags — at one bag each Hollis Bay sells 3.0M and loses ~$4.5M — and the top hesitation is taste (45%). Lead with protein (52%) and lower fat (40%). Like/hesitate answers allow two picks, so they add to more than 100%."
+    },
+    {
+      "id": "exhibit-3",
+      "title": "Proposal — In-store sampling program (first year of the launch; extra households are on top of the survey-based forecast, cost on top of the launch costs)",
+      "chartType": "table",
+      "coversLedgerItems": [
+        "sampling_program"
+      ],
+      "data": [
+        {
+          "Item": "What it is",
+          "Value": "Staffed tasting tables in 500 stores over 10 weekends at launch"
+        },
+        {
+          "Item": "Program cost",
+          "Value": "$1.5 million"
+        },
+        {
+          "Item": "Expected extra buying households in year one",
+          "Value": "500,000"
+        },
+        {
+          "Item": "Expected bags per extra household in year one",
+          "Value": "3"
+        }
+      ],
+      "interpretationKey": "500,000 × 3 = 1.5 million extra bags × $1.50 = $2.25M of contribution − $1.5M cost = +$0.75M; it needs 1.0 million bags (~333,000 households) to pay for itself, so it still breaks even at two-thirds of the expected uplift. It attacks the biggest worry (45% unsure of the taste; 70% like it once they try it) and protects the 2-bag repeat threshold. Each bag contributes the same as in Exhibit 1."
+    }
+  ],
+  "structureKey": "A strong structure turns 'should we launch, and how?' into prioritized questions: economics (price Hollis Bay receives, cost per bag, launch costs → break-even volume); customers and demand (who would buy, how many, how often; what they like or worry about); competition (better-for-you brands and their prices); and company fit (manufacturing, retailers, brand stretch from chips). Strong candidates use the board's rule to set the test (break-even volume vs. likely year-one volume), split demand into trial and repeat, ask about cannibalization of the chips, and flag that a chip brand may not read as healthy. Red flags: jumping to flavors and packaging with no economics, generic frameworks, ignoring repeat purchase.",
+  "recommendationKey": "Yes — launch, with a plan built around getting shoppers to taste the product. Each bag earns $1.50 after variable costs and first-year launch costs are $9.0M (the $1.2M already spent on recipes doesn't count), so break-even is 6.0 million bags. The shopper survey points to about 3 million buying households × 3 bags = 9.0 million bags — 1.5× break-even and about $4.5M of first-year profit. The risk is repeat buying: break-even needs each buying household to buy at least 2 bags, and 45% of shoppers aren't sure they'd like the taste (70% like it once they try it). So the launch should push trial: in-store sampling pays for itself (+$0.75M), and Hollis Bay can promote the new snack on its own chip bags, with a 'high protein, less fat' message. Next steps: lock in shelf space with the two biggest retailers and track repeat purchases closely in the first three months.",
+  "answerKeyIdeas": [
+    {
+      "idea": "Advertise or put coupons on Hollis Bay chip bags",
+      "phrases": [
+        "chip bag",
+        "chip bags",
+        "on our chips",
+        "on-pack",
+        "on pack"
+      ]
+    },
+    {
+      "idea": "Place the new snack next to Hollis Bay chips",
+      "phrases": [
+        "next to the chips",
+        "next to our chips",
+        "shelf placement",
+        "adjacent"
+      ]
+    },
+    {
+      "idea": "Free trial-size packs or small bags in chip multipacks",
+      "phrases": [
+        "trial size",
+        "trial-size",
+        "multipack",
+        "mini bag",
+        "free sample pack"
+      ]
+    },
+    {
+      "idea": "Sampling at gyms, offices or college campuses",
+      "phrases": [
+        "gym",
+        "campus",
+        "offices",
+        "college"
+      ]
+    },
+    {
+      "idea": "Money-back guarantee",
+      "phrases": [
+        "money-back",
+        "money back",
+        "guarantee"
+      ]
+    },
+    {
+      "idea": "A sub-brand so it reads as healthy, not a chip",
+      "phrases": [
+        "sub-brand",
+        "sub brand",
+        "separate brand",
+        "new brand name"
+      ]
+    },
+    {
+      "idea": "Introductory price",
+      "phrases": [
+        "introductory price",
+        "intro price",
+        "launch price",
+        "promotional price"
+      ]
+    },
+    {
+      "idea": "Coupon inside the bag for the next purchase",
+      "phrases": [
+        "coupon inside",
+        "in-bag coupon",
+        "next purchase",
+        "repeat coupon"
+      ]
+    },
+    {
+      "idea": "Variety packs so buyers find a favorite flavor",
+      "phrases": [
+        "variety pack",
+        "sampler pack",
+        "mixed pack"
+      ]
+    },
+    {
+      "idea": "Lunchbox packs for families",
+      "phrases": [
+        "lunchbox",
+        "lunch box",
+        "kids pack",
+        "school lunch"
+      ]
+    },
+    {
+      "idea": "Online subscriptions",
+      "phrases": [
+        "subscription",
+        "subscribe"
+      ]
+    }
+  ],
+  "pacing": {
+    "phaseBudgetsMs": {
+      "INTRO": 24000,
+      "CLARIFY": 48000,
+      "STRUCTURE": 192000,
+      "ANALYSIS": 240000,
+      "EXHIBIT": 312000,
+      "BRAINSTORM": 288000,
+      "RECOMMENDATION": 72000,
+      "WRAP": 24000
+    }
+  },
+  "format": "interviewer_led",
+  "analysisCore": {
+    "items": [
+      "bag_price",
+      "variable_costs",
+      "launch_costs",
+      "purchase_intent",
+      "planning_assumptions"
+    ],
+    "minItems": 4,
+    "ask": "Let's hold the recommendation for now: does the launch break even in year one, and what would you need to know to tell?"
+  },
+  "quoteAnchors": [
+    {
+      "item": "launch_costs",
+      "names": [
+        "marketing budget",
+        "marketing and advertising",
+        "shelf fees",
+        "shelf fee",
+        "roasting line"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "recipe_cost",
+      "names": [
+        "recipe development",
+        "recipe cost",
+        "recipe costs"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "taste_test",
+      "names": [
+        "taste test",
+        "blind taste test",
+        "taste tests"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "bag_price",
+      "names": [
+        "shelf price",
+        "price to retailers",
+        "price hollis bay receives"
+      ],
+      "kind": "level"
+    }
+  ],
+  "factAnchors": {
+    "promptFacts": [],
+    "names": {
+      "bag_price": [
+        "price per bag",
+        "price to retailers",
+        "shelf price",
+        "what hollis bay receives"
+      ],
+      "variable_costs": [
+        "variable costs",
+        "cost per bag",
+        "costs per bag",
+        "ingredients",
+        "packaging",
+        "freight",
+        "roasting cost"
+      ],
+      "launch_costs": [
+        "launch costs",
+        "launch cost",
+        "launch investment",
+        "marketing budget",
+        "shelf fees",
+        "roasting line"
+      ],
+      "recipe_cost": [
+        "recipe development",
+        "recipe cost",
+        "r&d"
+      ],
+      "purchase_intent": [
+        "purchase intent",
+        "how likely to buy",
+        "would buy",
+        "intent"
+      ],
+      "liked_most": [
+        "what shoppers like",
+        "likes",
+        "liked most"
+      ],
+      "hesitations": [
+        "hesitations",
+        "concerns",
+        "what makes them hesitate",
+        "barriers"
+      ],
+      "survey_design": [
+        "survey",
+        "shopper survey",
+        "consumer research"
+      ],
+      "planning_assumptions": [
+        "planning assumptions",
+        "conversion rates",
+        "bags per household"
+      ],
+      "sampling_program": [
+        "sampling",
+        "sampling program",
+        "in-store sampling",
+        "tastings",
+        "tasting tables"
+      ],
+      "cannibalization": [
+        "cannibalization",
+        "cannibalisation",
+        "chip sales impact",
+        "take sales from chips"
+      ],
+      "survey_reliability": [
+        "survey reliability",
+        "how reliable the survey is"
+      ],
+      "taste_test": [
+        "taste test",
+        "taste tests",
+        "product quality",
+        "blind taste test"
+      ],
+      "competitor_prices": [
+        "competitor prices",
+        "competitors' prices",
+        "competitor pricing"
+      ],
+      "retailer_support": [
+        "retailer support",
+        "retailers",
+        "shelf space"
+      ],
+      "manufacturing": [
+        "manufacturing",
+        "production",
+        "fryers",
+        "roasting"
+      ]
+    },
+    "groups": [
+      {
+        "names": [
+          "bag economics",
+          "economics of a bag",
+          "economics of one bag",
+          "unit economics",
+          "costs per bag",
+          "cost per bag"
+        ],
+        "items": [
+          "bag_price",
+          "variable_costs"
+        ]
+      },
+      {
+        "names": [
+          "launch costs",
+          "launch investment",
+          "first-year costs",
+          "fixed costs",
+          "upfront costs"
+        ],
+        "items": [
+          "launch_costs",
+          "recipe_cost"
+        ]
+      },
+      {
+        "names": [
+          "survey",
+          "shopper survey",
+          "survey results",
+          "demand",
+          "consumer research",
+          "what shoppers think"
+        ],
+        "items": [
+          "purchase_intent",
+          "liked_most",
+          "hesitations",
+          "survey_design",
+          "planning_assumptions"
+        ]
+      }
+    ],
+    "directions": {},
+    "drivers": []
+  }
+}

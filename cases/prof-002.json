@@ -1,0 +1,1277 @@
+{
+  "id": "prof-002",
+  "title": "Larkspur Air Route Profitability",
+  "firmStyle": "mckinsey",
+  "difficulty": "easy",
+  "prompt": "Our client is Larkspur Air, a US regional airline. Larkspur flies from its hub airport to six mid-sized cities, using a fleet of identical 80-seat regional jets. It sells tickets mainly through its own website. Two years ago, in FY2023, Larkspur earned an operating profit of $20 million on $200 million of revenue. In FY2025, revenue was $176 million and the airline posted an operating loss of $4 million — even though its planes are about as full as they were before. Larkspur's CEO has asked us to figure out what caused the swing from profit to loss, and how the airline can get back to an operating profit within the next 12 months.",
+  "interviewerNotes": "Source: AI Casing Case 02 (v1.0, Oct 2026), interviewer-led mode. Key insight: revenue and operating profit both fell $24M, so costs didn't move — it's a revenue problem, concentrated on Hub–Lakeport (−$9.6M) and Hub–Port Avery (−$14.4M); the other four routes net to zero. A low-cost airline entered those two routes early in FY2024 and Larkspur matched its fares: planes stayed 75% full but the Lakeport fare fell 40% ($200 → $120), so a Lakeport flight went from +$4,200 to −$600 of contribution (60 passengers × ($120 + $20 extras) − $9,000). Breakeven fare is $130 (above the $120 market), and the competitor's cost per seat is ~30% lower — Larkspur can't win a fare war. Those were its most profitable routes (~55% of FY2023 contribution on ~36% of flights). Fix: move the 5,000 flights to two uncontested new routes: 56 × $200 − $9,200 = +$2,000 per flight, +$10.0M a year, +$11.8M vs. today's −$1.8M on the contested routes, so operating profit ≈ +$7.8M at run rate (leases are fixed through 2030). Risk: at a 60% first-year load factor it's +$400 per flight and operating profit ≈ −$0.2M — phase the move and add supporting levers. Release order in the guide: Exhibit 1 (route results) → Exhibit 2 (Lakeport per-flight economics) → Exhibit 3 (new-route planning estimates, only after contribution per flight is calculated). If the candidate hasn't asked why fares fell by the end of the per-flight module, give the competitor entry before the network fix.",
+  "dataLedger": [
+    {
+      "id": "op_profit_definition",
+      "label": "What operating profit includes",
+      "value": "Operating profit is revenue minus all operating costs — fuel, crew, maintenance, airport fees, aircraft leases, hub facilities and overhead — before interest and taxes.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "geography",
+      "label": "Where Larkspur flies",
+      "value": "Larkspur's flights are all US domestic flights.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "fleet",
+      "label": "Larkspur's fleet",
+      "value": "The fleet is nine identical 80-seat regional jets, all leased, and it hasn't changed since FY2023.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {
+        "80": "both"
+      }
+    },
+    {
+      "id": "routes_schedule",
+      "label": "Routes and schedule",
+      "value": "The network is the same six routes as in FY2023, with the same number of flights on each.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "fuel_prices",
+      "label": "Fuel price trend",
+      "value": "Fuel prices have been roughly flat over the period.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "unit_costs",
+      "label": "Wages and other costs per flight",
+      "value": "There have been no material changes to wages or other costs per flight.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "demand",
+      "label": "Overall air travel demand in Larkspur's cities",
+      "value": "Air travel demand in Larkspur's cities has been roughly flat.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "one_time_charges",
+      "label": "One-time charges",
+      "value": "There are no one-time charges — the loss reflects ongoing operations.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "competition_general",
+      "label": "Competition in general",
+      "value": "Larger airlines are present too, offering connecting itineraries through their own hubs.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "route_results_lakeport",
+      "label": "Hub–Lakeport results: revenue, contribution and flights",
+      "value": "On Hub–Lakeport, revenue fell from $26.4M to $16.8M and contribution fell from $8.4M to a $1.2M loss, on 2,000 flights a year.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "26.4": "prior",
+        "16.8": "current",
+        "8.4": "prior",
+        "1.2": "current",
+        "2,000": "both"
+      }
+    },
+    {
+      "id": "route_results_port_avery",
+      "label": "Hub–Port Avery results: revenue, contribution and flights",
+      "value": "On Hub–Port Avery, revenue fell from $46.8M to $32.4M and contribution fell from $13.8M to a $0.6M loss, on 3,000 flights a year.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "46.8": "prior",
+        "32.4": "current",
+        "13.8": "prior",
+        "0.6": "current",
+        "3,000": "both"
+      }
+    },
+    {
+      "id": "route_results_other",
+      "label": "Results on the other four routes (Cedar Bluff, Granite Falls, Millbrook, Westhaven)",
+      "value": "On the other four routes revenue and contribution stayed nearly flat: Hub–Cedar Bluff (2,500 flights) went from $38.0M to $38.4M of revenue and $5.0M to $5.4M of contribution; Hub–Granite Falls (2,500 flights) from $34.0M to $33.8M and $4.6M to $4.4M; Hub–Millbrook (2,000 flights) from $30.0M to $29.8M and $4.4M to $4.2M; and Hub–Westhaven (2,000 flights) held at $24.8M of revenue and $3.8M of contribution.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {}
+    },
+    {
+      "id": "network_totals",
+      "label": "Network totals: revenue, contribution and flights",
+      "value": "Across all six routes, revenue fell from $200.0M to $176.0M and contribution fell from $40.0M to $16.0M, on 14,000 flights a year — the same number of flights in both years.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "200.0": "prior",
+        "176.0": "current",
+        "40.0": "prior",
+        "16.0": "current",
+        "14,000": "both"
+      }
+    },
+    {
+      "id": "fixed_costs",
+      "label": "Fixed costs (aircraft leases, hub facilities, overhead)",
+      "value": "Fixed costs — aircraft leases, hub facilities and corporate overhead — were $20.0M in both FY2023 and FY2025.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "20.0": "both"
+      }
+    },
+    {
+      "id": "lakeport_seats_load",
+      "label": "Hub–Lakeport seats per flight and load factor",
+      "value": "A Hub–Lakeport flight has 80 seats and there are 2,000 of them a year, and the load factor was 75% in both FY2023 and FY2025.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "80": "both",
+        "2,000": "both",
+        "75": "both"
+      }
+    },
+    {
+      "id": "lakeport_fare",
+      "label": "Hub–Lakeport average one-way fare",
+      "value": "The average one-way fare on Hub–Lakeport fell from $200 in FY2023 to $120 in FY2025.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "200": "prior",
+        "120": "current"
+      }
+    },
+    {
+      "id": "extras_revenue",
+      "label": "Extras revenue per passenger (bags, seats, snacks)",
+      "value": "Extras revenue — bags, seat selection and snacks — was $20 per passenger in both years.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "20": "both"
+      }
+    },
+    {
+      "id": "lakeport_variable_cost",
+      "label": "Hub–Lakeport variable cost per flight (fuel, crew, maintenance, fees)",
+      "value": "Variable cost per Hub–Lakeport flight was $9,000 in both years: fuel $4,000, crew $2,000, maintenance $1,500, and landing and airport fees $1,500.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "9,000": "both",
+        "4,000": "both",
+        "2,000": "both",
+        "1,500": "both"
+      }
+    },
+    {
+      "id": "competitor_entry",
+      "label": "What changed on the problem routes: a new competitor",
+      "value": "Early in FY2024, a low-cost airline started nonstop flights on Hub–Lakeport and Hub–Port Avery, and it hasn't entered Larkspur's other four routes; Larkspur cut its fares to match, and its planes stayed just as full.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "competitor_costs",
+      "label": "The competitor's costs and fares",
+      "value": "The low-cost airline's cost per seat is about 30% lower than Larkspur's — it flies larger planes and has lower labor costs — and its fares are about the same as Larkspur's current fares.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {
+        "30": "current"
+      }
+    },
+    {
+      "id": "connecting_passengers",
+      "label": "Connecting passengers on the contested routes",
+      "value": "About 20% of passengers on the two contested routes are connecting at the hub to another Larkspur flight.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {
+        "20": "current"
+      }
+    },
+    {
+      "id": "new_route_rampup",
+      "label": "How long new routes take to mature",
+      "value": "New routes typically take 6–12 months to reach their expected load factor, and in the first year the load factor is often around 60%.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "aircraft_leases",
+      "label": "Aircraft leases",
+      "value": "All nine aircraft are leased through 2030, so returning them early is not an option.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "port_avery_per_flight",
+      "label": "Hub–Port Avery per-flight economics",
+      "value": "Hub–Port Avery shows the same pattern: 80 seats, a 75% load factor and $20 of extras per passenger, with variable cost of $11,000 per flight in both years, while the average fare fell from $240 to $160.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "11,000": "both",
+        "240": "prior",
+        "160": "current"
+      }
+    },
+    {
+      "id": "new_routes_plan",
+      "label": "New routes (Hub–Ashford, Hub–Brookhaven): seats, load factor, fare and extras",
+      "value": "The planning estimate for the two new routes, Hub–Ashford and Hub–Brookhaven, is 80 seats per flight, a 70% load factor, a $180 average one-way fare and $20 of extras per passenger.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {}
+    },
+    {
+      "id": "new_routes_cost_flights",
+      "label": "New routes: variable cost per flight and flights per year",
+      "value": "Variable cost on the new routes is estimated at $9,200 per flight, across 5,000 flights a year that would use the aircraft time freed by exiting Hub–Lakeport (2,000 flights) and Hub–Port Avery (3,000 flights).",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {}
+    },
+    {
+      "id": "new_routes_context",
+      "label": "New routes: competition and fixed costs",
+      "value": "No other airline is flying nonstop on either new route, and aircraft lease and other fixed costs would stay the same.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {}
+    }
+  ],
+  "mathSteps": [
+    {
+      "id": "op_profit_swing",
+      "description": "Operating profit swing = $20M − (−$4M) = $24M, the same as the revenue drop ($200M − $176M)",
+      "answer": 24,
+      "tolerance": 0.5,
+      "altAnswers": [
+        24000000
+      ],
+      "cues": [
+        "swing",
+        "drop",
+        "decline",
+        "fell",
+        "lost",
+        "gap"
+      ],
+      "unit": "usd",
+      "inputs": [],
+      "live": false,
+      "quantity": "the swing in operating profit (and the revenue drop), FY2023 to FY2025",
+      "timeframe": "change"
+    },
+    {
+      "id": "lakeport_passengers",
+      "description": "Passengers per Hub–Lakeport flight = 80 seats × 75% load factor = 60",
+      "answer": 60,
+      "tolerance": 0,
+      "cues": [
+        "passengers",
+        "people on",
+        "filled",
+        "per flight",
+        "flyers"
+      ],
+      "notCues": [
+        "new route",
+        "new routes",
+        "ashford",
+        "brookhaven",
+        "first year",
+        "ramp"
+      ],
+      "inputs": [
+        "lakeport_seats_load"
+      ],
+      "operands": [
+        80,
+        75
+      ],
+      "quantity": "passengers per Hub–Lakeport flight",
+      "timeframe": "current"
+    },
+    {
+      "id": "lakeport_contribution_fy2023",
+      "description": "Hub–Lakeport contribution per flight FY2023 = 60 × ($200 + $20) − $9,000 = $13,200 − $9,000 = +$4,200",
+      "answer": 4200,
+      "tolerance": 100,
+      "cues": [
+        "contribution",
+        "per flight",
+        "each flight",
+        "a flight",
+        "earned",
+        "earn",
+        "made",
+        "margin"
+      ],
+      "notCues": [
+        "port avery",
+        "new route",
+        "new routes",
+        "ashford",
+        "brookhaven",
+        "other routes",
+        "uncontested",
+        "cedar bluff",
+        "granite falls",
+        "millbrook",
+        "westhaven",
+        "first year",
+        "first-year",
+        "ramp"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "lakeport_seats_load",
+        "lakeport_fare",
+        "extras_revenue",
+        "lakeport_variable_cost"
+      ],
+      "quantity": "Hub–Lakeport contribution per flight in FY2023",
+      "timeframe": "prior"
+    },
+    {
+      "id": "lakeport_contribution_fy2025",
+      "description": "Hub–Lakeport contribution per flight FY2025 = 60 × ($120 + $20) − $9,000 = $8,400 − $9,000 = −$600 (a $600 loss per flight)",
+      "answer": 600,
+      "tolerance": 100,
+      "cues": [
+        "contribution",
+        "per flight",
+        "each flight",
+        "a flight",
+        "lose",
+        "loses",
+        "losing",
+        "loss",
+        "negative"
+      ],
+      "notCues": [
+        "port avery",
+        "new route",
+        "new routes",
+        "ashford",
+        "brookhaven",
+        "other routes",
+        "uncontested",
+        "cedar bluff",
+        "granite falls",
+        "millbrook",
+        "westhaven",
+        "first year",
+        "first-year",
+        "ramp"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "lakeport_seats_load",
+        "lakeport_fare",
+        "extras_revenue",
+        "lakeport_variable_cost"
+      ],
+      "verifyOnly": true,
+      "quantity": "Hub–Lakeport contribution per flight in FY2025 (a loss)",
+      "timeframe": "current"
+    },
+    {
+      "id": "fare_cut_per_flight",
+      "description": "Revenue lost per Lakeport flight from the fare cut = $80 × 60 passengers = $4,800 (= +$4,200 → −$600)",
+      "answer": 4800,
+      "tolerance": 100,
+      "cues": [
+        "fare cut",
+        "fare drop",
+        "fare decline",
+        "lower fare",
+        "fares fell",
+        "swing",
+        "per flight"
+      ],
+      "notCues": [
+        "port avery",
+        "new route",
+        "new routes",
+        "ashford",
+        "brookhaven",
+        "other routes",
+        "uncontested",
+        "cedar bluff",
+        "granite falls",
+        "millbrook",
+        "westhaven",
+        "first year",
+        "first-year",
+        "ramp"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "lakeport_seats_load",
+        "lakeport_fare"
+      ],
+      "verifyOnly": true,
+      "quantity": "revenue lost per Hub–Lakeport flight from the fare cut",
+      "timeframe": "change"
+    },
+    {
+      "id": "lakeport_annual_check",
+      "description": "Annualized: $4,200 × 2,000 flights = $8.4M (FY2023) and −$600 × 2,000 = −$1.2M (FY2025), matching Exhibit 1",
+      "answer": 8.4,
+      "tolerance": 0.1,
+      "altAnswers": [
+        8400000
+      ],
+      "cues": [
+        "annual",
+        "a year",
+        "per year",
+        "annualiz",
+        "times 2,000",
+        "route"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "lakeport_seats_load",
+        "lakeport_fare",
+        "extras_revenue",
+        "lakeport_variable_cost",
+        "route_results_lakeport"
+      ],
+      "verifyOnly": true,
+      "quantity": "Hub–Lakeport annual contribution in FY2023",
+      "timeframe": "prior"
+    },
+    {
+      "id": "breakeven_fare",
+      "description": "Breakeven fare on Hub–Lakeport at 60 passengers = $9,000 ÷ 60 = $150 per passenger − $20 extras = $130",
+      "answer": 130,
+      "tolerance": 2,
+      "altAnswers": [
+        150
+      ],
+      "cues": [
+        "breakeven",
+        "break-even",
+        "break even",
+        "need to charge",
+        "would need"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "lakeport_seats_load",
+        "extras_revenue",
+        "lakeport_variable_cost"
+      ],
+      "quantity": "the Hub–Lakeport fare needed to break even per flight",
+      "timeframe": "current"
+    },
+    {
+      "id": "breakeven_load_factor",
+      "description": "Alternative: breakeven load factor at a $120 fare = $9,000 ÷ $140 ≈ 64.3 passengers ≈ 80% of 80 seats",
+      "answer": 80,
+      "tolerance": 1.5,
+      "cues": [
+        "breakeven",
+        "break-even",
+        "break even",
+        "load factor"
+      ],
+      "unit": "percent",
+      "inputs": [
+        "lakeport_seats_load",
+        "lakeport_fare",
+        "extras_revenue",
+        "lakeport_variable_cost"
+      ],
+      "verifyOnly": true,
+      "quantity": "the Hub–Lakeport load factor needed to break even at a $120 fare",
+      "timeframe": "current"
+    },
+    {
+      "id": "profit_concentration",
+      "description": "Contested routes' share of FY2023 contribution = (8.4 + 13.8) ÷ 40.0 = 22.2 ÷ 40.0 ≈ 55%",
+      "answer": 55,
+      "tolerance": 1.5,
+      "cues": [
+        "of contribution",
+        "of profit",
+        "of the contribution",
+        "concentrat",
+        "share of"
+      ],
+      "unit": "percent",
+      "inputs": [
+        "route_results_lakeport",
+        "route_results_port_avery",
+        "network_totals"
+      ],
+      "verifyOnly": true,
+      "quantity": "Lakeport and Port Avery's share of FY2023 contribution",
+      "timeframe": "prior"
+    },
+    {
+      "id": "new_route_contribution_per_flight",
+      "description": "New-route contribution per flight = 80 × 70% = 56 passengers × ($180 + $20) − $9,200 = $11,200 − $9,200 = +$2,000",
+      "answer": 2000,
+      "tolerance": 100,
+      "cues": [
+        "per flight",
+        "each flight",
+        "a flight",
+        "contribution",
+        "new route",
+        "new routes"
+      ],
+      "notCues": [
+        "ramp",
+        "first year",
+        "first-year",
+        "year one",
+        "60%",
+        "lakeport",
+        "port avery"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "new_routes_plan",
+        "new_routes_cost_flights"
+      ],
+      "quantity": "contribution per flight on the new routes at full run rate",
+      "timeframe": "current"
+    },
+    {
+      "id": "new_routes_annual",
+      "description": "New-route contribution per year = 5,000 flights × $2,000 = +$10.0M",
+      "answer": 10,
+      "tolerance": 0.3,
+      "altAnswers": [
+        10000000
+      ],
+      "cues": [
+        "a year",
+        "per year",
+        "annual",
+        "annually",
+        "new routes",
+        "contribution"
+      ],
+      "notCues": [
+        "ramp",
+        "first year",
+        "first-year",
+        "year one",
+        "60%",
+        "lakeport",
+        "port avery"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "new_routes_plan",
+        "new_routes_cost_flights"
+      ],
+      "quantity": "annual contribution of the new routes at full run rate",
+      "timeframe": "current"
+    },
+    {
+      "id": "network_improvement",
+      "description": "Improvement = +$10.0M new routes − (−$1.8M lost today on Lakeport −$1.2M and Port Avery −$0.6M) = +$11.8M",
+      "answer": 11.8,
+      "tolerance": 0.3,
+      "altAnswers": [
+        11800000
+      ],
+      "cues": [
+        "improvement",
+        "improve",
+        "better off",
+        "gain",
+        "uplift",
+        "net change",
+        "net impact",
+        "net effect",
+        "increase"
+      ],
+      "notCues": [
+        "ramp",
+        "first year",
+        "first-year",
+        "year one",
+        "60%"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "new_routes_plan",
+        "new_routes_cost_flights",
+        "route_results_lakeport",
+        "route_results_port_avery"
+      ],
+      "quantity": "the annual operating-profit improvement from redeploying the contested flights",
+      "timeframe": "change"
+    },
+    {
+      "id": "new_operating_profit",
+      "description": "New operating profit = −$4.0M + $11.8M = +$7.8M at full run rate (fixed costs unchanged — leases continue)",
+      "answer": 7.8,
+      "tolerance": 0.3,
+      "altAnswers": [
+        7800000
+      ],
+      "cues": [
+        "operating profit",
+        "profit",
+        "op"
+      ],
+      "notCues": [
+        "ramp",
+        "first year",
+        "first-year",
+        "year one",
+        "60%"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "new_routes_plan",
+        "new_routes_cost_flights",
+        "route_results_lakeport",
+        "route_results_port_avery"
+      ],
+      "quantity": "Larkspur's operating profit after the redeployment, at full run rate",
+      "timeframe": "current"
+    },
+    {
+      "id": "rampup_per_flight",
+      "description": "First-year ramp-up: 80 × 60% = 48 passengers × $200 − $9,200 = +$400 per flight",
+      "answer": 400,
+      "tolerance": 50,
+      "cues": [
+        "ramp",
+        "first year",
+        "first-year",
+        "year one",
+        "60%"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "new_routes_plan",
+        "new_routes_cost_flights",
+        "new_route_rampup"
+      ],
+      "verifyOnly": true,
+      "quantity": "contribution per new-route flight at a 60% first-year load factor",
+      "timeframe": "current"
+    },
+    {
+      "id": "rampup_operating_profit",
+      "description": "First-year operating profit ≈ −$4.0M + $1.8M + 5,000 × $400 ($2.0M) = −$0.2M — roughly breakeven",
+      "answer": 0.2,
+      "tolerance": 0.2,
+      "cues": [
+        "ramp",
+        "first year",
+        "first-year",
+        "year one",
+        "breakeven",
+        "break-even",
+        "break even"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "new_routes_plan",
+        "new_routes_cost_flights",
+        "new_route_rampup",
+        "route_results_lakeport",
+        "route_results_port_avery"
+      ],
+      "verifyOnly": true,
+      "quantity": "Larkspur's operating profit in the first year of the redeployment (≈ −$0.2M)",
+      "timeframe": "current"
+    }
+  ],
+  "exhibits": [
+    {
+      "id": "exhibit-1",
+      "title": "Larkspur Air — Results by route, FY2023 vs. FY2025 ($ millions; contribution = revenue − variable costs)",
+      "chartType": "table",
+      "coversLedgerItems": [
+        "route_results_lakeport",
+        "route_results_port_avery",
+        "route_results_other",
+        "network_totals",
+        "fixed_costs"
+      ],
+      "data": [
+        {
+          "Route": "Hub–Cedar Bluff",
+          "Flights per year": "2,500",
+          "Revenue FY2023": "38.0",
+          "Revenue FY2025": "38.4",
+          "Contribution FY2023": "5.0",
+          "Contribution FY2025": "5.4"
+        },
+        {
+          "Route": "Hub–Granite Falls",
+          "Flights per year": "2,500",
+          "Revenue FY2023": "34.0",
+          "Revenue FY2025": "33.8",
+          "Contribution FY2023": "4.6",
+          "Contribution FY2025": "4.4"
+        },
+        {
+          "Route": "Hub–Lakeport",
+          "Flights per year": "2,000",
+          "Revenue FY2023": "26.4",
+          "Revenue FY2025": "16.8",
+          "Contribution FY2023": "8.4",
+          "Contribution FY2025": "(1.2)"
+        },
+        {
+          "Route": "Hub–Millbrook",
+          "Flights per year": "2,000",
+          "Revenue FY2023": "30.0",
+          "Revenue FY2025": "29.8",
+          "Contribution FY2023": "4.4",
+          "Contribution FY2025": "4.2"
+        },
+        {
+          "Route": "Hub–Port Avery",
+          "Flights per year": "3,000",
+          "Revenue FY2023": "46.8",
+          "Revenue FY2025": "32.4",
+          "Contribution FY2023": "13.8",
+          "Contribution FY2025": "(0.6)"
+        },
+        {
+          "Route": "Hub–Westhaven",
+          "Flights per year": "2,000",
+          "Revenue FY2023": "24.8",
+          "Revenue FY2025": "24.8",
+          "Contribution FY2023": "3.8",
+          "Contribution FY2025": "3.8"
+        },
+        {
+          "Route": "Total",
+          "Flights per year": "14,000",
+          "Revenue FY2023": "200.0",
+          "Revenue FY2025": "176.0",
+          "Contribution FY2023": "40.0",
+          "Contribution FY2025": "16.0"
+        },
+        {
+          "Route": "Fixed costs",
+          "Flights per year": "",
+          "Revenue FY2023": "",
+          "Revenue FY2025": "",
+          "Contribution FY2023": "(20.0)",
+          "Contribution FY2025": "(20.0)"
+        },
+        {
+          "Route": "Operating profit",
+          "Flights per year": "",
+          "Revenue FY2023": "",
+          "Revenue FY2025": "",
+          "Contribution FY2023": "20.0",
+          "Contribution FY2025": "(4.0)"
+        }
+      ],
+      "interpretationKey": "Revenue fell $24M and contribution fell $24M with fixed costs flat at $20M, so operating profit fell $24M and costs per flight didn't move. The whole decline is on Hub–Lakeport (−$9.6M) and Hub–Port Avery (−$14.4M); the other four routes net to zero. Those were the most profitable routes: ~30% contribution margins and $22.2M of $40M contribution (~55%) on 5,000 of 14,000 flights (~36%). With planes as full as before, the fare is the prime suspect. Parentheses denote negative values; revenue includes fares and extras; flights per year were the same in both years."
+    },
+    {
+      "id": "exhibit-2",
+      "title": "Hub–Lakeport — Economics of one one-way flight, FY2023 vs. FY2025 ($)",
+      "chartType": "table",
+      "coversLedgerItems": [
+        "lakeport_seats_load",
+        "lakeport_fare",
+        "extras_revenue",
+        "lakeport_variable_cost"
+      ],
+      "data": [
+        {
+          "Item": "Seats per flight",
+          "FY2023": "80",
+          "FY2025": "80"
+        },
+        {
+          "Item": "Load factor (% of seats filled)",
+          "FY2023": "75%",
+          "FY2025": "75%"
+        },
+        {
+          "Item": "Average one-way fare per passenger",
+          "FY2023": "$200",
+          "FY2025": "$120"
+        },
+        {
+          "Item": "Extras revenue per passenger (bags, seats, snacks)",
+          "FY2023": "$20",
+          "FY2025": "$20"
+        },
+        {
+          "Item": "Fuel",
+          "FY2023": "$4,000",
+          "FY2025": "$4,000"
+        },
+        {
+          "Item": "Crew",
+          "FY2023": "$2,000",
+          "FY2025": "$2,000"
+        },
+        {
+          "Item": "Maintenance",
+          "FY2023": "$1,500",
+          "FY2025": "$1,500"
+        },
+        {
+          "Item": "Landing & airport fees",
+          "FY2023": "$1,500",
+          "FY2025": "$1,500"
+        },
+        {
+          "Item": "Total variable cost per flight",
+          "FY2023": "$9,000",
+          "FY2025": "$9,000"
+        },
+        {
+          "Item": "Flights per year",
+          "FY2023": "2,000",
+          "FY2025": "2,000"
+        }
+      ],
+      "interpretationKey": "Passengers = 80 × 75% = 60 in both years. Revenue per flight = 60 × ($200 + $20) = $13,200 in FY2023 and 60 × ($120 + $20) = $8,400 in FY2025; minus $9,000 of variable cost gives +$4,200 and −$600 per flight (× 2,000 = $8.4M and −$1.2M, matching Exhibit 1). Only the fare changed: −$80 × 60 = −$4,800 per flight. Larkspur kept its planes full by cutting fares and now loses money on every Lakeport flight. Breakeven fare at 60 passengers is $130."
+    },
+    {
+      "id": "exhibit-3",
+      "title": "Proposed new routes — Planning estimates (average per flight across Hub–Ashford and Hub–Brookhaven)",
+      "chartType": "table",
+      "coversLedgerItems": [
+        "new_routes_plan",
+        "new_routes_cost_flights",
+        "new_routes_context"
+      ],
+      "data": [
+        {
+          "Item": "Seats per flight",
+          "Planning estimate": "80"
+        },
+        {
+          "Item": "Expected load factor (% of seats filled)",
+          "Planning estimate": "70%"
+        },
+        {
+          "Item": "Expected average one-way fare per passenger",
+          "Planning estimate": "$180"
+        },
+        {
+          "Item": "Extras revenue per passenger",
+          "Planning estimate": "$20"
+        },
+        {
+          "Item": "Variable cost per flight",
+          "Planning estimate": "$9,200"
+        },
+        {
+          "Item": "Flights per year (both routes combined)",
+          "Planning estimate": "5,000"
+        }
+      ],
+      "interpretationKey": "New route: 56 passengers × $200 − $9,200 = +$2,000 per flight, × 5,000 = +$10.0M a year. Exiting removes today's −$1.8M (Lakeport −$1.2M, Port Avery −$0.6M), so the improvement is +$11.8M and operating profit ≈ +$7.8M at full run rate; leases continue, so fixed costs are unchanged. $2,000 per flight is in line with the uncontested routes (~$1,840–$2,200). The 5,000 flights use the aircraft time freed by exiting Hub–Lakeport (2,000) and Hub–Port Avery (3,000); no other airline flies either route nonstop."
+    }
+  ],
+  "structureKey": "A strong structure builds an airline profit tree — revenue = passengers (seats × load factor) × revenue per passenger (fare + extras), by route; variable costs per flight (fuel, crew, maintenance, airport and landing fees); fixed costs (aircraft leases, hub, overhead); and external changes (competition, demand, fuel). Strong candidates use the clue that revenue and profit both fell $24M (so costs didn't move — it's revenue), link 'planes as full as before' to a lower fare, want to look route by route, and hypothesize a new competitor or fare war on specific routes. Red flags: generic frameworks with no link to profit, most of the answer on cost cutting, an unprioritized list, ignoring the route dimension.",
+  "recommendationKey": "The loss has one cause: a low-cost competitor entered Larkspur's two most profitable routes (Hub–Lakeport and Hub–Port Avery) in FY2024. Larkspur matched fares to keep its passengers, so its planes stayed just as full, but fares fell 40% on Lakeport ($200 to $120); costs and flights didn't change, so the $24M revenue loss fell straight to the bottom line, and a Lakeport flight went from +$4,200 to −$600 of contribution. Larkspur can't win a fare war (breakeven fare $130 vs. $120; the competitor's cost per seat is ~30% lower). Recommendation: move those 5,000 flights a year to the two uncontested new routes — about +$11.8M a year and an operating profit of ~$7.8M at full run rate (leases are fixed, so exiting without redeploying saves only $1.8M). Key risk: new routes ramp up slowly — at a 60% first-year load factor Larkspur is only near breakeven — so phase the move (keep a reduced peak schedule on the contested routes or launch one new route first), protect the four remaining routes, and watch the ~20% connecting passengers and a competitor following onto the new routes.",
+  "answerKeyIdeas": [
+    {
+      "idea": "Keep a reduced peak-time schedule on the contested routes during ramp-up",
+      "phrases": [
+        "reduced schedule",
+        "peak schedule",
+        "peak times",
+        "business times",
+        "reduced frequency"
+      ]
+    },
+    {
+      "idea": "Launch one new route first",
+      "phrases": [
+        "one new route first",
+        "one route first",
+        "stagger the launch",
+        "staggered launch"
+      ]
+    },
+    {
+      "idea": "Codeshare or interline with a larger airline to feed connecting passengers",
+      "phrases": [
+        "codeshare",
+        "code-share",
+        "interline",
+        "partner airline"
+      ]
+    },
+    {
+      "idea": "Protect the four uncontested routes (loyalty, corporate contracts, schedule)",
+      "phrases": [
+        "corporate contract",
+        "loyalty program",
+        "protect the remaining",
+        "defend the uncontested",
+        "uncontested routes"
+      ]
+    },
+    {
+      "idea": "Grow extras revenue (bags, seats, bundles)",
+      "phrases": [
+        "bundles",
+        "grow extras",
+        "ancillary revenue",
+        "more extras"
+      ]
+    },
+    {
+      "idea": "Sublease aircraft time to another airline during ramp-up",
+      "phrases": [
+        "sublease",
+        "sub-lease",
+        "wet lease",
+        "lease out"
+      ]
+    },
+    {
+      "idea": "Renegotiate airport fees at the new stations",
+      "phrases": [
+        "airport fees at",
+        "renegotiate airport",
+        "renegotiate fees",
+        "landing fee incentive"
+      ]
+    },
+    {
+      "idea": "Pre-sell the new routes and market them to connecting passengers",
+      "phrases": [
+        "pre-sell",
+        "presell",
+        "market to connecting"
+      ]
+    }
+  ],
+  "pacing": {
+    "phaseBudgetsMs": {
+      "INTRO": 24000,
+      "CLARIFY": 48000,
+      "STRUCTURE": 192000,
+      "ANALYSIS": 288000,
+      "EXHIBIT": 336000,
+      "BRAINSTORM": 216000,
+      "RECOMMENDATION": 72000,
+      "WRAP": 24000
+    }
+  },
+  "format": "interviewer_led",
+  "analysisCore": {
+    "items": [
+      "route_results_lakeport",
+      "route_results_port_avery",
+      "lakeport_fare"
+    ],
+    "minItems": 3,
+    "ask": "Let's hold the recommendation for now: what's behind the swing from profit to loss, and what would you need to see to pin it down?"
+  },
+  "quoteAnchors": [
+    {
+      "item": "lakeport_fare",
+      "names": [
+        "lakeport fare",
+        "lakeport fares",
+        "fare on lakeport",
+        "lakeport's fare",
+        "lakeport ticket price"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "lakeport_variable_cost",
+      "names": [
+        "lakeport cost per flight",
+        "lakeport variable cost",
+        "cost of a lakeport flight",
+        "lakeport flight costs"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "fixed_costs",
+      "names": [
+        "fixed costs",
+        "fixed cost"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "port_avery_per_flight",
+      "names": [
+        "port avery fare",
+        "port avery fares",
+        "port avery's fare"
+      ],
+      "kind": "level"
+    }
+  ],
+  "factAnchors": {
+    "promptFacts": [
+      {
+        "id": "revenue",
+        "names": [
+          "total revenue",
+          "larkspur's revenue",
+          "airline revenue",
+          "overall revenue",
+          "company revenue"
+        ],
+        "kind": "level",
+        "unit": "dollar",
+        "values": {
+          "200": "prior",
+          "176": "current"
+        },
+        "say": "Revenue fell from $200 million two years ago to $176 million."
+      },
+      {
+        "id": "operating_profit",
+        "names": [
+          "operating profit",
+          "operating loss",
+          "operating result"
+        ],
+        "kind": "level",
+        "unit": "dollar",
+        "values": {
+          "20": "prior",
+          "4": "current"
+        },
+        "say": "Larkspur went from a $20 million operating profit two years ago to a $4 million operating loss."
+      }
+    ],
+    "names": {
+      "route_results_lakeport": [
+        "lakeport",
+        "hub–lakeport",
+        "hub-lakeport",
+        "lakeport route",
+        "lakeport results"
+      ],
+      "route_results_port_avery": [
+        "port avery",
+        "hub–port avery",
+        "hub-port avery",
+        "port avery route",
+        "port avery results"
+      ],
+      "route_results_other": [
+        "other routes",
+        "other four routes",
+        "cedar bluff",
+        "granite falls",
+        "millbrook",
+        "westhaven",
+        "uncontested routes"
+      ],
+      "network_totals": [
+        "total contribution",
+        "network totals",
+        "contribution by route",
+        "revenue by route",
+        "route results",
+        "route p&l",
+        "results by route"
+      ],
+      "fixed_costs": [
+        "fixed costs",
+        "fixed cost",
+        "hub facilities",
+        "corporate overhead"
+      ],
+      "lakeport_seats_load": [
+        "lakeport load factor",
+        "seats per flight",
+        "lakeport seats"
+      ],
+      "lakeport_fare": [
+        "lakeport fare",
+        "lakeport fares",
+        "fare on lakeport",
+        "lakeport ticket price"
+      ],
+      "extras_revenue": [
+        "extras",
+        "ancillary",
+        "ancillary revenue",
+        "bag fees",
+        "seat selection"
+      ],
+      "lakeport_variable_cost": [
+        "lakeport variable cost",
+        "lakeport cost per flight",
+        "lakeport fuel cost",
+        "lakeport crew cost"
+      ],
+      "competitor_entry": [
+        "competitor",
+        "competitors",
+        "new entrant",
+        "new competitor",
+        "low-cost airline",
+        "low-cost carrier",
+        "what changed"
+      ],
+      "competitor_costs": [
+        "competitor's costs",
+        "competitor costs",
+        "cost per seat",
+        "competitor fares",
+        "competitor's fares"
+      ],
+      "connecting_passengers": [
+        "connecting passengers",
+        "connections",
+        "connecting traffic",
+        "connecting"
+      ],
+      "new_route_rampup": [
+        "ramp-up",
+        "ramp up",
+        "new route maturity",
+        "first-year load factor",
+        "how long new routes take"
+      ],
+      "aircraft_leases": [
+        "aircraft leases",
+        "leases",
+        "return the aircraft",
+        "ground aircraft",
+        "sell aircraft"
+      ],
+      "port_avery_per_flight": [
+        "port avery per flight",
+        "port avery per-flight",
+        "port avery economics",
+        "port avery fare"
+      ],
+      "new_routes_plan": [
+        "new routes",
+        "new route",
+        "ashford",
+        "brookhaven",
+        "planning estimates"
+      ],
+      "new_routes_cost_flights": [
+        "new route costs",
+        "new route flights"
+      ],
+      "fuel_prices": [
+        "fuel prices",
+        "fuel price",
+        "fuel"
+      ],
+      "unit_costs": [
+        "wages",
+        "labor costs",
+        "unit costs"
+      ],
+      "demand": [
+        "demand",
+        "air travel demand",
+        "overall demand"
+      ]
+    },
+    "groups": [
+      {
+        "names": [
+          "results by route",
+          "route results",
+          "route-level results",
+          "route p&l",
+          "revenue by route",
+          "contribution by route",
+          "profit by route",
+          "by route"
+        ],
+        "items": [
+          "route_results_lakeport",
+          "route_results_port_avery",
+          "route_results_other",
+          "network_totals",
+          "fixed_costs"
+        ]
+      },
+      {
+        "names": [
+          "per-flight economics",
+          "per flight economics",
+          "economics of a flight",
+          "economics of one flight",
+          "lakeport economics",
+          "unit economics"
+        ],
+        "items": [
+          "lakeport_seats_load",
+          "lakeport_fare",
+          "extras_revenue",
+          "lakeport_variable_cost"
+        ]
+      },
+      {
+        "names": [
+          "new route estimates",
+          "planning estimates",
+          "new routes plan",
+          "network option",
+          "redeployment option"
+        ],
+        "items": [
+          "new_routes_plan",
+          "new_routes_cost_flights",
+          "new_routes_context"
+        ]
+      }
+    ],
+    "directions": {
+      "fuel_prices": "flat",
+      "demand": "flat"
+    },
+    "drivers": [
+      {
+        "of": "operating_profit",
+        "total": 24,
+        "parts": [
+          {
+            "names": [
+              "lakeport",
+              "hub–lakeport",
+              "hub-lakeport"
+            ],
+            "value": 9.6
+          },
+          {
+            "names": [
+              "port avery",
+              "hub–port avery",
+              "hub-port avery"
+            ],
+            "value": 14.4
+          },
+          {
+            "names": [
+              "other routes",
+              "other four routes",
+              "uncontested routes"
+            ],
+            "value": 0
+          }
+        ]
+      }
+    ]
+  }
+}

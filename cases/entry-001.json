@@ -1,0 +1,1016 @@
+{
+  "id": "entry-001",
+  "title": "Aldermoor Pharma US Market Entry",
+  "firmStyle": "mckinsey",
+  "difficulty": "easy",
+  "prompt": "Our client is Aldermoor Pharma, a mid-sized European drug company. Since 2022, Aldermoor has sold Kelvexa in Europe — a once-daily pill for Corlan's disease, a lifelong autoimmune condition that causes painful inflammation of the joints and skin. Earlier this year, US regulators approved Kelvexa. Aldermoor has no US operations today. The board will approve a US launch only if Kelvexa can reach at least $300 million in peak annual US net sales. The CEO has asked us to determine whether the US market is attractive enough to enter, and if so, how Aldermoor should enter it.",
+  "interviewerNotes": "Source: AI Casing Case 03 (v1.0, Oct 2026), interviewer-led mode. Key insight: the patient funnel gives 250M × 1.6% × 50% × 50% × 20% = 200,000 eligible US patients; at a 20% peak share (40,000 patients) and an $8,000 net price ($10,000 list less 20% discounts and rebates), peak net sales ≈ $320M — clears the $300M bar, but only just (the bar is met at an 18.75% share, 37,500 patients). Specialists like the once-daily pill (64%), but the top barriers are insurance coverage (58%) and no local support (41%) — access and presence, which Aldermoor lacks in the US. Entry: building its own team earns $320M − $80M = $240M a year at peak vs. 30% × $400M = $120M from the partner, and stays ahead unless share falls below 12.5% (25,000 patients). Recommendation: enter, build a focused US team; hire an experienced access team early; consider a contract sales force or co-promotion. Release order in the guide: Exhibit 1 (funnel) and Exhibit 2 (survey) in either order after the structure; Exhibit 3 (entry options) only after the market is sized.",
+  "dataLedger": [
+    {
+      "id": "kelvexa_product",
+      "label": "What Kelvexa is and who it is for",
+      "value": "Kelvexa is a once-daily pill for adults with moderate-to-severe Corlan's disease; it has been sold in Europe since 2022 and was approved in the US earlier this year.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "corlans_disease",
+      "label": "Corlan's disease",
+      "value": "Corlan's disease is a lifelong autoimmune condition that causes painful joint and skin inflammation; mild cases are managed with older generic pills, and moderate-to-severe cases need an advanced therapy.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "current_treatment",
+      "label": "Current US treatment",
+      "value": "For moderate-to-severe patients, the main option in the US today is Nimbrel, an injectable advanced therapy.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "company_size",
+      "label": "Aldermoor's size and US presence",
+      "value": "Aldermoor has about $1.5 billion in annual revenue, almost all in Europe, and it has no US employees or sales force today.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {
+        "1.5": "current"
+      }
+    },
+    {
+      "id": "net_sales_definition",
+      "label": "What \"net sales\" means",
+      "value": "Net sales are revenue after the discounts and rebates Aldermoor pays to insurers and pharmacy benefit managers.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "peak_timing",
+      "label": "When peak sales happen",
+      "value": "Peak sales are expected around five years after launch.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "patents",
+      "label": "Patent protection",
+      "value": "Kelvexa is protected by patents until 2038.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "supply",
+      "label": "Manufacturing and supply",
+      "value": "Aldermoor can supply the US from its European plants, and there are no capacity constraints.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "us_adults",
+      "label": "Number of US adults",
+      "value": "There are 250 million US adults.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "250": "current"
+      }
+    },
+    {
+      "id": "funnel_rates",
+      "label": "Patient funnel rates: prevalence, diagnosis, treatment, moderate-to-severe share",
+      "value": "In the patient funnel, 1.6% of US adults have Corlan's disease; 50% of those are diagnosed, 50% of diagnosed patients are treated with prescription medicine, and 20% of treated patients are moderate-to-severe and eligible for Kelvexa — each percentage applies to the stage above it.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "1.6": "current",
+        "50": "current",
+        "20": "current"
+      }
+    },
+    {
+      "id": "peak_share_forecast",
+      "label": "Kelvexa's forecast peak share of eligible patients",
+      "value": "Aldermoor's forecast is that Kelvexa reaches 20% of eligible patients at peak, about five years after launch.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "20": "current"
+      }
+    },
+    {
+      "id": "kelvexa_pricing",
+      "label": "Kelvexa US pricing: list price, discounts and rebates, time on treatment",
+      "value": "Kelvexa's US list price is $10,000 per patient per year, average discounts and rebates to insurers are 20% of list price, and patients on Kelvexa are treated for the full year.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "10,000": "current",
+        "20": "current"
+      }
+    },
+    {
+      "id": "survey_design",
+      "label": "Specialist survey design",
+      "value": "The survey is of 200 US specialists who treat Corlan's disease; each could pick up to two answers per question, so the percentages add up to more than 100%.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "200": "current"
+      }
+    },
+    {
+      "id": "reasons_to_prescribe",
+      "label": "Survey: top reasons to prescribe Kelvexa",
+      "value": "The top reasons to prescribe Kelvexa are the once-daily pill instead of an injection (64%), fewer side effects than current options (38%), strong efficacy data from Europe (22%) and a lower price than current options (11%).",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "64": "current",
+        "38": "current",
+        "22": "current",
+        "11": "current"
+      }
+    },
+    {
+      "id": "barriers_to_prescribing",
+      "label": "Survey: top barriers to prescribing Kelvexa",
+      "value": "The top barriers to prescribing are insurance coverage and prior approval (58%), no local support from the company (41%), wanting more US experience with it first (27%), patient out-of-pocket cost (15%) and side-effect concerns (9%).",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "58": "current",
+        "41": "current",
+        "27": "current",
+        "15": "current",
+        "9": "current"
+      }
+    },
+    {
+      "id": "nimbrel",
+      "label": "Nimbrel, the current standard: dosing, use and net price",
+      "value": "Nimbrel, an injection given every two weeks, has been the standard advanced therapy for about eight years, most moderate-to-severe patients on an advanced therapy use it, and its net price is about $9,000 per patient per year.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {
+        "9,000": "current"
+      }
+    },
+    {
+      "id": "trial_comparison",
+      "label": "How Kelvexa compares with Nimbrel in trials",
+      "value": "In clinical trials, Kelvexa's efficacy was similar to Nimbrel's, with fewer injection-site reactions and infections.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "insurance_coverage",
+      "label": "US insurance coverage and prior approval",
+      "value": "US insurers usually require prior approval before covering an advanced therapy; Nimbrel is covered by most plans, and new drugs often take 12–18 months to win broad coverage.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "specialist_concentration",
+      "label": "Who treats these patients",
+      "value": "About 6,000 US specialists are treating roughly 80% of moderate-to-severe patients.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {
+        "6,000": "current",
+        "80": "current"
+      }
+    },
+    {
+      "id": "diagnosis_gap",
+      "label": "Why so few patients are diagnosed",
+      "value": "Many patients go undiagnosed for years because early symptoms are mistaken for other joint conditions.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "pipeline",
+      "label": "Aldermoor's other drugs (pipeline)",
+      "value": "Aldermoor has two more drugs in late-stage trials for related autoimmune conditions, treated by the same US specialists.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "option_a",
+      "label": "Entry Option A: build its own US team — terms",
+      "value": "Option A is building Aldermoor's own US team of about 60 specialist sales reps, an insurer-access team and patient support: Aldermoor receives 100% of US net sales, its annual US selling costs are $80 million, the expected peak share is 20% of eligible patients, and launch is 12–18 months away.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "60": "current",
+        "100": "current",
+        "80": "current",
+        "20": "current"
+      }
+    },
+    {
+      "id": "option_b",
+      "label": "Entry Option B: partner with a US company — terms",
+      "value": "Option B is partnering with an established US drug company whose sales force already calls on these specialists: Aldermoor receives a 30% royalty on US net sales, the partner pays the selling costs, the expected peak share is 25% of eligible patients, and launch is about 6 months away.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "30": "current",
+        "25": "current"
+      }
+    },
+    {
+      "id": "option_shared",
+      "label": "Entry options: net price and product cost",
+      "value": "Under both options the net price is $8,000 per patient per year, and product cost is small and similar, so it can be ignored.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "8,000": "current"
+      }
+    }
+  ],
+  "mathSteps": [
+    {
+      "id": "eligible_patients",
+      "description": "Eligible patients = 250M × 1.6% × 50% × 50% × 20% = 200,000",
+      "answer": 200000,
+      "tolerance": 2000,
+      "altAnswers": [
+        200
+      ],
+      "cues": [
+        "eligible",
+        "moderate-to-severe",
+        "moderate to severe",
+        "patients"
+      ],
+      "notCues": [
+        "specialists",
+        "survey"
+      ],
+      "inputs": [
+        "us_adults",
+        "funnel_rates"
+      ],
+      "quantity": "US patients eligible for Kelvexa",
+      "timeframe": "current"
+    },
+    {
+      "id": "patients_with_disease",
+      "description": "Have the disease = 250M × 1.6% = 4,000,000",
+      "answer": 4,
+      "tolerance": 0.05,
+      "altAnswers": [
+        4000000
+      ],
+      "cues": [
+        "have the disease",
+        "have corlan",
+        "with the disease",
+        "prevalence",
+        "have it"
+      ],
+      "inputs": [
+        "us_adults",
+        "funnel_rates"
+      ],
+      "verifyOnly": true,
+      "quantity": "US adults with Corlan's disease",
+      "timeframe": "current"
+    },
+    {
+      "id": "peak_patients",
+      "description": "Patients on Kelvexa at peak = 200,000 × 20% = 40,000",
+      "answer": 40000,
+      "tolerance": 500,
+      "altAnswers": [
+        40
+      ],
+      "cues": [
+        "on kelvexa",
+        "at peak",
+        "peak patients",
+        "patients"
+      ],
+      "notCues": [
+        "option b",
+        "partner",
+        "partnering",
+        "royalty",
+        "specialists",
+        "survey"
+      ],
+      "inputs": [
+        "us_adults",
+        "funnel_rates",
+        "peak_share_forecast"
+      ],
+      "quantity": "patients on Kelvexa at peak",
+      "timeframe": "current"
+    },
+    {
+      "id": "net_price",
+      "description": "Net price per patient per year = $10,000 × (1 − 20%) = $8,000",
+      "answer": 8000,
+      "tolerance": 50,
+      "cues": [
+        "net price",
+        "net",
+        "after discounts",
+        "after rebates",
+        "receive",
+        "per patient"
+      ],
+      "notCues": [
+        "nimbrel"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "kelvexa_pricing"
+      ],
+      "quantity": "Kelvexa net price per patient per year",
+      "timeframe": "current"
+    },
+    {
+      "id": "peak_net_sales",
+      "description": "Peak annual US net sales = 40,000 × $8,000 = $320M",
+      "answer": 320,
+      "tolerance": 5,
+      "altAnswers": [
+        320000000
+      ],
+      "cues": [
+        "peak",
+        "net sales",
+        "sales",
+        "revenue"
+      ],
+      "notCues": [
+        "option b",
+        "partner",
+        "partnering",
+        "royalty",
+        "list price",
+        "diagnos",
+        "60%"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "us_adults",
+        "funnel_rates",
+        "peak_share_forecast",
+        "kelvexa_pricing"
+      ],
+      "quantity": "peak annual US net sales of Kelvexa",
+      "timeframe": "current"
+    },
+    {
+      "id": "breakeven_share",
+      "description": "Share needed for $300M = $300M ÷ $8,000 = 37,500 patients ÷ 200,000 = 18.75%",
+      "answer": 18.75,
+      "tolerance": 0.3,
+      "altAnswers": [
+        19
+      ],
+      "cues": [
+        "breakeven",
+        "break-even",
+        "break even",
+        "to reach",
+        "to hit",
+        "to clear",
+        "need",
+        "minimum"
+      ],
+      "notCues": [
+        "option a",
+        "own team",
+        "build",
+        "building",
+        "going alone",
+        "option b",
+        "partner",
+        "partnering",
+        "royalty"
+      ],
+      "unit": "percent",
+      "inputs": [
+        "us_adults",
+        "funnel_rates",
+        "kelvexa_pricing"
+      ],
+      "quantity": "the peak share Kelvexa needs to reach $300M",
+      "timeframe": "current"
+    },
+    {
+      "id": "breakeven_patients",
+      "description": "Patients needed for $300M = $300M ÷ $8,000 = 37,500",
+      "answer": 37500,
+      "tolerance": 300,
+      "cues": [
+        "breakeven",
+        "break-even",
+        "break even",
+        "to reach",
+        "to hit",
+        "to clear",
+        "need",
+        "minimum"
+      ],
+      "inputs": [
+        "kelvexa_pricing"
+      ],
+      "verifyOnly": true,
+      "quantity": "patients needed to reach $300M",
+      "timeframe": "current"
+    },
+    {
+      "id": "diagnosis_upside",
+      "description": "Raising diagnosis from 50% to 60%: $320M × 60 ÷ 50 ≈ $384M",
+      "answer": 384,
+      "tolerance": 5,
+      "cues": [
+        "diagnos"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "us_adults",
+        "funnel_rates",
+        "peak_share_forecast",
+        "kelvexa_pricing"
+      ],
+      "verifyOnly": true,
+      "quantity": "peak net sales if diagnosis rose to 60%",
+      "timeframe": "current"
+    },
+    {
+      "id": "option_a_profit",
+      "description": "Option A annual profit at peak = 40,000 × $8,000 − $80M = $320M − $80M = $240M",
+      "answer": 240,
+      "tolerance": 3,
+      "altAnswers": [
+        240000000
+      ],
+      "cues": [
+        "option a",
+        "own team",
+        "build",
+        "building",
+        "going alone",
+        "profit",
+        "keep",
+        "earns",
+        "earn"
+      ],
+      "notCues": [
+        "option b",
+        "partner",
+        "partnering",
+        "royalty"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "us_adults",
+        "funnel_rates",
+        "option_a",
+        "option_shared"
+      ],
+      "quantity": "annual profit to Aldermoor at peak under Option A (build)",
+      "timeframe": "current"
+    },
+    {
+      "id": "option_b_net_sales",
+      "description": "Option B US net sales at peak = 200,000 × 25% × $8,000 = $400M",
+      "answer": 400,
+      "tolerance": 5,
+      "cues": [
+        "option b",
+        "partner",
+        "partnering",
+        "royalty",
+        "sales"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "us_adults",
+        "funnel_rates",
+        "option_b",
+        "option_shared"
+      ],
+      "verifyOnly": true,
+      "quantity": "US net sales at peak under Option B (the partner sells)",
+      "timeframe": "current"
+    },
+    {
+      "id": "option_b_profit",
+      "description": "Option B annual profit to Aldermoor at peak = 30% royalty × $400M = $120M",
+      "answer": 120,
+      "tolerance": 3,
+      "altAnswers": [
+        120000000
+      ],
+      "cues": [
+        "option b",
+        "partner",
+        "partnering",
+        "royalty",
+        "profit",
+        "keep",
+        "earns",
+        "earn",
+        "receive"
+      ],
+      "notCues": [
+        "option a",
+        "own team",
+        "build",
+        "building",
+        "going alone"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "us_adults",
+        "funnel_rates",
+        "option_b",
+        "option_shared"
+      ],
+      "quantity": "annual royalty to Aldermoor at peak under Option B (partner)",
+      "timeframe": "current"
+    },
+    {
+      "id": "matching_share",
+      "description": "Share at which Option A earns only the $120M of Option B = ($120M + $80M) ÷ $8,000 = 25,000 patients ÷ 200,000 = 12.5%",
+      "answer": 12.5,
+      "tolerance": 0.3,
+      "cues": [
+        "match",
+        "matching",
+        "fall to",
+        "drop to",
+        "as low as",
+        "indifferent",
+        "breakeven",
+        "break-even",
+        "break even",
+        "below"
+      ],
+      "unit": "percent",
+      "inputs": [
+        "us_adults",
+        "funnel_rates",
+        "option_a",
+        "option_b",
+        "option_shared"
+      ],
+      "quantity": "the share below which partnering would earn Aldermoor more",
+      "timeframe": "current"
+    }
+  ],
+  "exhibits": [
+    {
+      "id": "exhibit-1",
+      "title": "Corlan's disease — US patient funnel and Kelvexa pricing (peak year, about five years after launch; each percentage applies to the stage above)",
+      "chartType": "table",
+      "coversLedgerItems": [
+        "us_adults",
+        "funnel_rates",
+        "peak_share_forecast",
+        "kelvexa_pricing"
+      ],
+      "data": [
+        {
+          "Stage": "US adults",
+          "Size, or share of the stage above": "250 million"
+        },
+        {
+          "Stage": "Have Corlan's disease",
+          "Size, or share of the stage above": "1.6% of US adults"
+        },
+        {
+          "Stage": "Diagnosed",
+          "Size, or share of the stage above": "50% of those with the disease"
+        },
+        {
+          "Stage": "Treated with prescription medicine",
+          "Size, or share of the stage above": "50% of diagnosed patients"
+        },
+        {
+          "Stage": "Moderate-to-severe (eligible for Kelvexa)",
+          "Size, or share of the stage above": "20% of treated patients"
+        },
+        {
+          "Stage": "On Kelvexa at peak (Aldermoor forecast)",
+          "Size, or share of the stage above": "20% of eligible patients"
+        },
+        {
+          "Stage": "Kelvexa list price (US)",
+          "Size, or share of the stage above": "$10,000 per patient per year"
+        },
+        {
+          "Stage": "Average discounts and rebates to insurers",
+          "Size, or share of the stage above": "20% of list price"
+        },
+        {
+          "Stage": "Time on treatment",
+          "Size, or share of the stage above": "Full year"
+        }
+      ],
+      "interpretationKey": "250M × 1.6% = 4.0M with the disease → 2.0M diagnosed → 1.0M treated → 200,000 moderate-to-severe (eligible) → 40,000 on Kelvexa at a 20% peak share. Net price = $10,000 × 80% = $8,000, so peak net sales ≈ $320M: clears the $300M bar by only $20M (~6%); the bar is met at an 18.75% share. Net sales are after discounts and rebates — that is what the bar measures. The funnel leaks most at diagnosis and treatment (half each)."
+    },
+    {
+      "id": "exhibit-2",
+      "title": "US specialist survey — Reasons for and against prescribing Kelvexa (% of 200 specialists; up to two answers each)",
+      "chartType": "table",
+      "coversLedgerItems": [
+        "survey_design",
+        "reasons_to_prescribe",
+        "barriers_to_prescribing"
+      ],
+      "data": [
+        {
+          "Question": "Reason to prescribe",
+          "Answer": "Once-daily pill instead of an injection",
+          "% of specialists": "64%"
+        },
+        {
+          "Question": "Reason to prescribe",
+          "Answer": "Fewer side effects than current options",
+          "% of specialists": "38%"
+        },
+        {
+          "Question": "Reason to prescribe",
+          "Answer": "Strong efficacy data from Europe",
+          "% of specialists": "22%"
+        },
+        {
+          "Question": "Reason to prescribe",
+          "Answer": "Lower price than current options",
+          "% of specialists": "11%"
+        },
+        {
+          "Question": "Barrier",
+          "Answer": "Insurance coverage / prior approval",
+          "% of specialists": "58%"
+        },
+        {
+          "Question": "Barrier",
+          "Answer": "No local support from the company",
+          "% of specialists": "41%"
+        },
+        {
+          "Question": "Barrier",
+          "Answer": "Want more US experience with it first",
+          "% of specialists": "27%"
+        },
+        {
+          "Question": "Barrier",
+          "Answer": "Patient out-of-pocket cost",
+          "% of specialists": "15%"
+        },
+        {
+          "Question": "Barrier",
+          "Answer": "Side-effect concerns",
+          "% of specialists": "9%"
+        }
+      ],
+      "interpretationKey": "Doctors like the product — the once-daily pill is the top reason (64%) — but the top barriers are insurance coverage (58%) and no local support from the company (41%): access and presence, which Aldermoor doesn't have in the US. 27% want more US experience first, so uptake starts slowly; with only 1.25 points of cushion over the $300M bar, the 20% share needs both barriers fixed. Percentages add up to more than 100% (up to two answers); price (11% / 15%) is well behind coverage and support. 'Local support' means sales reps and nurse educators."
+    },
+    {
+      "id": "exhibit-3",
+      "title": "US entry options for Kelvexa (peak year, about five years after launch; net price $8,000 per patient per year under both)",
+      "chartType": "table",
+      "coversLedgerItems": [
+        "option_a",
+        "option_b",
+        "option_shared"
+      ],
+      "data": [
+        {
+          "": "Who sells Kelvexa",
+          "Option A — Build own US team": "Aldermoor's own team: about 60 specialist sales reps, an insurer-access team and patient support",
+          "Option B — Partner with a US company": "An established US drug company whose sales force already calls on these specialists"
+        },
+        {
+          "": "What Aldermoor receives",
+          "Option A — Build own US team": "100% of US net sales",
+          "Option B — Partner with a US company": "A 30% royalty on US net sales"
+        },
+        {
+          "": "Annual US selling costs paid by Aldermoor",
+          "Option A — Build own US team": "$80 million",
+          "Option B — Partner with a US company": "$0 (the partner pays)"
+        },
+        {
+          "": "Expected peak share of eligible patients",
+          "Option A — Build own US team": "20%",
+          "Option B — Partner with a US company": "25%"
+        },
+        {
+          "": "Time to launch",
+          "Option A — Build own US team": "12–18 months",
+          "Option B — Partner with a US company": "About 6 months"
+        }
+      ],
+      "interpretationKey": "Option A: 40,000 × $8,000 = $320M, all to Aldermoor, minus $80M selling costs = $240M a year at peak. Option B: 50,000 × $8,000 = $400M of sales at a 30% royalty = $120M. Building earns about $120M more per year (double), and stays ahead unless share falls below 12.5% (25,000 patients). The partner sells more but keeps 70%; trade-offs are speed (6 months vs. 12–18), execution risk (no US experience) and long-term platform value (two more drugs for the same specialists). Product cost is small and similar — ignore it."
+    }
+  ],
+  "structureKey": "A strong structure turns 'should we enter, and how?' into prioritized questions: market attractiveness (how many US patients could use Kelvexa, at what net price; growth); competition and customers (the injectable standard; what doctors and insurers will think); Aldermoor's ability to win with no US presence (sales, insurer access, patient support); and economics and entry mode (peak sales vs. the $300M bar; costs; build vs. partner). Strong candidates use the bar to put sizing first, size from patients (prevalence → diagnosed → treated → eligible → share), separate whether from how, and name insurers as a second customer. Red flags: most of the answer on regulatory approval (it's approved), a generic list with no link to $300M, ignoring the lack of US presence.",
+  "recommendationKey": "Yes — enter the US, and build a focused US team of its own. The patient funnel gives 200,000 eligible US patients; at a 20% peak share and an $8,000 net price, Kelvexa reaches about $320M in peak net sales, which clears the $300M bar — but only just (the bar is met at an 18.75% share). US specialists like the once-daily pill, but their biggest barriers are insurance coverage and no local support from the company, so the plan must build payer access and a field presence. Going alone earns about $240M a year at peak vs. $120M from a royalty deal, and stays ahead unless share falls below 12.5%; the same team can launch Aldermoor's two pipeline drugs. Key risks: slow insurer coverage (12–18 months) and no US experience — hire an experienced US access team early, start insurer negotiations before launch, and consider short-term help such as a contract sales force.",
+  "answerKeyIdeas": [
+    {
+      "idea": "Use a contract sales force while hiring",
+      "phrases": [
+        "contract sales",
+        "cso",
+        "rent a sales force",
+        "outsourced sales"
+      ]
+    },
+    {
+      "idea": "Co-promote with a US company for the first years",
+      "phrases": [
+        "co-promot",
+        "copromot",
+        "co promot",
+        "hybrid"
+      ]
+    },
+    {
+      "idea": "Disease-awareness programs to close the diagnosis gap",
+      "phrases": [
+        "awareness program",
+        "disease awareness",
+        "diagnosis gap",
+        "close the diagnosis",
+        "raise diagnosis"
+      ]
+    },
+    {
+      "idea": "Share European real-world results / start US studies",
+      "phrases": [
+        "real-world",
+        "real world evidence",
+        "us studies",
+        "us study",
+        "european data"
+      ]
+    },
+    {
+      "idea": "Nurse educators and patient support programs",
+      "phrases": [
+        "nurse educator",
+        "patient support program",
+        "hub services",
+        "copay card",
+        "co-pay"
+      ]
+    },
+    {
+      "idea": "Price competitively vs. Nimbrel",
+      "phrases": [
+        "below nimbrel",
+        "cheaper than nimbrel",
+        "price competitively",
+        "undercut nimbrel"
+      ]
+    },
+    {
+      "idea": "Focus on the ~6,000 specialists who treat 80% of patients",
+      "phrases": [
+        "6,000 specialists",
+        "6000 specialists",
+        "focus on the specialists",
+        "target the specialists"
+      ]
+    }
+  ],
+  "pacing": {
+    "phaseBudgetsMs": {
+      "INTRO": 24000,
+      "CLARIFY": 48000,
+      "STRUCTURE": 192000,
+      "ANALYSIS": 336000,
+      "EXHIBIT": 264000,
+      "BRAINSTORM": 240000,
+      "RECOMMENDATION": 72000,
+      "WRAP": 24000
+    }
+  },
+  "format": "interviewer_led",
+  "analysisCore": {
+    "items": [
+      "funnel_rates",
+      "peak_share_forecast",
+      "kelvexa_pricing"
+    ],
+    "minItems": 3,
+    "ask": "Let's hold the recommendation for now: is the US market big enough to clear the board's bar, and what would you need to know to tell?"
+  },
+  "quoteAnchors": [
+    {
+      "item": "kelvexa_pricing",
+      "names": [
+        "list price",
+        "kelvexa's list price"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "option_a",
+      "names": [
+        "selling costs",
+        "selling cost",
+        "sales costs"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "nimbrel",
+      "names": [
+        "nimbrel's net price",
+        "nimbrel's price",
+        "nimbrel price",
+        "nimbrel costs"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "us_adults",
+      "names": [
+        "us adults",
+        "adults in the us"
+      ],
+      "kind": "level"
+    }
+  ],
+  "factAnchors": {
+    "promptFacts": [
+      {
+        "id": "board_bar",
+        "names": [
+          "board's bar",
+          "the bar",
+          "board bar",
+          "hurdle",
+          "threshold",
+          "board's threshold"
+        ],
+        "kind": "level",
+        "unit": "dollar",
+        "values": {
+          "300": "current"
+        },
+        "say": "The board's bar is $300 million in peak annual US net sales."
+      }
+    ],
+    "names": {
+      "us_adults": [
+        "us adults",
+        "adult population",
+        "population"
+      ],
+      "funnel_rates": [
+        "prevalence",
+        "diagnosis rate",
+        "treatment rate",
+        "funnel rates"
+      ],
+      "peak_share_forecast": [
+        "share forecast",
+        "forecast share",
+        "aldermoor's forecast"
+      ],
+      "kelvexa_pricing": [
+        "list price",
+        "kelvexa pricing",
+        "discounts and rebates",
+        "rebates"
+      ],
+      "survey_design": [
+        "survey",
+        "specialist survey",
+        "what doctors think",
+        "doctor survey"
+      ],
+      "reasons_to_prescribe": [
+        "reasons to prescribe",
+        "why doctors would prescribe"
+      ],
+      "barriers_to_prescribing": [
+        "barriers",
+        "barriers to prescribing",
+        "why doctors would not prescribe",
+        "concerns"
+      ],
+      "nimbrel": [
+        "nimbrel",
+        "current standard",
+        "competitor",
+        "the injectable"
+      ],
+      "trial_comparison": [
+        "trial results",
+        "clinical trials",
+        "efficacy",
+        "how kelvexa compares"
+      ],
+      "insurance_coverage": [
+        "insurance",
+        "insurers",
+        "coverage",
+        "reimbursement",
+        "prior approval",
+        "payers",
+        "access"
+      ],
+      "specialist_concentration": [
+        "who treats these patients",
+        "who treats",
+        "specialist concentration",
+        "sales force size"
+      ],
+      "diagnosis_gap": [
+        "diagnosis gap",
+        "undiagnosed",
+        "why so few are diagnosed"
+      ],
+      "pipeline": [
+        "pipeline",
+        "other drugs",
+        "next drugs",
+        "long-term plans"
+      ],
+      "option_a": [
+        "option a",
+        "build own team",
+        "own us team",
+        "go alone",
+        "building a team"
+      ],
+      "option_b": [
+        "option b",
+        "partner",
+        "partnering",
+        "royalty deal",
+        "licensing"
+      ],
+      "option_shared": [
+        "entry options",
+        "product cost"
+      ],
+      "company_size": [
+        "aldermoor's size",
+        "company size",
+        "us presence"
+      ],
+      "patents": [
+        "patents",
+        "patent",
+        "exclusivity"
+      ],
+      "supply": [
+        "manufacturing",
+        "supply",
+        "capacity"
+      ]
+    },
+    "groups": [
+      {
+        "names": [
+          "patient funnel",
+          "funnel",
+          "market size",
+          "how many patients",
+          "patient numbers",
+          "size the market",
+          "market sizing"
+        ],
+        "items": [
+          "us_adults",
+          "funnel_rates",
+          "peak_share_forecast",
+          "kelvexa_pricing"
+        ]
+      },
+      {
+        "names": [
+          "survey",
+          "specialist survey",
+          "what doctors think",
+          "what us doctors think",
+          "doctor feedback",
+          "adoption"
+        ],
+        "items": [
+          "survey_design",
+          "reasons_to_prescribe",
+          "barriers_to_prescribing"
+        ]
+      },
+      {
+        "names": [
+          "entry options",
+          "build or partner",
+          "build vs partner",
+          "build versus partner",
+          "how to enter",
+          "the two options"
+        ],
+        "items": [
+          "option_a",
+          "option_b",
+          "option_shared"
+        ]
+      }
+    ],
+    "directions": {},
+    "drivers": []
+  }
+}

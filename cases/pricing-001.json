@@ -1,0 +1,1204 @@
+{
+  "id": "pricing-001",
+  "title": "Quillpath SaaS Starter Plan Pricing",
+  "firmStyle": "mckinsey",
+  "difficulty": "hard",
+  "prompt": "Our client is Quillpath, a US software company. It sells cloud software that small home-services businesses — plumbers, landscapers, cleaners — use to schedule jobs, send quotes and get paid. Customers pay monthly and can cancel at any time. For years Quillpath sold one plan, Pro, at $100 a month. In January 2025 it launched a cheaper Starter plan at $40 a month, with fewer features and a single user. New customers per month nearly tripled. Quillpath's board has a rule: each type of customer should be worth at least three times what it costs to acquire. The CFO says Starter fails that test and wants to shut it down; the head of growth wants to keep it. The CEO has asked us what Quillpath should do with the Starter plan.",
+  "interviewerNotes": "Source: AI Casing Case 05 (v1.0, Oct 2026), interviewer-led mode. Hard: three quantitative steps. Standalone: Pro margin $80 ÷ 2% churn = $4,000 LTV vs. $1,200 CAC (3.3×); Starter margin $30 ÷ 5% churn (not 6% — the 1% who upgraded didn't leave) = $600 vs. $300 (2.0×) — the CFO is right on that narrow basis. But 20% of Starter customers upgrade to Pro: $600 + 20% × $4,000 = $1,400 (4.7×), net $1,100. Starter also takes ~150 Pro sign-ups a month (500 → 350). A month of sign-ups: Pro only 500 × $2,800 = $1.40M; with Starter 350 × $2,800 + 1,000 × $1,100 = $2.08M (+$0.68M; the CFO's standalone view gives $1.28M). Cannibalization breakeven ≈ 390 Pro a month. Price test at $60: Starter value $50 × 20 + $800 − $300 = $1,500 net; 400 × $2,800 + 800 × $1,500 = $2.32M (+$0.24M). But the test ran 8 weeks: it holds unless Starter churn rises above ~7% a month or upgrades fall below 12.5%. Recommendation: keep Starter, move new customers to $60, keep the ~9,000 existing customers at $40, and watch churn and upgrades. An 'extend the test first' answer is acceptable if the +$0.24M at stake is quantified. Release order in the guide: Exhibits 1 and 2 together (either order) → Exhibit 3 (sign-ups by plan, any time after the structure) → Exhibit 4 (price test) only after the upgrade-adjusted value is worked out. The case has no brainstorm module; feature or packaging ideas are credited under creativity.",
+  "dataLedger": [
+    {
+      "id": "product",
+      "label": "The product",
+      "value": "Quillpath's product is cloud software for scheduling, quotes, invoicing and payments, used by small home-services businesses in the US.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "plan_features",
+      "label": "Difference between the plans",
+      "value": "Pro has all features, unlimited users, team scheduling and reports; Starter has one user and core scheduling and invoicing only; both are billed monthly.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "signup_channels",
+      "label": "How customers sign up",
+      "value": "Most Pro customers have a demo with a salesperson first, while Starter customers sign up online on their own.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "board_rule_definition",
+      "label": "What \"worth three times the acquisition cost\" means",
+      "value": "Under the board's rule, lifetime value — the gross margin earned over a customer's life — divided by the cost to acquire that customer has to be at least 3.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "company_size",
+      "label": "Company size",
+      "value": "Quillpath has about 20,000 paying customers today.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {
+        "20,000": "current"
+      }
+    },
+    {
+      "id": "market_growth",
+      "label": "Market growth",
+      "value": "Demand for small-business software is growing about 10% a year.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {
+        "10": "change"
+      }
+    },
+    {
+      "id": "ceo_goal",
+      "label": "What the CEO cares about",
+      "value": "The CEO's goal is to create as much long-term value as possible from new customers while respecting the board's rule.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "plan_prices_costs",
+      "label": "Plan economics: monthly price and cost to serve, Pro and Starter",
+      "value": "Pro is $100 a month with a $20 monthly cost to serve, and Starter is $40 a month with a $10 monthly cost to serve — hosting, support and payment processing.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "100": "current",
+        "20": "current",
+        "40": "current",
+        "10": "current"
+      }
+    },
+    {
+      "id": "plan_cac",
+      "label": "Customer acquisition cost (CAC), Pro and Starter",
+      "value": "The cost to acquire one new customer is $1,200 for Pro, through a sales demo, and $300 for Starter, which is self-serve, and it does not change with volume.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "1,200": "current",
+        "300": "current"
+      }
+    },
+    {
+      "id": "ltv_definition",
+      "label": "How lifetime value is calculated",
+      "value": "Lifetime value is monthly gross margin times expected lifetime in months; expected lifetime is about 1 divided by the monthly cancellation rate, and gross margin is price minus cost to serve.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {}
+    },
+    {
+      "id": "pro_cohort",
+      "label": "Pro cohort retention (customers who signed up January–March 2025)",
+      "value": "Of the 1,050 Pro customers who signed up in January–March 2025, 98.0% were still on Pro after month 1, 94.1% after month 3, 88.6% after month 6 and 78.5% after month 12, so 2.0%, 5.9%, 11.4% and 21.5% had cancelled by those months.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {}
+    },
+    {
+      "id": "starter_cohort",
+      "label": "Starter cohort status: still on Starter, upgraded to Pro, cancelled",
+      "value": "Of the 3,000 Starter customers who signed up in January–March 2025, 94% were still on Starter after month 1, 82% after month 3, 65% after month 6 and 40% after month 12; by those months 1%, 5%, 11% and 20% had upgraded to Pro and were still customers, and 5%, 13%, 24% and 40% had cancelled.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {}
+    },
+    {
+      "id": "cohort_notes",
+      "label": "Cohort notes: steady cancellation, upgrade timing, how finance values upgrades",
+      "value": "Cancellation rates have stayed roughly steady from month to month, very few Starter customers upgrade after month 12, upgraded customers then behave like Pro customers, and finance values a Starter sign-up at its Starter LTV plus one Pro LTV for each customer who upgrades.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {}
+    },
+    {
+      "id": "new_customers_by_plan",
+      "label": "New customers per month by plan, before and after Starter launched",
+      "value": "New customers per month were 500 Pro in 2024, before Starter launched, and 350 Pro plus 1,000 Starter — 1,350 in total — from January 2025 to June 2026.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "500": "prior",
+        "350": "current",
+        "1,000": "current",
+        "1,350": "current"
+      }
+    },
+    {
+      "id": "price_test_results",
+      "label": "Starter price test results: sign-ups per month at $40 and $60",
+      "value": "In the eight-week price test, sign-ups per month were 350 Pro and 1,000 Starter at a $40 Starter price, and 400 Pro and 800 Starter at $60, scaled to Quillpath's full website traffic.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "350": "current",
+        "1,000": "current",
+        "400": "current",
+        "800": "current",
+        "40": "current",
+        "60": "current"
+      }
+    },
+    {
+      "id": "price_test_notes",
+      "label": "Price test notes: costs unchanged, churn and upgrades not yet measurable",
+      "value": "Starter's cost to serve ($10 a month) and acquisition cost ($300) are the same at either price, and cancellation and upgrade rates for customers who signed up at $60 can't be measured yet because the test lasted only eight weeks.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {}
+    },
+    {
+      "id": "upgrade_timing",
+      "label": "When customers upgrade",
+      "value": "Most upgrades are between months 3 and 9, usually when the business hires its first employee; very few are after month 12.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "why_pro_fell",
+      "label": "Why Pro sign-ups fell",
+      "value": "Pro marketing spend, the sales team and demo requests were unchanged, and in interviews most people who'd have bought Pro said they chose Starter to save money.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "buyer_profile",
+      "label": "Who buys each plan",
+      "value": "Starter buyers are mostly one-person businesses, and Pro buyers mostly have three or more staff.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "competitor_prices",
+      "label": "Competitors' entry-plan prices",
+      "value": "The main competitors' entry plans are $50–$70 a month.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {}
+    },
+    {
+      "id": "test_design",
+      "label": "How the price test worked",
+      "value": "For eight weeks, website visitors were randomly shown Starter at $40 or $60, results are scaled to Quillpath's full traffic, and churn and upgrade rates for $60 customers can't be measured yet.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {}
+    },
+    {
+      "id": "existing_starter_customers",
+      "label": "Existing Starter customers",
+      "value": "About 9,000 customers are on Starter at $40 today, and a new price could apply to new customers only.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {
+        "9,000": "current"
+      }
+    }
+  ],
+  "mathSteps": [
+    {
+      "id": "pro_margin",
+      "description": "Pro monthly gross margin = $100 − $20 = $80",
+      "answer": 80,
+      "tolerance": 1,
+      "cues": [
+        "margin",
+        "gross margin",
+        "keep",
+        "per month",
+        "a month"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "plan_prices_costs"
+      ],
+      "verifyOnly": true,
+      "quantity": "Pro monthly gross margin per customer",
+      "timeframe": "current"
+    },
+    {
+      "id": "starter_margin",
+      "description": "Starter monthly gross margin = $40 − $10 = $30",
+      "answer": 30,
+      "tolerance": 1,
+      "cues": [
+        "margin",
+        "gross margin",
+        "keep",
+        "per month",
+        "a month"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "plan_prices_costs"
+      ],
+      "verifyOnly": true,
+      "quantity": "Starter monthly gross margin per customer at $40",
+      "timeframe": "current"
+    },
+    {
+      "id": "pro_churn",
+      "description": "Pro monthly cancellation rate = 2% (month 1; steady — 0.98^12 ≈ 78.5%)",
+      "answer": 2,
+      "tolerance": 0.25,
+      "altAnswers": [
+        1.8
+      ],
+      "cues": [
+        "churn",
+        "cancel",
+        "cancellation",
+        "attrition",
+        "leave"
+      ],
+      "notCues": [
+        "starter",
+        "upgrade"
+      ],
+      "unit": "percent",
+      "inputs": [
+        "pro_cohort"
+      ],
+      "quantity": "Pro monthly cancellation rate",
+      "timeframe": "current"
+    },
+    {
+      "id": "starter_churn",
+      "description": "Starter monthly cancellation rate = 5% (not 6% — the 1% who upgraded did not leave)",
+      "answer": 5,
+      "tolerance": 0.25,
+      "cues": [
+        "churn",
+        "cancel",
+        "cancellation",
+        "attrition",
+        "leave"
+      ],
+      "notCues": [
+        "pro cohort",
+        "pro churn",
+        "pro customers",
+        "$60",
+        "at 60",
+        "breakeven",
+        "break-even",
+        "break even",
+        "above",
+        "rises"
+      ],
+      "unit": "percent",
+      "inputs": [
+        "starter_cohort"
+      ],
+      "quantity": "Starter monthly cancellation rate",
+      "timeframe": "current"
+    },
+    {
+      "id": "pro_ltv",
+      "description": "Pro LTV = $80 × 50 months (1 ÷ 2%) = $4,000",
+      "answer": 4000,
+      "tolerance": 400,
+      "altAnswers": [
+        4444
+      ],
+      "cues": [
+        "ltv",
+        "lifetime value",
+        "worth",
+        "over its life",
+        "over their life"
+      ],
+      "notCues": [
+        "starter"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "plan_prices_costs",
+        "pro_cohort"
+      ],
+      "quantity": "Pro lifetime value",
+      "timeframe": "current"
+    },
+    {
+      "id": "starter_ltv",
+      "description": "Starter standalone LTV = $30 × 20 months (1 ÷ 5%) = $600",
+      "answer": 600,
+      "tolerance": 60,
+      "cues": [
+        "ltv",
+        "lifetime value",
+        "worth",
+        "over its life",
+        "over their life",
+        "standalone",
+        "on its own"
+      ],
+      "notCues": [
+        "pro ltv",
+        "pro customer",
+        "pro's",
+        "including upgrades",
+        "with upgrades",
+        "$60",
+        "at 60"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "plan_prices_costs",
+        "starter_cohort"
+      ],
+      "quantity": "Starter standalone lifetime value at $40",
+      "timeframe": "current"
+    },
+    {
+      "id": "pro_ratio",
+      "description": "Pro LTV/CAC = $4,000 ÷ $1,200 ≈ 3.3×",
+      "answer": 3.3,
+      "tolerance": 0.1,
+      "cues": [
+        "ltv/cac",
+        "ltv to cac",
+        "ratio",
+        "times",
+        "returns",
+        "return"
+      ],
+      "notCues": [
+        "starter"
+      ],
+      "inputs": [
+        "plan_prices_costs",
+        "pro_cohort",
+        "plan_cac"
+      ],
+      "verifyOnly": true,
+      "quantity": "Pro LTV/CAC",
+      "timeframe": "current"
+    },
+    {
+      "id": "starter_ratio",
+      "description": "Starter standalone LTV/CAC = $600 ÷ $300 = 2.0×",
+      "answer": 2.0,
+      "tolerance": 0.1,
+      "cues": [
+        "ltv/cac",
+        "ltv to cac",
+        "ratio",
+        "times",
+        "returns",
+        "return"
+      ],
+      "notCues": [
+        "pro ratio",
+        "including upgrades",
+        "with upgrades"
+      ],
+      "inputs": [
+        "plan_prices_costs",
+        "starter_cohort",
+        "plan_cac"
+      ],
+      "quantity": "Starter standalone LTV/CAC",
+      "timeframe": "current"
+    },
+    {
+      "id": "upgrade_rate",
+      "description": "Starter customers who upgrade to Pro within a year = 20%",
+      "answer": 20,
+      "tolerance": 0.5,
+      "cues": [
+        "upgrade",
+        "upgrades",
+        "upgraded"
+      ],
+      "unit": "percent",
+      "inputs": [
+        "starter_cohort"
+      ],
+      "verifyOnly": true,
+      "quantity": "share of Starter customers who upgrade to Pro",
+      "timeframe": "current"
+    },
+    {
+      "id": "starter_value_with_upgrades",
+      "description": "Starter value per sign-up including upgrades = $600 + 20% × $4,000 = $1,400",
+      "answer": 1400,
+      "tolerance": 50,
+      "cues": [
+        "upgrade",
+        "upgrades",
+        "including",
+        "with upgrades",
+        "worth",
+        "value"
+      ],
+      "notCues": [
+        "$60",
+        "at 60",
+        "test"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "plan_prices_costs",
+        "starter_cohort",
+        "pro_cohort"
+      ],
+      "quantity": "Starter value per sign-up including upgrades, at $40",
+      "timeframe": "current"
+    },
+    {
+      "id": "starter_ratio_with_upgrades",
+      "description": "Starter LTV/CAC including upgrades = $1,400 ÷ $300 ≈ 4.7×",
+      "answer": 4.7,
+      "tolerance": 0.1,
+      "cues": [
+        "ltv/cac",
+        "ratio",
+        "times",
+        "returns",
+        "upgrade"
+      ],
+      "inputs": [
+        "plan_prices_costs",
+        "starter_cohort",
+        "pro_cohort",
+        "plan_cac"
+      ],
+      "quantity": "Starter LTV/CAC including upgrades",
+      "timeframe": "current"
+    },
+    {
+      "id": "starter_net_value",
+      "description": "Starter net value per sign-up = $1,400 − $300 = $1,100",
+      "answer": 1100,
+      "tolerance": 50,
+      "cues": [
+        "net",
+        "net value",
+        "after cac",
+        "minus cac",
+        "less cac"
+      ],
+      "notCues": [
+        "$60",
+        "at 60",
+        "test"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "plan_prices_costs",
+        "starter_cohort",
+        "pro_cohort",
+        "plan_cac"
+      ],
+      "quantity": "Starter net value per sign-up (including upgrades) at $40",
+      "timeframe": "current"
+    },
+    {
+      "id": "pro_net_value",
+      "description": "Pro net value per customer = $4,000 − $1,200 = $2,800",
+      "answer": 2800,
+      "tolerance": 100,
+      "cues": [
+        "net",
+        "net value",
+        "after cac",
+        "minus cac",
+        "less cac",
+        "pro"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "plan_prices_costs",
+        "pro_cohort",
+        "plan_cac"
+      ],
+      "verifyOnly": true,
+      "quantity": "Pro net value per customer",
+      "timeframe": "current"
+    },
+    {
+      "id": "lost_pro_signups",
+      "description": "Pro sign-ups lost after Starter launched = 500 − 350 = 150 a month",
+      "answer": 150,
+      "tolerance": 5,
+      "cues": [
+        "lost",
+        "fewer",
+        "cannibal",
+        "fell",
+        "dropped",
+        "taken",
+        "took",
+        "lose"
+      ],
+      "inputs": [
+        "new_customers_by_plan"
+      ],
+      "quantity": "Pro sign-ups a month lost after Starter launched",
+      "timeframe": "change"
+    },
+    {
+      "id": "value_pro_only",
+      "description": "Value of a month of sign-ups, Pro only (2024) = 500 × $2,800 = $1.40M",
+      "answer": 1.4,
+      "tolerance": 0.03,
+      "altAnswers": [
+        1400000
+      ],
+      "cues": [
+        "pro only",
+        "without starter",
+        "before starter",
+        "2024",
+        "no starter"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "new_customers_by_plan",
+        "plan_prices_costs",
+        "plan_cac",
+        "pro_cohort"
+      ],
+      "quantity": "value of a month of sign-ups with Pro only",
+      "timeframe": "prior"
+    },
+    {
+      "id": "value_with_starter",
+      "description": "Value of a month of sign-ups with Starter, including upgrades = 350 × $2,800 + 1,000 × $1,100 = $2.08M (CFO standalone view: $1.28M)",
+      "answer": 2.08,
+      "tolerance": 0.05,
+      "altAnswers": [
+        2080000,
+        1.28,
+        1280000
+      ],
+      "cues": [
+        "with starter",
+        "including upgrades",
+        "month of sign-ups",
+        "per month",
+        "a month",
+        "today",
+        "at $40",
+        "at 40"
+      ],
+      "notCues": [
+        "$60",
+        "at 60",
+        "test"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "new_customers_by_plan",
+        "plan_prices_costs",
+        "plan_cac",
+        "pro_cohort",
+        "starter_cohort"
+      ],
+      "quantity": "value of a month of sign-ups with Starter at $40, counting upgrades",
+      "timeframe": "current"
+    },
+    {
+      "id": "starter_value_added",
+      "description": "Value Starter adds per month of sign-ups = $2.08M − $1.40M = +$0.68M",
+      "answer": 0.68,
+      "tolerance": 0.03,
+      "altAnswers": [
+        680000,
+        680
+      ],
+      "cues": [
+        "adds",
+        "more",
+        "extra",
+        "uplift",
+        "gain",
+        "better",
+        "difference"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "new_customers_by_plan",
+        "plan_prices_costs",
+        "plan_cac",
+        "pro_cohort",
+        "starter_cohort"
+      ],
+      "verifyOnly": true,
+      "quantity": "value Starter adds per month of sign-ups",
+      "timeframe": "change"
+    },
+    {
+      "id": "cannibalization_breakeven",
+      "description": "Pro sign-ups Starter could take before it stopped creating value = $1.1M ÷ $2,800 ≈ 390 a month",
+      "answer": 390,
+      "tolerance": 5,
+      "altAnswers": [
+        393
+      ],
+      "cues": [
+        "breakeven",
+        "break-even",
+        "break even",
+        "could take",
+        "stops creating",
+        "before it",
+        "up to",
+        "as many as"
+      ],
+      "inputs": [
+        "new_customers_by_plan",
+        "plan_prices_costs",
+        "plan_cac",
+        "pro_cohort",
+        "starter_cohort"
+      ],
+      "quantity": "Pro sign-ups a month Starter could take before destroying value",
+      "timeframe": "current"
+    },
+    {
+      "id": "starter_value_at_60",
+      "description": "Starter net value per sign-up at $60 = $50 × 20 + $800 − $300 = $1,500",
+      "answer": 1500,
+      "tolerance": 50,
+      "cues": [
+        "$60",
+        "at 60",
+        "sixty",
+        "test",
+        "higher price",
+        "new price",
+        "net",
+        "worth"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "price_test_results",
+        "price_test_notes",
+        "plan_prices_costs",
+        "starter_cohort",
+        "pro_cohort"
+      ],
+      "quantity": "Starter net value per sign-up at $60 (assuming the same churn and upgrades)",
+      "timeframe": "current"
+    },
+    {
+      "id": "value_at_60",
+      "description": "Value of a month of sign-ups at $60 = 400 × $2,800 + 800 × $1,500 = $1.12M + $1.20M = $2.32M",
+      "answer": 2.32,
+      "tolerance": 0.05,
+      "altAnswers": [
+        2320000
+      ],
+      "cues": [
+        "test",
+        "higher price",
+        "new price",
+        "raised price",
+        "sixty",
+        "at 60"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "price_test_results",
+        "price_test_notes",
+        "plan_prices_costs",
+        "plan_cac",
+        "starter_cohort",
+        "pro_cohort"
+      ],
+      "quantity": "value of a month of sign-ups with Starter at $60",
+      "timeframe": "current"
+    },
+    {
+      "id": "uplift_at_60",
+      "description": "$60 adds $2.32M − $2.08M = +$0.24M per month of sign-ups (+12%)",
+      "answer": 0.24,
+      "tolerance": 0.02,
+      "altAnswers": [
+        240000,
+        240
+      ],
+      "cues": [
+        "more",
+        "uplift",
+        "gain",
+        "better",
+        "increase",
+        "extra",
+        "adds"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "price_test_results",
+        "price_test_notes",
+        "plan_prices_costs",
+        "plan_cac",
+        "starter_cohort",
+        "pro_cohort"
+      ],
+      "verifyOnly": true,
+      "quantity": "extra value per month of sign-ups at $60 vs. $40",
+      "timeframe": "change"
+    },
+    {
+      "id": "churn_breakeven_at_60",
+      "description": "$60 beats $40 unless Starter churn rises above ~7% a month ($50 × 14 + $800 = $1,500 → lifetime 14 months → 1/14 ≈ 7.1%)",
+      "answer": 7,
+      "tolerance": 0.3,
+      "altAnswers": [
+        7.1
+      ],
+      "cues": [
+        "churn",
+        "cancel",
+        "cancellation"
+      ],
+      "unit": "percent",
+      "inputs": [
+        "price_test_results",
+        "price_test_notes",
+        "plan_prices_costs",
+        "plan_cac",
+        "starter_cohort",
+        "pro_cohort"
+      ],
+      "quantity": "Starter monthly churn above which $60 stops beating $40",
+      "timeframe": "current"
+    },
+    {
+      "id": "upgrade_breakeven_at_60",
+      "description": "$60 beats $40 unless upgrades fall below 12.5% ($1,000 + u × $4,000 = $1,500)",
+      "answer": 12.5,
+      "tolerance": 0.3,
+      "cues": [
+        "upgrade",
+        "upgrades"
+      ],
+      "unit": "percent",
+      "inputs": [
+        "price_test_results",
+        "price_test_notes",
+        "plan_prices_costs",
+        "plan_cac",
+        "starter_cohort",
+        "pro_cohort"
+      ],
+      "quantity": "upgrade rate below which $60 stops beating $40",
+      "timeframe": "current"
+    }
+  ],
+  "exhibits": [
+    {
+      "id": "exhibit-1",
+      "title": "Quillpath — Economics of each plan ($ per customer; LTV = monthly gross margin × expected lifetime in months ≈ margin ÷ monthly cancellation rate)",
+      "chartType": "table",
+      "coversLedgerItems": [
+        "plan_prices_costs",
+        "plan_cac",
+        "ltv_definition"
+      ],
+      "data": [
+        {
+          "": "Monthly price",
+          "Pro": "$100",
+          "Starter": "$40"
+        },
+        {
+          "": "Monthly cost to serve (hosting, support, payment processing)",
+          "Pro": "$20",
+          "Starter": "$10"
+        },
+        {
+          "": "Cost to acquire one new customer (CAC)",
+          "Pro": "$1,200",
+          "Starter": "$300"
+        },
+        {
+          "": "How customers sign up",
+          "Pro": "Demo with a salesperson",
+          "Starter": "Online, on their own"
+        }
+      ],
+      "interpretationKey": "Gross margin = price − cost to serve: Pro $80, Starter $30 a month. With the cohort table: Pro LTV = $80 ÷ 2% = $4,000 vs. $1,200 CAC (3.3×); Starter LTV = $30 ÷ 5% = $600 vs. $300 (2.0×). Use margin, not price. Acquisition cost per customer does not change with volume."
+    },
+    {
+      "id": "exhibit-2",
+      "title": "Customers who signed up in January–March 2025 — Status over their first year (% of each plan's starting customers)",
+      "chartType": "table",
+      "coversLedgerItems": [
+        "pro_cohort",
+        "starter_cohort",
+        "cohort_notes"
+      ],
+      "data": [
+        {
+          "Cohort": "Pro (1,050 at sign-up)",
+          "Status": "Still on Pro",
+          "Month 0": "100.0",
+          "Month 1": "98.0",
+          "Month 3": "94.1",
+          "Month 6": "88.6",
+          "Month 12": "78.5"
+        },
+        {
+          "Cohort": "Pro (1,050 at sign-up)",
+          "Status": "Cancelled",
+          "Month 0": "0.0",
+          "Month 1": "2.0",
+          "Month 3": "5.9",
+          "Month 6": "11.4",
+          "Month 12": "21.5"
+        },
+        {
+          "Cohort": "Starter (3,000 at sign-up)",
+          "Status": "Still on Starter",
+          "Month 0": "100",
+          "Month 1": "94",
+          "Month 3": "82",
+          "Month 6": "65",
+          "Month 12": "40"
+        },
+        {
+          "Cohort": "Starter (3,000 at sign-up)",
+          "Status": "Upgraded to Pro (still a customer)",
+          "Month 0": "0",
+          "Month 1": "1",
+          "Month 3": "5",
+          "Month 6": "11",
+          "Month 12": "20"
+        },
+        {
+          "Cohort": "Starter (3,000 at sign-up)",
+          "Status": "Cancelled",
+          "Month 0": "0",
+          "Month 1": "5",
+          "Month 3": "13",
+          "Month 6": "24",
+          "Month 12": "40"
+        }
+      ],
+      "interpretationKey": "Read churn from the Cancelled rows: Pro 2% a month (0.98^12 ≈ 78.5%), Starter 5% — not 6%: the 1% who upgraded didn't leave. 20% of Starter customers upgrade to Pro within a year, which Starter's standalone LTV leaves out; finance values a Starter sign-up at its Starter LTV plus one Pro LTV per upgrade: $600 + 20% × $4,000 = $1,400 (4.7×). Cancellation rates are roughly steady month to month; very few upgrade after month 12; upgraded customers behave like Pro customers."
+    },
+    {
+      "id": "exhibit-3",
+      "title": "Quillpath — New customers per month, by plan (average per month)",
+      "chartType": "table",
+      "coversLedgerItems": [
+        "new_customers_by_plan"
+      ],
+      "data": [
+        {
+          "Period": "2024 (before Starter launched)",
+          "Pro": "500",
+          "Starter": "—",
+          "Total": "500"
+        },
+        {
+          "Period": "January 2025 – June 2026 (after Starter launched)",
+          "Pro": "350",
+          "Starter": "1,000",
+          "Total": "1,350"
+        }
+      ],
+      "interpretationKey": "Starter took about 150 Pro sign-ups a month (500 → 350). A month of sign-ups: Pro only 500 × $2,800 = $1.40M; with Starter 350 × $2,800 + 1,000 × $1,100 = $2.08M (+$0.68M, +49%); on the CFO's standalone view 350 × $2,800 + 1,000 × $300 = $1.28M. Keep Starter; the cannibalization breakeven is ~390 Pro sign-ups a month, well above today's 150."
+    },
+    {
+      "id": "exhibit-4",
+      "title": "Starter price test — New customers per month (eight-week test, August–September 2026; visitors split at random; scaled to full traffic)",
+      "chartType": "table",
+      "coversLedgerItems": [
+        "price_test_results",
+        "price_test_notes"
+      ],
+      "data": [
+        {
+          "Group": "Control",
+          "Starter price": "$40",
+          "Pro sign-ups / month": "350",
+          "Starter sign-ups / month": "1,000"
+        },
+        {
+          "Group": "Test",
+          "Starter price": "$60",
+          "Pro sign-ups / month": "400",
+          "Starter sign-ups / month": "800"
+        }
+      ],
+      "interpretationKey": "At $60: Starter margin $50, standalone LTV $1,000, plus $800 of upgrade value, net $1,500 per sign-up; 400 × $2,800 + 800 × $1,500 = $2.32M vs. $2.08M at $40 (+$0.24M, +12%) — fewer Starter sign-ups, each worth more, and 50 more customers choose Pro; $60 is inside competitors' $50–$70. Cost to serve ($10) and CAC ($300) are unchanged; churn and upgrade rates at $60 can't be measured yet — $60 holds unless Starter churn rises above ~7% or upgrades fall below 12.5%."
+    }
+  ],
+  "structureKey": "A strong structure frames a product-line pricing decision: per-customer economics by plan (price, cost to serve, how long customers stay, acquisition cost → LTV and LTV/CAC); how the plans interact — Starter customers upgrading to Pro (good) and Starter taking sales from Pro (bad); the options (keep at $40, change the price, change the features, shut it down); and the market (competitor prices, what small businesses will pay). Strong candidates question the CFO's test up front (a plan can fail the ratio and still be worth having if it feeds Pro), name both interaction effects before seeing data, set the goal as total value created, and mention existing Starter customers if the price changes. Red flags: treating the plans as independent, only growth or only the ratio, generic frameworks.",
+  "recommendationKey": "Keep Starter, and raise its price to $60 for new customers. On its own a Starter customer is worth $600 against a $300 acquisition cost (2.0×) — the CFO is right on that narrow basis. But 20% of Starter customers upgrade to Pro; counting that, a Starter sign-up is worth $1,400 (4.7×). Starter also takes about 150 Pro sign-ups a month; netting both, a month of sign-ups is worth about $2.08M with Starter vs. $1.40M with Pro only (+$0.68M). The $60 price test lifts that to $2.32M (+$0.24M a month) — but the test ran only 8 weeks: it holds unless Starter churn rises above ~7% a month or upgrades fall below 12.5%. Roll out $60 to new customers only, keep the ~9,000 current Starter customers at $40, and track churn and upgrades closely for six months. Acceptable alternative: keep $40 and extend the test, if the +$0.24M at stake is quantified and weighed against the risk.",
+  "answerKeyIdeas": [
+    {
+      "idea": "In-app upgrade prompts when a business adds staff",
+      "phrases": [
+        "upgrade prompt",
+        "in-app prompt",
+        "prompt to upgrade",
+        "nudge to upgrade",
+        "hires its first"
+      ]
+    },
+    {
+      "idea": "Grandfather existing Starter customers at $40",
+      "phrases": [
+        "grandfather",
+        "existing customers at $40",
+        "new customers only",
+        "current customers at $40"
+      ]
+    },
+    {
+      "idea": "Staged rollout of the new price",
+      "phrases": [
+        "staged rollout",
+        "phased rollout",
+        "roll out gradually",
+        "roll it out in stages"
+      ]
+    },
+    {
+      "idea": "Annual plans or add-ons to lift retention",
+      "phrases": [
+        "annual plan",
+        "annual billing",
+        "add-on",
+        "add on"
+      ]
+    },
+    {
+      "idea": "A middle tier between Starter and Pro",
+      "phrases": [
+        "middle tier",
+        "mid tier",
+        "mid-tier",
+        "third tier",
+        "new tier"
+      ]
+    },
+    {
+      "idea": "Extend the price test to measure churn and upgrades",
+      "phrases": [
+        "extend the test",
+        "longer test",
+        "run the test longer",
+        "keep testing"
+      ]
+    }
+  ],
+  "pacing": {
+    "phaseBudgetsMs": {
+      "INTRO": 24000,
+      "CLARIFY": 48000,
+      "STRUCTURE": 168000,
+      "ANALYSIS": 288000,
+      "EXHIBIT": 336000,
+      "BRAINSTORM": 240000,
+      "RECOMMENDATION": 72000,
+      "WRAP": 24000
+    }
+  },
+  "format": "interviewer_led",
+  "analysisCore": {
+    "items": [
+      "plan_prices_costs",
+      "plan_cac",
+      "starter_cohort",
+      "new_customers_by_plan"
+    ],
+    "minItems": 3,
+    "ask": "Let's hold the recommendation for now: what is a Starter customer actually worth to Quillpath, and what would you need to know to work it out?"
+  },
+  "quoteAnchors": [
+    {
+      "item": "plan_cac",
+      "names": [
+        "cac",
+        "acquisition cost",
+        "cost to acquire",
+        "customer acquisition cost"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "new_customers_by_plan",
+      "names": [
+        "pro sign-ups",
+        "pro signups",
+        "new pro customers"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "price_test_results",
+      "names": [
+        "pro sign-ups",
+        "pro signups",
+        "new pro customers",
+        "starter sign-ups"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "existing_starter_customers",
+      "names": [
+        "existing starter customers",
+        "current starter customers",
+        "starter customers today"
+      ],
+      "kind": "level"
+    }
+  ],
+  "factAnchors": {
+    "promptFacts": [
+      {
+        "id": "pro_price",
+        "names": [
+          "pro price",
+          "pro's price",
+          "pro plan price"
+        ],
+        "kind": "level",
+        "unit": "dollar",
+        "values": {
+          "100": "current"
+        },
+        "say": "Pro is $100 a month."
+      }
+    ],
+    "names": {
+      "plan_prices_costs": [
+        "plan economics",
+        "cost to serve",
+        "unit economics"
+      ],
+      "plan_cac": [
+        "cac",
+        "acquisition cost",
+        "cost to acquire",
+        "customer acquisition cost"
+      ],
+      "ltv_definition": [
+        "ltv definition",
+        "how ltv is calculated",
+        "lifetime value formula"
+      ],
+      "pro_cohort": [
+        "pro cohort",
+        "pro retention",
+        "pro churn"
+      ],
+      "starter_cohort": [
+        "starter cohort",
+        "starter retention",
+        "starter churn",
+        "upgrades",
+        "upgrade rate"
+      ],
+      "cohort_notes": [
+        "cohort notes",
+        "how finance values upgrades"
+      ],
+      "new_customers_by_plan": [
+        "sign-ups by plan",
+        "new customers by plan",
+        "cannibalization"
+      ],
+      "price_test_results": [
+        "price test",
+        "price test results",
+        "test results",
+        "willingness to pay"
+      ],
+      "price_test_notes": [
+        "price test notes"
+      ],
+      "upgrade_timing": [
+        "upgrade timing",
+        "when customers upgrade"
+      ],
+      "why_pro_fell": [
+        "why pro fell",
+        "why pro sign-ups fell",
+        "pro decline"
+      ],
+      "buyer_profile": [
+        "who buys each plan",
+        "customer profile",
+        "buyer profile"
+      ],
+      "competitor_prices": [
+        "competitor prices",
+        "competitors' prices",
+        "competitor pricing",
+        "competitors"
+      ],
+      "test_design": [
+        "test design",
+        "how the test worked"
+      ],
+      "existing_starter_customers": [
+        "existing starter customers",
+        "current starter customers",
+        "existing customers",
+        "grandfathering"
+      ],
+      "company_size": [
+        "company size",
+        "paying customers",
+        "customer base"
+      ],
+      "market_growth": [
+        "market growth",
+        "market",
+        "demand growth"
+      ],
+      "plan_features": [
+        "plan features",
+        "features",
+        "difference between the plans"
+      ]
+    },
+    "groups": [
+      {
+        "names": [
+          "plan economics",
+          "economics of each plan",
+          "unit economics",
+          "prices and costs",
+          "per-customer economics"
+        ],
+        "items": [
+          "plan_prices_costs",
+          "plan_cac",
+          "ltv_definition"
+        ]
+      },
+      {
+        "names": [
+          "cohort",
+          "cohorts",
+          "cohort table",
+          "retention",
+          "churn",
+          "cancellations",
+          "cohort data"
+        ],
+        "items": [
+          "pro_cohort",
+          "starter_cohort",
+          "cohort_notes"
+        ]
+      },
+      {
+        "names": [
+          "price test",
+          "pricing test",
+          "the test",
+          "test results"
+        ],
+        "items": [
+          "price_test_results",
+          "price_test_notes"
+        ]
+      }
+    ],
+    "directions": {},
+    "drivers": []
+  }
+}
