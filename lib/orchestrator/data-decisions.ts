@@ -62,12 +62,18 @@ const labelWords = (s: string): string[] => s.toLowerCase().replace(/%/g, ' perc
 // 17 of 24 Haiku runs heard offers of data nobody asked for; over batches
 // 18–19 this keeps 8 of 60 offered items, each a real soft ask.
 const GENERIC_LABEL_WORDS = new Set(['price', 'change', 'cost', 'revenue', 'percent', 'total', 'average', 'number', 'other', 'over', 'year', 'period', 'current', 'prior', 'share', 'rate', 'data', 'value', 'input']);
-const NEED_CUE = /\b(?:i'?d (?:want|need|check|look|ask|pull|get|like)|i (?:want|need)|we'?d need|do we (?:have|know)|is there|can (?:i|we) (?:get|see)|would (?:want|need)|whether|needs? to (?:know|see|check)|still need|data on|data to confirm)\b/i;
+const NEED_CUE = /\b(?:i'?d (?:want|need|check|look|ask|pull|get|like)|i (?:want|need)|we'?d need|do we (?:have|know)|is there|can (?:i|we) (?:get|see)|would (?:want|need)|whether|needs? to (?:know|see|check)|still need|data on|data to confirm|i (?:haven't|have not) (?:been given|seen|got|had)|i don't think i've (?:been given|seen|got|had)|unless i missed|next steps?|to (?:confirm|verify|check))\b/i;
 const contentWords = (s: string) => (s.toLowerCase().match(/[a-z][a-z-]+/g) ?? []).map(w => (w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w));
 export function mentionStatesNeed(candidateText: string, label: string): boolean {
   const named = new Set(contentWords(label).filter(w => w.length >= 4 && !GENERIC_LABEL_WORDS.has(w) && !LABEL_IGNORED.has(w)));
   if (named.size === 0) return false;
-  return candidateText.split(/(?<=[.?!])\s+|\n+/).some(s => NEED_CUE.test(s) && contentWords(s).some(w => named.has(w)));
+  // The item is what the need is for: named after the cue, in the same clause
+  // — not in a subordinate one ("I'd check dairy and packaging first … even
+  // though beans rose faster" is no need for the bean figure; batch 20 R25 t24).
+  return candidateText.split(/(?<=[.?!])\s+|\n+/).some(s => s.split(/\b(?:even though|although|though|since|because|while|whereas|but)\b/i).some(clause => {
+    const cue = NEED_CUE.exec(clause);
+    return cue !== null && contentWords(clause.slice(cue.index)).some(w => named.has(w));
+  }));
 }
 
 export function labelMatch(what: string, items: { id: string; label: string; timeframes?: Record<string, string> }[]): string | null {

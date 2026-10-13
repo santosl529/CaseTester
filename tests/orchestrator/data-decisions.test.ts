@@ -367,6 +367,9 @@ describe('mentionStatesNeed', () => {
     ["I'd want the COGS line broken out by component: green coffee, dairy, syrups and packaging.", 'Coffee bean price change over 2 years'],
     ['And it matters whether prices on the menu moved at all, because input costs rose.', 'Menu price changes'],
     ["I'd check milk and dairy first.", 'Price change of the other inputs (dairy, packaging, food) over 2 years'],
+    // missing data said as such, and a next step that names the item (batch 20 replays: Tyler t14, Jasmine t6)
+    ["I don't think I've been given the input price changes themselves — unless I missed them, all I have is beans at 25% of COGS.", 'Coffee bean price change over 2 years'],
+    ['Next steps: test prices in a few markets, and get the COGS split by input to confirm beans are the driver.', "Composition of COGS: coffee beans' share of COGS"],
   ])('a need for the item: %s', (text, label) => expect(mentionStatesNeed(text, label)).toBe(true));
 
   it.each([
@@ -375,6 +378,10 @@ describe('mentionStatesNeed', () => {
     ['Other inputs were 75% of COGS, so 0.75 × 42 = 31.5% of revenue.', 'Total annual revenue'],
     // the item named in passing, in the candidate's own math
     ['Beans were 25% of COGS, meaning 10.5 points of revenue at baseline.', 'Coffee bean price change over 2 years'],
+    // the need is for something else; the item sits in a subordinate clause (batch 20 R25 t24)
+    ["I'd check dairy and packaging first since that's the bigger chunk, even though beans rose faster in percentage terms.", 'Coffee bean price change over 2 years'],
+    // named before the need, not as its object
+    ["Beans are a small piece, so I'd want to look at labor next.", 'Coffee bean price change over 2 years'],
   ])('not a need for the item: %s', (text, label) => expect(mentionStatesNeed(text, label)).toBe(false));
 });
 
