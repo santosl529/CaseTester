@@ -21,12 +21,13 @@ export type WithheldProbe = {
   sentence: string;
   stepId?: string;      // the verified figure's step, when about one
   figure?: number;      // the candidate figure it was about, when named
-  test: 'doubt_on_verified' | 'unsupported_challenge' | 'explain_work_shown' | 'explain_already_probed';
+  test: 'doubt_on_verified' | 'unsupported_challenge' | 'explain_work_shown' | 'explain_already_probed' | 'closed_to_report';
 };
 
 export type ChallengeContext = {
   verified: VerifiedFigure[];        // this candidate turn's verified figures, then the previous turn's
   flagged?: number[];                // figures a check flagged as wrong this turn
+  closed?: number[];                 // figures of a flag past Rule 14 (corrected, or left for the report): never asked about again
   flaggedThisTurn: boolean;          // any flag fired this turn: an unattributed doubt may be about it
   candidateFigures?: number[];       // the figures the candidate derived (math-talk.ts candidateFiguresOf)
   alreadyProbed: Set<string>;        // step ids / "fig:<n>" keys given an explain probe earlier
@@ -55,7 +56,10 @@ export function challengeVerdict(sentence: string, ctx: ChallengeContext, probed
   const { verified, flaggedThisTurn, alreadyProbed } = ctx;
   const flagged = ctx.flagged ?? [];
   const candidateFigures = [...(ctx.candidateFigures ?? []), ...verified.map(v => v.value)];
-  const talk = classifyMathTalk(sentence, candidateFigures, previous);
+  const talk = classifyMathTalk(sentence, [...candidateFigures, ...(ctx.closed ?? [])], previous);
+  // A flag past Rule 14: the case moved on (Lorenzo, 13 Oct; Jordan 099f33e9).
+  const closedFig = talk.figures.find(f => (ctx.closed ?? []).some(x => same(f, x)));
+  if (closedFig !== undefined) return { sentence, figure: closedFig, test: 'closed_to_report' };
   if (talk.kind === 'none') return null;
   const named = verified.find(v => mentions(sentence, v));
 

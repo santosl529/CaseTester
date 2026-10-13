@@ -239,7 +239,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // the figure when that is still allowed, otherwise a plain next question.
   const challengeCtx = {
     verified: [...verifiedNow, ...verifiedPrev], alreadyProbed: explainProbedBefore, flaggedThisTurn: recomputeFlags.length > 0,
-    flagged: state.flaggedFigures, candidateFigures,
+    flagged: state.flaggedFigures, closed: state.closedFigures, candidateFigures,
   };
   const mathWithheld = withheld.filter(w => w.field === 'question' && (w.reason === 'probe_guard' || w.reason === 'unsupported_challenge'));
   let challengeReplacement: string | null = null;

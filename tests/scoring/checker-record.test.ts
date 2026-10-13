@@ -34,6 +34,10 @@ describe('the judge reads the checker\'s flags and what became of them', () => {
   it('a flag that expired behind other checks says so', () => {
     expect(formatCheckerSection([verdict(3, [claim()]), flag('3:0', 'expired')])).toContain('Not raised in the interview (it waited behind other checks and expired).');
   });
+  it('past Rule 14: left for the report, or restated after it closed (Lorenzo, 13 Oct)', () => {
+    expect(formatCheckerSection([verdict(3, [claim()]), flag('3:0', 'unresolved', { reason: 'attempt 3: no correction code can write, no pointer — left for the report' })])).toContain('Probed twice; not corrected — left for this report.');
+    expect(formatCheckerSection([verdict(3, [claim()]), flag('3:0', 'unresolved', { reason: 'restated after the flag closed (corrected, or left for the report)' })])).toContain('Restated after it had been probed or corrected.');
+  });
   it('nothing flagged: no section', () => {
     expect(formatCheckerSection([verdict(3, [claim({ flag: false, verdict: 'correct' })])])).toBe('');
   });

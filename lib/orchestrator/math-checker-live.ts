@@ -98,6 +98,19 @@ export function checkerKey(c: CheckerClaim): string {
 
 const same = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.05, Math.abs(b) * 0.01);
 
+// Lorenzo, 13 Oct (Step 4, Jordan 099f33e9: "about 40 points", "~40 points",
+// "38–40% growth" — seven probes, each rewording its own counter): a restated
+// error is the same flag. The flags raised so far, by key, with the candidate
+// figures that identify them and the message that first stated them.
+export type CheckerKeyEntry = { figures: number[]; since: number };
+export function flagKeyFor(c: CheckerClaim, figs: number[], keys: Record<string, CheckerKeyEntry>): string {
+  if (figs.length > 0) {
+    const seen = Object.entries(keys).find(([, e]) => e.figures.some(x => figs.some(f => same(f, x))));
+    if (seen) return seen[0];
+  }
+  return checkerKey(c);
+}
+
 // The claim's own figures — what a stamp or a doubt is about: the numbers in
 // their value, less the input code computes from ("a 10% rise … 5 points" →
 // 5) and the case's own figures they quote ("about 11% (6 + 5)" → 11, 5). A
@@ -165,15 +178,21 @@ export function isStale(c: CheckerClaim, laterTexts: string[], caseData: Checker
 // Did the interviewer probe the claim since — ask for the working on, or
 // doubt, one of its figures? Rule 14 counts that as the probe.
 export function modelProbed(c: CheckerClaim, interviewerTexts: string[], candidateFigures: number[]): boolean {
-  const figs = figuresOf(c);
-  if (figs.length === 0) return false;
-  return interviewerTexts.some(text => {
+  return probesOf(figuresOf(c), interviewerTexts, candidateFigures) > 0;
+}
+// How many interviewer turns probed one of these figures: asked for the
+// working on it, doubted it, or asked a question about it ("Why would the
+// exposure be 40 points rather than 16?" — Jordan t12, about the figure).
+export function probesOf(figs: number[], interviewerTexts: string[], candidateFigures: number[]): number {
+  if (figs.length === 0) return 0;
+  return interviewerTexts.filter(text => {
     const all = sentencesOf(text);
+    const asks = /\?|\b(?:walk|talk) me through\b|\bexplain\b|\btell me how\b/i.test(text);
     return all.some((s, i) => {
       const talk = classifyMathTalk(s, [...candidateFigures, ...figs], all[i - 1]);
-      return talk.kind !== 'none' && talk.figures.some(f => figs.some(x => same(f, x)));
+      return talk.figures.some(f => figs.some(x => same(f, x))) && (talk.kind !== 'none' || asks);
     });
-  });
+  }).length;
 }
 
 export type CheckerRow = { category?: string; subtype: string; turnIndex: number | null; payloadJsonb: unknown };
@@ -196,6 +215,8 @@ export type CheckerPlanInput = {
   currentFlags: RecomputeFlag[];      // the deterministic flags on this message
   codeLineThisTurn?: boolean;         // code corrects a misquote this turn
   attempts: RecomputeAttempts;        // Rule 14's counter, this message's flags counted
+  keys?: Record<string, CheckerKeyEntry>; // the flags raised so far (one per error, across messages)
+  closed?: string[];                  // keys past Rule 14: corrected once, or left for the report
   underTimePressure: boolean;
   candidateFigures: number[];
   caseData: CheckerCase; revealedIds: string[];
@@ -207,10 +228,12 @@ export type CheckerPlan = {
   handledNow: string[];               // claim ids settled this turn (the selected one is the caller's)
   flaggedFigures: number[];           // landed flags' figures: a doubt on them is licensed
   droppedStamps: (StampRef & { candidateTurnIndex: number })[];
+  keys: Record<string, CheckerKeyEntry>; // the registry, this turn's flags added
+  closedNow: string[];                // keys closed this turn (left for the report)
 };
 
-const decision = (id: string, n: number, c: VettedClaim, outcome: CheckerOutcome, reason: string, line?: string): CheckerDecision => ({
-  id, candidateTurnIndex: n, outcome, reason, span: c.span, candidateValue: c.candidateValue, key: checkerKey(c), changesConclusion: c.changesConclusion, ...(line ? { line } : {}),
+const decision = (id: string, n: number, c: VettedClaim, outcome: CheckerOutcome, reason: string, line?: string, key = checkerKey(c)): CheckerDecision => ({
+  id, candidateTurnIndex: n, outcome, reason, span: c.span, candidateValue: c.candidateValue, key, changesConclusion: c.changesConclusion, ...(line ? { line } : {}),
 });
 
 // The landed verdicts, decided for this turn.
@@ -219,8 +242,11 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const decisions: CheckerDecision[] = [];
   const flaggedFigures: number[] = [];
   const droppedStamps: CheckerPlan['droppedStamps'] = [];
-  const eligible: { id: string; n: number; c: VettedClaim }[] = [];
+  const eligible: { id: string; n: number; c: VettedClaim; key: string; figs: number[] }[] = [];
   const caseNumbers = caseNumbersOf(p.caseData, p.revealedIds);
+  const keys: Record<string, CheckerKeyEntry> = { ...(p.keys ?? {}) };
+  const closed = new Set(p.closed ?? []);
+  const closedNow: string[] = [];
   const verdicts = p.rows
     .filter(r => (r.category ?? MATH_CHECKER_CATEGORY) === MATH_CHECKER_CATEGORY && r.subtype === 'verdict')
     .map(r => r.payloadJsonb as VerdictPayload)
@@ -258,8 +284,19 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
         handled.add(id);
         return;
       }
+      // Matched by their figures — their value's own numbers when all are case figures (a "40 points" when 40 is also the bean rise).
+      const input = boundInput(c);
+      const idFigs = figs.length > 0 || c.actualShare !== null ? figs : numbersOf(c.candidateValue).filter(n => input === null || !same(n, input));
+      const key = flagKeyFor(c, idFigs, keys);
+      if (closed.has(key)) {
+        decisions.push(decision(id, v.candidateTurnIndex, c, 'unresolved', 'restated after the flag closed (corrected, or left for the report)', undefined, key));
+        handled.add(id);
+        return;
+      }
+      if (!keys[key]) keys[key] = { figures: idFigs, since: v.candidateTurnIndex };
+      else keys[key] = { ...keys[key], figures: [...keys[key].figures, ...idFigs.filter(f => !keys[key].figures.some(x => same(f, x)))] };
       flaggedFigures.push(...figs);
-      eligible.push({ id, n: v.candidateTurnIndex, c });
+      eligible.push({ id, n: v.candidateTurnIndex, c, key, figs });
     });
   }
   // One checker probe a turn, conclusion-changing first; none beside a
@@ -269,23 +306,30 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   let selected: CheckerSelection | null = null;
   const waiting = [...eligible];
   while (!selected && p.currentFlags.length === 0 && !p.codeLineThisTurn && waiting.length > 0) {
-    const { id, n, c } = waiting.shift()!;
-    const key = checkerKey(c);
-    const interviewerSince = p.turnRows.filter(t => t.role === 'interviewer' && t.turnIndex > n).map(t => t.text);
-    const attempt = (p.attempts[key] ?? 0) + (modelProbed(c, interviewerSince, p.candidateFigures) ? 1 : 0) + 1;
+    const { id, n, c, key } = waiting.shift()!;
+    if (closedNow.includes(key)) { decisions.push(decision(id, n, c, 'unresolved', 'its flag closed this turn', undefined, key)); handled.add(id); continue; }
+    // Every probe of the error counts — code's, the checker's and the model's
+    // own — since it was first stated (the stored counter, or the interviewer
+    // turns that asked about its figures, whichever is more).
+    const since = keys[key]?.since ?? n;
+    const interviewerSince = p.turnRows.filter(t => t.role === 'interviewer' && t.turnIndex > since).map(t => t.text);
+    const probed = Math.max(p.attempts[key] ?? 0, probesOf(keys[key]?.figures ?? claimFigures(c), interviewerSince, p.candidateFigures));
+    const attempt = probed + 1;
     const action = recomputeAction({ errorClass: c.changesConclusion ? 'case_breaking' : 'minor' } as RecomputeFlag, attempt, p.underTimePressure);
-    if (action === 'shed') { decisions.push(decision(id, n, c, 'shed', 'minor, under time pressure (Rule 15)')); handled.add(id); continue; }
+    if (action === 'shed') { decisions.push(decision(id, n, c, 'shed', 'minor, under time pressure (Rule 15)', undefined, key)); handled.add(id); continue; }
     if (action === 'probe' && c.probeLine) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'probe', line: c.probeLine, derived: [], claim: c }; continue; }
     if (c.correctionLine) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'correct', line: c.correctionLine, derived: c.correctionFigure ? [c.correctionFigure] : [], claim: c }; continue; }
     // Code can't compute it: the pointer probe is the second attempt.
     if (c.pointerLine && (attempt === 2 || p.underTimePressure)) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'pointer', line: c.pointerLine, derived: [], claim: c }; continue; }
-    decisions.push(decision(id, n, c, 'unresolved', `attempt ${attempt}: no correction code can write${c.pointerLine ? ', pointer already used' : ', no pointer'}`));
+    // Past Rule 14 with nothing code can say: the report has it, and the case moves on.
+    decisions.push(decision(id, n, c, 'unresolved', `attempt ${attempt}: no correction code can write${c.pointerLine ? ', pointer already used' : ', no pointer'} — left for the report`, undefined, key));
     handled.add(id);
+    closedNow.push(key);
   }
-  if (selected) decisions.push(decision(selected.id, selected.candidateTurnIndex, selected.claim, selected.action, `attempt ${selected.attempt}`, selected.line));
+  if (selected) decisions.push(decision(selected.id, selected.candidateTurnIndex, selected.claim, selected.action, `attempt ${selected.attempt}`, selected.line, selected.key));
   return {
     selected, waiting: waiting.map(w => ({ id: w.id, candidateTurnIndex: w.n, claim: w.c })), decisions, flaggedFigures: [...new Set(flaggedFigures)], droppedStamps,
-    handledNow: [...handled].filter(id => !p.handled.includes(id)),
+    handledNow: [...handled].filter(id => !p.handled.includes(id)), keys, closedNow,
   };
 }
 

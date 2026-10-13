@@ -41,12 +41,13 @@ vi.mock('@/lib/orchestrator/math-checker', async orig => ({
 
 const prompts: string[] = [];
 const NEUTRAL: ModelTurn = { move: 'other', requests: [], exhibit: null, rescueItem: null, say: '', question: 'What would you look at next?' };
+const NEUTRAL_OVERRIDE: { turn: ModelTurn | null } = { turn: null };
 vi.mock('@/lib/agent/models/factory', async () => {
   const { eventsFromTurn } = await import('@/lib/agent/models/turn-events');
   return {
     createInterviewerModel: () => ({
-      runTurn: async () => NEUTRAL,
-      streamTurn: (ctx: { turnSystem?: string }) => { prompts.push(ctx.turnSystem ?? ''); return eventsFromTurn(Promise.resolve(NEUTRAL)); },
+      runTurn: async () => NEUTRAL_OVERRIDE.turn ?? NEUTRAL,
+      streamTurn: (ctx: { turnSystem?: string }) => { prompts.push(ctx.turnSystem ?? ''); return eventsFromTurn(Promise.resolve(NEUTRAL_OVERRIDE.turn ?? NEUTRAL)); },
     }),
   };
 });
@@ -169,5 +170,34 @@ describe('a turn nobody heard leaves nothing behind', () => {
     calls[0].reject(new Error('aborted'));
     await flush(); await flush();
     expect(checkerRows()).toHaveLength(0);
+  });
+});
+
+describe('a closed flag (Lorenzo, 13 Oct; Jordan 099f33e9): the model\'s own probe of it is withheld', () => {
+  beforeEach(seed);
+  it('"Why … 40 points rather than 16?" does not go out; a plain next question does', async () => {
+    store.session = { ...store.session, flagsJsonb: { ...(store.session.flagsJsonb as Row), mathChecker: { handled: [], keys: { 'checker:about 40 points': { figures: [40], since: 1 } }, closed: ['checker:about 40 points'] } } };
+    NEUTRAL_OVERRIDE.turn = { ...NEUTRAL, question: 'Why would the exposure be 40 points rather than 16?' };
+    const r = await runTurn('s1', 'I still think the real exposure is about 40 points.');
+    NEUTRAL_OVERRIDE.turn = null;
+    expect(r.interviewerText).not.toMatch(/40/);
+    expect(r.interviewerText).toMatch(/\?$/);
+  });
+});
+
+describe('the correction is said once: its flag closes', () => {
+  beforeEach(seed);
+  it('after code corrects it, the flag is closed for later turns', async () => {
+    const corrected = { ...flaggedClaim, span: 'about 40 points of margin erosion from COGS', candidateValue: 'about 40 points', actualShare: null, codeQuantity: { kind: 'none' as const, stepId: null, price: null, target: null } };
+    store.turns.push({ id: 'x3', sessionId: 's1', turnIndex: 3, role: 'candidate', text: 'From 42 to 58 is 38% growth, call it about 40 points of margin erosion from COGS.', timestampMs: Date.now(), latencyMs: null },
+      { id: 'x4', sessionId: 's1', turnIndex: 4, role: 'interviewer', text: 'You said about 40 points. How did you get there?', timestampMs: Date.now(), latencyMs: null });
+    const { vetCheckerClaims } = await import('@/lib/orchestrator/math-checker');
+    const { getCaseById } = await import('@/lib/cases/loader');
+    const claims = vetCheckerClaims([corrected], { caseData: getCaseById('prof-001'), revealedIds: COSTS, shownExhibitIds: [], candidateTexts: [store.turns[3].text as string] });
+    expect(claims[0].correctionLine).toBe('COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.');
+    store.events.push({ sessionId: 's1', category: 'math_checker', subtype: 'verdict', turnIndex: 3, phase: 'ANALYSIS', payloadJsonb: { candidateTurnIndex: 3, latencyMs: 6000, model: 'claude-sonnet-5-5', claims, codeFlags: [], stamps: [] } });
+    await runTurn('s1', 'It is the gross pressure on the business.');
+    expect(prompts.at(-1)).toContain('COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.');
+    expect((store.session.flagsJsonb as Row).mathChecker).toMatchObject({ closed: [expect.any(String)] });
   });
 });

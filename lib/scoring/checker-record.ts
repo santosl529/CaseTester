@@ -53,6 +53,10 @@ function outcomeText(outcomes: CheckerDecision[]): string {
   if (has('expired')) return 'Not raised in the interview (it waited behind other checks and expired).';
   if (has('shed')) return 'Not raised in the interview (minor, under time pressure).';
   if (has('unresolved_at_close')) return 'Not raised in the interview (the case closed first).';
+  // Past Rule 14 (Lorenzo, 13 Oct): probed twice with nothing code could correct, or a restatement of an error already handled.
+  const unresolved = has('unresolved');
+  if (unresolved && /restated after the flag closed/.test(unresolved.reason)) return 'Restated after it had been probed or corrected.';
+  if (unresolved && /left for the report/.test(unresolved.reason)) return 'Probed twice; not corrected — left for this report.';
   return 'Not raised in the interview (the check landed after the case moved on).';
 }
 

@@ -25,7 +25,7 @@ import { FALLBACK_BETA, FALLBACKS, type MathCheckerConfig } from '@/lib/models';
 import type { OnUsage } from '@/lib/llm-usage';
 import { normalizeNumberWords } from '@/lib/number-words';
 import { enforceNumericProvenance, changeFigures } from './numeric-provenance';
-import { buildFactBase, findFalseFacts } from './fact-check';
+import { buildFactBase, findFalseFacts, type FactBase } from './fact-check';
 import { pricingAnswers, pricingValues } from './pricing-check';
 import { inputsRevealed } from '@/lib/scoring/math-spans';
 
@@ -422,9 +422,37 @@ export function codeCorrection(c: CheckerClaim, at: { value: number; index: numb
   return line ? { line, figure: x, theirs } : null;
 }
 
+// A relative change stated as points (Lorenzo, 13 Oct; Jordan 099f33e9 "call
+// it about 40 points of margin erosion coming out of COGS alone" — 16/42 = 38%):
+// a figure in points that is a revealed share's growth on its own base, not its
+// change in points, for a line the claim names. Code writes the correction
+// from the case whatever quantity the checker named.
+export function relativeAsPoints(c: CheckerClaim, ctx: VetContext, fb: FactBase): { line: string; figure: string; rel: string } | null {
+  if (!/\bpoints?\b/i.test(`${c.candidateValue} ${c.span}`)) return null;
+  const theirs = numbersOf(c.candidateValue);
+  const span = c.span.toLowerCase();
+  for (const it of ctx.caseData.dataLedger) {
+    if (!ctx.revealedIds.includes(it.id)) continue;
+    const spoken = (it as { spoken?: string }).spoken ?? '';
+    const parts = spoken.match(/^(?:the )?(.+?) as a (?:percent|share) of (.+)$/i);
+    const q = fb.quantities.find(x => x.id === it.id);
+    if (!parts || !q || q.unit !== 'percent' || q.prior === undefined || q.current === undefined || q.prior === 0) continue;
+    if (!q.names.some(n => new RegExp(`\\b${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(span))) continue;
+    const points = Math.abs(q.current - q.prior);
+    const rel = (points / q.prior) * 100;
+    const f = theirs.find(n => Math.abs(n - rel) <= Math.max(2, 0.06 * rel));
+    if (f === undefined) continue;
+    const up = q.current > q.prior;
+    const pts = spokenFigure(points);
+    const relSaid = String(Math.round(rel));
+    return { line: `${parts[1]} ${up ? 'rose' : 'fell'} ${pts} points, from ${spokenFigure(q.prior)}% to ${spokenFigure(q.current)}% of ${parts[2]}; ${relSaid}% is its ${up ? 'growth' : 'fall'} on its own base.`, figure: pts, rel: relSaid };
+  }
+  return null;
+}
+
 // A probe asks about the candidate's own claim (Lorenzo, 13 Oct; 0bfe5f38 t21
 // "…and where does overhead sit?" pointed at the missing line): it names no
-// case component (a content word of a ledger label the prompt doesn't use)
+// case component (a word of the case's ledger and exhibit text, not a plain word or the prompt's)
 // and no figure the candidate hasn't raised, and carries no arithmetic. The
 // pointer (Rule 14's second attempt) is the line that may name revealed data.
 // Function words, and the words a neutral probe is made of — never a component.
@@ -513,6 +541,11 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
         else if (!speakable(written.line, [written.figure])) vetNotes.push(`correction withheld (provenance/truth): ${written.line}`);
         else { correctionLine = written.line; correctionFigure = written.figure; }
       }
+    }
+    if (!correctionLine) {
+      const rel = relativeAsPoints(c, ctx, fb);
+      if (rel && speakable(rel.line, [rel.figure, rel.rel])) { correctionLine = rel.line; correctionFigure = rel.figure; vetNotes.push('correction: a relative change stated as points (code)'); }
+      else if (rel) vetNotes.push(`correction withheld (provenance/truth): ${rel.line}`);
     }
     let pointerLine: string | null = null;
     const pointer = c.pointer.trim();

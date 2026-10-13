@@ -166,3 +166,17 @@ describe('model-driven challenges without a flag (batch 18)', () => {
     expect(again.withheld[0].test).toBe('explain_already_probed');
   });
 });
+
+// Lorenzo, 13 Oct (Jordan 099f33e9): a checker flag past Rule 14 is closed —
+// no question about its figure, whatever its kind, even one a flag licensed.
+describe('a closed flag: the case moved on', () => {
+  const ctx = { verified: [], alreadyProbed: new Set<string>(), flaggedThisTurn: false, flagged: [40], closed: [40], candidateFigures: [40] };
+  it.each([
+    'Why would the exposure be 40 points rather than 16?',
+    'You said about 40 points. How did you get there?',
+    'Is 40 points the right figure here?',
+  ])('withholds: %s', q => expect(withholdMathChallenges(q, ctx).withheld[0]?.test).toBe('closed_to_report'));
+  it('keeps a question about anything else', () => {
+    expect(withholdMathChallenges('What would you look at next?', ctx).withheld).toEqual([]);
+  });
+});

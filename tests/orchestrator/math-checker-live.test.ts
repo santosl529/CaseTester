@@ -291,3 +291,76 @@ describe('the live config', () => {
     expect(() => liveCheckerConfig({ MATH_CHECKER_CONFIG: 'nope' })).toThrow();
   });
 });
+
+// Lorenzo, 13 Oct (Step 4, Jordan 099f33e9 t8–t22: "about 40 points", "~40
+// points", "38–40% growth" — probed seven times, never corrected): a restated
+// error is the same flag, matched by the candidate's own figures; the model's
+// own probes of those figures count; after two probes code's correction once,
+// else the report — and the case moves on.
+describe('one flag per error, across messages', () => {
+  const none = { kind: 'none' as const, stepId: null, price: null, target: null };
+  const forty = (n: number, value: string, over: Partial<VettedClaim> = {}) => verdictRow(n, [vetted({
+    span: `${value} of margin erosion from COGS`, candidateValue: value, quantity: 'margin erosion from COGS', codeQuantity: none,
+    probeLine: `You said ${value}. How did you get there?`, correctionLine: null, correctionFigure: null, pointerLine: null, ...over,
+  })]);
+  const rows = (...xs: { turnIndex: number; role: string; text: string }[]) => [{ turnIndex: 0, role: 'interviewer', text: 'Your client is Brew & Bean.' }, ...xs];
+  const KEY = 'checker:about 40 points';
+  const seen = { [KEY]: { figures: [40], since: 3 } };
+
+  it('a restated figure joins the flag it restates, and its count carries', () => {
+    const p = planCheckerFlags(input({
+      rows: [forty(3, 'about 40 points'), forty(5, '~40 points', { pointerLine: 'How does 40 fit with COGS going from 42 to 58?' })], handled: ['3:0'],
+      attempts: { [KEY]: 1 }, keys: seen,
+      turnRows: rows({ turnIndex: 3, role: 'candidate', text: 'About 40 points of erosion from COGS.' }, { turnIndex: 4, role: 'interviewer', text: 'You said about 40 points. How did you get there?' },
+        { turnIndex: 5, role: 'candidate', text: 'The ~40 points is the gross pressure.' }, { turnIndex: 6, role: 'interviewer', text: 'Go on.' }),
+      candidateTurnIndex: 7, candidateText: 'Next, the bean split.', candidateFigures: [40],
+    }));
+    expect(p.selected).toMatchObject({ id: '5:0', key: KEY, attempt: 2, action: 'pointer' });
+  });
+
+  it("the model's own probes of the figure count: after two, with no correction, it goes to the report and the flag closes", () => {
+    const p = planCheckerFlags(input({
+      rows: [forty(3, 'about 40 points'), forty(5, '~40 points')], handled: ['3:0'], attempts: { [KEY]: 1 }, keys: seen,
+      turnRows: rows({ turnIndex: 3, role: 'candidate', text: 'About 40 points of erosion from COGS.' }, { turnIndex: 4, role: 'interviewer', text: 'You said about 40 points. How did you get there?' },
+        { turnIndex: 5, role: 'candidate', text: 'The ~40 points is the gross pressure.' }, { turnIndex: 6, role: 'interviewer', text: 'Why would the exposure be 40 points rather than 16?' }),
+      candidateTurnIndex: 7, candidateText: 'Next, the bean split.', candidateFigures: [40],
+    }));
+    expect(p.selected).toBeNull();
+    expect(p.decisions).toEqual([expect.objectContaining({ id: '5:0', outcome: 'unresolved', key: KEY, reason: expect.stringMatching(/attempt 3\b.*report/) })]);
+    expect(p.closedNow).toEqual([KEY]);
+  });
+
+  it('after two probes, a correction code can write is said — once', () => {
+    const line = 'COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.';
+    const p = planCheckerFlags(input({
+      rows: [forty(3, 'about 40 points'), forty(5, '~40 points', { correctionLine: line, correctionFigure: '16' })], handled: ['3:0'], attempts: { [KEY]: 2 }, keys: seen,
+      turnRows: rows({ turnIndex: 3, role: 'candidate', text: 'About 40 points.' }, { turnIndex: 5, role: 'candidate', text: 'The ~40 points.' }),
+      candidateTurnIndex: 7, candidateText: 'Next.', candidateFigures: [40],
+    }));
+    expect(p.selected).toMatchObject({ key: KEY, attempt: 3, action: 'correct', line });
+  });
+
+  it('a closed flag stays closed: the restated claim goes to the report with no probe', () => {
+    const p = planCheckerFlags(input({
+      rows: [forty(9, 'roughly 40 (points of margin pressure)')], keys: seen, closed: [KEY],
+      turnRows: rows({ turnIndex: 9, role: 'candidate', text: 'Roughly 40 points of pressure.' }), candidateTurnIndex: 11, candidateText: 'So, pricing.', candidateFigures: [40],
+    }));
+    expect(p.selected).toBeNull();
+    expect(p.decisions).toEqual([expect.objectContaining({ outcome: 'unresolved', key: KEY, reason: expect.stringMatching(/closed/) })]);
+  });
+
+  it('an imperative ask about the figure counts as a probe ("Walk me through how those two figures relate." — Jordan t6)', () => {
+    const p = planCheckerFlags(input({
+      rows: [forty(3, 'about 40 points')], keys: {},
+      turnRows: rows({ turnIndex: 3, role: 'candidate', text: 'About 40 points of erosion from COGS.' }, { turnIndex: 4, role: 'interviewer', text: 'You said about 40 points of erosion. Walk me through how those two figures relate.' }),
+      candidateTurnIndex: 5, candidateText: 'It is the gross pressure.', candidateFigures: [40],
+    }));
+    expect(p.decisions[0]).toMatchObject({ outcome: 'unresolved', reason: expect.stringMatching(/attempt 2/) });
+  });
+
+  it('a different figure is a different flag', () => {
+    const p = planCheckerFlags(input({ rows: [forty(5, 'about 22 points')], keys: seen, turnRows: rows({ turnIndex: 5, role: 'candidate', text: 'About 22 points.' }), candidateTurnIndex: 7, candidateText: 'Next.', candidateFigures: [22] }));
+    expect(p.selected).toMatchObject({ key: 'checker:about 22 points', attempt: 1, action: 'probe' });
+    expect(p.keys['checker:about 22 points']).toEqual({ figures: [22], since: 5 });
+  });
+});

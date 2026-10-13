@@ -31,7 +31,7 @@ import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
 import { brainstormAsks, brainstormRequired } from './brainstorm';
 import { correctionLines } from './misquote';
 import { statesQuantitativeClaim } from './math-checker';
-import { startMathCheck, planCheckerFlags, formatCheckerHint, liveCheckerConfig, checkerKey, MATH_CHECKER_CATEGORY, type CheckerSelection } from './math-checker-live';
+import { startMathCheck, planCheckerFlags, formatCheckerHint, liveCheckerConfig, checkerKey, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry } from './math-checker-live';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
 import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
@@ -523,20 +523,26 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   }
   // Verdicts on earlier messages that have landed: Rule 14 flags, one a turn
   // (decided here; delivered once the turn kind is known, below).
-  const checkerHandled = ((flags.mathChecker as { handled?: string[] } | undefined)?.handled) ?? [];
+  const checkerMemory = (flags.mathChecker as { handled?: string[]; keys?: Record<string, CheckerKeyEntry>; closed?: string[] } | undefined) ?? {};
+  const checkerHandled = checkerMemory.handled ?? [];
   const checkerPlan = planCheckerFlags({
     rows: (reads.checkerEventRows ?? []).filter(r => r.category === MATH_CHECKER_CATEGORY),
     handled: checkerHandled, turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
     currentFlags: recomputeFlags, codeLineThisTurn: misquote !== null, attempts: recomputeAttempts, underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
-    candidateFigures, caseData, revealedIds: revealedIdsNow,
+    candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed,
   });
+  // A flag past Rule 14 (corrected once, or left for the report) is closed:
+  // its figures may not be probed again — the case moves on (Lorenzo, 13 Oct;
+  // Jordan 099f33e9, seven probes on one "40 points").
+  const closedKeys = [...new Set([...(checkerMemory.closed ?? []), ...checkerPlan.closedNow])];
+  const closedFigures = closedKeys.flatMap(k => checkerPlan.keys[k]?.figures ?? []);
   // Deterministic first: a stamp the checker found wrong no longer protects
   // the figure; a landed flag's figure may be doubted (Rule 14).
   if (checkerPlan.droppedStamps.length > 0) {
     verifiedPrev = verifiedPrev.filter(v => !checkerPlan.droppedStamps.some(d => Math.abs(d.value - v.value) < 1e-9));
     for (const d of checkerPlan.droppedStamps) ctx.events.push({ category: 'math_checker', subtype: 'stamp_dropped', payload: d });
   }
-  flaggedFigures = [...new Set([...flaggedFigures, ...checkerPlan.flaggedFigures])];
+  flaggedFigures = [...new Set([...flaggedFigures, ...checkerPlan.flaggedFigures])].filter(f => !closedFigures.some(x => Math.abs(x - f) < 1e-9));
 
   // Rule 13 stall ladder: evaluate BEFORE the model turn so a triggered rung's
   // guidance goes into this turn's prompt.
@@ -705,6 +711,12 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     derivedValueTexts.push(...checkerUsed.derived);
     if (kind === 'model') recomputeHint = [recomputeHint, formatCheckerHint(checkerUsed)].filter(Boolean).join('\n\n');
   }
+  // The correction is said once: its flag closes after this turn.
+  const closedAfter = [...new Set([...closedKeys, ...(checkerUsed?.action === 'correct' ? [checkerUsed.key] : [])])];
+  const leftForReport = checkerDecisions.filter(d => d.outcome === 'unresolved' && closedKeys.includes(d.key));
+  if (kind === 'model' && leftForReport.length > 0) {
+    recomputeHint = [recomputeHint, `LEFT FOR THE REPORT: ${leftForReport.map(d => `"${d.candidateValue}"`).join(', ')} has been probed twice and goes in the written report. Don't ask about it again — move the case on.`].filter(Boolean).join('\n\n');
+  }
   if (kind === 'close') {
     for (const w of [...(sel ? [{ id: sel.id, candidateTurnIndex: sel.candidateTurnIndex, claim: sel.claim }] : []), ...checkerPlan.waiting]) {
       checkerDecisions.push({ id: w.id, candidateTurnIndex: w.candidateTurnIndex, outcome: 'unresolved_at_close', reason: timeUp ? 'time up' : 'the case closed', span: w.claim.span, candidateValue: w.claim.candidateValue, key: checkerKey(w.claim), changesConclusion: w.claim.changesConclusion });
@@ -712,7 +724,13 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     }
   }
   for (const d of checkerDecisions) ctx.events.push({ category: 'math_checker', subtype: 'flag', payload: d });
-  if (checkerHandledNow.length > 0) flags.mathChecker = { handled: [...checkerHandled, ...checkerHandledNow] };
+  // The registry keeps a flag once it was raised or closed, by the figures that identify it (a word quantity has none to match).
+  const raised = new Set([...Object.keys(checkerMemory.keys ?? {}), ...(checkerUsed ? [checkerUsed.key] : []), ...closedAfter]);
+  const checkerKeys = Object.fromEntries(Object.entries(checkerPlan.keys).filter(([k, e]) => raised.has(k) && e.figures.length > 0));
+  const keysChanged = JSON.stringify(checkerKeys) !== JSON.stringify(checkerMemory.keys ?? {});
+  if (checkerHandledNow.length > 0 || keysChanged || closedAfter.length !== (checkerMemory.closed ?? []).length) {
+    flags.mathChecker = { handled: [...checkerHandled, ...checkerHandledNow], ...(Object.keys(checkerKeys).length ? { keys: checkerKeys } : {}), ...(closedAfter.length ? { closed: closedAfter } : {}) };
+  }
   checks.record('math_checker', checkerUsed !== null, checkerUsed ? `checker flag delivered: ${checkerUsed.action}` : 'no checker flag delivered', {
     started: Boolean(checkerConfig && statesQuantitativeClaim(candidateText)), selected: sel?.id ?? null, used: checkerUsed?.id ?? null,
     decisions: checkerDecisions.map(d => ({ id: d.id, outcome: d.outcome, reason: d.reason })), waiting: checkerPlan.waiting.map(w => w.id),
@@ -793,7 +811,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       caseData, repliedToDistressOffer, shownExhibitIds, stagesOut, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
-      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, recMathProbe, analysisOwed, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
+      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, recMathProbe, analysisOwed, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,

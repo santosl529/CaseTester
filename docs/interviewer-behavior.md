@@ -2225,6 +2225,17 @@ eight rubric dimensions; the loop burns clock and humiliates. The error, both
 attempts, and the correction are logged for the debrief — the recompute check
 already holds the right answer, so the correction is free.
 
+**One error, one count (13 Oct, Lorenzo; Jordan 099f33e9 — "about 40
+points", "~40 points", "38–40%" probed seven times).** An error restated in a
+later message is the same error: it is matched by the candidate's own figures,
+and the attempt count carries. Every probe of it counts, whoever asked: code's
+line, the background checker's, or the interviewer's own question about the
+figure. After two probes, code says its correction once if it can write one
+(a relative change stated as points has one: "COGS rose 16 points, from 42%
+to 58% of revenue; 38% is its growth on its own base."). If it can't, the
+error goes to the written report. Either way the error is closed: no further
+question about that figure goes out, and the case moves on.
+
 **Fast path (time pressure, case-breaking class only):** when the phase budget
 is exceeded, case-breaking errors skip the Socratic probe entirely and get an
 immediate one-sentence correction — "Quick correction — that's about 2 points,

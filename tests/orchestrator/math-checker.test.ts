@@ -134,6 +134,33 @@ describe('FR-4: what a flag may put in the interviewer\'s mouth', () => {
     });
   });
 
+  // Lorenzo, 13 Oct (Jordan 099f33e9: "call it about 40 points of margin
+  // erosion coming out of COGS alone" — 16/42 = 38%, said as points): code
+  // corrects a relative change stated as points, whatever quantity the
+  // checker named (here a dollar step whose inputs weren't out).
+  describe('a relative change stated as points', () => {
+    const said = 'From 42 to 58, that is a jump of 16 on a base of 42, so roughly 38% growth — call it about 40 points of margin erosion coming out of COGS alone.';
+    const jordan = claim({
+      span: 'call it about 40 points of margin erosion coming out of COGS alone', candidateValue: 'about 40 points', correctValue: 16,
+      probe: 'You said about 40 points. How did you get there?', codeQuantity: { kind: 'step', stepId: 'cogs_dollar_impact', price: null, target: null },
+    });
+    const ctxJ = (texts = [said], revealedIds = ['cogs_pct', 'labor_pct', 'overhead_pct']) => ctx({ candidateTexts: texts, revealedIds });
+    it('code writes the line: the change in points, the levels, and what their figure is', () => {
+      const [v] = vetCheckerClaims([jordan], ctxJ());
+      expect(v.correctionLine).toBe('COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.');
+      expect(v.correctionFigure).toBe('16');
+    });
+    it('not when their figure is the change in points, or names no line, or the line is not out', () => {
+      expect(vetCheckerClaims([claim({ ...jordan, span: 'COGS took 16 points of margin', candidateValue: '16 points' })], ctxJ(['COGS took 16 points of margin']))[0].correctionLine).toBeNull();
+      expect(vetCheckerClaims([claim({ ...jordan, span: 'call it about 40 points of margin erosion', candidateValue: 'about 40 points' })], ctxJ(['call it about 40 points of margin erosion']))[0].correctionLine).toBeNull();
+      expect(vetCheckerClaims([jordan], ctxJ([said], ['labor_pct']))[0].correctionLine).toBeNull();
+    });
+    it('not when their figure is said as a percent, not points', () => {
+      const pct = claim({ ...jordan, span: 'COGS grew about 40% on its base', candidateValue: 'about 40%' });
+      expect(vetCheckerClaims([pct], ctxJ(['COGS grew about 40% on its base']))[0].correctionLine).toBeNull();
+    });
+  });
+
   it('correct, unverifiable and low-confidence claims raise no flag and carry no lines', () => {
     const vs = vetCheckerClaims([claim({ verdict: 'correct', probe: 'x' }), claim({ verdict: 'unverifiable' }), claim({ confidence: 'low' })], ctx());
     expect(vs.map(v => v.flag)).toEqual([false, false, false]);
