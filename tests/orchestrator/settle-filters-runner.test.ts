@@ -477,6 +477,19 @@ describe('no refusal names data the case holds (fact checks F3)', () => {
   });
 });
 
+describe('the fallback does not re-ask what was just answered (batch 21 D8, Anika t4)', () => {
+  it("the model's question withheld after she named where she'd start → a fallback that isn't \"what would you look at first\"", async () => {
+    seed({ phase: 'STRUCTURE', flags: { lastQuestion: 'Which of your four levers do you prioritize, and what makes you confident the problem sits there rather than in the others?' } });
+    const r = await say("Cost per cup, and the reason is arithmetic on what you've already given me. Revenue is up 15%, so stores × cups × price has grown. Meanwhile margin went 24% to 6% — an 18-point swing. Do we have a cost breakdown as a percent of revenue for both years?", T({
+      say: '', requests: [{ what: 'the cost breakdown as a percent of revenue', itemIds: ['cogs_pct', 'labor_pct', 'overhead_pct'], explicit: true, respond: 'release' }],
+      question: 'With those figures in front of you, which cost line is driving the margin decline, and how do you size its contribution?',
+    }));
+    expect(r.interviewerText).toMatch(/once we've settled your structure\./);
+    expect(r.interviewerText).not.toMatch(/first|start|in front of you/i);
+    expect(r.interviewerText).toMatch(/\?$/);
+  });
+});
+
 describe("one refusal, code's (batch 21 D8, Raj t14)", () => {
   const COST = ['cogs_pct', 'labor_pct', 'overhead_pct'];
   const ASK = { what: 'price elasticity and competitor pricing', itemIds: [], explicit: true, respond: 'release' as const };
