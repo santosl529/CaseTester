@@ -237,11 +237,12 @@ export type VettedClaim = CheckerClaim & {
   flag: boolean;                // an error the interviewer should act on
   probeLine: string | null;     // safe to speak: Rule 14's first attempt
   correctionLine: string | null; // written by code: the second attempt when code computes the quantity
+  correctionFigure: string | null; // code's figure in it, licensed for the provenance audit when spoken
   pointerLine: string | null;   // the second attempt when it doesn't
   vetNotes: string[];           // why a line was replaced or dropped
 };
 
-const numbersOf = (text: string) => [...normalizeNumberWords(text).matchAll(/\d[\d,]*(?:\.\d+)?/g)].map(m => parseFloat(m[0].replace(/,/g, '')));
+export const numbersOf = (text: string) => [...normalizeNumberWords(text).matchAll(/\d[\d,]*(?:\.\d+)?/g)].map(m => parseFloat(m[0].replace(/,/g, '')));
 const near = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.05, Math.abs(b) * 0.01);
 const round = (n: number) => Math.round(n * 10) / 10;
 
@@ -357,7 +358,7 @@ function lineName(ctx: VetContext, id: string): string {
 // The input code computes the quantity from, which the claim's span must state
 // (Lorenzo, 13 Oct): a pricing answer's price change or target. A math step's
 // inputs are the case's own data, so it has none to bind.
-function boundInput(c: CheckerClaim): number | null {
+export function boundInput(c: CheckerClaim): number | null {
   const q = c.codeQuantity;
   if (q.kind === 'gain' || q.kind === 'new_margin' || q.kind === 'breakeven') return q.price;
   if (q.kind === 'needed_for_margin' || q.kind === 'needed_for_gain') return q.target;
@@ -423,7 +424,7 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
     const tolerated = isActionable(c) ? withinTolerance(c, ctx) : null;
     if (tolerated) vetNotes.push(`flag dropped — ${tolerated}`);
     const flag = isActionable(c) && !tolerated;
-    if (!flag) return { ...c, flag, probeLine: null, correctionLine: null, pointerLine: null, vetNotes };
+    if (!flag) return { ...c, flag, probeLine: null, correctionLine: null, correctionFigure: null, pointerLine: null, vetNotes };
     let probeLine: string | null = c.probe.trim() || null;
     if (probeLine && !speakable(probeLine)) { vetNotes.push(`probe withheld (provenance/truth): ${probeLine}`); probeLine = null; }
     if (!probeLine) {
@@ -431,6 +432,7 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
       probeLine = own ? `Walk me through how you got to ${own}.` : 'Walk me through that calculation.';
     }
     let correctionLine: string | null = null;
+    let correctionFigure: string | null = null;
     const code = codeComputed(c, ctx);
     if (!code) vetNotes.push(`no correction: code computes nothing for ${c.codeQuantity.kind}${c.codeQuantity.stepId ? ` ${c.codeQuantity.stepId}` : ''}`);
     else {
@@ -450,7 +452,7 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
         if (!written) vetNotes.push(`no correction: no figure of theirs in "${c.candidateValue}" (or no quantity to name)`);
         else if (!numbersOf(written.theirs).every(n => said.some(a => near(n, a)))) vetNotes.push(`correction withheld: ${written.theirs} is not a figure they said`);
         else if (!speakable(written.line, [written.figure])) vetNotes.push(`correction withheld (provenance/truth): ${written.line}`);
-        else correctionLine = written.line;
+        else { correctionLine = written.line; correctionFigure = written.figure; }
       }
     }
     let pointerLine: string | null = null;
@@ -461,6 +463,6 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
       else if (!numbersOf(pointer).some(n => revealedNumbers.some(a => near(n, a)))) vetNotes.push(`pointer dropped (names no revealed figure): ${pointer}`);
       else pointerLine = pointer;
     }
-    return { ...c, flag, probeLine, correctionLine, pointerLine, vetNotes };
+    return { ...c, flag, probeLine, correctionLine, correctionFigure, pointerLine, vetNotes };
   });
 }

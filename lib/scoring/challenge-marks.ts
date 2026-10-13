@@ -47,6 +47,9 @@ export function genuineErrorSpans(v: Map<number, TurnVerification>): Map<number,
 export function buildChallengeMarks(
   turns: Turn[], caseData: Case, revealedBefore: (turnIndex: number) => string[],
   verification: Map<number, TurnVerification> = verifyCandidateTurns(turns, caseData, revealedBefore),
+  // Figures the math checker flagged, by candidate turn (checker-record.ts):
+  // a doubt on them is supported, like one on a code flag.
+  checkerFlagged: Map<number, number[]> = new Map(),
 ): InterviewerMark[] {
   const marks: InterviewerMark[] = [];
   const candidates = turns.filter(t => t.role === 'candidate');
@@ -55,7 +58,7 @@ export function buildChallengeMarks(
     const last = before.at(-1);
     if (!last) continue;
     const flaggedNow = verification.get(last.turnIndex)?.flags ?? [];
-    const flagged = before.flatMap(c => verification.get(c.turnIndex)?.flags ?? []).map(f => f.candidateValue);
+    const flagged = [...before.flatMap(c => verification.get(c.turnIndex)?.flags ?? []).map(f => f.candidateValue), ...before.flatMap(c => checkerFlagged.get(c.turnIndex) ?? [])];
     const verifiedEver = before.flatMap(c => verification.get(c.turnIndex)?.verified ?? []);
     const verifiedNow = verification.get(last.turnIndex)?.verified ?? [];
     const ids = revealedBefore(last.turnIndex);

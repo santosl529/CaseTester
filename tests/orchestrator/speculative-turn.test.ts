@@ -11,6 +11,7 @@ const writes: string[] = [];
 const usage: Record<string, unknown>[] = [];
 let reads = readsFixture({ phase: 'ANALYSIS' });
 
+vi.mock('@/lib/orchestrator/math-checker', async orig => ({ ...(await orig<object>()), checkMathClaims: async () => { throw new Error('no math checker calls in tests'); } }));
 vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
 vi.mock('@/db/client', () => {
   const chain = (label: string) => ({

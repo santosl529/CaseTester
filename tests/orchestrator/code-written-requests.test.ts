@@ -22,6 +22,7 @@ function resetStore(phase: string, flags: Row = {}, elapsedMs?: number) {
   store.turns = r.turnRows.map(t => ({ ...t }));
   store.revealed = []; store.exhibits = []; store.events = [];
 }
+vi.mock('@/lib/orchestrator/math-checker', async orig => ({ ...(await orig<object>()), checkMathClaims: async () => { throw new Error('no math checker calls in tests'); } }));
 vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
 vi.mock('@/db/client', async () => {
   const { getTableName } = await import('drizzle-orm');
