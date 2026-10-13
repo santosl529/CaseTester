@@ -67,7 +67,7 @@ describe('pricing claims — false alarms read outside batch 20', () => {
     // a volume loss "up to about 9%" is no new margin; revenue break-even is P/(1+P) (Ines b18, Lena b14, Owen b19, Nikhil b9)
     ['A 10% price increase survives volume loss up to about 9% — below that, revenue per store is flat or up and margin still improves.', []],
     ["Roughly, if a 15% price rise costs more than about 13% of volume, revenue falls and I've made it worse.", ['breakeven:correct']],
-    ['Concretely, at an 11% price increase I can afford to lose up to roughly 10% of transactions and still hold revenue flat.', ['breakeven:correct']],
+    ['Concretely, at an 11% price increase I can afford to lose up to roughly 10% of transactions and still hold revenue flat, and because the lost cups also carry input cost, gross profit would actually still be up.', ['breakeven:correct']],
     // a sentence with its own percentage borrows no price from before (Wei b18, Arjun b18, Hugo b17, Micah b2)
     [`${P} A 10.0000% increase yields revenue 126.5000, profit 18.4000, margin 14.5455% — recovering 8.5455 points, roughly 47.4747% of the gap.`, ['gain:correct']],
     [`${P} A full pass-through of input inflation would be closer to 38%, which would overshoot to roughly a 32% margin.`, []],

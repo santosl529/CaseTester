@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
-import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts } from '@/lib/orchestrator/recompute';
+import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts, flagsFromPricing } from '@/lib/orchestrator/recompute';
+import { checkPricingClaims, pricingValues } from '@/lib/orchestrator/pricing-check';
+import { getCaseById } from '@/lib/cases/loader';
 
 const mathSteps = [
   { id: 'cogs_impact', description: 'COGS dollar impact', answer: 76.8, tolerance: 2 },
@@ -113,6 +115,27 @@ describe('formatRecomputeHint (Rule 14 attempts, v4.3)', () => {
     const r = formatRecomputeHint([cb, minor], { underTimePressure: true });
     expect(r.hint).toContain("It's closer to 2.4, not 0.5");
     expect(r.hint).not.toContain('60');
+  });
+});
+
+describe('flagsFromPricing (fact guards Phase 4)', () => {
+  const v = pricingValues(getCaseById('prof-001') as never, new Set(['cogs_pct', 'labor_pct', 'overhead_pct', 'revenue_total']))!;
+  const flagsOf = (t: string) => flagsFromPricing(checkPricingClaims(t, v));
+
+  it('a wrong claim is a flag per claim kind, against the nearest accepted answer', () => {
+    expect(flagsOf("If a 10% price increase costs more than 10% of transactions, I'm worse off.")).toMatchObject([
+      { kind: 'pricing', stepId: 'pricing:breakeven', candidateValue: 10, expected: 19.2 },
+    ]);
+    expect(flagsOf('A 10% price increase recovers about 8.5 points of margin.')).toEqual([]);
+  });
+
+  it('the probe names the price claim, not the right figure; the second attempt corrects it', () => {
+    const [f] = flagsOf('A 10% price increase recovers about 5 points of margin.');
+    const probe = formatRecomputeHint([f]).hint;
+    expect(probe).toMatch(/Probe once/);
+    expect(probe).toMatch(/a 10% price rise recovers 5 points of margin in .*sized that price move/);
+    expect(probe).not.toContain('8.5');
+    expect(formatRecomputeHint([f], { attempts: { 'pricing:gain': 2 } }).hint).toContain("It's closer to 8.5, not 5");
   });
 });
 

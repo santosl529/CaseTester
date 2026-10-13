@@ -110,3 +110,43 @@ describe('planTurn turn kinds', () => {
     expect(plan.state.history.some(m => m.content.startsWith('Still with me?'))).toBe(false);
   });
 });
+
+// Fact guards Phase 4 (12 Oct): a pricing claim is checked live like stated
+// arithmetic — a wrong one gets one probe, then the figure (Rule 14); a right
+// one is a verified figure, never doubted.
+describe('planTurn pricing claims', () => {
+  const COSTS = ['cogs_pct', 'labor_pct', 'overhead_pct', 'revenue_total'];
+  const plan = (text: string, opts: { revealed?: string[]; flags?: Record<string, unknown> } = {}) => {
+    const p = planTurn(readsFixture({ phase: 'ANALYSIS', revealed: opts.revealed ?? COSTS, flags: opts.flags }), text, deps());
+    if (p.kind !== 'model') throw new Error('expected a model plan');
+    return p.state;
+  };
+  const WRONG = 'A 10% price increase recovers about 5 points of margin if volume holds.';
+
+  it('a wrong claim is flagged and probed once, without the right figure', () => {
+    const s = plan(WRONG);
+    expect(s.recomputeFlags).toMatchObject([{ kind: 'pricing', stepId: 'pricing:gain', candidateValue: 5, expected: 8.5 }]);
+    expect(s.recomputeHint).toMatch(/Probe once/);
+    expect(s.recomputeHint).not.toContain('8.5');
+    expect(s.flaggedFigures).toContain(5);
+  });
+
+  it('wrong again after the probe: the figure is supplied (Rule 14)', () => {
+    const s = plan(WRONG, { flags: { recomputeAttempts: { 'pricing:gain': 1 } } });
+    expect(s.recomputeHint).toContain("It's closer to 8.5, not 5");
+    expect(s.derivedValueTexts).toContain('8.5');
+  });
+
+  it('a right claim is a verified figure', () => {
+    const s = plan('A 10% price increase recovers about 8.5 points of margin.');
+    expect(s.recomputeFlags).toEqual([]);
+    // The price change and its result are in the sentence the check verified: no process question either.
+    expect(s.verifiedNow).toMatchObject([{ stepId: 'pricing:gain', value: 8.5, workShown: true }]);
+  });
+
+  it('nothing before the cost lines are out', () => {
+    const s = plan(WRONG, { revealed: ['cogs_pct'] });
+    expect(s.recomputeFlags).toEqual([]);
+    expect(s.verifiedNow).toEqual([]);
+  });
+});

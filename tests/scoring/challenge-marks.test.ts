@@ -73,3 +73,20 @@ describe('the judge is told which claims code settled', () => {
     expect(text).toMatch(/not being flagged is not evidence of correctness/);
   });
 });
+
+describe('pricing claims are settled in scoring as live (fact guards Phase 4)', () => {
+  const COSTS = ['cogs_pct', 'labor_pct', 'overhead_pct', 'revenue_total'];
+  const turns = [
+    { role: 'interviewer', text: 'How would you close the gap?', turnIndex: 0 },
+    { role: 'candidate', text: 'A 10% price increase recovers about 5 points of margin. Separately, a 15% price rise recovers about 12.3 points of margin.', turnIndex: 1 },
+    { role: 'interviewer', text: 'Walk me through how you sized that price move.', turnIndex: 2 },
+  ];
+  it('a wrong one is VERIFIED WRONG, a right one VERIFIED CORRECT, and the probe on the wrong one is no unsupported doubt', async () => {
+    const { formatClaimChecksSection } = await import('@/lib/scoring/challenge-marks');
+    const v = verifyCandidateTurns(turns, prof, () => COSTS);
+    const text = formatClaimChecksSection(v);
+    expect(text).toMatch(/VERIFIED WRONG: a 10% price rise recovers 5 points of margin — about 8\.5/);
+    expect(text).toMatch(/12\.3 points of margin\." — VERIFIED CORRECT/);
+    expect(buildChallengeMarks(turns, prof, () => COSTS, v)).toEqual([]);
+  });
+});

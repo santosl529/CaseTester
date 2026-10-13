@@ -3,6 +3,7 @@ import { assignSpans, findStepSpans, inputsRevealed } from '@/lib/scoring/math-s
 import { normalizeNumberWords } from '@/lib/number-words';
 import type { ArithmeticClaim } from './arithmetic-check';
 import { formatUnitFlagLine, type UnitFlag, type UnitVerified } from './unit-check';
+import type { PricingClaim } from './pricing-check';
 
 // Rule 2/14 deterministic backstop (docs/interviewer-behavior.md): "Live
 // detection by the model alone is a probabilistic capability, not an
@@ -26,8 +27,10 @@ export type FlagClaim = { quantity: string; units?: string; base?: string; timef
 export type RecomputeFlag = {
   // step: a case math step's answer; unit: a nested-percentage conversion
   // (unit-check.ts); arithmetic: a stated operation that doesn't hold
-  // (arithmetic-check.ts). Absent on flags logged before 11 Oct (= step).
-  kind?: 'step' | 'unit' | 'arithmetic';
+  // (arithmetic-check.ts); pricing: a price change's stated result that the
+  // cost structure doesn't give (pricing-check.ts, 12 Oct). Absent on flags
+  // logged before 11 Oct (= step).
+  kind?: 'step' | 'unit' | 'arithmetic' | 'pricing';
   stepId: string;
   description: string;
   expected: number;
@@ -100,9 +103,35 @@ export function flagsFromArithmetic(claims: ArithmeticClaim[]): RecomputeFlag[] 
   }));
 }
 
+// A pricing claim the cost structure doesn't give (pricing-check.ts): one
+// attempt counter per kind of claim, so a second wrong gain after the probe is
+// corrected (Rule 14). The correction is the accepted answer nearest theirs —
+// derivable, since the check runs only once every cost line is revealed.
+export function flagsFromPricing(claims: PricingClaim[]): RecomputeFlag[] {
+  return claims.filter(c => c.verdict === 'incorrect').map(c => {
+    const expected = c.expected.reduce((a, b) => Math.abs(b - c.stated) < Math.abs(a - c.stated) ? b : a);
+    const errorClass = classifyError(expected, 0, c.stated) === 'case_breaking' ? 'case_breaking' as const : 'minor' as const;
+    return {
+      kind: 'pricing' as const, stepId: `pricing:${c.kind}`, description: pricingClaimText(c),
+      expected, candidateValue: c.stated, errorClass, span: c.span,
+      claim: { quantity: pricingClaimText(c) },
+    };
+  });
+}
+
+function pricingClaimText(c: PricingClaim): string {
+  switch (c.kind) {
+    case 'gain': return `a ${c.price}% price rise recovers ${c.stated} points of margin`;
+    case 'new_margin': return `a ${c.price}% price rise takes margin to ${c.stated}%`;
+    case 'needed': return `a ${c.stated}% price rise reaches their target margin`;
+    case 'dollars': return `a ${c.price}% price rise is worth $${c.stated}M`;
+    case 'breakeven': return `a ${c.price}% price rise breaks even at a ${c.stated}% volume loss`;
+  }
+}
+
 // Figures verified correct outside the case's steps: stated arithmetic that
 // holds (the work is on the page) and conversions at a given base.
-export function verifiedFromChecks(claims: ArithmeticClaim[], unitVerified: UnitVerified[]): VerifiedFigure[] {
+export function verifiedFromChecks(claims: ArithmeticClaim[], unitVerified: UnitVerified[], pricing: PricingClaim[] = []): VerifiedFigure[] {
   return [
     // A ratio is also verified as the percent change it states ("58/42 = 1.38"
     // verifies "up 38%"), and a share as its percent reading.
@@ -112,6 +141,10 @@ export function verifiedFromChecks(claims: ArithmeticClaim[], unitVerified: Unit
       return readings.map(value => ({ stepId: `arith:${c.expression}`, value, span: c.span, workShown: true, operands: [] }));
     }),
     ...unitVerified.map(u => ({ stepId: `unit:${u.stated}`, value: u.stated, span: u.span, workShown: false, operands: [] })),
+    // A pricing claim states the price change with its result, and the check
+    // verified the link: work shown — not even a process question (batch 20
+    // replay: "How did you get to 5%?" on Tyler's correct 5 points).
+    ...pricing.filter(p => p.verdict === 'correct').map(p => ({ stepId: `pricing:${p.kind}`, value: p.stated, span: p.span, workShown: true, operands: [] })),
   ];
 }
 
@@ -156,6 +189,10 @@ export function formatRecomputeHint(
     if (f.kind === 'unit' && f.unit && action === 'probe') { lines.push(formatUnitFlagLine(f.unit)); continue; }
     if (f.kind === 'arithmetic' && action === 'probe') {
       lines.push(`- The candidate wrote ${f.claim?.expression} = ${f.candidateValue} in "${f.span}"; that operation doesn't give ${f.candidateValue}. Probe once — "Walk me through that calculation." Do not correct it or say the right figure.`);
+      continue;
+    }
+    if (f.kind === 'pricing' && action === 'probe') {
+      lines.push(`- The candidate said ${f.claim?.quantity} in "${f.span}"; that doesn't follow from the cost structure they have. Probe once — "Walk me through how you sized that price move." Do not correct it or say the right figure.`);
       continue;
     }
     if (action === 'probe') {

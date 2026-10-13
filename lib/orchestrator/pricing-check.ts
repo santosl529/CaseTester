@@ -121,7 +121,7 @@ export function checkPricingClaims(rawText: string, v: PricingModelValues): Pric
       const x = Number(be[1]);
       const expected = v.contributions.map(cm => Math.round(1000 * (1 - cm / (cm + p))) / 10);
       // Revenue held flat ("still hold revenue flat", "revenue falls") breaks even at P/(1+P).
-      if (/\brevenue\b/i.test(s) && !/\b(?:gross profit|contribution|profit dollars)\b/i.test(s)) expected.push(Math.round(1000 * p / (100 + p)) / 10);
+      if (/\brevenue\b/i.test(s)) expected.push(Math.round(1000 * p / (100 + p)) / 10);
       push({ kind: 'breakeven', price: p, stated: x, expected }, t => Math.max(2.5, 0.15 * t));
       continue;
     }

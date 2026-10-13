@@ -18,9 +18,10 @@
 //     challenge is not evidence, and nothing is dropped on its account.
 import type { Case } from '@/lib/cases/schema';
 import type { InterviewerMark } from './interviewer-errors';
-import { checkRecomputeForTurn, checkVerifiedForTurn, flagsFromUnitCheck, flagsFromArithmetic, verifiedFromChecks, type RecomputeFlag, type VerifiedFigure } from '@/lib/orchestrator/recompute';
+import { checkRecomputeForTurn, checkVerifiedForTurn, flagsFromUnitCheck, flagsFromArithmetic, flagsFromPricing, verifiedFromChecks, type RecomputeFlag, type VerifiedFigure } from '@/lib/orchestrator/recompute';
 import { checkNestedConversions } from '@/lib/orchestrator/unit-check';
 import { checkStatedArithmetic } from '@/lib/orchestrator/arithmetic-check';
+import { checkPricingClaims, pricingValues } from '@/lib/orchestrator/pricing-check';
 import { classifyMathTalk, candidateFiguresOf } from '@/lib/orchestrator/math-talk';
 
 type Turn = { role: string; text: string; turnIndex: number };
@@ -38,9 +39,11 @@ export function verifyCandidateTurns(turns: Turn[], caseData: Case, revealedBefo
     const arith = checkStatedArithmetic(t.text);
     const unit = checkNestedConversions(t.text, { bases: caseData.shareBases ?? [], items: caseData.dataLedger, revealedIds: ids });
     const stepFlags = checkRecomputeForTurn(t.text, caseData.mathSteps, ids);
+    const pricingModel = pricingValues(caseData, new Set(ids));
+    const pricing = pricingModel ? checkPricingClaims(t.text, pricingModel) : [];
     out.set(t.turnIndex, {
-      flags: [...stepFlags, ...flagsFromUnitCheck(unit.flags), ...flagsFromArithmetic(arith)],
-      verified: [...checkVerifiedForTurn(t.text, caseData.mathSteps, ids), ...verifiedFromChecks(arith, unit.verified)],
+      flags: [...stepFlags, ...flagsFromUnitCheck(unit.flags), ...flagsFromArithmetic(arith), ...flagsFromPricing(pricing)],
+      verified: [...checkVerifiedForTurn(t.text, caseData.mathSteps, ids), ...verifiedFromChecks(arith, unit.verified, pricing)],
     });
   }
   return out;
@@ -100,14 +103,14 @@ export function buildChallengeMarks(
 // math steps — what was verified wrong (their errors) and a sample of what was
 // verified right. Everything else was not checked: neither right nor wrong.
 export function formatClaimChecksSection(v: Map<number, TurnVerification>): string {
-  const wrong = [...v].flatMap(([turn, x]) => x.flags.filter(f => f.kind === 'unit' || f.kind === 'arithmetic').map(f => ({ turn, f })));
-  const right = [...v].flatMap(([turn, x]) => x.verified.filter(r => r.stepId.startsWith('arith:') || r.stepId.startsWith('unit:')).map(r => ({ turn, r })));
+  const wrong = [...v].flatMap(([turn, x]) => x.flags.filter(f => f.kind === 'unit' || f.kind === 'arithmetic' || f.kind === 'pricing').map(f => ({ turn, f })));
+  const right = [...v].flatMap(([turn, x]) => x.verified.filter(r => /^(?:arith|unit|pricing):/.test(r.stepId)).map(r => ({ turn, r })));
   if (wrong.length === 0 && right.length === 0) return '';
   const seen = new Set<string>();
   const rightLines = right.filter(({ r }) => !seen.has(r.span) && seen.add(r.span)).slice(0, 8)
     .map(({ turn, r }) => `- turn ${turn}: "${r.span}" — VERIFIED CORRECT`);
-  const wrongLines = wrong.map(({ turn, f }) => `- turn ${turn}: "${f.span}" — VERIFIED WRONG: ${f.kind === 'unit' ? `${f.candidateValue} ${f.claim?.units}; ${f.claim?.quantity} at ${f.claim?.base} is about ${f.expected}` : `${f.claim?.expression} is not ${f.candidateValue} (≈ ${f.expected})`}`);
-  return `CANDIDATE CLAIMS CHECKED IN CODE (stated arithmetic and unit conversions):
+  const wrongLines = wrong.map(({ turn, f }) => `- turn ${turn}: "${f.span}" — VERIFIED WRONG: ${f.kind === 'unit' ? `${f.candidateValue} ${f.claim?.units}; ${f.claim?.quantity} at ${f.claim?.base} is about ${f.expected}` : f.kind === 'pricing' ? `${f.claim?.quantity} — about ${f.expected}` : `${f.claim?.expression} is not ${f.candidateValue} (≈ ${f.expected})`}`);
+  return `CANDIDATE CLAIMS CHECKED IN CODE (stated arithmetic, unit conversions and pricing math):
 ${[...wrongLines, ...rightLines].join('\n')}
 A claim marked VERIFIED CORRECT is correct: never cite it as an error, whatever the interviewer implied. VERIFIED WRONG is the candidate's error unless they corrected it. Claims not listed were not checked — not being flagged is not evidence of correctness.`;
 }

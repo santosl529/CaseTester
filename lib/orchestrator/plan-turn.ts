@@ -8,9 +8,10 @@ import { formatOpenRequestsHint, formatUnmappedHint } from './data-requests';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
 import { createLedger, reveal, revealedValues, labelWithPeriod } from './data-ledger';
-import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts, checkVerifiedForTurn, formatVerifiedHint, flagsFromUnitCheck, flagsFromArithmetic, verifiedFromChecks, type RecomputeAttempts, type VerifiedFigure } from './recompute';
+import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts, checkVerifiedForTurn, formatVerifiedHint, flagsFromUnitCheck, flagsFromArithmetic, flagsFromPricing, verifiedFromChecks, type RecomputeAttempts, type VerifiedFigure } from './recompute';
 import { checkNestedConversions } from './unit-check';
 import { checkStatedArithmetic } from './arithmetic-check';
+import { checkPricingClaims, pricingValues } from './pricing-check';
 import { candidateFiguresOf } from './math-talk';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
@@ -396,11 +397,16 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const stepFlags = checkRecomputeForTurn(candidateText, caseData.mathSteps, revealedIdsNow);
   const arithmetic = checkStatedArithmetic(candidateText);
   const units = checkNestedConversions(candidateText, { bases: caseData.shareBases, items: caseData.dataLedger, revealedIds: revealedIdsNow });
+  // Pricing claims (12 Oct): a price change's stated result against the case's
+  // cost structure, once every cost line is out (pricing-check.ts).
+  const pricingModel = pricingValues(caseData, new Set(revealedIdsNow));
+  const pricing = pricingModel ? checkPricingClaims(candidateText, pricingModel) : [];
   const recomputeFlags = [
     ...stepFlags,
     ...flagsFromUnitCheck(units.flags),
     ...flagsFromArithmetic(arithmetic).filter(a => !stepFlags.some(f => f.candidateValue === a.candidateValue)),
   ];
+  recomputeFlags.push(...flagsFromPricing(pricing).filter(p => !recomputeFlags.some(f => f.candidateValue === p.candidateValue)));
   // Rule 14: the attempt counter is orchestrator state, not model judgment.
   const recomputeAttempts = recordAttempts((flags.recomputeAttempts as RecomputeAttempts | undefined) ?? {}, recomputeFlags);
   const { hint: recomputeHint, derivedValues: derivedValueTexts } = formatRecomputeHint(recomputeFlags, {
@@ -423,6 +429,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     flags: units.flags.map(f => ({ stated: f.stated, units: f.units, expected: f.expected, base: f.base })),
     verified: units.verified.map(v => ({ stated: v.stated, expected: v.expected })),
   });
+  checks.record('pricing_check', pricing.some(p => p.verdict === 'incorrect'), 'pricing claim the cost structure does not give — flag', {
+    claims: pricing.map(p => ({ kind: p.kind, price: p.price, stated: p.stated, expected: p.expected, verdict: p.verdict })),
+  });
   checks.record('arithmetic_check', arithmetic.some(a => a.verdict === 'incorrect' && !a.selfCorrected), 'stated arithmetic that does not hold — flag', {
     claims: arithmetic.map(a => ({ expression: a.expression, stated: a.stated, computed: a.computed, verdict: a.verdict, selfCorrected: a.selfCorrected })),
   });
@@ -433,7 +442,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const stepVerified = checkVerifiedForTurn(candidateText, caseData.mathSteps, revealedIdsNow);
   const verifiedNow = [
     ...stepVerified,
-    ...verifiedFromChecks(arithmetic, units.verified).filter(v => !stepVerified.some(x => Math.abs(x.value - v.value) < 1e-9)),
+    ...verifiedFromChecks(arithmetic, units.verified, pricing).filter(v => !stepVerified.some(x => Math.abs(x.value - v.value) < 1e-9)),
   ];
   const verifiedPrev = (flags.lastVerified as VerifiedFigure[] | undefined) ?? [];
   const explainProbedBefore = new Set((flags.explainProbed as string[] | undefined) ?? []);
