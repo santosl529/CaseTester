@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decideData, renderDataLines, decisionRows, labelMatch, outsideAskScope, mentionStatesNeed, exhibitReady, heldForOrder, nextReadyExhibit, nextRequiredExhibit } from '@/lib/orchestrator/data-decisions';
+import { decideData, renderDataLines, decisionRows, labelMatch, outsideAskScope, splitOfItem, mentionStatesNeed, exhibitReady, heldForOrder, nextReadyExhibit, nextRequiredExhibit } from '@/lib/orchestrator/data-decisions';
 import { createLedger, reveal, type LedgerItem } from '@/lib/orchestrator/data-ledger';
 import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
 
@@ -326,6 +326,24 @@ describe('an ask for the data an exhibit shows gets the exhibit', () => {
 });
 
 // v4.10: a qualified ask keeps its scope; synonyms and grouped asks untouched.
+// Lorenzo, 13 Oct (4b; Marcus 71a04add t12): a split of an item, by its case names too.
+describe('splitOfItem', () => {
+  const other = { label: 'Price change of the other inputs (dairy, packaging, food) over 2 years' };
+  it('"the split within that non-bean bucket" is a split of the other inputs, by their name "non-bean"', () => {
+    expect(splitOfItem('the split within that non-bean bucket', other, ['non-bean', 'other inputs'])).toBe(true);
+    expect(splitOfItem('the split within that non-bean bucket', other)).toBe(false);
+  });
+  it('parts listed, not a split of one: "breakdown of beans and other inputs", "split of COGS between beans"', () => {
+    const beans = { label: 'Coffee bean price change over 2 years' };
+    expect(splitOfItem('the breakdown of beans and other inputs', beans, ['beans'])).toBe(false);
+    expect(splitOfItem('the split of COGS between beans', beans, ['beans'])).toBe(false);
+    expect(splitOfItem('the breakdown of beans', beans, ['beans'])).toBe(true);
+  });
+  it('an item that is itself a part answers a split ("the coffee beans\' share of COGS")', () => {
+    expect(splitOfItem('the split within the bean share', { label: "Composition of COGS: coffee beans' share of COGS" }, ['bean share'])).toBe(false);
+  });
+});
+
 describe('outsideAskScope', () => {
   const L = (label: string, timeframes?: Record<string, string>) => ({ label, timeframes });
   const COGS = L('COGS as % of revenue', { 58: 'current', 42: 'prior' });

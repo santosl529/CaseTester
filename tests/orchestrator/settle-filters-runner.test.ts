@@ -461,6 +461,11 @@ describe('no refusal names data the case holds (fact checks F3)', () => {
     ['COGS split by input category', ['bean_share_of_cogs', 'non_bean_input_change']],
     ['the composition of COGS', ['bean_share_of_cogs']],
     ["what's inside COGS", []],
+    // 4b replay (Preston ec02dac7 t5, Anika acf6697f t9, Noor 5a111a2d t7, Sofia 62cfe6f4 t5): parts listed, not a split of one.
+    ['COGS breakdown for coffee beans and other inputs', ['bean_share_of_cogs', 'non_bean_input_change']],
+    ['the split of COGS between beans, dairy and packaging', ['bean_share_of_cogs', 'non_bean_input_change']],
+    ['the composition of COGS and the price change of the other inputs', ['bean_share_of_cogs', 'non_bean_input_change']],
+    ['the split of COGS between beans and other inputs', ['bean_share_of_cogs']],
   ] as [string, string[]][])('"%s" releases the bean share, the bean price change and the other inputs\' change', async (what, itemIds) => {
     seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
     const r = await say('Do we have a split of COGS by input category?', T({ say: 'Mm-hm.', requests: [ask(what, itemIds)], question: 'What does it tell you?' }));
@@ -473,6 +478,41 @@ describe('no refusal names data the case holds (fact checks F3)', () => {
     expect(r.interviewerText).not.toMatch(/I don't have/);
     expect(r.interviewerText).toMatch(/Raw coffee bean costs are up 40%/);
     expect(r.interviewerText).toMatch(/Other input costs — dairy, packaging, and food — are up 37\.5%/);
+  });
+
+  // Lorenzo, 13 Oct (Step-4 rulings, 4b; Marcus 71a04add t12 — "Do we have
+  // the split within that non-bean bucket?" heard "As I mentioned:" and the
+  // bean and other-input figures again): "As I mentioned" only for a re-ask
+  // of the same item; a narrower ask the case doesn't hold is refused.
+  describe('"As I mentioned" only for a re-ask of the same item', () => {
+    const ALL = [...COST, 'bean_share_of_cogs', 'bean_price_change', 'non_bean_input_change'];
+    it.each([
+      ['the split within the non-bean input costs', ['exhibit-a']],
+      ['the split within the non-bean input costs', ['non_bean_input_change']],
+      ['the breakdown of the other inputs', ['non_bean_input_change']],
+      ['the split within dairy, packaging and food', []],
+    ] as [string, string[]][])('"%s" (mapped to %o): refused, nothing restated', async (what, itemIds) => {
+      seed({ phase: 'EXHIBIT', revealed: ALL, flags: SATISFIED });
+      const r = await say('Do we have the split within that non-bean bucket?', T({ say: 'Understood.', requests: [ask(what, itemIds)], question: 'What does it tell you?' }));
+      expect(r.interviewerText).not.toMatch(/As I mentioned|up 40%|up 37\.5%/);
+      expect(r.interviewerText).toContain(`I don't have ${what}.`);
+    });
+    it('a split of a whole line by its case name ("rent" for overhead), beside an exhibit: refused, the line not restated', async () => {
+      seed({ phase: 'EXHIBIT', revealed: ALL, flags: SATISFIED });
+      const r = await say('Do we have the split within rent?', T({ say: 'Understood.', requests: [ask('the split within rent', ['overhead_pct', 'exhibit-a'])], question: 'What does it tell you?' }));
+      expect(r.interviewerText).not.toMatch(/As I mentioned/);
+      expect(r.interviewerText).toContain("I don't have the split within rent.");
+    });
+    it('a re-ask of the item itself is restated', async () => {
+      seed({ phase: 'EXHIBIT', revealed: ALL, flags: SATISFIED });
+      const r = await say('Sorry, what was the other inputs figure again?', T({ say: 'Sure.', requests: [ask('the price change of the other inputs', ['non_bean_input_change'])], question: 'What does it tell you?' }));
+      expect(r.interviewerText).toMatch(/As I mentioned: Other input costs — dairy, packaging, and food — are up 37\.5%/);
+    });
+    it('a re-ask of the group is restated, every item of it', async () => {
+      seed({ phase: 'EXHIBIT', revealed: ALL, flags: SATISFIED });
+      const r = await say('What were the input price changes again?', T({ say: 'Sure.', requests: [ask('the input price changes', [])], question: 'What does it tell you?' }));
+      expect(r.interviewerText).toMatch(/As I mentioned: .*up 40%.*up 37\.5%/);
+    });
   });
 
   it('"the number of stores over the 2 years" is the store count (batch 18 Maya t7)', async () => {

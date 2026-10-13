@@ -5,7 +5,7 @@
 import type { ModelTurn, DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import { resolveRequests } from '@/lib/agent/models/turn-schema';
 import type { ModelPlan } from './plan-turn';
-import { decideData, exactResolver, labelMatch, outsideAskScope, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo } from './data-decisions';
+import { decideData, exactResolver, labelMatch, outsideAskScope, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo } from './data-decisions';
 import { findFalseRefusals, groupItemsAsked } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT } from './pressure-test';
 import { planForcedReleases } from './data-requests';
@@ -81,9 +81,16 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // cap still applies; the rest is deferred out loud.
   const fbGroups = state.factBase;
   const grouped = new Map<string, Set<string>>();
+  // The case's names for an item, for the scope checks.
+  const namesOf = (id: string) => fbGroups.quantities.find(q => q.id === id)?.names ?? [];
+  // A split within one item of a group is finer than the group (Lorenzo, 13
+  // Oct; Marcus 71a04add t12: "the split within the non-bean input costs" is
+  // not the input price changes): no expansion; refused when nothing is left.
+  const finerAsks = new Set<string>();
   requests = requests.flatMap(r => {
     if (!r.explicit) return [r];
     const groupIds = groupItemsAsked(r.what, fbGroups).filter(id => ledger.items.some(i => i.id === id));
+    if (groupIds.some(id => splitOfItem(r.what, ledger.items.find(i => i.id === id)!, namesOf(id)))) { finerAsks.add(r.what); return [r]; }
     const add = groupIds.filter(id => !r.itemIds.includes(id));
     if (add.length === 0) return [r];
     // One ask per item, in its own label — said back without the candidate's
@@ -98,11 +105,16 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // whole when a split of it was asked for, a cut it doesn't have — is not
   // what was requested, released or restated (data-decisions.ts).
   const scoped: { what: string; ids: string[] }[] = [];
-  requests = requests.map(r => {
-    const out = r.itemIds.filter(id => { const item = ledger.items.find(i => i.id === id); return item !== undefined && outsideAskScope(r.what, item); });
-    if (out.length === 0) return r;
-    scoped.push({ what: r.what, ids: out });
-    return { ...r, itemIds: r.itemIds.filter(id => !out.includes(id)) };
+  requests = requests.flatMap(r => {
+    const out = r.itemIds.filter(id => { const item = ledger.items.find(i => i.id === id); return item !== undefined && outsideAskScope(r.what, item, namesOf(id)); });
+    if (out.some(id => splitOfItem(r.what, ledger.items.find(i => i.id === id)!, namesOf(id)))) finerAsks.add(r.what);
+    const kept = { ...r, itemIds: r.itemIds.filter(id => !out.includes(id)) };
+    if (out.length > 0) scoped.push({ what: r.what, ids: out });
+    // A finer ask the case doesn't hold is refused (4b), even beside an exhibit the model handed over for it.
+    if (r.explicit && finerAsks.has(r.what) && kept.itemIds.length > 0 && !kept.itemIds.some(id => ledger.items.some(i => i.id === id))) {
+      return [kept, { ...r, itemIds: [] }];
+    }
+    return [out.length === 0 ? r : kept];
   });
   if (scoped.length > 0) plan.ctx.checks.act('request_scope', 'items outside a qualified ask dropped from it', { scoped });
   // No refusal names data the case holds (fact checks F3, 12 Oct; batch 20:

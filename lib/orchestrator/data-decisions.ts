@@ -116,7 +116,20 @@ const PART_LABEL = /\b(?:share|split|composition|breakdown|mix|component)\b/i;
 const CHANGE_LABEL = /\b(?:change|changes|growth|increase|inflation|trend)\b/i;
 const MOVEMENT_ASK = /\b(?:chang\w*|mov\w*|grow\w*|grew|increas\w*|inflat\w*|trend\w*|rose|risen|went up|over (?:time|the (?:two )?years)|year[- ]over[- ]year|both years|each year|price (?:trend|history|movement)|then (?:versus|vs\.?|and) now|(?:versus|vs\.?) (?:now|today)|before and after)\b/i;
 
-export function outsideAskScope(what: string, item: { label: string; timeframes?: Record<string, string> }): boolean {
+// A split of the item itself, by one of the case's names for it (Lorenzo, 13
+// Oct; Marcus 71a04add t12: "the split within that non-bean bucket" —
+// "non-bean" names the other inputs' change): "<split> of/within/inside
+// <name>", "within <name>", "<name> <split>", the name right there — not a
+// list of parts ("breakdown of beans and other inputs"). An item that is
+// itself a part ("…share of COGS") answers a split.
+export function splitOfItem(what: string, item: { label: string }, names: string[] = []): boolean {
+  if (PART_LABEL.test(item.label)) return false;
+  const esc = (x: string) => x.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const det = String.raw`(?:the\s+|that\s+|those\s+|this\s+)?`;
+  return names.map(esc).some(name => new RegExp(String.raw`(?:\b${SPLIT_WORDS}\s+(?:of|within|inside|in)\s+|\b(?:within|inside)\s+)${det}${name}\b(?!\s*(?:,|and\b|or\b|vs\.?|versus\b))|\b${name}\s+${SPLIT_WORDS}\b`, 'i').test(what));
+}
+
+export function outsideAskScope(what: string, item: { label: string; timeframes?: Record<string, string> }, names: string[] = []): boolean {
   const ask = what.toLowerCase();
   const head = HEAD_NOUN(item.label);
   if (!head) return false;
@@ -124,6 +137,7 @@ export function outsideAskScope(what: string, item: { label: string; timeframes?
   // A split of the item itself: "<split> of/within/inside <head>", "within <head>", "<head> <split>".
   const splitOfHead = new RegExp(String.raw`\b${SPLIT_WORDS}\s+(?:of|within|inside|in|for)\s+(?:the\s+)?(?:[\w&-]+\s+){0,3}?${head}\b|\b(?:within|inside)\s+(?:the\s+)?${head}\b|\b${head}\s+${SPLIT_WORDS}\b`, 'i');
   if (splitOfHead.test(ask) && !PART_LABEL.test(label)) return true;
+  if (splitOfItem(ask, item, names)) return true;
   // A split / composition ask is about the parts, not how they moved: a
   // change item ("price change of the other inputs") is in scope only when the
   // ask also asks about movement ("…and how each moved", "the price trend").
