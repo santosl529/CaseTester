@@ -35,6 +35,18 @@ describe('vetoReason', () => {
     expect(vetoReason("I don't have the store-level split.", g())).toBe('data_talk');
     expect(vetoReason("I'll come back to that shortly.", g())).toBe('data_talk');
   });
+  it.each([
+    "Elasticity and competitor pricing aren't something I have in this case.",   // batch 21 Raj t14, said before code's own refusal
+    "Competitor pricing isn't available.",
+    "We don't have elasticity data.",
+    "Those figures are not part of this case.",
+    "That's not something we have.",
+  ])("stops a refusal in the model's own words — code's data line refuses (batch 21 D8): %s", sentence => {
+    expect(vetoReason(sentence, g())).toBe('data_talk');
+  });
+  it('a refusal in the question field is left to the refusal checks', () => {
+    expect(vetoReason("Elasticity isn't something I have — what else would you look at?", g(), { inQuestion: true })).not.toBe('data_talk');
+  });
   it('leaves a probe question about data alone', () => {
     expect(vetoReason('What data would be available to test that?', g(), { inQuestion: true })).toBeNull();
   });
