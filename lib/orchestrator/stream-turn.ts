@@ -30,7 +30,7 @@ import { promisesExhibit } from './exhibits';
 import { revealedValues } from './data-ledger';
 import { turnData, pressureTestOutcomeNow } from './turn-data';
 import { renderDataLines } from './data-decisions';
-import { findFalseFacts, findEchoes, findFalseRefusals, type FactBase, type Echo } from './fact-check';
+import { findFalseFacts, findEchoes, findFalseRefusals, findUndeliveredClaims, type FactBase, type Echo, type DeliveryContext } from './fact-check';
 import { isGradingSentence } from './grading';
 
 export type GateContext = {
@@ -46,7 +46,7 @@ export type GateContext = {
   metaAsked?: boolean;     // the candidate asked how they're assessed (a report hand-off may answer it)
   // The truth check (fact-check.ts F1): the case's facts, what has been
   // revealed (ids), and the figures of misquotes still standing.
-  facts?: { fb: FactBase; revealed: Set<string>; echoes: Echo[]; correcting?: Echo[] };
+  facts?: { fb: FactBase; revealed: Set<string>; echoes: Echo[]; correcting?: Echo[]; delivery?: DeliveryContext };
 };
 
 // A say sentence that is nothing but an acknowledgment ("Understood.") —
@@ -103,6 +103,11 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
     || findEchoes(sentence, g.facts.correcting ?? [], g.facts.fb, { strict: true }).length > 0)) return 'false_fact';
   // A refusal of data the case holds, in the model's own words (code's data line answers asks).
   if (g.facts && findFalseRefusals(sentence, g.facts.fb, g.facts.revealed).length > 0) return 'false_refusal';
+  // The question agrees with what code delivered (fact checks F4): "with the
+  // other-input price change in hand" when only the bean figures went out, "the
+  // exhibit" before any was shown, "with those figures" when none were given.
+  // Settle only — it knows this turn's data line.
+  if (opts.inQuestion && g.facts?.delivery && findUndeliveredClaims(sentence, g.facts.fb, g.facts.delivery).length > 0) return 'undelivered_claim';
   // Doubt on the candidate's math only with a flag behind it (probe-guard.ts):
   // on a verified figure "probe_guard", on an unverified one "unsupported_challenge".
   const challenge = challengeVerdict(sentence, {

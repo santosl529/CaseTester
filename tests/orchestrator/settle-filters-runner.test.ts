@@ -430,3 +430,36 @@ describe('no refusal names data the case holds — a declared deferral too', () 
     expect(r.interviewerText).toMatch(/Coffee beans were 25% of COGS two years ago/);
   });
 });
+
+describe('the question agrees with what code delivered (fact checks F4)', () => {
+  const COST = ['cogs_pct', 'labor_pct', 'overhead_pct'];
+  const withheldFor = (reason: string) => ((check('vetoes')?.detail as { withheld?: { reason: string }[] } | undefined)?.withheld ?? []).filter(w => w.reason === reason);
+
+  it('"with the other-input price change in hand" when only the bean figure went out is withheld (batch 20 R04 t14)', async () => {
+    seed({ phase: 'EXHIBIT', revealed: [...COST, 'bean_share_of_cogs'], flags: SATISFIED });
+    const r = await say('What did bean prices do?', T({
+      say: 'Mm-hm.', requests: [{ what: 'bean price change', itemIds: ['bean_price_change'], explicit: true, respond: 'release' }],
+      question: 'With the other input price change in hand, how much of the remaining gap does it explain?',
+    }));
+    expect(r.interviewerText).toMatch(/Raw coffee bean costs are up 40%/);
+    expect(r.interviewerText).not.toMatch(/other input price change in hand/);
+    expect(r.interviewerText).toMatch(/\?$/);
+    expect(withheldFor('undelivered_claim')).toHaveLength(1);
+  });
+
+  it('"With those figures" on a turn that delivered none is withheld (R14 t22)', async () => {
+    seed({ phase: 'RECOMMENDATION', revealed: COST, flags: SATISFIED });
+    const r = await say('Beans are the lever.', T({ say: 'Mm-hm.', question: 'With those figures, does bean sourcing still look like the right lead lever?' }));
+    expect(r.interviewerText).not.toMatch(/With those figures/);
+    expect(withheldFor('undelivered_claim').length).toBeGreaterThan(0);
+  });
+
+  it('a true claim stays: the figure went out this turn', async () => {
+    seed({ phase: 'EXHIBIT', revealed: [...COST, 'bean_share_of_cogs'], flags: SATISFIED });
+    const r = await say('What did bean prices do?', T({
+      say: 'Mm-hm.', requests: [{ what: 'bean price change', itemIds: ['bean_price_change'], explicit: true, respond: 'release' }],
+      question: 'With the bean price change in hand, how much of the COGS increase do beans explain?',
+    }));
+    expect(r.interviewerText).toMatch(/With the bean price change in hand, how much of the COGS increase do beans explain\?$/);
+  });
+});

@@ -30,6 +30,7 @@ export type CorpusTurn = {
   shownBefore: string[];       // exhibits shown before this turn
   exhibitNow: string | null;   // an exhibit handed over this turn
   seeded: boolean;             // copied from another run by a prefix seed — not this run's interviewer
+  openBefore?: string[];       // ledger ids of explicit asks still open before this turn (turn files only)
 };
 
 export type CorpusRun = {
@@ -152,6 +153,7 @@ function fromTurnFile(p: string, covers: (exhibitId: string) => string[]): { tur
       t: r.turnIndex + 1, candidateText: r.candidateText, phase: r.stateBefore.phase, kind: r.stateBefore.kind,
       move: r.parsedTurn?.move ?? null, segments, heard: r.savedLine,
       revealedBefore: r.stateBefore.revealedIds, releasedNow, shownBefore: r.stateBefore.shownExhibitIds, exhibitNow, seeded: false,
+      openBefore: r.stateBefore.openDataRequests.map(o => o.ledgerItemId),
     };
   });
   return { turns: out, header };

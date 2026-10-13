@@ -189,7 +189,13 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   const decisions = turnData(plan, turn);
   const dataParts = renderDataLineParts(decisions, seed);
   const dataLines = dataParts.map(p => p.text);
-  const g = gateContext(plan, decisions.releases.map(r => r.value), [...decisions.releases.map(r => r.id), ...(decisions.exhibit?.covers ?? [])]);
+  const gBase = gateContext(plan, decisions.releases.map(r => r.value), [...decisions.releases.map(r => r.id), ...(decisions.exhibit?.covers ?? []), ...decisions.restates.map(r => r.id)]);
+  // What this turn's data line hands over, for the question's delivery claims.
+  const g = gBase.facts ? { ...gBase, facts: { ...gBase.facts, delivery: {
+    revealed: gBase.facts.revealed, exhibitShown: state.shownExhibitIds.size > 0 || decisions.exhibit !== null,
+    deliveredNow: decisions.releases.length > 0 || decisions.exhibit !== null || decisions.restates.length > 0 || decisions.correction != null,
+    deliveredPrev: false, refusedNow: decisions.refusals.length > 0,
+  } } } : gBase;
 
   // The model's words, vetoed sentence by sentence (never rewritten).
   const withheld: { sentence: string; reason: string; field: 'say' | 'question' }[] = [];
@@ -259,7 +265,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // A question withheld for a false fact is replaced by one that fits the phase
   // (after whatever statement of the question is left: "Per-unit costs aren't
   // something I have directly." still needs a question after it).
-  if (!codeWritten && kind !== 'rec_ask' && !question.trim().endsWith('?') && withheld.some(w => w.field === 'question' && w.reason === 'false_fact')) {
+  if (!codeWritten && kind !== 'rec_ask' && !question.trim().endsWith('?') && withheld.some(w => w.field === 'question' && (w.reason === 'false_fact' || w.reason === 'undelivered_claim' || w.reason === 'false_refusal'))) {
     const fallback = pickFallbackQuestion({ figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: state.lastQuestion ?? null, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
     question = question ? `${question} ${fallback}` : fallback;
   }
