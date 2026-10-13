@@ -116,3 +116,28 @@ describe('correct arithmetic does not verify the claim it supports', () => {
     expect(section).not.toMatch(/18\.3%\." — VERIFIED CORRECT/);
   });
 });
+
+describe('a period flag (Marisol t8) is corrected by the period fact, never a figure code can\'t stand behind', () => {
+  const marisol = "Beans are 25% of COGS, so against the current 58, that's 0.25 × 58 = 14.5 points of revenue.";
+  it('is a flag in the shared checks, with the period probe in the hint', async () => {
+    const { formatRecomputeHint } = await import('@/lib/orchestrator/recompute');
+    const m = checkCandidateMath(marisol, prof, ALL);
+    const f = m.flags.find(x => x.unit?.period);
+    expect(f).toBeDefined();
+    expect(formatRecomputeHint([f!], { attempts: { [f!.stepId]: 1 } }).hint).toMatch(/Which year's COGS does that 25% share belong to/);
+    const second = formatRecomputeHint([f!], { attempts: { [f!.stepId]: 2 } });
+    expect(second.hint).toContain('That 25% share of COGS is from two years ago, when COGS was 42% of revenue.');
+    expect(second.hint).not.toMatch(/closer to 10\.5/);
+    expect(second.derivedValues).toEqual([]);
+  });
+
+  it('the recommendation line and the judge say the same', async () => {
+    const { recMathLine } = await import('@/lib/orchestrator/recompute');
+    const { verifyCandidateTurns, formatClaimChecksSection } = await import('@/lib/scoring/challenge-marks');
+    const f = checkCandidateMath(marisol, prof, ALL).flags.find(x => x.unit?.period)!;
+    expect(recMathLine(f, 'probe')).toMatch(/which year's COGS does that 25% share belong to\?/);
+    expect(recMathLine(f, 'correct')).toBe('That 25% share of COGS is from two years ago, when COGS was 42% of revenue.');
+    const section = formatClaimChecksSection(verifyCandidateTurns([{ role: 'candidate', turnIndex: 1, text: marisol }], prof, () => ALL));
+    expect(section).toMatch(/VERIFIED WRONG: the 25% share of COGS is from two years ago; it was applied to COGS at 58% \(today\)/);
+  });
+});

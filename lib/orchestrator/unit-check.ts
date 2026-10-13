@@ -45,6 +45,9 @@ export type UnitFlag = {
   timeframe: 'current' | 'prior';
   unconverted: number;     // share × change: the value without the conversion
   expected: number;        // the converted value at that base
+  // A period mismatch instead of a unit slip (13 Oct): the share is a figure
+  // of one year, applied to the other year's base, which the candidate named.
+  period?: { share: number; sharePeriod: 'current' | 'prior'; baseValue: number; basePeriod: 'current' | 'prior'; samePeriodBase: number };
 };
 
 export type UnitVerified = { span: string; stated: number; expected: number };
@@ -69,6 +72,9 @@ function baseValues(timeframes: Record<string, string> | undefined): BaseValue[]
     return [];
   });
 }
+
+// The candidate assumes the share still holds: not a mismatch, an assumption.
+const ASSUMED = /\b(?:if|assum\w*|suppose|say|still|presumably|hypothetically)\b/i;
 
 const near = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.35, Math.abs(b) * 0.04);
 const round1 = (n: number) => Math.round(n * 10) / 10;
@@ -159,6 +165,30 @@ export function checkNestedConversions(
         }
         const ok = converted.find(c => near(stated, c.value));
         if (ok) { verified.push({ span: sentence, stated, expected: round1(ok.value) }); continue; }
+        // A clear period mismatch: a share the case gives for one year, on the
+        // other year's base, which the candidate names by its value ("25% of
+        // COGS … against the current 58 = 14.5 points"), with no assumption
+        // that the share held ("if beans are still 25% today").
+        const crossed = shares.flatMap(sh => {
+          const sp = sharePeriod(sh);
+          if (!sp) return [];
+          return values.filter(b => b.timeframe !== sp && new RegExp(`(?<![\\d.])${b.value}(?![\\d])`).test(window))
+            .flatMap(b => [{ v: sh * b.value / 100, change: undefined as number | undefined }, ...changes.flatMap(c => [{ v: sh * b.value / 100 * c / 100, change: c }, { v: sh * b.value / 100 * (1 + c / 100), change: c }])]
+              .map(x => ({ ...x, share: sh, sp, b })));
+        }).find(x => near(stated, x.v));
+        if (crossed && !ASSUMED.test(window)) {
+          const same = values.find(v => v.timeframe === crossed.sp);
+          if (same) {
+            flags.push({
+              kind: 'unit', span: sentence, stated, units,
+              quantity: `the ${crossed.share}% share of ${base.name}`,
+              base: `${base.name} at ${same.value}% of revenue (${crossed.sp === 'prior' ? 'two years ago' : 'today'})`,
+              baseValue: same.value, timeframe: crossed.sp, unconverted: crossed.share, expected: round1(crossed.share * same.value / 100),
+              period: { share: crossed.share, sharePeriod: crossed.sp, baseValue: crossed.b.value, basePeriod: crossed.b.timeframe, samePeriodBase: same.value },
+            });
+            continue;
+          }
+        }
         const miss = unconverted.find(u => near(stated, u.value));
         if (!miss) continue;
         // The base: the value the candidate cited ("COGS is 58% of revenue"),
@@ -183,5 +213,9 @@ export function checkNestedConversions(
 // so the probe is about what the candidate actually said. The model is told
 // the figure only so it can tell the flag is real; it never says it.
 export function formatUnitFlagLine(f: UnitFlag): string {
+  if (f.period) {
+    const when = (p: 'current' | 'prior') => p === 'prior' ? 'two years ago' : 'today';
+    return `- PERIOD: the candidate said ${f.stated} ${f.units} in "${f.span}". The ${f.period.share}% share of ${f.base.split(' ')[0]} is ${when(f.period.sharePeriod)}'s figure; they applied it to ${f.base.split(' ')[0]} at ${f.period.baseValue}% (${when(f.period.basePeriod)}). Probe once — "Which year's ${f.base.split(' ')[0]} does that ${f.period.share}% share belong to?" — and let them fix it; don't name the right base or a figure.`;
+  }
   return `- UNIT: the candidate said ${f.stated} ${f.units} in "${f.span}". ${f.quantity[0].toUpperCase()}${f.quantity.slice(1)} is ${f.unconverted} points of the cost line, not of revenue; with ${f.base} it is about ${f.expected} ${f.units}. Probe the units once — "Points of what?" — and let them convert; don't name the method or the figure.`;
 }

@@ -157,12 +157,27 @@ export function figureAsWritten(text: string, figure: number): string {
   return m ? m[0] : String(figure);
 }
 
+// The period fact that corrects a period mismatch (13 Oct): the share's own
+// year and that year's base — both figures the candidate was given. No
+// replacement figure: the right one may need data the flag doesn't carry.
+export function periodCorrection(u: UnitFlag): string {
+  const p = u.period!;
+  const line = u.base.split(' ')[0];
+  return `That ${p.share}% share of ${line} is from ${p.sharePeriod === 'prior' ? 'two years ago' : 'today'}, when ${line} was ${p.samePeriodBase}% of revenue.`;
+}
+
 // A flagged figure in the reply to a recommendation ask, said by code (fact
 // guards Phase 4): Rule 14's probe — the working, never the right figure — or,
 // past it, the correction in the candidate's units. A unit slip is corrected
 // by its units alone ("That's 25% of COGS, not 25 points of revenue"): its
 // revenue figure depends on which year's base the candidate meant.
 export function recMathLine(f: RecomputeFlag, action: 'probe' | 'correct'): string {
+  if (f.unit?.period) {
+    const line = f.unit.base.split(' ')[0];
+    return action === 'probe'
+      ? `Before we wrap up — which year's ${line} does that ${f.unit.period.share}% share belong to?`
+      : periodCorrection(f.unit);
+  }
   if (action === 'probe') {
     if (f.kind === 'pricing') return `Before we wrap up — you said ${f.claim?.quantity}. Walk me through how you sized that.`;
     const fig = f.kind === 'unit' ? `${f.candidateValue} ${f.claim?.units}` : figureAsWritten(f.span, f.candidateValue);
@@ -217,6 +232,10 @@ export function formatRecomputeHint(
     const action = recomputeAction(f, attempt, Boolean(opts.underTimePressure));
     if (action === 'shed') continue;
     if (f.kind === 'unit' && f.unit && action === 'probe') { lines.push(formatUnitFlagLine(f.unit)); continue; }
+    if (f.kind === 'unit' && f.unit?.period) {
+      lines.push(`- The candidate said ${f.candidateValue} in "${f.span}", applying a share from one year to the other year's base. This overrides the no-correction rule: say this in "say", once, as written — "${periodCorrection(f.unit)}" — then continue. No probe, no consolation, no figure of your own.`);
+      continue;
+    }
     if (f.kind === 'arithmetic' && action === 'probe') {
       lines.push(`- The candidate wrote ${f.claim?.expression} = ${f.candidateValue} in "${f.span}"; that operation doesn't give ${f.candidateValue}. Probe once — "Walk me through that calculation." Do not correct it or say the right figure.`);
       continue;

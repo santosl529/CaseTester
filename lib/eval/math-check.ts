@@ -44,7 +44,7 @@ export function checkMathTurn(t: CorpusTurn, c: CaseLike): { error: MathError; h
   const sentences = t.segments.map(s => s.text).join(' ').split(/(?<=[.?!])\s+/);
   const about = (e: MathError, x: string) => new RegExp(`(?<![\\d.])${String(e.stated).replace('.', '\\.')}(?![\\d])`).test(x)
     || (e.kind === 'pricing' && /\b(?:price|pricing|break-?even|volume|traffic)\b/i.test(x))
-    || (e.kind === 'unit' && /\b(?:points? of what|of what|which base|what base|share of what)\b/i.test(x))
+    || (e.kind === 'unit' && /\b(?:points? of what|of what|which base|what base|share of what|which year'?s?|what year|two years ago)\b/i.test(x))
     || /\b(?:that|this|your) (?:calculation|math|number|figure|sizing|estimate|step)\b/i.test(x);
   // The subject may sit in the sentence before ("You said a 10% price rise recovers 6 points. Walk me through how you sized that.").
   return errors.map(e => ({ error: e, handled: sentences.some((x, i) => (PROBE.test(x) || CORRECTION.test(x)) && (about(e, x) || about(e, sentences[i - 1] ?? ''))) }));
