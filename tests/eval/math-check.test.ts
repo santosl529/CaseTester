@@ -19,6 +19,10 @@ describe('D6 — a math error the answering turn lets pass', () => {
   it('a probe about the pricing math handles it', () => {
     expect(checkMathTurn(turn(WRONG, 'Walk me through how a 10% price rise gets you there.'), c)).toMatchObject([{ handled: true }]);
   });
+  it('a probe whose subject is the sentence before handles it (the code-written recommendation probe)', () => {
+    expect(checkMathTurn(turn(WRONG, 'Before we wrap up — you said a 10% price rise recovers 6 points of margin. Walk me through how you sized that.'), c)).toMatchObject([{ handled: true }]);
+  });
+
   it('a probe about something else does not', () => {
     expect(checkMathTurn(turn(WRONG, 'Walk me through your thinking on store count.'), c)).toMatchObject([{ handled: false }]);
   });
