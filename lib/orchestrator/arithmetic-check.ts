@@ -63,7 +63,7 @@ const LEXEMES: [RegExp, (m: RegExpMatchArray) => Tok][] = [
   [/^[÷/]/, () => ({ t: 'op', v: '/' })],
   [W('plus'), () => ({ t: 'op', v: '+' })],
   [/^\+(?=\s|\d)/, () => ({ t: 'op', v: '+' })],
-  [W('minus'), () => ({ t: 'op', v: '-' })],
+  [W('minus|negative'), () => ({ t: 'op', v: '-' })],
   [/^−/, () => ({ t: 'op', v: '-' })],
   [/^-(?=\s)/, () => ({ t: 'op', v: '-' })],
   [/^~(?!=)/, () => ({ t: 'approx' })],
@@ -106,7 +106,7 @@ function tokenize(sentence: string): Tok[] {
   return out;
 }
 
-type Expr = { nums: number[]; ops: ('+' | '-' | '*' | '/')[]; pct: boolean; scaled: boolean; raw: string[]; pctAt: number[]; unitAt: number[] };
+type Expr = { nums: number[]; ops: ('+' | '-' | '*' | '/')[]; pct: boolean; scaled: boolean; money?: boolean; raw: string[]; pctAt: number[]; unitAt: number[] };
 
 function evaluate(e: Expr): number | null {
   if (e.nums.length !== e.ops.length + 1) return null;
@@ -137,6 +137,9 @@ function bestMiss(stated: number, computed: number, pct: boolean, scaled: boolea
 }
 
 export function verdictFor(stated: number, computed: number, pct: boolean, approximate: boolean, scaled = false): ArithmeticVerdict {
+  // The right size with the other sign — a drop written as negative ("46.8 −
+  // 33.6 = −$13.2M") or a loss as positive — is no evidence either way.
+  if (stated * computed < 0 && bestMiss(Math.abs(stated), Math.abs(computed), pct, scaled) <= (approximate ? 0.07 : 0.03)) return 'unclear';
   const miss = bestMiss(stated, computed, pct, scaled);
   if (miss <= (approximate ? 0.07 : 0.03)) return 'correct';
   // Tiny absolute differences are rounding whatever the ratio says (0.04 vs 0.035).
@@ -157,14 +160,17 @@ export function checkStatedArithmetic(rawText: string): ArithmeticClaim[] {
     let cur: Expr = { nums: [], ops: [], pct: false, scaled: false, raw: [], pctAt: [], unitAt: [] };
     let approx = false;
     let expectOperand = true;
-    const reset = () => { left = null; cur = { nums: [], ops: [], pct: false, scaled: false, raw: [], pctAt: [], unitAt: [] }; approx = false; expectOperand = true; };
+    let negate = false;   // "= −$600", "= negative $4M": a leading minus is the number's sign
+    const reset = () => { left = null; cur = { nums: [], ops: [], pct: false, scaled: false, raw: [], pctAt: [], unitAt: [] }; approx = false; expectOperand = true; negate = false; };
     const settle = () => {
       // A claim: an operation on the left, a single number on the right.
       if (left && cur.nums.length === 1 && cur.ops.length === 0 && left.ops.length > 0) {
         const lv = evaluate(left), rv = evaluate(cur);
         if (lv !== null && rv !== null && Number.isFinite(lv) && Number.isFinite(rv)) {
           const pct = left.pct || cur.pct;
-          let verdict = verdictFor(rv, lv, pct, approx, left.scaled || cur.scaled);
+          // Money mixes scales — "26.4/2,000 = $13,200" is $26.4M per flight in $
+          // (Lorenzo, 13 Oct; Larkspur): a power of 1,000 is a scale, not an error.
+          let verdict = verdictFor(rv, lv, pct, approx, left.scaled || cur.scaled || Boolean(left.money || cur.money));
           // Growth written as percents: "15% ÷ 1.10 ≈ 4.5%" is 1.15 / 1.10 → up 4.5%.
           if (verdict !== 'correct' && left.pctAt.length > 0 && left.ops.every(o => o === '*' || o === '/')) {
             const asFactors = evaluate({ ...left, nums: left.nums.map((n, i) => (left!.pctAt.includes(i) ? 1 + n / 100 : n)) });
@@ -198,12 +204,13 @@ export function checkStatedArithmetic(rawText: string): ArithmeticClaim[] {
         if (!expectOperand) { settle(); reset(); }
         if (tok.pct) cur.pctAt.push(cur.nums.length);
         if (tok.unit) cur.unitAt.push(cur.nums.length);
-        cur.nums.push(tok.v); cur.pct ||= tok.pct; cur.scaled ||= tok.scaled; cur.raw.push(tok.raw.trim());
+        cur.nums.push(negate ? -tok.v : tok.v); cur.pct ||= tok.pct; cur.scaled ||= tok.scaled; cur.money ||= tok.raw.startsWith('$'); cur.raw.push(tok.raw.trim());
         expectOperand = false;
+        negate = false;
         continue;
       }
       if (tok.t === 'op') {
-        if (expectOperand) continue;  // a leading operator ("plus 0.75 × …") starts nothing
+        if (expectOperand) { negate = tok.v === '-' && cur.nums.length === 0; continue; }  // a leading operator ("plus 0.75 × …") starts nothing; a minus is a sign
         cur.ops.push(tok.v); cur.raw.push(tok.v === '*' ? '×' : tok.v === '/' ? '/' : tok.v);
         expectOperand = true;
         continue;

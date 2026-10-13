@@ -74,7 +74,16 @@ const MathStepSchema = z.object({
   // A sentence naming one of these is about another quantity, not this step
   // ("And overhead, which drifted 2 points, worth maybe $10M" is no COGS impact).
   notCues: z.array(z.string().min(2)).optional(),
-  unit: z.union([z.enum(['percent', 'points', 'usd']), z.array(z.enum(['percent', 'points', 'usd'])).min(1)]).optional(),
+  // A sentence naming one of these is never a mismatch for this step, though
+  // a correct figure there still verifies (13 Oct, Larkspur: scenarios — "half
+  // of plan", "trigger" — and other routes' or periods' figures).
+  flagNotCues: z.array(z.string().min(2)).optional(),
+  // "count" (13 Oct): passengers, patients, bags — never a $ or % figure.
+  unit: z.union([z.enum(['percent', 'points', 'usd', 'count']), z.array(z.enum(['percent', 'points', 'usd', 'count'])).min(1)]).optional(),
+  // Money's scale (13 Oct, Larkspur): "unit" — a per-unit dollar figure
+  // ($4,200 per flight); "million" — stated in $M. A figure stated at another
+  // scale is not this step (lib/scoring/math-spans.ts).
+  scale: z.enum(['unit', 'million']).optional(),
   // Ledger items the step is derived from; the step is checked only once all
   // are revealed. Empty = derivable from the case prompt alone.
   inputs: z.array(z.string()).default([]),

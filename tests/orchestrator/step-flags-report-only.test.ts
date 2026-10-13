@@ -16,13 +16,13 @@ import { getCaseById } from '@/lib/cases/loader';
 import { readsFixture } from './fixtures/turn-reads';
 
 const LAKEPORT = ['lakeport_seats_load', 'lakeport_fare', 'extras_revenue', 'lakeport_variable_cost'];
-const WRONG = 'Lakeport made $5,000 of contribution per flight in FY2023.';
+const WRONG = 'Lakeport made $4,900 of contribution per flight in FY2023.';
 
 describe('step flags on a case whose binding is not validated', () => {
   it('prof-002: the step flag is reported, not raised', () => {
     const m = checkCandidateMath(WRONG, getCaseById('prof-002'), LAKEPORT);
     expect(m.flags.filter(f => (f.kind ?? 'step') === 'step')).toEqual([]);
-    expect(m.reportOnly).toEqual(expect.arrayContaining([expect.objectContaining({ stepId: 'lakeport_contribution_fy2023', candidateValue: 5000 })]));
+    expect(m.reportOnly).toEqual(expect.arrayContaining([expect.objectContaining({ stepId: 'lakeport_contribution_fy2023', candidateValue: 4900 })]));
   });
   it('prof-001 keeps them live', () => {
     const m = checkCandidateMath('The COGS increase is costing us about $95M a year.', getCaseById('prof-001'), ['cogs_pct', 'revenue_total']);

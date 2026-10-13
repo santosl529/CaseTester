@@ -243,6 +243,7 @@
         "program"
       ],
       "unit": "usd",
+      "scale": "unit",
       "inputs": [
         "variable_costs"
       ],
@@ -272,6 +273,7 @@
         "million"
       ],
       "unit": "usd",
+      "scale": "unit",
       "inputs": [
         "bag_price",
         "variable_costs"
@@ -301,6 +303,7 @@
         "program"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "launch_costs"
       ],
@@ -335,7 +338,8 @@
         "launch_costs"
       ],
       "quantity": "bags Hollis Bay must sell in year one to break even",
-      "timeframe": "current"
+      "timeframe": "current",
+      "unit": "count"
     },
     {
       "id": "buying_share",
@@ -384,7 +388,8 @@
         "planning_assumptions"
       ],
       "quantity": "households that buy in year one",
-      "timeframe": "current"
+      "timeframe": "current",
+      "unit": "count"
     },
     {
       "id": "yearone_bags",
@@ -413,7 +418,8 @@
         "planning_assumptions"
       ],
       "quantity": "bags Hollis Bay is likely to sell in year one",
-      "timeframe": "current"
+      "timeframe": "current",
+      "unit": "count"
     },
     {
       "id": "yearone_profit",
@@ -441,6 +447,7 @@
         "marketing"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "bag_price",
         "variable_costs",
@@ -473,7 +480,8 @@
         "planning_assumptions"
       ],
       "quantity": "bags each buying household must buy for the launch to break even",
-      "timeframe": "current"
+      "timeframe": "current",
+      "unit": "count"
     },
     {
       "id": "sampling_extra_bags",
@@ -494,7 +502,8 @@
       ],
       "verifyOnly": true,
       "quantity": "extra bags from the sampling program",
-      "timeframe": "current"
+      "timeframe": "current",
+      "unit": "count"
     },
     {
       "id": "sampling_contribution",
@@ -512,6 +521,7 @@
         "generates"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "sampling_program",
         "bag_price",
@@ -539,6 +549,7 @@
         "nets"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "sampling_program",
         "bag_price",
@@ -571,7 +582,8 @@
       ],
       "verifyOnly": true,
       "quantity": "bags the sampling program must add to pay for itself",
-      "timeframe": "current"
+      "timeframe": "current",
+      "unit": "count"
     }
   ],
   "exhibits": [

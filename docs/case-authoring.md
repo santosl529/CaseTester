@@ -102,6 +102,16 @@ hyphens.
 
 ## `mathSteps` double as the live recompute backstop
 
+**Binding a figure to a step (13 Oct, after Larkspur).** Give every money step
+a `scale` — `"unit"` for a per-unit figure ($4,200 per flight), `"million"` for
+one stated in $M — and every count (passengers, patients, bags) `unit:
+"count"`. Use `flagNotCues` for sentences that are about another quantity for
+mismatch purposes but may still carry this step's correct figure (other routes,
+another period, "per passenger", scenarios: "half of plan", "trigger", "to
+break even"); `notCues` exclude a sentence from verification too. Check with
+`npx tsx scripts/step-binding-check.ts "--root=<batch folder>"` and label every
+flag in `evals/step-binding-labels.json`.
+
 **`stepFlagsLive` (13 Oct).** A case's step flags only probe the candidate
 once its step binding is validated: run the deterministic checks over its
 transcripts and get zero false flags. Until then leave `stepFlagsLive` out —

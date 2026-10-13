@@ -86,3 +86,29 @@ describe('not a claim', () => {
     expect(checkStatedArithmetic(text)).toEqual([]);
   });
 });
+
+// Lorenzo, 13 Oct (Larkspur review, item 3): money in $M against money in $
+// is a scale, not an error; a result's minus sign is part of it.
+describe('Larkspur: $M scale and the minus sign', () => {
+  const v = (t: string) => checkStatedArithmetic(t).map(c => [c.expression, c.stated, c.verdict]);
+  it('Raj 43fa5038 t13: "26.4/2,000 = $13,200" — revenue in $M per flight in $', () => {
+    expect(v('Revenue per flight: Lakeport 26.4/2,000 = $13,200 → 16.8/2,000 = $8,400.').map(x => x[2])).toEqual(['correct', 'correct']);
+  });
+  it('Marcus 27c2d0fb t15: "4.4 ÷ 2,500 = $1,760"', () => {
+    expect(v('Granite Falls 4.4 ÷ 2,500 = $1,760, Millbrook 4.2 ÷ 2,000 = $2,100.').map(x => x[2])).toEqual(['correct', 'correct']);
+  });
+  it('Raj t23: "$8,400 − $9,000 = −$600"', () => {
+    expect(v('Now 60 × $140 = $8,400 − $9,000 = −$600.')).toEqual([['$8,400 - $9,000', -600, 'correct']]);
+  });
+  it('Marcus t15: "$17.8M − $20M = −$2.2M"; "= negative $4M"', () => {
+    expect(v('So operating profit is $17.8M − $20M = −$2.2M.')).toEqual([['$17.8M - $20M', -2.2e6, 'correct']]);
+    expect(v('So $16M − $20M = negative $4M.')).toEqual([['$16M - $20M', -4e6, 'correct']]);
+  });
+  it('still caught: a wrong per-flight figure', () => {
+    expect(v('Lakeport 26.4/2,000 = $20,000 per flight.').map(x => x[2])).toEqual(['incorrect']);
+  });
+  it('the right size with the other sign is no evidence either way — a drop written as negative (Tyler 38014721 t11)', () => {
+    expect(v('So the change is 46.8 − 33.6 = −$13.2M, a drop of about 28%.').map(x => x[2])).toEqual(['unclear']);
+    expect(v('So 8,400 − 9,000 = 600 a flight.').map(x => x[2])).toEqual(['unclear']);
+  });
+});

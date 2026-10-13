@@ -14,14 +14,19 @@
 
 import { normalizeNumberWords } from '@/lib/number-words';
 
-export type MathUnit = 'percent' | 'points' | 'usd';
+export type MathUnit = 'percent' | 'points' | 'usd' | 'count';
 
 export type SpanStep = {
   id: string;
   description: string;
   cues?: string[];
   notCues?: string[]; // a sentence naming one of these is about another quantity ("overhead … worth maybe $10M")
+  flagNotCues?: string[]; // …and one naming these is no mismatch for this step (a correct figure there still verifies)
   unit?: MathUnit | MathUnit[]; // several: the step is stated either way ("10.5% of revenue" / "10.5 points")
+  // Money's scale (Lorenzo, 13 Oct; Larkspur: "$24M of lost contribution" bound
+  // to the per-flight $4,200): a per-unit step takes no figure stated in $M,
+  // a $M step no plain dollar figure. Absent: any scale.
+  scale?: 'unit' | 'million';
 };
 
 // range: the number is one end of a range ("10–12%", "7 to 8 points") — a
@@ -36,9 +41,15 @@ const CUE_WINDOW_WORDS = 5;
 const CLAUSE_SPLIT = /[.!?;\n]+(?=\s|$)|\s[—–]\s|,\s|\s(?:but|so|and|while|whereas|although|though|because)\s/i;
 
 const SENTENCE_SPLIT = /[.!?;\n]+(?=\s|$)/;
+const CONTINUES = /^(?:plus|less|minus|[×*÷/+−-]|x\s)/i;
 
 // A quantity with its unit context: optional $, the number, then a unit.
 const QUANTITY = /(\$\s?)?(\d[\d,]*(?:\.\d+)?)(\s*%|[\s-]*(?:percent(?:age points?)?|points?|pp|pts|ppts?)\b|\s*(?:m|mm|mn|million|k|thousand|b|bn|billion)\b)?/gi;
+
+function scaleOf(suffix: string | undefined): 'unit' | 'thousand' | 'million' | 'billion' {
+  const s = (suffix ?? '').trim().toLowerCase();
+  return /^(m|mm|mn|million)$/.test(s) ? 'million' : /^(k|thousand)$/.test(s) ? 'thousand' : /^(b|bn|billion)$/.test(s) ? 'billion' : 'unit';
+}
 
 function unitOf(dollar: string | undefined, suffix: string | undefined): MathUnit | undefined {
   const s = (suffix ?? '').replace(/^[\s-]+/, '').trim().toLowerCase();
@@ -86,10 +97,18 @@ export function findStepSpans(rawText: string, step: SpanStep, scope: 'clause' |
   const text = normalizeNumberWords(rawText);
   const cues = cuesFor(step);
   const units = step.unit === undefined ? undefined : Array.isArray(step.unit) ? step.unit : [step.unit];
-  const notCues = (step.notCues ?? []).map(c => c.toLowerCase());
+  // A mismatch (clause scope) also stays out of the flag-only exclusions.
+  const notCues = [...(step.notCues ?? []), ...(scope === 'clause' ? step.flagNotCues ?? [] : [])].map(c => c.toLowerCase());
   const matches: SpanMatch[] = [];
-  const pieces = text.split(SENTENCE_SPLIT)
-    .filter(sentence => !notCues.some(c => cueCharIndexes(sentence, c).length > 0))
+  // A sentence that continues the last one ("Half of $2,000 is $1,000 … Plus
+  // … = $2.8M operating profit" — Jasmine b14baac7) shares its not-cues.
+  const sentences = text.split(SENTENCE_SPLIT);
+  const excluded: boolean[] = [];
+  sentences.forEach((sentence, i) => {
+    excluded[i] = notCues.some(c => cueCharIndexes(sentence, c).length > 0) || (i > 0 && excluded[i - 1] && CONTINUES.test(sentence.trim()));
+  });
+  const pieces = sentences
+    .filter((_, i) => !excluded[i])
     .flatMap(sentence => scope === 'clause' ? sentence.split(CLAUSE_SPLIT) : [sentence]);
   for (const raw of pieces) {
     const clause = raw.trim();
@@ -103,8 +122,15 @@ export function findStepSpans(rawText: string, step: SpanStep, scope: 'clause' |
       // A step with a unit only accepts numbers that state that unit: free
       // text is full of bare ratios and hypotheticals ("1 minus 0.94"), and a
       // unitless number is too weak a signal to attribute to a metric.
-      if (units && (unit === undefined || !units.includes(unit))) continue;
+      // A count (passengers, patients, bags) is never money or a percent ("$5
+      // more per passenger", "75% load factor" — Larkspur); "6 million bags" is one.
+      if (units?.includes('count')) {
+        if (m[1] || unit === 'percent' || unit === 'points') continue;
+      } else if (units && (unit === undefined || !units.includes(unit))) continue;
+      if (step.scale && unit === 'usd' && scaleOf(m[3]) !== step.scale) continue;
       const start = m.index ?? 0;
+      // A number glued to letters is a name, not a figure ("FY2023").
+      if (start > 0 && /[a-z]/i.test(clause[start - 1])) continue;
       const end = start + m[0].length;
       // Cue words themselves don't count toward the distance.
       const near = scope === 'sentence'

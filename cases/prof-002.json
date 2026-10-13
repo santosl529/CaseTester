@@ -285,6 +285,7 @@
         "gap"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "network_totals",
         "fixed_costs"
@@ -321,7 +322,22 @@
         75
       ],
       "quantity": "passengers per Hub–Lakeport flight",
-      "timeframe": "current"
+      "timeframe": "current",
+      "unit": "count",
+      "flagNotCues": [
+        "network",
+        "aggregate",
+        "uncontested",
+        "healthy",
+        "other routes",
+        "four routes",
+        "cedar bluff",
+        "granite falls",
+        "millbrook",
+        "westhaven",
+        "per year",
+        "a year"
+      ]
     },
     {
       "id": "lakeport_contribution_fy2023",
@@ -355,6 +371,7 @@
         "ramp"
       ],
       "unit": "usd",
+      "scale": "unit",
       "inputs": [
         "lakeport_seats_load",
         "lakeport_fare",
@@ -362,7 +379,22 @@
         "lakeport_variable_cost"
       ],
       "quantity": "Hub–Lakeport contribution per flight in FY2023",
-      "timeframe": "prior"
+      "timeframe": "prior",
+      "flagNotCues": [
+        "network",
+        "aggregate",
+        "healthy",
+        "four routes",
+        "fy2025",
+        "variable cost",
+        "per passenger",
+        "half",
+        "trigger",
+        "break even",
+        "break-even",
+        "breakeven",
+        "stress"
+      ]
     },
     {
       "id": "lakeport_contribution_fy2025",
@@ -397,6 +429,7 @@
         "ramp"
       ],
       "unit": "usd",
+      "scale": "unit",
       "inputs": [
         "lakeport_seats_load",
         "lakeport_fare",
@@ -438,6 +471,7 @@
         "ramp"
       ],
       "unit": "usd",
+      "scale": "unit",
       "inputs": [
         "lakeport_seats_load",
         "lakeport_fare"
@@ -463,6 +497,7 @@
         "route"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "lakeport_seats_load",
         "lakeport_fare",
@@ -490,13 +525,20 @@
         "would need"
       ],
       "unit": "usd",
+      "scale": "unit",
       "inputs": [
         "lakeport_seats_load",
         "extras_revenue",
         "lakeport_variable_cost"
       ],
       "quantity": "the Hub–Lakeport fare needed to break even per flight",
-      "timeframe": "current"
+      "timeframe": "current",
+      "flagNotCues": [
+        "per flight",
+        "trigger",
+        "new route",
+        "new routes"
+      ]
     },
     {
       "id": "breakeven_load_factor",
@@ -565,12 +607,23 @@
         "port avery"
       ],
       "unit": "usd",
+      "scale": "unit",
       "inputs": [
         "new_routes_plan",
         "new_routes_cost_flights"
       ],
       "quantity": "contribution per flight on the new routes at full run rate",
-      "timeframe": "current"
+      "timeframe": "current",
+      "flagNotCues": [
+        "network",
+        "per passenger",
+        "half",
+        "trigger",
+        "break even",
+        "break-even",
+        "breakeven",
+        "stress"
+      ]
     },
     {
       "id": "new_routes_annual",
@@ -598,12 +651,31 @@
         "port avery"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "new_routes_plan",
         "new_routes_cost_flights"
       ],
       "quantity": "annual contribution of the new routes at full run rate",
-      "timeframe": "current"
+      "timeframe": "current",
+      "flagNotCues": [
+        "network",
+        "aggregate",
+        "uncontested",
+        "healthy",
+        "other routes",
+        "four routes",
+        "cedar bluff",
+        "granite falls",
+        "millbrook",
+        "westhaven",
+        "half",
+        "trigger",
+        "break even",
+        "break-even",
+        "breakeven",
+        "stress"
+      ]
     },
     {
       "id": "network_improvement",
@@ -632,6 +704,7 @@
         "60%"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "new_routes_plan",
         "new_routes_cost_flights",
@@ -662,6 +735,7 @@
         "60%"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "new_routes_plan",
         "new_routes_cost_flights",
@@ -669,7 +743,15 @@
         "route_results_port_avery"
       ],
       "quantity": "Larkspur's operating profit after the redeployment, at full run rate",
-      "timeframe": "current"
+      "timeframe": "current",
+      "flagNotCues": [
+        "half",
+        "trigger",
+        "break even",
+        "break-even",
+        "breakeven",
+        "stress"
+      ]
     },
     {
       "id": "rampup_per_flight",
@@ -684,6 +766,7 @@
         "60%"
       ],
       "unit": "usd",
+      "scale": "unit",
       "inputs": [
         "new_routes_plan",
         "new_routes_cost_flights",
@@ -708,6 +791,7 @@
         "break even"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "new_routes_plan",
         "new_routes_cost_flights",

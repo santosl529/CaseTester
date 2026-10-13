@@ -223,6 +223,7 @@
         "a month"
       ],
       "unit": "usd",
+      "scale": "unit",
       "inputs": [
         "plan_prices_costs"
       ],
@@ -243,6 +244,7 @@
         "a month"
       ],
       "unit": "usd",
+      "scale": "unit",
       "inputs": [
         "plan_prices_costs"
       ],
@@ -326,6 +328,7 @@
         "starter"
       ],
       "unit": "usd",
+      "scale": "unit",
       "inputs": [
         "plan_prices_costs",
         "pro_cohort"
@@ -357,6 +360,7 @@
         "at 60"
       ],
       "unit": "usd",
+      "scale": "unit",
       "inputs": [
         "plan_prices_costs",
         "starter_cohort"
@@ -452,6 +456,7 @@
         "test"
       ],
       "unit": "usd",
+      "scale": "unit",
       "inputs": [
         "plan_prices_costs",
         "starter_cohort",
@@ -499,6 +504,7 @@
         "test"
       ],
       "unit": "usd",
+      "scale": "unit",
       "inputs": [
         "plan_prices_costs",
         "starter_cohort",
@@ -522,6 +528,7 @@
         "pro"
       ],
       "unit": "usd",
+      "scale": "unit",
       "inputs": [
         "plan_prices_costs",
         "pro_cohort",
@@ -550,7 +557,8 @@
         "new_customers_by_plan"
       ],
       "quantity": "Pro sign-ups a month lost after Starter launched",
-      "timeframe": "change"
+      "timeframe": "change",
+      "unit": "count"
     },
     {
       "id": "value_pro_only",
@@ -568,6 +576,7 @@
         "no starter"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "new_customers_by_plan",
         "plan_prices_costs",
@@ -603,6 +612,7 @@
         "test"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "new_customers_by_plan",
         "plan_prices_costs",
@@ -632,6 +642,7 @@
         "difference"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "new_customers_by_plan",
         "plan_prices_costs",
@@ -669,7 +680,8 @@
         "starter_cohort"
       ],
       "quantity": "Pro sign-ups a month Starter could take before destroying value",
-      "timeframe": "current"
+      "timeframe": "current",
+      "unit": "count"
     },
     {
       "id": "starter_value_at_60",
@@ -687,6 +699,7 @@
         "worth"
       ],
       "unit": "usd",
+      "scale": "unit",
       "inputs": [
         "price_test_results",
         "price_test_notes",
@@ -714,6 +727,7 @@
         "at 60"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "price_test_results",
         "price_test_notes",
@@ -744,6 +758,7 @@
         "adds"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "price_test_results",
         "price_test_notes",

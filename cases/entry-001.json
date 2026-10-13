@@ -264,7 +264,8 @@
         "funnel_rates"
       ],
       "quantity": "US patients eligible for Kelvexa",
-      "timeframe": "current"
+      "timeframe": "current",
+      "unit": "count"
     },
     {
       "id": "patients_with_disease",
@@ -287,7 +288,8 @@
       ],
       "verifyOnly": true,
       "quantity": "US adults with Corlan's disease",
-      "timeframe": "current"
+      "timeframe": "current",
+      "unit": "count"
     },
     {
       "id": "peak_patients",
@@ -317,7 +319,8 @@
         "peak_share_forecast"
       ],
       "quantity": "patients on Kelvexa at peak",
-      "timeframe": "current"
+      "timeframe": "current",
+      "unit": "count"
     },
     {
       "id": "net_price",
@@ -336,6 +339,7 @@
         "nimbrel"
       ],
       "unit": "usd",
+      "scale": "unit",
       "inputs": [
         "kelvexa_pricing"
       ],
@@ -366,6 +370,7 @@
         "60%"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "us_adults",
         "funnel_rates",
@@ -433,7 +438,8 @@
       ],
       "verifyOnly": true,
       "quantity": "patients needed to reach $300M",
-      "timeframe": "current"
+      "timeframe": "current",
+      "unit": "count"
     },
     {
       "id": "diagnosis_upside",
@@ -444,6 +450,7 @@
         "diagnos"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "us_adults",
         "funnel_rates",
@@ -480,6 +487,7 @@
         "royalty"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "us_adults",
         "funnel_rates",
@@ -502,6 +510,7 @@
         "sales"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "us_adults",
         "funnel_rates",
@@ -539,6 +548,7 @@
         "going alone"
       ],
       "unit": "usd",
+      "scale": "million",
       "inputs": [
         "us_adults",
         "funnel_rates",

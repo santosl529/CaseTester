@@ -439,11 +439,28 @@ export type CandidateMath = {
 // (challenge-marks.ts) both read it.
 export function checkCandidateMath(candidateText: string, caseData: MathCaseData, revealedIds: Iterable<string>): CandidateMath {
   const ids = [...revealedIds];
-  const allStepFlags = checkRecomputeForTurn(candidateText, caseData.mathSteps, ids);
+  // A figure the case itself holds — the prompt, a revealed line, a step's
+  // worked figures — is that figure, not a wrong answer to another step
+  // (Lorenzo, 13 Oct; Larkspur: the new routes' 56 passengers and $9,200 cost
+  // bound to Hub–Lakeport steps).
+  // Written figures only ("six cities" holds no 6), of the step's kind — money,
+  // a percent, or a count ("6–12 months" is no $6M).
+  const held = [...[caseData.prompt ?? '', ...caseData.dataLedger.filter(d => ids.includes(d.id)).map(d => d.value), ...caseData.mathSteps.map(st => st.description)].join(' ')
+    .matchAll(/(\$\s?)?(\d[\d,]*(?:\.\d+)?)(\s?%)?/g)].map(m => ({ v: parseFloat(m[2].replace(/,/g, '')), kind: m[1] ? 'usd' : m[3] ? 'percent' : 'count' }));
+  const kindOf = (stepId: string) => { const u = caseData.mathSteps.find(st => st.id === stepId)?.unit; const first = Array.isArray(u) ? u[0] : u; return first === 'usd' ? 'usd' : first === 'percent' || first === 'points' ? 'percent' : 'count'; };
+  const near = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.05, Math.abs(b) * 0.01);
+  const arithmetic = checkStatedArithmetic(candidateText);
+  const allStepFlags = checkRecomputeForTurn(candidateText, caseData.mathSteps, ids).filter(f =>
+    !held.some(h => h.kind === kindOf(f.stepId) && near(f.candidateValue, h.v))
+    // The result of correct stated arithmetic in its sentence: their own
+    // operands, worked right — which quantity it is is the checker's call
+    // (money at any scale: "5,000 × 56 × $10 = $2.8M").
+    && !arithmetic.some(a => a.verdict === 'correct' && sameSentence(a.span, f.span) && [1, 1e3, 1e6, 1e9].some(k => near(Math.abs(a.stated) / k, f.candidateValue)))
+    // A hundred times off is another quantity (120,000 passengers a year against 60 a flight).
+    && !(f.expected !== 0 && f.candidateValue !== 0 && Math.abs(Math.log10(Math.abs(f.candidateValue / f.expected))) >= 2));
   // Report-only until the case's step binding is validated (Larkspur: 19 false corrections).
   const stepFlags = caseData.stepFlagsLive ? allStepFlags : [];
   const reportOnly = caseData.stepFlagsLive ? [] : allStepFlags;
-  const arithmetic = checkStatedArithmetic(candidateText);
   const units = checkNestedConversions(candidateText, { bases: caseData.shareBases ?? [], items: caseData.dataLedger, revealedIds: ids });
   const pm = pricingValues(caseData, new Set(ids));
   const pricing = pm ? checkPricingClaims(candidateText, pm) : [];
