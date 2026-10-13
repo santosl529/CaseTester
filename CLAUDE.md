@@ -28,9 +28,12 @@ Zero hallucinated case data (FR-4). The interviewer LLM never receives un-reveal
 See the PRD §3 for the proposed layout (`/lib/orchestrator`, `/lib/agent`, `/lib/scoring`, `/lib/voice`, `/cases`, `/db`). Refine if needed but flag structural changes.
 
 ## Spec
-- The approved technical PRD is at `prd-voice-ai-mock-case-technical.md`, with the product PRD (`prd-voice-ai-mock-case.md`) as the source of intent. Treat the technical PRD as the build source of truth.
+- The approved technical PRD is at `docs/prd-voice-ai-mock-case-technical.md`, with the product PRD (`prd-voice-ai-mock-case.md`, not in the repo) as the source of intent. Treat the technical PRD as the build source of truth.
 - Build against it. Flag gaps or ambiguities to me rather than filling them in unilaterally.
-- The technical PRD is a living document: it shows the build as it is, including fixes and decisions. After changes that affect scope or behavior, update the affected PRD sections in the same piece of work (new checks, case-format fields, behavior rules, model choices), and say in your report what you changed. Record a decision as made only once I've made or approved it; until then, mark it in the PRD as proposed, awaiting my ruling.
+- The technical PRD is a living document, and the place to get the project's full history.
+  - Its body describes the build as it is now. After changes that affect scope or behavior, update the affected sections in the same piece of work (new checks, case-format fields, behavior rules, model choices), and say in your report what you changed.
+  - A dated history section at the end of the PRD is append-only. It records what changed or was fixed, why (the evidence: batch, run, numbers), what was tried and dropped, and each decision with who made it. progress.md and the commits hold the detail; the history entry links to them.
+  - Record a decision as made only once I've made or approved it. Until then, mark it as proposed, awaiting my ruling.
 - Follow the build order in PRD §12. Each step must ship and pass its gate before the next.
 
 ## Conventions
