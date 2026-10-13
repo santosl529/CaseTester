@@ -348,25 +348,60 @@ function unitOf(c: CheckerClaim, ctx: VetContext): string {
   return first === 'percent' ? '%' : first === 'points' ? ' points' : '';
 }
 
+// A cost line by its label's head ("COGS as % of revenue" → COGS, "Labor as …" → labor).
+function lineName(ctx: VetContext, id: string): string {
+  const label = (ctx.caseData.dataLedger.find(d => d.id === id)?.label ?? id).split(/\s+(?:as|\/|\()\s*/)[0].trim();
+  return /^[A-Z]{2,}/.test(label) ? label : label.toLowerCase();
+}
+
+// The input code computes the quantity from, which the claim's span must state
+// (Lorenzo, 13 Oct): a pricing answer's price change or target. A math step's
+// inputs are the case's own data, so it has none to bind.
+function boundInput(c: CheckerClaim): number | null {
+  const q = c.codeQuantity;
+  if (q.kind === 'gain' || q.kind === 'new_margin' || q.kind === 'breakeven') return q.price;
+  if (q.kind === 'needed_for_margin' || q.kind === 'needed_for_gain') return q.target;
+  return null;
+}
+
 // Lorenzo, 13 Oct: code writes the correction from its own figure for the
-// quantity the checker names ("It's closer to 8.5 points, not 5."), in the
-// candidate's units — the checker's arithmetic is never spoken. Their figure
-// is the one in the checker's value stated in the quantity's unit ("5 points
-// gain, 11% margin" → "5 points" for a gain), as they said it, without the
-// words around it; of code's accepted answers, the one nearest theirs. null
-// when their value has no figure.
-export function codeCorrection(c: CheckerClaim, code: { values: number[] }, ctx: VetContext): { line: string; figure: string } | null {
+// quantity the checker names, naming the quantity and its input ("A 10% price
+// rise lifts margin about 8.5 points, not 5.") — the checker's arithmetic is
+// never spoken. Their figure is the one in the checker's value stated in the
+// quantity's unit ("5 points gain, 11% margin" → "5" for a gain), as they said
+// it, without the words around it. \`at\` is the code answer to speak and its
+// index (a break-even has one per variable set). null when their value has no
+// figure or the step has no quantity to name.
+export function codeCorrection(c: CheckerClaim, at: { value: number; index: number }, ctx: VetContext): { line: string; figure: string; theirs: string } | null {
   const said = [...normalizeNumberWords(c.candidateValue).matchAll(FIGURE_SAID)].map(m => m[0].trim());
   const unit = unitOf(c, ctx);
   const inUnit = said.filter(x => unit === '%' ? /%|percent/i.test(x) : unit === ' points' ? /point/i.test(x) : true);
   const theirs = said.length === 1 ? said[0] : inUnit[0] ?? said[0];
   if (!theirs) return null;
-  const [f] = candidateFigures(theirs);
-  const mid = (f.lo + f.hi) / 2;
-  const value = code.values.reduce((a, b) => Math.abs(b - mid) < Math.abs(a - mid) ? b : a);
-  const figure = spokenFigure(value);
-  const closer = HAS_UNIT.test(theirs) ? theirs.replace(FIGURE, figure) : `${figure}${unit}`;
-  return { line: `It's closer to ${closer}, not ${theirs}.`, figure };
+  // "5 points" is said "5" after "… about 8.5 points": the unit is in the line already.
+  const bare = /point/i.test(theirs) ? theirs.match(FIGURE)![0] : theirs;
+  const x = spokenFigure(at.value);
+  const q = c.codeQuantity;
+  const line = (() => {
+    switch (q.kind) {
+      case 'gain': return `A ${q.price}% price rise lifts margin about ${x} points, not ${bare}.`;
+      case 'new_margin': return `A ${q.price}% price rise takes margin to about ${x}%, not ${bare}.`;
+      case 'needed_for_margin': return `Getting back to a ${q.target}% margin takes about a ${x}% price rise, not ${bare}.`;
+      case 'needed_for_gain': return `Recovering ${q.target} points of margin takes about a ${x}% price rise, not ${bare}.`;
+      case 'breakeven': {
+        const set = ctx.caseData.pricingModel?.variableSets[at.index] ?? [];
+        return `With ${set.map(id => lineName(ctx, id)).join(' and ')} varying with volume, a ${q.price}% price rise breaks even at about a ${x}% volume loss, not ${bare}.`;
+      }
+      case 'step': {
+        const quantity = ctx.caseData.mathSteps.find(st => st.id === q.stepId)?.quantity?.replace(/\s*\([^)]*\)/g, '').trim();
+        if (!quantity) return null;
+        const closer = HAS_UNIT.test(theirs) ? theirs.replace(FIGURE, x) : `${x}${unit}`;
+        return `${quantity[0].toUpperCase()}${quantity.slice(1)}${quantity.includes(',') ? ',' : ''} is about ${closer}, not ${bare}.`;
+      }
+      default: return null;
+    }
+  })();
+  return line ? { line, figure: x, theirs } : null;
 }
 
 // What a flagged claim may put in the interviewer's mouth (FR-4). The probe
@@ -399,14 +434,24 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
     const code = codeComputed(c, ctx);
     if (!code) vetNotes.push(`no correction: code computes nothing for ${c.codeQuantity.kind}${c.codeQuantity.stepId ? ` ${c.codeQuantity.stepId}` : ''}`);
     else {
+      // Lorenzo, 13 Oct: the checker's figure must agree with code's for the
+      // named quantity (3% or 0.5) — a disagreement means its arithmetic or its
+      // reading of the claim is off, so the probe alone goes out.
       const mine = c.correctValue ?? (c.correctLow !== null && c.correctHigh !== null ? (c.correctLow + c.correctHigh) / 2 : null);
-      if (mine === null || !code.values.some(x => Math.abs(x - mine) <= Math.max(0.5, 0.03 * Math.abs(x)))) {
-        vetNotes.push(`code computes ${code.values.map(round).join(' / ')}, the checker said ${mine} — code's figure is the one spoken`);
+      const agreeing = mine === null ? [] : code.values.map((value, index) => ({ value, index }))
+        .filter(({ value }) => Math.abs(value - mine) <= Math.max(0.5, 0.03 * Math.abs(value)))
+        .sort((p, q) => Math.abs(p.value - mine!) - Math.abs(q.value - mine!));
+      const input = boundInput(c);
+      const said = numbersOf(ctx.candidateTexts.join(' '));
+      if (agreeing.length === 0) vetNotes.push(`probe only: code computes ${code.values.map(round).join(' / ')}, the checker said ${mine}`);
+      else if (input !== null && !numbersOf(c.span).some(n => near(n, input))) vetNotes.push(`probe only: the claim's span doesn't state the ${input} code computes from`);
+      else {
+        const written = codeCorrection(c, agreeing[0], ctx);
+        if (!written) vetNotes.push(`no correction: no figure of theirs in "${c.candidateValue}" (or no quantity to name)`);
+        else if (!numbersOf(written.theirs).every(n => said.some(a => near(n, a)))) vetNotes.push(`correction withheld: ${written.theirs} is not a figure they said`);
+        else if (!speakable(written.line, [written.figure])) vetNotes.push(`correction withheld (provenance/truth): ${written.line}`);
+        else correctionLine = written.line;
       }
-      const written = codeCorrection(c, code, ctx);
-      if (!written) vetNotes.push(`no correction: no figure of theirs in "${c.candidateValue}"`);
-      else if (!speakable(written.line, [written.figure])) vetNotes.push(`correction withheld (provenance/truth): ${written.line}`);
-      else correctionLine = written.line;
     }
     let pointerLine: string | null = null;
     const pointer = c.pointer.trim();

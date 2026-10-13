@@ -103,72 +103,107 @@ describe('FR-4: what a flag may put in the interviewer\'s mouth', () => {
   });
 });
 
-// Lorenzo, 13 Oct (rulings after the rerun): code writes the correction
-// whenever it computes the quantity the checker names — the checker's own
-// arithmetic is never spoken. Only when every input to code's computation is
-// revealed; through the truth guard like any other line.
+// Lorenzo, 13 Oct (rulings after the rerun, and after part 1): code writes
+// the correction from its own computation of the quantity the checker names,
+// naming the quantity and its input ("A 10% price rise lifts margin about 8.5
+// points, not 5.") — only when the checker's figure agrees with code's (3% or
+// 0.5), the input code computes from is in the claim's span, and every input
+// is revealed; through provenance and truth like any other line.
 describe('code writes the correction', () => {
   const ctx = (texts: string[], over: Partial<VetContext> = {}): VetContext => ({ caseData: prof, revealedIds: COSTS, shownExhibitIds: [], candidateTexts: texts, ...over });
+  const gain = (price: number) => ({ kind: 'gain' as const, stepId: null, price, target: null });
 
-  it('batch 20 1c9184cf t18: the checker said "closer to 38%"; code says 20.5% for 16 points', () => {
+  it('a gain: "A 10% price rise lifts margin about 8.5 points, not 5."', () => {
+    const [v] = vetCheckerClaims([claim({
+      span: 'a 10% price increase recovers about 5 points', candidateValue: 'about 5 points', correctValue: 8.5, codeQuantity: gain(10),
+    })], ctx(['A 10% price increase recovers about 5 points.']));
+    expect(v.correctionLine).toBe('A 10% price rise lifts margin about 8.5 points, not 5.');
+  });
+
+  it('a new margin, a needed price for a margin and for a gain, a break-even', () => {
+    const one = (over: Partial<CheckerClaim>, text: string) => vetCheckerClaims([claim({ span: text, ...over })], ctx([text]))[0].correctionLine;
+    expect(one({ candidateValue: 'about 11%', correctValue: 14.5, codeQuantity: { ...gain(10), kind: 'new_margin' } }, 'A 10% price rise takes us from 6% to about 11%.'))
+      .toBe('A 10% price rise takes margin to about 14.5%, not 11%.');
+    expect(one({ candidateValue: '10–12%', correctValue: 23.7, codeQuantity: { kind: 'needed_for_margin', stepId: null, price: null, target: 24 } }, 'To get back to 24% margin I need roughly 10–12% on menu prices.'))
+      .toBe('Getting back to a 24% margin takes about a 23.7% price rise, not 10–12%.');
+    expect(one({ candidateValue: '16%', correctValue: 20.5, codeQuantity: { kind: 'needed_for_gain', stepId: null, price: null, target: 16 } }, 'Restoring the full 16 points would need roughly a 16% lift.'))
+      .toBe('Recovering 16 points of margin takes about a 20.5% price rise, not 16%.');
+    expect(one({ candidateValue: '10%', correctValue: 19.2, codeQuantity: { ...gain(10), kind: 'breakeven' } }, 'A 10% rise breaks even if we lose 10% of volume.'))
+      .toBe('With COGS varying with volume, a 10% price rise breaks even at about a 19.2% volume loss, not 10%.');
+  });
+
+  it("break-even: of code's answers, the one the checker's figure agrees with, and its cost lines named", () => {
+    const text = 'A 10% rise breaks even if we lose 45% of volume.';
+    const [v] = vetCheckerClaims([claim({ span: text, candidateValue: '45%', correctValue: 33.3, codeQuantity: { ...gain(10), kind: 'breakeven' } })], ctx([text]));
+    expect(v.correctionLine).toBe('With COGS and labor varying with volume, a 10% price rise breaks even at about a 33.3% volume loss, not 45%.');
+  });
+
+  it('a math step: the quantity named, in their units', () => {
+    const text = '40% of 25%, which is 10 percentage points of revenue';
+    const [v] = vetCheckerClaims([claim({ span: text, candidateValue: '10 percentage points', correctValue: 4.2, codeQuantity: { kind: 'step', stepId: 'bean_points_added', price: null, target: null } })], ctx([text]));
+    expect(v.correctionLine).toBe("Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 percentage points, not 10.");
+  });
+
+  it("a step's quantity without its parenthetical (prof-002: \"… in FY2025 (a loss)\")", () => {
+    const p2 = getCaseById('prof-002');
+    const step = p2.mathSteps.find(st => st.id === 'lakeport_contribution_fy2025')!;
+    const text = 'So the contribution is about $800 per flight now.';
+    const [v] = vetCheckerClaims([claim({ span: text, candidateValue: '$800', correctValue: step.answer, codeQuantity: { kind: 'step', stepId: step.id, price: null, target: null } })],
+      { caseData: p2, revealedIds: step.inputs!, shownExhibitIds: [], candidateTexts: [text] });
+    expect(v.correctionLine).toBe(`Hub–Lakeport contribution per flight in FY2025 is about $${step.answer}, not $800.`);
+  });
+
+  it("code's line passes provenance: a step whose quantity names a figure the candidate doesn't have is probe only (entry-001 \"if diagnosis rose to 60%\")", () => {
+    const e1 = getCaseById('entry-001');
+    const step = e1.mathSteps.find(st => st.id === 'diagnosis_upside')!;
+    const text = 'Peak sales would be about $400M.';
+    const [v] = vetCheckerClaims([claim({ span: text, candidateValue: '$400M', correctValue: step.answer, codeQuantity: { kind: 'step', stepId: step.id, price: null, target: null } })],
+      { caseData: e1, revealedIds: step.inputs!, shownExhibitIds: [], candidateTexts: [text] });
+    expect(v.correctionLine).toBeNull();
+    expect(v.vetNotes.join(' ')).toMatch(/correction withheld \(provenance\/truth\)/);
+  });
+
+  it('a value with several figures: the one in the quantity\'s unit (replay: Sofia b20 t16, "per 10% of price")', () => {
+    const text = 'call it five points of margin back on a 10% price rise, going from 6% to roughly 11%';
+    expect(vetCheckerClaims([claim({ span: text, candidateValue: '5 points gain, 11% margin', correctValue: 8.5, codeQuantity: gain(10) })], ctx([text]))[0].correctionLine)
+      .toBe('A 10% price rise lifts margin about 8.5 points, not 5.');
+    expect(vetCheckerClaims([claim({ span: text, candidateValue: '5 points gain, 11% margin', correctValue: 14.5, codeQuantity: { ...gain(10), kind: 'new_margin' } })], ctx([text]))[0].correctionLine)
+      .toBe('A 10% price rise takes margin to about 14.5%, not 11%.');
+  });
+
+  it('the checker disagreeing with code: probe only, logged (1c9184cf t18, run 1: checker 38.1, code 20.5)', () => {
     const text = 'Restoring the full 16 points would need roughly a 16% lift.';
     const [v] = vetCheckerClaims([claim({
-      span: 'restoring the full 16 points would need roughly a 16% lift', candidateValue: '16%', correctValue: 38.1,
-      probe: 'You said a 16% lift restores the full 16 points. Walk me through how you sized that.',
+      span: text, candidateValue: '16%', correctValue: 38.1, probe: 'You said a 16% lift restores the full 16 points. Walk me through how you sized that.',
       codeQuantity: { kind: 'needed_for_gain', stepId: null, price: null, target: 16 },
     })], ctx([text]));
     expect(v.flag).toBe(true);
-    expect(v.correctionLine).toBe("It's closer to 20.5%, not 16%.");
-    expect(v.vetNotes.join(' ')).toMatch(/checker said 38\.1/);
+    expect(v.correctionLine).toBeNull();
+    expect(v.probeLine).toMatch(/Walk me through/);
+    expect(v.vetNotes.join(' ')).toMatch(/probe only: code computes 20\.5, the checker said 38\.1/);
   });
 
-  it('a gain in points: "It\'s closer to 8.5 points, not 5 points." — hedges dropped from their figure', () => {
-    const [v] = vetCheckerClaims([claim({
-      span: 'a 10% price increase recovers about 5 points', candidateValue: 'about 5 points', correctValue: 5.3,
-      codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null },
-    })], ctx(['A 10% price increase recovers about 5 points.']));
-    expect(v.correctionLine).toBe("It's closer to 8.5 points, not 5 points.");
+  it('agreement is 3% or 0.5: "20% → ten points" (checker 16.3, code 15.7) is probe only; 15.9 agrees', () => {
+    const text = 'A 20% price rise is worth ten points.';
+    expect(vetCheckerClaims([claim({ span: text, candidateValue: 'ten points', correctValue: 16.3, codeQuantity: gain(20) })], ctx([text]))[0].correctionLine).toBeNull();
+    expect(vetCheckerClaims([claim({ span: text, candidateValue: 'ten points', correctValue: 15.9, codeQuantity: gain(20) })], ctx([text]))[0].correctionLine)
+      .toBe('A 20% price rise lifts margin about 15.7 points, not 10.');
   });
 
-  it('a value with several figures: the one in the quantity\'s unit, as they said it (replay: Sofia b20 t16, 58cb… "per 10% of price")', () => {
-    const gain = { kind: 'gain' as const, stepId: null, price: 10, target: null };
-    const [sofia] = vetCheckerClaims([claim({ candidateValue: '5 points gain, 11% margin', correctValue: 8.5, codeQuantity: gain })], ctx(['call it five points of margin back, going from 6% to roughly 11%']));
-    expect(sofia.correctionLine).toBe("It's closer to 8.5 points, not 5 points.");
-    const [per] = vetCheckerClaims([claim({ candidateValue: '5 points of margin per 10% of price', correctValue: 8.5, codeQuantity: gain })], ctx(['Each 10 points of price is roughly 5 points of margin.']));
-    expect(per.correctionLine).toBe("It's closer to 8.5 points, not 5 points.");
-    const [margin] = vetCheckerClaims([claim({ candidateValue: '5 points gain, 11% margin', correctValue: 14.5, codeQuantity: { ...gain, kind: 'new_margin' } })], ctx(['call it five points of margin back, going from 6% to roughly 11%']));
-    expect(margin.correctionLine).toBe("It's closer to 14.5%, not 11%.");
+  it('a misnamed quantity is caught by the disagreement ("a 30% bean increase" named as the bean-share step)', () => {
+    const text = 'That is a 30% bean increase.';
+    const [v] = vetCheckerClaims([claim({ span: text, candidateValue: 'a 30% bean increase', correctValue: 40, codeQuantity: { kind: 'step', stepId: 'bean_share_of_revenue', price: null, target: null } })], ctx([text]));
+    expect(v.correctionLine).toBeNull();
   });
 
-  it("of code's accepted answers, the one nearest theirs (break-even: 19.2% with COGS variable, 33.3% with labor too)", () => {
-    const be = { kind: 'breakeven' as const, stepId: null, price: 10, target: null };
-    const [low] = vetCheckerClaims([claim({ candidateValue: '10%', correctValue: 19.2, codeQuantity: be })], ctx(['a 10% rise breaks even if we lose 10% of volume']));
-    expect(low.correctionLine).toBe("It's closer to 19.2%, not 10%.");
-    const [high] = vetCheckerClaims([claim({ candidateValue: '45%', correctValue: 33.3, codeQuantity: be })], ctx(['a 10% rise breaks even if we lose 45% of volume']));
-    expect(high.correctionLine).toBe("It's closer to 33.3%, not 45%.");
-  });
-
-  it('their figure without a unit gets the quantity\'s unit', () => {
-    const [v] = vetCheckerClaims([claim({ candidateValue: '5', correctValue: 8.5, codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null } })], ctx(['a 10% rise gives back 5']));
-    expect(v.correctionLine).toBe("It's closer to 8.5 points, not 5.");
-  });
-
-  it('a range: "It\'s closer to 23.7%, not 10–12%."', () => {
-    const [v] = vetCheckerClaims([claim({ candidateValue: '10–12%', correctValue: 23.7, codeQuantity: { kind: 'needed_for_margin', stepId: null, price: null, target: 24 } })], ctx(['roughly 10–12% on menu prices to restore margin']));
-    expect(v.correctionLine).toBe("It's closer to 23.7%, not 10–12%.");
-  });
-
-  it('a math step, in their units', () => {
-    const [v] = vetCheckerClaims([claim({
-      span: '40% of 25%, which is 10 percentage points of revenue', candidateValue: '10 percentage points', correctValue: 4.2,
-      codeQuantity: { kind: 'step', stepId: 'bean_points_added', price: null, target: null },
-    })], ctx(['40% of 25%, which is 10 percentage points of revenue']));
-    expect(v.correctionLine).toBe("It's closer to 4.2 percentage points, not 10 percentage points.");
-  });
-
-  it("code's figure, not the checker's: \"20% → ten points\" (checker 16.3, code 15.7)", () => {
-    const [v] = vetCheckerClaims([claim({ candidateValue: 'ten points', correctValue: 16.3, codeQuantity: { kind: 'gain', stepId: null, price: 20, target: null } })], ctx(['a 20% price rise is worth ten points']));
-    expect(v.correctionLine).toBe("It's closer to 15.7 points, not 10 points.");
+  it("binding: the price or target code computes from must be in the claim's span", () => {
+    const [price] = vetCheckerClaims([claim({ span: 'that recovers about 5 points', candidateValue: '5 points', correctValue: 8.5, codeQuantity: gain(10) })],
+      ctx(['A 10% price increase. That recovers about 5 points.']));
+    expect(price.correctionLine).toBeNull();
+    expect(price.vetNotes.join(' ')).toMatch(/span doesn't state the 10 code computes from/);
+    const [target] = vetCheckerClaims([claim({ span: 'roughly 10–12% on menu prices to restore margin', candidateValue: '10–12%', correctValue: 23.7, codeQuantity: { kind: 'needed_for_margin', stepId: null, price: null, target: 24 } })],
+      ctx(['To get back to 24% margin: roughly 10–12% on menu prices to restore margin.']));
+    expect(target.correctionLine).toBeNull();
   });
 
   it("a math step whose inputs aren't all revealed: probe only", () => {
@@ -183,40 +218,35 @@ describe('code writes the correction', () => {
 
   it('a step with no declared inputs computes nothing (its inputs can\'t be shown revealed)', () => {
     const p2 = getCaseById('prof-002');
-    const [v] = vetCheckerClaims([claim({ candidateValue: '$30M', correctValue: 24, codeQuantity: { kind: 'step', stepId: 'op_profit_swing', price: null, target: null } })],
+    const [v] = vetCheckerClaims([claim({ span: 'a $30M swing', candidateValue: '$30M', correctValue: 24, codeQuantity: { kind: 'step', stepId: 'op_profit_swing', price: null, target: null } })],
       { caseData: p2, revealedIds: p2.dataLedger.map(d => d.id), shownExhibitIds: [], candidateTexts: ['a $30M swing'] });
     expect(v.correctionLine).toBeNull();
   });
 
   it('pricing answers need every cost line revealed: probe only before', () => {
-    const [v] = vetCheckerClaims([claim({ candidateValue: '5 points', correctValue: 8.5, codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null } })],
-      ctx(['a 10% rise recovers 5 points'], { revealedIds: ['cogs_pct', 'labor_pct'] }));
+    const text = 'a 10% rise recovers 5 points';
+    const [v] = vetCheckerClaims([claim({ span: text, candidateValue: '5 points', correctValue: 8.5, codeQuantity: gain(10) })], ctx([text], { revealedIds: ['cogs_pct', 'labor_pct'] }));
     expect(v.correctionLine).toBeNull();
   });
 
-  it('the line is the figure and its unit, never the words around it ("a 30% bean increase" → "30%")', () => {
-    const [v] = vetCheckerClaims([claim({ candidateValue: 'a 30% bean increase', correctValue: 40, codeQuantity: { kind: 'step', stepId: 'bean_share_of_revenue', price: null, target: null } })],
-      ctx(['That is a 30% bean increase.']));
-    expect(v.correctionLine).toBe("It's closer to 10.5%, not 30%.");
-  });
-
-  it("their figure must be one they said (provenance on the candidate's side of the line)", () => {
-    const [v] = vetCheckerClaims([claim({ candidateValue: '7 points', correctValue: 8.5, codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null } })], ctx(['a 10% rise recovers 5 points']));
+  it('their figure must be one they said', () => {
+    const [v] = vetCheckerClaims([claim({ span: 'a 10% rise recovers 5 points', candidateValue: '7 points', correctValue: 8.5, codeQuantity: gain(10) })], ctx(['a 10% rise recovers 5 points']));
     expect(v.correctionLine).toBeNull();
   });
 });
 
 describe('deterministic first: code\'s computation decides the flag', () => {
   const ctx = (texts: string[]): VetContext => ({ caseData: prof, revealedIds: COSTS, shownExhibitIds: [], candidateTexts: texts });
+  const gain10 = { kind: 'gain' as const, stepId: null, price: 10, target: null };
   it("their figure within code's tolerance is no flag, whatever the checker's value", () => {
-    const [v] = vetCheckerClaims([claim({ candidateValue: 'about 8 points', correctValue: 5.3, codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null } })], ctx(['a 10% rise recovers about 8 points']));
+    const [v] = vetCheckerClaims([claim({ span: 'a 10% rise recovers about 8 points', candidateValue: 'about 8 points', correctValue: 5.3, codeQuantity: gain10 })], ctx(['a 10% rise recovers about 8 points']));
     expect(v.flag).toBe(false);
     expect(v.vetNotes.join(' ')).toMatch(/code computes 8\.5/);
   });
-  it("outside code's tolerance it stays a flag even when the checker's own value is near theirs", () => {
-    const [v] = vetCheckerClaims([claim({ candidateValue: '5 points', correctValue: 5.3, codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null } })], ctx(['a 10% rise recovers 5 points']));
+  it("outside code's tolerance it stays a flag even when the checker's own value is near theirs — probe only", () => {
+    const [v] = vetCheckerClaims([claim({ span: 'a 10% rise recovers 5 points', candidateValue: '5 points', correctValue: 5.3, codeQuantity: gain10 })], ctx(['a 10% rise recovers 5 points']));
     expect(v.flag).toBe(true);
-    expect(v.correctionLine).toBe("It's closer to 8.5 points, not 5 points.");
+    expect(v.correctionLine).toBeNull();
   });
 });
 
@@ -252,7 +282,7 @@ describe('the pointer probe', () => {
     expect(v.pointerLine).toBeNull();
   });
   it('none when code writes the correction', () => {
-    const [v] = vetCheckerClaims([claim({ candidateValue: '5 points', correctValue: 8.5, pointer: 'How does that fit with labor at 22% of revenue?', codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null } })],
+    const [v] = vetCheckerClaims([claim({ span: 'a 10% rise recovers 5 points', candidateValue: '5 points', correctValue: 8.5, pointer: 'How does that fit with labor at 22% of revenue?', codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null } })],
       ctx({ candidateTexts: ['a 10% rise recovers 5 points'] }));
     expect(v.correctionLine).not.toBeNull();
     expect(v.pointerLine).toBeNull();
