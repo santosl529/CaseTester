@@ -148,6 +148,36 @@ export function verifiedFromChecks(claims: ArithmeticClaim[], unitVerified: Unit
   ];
 }
 
+// The figure as the candidate wrote it ("1.6%", "43.3 points", "$20 million"),
+// for a neutral request for the working. Read from the flag's own span where
+// there is one, so another figure of the same value isn't picked up.
+export function figureAsWritten(text: string, figure: number): string {
+  const n = String(figure).replace('.', '\\.');
+  const m = new RegExp(`(?:\\$\\s?)?(?<![\\d.])${n}(?:\\s?%|\\s+(?:percentage\\s+)?points?|\\s+percent|\\s?(?:million|billion|m|bn)\\b)?`, 'i').exec(text);
+  return m ? m[0] : String(figure);
+}
+
+// A flagged figure in the reply to a recommendation ask, said by code (fact
+// guards Phase 4): Rule 14's probe — the working, never the right figure — or,
+// past it, the correction in the candidate's units. A unit slip is corrected
+// by its units alone ("That's 25% of COGS, not 25 points of revenue"): its
+// revenue figure depends on which year's base the candidate meant.
+export function recMathLine(f: RecomputeFlag, action: 'probe' | 'correct'): string {
+  if (action === 'probe') {
+    if (f.kind === 'pricing') return `Before we wrap up — you said ${f.claim?.quantity}. Walk me through how you sized that.`;
+    const fig = f.kind === 'unit' ? `${f.candidateValue} ${f.claim?.units}` : figureAsWritten(f.span, f.candidateValue);
+    return `Before we wrap up — walk me through how you got to ${fig}.`;
+  }
+  if (f.kind === 'unit' && f.unit) return `That's ${f.unit.unconverted}% of ${f.unit.base.split(' ')[0]}, not ${f.candidateValue} ${f.unit.units}.`;
+  if (f.kind === 'arithmetic') return `${f.claim?.expression} is about ${Math.round(f.expected * 100) / 100}, not ${f.candidateValue}.`;
+  if (f.kind === 'pricing') {
+    const unit = (x: number) => ({ gain: `${x} points of margin`, new_margin: `${x}%`, needed: `${x}%`, dollars: `$${x}M`, breakeven: `${x}% of volume` } as Record<string, string>)[f.stepId.slice('pricing:'.length)] ?? String(x);
+    return `It's closer to ${unit(f.expected)}, not ${f.candidateValue}.`;
+  }
+  const theirs = figureAsWritten(f.span, f.candidateValue);
+  return `It's closer to ${theirs.replace(String(f.candidateValue), String(f.expected))}, not ${theirs}.`;
+}
+
 // Rule 14 attempt state, per math step: how many times the candidate has
 // stated a wrong figure for it. Orchestrator state, persisted in session
 // flags — the model never counts attempts itself (Maya c230fe12 got four

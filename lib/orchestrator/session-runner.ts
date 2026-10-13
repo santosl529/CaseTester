@@ -25,6 +25,7 @@ import { revealedValues } from './data-ledger';
 import { streamTurnSegments } from './stream-turn';
 import { settleTurn, commitScripted, logSessionEvent, type TurnUsage, type ModelOutcome } from './settle-turn';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
+import { recMathLine } from './recompute';
 import {
   isUsefulSegment, isCancelledTurn, TurnCancelled,
   type ConductFlags, type HeardReport, type ScriptedPlan, type SegmentSink, type TurnCtx, type TurnResult,
@@ -407,9 +408,12 @@ async function runTurnBody(
   }, report));
 }
 
-const CODE_WRITTEN_KINDS = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm', 'rec_revision']);
+const CODE_WRITTEN_KINDS = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm', 'rec_revision', 'rec_math_probe']);
 // After code corrects a misquote in the recommendation: one chance to revise it.
 const REC_REVISION_QUESTIONS = ['With that corrected, does your recommendation change?', 'Given the corrected figure, would you change your recommendation?'] as const;
+// After code corrects the candidate's own math in the recommendation (Rule 14
+// past its probe): the correction is theirs, so no "corrected figure" talk.
+const REC_MATH_REVISION_QUESTIONS = ['Does that change your recommendation?', 'Would that change your recommendation at all?'] as const;
 
 
 // A code-written turn as a turn of the interviewer's shape: the message's data
@@ -417,6 +421,7 @@ const REC_REVISION_QUESTIONS = ['With that corrected, does your recommendation c
 function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null): ModelTurn {
   const { ctx, state } = plan;
   const seed = `${ctx.sessionId}:${ctx.nextTurnIndex}`;
+  const recMath = state.kind === 'rec_math_probe' ? state.recMathProbe : null;
   const requests = (detected ?? [])
     .filter(r => r.explicit) // a code-written turn answers asks, it doesn't offer
     .map(r => ({ what: r.what, itemIds: r.ledgerItemIds, explicit: true, respond: 'release' as const }));
@@ -426,11 +431,16 @@ function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null
         : state.kind === 'stage_brainstorm' ? pickScript([...BLOCKED_CLOSE_PROBES.brainstorm], seed)
           : state.kind === 'stage_exhibit' ? pickScript(STAGE_EXHIBIT_QUESTIONS, seed)
             : state.kind === 'rec_revision' ? pickScript([...REC_REVISION_QUESTIONS], seed)
+              : recMath?.action === 'correct' ? pickScript([...REC_MATH_REVISION_QUESTIONS], seed)
+              : recMath ? recMathLine(recMath.flag, 'probe')
             : `Take your time. The question on the table is ${restate(state.lastQuestion ?? '')}`;
   // The owed exhibit is handed over by code's own data line ("Here's an exhibit: …").
   const exhibit = state.kind === 'stage_exhibit' ? state.caseData.exhibits.find(e => !state.shownExhibitIds.has(e.id))?.id ?? null : null;
-  return { move: 'other', requests, exhibit, rescueItem: null, say: '', question };
+  // Rule 14 past its probe: the figure, flat, before the revision question.
+  const say = recMath?.action === 'correct' ? recMathLine(recMath.flag, 'correct') : '';
+  return { move: 'other', requests, exhibit, rescueItem: null, say, question };
 }
+
 
 // "Which line moved most?" → "which line moved most?" (and no doubled lead-in).
 function restate(q: string): string {

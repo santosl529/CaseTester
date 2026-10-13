@@ -335,6 +335,63 @@ describe('a recommendation resting on a misquote gets one chance to revise (batc
   });
 });
 
+describe('a math error in the recommendation gets one probe before the case moves on (fact guards Phase 4)', () => {
+  const recAsked = () => { store.turns[store.turns.length - 1] = { ...store.turns[store.turns.length - 1], text: "Pull it together — what's your recommendation to the CEO?" }; };
+  const COSTS = ['cogs_pct', 'labor_pct', 'overhead_pct', 'revenue_total'];
+  const REC = 'My recommendation: raise menu prices. A 10% price increase recovers about 5 points of margin if volume holds.';
+
+  it('a wrong pricing claim: one code-written probe, without the right figure — not the close', async () => {
+    seed({ phase: 'RECOMMENDATION', revealed: COSTS, flags: SATISFIED });
+    recAsked();
+    const r = await say(REC, T({ move: 'risk', question: "What's the biggest risk to that?" }));
+    expect(r.ended).toBe(false);
+    expect(r.interviewerText).toBe('Before we wrap up — you said a 10% price rise recovers 5 points of margin. Walk me through how you sized that.');
+    expect(flagsNow().recMathProbed).toBe(true);
+    expect(flagsNow().recomputeAttempts).toEqual({ 'pricing:gain': 1 });
+  });
+
+  it('a wrong figure of a math step is probed as the candidate wrote it', async () => {
+    seed({ phase: 'RECOMMENDATION', revealed: COSTS, flags: SATISFIED });
+    recAsked();
+    const r = await say('My recommendation: fix procurement first. Sixteen points on $480 million is about $20 million of margin impact.', T({ move: 'risk' }));
+    expect(r.interviewerText).toBe('Before we wrap up — walk me through how you got to $20 million.');
+  });
+
+  it('wrong again after a probe: the figure is supplied and the recommendation reopened once', async () => {
+    seed({ phase: 'RECOMMENDATION', revealed: COSTS, flags: { ...SATISFIED, recomputeAttempts: { 'pricing:gain': 1 } } });
+    recAsked();
+    const r = await say(REC, T({ move: 'risk' }));
+    expect(r.interviewerText).toMatch(/^It's closer to 8\.5 points of margin, not 5\. (Does that change your recommendation|Would that change your recommendation at all)\?$/);
+  });
+
+  it('a unit slip past its probe is corrected without a figure that depends on the year', async () => {
+    seed({ phase: 'RECOMMENDATION', revealed: COSTS, flags: { ...SATISFIED, recomputeAttempts: { 'unit:COGS': 1 } } });
+    recAsked();
+    const r = await say('My recommendation: hedge beans first. Beans are 25% of COGS, so 25 points of revenue sit in beans.', T({ move: 'risk' }));
+    expect(r.interviewerText).toMatch(/^That's 25% of COGS, not 25 points of revenue\. (Does that change your recommendation|Would that change your recommendation at all)\?$/);
+  });
+
+  it('asked once: the next flagged answer goes on normally', async () => {
+    seed({ phase: 'RECOMMENDATION', revealed: COSTS, flags: { ...SATISFIED, recMathProbed: true } });
+    recAsked();
+    const r = await say(REC, T({ move: 'risk', say: 'Mm-hm.', question: "What's the biggest risk to that?" }));
+    expect(r.interviewerText).not.toMatch(/Before we wrap up/);
+  });
+
+  it('a right claim, or time up, gets no probe', async () => {
+    seed({ phase: 'RECOMMENDATION', revealed: COSTS, flags: SATISFIED });
+    recAsked();
+    const ok = await say('My recommendation: raise menu prices. A 10% price increase recovers about 8.5 points of margin.', T({ move: 'risk', say: 'Mm-hm.', question: "What's the biggest risk to that?" }));
+    expect(ok.interviewerText).toBe("Mm-hm. What's the biggest risk to that?");
+    seed({ phase: 'RECOMMENDATION', revealed: COSTS, flags: { ...SATISFIED, graceAskFired: true } });
+    store.session = { ...store.session, startedAt: new Date(Date.now() - 25 * 60_000) };
+    recAsked();
+    const late = await say(REC, T());
+    expect(late.ended).toBe(true);
+    expect(late.interviewerText).not.toMatch(/Before we wrap up/);
+  });
+});
+
 describe('the correction cap never applies to the recommendation (batch 20 R30, R47 replays)', () => {
   it('an item corrected twice already is corrected again in the reply to a recommendation ask', async () => {
     seed({ phase: 'RECOMMENDATION', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: { ...SATISFIED, misquoteCorrected: ['cogs_pct', 'cogs_pct'], recRevisionAsked: true } });

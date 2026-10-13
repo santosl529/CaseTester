@@ -8,7 +8,7 @@ import { formatOpenRequestsHint, formatUnmappedHint } from './data-requests';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
 import { createLedger, reveal, revealedValues, labelWithPeriod } from './data-ledger';
-import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts, checkVerifiedForTurn, formatVerifiedHint, flagsFromUnitCheck, flagsFromArithmetic, flagsFromPricing, verifiedFromChecks, type RecomputeAttempts, type VerifiedFigure } from './recompute';
+import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts, checkVerifiedForTurn, formatVerifiedHint, flagsFromUnitCheck, flagsFromArithmetic, flagsFromPricing, verifiedFromChecks, recomputeAction, type RecomputeAttempts, type VerifiedFigure } from './recompute';
 import { checkNestedConversions } from './unit-check';
 import { checkStatedArithmetic } from './arithmetic-check';
 import { checkPricingClaims, pricingValues } from './pricing-check';
@@ -37,7 +37,7 @@ import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
 
 // What Plan decides a model-turn slot is (spec 2026-10-06 §6). 'model' and
 // 'rec_ask' call the interviewer model; the rest are written by code.
-export type TurnKind = 'model' | 'rec_ask' | 'close' | 'grace_ask' | 'time_warning' | 'rung1' | 'stage_exhibit' | 'stage_brainstorm' | 'rec_revision';
+export type TurnKind = 'model' | 'rec_ask' | 'close' | 'grace_ask' | 'time_warning' | 'rung1' | 'stage_exhibit' | 'stage_brainstorm' | 'rec_revision' | 'rec_math_probe';
 
 // Why the case closes, so the closing line is true (v4.10; batch 18: 32
 // sessions said "That's time" before minute 18).
@@ -598,7 +598,19 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // and asks once whether the recommendation changes, rather than moving on or
   // closing on it. Not when time is up — the correction still goes out first.
   const recRevisionDue = misquote !== null && replyToRecAsk && !flags.recRevisionAsked && !timeUp;
+  // A recommendation that rests on math a check flagged (fact guards Phase 4,
+  // 12 Oct; batch 20: "a 10% price increase recovers about 5 points" said first
+  // in the final answer, then the close): one code-written probe — or, past
+  // Rule 14's probe, the figure and a chance to revise — before the case moves
+  // on. Once a case; not when time is up; a shed minor error stays shed.
+  const recMathFlag = replyToRecAsk && !flags.recMathProbed && !timeUp && !recRevisionDue
+    ? recomputeFlags.find(f => recomputeAction(f, recomputeAttempts[f.stepId] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)) !== 'shed')
+    : undefined;
+  const recMathProbe = recMathFlag
+    ? { flag: recMathFlag, action: recomputeAction(recMathFlag, recomputeAttempts[recMathFlag.stepId] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)) }
+    : null;
   const kind: TurnKind = recRevisionDue ? 'rec_revision'
+    : recMathProbe ? 'rec_math_probe'
     : closeDue && !stageDue ? 'close'
     : graceDue ? 'grace_ask'
       : shouldFireTimeWarning && !recommendationReceived ? 'time_warning'
@@ -682,7 +694,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       caseData, repliedToDistressOffer, shownExhibitIds, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
-      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
+      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, recMathProbe, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,

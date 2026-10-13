@@ -39,6 +39,7 @@ import { vetoReason, gateContext, isHandoverAnnouncement, isDeliveryClaim } from
 import type { ModelTurn, Move } from '@/lib/agent/models/turn-schema';
 import type { TurnValidation } from '@/lib/agent/models/interface';
 import type { ModelPlan } from './plan-turn';
+import { figureAsWritten } from './recompute';
 import type { ExhibitDisplay, HeardReport, PendingEvent, ScriptedPlan, TurnCtx, TurnResult } from './turn-types';
 
 export async function logSessionEvent(
@@ -153,9 +154,9 @@ export type Settled = {
   persist: (latency: { firstSegmentMs: number | null; streamed: boolean }, heard?: HeardReport | null) => Promise<TurnResult>;
 };
 
-const CODE_WRITTEN = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm', 'rec_revision']);
+const CODE_WRITTEN = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm', 'rec_revision', 'rec_math_probe']);
 // Code's own stage asks, recorded as moves it is sure of.
-const STAGE_MOVE: Partial<Record<string, Move>> = { stage_exhibit: 'exhibit', stage_brainstorm: 'brainstorm', rec_revision: 'recommendation' };
+const STAGE_MOVE: Partial<Record<string, Move>> = { stage_exhibit: 'exhibit', stage_brainstorm: 'brainstorm', rec_revision: 'recommendation', rec_math_probe: 'recommendation' };
 
 // A figure the candidate gave as a result in this message ("= 53.8", "is
 // about 1.6%", "so 38%") — not an input or an index base ("index this to 100").
@@ -164,13 +165,6 @@ function statedAsResult(candidateText: string, figure: number): boolean {
   return new RegExp(`(?:=|≈|\\bis|\\bare|\\bgives|\\babout|\\broughly|\\bthat'?s|\\bso|\\bcomes to)\\s+(?:about\\s+|roughly\\s+|around\\s+|~)?\\$?${n}(?![\\d])`, 'i').test(candidateText);
 }
 
-// The figure as the candidate wrote it ("1.6%", "43.3 points"), for a neutral
-// request for the working.
-function figureAsWritten(candidateText: string, figure: number): string {
-  const n = String(figure).replace('.', '\\.');
-  const m = new RegExp(`(?<![\\d.])${n}(?:\\s?%|\\s+(?:percentage\\s+)?points?|\\s+percent)?`, 'i').exec(candidateText);
-  return m ? m[0] : String(figure);
-}
 const ASKS_RECOMMENDATION = new Set(['rec_ask', 'grace_ask', 'time_warning']);
 
 export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Settled> {
@@ -677,6 +671,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
             timeWarningFired: Boolean(flags.timeWarningFired) || (kind === 'time_warning' && qHeard),
             graceAskFired: Boolean(flags.graceAskFired) || (kind === 'grace_ask' && qHeard),
             recRevisionAsked: Boolean(flags.recRevisionAsked) || (kind === 'rec_revision' && qHeard),
+            recMathProbed: Boolean(flags.recMathProbed) || (kind === 'rec_math_probe' && qHeard),
             recomputeAttempts,
             lastVerified: verifiedNow,
             flaggedFigures: state.flaggedFigures,
