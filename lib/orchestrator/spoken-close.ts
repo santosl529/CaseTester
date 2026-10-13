@@ -89,7 +89,7 @@ const REC_ASK =
 // branch would you start with" (structure). For holding an early ask only; the
 // end gate keeps counting REC_ASK.
 const CONCLUSION_ASK =
-  /\bwhat do you recommend\b(?!\s+(?:we|i|us|to|as|in|looking)\b)|\b(?:wants|needs|give me|hear|asks? (?:you )?for) your (?:\w+ )?recommendation\b|\bwhich\s+(?:single\s+|one\s+|of\s+(?:your|these|those|the)\s+)?(?:levers?|options?|moves?|actions?)\b[^?]{0,60}\b(?:first|start|prioriti[sz]e|pull|lead with)\b|\bmost credible lever\b|\bwhat would you do first\b|\bas the (?:primary|main|final|headline) recommendation\b/i;
+  /\bwhat do you recommend\b(?!\s+(?:we|i|us|as|in|looking)\b)(?!\s+to\s+(?!the\s+(?:ceo|client|board|company)\b))|\bpulling it (?:all )?together\b|\b(?:wants|needs|give me|hear|asks? (?:you )?for) your (?:\w+ )?recommendation\b|\bwhich\s+(?:single\s+|one\s+|of\s+(?:your|these|those|the)\s+)?(?:levers?|options?|moves?|actions?)\b[^?]{0,60}\b(?:first|start|prioriti[sz]e|pull|lead with)\b|\bmost credible lever\b|\bwhat would you do first\b|\bas the (?:primary|main|final|headline) recommendation\b|\brecommendation in front of the (?:ceo|client|board)\b/i;
 export function asksForConclusion(text: string): boolean { return REC_ASK.test(text) || CONCLUSION_ASK.test(text); }
 
 // The risk question as a stage (fact guards Phase 5; batch 20 grading): the
@@ -99,17 +99,24 @@ export function asksForConclusion(text: string): boolean { return REC_ASK.test(t
 // that?" (R16, R18: counted as the risk question, so the case closed with none
 // asked).
 const RISK_STAGE =
-  /\b(?:biggest risk|key risk|main risk|what could go wrong|what would change your mind|what would make you wrong|how would you de-?risk|risks? (?:to|of|with|in) (?:that|this|your) (?:recommendation|plan)|how would you test (?:the|your|that|this) (?:recommendation|plan|price increase|pricing move)|derail|risks? you'?ve (?:named|raised|flagged))\b/i;
-const CONTINGENCY = /\bif\b[^?]{0,140}?\b(?:what (?:would|do) you do|would you (?:stop|pause|pull back|roll back|change course|adjust)|how would you (?:decide|respond|react|adjust)|what'?s your fallback)\b/i;
-// afterRecommendation: a contingency counts only once a recommendation is on the table.
+  /\b(?:biggest risk|key risk|main risk|what could go wrong|what would change your mind|what would make you wrong|how would you de-?risk|risks? (?:to|of|with|in) (?:that|this|your) (?:recommendation|plan)|how would you test (?:the|your|that|this) (?:recommendation|plan|price increase|pricing move)|derail|risks? you'?ve (?:named|raised|flagged)|what (?:evidence|data|signal|result) would tell you (?:that'?s|you'?re|it'?s|you are) wrong)\b/i;
+const CONTINGENCY = /\b(?:if|suppose)\b[^?]{0,160}?\b(?:what (?:would|do) you do|what'?s your plan|would you (?:stop|pause|pull back|roll back|change course|adjust)|how would you (?:decide|respond|react|adjust)|what'?s your fallback)\b|\bwhat (?:would|do) you do (?:if|then)\b/i;
+// A question about the candidate's own recommendation, volunteered or asked for
+// ("You proposed a ten percent price increase…", "that recommendation") — not
+// "what's your plan?", which is the contingency's own wording.
+const CANDIDATE_REC_REF = /\byou'?re recommending\b|\b(?:your|that) recommendation\b|\byou(?:'ve)? proposed\b|\byour proposal\b/i;
+
+// A contingency counts only once a recommendation has been asked for
+// (afterRecommendation), or when it is about the candidate's own — not an
+// analysis "Suppose the mix test shows…" (6a7fd865 replay).
 export function asksRiskQuestion(text: string, afterRecommendation = true): boolean {
-  return RISK_STAGE.test(text) || (afterRecommendation && CONTINGENCY.test(text));
+  return RISK_STAGE.test(text) || ((afterRecommendation || CANDIDATE_REC_REF.test(text)) && CONTINGENCY.test(text));
 }
 // A risk question that names a recommendation already made ("You're
 // recommending an 11% price increase … the single biggest risk to that
 // recommendation?") — the recommendation stage happened, volunteered.
 export function namesCandidateRecommendation(text: string): boolean {
-  return asksRiskQuestion(text) && /\byou'?re recommending\b|\b(?:your|that) recommendation\b/i.test(text);
+  return asksRiskQuestion(text) && CANDIDATE_REC_REF.test(text);
 }
 
 export function asksBrainstorm(text: string): boolean { return BRAINSTORM_ASK.test(text); }

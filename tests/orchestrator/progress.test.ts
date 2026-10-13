@@ -68,6 +68,31 @@ describe('stagesFromTurns', () => {
     ], {}, false);
     expect(s.recommendationAskCount).toBe(2);
   });
+  // Batch 21 wave 1 (Owen, Raj): counted live only through move labels.
+  it('"Pulling it together, what do you recommend to the CEO" is a recommendation ask; the risk question may come as "what would you do if…" or "Suppose…"', () => {
+    const s = stagesFromTurns([
+      { turnIndex: 12, text: "Pulling it together, what do you recommend to the CEO, and how would you sequence the levers you've named?" },
+      { turnIndex: 14, text: "What evidence would tell you that's wrong, and what would you do if the pilot shows volume falling faster than you can offset?" },
+    ], {}, false);
+    expect(s).toMatchObject({ recommendationAskCount: 1, riskAsked: true });
+    const raj = stagesFromTurns([
+      { turnIndex: 16, text: 'Pulling it together, what do you recommend to the CEO?' },
+      { turnIndex: 18, text: 'Suppose the pilot shows transactions falling enough that the price increase delivers little. What would you do then?' },
+    ], {}, false);
+    expect(raj.riskAsked).toBe(true);
+    expect(stagesFromTurns([{ turnIndex: 5, text: 'What would you recommend we look at next?' }], {}, false).recommendationAskCount).toBe(0);
+  });
+  it('an analysis "Suppose the test shows…" before any recommendation ask is no risk question, even once one is received (6a7fd865 replay)', () => {
+    const s = stagesFromTurns([
+      { turnIndex: 18, text: 'Suppose the mix test shows mix explains only a small share. What would you do then?' },
+      { turnIndex: 26, text: "What's your recommendation to the client?" },
+    ], { 26: 'code_rec_ask' }, true);
+    expect(s.riskAsked).toBe(false);
+  });
+  it('a contingency that refers to the candidate\'s volunteered recommendation is the risk question (0f0158a5 replay); "put one recommendation in front of the CEO" is an ask (eb97713e)', () => {
+    expect(stagesFromTurns([{ turnIndex: 18, text: "You proposed a ten percent price increase, piloted in 20 stores. If the pilot shows traffic falling sharply, what's your plan, and how would you decide whether to proceed, adjust, or stop?" }], {}, true).riskAsked).toBe(true);
+    expect(stagesFromTurns([{ turnIndex: 14, text: "If you had to put one recommendation in front of the CEO, which would you commit to, and what's the first step?" }], {}, false).recommendationAskCount).toBe(1);
+  });
   it('falls back to the wording for turns with no recorded move (legacy sessions)', () => {
     const s = stagesFromTurns([{ turnIndex: 2, text: 'Beyond pricing, what else could the client do?' }], {}, true);
     expect(s).toMatchObject({ brainstormAsked: true, recommendationReceived: true });

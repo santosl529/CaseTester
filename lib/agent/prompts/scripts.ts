@@ -113,7 +113,7 @@ export const SILENCE_PAUSE_EXPIRED =
 // line on ending turns that say something else (live run eca39ec7 ended on a
 // bare correction after time-up). "Before we close" is not a close.
 const CLOSE_CUE =
-  /\b(that'?s (our )?time|we'?ll stop (there|here)|(that'?s|this is) where we'?ll stop|thanks?( you)? for (working|walking)|we'?re out of time|report (with feedback )?will follow|we'?ve covered everything|that covers what i wanted|that closes (?:the case|out|the recommendation))\b/i;
+  /\b(that'?s (our )?time|we'?ll stop (there|here)|(that'?s|this is) where we'?ll stop|thanks?( you)? for (working|walking)|we'?re out of time|report (with feedback )?will follow|we'?ve covered everything|that covers what i wanted|that closes (?:the case|out|the recommendation)|that'?s all i need(?: from you)?(?: on (?:the|this) case)?(?=[.!]))\b/i;
 
 export function hasCloseCue(spokenText: string): boolean {
   return CLOSE_CUE.test(spokenText);

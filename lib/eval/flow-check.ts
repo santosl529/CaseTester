@@ -83,7 +83,7 @@ export function checkFlowRun(run: CorpusRun, c: CaseLike): FlowFlag[] {
     riskAsked ||= asksRiskQuestion(q, recAsked);
     if (t.kind === 'close') {
       closedAt = t.t;
-      const why = timeUp ? '' : !recAsked && closeReason !== 'unresolved' ? 'no_recommendation' : !coreAttempted ? 'core_analysis_owed' : '';
+      const why = timeUp ? '' : !recAsked && closeReason !== 'unresolved' ? 'no_recommendation' : !coreAttempted && !steered ? 'core_analysis_owed' : '';
       if (why) flags.push({ rule: 'CLOSE', t: t.t, sub: why, text: q.slice(0, 200) });
     }
     // LOOP: a third ask of the same intent in a row with nothing given.

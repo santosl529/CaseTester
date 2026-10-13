@@ -64,11 +64,13 @@ export function stagesFromTurns(
     brainstormAsked ||= asksBrainstorm(t.text) || (m === 'brainstorm' && BRAINSTORM_TEXT.test(t.text));
     // Fact guards Phase 5 (batch 20): a risk question labelled recommendation is
     // no recommendation ask (R36 "…the biggest risk to recommending it now?");
-    // the risk question counts once a recommendation is on the table, or in
+    // the risk question counts once a recommendation has been asked, or in
     // strict wording — never an analysis "…how would you test that?" (R16, R18
     // closed with no risk asked).
     if (m === 'code_rec_ask' || asksForConclusion(t.text) || (m === 'recommendation' && t.text.includes('?') && REC_TEXT.test(t.text) && !asksRiskQuestion(t.text, false))) recommendationAskCount++;
-    const recOnTable = recommendationAskCount > 0 || recommendationReceived;
+    // Asked by this turn — not "received" now, which would count an earlier
+    // analysis "Suppose the test shows…" once the recommendation came in.
+    const recOnTable = recommendationAskCount > 0;
     riskAsked ||= asksRiskQuestion(t.text, recOnTable) || (recOnTable && m === 'risk' && t.text.includes('?') && RISK_TEXT.test(t.text));
   }
   return { brainstormAsked, riskAsked, recommendationAsked: recommendationAskCount > 0, recommendationAskCount, recommendationReceived };

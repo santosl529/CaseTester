@@ -17,6 +17,8 @@ describe('hasCloseCue', () => {
     expect(hasCloseCue("That closes out the recommendation work we'll take from this case.")).toBe(true);
     expect(hasCloseCue('That closes the recommendation and its fallback.')).toBe(true);
     expect(hasCloseCue('That closes the gap on beans — what about the other inputs?')).toBe(false);
+    // Batch 21 wave 1, Owen t18, said mid-case.
+    expect(hasCloseCue("That's all I need from you on the case.")).toBe(true);
   });
 
   it('does not treat a correction as a close, even one that says "before we close"', () => {
