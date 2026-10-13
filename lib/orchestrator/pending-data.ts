@@ -13,13 +13,15 @@ const SENTENCE_SPLIT = /(?<=[.?!])\s+/;
 
 // The object is data, not the candidate's own work ("once you have a number",
 // "before you rely on that", "before we use that weighted figure" stay out).
-const DATA_OBJECT = /(?:them|those|these|that|it|both|(?:the )?(?!(?:a|an|your|my|this|that)\b)(?=\w)[\w&' -]{0,30}?(?:figures?|numbers?|data|prices?|breakdown|split|history|change|share|percentages|line items|cost structure|count|revenue|exhibit))\b/.source;
+const DATA_OBJECT = /(?:them|those|these|that|it|both|(?:the )?(?!(?:a|an|your|my|this|that)\b)(?=\w)[\w&' -]{0,30}?(?:figures?|numbers?|data|prices?|breakdowns?|splits?|history|changes?|shares?|percentages|line items|cost structure|counts?|revenue|exhibit))\b/.source;
 
 // A clause that opens on the data still to come: "Once you have those…",
 // "Before we get into the data…", "Before those figures come in…".
 const CLAUSE_OPENERS = [
   `\\bonce you(?:'ve)? (?:have|had|got|get|see|seen|read|look at|looked at|hear|heard) ${DATA_OBJECT}`,
   /\bbefore (?:those|these|the|that|they|it)\b[^.?!,:]{0,30}\b(?:come|comes|arrive|arrives|land|lands)(?: in)?\b/.source,
+  // "Before those figures, walk me through…" (batch 20 R12 t10, t14).
+  /\bbefore (?:those|these|the) (?:figures|numbers|data)(?=\s*[,:—–])/.source,
   `\\bbefore (?:we|you) (?:get to|get into|go into|look at|see|read|dig into) ${DATA_OBJECT}`,
   /\bwhen (?:those|these|they|the \w+) (?:come in|arrive|land)\b/.source,
 ];

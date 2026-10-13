@@ -43,6 +43,13 @@ describe('settlePendingData', () => {
     expect(r.changes).toEqual([{ from: expect.stringContaining('coming up now'), to: null }]);
   });
 
+  it('"Before those figures, …" and "Before we get to store counts, …" drop the clause (batch 20 R12 t10, R44 t4)', () => {
+    expect(settlePendingData('Before those figures, walk me through how you got to nearly 90 percent of the margin loss from COGS.', delivered).question)
+      .toBe('Walk me through how you got to nearly 90 percent of the margin loss from COGS.');
+    const stores = { deliveredThisTurn: true, heldWhats: [], releasedTexts: ['200 stores today — and it was 200 stores two years ago, so the footprint hasn\u2019t changed.'] };
+    expect(settlePendingData('Before we get to store counts, how would you rank these below-the-line items?', stores).question)
+      .toBe('How would you rank these below-the-line items?');
+  });
   it('leaves the question alone on a turn that delivered nothing', () => {
     const q = 'Once you have those figures, which line do you look at first?';
     expect(settlePendingData(q, { ...delivered, deliveredThisTurn: false })).toEqual({ question: q, changes: [] });
