@@ -490,6 +490,47 @@ describe('the fallback does not re-ask what was just answered (batch 21 D8, Anik
   });
 });
 
+describe('a code-written fallback never marks the pressure test asked (Lorenzo, 13 Oct)', () => {
+  it('the probe-like no-figures fallback ("Which part … first?") replacing a withheld question leaves the test not asked', async () => {
+    let probeLike = 0;
+    for (let i = 0; i < 12; i++) {
+      seed({ phase: 'STRUCTURE' });
+      modelQueue.length = 0;
+      const m = T({ say: 'Mm-hm.', question: 'With those figures in front of you, which cost line is driving it?' });
+      modelQueue.push(m, m);
+      const r = await runTurn(`seed-${i}`, 'Revenue, costs, and then the store base.', {});
+      const pt = (store.session.flagsJsonb as Record<string, { state: string }>).pressureTest;
+      if (/\bwhich part\b[^?]*\bfirst\b/i.test(r.interviewerText)) probeLike++;
+      expect(pt?.state ?? 'not_asked').toBe('not_asked');
+    }
+    expect(probeLike).toBeGreaterThan(0);   // the case under test occurred
+  });
+  it("a probe-like fallback doesn't stop code asking its own probe (gate held data twice, structure given)", async () => {
+    let probeLike = 0;
+    for (let i = 0; i < 12; i++) {
+      seed({ phase: 'STRUCTURE', flags: { pressureTest: { state: 'not_asked', reasks: 0, codeAsked: false, gatedTurns: 1, structureGiven: true, structureAsked: false } } });
+      modelQueue.length = 0;
+      const m = T({ say: 'Mm-hm.', requests: [{ what: 'the cost breakdown', itemIds: ['cogs_pct', 'labor_pct', 'overhead_pct'], explicit: true, respond: 'release' }],
+        question: 'With those figures in front of you, which cost line is driving it?' });
+      modelQueue.push(m, m);
+      const r = await runTurn(`code-probe-${i}`, 'Could I get the cost breakdown?', {});
+      if (/which part[^?]*first/i.test(r.interviewerText)) probeLike++;
+      expect((store.session.flagsJsonb as Record<string, { state: string; codeAsked: boolean }>).pressureTest).toMatchObject({ state: 'awaiting', codeAsked: true });
+    }
+    expect(probeLike).toBe(0);   // code's probe replaced the fallback every time
+  });
+  it("the model's probe kept in front of a code-appended question still counts", async () => {
+    seed({ phase: 'STRUCTURE' });
+    await say('Revenue, costs, and then the store base.', T({ say: 'Mm-hm.', question: "Tell me what might be missing from your structure. With those figures in front of you, where would you start?" }));
+    expect((store.session.flagsJsonb as Record<string, { state: string }>).pressureTest.state).toBe('awaiting');
+  });
+  it("the model's own probe still marks it asked; so does code's own probe", async () => {
+    seed({ phase: 'STRUCTURE' });
+    await say('Revenue, costs, and then the store base.', T({ move: 'pressure_test', question: 'Which branch would you start with, and why?' }));
+    expect((store.session.flagsJsonb as Record<string, { state: string }>).pressureTest.state).toBe('awaiting');
+  });
+});
+
 describe("one refusal, code's (batch 21 D8, Raj t14)", () => {
   const COST = ['cogs_pct', 'labor_pct', 'overhead_pct'];
   const ASK = { what: 'price elasticity and competitor pricing', itemIds: [], explicit: true, respond: 'release' as const };
