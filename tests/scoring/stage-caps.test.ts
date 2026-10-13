@@ -1,6 +1,7 @@
 // Rule 9 v4.10 (round-3 fix 10): scoring reads what actually happened.
 import { describe, it, expect } from 'vitest';
-import { applyStageCaps, formatStageRecordSection, reconstructStages } from '@/lib/scoring/stage-caps';
+import { applyStageCaps, formatStageRecordSection, reconstructStages, stagesNotInCase } from '@/lib/scoring/stage-caps';
+import { getCaseById } from '@/lib/cases/loader';
 import { INITIAL_STAGES, type StageRecord } from '@/lib/orchestrator/stage-evidence';
 import { RUBRIC_DIMENSION_KEYS } from '@/lib/scoring/rubric';
 import type { RubricScores } from '@/lib/scoring/judge';
@@ -76,5 +77,31 @@ describe('a record rebuilt from a transcript (sessions before the record existed
     expect(r.analysis).toMatchObject({ delivered: true, outcome: 'answered' });
     expect(r.recommendation).toMatchObject({ delivered: true, outcome: 'answered' });
     expect(r.risk.delivered).toBe(true);
+  });
+});
+
+// Lorenzo, 13 Oct: a case with no brainstorm module (Quillpath) — the judge is
+// told the stage is not part of the case, and the caveat says so; evidence
+// elsewhere or notAssessed, as for any stage that didn't happen.
+describe('a stage that is not part of the case', () => {
+  const none = rec({ brainstorm: { delivered: false } });
+  it('only Quillpath has a stage that is not part of the case', () => {
+    expect(stagesNotInCase(getCaseById('pricing-001'))).toEqual(['brainstorm']);
+    for (const id of ['prof-001', 'prof-002', 'entry-001', 'launch-001']) expect(stagesNotInCase(getCaseById(id))).toEqual([]);
+  });
+  it('the stage record says "not part of this case", not "never administered"', () => {
+    const text = formatStageRecordSection(none, null, { notInCase: ['brainstorm'] });
+    expect(text).toMatch(/- Brainstorm: not part of this case/);
+    expect(text).not.toMatch(/Brainstorm: never administered/);
+    expect(text).not.toMatch(/Dimensions whose stage never happened: [^\n]*Creativity/);
+    expect(text).toMatch(/Dimensions whose stage is not part of this case: Creativity/);
+  });
+  it('the Creativity caveat says the case has no brainstorm; evidence-or-notAssessed is kept', () => {
+    const bare = applyStageCaps(rubric({ creativity: dim('strong') }), none, { partial: false, notInCase: ['brainstorm'] });
+    expect(bare.rubric.creativity.notAssessed).toBe(true);
+    expect(bare.rubric.creativity.coverageCaveat).toBe("This case has no brainstorm stage, so this wasn't assessed.");
+    const quoted = applyStageCaps(rubric({ creativity: dim('strong', { wentWell: q('Proposed an annual plan as a pricing lever') }) }), none, { partial: false, notInCase: ['brainstorm'] });
+    expect(quoted.rubric.creativity.rating).toBe('strong');
+    expect(quoted.rubric.creativity.coverageCaveat).toBe('This case has no brainstorm stage; this rating rests on what you did elsewhere.');
   });
 });
