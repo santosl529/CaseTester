@@ -255,6 +255,13 @@ and sits in the interviewer's prompt before anything is released. Every figure
 in the notes must be in a sentence the exhibit covers, like its cells
 (consistency test).
 
+## The analysis ask's lead (13 Oct)
+
+Write `analysisCore.ask` as "Let's hold the recommendation for now: <the
+question>?". Code says the lead only when a recommendation is in play: the
+candidate just gave one, or was just asked for one. Otherwise it asks the
+question plainly ("What's driving the margin drop, …?").
+
 ## No unreleased figure in a label, an exhibit title or a stage line (FR-4)
 
 Labels and exhibit titles are in the interviewer's prompt from the first turn;

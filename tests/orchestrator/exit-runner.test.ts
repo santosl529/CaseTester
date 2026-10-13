@@ -281,6 +281,8 @@ describe('Rule 9 — required stages before a normal end, and the closing line',
 // core analysis (two of the three COGS inputs out) or an owed brainstorm.
 describe('the recommendation waits for the core analysis', () => {
   const ANALYSIS_ASK = "Let's hold the recommendation for now: what's driving the margin drop, and what would you need to know to pin it down?";
+  // Lorenzo, 13 Oct (Blake ac38cd28 t18, Jasmine 35897f4a t22): the lead only when a recommendation is in play.
+  const ANALYSIS_PLAIN = "What's driving the margin drop, and what would you need to know to pin it down?";
   const COST_LINES = ['cogs_pct', 'labor_pct', 'overhead_pct'];
   const early = (flags: Row = {}, revealed = COST_LINES) => seed({ phase: 'ANALYSIS', turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'COGS drove 16 of the 18 points.' }, { role: 'interviewer', text: 'Go on.' }],
     revealed, flags: { pressureTest: SATISFIED, ...flags } });
@@ -289,8 +291,21 @@ describe('the recommendation waits for the core analysis', () => {
   it("R06: the model's lever ask with the COGS inputs never out → code's one line back to the analysis", async () => {
     early();
     const r = await say('So it is input inflation they never priced for.', LEVER);
-    expect(r.interviewerText).toBe(ANALYSIS_ASK);
+    expect(r.interviewerText).toBe(ANALYSIS_PLAIN);
     expect((flags().stagesEnforced as Row).analysis).toBe(true);
+  });
+
+  it('"Let\'s hold the recommendation" when the candidate just gave one', async () => {
+    early();
+    const r = await say('My recommendation is to raise menu prices 8% now and hedge beans.', LEVER);
+    expect(r.interviewerText).toBe(ANALYSIS_ASK);
+  });
+
+  it('…or was just asked for one', async () => {
+    seed({ phase: 'ANALYSIS', turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'COGS drove 16 of the 18 points.' }, { role: 'interviewer', text: "What's your recommendation to the client?" }],
+      revealed: COST_LINES, flags: { pressureTest: SATISFIED, lastQuestion: "What's your recommendation to the client?" } });
+    const r = await say('I am not sure yet.', LEVER);
+    expect(r.interviewerText).toBe(ANALYSIS_ASK);
   });
 
   it('asked once: after it, the ask goes through', async () => {
@@ -320,7 +335,7 @@ describe('the recommendation waits for the core analysis', () => {
       flags: { pressureTest: SATISFIED, stall: { ladderLevel: 0, consecutiveNoProgress: 0, consecutiveClarify: 0, lastCandidateQuestion: null, recommendationDelivered: true } } });
     const r = await say('Volume loss — I would pilot in 20 stores.');
     expect(r.ended).toBe(false);
-    expect(r.interviewerText).toMatch(/what's driving the margin drop/);
+    expect(r.interviewerText).toBe(ANALYSIS_PLAIN);   // a risk answer: no recommendation in play
   });
 });
 

@@ -23,6 +23,7 @@ import { TurnRecorder, type TurnRecord, type TurnStateBefore } from './turn-reco
 import { revealedValues } from './data-ledger';
 import { nextReadyExhibit } from './data-decisions';
 import { brainstormAsks } from './brainstorm';
+import { analysisAskLine } from './spoken-close';
 import { streamTurnSegments } from './stream-turn';
 import { settleTurn, commitScripted, logSessionEvent, type TurnUsage, type ModelOutcome } from './settle-turn';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
@@ -455,7 +456,7 @@ function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null
       : state.kind === 'time_warning' ? pickScript(TIME_WARNING_SCRIPTS, seed)
         : state.kind === 'stage_brainstorm' ? pickScript(brainstormAsks(state.caseData), seed)
           : state.kind === 'stage_exhibit' ? pickScript(STAGE_EXHIBIT_QUESTIONS, seed)
-          : state.kind === 'stage_analysis' && state.caseData.analysisCore ? state.caseData.analysisCore.ask
+          : state.kind === 'stage_analysis' && state.caseData.analysisCore ? analysisAskLine(state.caseData.analysisCore.ask, state.recommendationInPlay)
             : state.kind === 'rec_revision' ? pickScript([...REC_REVISION_QUESTIONS], seed)
               : recMath?.action === 'correct' ? pickScript([...REC_MATH_REVISION_QUESTIONS], seed)
               : recMath ? recLine('probe')

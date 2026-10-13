@@ -38,6 +38,11 @@ describe('flow detectors (batch 20 grading)', () => {
     expect(rules(run([BS, back, REC({ revealedBefore: [] }), RISK, CLOSE]))).toEqual([]);
   });
 
+  it("D7: the line back to the analysis in its plain form (no recommendation in play) counts too — on a model turn Settle held", () => {
+    const back = T("What's driving the margin drop, and what would you need to know to pin it down?");
+    expect(rules(run([BS, back, REC({ revealedBefore: [] }), RISK, CLOSE]))).toEqual([]);
+  });
+
   it("CLOSE: after code's one line back to the analysis, the close is no early close", () => {
     const back = T("Let's hold the recommendation for now: what's driving the margin drop, and what would you need to know to pin it down?", { kind: 'stage_analysis' });
     const close = T("We've covered everything I wanted to. Thanks for working through the case — your written report will follow.", { kind: 'close' });

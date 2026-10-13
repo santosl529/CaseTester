@@ -114,6 +114,18 @@ function recAsk(text: string): boolean {
 
 export function asksForConclusion(text: string): boolean { return recAsk(text) || CONCLUSION_ASK.test(text); }
 
+// The case's analysis ask opens "Let's hold the recommendation for now:" —
+// said only when a recommendation is in play: the candidate just gave one, or
+// was just asked for one (Lorenzo, 13 Oct; Blake ac38cd28 t18 after a risk
+// answer, Jasmine 35897f4a t22 after "anything to add"). Otherwise the
+// question plainly.
+const HOLD_LEAD = /^let'?s hold the recommendation for now:\s*/i;
+export function analysisAskLine(ask: string, recommendationInPlay: boolean): string {
+  if (recommendationInPlay || !HOLD_LEAD.test(ask)) return ask;
+  const q = ask.replace(HOLD_LEAD, '');
+  return q.charAt(0).toUpperCase() + q.slice(1);
+}
+
 // The risk question as a stage (fact guards Phase 5; batch 20 grading): the
 // strict asks, a contingency on the plan ("If the pilot shows traffic falling,
 // at what point would you stop the price increase?"), or "which of the risks

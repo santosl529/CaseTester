@@ -12,7 +12,7 @@ import { checkCandidateMath, formatRecomputeHint, recordAttempts, formatVerified
 import { candidateFiguresOf } from './math-talk';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
-import { evaluateStall, revertUndeliveredRung, INITIAL_STALL_STATE, type StallState } from './stall';
+import { evaluateStall, revertUndeliveredRung, isRecommendationStatement, INITIAL_STALL_STATE, type StallState } from './stall';
 import { resumeOnCandidateTurn, effectiveElapsedMs, isSilenceLine, INITIAL_SILENCE_STATE, type SilenceState } from './silence';
 import { classifyConduct, isPauseAccepted, isRiskToSelf, type ConductAssessment } from './conduct';
 import { classifyDistress, type DistressVerdict } from './distress';
@@ -24,7 +24,7 @@ import { explicitRequestCues } from './request-signal';
 import { judgeProbeAnswer, judgeStructureGiven, probeAsHeard, INITIAL_PRESSURE_TEST, type PressureTestState } from './pressure-test';
 import { logEvent } from '@/lib/analytics';
 import { TOTAL_CASE_MS, type Phase } from './state-machine';
-import { stageGateOpen, endAllowed, recommendationUnresolved, asksRecommendationAsk } from './spoken-close';
+import { stageGateOpen, endAllowed, recommendationUnresolved, asksRecommendationAsk, asksForConclusion } from './spoken-close';
 import { stagesFromTurns, type TurnMove } from './progress';
 import { CheckLog } from './check-log';
 import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
@@ -617,6 +617,10 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Turn kind (spec 2026-10-06 §6): the ending, the time lines and the
   // recommendation ask are decided here, not by the model.
   const lastQuestion = typeof flags.lastQuestion === 'string' ? flags.lastQuestion : null;
+  // A recommendation in play — the candidate just gave one, or was just asked
+  // for one: only then does code's analysis line open "Let's hold the
+  // recommendation for now" (analysisAskLine).
+  const recommendationInPlay = asksForConclusion(lastQuestion ?? '') || isRecommendationStatement(candidateText, rawStall.classification.kind);
   const graceDue = shouldGraceAsk({
     timeUp, graceAskFired: Boolean(flags.graceAskFired),
     recommendationAsked: stages.recommendationAsked, recommendationDelivered: recommendationReceived,
@@ -811,7 +815,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       caseData, repliedToDistressOffer, shownExhibitIds, stagesOut, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
-      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, recMathProbe, analysisOwed, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
+      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, recMathProbe, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,

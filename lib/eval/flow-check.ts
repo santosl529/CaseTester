@@ -14,7 +14,7 @@
 //          between (R17: "what would you prioritize" → "which branch would you
 //          start with" → "which one would you check first")
 import type { CorpusRun, CorpusTurn } from './run-corpus';
-import { asksForConclusion, asksBrainstorm, asksRiskQuestion, namesCandidateRecommendation, isClosingTurn, isReportAnswer } from '@/lib/orchestrator/spoken-close';
+import { asksForConclusion, asksBrainstorm, asksRiskQuestion, namesCandidateRecommendation, isClosingTurn, isReportAnswer, analysisAskLine } from '@/lib/orchestrator/spoken-close';
 import { TOTAL_CASE_MS } from '@/lib/orchestrator/state-machine';
 import { LOAD_SHED_REMAINING_MS } from '@/lib/orchestrator/pacing';
 import { CLOSE_SCRIPTS_BY_REASON, hasCloseCue } from '@/lib/agent/prompts/scripts';
@@ -87,7 +87,7 @@ export function checkFlowRun(run: CorpusRun, c: CaseLike): FlowFlag[] {
     if (t.kind !== 'close' && (CLOSE_WORDS.test(modelText) || hasCloseCue(modelText) || (modelText && isClosingTurn(modelText)))) {
       flags.push({ rule: 'CLOSE', t: t.t, sub: 'model_close_line', text: modelText.slice(0, 200) });
     }
-    steered ||= t.kind === 'stage_analysis' || (c.analysisCore?.ask !== undefined && q.includes(c.analysisCore.ask));
+    steered ||= t.kind === 'stage_analysis' || (c.analysisCore?.ask !== undefined && (q.includes(c.analysisCore.ask) || q.includes(analysisAskLine(c.analysisCore.ask, false))));
     brainstormAsked ||= asksBrainstormStage(t, q, caseAsks);
     recAsked ||= asksRecStage(t, q);
     riskAsked ||= asksRiskQuestion(q, recAsked);

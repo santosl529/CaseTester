@@ -27,7 +27,7 @@ import { logEvent } from '@/lib/analytics';
 import { TOTAL_CASE_MS, type Phase } from './state-machine';
 import { toCheckEventRows } from './check-log';
 import { pickScript, STAGE_EXHIBIT_QUESTIONS } from '@/lib/agent/prompts/scripts';
-import { BLOCKED_CLOSE_PROBES, asksForConclusion } from './spoken-close';
+import { BLOCKED_CLOSE_PROBES, asksForConclusion, analysisAskLine } from './spoken-close';
 import { updateStages, type StageKey, type StageRecord } from './stage-evidence';
 import { renderDataLineParts, decisionRows, nextReadyExhibit } from './data-decisions';
 import { brainstormAsks } from './brainstorm';
@@ -411,7 +411,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     stageAsked = 'exhibit';
   } else if (!codeWritten && kind === 'model' && state.analysisOwed && caseData.analysisCore && asksForConclusion(question)) {
     withheld.push({ sentence: question, reason: 'recommendation_held_for_stage', field: 'question' });
-    question = caseData.analysisCore.ask;
+    question = analysisAskLine(caseData.analysisCore.ask, state.recommendationInPlay);
     modelQuestion = '';
     stageAsked = 'analysis';
   } else if (!codeWritten && kind === 'model' && state.owedStage && state.ptClosed && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) && asksForConclusion(question)) {
