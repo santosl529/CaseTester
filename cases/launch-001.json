@@ -9,6 +9,7 @@
     {
       "id": "product",
       "label": "The product",
+      "spoken": "the product",
       "value": "The product is roasted chickpea snacks in 5-ounce bags, launching in three flavors, with about twice the protein of chips and less fat.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -16,6 +17,7 @@
     {
       "id": "channels",
       "label": "Where it would be sold",
+      "spoken": "where it would be sold",
       "value": "The new line is for the same grocery and mass-retail stores that carry Hollis Bay chips.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -23,6 +25,7 @@
     {
       "id": "manufacturing",
       "label": "Manufacturing",
+      "spoken": "manufacturing",
       "value": "Chickpeas can't run on the chip fryers, so Hollis Bay would lease a new roasting line, which is about six months from being ready.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -30,6 +33,7 @@
     {
       "id": "breakeven_definition",
       "label": "What \"break even in year one\" means",
+      "spoken": "what breaking even in year one means",
       "value": "Breaking even in year one means first-year profit from the new line, after its own costs, has to be zero or better.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -37,6 +41,7 @@
     {
       "id": "why_now",
       "label": "Why now",
+      "spoken": "why now",
       "value": "Chip sales are flat, better-for-you snacks are growing quickly, and Hollis Bay's largest retailers have asked for healthier options.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -44,6 +49,7 @@
     {
       "id": "competition_general",
       "label": "Competition in general",
+      "spoken": "the competitive picture",
       "value": "Several small better-for-you brands are selling roasted chickpea snacks, and no large national brand is dominant in this kind of snack in Hollis Bay's stores.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -51,6 +57,7 @@
     {
       "id": "longer_term_goals",
       "label": "Hollis Bay's goals beyond year one",
+      "spoken": "Hollis Bay's goals beyond year one",
       "value": "Hollis Bay's hope is that the line becomes a growth platform for more better-for-you snacks.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -58,6 +65,7 @@
     {
       "id": "bag_price",
       "label": "Price Hollis Bay receives per bag (and the shelf price)",
+      "spoken": "the price Hollis Bay receives per bag",
       "value": "The price Hollis Bay receives from retailers is $3.00 per 5-ounce bag; shoppers would pay about $3.99 in stores, and retailers keep the difference.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -68,6 +76,7 @@
     {
       "id": "variable_costs",
       "label": "Variable costs per bag: ingredients, packaging, roasting, freight",
+      "spoken": "the variable costs per bag",
       "value": "Variable costs per bag are $0.70 for ingredients, $0.30 for packaging, $0.30 for roasting labor and energy, and $0.20 for freight to retailers, and they rise with every bag made.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -79,6 +88,7 @@
     {
       "id": "launch_costs",
       "label": "First-year launch costs: roasting line, marketing, shelf fees",
+      "spoken": "the first-year launch costs",
       "value": "First-year launch costs are $3.0 million for the new roasting line (lease and staff), $4.5 million for marketing and advertising, and $1.5 million in shelf fees paid to retailers to stock the new line.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -90,6 +100,7 @@
     {
       "id": "recipe_cost",
       "label": "Recipe development (already spent)",
+      "spoken": "the recipe development cost",
       "value": "Recipe development was $1.2 million, already spent last year.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -99,6 +110,7 @@
     {
       "id": "purchase_intent",
       "label": "Survey: purchase intent at the shelf price",
+      "spoken": "purchase intent from the survey",
       "value": "Asked how likely they are to buy at $3.99 a bag, 10% of shoppers said definitely, 20% probably, 30% might or might not, 25% probably not and 15% definitely not.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -112,6 +124,7 @@
     {
       "id": "liked_most",
       "label": "Survey: what shoppers like most",
+      "spoken": "what shoppers like most",
       "value": "What shoppers like most is high protein (52%), less fat than chips (40%), the crunch, like chips (31%), and being good for kids' lunches (18%).",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -124,6 +137,7 @@
     {
       "id": "hesitations",
       "label": "Survey: what makes shoppers hesitate",
+      "spoken": "what makes shoppers hesitate",
       "value": "The top hesitations are not being sure they'd like the taste (45%), the price being a bit high (22%), being happy with current snacks (20%), and not thinking of Hollis Bay for healthy snacks (12%).",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -136,6 +150,7 @@
     {
       "id": "survey_design",
       "label": "Survey design",
+      "spoken": "how the survey was run",
       "value": "The survey is of 1,000 snack shoppers in Hollis Bay's region; each response represents one household, and in the like and hesitate questions shoppers could pick up to two answers.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -145,6 +160,7 @@
     {
       "id": "planning_assumptions",
       "label": "Planning assumptions: households, conversion rates, bags per household",
+      "spoken": "the planning assumptions",
       "value": "Planning assumptions from Hollis Bay's past launches are: 30 million households shop in stores carrying Hollis Bay; 60% of “definitely would buy” and 20% of “probably would buy” shoppers actually buy in year one, and none of the others do; and each buying household averages 3 bags in year one.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -157,6 +173,7 @@
     {
       "id": "sampling_program",
       "label": "In-store sampling proposal: scope, cost, extra households, bags",
+      "spoken": "the sampling proposal",
       "value": "The sampling proposal is staffed tasting tables in 500 stores over 10 weekends at launch, costing $1.5 million, and it is expected to bring 500,000 extra buying households in year one, each buying 3 bags, on top of the survey-based forecast; the cost is in addition to the launch costs.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -168,6 +185,7 @@
     {
       "id": "cannibalization",
       "label": "Cannibalization of Hollis Bay chips",
+      "spoken": "cannibalization of Hollis Bay chips",
       "value": "Fewer than 5% of chickpea-snack purchases are expected to replace a bag of Hollis Bay's own chips — small enough to ignore for this decision.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -175,6 +193,7 @@
     {
       "id": "survey_reliability",
       "label": "How reliable the survey is",
+      "spoken": "how reliable the survey is",
       "value": "The 1,000 shoppers are a match for the mix in Hollis Bay's stores, and the conversion rates are from Hollis Bay's last five launches.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {}
@@ -182,6 +201,7 @@
     {
       "id": "taste_test",
       "label": "Taste test results",
+      "spoken": "the taste test results",
       "value": "In blind taste tests, 70% of people who tried the snack were positive, rating it good or very good.",
       "releaseWhen": "CLARIFY",
       "timeframes": {
@@ -191,6 +211,7 @@
     {
       "id": "competitor_prices",
       "label": "Competitor prices",
+      "spoken": "competitor prices",
       "value": "Competing roasted chickpea snacks are priced at $4.29–$4.99 per 5-ounce bag.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -198,6 +219,7 @@
     {
       "id": "retailer_support",
       "label": "Retailer support",
+      "spoken": "retailer support",
       "value": "Hollis Bay's two largest retail partners have agreed to stock the line in all their stores, provided Hollis Bay pays the shelf fees.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}

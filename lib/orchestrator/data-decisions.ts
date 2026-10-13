@@ -228,11 +228,12 @@ export function decideData(p: {
   const decided: DataDecisions['requests'] = [];
 
   const available = (id: string) => itemById.has(id) && canReveal(p.ledger, id) && !releasing.has(id);
-  // What a promise says: an ask worded as an item's catalog label is said as the item (spokenItemName).
+  // What a promise says: an ask worded as an item's catalog label is said as the
+// item — its authored spoken name, else spokenItemName.
   const norm = (x: string) => x.toLowerCase().replace(/[^a-z0-9]+/g, '');
   const promised = (r: DeclaredRequest, ids: string[]) => {
-    const label = ids.map(id => itemById.get(id)?.label).find((l): l is string => l !== undefined && norm(l) === norm(r.what));
-    return label ? spokenItemName(label) : r.what;
+    const item = ids.map(id => itemById.get(id)).find(i => i !== undefined && norm(i.label) === norm(r.what));
+    return item ? item.spoken ?? spokenItemName(item.label) : r.what;
   };
   // Waiting on the release order: an item only an exhibit not yet ready shows, or that exhibit itself.
   const orderHeld = (id: string) => (itemById.has(id) ? heldForOrder(id, p.exhibits, p.shownExhibitIds, p.ledger)

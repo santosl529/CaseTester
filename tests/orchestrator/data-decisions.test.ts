@@ -582,6 +582,12 @@ describe('promises say the item, not its catalog label', () => {
     expect(renderDataLines(decideData(pb({ requests: [defer(what, 'cogs_pct')] })), 's')).toEqual([`I'll come back to ${said} shortly.`]);
   });
 
+  it("an item's authored spoken name wins over the derived one (Lorenzo, 13 Oct: a derived name can give the finding away)", () => {
+    const items: LedgerItem[] = [{ id: 'competitor_entry', label: 'What changed on the problem routes: a new competitor', value: 'A low-cost airline entered.', releaseWhen: 'CLARIFY', spoken: 'what changed on those two routes' }];
+    const d = decideData(pb({ ledger: createLedger(items), requests: [defer('What changed on the problem routes: a new competitor', 'competitor_entry')] }));
+    expect(renderDataLines(d, 's')).toEqual(["I'll come back to what changed on those two routes shortly."]);
+  });
+
   it("the candidate's own wording and the logged what are kept; refusals keep their periods", () => {
     const d = decideData(pb({ requests: [defer('the bean price trend', 'bean_price_change'), req({ what: 'store counts today and two years ago', itemIds: [] })] }));
     expect(renderDataLines(d, 's')).toEqual(["I don't have store counts today and two years ago.", "I'll come back to the bean price trend shortly."]);

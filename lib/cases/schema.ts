@@ -38,6 +38,11 @@ const LedgerItemSchema = z.object({
   // each figure the value states, keyed by the figure as written — e.g.
   // { "58": "current", "42": "prior" }. Feeds the timeframe check.
   timeframes: z.record(z.string(), z.enum(['current', 'prior', 'change', 'both'])).optional(),
+  // The item's name in a promise — "I'll come back to ___ shortly", "I'll share
+  // ___ once …", "I can share ___ if you'd like" (13 Oct). Authored, because a
+  // name derived from the label can read badly or give the finding away
+  // ("a new competitor"). Without it: spokenItemName(label).
+  spoken: z.string().min(2).optional(),
 }).superRefine((item, ctx) => {
   if (!isSpeakableSentence(item.value)) {
     ctx.addIssue({

@@ -491,7 +491,7 @@ describe('the fallback does not re-ask what was just answered (batch 21 D8, Anik
 });
 
 describe('a code-written fallback never marks the pressure test asked (Lorenzo, 13 Oct)', () => {
-  it('the probe-like no-figures fallback ("Which part … first?") replacing a withheld question leaves the test not asked', async () => {
+  it('the probe-like no-figures fallback ("Which area … first?") replacing a withheld question leaves the test not asked', async () => {
     let probeLike = 0;
     for (let i = 0; i < 12; i++) {
       seed({ phase: 'STRUCTURE' });
@@ -500,7 +500,7 @@ describe('a code-written fallback never marks the pressure test asked (Lorenzo, 
       modelQueue.push(m, m);
       const r = await runTurn(`seed-${i}`, 'Revenue, costs, and then the store base.', {});
       const pt = (store.session.flagsJsonb as Record<string, { state: string }>).pressureTest;
-      if (/\bwhich part\b[^?]*\bfirst\b/i.test(r.interviewerText)) probeLike++;
+      if (/\bwhich (?:part|area)\b[^?]*\bfirst\b/i.test(r.interviewerText)) probeLike++;
       expect(pt?.state ?? 'not_asked').toBe('not_asked');
     }
     expect(probeLike).toBeGreaterThan(0);   // the case under test occurred
@@ -514,7 +514,7 @@ describe('a code-written fallback never marks the pressure test asked (Lorenzo, 
         question: 'With those figures in front of you, which cost line is driving it?' });
       modelQueue.push(m, m);
       const r = await runTurn(`code-probe-${i}`, 'Could I get the cost breakdown?', {});
-      if (/which part[^?]*first/i.test(r.interviewerText)) probeLike++;
+      if (/which (?:part|area)[^?]*first/i.test(r.interviewerText)) probeLike++;
       expect((store.session.flagsJsonb as Record<string, { state: string; codeAsked: boolean }>).pressureTest).toMatchObject({ state: 'awaiting', codeAsked: true });
     }
     expect(probeLike).toBe(0);   // code's probe replaced the fallback every time

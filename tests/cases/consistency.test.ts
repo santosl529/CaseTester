@@ -187,13 +187,22 @@ describe('every case', () => {
       it('labels, exhibit titles and code-written stage lines carry no figure the prompt lacks', () => {
         const allowed = numbersIn(c.prompt);
         const asks = [c.analysisCore?.ask ?? '', ...[c.brainstorm?.ask ?? []].flat()];
-        for (const [where, text] of [...c.dataLedger.map(d => [d.id, d.label]), ...c.exhibits.map(e => [e.id, e.title]), ...asks.map(a => ['stage line', a])]) {
+        for (const [where, text] of [...c.dataLedger.flatMap(d => [[d.id, d.label], [`${d.id} spoken`, d.spoken ?? '']]), ...c.exhibits.map(e => [e.id, e.title]), ...asks.map(a => ['stage line', a])]) {
           for (const n of numbersIn(text.replace(/\b\d+ (?:years?|months?|weeks?)\b/g, ' '))) expect(allowed.has(n), `${where}: ${n} in "${text}" but not in the prompt`).toBe(true);
         }
       });
 
       // Every step names the ledger items it is derived from (Lorenzo, 13 Oct):
       // a step with none is checked from the first turn, before its figures are out.
+      // Hold lines say an item by its authored name (Lorenzo, 13 Oct): every
+      // item has one, a noun phrase said mid-sentence ("I'll come back to ___ shortly").
+      it('every ledger item has a spoken name', () => {
+        for (const d of c.dataLedger) {
+          expect(d.spoken, `${d.id} has no spoken name`).toBeTruthy();
+          expect(d.spoken!, `${d.id}: no end punctuation`).not.toMatch(/[.?!:;]$/);
+        }
+      });
+
       it('every math step lists its inputs', () => {
         for (const m of c.mathSteps) expect(m.inputs.length, `${m.id} has no inputs`).toBeGreaterThan(0);
       });

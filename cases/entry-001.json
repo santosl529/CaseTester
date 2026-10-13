@@ -9,6 +9,7 @@
     {
       "id": "kelvexa_product",
       "label": "What Kelvexa is and who it is for",
+      "spoken": "what Kelvexa is and who it's for",
       "value": "Kelvexa is a once-daily pill for adults with moderate-to-severe Corlan's disease; it has been sold in Europe since 2022 and was approved in the US earlier this year.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -16,6 +17,7 @@
     {
       "id": "corlans_disease",
       "label": "Corlan's disease",
+      "spoken": "Corlan's disease",
       "value": "Corlan's disease is a lifelong autoimmune condition that causes painful joint and skin inflammation; mild cases are managed with older generic pills, and moderate-to-severe cases need an advanced therapy.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -23,6 +25,7 @@
     {
       "id": "current_treatment",
       "label": "Current US treatment",
+      "spoken": "current US treatment",
       "value": "For moderate-to-severe patients, the main option in the US today is Nimbrel, an injectable advanced therapy.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -30,6 +33,7 @@
     {
       "id": "company_size",
       "label": "Aldermoor's size and US presence",
+      "spoken": "Aldermoor's size and US presence",
       "value": "Aldermoor has about $1.5 billion in annual revenue, almost all in Europe, and it has no US employees or sales force today.",
       "releaseWhen": "CLARIFY",
       "timeframes": {
@@ -39,6 +43,7 @@
     {
       "id": "net_sales_definition",
       "label": "What \"net sales\" means",
+      "spoken": "what net sales means",
       "value": "Net sales are revenue after the discounts and rebates Aldermoor pays to insurers and pharmacy benefit managers.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -46,6 +51,7 @@
     {
       "id": "peak_timing",
       "label": "When peak sales happen",
+      "spoken": "when peak sales happen",
       "value": "Peak sales are expected around five years after launch.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -53,6 +59,7 @@
     {
       "id": "patents",
       "label": "Patent protection",
+      "spoken": "patent protection",
       "value": "Kelvexa is protected by patents until 2038.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -60,6 +67,7 @@
     {
       "id": "supply",
       "label": "Manufacturing and supply",
+      "spoken": "manufacturing and supply",
       "value": "Aldermoor can supply the US from its European plants, and there are no capacity constraints.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -67,6 +75,7 @@
     {
       "id": "us_adults",
       "label": "Number of US adults",
+      "spoken": "the number of US adults",
       "value": "There are 250 million US adults.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -76,6 +85,7 @@
     {
       "id": "funnel_rates",
       "label": "Patient funnel rates: prevalence, diagnosis, treatment, moderate-to-severe share",
+      "spoken": "the patient funnel rates",
       "value": "In the patient funnel, 1.6% of US adults have Corlan's disease; 50% of those are diagnosed, 50% of diagnosed patients are treated with prescription medicine, and 20% of treated patients are moderate-to-severe and eligible for Kelvexa — each percentage applies to the stage above it.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -87,6 +97,7 @@
     {
       "id": "peak_share_forecast",
       "label": "Kelvexa's forecast peak share of eligible patients",
+      "spoken": "Kelvexa's forecast peak share",
       "value": "Aldermoor's forecast is that Kelvexa reaches 20% of eligible patients at peak, about five years after launch.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -96,6 +107,7 @@
     {
       "id": "kelvexa_pricing",
       "label": "Kelvexa US pricing: list price, discounts and rebates, time on treatment",
+      "spoken": "Kelvexa's US pricing",
       "value": "Kelvexa's US list price is $10,000 per patient per year, average discounts and rebates to insurers are 20% of list price, and patients on Kelvexa are treated for the full year.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -106,6 +118,7 @@
     {
       "id": "survey_design",
       "label": "Specialist survey design",
+      "spoken": "how the specialist survey was run",
       "value": "The survey is of 200 US specialists who treat Corlan's disease; each could pick up to two answers per question, so the percentages add up to more than 100%.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -115,6 +128,7 @@
     {
       "id": "reasons_to_prescribe",
       "label": "Survey: top reasons to prescribe Kelvexa",
+      "spoken": "the top reasons to prescribe Kelvexa",
       "value": "The top reasons to prescribe Kelvexa are the once-daily pill instead of an injection (64%), fewer side effects than current options (38%), strong efficacy data from Europe (22%) and a lower price than current options (11%).",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -127,6 +141,7 @@
     {
       "id": "barriers_to_prescribing",
       "label": "Survey: top barriers to prescribing Kelvexa",
+      "spoken": "the top barriers to prescribing Kelvexa",
       "value": "The top barriers to prescribing are insurance coverage and prior approval (58%), no local support from the company (41%), wanting more US experience with it first (27%), patient out-of-pocket cost (15%) and side-effect concerns (9%).",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -140,6 +155,7 @@
     {
       "id": "nimbrel",
       "label": "Nimbrel, the current standard: dosing, use and net price",
+      "spoken": "the current standard, Nimbrel",
       "value": "Nimbrel, an injection given every two weeks, has been the standard advanced therapy for about eight years, most moderate-to-severe patients on an advanced therapy use it, and its net price is about $9,000 per patient per year.",
       "releaseWhen": "CLARIFY",
       "timeframes": {
@@ -149,6 +165,7 @@
     {
       "id": "trial_comparison",
       "label": "How Kelvexa compares with Nimbrel in trials",
+      "spoken": "how Kelvexa compares with Nimbrel in trials",
       "value": "In clinical trials, Kelvexa's efficacy was similar to Nimbrel's, with fewer injection-site reactions and infections.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -156,6 +173,7 @@
     {
       "id": "insurance_coverage",
       "label": "US insurance coverage and prior approval",
+      "spoken": "US insurance coverage",
       "value": "US insurers usually require prior approval before covering an advanced therapy; Nimbrel is covered by most plans, and new drugs often take 12–18 months to win broad coverage.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -163,6 +181,7 @@
     {
       "id": "specialist_concentration",
       "label": "Who treats these patients",
+      "spoken": "who treats these patients",
       "value": "About 6,000 US specialists are treating roughly 80% of moderate-to-severe patients.",
       "releaseWhen": "CLARIFY",
       "timeframes": {
@@ -173,6 +192,7 @@
     {
       "id": "diagnosis_gap",
       "label": "Why so few patients are diagnosed",
+      "spoken": "diagnosis rates",
       "value": "Many patients go undiagnosed for years because early symptoms are mistaken for other joint conditions.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -180,6 +200,7 @@
     {
       "id": "pipeline",
       "label": "Aldermoor's other drugs (pipeline)",
+      "spoken": "Aldermoor's other drugs",
       "value": "Aldermoor has two more drugs in late-stage trials for related autoimmune conditions, treated by the same US specialists.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -187,6 +208,7 @@
     {
       "id": "option_a",
       "label": "Entry Option A: build its own US team — terms",
+      "spoken": "the terms of Option A",
       "value": "Option A is building Aldermoor's own US team of about 60 specialist sales reps, an insurer-access team and patient support: Aldermoor receives 100% of US net sales, its annual US selling costs are $80 million, the expected peak share is 20% of eligible patients, and launch is 12–18 months away.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -199,6 +221,7 @@
     {
       "id": "option_b",
       "label": "Entry Option B: partner with a US company — terms",
+      "spoken": "the terms of Option B",
       "value": "Option B is partnering with an established US drug company whose sales force already calls on these specialists: Aldermoor receives a 30% royalty on US net sales, the partner pays the selling costs, the expected peak share is 25% of eligible patients, and launch is about 6 months away.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -209,6 +232,7 @@
     {
       "id": "option_shared",
       "label": "Entry options: net price and product cost",
+      "spoken": "the entry options' price and product cost",
       "value": "Under both options the net price is $8,000 per patient per year, and product cost is small and similar, so it can be ignored.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {

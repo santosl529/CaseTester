@@ -9,6 +9,7 @@
     {
       "id": "op_profit_definition",
       "label": "What operating profit includes",
+      "spoken": "what operating profit includes",
       "value": "Operating profit is revenue minus all operating costs — fuel, crew, maintenance, airport fees, aircraft leases, hub facilities and overhead — before interest and taxes.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -16,6 +17,7 @@
     {
       "id": "geography",
       "label": "Where Larkspur flies",
+      "spoken": "where Larkspur flies",
       "value": "Larkspur's flights are all US domestic flights.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -23,6 +25,7 @@
     {
       "id": "fleet",
       "label": "Larkspur's fleet",
+      "spoken": "Larkspur's fleet",
       "value": "The fleet is nine identical 80-seat regional jets, all leased, and it hasn't changed since FY2023.",
       "releaseWhen": "CLARIFY",
       "timeframes": {
@@ -32,6 +35,7 @@
     {
       "id": "routes_schedule",
       "label": "Routes and schedule",
+      "spoken": "the routes and schedule",
       "value": "The network is the same six routes as in FY2023, with the same number of flights on each.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -39,6 +43,7 @@
     {
       "id": "fuel_prices",
       "label": "Fuel price trend",
+      "spoken": "the fuel price trend",
       "value": "Fuel prices have been roughly flat over the period.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -46,6 +51,7 @@
     {
       "id": "unit_costs",
       "label": "Wages and other costs per flight",
+      "spoken": "wages and other costs per flight",
       "value": "There have been no material changes to wages or other costs per flight.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -53,6 +59,7 @@
     {
       "id": "demand",
       "label": "Overall air travel demand in Larkspur's cities",
+      "spoken": "overall air travel demand",
       "value": "Air travel demand in Larkspur's cities has been roughly flat.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -60,6 +67,7 @@
     {
       "id": "one_time_charges",
       "label": "One-time charges",
+      "spoken": "one-time charges",
       "value": "There are no one-time charges — the loss reflects ongoing operations.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -67,6 +75,7 @@
     {
       "id": "competition_general",
       "label": "Competition in general",
+      "spoken": "the competitive picture",
       "value": "Larger airlines are present too, offering connecting itineraries through their own hubs.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -74,6 +83,7 @@
     {
       "id": "route_results_lakeport",
       "label": "Hub–Lakeport results: revenue, contribution and flights",
+      "spoken": "the Hub–Lakeport results",
       "value": "On Hub–Lakeport, revenue fell from $26.4M to $16.8M and contribution fell from $8.4M to a $1.2M loss, on 2,000 flights a year.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -87,6 +97,7 @@
     {
       "id": "route_results_port_avery",
       "label": "Hub–Port Avery results: revenue, contribution and flights",
+      "spoken": "the Hub–Port Avery results",
       "value": "On Hub–Port Avery, revenue fell from $46.8M to $32.4M and contribution fell from $13.8M to a $0.6M loss, on 3,000 flights a year.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -100,6 +111,7 @@
     {
       "id": "route_results_other",
       "label": "Results on the other four routes (Cedar Bluff, Granite Falls, Millbrook, Westhaven)",
+      "spoken": "the results on the other four routes",
       "value": "On the other four routes revenue and contribution stayed nearly flat: Hub–Cedar Bluff (2,500 flights) went from $38.0M to $38.4M of revenue and $5.0M to $5.4M of contribution; Hub–Granite Falls (2,500 flights) from $34.0M to $33.8M and $4.6M to $4.4M; Hub–Millbrook (2,000 flights) from $30.0M to $29.8M and $4.4M to $4.2M; and Hub–Westhaven (2,000 flights) held at $24.8M of revenue and $3.8M of contribution.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {}
@@ -107,6 +119,7 @@
     {
       "id": "network_totals",
       "label": "Network totals: revenue, contribution and flights",
+      "spoken": "the network totals",
       "value": "Across all six routes, revenue fell from $200.0M to $176.0M and contribution fell from $40.0M to $16.0M, on 14,000 flights a year — the same number of flights in both years.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -120,6 +133,7 @@
     {
       "id": "fixed_costs",
       "label": "Fixed costs (aircraft leases, hub facilities, overhead)",
+      "spoken": "the fixed costs",
       "value": "Fixed costs — aircraft leases, hub facilities and corporate overhead — were $20.0M in both FY2023 and FY2025.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -129,6 +143,7 @@
     {
       "id": "lakeport_seats_load",
       "label": "Hub–Lakeport seats per flight and load factor",
+      "spoken": "Hub–Lakeport's seats and load factor",
       "value": "A Hub–Lakeport flight has 80 seats and there are 2,000 of them a year, and the load factor was 75% in both FY2023 and FY2025.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -140,6 +155,7 @@
     {
       "id": "lakeport_fare",
       "label": "Hub–Lakeport average one-way fare",
+      "spoken": "the Hub–Lakeport fare",
       "value": "The average one-way fare on Hub–Lakeport fell from $200 in FY2023 to $120 in FY2025.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -150,6 +166,7 @@
     {
       "id": "extras_revenue",
       "label": "Extras revenue per passenger (bags, seats, snacks)",
+      "spoken": "extras revenue per passenger",
       "value": "Extras revenue — bags, seat selection and snacks — was $20 per passenger in both years.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -159,6 +176,7 @@
     {
       "id": "lakeport_variable_cost",
       "label": "Hub–Lakeport variable cost per flight (fuel, crew, maintenance, fees)",
+      "spoken": "the Hub–Lakeport variable cost per flight",
       "value": "Variable cost per Hub–Lakeport flight was $9,000 in both years: fuel $4,000, crew $2,000, maintenance $1,500, and landing and airport fees $1,500.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -171,6 +189,7 @@
     {
       "id": "competitor_entry",
       "label": "What changed on the problem routes: a new competitor",
+      "spoken": "what changed on those two routes",
       "value": "Early in FY2024, a low-cost airline started nonstop flights on Hub–Lakeport and Hub–Port Avery, and it hasn't entered Larkspur's other four routes; Larkspur cut its fares to match, and its planes stayed just as full.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -178,6 +197,7 @@
     {
       "id": "competitor_costs",
       "label": "The competitor's costs and fares",
+      "spoken": "the competitor's costs and fares",
       "value": "The low-cost airline's cost per seat is about 30% lower than Larkspur's — it flies larger planes and has lower labor costs — and its fares are about the same as Larkspur's current fares.",
       "releaseWhen": "CLARIFY",
       "timeframes": {
@@ -187,6 +207,7 @@
     {
       "id": "connecting_passengers",
       "label": "Connecting passengers on the contested routes",
+      "spoken": "connecting passengers on those routes",
       "value": "About 20% of passengers on the two contested routes are connecting at the hub to another Larkspur flight.",
       "releaseWhen": "CLARIFY",
       "timeframes": {
@@ -196,6 +217,7 @@
     {
       "id": "new_route_rampup",
       "label": "How long new routes take to mature",
+      "spoken": "how long new routes take to mature",
       "value": "New routes typically take 6–12 months to reach their expected load factor, and in the first year the load factor is often around 60%.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -203,6 +225,7 @@
     {
       "id": "aircraft_leases",
       "label": "Aircraft leases",
+      "spoken": "the aircraft leases",
       "value": "All nine aircraft are leased through 2030, so returning them early is not an option.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -210,6 +233,7 @@
     {
       "id": "port_avery_per_flight",
       "label": "Hub–Port Avery per-flight economics",
+      "spoken": "the Hub–Port Avery per-flight economics",
       "value": "Hub–Port Avery shows the same pattern: 80 seats, a 75% load factor and $20 of extras per passenger, with variable cost of $11,000 per flight in both years, while the average fare fell from $240 to $160.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -221,6 +245,7 @@
     {
       "id": "new_routes_plan",
       "label": "New routes (Hub–Ashford, Hub–Brookhaven): seats, load factor, fare and extras",
+      "spoken": "the new routes' planning estimates",
       "value": "The planning estimate for the two new routes, Hub–Ashford and Hub–Brookhaven, is 80 seats per flight, a 70% load factor, a $180 average one-way fare and $20 of extras per passenger.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {}
@@ -228,6 +253,7 @@
     {
       "id": "new_routes_cost_flights",
       "label": "New routes: variable cost per flight and flights per year",
+      "spoken": "the new routes' costs and flights",
       "value": "Variable cost on the new routes is estimated at $9,200 per flight, across 5,000 flights a year that would use the aircraft time freed by exiting Hub–Lakeport (2,000 flights) and Hub–Port Avery (3,000 flights).",
       "releaseWhen": "ANALYSIS",
       "timeframes": {}
@@ -235,6 +261,7 @@
     {
       "id": "new_routes_context",
       "label": "New routes: competition and fixed costs",
+      "spoken": "the new routes' competition and fixed costs",
       "value": "No other airline is flying nonstop on either new route, and aircraft lease and other fixed costs would stay the same.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {}

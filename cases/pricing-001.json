@@ -9,6 +9,7 @@
     {
       "id": "product",
       "label": "The product",
+      "spoken": "the product",
       "value": "Quillpath's product is cloud software for scheduling, quotes, invoicing and payments, used by small home-services businesses in the US.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -16,6 +17,7 @@
     {
       "id": "plan_features",
       "label": "Difference between the plans",
+      "spoken": "the difference between the plans",
       "value": "Pro has all features, unlimited users, team scheduling and reports; Starter has one user and core scheduling and invoicing only; both are billed monthly.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -23,6 +25,7 @@
     {
       "id": "signup_channels",
       "label": "How customers sign up",
+      "spoken": "how customers sign up",
       "value": "Most Pro customers have a demo with a salesperson first, while Starter customers sign up online on their own.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -30,6 +33,7 @@
     {
       "id": "board_rule_definition",
       "label": "What \"worth three times the acquisition cost\" means",
+      "spoken": "what the board's three-times rule means",
       "value": "Under the board's rule, lifetime value — the gross margin earned over a customer's life — divided by the cost to acquire that customer has to be at least 3.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -37,6 +41,7 @@
     {
       "id": "company_size",
       "label": "Company size",
+      "spoken": "the company's size",
       "value": "Quillpath has about 20,000 paying customers today.",
       "releaseWhen": "CLARIFY",
       "timeframes": {
@@ -46,6 +51,7 @@
     {
       "id": "market_growth",
       "label": "Market growth",
+      "spoken": "market growth",
       "value": "Demand for small-business software is growing about 10% a year.",
       "releaseWhen": "CLARIFY",
       "timeframes": {
@@ -55,6 +61,7 @@
     {
       "id": "ceo_goal",
       "label": "What the CEO cares about",
+      "spoken": "what the CEO cares about",
       "value": "The CEO's goal is to create as much long-term value as possible from new customers while respecting the board's rule.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -62,6 +69,7 @@
     {
       "id": "plan_prices_costs",
       "label": "Plan economics: monthly price and cost to serve, Pro and Starter",
+      "spoken": "the plan economics",
       "value": "Pro is $100 a month with a $20 monthly cost to serve, and Starter is $40 a month with a $10 monthly cost to serve — hosting, support and payment processing.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -74,6 +82,7 @@
     {
       "id": "plan_cac",
       "label": "Customer acquisition cost (CAC), Pro and Starter",
+      "spoken": "the acquisition cost per customer",
       "value": "The cost to acquire one new customer is $1,200 for Pro, through a sales demo, and $300 for Starter, which is self-serve, and it does not change with volume.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -84,6 +93,7 @@
     {
       "id": "ltv_definition",
       "label": "How lifetime value is calculated",
+      "spoken": "how lifetime value is calculated",
       "value": "Lifetime value is monthly gross margin times expected lifetime in months; expected lifetime is about 1 divided by the monthly cancellation rate, and gross margin is price minus cost to serve.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {}
@@ -91,6 +101,7 @@
     {
       "id": "pro_cohort",
       "label": "Pro cohort retention (customers who signed up January–March 2025)",
+      "spoken": "Pro cohort retention",
       "value": "Of the 1,050 Pro customers who signed up in January–March 2025, 98.0% were still on Pro after month 1, 94.1% after month 3, 88.6% after month 6 and 78.5% after month 12, so 2.0%, 5.9%, 11.4% and 21.5% had cancelled by those months.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {}
@@ -98,6 +109,7 @@
     {
       "id": "starter_cohort",
       "label": "Starter cohort status: still on Starter, upgraded to Pro, cancelled",
+      "spoken": "the Starter cohort's status",
       "value": "Of the 3,000 Starter customers who signed up in January–March 2025, 94% were still on Starter after month 1, 82% after month 3, 65% after month 6 and 40% after month 12; by those months 1%, 5%, 11% and 20% had upgraded to Pro and were still customers, and 5%, 13%, 24% and 40% had cancelled.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {}
@@ -105,6 +117,7 @@
     {
       "id": "cohort_notes",
       "label": "Cohort notes: steady cancellation, upgrade timing, how finance values upgrades",
+      "spoken": "the notes on the cohorts",
       "value": "Cancellation rates have stayed roughly steady from month to month, very few Starter customers upgrade after month 12, upgraded customers then behave like Pro customers, and finance values a Starter sign-up at its Starter LTV plus one Pro LTV for each customer who upgrades.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {}
@@ -112,6 +125,7 @@
     {
       "id": "new_customers_by_plan",
       "label": "New customers per month by plan, before and after Starter launched",
+      "spoken": "new customers per month by plan",
       "value": "New customers per month were 500 Pro in 2024, before Starter launched, and 350 Pro plus 1,000 Starter — 1,350 in total — from January 2025 to June 2026.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -124,6 +138,7 @@
     {
       "id": "price_test_results",
       "label": "Starter price test results: sign-ups per month at each test price",
+      "spoken": "the price test results",
       "value": "In the eight-week price test, sign-ups per month were 350 Pro and 1,000 Starter at a $40 Starter price, and 400 Pro and 800 Starter at $60, scaled to Quillpath's full website traffic.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
@@ -138,6 +153,7 @@
     {
       "id": "price_test_notes",
       "label": "Price test notes: costs unchanged, churn and upgrades not yet measurable",
+      "spoken": "the notes on the price test",
       "value": "Starter's cost to serve ($10 a month) and acquisition cost ($300) are the same at either price, and cancellation and upgrade rates for customers who signed up at $60 can't be measured yet because the test lasted only eight weeks.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {}
@@ -145,6 +161,7 @@
     {
       "id": "upgrade_timing",
       "label": "When customers upgrade",
+      "spoken": "when customers upgrade",
       "value": "Most upgrades are between months 3 and 9, usually when the business hires its first employee; very few are after month 12.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -152,6 +169,7 @@
     {
       "id": "why_pro_fell",
       "label": "Why Pro sign-ups fell",
+      "spoken": "why Pro sign-ups fell",
       "value": "Pro marketing spend, the sales team and demo requests were unchanged, and in interviews most people who'd have bought Pro said they chose Starter to save money.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -159,6 +177,7 @@
     {
       "id": "buyer_profile",
       "label": "Who buys each plan",
+      "spoken": "who buys each plan",
       "value": "Starter buyers are mostly one-person businesses, and Pro buyers mostly have three or more staff.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -166,6 +185,7 @@
     {
       "id": "competitor_prices",
       "label": "Competitors' entry-plan prices",
+      "spoken": "competitors' entry-plan prices",
       "value": "The main competitors' entry plans are $50–$70 a month.",
       "releaseWhen": "CLARIFY",
       "timeframes": {}
@@ -173,6 +193,7 @@
     {
       "id": "test_design",
       "label": "How the price test worked",
+      "spoken": "how the price test worked",
       "value": "For eight weeks, website visitors were randomly shown Starter at $40 or $60, results are scaled to Quillpath's full traffic, and churn and upgrade rates for $60 customers can't be measured yet.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {}
@@ -180,6 +201,7 @@
     {
       "id": "existing_starter_customers",
       "label": "Existing Starter customers",
+      "spoken": "existing Starter customers",
       "value": "About 9,000 customers are on Starter at $40 today, and a new price could apply to new customers only.",
       "releaseWhen": "CLARIFY",
       "timeframes": {

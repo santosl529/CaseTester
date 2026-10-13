@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import {
   probeIntents, buildProbeJudgePrompt, parseProbeJudge, judgeProbeAnswer, isGatedItem, exhibitIsGated, probeAsHeard,
   pickFallbackQuestion, INITIAL_PRESSURE_TEST, FIGURES_QUESTIONS, NO_FIGURES_QUESTIONS,
-  ANALYSIS_QUESTIONS, BRAINSTORM_QUESTIONS, LATE_QUESTIONS, TIME_PRESSURE_QUESTIONS,
+  ANALYSIS_QUESTIONS, BRAINSTORM_QUESTIONS, LATE_QUESTIONS, TIME_PRESSURE_QUESTIONS, HYPOTHESIS_QUESTIONS,
   buildStructureJudgePrompt, parseStructureJudge, judgeStructureGiven,
 } from '@/lib/orchestrator/pressure-test';
 import { createLedger } from '@/lib/orchestrator/data-ledger';
@@ -205,5 +205,13 @@ describe('the fallback never re-asks where to start right after it was answered'
     expect([...pool].some(q => /first/.test(q))).toBe(true);
     const other = new Set(['a', 'b', 'c', 'd', 'e', 'f'].map(seed => pickFallbackQuestion({ ...answeredWhereToStart, last: 'What might be missing from your structure?', seed })));
     expect([...other].some(q => /first/.test(q))).toBe(true);
+  });
+});
+
+describe('fallback wording is case-neutral (13 Oct)', () => {
+  it('no fallback question assumes the case is a "problem"', () => {
+    for (const q of [...FIGURES_QUESTIONS, ...NO_FIGURES_QUESTIONS, ...ANALYSIS_QUESTIONS, ...BRAINSTORM_QUESTIONS, ...LATE_QUESTIONS, ...TIME_PRESSURE_QUESTIONS, ...HYPOTHESIS_QUESTIONS]) {
+      expect(q).not.toMatch(/\bproblem\b/i);
+    }
   });
 });
