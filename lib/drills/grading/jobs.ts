@@ -16,7 +16,8 @@ import { logDrillEvent } from '../events';
 import type { ItemRef } from '../sets/plan';
 import type { ItemResult, StepResult } from '../sets/scoring';
 import { nextTier, passed, setScore, skillScores } from '../sets/summary';
-import { applyGrade, type CheckResults } from './apply';
+import { applyGrade, unchangedRepair, type CheckResults } from './apply';
+import { defendParts, withDefend } from '../defend';
 import { applySetProgress } from '../progress/store';
 import { afterDiagnostic, markWorkoutProgress } from '../program/store';
 import { markDiagnosticMove, onDiagnosticSetDone } from '../program/diagnostic-store';
@@ -32,12 +33,28 @@ const STALE_MS = 2 * 60_000;
 // Wait this long before re-running a failed job.
 const RETRY_AFTER_MS = 30_000;
 
+// The item as the set serves it: with its Defend steps when the set runs them.
 export async function resolveItem(ref: ItemRef, tier: Tier): Promise<Item> {
   if (ref.kind === 'generated') return rebuildItem(ref, tier);
   const [row] = await db.select().from(drillItems)
     .where(and(eq(drillItems.itemId, ref.item_id), eq(drillItems.version, ref.version)));
   if (!row) throw new Error(`Drill item ${ref.item_id}@${ref.version} is missing`);
-  return ItemSchema.parse(row.payload);
+  const item = ItemSchema.parse(row.payload);
+  return ref.defend ? withDefend(item) : item;
+}
+
+// The Defend part of a graded attempt, for its own columns: its score as a
+// share of the Defend part, and its checks and decision.
+export function defendResult(item: Item, steps: StepResult[], checks: CheckResults | null) {
+  const d = defendParts(item);
+  if (!d || !checks) return { defendScore: null, defendCheckResults: null };
+  const spec = steps.slice(d.start);
+  const total = spec.reduce((a, s) => a + s.weight, 0);
+  const ids = new Set(item.checks.filter(c => c.step >= d.start).map(c => c.check_id));
+  return {
+    defendScore: total ? Number((spec.reduce((a, s) => a + s.weight * s.score, 0) / total).toFixed(6)) : 0,
+    defendCheckResults: { checks: checks.checks.filter(c => ids.has(c.check_id)), decision: checks.defend_decision ?? null },
+  };
 }
 
 export const planOf = (set: SetRow) => set.itemPlan as ItemRef[];
@@ -147,8 +164,10 @@ export async function runGradingJob(jobId: string, call?: CallModel): Promise<'s
   try {
     const items = await Promise.all(attempts.map(a => resolveItem(planOf(set)[a.position], set.tier as Tier)));
     const entries = attempts.map((a, i) => ({ key: `a${a.position + 1}`, item: items[i], steps: (a.stepScores as StepResult[]) ?? [] }));
-    // Skipped or blank answers don't go to the model.
-    const toGrade = entries.filter((e, i) => !attempts[i].skipped && e.steps.some(s => s.response.type === 'text' || s.response.type === 'buckets'));
+    // Skipped or blank answers don't go to the model, nor do Repair answers
+    // left unchanged (code scores them 0).
+    const toGrade = entries.filter((e, i) => !attempts[i].skipped && e.steps.some(s => s.response.type === 'text' || s.response.type === 'buckets')
+      && !unchangedRepair(e.item, e.steps));
     const graded = toGrade.length ? await gradeSet(toGrade, call) : null;
 
     for (const [i, a] of attempts.entries()) {
@@ -156,12 +175,20 @@ export async function runGradingJob(jobId: string, call?: CallModel): Promise<'s
       const result = a.skipped
         ? { score: 0, mistake_tags: ['M.skipped'], steps: e.steps, check_results: null }
         : applyGrade(e.item, e.steps, a.timedOut, graded?.grades.get(e.key) ?? null);
+      const defend = defendResult(e.item, result.steps, result.check_results);
       await db.update(drillAttempts).set({
         score: result.score, mistakeTags: result.mistake_tags, stepScores: result.steps,
         checkResults: result.check_results, redFlags: result.check_results?.red_flags.filter(f => f.present).map(f => f.id) ?? [],
+        ...defend,
         gradingStatus: 'graded', graderPromptVersion: graded?.prompt_version ?? null, modelId: graded?.model_id ?? null,
       }).where(eq(drillAttempts.id, a.id));
       if (result.check_results?.injection_suspected) void logDrillEvent(a.studentId, 'grading_injection_suspected', { attempt_id: a.id });
+      // Logged once the reply is graded, so the event carries its score.
+      if (defend.defendScore !== null && a.defendResponse) {
+        void logDrillEvent(a.studentId, 'defend_submitted', {
+          attempt_id: a.id, type: e.item.defend?.type ?? null, decision: result.check_results?.defend_decision?.chose ?? null, score: defend.defendScore,
+        });
+      }
     }
     await db.update(gradingJobs).set({
       status: 'succeeded', retries: job.retries, inputTokens: graded?.usage.input_tokens ?? 0, outputTokens: graded?.usage.output_tokens ?? 0,

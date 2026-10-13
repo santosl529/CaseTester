@@ -87,7 +87,7 @@ export const hasLiveDrill = (skillId: string, isLive = defaultLive) =>
 export function stageOfDrill(drillId: string, skillId: string): Stage {
   const map = rules.skill_drills[skillId];
   if (map?.repair === drillId) return 'repair';
-  return getDrill(drillId).level === 1 ? 'recognize' : 'construct';
+  return getDrill(drillId).stage;
 }
 
 // The order the PRD's tie-breaks call "catalog order": a skill's first live

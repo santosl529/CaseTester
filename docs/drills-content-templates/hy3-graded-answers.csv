@@ -1,0 +1,2 @@
+answer_id,item_id,answer_type,answer,flaws_fixed,no_new_flaw,keeps_right,notes
+EXAMPLE-hy3-01-a,EXAMPLE-hy3-01,normal,Customers are definitely buying cheaper washes. Check the wash mix.,1,N,N,"Names a cause and a test, so the flaw is fixed, but states it as settled fact: a new overconfident flaw, and the tentative framing that was right is gone."

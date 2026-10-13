@@ -11,26 +11,48 @@ const raw = () => ({ taxonomy: clone(taxonomyJson), drills: clone(drillsJson), r
 describe('drills config v1 (docs/prd-drills.md)', () => {
   const { taxonomy, drills } = DRILLS_CONFIG;
 
-  it('matches the PRD counts: 9 areas, 29 skills, 67 tags, 25 drills', () => {
+  it('matches the PRD counts: 9 areas, 29 skills, 67 tags, 29 drills (CL-4 not yet configured)', () => {
     expect(taxonomy.areas).toHaveLength(9);
     expect(taxonomy.skills).toHaveLength(29);
     expect(taxonomy.mistake_tags).toHaveLength(67);
     expect(taxonomy.system_tags.map(t => t.id).sort()).toEqual(['M.skipped', 'M.timeout']);
-    expect(drills.drills).toHaveLength(25);
-    expect(drills.drills.filter(d => d.level === 1)).toHaveLength(13);
-    expect(drills.drills.filter(d => d.level === 2)).toHaveLength(12);
+    expect(drills.drills).toHaveLength(29);
+    expect(drills.drills.filter(d => d.stage === 'recognize')).toHaveLength(13);
+    expect(drills.drills.filter(d => d.stage === 'repair').map(d => d.id)).toEqual(['PS-4', 'HY-3', 'EX-5', 'SY-3']);
+    expect(drills.drills.filter(d => d.stage === 'construct')).toHaveLength(12);
   });
 
-  it('has 15 P0 drills across the six MVP skill areas', () => {
+  it('has 18 P0 drills across the six MVP skill areas', () => {
     const p0 = drills.drills.filter(d => d.priority === 'P0');
-    expect(p0).toHaveLength(15);
+    expect(p0).toHaveLength(18);
     expect(new Set(p0.map(d => d.id.slice(0, 2)))).toEqual(new Set(['PS', 'HY', 'QN', 'EX', 'SY', 'CL']));
   });
 
-  it('scores 17 drills entirely by code, and 5 P0/P1 drills need an AI call', () => {
+  it('scores 17 drills entirely by code, and 9 P0/P1 drills need an AI call', () => {
     expect(drills.drills.filter(d => d.scoring === 'auto')).toHaveLength(17);
     const ai = drills.drills.filter(d => d.scoring !== 'auto' && d.priority !== 'P2').map(d => d.id).sort();
-    expect(ai).toEqual(['CL-3', 'CR-1', 'HY-2', 'PS-3', 'SY-2']);
+    expect(ai).toEqual(['CL-3', 'CR-1', 'EX-5', 'HY-2', 'HY-3', 'PS-3', 'PS-4', 'SY-2', 'SY-3']);
+  });
+
+  it('gives PS-3, HY-2, SY-2 and CL-3 a Defend step, one item shorter at T2 and T3 (PRD "Defend step")', () => {
+    const defend = Object.fromEntries(drills.drills.filter(d => d.defend).map(d => [d.id, [d.defend!.type, d.set_size, ...d.defend!.set_size]]));
+    expect(defend).toEqual({
+      'PS-3': ['justify', 4, 4, 3, 3], 'HY-2': ['justify', 4, 4, 3, 3], 'SY-2': ['challenge', 3, 3, 3, 3], 'CL-3': ['justify', 4, 4, 3, 3],
+    });
+  });
+
+  it('maps each Repair drill into its skills\' chains (PRD "Drill chains")', () => {
+    const repair = Object.fromEntries(Object.entries(DRILLS_CONFIG.rules.skill_drills).filter(([, m]) => m.repair).map(([s, m]) => [s, m.repair]));
+    expect(repair).toEqual({
+      'PS.mece': 'PS-4', 'PS.case_specific': 'PS-4', 'PS.depth': 'PS-4', 'HY.form': 'HY-3', 'EX.takeaway': 'EX-5',
+      'SY.answer_first': 'SY-3', 'SY.evidence': 'SY-3',
+    });
+  });
+
+  it('rejects a Repair drill mapped as a Construct drill', () => {
+    const r = raw();
+    r.rules.skill_drills['HY.form'].l2 = 'HY-3';
+    expect(() => parseDrillsConfig(r)).toThrow(/HY-3 is not a level 2 drill for HY.form/);
   });
 
   it("makes drills live once their pools are approved", () => {

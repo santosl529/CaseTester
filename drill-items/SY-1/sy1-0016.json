@@ -1,8 +1,8 @@
 {
   "item_id": "sy1-0016",
-  "version": 3,
+  "version": 4,
   "drill_id": "SY-1",
-  "status": "live",
+  "status": "draft",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -12,7 +12,7 @@
   ],
   "case_type": "pricing",
   "industry": null,
-  "prompt": "The client asks: \"Should we offer a 20% discount for paying a year up front?\" Fact sheet: the monthly plan is $50; the average monthly customer stays 9 months; the annual plan at 20% off would be $480; 40% of surveyed customers would choose the annual plan; in a past test, customers who chose an annual plan had stayed about as long as average; the company is opening an office in Austin. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should we offer a 20% discount for paying a year up front?\" Fact sheet: the monthly plan is $50; the average monthly customer stays 9 months; the annual plan at 20% off would be $480; 40% of surveyed customers would choose the annual plan; in a past test, customers who chose an annual plan had stayed about as long as average; the company's cash reserves cover 18 months of costs. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -27,10 +27,10 @@
     },
     {
       "id": "b",
-      "text": "Offer the annual plan. With a new office opening in Austin, cash up front will help fund it.",
+      "text": "Offer the annual plan. Our cash reserves cover only 18 months of costs, so cash up front will help.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "The Austin office doesn't decide this. The $480 against $450 comparison does."
+      "feedback": "Cash reserves don't decide this. The $480 against $450 comparison does."
     },
     {
       "id": "c",
@@ -54,18 +54,18 @@
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "The company is opening an office in Austin."
+      "The company's cash reserves cover 18 months of costs."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-10",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-10-13",
     "similarity_method": "web"
   },
   "generator": null,

@@ -1,15 +1,19 @@
 import { describe, it, expect } from 'vitest';
 import { loadAuthoredItems } from '@/lib/drills/authored';
 import { applyGrade, firstSentence, type ItemGrade } from '@/lib/drills/grading/apply';
-import { D2_DRILLS, modelAnswerSteps } from '@/lib/drills/model-answers';
+import { D2_DRILLS, REPAIR_DRILL_IDS, modelAnswerSteps } from '@/lib/drills/model-answers';
+import { withDefend } from '@/lib/drills/defend';
 import { answerText, scoreItem, scoreStep, type StepResult } from '@/lib/drills/sets/scoring';
 import type { Item } from '@/lib/drills/item-schema';
 
-// Every D2 item's own model answer must score 100% against its key. Here:
-// everything code settles (limits, the no-overlap gate, fact-sheet numbers,
-// first-sentence quotes, critical-element caps, QN-5 in full), with the AI's
-// checks taken as passed. `npm run drills:models` runs the AI's side.
-const items = loadAuthoredItems().filter(i => D2_DRILLS.includes(i.drill_id));
+// Every D2 and D5 item's own model answer must score 100% against its key.
+// Here: everything code settles (limits, the no-overlap gate, fact-sheet
+// numbers, first-sentence quotes, critical-element caps, QN-5 in full, the
+// unchanged-Repair check, the Challenge decision), with the AI's checks taken
+// as passed. Items with a Defend follow-up are also checked with it, using the
+// model reply. `npm run drills:models` runs the AI's side.
+const items = loadAuthoredItems().filter(i => [...D2_DRILLS, ...REPAIR_DRILL_IDS].includes(i.drill_id))
+  .flatMap(i => (i.defend ? [i, withDefend(i)] : [i]));
 
 const steps = (item: Item): StepResult[] => {
   const out: StepResult[] = [];
@@ -40,8 +44,13 @@ describe('every D2 model answer scores 100% against its own key', () => {
     expect(applyGrade(thin, s, false, perfect(thin, s)).score).toBeLessThan(1);
   });
 
+  it('has Repair items and follow-ups to check', () => {
+    expect(items.filter(i => REPAIR_DRILL_IDS.includes(i.drill_id)).length).toBeGreaterThan(0);
+    expect(items.filter(i => i.input.steps?.some(s => s.defend)).length).toBeGreaterThan(0);
+  });
+
   for (const item of items) {
-    it(`${item.item_id} v${item.version}`, () => {
+    it(`${item.item_id} v${item.version}${item.input.steps?.some(s => s.defend) ? ' with Defend' : ''}`, () => {
       const s = steps(item);
       const score = item.drill_id === 'QN-5'
         ? scoreItem(item, { skipped: false, timedOut: false, steps: s }).score

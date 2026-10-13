@@ -1,0 +1,50 @@
+{
+  "answer_id": "ps4-0008-b",
+  "item_id": "ps4-0008",
+  "drill_id": "PS-4",
+  "answer_type": "normal",
+  "notes": "Competition added (flaw 2), but the national brand bucket is still there (flaw 1).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Passenger demand",
+          "points": [
+            "travelers between the two cities",
+            "fares they would pay"
+          ]
+        },
+        {
+          "title": "Cost per flight",
+          "points": [
+            "fuel and crew",
+            "airport fees"
+          ]
+        },
+        {
+          "title": "Competition",
+          "points": [
+            "other airlines flying the route",
+            "trains"
+          ]
+        },
+        {
+          "title": "Brand awareness",
+          "points": [
+            "awareness of the airline across the country",
+            "advertising reach"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "fix_2": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

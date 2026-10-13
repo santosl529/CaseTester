@@ -56,10 +56,17 @@ export const InputTypeSchema = z.enum([
   'numeric_set', 'free_text', 'structured_buckets', 'grouped_ideas',
 ]);
 
+export const STAGES = ['recognize', 'repair', 'construct'] as const;
+export type DrillStage = (typeof STAGES)[number];
+
 export const DrillSchema = z.object({
   id: DrillId,
   name: z.string().min(1),
   level: z.union([z.literal(1), z.literal(2)]),
+  // Where the drill sits in a skill's chain (PRD "Drill chains"). Unset means
+  // Recognize for level 1 and Construct for level 2. Repair drills (PS-4,
+  // HY-3, EX-5, SY-3) take written answers, so they are stored as level 2.
+  stage: z.enum(STAGES).optional(),
   // Every skill the drill scores. Only primary skills change state from its
   // sets (PRD "Skill states and transitions"); a secondary skill's scores and
   // mistakes still count toward its skill score, top mistakes and
@@ -76,8 +83,19 @@ export const DrillSchema = z.object({
   priority: z.enum(['P0', 'P1', 'P2']),
   item_source: z.enum(['generated', 'authored', 'mixed']),
   live: z.boolean(),
+  // The Defend step on Construct drills (PRD "Defend step"): a follow-up
+  // after the main answer at tiers 2–3. `live` switches it on once the
+  // follow-ups are reviewed; `set_size` is the set size per tier while it
+  // runs (one item fewer at T2 and T3).
+  defend: z.object({
+    type: z.enum(['justify', 'challenge']),
+    live: z.boolean(),
+    set_size: z.tuple([z.number().int().min(1), z.number().int().min(1), z.number().int().min(1)]),
+  }).optional(),
 }).superRefine((d, ctx) => {
   if (!d.skills.some(s => s.primary)) ctx.addIssue({ code: 'custom', path: ['skills'], message: `${d.id}: needs at least one primary skill` });
+  if (d.stage === 'repair' && d.level !== 2) ctx.addIssue({ code: 'custom', path: ['level'], message: `${d.id}: Repair drills are level 2` });
+  if (d.defend && (d.level !== 2 || d.stage === 'repair')) ctx.addIssue({ code: 'custom', path: ['defend'], message: `${d.id}: only Construct drills have a Defend step` });
   if (d.priority !== 'P2' && d.set_size === null) {
     ctx.addIssue({ code: 'custom', path: ['set_size'], message: `${d.id}: only P2 drills may leave set_size unset` });
   }
@@ -89,7 +107,8 @@ export const DrillSchema = z.object({
 export const DrillsConfigSchema = z.object({
   version: z.string(),
   drills: z.array(DrillSchema.transform(({ skills, ...d }) => ({
-    ...d, skills: skills.map(s => s.id), primary_skills: skills.filter(s => s.primary).map(s => s.id),
+    ...d, stage: d.stage ?? (d.level === 1 ? 'recognize' : 'construct') as DrillStage,
+    skills: skills.map(s => s.id), primary_skills: skills.filter(s => s.primary).map(s => s.id),
   }))),
 });
 
@@ -109,6 +128,17 @@ export const RulesSchema = z.object({
     max_repair_sets: z.number().int().positive(),
     construct_to_repair_below: Share,
     construct_to_recognize_below: Share,
+  }),
+  // PRD "Serving rules": no Repair item derived from a Level 1 item the
+  // student saw in this many days.
+  repair: z.object({ derived_exclusion_days: z.number().int().nonnegative() }),
+  // PRD "Defend step": tiers it runs at, its share of the item, its word cap
+  // and its time per tier.
+  defend: z.object({
+    min_tier: z.number().int().min(1).max(3),
+    weight: Share,
+    max_words: z.number().int().positive(),
+    time_limits_s: z.object({ t2: z.number().positive(), t3: z.number().positive() }),
   }),
   transfer: z.object({
     unlock_after_days: z.number().nonnegative(),
@@ -164,7 +194,7 @@ export const RulesSchema = z.object({
   // The PRD's tag-to-drill map, keyed by skill: every tag maps to exactly one
   // skill, so the skill decides the drill, and the mastery rules decide which
   // stage is served: l1 = Recognize, repair = Repair, l2 = Construct. Null
-  // where the catalog has no drill for that stage (every Repair drill until D5).
+  // where the catalog has no drill for that stage.
   skill_drills: z.record(SkillId, z.object({ l1: DrillId.nullable(), repair: DrillId.nullable(), l2: DrillId.nullable() })),
   // Tags a set can focus on ("70% of mental math items become zeros problems"),
   // and the drill that supports the focus.
@@ -297,14 +327,15 @@ export function crossCheck({ taxonomy, drills, rules, programs }: DrillsConfigBu
     if (!skillIds.has(skill)) { problems.push(`rules.skill_drills: unknown skill ${skill}`); continue; }
     for (const level of [1, 2] as const) {
       const drillId = level === 1 ? levels.l1 : levels.l2;
-      const trainedHere = drills.drills.some(d => d.level === level && d.skills.includes(skill));
+      const stage = level === 1 ? 'recognize' : 'construct';
+      const trainedHere = drills.drills.some(d => d.stage === stage && d.skills.includes(skill));
       if (drillId === null) {
         if (trainedHere) problems.push(`rules.skill_drills.${skill}.l${level}: a level ${level} drill trains this skill but none is mapped`);
         continue;
       }
       const drill = drillById.get(drillId);
       if (!drill) problems.push(`rules.skill_drills.${skill}.l${level}: unknown drill ${drillId}`);
-      else if (drill.level !== level || !drill.skills.includes(skill)) {
+      else if (drill.stage !== stage || !drill.skills.includes(skill)) {
         problems.push(`rules.skill_drills.${skill}.l${level}: ${drillId} is not a level ${level} drill for ${skill}`);
       } else if (!drill.primary_skills.includes(skill)) {
         problems.push(`rules.skill_drills.${skill}.l${level}: ${skill} is not a primary skill of ${drillId}`);
@@ -313,7 +344,10 @@ export function crossCheck({ taxonomy, drills, rules, programs }: DrillsConfigBu
     if (levels.repair !== null) {
       const drill = drillById.get(levels.repair);
       if (!drill) problems.push(`rules.skill_drills.${skill}.repair: unknown drill ${levels.repair}`);
+      else if (drill.stage !== 'repair') problems.push(`rules.skill_drills.${skill}.repair: ${levels.repair} is not a Repair drill`);
       else if (!drill.primary_skills.includes(skill)) problems.push(`rules.skill_drills.${skill}.repair: ${skill} is not a primary skill of ${levels.repair}`);
+    } else if (drills.drills.some(d => d.stage === 'repair' && d.skills.includes(skill))) {
+      problems.push(`rules.skill_drills.${skill}.repair: a Repair drill trains this skill but none is mapped`);
     }
   }
   const tagSkill = new Map(taxonomy.mistake_tags.map(t => [t.id, t.skill]));
@@ -331,6 +365,9 @@ export function crossCheck({ taxonomy, drills, rules, programs }: DrillsConfigBu
   }
   for (const t of CASE_TYPES) if (!(t in rules.case_type_to_skill_area)) problems.push(`rules.case_type_to_skill_area: missing ${t}`);
   if (rules.tiers.min > rules.tiers.start || rules.tiers.start > rules.tiers.max) problems.push('rules.tiers: start must sit between min and max');
+  for (const d of drills.drills) {
+    if (d.defend && d.set_size !== null && d.defend.set_size.some(n => n > d.set_size!)) problems.push(`${d.id}: a set with Defend can't be larger than one without`);
+  }
 
   programs.weeks.forEach((w, i) => {
     if (w.week !== i) problems.push(`programs.weeks: week ${w.week} out of order (expected ${i})`);
@@ -421,7 +458,7 @@ export function getDrill(id: string): Drill {
 }
 
 // "Skills with no live Level 2 drill start at Level 1, and Level 1 criteria
-// grant Mastered" (PRD "Skill states and transitions").
+// grant Mastered" (PRD "Skill states and transitions"). Repair drills don't count.
 export function hasLiveLevel2Drill(skillId: string): boolean {
-  return DRILLS_CONFIG.drills.drills.some(d => d.live && d.level === 2 && d.primary_skills.includes(skillId));
+  return DRILLS_CONFIG.drills.drills.some(d => d.live && d.stage === 'construct' && d.primary_skills.includes(skillId));
 }

@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0011-d2",
+  "item_id": "sy2-0011",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "Caves (code). No fact; it does say what changes (rule 13).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Charge a premium for same-week bookings and raise prices about 8%. Margin fell from 15% to 6% while food costs held at 30% of revenue; the cause is overtime, which doubled once same-week bookings grew to 40% of events. Our prices haven't moved in two years while competitors raised theirs 8%. The main risk is that clients balk at the rush fee. The next step is to test it on new same-week bookings for a quarter."
+    },
+    {
+      "type": "choice",
+      "option_id": "update"
+    },
+    {
+      "type": "text",
+      "value": "Fair point, we'll renegotiate food suppliers instead."
+    }
+  ],
+  "labels": {
+    "defend_evidence": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

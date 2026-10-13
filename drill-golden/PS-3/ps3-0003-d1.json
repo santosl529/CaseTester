@@ -1,0 +1,47 @@
+{
+  "answer_id": "ps3-0003-d1",
+  "item_id": "ps3-0003",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Picks one; 'usually the biggest cost' is generic, no case fact (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Office space",
+          "points": [
+            "rent",
+            "empty desks"
+          ]
+        },
+        {
+          "title": "Technology",
+          "points": [
+            "database subscriptions",
+            "software"
+          ]
+        },
+        {
+          "title": "Travel",
+          "points": [
+            "client travel",
+            "conferences"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Office space, because it's usually the biggest cost."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

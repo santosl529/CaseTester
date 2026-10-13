@@ -1,0 +1,25 @@
+{
+  "answer_id": "cl3-0013-d2",
+  "item_id": "cl3-0013",
+  "drill_id": "CL-3",
+  "answer_type": "borderline",
+  "notes": "Commits to carrier fees as next (an ordered list still has a first pick); no reason given (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd split profit into ad prices, ad slots sold, fees from cable and streaming carriers, and programming costs. I'd start with average price per ad by daypart for three years, since viewers held steady, so advertisers paying less is the likeliest cause."
+    },
+    {
+      "type": "text",
+      "value": "I'd look at carrier fees next, then programming costs, then ad slots."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0014-d1",
+  "item_id": "hy2-0014",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With calls up only 4%, slower responses more likely mean ambulances are busy longer on each call. I'd check how long each ambulance is tied up per call, step by step."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: handovers at hospitals now take 40 minutes instead of 15, so fewer ambulances are free."
+    },
+    {
+      "type": "text",
+      "value": "Handover times by hospital, this year against last. If responses slowed just as much where handovers stayed near 15 minutes, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,12 @@
+item_id,tag,hint,fix
+ps4-0001,M.overlapping_buckets,the lease bucket and the rent and revenue-sharing bucket overlap: both cover what the airport charges,"puts what the airport charges (lease, rent and revenue share) in one bucket, so bucket 1 keeps only staff and supplies"
+ps4-0002,M.irrelevant_bucket,the coffee kiosk bucket doesn't belong: a planned kiosk can't explain why profit fell,"removes the kiosk bucket, or replaces it with something that could explain last year's drop"
+ps4-0003,M.missing_bucket,"it misses late materials from suppliers, before production starts","adds a bucket or sub-points on suppliers: late or short deliveries of wood, fabric or parts"
+ps4-0004,M.overlapping_buckets,the labor and staffing buckets overlap: staffing levels drive labor cost,"folds crew schedules and staffing levels into the labor bucket, as drivers of labor cost"
+ps4-0005,M.missing_bucket,it misses how many riders would stop riding at the higher fare,adds a bucket or sub-points on how many riders would drop at a 20% higher fare
+ps4-0006,M.irrelevant_bucket,the ingredient-cost bucket doesn't belong: cheaper ingredients don't grow revenue,"removes the ingredient-cost bucket, or replaces it with a revenue lever such as price"
+ps4-0007,M.generic_framework,it's a generic profit tree: it can't judge a whole industry's outlook,"replaces the profit tree with buckets about the industry, such as demand growth, new supply, competition and returns per facility"
+ps4-0008,M.irrelevant_bucket,the brand-awareness bucket doesn't belong: national awareness can't decide one route,"removes the brand-awareness bucket, or narrows it to awareness in the two cities"
+ps4-0008,M.missing_bucket,"it misses competition: other airlines on the route, and driving or rail instead","adds a bucket or sub-points on competition from other airlines on the route, or from driving or rail"
+ps4-0009,M.overlapping_buckets,the net revenue retention bucket repeats the expansion and churn buckets: net retention nets expansion against churn,"removes the net retention bucket, or keeps it as the summary with expansion and churn under it"
+ps4-0010,M.missing_bucket,it misses the cost of stations and of moving bikes between them,adds a bucket or sub-points on station costs and on moving bikes between stations

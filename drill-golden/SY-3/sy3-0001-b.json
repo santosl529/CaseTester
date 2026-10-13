@@ -1,0 +1,20 @@
+{
+  "answer_id": "sy3-0001-b",
+  "item_id": "sy3-0001",
+  "drill_id": "SY-3",
+  "answer_type": "borderline",
+  "notes": "'We should raise it' states the action in the first sentence (rule 14).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "We should raise it. Even if 8% cancel, revenue rises about 10% to $1.1M a month, and $24 is within rivals' $22–28."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

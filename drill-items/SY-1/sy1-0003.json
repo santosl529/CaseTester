@@ -1,8 +1,8 @@
 {
   "item_id": "sy1-0003",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-1",
-  "status": "live",
+  "status": "draft",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -12,7 +12,7 @@
   ],
   "case_type": "profitability",
   "industry": "Airlines / Travel / Hospitality",
-  "prompt": "The client asks: \"How should we restore profit at our bakery chain?\" Fact sheet: profit fell from $10M to $6M in two years; flour and butter costs are up 35%; menu prices haven't changed in three years; competitors raised prices 8% on average; store traffic is flat; the logo was refreshed in 2023. Which is the best recommendation?",
+  "prompt": "The client asks: \"How should we restore profit at our bakery chain?\" Fact sheet: profit fell from $10M to $6M in two years; flour and butter costs are up 35%; menu prices haven't changed in three years; competitors raised prices 8% on average; store traffic is flat; the chain's croissants won a regional baking prize last year. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -40,10 +40,10 @@
     },
     {
       "id": "d",
-      "text": "Raise menu prices about 8%. The 2023 logo refresh lifted the brand, giving it room to charge what competitors now charge.",
+      "text": "Raise menu prices about 8%. Our croissants won a regional baking prize last year, giving the brand room to charge what competitors now charge.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "A logo refresh doesn't justify a price rise. The 35% cost increase and competitors' 8% increases do."
+      "feedback": "A baking prize doesn't justify a price rise. The 35% cost increase and competitors' 8% increases do."
     }
   ],
   "numeric": null,
@@ -54,18 +54,19 @@
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "The logo was refreshed in 2023."
+      "The chain's croissants won a regional baking prize last year."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-10",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-13",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

@@ -25,13 +25,15 @@ import {
 import type { CheckResults } from '../grading/apply';
 import { logDrillEvent } from '../events';
 import { isLive, previewDrafts } from '../live';
-import { newProgress, nextSetFor, stageOfDrill, type SetKind } from '../progress/engine';
+import { lowerName, newProgress, nextSetFor, stageOfDrill, type SetKind } from '../progress/engine';
 import { loadProgress, loadTiers, progressContext } from '../progress/store';
 import type { WorkoutBlock } from '../program/workout';
 import type { DiagnosticPart } from '../program/diagnostic';
 import { attachDiagnosticSet, diagnosticView, startDiagnostic } from '../program/diagnostic-store';
 import { lessonSkills } from '../program/lessons-store';
 import { allowedTiers } from '../program/tiers';
+import { defendRuns, defendSeconds, defendStart, setSizeAt } from '../defend';
+import type { RepairExtras } from '../item-schema';
 import { z } from 'zod';
 
 export type { ItemFeedback, StepFeedback };
@@ -206,9 +208,10 @@ async function chooseSet(studentId: string, input: z.infer<typeof StartSetSchema
 const focusFor = (drill: Drill, tag: string | null) => (tag && rules.focusable_tags[tag] === drill.id ? tag : null);
 
 // "A review set is half the normal set size, rounded up"; drills with 4 or
-// fewer items keep their full size so the review still counts.
-function setSizeFor(drill: Drill, kind: SetKind): number {
-  const size = drill.set_size!;
+// fewer items keep their full size so the review still counts. Sets that run
+// Defend are one item shorter at T2 and T3.
+function setSizeFor(drill: Drill, kind: SetKind, tier: Tier, defend: boolean): number {
+  const size = setSizeAt(drill, tier, defend);
   const r = rules.spaced_review;
   return kind === 'review' && size > r.full_size_at_or_below ? Math.ceil(size * r.size_fraction) : size;
 }
@@ -238,17 +241,19 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
   }
 
   const setId = randomUUID();
-  const size = choice.size ?? setSizeFor(drill, kind);
+  // Fixed for the whole set: whether it runs the Defend follow-up.
+  const defend = defendRuns(drill, tier, choice.source);
+  const size = choice.size ?? setSizeFor(drill, kind, tier, defend);
   const fresh = kind === 'transfer' ? 'transfer' : choice.slot === 'unfamiliar' ? 'unfamiliar' : null;
 
   let plan: ItemRef[];
   if (drill.item_source === 'generated') {
     plan = planGenerated({ setId, drillId: drill.id, size, focusSkill: choice.focusSkill, focusTag: choice.focusTag });
   } else {
-    plan = await planAuthoredSet(studentId, setId, drill, size, tier, fresh && choice.focusSkill ? { mode: fresh, skill: choice.focusSkill } : null);
+    plan = await planAuthoredSet(studentId, setId, drill, size, tier, fresh && choice.focusSkill ? { mode: fresh, skill: choice.focusSkill } : null, defend);
     if (plan.length === 0) throw new DrillError('no_items', 404, 'No items are live for this drill yet');
   }
-  const stage = choice.focusSkill ? stageOfDrill(drill.id, choice.focusSkill) : drill.level === 1 ? 'recognize' : 'construct';
+  const stage = choice.focusSkill ? stageOfDrill(drill.id, choice.focusSkill) : drill.stage;
 
   try {
     await db.insert(drillSets).values({
@@ -269,6 +274,7 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
     set_id: setId, drill_id: drill.id, level: drill.level, stage, tier, source: choice.source,
     prescription_id: choice.prescriptionId, focus_tag: choice.focusTag, transfer_check: kind === 'transfer',
     slot: choice.slot ?? null, workout_id: choice.workoutId ?? null, quick_start: input.quick_start ?? false,
+    defend: plan.some(r => r.kind === 'authored' && r.defend),
     browse: input.browse ?? false, suggested: input.browse ? await hasOpenPrescription(studentId, choice.focusSkill) : null,
   });
   if (input.suggestion) {
@@ -296,8 +302,9 @@ async function attachToWorkout(workoutId: string, index: number, setId: string) 
 // and industries not in their last 3 sets on that drill; if too few qualify,
 // the rest are the items seen longest ago (logged as transfer_pool_exhausted).
 // A workout's unfamiliar slot prefers the same items but may reuse seen ones.
+// A set that runs Defend marks each item that has a follow-up (ItemRef.defend).
 async function planAuthoredSet(studentId: string, setId: string, drill: Drill, size: number, tier: Tier,
-  fresh: { mode: 'transfer' | 'unfamiliar'; skill: string } | null = null): Promise<ItemRef[]> {
+  fresh: { mode: 'transfer' | 'unfamiliar'; skill: string } | null = null, defend = false): Promise<ItemRef[]> {
   // Latest live version of each item, never the worked example.
   const statuses = previewDrafts() ? ['live', 'draft', 'in_review'] as const : ['live'] as const;
   const rows = await db.select().from(drillItems)
@@ -305,17 +312,21 @@ async function planAuthoredSet(studentId: string, setId: string, drill: Drill, s
     .orderBy(desc(drillItems.version));
   const latest = new Map<string, typeof rows[number]>();
   for (const r of rows) if (!latest.has(r.itemId)) latest.set(r.itemId, r);
-  const pool = [...latest.values()].map(r => ({
+  let pool = [...latest.values()].map(r => ({
     item_id: r.itemId, version: r.version, tier: r.tier,
     case_type: (r.payload as Item).case_type ?? null, industry: r.industry,
+    derived_from: drill.stage === 'repair' ? (r.payload as Item & { extras: RepairExtras }).extras.derived_from : null,
   }));
+  const withDefend = new Set(defend ? [...latest.values()].filter(r => (r.payload as Item).defend).map(r => r.itemId) : []);
+  const mark = (refs: ItemRef[]): ItemRef[] => refs.map(r => (r.kind === 'authored' && withDefend.has(r.item_id) ? { ...r, defend: true as const } : r));
+  if (drill.stage === 'repair') pool = await withoutRecentSources(studentId, drill, pool, size);
   const seen = pool.length
     ? await db.select({ itemId: drillAttempts.itemId, at: max(drillAttempts.submittedAt) }).from(drillAttempts)
       .where(and(eq(drillAttempts.studentId, studentId), inArray(drillAttempts.itemId, pool.map(p => p.item_id))))
       .groupBy(drillAttempts.itemId)
     : [];
   const lastSeen = new Map(seen.filter(s => s.itemId && s.at).map(s => [s.itemId!, new Date(s.at!)]));
-  if (!fresh) return planAuthored({ setId, pool, lastSeen, size, tier, now: new Date() });
+  if (!fresh) return mark(planAuthored({ setId, pool, lastSeen, size, tier, now: new Date() }));
 
   const recent = await db.select({ plan: drillSets.itemPlan }).from(drillSets)
     .where(and(eq(drillSets.studentId, studentId), eq(drillSets.drillId, drill.id), eq(drillSets.status, 'completed')))
@@ -326,11 +337,32 @@ async function planAuthoredSet(studentId: string, setId: string, drill: Drill, s
   const avoidIndustries = new Set(recentItems.map(i => i.industry).filter(Boolean));
   const familiar = (p: typeof pool[number]) => avoidTypes.has(p.case_type) || (p.industry !== null && avoidIndustries.has(p.industry));
   const unseen = pool.filter(p => !lastSeen.has(p.item_id) && !familiar(p));
-  if (unseen.length >= size) return planAuthored({ setId, pool: unseen, lastSeen, size, tier, now: new Date() });
+  if (unseen.length >= size) return mark(planAuthored({ setId, pool: unseen, lastSeen, size, tier, now: new Date() }));
   if (fresh.mode === 'transfer') await logDrillEvent(studentId, 'transfer_pool_exhausted', { skill_id: fresh.skill, drill_id: drill.id });
   const oldest = (items: typeof pool) => [...items].sort((a, b) => (lastSeen.get(a.item_id)?.getTime() ?? 0) - (lastSeen.get(b.item_id)?.getTime() ?? 0));
   const fill = [...unseen, ...oldest(pool.filter(p => lastSeen.has(p.item_id) && !familiar(p))), ...oldest(pool.filter(familiar))];
-  return fill.slice(0, size).map(i => ({ kind: 'authored' as const, item_id: i.item_id, version: i.version }));
+  return mark(fill.slice(0, size).map(i => ({ kind: 'authored' as const, item_id: i.item_id, version: i.version })));
+}
+
+// PRD "Serving rules": no Repair item derived from a Level 1 item the student
+// saw in the last 14 days. If that leaves fewer items than a short set needs
+// (3), the rest come from items whose source was seen longest ago, logged as
+// repair_pool_exhausted.
+const REPAIR_MIN_SET = 3;
+async function withoutRecentSources<T extends { item_id: string; derived_from: string | null }>(studentId: string, drill: Drill, pool: T[], size: number): Promise<T[]> {
+  const sources = [...new Set(pool.map(p => p.derived_from).filter((x): x is string => Boolean(x)))];
+  if (sources.length === 0) return pool;
+  const since = new Date(Date.now() - rules.repair.derived_exclusion_days * 86_400_000);
+  const recent = await db.select({ itemId: drillAttempts.itemId, at: max(drillAttempts.submittedAt) }).from(drillAttempts)
+    .where(and(eq(drillAttempts.studentId, studentId), inArray(drillAttempts.itemId, sources), sql`${drillAttempts.submittedAt} > ${since.toISOString()}::timestamptz`))
+    .groupBy(drillAttempts.itemId);
+  const seenAt = new Map(recent.map(r => [r.itemId!, new Date(r.at!).getTime()]));
+  const allowed = pool.filter(p => !p.derived_from || !seenAt.has(p.derived_from));
+  const need = Math.min(size, REPAIR_MIN_SET);
+  if (allowed.length >= need || allowed.length === pool.length) return allowed;
+  await logDrillEvent(studentId, 'repair_pool_exhausted', { drill_id: drill.id, available: allowed.length });
+  const excluded = pool.filter(p => !allowed.includes(p)).sort((a, b) => seenAt.get(a.derived_from!)! - seenAt.get(b.derived_from!)!);
+  return [...allowed, ...excluded.slice(0, need - allowed.length)];
 }
 
 // --------------------------------------------------------- the set screen
@@ -387,7 +419,12 @@ export async function setView(studentId: string, setId: string) {
   // primary skill that has a lesson.
   const withLesson = diagnostic ? new Set<string>() : await lessonSkills();
   const lessonSkill = [set.focusSkill, ...drill.primary_skills].find(id => id && withLesson.has(id)) ?? null;
+  const defend = drill.defend && planOf(set).some(r => r.kind === 'authored' && r.defend)
+    ? { type: drill.defend.type, seconds: Math.round(defendSeconds(set.tier) * settings.timeMultiplier), max_words: rules.defend.max_words } : null;
   return {
+    // PRD "Drill intro screen": how much a Repair set tells the student.
+    repair_hint: drill.stage === 'repair' ? REPAIR_INTRO[Math.min(set.tier, 3) as 1 | 2 | 3] : null,
+    defend,
     diagnostic,
     lesson_skill: lessonSkill,
     set_id: set.id, status: set.status, position: set.currentPosition, size: set.size, tier: set.tier,
@@ -401,6 +438,12 @@ export async function setView(studentId: string, setId: string) {
     example: diagnostic ? null : example,
   };
 }
+
+const REPAIR_INTRO = {
+  1: 'Each answer has a flaw, and you\'ll be told what it is. Fix it, and keep what was right.',
+  2: 'Each answer has a flaw, but you won\'t be told what it is. Find it, fix it, and keep what was right.',
+  3: 'Each answer may have one or two flaws, and you won\'t be told what they are. Fix them, and keep what was right.',
+};
 
 async function diagnosticPartOf(studentId: string, setId: string) {
   const view = await diagnosticView(studentId);
@@ -442,7 +485,7 @@ export async function fetchItem(studentId: string, setId: string, position: numb
   const timing = stepTiming(drill, item, set.tier as Tier, row.timeMultiplier ?? 1, step, servedAt, pending?.stage_started_at);
   return {
     position, size: set.size, ai_graded: isAiGraded(drill),
-    item: toPublicItem(item) satisfies PublicItem,
+    item: toPublicItem(item, set.tier) satisfies PublicItem,
     ...timing,
     completed_steps: (pending?.steps ?? []).map((s, i) => stepFeedback(item, i, s, pending!.steps.slice(0, i))),
   };
@@ -526,7 +569,14 @@ export async function submitAttempt(studentId: string, setId: string, body: z.in
 
   let result: ItemResult;
   let done: StepResult[] = pending.steps;
-  if (body.skip) {
+  const followupFrom = defendStart(item);
+  if (body.skip && followupFrom >= 0 && pending.steps.length >= followupFrom) {
+    // Skipping the follow-up skips only the follow-up: the main answer is
+    // graded, and the Defend part scores 0 with M.skipped.
+    done = [...pending.steps];
+    for (let i = done.length; i < steps.length; i++) done.push({ ...scoreStep(item, i, { type: 'empty' }, true, done), tag: 'M.skipped' });
+    result = scoreItem(item, { skipped: false, timedOut, steps: done });
+  } else if (body.skip) {
     result = scoreItem(item, { skipped: true, timedOut, steps: [] });
   } else {
     if (body.step !== index) throw new DrillError('wrong_step', 409, `Submit step ${index}`, { step: index });
@@ -569,6 +619,13 @@ export async function submitAttempt(studentId: string, setId: string, body: z.in
   // scored with the set, so the set finishes in one pass).
   const awaiting = isAiGraded(drill);
   const totalLimit = itemLimitsMs(drill, item, set.tier as Tier, mult).reduce((a, b) => a + b, 0);
+  // The Defend reply, in its own columns, once the follow-up was shown.
+  const shown = followupFrom >= 0 && done.length > followupFrom && pending.steps.length >= followupFrom;
+  const defendResponse = shown ? JSON.stringify({
+    decision: done.slice(followupFrom).find(st => st.response.type === 'choice')?.response ?? null,
+    text: done[done.length - 1].response.type === 'text' ? (done[done.length - 1].response as { value: string }).value : null,
+  }) : null;
+  const defendTimeMs = shown && pending.stage_started_at ? Date.now() - Date.parse(pending.stage_started_at) : null;
   let inserted: { id: string }[];
   try {
     inserted = (await db.execute<{ id: string }>(sql`
@@ -580,12 +637,14 @@ export async function submitAttempt(studentId: string, setId: string, body: z.in
       )
       insert into ${drillAttempts} (
         set_id, student_id, position, idempotency_key, item_id, item_version, template_id, template_version, seed,
-        response, served_at, time_ms, time_limit_ms, timed_out, skipped, score, step_scores, mistake_tags, grading_status
+        response, served_at, time_ms, time_limit_ms, timed_out, skipped, score, step_scores, mistake_tags, grading_status,
+        defend_response, defend_time_ms
       )
       select advanced.id, ${studentId}, ${position}, ${body.idempotency_key}, ${itemId}, ${itemVersion}, ${templateId}, ${templateVersion}, ${seed},
         ${JSON.stringify({ steps: done.map(s => s.response), skip: body.skip })}::jsonb, ${servedAt.toISOString()}::timestamptz,
         ${elapsed}, ${totalLimit}, ${result.timed_out}, ${result.skipped}, ${awaiting ? null : result.score},
-        ${JSON.stringify(result.steps)}::jsonb, ${textArray(awaiting ? [] : result.mistake_tags)}, ${awaiting ? 'pending' : 'not_needed'}
+        ${JSON.stringify(result.steps)}::jsonb, ${textArray(awaiting ? [] : result.mistake_tags)}, ${awaiting ? 'pending' : 'not_needed'},
+        ${defendResponse}::jsonb, ${defendTimeMs}
       from advanced
       returning id
     `)) as unknown as { id: string }[];
@@ -673,7 +732,8 @@ async function lowScoreLesson(set: SetRow, score: number): Promise<{ id: string;
   if (score >= DRILLS_CONFIG.rules.stages.construct_to_recognize_below - 1e-9) return null;
   const withLesson = await lessonSkills();
   const id = [set.focusSkill, ...getDrill(set.drillId).primary_skills].find(x => x && withLesson.has(x));
-  return id ? { id, name: getSkill(id).name } : null;
+  // Mid-sentence: "the lesson on MECE structure", "on math setup".
+  return id ? { id, name: lowerName(id) } : null;
 }
 
 // "Breakeven: now Practiced. Transfer check unlocks Thursday."

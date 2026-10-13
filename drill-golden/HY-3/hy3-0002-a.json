@@ -1,0 +1,20 @@
+{
+  "answer_id": "hy3-0002-a",
+  "item_id": "hy3-0002",
+  "drill_id": "HY-3",
+  "answer_type": "normal",
+  "notes": "Framed as something to test, fix dropped; the phone-system cause kept.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Calls are probably taking longer, maybe because the new phone system slows agents. I'd check average handle time by month before replacing anything."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

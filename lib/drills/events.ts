@@ -20,7 +20,9 @@ export type DrillEvent =
   // D4: the training program.
   | 'onboarding_completed' | 'diagnostic_completed' | 'program_assigned' | 'program_switched' | 'program_week_started'
   | 'workout_built' | 'workout_completed' | 'lesson_viewed' | 'lesson_skipped' | 'suggestion_shown' | 'suggestion_started'
-  | 'drill_catalog_viewed' | 'weekly_summary_viewed' | 'next_case_card_shown' | 'next_case_card_clicked';
+  | 'drill_catalog_viewed' | 'weekly_summary_viewed' | 'next_case_card_shown' | 'next_case_card_clicked'
+  // D5: Repair drills and Defend.
+  | 'defend_submitted' | 'repair_pool_exhausted';
 
 const APP_VERSION = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'dev';
 

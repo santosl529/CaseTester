@@ -1,0 +1,41 @@
+{
+  "answer_id": "ps4-0004-b",
+  "item_id": "ps4-0004",
+  "drill_id": "PS-4",
+  "answer_type": "off_topic",
+  "notes": "Answers a revenue question on a cost case: the overlap is gone but the change doesn't fit the case (rule 2), and fuel, labor and aircraft are dropped (rule 4). No-new-flaw passes by code because keeps-right fails (rule 3), though the revenue buckets are also irrelevant.",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Ticket revenue",
+          "points": [
+            "fares",
+            "seats sold"
+          ]
+        },
+        {
+          "title": "Extra revenue",
+          "points": [
+            "bag fees",
+            "seat upgrades"
+          ]
+        },
+        {
+          "title": "Routes",
+          "points": [
+            "which routes lose money"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "no_new_flaw": true,
+    "keeps_right": false
+  },
+  "red_flags": {},
+  "family": null
+}

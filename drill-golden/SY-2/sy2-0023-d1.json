@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0023-d1",
+  "item_id": "sy2-0023",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Match online prices on the items shoppers check most. In a 10-store test, matching raised sales of those items 25% and brought shoppers who bought full-price accessories, worth $2.6M of profit chain-wide against the $2M of gross profit matching gives up. 30% of shoppers check prices on their phones, so the gap is visible. The main risk is that online sellers cut further. The next step is to roll it out and track accessory sales."
+    },
+    {
+      "type": "choice",
+      "option_id": "update"
+    },
+    {
+      "type": "text",
+      "value": "Update. Without the promotion's accessory sales, matching gives up $2M of gross profit for little gain, so I'd rerun the test before any rollout."
+    }
+  ],
+  "labels": {
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

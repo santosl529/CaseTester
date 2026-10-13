@@ -1,0 +1,5 @@
+answer_id,item_id,answer_type,main_answer,main_decision,main_stage2,decision,reply,defend_answers,defend_evidence,defend_consistent,defend_data_request,defend_drop_result,notes
+EXAMPLE-ps3-01-d1,EXAMPLE-ps3-01,normal,"Demand: interest among members; willingness to pay
+Economics: price; app costs; break-even subscribers
+Competition: existing apps; their prices",,,,"Demand first, because the $10M target only works if enough members pay for it.",Y,Y,Y,,,"Picks one bucket from its own framework; the $10M target is a case number (Justify rule 3)."
+EXAMPLE-sy2-01-d1,EXAMPLE-sy2-01,normal,"Open weekday mornings for school groups with a pilot. 120 groups at $600 is $72k against $40k of costs, and the parks are closed then anyway. Risk: schools may prefer the cheaper museums. Next step: pilot in 5 parks.",,,update,"Fair point, we should probably wait and do more research first.",,N,N,,,"Caves to an invalid challenge (code scores the decision). No case fact, and waiting contradicts the pilot without saying what changes."

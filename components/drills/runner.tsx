@@ -27,6 +27,10 @@ export interface RunnerView {
   ai_graded: boolean;
   pass_bar: number;
   example: WorkedExample | null;
+  // Repair drills: how much the student is told about the flaws at this tier.
+  repair_hint: string | null;
+  // The set runs the Defend follow-up after each answer.
+  defend: { type: 'justify' | 'challenge'; seconds: number; max_words: number } | null;
 }
 
 interface LoadedItem {
@@ -43,6 +47,14 @@ type Step = NonNullable<PublicItem['input']['steps']>[number];
 // One answer in progress, whatever the step's input.
 interface Draft { choice: string | null; numeric: string; text: string; buckets: Bucket[]; cards: string[]; numbers: Record<string, string> }
 const emptyDraft = (): Draft => ({ choice: null, numeric: '', text: '', buckets: [{ title: '', points: [''] }, { title: '', points: [''] }], cards: [], numbers: {} });
+
+// A Repair item starts from the flawed answer it asks the student to fix.
+function firstDraft(item: PublicItem): Draft {
+  const prefill = item.repair?.prefill;
+  if (prefill?.type === 'text') return { ...emptyDraft(), text: prefill.value };
+  if (prefill?.type === 'buckets') return { ...emptyDraft(), buckets: prefill.buckets.map(b => ({ title: b.title, points: b.points.length ? [...b.points] : [''] })) };
+  return emptyDraft();
+}
 
 const DEFAULT_LABELS: Record<string, string> = {
   single_choice: 'Choose one', numeric: 'Your answer', free_text: 'Your answer',
@@ -141,7 +153,8 @@ export function DrillRunner({ view }: { view: RunnerView }) {
     setDeadline(Date.now() + item.remaining_ms);
     setLimitMs(item.time_limit_ms);
     setSteps(item.completed_steps);
-    setDraft(emptyDraft());
+    // A resumed item past its first step continues with an empty answer box.
+    setDraft(item.completed_steps.length ? emptyDraft() : firstDraft(item.item));
     setFinal(null);
     setPhase('item');
     requestAnimationFrame(() => headingRef.current?.focus());
@@ -232,6 +245,13 @@ export function DrillRunner({ view }: { view: RunnerView }) {
         {view.lesson_skill && (
           <p className="text-sm"><Link href={`/drills/learn/${encodeURIComponent(view.lesson_skill)}?source=intro`} className="underline underline-offset-4">Read the 3-min lesson</Link> first if this skill is new to you.</p>
         )}
+        {view.repair_hint && <p className="text-sm">{view.repair_hint}</p>}
+        {view.defend && (
+          <p className="text-sm">
+            After each answer, the interviewer asks one follow-up{view.defend.type === 'challenge' ? ' that pushes back on your recommendation: hold it or update it, then say why' : ' about it'}.
+            You get {view.defend.seconds} s and up to {view.defend.max_words} words.
+          </p>
+        )}
         {!view.diagnostic && view.ai_graded && (
           <p className="text-sm text-muted-foreground">Your written answers are graded together after the last item, so there is no feedback until then.</p>
         )}
@@ -265,8 +285,13 @@ export function DrillRunner({ view }: { view: RunnerView }) {
   }
 
   const { item } = loaded;
-  const multi = stepSpecs.length > 1;
-  const label = current ? `${multi ? `Step ${stepIndex + 1}: ` : ''}${current.label ?? DEFAULT_LABELS[current.type] ?? 'Your answer'}` : '';
+  // Steps of the main answer; the Defend follow-up's steps come after them.
+  const mainSteps = stepSpecs.filter(s => !s.defend).length;
+  const multi = mainSteps > 1;
+  const label = current
+    ? current.defend ? current.label ?? 'Your reply' : `${multi ? `Step ${stepIndex + 1}: ` : ''}${current.label ?? DEFAULT_LABELS[current.type] ?? 'Your answer'}`
+    : '';
+  const followup = steps.find(s => s.followup)?.followup;
   // QN-5: the driver cards the numbers step asks about, from step 1's feedback.
   const drivers = steps.find(s => s.drivers)?.drivers ?? [];
   return (
@@ -283,11 +308,15 @@ export function DrillRunner({ view }: { view: RunnerView }) {
       )}
 
       {/* Finished steps: auto-checked ones show their verdict (QN-4's formula
-          before the calculation); AI-graded ones are just saved. */}
-      {steps.map((s, i) => (
+          before the calculation); AI-graded ones are just saved, and show the
+          student's own words, read-only, once a follow-up asks about them. */}
+      {steps.map((s, i) => i >= mainSteps ? null : (
         <div key={i} className="space-y-1 rounded-lg border p-3 text-sm">
           {s.pending || view.diagnostic ? (
-            <p className="font-medium">Step {i + 1}: saved</p>
+            <>
+              <p className="font-medium">{multi ? `Step ${i + 1}: saved` : 'Your answer: saved'}</p>
+              {followup && s.your_answer && <p className="whitespace-pre-line text-muted-foreground">{s.your_answer}</p>}
+            </>
           ) : (
             <>
               <p className="font-medium">Step {i + 1}: {s.correct ? 'Correct' : 'Not quite'}</p>
@@ -301,6 +330,18 @@ export function DrillRunner({ view }: { view: RunnerView }) {
           )}
         </div>
       ))}
+
+      {/* The Defend step (PRD "Defend step screen"). */}
+      {followup && phase === 'item' && (
+        <div role="note" className="space-y-1 rounded-lg border-2 border-primary/60 p-3 text-sm">
+          <p className="font-medium">Interviewer follow-up</p>
+          <p>{followup.type === 'challenge' ? `“${followup.text}”` : followup.text}</p>
+        </div>
+      )}
+
+      {phase === 'item' && item.repair && stepIndex === 0 && (
+        <p className="rounded-md bg-muted p-2 text-sm"><span className="font-medium">Fix this answer.</span> {item.repair.hint}</p>
+      )}
 
       {phase === 'item' && current && (
         <div>
@@ -328,8 +369,8 @@ export function DrillRunner({ view }: { view: RunnerView }) {
 
       {phase === 'item' && (
         <div className="flex items-center gap-3">
-          <Button onClick={() => submit()} disabled={busy}>{multi && stepIndex < stepSpecs.length - 1 ? 'Next step' : 'Submit'}</Button>
-          <Button variant="ghost" onClick={() => submit({ skip: true })} disabled={busy}>Skip</Button>
+          <Button onClick={() => submit()} disabled={busy}>{stepIndex < stepSpecs.length - 1 ? (stepSpecs[stepIndex + 1]?.defend && !current?.defend ? 'Submit answer' : 'Next step') : 'Submit'}</Button>
+          <Button variant="ghost" onClick={() => submit({ skip: true })} disabled={busy}>{current?.defend ? 'Skip follow-up' : 'Skip'}</Button>
         </div>
       )}
 
@@ -361,10 +402,16 @@ export function ItemFeedbackPanel({ feedback }: { feedback: ItemFeedback }) {
         <div key={i} className="space-y-0.5">
           {feedback.steps.length > 1 && <p className="text-muted-foreground">Step {i + 1}</p>}
           {s.your_answer !== null && !s.correct && <p>Your answer: {s.your_answer}</p>}
-          <p>Correct answer: <span className="font-medium">{s.correct_answer}</span></p>
+          {s.correct_answer && <p>Correct answer: <span className="font-medium">{s.correct_answer}</span></p>}
           {!s.correct && s.feedback && <p>{s.feedback}</p>}
         </div>
       ))}
+      {feedback.model_answer && (
+        <div className="space-y-1">
+          <p className="font-medium">A strong answer</p>
+          <p className="whitespace-pre-line text-muted-foreground">{feedback.model_answer}</p>
+        </div>
+      )}
       <p className="text-muted-foreground"><span className="font-medium text-foreground">Worked solution:</span> {feedback.explanation}</p>
     </div>
   );
@@ -377,7 +424,8 @@ function GradedPanel({ feedback, verdict }: { feedback: ItemFeedback; verdict: s
   return (
     <div className="space-y-3 rounded-lg border p-4 text-sm">
       <p className="font-medium">{verdict} ({Math.round(feedback.score * 100)}%)</p>
-      <ul className="space-y-2">
+      {/* An unchanged Repair answer was scored by code; its checks' tips don't apply. */}
+      {!g.unchanged && <ul className="space-y-2">
         {g.checks.map(c => (
           <li key={c.check_id} className="flex gap-2">
             <span aria-hidden="true" className={c.pass ? 'text-primary' : 'text-destructive'}>{c.pass ? '✓' : '✗'}</span>
@@ -389,7 +437,7 @@ function GradedPanel({ feedback, verdict }: { feedback: ItemFeedback; verdict: s
             </span>
           </li>
         ))}
-      </ul>
+      </ul>}
       {g.decision && (
         <p>Your choice after the new fact: <span className="font-medium">{g.decision.chose}</span>, {g.decision.right ? 'the right call.' : 'not the right call for your hypothesis.'}</p>
       )}
@@ -398,14 +446,56 @@ function GradedPanel({ feedback, verdict }: { feedback: ItemFeedback; verdict: s
           <span className="font-medium">Red flag:</span> {f.definition}{f.evidence ? ` (“${f.evidence}”)` : ''} This caps the score.
         </p>
       ))}
+      {g.unchanged && <p className="rounded-md border border-destructive/60 p-2">Your answer was the original, unchanged, so it scores 0.</p>}
+      {g.original && (
+        <div className="space-y-1">
+          <p className="font-medium">The answer you were fixing</p>
+          <p className="whitespace-pre-line text-muted-foreground">{g.original}</p>
+        </div>
+      )}
       {g.model_answer && (
         <div className="space-y-1">
-          <p className="font-medium">A strong answer</p>
+          <p className="font-medium">{g.original ? 'A strong fix' : 'A strong answer'}</p>
           <p className="whitespace-pre-line text-muted-foreground">{g.model_answer}</p>
         </div>
       )}
       <p className="text-muted-foreground">{feedback.explanation}</p>
+      {g.defend && <DefendPanel defend={g.defend} />}
       {g.review_flagged && <p className="text-xs text-muted-foreground">Part of this grade has been flagged for a human check.</p>}
+    </div>
+  );
+}
+
+// The follow-up, the student's reply, each check with evidence and the model
+// reply (PRD "Set results screen").
+function DefendPanel({ defend }: { defend: NonNullable<NonNullable<ItemFeedback['grading']>['defend']> }) {
+  return (
+    <div className="space-y-2 border-t pt-3">
+      <p className="font-medium">Interviewer follow-up</p>
+      <p>{defend.type === 'challenge' ? `“${defend.text}”` : defend.text}</p>
+      {defend.skipped ? <p className="text-muted-foreground">You skipped the follow-up.</p> : (
+        <p className="whitespace-pre-line"><span className="font-medium">Your reply:</span> {defend.reply || '(no reply)'}</p>
+      )}
+      {defend.decision && (
+        <p>You chose to <span className="font-medium">{defend.decision.chose.toLowerCase()}</span>: {defend.decision.right ? 'the right call.' : 'not the right call here.'}</p>
+      )}
+      <ul className="space-y-2">
+        {defend.checks.map(c => (
+          <li key={c.check_id} className="flex gap-2">
+            <span aria-hidden="true" className={c.pass ? 'text-primary' : 'text-destructive'}>{c.pass ? '✓' : '✗'}</span>
+            <span className="sr-only">{c.pass ? 'Passed:' : 'Missed:'}</span>
+            <span className="space-y-0.5">
+              <span className="block">{c.question}</span>
+              {c.pass && c.evidence && <span className="block text-muted-foreground">You wrote: “{c.evidence}”</span>}
+              {!c.pass && <span className="block text-muted-foreground">{c.feedback}</span>}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <div className="space-y-1">
+        <p className="font-medium">A strong reply</p>
+        <p className="whitespace-pre-line text-muted-foreground">{defend.model_reply}</p>
+      </div>
     </div>
   );
 }

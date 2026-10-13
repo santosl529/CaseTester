@@ -1,0 +1,20 @@
+{
+  "answer_id": "sy3-0006-b",
+  "item_id": "sy3-0006",
+  "drill_id": "SY-3",
+  "answer_type": "normal",
+  "notes": "Day-shift turnover is still used as support (rule 16).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Add a night shift: serving the 20% of demand we turn away adds $8M of profit for $3M a year, without a $40M plant, and our day-shift staff have the region's lowest turnover."
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -12,7 +12,7 @@ import { and, count, eq, lt } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { drillAttempts, drillItems } from '@/db/schema';
 import { contentCheckProblems, loadAuthoredItems, loadReviewedScenarioPairs } from '@/lib/drills/authored';
-import { TAXONOMY_VERSION } from '@/lib/drills/config';
+import { TAXONOMY_VERSION, getDrill } from '@/lib/drills/config';
 import type { Item } from '@/lib/drills/item-schema';
 
 // jsonb doesn't keep key order, so compare with keys sorted.
@@ -25,7 +25,7 @@ const canonical = (v: unknown): unknown =>
 // review metadata, so they can change without a new version.
 const content = (item: Item) => JSON.stringify(canonical({ ...item, status: undefined, is_example: undefined, authorship: undefined, industry: undefined }));
 const meta = (item: Item) => JSON.stringify(canonical({ authorship: item.authorship, industry: item.industry ?? null }));
-const stageOf = (item: Item) => (item.level === 1 ? 'recognize' : 'construct');
+const stageOf = (item: Item) => getDrill(item.drill_id).stage;
 
 async function main() {
   const items = loadAuthoredItems();

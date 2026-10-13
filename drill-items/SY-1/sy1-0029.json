@@ -1,8 +1,8 @@
 {
   "item_id": "sy1-0029",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-1",
-  "status": "live",
+  "status": "draft",
   "level": 1,
   "tier": 3,
   "skills": [
@@ -12,7 +12,7 @@
   ],
   "case_type": "cost_reduction",
   "industry": null,
-  "prompt": "The client asks: \"Should we move our call center offshore?\" Fact sheet: offshoring saves $5M a year; the move costs $8M once; satisfaction is expected to drop 10 points; each point of satisfaction lost costs $300k a year; our hurdle is a 3-year payback; the vendor has offices in three countries. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should we move our call center offshore?\" Fact sheet: offshoring saves $5M a year; the move costs $8M once; satisfaction is expected to drop 10 points; each point of satisfaction lost costs $300k a year; our hurdle is a 3-year payback; the vendor runs call centers for two of our competitors. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -33,10 +33,10 @@
     },
     {
       "id": "c",
-      "text": "Move offshore. The vendor's offices in three countries give round-the-clock coverage across time zones.",
+      "text": "Move offshore. The vendor already runs call centers for two of our competitors, so its service is proven.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "Coverage hours don't change the payback, which misses the hurdle."
+      "feedback": "Who else uses the vendor doesn't change the payback, which misses the hurdle."
     },
     {
       "id": "d",
@@ -54,18 +54,19 @@
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "The vendor has offices in three countries."
+      "The vendor runs call centers for two of our competitors."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-10",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-13",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

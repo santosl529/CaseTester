@@ -51,6 +51,9 @@ function render(item: Item): string {
   const parts = [`Drill: ${item.drill_id}`, `Question: ${item.prompt}`];
   if (item.exhibit) parts.push(`Exhibit: ${JSON.stringify(item.exhibit)}`);
   if (item.options.length) parts.push(`Options:\n${item.options.map(o => `- ${o.text}`).join('\n')}`);
+  // Repair items: the flawed answer the student edits.
+  if (typeof item.extras.flawed_answer === 'string') parts.push(`Answer to fix: ${item.extras.flawed_answer}`);
+  if (item.defend) parts.push(`Interviewer follow-up: ${item.defend.text}\nModel reply: ${item.defend.model_reply}`);
   if (item.model_answer) parts.push(`Model answer: ${item.model_answer}`);
   parts.push(`Explanation: ${item.explanation}`);
   return parts.join('\n\n');

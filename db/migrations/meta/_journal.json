@@ -120,6 +120,13 @@
       "when": 1791768478824,
       "tag": "0016_drills_d4_diagnostic_move",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791770893659,
+      "tag": "0017_drills_d5_defend",
+      "breakpoints": true
     }
   ]
 }

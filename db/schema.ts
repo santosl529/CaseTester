@@ -299,6 +299,12 @@ export const drillAttempts = pgTable('drill_attempts', {
   mistakeTags: text('mistake_tags').array().notNull().default(sql`'{}'::text[]`),
   checkResults: jsonb('check_results'),         // [{ check_id, pass, evidence }]
   redFlags: text('red_flags').array().notNull().default(sql`'{}'::text[]`),
+  // The Defend step (D5), part of the same row: the reply ({ decision, text }),
+  // its time, its score as a share of the Defend part, and its checks.
+  defendResponse: jsonb('defend_response'),
+  defendTimeMs: integer('defend_time_ms'),
+  defendScore: doublePrecision('defend_score'),
+  defendCheckResults: jsonb('defend_check_results'),
   gradingStatus: attemptGradingStatusEnum('grading_status').notNull().default('not_needed'),
   graderPromptVersion: text('grader_prompt_version'),
   modelId: text('model_id'),

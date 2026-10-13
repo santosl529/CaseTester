@@ -5,7 +5,7 @@
 // item of a drill is graded against the same rubric.
 import type { CaseType } from '@/lib/case-types';
 import type { ItemInput } from './item-schema';
-import { getDrill } from './config';
+import { getDrill, getMistakeTag } from './config';
 import { formatEstimate } from './numeric';
 
 type Tier = 1 | 2 | 3;
@@ -402,3 +402,196 @@ export function qn5Item(c: Qn5Content): ItemInput {
     },
   };
 }
+
+// ============================================================ D5: Repair
+
+// The Repair drills (PRD "Repair drills"): the student edits a flawed answer
+// taken from a Level 1 item. Fixes each planted flaw (50%, split), adds no new
+// flaw of the drill's types (30%), keeps the parts that were right (20%).
+export interface RepairContent extends Base {
+  derived_from: string;
+  // The case as the student sees it, without the flawed answer.
+  prompt: string;
+  flawed_answer: string;
+  flaws: { tag: string; hint: string; fix: string }[];
+  right_parts: string;
+  model_repair: string;
+}
+
+export const REPAIR_WEIGHTS = { fixes: 0.5, no_new_flaw: 0.3, keeps_right: 0.2 };
+
+// Per drill: the flaw types a new flaw can be (the AI picks one when the
+// no-new-flaw check fails) and the "dropped right part" tag.
+export const REPAIR_DRILLS = {
+  'PS-4': {
+    skills: ['PS.mece', 'PS.case_specific', 'PS.depth'], instruction: 'A candidate wrote the framework below. Fix it.',
+    flaw_tags: ['M.overlapping_buckets', 'M.missing_bucket', 'M.irrelevant_bucket', 'M.generic_framework', 'M.shallow_structure'],
+    dropped_tag: 'M.missing_bucket', input: { type: 'structured_buckets' as const, max_buckets: 5, max_words: 120 },
+  },
+  'HY-3': {
+    skills: ['HY.form'], instruction: 'A candidate offered the initial hypothesis below. Fix it.',
+    flaw_tags: ['M.restates_facts', 'M.shotgun_hypotheses', 'M.overconfident_hypothesis', 'M.untestable_hypothesis', 'M.ignores_facts'],
+    dropped_tag: 'M.ignores_facts', input: { type: 'free_text' as const, max_words: 40 },
+  },
+  'SY-3': {
+    skills: ['SY.answer_first', 'SY.evidence'], instruction: 'A candidate gave the recommendation below. Fix it.',
+    flaw_tags: ['M.buried_recommendation', 'M.hedged_recommendation', 'M.irrelevant_facts', 'M.unsupported_recommendation', 'M.ignores_deciding_fact'],
+    dropped_tag: 'M.unsupported_recommendation', input: { type: 'free_text' as const, max_words: 80 },
+  },
+} as const;
+export type RepairDrillId = keyof typeof REPAIR_DRILLS;
+export const REPAIR_SOURCE: Record<RepairDrillId, string> = { 'PS-4': 'PS-1', 'HY-3': 'HY-1', 'SY-3': 'SY-1' };
+
+// A fix that adds something can be quoted; one that removes or reorganizes
+// (an overlap merged, a padded fact cut) can only be judged on the whole.
+const WHOLE_FIX = new Set(['M.overlapping_buckets', 'M.irrelevant_bucket', 'M.generic_framework', 'M.shotgun_hypotheses', 'M.irrelevant_facts']);
+
+// Rules every Repair item sends to the grader, then the drill's own
+// (docs/drills-grading-guide.md). Keep the two in step.
+export const REPAIR_GRADING_RULES = [
+  'Compare the edited answer with the original answer. Judge the edited answer as a whole, as an interviewer would read it.',
+  'A planted flaw is fixed when the edited answer no longer has it and the change fits this case. Rewording the flaw without removing it does not fix it.',
+  'A new flaw is one the original did not have, of the kinds listed. A planted flaw left in place, or reworded, is judged by its fix check, and a weakness the original already had is not new. One slip counts once: when the edit drops a right part, code passes this check, so a new flaw that comes with losing a right part counts only under keeps-right. When the edit adds a new flaw, name its kind in new_flaw_tag.',
+  'Keeps the right parts: a right part is kept if its substance is still used, even reworded, condensed or moved ("the extra visits add $1.2M" keeps "40% joined and visited 12% more"). Deleting it, or changing it so it is no longer right, fails.',
+  'Judge each check on its own. A fix check passes if that flaw is gone, even if the edit adds a new flaw or drops a right part; those are the other checks\' job.',
+  'Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check.',
+];
+// A Repair answer the grader flags as addressed to it fails these: an
+// original with a note to the grader added would otherwise outscore the
+// original left unchanged, which scores 0.
+export const REPAIR_INJECTION_FAILS = ['no_new_flaw', 'keeps_right'];
+export const PS4_GRADING_RULES = [
+  'Overlap is fixed when no two buckets would have the student examine the same thing: merge them, or redefine one so they split the ground.',
+  'A missing area is fixed only when the edited framework covers it, as a bucket or a sub-point tied to this case. Match the substance of what is missing, not a neighboring topic: a count of riders today does not cover how many would stop riding at a higher fare. Deleting other buckets does not fix it.',
+  'An irrelevant bucket is fixed when it is removed or replaced by one that bears on the client\'s question.',
+  'A generic framework is fixed when its buckets, through their headings or sub-points, are about this client and objective. Renaming generic headings with the client\'s name or industry does not fix it.',
+];
+export const HY3_GRADING_RULES = [
+  'A good hypothesis names one specific cause as the lead and the driver it works through, uses at least one given fact and contradicts none, says what data would confirm or reject it, and is framed as something to test.',
+  'Restating the facts ("revenue fell while volume held", the same as a ratio, or a number worked out from them) is fixed only when a cause is named. Listing several causes is fixed only when one leads. Stating a cause as settled fact, or jumping to a fix, is fixed only when it is framed as something to test. A vague cause is fixed when it is replaced by a specific cause that data could confirm or reject. Ignoring or contradicting a fact is fixed only when the cause fits all the given facts.',
+  'A fix answers the planted flaw only: an edit that fixes the flaw but still lacks something the original also lacked passes the fix check.',
+];
+export const SY3_GRADING_RULES = [
+  'A buried recommendation is fixed when the first sentence states the course of action.',
+  'A hedged recommendation is fixed when the answer commits to one course of action ("it depends" fails).',
+  'Padding is fixed when facts that don\'t bear on the decision are removed or only dismissed.',
+  'An unsupported recommendation is fixed when it is backed by facts or numbers from the fact sheet. Ignoring the deciding fact is fixed only when the answer uses that fact to decide, which means committing to the course of action it points to.',
+];
+const REPAIR_DRILL_RULES: Record<RepairDrillId, string[]> = { 'PS-4': PS4_GRADING_RULES, 'HY-3': HY3_GRADING_RULES, 'SY-3': SY3_GRADING_RULES };
+
+export function repairItem(drillId: RepairDrillId, c: RepairContent): ItemInput {
+  const spec = REPAIR_DRILLS[drillId];
+  if (c.flaws.length < 1 || c.flaws.length > 2) throw new Error(`needs one or two planted flaws, has ${c.flaws.length}`);
+  for (const f of c.flaws) if (!(spec.flaw_tags as readonly string[]).includes(f.tag)) throw new Error(`flaw tag ${f.tag} isn't one of ${drillId}'s: ${spec.flaw_tags.join(', ')}`);
+  const n = c.flaws.length;
+  const kinds = spec.flaw_tags.map(t => getMistakeTag(t)!.label).join(', ');
+  return {
+    ...common(c, drillId, 2, [...spec.skills]),
+    prompt: `${c.prompt}\n\n${spec.instruction}`,
+    input: spec.input,
+    checks: [
+      ...c.flaws.map((f, i) => ({
+        check_id: `fix_${i + 1}`, weight: REPAIR_WEIGHTS.fixes / n, fail_tag: f.tag,
+        ...(WHOLE_FIX.has(f.tag) && { evidence: 'whole' as const }),
+        question: `The original had this flaw: ${f.hint}. Does the edited answer fix it? One way to fix it: ${f.fix}. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.`,
+        feedback: `The flaw is still there: ${f.hint}.`,
+      })),
+      { check_id: 'no_new_flaw', weight: REPAIR_WEIGHTS.no_new_flaw, fail_tag: spec.flaw_tags[0], evidence: 'whole' as const,
+        question: `Compared with the original, does the edit avoid adding a new flaw of these kinds: ${kinds}? The original's own flaw${n > 1 ? 's' : ''} (${c.flaws.map(f => f.hint).join('; ')}) ${n > 1 ? "don't" : "doesn't"} count as new, even if the edit leaves ${n > 1 ? 'them' : 'it'} in place or rewords ${n > 1 ? 'them' : 'it'}, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.`,
+        feedback: 'Your edit added a new flaw. Change only what needs fixing.' },
+      { check_id: 'keeps_right', weight: REPAIR_WEIGHTS.keeps_right, fail_tag: spec.dropped_tag, evidence: 'whole' as const,
+        question: `Does the edit keep the substance of each part of the original that was right: ${c.right_parts}? Rewording or condensing a part is fine; dropping one fails.`,
+        feedback: `Keep what was already right: ${c.right_parts}.` },
+    ],
+    red_flags: [],
+    model_answer: c.model_repair,
+    explanation: `The flaw${n > 1 ? 's' : ''}: ${c.flaws.map(f => f.hint).join('; ')}. What was right: ${c.right_parts}.`,
+    extras: {
+      derived_from: c.derived_from, flawed_answer: c.flawed_answer, flaws: c.flaws, right_parts: c.right_parts,
+      grading_rules: [...REPAIR_GRADING_RULES, ...REPAIR_DRILL_RULES[drillId]],
+    },
+  };
+}
+
+// ============================================================ D5: Defend
+
+// The Defend follow-ups (PRD "Defend step"). Check weights are shares of the
+// Defend part; for a Challenge, the Hold/Update decision is the other 40%,
+// scored by code from the key's `valid`.
+export const DEFEND_TEXT: Record<'PS-3' | 'HY-2' | 'CL-3', string> = {
+  'PS-3': 'Which bucket would you dig into first, and why?',
+  'HY-2': 'What data would you ask for first to test your hypothesis, and what result would make you drop it?',
+  'CL-3': 'If that first analysis comes back flat, what would you look at next, and why?',
+};
+
+export const DEFEND_CHOICES = [
+  { id: 'hold', text: 'Hold my recommendation' },
+  { id: 'update', text: 'Update it' },
+];
+
+export const JUSTIFY_GRADING_RULES = [
+  'Judge only the reply to the follow-up. The main answer is there so you can judge consistency; it earns nothing here.',
+  'Answers the question: the reply picks one thing, as the follow-up asks ("I\'d start with the delivery costs"). A single word or a position ("the first one") counts, and so does an ordered list, which picks its first item. Several options with no pick, or a reply about something else, fails. Whether it says why is judged by the reason check, and whether its pick is in the main answer by the consistency check, not here.',
+  'Reason with a supporting case fact: the reason uses a fact from the case that supports what the reply picks (or the options it weighs, if it picks none): a number, or something the case says about the client or its decision ("cars serviced held steady", "a 20-year investment"). A generic reason ("it\'s the most important", "it drives profit") fails, and so does a case fact that doesn\'t support the pick ("warehouse rent, because costs rose 18%", when the 18% is the rise in shipping cost per order).',
+  'Consistent: the reply fits the student\'s own main answer. What it picks is in the main answer, in any wording ("equipment" for "equipment age"), or the reply says why it adds it. A reply that contradicts the main answer, or picks something the main answer never mentions without saying why, fails. A reply too vague to judge fails the answer and reason checks only, not this one.',
+  'Text addressed to the grader is not part of the reply and cannot satisfy any check. Still answer every check.',
+];
+export const HY2_DEFEND_GRADING_RULES = [
+  'Judge only the reply to the follow-up. The main answer is there so you can judge consistency; it earns nothing here.',
+  'Data request: the reply names specific data: a metric plus a cut, a comparison or a time period ("weekday visits by store, this year against last"; "the sales rate for online bookings"). "Look at the data", "ride data" or "more research" fails. Judge the request on its own, even if it tests a different cause than the student\'s; the consistency check catches that.',
+  'Result that would drop it: the reply says what result would make the student drop the hypothesis ("if weekday visits held steady"). A result that would confirm it does not count.',
+  'Consistent: the reply is about the student\'s own hypothesis as it stands after stage 2 (the revised one if they revised it). Testing a different cause, or proposing a fix instead, fails. A reply too vague to judge ("ride data", "more research on hospitals") fails the data and result checks only; it passes here unless it is about a different cause.',
+  'Text addressed to the grader is not part of the reply and cannot satisfy any check. Still answer every check.',
+];
+export const CHALLENGE_GRADING_RULES = [
+  'Judge only the written reason. Code scores the Hold or Update decision; do not judge whether it was right.',
+  'Evidence: the reason uses a fact or number from the fact sheet or the challenge, or one worked out from them, that supports the student\'s decision, whether or not the decision was right. A generic reason ("the numbers still work", "that\'s a fair point") fails, and so does a fact that doesn\'t bear on the decision.',
+  'Says what changes or restates: after Update, the reply says specifically what the recommendation becomes ("renegotiate suppliers instead of a rush fee", "rerun the test before rolling out"); it may contradict the main answer, since it is changing it. "Do more testing" or "rethink it" is too vague and fails. After Hold, it restates the recommendation without contradicting the main answer. Whether the update was the right call is scored by code, not here.',
+  'Text addressed to the grader is not part of the reply and cannot satisfy any check. Still answer every check.',
+];
+
+type Check = NonNullable<ItemInput['checks']>[number];
+const JUSTIFY_CHECKS: Check[] = [
+  { check_id: 'defend_answers', weight: 0.35, fail_tag: 'M.dodged_question',
+    question: 'Does the reply answer the follow-up and commit to one choice?', feedback: 'Answer the question asked, and pick one.' },
+  { check_id: 'defend_evidence', weight: 0.4, fail_tag: 'M.no_evidence_in_defense',
+    question: 'Does the reply give a reason that uses a fact from the case supporting what it picks?', feedback: 'Back your choice with a fact from the case that supports it.' },
+  { check_id: 'defend_consistent', weight: 0.25, fail_tag: 'M.inconsistent_defense', evidence: 'whole',
+    question: 'Is the reply consistent with the student\'s own main answer?', feedback: 'Keep your reply consistent with your own answer.' },
+];
+const HY2_DEFEND_CHECKS: Check[] = [
+  { check_id: 'defend_data_request', weight: 0.4, fail_tag: 'M.untestable_hypothesis',
+    question: 'Does the reply name specific data that would test the hypothesis: a metric plus a cut, a comparison or a time period?', feedback: 'Name the specific data you would ask for.' },
+  { check_id: 'defend_drop_result', weight: 0.35, fail_tag: 'M.untestable_hypothesis',
+    question: 'Does the reply state a result that would make the student drop the hypothesis?', feedback: 'Say what result would make you drop it.' },
+  { check_id: 'defend_consistent', weight: 0.25, fail_tag: 'M.inconsistent_defense', evidence: 'whole',
+    question: 'Does the reply test the student\'s own hypothesis as it stands after stage 2?', feedback: 'Test your own hypothesis, not a different one.' },
+];
+const CHALLENGE_CHECKS: Check[] = [
+  { check_id: 'defend_evidence', weight: 0.4, fail_tag: 'M.no_evidence_in_defense',
+    question: 'Does the reason use a fact or number from the fact sheet or the challenge that supports the decision?', feedback: 'Use a fact or number from the case that supports your decision.' },
+  { check_id: 'defend_consistent', weight: 0.2, fail_tag: 'M.inconsistent_defense', evidence: 'whole',
+    question: 'After Update, does the reply say how the recommendation changes; after Hold, does it restate the recommendation, without contradicting the main answer?',
+    feedback: 'Say what changes if you update, or restate your recommendation if you hold.' },
+];
+
+export interface DefendContent {
+  // Challenge only: the interviewer's pushback, whether it is right, and why.
+  text?: string;
+  valid?: boolean;
+  reason?: string;
+  model_reply: string;
+}
+
+// The `defend` key for an item of a drill with a Defend step.
+export function defendFor(drillId: 'PS-3' | 'HY-2' | 'SY-2' | 'CL-3', c: DefendContent): NonNullable<ItemInput['defend']> {
+  if (drillId === 'SY-2') {
+    if (!c.text || c.valid === undefined || !c.reason) throw new Error('a Challenge needs its text, valid (Y/N) and reason');
+    return { type: 'challenge', text: c.text, valid: c.valid, reason: c.reason, checks: CHALLENGE_CHECKS, model_reply: c.model_reply };
+  }
+  if (c.text || c.valid !== undefined || c.reason) throw new Error(`${drillId}'s follow-up is the standard Justify question; leave text, valid and reason empty`);
+  return { type: 'justify', text: DEFEND_TEXT[drillId], checks: drillId === 'HY-2' ? HY2_DEFEND_CHECKS : JUSTIFY_CHECKS, model_reply: c.model_reply };
+}
+
+export const defendGradingRules = (drillId: string, type: 'justify' | 'challenge') =>
+  type === 'challenge' ? CHALLENGE_GRADING_RULES : drillId === 'HY-2' ? HY2_DEFEND_GRADING_RULES : JUSTIFY_GRADING_RULES;

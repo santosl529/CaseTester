@@ -3,7 +3,10 @@
 // scripts/import-drill-content.ts does the file reading and writing.
 import { z } from 'zod';
 import { CASE_TYPES, type CaseType } from '@/lib/case-types';
-import { cl3Item, hy2Item, ps3Item, qn5Item, sy2Item, type Cl3Content, type Hy2Action, type Hy2Content, type Ps3Content, type Qn5Content, type Sy2Content, QN5_CARD_ROLES, type Qn5CardRole } from './checklists';
+import {
+  cl3Item, defendFor, hy2Item, ps3Item, qn5Item, repairItem, sy2Item, REPAIR_SOURCE, type Cl3Content, type Hy2Action, type Hy2Content,
+  type Ps3Content, type Qn5Content, type RepairDrillId, type Sy2Content, QN5_CARD_ROLES, type Qn5CardRole,
+} from './checklists';
 import { ItemSchema, type Item } from './item-schema';
 import type { StepResponse } from './sets/scoring';
 
@@ -35,7 +38,9 @@ export function parseCsv(text: string): Record<string, string>[] {
 
 // ------------------------------------------------------------- helpers
 
-export interface ImportOptions { includeExamples?: boolean }
+// sources: the authored items Repair items are derived from (their Level 1
+// items), to copy the case type and industry from and to check against.
+export interface ImportOptions { includeExamples?: boolean; sources?: Map<string, Item> }
 export interface ImportProblem { file: string; row: string; message: string }
 
 const isExample = (id: string) => id.startsWith('EXAMPLE-');
@@ -78,6 +83,8 @@ export const GoldenAnswerSchema = z.object({
   red_flags: z.record(z.string(), z.boolean()), // red flag id → present
   family: z.string().nullable(),           // HY-2: hypothesis family or "other"
   notes: z.string(),
+  // D5: which call the labels test, the main answer's or the Defend reply's.
+  part: z.enum(['main', 'defend']).default('main'),
 });
 export type GoldenAnswer = z.infer<typeof GoldenAnswerSchema> & { responses: StepResponse[] };
 
@@ -166,6 +173,22 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
     } satisfies Cl3Content);
   });
 
+  // D5 Repair drills: a flawed answer from a Level 1 item, its planted flaws,
+  // what was right and the model repair.
+  for (const [drillId, file] of [['PS-4', 'ps4'], ['HY-3', 'hy3'], ['SY-3', 'sy3']] as const) {
+    build(`${file}-questions.csv`, t[`${file}-questions`] ?? [], r => {
+      const source = o.sources?.get(r.derived_from);
+      if (!source) throw new Error(`derived_from ${r.derived_from} isn't an authored item`);
+      if (source.drill_id !== REPAIR_SOURCE[drillId as RepairDrillId]) throw new Error(`${drillId} items come from ${REPAIR_SOURCE[drillId as RepairDrillId]} items, not ${source.drill_id}`);
+      const flaws = rowsFor(`${file}-flaws`, r.item_id).map(f => ({ tag: f.tag, hint: f.hint, fix: f.fix }));
+      const item = repairItem(drillId, {
+        item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: source.case_type ?? caseTypeOf(r.case_type), derived_from: r.derived_from,
+        prompt: r.prompt, flawed_answer: r.flawed_answer, flaws, right_parts: r.right_parts, model_repair: r.model_repair,
+      });
+      return { ...item, industry: source.industry ?? null };
+    });
+  }
+
   build('qn5-questions.csv', t['qn5-questions'] ?? [], r => {
     const cards = rowsFor('qn5-driver-cards', r.item_id).map(c => {
       const role = c.role.trim().toLowerCase();
@@ -190,14 +213,32 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
     } satisfies Qn5Content);
   });
 
+  // D5 Defend: the follow-up for a PS-3, HY-2, SY-2 or CL-3 question built
+  // above. Justify uses the drill's standard question; a Challenge has its own.
+  for (const r of (t['defend'] ?? []).filter(keep(o))) {
+    const i = items.findIndex(x => x.item_id === idOf(r.item_id));
+    if (i === -1) { problems.push({ file: 'defend.csv', row: r.item_id, message: 'no such PS-3, HY-2, SY-2 or CL-3 question' }); continue; }
+    try {
+      const drill = items[i].drill_id as 'PS-3' | 'HY-2' | 'SY-2' | 'CL-3';
+      const defend = defendFor(drill, {
+        text: r.text || undefined, valid: r.valid ? yes(r.valid) : undefined, reason: r.reason || undefined, model_reply: r.model_reply,
+      });
+      const result = ItemSchema.safeParse({ ...items[i], defend });
+      if (!result.success) problems.push({ file: 'defend.csv', row: r.item_id, message: z.prettifyError(result.error) });
+      else items[i] = result.data;
+    } catch (e) {
+      problems.push({ file: 'defend.csv', row: r.item_id, message: (e as Error).message });
+    }
+  }
+
   // Golden answers, labels keyed by the check ids the item builders use.
   const itemById = new Map(items.map(i => [i.item_id, i]));
-  const gold = (file: string, rows: Record<string, string>[], make: (r: Record<string, string>, item: Item) => Omit<GoldenAnswer, 'answer_id' | 'item_id' | 'drill_id' | 'answer_type' | 'notes'>) => {
+  const gold = (file: string, rows: Record<string, string>[], make: (r: Record<string, string>, item: Item) => Omit<GoldenAnswer, 'answer_id' | 'item_id' | 'drill_id' | 'answer_type' | 'notes' | 'part'> & { part?: 'defend' }) => {
     for (const r of rows.filter(keep(o))) {
       const item = itemById.get(idOf(r.item_id));
       if (!item) { problems.push({ file, row: r.answer_id, message: `no question ${r.item_id}` }); continue; }
       try {
-        golden.push({ answer_id: idOf(r.answer_id), item_id: item.item_id, drill_id: item.drill_id, answer_type: answerType(r.answer_type), notes: r.notes ?? '', ...make(r, item) });
+        golden.push({ answer_id: idOf(r.answer_id), item_id: item.item_id, drill_id: item.drill_id, answer_type: answerType(r.answer_type), notes: r.notes ?? '', part: 'main', ...make(r, item) });
       } catch (e) {
         problems.push({ file, row: r.answer_id, message: (e as Error).message });
       }
@@ -232,6 +273,39 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
     red_flags: { no_clear_position: yes(r.red_flag_no_clear_position), contradicts_facts: yes(r.red_flag_contradicts_facts), misses_deciding_fact: yes(r.red_flag_misses_deciding_fact), off_topic: yes(r.red_flag_off_topic), wrong_recommendation: yes(r.red_flag_wrong_recommendation) },
     family: null,
   }));
+  // Repair: which planted flaws the edit fixed (by number), whether it added a
+  // new flaw, whether it kept what was right.
+  for (const file of ['ps4', 'hy3', 'sy3']) {
+    gold(`${file}-graded-answers.csv`, t[`${file}-graded-answers`] ?? [], (r, item) => {
+      const fixed = splitList(r.flaws_fixed).map(Number);
+      const flaws = (item.extras.flaws as unknown[]).length;
+      for (const n of fixed) if (!(n >= 1 && n <= flaws)) throw new Error(`flaws_fixed: there is no flaw ${n}`);
+      return {
+        responses: [item.input.type === 'structured_buckets' ? parseFramework(r.answer) : { type: 'text', value: r.answer }],
+        labels: { ...Object.fromEntries(Array.from({ length: flaws }, (_, k) => [`fix_${k + 1}`, fixed.includes(k + 1)])), no_new_flaw: yes(r.no_new_flaw), keeps_right: yes(r.keeps_right) },
+        red_flags: {}, family: null,
+      };
+    });
+  }
+  // Defend: a main answer, then the reply. Labels only for the item's Defend checks.
+  gold('defend-graded-answers.csv', t['defend-graded-answers'] ?? [], (r, item) => {
+    if (!item.defend) throw new Error(`${item.item_id} has no follow-up in defend.csv`);
+    const main: StepResponse[] = item.drill_id === 'PS-3' ? [parseFramework(r.main_answer)]
+      : item.drill_id === 'HY-2' ? [{ type: 'text', value: r.main_answer }, { type: 'choice', option_id: r.main_decision.toLowerCase() }, { type: 'text', value: r.main_stage2 }]
+      : [{ type: 'text', value: r.main_answer }];
+    const reply: StepResponse[] = item.defend.type === 'challenge'
+      ? [{ type: 'choice', option_id: r.decision.toLowerCase() }, { type: 'text', value: r.reply }] : [{ type: 'text', value: r.reply }];
+    if (item.defend.type === 'challenge' && !['hold', 'update'].includes(r.decision.toLowerCase())) throw new Error('decision must be hold or update');
+    return {
+      responses: [...main, ...reply], part: 'defend' as const,
+      labels: Object.fromEntries(item.defend.checks.map(c => {
+        const v = r[c.check_id];
+        if (!v) throw new Error(`needs a Y or N in the ${c.check_id} column`);
+        return [c.check_id, yes(v)];
+      })),
+      red_flags: {}, family: null,
+    };
+  });
   gold('cl3-graded-answers.csv', t['cl3-graded-answers'] ?? [], (r, item) => ({
     responses: [{ type: 'text', value: r.answer }],
     labels: {

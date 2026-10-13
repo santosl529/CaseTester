@@ -1,0 +1,20 @@
+{
+  "answer_id": "hy3-0003-a",
+  "item_id": "hy3-0003",
+  "drill_id": "HY-3",
+  "answer_type": "normal",
+  "notes": "One lead cause tied to the bigger menu.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With 35 dishes instead of 20, more ingredients are probably expiring unused. I'd compare waste by ingredient with how many dishes use each one."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -4,12 +4,13 @@
 // and model answer appear on the results screen once the set is graded.
 // Built from the item's key, so only ever sent after the item is submitted.
 import 'server-only';
-import { DRILLS_CONFIG } from '../config';
+import { DRILLS_CONFIG, getDrill } from '../config';
 import { formatEstimate } from '../numeric';
 import type { Item } from '../item-schema';
 import type { CheckResults } from '../grading/apply';
 import { qn5DriverSet } from './qn5';
-import { itemSteps, tagFeedback, tagLabel, type ItemResult, type StepResult } from './scoring';
+import { defendParts } from '../defend';
+import { answerText, itemSteps, tagFeedback, tagLabel, type ItemResult, type StepResult } from './scoring';
 
 const fmt = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 2 });
 
@@ -30,6 +31,8 @@ export interface StepFeedback {
   pending?: boolean;
   // Shown before the next step (HY-2: the new fact for stage 2).
   reveal?: string;
+  // Shown once the main answer is in: the interviewer's follow-up.
+  followup?: { type: 'justify' | 'challenge'; text: string };
   // QN-5: the driver cards the next steps use.
   drivers?: { id: string; text: string }[];
 }
@@ -47,12 +50,28 @@ export interface ItemFeedback {
   explanation: string;
   // AI-graded items: true until the set is graded.
   pending?: boolean;
+  // AI-graded items with no grade (skipped): the model answer to learn from.
+  model_answer?: string | null;
   grading?: {
     checks: GradedCheck[];
     red_flags: { id: string; definition: string; evidence: string }[];
     model_answer: string | null;
     decision?: { chose: string; right: boolean };
     review_flagged: boolean;
+    // The Defend step: the follow-up, the reply, its checks and the model reply.
+    defend?: {
+      type: 'justify' | 'challenge';
+      text: string;
+      reply: string;
+      decision: { chose: string; right: boolean } | null;
+      checks: GradedCheck[];
+      model_reply: string;
+      skipped: boolean;
+    };
+    // Repair: the flawed original the student edited, and whether they left
+    // it unchanged.
+    original?: string;
+    unchanged?: boolean;
   };
 }
 
@@ -68,7 +87,15 @@ export function stepFeedback(item: Item, i: number, step: StepResult | null, pre
   if (step?.pending) {
     // HY-2: stage 1 is in; show the new fact for stage 2.
     const reveal = item.drill_id === 'HY-2' && i === 0 ? String(item.extras.new_fact) : undefined;
-    return { ...base, correct: false, pending: true, your_answer: null, correct_answer: '', feedback: '', ...(reveal && { reveal }) };
+    // The main answer is in: show the interviewer's follow-up.
+    const d = defendParts(item);
+    const followup = d && i === d.start - 1 && item.defend ? { type: item.defend.type, text: item.defend.text } : undefined;
+    // The student's own words stay visible, read-only.
+    const choice = step.response.type === 'choice' ? spec.choices?.find(c => c.id === (step.response as { option_id: string }).option_id)?.text ?? null : null;
+    return {
+      ...base, correct: false, pending: true, your_answer: answerText(step.response) || choice, correct_answer: '', feedback: '',
+      ...(reveal && { reveal }), ...(followup && { followup }),
+    };
   }
 
   if (item.drill_id === 'QN-5') {
@@ -109,6 +136,12 @@ export function stepFeedback(item: Item, i: number, step: StepResult | null, pre
     };
   }
 
+  // A step with fixed choices (HY-2 keep/revise/drop, a Challenge's
+  // Hold/Update) has no right option of its own: the grade says which was right.
+  if (spec.choices) {
+    const chose = step?.response.type === 'choice' ? choiceText(item, i, step.response.option_id) : null;
+    return { ...base, correct: false, your_answer: chose, correct_answer: '', feedback: '' };
+  }
   if (type === 'single_choice' || type === 'multi_select') {
     const correct = item.options.find(o => o.correct)!;
     const chosen = step?.response.type === 'choice' ? item.options.find(o => o.id === (step.response as { option_id: string }).option_id) : undefined;
@@ -127,30 +160,48 @@ export function stepFeedback(item: Item, i: number, step: StepResult | null, pre
 
 export function itemFeedback(item: Item, result: ItemResult, checkResults: CheckResults | null = null): ItemFeedback {
   const spec = itemSteps(item);
+  const aiGraded = getDrill(item.drill_id).scoring !== 'auto';
   const feedback: ItemFeedback = {
     done: true, correct: !result.pending && result.score >= 1 - 1e-9, score: result.score,
     skipped: result.skipped, timed_out: result.timed_out,
-    // Graded checklist items show their checks instead of per-step verdicts.
-    steps: checkResults ? [] : spec.map((_, i) => stepFeedback(item, i, result.steps[i] ?? null, result.steps.slice(0, i))),
+    // Graded checklist items show their checks instead of per-step verdicts;
+    // a skipped one shows the model answer.
+    steps: checkResults || aiGraded ? [] : spec.map((_, i) => stepFeedback(item, i, result.steps[i] ?? null, result.steps.slice(0, i))),
+    ...(aiGraded && !checkResults && { model_answer: item.model_answer }),
     mistakes: result.mistake_tags.filter(t => t !== 'M.skipped').map(tag => ({ tag, label: tagLabel(tag) })),
     explanation: item.explanation,
     ...(result.pending && { pending: true }),
   };
   if (checkResults) {
     const byId = new Map(checkResults.checks.map(c => [c.check_id, c]));
-    const choiceStep = spec.findIndex(s => s.type === 'single_choice' && s.choices);
+    const choiceStep = spec.findIndex(s => s.type === 'single_choice' && s.choices && !s.defend);
     const d = checkResults.decision;
+    const parts = defendParts(item);
+    const graded = (c: Item['checks'][number]): GradedCheck => {
+      const r = byId.get(c.check_id);
+      return { check_id: c.check_id, question: c.question, pass: r?.pass ?? false, evidence: r?.evidence ?? '', feedback: c.feedback };
+    };
+    const choiceName = (i: number, id: string) => choiceText(item, i, id);
     feedback.grading = {
-      checks: item.checks.map(c => {
-        const r = byId.get(c.check_id);
-        return { check_id: c.check_id, question: c.question, pass: r?.pass ?? false, evidence: r?.evidence ?? '', feedback: c.feedback };
-      }),
+      checks: item.checks.filter(c => !parts || c.step < parts.start).map(graded),
       red_flags: checkResults.red_flags.filter(f => f.present).map(f => ({
         id: f.id, definition: item.red_flags.find(x => x.id === f.id)?.definition ?? f.id, evidence: f.evidence,
       })),
       model_answer: item.model_answer,
       ...(d && choiceStep >= 0 && { decision: { chose: choiceText(item, choiceStep, d.chose), right: d.right } }),
       review_flagged: checkResults.qa_flags.length > 0,
+      ...(parts && item.defend && {
+        defend: {
+          type: item.defend.type, text: item.defend.text,
+          reply: answerText(result.steps[parts.reply]?.response ?? { type: 'empty' }),
+          decision: checkResults.defend_decision ? { chose: choiceName(parts.decision, checkResults.defend_decision.chose), right: checkResults.defend_decision.right } : null,
+          checks: item.checks.filter(c => c.step >= parts.start).map(graded),
+          model_reply: item.defend.model_reply,
+          skipped: result.steps[parts.reply]?.tag === 'M.skipped',
+        },
+      }),
+      ...(typeof item.extras.flawed_answer === 'string' && { original: item.extras.flawed_answer }),
+      ...(checkResults.unchanged && { unchanged: true }),
     };
   }
   return feedback;

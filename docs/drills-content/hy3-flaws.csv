@@ -1,0 +1,12 @@
+item_id,tag,hint,fix
+hy3-0001,M.restates_facts,it only restates the facts: it names no cause,"names a likely cause for traffic rising while orders stayed flat, such as the new visitors being less ready to buy"
+hy3-0002,M.overconfident_hypothesis,it states a guess as fact and jumps to a fix,"frames the cause as something to test rather than a settled fact, and drops the fix"
+hy3-0003,M.shotgun_hypotheses,it lists four causes and picks none to lead,"leads with one cause, ideally one tied to the bigger menu, such as more ingredients expiring unused"
+hy3-0004,M.untestable_hypothesis,it is too vague to test: it names no specific cause and no data,"replaces it with a specific cause that fits the facts and that data could confirm or reject, such as paying more per item"
+hy3-0005,M.shotgun_hypotheses,it lists four causes and picks none to lead,"leads with one cause, ideally capacity falling behind the 25% rise in orders"
+hy3-0006,M.overconfident_hypothesis,it states a guess as fact and jumps to a fix,"frames the cause as something to test rather than a settled fact, and drops the fix"
+hy3-0007,M.untestable_hypothesis,it is too vague to test: it names no specific cause and no data,"replaces it with a specific cause that fits the facts and that data could confirm or reject, such as slower trips pushing riders to drive"
+hy3-0008,M.shotgun_hypotheses,it lists four causes and picks none to lead,"leads with one cause, ideally the shift to government insurance, which pays less"
+hy3-0009,M.untestable_hypothesis,it is too vague to test: it names no specific cause and no data,"replaces it with a specific cause that fits the numbers and that data could confirm or reject, such as the higher fares driving passengers away"
+hy3-0010,M.ignores_facts,it contradicts a given fact: the price of a box was unchanged,"names a cause that fits all the facts, such as customers taking fewer boxes each"
+hy3-0010,M.overconfident_hypothesis,it states the cause as settled fact,frames the cause as something to test

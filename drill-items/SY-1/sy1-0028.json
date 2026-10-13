@@ -1,8 +1,8 @@
 {
   "item_id": "sy1-0028",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-1",
-  "status": "live",
+  "status": "draft",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -12,7 +12,7 @@
   ],
   "case_type": "new_product_launch",
   "industry": "Airlines / Travel / Hospitality",
-  "prompt": "The client asks: \"Should our burger restaurants add breakfast?\" Fact sheet: adding breakfast costs $20k per restaurant; breakfast would earn about $30k a year per restaurant; the restaurants are currently closed in the morning; the breakfast market grows 5% a year; the chain's head office moved to Denver this year. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should our burger restaurants add breakfast?\" Fact sheet: adding breakfast costs $20k per restaurant; breakfast would earn about $30k a year per restaurant; the restaurants are currently closed in the morning; the breakfast market grows 5% a year; a rival chain's breakfast menu won a national award last year. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -27,10 +27,10 @@
     },
     {
       "id": "b",
-      "text": "Add breakfast. The move to a new head office in Denver is a good moment for a change like this.",
+      "text": "Add breakfast. A rival chain's breakfast menu just won a national award, which shows breakfast is a winning idea.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "The head office move has nothing to do with breakfast. The payback does."
+      "feedback": "A rival's award doesn't decide this. The payback does."
     },
     {
       "id": "c",
@@ -54,18 +54,19 @@
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "The chain's head office moved to Denver this year."
+      "A rival chain's breakfast menu won a national award last year."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-10",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-13",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

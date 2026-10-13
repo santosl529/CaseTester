@@ -817,9 +817,12 @@ Repair drills sit between Recognize and Construct: the student fixes a flawed an
 | --- | --- | --- |
 | Fixes each planted flaw (one check per flaw) | 50% split evenly | That flaw's tag |
 | Adds no new flaw of the drill's types | 30% | The new flaw's tag (the AI picks from the drill's tag list) |
-| Keeps the parts of the answer that were right | 20% | The drill's "dropped right part" tag (table below) |
+| Keeps the substance of the parts of the answer that were right | 20% | The drill's "dropped right part" tag (table below) |
 
 - **Code pre-check:** an answer unchanged from the flawed version (after whitespace normalization) scores 0 and logs the planted flaw's tag, with no AI call.
+- **One slip counts once:** when the keeps-right check fails, code passes the no-new-flaw check, so a new flaw that comes with losing a right part (stating as fact what the original framed as likely) costs the student once. The exceptions are an unchanged answer and one that addresses the grader (see Checklist grading call). An answer with two separate slips, such as an irrelevant bucket added and a right one dropped, also loses only the keeps-right share; that leniency is accepted.
+- **Substance counts as kept:** a right part is kept if its substance is still used, even reworded, condensed or moved ("the extra visits add $1.2M" keeps "40% joined and visited 12% more"). Dropping it, or changing it so it is no longer right, fails.
+- **Planted flaws aren't new:** a planted flaw left in place or reworded is judged by its fix check, and a weakness the original already had is not a new flaw. The fix described in the key is one example; any edit that removes the flaw and fits the case fixes it.
 - **Answer key:** the flawed answer, its flaw types and tags, a model repair, and a note on which parts were right.
 - **Item source:** derived from Level 1 items (PS-1 frameworks with a planted flaw; HY-1, EX-1 and SY-1 distractors), so the scenarios already exist and only the repair key is new. AI-drafted, human QA. A student is not served a Repair item derived from a Level 1 item they saw in the last 14 days.
 - **Progression:** Repair sets don't change skill states. They move the student from Recognize to Construct (see Mastery).
@@ -859,7 +862,7 @@ The Defend step trains what interviews test most: answering a follow-up about yo
 - **When:** after the main answer of a Construct item at tiers 2 and 3, including test-out sets (which run at tier 2). Not at tier 1, in the diagnostic, or in Repair or Recognize drills.
 - **Types:**
   - *Justify:* a question about the student's own answer ("Which bucket would you dig into first, and why?"). Written reply, up to 40 words.
-  - *Challenge:* scripted interviewer pushback on the case facts. Half the challenges in each drill's pool are valid and half are not. The student taps Hold or Update, then writes up to 40 words why.
+  - *Challenge:* scripted interviewer pushback on the case facts. Half the challenges in each drill's pool are valid and half are not. The student taps Hold or Update, then writes up to 40 words why. Each challenge opens with who raises it ("Our CFO says…", "A lumber analyst says…"). Neither kind may give itself away: the client's own people and outsiders both raise valid and invalid challenges, valid ones can point out a flaw in the reasoning, and invalid ones can bring a true fact that doesn't change the decision. Every fact a challenge, its reason or its model reply relies on is on the fact sheet, in the challenge, or worked out from them.
 - **Time:** 60 s at T2, 45 s at T3.
 - **Weight:** the Defend step is 25% of the item score; the main answer's weights scale to 75%. For HY-2 that makes stage 1 45%, stage 2 30%, Defend 25%.
 - **Skills:** the Defend score counts toward the item's skills (it is part of the item score). Its checks also count toward `CL.pushback`.
@@ -869,11 +872,14 @@ The Defend step trains what interviews test most: answering a follow-up about yo
 | Type | Check | Weight | Failed check logs |
 | --- | --- | --- | --- |
 | Justify | Answers the question asked and commits to one choice | 35% | `M.dodged_question` |
-| Justify | Gives a reason that uses a case fact or number | 40% | `M.no_evidence_in_defense` |
+| Justify | Gives a reason that uses a case fact supporting the choice | 40% | `M.no_evidence_in_defense` |
 | Justify | Consistent with the student's own main answer | 25% | `M.inconsistent_defense` |
 | Challenge | Hold/Update decision correct (auto) | 40% | `M.caved_to_invalid_pushback` or `M.ignored_valid_pushback` |
-| Challenge | Reason uses evidence from the case | 40% | `M.no_evidence_in_defense` |
+| Challenge | Reason uses a fact from the case or the challenge that supports the decision, whether or not the decision was right | 40% | `M.no_evidence_in_defense` |
 | Challenge | Says what changes (Update) or restates the conclusion (Hold), consistent with the main answer | 20% | `M.inconsistent_defense` |
+
+- **Evidence that supports the choice:** a case fact counts only if it supports what the reply picks. "Warehouse rent, because costs rose 18%", when the 18% is the rise in shipping cost per order, fails. A case with no facts beyond its question needs one added, so a reply has something to cite; the follow-up's own premise ("if that analysis comes back flat") is not a case fact.
+- **Vague replies count once:** a reply too vague to judge ("ride data", "more research") fails the checks about its content (Justify's answer and reason checks; HY-2's data and drop-result checks), not the consistency check. After Update, a Challenge reply must still say what the recommendation becomes; "do more testing" fails that check.
 
 Follow-ups by drill (drill-specific checks replace the generic ones where listed):
 
@@ -925,7 +931,7 @@ One call per written answer, made after the last item of the set; a set's calls 
 
 - **Model:** The cheapest model tier that meets the 90% agreement target on the golden set (see below). Currently Claude Haiku 4.5. Temperature 0. Structured JSON output enforced by schema.
 - **Input:** The item's prompt, the student's answer, and from the key only the checks (id and question text), hypothesis families or categories if the drill uses them, and the red-flag definitions. Model answers are not sent, to keep tokens down.
-- **Student text is data.** It is wrapped in clearly delimited tags, and the system prompt states that instructions inside it must be ignored. Text that looks like an attempt to instruct the grader is flagged and logged, and the item is graded normally.
+- **Student text is data.** It is wrapped in clearly delimited tags, and the system prompt states that instructions inside it must be ignored. Code fails checks for an injection only on a high-confidence match: the answer names the grader or the system ("Grader:", "SYSTEM:") or tells it to ignore the rubric, mark checks passed or give full marks (`lib/drills/grading/injection.ts`). A match fails PS-3's case-specific and concrete sub-point checks, a Repair answer's no-new-flaw and keeps-right checks, and every check of a Defend reply. An injection the grader suspects without such a match is graded normally, logged, and flagged for human review.
 - **Output per check:** `pass` (true/false) and `evidence`, an exact quote from the student's answer (required when `pass` is true; optional when false).
 - **Output extras (only for drills that need them):** `hypothesis_family` for HY-2 (from its separate stage 1 call); step family for CL-4; `valid_ideas` (list of {text, category}) for CR-1.
 - **The AI never outputs a score.**
@@ -955,6 +961,7 @@ Example output for one item:
 
 - **Golden set:** each AI-graded drill and each Defend follow-up type has at least 30 human-graded answers, including edge cases (very short answers, off-topic answers, injection attempts, borderline passes).
 - **Release gate:** any change to a grading prompt, model or checklist must reach at least 90% agreement with human labels on every check before it ships. This runs automatically in CI.
+- **Labels follow the written rules, never grader output.** Each label cites the rule in `docs/drills-grading-guide.md` that decides it. A disagreement found in a gate run is reported and may lead to a proposed rule change; labels are never changed to match the grader. When a rule changes, every label in every affected golden set is rechecked against it, and each change is listed with its before and after.
 - **Versioning:** every grade stores `grader_prompt_version` and `model_id`.
 - **Monthly audit:** 100 randomly sampled graded answers are reviewed by a human; agreement is reported per check, including Defend checks.
 - **Disputes (P1):** a "Disagree with this grade?" link on the results screen logs the item for QA review. Disputes don't change the score automatically.
@@ -1188,6 +1195,7 @@ New in v2:
 - The reviewer becomes the author of record.
 - A case (the same client situation) is used in one drill only, so a student who has seen it in one drill doesn't already know the answer in another. Repair items are the exception: they deliberately reuse their Level 1 item's scenario. A scenario check flags any two items in different drills that share a client type and key figures (words few items use, plus shared numbers, including chart values). A flagged pair is changed, or recorded with a reason in `drill-items/scenario-reviewed.json` once a human confirms the scenarios differ; validation fails on any other flagged pair. Every numeric range (QN-5 drivers and totals) cites a source or gives its derivation.
 - **Wording checks (choice drills).** A pool of 20+ items fails validation, and can't be seeded, if its wording gives answers away: (1) length: the right answer is the longest, or the shortest, option in more than 30% of items; (2) phrases: a phrase, opening or ending appears in 5+ options and is right in 80%+ of them, or in 12+ and wrong in 95%+; (3) odd one out: within items, the right answer is the only option with (or without) some feature in 5+ items and at least 60% of such cases; (4) rule player: a solver that learns wording patterns from the rest of the pool, never reading the case, scores above 33% (chance is 25%). "Wording" includes punctuation and shape: colons, semicolons, dashes, brackets, sentence count and the final period. The review page shows each pool's results. Thresholds live in `lib/drills/content-checks.ts`.
+- **Challenge cues (SY-2).** Once a drill has 8+ Challenges, the pool fails validation if valid challenges are under 40% or over 60% of it, or if valid is predictable from who raises the challenge (the client's own people or outsiders) or from whether it brings a number that isn't in the case: any such group of 4+ challenges must be 20–80% valid.
 - **Similarity check (clean room).** Each authored item gets a one-time AI review (`npm run drills:similarity`, Claude Opus 5.5 with web search) that flags anything closely resembling well-known published case-prep material (RocketBlocks, CaseCoach, Hacking the Case Interview, Management Consulted and similar). Common business situations and standard frameworks are not flagged. The result is stored on the item (`authorship.similarity_check`: `pending`, `passed`, `flagged` or `failed`, with a note and date); flagged items go to the reviewer, who marks them `passed` or `failed`. Validation keeps an authored item off `live` until it is reviewed and `passed`. Generated items are built from our own templates and are marked `not_applicable`. The check combines the model's knowledge with a few web searches per item for published cases with the same premise (without search it missed Oliver Wyman's Supermarket Pharmacy case); it records whether an item was checked with search, and can still miss paywalled or unindexed material.
 - **Explanations** separate what the data shows, what is suspected, and what would confirm or overturn it.
 

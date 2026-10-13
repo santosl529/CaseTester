@@ -33,7 +33,12 @@ export const startsStage = (item: Item, step: number) => Boolean(itemSteps(item)
 export function itemLimitsMs(drill: Drill, item: Item | null, tier: Tier, multiplier: number): number[] {
   if (!item || stageIndex(item, itemSteps(item).length - 1) === -1) return [timeLimitMs(drill, tier, multiplier)];
   const spec = itemSteps(item);
-  return spec.flatMap((s, i) => (s.time_limits_s ? [stepLimitMs(drill, item, tier, multiplier, i)] : []));
+  // A first step without its own limit uses the drill's (PS-3 or SY-2 before
+  // a Defend follow-up); the follow-up's stage then adds its own.
+  return [
+    ...(spec[0].time_limits_s ? [] : [timeLimitMs(drill, tier, multiplier)]),
+    ...spec.flatMap((s, i) => (s.time_limits_s ? [stepLimitMs(drill, item, tier, multiplier, i)] : [])),
+  ];
 }
 
 // Drill-level limits for the intro, without an item: HY-2 from its stage limits.

@@ -1,0 +1,20 @@
+{
+  "answer_id": "sy3-0008-b",
+  "item_id": "sy3-0008",
+  "drill_id": "SY-3",
+  "answer_type": "off_topic",
+  "notes": "Answers a different question, so the hedge isn't fixed (rule 2). Ignoring the margin math is the same slip as dropping the volume-margin trade-off, counted once under keeps-right (rule 3).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "We should launch a loyalty program to win back the customers we lost."
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "no_new_flaw": true,
+    "keeps_right": false
+  },
+  "red_flags": {},
+  "family": null
+}

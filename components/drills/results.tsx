@@ -30,7 +30,7 @@ export function SetResults({ results }: { results: Results }) {
         </p>
         {results.mistakes && <p className="text-sm">{results.mistakes.text}</p>}
         {results.lesson_skill && (
-          <p className="text-sm">A tough set. <Link href={`/drills/learn/${encodeURIComponent(results.lesson_skill.id)}?source=low_score`} className="font-medium underline underline-offset-4">Read the 3-minute lesson on {results.lesson_skill.name.toLowerCase()}</Link> before the next one.</p>
+          <p className="text-sm">A tough set. <Link href={`/drills/learn/${encodeURIComponent(results.lesson_skill.id)}?source=low_score`} className="font-medium underline underline-offset-4">Read the 3-minute lesson on {results.lesson_skill.name}</Link> before the next one.</p>
         )}
         {results.skill_changes.map(c => (
           <p key={`${c.skill_id}-${c.to}`} className="text-sm font-medium">

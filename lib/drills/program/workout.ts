@@ -3,6 +3,7 @@
 // 25% unfamiliar material, ordered review → weak spots → unfamiliar. Plus the
 // plan's own prescriptions and the weekly milestones. Pure code.
 import { DRILLS_CONFIG, getDrill, getSkill } from '../config';
+import { defendRuns, defendSeconds, setSizeAt } from '../defend';
 import {
   nextSetFor, stageDrills, stateRank, type Context, type NextSet, type ProgressMap, type SkillProgress,
   newProgress, lowerName,
@@ -56,16 +57,20 @@ export interface Workout {
   blocks: WorkoutBlock[];
 }
 
-// "A set's time is estimated as items × the tier's time limit × 0.8."
+// "A set's time is estimated as items × the tier's time limit × 0.8", with
+// the Defend follow-up's time where the set runs it.
 export function setMinutes(drillId: string, tier: number, size: number, multiplier = 1): number {
   const d = getDrill(drillId);
-  const perItem = d.time_limits_s?.[tier - 1]
-    ?? Object.values(d.stage_time_limits_s ?? {}).reduce((s, t) => s + t[tier - 1], 0);
+  const perItem = (d.time_limits_s?.[tier - 1]
+    ?? Object.values(d.stage_time_limits_s ?? {}).reduce((s, t) => s + t[tier - 1], 0))
+    + (defendRuns(d, tier, null) ? defendSeconds(tier) : 0);
   return (size * perItem * multiplier * programs.workout.minutes_per_item_factor) / 60;
 }
 
-const reviewSize = (drillId: string) => {
-  const size = getDrill(drillId).set_size!;
+// Sets that run Defend are one item shorter at T2 and T3.
+const fullSize = (drillId: string, tier: number) => setSizeAt(getDrill(drillId), tier, defendRuns(getDrill(drillId), tier, null));
+const reviewSize = (drillId: string, tier: number) => {
+  const size = fullSize(drillId, tier);
   const r = rules.spaced_review;
   return size > r.full_size_at_or_below ? Math.ceil(size * r.size_fraction) : size;
 };
@@ -99,7 +104,7 @@ export function blockFor(p: SkillProgress, input: WorkoutInput, slot: Slot): Omi
   if (input.track === 'sprint') tier = Math.max(tier, Math.min(...programs.tracks.sprint.tiers));
   // Week 5 (Interview performance): timed tier 3 sets on skills already Practiced.
   if (slot === 'weak' && input.week?.prefer_tier && stateRank(p.state) >= stateRank('practiced')) tier = Math.max(tier, input.week.prefer_tier);
-  const size = next.kind === 'review' || (slot !== 'weak' && next.kind === 'normal') ? reviewSize(next.drill_id) : getDrill(next.drill_id).set_size!;
+  const size = next.kind === 'review' || (slot !== 'weak' && next.kind === 'normal') ? reviewSize(next.drill_id, tier) : fullSize(next.drill_id, tier);
   return { skill_id: p.skill_id, drill_id: next.drill_id, stage: next.stage, tier, kind: next.kind, size, minutes: setMinutes(next.drill_id, tier, size, input.time_multiplier) };
 }
 

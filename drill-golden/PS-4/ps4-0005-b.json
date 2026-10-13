@@ -1,0 +1,48 @@
+{
+  "answer_id": "ps4-0005-b",
+  "item_id": "ps4-0005",
+  "drill_id": "PS-4",
+  "answer_type": "borderline",
+  "notes": "Today's rider count doesn't say how many would stop at the higher fare, so the missing area isn't covered (rule 8).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Ridership",
+          "points": [
+            "number of riders per day"
+          ]
+        },
+        {
+          "title": "Revenue per rider",
+          "points": [
+            "the fare increase",
+            "discounts and passes"
+          ]
+        },
+        {
+          "title": "Operating costs",
+          "points": [
+            "drivers",
+            "fuel and maintenance"
+          ]
+        },
+        {
+          "title": "Low-income riders",
+          "points": [
+            "share of riders on low incomes",
+            "effect on their budgets"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

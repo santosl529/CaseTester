@@ -1,0 +1,61 @@
+item_id,derived_from,tier,prompt,flawed_answer,right_parts,model_repair
+ps4-0001,ps1-0001,1,A national coffee chain is deciding whether to open cafés in airports.,"Lease and operating costs: airport lease; staff and supplies
+Rent and revenue-sharing terms: rent per square foot; share of sales paid to the airport
+Traveler demand and spending: passengers per day; spend per traveler
+Competition: existing airport food outlets; their prices","the traveler demand and competition buckets, and the costs themselves: lease, rent, revenue share, staff and supplies","What the airport charges: lease and rent per square foot; share of sales paid to the airport
+Running costs: staff; supplies
+Traveler demand and spending: passengers per day; spend per traveler
+Competition: existing airport food outlets; their prices"
+ps4-0002,ps1-0022,1,A car wash chain's profits fell 25% last year.,"Revenue: cars washed; price per wash
+Costs: water and chemicals; labor; rent
+New coffee kiosk: kiosk sales; kiosk costs","the revenue bucket (cars washed, price per wash) and the cost bucket (water, chemicals, labor, rent)","Revenue: cars washed; price per wash
+Costs: water and chemicals; labor; rent
+Competition: new car washes nearby; their prices"
+ps4-0003,ps1-0017,1,A furniture maker's on-time delivery rate fell from 95% to 80%.,"Order planning: how orders are scheduled; order changes from customers
+Production: delays in the factory; machine downtime
+Shipping: carrier delays; delivery routes","the planning, production and shipping buckets","Supplies: late wood and fabric deliveries; parts shortages
+Order planning: how orders are scheduled; order changes from customers
+Production: delays in the factory; machine downtime
+Shipping: carrier delays; delivery routes"
+ps4-0004,ps1-0007,2,An airline wants to cut operating costs by 10%.,"Fuel: price per gallon; fuel burn per flight
+Labor: pay for pilots, crew and ground staff
+Aircraft: ownership costs; maintenance
+Staffing: crew schedules; staff per flight","the fuel, labor and aircraft buckets, and crew schedules and staff per flight as things to examine","Fuel: price per gallon; fuel burn per flight
+Labor: pay rates for pilots, crew and ground staff; staff per flight and crew schedules
+Aircraft: ownership costs; maintenance"
+ps4-0005,ps1-0013,2,A city transit agency is considering raising fares by 20%.,"Revenue per rider: the fare increase; discounts and passes
+Operating costs: drivers; fuel and maintenance
+Low-income riders: share of riders on low incomes; effect on their budgets","the revenue-per-rider, operating-cost and low-income-rider buckets","Ridership: riders lost at a 20% higher fare; which routes lose most
+Revenue per rider: the fare increase; discounts and passes
+Operating costs: drivers; fuel and maintenance
+Low-income riders: share of riders on low incomes; effect on their budgets"
+ps4-0006,ps1-0024,2,A regional bakery brand wants to grow revenue 40% in three years.,"Shelf space: more grocery shelf space in current regions; new grocery chains
+New products: new product lines; seasonal items
+New regions: neighboring regions; stores that would stock us
+Ingredient costs: cheaper flour and butter; supplier deals","the shelf space, new product and new region buckets","Shelf space: more grocery shelf space in current regions; new grocery chains
+New products: new product lines; seasonal items
+New regions: neighboring regions; stores that would stock us
+Price: room to raise prices; fewer promotions"
+ps4-0007,ps1-0040,2,An investor wants to know whether the self-storage industry is attractive.,"Revenue: price; volume
+Fixed costs: buildings; land
+Variable costs: staff; utilities","the economics it lists (prices, buildings, land, staff and utilities), which still belong in the answer","Demand: households and businesses renting units; growth from moving and downsizing
+New supply: facilities being built; land and building costs
+Competition: how fragmented the industry is; price wars
+Returns per facility: rent per unit and occupancy; staff and utilities"
+ps4-0008,ps1-0044,3,A regional airline is deciding whether to add daily flights between two mid-size cities.,"Passenger demand: travelers between the two cities; fares they would pay
+Cost per flight: fuel and crew; airport fees
+Brand awareness: awareness of the airline across the country; advertising reach",the passenger demand and cost-per-flight buckets,"Passenger demand: travelers between the two cities; fares they would pay
+Competition: other airlines on the route; driving or rail instead
+Cost per flight: fuel and crew; airport fees"
+ps4-0009,ps1-0046,3,A software company's annual recurring revenue (ARR) grew 30% last year but only 12% this year.,"New customers: deals won; sales cycle length
+Expansion: upsells to existing customers; price increases
+Churn: customers lost; downgrades
+Net revenue retention: retention rate by segment","the new customer, expansion and churn buckets","New customers: deals won; sales cycle length
+Expansion: upsells to existing customers; price increases
+Churn: customers lost; downgrades by segment"
+ps4-0010,ps1-0050,3,A city bike-share program wants to break even.,"Usage: rides per bike per day; busy and quiet hours
+Revenue per ride: fares; memberships
+Bike costs: buying bikes; repairs","the usage, revenue-per-ride and bike-cost buckets","Usage: rides per bike per day; busy and quiet hours
+Revenue per ride: fares; memberships
+Bike costs: buying bikes; repairs
+Network costs: stations and docks; trucks moving bikes between stations"

@@ -1,0 +1,21 @@
+{
+  "answer_id": "hy3-0010-a",
+  "item_id": "hy3-0010",
+  "drill_id": "HY-3",
+  "answer_type": "normal",
+  "notes": "Fits all the facts and is framed as a test.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Customers are probably taking fewer boxes each, perhaps skipping months. I'd compare boxes per customer by joining date and plan."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "fix_2": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

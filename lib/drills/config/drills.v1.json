@@ -31,6 +31,44 @@
       "live": true
     },
     {
+      "id": "PS-4",
+      "name": "Fix the framework",
+      "level": 2,
+      "stage": "repair",
+      "skills": [
+        {
+          "id": "PS.mece",
+          "primary": true
+        },
+        {
+          "id": "PS.case_specific",
+          "primary": true
+        },
+        {
+          "id": "PS.depth",
+          "primary": true
+        }
+      ],
+      "input_types": [
+        "structured_buckets"
+      ],
+      "scoring": "checklist",
+      "set_size": 5,
+      "time_limits_s": [
+        120,
+        90,
+        75
+      ],
+      "word_caps": {
+        "total": 120,
+        "sub_point": 15
+      },
+      "pass_bar": 0.8,
+      "priority": "P0",
+      "item_source": "authored",
+      "live": false
+    },
+    {
       "id": "PS-2",
       "name": "Clarifying questions",
       "level": 1,
@@ -90,7 +128,16 @@
       "pass_bar": 0.8,
       "priority": "P0",
       "item_source": "authored",
-      "live": true
+      "live": true,
+      "defend": {
+        "type": "justify",
+        "live": false,
+        "set_size": [
+          4,
+          3,
+          3
+        ]
+      }
     },
     {
       "id": "HY-1",
@@ -116,6 +163,35 @@
       "priority": "P0",
       "item_source": "authored",
       "live": true
+    },
+    {
+      "id": "HY-3",
+      "name": "Fix the hypothesis",
+      "level": 2,
+      "stage": "repair",
+      "skills": [
+        {
+          "id": "HY.form",
+          "primary": true
+        }
+      ],
+      "input_types": [
+        "free_text"
+      ],
+      "scoring": "checklist",
+      "set_size": 6,
+      "time_limits_s": [
+        60,
+        45,
+        35
+      ],
+      "word_caps": {
+        "total": 40
+      },
+      "pass_bar": 0.8,
+      "priority": "P0",
+      "item_source": "authored",
+      "live": false
     },
     {
       "id": "HY-2",
@@ -157,7 +233,16 @@
       "pass_bar": 0.8,
       "priority": "P0",
       "item_source": "authored",
-      "live": true
+      "live": true,
+      "defend": {
+        "type": "justify",
+        "live": false,
+        "set_size": [
+          4,
+          3,
+          3
+        ]
+      }
     },
     {
       "id": "QN-1",
@@ -372,6 +457,35 @@
       "live": true
     },
     {
+      "id": "EX-5",
+      "name": "Fix the takeaway",
+      "level": 2,
+      "stage": "repair",
+      "skills": [
+        {
+          "id": "EX.takeaway",
+          "primary": true
+        }
+      ],
+      "input_types": [
+        "free_text"
+      ],
+      "scoring": "checklist",
+      "set_size": 6,
+      "time_limits_s": [
+        60,
+        45,
+        35
+      ],
+      "word_caps": {
+        "total": 40
+      },
+      "pass_bar": 0.8,
+      "priority": "P1",
+      "item_source": "authored",
+      "live": false
+    },
+    {
       "id": "EX-3",
       "name": "Needle in the table",
       "level": 2,
@@ -568,6 +682,39 @@
       "live": true
     },
     {
+      "id": "SY-3",
+      "name": "Fix the recommendation",
+      "level": 2,
+      "stage": "repair",
+      "skills": [
+        {
+          "id": "SY.answer_first",
+          "primary": true
+        },
+        {
+          "id": "SY.evidence",
+          "primary": true
+        }
+      ],
+      "input_types": [
+        "free_text"
+      ],
+      "scoring": "checklist",
+      "set_size": 5,
+      "time_limits_s": [
+        90,
+        75,
+        60
+      ],
+      "word_caps": {
+        "total": 80
+      },
+      "pass_bar": 0.8,
+      "priority": "P0",
+      "item_source": "authored",
+      "live": false
+    },
+    {
       "id": "SY-2",
       "name": "60-second recommendation",
       "level": 2,
@@ -601,7 +748,16 @@
       "pass_bar": 0.8,
       "priority": "P0",
       "item_source": "authored",
-      "live": true
+      "live": true,
+      "defend": {
+        "type": "challenge",
+        "live": false,
+        "set_size": [
+          3,
+          3,
+          3
+        ]
+      }
     },
     {
       "id": "CM-1",
@@ -728,7 +884,16 @@
       "pass_bar": 0.8,
       "priority": "P0",
       "item_source": "authored",
-      "live": true
+      "live": true,
+      "defend": {
+        "type": "justify",
+        "live": false,
+        "set_size": [
+          4,
+          3,
+          3
+        ]
+      }
     }
   ]
 }

@@ -8,6 +8,8 @@
 //     pool, never reading the case, scores well above chance.
 // Pure, so the review page script can use it outside the app.
 import type { Item } from './item-schema';
+import { getDrill } from './config';
+import { numbersIn } from './grading/apply';
 
 // Pools smaller than this are too small to judge.
 const MIN_POOL = 20;
@@ -293,8 +295,11 @@ function scenarioNumbers(item: Item): Set<number> {
 export interface ReviewedPair { items: [string, string]; reason: string }
 export interface ScenarioOverlap { a: string; b: string; words: string[]; numbers: number[] }
 
+// Repair items deliberately reuse their Level 1 item's scenario (PRD
+// "Authored items"), which is itself checked, so they are left out.
 export function scenarioOverlaps(items: Item[], reviewed: ReviewedPair[] = []): ScenarioOverlap[] {
-  const facts = items.map(item => ({ item, words: scenarioWords(item), numbers: scenarioNumbers(item) }));
+  const facts = items.filter(item => getDrill(item.drill_id).stage !== 'repair')
+    .map(item => ({ item, words: scenarioWords(item), numbers: scenarioNumbers(item) }));
   const df = new Map<string, number>();
   for (const f of facts) for (const w of f.words) df.set(w, (df.get(w) ?? 0) + 1);
   const ok = new Set(reviewed.map(p => [...p.items].sort().join(' ')));
@@ -318,8 +323,56 @@ export function scenarioProblems(items: Item[], reviewed: ReviewedPair[] = []): 
     `${o.a} and ${o.b} may share a scenario (${[...o.words.map(w => `"${w}"`), ...o.numbers.map(String)].join(', ')}): change one, or record them in drill-items/scenario-reviewed.json`);
 }
 
+// SY-2 Challenges (PRD "Defend step"): whether the pushback is valid must not
+// be predictable from who raises it (one of our own people, "Our CFO says…",
+// or an outsider) or from whether it brings a number the fact sheet doesn't
+// have. Checked once the pool has enough challenges to judge.
+export const CHALLENGE_POOL_MIN = 8;
+const CHALLENGE_FEATURE_MIN = 4;
+const CHALLENGE_SHARE = { min: 0.2, max: 0.8 };
+const CHALLENGE_OVERALL = { min: 0.4, max: 0.6 };
+
+export function challengeSpeaker(text: string): 'insider' | 'outsider' | null {
+  const m = text.match(/^(.{2,80}?)\s+(says|points out|argues|notes|warns)\b/i);
+  if (!m) return null;
+  return /^our\b/i.test(m[1].trim()) ? 'insider' : 'outsider';
+}
+
+// Numbers in the client's question and fact sheet ("£35, at a 40% margin").
+const caseNumbers = (text: string) => numbersIn(text.replace(/,(\s)/g, '$1'));
+
+export function challengeBringsNumber(item: Item): boolean {
+  const known = caseNumbers(item.prompt);
+  return caseNumbers(item.defend?.text ?? '').some(n => !known.some(f => Math.abs(n - f) <= Math.abs(f) * 0.005));
+}
+
+export function challengeCueProblems(items: Item[]): string[] {
+  const pool = items.filter(i => i.defend?.type === 'challenge');
+  const problems = pool.filter(i => !challengeSpeaker(i.defend!.text))
+    .map(i => `${i.item_id}: the challenge must open with who raises it ("Our CFO says…", "A lumber analyst says…")`);
+  if (pool.length < CHALLENGE_POOL_MIN) return problems;
+  const share = (xs: Item[]) => xs.filter(i => i.defend!.valid).length / xs.length;
+  const overall = share(pool);
+  if (overall < CHALLENGE_OVERALL.min || overall > CHALLENGE_OVERALL.max) problems.push(`Challenges: ${Math.round(overall * 100)}% are valid; keep it near half`);
+  const features: [string, (i: Item) => string][] = [
+    ['who raises it', i => challengeSpeaker(i.defend!.text) ?? 'unknown'],
+    ['whether it brings a new number', i => (challengeBringsNumber(i) ? 'brings a number' : 'no new number')],
+  ];
+  for (const [name, f] of features) {
+    const groups = new Map<string, Item[]>();
+    for (const i of pool) groups.set(f(i), [...(groups.get(f(i)) ?? []), i]);
+    for (const [value, xs] of groups) {
+      const v = share(xs);
+      if (xs.length >= CHALLENGE_FEATURE_MIN && (v < CHALLENGE_SHARE.min || v > CHALLENGE_SHARE.max)) {
+        problems.push(`Challenges: valid is predictable from ${name}: ${Math.round(v * 100)}% of the ${xs.length} that are "${value}" are valid`);
+      }
+    }
+  }
+  return problems;
+}
+
 // Every content check, for validation and the seed script: wording within
-// each pool, and scenarios across drills.
+// each pool, scenarios across drills, and Challenge cues.
 export function contentCheckProblems(items: Item[], reviewedPairs: ReviewedPair[] = []): string[] {
-  return [...lengthCueProblems(items), ...phraseCueProblems(items), ...rulePlayerProblems(items), ...scenarioProblems(items, reviewedPairs)];
+  return [...lengthCueProblems(items), ...phraseCueProblems(items), ...rulePlayerProblems(items), ...scenarioProblems(items, reviewedPairs), ...challengeCueProblems(items)];
 }

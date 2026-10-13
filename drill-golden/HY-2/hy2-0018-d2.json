@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0018-d2",
+  "item_id": "hy2-0018",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "Tests the stage 1 cause (preparedness) the student revised away from (rule 9).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With enrollment up 15%, the added students are likely less prepared for college work, so more leave. I'd compare first-year dropout for new and other students, by placement-test score."
+    },
+    {
+      "type": "choice",
+      "option_id": "revise"
+    },
+    {
+      "type": "text",
+      "value": "Revise: dropout rose only for program students, who work 25 hours a week, so the cause is work pressure."
+    },
+    {
+      "type": "text",
+      "value": "Placement-test scores for the new students; if well-prepared students dropped out as much, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

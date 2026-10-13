@@ -1,0 +1,47 @@
+{
+  "answer_id": "ps3-0003-d2",
+  "item_id": "ps3-0003",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Picks one. '$3M of $15M needs a big line' doesn't support marketing, which the case doesn't mention (rule 3); marketing isn't in the framework and no reason is given for adding it (rule 4).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Office space",
+          "points": [
+            "rent",
+            "empty desks"
+          ]
+        },
+        {
+          "title": "Technology",
+          "points": [
+            "database subscriptions",
+            "software"
+          ]
+        },
+        {
+          "title": "Travel",
+          "points": [
+            "client travel",
+            "conferences"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Marketing spend, since cutting $3M of the $15M needs a big line."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": false,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

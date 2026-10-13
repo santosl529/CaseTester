@@ -8,9 +8,10 @@ import type { Tier } from '../item-schema';
 import { createRng, type Rng } from '../rng';
 import { generatorsForDrill } from '../generators/registry';
 
+// defend: the set runs this item's Defend follow-up (lib/drills/defend.ts).
 export type ItemRef =
   | { kind: 'generated'; template_id: string; template_version: number; seed: number }
-  | { kind: 'authored'; item_id: string; version: number };
+  | { kind: 'authored'; item_id: string; version: number; defend?: true };
 
 // FNV-1a: a set id → a 32-bit seed for its plan.
 export function hashSeed(s: string): number {

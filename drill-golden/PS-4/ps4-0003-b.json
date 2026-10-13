@@ -1,0 +1,43 @@
+{
+  "answer_id": "ps4-0003-b",
+  "item_id": "ps4-0003",
+  "drill_id": "PS-4",
+  "answer_type": "borderline",
+  "notes": "Suppliers covered as a sub-point tied to the case (rule 8).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Order planning",
+          "points": [
+            "how orders are scheduled",
+            "order changes from customers"
+          ]
+        },
+        {
+          "title": "Production",
+          "points": [
+            "delays in the factory",
+            "machine downtime",
+            "late materials from suppliers"
+          ]
+        },
+        {
+          "title": "Shipping",
+          "points": [
+            "carrier delays",
+            "delivery routes"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

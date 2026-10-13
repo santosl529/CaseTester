@@ -1,0 +1,34 @@
+{
+  "answer_id": "ps4-0008-c",
+  "item_id": "ps4-0008",
+  "drill_id": "PS-4",
+  "answer_type": "short",
+  "notes": "Brand bucket gone, competition still missing. Fares, crew and airport fees dropped: keeps-right fails, and the thinner buckets are the same slip, so no new flaw (rules 3, 4).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Demand",
+          "points": [
+            "travelers"
+          ]
+        },
+        {
+          "title": "Costs",
+          "points": [
+            "fuel"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "fix_2": false,
+    "no_new_flaw": true,
+    "keeps_right": false
+  },
+  "red_flags": {},
+  "family": null
+}

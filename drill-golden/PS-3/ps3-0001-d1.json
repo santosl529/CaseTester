@@ -1,0 +1,56 @@
+{
+  "answer_id": "ps3-0001-d1",
+  "item_id": "ps3-0001",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Picks a bucket from the framework; uses the steady car count and the $6M fall (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Revenue per car",
+          "points": [
+            "mix of tires vs repairs",
+            "prices and discounts",
+            "add-on services sold"
+          ]
+        },
+        {
+          "title": "Variable costs per car",
+          "points": [
+            "parts and tire costs",
+            "technician hours per job"
+          ]
+        },
+        {
+          "title": "Fixed costs",
+          "points": [
+            "rent",
+            "equipment",
+            "managers and admin"
+          ]
+        },
+        {
+          "title": "Where the drop sits",
+          "points": [
+            "which shops or regions",
+            "which service lines"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Revenue per car, since cars serviced held steady while profit fell $6M, so the drop must be in what each car brings in."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

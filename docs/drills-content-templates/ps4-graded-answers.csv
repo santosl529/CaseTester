@@ -1,0 +1,4 @@
+answer_id,item_id,answer_type,answer,flaws_fixed,no_new_flaw,keeps_right,notes
+EXAMPLE-ps4-01-a,EXAMPLE-ps4-01,normal,"US demand for e-bikes: size of the market; growth by city
+Competitors: who sells e-bikes; their market shares; how our bikes compare on price
+Costs of entering: distribution; marketing; import duties",1,Y,Y,"The added sub-point compares the client's bikes with rivals on price, which covers whether it can win (rule PS-4 2)."

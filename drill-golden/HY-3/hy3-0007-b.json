@@ -1,0 +1,20 @@
+{
+  "answer_id": "hy3-0007-b",
+  "item_id": "hy3-0007",
+  "drill_id": "HY-3",
+  "answer_type": "off_topic",
+  "notes": "No cause, only a fix, so the vague flaw isn't fixed. Dropping the hypothesis for a fix is the loss of the 'likely' framing, counted once under keeps-right (rule 3).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "The city should add express buses and cut fares to win riders back."
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "no_new_flaw": true,
+    "keeps_right": false
+  },
+  "red_flags": {},
+  "family": null
+}

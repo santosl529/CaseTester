@@ -1,0 +1,20 @@
+{
+  "answer_id": "hy3-0005-a",
+  "item_id": "hy3-0005",
+  "drill_id": "HY-3",
+  "answer_type": "normal",
+  "notes": "One lead cause.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Capacity has probably lagged the 25% rise in orders. I'd compare on-time rates with stops per driver by route."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

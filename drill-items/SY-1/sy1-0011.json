@@ -1,8 +1,8 @@
 {
   "item_id": "sy1-0011",
-  "version": 3,
+  "version": 4,
   "drill_id": "SY-1",
-  "status": "live",
+  "status": "draft",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -12,7 +12,7 @@
   ],
   "case_type": "public_sector",
   "industry": "Public / Education / Nonprofit",
-  "prompt": "The client asks: \"Should the city build a new downtown parking garage or upgrade its existing garages?\" Fact sheet: a new garage costs $30M and adds 600 spaces; upgrading existing garages with space-guidance signs costs $6M and cuts the time to find a space 30% for 25,000 drivers a week; downtown visits fell 12% as parking searches got longer; the city unveiled a new logo last year. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should the city build a new downtown parking garage or upgrade its existing garages?\" Fact sheet: a new garage costs $30M and adds 600 spaces; upgrading existing garages with space-guidance signs costs $6M and cuts the time to find a space 30% for 25,000 drivers a week; downtown visits fell 12% as parking searches got longer; a neighboring city built a garage last year that is full on weekends. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -40,10 +40,10 @@
     },
     {
       "id": "d",
-      "text": "Upgrade the existing garages. After unveiling a new logo last year, the city needs to show residents visible results this year.",
+      "text": "Upgrade the existing garages. The neighboring city's new garage is full only on weekends, so a new one here would sit half empty during the week.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "The logo has nothing to do with parking. Cost per driver and the cause of the decline support the answer."
+      "feedback": "Another city's garage says nothing about ours. Cost per driver helped and the cause of the decline support the answer."
     }
   ],
   "numeric": null,
@@ -54,18 +54,18 @@
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "The city unveiled a new logo last year."
+      "A neighboring city built a garage last year that is full on weekends."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-10",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-10-13",
     "similarity_method": "web"
   },
   "generator": null,

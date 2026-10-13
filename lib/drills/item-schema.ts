@@ -53,10 +53,13 @@ export const InputSpecSchema = z.object({
     // Its own time limit, counted from when the previous step was submitted
     // (HY-2 stage 2). Without one, the step shares the item's limit.
     time_limits_s: z.tuple([z.number().positive(), z.number().positive(), z.number().positive()]).optional(),
+    // A step of the Defend follow-up (lib/drills/defend.ts adds them when a
+    // set runs Defend); never in an item file.
+    defend: z.boolean().optional(),
   })).min(2).optional(),
 });
 
-const CheckSchema = z.object({
+export const CheckSchema = z.object({
   check_id: z.string().min(1),
   question: z.string().min(1),
   weight: z.number().positive().max(1),
@@ -88,6 +91,35 @@ const RedFlagSchema = z.object({
   evidence: z.enum(['quote', 'whole']).optional(),
 });
 
+// The Defend follow-up on a Construct item (PRD "Defend step"). Server-only
+// until the main answer is submitted. Check weights are shares of the Defend
+// part: they add up to 1 for Justify, and to 1 minus the auto-checked
+// Hold/Update decision for Challenge.
+export const DEFEND_DECISION_WEIGHT = 0.4;
+export const DefendSchema = z.object({
+  type: z.enum(['justify', 'challenge']),
+  text: z.string().min(1),
+  // Challenge only: is the pushback right (so Update is the right call), and why.
+  valid: z.boolean().optional(),
+  reason: z.string().min(1).optional(),
+  checks: z.array(CheckSchema).min(1),
+  model_reply: z.string().min(1),
+});
+export type Defend = z.infer<typeof DefendSchema>;
+
+// What a Repair item adds to its key (PRD "Repair drills"): the flawed answer
+// the student edits, the planted flaws (the T1 hint names each one), the
+// Level 1 item it comes from, and the parts that were right.
+export const RepairExtrasSchema = z.object({
+  derived_from: z.string().min(1),
+  flawed_answer: z.string().min(1),
+  // hint: what the T1 student is told ("Buckets 1 and 2 overlap"); fix: what
+  // a repair that removes it does, for the grader.
+  flaws: z.array(z.object({ tag: KnownTag, hint: z.string().min(1), fix: z.string().min(1) })).min(1).max(2),
+  right_parts: z.string().min(1),
+});
+export type RepairExtras = z.infer<typeof RepairExtrasSchema>;
+
 // Set on generated items: attempts store this triple instead of an item row,
 // and the generator rebuilds the item from it for review.
 const GeneratorRefSchema = z.object({
@@ -116,6 +148,8 @@ export const ItemSchema = z.object({
   checks: z.array(CheckSchema),
   red_flags: z.array(RedFlagSchema),
   model_answer: z.string().nullable(),
+  // The Defend follow-up (Construct drills with a Defend step).
+  defend: DefendSchema.optional(),
   explanation: z.string().min(1),
   // Drill-specific key data (HY-2 families, QN-5 driver cards, generator
   // inputs...). Server-only like the rest of the key.
@@ -222,6 +256,30 @@ export const ItemSchema = z.object({
     issue(`${drill.id} items are authored; only generated items carry a generator ref`, ['generator']);
   }
   if (item.generator === null && item.authorship === null) issue('Authored items need authorship', ['authorship']);
+
+  if (item.defend) {
+    const d = item.defend;
+    if (!drill.defend) issue(`${drill.id} has no Defend step`, ['defend']);
+    else if (drill.defend.type !== d.type) issue(`${drill.id}'s Defend step is ${drill.defend.type}, not ${d.type}`, ['defend', 'type']);
+    if (d.type === 'challenge' && (d.valid === undefined || !d.reason)) issue('A Challenge needs valid and reason', ['defend']);
+    if (d.type === 'justify' && (d.valid !== undefined || d.reason !== undefined)) issue('Only a Challenge has valid and reason', ['defend']);
+    const total = d.checks.reduce((sum, c) => sum + c.weight, 0);
+    const want = d.type === 'challenge' ? 1 - DEFEND_DECISION_WEIGHT : 1;
+    if (Math.abs(total - want) > 1e-6) issue(`Defend check weights sum to ${total}, not ${want}`, ['defend', 'checks']);
+    for (const c of d.checks) {
+      if (!c.check_id.startsWith('defend_')) issue(`Defend check ids start with "defend_" (${c.check_id})`, ['defend', 'checks']);
+      if (item.checks.some(x => x.check_id === c.check_id)) issue(`Defend check ${c.check_id} clashes with a main check`, ['defend', 'checks']);
+    }
+  }
+  if (drill.stage === 'repair') {
+    const extras = RepairExtrasSchema.safeParse(item.extras);
+    if (!extras.success) issue(`Repair items need ${z.prettifyError(extras.error)}`, ['extras']);
+    else {
+      const words = (extras.data.flawed_answer.match(/\S+/g) ?? []).length;
+      const cap = item.input.max_words;
+      if (cap && words > cap) issue(`The flawed answer has ${words} words; the cap is ${cap}`, ['extras', 'flawed_answer']);
+    }
+  }
 });
 
 export type Item = z.infer<typeof ItemSchema>;

@@ -1,16 +1,15 @@
 {
   "item_id": "cl3-0030",
-  "version": 1,
+  "version": 2,
   "drill_id": "CL-3",
-  "status": "live",
+  "status": "draft",
   "level": 2,
   "tier": 3,
   "skills": [
     "CL.data_requests"
   ],
   "case_type": "m_and_a",
-  "industry": "Retail / E-commerce",
-  "prompt": "A national car-dealer group is deciding whether to buy an online used-car platform.\n\nWhat information would you ask for, and where would you start?",
+  "prompt": "A national car-dealer group is deciding whether to buy an online used-car platform. The platform's sales grew 60% last year, but it has never made a profit.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {
     "type": "free_text",
@@ -178,16 +177,53 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
-    "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-11",
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-10-13",
     "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,
-  "firm_style": null
+  "firm_style": null,
+  "defend": {
+    "type": "justify",
+    "text": "If that first analysis comes back flat, what would you look at next, and why?",
+    "checks": [
+      {
+        "check_id": "defend_answers",
+        "question": "Does the reply answer the follow-up and commit to one choice?",
+        "weight": 0.35,
+        "fail_tag": "M.dodged_question",
+        "feedback": "Answer the question asked, and pick one.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_evidence",
+        "question": "Does the reply give a reason that uses a fact from the case supporting what it picks?",
+        "weight": 0.4,
+        "fail_tag": "M.no_evidence_in_defense",
+        "feedback": "Back your choice with a fact from the case that supports it.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "Is the reply consistent with the student's own main answer?",
+        "weight": 0.25,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Keep your reply consistent with your own answer.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Price against value. If profit per car is steady, the deal turns on whether 60% yearly growth justifies paying for a platform that has never made a profit."
+  }
 }

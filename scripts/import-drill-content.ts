@@ -1,12 +1,16 @@
-// Imports D2 drill content from the CSV templates (docs/drills-content-templates
-// README) into /drill-items (questions) and /drill-golden (graded sample
-// answers). Re-running is safe: draft items are rewritten; an item that is
-// already in review or live is never overwritten (edit it, bump its version).
+// Imports D2 and D5 drill content from the CSV templates
+// (docs/drills-content-templates README) into /drill-items (questions) and
+// /drill-golden (graded sample answers). Re-running is safe: draft items are
+// rewritten; an item that is already in review or live is never overwritten
+// (edit it, bump its version). The one exception: a reviewed item that only
+// gains or changes its Defend follow-up (defend.csv) is written as a new draft
+// version, keeping its similarity check, for review.
 //
 //   npm run drills:import -- <folder with the CSVs> [--include-examples] [--dry-run]
 import fs from 'fs';
 import path from 'path';
 import { importContent, parseCsv, type Tables } from '@/lib/drills/content-import';
+import { ItemSchema, type Item } from '@/lib/drills/item-schema';
 
 const args = process.argv.slice(2);
 const dir = args.find(a => !a.startsWith('--')) ?? 'docs/drills-content-templates';
@@ -17,10 +21,23 @@ const tables: Tables = {};
 for (const file of fs.readdirSync(dir).filter(f => f.endsWith('.csv'))) {
   tables[path.basename(file, '.csv')] = parseCsv(fs.readFileSync(path.join(dir, file), 'utf-8'));
 }
-const { items, golden, problems } = importContent(tables, { includeExamples });
+// Repair items are derived from the authored Level 1 items on disk.
+const sources = new Map<string, Item>();
+for (const drill of ['PS-1', 'HY-1', 'SY-1']) {
+  const folder = path.join('drill-items', drill);
+  for (const f of fs.existsSync(folder) ? fs.readdirSync(folder).filter(f => f.endsWith('.json')) : []) {
+    const item = ItemSchema.parse(JSON.parse(fs.readFileSync(path.join(folder, f), 'utf-8')));
+    sources.set(item.item_id, item);
+  }
+}
+const { items, golden, problems } = importContent(tables, { includeExamples, sources });
 
 // An item's content, apart from its review state, industry tag and version.
 const content = (i: Record<string, unknown>) => JSON.stringify({ ...i, status: undefined, authorship: undefined, version: undefined, industry: undefined });
+const withoutDefend = (i: Record<string, unknown>) => content({ ...i, defend: undefined });
+// The new file in the old file's key order, so a review diff shows only what changed.
+const inOrder = (existing: Record<string, unknown>, item: Record<string, unknown>) =>
+  Object.fromEntries([...new Set([...Object.keys(existing), ...Object.keys(item)])].filter(k => item[k] !== undefined).map(k => [k, item[k]]));
 
 let written = 0, kept = 0;
 for (const item of items) {
@@ -28,6 +45,17 @@ for (const item of items) {
   if (fs.existsSync(file)) {
     const existing = JSON.parse(fs.readFileSync(file, 'utf-8'));
     if (existing.status !== 'draft') {
+      if (content(existing) !== content(item) && withoutDefend(existing) === withoutDefend(item)) {
+        // Only the Defend follow-up changed: a new draft version for review.
+        // The case is unchanged, so its similarity check carries over.
+        Object.assign(item, {
+          version: existing.version + 1, industry: existing.industry,
+          authorship: { ...existing.authorship, author_of_record: 'Draft — awaiting human review', drafting_model: 'claude-opus-5-5', reviewed_by: null, reviewed_at: null },
+        });
+        if (!dryRun) fs.writeFileSync(file, JSON.stringify(inOrder(existing, item), null, 2) + '\n');
+        written++;
+        continue;
+      }
       // Unchanged content is fine; a change to a reviewed item needs a new version.
       if (content(existing) !== content(item)) problems.push({ file, row: item.item_id, message: `already ${existing.status}; edit the JSON and bump "version" instead of re-importing` });
       kept++;
@@ -43,7 +71,8 @@ for (const item of items) {
   }
   if (!dryRun) {
     fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, JSON.stringify(item, null, 2) + '\n');
+    const existing = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf-8')) : {};
+    fs.writeFileSync(file, JSON.stringify(inOrder(existing, item), null, 2) + '\n');
   }
   written++;
 }
@@ -51,7 +80,8 @@ for (const g of golden) {
   const file = path.join('drill-golden', g.drill_id, `${g.answer_id}.json`);
   if (!dryRun) {
     fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, JSON.stringify(g, null, 2) + '\n');
+    // part defaults to "main"; only Defend answers spell it out.
+    fs.writeFileSync(file, JSON.stringify(g.part === 'main' ? { ...g, part: undefined } : g, null, 2) + '\n');
   }
 }
 

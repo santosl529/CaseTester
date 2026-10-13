@@ -1,0 +1,95 @@
+{
+  "item_id": "sy3-0005",
+  "version": 1,
+  "drill_id": "SY-3",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence"
+  ],
+  "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
+  "prompt": "The client asks: \"Should the city build a new downtown parking garage or upgrade its existing garages?\" Fact sheet: a new garage costs $30M and adds 600 spaces; upgrading existing garages with space-guidance signs costs $6M and cuts the time to find a space 30% for 25,000 drivers a week; downtown visits fell 12% as parking searches got longer; a neighboring city built a garage last year that is full on weekends.\n\nA candidate gave the recommendation below. Fix it.",
+  "exhibit": null,
+  "input": {
+    "type": "free_text",
+    "max_words": 80
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "fix_1",
+      "question": "The original had this flaw: the recommendation comes last instead of first. Does the edited answer fix it? One way to fix it: opens with the recommendation to upgrade the existing garages first, then gives the numbers. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "weight": 0.5,
+      "fail_tag": "M.buried_recommendation",
+      "feedback": "The flaw is still there: the recommendation comes last instead of first.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "no_new_flaw",
+      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: buried recommendation, hedged recommendation, irrelevant facts, unsupported recommendation, ignored the deciding fact? The original's own flaw (the recommendation comes last instead of first) doesn't count as new, even if the edit leaves it in place or rewords it, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
+      "weight": 0.3,
+      "fail_tag": "M.buried_recommendation",
+      "feedback": "Your edit added a new flaw. Change only what needs fixing.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "keeps_right",
+      "question": "Does the edit keep the substance of each part of the original that was right: the cost comparison: $6M of signs cutting search times 30% for 25,000 drivers a week, against $30M for 600 spaces? Rewording or condensing a part is fine; dropping one fails.",
+      "weight": 0.2,
+      "fail_tag": "M.unsupported_recommendation",
+      "feedback": "Keep what was already right: the cost comparison: $6M of signs cutting search times 30% for 25,000 drivers a week, against $30M for 600 spaces.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    }
+  ],
+  "red_flags": [],
+  "model_answer": "Upgrade the existing garages first. For $6M, guidance signs cut search times 30% for 25,000 drivers a week, against $30M for 600 new spaces.",
+  "explanation": "The flaw: the recommendation comes last instead of first. What was right: the cost comparison: $6M of signs cutting search times 30% for 25,000 drivers a week, against $30M for 600 spaces.",
+  "extras": {
+    "derived_from": "sy1-0011",
+    "flawed_answer": "Guidance signs cost $6M and cut search times 30% for 25,000 drivers a week, against $30M for 600 new spaces. Upgrading existing garages should come first.",
+    "flaws": [
+      {
+        "tag": "M.buried_recommendation",
+        "hint": "the recommendation comes last instead of first",
+        "fix": "opens with the recommendation to upgrade the existing garages first, then gives the numbers"
+      }
+    ],
+    "right_parts": "the cost comparison: $6M of signs cutting search times 30% for 25,000 drivers a week, against $30M for 600 spaces",
+    "grading_rules": [
+      "Compare the edited answer with the original answer. Judge the edited answer as a whole, as an interviewer would read it.",
+      "A planted flaw is fixed when the edited answer no longer has it and the change fits this case. Rewording the flaw without removing it does not fix it.",
+      "A new flaw is one the original did not have, of the kinds listed. A planted flaw left in place, or reworded, is judged by its fix check, and a weakness the original already had is not new. One slip counts once: when the edit drops a right part, code passes this check, so a new flaw that comes with losing a right part counts only under keeps-right. When the edit adds a new flaw, name its kind in new_flaw_tag.",
+      "Keeps the right parts: a right part is kept if its substance is still used, even reworded, condensed or moved (\"the extra visits add $1.2M\" keeps \"40% joined and visited 12% more\"). Deleting it, or changing it so it is no longer right, fails.",
+      "Judge each check on its own. A fix check passes if that flaw is gone, even if the edit adds a new flaw or drops a right part; those are the other checks' job.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check.",
+      "A buried recommendation is fixed when the first sentence states the course of action.",
+      "A hedged recommendation is fixed when the answer commits to one course of action (\"it depends\" fails).",
+      "Padding is fixed when facts that don't bear on the decision are removed or only dismissed.",
+      "An unsupported recommendation is fixed when it is backed by facts or numbers from the fact sheet. Ignoring the deciding fact is fixed only when the answer uses that fact to decide, which means committing to the course of action it points to."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-13",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

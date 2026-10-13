@@ -3,7 +3,11 @@
 // grader agrees with the human. Fails if any check is under 90%.
 //
 //   npm run drills:golden                 all drills
-//   npm run drills:golden -- --drill PS-3 one drill
+//   npm run drills:golden -- --drill PS-3 one drill (its Defend answers too)
+//   npm run drills:golden -- --part defend  Defend answers only
+//
+// Defend answers (part "defend") are their own gate, "PS-3 defend": only the
+// follow-up reply is graded and compared.
 //
 // Costs real money (Haiku, roughly a dollar for a full run of ~120 answers).
 import fs from 'fs';
@@ -13,19 +17,21 @@ import { ItemSchema, type Item } from '@/lib/drills/item-schema';
 import { applyGrade } from '@/lib/drills/grading/apply';
 import { gradeSet, type GradingEntry } from '@/lib/drills/grading/grader';
 import { itemSteps, type StepResult } from '@/lib/drills/sets/scoring';
+import { withDefend } from '@/lib/drills/defend';
 
 const GATE = 0.9;
 const MIN_ANSWERS = 30;
 // Answers sent at once. Each is still graded in its own call, as in a drill set.
 const BATCH = 4;
 const only = process.argv.includes('--drill') ? process.argv[process.argv.indexOf('--drill') + 1] : null;
+const part = process.argv.includes('--part') ? process.argv[process.argv.indexOf('--part') + 1] : null;
 
 const readDir = <T>(dir: string, parse: (raw: unknown) => T): T[] =>
   fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }).filter(d => d.isDirectory()).flatMap(d =>
     fs.readdirSync(path.join(dir, d.name)).filter(f => f.endsWith('.json')).map(f => parse(JSON.parse(fs.readFileSync(path.join(dir, d.name, f), 'utf-8'))))) : [];
 
 const items = new Map(readDir('drill-items', raw => ItemSchema.parse(raw)).map(i => [i.item_id, i]));
-const golden = readDir('drill-golden', raw => GoldenAnswerSchema.parse(raw) as GoldenAnswer).filter(g => !only || g.drill_id === only);
+const golden = readDir('drill-golden', raw => GoldenAnswerSchema.parse(raw) as GoldenAnswer).filter(g => (!only || g.drill_id === only) && (!part || g.part === part));
 if (golden.length === 0) { console.log('No graded answers found in /drill-golden.'); process.exit(0); }
 
 // cover_3 and driver_2 are one check type each, whatever the item.
@@ -45,14 +51,16 @@ async function main() {
     if (!agree) disagreements.push(detail);
   };
 
-  for (const drill of [...new Set(golden.map(g => g.drill_id))].sort()) {
-    const answers = golden.filter(g => g.drill_id === drill);
+  const gate = (g: GoldenAnswer) => `${g.drill_id}${g.part === 'defend' ? ' defend' : ''}`;
+  for (const drill of [...new Set(golden.map(gate))].sort()) {
+    const answers = golden.filter(g => gate(g) === drill);
     for (let i = 0; i < answers.length; i += BATCH) {
       const batch = answers.slice(i, i + BATCH);
       const entries: GradingEntry[] = batch.map(g => {
-        const item = items.get(g.item_id);
-        if (!item) throw new Error(`${g.answer_id}: no item ${g.item_id}`);
-        return { key: g.answer_id, item, steps: toSteps(item, g) };
+        const base = items.get(g.item_id);
+        if (!base) throw new Error(`${g.answer_id}: no item ${g.item_id}`);
+        const item = g.part === 'defend' ? withDefend(base) : base;
+        return { key: g.answer_id, item, steps: toSteps(item, g), part: g.part };
       });
       const result = await gradeSet(entries);
       cost += result.cost_usd; calls += result.usage.calls;
@@ -86,8 +94,8 @@ async function main() {
     failed ||= !pass;
     console.log(`${pass ? 'ok  ' : 'FAIL'} ${key.padEnd(46)} ${(share * 100).toFixed(0).padStart(3)}%  (${t.agree}/${t.total})`);
   }
-  for (const drill of [...new Set(golden.map(g => g.drill_id))]) {
-    const n = golden.filter(g => g.drill_id === drill).length;
+  for (const drill of [...new Set(golden.map(gate))]) {
+    const n = golden.filter(g => gate(g) === drill).length;
     if (n < MIN_ANSWERS) console.log(`\nnote: ${drill} has ${n} graded answers; the gate needs at least ${MIN_ANSWERS}.`);
   }
   if (disagreements.length) console.log(`\nDisagreements:\n- ${disagreements.join('\n- ')}`);

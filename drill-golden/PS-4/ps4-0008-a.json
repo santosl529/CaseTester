@@ -1,0 +1,43 @@
+{
+  "answer_id": "ps4-0008-a",
+  "item_id": "ps4-0008",
+  "drill_id": "PS-4",
+  "answer_type": "normal",
+  "notes": "Brand bucket removed and competition added.",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Passenger demand",
+          "points": [
+            "travelers between the two cities",
+            "fares they would pay"
+          ]
+        },
+        {
+          "title": "Competition",
+          "points": [
+            "other airlines on the route",
+            "driving instead"
+          ]
+        },
+        {
+          "title": "Cost per flight",
+          "points": [
+            "fuel and crew",
+            "airport fees"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "fix_2": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}
