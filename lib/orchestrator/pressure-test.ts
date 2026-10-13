@@ -184,10 +184,11 @@ export const CODE_PROBES = [
   'Before we get into the data: what result would break this structure?',
 ] as const;
 
-// Code asks for the structure (once) when none is on the table.
+// Code asks for the structure (once) when none is on the table. Case-neutral
+// wording (13 Oct, as the fallbacks): not every case is a "problem".
 export const CODE_STRUCTURE_ASKS = [
-  'Before we get into the data, how would you structure your approach to this problem?',
-  'Before we go further into the data, could you lay out how you would structure the problem?',
+  'Before we get into the data, how would you structure your approach to this case?',
+  'Before we go further into the data, could you lay out how you would structure this case?',
 ] as const;
 
 // A question that points at figures as if the candidate had them ("Which of
