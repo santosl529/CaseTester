@@ -4,8 +4,9 @@ import type { PersonaEntry } from './batch-manifest';
 
 // scored: false passes live-run --no-score (transcript and timing only, no
 // Opus scoring; live-run --finish=<sessionId> can score it later).
-export function liveRunArgs(e: PersonaEntry, p: { pace: 'human' | 'fast'; batch?: string; scored?: boolean }): string[] {
-  return ['scripts/live-run.ts', 'prof-001', `--persona=${e.personaId}`, `--batch=${e.wave}`, `--pace=${p.pace}`,
+// caseId: the batch's case (persona-batch --case; default prof-001).
+export function liveRunArgs(e: PersonaEntry, p: { pace: 'human' | 'fast'; batch?: string; scored?: boolean; caseId?: string }): string[] {
+  return ['scripts/live-run.ts', p.caseId ?? 'prof-001', `--persona=${e.personaId}`, `--batch=${e.wave}`, `--pace=${p.pace}`,
     `--batch-id=${p.batch ?? 'batch-18'}`, `--version=${e.version}`, `--wave=${e.wave}`, `--run-number=${e.runNumber}`, `--rerun-index=${e.rerun}`,
     ...(p.scored === false ? ['--no-score'] : [])];
 }

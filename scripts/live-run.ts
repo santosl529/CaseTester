@@ -36,6 +36,7 @@ import { db } from '@/db/client';
 import { sessions, sessionTurns, sessionEvents, scores, analyticsEvents, revealedData, exhibitsShown } from '@/db/schema';
 import { probeIntents, judgeProbeAnswer, EARLY_PHASES, INITIAL_PRESSURE_TEST, type PressureTestState } from '@/lib/orchestrator/pressure-test';
 import { summarizeCheckEvents } from '@/lib/orchestrator/check-log';
+import { candidateSystem, personaDataAsk } from '@/lib/eval/simulator-prompt';
 import { getCaseById } from '@/lib/cases/loader';
 import { startSession } from '@/lib/orchestrator/start-session';
 import { runTurn, runSilence, type ExhibitDisplay } from '@/lib/orchestrator/session-runner';
@@ -74,6 +75,8 @@ const THINK_MS = Number(flag('think-ms') ?? 8000);
 const MAX_TURN_DELAY_MS = 90_000;
 const MAX_PAUSE_MS = 600_000;
 const PERSONA: Persona | null = flag('persona') ? getPersona(Number(flag('persona'))) : null;
+// The case to run: the first bare argument (default prof-001).
+const CASE_ID = process.argv.slice(2).find(a => !a.startsWith('--')) ?? 'prof-001';
 
 const BATCH = flag('batch');
 // --no-score: transcripts and timing only (no Opus scoring) — for A/B runs on
@@ -149,28 +152,18 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, Math.ma
 // The simulator must not know the answer — it sees only the transcript. The
 // data-request guidance exercises Rule 11 paths (release / refuse / defer /
 // ignore) without scripting what the candidate concludes.
-const CANDIDATE_SYSTEM = `You are a college junior recruiting for management consulting, doing a text-based mock case interview. You are solid but not polished: you know profitability frameworks, you do math out loud, and you occasionally make small slips.
-
-How you behave:
-- Reply only as the candidate, in plain typed text, usually 60–180 words. No markdown headers.
-- You don't know the answer. Reason only from what the interviewer has actually told you.
-- When you need a number, ask for it explicitly ("Do we have data on X?"). In a profitability case you'd naturally want things like the cost breakdown, what's inside the biggest cost line, whether menu prices changed, ticket size, and volume.
-- If a data request goes unanswered, don't nag — state the assumption you're making and keep going, like a real candidate would.
-- Show your math when you compute something.
-- When asked for a recommendation, give one: answer first, then the supporting points, risks, and next steps.`;
-
 // A persona replaces the default character. Its brief overrides the defaults
 // above where they conflict (a candidate who never asks for data, freezes at
 // the recommendation, etc.). The standing data-request requirement comes from
 // the persona PDF: every run should exercise the non-response catch.
-function personaSystem(persona: Persona): string {
-  return `${CANDIDATE_SYSTEM}
+function personaSystem(persona: Persona, caseId: string): string {
+  return `${candidateSystem(caseId)}
 
 You are playing a specific candidate for a pressure test of the interviewer. Stay in character for the whole case; where the character below conflicts with the defaults above, play the character.
 
 Your character: ${persona.brief}
 
-Also, unless your character never asks for data or never attempts the case: at some point, ask for one piece of data a profitability case like this would plausibly hold but that an interviewer might skip past (e.g. menu-price history, transaction volume, or a split of the biggest cost line), then keep going without pressing if it goes unanswered.
+Also, unless your character never asks for data or never attempts the case: at some point, ${personaDataAsk(caseId)}, then keep going without pressing if it goes unanswered.
 
 Silences: if your character would go quiet before answering, the very first characters of that reply must be [pause Ns] (N in seconds, at most 600) — never in the middle or at the end. A silence always happens before a message is sent, so if your character drops out mid-thought, send what they had, and put the pause at the start of the reply where they come back. The tag is stripped before sending; the interviewer only experiences the wait. Do not otherwise mention the pause.`;
 }
@@ -257,7 +250,7 @@ async function candidateReply(client: Anthropic, transcript: Line[]): Promise<st
   const response = await client.beta.messages.create({
     model: CANDIDATE_MODEL,
     max_tokens: 4096,
-    system: PERSONA ? personaSystem(PERSONA) : CANDIDATE_SYSTEM,
+    system: PERSONA ? personaSystem(PERSONA, CASE_ID) : candidateSystem(CASE_ID),
     output_config: { effort: 'low' },
     betas: ['server-side-fallback-2026-06-01'],
     fallbacks: [{ model: 'claude-opus-4-8' }],
@@ -296,7 +289,7 @@ function clock(ms: number): string {
 }
 
 async function main() {
-  const caseId = process.argv.slice(2).find(a => !a.startsWith('--')) ?? 'prof-001';
+  const caseId = CASE_ID;
   const caseData = getCaseById(caseId);
 
   const owner = await db.query.sessions.findFirst({ orderBy: [desc(sessions.startedAt)] });

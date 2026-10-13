@@ -1,7 +1,7 @@
 // One wave of batch 18 (spec 2026-10-09 §2.2): the personas given, in
 // parallel, each through scripts/live-run.ts, under one shared budget.
 //
-//   npx tsx --env-file=.env.local scripts/persona-batch.ts --batch=batch-19 --interviewer=haiku55-thinking-off --personas=1,2,3 --cap=65 [--pace=fast] [--new-version=v2] [--rerun] [--no-score] [--score=1,3] [--dry]
+//   npx tsx --env-file=.env.local scripts/persona-batch.ts --batch=batch-19 --interviewer=haiku55-thinking-off --personas=1,2,3 --cap=65 [--case=entry-001] [--pace=fast] [--new-version=v2] [--rerun] [--no-score] [--score=1,3] [--dry]
 //
 // Costs real money (≈ $0.77 per persona scored, ≈ $0.30 unscored). --dry prints the plan only.
 // --no-score: no run is scored (live-run --no-score; score one later with
@@ -22,6 +22,7 @@ import { liveRunArgs, findRunDir, scoresPersona, parseScoreIds } from '@/lib/eva
 import { gitInfo, codeDirty, codeChangedSince } from '@/lib/eval/git-info';
 import { SCORING_MODEL_ID } from '@/lib/models';
 import { PERSONAS } from './personas';
+import { getCaseById } from '@/lib/cases/loader';
 
 const arg = (n: string) => process.argv.find(a => a.startsWith(`--${n}=`))?.split('=')[1];
 const RUNS = 'Case Interview Runs/test runs';
@@ -39,8 +40,8 @@ function modelCheckOf(runDir: string): ModelCheck | null {
   } catch { return null; }
 }
 
-function spawnPersonaRun(e: PersonaEntry, pace: 'human' | 'fast', scored: boolean, env: NodeJS.ProcessEnv): { child: ChildProcess; promise: Promise<void> } {
-  const child = spawn('npx', ['tsx', '--env-file=.env.local', ...liveRunArgs(e, { pace, batch: BATCH, scored })], { env, stdio: ['ignore', 'pipe', 'pipe'] });
+function spawnPersonaRun(e: PersonaEntry, pace: 'human' | 'fast', scored: boolean, env: NodeJS.ProcessEnv, caseId: string): { child: ChildProcess; promise: Promise<void> } {
+  const child = spawn('npx', ['tsx', '--env-file=.env.local', ...liveRunArgs(e, { pace, batch: BATCH, scored, caseId })], { env, stdio: ['ignore', 'pipe', 'pipe'] });
   return {
     child,
     promise: new Promise<void>(resolve => {
@@ -65,6 +66,9 @@ async function main() {
   const pace = arg('pace') === 'fast' ? 'fast' : 'human';
   const scoring = { noScore: process.argv.includes('--no-score'), scoreIds: parseScoreIds(arg('score'), personaIds) };
   const scored = (id: number) => scoresPersona(id, scoring);
+  // The batch's case (12 Oct): frozen with the models, so a batch runs one case.
+  const caseId = arg('case') ?? 'prof-001';
+  getCaseById(caseId);
   assertBatchOpen(BATCH);
   const interviewer = evalInterviewer(arg('interviewer'));
   // The children read their interviewer from INTERVIEWER_EVAL_CONFIG only.
@@ -77,9 +81,10 @@ async function main() {
     newVersion: arg('new-version'), rerun: process.argv.includes('--rerun'),
     hashes: { bands: fileHash('evals/persona-bands.json'), severity: fileHash('evals/severity.md') },
     date: new Date(), batch: BATCH,
-    models: { interviewer: interviewer.model, interviewerConfig: interviewer.config, scoring: SCORING_MODEL_ID },
+    models: { interviewer: interviewer.model, interviewerConfig: interviewer.config, scoring: SCORING_MODEL_ID, ...(caseId !== 'prof-001' ? { case: caseId } : {}) },
   });
   console.log(`[wave] ${wave}: ${entries.map(e => `#${e.runNumber}=persona ${e.personaId}${e.rerun ? ` (rerun ${e.rerun})` : ''}`).join(', ')} · version ${manifest.version} · commit ${git.commit.slice(0, 7)} · pace ${pace}`);
+  console.log(`[wave] case: ${caseId}`);
   console.log(`[wave] interviewer: ${interviewer.config} = ${interviewer.model} (thinking ${interviewer.thinking}${interviewer.effort ? `, effort ${interviewer.effort}` : ''}, fallbacks ${interviewer.fallbacks ? 'on' : 'off'})`);
   const scoredRuns = entries.filter(e => scored(e.personaId));
   console.log(`[wave] scored: ${scoredRuns.length ? scoredRuns.map(e => `#${e.runNumber}=persona ${e.personaId}`).join(', ') : 'none'} · unscored: ${entries.length - scoredRuns.length}`);
@@ -90,7 +95,7 @@ async function main() {
   saveManifest(BATCH_DIR, manifest);
 
   const env = { ...process.env, INTERVIEWER_EVAL_CONFIG: interviewer.config, LLM_BUDGET_USD: String(cap), LLM_BUDGET_FILE: path.resolve(BATCH_DIR, 'budget-ledger.jsonl') };
-  const spawned = entries.map(e => spawnPersonaRun(e, pace, scored(e.personaId), env));
+  const spawned = entries.map(e => spawnPersonaRun(e, pace, scored(e.personaId), env, caseId));
   const children = spawned.map(s => s.child);
   let sigintCount = 0;
 
