@@ -102,6 +102,12 @@ hyphens.
 
 ## `mathSteps` double as the live recompute backstop
 
+**`stepFlagsLive` (13 Oct).** A case's step flags only probe the candidate
+once its step binding is validated: run the deterministic checks over its
+transcripts and get zero false flags. Until then leave `stepFlagsLive` out —
+its step flags are logged (`recompute_report_only`) and never spoken. Set it
+to `true` only with that validation recorded (prof-001 is the only case).
+
 `docs/interviewer-behavior.md` Rule 2/14's deterministic recompute check
 (`lib/orchestrator/recompute.ts`) and the judge's math grading
 (`lib/scoring/judge.ts`'s `DETERMINISTIC MATH CHECK RESULTS` section) both run

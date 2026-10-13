@@ -247,6 +247,12 @@ export const CaseSchema = z.object({
   // of revenue sum to the cost base), and the cost lines that may be treated
   // as variable with volume for a break-even — each set an accepted answer.
   // Without it the case has no pricing check.
+  // Step flags live (Lorenzo, 13 Oct, after Larkspur's false corrections):
+  // a case's deterministic step flags probe the candidate only once its step
+  // binding is validated — zero false flags on its transcripts. Until then
+  // (absent or false) they are report-only: logged, never a probe or a
+  // correction. Only prof-001 is validated.
+  stepFlagsLive: z.boolean().optional(),
   pricingModel: z.object({
     costItems: z.array(z.string()).min(1),
     variableSets: z.array(z.array(z.string()).min(1)).min(1),

@@ -424,6 +424,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       span: f.span, attempt: recomputeAttempts[f.stepId], claim: f.claim ?? null,
     } });
   }
+  checks.record('recompute_report_only', candidateMath.reportOnly.length > 0, 'step flags on a case whose binding is not validated — logged, not raised', {
+    flags: candidateMath.reportOnly.map(f => ({ stepId: f.stepId, candidateValue: f.candidateValue, expected: f.expected, span: f.span })),
+  });
   checks.record('recompute', recomputeFlags.length > 0, 'mismatch flagged', {
     flags: recomputeFlags.map(f => ({ kind: f.kind ?? 'step', stepId: f.stepId, candidateValue: f.candidateValue, expected: f.expected, errorClass: f.errorClass, span: f.span, claim: f.claim ?? null })),
   });

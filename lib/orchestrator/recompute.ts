@@ -396,10 +396,12 @@ export type MathCaseData = {
   shareBases?: ShareBase[];
   dataLedger: { id: string; value: string; timeframes?: Record<string, string> }[];
   pricingModel?: { costItems: string[]; variableSets: string[][]; revenueItem?: string };
+  stepFlagsLive?: boolean;
 };
 
 export type CandidateMath = {
   flags: RecomputeFlag[];
+  reportOnly: RecomputeFlag[];  // step flags of a case whose binding isn't validated: logged only (Lorenzo, 13 Oct)
   verified: VerifiedFigure[];
   arithmetic: ArithmeticClaim[];
   units: { flags: UnitFlag[]; verified: UnitVerified[] };
@@ -414,7 +416,10 @@ export type CandidateMath = {
 // (challenge-marks.ts) both read it.
 export function checkCandidateMath(candidateText: string, caseData: MathCaseData, revealedIds: Iterable<string>): CandidateMath {
   const ids = [...revealedIds];
-  const stepFlags = checkRecomputeForTurn(candidateText, caseData.mathSteps, ids);
+  const allStepFlags = checkRecomputeForTurn(candidateText, caseData.mathSteps, ids);
+  // Report-only until the case's step binding is validated (Larkspur: 19 false corrections).
+  const stepFlags = caseData.stepFlagsLive ? allStepFlags : [];
+  const reportOnly = caseData.stepFlagsLive ? [] : allStepFlags;
   const arithmetic = checkStatedArithmetic(candidateText);
   const units = checkNestedConversions(candidateText, { bases: caseData.shareBases ?? [], items: caseData.dataLedger, revealedIds: ids });
   const pm = pricingValues(caseData, new Set(ids));
@@ -422,7 +427,7 @@ export function checkCandidateMath(candidateText: string, caseData: MathCaseData
   const flags = [
     ...stepFlags,
     ...flagsFromUnitCheck(units.flags),
-    ...flagsFromArithmetic(arithmetic).filter(a => !stepFlags.some(f => f.candidateValue === a.candidateValue)),
+    ...flagsFromArithmetic(arithmetic).filter(a => !allStepFlags.some(f => f.candidateValue === a.candidateValue)),
   ];
   flags.push(...flagsFromPricing(pricing).filter(p => !flags.some(f => f.candidateValue === p.candidateValue)));
   const periods = periodFigures(caseData, ids);
@@ -439,7 +444,7 @@ export function checkCandidateMath(candidateText: string, caseData: MathCaseData
     ...stepVerified,
     ...verifiedFromChecks(arithmetic, units.verified, pricing).filter(v => !stepVerified.some(x => Math.abs(x.value - v.value) < 1e-9)),
   ].filter(v => !flagged(v));
-  return { flags, verified, arithmetic, units, pricing };
+  return { flags, reportOnly, verified, arithmetic, units, pricing };
 }
 
 // Every figure of one candidate message the checks verify — the live turn's

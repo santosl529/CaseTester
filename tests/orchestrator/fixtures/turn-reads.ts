@@ -12,6 +12,7 @@ export function readsFixture(opts: {
   revealed?: string[];
   flags?: Record<string, unknown>;
   extraTurns?: { role: 'interviewer' | 'candidate'; text: string }[];
+  caseId?: string;
 }): TurnReads {
   const startedAt = new Date(Date.now() - (opts.elapsedMs ?? 300_000));
   const base = [
@@ -22,7 +23,7 @@ export function readsFixture(opts: {
   ];
   return {
     session: {
-      id: 's1', userId: 'u1', caseId: 'prof-001', phase: opts.phase, elapsedMs: 0,
+      id: 's1', userId: 'u1', caseId: opts.caseId ?? 'prof-001', phase: opts.phase, elapsedMs: 0,
       phaseStartedAt: startedAt, status: opts.status ?? 'active', abandonPhase: null, startedAt, completedAt: null,
       flagsJsonb: { conduct: { warnings: opts.warnings ?? 0, ...(opts.distressOffered ? { distressOffered: true } : {}) }, ...opts.flags },
       coverageJsonb: null,

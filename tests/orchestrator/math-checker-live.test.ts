@@ -286,7 +286,7 @@ describe('the background check', () => {
     caseData: prof, candidateTurnIndex: 3, config: { model: 'claude-sonnet-5-5', effort: 'medium' as const },
     input: { revealedIds: COSTS, shownExhibitIds: [], transcript: [], message: 'A 10% price increase recovers about 5 points.' },
     vet: { caseData: prof, revealedIds: COSTS, shownExhibitIds: [], candidateTexts: ['A 10% price increase recovers about 5 points.'] },
-    codeMath: { flags: [], verified: [], arithmetic: [], units: { flags: [], verified: [] }, pricing: [] },
+    codeMath: { flags: [], reportOnly: [], verified: [], arithmetic: [], units: { flags: [], verified: [] }, pricing: [] },
   };
   const raw = (): CheckerClaim => { const { flag: _f, probeLine: _p, correctionLine: _c, correctionFigure: _g, pointerLine: _q, vetNotes: _v, ...c } = vetted(); void _f; void _p; void _c; void _g; void _q; void _v; return { ...c, probe: 'How did you get 5 points?' }; };
 

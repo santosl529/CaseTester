@@ -119,6 +119,7 @@
       }
     }
   ],
+  "stepFlagsLive": true,
   "mathSteps": [
     {
       "id": "profit_margin_now",
