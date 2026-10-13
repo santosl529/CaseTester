@@ -334,7 +334,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
         question = waiverQuestion(WAIVER_LEAD.awaiting); modelQuestion = '';
         ptAction = 'waived';
       } else if (pt.awaitingReplies === 1) {
-        question = reaskProbe(ptPrev.intents, decisions.gatedIds.length > 0); modelQuestion = '';
+        question = reaskProbe(ptPrev.intents, decisions.gatedIds.length > 0, lastAnswered); modelQuestion = '';
         pt.reasks += 1;
         pt.followUps = [...(ptPrev.followUps ?? []), question];
         ptAction = 'reask';

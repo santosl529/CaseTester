@@ -246,10 +246,19 @@ export function decideData(p: {
   // What a promise says: an ask worded as an item's catalog label is said as the
 // item — its authored spoken name, else spokenItemName.
   const norm = (x: string) => x.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  // A group of held items (Lorenzo, 13 Oct; Tyler af62e2e2 t4: "COGS as a
+  // percent of revenue, year one versus year three, labor …, year one versus
+  // year three, and …") is said by each item's spoken name, once — not the
+  // ask's own wording per item. Recorded here, applied when the line holds 2+.
+  const spokenFor = new Map<string, string>();
   const promised = (r: DeclaredRequest, ids: string[]) => {
     const item = ids.map(id => itemById.get(id)).find(i => i !== undefined && norm(i.label) === norm(r.what));
-    return item ? item.spoken ?? spokenItemName(item.label) : r.what;
+    const what = item ? item.spoken ?? spokenItemName(item.label) : r.what;
+    const only = ids.length === 1 ? itemById.get(ids[0]) : undefined;
+    if (only) spokenFor.set(what, only.spoken ?? spokenItemName(only.label));
+    return what;
   };
+  const asGroup = (whats: string[]) => (whats.length > 1 ? [...new Set(whats.map(w => spokenFor.get(w) ?? w))] : whats);
   // Waiting on the release order: an item only an exhibit not yet ready shows, or that exhibit itself.
   const orderHeld = (id: string) => (itemById.has(id) ? heldForOrder(id, p.exhibits, p.shownExhibitIds, p.ledger, p.stagesOut)
     : exhibitById.has(id) && !p.shownExhibitIds.has(id) && id !== exhibit?.id && !ready(id));
@@ -314,7 +323,7 @@ export function decideData(p: {
 
   // Earlier asks first, so the lead-in introduces them together.
   releases.sort((a, b) => Number(b.earlier) - Number(a.earlier));
-  return { releases, restates, exhibit, refusals, defers, gateDefers, unmappedDefer, offers, requests: decided };
+  return { releases, restates, exhibit, refusals, defers: asGroup(defers), gateDefers: asGroup(gateDefers), unmappedDefer, offers, requests: decided };
 }
 
 // An item spoken mid-sentence starts lower-case (smoke run 9 Oct: "I don't

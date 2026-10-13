@@ -235,11 +235,15 @@ export const PT_REPLY_LIMIT = 3;
 export const PT_NOT_ASKED_LIMIT = 5;
 
 // One re-ask of the unanswered probe, naming the deferral when data is held.
-export function reaskProbe(intents: ProbeIntent[] | undefined, dataHeld = true): string {
+// "I'd like your answer on the structure" only when they didn't answer
+// (Lorenzo, 13 Oct; Tyler af62e2e2 t4 and Jasmine 35897f4a t4 had answered —
+// the judge wanted more): a substantive reply gets the next probe plainly.
+export function reaskProbe(intents: ProbeIntent[] | undefined, dataHeld = true, replied = false): string {
   const intent = intents?.[0] ?? 'mece';
   const ask = intent === 'prioritize' ? 'which branch would you start with, and why?'
     : intent === 'robustness' ? 'what result would break this structure?'
       : 'what might be missing from your structure?';
+  if (replied && dataHeld) return `One more on your structure before I share that data: ${ask}`;
   return dataHeld ? `Before I share that data, I'd like your answer on the structure: ${ask}` : `Coming back to your structure: ${ask}`;
 }
 

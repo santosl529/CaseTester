@@ -7,7 +7,7 @@ import {
   probeIntents, buildProbeJudgePrompt, parseProbeJudge, judgeProbeAnswer, isGatedItem, exhibitIsGated, probeAsHeard,
   pickFallbackQuestion, INITIAL_PRESSURE_TEST, FIGURES_QUESTIONS, NO_FIGURES_QUESTIONS,
   ANALYSIS_QUESTIONS, BRAINSTORM_QUESTIONS, LATE_QUESTIONS, TIME_PRESSURE_QUESTIONS, HYPOTHESIS_QUESTIONS,
-  buildStructureJudgePrompt, parseStructureJudge, judgeStructureGiven, CODE_STRUCTURE_ASKS,
+  buildStructureJudgePrompt, parseStructureJudge, judgeStructureGiven, CODE_STRUCTURE_ASKS, reaskProbe,
 } from '@/lib/orchestrator/pressure-test';
 import { askIntents } from '@/lib/orchestrator/ask-intent';
 import { createLedger } from '@/lib/orchestrator/data-ledger';
@@ -219,5 +219,14 @@ describe('fallback wording is case-neutral (13 Oct)', () => {
     for (const q of CODE_STRUCTURE_ASKS) expect(q).not.toMatch(/\bproblem\b/i);
     // as before the rewording: the second reads as a structure ask to the loop guard, the first doesn't
     expect(CODE_STRUCTURE_ASKS.map(q => askIntents(q))).toEqual([[], ['structure']]);
+  });
+});
+
+// Lorenzo, 13 Oct (Tyler af62e2e2 t4, Jasmine 35897f4a t4: they had answered).
+describe('the re-ask', () => {
+  it('asks for "your answer on the structure" only when they gave none', () => {
+    expect(reaskProbe(['mece'], true, false)).toBe("Before I share that data, I'd like your answer on the structure: what might be missing from your structure?");
+    expect(reaskProbe(['mece'], true, true)).toBe('One more on your structure before I share that data: what might be missing from your structure?');
+    expect(reaskProbe(['prioritize'], false, true)).toBe('Coming back to your structure: which branch would you start with, and why?');
   });
 });

@@ -575,7 +575,19 @@ describe('promises say the item, not its catalog label', () => {
       req({ what: 'labor as a percent of revenue, both years', itemIds: ['labor_pct'] }),
       req({ what: 'overhead and rent as a percent of revenue, both years', itemIds: ['overhead_pct'] }),
     ].map(r => ({ ...r, respond: 'defer' as const })), gateHeld: new Set(['COGS as a percent of revenue, both years', 'labor as a percent of revenue, both years', 'overhead and rent as a percent of revenue, both years']) }));
-    expect(renderDataLines(d, 's')).toEqual(["I'll share COGS, labor, and overhead and rent as a percent of revenue once we've settled your structure."]);
+    // Lorenzo, 13 Oct: a group of held items is said by the items' spoken names, once.
+    expect(renderDataLines(d, 's')).toEqual(["I'll share COGS, labor and overhead as a percent of revenue once we've settled your structure."]);
+  });
+
+  it("Tyler af62e2e2 t4: the ask's period wording isn't repeated per item — each item's spoken name, once", () => {
+    const whats = ['COGS as a percent of revenue, year one versus year three', 'labor as a percent of revenue, year one versus year three', 'overhead and rent as a percent of revenue, year one versus year three'];
+    const d = decideData(pb({ requests: whats.map((what, i) => ({ ...req({ what, itemIds: [['cogs_pct', 'labor_pct', 'overhead_pct'][i]] }), respond: 'defer' as const })), gateHeld: new Set(whats) }));
+    expect(renderDataLines(d, 's')).toEqual(["I'll share COGS, labor and overhead as a percent of revenue once we've settled your structure."]);
+  });
+
+  it('a single held ask keeps its own words', () => {
+    const d = decideData(pb({ requests: [{ ...req({ what: 'the cost breakdown as a percent of revenue', itemIds: ['cogs_pct'] }), respond: 'defer' as const }], gateHeld: new Set(['the cost breakdown as a percent of revenue']) }));
+    expect(renderDataLines(d, 's')).toEqual(["I'll share the cost breakdown as a percent of revenue once we've settled your structure."]);
   });
 
   it.each([

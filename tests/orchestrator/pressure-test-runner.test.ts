@@ -104,6 +104,16 @@ describe('pressure-test state', () => {
     expect(heard).toMatch(/I'll share COGS, labor and overhead as a percent of revenue once we've settled your structure\./);
   });
 
+  // Lorenzo, 13 Oct (Tyler af62e2e2 t4): a substantive reply the judge didn't count is still a reply.
+  it('a substantive reply the judge did not count: the re-ask goes out without "I\'d like your answer"', async () => {
+    resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
+    judgeQueue.push({ answered: false });
+    const heard = await turn('Roughly, yes: revenue and cost are exclusive and together make up profit, and external factors flow through both, so I would fold them in. Within costs, COGS versus operating versus overhead is clean.',
+      T({ move: 'pressure_test', requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'Is that MECE — what’s missing?' }));
+    expect(heard).toMatch(/One more on your structure before I share that data: what might be missing from your structure\?/);
+    expect(heard).not.toMatch(/I'd like your answer/);
+  });
+
   it('is satisfied by a partial answer to a compound probe, and the held data is then released', async () => {
     resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE, and which branch first?', intents: ['mece', 'prioritize'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
     judgeQueue.push({ answered: true });
@@ -177,7 +187,7 @@ describe('bounded fallbacks', () => {
       judgeQueue.push({ answered: false });
       heard.push(await turn(line, T({ move: 'pressure_test', requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'Is that MECE — what’s missing?' })));
     }
-    expect(heard[0]).toMatch(/Before I share that data/);
+    expect(heard[0]).toMatch(/Before I share that data, I'd like your answer on the structure/);   // a data ask is no answer
     expect(heard[1]).toMatch(/Let me make it concrete/);
     expect(heard[2]).toMatch(/Let's leave the structure there\./);
     // The waiver releases what was held: the three cost lines, as their exhibit (a group ask, 12 Oct).
