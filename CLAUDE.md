@@ -30,7 +30,7 @@ See the PRD §3 for the proposed layout (`/lib/orchestrator`, `/lib/agent`, `/li
 ## Spec
 - The approved technical PRD is at `prd-voice-ai-mock-case-technical.md`, with the product PRD (`prd-voice-ai-mock-case.md`) as the source of intent. Treat the technical PRD as the build source of truth.
 - Build against it. Flag gaps or ambiguities to me rather than filling them in unilaterally.
-- After changes that affect scope or behavior, flag what in the PRD needs updating — don't edit it without my go-ahead.
+- The technical PRD is a living document: it shows the build as it is, including fixes and decisions. After changes that affect scope or behavior, update the affected PRD sections in the same piece of work (new checks, case-format fields, behavior rules, model choices), and say in your report what you changed. Record a decision as made only once I've made or approved it; until then, mark it in the PRD as proposed, awaiting my ruling.
 - Follow the build order in PRD §12. Each step must ship and pass its gate before the next.
 
 ## Conventions
@@ -41,7 +41,7 @@ See the PRD §3 for the proposed layout (`/lib/orchestrator`, `/lib/agent`, `/li
 - Case content is human-authored JSON in `/cases`, validated against a zod schema on load — reject malformed cases at boot.
 - Deterministic checks (math tolerance, data-leak audit) are computed in code, never delegated to the LLM where ground truth exists.
 - Always read PRD/progress.md before working on new task
-- Always update progress.md after finishing work
+- Always update progress.md, and the PRD sections the work touched, after finishing work
 
 ## Supabase
 - Client-side: `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (publishable key).
