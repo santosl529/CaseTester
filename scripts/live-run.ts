@@ -60,7 +60,7 @@ import { evalInterviewer, checkInterviewerModels, type ModelCheck } from '@/lib/
 const CANDIDATE_MODEL = 'claude-opus-5';
 // human pacing on a 20-minute clock can exceed 30 turns; --max-turns=N for a smoke run
 const MAX_TURNS = Number(process.argv.find(a => a.startsWith('--max-turns='))?.split('=')[1] ?? 60);
-const MAX_WALL_MS = 30 * 60_000; // the case clock is 20 minutes; this only guards a hang
+const MAX_WALL_MS = 40 * 60_000; // the case clock is 20–25 minutes (case pacing.totalMs); this only guards a hang
 const RUNS_DIR = path.resolve('Case Interview Runs');
 
 // Human pacing. The simulator replies in ~7s, so fast runs finish every stage

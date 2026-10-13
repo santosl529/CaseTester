@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getCaseById } from '@/lib/cases/loader';
-import { TOTAL_CASE_MS } from '@/lib/orchestrator/state-machine';
+import { caseTotalMs } from '@/lib/orchestrator/state-machine';
 
 // Pre-flight ledger consistency gate (docs/case-authoring.md).
 // Every case needs a block here reconciling its prompt figures, data ledger,
@@ -125,7 +125,7 @@ describe('case ledger consistency: prof-001', () => {
     const budgets = c.pacing?.phaseBudgetsMs;
     if (!budgets) return; // pacing config is optional; nothing to reconcile
     const sum = Object.values(budgets).reduce((a, b) => a + (b ?? 0), 0);
-    expect(sum).toBe(TOTAL_CASE_MS);
+    expect(sum).toBe(caseTotalMs(c));
   });
 });
 
@@ -209,7 +209,7 @@ describe('every case', () => {
 
       it('phase budgets, if present, sum to the total case time', () => {
         const b = c.pacing?.phaseBudgetsMs;
-        if (b) expect(Object.values(b).reduce((a, x) => a + (x ?? 0), 0)).toBe(TOTAL_CASE_MS);
+        if (b) expect(Object.values(b).reduce((a, x) => a + (x ?? 0), 0)).toBe(caseTotalMs(c));
       });
 
       it('analysis core and math-step inputs name ledger items', () => {

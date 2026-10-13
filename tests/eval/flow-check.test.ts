@@ -122,3 +122,21 @@ describe('required exhibits are owed one by one (13 Oct)', () => {
     expect(checkFlowRun(run([bs(all), rec(all), risk(all), close(all)]), lark).map(f => `${f.rule}:${f.sub}`)).toEqual([]);
   });
 });
+
+// Lorenzo, 13 Oct (Larkspur review, item 7): a case's own clock — at 20.6
+// minutes a 20-minute case is late (no D7), a 25-minute case is not.
+describe('the case clock', () => {
+  it('a recommendation ask at 20.6 min with the brainstorm owed is D7 only on a 25-minute case', () => {
+    const turns = [REC({ elapsedMs: 20.6 * 60_000 }), T("We've covered everything I wanted to. Thanks for working through the case — your written report will follow.", { kind: 'close', revealedBefore: CORE, elapsedMs: 20.7 * 60_000 })];
+    const base = getCaseById('prof-001');
+    expect(checkFlowRun(run(turns), base as never).map(f => `${f.rule}:${f.sub}`)).not.toContain('D7:brainstorm');
+    expect(checkFlowRun(run(turns), { ...base, pacing: { ...base.pacing, totalMs: 25 * 60_000 } } as never).map(f => `${f.rule}:${f.sub}`)).toContain('D7:brainstorm');
+  });
+  it('a close at 21 min without a recommendation ask is an early close only on a 25-minute case', () => {
+    const close = T("We've covered everything I wanted to. Thanks for working through the case — your written report will follow.", { kind: 'close', revealedBefore: CORE, elapsedMs: 21 * 60_000 });
+    const base = getCaseById('prof-001');
+    const subs = (cc: unknown) => checkFlowRun(run([BS, close]), cc as never).filter(f => f.rule === 'CLOSE').map(f => f.sub);
+    expect(subs(base)).toEqual([]);
+    expect(subs({ ...base, pacing: { ...base.pacing, totalMs: 25 * 60_000 } })).toEqual(['no_recommendation']);
+  });
+});

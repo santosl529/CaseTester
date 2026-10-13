@@ -149,6 +149,7 @@ const RubricAnchorSchema = z.object({
 const PacingSchema = z.object({
   phaseBudgetsMs: z.partialRecord(PhaseSchema, z.number().positive()).optional(),
   timeWarningMs: z.number().positive().optional(), // default 90s (text), see DEFAULT_TIME_WARNING_MS
+  totalMs: z.number().positive().optional(),        // the case clock; default 20 min (state-machine.ts caseTotalMs)
 });
 
 export const CaseSchema = z.object({

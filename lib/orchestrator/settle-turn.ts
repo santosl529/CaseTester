@@ -24,7 +24,7 @@ import { requestSentences } from './request-signal';
 import { isUnderTimePressure } from './pacing';
 import { rungName, classifyRungDelivery, revertUndeliveredRung } from './stall';
 import { logEvent } from '@/lib/analytics';
-import { TOTAL_CASE_MS, type Phase } from './state-machine';
+import { caseTotalMs, type Phase } from './state-machine';
 import { toCheckEventRows } from './check-log';
 import { pickScript, STAGE_EXHIBIT_QUESTIONS } from '@/lib/agent/prompts/scripts';
 import { BLOCKED_CLOSE_PROBES, asksForConclusion, analysisAskLine } from './spoken-close';
@@ -174,6 +174,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   const { sessionId, userId, candidateText, now, nextTurnIndex, currentPhase, flags, conduct, checks, later, turnStartMs } = ctx;
   const { caseData, ledger, elapsedMs, recomputeFlags, recomputeAttempts, verifiedNow, verifiedPrev, explainProbedBefore,
     candidateFigures, priorStall, stallDecision, kind } = state;
+  const TOTAL_CASE_MS = caseTotalMs(caseData);  // this case's clock
   const { turn, modelCallStart, modelLatencyMs, distressWaitMs, turnUsage } = out;
   const seed = `${sessionId}:${nextTurnIndex}`;
   const codeWritten = CODE_WRITTEN.has(kind);

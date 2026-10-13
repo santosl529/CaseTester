@@ -23,7 +23,7 @@ import { caseFinished, hasAssessableEvidence } from './session-outcome';
 import { explicitRequestCues } from './request-signal';
 import { judgeProbeAnswer, judgeStructureGiven, probeAsHeard, INITIAL_PRESSURE_TEST, type PressureTestState } from './pressure-test';
 import { logEvent } from '@/lib/analytics';
-import { TOTAL_CASE_MS, type Phase } from './state-machine';
+import { caseTotalMs, type Phase } from './state-machine';
 import { stageGateOpen, endAllowed, recommendationUnresolved, asksRecommendationAsk, asksForConclusion } from './spoken-close';
 import { stagesFromTurns, type TurnMove } from './progress';
 import { CheckLog } from './check-log';
@@ -355,6 +355,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const { sessionId, candidateText, now, currentPhase, flags, checks } = ctx;
   const { repliedToDistressOffer, conductRedirectHint } = extra;
   const caseData = getCaseById(session.caseId);
+  const TOTAL_CASE_MS = caseTotalMs(caseData);  // this case's clock
 
   // Batch 7, Maya: exhibit-a shown four times — the model isn't told what it
   // already showed (system.ts marks these).

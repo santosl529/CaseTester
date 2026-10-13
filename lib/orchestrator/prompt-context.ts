@@ -4,7 +4,7 @@
 import type { PromptContext } from '@/lib/agent/prompts/system';
 import type { ModelPlan } from './plan-turn';
 import { revealedValues, unrevealedItems } from './data-ledger';
-import { TOTAL_CASE_MS } from './state-machine';
+import { caseTotalMs } from './state-machine';
 import { turnNoteFor } from './turn-note';
 import { exhibitReady } from './data-decisions';
 import { brainstormAsks, brainstormRequired } from './brainstorm';
@@ -21,7 +21,7 @@ export function promptContextFor(plan: ModelPlan): PromptContext {
       ...(!state.shownExhibitIds.has(e.id) && !exhibitReady(e, caseData.exhibits, state.shownExhibitIds, ledger, state.stagesOut) ? { notYet: true } : {}) })),
     advancedLastTurn: Boolean(ctx.flags.advancedLastTurn),
     elapsedMs: state.elapsedMs,
-    totalMs: TOTAL_CASE_MS,
+    totalMs: caseTotalMs(caseData),
     phaseBudgetsMs: state.phaseBudgetsMs,
     recomputeHint: [state.recomputeHint, state.verifiedHint, state.kind === 'model' ? state.misquoteHint : ''].filter(Boolean).join('\n\n') || undefined,
     stallGuidance: stallDecision.guidance,

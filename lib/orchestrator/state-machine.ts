@@ -11,6 +11,11 @@ export type Phase = typeof PHASES[number];
 // 20 minutes (raised from 5 on 2026-09-15): a human-paced run showed 5 minutes
 // allows only ~3 typed candidate replies. Case pacing budgets must sum to this.
 export const TOTAL_CASE_MS = 20 * 60 * 1000;
+// A case's own clock (Lorenzo, 13 Oct: a case where 2+ runs close owing a
+// required stage gets 25 minutes — Larkspur). Default: TOTAL_CASE_MS.
+export function caseTotalMs(c: { pacing?: { totalMs?: number } | null }): number {
+  return c.pacing?.totalMs ?? TOTAL_CASE_MS;
+}
 
 export function nextPhase(current: Phase): Phase | null {
   const idx = PHASES.indexOf(current);

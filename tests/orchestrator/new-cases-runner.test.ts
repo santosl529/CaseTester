@@ -71,6 +71,7 @@ const { runTurn } = await import('@/lib/orchestrator/session-runner');
 const T = (over: Partial<ModelTurn> = {}): ModelTurn => ({ move: 'analysis', requests: [], exhibit: null, rescueItem: null, say: '', question: 'What would you look at next?', ...over });
 const PT_SATISFIED = { pressureTest: { state: 'satisfied', reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } };
 
+// prof-002 runs a 25-minute clock (Lorenzo, 13 Oct): its time-pressure and time-up minutes sit 5 later.
 function seed(p: { caseId: string; phase: string; flags?: Row; revealed?: string[]; shown?: string[]; elapsedMin?: number; coverage?: Row | null; turns?: { role: string; text: string }[] }) {
   const startedAt = new Date(Date.now() - (p.elapsedMin ?? 8) * 60_000);
   const turns = p.turns ?? [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'Revenue and costs.' }, { role: 'interviewer', text: 'Go on.' }];
@@ -136,7 +137,7 @@ describe('the recommendation ask does not force out data still waiting on the or
   // Under time pressure (no required-exhibit hold): Exhibit 2 goes out with the ask, Exhibit 3's data stays waiting.
   it("an open ask for the new-route plan stays held at code's recommendation ask while Exhibit 2 isn't out", async () => {
     const ALL_COVERED = { structure: 90, quantitative: 90, dataExhibit: 90, judgment: 90, creativity: 90, synthesis: 90, communication: 90, pushback: 90 };
-    seed({ caseId: 'prof-002', phase: 'ANALYSIS', elapsedMin: 18.7, coverage: ALL_COVERED, shown: ['exhibit-1'],
+    seed({ caseId: 'prof-002', phase: 'ANALYSIS', elapsedMin: 23.7, coverage: ALL_COVERED, shown: ['exhibit-1'],
       revealed: ['route_results_lakeport', 'route_results_port_avery', 'lakeport_fare'],
       flags: { ...PT_SATISFIED, stageEvidence: {
         structure: { delivered: true, outcome: 'answered' }, pressure_test: { delivered: true, outcome: 'answered' }, analysis: { delivered: true, outcome: 'answered' },
@@ -265,7 +266,7 @@ describe('required exhibits (Lorenzo, 13 Oct)', () => {
   });
 
   it('under time pressure there is no hold: the next required exhibit goes out with the recommendation ask', async () => {
-    seed({ caseId: 'prof-002', phase: 'ANALYSIS', elapsedMin: 18.7, shown: ['exhibit-1'], revealed: CORE, flags: PT_SATISFIED });
+    seed({ caseId: 'prof-002', phase: 'ANALYSIS', elapsedMin: 23.7, shown: ['exhibit-1'], revealed: CORE, flags: PT_SATISFIED });
     const r = await say('So the fare cut explains it.', T({ move: 'recommendation', question: "What's your recommendation to the CEO?" }));
     expect(r.interviewerText).toMatch(/^Here's an exhibit: Hub–Lakeport.*\(\$\)\. .*recommendation to the CEO\?$/);   // the time warning is the ask here
     expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2']);
@@ -273,13 +274,13 @@ describe('required exhibits (Lorenzo, 13 Oct)', () => {
 
   it("…and with the model's own recommendation ask once the time warning has gone out", async () => {
     const LOW = { structure: 20, quantitative: 20, dataExhibit: 20, judgment: 20, creativity: 20, synthesis: 20, communication: 20, pushback: 20 };   // code doesn't ask
-    seed({ caseId: 'prof-002', phase: 'ANALYSIS', elapsedMin: 18.9, coverage: LOW, shown: ['exhibit-1'], revealed: CORE, flags: { ...PT_SATISFIED, timeWarningFired: true } });
+    seed({ caseId: 'prof-002', phase: 'ANALYSIS', elapsedMin: 23.9, coverage: LOW, shown: ['exhibit-1'], revealed: CORE, flags: { ...PT_SATISFIED, timeWarningFired: true } });
     const r = await say('So the fare cut explains it.', T({ move: 'recommendation', question: "What's your recommendation to the CEO?" }));
     expect(r.interviewerText).toMatch(/^Here's an exhibit: Hub–Lakeport.*\(\$\)\. What's your recommendation to the CEO\?$/);
   });
 
   it('not at time-up: the close is not held', async () => {
-    seed({ caseId: 'prof-002', phase: 'RECOMMENDATION', elapsedMin: 20.5, shown: ['exhibit-1', 'exhibit-2'], revealed: CORE, turns: TURNS, flags: RISKED() });
+    seed({ caseId: 'prof-002', phase: 'RECOMMENDATION', elapsedMin: 25.5, shown: ['exhibit-1', 'exhibit-2'], revealed: CORE, turns: TURNS, flags: RISKED() });
     const r = await say('The risk is ramp-up.');
     expect(r.ended).toBe(true);
     expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2']);

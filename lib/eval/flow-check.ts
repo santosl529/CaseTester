@@ -15,7 +15,7 @@
 //          start with" → "which one would you check first")
 import type { CorpusRun, CorpusTurn } from './run-corpus';
 import { asksForConclusion, asksBrainstorm, asksRiskQuestion, namesCandidateRecommendation, isClosingTurn, isReportAnswer, analysisAskLine } from '@/lib/orchestrator/spoken-close';
-import { TOTAL_CASE_MS } from '@/lib/orchestrator/state-machine';
+import { caseTotalMs } from '@/lib/orchestrator/state-machine';
 import { LOAD_SHED_REMAINING_MS } from '@/lib/orchestrator/pacing';
 import { CLOSE_SCRIPTS_BY_REASON, hasCloseCue } from '@/lib/agent/prompts/scripts';
 import { askIntents } from '@/lib/orchestrator/ask-intent';
@@ -23,7 +23,7 @@ import { brainstormAsks, brainstormRequired, asksCaseBrainstorm, type CaseBrains
 
 export type FlowFlag = { rule: 'D7' | 'STAGE' | 'CLOSE' | 'LOOP'; t: number; sub: string; text: string };
 
-type CaseLike = { exhibits: { id: string; required?: boolean }[]; analysisCore?: { items: string[]; minItems?: number; ask?: string }; format?: string } & CaseBrainstorm;
+type CaseLike = { exhibits: { id: string; required?: boolean }[]; analysisCore?: { items: string[]; minItems?: number; ask?: string }; format?: string; pacing?: { totalMs?: number } } & CaseBrainstorm;
 
 const questionOf = (t: CorpusTurn) => t.segments.filter(s => s.kind === 'question' || s.kind === 'scripted').map(s => s.text).join(' ')
   || t.segments.filter(s => s.kind !== 'data').map(s => s.text).join(' ');
@@ -64,8 +64,8 @@ export function checkFlowRun(run: CorpusRun, c: CaseLike): FlowFlag[] {
     // A close's wording carries its reason: time up, or a recommendation asked twice and not given.
     const closeReason = (Object.keys(CLOSE_SCRIPTS_BY_REASON) as (keyof typeof CLOSE_SCRIPTS_BY_REASON)[])
       .find(k => (CLOSE_SCRIPTS_BY_REASON[k] as readonly string[]).some(line => q.includes(line)));
-    const timeUp = (t.elapsedMs !== undefined && t.elapsedMs >= TOTAL_CASE_MS) || closeReason === 'time_up';
-    const late = t.elapsedMs !== undefined && TOTAL_CASE_MS - t.elapsedMs < LOAD_SHED_REMAINING_MS;
+    const timeUp = (t.elapsedMs !== undefined && t.elapsedMs >= caseTotalMs(c)) || closeReason === 'time_up';
+    const late = t.elapsedMs !== undefined && caseTotalMs(c) - t.elapsedMs < LOAD_SHED_REMAINING_MS;
     exhibitShown ||= t.shownBefore.length > 0 || t.exhibitNow !== null;
     for (const id of [...t.shownBefore, ...(t.exhibitNow ? [t.exhibitNow] : [])]) shownIds.add(id);
     if (closedAt !== null) { flags.push({ rule: 'CLOSE', t: t.t, sub: 'continues_after_close', text: q.slice(0, 200) }); closedAt = null; }
