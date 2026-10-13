@@ -219,6 +219,23 @@ export function recomputeAction(flag: RecomputeFlag, attempt: number, underTimeP
   return attempt >= 2 ? 'correct' : 'probe';
 }
 
+// Lorenzo, 13 Oct (Larkspur: 19 false "It's closer to X, not Y" from step
+// flags bound to the wrong step): no code-written correction of a computed
+// figure from a deterministic flag alone. A step, arithmetic or pricing flag
+// probes; past the probe it says nothing — the correction comes only through
+// the math checker (code's own figure, once the checker agrees and the input
+// is bound; math-checker.ts). A unit or period line restates units or a case
+// figure, so it stays code's.
+export function codeMayCorrect(flag: RecomputeFlag): boolean {
+  return flag.kind === 'unit';
+}
+
+// Whether the flag puts a line in the interviewer's mouth this turn.
+export function flagSpeaks(flag: RecomputeFlag, attempt: number, underTimePressure: boolean): boolean {
+  const action = recomputeAction(flag, attempt, underTimePressure);
+  return action === 'probe' || (action === 'correct' && codeMayCorrect(flag));
+}
+
 // The hint never carries the step description — it can hold unrevealed
 // ledger values (persona run 6caca9a1 read "$480M / 200 stores" out of it).
 // A derived figure appears only on a correction, and only because the flag's
@@ -234,7 +251,7 @@ export function formatRecomputeHint(
   for (const f of flags) {
     const attempt = opts.attempts?.[f.stepId] ?? 1;
     const action = recomputeAction(f, attempt, Boolean(opts.underTimePressure));
-    if (action === 'shed') continue;
+    if (action === 'shed' || !flagSpeaks(f, attempt, Boolean(opts.underTimePressure))) continue;
     if (f.kind === 'unit' && f.unit && action === 'probe') { lines.push(formatUnitFlagLine(f.unit)); continue; }
     if (f.kind === 'unit' && f.unit?.period) {
       lines.push(`- The candidate said ${f.candidateValue} in "${f.span}", applying a share from one year to the other year's base. This overrides the no-correction rule: say this in "say", once, as written — "${periodCorrection(f.unit)}" — then continue. No probe, no consolation, no figure of your own.`);

@@ -358,11 +358,14 @@ describe('a math error in the recommendation gets one probe before the case move
     expect(r.interviewerText).toBe('Before we wrap up — walk me through how you got to $20 million.');
   });
 
-  it('wrong again after a probe: the figure is supplied and the recommendation reopened once', async () => {
+  // Lorenzo, 13 Oct (Larkspur review, item 1): code never corrects a computed
+  // figure on its own — past the probe the case goes on; the math checker's
+  // agreed correction is the only one.
+  it('wrong again after a probe: no code correction, the turn goes on', async () => {
     seed({ phase: 'RECOMMENDATION', revealed: COSTS, flags: { ...SATISFIED, recomputeAttempts: { 'pricing:gain': 1 } } });
     recAsked();
-    const r = await say(REC, T({ move: 'risk' }));
-    expect(r.interviewerText).toMatch(/^It's closer to 8\.5 points of margin, not 5\. (Does that change your recommendation|Would that change your recommendation at all)\?$/);
+    const r = await say(REC, T({ move: 'risk', say: 'Mm-hm.', question: "What's the biggest risk to that?" }));
+    expect(r.interviewerText).toBe("Mm-hm. What's the biggest risk to that?");
   });
 
   it('a unit slip past its probe is corrected without a figure that depends on the year', async () => {

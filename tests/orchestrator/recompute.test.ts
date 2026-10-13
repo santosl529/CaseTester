@@ -105,16 +105,17 @@ describe('formatRecomputeHint (Rule 14 attempts, v4.3)', () => {
     expect(r.derivedValues).toEqual([]);
   });
 
-  it('second wrong statement: supply the figure and advance, quoting theirs', () => {
+  // Lorenzo, 13 Oct (Larkspur review, item 1): past the probe a step flag
+  // says nothing — the correction comes only through the math checker.
+  it('second wrong statement: no code correction, no derived figure', () => {
     const r = formatRecomputeHint([minor], { attempts: { b: 2 } });
-    expect(r.hint).toContain("It's closer to 76.8, not 60");
-    expect(r.derivedValues).toEqual(['76.8']);
+    expect(r.hint).toBe('');
+    expect(r.derivedValues).toEqual([]);
   });
 
-  it('time pressure: case-breaking corrected at once, minor shed', () => {
+  it('time pressure: nothing from code — case-breaking left to the checker, minor shed', () => {
     const r = formatRecomputeHint([cb, minor], { underTimePressure: true });
-    expect(r.hint).toContain("It's closer to 2.4, not 0.5");
-    expect(r.hint).not.toContain('60');
+    expect(r.hint).toBe('');
   });
 });
 
@@ -129,13 +130,14 @@ describe('flagsFromPricing (fact guards Phase 4)', () => {
     expect(flagsOf('A 10% price increase recovers about 8.5 points of margin.')).toEqual([]);
   });
 
-  it('the probe names the price claim, not the right figure; the second attempt corrects it', () => {
+  it('the probe names the price claim, not the right figure; past it code says nothing', () => {
     const [f] = flagsOf('A 10% price increase recovers about 5 points of margin.');
     const probe = formatRecomputeHint([f]).hint;
     expect(probe).toMatch(/Probe once/);
     expect(probe).toMatch(/a 10% price rise recovers 5 points of margin in .*sized that price move/);
     expect(probe).not.toContain('8.5');
-    expect(formatRecomputeHint([f], { attempts: { 'pricing:gain': 2 } }).hint).toContain("It's closer to 8.5, not 5");
+    // Past the probe: no code correction (Lorenzo, 13 Oct) — the checker's, if it agrees.
+    expect(formatRecomputeHint([f], { attempts: { 'pricing:gain': 2 } }).hint).toBe('');
   });
 });
 

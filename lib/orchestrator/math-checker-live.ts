@@ -242,7 +242,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const decisions: CheckerDecision[] = [];
   const flaggedFigures: number[] = [];
   const droppedStamps: CheckerPlan['droppedStamps'] = [];
-  const eligible: { id: string; n: number; c: VettedClaim; key: string; figs: number[] }[] = [];
+  const eligible: { id: string; n: number; c: VettedClaim; key: string; figs: number[]; codeProbed?: boolean }[] = [];
   const caseNumbers = caseNumbersOf(p.caseData, p.revealedIds);
   const keys: Record<string, CheckerKeyEntry> = { ...(p.keys ?? {}) };
   const closed = new Set(p.closed ?? []);
@@ -267,7 +267,10 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
         }
         return;
       }
-      if (codeFlag) {
+      // A code flag probes but never corrects (Lorenzo, 13 Oct): a claim it
+      // flagged still brings the checker's agreed correction — unless code
+      // corrected it as a misquote (an exact lookup).
+      if (codeFlag && (!c.correctionLine || codeFlag.key.startsWith('misquote:'))) {
         decisions.push(decision(id, v.candidateTurnIndex, c, 'dedupe', `the deterministic check flagged it (${codeFlag.key})`));
         handled.add(id);
         return;
@@ -296,7 +299,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       if (!keys[key]) keys[key] = { figures: idFigs, since: v.candidateTurnIndex };
       else keys[key] = { ...keys[key], figures: [...keys[key].figures, ...idFigs.filter(f => !keys[key].figures.some(x => same(f, x)))] };
       flaggedFigures.push(...figs);
-      eligible.push({ id, n: v.candidateTurnIndex, c, key, figs });
+      eligible.push({ id, n: v.candidateTurnIndex, c, key, figs, codeProbed: Boolean(codeFlag) });
     });
   }
   // One checker probe a turn, conclusion-changing first; none beside a
@@ -306,14 +309,15 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   let selected: CheckerSelection | null = null;
   const waiting = [...eligible];
   while (!selected && p.currentFlags.length === 0 && !p.codeLineThisTurn && waiting.length > 0) {
-    const { id, n, c, key } = waiting.shift()!;
+    const { id, n, c, key, codeProbed } = waiting.shift()!;
     if (closedNow.includes(key)) { decisions.push(decision(id, n, c, 'unresolved', 'its flag closed this turn', undefined, key)); handled.add(id); continue; }
     // Every probe of the error counts — code's, the checker's and the model's
     // own — since it was first stated (the stored counter, or the interviewer
     // turns that asked about its figures, whichever is more).
     const since = keys[key]?.since ?? n;
     const interviewerSince = p.turnRows.filter(t => t.role === 'interviewer' && t.turnIndex > since).map(t => t.text);
-    const probed = Math.max(p.attempts[key] ?? 0, probesOf(keys[key]?.figures ?? claimFigures(c), interviewerSince, p.candidateFigures));
+    // A claim code flagged was probed by code: it comes back only as the correction.
+    const probed = Math.max(p.attempts[key] ?? 0, probesOf(keys[key]?.figures ?? claimFigures(c), interviewerSince, p.candidateFigures), codeProbed ? 1 : 0);
     const attempt = probed + 1;
     const action = recomputeAction({ errorClass: c.changesConclusion ? 'case_breaking' : 'minor' } as RecomputeFlag, attempt, p.underTimePressure);
     if (action === 'shed') { decisions.push(decision(id, n, c, 'shed', 'minor, under time pressure (Rule 15)', undefined, key)); handled.add(id); continue; }

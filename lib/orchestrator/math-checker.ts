@@ -415,9 +415,13 @@ export function codeCorrection(c: CheckerClaim, at: { value: number; index: numb
         return `With ${set.map(id => lineName(ctx, id)).join(' and ')} varying with volume, ${articleFor(q.price!)} ${q.price}% price rise breaks even at about ${articleFor(x)} ${x}% volume loss, not ${bare}.`;
       }
       case 'step': {
-        const quantity = ctx.caseData.mathSteps.find(st => st.id === q.stepId)?.quantity?.replace(/\s*\([^)]*\)/g, '').trim();
+        const st = ctx.caseData.mathSteps.find(s => s.id === q.stepId) as { quantity?: string; unit?: string | string[] } | undefined;
+        const quantity = st?.quantity?.replace(/\s*\([^)]*\)/g, '').trim();
         if (!quantity) return null;
-        const closer = HAS_UNIT.test(theirs) ? theirs.replace(FIGURE, x) : `${x}${unit}`;
+        // Named in words, the figure as money is written (Lorenzo, 13 Oct: never a bare number).
+        const usd = (Array.isArray(st?.unit) ? st?.unit[0] : st?.unit) === 'usd';
+        const shown = Math.abs(at.value) >= 1000 ? at.value.toLocaleString('en-US', { maximumFractionDigits: 1 }) : x;
+        const closer = HAS_UNIT.test(theirs) ? theirs.replace(FIGURE, shown) : usd ? `$${shown}` : `${shown}${unit}`;
         return `${quantity[0].toUpperCase()}${quantity.slice(1)}${quantity.includes(',') ? ',' : ''} is about ${closer}, not ${bare}.`;
       }
       default: return null;

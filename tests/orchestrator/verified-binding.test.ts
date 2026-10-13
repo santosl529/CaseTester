@@ -143,13 +143,13 @@ describe('a period flag (Marisol t8) is corrected by the period fact, never a fi
 });
 
 describe('a break-even range (Tyler b21 t12) keeps both ends in what the interviewer says', () => {
-  it('probe and correction quote "7–8", not 7', async () => {
+  it('the probe quotes "7–8", not 7 (no code correction past it — Lorenzo, 13 Oct)', async () => {
     const { recMathLine, formatRecomputeHint } = await import('@/lib/orchestrator/recompute');
     const text = "The key risk is volume loss — with a 10% price increase we can afford to lose maybe 7–8% of volume before we're worse off.";
     const f = checkCandidateMath(text, prof, ALL).flags.find(x => x.stepId === 'pricing:breakeven')!;
     expect(f).toBeDefined();
     expect(recMathLine(f, 'probe')).toContain('a 10% price rise breaks even at a 7–8% volume loss');
-    expect(recMathLine(f, 'correct')).toBe("It's closer to 19.2% of volume, not 7–8.");
-    expect(formatRecomputeHint([f], { attempts: { [f.stepId]: 2 } }).hint).toContain('not 7–8.');
+    expect(formatRecomputeHint([f]).hint).toContain('a 10% price rise breaks even at a 7–8% volume loss');
+    expect(formatRecomputeHint([f], { attempts: { [f.stepId]: 2 } }).hint).toBe('');
   });
 });

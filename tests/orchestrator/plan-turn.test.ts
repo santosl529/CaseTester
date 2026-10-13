@@ -149,10 +149,11 @@ describe('planTurn pricing claims', () => {
     expect(s.flaggedFigures).toContain(5);
   });
 
-  it('wrong again after the probe: the figure is supplied (Rule 14)', () => {
+  it('wrong again after the probe: code says nothing — the correction is the checker\'s (Lorenzo, 13 Oct)', () => {
     const s = plan(WRONG, { flags: { recomputeAttempts: { 'pricing:gain': 1 } } });
-    expect(s.recomputeHint).toContain("It's closer to 8.5, not 5");
-    expect(s.derivedValueTexts).toContain('8.5');
+    expect(s.recomputeHint ?? '').not.toMatch(/closer to|RECOMPUTE FLAG/);
+    expect(s.derivedValueTexts).not.toContain('8.5');
+    expect(s.recomputeAttempts['pricing:gain']).toBe(2);
   });
 
   it('a right claim is a verified figure', () => {

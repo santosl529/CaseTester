@@ -60,6 +60,14 @@ describe('a landed verdict on a model turn', () => {
     expect(p.state.derivedValueTexts).toContain('8.5');
   });
 
+  // Lorenzo, 13 Oct (Larkspur review, item 1): a deterministic flag past its
+  // probe says nothing, so it doesn't hold the checker's correction back.
+  it('a silent deterministic flag on this message does not hold the checker\'s correction', () => {
+    const p = modelState(planTurn(withVerdict(analysis({ recomputeAttempts: { 'pricing:gain': 1, 'arith:58 / 42': 1 } }), [verdict(3)]), 'So 58 divided by 42 is 1.6.', deps()));
+    expect(p.state.recomputeHint).toContain('"A 10% price rise lifts margin about 8.5 points, not 5."');
+    expect(p.state.recomputeHint).not.toMatch(/RECOMPUTE FLAG/);
+  });
+
   it('held while code corrects a misquote this turn — one math line a turn', () => {
     const p = modelState(planTurn(withVerdict(analysis(), [verdict(3)]), "Revenue grew about 19% over the period, so volume is clearly healthy — that's a decent sign demand isn't fragile.", deps()));
     expect(p.state.misquote).not.toBeNull();

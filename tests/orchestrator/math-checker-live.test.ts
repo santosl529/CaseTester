@@ -164,21 +164,28 @@ describe('one checker probe per turn', () => {
   });
 });
 
+// Lorenzo, 13 Oct (Larkspur review, item 1): code's flag probes, never
+// corrects — a claim it flagged comes back only as the checker's agreed
+// correction (code's probe was the first attempt); without one it is a duplicate.
 describe('dedupe with the deterministic checks — one probe per claim', () => {
-  it('a code flag on the same message and key: dropped, logged', () => {
-    const p = planCheckerFlags(input({ rows: [verdictRow(3, [vetted()], { codeFlags: [{ key: 'pricing:gain', value: 5, span: 'recovers about 5 points' }] })] }));
-    expect(p.selected).toBeNull();
-    expect(p.decisions[0]).toEqual(expect.objectContaining({ outcome: 'dedupe' }));
-    expect(p.handledNow).toContain('3:0');
+  it('a code flag on the same message and key: dropped, logged — unless an agreed correction comes with it', () => {
+    const noCorrection = planCheckerFlags(input({ rows: [verdictRow(3, [vetted({ correctionLine: null, correctionFigure: null })], { codeFlags: [{ key: 'pricing:gain', value: 5, span: 'recovers about 5 points' }] })] }));
+    expect(noCorrection.selected).toBeNull();
+    expect(noCorrection.decisions[0]).toEqual(expect.objectContaining({ outcome: 'dedupe' }));
+    expect(noCorrection.handledNow).toContain('3:0');
+    const agreed = planCheckerFlags(input({ rows: [verdictRow(3, [vetted()], { codeFlags: [{ key: 'pricing:gain', value: 5, span: 'recovers about 5 points' }] })] }));
+    expect(agreed.selected).toMatchObject({ action: 'correct', attempt: 2, line: 'A 10% price rise lifts margin about 8.5 points, not 5.' });
   });
   it("a figure code corrected as a misquote in the message: dropped (replay: Tyler b19 \"revenue grew about 19%\")", () => {
     const tyler = vetted({ span: 'Revenue grew about 19% over the period', candidateValue: '19%', correctValue: 15, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
     const p = planCheckerFlags(input({ rows: [verdictRow(3, [tyler], { codeFlags: [{ key: 'misquote:revenue_growth', value: 19, span: 'Revenue grew about 19% over the period' }] })] }));
     expect(p.decisions[0].outcome).toBe('dedupe');
   });
-  it('a code flag on the same figure (another key): dropped', () => {
-    const p = planCheckerFlags(input({ rows: [verdictRow(3, [vetted()], { codeFlags: [{ key: 'arith:58 / 110', value: 5, span: 'about 5 points' }] })] }));
+  it('a code flag on the same figure (another key): never a second probe — the correction or nothing', () => {
+    const p = planCheckerFlags(input({ rows: [verdictRow(3, [vetted({ correctionLine: null, correctionFigure: null })], { codeFlags: [{ key: 'arith:58 / 110', value: 5, span: 'about 5 points' }] })] }));
     expect(p.decisions[0].outcome).toBe('dedupe');
+    const agreed = planCheckerFlags(input({ rows: [verdictRow(3, [vetted()], { codeFlags: [{ key: 'arith:58 / 110', value: 5, span: 'about 5 points' }] })] }));
+    expect(agreed.selected?.action).toBe('correct');
   });
 });
 

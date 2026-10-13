@@ -2225,6 +2225,15 @@ eight rubric dimensions; the loop burns clock and humiliates. The error, both
 attempts, and the correction are logged for the debrief — the recompute check
 already holds the right answer, so the correction is free.
 
+**No code correction without the checker (13 Oct, Lorenzo; Larkspur: 19 false
+"It's closer to X, not Y" lines from step flags bound to the wrong step).** A
+deterministic step, arithmetic or pricing flag probes; past the probe it says
+nothing. The correcting figure comes only through the background math checker:
+code's own figure for the quantity the checker names, once the checker's figure
+agrees and the input is bound, said with the quantity in words ("Hub–Lakeport
+contribution per flight in FY2023 is about $4,200, not $11,429."). Unit and
+period lines stay code's.
+
 **One error, one count (13 Oct, Lorenzo; Jordan 099f33e9 — "about 40
 points", "~40 points", "38–40%" probed seven times).** An error restated in a
 later message is the same error: it is matched by the candidate's own figures,
