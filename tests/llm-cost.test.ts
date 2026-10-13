@@ -31,8 +31,8 @@ describe('costOf', () => {
   });
 
   it('counts cache reads and writes at their own rates', () => {
-    // Sonnet 5.5: 1M uncached $2 + 1M read $0.10 + 1M write $2.50 + 1M out $10
-    expect(costOf(u('claude-sonnet-5-5', 1e6, 1e6, 1e6, 1e6))).toBeCloseTo(14.6);
+    // Sonnet 5.5: 1M uncached $2 + 1M read $0.20 + 1M write $2.50 + 1M out $10
+    expect(costOf(u('claude-sonnet-5-5', 1e6, 1e6, 1e6, 1e6))).toBeCloseTo(14.7);
   });
 
   it('applies Haiku 5.5\'s long-prompt price above 100k prompt tokens (cache counted in the prompt)', () => {
@@ -144,7 +144,7 @@ describe('meteredFetch', () => {
     const res = await f(url, init('claude-sonnet-5-5'));
     await res.text();                         // the caller reads its branch
     await new Promise(r => setTimeout(r, 0));
-    expect(b.spentUsd).toBeCloseTo((2000 * 2 + 5000 * 0.1 + 300 * 10) / 1e6);
+    expect(b.spentUsd).toBeCloseTo((2000 * 2 + 5000 * 0.2 + 300 * 10) / 1e6);
   });
 
   it('records an aborted stream from its input counts with an estimated output, flagged', async () => {

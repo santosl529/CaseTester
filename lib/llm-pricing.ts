@@ -18,7 +18,8 @@ type Price = Rate & { longPrompt?: { overTokens: number } & Rate };
 
 const OPUS_5_5: Price = { in: 4, cacheRead: 0.2, cacheWrite: 5, out: 20 };
 const OPUS_5: Price = { in: 5, cacheRead: 0.5, cacheWrite: 6.25, out: 25 };
-const SONNET_5_5: Price = { in: 2, cacheRead: 0.1, cacheWrite: 2.5, out: 10 };
+// Cache reads $0.20 (was 0.10 here — corrected 13 Oct against the API reference).
+const SONNET_5_5: Price = { in: 2, cacheRead: 0.2, cacheWrite: 2.5, out: 10 };
 const SONNET_5: Price = { in: 2, cacheRead: 0.2, cacheWrite: 2.5, out: 10 };
 const HAIKU_4_5: Price = { in: 1, cacheRead: 0.1, cacheWrite: 1.25, out: 5 };
 // Haiku 5.5 is priced by prompt length: prompts over 100,000 tokens pay more.
