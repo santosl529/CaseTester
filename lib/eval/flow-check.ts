@@ -17,7 +17,7 @@ import type { CorpusRun, CorpusTurn } from './run-corpus';
 import { asksForConclusion, asksBrainstorm, asksRiskQuestion, namesCandidateRecommendation, isClosingTurn, isReportAnswer } from '@/lib/orchestrator/spoken-close';
 import { TOTAL_CASE_MS } from '@/lib/orchestrator/state-machine';
 import { LOAD_SHED_REMAINING_MS } from '@/lib/orchestrator/pacing';
-import { CLOSE_SCRIPTS_BY_REASON } from '@/lib/agent/prompts/scripts';
+import { CLOSE_SCRIPTS_BY_REASON, hasCloseCue } from '@/lib/agent/prompts/scripts';
 import { askIntents } from '@/lib/orchestrator/ask-intent';
 
 export type FlowFlag = { rule: 'D7' | 'STAGE' | 'CLOSE' | 'LOOP'; t: number; sub: string; text: string };
@@ -74,7 +74,7 @@ export function checkFlowRun(run: CorpusRun, c: CaseLike): FlowFlag[] {
     // Not the one-line answer to a question about assessment (Rule 16).
     const modelText = t.segments.filter(s => s.author === 'model').map(s => s.text).join(' ')
       .split(/(?<=[.!?])\s+/).filter(x => !isReportAnswer(x)).join(' ');
-    if (t.kind !== 'close' && (CLOSE_WORDS.test(modelText) || (modelText && isClosingTurn(modelText)))) {
+    if (t.kind !== 'close' && (CLOSE_WORDS.test(modelText) || hasCloseCue(modelText) || (modelText && isClosingTurn(modelText)))) {
       flags.push({ rule: 'CLOSE', t: t.t, sub: 'model_close_line', text: modelText.slice(0, 200) });
     }
     steered ||= t.kind === 'stage_analysis' || (c.analysisCore?.ask !== undefined && q.includes(c.analysisCore.ask));

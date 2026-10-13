@@ -62,6 +62,8 @@ describe('flow detectors (batch 20 grading)', () => {
   it('CLOSE: the model says the case is closed and goes on (R10), and code closes with no recommendation asked (R36)', () => {
     const modelClose = T("Understood. Thanks, that closes the case. Before you go, what's the one number you'd track?", { revealedBefore: CORE });
     expect(rules(run([BS, REC(), RISK, modelClose, CLOSE]))).toEqual(['CLOSE:model_close_line']);
+    // Batch 21 wave 1, Owen t18 — the live close cue, read the same offline.
+    expect(rules(run([BS, REC(), RISK, T("That's all I need from you on the case.", { revealedBefore: CORE }), CLOSE]))).toEqual(['CLOSE:model_close_line']);
     expect(rules(run([BS, T("What's the biggest risk here?", { revealedBefore: CORE }), CLOSE]))).toEqual(['CLOSE:no_recommendation', 'STAGE:recommendation']);
   });
 
