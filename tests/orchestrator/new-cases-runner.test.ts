@@ -30,6 +30,7 @@ vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()
 const classified: unknown[][] = [];
 vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => classified.shift() ?? [] }));
 vi.mock('@/lib/orchestrator/hint-check', async orig => ({ ...(await orig<object>()), checkHintDelivered: async () => null }));
+vi.mock('@/lib/orchestrator/math-checker', async orig => ({ ...(await orig<object>()), checkMathClaims: async () => { throw new Error('no math checker calls in tests'); } }));
 
 const modelQueue: ModelTurn[] = [];
 const prompts: string[] = [];

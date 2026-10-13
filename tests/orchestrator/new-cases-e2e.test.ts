@@ -5,8 +5,12 @@
 // early is held), the required exhibits (a recommendation ask while one is
 // owed is held and code hands it over), the case's own brainstorm (none for
 // Quillpath), the recommendation, its risk question and the close. No paid calls.
+// The math checker is mocked on (after the merge with math-checker, 13 Oct):
+// it checks the recommendation's figure and either finds it right (nothing
+// changes) or flags it as conclusion-changing (the close holds once for it).
 import { describe, it, expect, vi } from 'vitest';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
+import type { CheckerClaim, CheckerResult } from '@/lib/orchestrator/math-checker';
 
 type Row = Record<string, unknown>;
 const store = { session: {} as Row, turns: [] as Row[], revealed: [] as Row[], exhibits: [] as Row[], events: [] as Row[] };
@@ -21,7 +25,7 @@ vi.mock('@/db/client', async () => {
         sessionTurns: { findMany: async () => [...store.turns].sort((a, b) => (a.turnIndex as number) - (b.turnIndex as number)) },
         exhibitsShown: { findMany: async () => [...store.exhibits] },
         revealedData: { findMany: async () => [...store.revealed] },
-        sessionEvents: { findMany: async () => store.events.filter(e => e.category === 'data_request') },
+        sessionEvents: { findMany: async () => store.events.filter(e => e.category === 'data_request' || e.category === 'math_checker') },
       },
       insert: (t: unknown) => ({ values: async (v: Row | Row[]) => { target(t)?.push(...(Array.isArray(v) ? v : [v])); } }),
       update: () => ({ set: (v: Row) => ({ where: async () => { if (store.session.status === 'active') store.session = { ...store.session, ...v }; } }) }),
@@ -32,6 +36,24 @@ vi.mock('@/lib/analytics', async orig => ({ ...(await orig<object>()), logEvent:
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => ({ label: 'none', reason: '' }) }));
 vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => [] }));
 vi.mock('@/lib/orchestrator/hint-check', async orig => ({ ...(await orig<object>()), checkHintDelivered: async () => null }));
+// The checker, mocked on: every gated message gets this verdict at once.
+const checked: string[] = [];
+let verdict: CheckerClaim['verdict'] = 'correct';
+const REC_FIGURE = 'about 40% above it';
+const checkerClaim = (): CheckerClaim => ({
+  span: `it clears the bar with room to spare — ${REC_FIGURE}`, quantity: 'how far the option clears the bar', candidateValue: '40%', assumptions: '',
+  verdict, correctValue: verdict === 'error' ? 10 : 40, correctLow: null, correctHigh: null, unit: '%', derivation: 'from the exhibits shown',
+  errorType: verdict === 'error' ? 'conceptual' : null, changesConclusion: verdict === 'error', confidence: 'high',
+  probe: 'You said it clears the bar by about 40%. Which figures did you use to get there?', pointer: '',
+  codeQuantity: { kind: 'none', stepId: null, price: null, target: null }, actualShare: null,
+});
+vi.mock('@/lib/orchestrator/math-checker', async orig => ({
+  ...(await orig<object>()),
+  checkMathClaims: async (a: { input: { message: string } }): Promise<CheckerResult> => {
+    checked.push(a.input.message);
+    return { claims: a.input.message.includes(REC_FIGURE) ? [checkerClaim()] : [], model: 'claude-sonnet-5-5', latencyMs: 5000, stopReason: 'end_turn' };
+  },
+}));
 const modelQueue: ModelTurn[] = [];
 vi.mock('@/lib/agent/models/factory', async () => {
   const { eventsFromTurn } = await import('@/lib/agent/models/turn-events');
@@ -69,14 +91,16 @@ function start(caseId: string) {
     abandonPhase: null, startedAt, completedAt: null, coverageJsonb: null, flagsJsonb: { conduct: { warnings: 0 } },
   };
   store.turns = [{ id: 't0', sessionId: 's1', turnIndex: 0, role: 'interviewer', text: getCaseById(caseId).prompt, timestampMs: startedAt.getTime(), latencyMs: null }];
-  store.revealed = []; store.exhibits = []; store.events = []; judgeVerdict = null;
+  store.revealed = []; store.exhibits = []; store.events = []; judgeVerdict = null; checked.length = 0;
 }
 // One exchange at minute `min` of the case: the candidate's message, the model's scripted turn (if the turn calls it).
 async function at(min: number, candidate: string, model?: ModelTurn) {
   store.session = { ...store.session, startedAt: new Date(Date.now() - min * 60_000) };
   modelQueue.length = 0;
   if (model) modelQueue.push(model, model);
-  return runTurn('s1', candidate, {});
+  const r = await runTurn('s1', candidate, {});
+  await new Promise(res => setTimeout(res, 0));   // the checker's verdict lands before the next message
+  return r;
 }
 const shown = () => store.exhibits.map(e => e.exhibitId);
 const revealed = () => store.revealed.map(r => r.ledgerItemId as string);
@@ -107,8 +131,9 @@ const SCRIPTS: Script[] = [
     early: { exhibit: 'exhibit-3', ask: 'the sampling proposal', after: 1 } },
 ];
 
-describe.each(SCRIPTS)('$caseId from prompt to close', s => {
+describe.each(SCRIPTS.flatMap(s => (['correct', 'error'] as const).map(v => ({ ...s, checker: v }))))('$caseId from prompt to close (checker: $checker)', s => {
   it('runs as its guide intends', async () => {
+    verdict = s.checker;
     const c = getCaseById(s.caseId);
     const core = c.analysisCore!;
     start(s.caseId);
@@ -167,9 +192,17 @@ describe.each(SCRIPTS)('$caseId from prompt to close', s => {
     expect(asked.interviewerText).not.toMatch(/what else could the client do|other levers could the client|protect margin/i);
 
     // The recommendation, its risk, the close.
-    await at(min++, 'I recommend going ahead with the option the numbers support, phased, because it clears the bar with room to spare.', RISK);
+    await at(min++, `I recommend going ahead with the option the numbers support, phased, because it clears the bar with room to spare — ${REC_FIGURE}.`, RISK);
     expect((flags().stall as Row).recommendationDelivered).toBe(true);
-    const close = await at(min++, 'The biggest risk is that the forecast is optimistic; I would test it with a pilot and a clear stop rule.');
+    expect(checked).toEqual([expect.stringContaining(REC_FIGURE)]);   // the only message with a figure
+    expect(store.events).toContainEqual(expect.objectContaining({ category: 'math_checker', subtype: 'verdict' }));
+    let close = await at(min++, 'The biggest risk is that the forecast is optimistic; I would test it with a pilot and a clear stop rule.');
+    if (s.checker === 'error') {
+      // A conclusion-changing flag still open holds the close once: code says the checker's probe.
+      expect(close.ended).toBe(false);
+      expect(close.interviewerText).toContain('Before we wrap up — you said it clears the bar by about 40%. Which figures did you use to get there?');
+      close = await at(min++, 'I took it from the exhibits; on reflection it is closer to 10%, which still clears the bar.');
+    }
     expect(close.ended).toBe(true);
     expect(store.session.status).toBe('completed');
     expect(min).toBeLessThan(16);   // a normal end, not time-up
