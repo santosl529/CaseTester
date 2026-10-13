@@ -1,7 +1,7 @@
 import { TurnTimer } from './turn-timer';
 import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { recordSilenceStall, INITIAL_STALL_STATE, type StallState } from './stall';
 import {
   evaluateSilence, checkInText, pauseText, restateOnTable, INITIAL_SILENCE_STATE, type SilenceAction, type SilenceState,
@@ -27,6 +27,7 @@ import { streamTurnSegments } from './stream-turn';
 import { settleTurn, commitScripted, logSessionEvent, type TurnUsage, type ModelOutcome } from './settle-turn';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import { recMathLine } from './recompute';
+import { MATH_CHECKER_CATEGORY, type CheckerJob, type CheckerJobResult } from './math-checker-live';
 import {
   isUsefulSegment, isCancelledTurn, TurnCancelled,
   type ConductFlags, type HeardReport, type ScriptedPlan, type SegmentSink, type TurnCtx, type TurnResult,
@@ -83,26 +84,38 @@ export type RunTurnOptions = {
 
 export async function runTurn(sessionId: string, candidateText: string, opts: RunTurnOptions = {}): Promise<TurnResult> {
   const deferred: (() => Promise<void>)[] = [];
+  // Already running (the math checker): never awaited by the turn.
+  const background: { job: CheckerJob; phase: Phase }[] = [];
   const { gate } = opts;
   let cancelled = false;
   try {
-    const run = () => runTurnBody(sessionId, candidateText, task => { deferred.push(task); }, opts);
+    const run = () => runTurnBody(sessionId, candidateText, task => { deferred.push(task); }, opts, (job, p) => { background.push({ job, phase: p }); });
     return await (gate ? inDraftScope(gate.id, run) : run());
   } catch (e) {
     if (e instanceof TurnCancelled) cancelled = true;
     throw e;
   } finally {
     // A draft that was never accepted, or a voice turn nobody heard, leaves nothing behind.
-    if (!cancelled && (!gate || gate.accepted)) {
+    const accepted = !cancelled && (!gate || gate.accepted);
+    if (accepted) {
+      // The math checker's row is written when its verdict lands — handed to
+      // defer (after the response), or left running; the turn never awaits it.
+      for (const { job, phase: p } of background) {
+        const write = () => job.result.then(r => logCheckerRow(sessionId, job.candidateTurnIndex, p, r));
+        if (opts.defer) opts.defer(write);
+        else void write().catch(e => console.warn('[runner] math checker row failed (ignored):', e instanceof Error ? e.message : e));
+      }
       if (opts.defer) for (const task of deferred) opts.defer(task);
       else await Promise.allSettled(deferred.map(task => task()));
+    } else {
+      for (const { job } of background) job.abort();
     }
   }
 }
 
-// The five rows a turn reads, all by session id.
+// The rows a turn reads, all by session id.
 async function readTurn(sessionId: string): Promise<TurnReads> {
-  const [session, turnRows, exhibitRows, revealedRows, dataRequestEventRows] = await Promise.all([
+  const [session, turnRows, exhibitRows, revealedRows, eventRows] = await Promise.all([
     db.query.sessions.findFirst({ where: eq(sessions.id, sessionId) }),
     db.query.sessionTurns.findMany({
       where: eq(sessionTurns.sessionId, sessionId),
@@ -110,11 +123,16 @@ async function readTurn(sessionId: string): Promise<TurnReads> {
     }),
     db.query.exhibitsShown.findMany({ where: eq(exhibitsShown.sessionId, sessionId) }),
     db.query.revealedData.findMany({ where: eq(revealedData.sessionId, sessionId) }),
+    // Rule 11's data-request rows and the math checker's verdicts.
     db.query.sessionEvents.findMany({
-      where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'data_request')),
+      where: and(eq(sessionEvents.sessionId, sessionId), inArray(sessionEvents.category, ['data_request', MATH_CHECKER_CATEGORY])),
     }),
   ]);
-  return { session, turnRows, exhibitRows, revealedRows, dataRequestEventRows };
+  return {
+    session, turnRows, exhibitRows, revealedRows,
+    dataRequestEventRows: eventRows.filter(r => r.category === 'data_request'),
+    checkerEventRows: eventRows.filter(r => r.category === MATH_CHECKER_CATEGORY),
+  };
 }
 
 // The fingerprint a turn on this text would plan now — no classifier call,
@@ -159,6 +177,7 @@ const safe = (rec: TurnRecorder, stage: string, f: () => void) => {
 
 async function runTurnBody(
   sessionId: string, candidateText: string, later: (task: () => Promise<void>) => void, opts: RunTurnOptions,
+  background: (job: CheckerJob, phase: Phase) => void = () => {},
 ): Promise<TurnResult> {
   const { acknowledged, gate } = opts;
   // A draft's segments wait for acceptance: a resolved buffer is not delivery.
@@ -203,8 +222,9 @@ async function runTurnBody(
   timer.mark('reads_done');
 
   // Plan (plan-turn.ts): everything decided before the model call, no writes.
+  const phaseNow = (reads.session?.phase ?? 'INTRO') as Phase;
   const plan = planTurn(reads, candidateText, {
-    sessionId, now: Date.now(), turnStartMs, later, acknowledged,
+    sessionId, now: Date.now(), turnStartMs, later, acknowledged, background: job => background(job, phaseNow),
   });
   timer.mark('plan_done');
   opts.onPlanFingerprint?.(planFingerprint(plan));
@@ -423,6 +443,10 @@ function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null
   const { ctx, state } = plan;
   const seed = `${ctx.sessionId}:${ctx.nextTurnIndex}`;
   const recMath = state.kind === 'rec_math_probe' ? state.recMathProbe : null;
+  // The math checker's flag in place of the close: its vetted line, said by code.
+  const recLine = (action: 'probe' | 'correct') => !recMath ? ''
+    : 'checker' in recMath ? (action === 'probe' ? `Before we wrap up — ${lowerFirst(recMath.checker.line)}` : recMath.checker.line)
+      : recMathLine(recMath.flag, action);
   const requests = (detected ?? [])
     .filter(r => r.explicit) // a code-written turn answers asks, it doesn't offer
     .map(r => ({ what: r.what, itemIds: r.ledgerItemIds, explicit: true, respond: 'release' as const }));
@@ -434,15 +458,28 @@ function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null
           : state.kind === 'stage_analysis' && state.caseData.analysisCore ? state.caseData.analysisCore.ask
             : state.kind === 'rec_revision' ? pickScript([...REC_REVISION_QUESTIONS], seed)
               : recMath?.action === 'correct' ? pickScript([...REC_MATH_REVISION_QUESTIONS], seed)
-              : recMath ? recMathLine(recMath.flag, 'probe')
+              : recMath ? recLine('probe')
             : `Take your time. ${restateOnTable(state.lastQuestion ?? '')}`;
   // The owed exhibit is handed over by code's own data line ("Here's an exhibit: …").
   const exhibit = state.kind === 'stage_exhibit' ? state.requiredExhibit ?? nextReadyExhibit(state.caseData.exhibits, state.shownExhibitIds, state.ledger)?.id ?? null : null;
   // Rule 14 past its probe: the figure, flat, before the revision question.
-  const say = recMath?.action === 'correct' ? recMathLine(recMath.flag, 'correct') : '';
+  const say = recMath?.action === 'correct' ? recLine('correct') : '';
   return { move: 'other', requests, exhibit, rescueItem: null, say, question };
 }
 
+
+// "You said …" → "you said …" after a lead-in (an acronym or a number stays).
+function lowerFirst(s: string): string {
+  return /^[A-Z][a-z]/.test(s) ? s[0].toLowerCase() + s.slice(1) : s;
+}
+
+// The math checker's result as a session event (math-checker-live.ts): the
+// verdict for the next turns to read, or the error — logged, no effect.
+// Every timeout and error is logged (Lorenzo, 13 Oct: the 30 s timeout).
+async function logCheckerRow(sessionId: string, candidateTurnIndex: number, phase: Phase, r: CheckerJobResult): Promise<void> {
+  if (r.subtype === 'error') console.warn(`[math-checker] ${r.payload.timedOut ? 'timeout' : 'error'} on message ${candidateTurnIndex} after ${r.payload.latencyMs}ms (no effect on any turn): ${r.payload.error}`);
+  await db.insert(sessionEvents).values({ sessionId, category: MATH_CHECKER_CATEGORY, subtype: r.subtype, turnIndex: candidateTurnIndex, phase, payloadJsonb: r.payload });
+}
 
 // Text-mode silence (lib/orchestrator/silence.ts): the channel reports that the
 // candidate has been silent `silentMs` since the interviewer's last turn. No

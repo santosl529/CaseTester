@@ -119,3 +119,23 @@ export function backgroundRequest(model: string, maxTokens: number, opts: { json
   if (model === 'claude-sonnet-5-5') return { max_tokens: maxTokens, thinking: { type: 'between_tools' } };
   return { max_tokens: maxTokens };
 }
+
+// The background math checker (math checker step 2, 13 Oct): a model reads
+// each candidate message that states a quantitative claim against the full
+// case and returns a verdict per claim (lib/orchestrator/math-checker.ts).
+// Two arms under evaluation, same claims; neither is live until Lorenzo picks
+// one from the paid evaluation (scripts/eval-math-checker.ts). Settings
+// checked against the API docs (13 Oct): adaptive thinking on both (Opus 5.5
+// can't disable it; Sonnet 5.5's thinking-off switch would cost the
+// arithmetic); effort medium on both — Opus 5.5's default, set explicitly
+// (scoring runs Opus at high); server-side fallbacks on.
+export type MathCheckerConfig = { model: string; effort: 'low' | 'medium' | 'high' };
+export const MATH_CHECKER_CONFIGS: Record<string, MathCheckerConfig> = {
+  'sonnet55-medium': { model: 'claude-sonnet-5-5', effort: 'medium' },
+  'opus55-medium': { model: 'claude-opus-5-5', effort: 'medium' },
+};
+export function mathCheckerConfig(name: string): MathCheckerConfig {
+  const c = MATH_CHECKER_CONFIGS[name];
+  if (!c) throw new Error(`unknown math checker config "${name}" (have: ${Object.keys(MATH_CHECKER_CONFIGS).join(', ')})`);
+  return c;
+}

@@ -1,0 +1,3616 @@
+[
+ {
+  "id": "default-candidate/live-run-2026-09-14-58cb8061#t24",
+  "run": "default-candidate/live-run-2026-09-14-58cb8061",
+  "t": 24,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "5.3"
+  ],
+  "claim": "a 10% price rise recovers 5.3 points of margin (8.5)"
+ },
+ {
+  "id": "default-candidate/live-run-2026-09-14-58cb8061#t26",
+  "run": "default-candidate/live-run-2026-09-14-58cb8061",
+  "t": 26,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "5 points"
+  ],
+  "claim": "a 10% price rise recovers about 5 points (8.5)"
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-11-b284faee#t10",
+  "run": "default-candidate/live-run-2026-10-11-b284faee",
+  "t": 10,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "5 points"
+  ],
+  "claim": "a 10% price rise recovers about 5 points (8.5)"
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-11-b284faee#t18",
+  "run": "default-candidate/live-run-2026-10-11-b284faee",
+  "t": 18,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "10% of transactions"
+  ],
+  "claim": "10% price breaks even at ~10% transaction loss (19.2%)"
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-0bfe5f38#t10",
+  "run": "default-candidate/live-run-2026-10-12-0bfe5f38",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-0bfe5f38#t12",
+  "run": "default-candidate/live-run-2026-10-12-0bfe5f38",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-0bfe5f38#t14",
+  "run": "default-candidate/live-run-2026-10-12-0bfe5f38",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-0bfe5f38#t16",
+  "run": "default-candidate/live-run-2026-10-12-0bfe5f38",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-0bfe5f38#t18",
+  "run": "default-candidate/live-run-2026-10-12-0bfe5f38",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-0bfe5f38#t2",
+  "run": "default-candidate/live-run-2026-10-12-0bfe5f38",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-0bfe5f38#t20",
+  "run": "default-candidate/live-run-2026-10-12-0bfe5f38",
+  "t": 20,
+  "label": "error",
+  "sources": [
+   "precision persona default (batch-20-haiku)",
+   "relabelled error after reading (a real error the grading missed)"
+  ],
+  "match": [
+   "fully explained"
+  ],
+  "claim": "the 18-point decline is fully explained by input inflation, 4.2 + 11.8 (16; overhead the other 2) — the claim graded D6 in Destiny R31",
+  "mustNotFlag": [
+   "4.2",
+   "11.8"
+  ],
+  "note": "found by the checker; the grading marked the run's math all correct"
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-0bfe5f38#t22",
+  "run": "default-candidate/live-run-2026-10-12-0bfe5f38",
+  "t": 22,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-0bfe5f38#t24",
+  "run": "default-candidate/live-run-2026-10-12-0bfe5f38",
+  "t": 24,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-0bfe5f38#t4",
+  "run": "default-candidate/live-run-2026-10-12-0bfe5f38",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-0bfe5f38#t6",
+  "run": "default-candidate/live-run-2026-10-12-0bfe5f38",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-0bfe5f38#t8",
+  "run": "default-candidate/live-run-2026-10-12-0bfe5f38",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-1c9184cf#t10",
+  "run": "default-candidate/live-run-2026-10-12-1c9184cf",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-1c9184cf#t12",
+  "run": "default-candidate/live-run-2026-10-12-1c9184cf",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-1c9184cf#t14",
+  "run": "default-candidate/live-run-2026-10-12-1c9184cf",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-1c9184cf#t16",
+  "run": "default-candidate/live-run-2026-10-12-1c9184cf",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-1c9184cf#t18",
+  "run": "default-candidate/live-run-2026-10-12-1c9184cf",
+  "t": 18,
+  "label": "error",
+  "sources": [
+   "precision persona default (batch-20-sonnet)",
+   "relabelled error after reading (a real error the grading missed)"
+  ],
+  "match": [
+   "16% lift"
+  ],
+  "claim": "restoring the full 16 points would need roughly a 16% lift (≈20.5%)",
+  "note": "found by the checker; the grading marked it correct"
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-1c9184cf#t2",
+  "run": "default-candidate/live-run-2026-10-12-1c9184cf",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-1c9184cf#t20",
+  "run": "default-candidate/live-run-2026-10-12-1c9184cf",
+  "t": 20,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-1c9184cf#t22",
+  "run": "default-candidate/live-run-2026-10-12-1c9184cf",
+  "t": 22,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-1c9184cf#t4",
+  "run": "default-candidate/live-run-2026-10-12-1c9184cf",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-1c9184cf#t6",
+  "run": "default-candidate/live-run-2026-10-12-1c9184cf",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-1c9184cf#t8",
+  "run": "default-candidate/live-run-2026-10-12-1c9184cf",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "batch-20 grading R45 D5 t8",
+   "precision persona default (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-33f7479b#t10",
+  "run": "default-candidate/live-run-2026-10-12-33f7479b",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-33f7479b#t12",
+  "run": "default-candidate/live-run-2026-10-12-33f7479b",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-33f7479b#t14",
+  "run": "default-candidate/live-run-2026-10-12-33f7479b",
+  "t": 14,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R19 D6 t14",
+   "precision persona default (batch-20-sonnet)"
+  ],
+  "match": [
+   "38%"
+  ],
+  "claim": "restoring margin needs ~38% price (COGS back to 42%; margin needs 23.7%) — conceptual"
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-33f7479b#t16",
+  "run": "default-candidate/live-run-2026-10-12-33f7479b",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-33f7479b#t18",
+  "run": "default-candidate/live-run-2026-10-12-33f7479b",
+  "t": 18,
+  "label": "error",
+  "sources": [
+   "precision persona default (batch-20-sonnet)",
+   "relabelled error after reading (a real error the grading missed)"
+  ],
+  "match": [
+   "whole 18-point",
+   "18-point"
+  ],
+  "claim": "the whole 18-point margin decline sits in COGS (16; overhead the other 2)",
+  "note": "found by the checker; not in the R19 grades"
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-33f7479b#t2",
+  "run": "default-candidate/live-run-2026-10-12-33f7479b",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-33f7479b#t4",
+  "run": "default-candidate/live-run-2026-10-12-33f7479b",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-33f7479b#t6",
+  "run": "default-candidate/live-run-2026-10-12-33f7479b",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-33f7479b#t8",
+  "run": "default-candidate/live-run-2026-10-12-33f7479b",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-eb9f0abb#t10",
+  "run": "default-candidate/live-run-2026-10-12-eb9f0abb",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-eb9f0abb#t12",
+  "run": "default-candidate/live-run-2026-10-12-eb9f0abb",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-eb9f0abb#t14",
+  "run": "default-candidate/live-run-2026-10-12-eb9f0abb",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-eb9f0abb#t16",
+  "run": "default-candidate/live-run-2026-10-12-eb9f0abb",
+  "t": 16,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R40 D6 t16",
+   "D6 detector (confirmed, Phase 4)",
+   "precision persona default (batch-20-haiku)"
+  ],
+  "match": [
+   "5-6"
+  ],
+  "claim": "a 10% price rise recovers 5-6 points (8.5)"
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-eb9f0abb#t18",
+  "run": "default-candidate/live-run-2026-10-12-eb9f0abb",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-eb9f0abb#t2",
+  "run": "default-candidate/live-run-2026-10-12-eb9f0abb",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-eb9f0abb#t20",
+  "run": "default-candidate/live-run-2026-10-12-eb9f0abb",
+  "t": 20,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-eb9f0abb#t4",
+  "run": "default-candidate/live-run-2026-10-12-eb9f0abb",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-eb9f0abb#t6",
+  "run": "default-candidate/live-run-2026-10-12-eb9f0abb",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-eb9f0abb#t8",
+  "run": "default-candidate/live-run-2026-10-12-eb9f0abb",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-ee081845#t10",
+  "run": "default-candidate/live-run-2026-10-12-ee081845",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-ee081845#t12",
+  "run": "default-candidate/live-run-2026-10-12-ee081845",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-ee081845#t14",
+  "run": "default-candidate/live-run-2026-10-12-ee081845",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-ee081845#t16",
+  "run": "default-candidate/live-run-2026-10-12-ee081845",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-ee081845#t18",
+  "run": "default-candidate/live-run-2026-10-12-ee081845",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-ee081845#t2",
+  "run": "default-candidate/live-run-2026-10-12-ee081845",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-ee081845#t20",
+  "run": "default-candidate/live-run-2026-10-12-ee081845",
+  "t": 20,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-ee081845#t22",
+  "run": "default-candidate/live-run-2026-10-12-ee081845",
+  "t": 22,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-ee081845#t24",
+  "run": "default-candidate/live-run-2026-10-12-ee081845",
+  "t": 24,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-ee081845#t4",
+  "run": "default-candidate/live-run-2026-10-12-ee081845",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-ee081845#t6",
+  "run": "default-candidate/live-run-2026-10-12-ee081845",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-ee081845#t8",
+  "run": "default-candidate/live-run-2026-10-12-ee081845",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-fc290dc0#t10",
+  "run": "default-candidate/live-run-2026-10-12-fc290dc0",
+  "t": 10,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R10 D6 t10",
+   "precision persona default (batch-20-haikulow)"
+  ],
+  "match": [
+   "back to 42"
+  ],
+  "claim": "back to 24% margin needs COGS back to 42% — conceptual (labor/overhead shares fall too)"
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-fc290dc0#t12",
+  "run": "default-candidate/live-run-2026-10-12-fc290dc0",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-fc290dc0#t14",
+  "run": "default-candidate/live-run-2026-10-12-fc290dc0",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-fc290dc0#t16",
+  "run": "default-candidate/live-run-2026-10-12-fc290dc0",
+  "t": 16,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R10 D6 t16",
+   "precision persona default (batch-20-haikulow)"
+  ],
+  "match": [
+   "5 points"
+  ],
+  "claim": "10% price, 7% volume loss recovers about 5 points (ignores labor/overhead leverage)"
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-fc290dc0#t18",
+  "run": "default-candidate/live-run-2026-10-12-fc290dc0",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-fc290dc0#t2",
+  "run": "default-candidate/live-run-2026-10-12-fc290dc0",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-fc290dc0#t20",
+  "run": "default-candidate/live-run-2026-10-12-fc290dc0",
+  "t": 20,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)",
+   "precision persona default (batch-20-haikulow)"
+  ],
+  "match": [
+   "5 points"
+  ],
+  "claim": "a 10% price rise recovers about 5 points (8.5)"
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-fc290dc0#t22",
+  "run": "default-candidate/live-run-2026-10-12-fc290dc0",
+  "t": 22,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-fc290dc0#t24",
+  "run": "default-candidate/live-run-2026-10-12-fc290dc0",
+  "t": 24,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-fc290dc0#t26",
+  "run": "default-candidate/live-run-2026-10-12-fc290dc0",
+  "t": 26,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-fc290dc0#t28",
+  "run": "default-candidate/live-run-2026-10-12-fc290dc0",
+  "t": 28,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-fc290dc0#t4",
+  "run": "default-candidate/live-run-2026-10-12-fc290dc0",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-fc290dc0#t6",
+  "run": "default-candidate/live-run-2026-10-12-fc290dc0",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-12-fc290dc0#t8",
+  "run": "default-candidate/live-run-2026-10-12-fc290dc0",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-13-6ead6d4d#t10",
+  "run": "default-candidate/live-run-2026-10-13-6ead6d4d",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-21)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-13-6ead6d4d#t12",
+  "run": "default-candidate/live-run-2026-10-13-6ead6d4d",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-21)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-13-6ead6d4d#t14",
+  "run": "default-candidate/live-run-2026-10-13-6ead6d4d",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-21)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-13-6ead6d4d#t16",
+  "run": "default-candidate/live-run-2026-10-13-6ead6d4d",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-21)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-13-6ead6d4d#t2",
+  "run": "default-candidate/live-run-2026-10-13-6ead6d4d",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-21)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-13-6ead6d4d#t4",
+  "run": "default-candidate/live-run-2026-10-13-6ead6d4d",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-21)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-13-6ead6d4d#t6",
+  "run": "default-candidate/live-run-2026-10-13-6ead6d4d",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-21)"
+  ]
+ },
+ {
+  "id": "default-candidate/live-run-2026-10-13-6ead6d4d#t8",
+  "run": "default-candidate/live-run-2026-10-13-6ead6d4d",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona default (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-12-oct-06/02-tobias-the-silent-thinker/live-run-2026-10-06-b6adc858#t19",
+  "run": "test runs/batch-12-oct-06/02-tobias-the-silent-thinker/live-run-2026-10-06-b6adc858",
+  "t": 19,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "eight points",
+   "8 points"
+  ],
+  "claim": "a 15% price rise recovers eight points (12.3)"
+ },
+ {
+  "id": "test runs/batch-13-oct-06/25-eliza-the-rambler/live-run-2026-10-07-60ca6d8a#t12",
+  "run": "test runs/batch-13-oct-06/25-eliza-the-rambler/live-run-2026-10-07-60ca6d8a",
+  "t": 12,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "5.3"
+  ],
+  "claim": "a 10% price rise recovers 5.3 points, 6% to 11% (8.5, 14.5%)"
+ },
+ {
+  "id": "test runs/batch-18-oct-10-runs-12-13/01-maya-the-freezer/live-run-2026-10-10-c1b79f9e#t29",
+  "run": "test runs/batch-18-oct-10-runs-12-13/01-maya-the-freezer/live-run-2026-10-10-c1b79f9e",
+  "t": 29,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "1.6"
+  ],
+  "claim": "16/18 is 1.6% (0.89)"
+ },
+ {
+  "id": "test runs/batch-18-oct-10-runs-14-21/02-tobias-the-silent-thinker/live-run-2026-10-10-9dd34b4a#t21",
+  "run": "test runs/batch-18-oct-10-runs-14-21/02-tobias-the-silent-thinker/live-run-2026-10-10-9dd34b4a",
+  "t": 21,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "8 points"
+  ],
+  "claim": "a 15% price rise restores roughly 8 points (12.3)"
+ },
+ {
+  "id": "test runs/batch-18-oct-10-runs-14-21/07-raj-the-slow-burner/live-run-2026-10-10-f224ebb1#t18",
+  "run": "test runs/batch-18-oct-10-runs-14-21/07-raj-the-slow-burner/live-run-2026-10-10-f224ebb1",
+  "t": 18,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "11%"
+  ],
+  "claim": "a 10% price rise takes margin to about 11% (14.5%)"
+ },
+ {
+  "id": "test runs/batch-18-oct-10-runs-14-21/25-eliza-the-rambler/live-run-2026-10-10-645b7616#t16",
+  "run": "test runs/batch-18-oct-10-runs-14-21/25-eliza-the-rambler/live-run-2026-10-10-645b7616",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)",
+   "relabelled correct after reading"
+  ],
+  "note": "D6 detector flag, read: correct under her stated assumption (half of labor variable): 1 − 31/36 ≈ 14%, 1 − 31/41 ≈ 24%",
+  "mustNotFlag": [
+   "14",
+   "24"
+  ]
+ },
+ {
+  "id": "test runs/batch-18-oct-10-runs-2-11/04-hannah-the-apologizer/live-run-2026-10-10-f99bb343#t14",
+  "run": "test runs/batch-18-oct-10-runs-2-11/04-hannah-the-apologizer/live-run-2026-10-10-f99bb343",
+  "t": 14,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "five points"
+  ],
+  "claim": "a 10% price rise recovers five points (8.5)"
+ },
+ {
+  "id": "test runs/batch-18-oct-10-runs-2-11/06-destiny-the-blank-slate/live-run-2026-10-10-3ed01bc8#t52",
+  "run": "test runs/batch-18-oct-10-runs-2-11/06-destiny-the-blank-slate/live-run-2026-10-10-3ed01bc8",
+  "t": 52,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "8 points"
+  ],
+  "claim": "a ~15% price rise recovers roughly 8 points (12.3)"
+ },
+ {
+  "id": "test runs/batch-18-oct-10-runs-22-31/16-amara-the-self-corrector/live-run-2026-10-10-0e5858b8#t14",
+  "run": "test runs/batch-18-oct-10-runs-22-31/16-amara-the-self-corrector/live-run-2026-10-10-0e5858b8",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)",
+   "relabelled correct after reading"
+  ],
+  "note": "D6 detector flag, read: the 5.3 is withdrawn in the same message (\"Wait, that's wrong\") and redone to 14.5%",
+  "mustNotFlag": [
+   "14.5"
+  ]
+ },
+ {
+  "id": "test runs/batch-18-oct-10-runs-42-51/20-connor-the-exhibit-skimmer/live-run-2026-10-10-a5703484#t20",
+  "run": "test runs/batch-18-oct-10-runs-42-51/20-connor-the-exhibit-skimmer/live-run-2026-10-10-a5703484",
+  "t": 20,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "5-6"
+  ],
+  "claim": "a 10% price rise recovers 5-6 points (8.5)"
+ },
+ {
+  "id": "test runs/batch-18-oct-10-runs-42-51/30-travis-the-immediate-abuser/live-run-2026-10-10-85a5c808#t20",
+  "run": "test runs/batch-18-oct-10-runs-42-51/30-travis-the-immediate-abuser/live-run-2026-10-10-85a5c808",
+  "t": 20,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "20% price",
+   "10% of transactions"
+  ],
+  "claim": "24% needs ~20% price (23.7%); 10% price breaks even at ~10% transaction loss (19.2%)"
+ },
+ {
+  "id": "test runs/batch-18-oct-10-runs-62-71/45-camila-the-code-switcher/live-run-2026-10-10-2871750b#t8",
+  "run": "test runs/batch-18-oct-10-runs-62-71/45-camila-the-code-switcher/live-run-2026-10-10-2871750b",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "batch-18 doubt on correct work (challenge-marks fixture)"
+  ]
+ },
+ {
+  "id": "test runs/batch-18-oct-10-runs-72-81/54-owen-the-quiet-dropper/live-run-2026-10-10-ae0b7f13#t8",
+  "run": "test runs/batch-18-oct-10-runs-72-81/54-owen-the-quiet-dropper/live-run-2026-10-10-ae0b7f13",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "batch-18 doubt on correct work (challenge-marks fixture)"
+  ]
+ },
+ {
+  "id": "test runs/batch-19-oct-11-runs-10-19/10-sofia-the-unit-confuser/live-run-2026-10-12-dc3bbb2c#t24",
+  "run": "test runs/batch-19-oct-11-runs-10-19/10-sofia-the-unit-confuser/live-run-2026-10-12-dc3bbb2c",
+  "t": 24,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "5 points"
+  ],
+  "claim": "5% of COGS is roughly 5 points of revenue (2.9)"
+ },
+ {
+  "id": "test runs/batch-19-oct-11-runs-10-19/15-tyler-the-misquoter/live-run-2026-10-12-94873ba9#t14",
+  "run": "test runs/batch-19-oct-11-runs-10-19/15-tyler-the-misquoter/live-run-2026-10-12-94873ba9",
+  "t": 14,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "10% of volume"
+  ],
+  "claim": "10% price breaks even at ~10% volume loss (19.2%)"
+ },
+ {
+  "id": "test runs/batch-19-oct-11-runs-20-24/10-sofia-the-unit-confuser/live-run-2026-10-12-d8ee5c25#t10",
+  "run": "test runs/batch-19-oct-11-runs-20-24/10-sofia-the-unit-confuser/live-run-2026-10-12-d8ee5c25",
+  "t": 10,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "10 percentage points"
+  ],
+  "claim": "40% of 25% is 10 points of revenue (4.2)"
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865#t10",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865#t12",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865#t14",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865#t16",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865",
+  "t": 16,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R12 D6 t16",
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ],
+  "match": [
+   "all mix"
+  ],
+  "claim": "revenue growth is basically all mix (ticket +10% of +15%; traffic ~+4.5%) — conceptual"
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865#t18",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865#t20",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865",
+  "t": 20,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865#t22",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865",
+  "t": 22,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865#t24",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865",
+  "t": 24,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865#t26",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865",
+  "t": 26,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865#t28",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865",
+  "t": 28,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865#t30",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865",
+  "t": 30,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865#t8",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-6a7fd865",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-12-140fb90d#t14",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-12-140fb90d",
+  "t": 14,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R48 D6 t14",
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "28 points",
+   "28%"
+  ],
+  "claim": "75% × 37.5% ≈ 28 points of revenue (11.8)"
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-12-140fb90d#t16",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-12-140fb90d",
+  "t": 16,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R48 D6 t16",
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "five points",
+   "11%"
+  ],
+  "claim": "a ~10% price rise brings five points back, 6% to 11% (8.5, 14.5%)"
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-12-140fb90d#t18",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-12-140fb90d",
+  "t": 18,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "28 points"
+  ],
+  "claim": "non-bean inflation is about 28 points of revenue (11.8)"
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-12-140fb90d#t8",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-12-140fb90d",
+  "t": 8,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R48 D6 t8"
+  ],
+  "match": [
+   "16% of COGS",
+   "16%"
+  ],
+  "claim": "COGS rose 16% of COGS (38%; 16 points of revenue)"
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-4298320e#t10",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-4298320e",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-4298320e#t12",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-4298320e",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-4298320e#t14",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-4298320e",
+  "t": 14,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R09 D6 t14",
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haiku)"
+  ],
+  "match": [
+   "single digits",
+   "most of the margin"
+  ],
+  "claim": "a mid-to-high single digit price rise gets most of the margin back (7–9% → ~6–7.5 of 18) — conceptual"
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-4298320e#t2",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-4298320e",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-4298320e#t4",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-4298320e",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-4298320e#t6",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-4298320e",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-4298320e#t8",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-4298320e",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f#t10",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f",
+  "t": 10,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R44 D6 t10",
+   "D6 detector (confirmed, Phase 4)",
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ],
+  "match": [
+   "five points",
+   "ten points"
+  ],
+  "claim": "10% price → five points back, 20% → ten (8.5, 15.7)"
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f#t12",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f#t14",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f#t16",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f#t18",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f#t2",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f#t20",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f",
+  "t": 20,
+  "label": "error",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)",
+   "relabelled error after reading (a real error the grading missed)"
+  ],
+  "match": [
+   "five points"
+  ],
+  "claim": "at 10% with flat volume we recover about five points of margin (8.5) — his t10 error, repeated in the recommendation",
+  "note": "per-message label: the run's D6 grade counts it once, at t10"
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f#t4",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f#t6",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "batch-20 grading R44 D5 t6",
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f#t8",
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-996ae97f",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/06-destiny-the-blank-slate/live-run-2026-10-12-15492909#t24",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/06-destiny-the-blank-slate/live-run-2026-10-12-15492909",
+  "t": 24,
+  "label": "correct",
+  "sources": [
+   "batch-20 grading R25 D5 t24"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-3cf0f961#t10",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-3cf0f961",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-3cf0f961#t12",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-3cf0f961",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-3cf0f961#t14",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-3cf0f961",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-3cf0f961#t16",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-3cf0f961",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-3cf0f961#t18",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-3cf0f961",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-3cf0f961#t20",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-3cf0f961",
+  "t": 20,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-3cf0f961#t8",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-3cf0f961",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/10-sofia-the-unit-confuser/live-run-2026-10-12-3f57efeb#t10",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/10-sofia-the-unit-confuser/live-run-2026-10-12-3f57efeb",
+  "t": 10,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R02 D6 t10",
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "10 percentage points",
+   "28 points"
+  ],
+  "claim": "0.40 × 25% = 10 points of revenue (4.2); 28 points (11.8)"
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/10-sofia-the-unit-confuser/live-run-2026-10-12-3f57efeb#t12",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/10-sofia-the-unit-confuser/live-run-2026-10-12-3f57efeb",
+  "t": 12,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "10 percentage points",
+   "28 points"
+  ],
+  "claim": "10 points of revenue from beans (4.2); 28 points from other inputs (11.8)"
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/10-sofia-the-unit-confuser/live-run-2026-10-12-3f57efeb#t18",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/10-sofia-the-unit-confuser/live-run-2026-10-12-3f57efeb",
+  "t": 18,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R02 D6 t18",
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "18% price",
+   "15% of transactions"
+  ],
+  "claim": "24% margin needs ~18% price (23.7%); 18% price breaks even at ~15% transaction loss"
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/15-tyler-the-misquoter/live-run-2026-10-12-ebff55cf#t22",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/15-tyler-the-misquoter/live-run-2026-10-12-ebff55cf",
+  "t": 22,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R47 D6 t22",
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "8% of transactions"
+  ],
+  "claim": "8% price breaks even at 8% transaction loss (16%)"
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31#t10",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "batch-20 grading R32 D5 t10",
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31#t12",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31#t14",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "batch-20 grading R32 D5 t14",
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31#t16",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31#t18",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31#t2",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31#t20",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31",
+  "t": 20,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31#t22",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31",
+  "t": 22,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31#t4",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31#t6",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31#t8",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-d66b8a31",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899#t10",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899#t12",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899#t14",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899#t16",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899#t18",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899#t2",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899#t20",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899",
+  "t": 20,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899#t22",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899",
+  "t": 22,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899#t24",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899",
+  "t": 24,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899#t26",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899",
+  "t": 26,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899#t4",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899#t6",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899#t8",
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haiku)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38#t10",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38#t12",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38#t14",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38#t16",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38#t18",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38#t20",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38",
+  "t": 20,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38#t22",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38",
+  "t": 22,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38#t24",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38",
+  "t": 24,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38#t26",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38",
+  "t": 26,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38#t8",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-55d12d38",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-12-3baae0b8#t18",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-12-3baae0b8",
+  "t": 18,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R36 D5 t18",
+   "batch-20 grading R36 D6 t18"
+  ],
+  "match": [
+   "25 points"
+  ],
+  "claim": "beans at 25% of COGS carry 25 points of the needed price increase (unit)",
+  "mustNotFlag": [
+   "48M",
+   "$48",
+   "240K"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-12-3baae0b8#t20",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-12-3baae0b8",
+  "t": 20,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R36 D6 t20"
+  ],
+  "match": [
+   "10 points",
+   "16%"
+  ],
+  "claim": "$48M is about 10 points of margin, 6% to 16% (8.5, 14.5%)"
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/15-tyler-the-misquoter/live-run-2026-10-12-4ae90f9e#t24",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/15-tyler-the-misquoter/live-run-2026-10-12-4ae90f9e",
+  "t": 24,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R30 D6 t24"
+  ],
+  "match": [
+   "3.8",
+   "8 unexplained"
+  ],
+  "claim": "non-bean inflation roughly 3.8 points, 8 unexplained (11.8, 0)"
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370#t10",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370#t12",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370#t14",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370#t16",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370#t18",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370",
+  "t": 18,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R41 D6 t18",
+   "D6 detector (confirmed, Phase 4)",
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ],
+  "match": [
+   "16% of cups"
+  ],
+  "claim": "16% price breaks even at 16% of cups (27.6%)"
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370#t2",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370#t20",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370",
+  "t": 20,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370#t4",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370#t6",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370#t8",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-48d75370",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1#t10",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1#t12",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1#t14",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1#t16",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1#t18",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1#t2",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1#t20",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1",
+  "t": 20,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R18 D6 t20",
+   "D6 detector (confirmed, Phase 4)",
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ],
+  "match": [
+   "six to seven"
+  ],
+  "claim": "a 10% price rise recovers six to seven points (8.5)"
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1#t4",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1#t6",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1#t8",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-3bdb21b1",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/06-destiny-the-blank-slate/live-run-2026-10-12-df623412#t38",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/06-destiny-the-blank-slate/live-run-2026-10-12-df623412",
+  "t": 38,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "10% of volume"
+  ],
+  "claim": "10% price breaks even at ~10% volume loss (19.2%)"
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647#t10",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647#t12",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647#t14",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647#t16",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647#t18",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647#t20",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647",
+  "t": 20,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R20 D6 t20",
+   "D6 detector (confirmed, Phase 4)",
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ],
+  "match": [
+   "14 points"
+  ],
+  "claim": "a 10% price rise restores about 14 points (8.5)"
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647#t22",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647",
+  "t": 22,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R20 D6 t22",
+   "D6 detector (confirmed, Phase 4)",
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ],
+  "match": [
+   "10% of transactions"
+  ],
+  "claim": "10% price breaks even at ~10% transaction loss (19.2%)"
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647#t24",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647",
+  "t": 24,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647#t26",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647",
+  "t": 26,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647#t28",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647",
+  "t": 28,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647#t30",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647",
+  "t": 30,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647#t32",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647",
+  "t": 32,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647#t8",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-569e6647",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/10-sofia-the-unit-confuser/live-run-2026-10-12-2c7505c2#t10",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/10-sofia-the-unit-confuser/live-run-2026-10-12-2c7505c2",
+  "t": 10,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R39 D6 t10"
+  ],
+  "match": [
+   "15 points of revenue"
+  ],
+  "claim": "a 15-point move within COGS is 15 points of revenue (unit)"
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/10-sofia-the-unit-confuser/live-run-2026-10-12-2c7505c2#t14",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/10-sofia-the-unit-confuser/live-run-2026-10-12-2c7505c2",
+  "t": 14,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R39 D6 t14"
+  ],
+  "match": [
+   "2 points of revenue"
+  ],
+  "claim": "2 points inside COGS is roughly 2 points of revenue (unit; ~0.8)"
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/15-tyler-the-misquoter/live-run-2026-10-12-f6be7541#t16",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/15-tyler-the-misquoter/live-run-2026-10-12-f6be7541",
+  "t": 16,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R42 D6 t16",
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "five of the 19",
+   "8% volume"
+  ],
+  "claim": "8% price recovers five points (≈7); 8% price breaks even at 8% volume loss (16%)"
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/40-jasmine-the-early-finisher/live-run-2026-10-12-73e26271#t6",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/40-jasmine-the-early-finisher/live-run-2026-10-12-73e26271",
+  "t": 6,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "five points",
+   "most of it"
+  ],
+  "claim": "a 10% price rise recovers five points (8.5); mid-single-digit gets most of 16 back"
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d#t10",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d#t12",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d#t14",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d#t16",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d#t18",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d#t2",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d#t20",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d",
+  "t": 20,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d#t22",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d",
+  "t": 22,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d#t24",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d",
+  "t": 24,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d#t26",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d",
+  "t": 26,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d#t4",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d#t6",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d#t8",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-2f2ada1d",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5#t10",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5#t12",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5#t14",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5#t16",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5#t18",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5#t2",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5#t20",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5",
+  "t": 20,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5#t22",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5",
+  "t": 22,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R23 D6 t22",
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ],
+  "match": [
+   "10–12% of volume"
+  ],
+  "claim": "12% price breaks even at 10–12% volume loss (22%)"
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5#t24",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5",
+  "t": 24,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5#t26",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5",
+  "t": 26,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5#t4",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5#t6",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5#t8",
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-haikulow)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-580e3eb4#t10",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-580e3eb4",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-580e3eb4#t12",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-580e3eb4",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-580e3eb4#t14",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-580e3eb4",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-580e3eb4#t16",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-580e3eb4",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-580e3eb4#t18",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-580e3eb4",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-580e3eb4#t20",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-580e3eb4",
+  "t": 20,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-580e3eb4#t8",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-12-580e3eb4",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-12-538804ae#t16",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-12-538804ae",
+  "t": 16,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R43 D6 t16"
+  ],
+  "match": [
+   "37.5% of the margin",
+   "4.2% from beans"
+  ],
+  "claim": "37.5% of the decline via other inputs vs 4.2% from beans (unit mix-up)",
+  "mustNotFlag": [
+   "31.5",
+   "11.8"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-12-538804ae#t6",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-12-538804ae",
+  "t": 6,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R43 D6 t6"
+  ],
+  "match": [
+   "16% over",
+   "2% increase"
+  ],
+  "claim": "16 points is COGS up 16% (38%); overhead 2 points is a 2% increase (17%)"
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-514b1ed0#t10",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-514b1ed0",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-514b1ed0#t12",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-514b1ed0",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-514b1ed0#t14",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-514b1ed0",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-514b1ed0#t16",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-514b1ed0",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-514b1ed0#t18",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-514b1ed0",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-514b1ed0#t2",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-514b1ed0",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-514b1ed0#t4",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-514b1ed0",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-514b1ed0#t6",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-514b1ed0",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-514b1ed0#t8",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-12-514b1ed0",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267#t10",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267",
+  "t": 10,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R16 D6 t10",
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ],
+  "match": [
+   "less than 4 points",
+   "denominator"
+  ],
+  "claim": "ticket up 10% inflates the denominator so beans rise less than 4 points — conceptual (prices flat; the 4.2 is already in points of revenue)",
+  "mustNotFlag": [
+   "14.7",
+   "4.2"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267#t12",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267#t14",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267#t16",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267#t18",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267#t2",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267#t20",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267",
+  "t": 20,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267#t4",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267#t6",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267#t8",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-12-5be0d267",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/06-destiny-the-blank-slate/live-run-2026-10-12-5128ce82#t32",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/06-destiny-the-blank-slate/live-run-2026-10-12-5128ce82",
+  "t": 32,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R31 D6 t32"
+  ],
+  "match": [
+   "entire 18-point",
+   "38%"
+  ],
+  "claim": "~38% input inflation alone explains the entire 18-point drop (16; overhead 2) — conceptual"
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee#t10",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee#t12",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee#t14",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee#t16",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee#t18",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee#t2",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee#t20",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee",
+  "t": 20,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee#t22",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee",
+  "t": 22,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee#t24",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee",
+  "t": 24,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)",
+   "precision persona 07-raj-the-slow-burner (batch-20-sonnet)"
+  ],
+  "match": [
+   "8% of transactions"
+  ],
+  "claim": "8% price breaks even at 8% transaction loss (16%)",
+  "mustNotFlag": [
+   "14/108",
+   "13%"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee#t8",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner/live-run-2026-10-12-2706a5ee",
+  "t": 8,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R04 D6 t8",
+   "precision persona 07-raj-the-slow-burner (batch-20-sonnet)"
+  ],
+  "match": [
+   "98",
+   "29%"
+  ],
+  "claim": "costs went from 76 to roughly 98, a 29% increase (108.1, 42%)"
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/10-sofia-the-unit-confuser/live-run-2026-10-12-fed6e8ac#t18",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/10-sofia-the-unit-confuser/live-run-2026-10-12-fed6e8ac",
+  "t": 18,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R22 D6 t18"
+  ],
+  "match": [
+   "can't close"
+  ],
+  "claim": "commodity inflation at plausible magnitudes can't close a 16-point gap (it does: 4.2 + 11.8) — conceptual, rests on her assumed dairy share",
+  "mustNotFlag": [
+   "12.6",
+   "4.4",
+   "8.6"
+  ],
+  "borderline": true
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/15-tyler-the-misquoter/live-run-2026-10-12-f7bba73b#t18",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/15-tyler-the-misquoter/live-run-2026-10-12-f7bba73b",
+  "t": 18,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R05 D6 t18"
+  ],
+  "match": [
+   "12 of the 18",
+   "high-single-digit"
+  ],
+  "claim": "a high-single-digit price rise recovers about 12 of 18 points (~7–8)"
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/15-tyler-the-misquoter/live-run-2026-10-12-f7bba73b#t20",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/15-tyler-the-misquoter/live-run-2026-10-12-f7bba73b",
+  "t": 20,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R05 D6 t20"
+  ],
+  "match": [
+   "low-to-mid teens"
+  ],
+  "claim": "10% price breaks even at a low-to-mid-teens volume loss (19.2%)"
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/40-jasmine-the-early-finisher/live-run-2026-10-12-766f97c6#t8",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/40-jasmine-the-early-finisher/live-run-2026-10-12-766f97c6",
+  "t": 8,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R14 D6 t8"
+  ],
+  "match": [
+   "38%"
+  ],
+  "claim": "~38% price holds margin fully (23.7%) — conceptual"
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-c4e3cde4#t10",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-c4e3cde4",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-c4e3cde4#t12",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-c4e3cde4",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-c4e3cde4#t14",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-c4e3cde4",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-c4e3cde4#t16",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-c4e3cde4",
+  "t": 16,
+  "label": "error",
+  "sources": [
+   "batch-20 grading R08 D6 t16",
+   "D6 detector (confirmed, Phase 4)",
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-sonnet)"
+  ],
+  "match": [
+   "8 margin points",
+   "15% of cups"
+  ],
+  "claim": "15% price recovers about 8 points (12.3); 15% of cups is margin-neutral (27.6%)"
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-c4e3cde4#t2",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-c4e3cde4",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-c4e3cde4#t4",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-c4e3cde4",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-c4e3cde4#t6",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-c4e3cde4",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-c4e3cde4#t8",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/51-anika-the-unorthodox-structurer/live-run-2026-10-12-c4e3cde4",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-c0b062f2#t10",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-c0b062f2",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-c0b062f2#t12",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-c0b062f2",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-c0b062f2#t14",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-c0b062f2",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-c0b062f2#t16",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-c0b062f2",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-c0b062f2#t18",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-c0b062f2",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-c0b062f2#t2",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-c0b062f2",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-c0b062f2#t4",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-c0b062f2",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-c0b062f2#t6",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-c0b062f2",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-c0b062f2#t8",
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-c0b062f2",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-20-sonnet)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-13-fabe45fa#t10",
+  "run": "test runs/batch-21-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-13-fabe45fa",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-13-fabe45fa#t12",
+  "run": "test runs/batch-21-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-13-fabe45fa",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-13-fabe45fa#t14",
+  "run": "test runs/batch-21-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-13-fabe45fa",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-13-fabe45fa#t16",
+  "run": "test runs/batch-21-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-13-fabe45fa",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-13-fabe45fa#t18",
+  "run": "test runs/batch-21-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-13-fabe45fa",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-13-fabe45fa#t20",
+  "run": "test runs/batch-21-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-13-fabe45fa",
+  "t": 20,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-13-fabe45fa#t8",
+  "run": "test runs/batch-21-oct-12-runs-1-7/07-raj-the-slow-burner/live-run-2026-10-13-fabe45fa",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 07-raj-the-slow-burner (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-13-2caaa8a4#t16",
+  "run": "test runs/batch-21-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-13-2caaa8a4",
+  "t": 16,
+  "label": "error",
+  "sources": [
+   "batch-21 hand read D6; re-grade"
+  ],
+  "match": [
+   "27.6",
+   "28%"
+  ],
+  "claim": "16/58 = 27.6% is the price rise that restores 24% (23.7%)"
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-13-2caaa8a4#t20",
+  "run": "test runs/batch-21-oct-12-runs-1-7/10-sofia-the-unit-confuser/live-run-2026-10-13-2caaa8a4",
+  "t": 20,
+  "label": "error",
+  "sources": [
+   "batch-21 hand read D6"
+  ],
+  "match": [
+   "28 points"
+  ],
+  "claim": "a 37.5% move on the non-bean 75% is about 28 points of revenue (11.8)"
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/15-tyler-the-misquoter/live-run-2026-10-13-74559168#t12",
+  "run": "test runs/batch-21-oct-12-runs-1-7/15-tyler-the-misquoter/live-run-2026-10-13-74559168",
+  "t": 12,
+  "label": "error",
+  "sources": [
+   "batch-21 hand read D6; re-grade",
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "7–8%"
+  ],
+  "claim": "10% price breaks even at 7–8% volume loss (19.2%)",
+  "mustNotFlag": [
+   "123.7",
+   "14.5%",
+   "24% price"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/15-tyler-the-misquoter/live-run-2026-10-13-74559168#t18",
+  "run": "test runs/batch-21-oct-12-runs-1-7/15-tyler-the-misquoter/live-run-2026-10-13-74559168",
+  "t": 18,
+  "label": "error",
+  "sources": [
+   "batch-21 hand read D6"
+  ],
+  "match": [
+   "7–8%"
+  ],
+  "claim": "breakeven roughly 7–8% volume loss on a 10% price rise (19.2%)"
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/40-jasmine-the-early-finisher/live-run-2026-10-13-81e331b4#t6",
+  "run": "test runs/batch-21-oct-12-runs-1-7/40-jasmine-the-early-finisher/live-run-2026-10-13-81e331b4",
+  "t": 6,
+  "label": "error",
+  "sources": [
+   "batch-21 hand read D6; re-grade"
+  ],
+  "match": [
+   "5-7%",
+   "most of the gap"
+  ],
+  "claim": "a 5–7% price rise recovers most of the gap (~4.5–6 of 18) — conceptual"
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f#t10",
+  "run": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f#t12",
+  "run": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f#t14",
+  "run": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f#t16",
+  "run": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f#t18",
+  "run": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f#t2",
+  "run": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f#t20",
+  "run": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f",
+  "t": 20,
+  "label": "error",
+  "sources": [
+   "batch-21 hand read D6 (borderline); re-grade",
+   "precision persona 51-anika-the-unorthodox-structurer (batch-21)"
+  ],
+  "match": [
+   "closer to 20%"
+  ],
+  "claim": "24% needs closer to 20% price (23.7%) — borderline",
+  "mustNotFlag": [
+   "14.5%",
+   "12.8%",
+   "8.5"
+  ],
+  "borderline": true
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f#t22",
+  "run": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f",
+  "t": 22,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f#t4",
+  "run": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f#t6",
+  "run": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f#t8",
+  "run": "test runs/batch-21-oct-12-runs-1-7/51-anika-the-unorthodox-structurer/live-run-2026-10-13-acf6697f",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 51-anika-the-unorthodox-structurer (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb#t10",
+  "run": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb",
+  "t": 10,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb#t12",
+  "run": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb#t14",
+  "run": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb",
+  "t": 14,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb#t16",
+  "run": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb",
+  "t": 16,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb#t18",
+  "run": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb",
+  "t": 18,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb#t2",
+  "run": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb",
+  "t": 2,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb#t20",
+  "run": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb",
+  "t": 20,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb#t22",
+  "run": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb",
+  "t": 22,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb#t24",
+  "run": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb",
+  "t": 24,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb#t4",
+  "run": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb",
+  "t": 4,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb#t6",
+  "run": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb",
+  "t": 6,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb#t8",
+  "run": "test runs/batch-21-oct-12-runs-1-7/54-owen-the-quiet-dropper/live-run-2026-10-13-79e602eb",
+  "t": 8,
+  "label": "correct",
+  "sources": [
+   "precision persona 54-owen-the-quiet-dropper (batch-21)"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-8-15/14-jordan-the-order-of-magnitude-exaggerator/live-run-2026-10-13-a0201b10#t18",
+  "run": "test runs/batch-21-oct-12-runs-8-15/14-jordan-the-order-of-magnitude-exaggerator/live-run-2026-10-13-a0201b10",
+  "t": 18,
+  "label": "error",
+  "sources": [
+   "batch-21 hand read D6; re-grade"
+  ],
+  "match": [
+   "three to four times"
+  ],
+  "claim": "the real escalation is three to four times the 16-point gap — conceptual",
+  "mustNotFlag": [
+   "59%",
+   "66.7"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-8-15/14-jordan-the-order-of-magnitude-exaggerator/live-run-2026-10-13-a0201b10#t22",
+  "run": "test runs/batch-21-oct-12-runs-8-15/14-jordan-the-order-of-magnitude-exaggerator/live-run-2026-10-13-a0201b10",
+  "t": 22,
+  "label": "error",
+  "sources": [
+   "batch-21 hand read D6"
+  ],
+  "match": [
+   "three to four times"
+  ],
+  "claim": "the underlying burden is three to four times the 16 points — conceptual",
+  "mustNotFlag": [
+   "59%"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-8-15/19-blake-the-data-ignorer/live-run-2026-10-13-fb1d0ef7#t24",
+  "run": "test runs/batch-21-oct-12-runs-8-15/19-blake-the-data-ignorer/live-run-2026-10-13-fb1d0ef7",
+  "t": 24,
+  "label": "error",
+  "sources": [
+   "batch-21 hand read D6 (borderline)"
+  ],
+  "match": [
+   "the bulk",
+   "high teens"
+  ],
+  "claim": "10 points of price recovers the bulk of 18 and gets to the high teens (8.5, 14.5%) — borderline",
+  "mustNotFlag": [
+   "about 4 points"
+  ],
+  "borderline": true
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-8-15/24-marcus-the-answer-first-sprinter/live-run-2026-10-13-33737db2#t22",
+  "run": "test runs/batch-21-oct-12-runs-8-15/24-marcus-the-answer-first-sprinter/live-run-2026-10-13-33737db2",
+  "t": 22,
+  "label": "error",
+  "sources": [
+   "batch-21 hand read D6; re-grade"
+  ],
+  "match": [
+   "12% of transactions"
+  ],
+  "claim": "10% price, 12% transaction loss is worse (breakeven 19.2%)"
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-8-15/53-fiona-the-hypothesis-reverser/live-run-2026-10-13-a58c5f56#t16",
+  "run": "test runs/batch-21-oct-12-runs-8-15/53-fiona-the-hypothesis-reverser/live-run-2026-10-13-a58c5f56",
+  "t": 16,
+  "label": "error",
+  "sources": [
+   "batch-21 hand read D6; re-grade"
+  ],
+  "match": [
+   "10–12%"
+  ],
+  "claim": "restoring margin needs 10–12% on menu prices (23.7%)",
+  "mustNotFlag": [
+   "1.38"
+  ]
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-8-15/57-marisol-the-context-confuser/live-run-2026-10-13-1146a435#t10",
+  "run": "test runs/batch-21-oct-12-runs-8-15/57-marisol-the-context-confuser/live-run-2026-10-13-1146a435",
+  "t": 10,
+  "label": "error",
+  "sources": [
+   "batch-21 hand read D6; re-grade",
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "15.7",
+   "16%",
+   "22.1"
+  ],
+  "claim": "18 / 1.15 = 15.7%, call it 16%, recovers 18 points (23.7%); carries 22.1"
+ },
+ {
+  "id": "test runs/batch-21-oct-12-runs-8-15/57-marisol-the-context-confuser/live-run-2026-10-13-1146a435#t8",
+  "run": "test runs/batch-21-oct-12-runs-8-15/57-marisol-the-context-confuser/live-run-2026-10-13-1146a435",
+  "t": 8,
+  "label": "error",
+  "sources": [
+   "batch-21 hand read D6; re-grade",
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "22.1",
+   "5.8",
+   "16.3",
+   "14.5",
+   "43.5"
+  ],
+  "claim": "prior bean share × current COGS: beans 5.8, others 16.3, 22.1 points added (4.2, 11.8, 16)"
+ },
+ {
+  "id": "test runs/batch-5-oct-02/02-tobias-the-silent-thinker/live-run-2026-10-03-73de82ce#t14",
+  "run": "test runs/batch-5-oct-02/02-tobias-the-silent-thinker/live-run-2026-10-03-73de82ce",
+  "t": 14,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "23.4",
+   "doubled",
+   "1.94",
+   "123%"
+  ],
+  "claim": "beans today = 66.7 − 43.3 = 23.4 mixes index bases (other inputs 49.8 at 115); beans did not double"
+ },
+ {
+  "id": "test runs/batch-5-oct-02/09-derek-the-bulldozer/live-run-2026-10-03-a1909fa2#t22",
+  "run": "test runs/batch-5-oct-02/09-derek-the-bulldozer/live-run-2026-10-03-a1909fa2",
+  "t": 22,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "4 points of revenue",
+   "$19M"
+  ],
+  "claim": "4% of COGS reads through as 4 points of revenue (2.3); $19M"
+ },
+ {
+  "id": "test runs/batch-5-oct-02/57-marisol-the-context-confuser/live-run-2026-10-03-71b929ea#t8",
+  "run": "test runs/batch-5-oct-02/57-marisol-the-context-confuser/live-run-2026-10-03-71b929ea",
+  "t": 8,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "14.5"
+  ],
+  "claim": "the 25% share of COGS (two years ago) applied to today's 58% COGS line: 14.5% of revenue — a period mix (the D6 detector reads it since the period flag, 13 Oct)"
+ },
+ {
+  "id": "test runs/batch-7-oct-03/09-derek-the-bulldozer/live-run-2026-10-03-b5ebe6b8#t22",
+  "run": "test runs/batch-7-oct-03/09-derek-the-bulldozer/live-run-2026-10-03-b5ebe6b8",
+  "t": 22,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "10 points",
+   "16%",
+   "25 points"
+  ],
+  "claim": "10% price is 10 points to margin, 6% to 16% (8.5, 14.5%); 25% of COGS is 25 points (unit)"
+ },
+ {
+  "id": "test runs/batch-7-oct-03/58-hugo-the-hidden-data-prober/live-run-2026-10-03-376bfd0f#t18",
+  "run": "test runs/batch-7-oct-03/58-hugo-the-hidden-data-prober/live-run-2026-10-03-376bfd0f",
+  "t": 18,
+  "label": "error",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)"
+  ],
+  "match": [
+   "ten points"
+  ],
+  "claim": "ten points of margin from a 10% increase (8.5)"
+ },
+ {
+  "id": "test runs/batch-9-oct-05/18-nikhil-the-data-hoover/live-run-2026-10-05-c1bba8b7#t24",
+  "run": "test runs/batch-9-oct-05/18-nikhil-the-data-hoover/live-run-2026-10-05-c1bba8b7",
+  "t": 24,
+  "label": "correct",
+  "sources": [
+   "D6 detector (confirmed, Phase 4)",
+   "relabelled correct after reading"
+  ],
+  "note": "D6 detector flag, read: the 5.3 is revised in the same message to ≈8.6 points, near 15% (correct)",
+  "mustNotFlag": [
+   "8.6"
+  ]
+ }
+]

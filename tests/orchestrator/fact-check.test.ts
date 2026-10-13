@@ -89,6 +89,12 @@ describe('F2 — candidate misquotes', () => {
     expect(mq('Now, COGS went from 42 to 61, so 19 points. Do we have an index of bean prices?')).not.toEqual([]);
     expect(mq('Ticket is $6.90 against $6.20, call it 11%.', ['avg_ticket'])).not.toEqual([]);
   });
+  it('a range of points before a change noun (math checker, batch 21 Jordan t6: probed five times, never given the figure)', () => {
+    expect(mq("Eight points in year one and eight again in year two, so against a 42 base that's roughly a 38 to 40 point swing in COGS as a share of revenue.")).not.toEqual([]);
+    // A range that holds the true change is no misquote; a chain of levels isn't a change.
+    expect(mq("That's a 15 to 17 point swing in COGS.")).toEqual([]);
+    expect(mq('COGS rose 42 to 58 points of revenue.')).toEqual([]);
+  });
   it('indexed working, other quantities and per-year steps are not misquotes', () => {
     for (const t of [
       'Revenue today is 115, and at 6% margin profit is about 6.9, so costs are roughly 108.',

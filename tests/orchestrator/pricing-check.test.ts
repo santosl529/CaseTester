@@ -24,6 +24,11 @@ describe('pricing claims (batch 20 D6 grades)', () => {
     ['My recommendation: raise menu prices roughly 10% immediately. That restores about 14 points of margin on its own, taking us from 6% toward 14%+.', ['gain:incorrect', 'new_margin:correct']],
     ["A 10% price rise lifts margin per transaction to roughly 47%, so I can afford to lose about 10% of transactions before I'm worse off.", ['breakeven:incorrect']],
     ["If an 8% price increase costs more than 8% of transactions, we've made it worse.", ['breakeven:incorrect']],
+    // A range (math checker, 13 Oct; batch 21 Tyler t12, batch 20 Owen R23 t22): wrong only when the whole range misses.
+    ["The key risk is volume loss — at 42% variable cost, with a 10% price increase we can afford to lose maybe 7–8% of volume before we're worse off.", ['breakeven:incorrect']],
+    ["If a 12% price increase costs more than about 10–12% of volume, the price increase is net negative.", ['breakeven:incorrect']],
+    ["A 10% price increase lets us lose about 18–20% of volume before we're worse off.", ['breakeven:correct']],
+
     ["If we price up 16% and lose more than roughly 16% of cups, we're worse off on gross profit dollars.", ['breakeven:incorrect']],
     ["To get back to 24% they need roughly 18 points, about $86M. With volume held flat, they'd need about an 18% price rise.", ['needed:incorrect']],
     ['At 58% COGS: 58/42 ≈ 1.38, so ~38% price increase holds margin fully.', ['needed:incorrect']],
@@ -85,4 +90,21 @@ describe('pricing claims — false alarms read outside batch 20', () => {
     ["Price is the lever. It's the only lever sized to the problem — 10 points of margin from a 10% increase, versus one or 2 points from waste.", ['gain:incorrect']],
     ['A 10% price increase is the lever. That takes them from 6% to 16%.', ['new_margin:incorrect']],
   ])('still an error: %s', (text, expected) => expect(verdicts(text)).toEqual(expected));
+});
+
+// The pricing answers as pure functions (math checker, 13 Oct): what the
+// checker is given for the price changes a message names, and what a checker
+// correction must agree with before it is spoken.
+describe('pricing answers from the cost structure', () => {
+  it('prof-001 with every cost line revealed', async () => {
+    const { pricingAnswers, pricingValues: pv } = await import('@/lib/orchestrator/pricing-check');
+    const { getCaseById } = await import('@/lib/cases/loader');
+    const v = pv(getCaseById('prof-001'), new Set(['cogs_pct', 'labor_pct', 'overhead_pct']))!;
+    const a = pricingAnswers(v);
+    expect(a.gain(10)[0]).toBeCloseTo(8.55, 1);
+    expect(a.newMargin(10)[0]).toBeCloseTo(14.5, 1);
+    expect(a.neededForMargin(24)).toBeCloseTo(23.7, 1);
+    expect(a.neededForGain(16)).toBeCloseTo(20.5, 1);   // "restoring the full 16 points": a 22% margin
+    expect(a.breakeven(10)).toEqual([19.2, 33.3]);
+  });
 });

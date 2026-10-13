@@ -31,8 +31,47 @@ describe('verified correct — rounding, percent shorthand, growth, scale', () =
     ['16 of the 18 points is 89%. And 16/18 = 89%.', [['16 / 18', 89, 'correct']]],
     ['Holding volume, I need revenue of 451 ÷ 0.76 = $594M — a 23.7% price increase.', [['451 / 0.76', 594e6, 'correct']]],
     ['Margin: 100 − 58 − 22 − 14 = 6.', [['100 - 58 - 22 - 14', 6, 'correct']]],
+    // The whole written as 1 beside figures in points (default candidate ee081845 t17, 12 Oct: flagged, the claim right).
+    ['A more realistic staged view: a 10% increase gives 1 − 94/1.10 = 1 − 85.5 = 14.5% margin, so roughly 8.5 points recovered.', [['1 - 85.5', 14.5, 'correct']]],
+    ['So the new margin is 1 − 94/1.10 ≈ 14.5%.', [['1 - 94 / 1.10', 14.5, 'correct']]],
   ])('%s', (text, expected) => {
     expect(checkStatedArithmetic(text).map(c => [c.expression, c.stated, c.verdict])).toEqual(expected);
+  });
+});
+
+describe('the whole as 1 is read as 100 only where it is its own term beside figures in points', () => {
+  it('still wrong when no reading gives the result: 1 − 85.5 = 20', () => {
+    expect(verdicts('So 1 − 85.5 = 20% margin.')).toEqual([['1 - 85.5', 20, 'incorrect', false]]);
+  });
+  it('a 1 that multiplies is not the whole: 1 × 85.5 = 14.5 is wrong', () => {
+    expect(verdicts('So 1 × 85.5 = 14.5.')).toEqual([['1 × 85.5', 14.5, 'incorrect', false]]);
+  });
+  it('beside shares written as fractions, 1 is already the whole: 1 − 0.855 = 14.5%; and 1 − 0.5 = 99.5 is wrong', () => {
+    expect(verdicts('Margin is 1 − 0.855 = 14.5%.')).toEqual([['1 - 0.855', 14.5, 'correct', false]]);
+    expect(verdicts('So 1 − 0.5 = 99.5.')).toEqual([['1 - 0.5', 99.5, 'incorrect', false]]);
+  });
+  // Lorenzo, 13 Oct: "rose 1 point", "a 1-point drop" and "1 in 4" are not the whole.
+  it('"rose 1 point": a 1 that is added is a point, not the whole — 13 + 1 = 113 is wrong, 13 + 1 = 14 right', () => {
+    expect(verdicts('Overhead rose 1 point, so 13 + 1 = 113.')).toEqual([['13 + 1', 113, 'incorrect', false]]);
+    expect(verdicts('Overhead rose 1 point, so 13 + 1 = 14.')).toEqual([['13 + 1', 14, 'correct', false]]);
+  });
+  it('only a 1 is the whole: 50 − 35.5 = 64.5 is wrong', () => {
+    expect(verdicts('So 50 − 35.5 = 64.5.')).toEqual([['50 - 35.5', 64.5, 'incorrect', false]]);
+  });
+  it('a 1 written with a unit is that unit, not the whole: 1 point − 85.5 = 14.5 is wrong', () => {
+    expect(verdicts('After the rise, 1 point − 85.5 = 14.5.')).toEqual([['1 point - 85.5', 14.5, 'incorrect', false]]);
+  });
+  it('"a 1-point drop": the glued 1 is no operand; a subtracted 1 is a point', () => {
+    expect(verdicts('Margin after a 1-point drop − 85.5 = 14.5.')).toEqual([]);
+    expect(verdicts('A 1-point drop takes 6 − 1 = 5.')).toEqual([['6 - 1', 5, 'correct', false]]);
+    expect(verdicts('A 1-point drop takes 6 − 1 = 105.')).toEqual([['6 - 1', 105, 'incorrect', false]]);
+  });
+  it('"1 in 4": a ratio, not the whole — 1 + 4 = 104 is wrong, 1 / 4 = 25% right', () => {
+    expect(verdicts('One in 4 stores: 1 + 4 = 104.')).toEqual([['1 + 4', 104, 'incorrect', false]]);
+    expect(verdicts('That is 1 in 4, so 1 / 4 = 25%.')).toEqual([['1 / 4', 25, 'correct', false]]);
+  });
+  it('a 1 inside a product is not the whole: 1 × 0.5 + 14 = 64 is wrong', () => {
+    expect(verdicts('So 1 × 0.5 + 14 = 64.')).toEqual([['1 × 0.5 + 14', 64, 'incorrect', false]]);
   });
 });
 

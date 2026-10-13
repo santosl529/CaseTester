@@ -6,6 +6,7 @@ import type { CheckLog } from './check-log';
 import type { DistressVerdict } from './distress';
 import type { ConductModelVerdict } from './conduct-model';
 import type { Phase } from './state-machine';
+import type { CheckerJob } from './math-checker-live';
 
 export type ExhibitDisplay = {
   id: string;
@@ -40,7 +41,7 @@ export type ConductFlags = {
 
 // A session event decided during the turn, written at commit.
 export type PendingEvent = {
-  category: 'intervention' | 'conduct' | 'request_signal';
+  category: 'intervention' | 'conduct' | 'request_signal' | 'math_checker';
   subtype: string;
   payload: Record<string, unknown>;
 };
@@ -59,6 +60,9 @@ export type TurnCtx = {
   checks: CheckLog;
   events: PendingEvent[];
   later: (task: () => Promise<void>) => void; // analytics, after the response
+  // Work already running that the turn never waits for (the math checker):
+  // the runner writes its result once the turn is accepted, or aborts it.
+  background?: (job: CheckerJob) => void;
   // Voice: a backchannel the voice layer already spoke when the candidate's
   // turn ended. The model is told; the saved interviewer line starts with it.
   acknowledged?: string;

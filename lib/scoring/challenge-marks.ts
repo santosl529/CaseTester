@@ -18,10 +18,7 @@
 //     challenge is not evidence, and nothing is dropped on its account.
 import type { Case } from '@/lib/cases/schema';
 import type { InterviewerMark } from './interviewer-errors';
-import { checkRecomputeForTurn, checkVerifiedForTurn, flagsFromUnitCheck, flagsFromArithmetic, flagsFromPricing, verifiedFromChecks, type RecomputeFlag, type VerifiedFigure } from '@/lib/orchestrator/recompute';
-import { checkNestedConversions } from '@/lib/orchestrator/unit-check';
-import { checkStatedArithmetic } from '@/lib/orchestrator/arithmetic-check';
-import { checkPricingClaims, pricingValues } from '@/lib/orchestrator/pricing-check';
+import { checkCandidateMath, isClaimVerified, type RecomputeFlag, type VerifiedFigure } from '@/lib/orchestrator/recompute';
 import { classifyMathTalk, candidateFiguresOf } from '@/lib/orchestrator/math-talk';
 
 type Turn = { role: string; text: string; turnIndex: number };
@@ -35,16 +32,8 @@ export type TurnVerification = { flags: RecomputeFlag[]; verified: VerifiedFigur
 export function verifyCandidateTurns(turns: Turn[], caseData: Case, revealedBefore: (turnIndex: number) => string[]): Map<number, TurnVerification> {
   const out = new Map<number, TurnVerification>();
   for (const t of turns.filter(x => x.role === 'candidate')) {
-    const ids = revealedBefore(t.turnIndex);
-    const arith = checkStatedArithmetic(t.text);
-    const unit = checkNestedConversions(t.text, { bases: caseData.shareBases ?? [], items: caseData.dataLedger, revealedIds: ids });
-    const stepFlags = checkRecomputeForTurn(t.text, caseData.mathSteps, ids);
-    const pricingModel = pricingValues(caseData, new Set(ids));
-    const pricing = pricingModel ? checkPricingClaims(t.text, pricingModel) : [];
-    out.set(t.turnIndex, {
-      flags: [...stepFlags, ...flagsFromUnitCheck(unit.flags), ...flagsFromArithmetic(arith), ...flagsFromPricing(pricing)],
-      verified: [...checkVerifiedForTurn(t.text, caseData.mathSteps, ids), ...verifiedFromChecks(arith, unit.verified, pricing)],
-    });
+    const { flags, verified } = checkCandidateMath(t.text, caseData, revealedBefore(t.turnIndex));
+    out.set(t.turnIndex, { flags, verified });
   }
   return out;
 }
@@ -58,6 +47,9 @@ export function genuineErrorSpans(v: Map<number, TurnVerification>): Map<number,
 export function buildChallengeMarks(
   turns: Turn[], caseData: Case, revealedBefore: (turnIndex: number) => string[],
   verification: Map<number, TurnVerification> = verifyCandidateTurns(turns, caseData, revealedBefore),
+  // Figures the math checker flagged, by candidate turn (checker-record.ts):
+  // a doubt on them is supported, like one on a code flag.
+  checkerFlagged: Map<number, number[]> = new Map(),
 ): InterviewerMark[] {
   const marks: InterviewerMark[] = [];
   const candidates = turns.filter(t => t.role === 'candidate');
@@ -66,7 +58,7 @@ export function buildChallengeMarks(
     const last = before.at(-1);
     if (!last) continue;
     const flaggedNow = verification.get(last.turnIndex)?.flags ?? [];
-    const flagged = before.flatMap(c => verification.get(c.turnIndex)?.flags ?? []).map(f => f.candidateValue);
+    const flagged = [...before.flatMap(c => verification.get(c.turnIndex)?.flags ?? []).map(f => f.candidateValue), ...before.flatMap(c => checkerFlagged.get(c.turnIndex) ?? [])];
     const verifiedEver = before.flatMap(c => verification.get(c.turnIndex)?.verified ?? []);
     const verifiedNow = verification.get(last.turnIndex)?.verified ?? [];
     const ids = revealedBefore(last.turnIndex);
@@ -108,9 +100,11 @@ export function formatClaimChecksSection(v: Map<number, TurnVerification>): stri
   if (wrong.length === 0 && right.length === 0) return '';
   const seen = new Set<string>();
   const rightLines = right.filter(({ r }) => !seen.has(r.span) && seen.add(r.span)).slice(0, 8)
-    .map(({ turn, r }) => `- turn ${turn}: "${r.span}" — VERIFIED CORRECT`);
-  const wrongLines = wrong.map(({ turn, f }) => `- turn ${turn}: "${f.span}" — VERIFIED WRONG: ${f.kind === 'unit' ? `${f.candidateValue} ${f.claim?.units}; ${f.claim?.quantity} at ${f.claim?.base} is about ${f.expected}` : f.kind === 'pricing' ? `${f.claim?.quantity} — about ${f.expected}` : `${f.claim?.expression} is not ${f.candidateValue} (≈ ${f.expected})`}`);
+    .map(({ turn, r }) => isClaimVerified(r)
+      ? `- turn ${turn}: "${r.span}" — VERIFIED CORRECT`
+      : `- turn ${turn}: "${r.span}" — ARITHMETIC HOLDS (${r.stepId.slice('arith:'.length)} = ${r.value}; whether it is the right calculation was not checked)`);
+  const wrongLines = wrong.map(({ turn, f }) => `- turn ${turn}: "${f.span}" — VERIFIED WRONG: ${f.kind === 'unit' && f.unit?.period ? `the ${f.unit.period.share}% share of ${f.unit.base.split(' ')[0]} is from ${f.unit.period.sharePeriod === 'prior' ? 'two years ago' : 'today'}; it was applied to ${f.unit.base.split(' ')[0]} at ${f.unit.period.baseValue}% (${f.unit.period.basePeriod === 'prior' ? 'two years ago' : 'today'})` : f.kind === 'unit' ? `${f.candidateValue} ${f.claim?.units}; ${f.claim?.quantity} at ${f.claim?.base} is about ${f.expected}` : f.kind === 'pricing' ? `${f.claim?.quantity} — about ${f.expected}` : `${f.claim?.expression} is not ${f.candidateValue} (≈ ${f.expected})`}`);
   return `CANDIDATE CLAIMS CHECKED IN CODE (stated arithmetic, unit conversions and pricing math):
 ${[...wrongLines, ...rightLines].join('\n')}
-A claim marked VERIFIED CORRECT is correct: never cite it as an error, whatever the interviewer implied. VERIFIED WRONG is the candidate's error unless they corrected it. Claims not listed were not checked — not being flagged is not evidence of correctness.`;
+A claim marked VERIFIED CORRECT is correct: never cite it as an error, whatever the interviewer implied. ARITHMETIC HOLDS means only the operation is right — the method or base behind it can still be an error. VERIFIED WRONG is the candidate's error unless they corrected it. Claims not listed were not checked — not being flagged is not evidence of correctness.`;
 }

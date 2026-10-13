@@ -11,6 +11,7 @@ type Row = Record<string, unknown>;
 const store = { session: {} as Row, turns: [] as Row[], revealed: [] as Row[], exhibits: [] as Row[], events: [] as Row[] };
 let conductVerdict: (text: string) => { label: string; reason: string } | null = () => ({ label: 'none', reason: '' });
 const conductCalls: string[] = [];
+vi.mock('@/lib/orchestrator/math-checker', async orig => ({ ...(await orig<object>()), checkMathClaims: async () => { throw new Error('no math checker calls in tests'); } }));
 vi.mock('@/lib/orchestrator/conduct-model', async orig => ({
   ...(await orig<object>()),
   classifyConductModel: async (p: { candidateText: string }) => { conductCalls.push(p.candidateText); return conductVerdict(p.candidateText); },

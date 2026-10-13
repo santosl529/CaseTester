@@ -16,6 +16,8 @@ import { summarizeAssists, summarizeCoverage, summarizePressureTest } from './as
 import { summarizeDataRequests } from './data-coverage';
 import { buildInterviewerMarks, formatInterviewerMarksSection, dropClaimsOnMarkedTurns, type InterviewerMark } from './interviewer-errors';
 import { buildChallengeMarks, verifyCandidateTurns, genuineErrorSpans, formatClaimChecksSection } from './challenge-marks';
+import { formatCheckerSection, checkerFlaggedFigures, dropCheckerStamps } from './checker-record';
+import { caseNumbersOf } from '@/lib/orchestrator/math-checker-live';
 import { applyStageCaps, formatStageRecordSection, reconstructStages, stagesNotInCase } from './stage-caps';
 import { exhibitsShown } from '@/db/schema';
 import type { StageRecord } from '@/lib/orchestrator/stage-evidence';
@@ -185,20 +187,24 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   // recomputed from the transcript with what was revealed by each turn.
   const turnMs = new Map(turns.map(t => [t.turnIndex, t.timestampMs]));
   const revealedBefore = (turnIndex: number) => revealedRows.filter(r => r.revealedAtMs <= (turnMs.get(turnIndex) ?? Infinity)).map(r => r.ledgerItemId);
-  const verification = verifyCandidateTurns(transcript, caseData, revealedBefore);
+  // The math checker's record (checker-record.ts): its flags and their
+  // outcomes for the judge; a stamp it found wrong no longer counts.
+  const checkerRows = markEvents.filter(e => e.category === 'math_checker');
+  const caseNumbers = caseNumbersOf(caseData, revealedIds);
+  const verification = dropCheckerStamps(verifyCandidateTurns(transcript, caseData, revealedBefore), checkerRows, caseNumbers);
   const marks = [
     ...buildInterviewerMarks(
       transcript,
       markEvents.map(e => ({ category: e.category, subtype: e.subtype, turnIndex: e.turnIndex })),
       dataCoverage.requestedUnanswered,
     ),
-    ...buildChallengeMarks(transcript, caseData, revealedBefore, verification),
+    ...buildChallengeMarks(transcript, caseData, revealedBefore, verification, checkerFlaggedFigures(checkerRows, caseNumbers)),
     ...exitMarks(transcript, interventionRows),
   ];
   if (marks.length > 0) console.warn('[score] interviewer-error marks:', JSON.stringify(marks.map(m => [m.kind, m.interviewerTurn])));
 
   const rawRubric = await runJudge(
-    transcript, caseData, revealedIds, mathResults, [interventionSummary, stageSection, formatClaimChecksSection(verification)].filter(Boolean).join('\n\n'), dataCoverage,
+    transcript, caseData, revealedIds, mathResults, [interventionSummary, stageSection, formatClaimChecksSection(verification), formatCheckerSection(checkerRows)].filter(Boolean).join('\n\n'), dataCoverage,
     formatInterviewerMarksSection(marks),
     u => logUsage({ ...u }),
   );

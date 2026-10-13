@@ -24,7 +24,9 @@ export type SpanStep = {
   unit?: MathUnit | MathUnit[]; // several: the step is stated either way ("10.5% of revenue" / "10.5 points")
 };
 
-export type SpanMatch = { value: number; span: string };
+// range: the number is one end of a range ("10–12%", "7 to 8 points") — a
+// range is not the quantity's value.
+export type SpanMatch = { value: number; span: string; range?: boolean };
 
 const CUE_WINDOW_WORDS = 5;
 
@@ -62,8 +64,14 @@ function wordsBetween(clause: string, a: number, b: number): number {
   return clause.slice(lo, hi).split(/\s+/).filter(t => /[a-z]/i.test(t)).length;
 }
 
+// A cue of six letters or more is a stem ("contribut", "diagnos"); a shorter
+// one is a word, with its inflections only — "rest" is not "restore" (batch
+// 21, Fiona t16: "10–12% on menu prices to restore margin" verified as the
+// other inputs' 11.8 points), "net" is not "network".
 function cueCharIndexes(clause: string, cue: string): { start: number; end: number }[] {
-  const re = new RegExp(`\\b${cue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'gi');
+  const body = cue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const tail = cue.length < 6 && /[a-z]$/i.test(cue) ? '(?:s|es|ed|d|ing)?(?![a-z])' : '';
+  const re = new RegExp(`\\b${body}${tail}`, 'gi');
   return [...clause.matchAll(re)].map(m => ({ start: m.index ?? 0, end: (m.index ?? 0) + m[0].length }));
 }
 
@@ -101,10 +109,26 @@ export function findStepSpans(rawText: string, step: SpanStep, scope: 'clause' |
       // Cue words themselves don't count toward the distance.
       const near = scope === 'sentence'
         || cueAt.some(c => (c.end <= start ? wordsBetween(clause, c.end, start) : wordsBetween(clause, end, c.start)) <= CUE_WINDOW_WORDS);
-      if (near) matches.push({ value, span: clause });
+      if (near) matches.push({ value, span: clause, ...(isRangeEnd(clause, start, end) ? { range: true } : {}) });
     }
   }
   return matches;
+}
+
+// One end of a range: "10–12%", "10-12", "7 to 8 points" — not a change
+// ("from 24% to 6%", "takes 31.5 to 43.3 points", "10.5 points to 14.7"), and
+// not spaced subtraction ("58 - 43.3").
+const CHANGE_LEAD = /\b(?:from|takes?|took|taking|goes|went|going|rises?|rose|rising|grows?|grew|growing|moves?|moved|falls?|fell|falling|drops?|dropped|climbs?|climbed|jumps?|jumped|increases?|increased|decreases?|decreased|declines?|declined|lifts?|lifted|brings?|brought|pushes|pushed)\b(?:\s+\S+){0,3}\s*$/i;
+function isRangeEnd(clause: string, start: number, end: number): boolean {
+  const before = clause.slice(Math.max(0, start - 60), start);
+  const after = clause.slice(end, end + 40);
+  if (/\d%?(?:[–-]|\s?–\s?)$/.test(before)) return true;
+  if (/^(?:[–-]|\s?–\s?)\$?\d/.test(after)) return true;
+  // "X to Y": the second end, or the first when it carries no unit of its own.
+  const lead = /(\$?\d[\d,]*(?:\.\d+)?)(\s*%|\s+(?:percent|points?))?\s+to\s+$/i.exec(before);
+  if (lead && !lead[2] && !CHANGE_LEAD.test(before.slice(0, lead.index))) return true;
+  if (/^\s+to\s+\$?\d/i.test(after) && clause.slice(start, end).match(/^\$?\d[\d,]*(?:\.\d+)?$/) && !CHANGE_LEAD.test(clause.slice(0, start))) return true;
+  return false;
 }
 
 // Global one-to-one assignment across steps (each stated number counts for at

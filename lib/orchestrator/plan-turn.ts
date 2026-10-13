@@ -8,10 +8,7 @@ import { formatOpenRequestsHint, formatUnmappedHint } from './data-requests';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
 import { createLedger, reveal, revealedValues, labelWithPeriod } from './data-ledger';
-import { checkRecomputeForTurn, formatRecomputeHint, recordAttempts, checkVerifiedForTurn, formatVerifiedHint, flagsFromUnitCheck, flagsFromArithmetic, flagsFromPricing, verifiedFromChecks, recomputeAction, type RecomputeAttempts, type VerifiedFigure } from './recompute';
-import { checkNestedConversions } from './unit-check';
-import { checkStatedArithmetic } from './arithmetic-check';
-import { checkPricingClaims, pricingValues } from './pricing-check';
+import { checkCandidateMath, formatRecomputeHint, recordAttempts, formatVerifiedHint, recomputeAction, type RecomputeAttempts, type RecomputeFlag, type RecomputeAction, type VerifiedFigure } from './recompute';
 import { candidateFiguresOf } from './math-talk';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
@@ -33,6 +30,8 @@ import { CheckLog } from './check-log';
 import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
 import { brainstormAsks, brainstormRequired } from './brainstorm';
 import { correctionLines } from './misquote';
+import { statesQuantitativeClaim } from './math-checker';
+import { startMathCheck, planCheckerFlags, formatCheckerHint, liveCheckerConfig, checkerKey, MATH_CHECKER_CATEGORY, type CheckerSelection } from './math-checker-live';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
 import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
@@ -51,6 +50,8 @@ export type TurnReads = {
   exhibitRows: (typeof exhibitsShown.$inferSelect)[];
   revealedRows: (typeof revealedData.$inferSelect)[];
   dataRequestEventRows: (typeof sessionEvents.$inferSelect)[];
+  // The math checker's rows (math-checker-live.ts): verdicts that have landed.
+  checkerEventRows?: (typeof sessionEvents.$inferSelect)[];
 };
 
 export type PlanDeps = {
@@ -58,6 +59,7 @@ export type PlanDeps = {
   now: number;
   turnStartMs: number;
   later: TurnCtx['later'];
+  background?: TurnCtx['background'];
   acknowledged?: string;   // voice: a backchannel already spoken at end-of-turn
   // false: no distress classifier call — a re-plan only to compare decisions
   // (speculative-turn.ts), whose verdict nobody reads.
@@ -66,6 +68,10 @@ export type PlanDeps = {
 
 export type ModelPlan = ReturnType<typeof modelPlan>;
 export type ModelState = ModelPlan['state'];
+
+// The recommendation's math probe: a deterministic flag, or the math checker's
+// (in place of the close).
+export type RecMathProbe = { flag: RecomputeFlag; action: RecomputeAction } | { checker: CheckerSelection; action: 'probe' | 'correct' };
 
 // Rule 6 option 4: how many times code corrects one item's misquote in a session.
 export const MISQUOTE_CORRECTIONS_PER_ITEM = 2;
@@ -83,7 +89,7 @@ export function planTurn(reads: TurnReads, candidateText: string, deps: PlanDeps
   const ctx: TurnCtx = {
     sessionId, userId: session.userId, candidateText, now, turnStartMs: deps.turnStartMs,
     nextTurnIndex, currentPhase, flags, conduct, checks: new CheckLog(), events: [], later: deps.later,
-    acknowledged: deps.acknowledged,
+    background: deps.background, acknowledged: deps.acknowledged,
   };
   const later = deps.later;
 
@@ -395,26 +401,20 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // work in 9 batch-18 interviews). Each figure ends up verified correct,
   // flagged incorrect, or unverified — and only a flag licenses doubt
   // (probe-guard.ts).
-  const revealedIdsNow = Object.keys(revealedValues(ledger));
-  const stepFlags = checkRecomputeForTurn(candidateText, caseData.mathSteps, revealedIdsNow);
-  const arithmetic = checkStatedArithmetic(candidateText);
-  const units = checkNestedConversions(candidateText, { bases: caseData.shareBases, items: caseData.dataLedger, revealedIds: revealedIdsNow });
   // Pricing claims (12 Oct): a price change's stated result against the case's
   // cost structure, once every cost line is out (pricing-check.ts).
-  const pricingModel = pricingValues(caseData, new Set(revealedIdsNow));
-  const pricing = pricingModel ? checkPricingClaims(candidateText, pricingModel) : [];
-  const recomputeFlags = [
-    ...stepFlags,
-    ...flagsFromUnitCheck(units.flags),
-    ...flagsFromArithmetic(arithmetic).filter(a => !stepFlags.some(f => f.candidateValue === a.candidateValue)),
-  ];
-  recomputeFlags.push(...flagsFromPricing(pricing).filter(p => !recomputeFlags.some(f => f.candidateValue === p.candidateValue)));
+  const revealedIdsNow = Object.keys(revealedValues(ledger));
+  const candidateMath = checkCandidateMath(candidateText, caseData, revealedIdsNow);
+  const { arithmetic, units, pricing } = candidateMath;
+  const recomputeFlags = candidateMath.flags;
   // Rule 14: the attempt counter is orchestrator state, not model judgment.
   const recomputeAttempts = recordAttempts((flags.recomputeAttempts as RecomputeAttempts | undefined) ?? {}, recomputeFlags);
-  const { hint: recomputeHint, derivedValues: derivedValueTexts } = formatRecomputeHint(recomputeFlags, {
+  const recomputeHinted = formatRecomputeHint(recomputeFlags, {
     attempts: recomputeAttempts,
     underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
   });
+  let recomputeHint = recomputeHinted.hint;
+  const derivedValueTexts = recomputeHinted.derivedValues;
   // Logged with span, attempt and the claim (quantity, units, base,
   // timeframe): the input to interviewer-error marking, and so a flag is
   // never invisible again.
@@ -441,12 +441,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Rule 2 v4.5/v4.6: the other half of the signal — figures the candidate
   // stated correctly (recompute_ok), with whether the work was shown. Doubt
   // probes on these are banned and withheld before send (probe-guard.ts).
-  const stepVerified = checkVerifiedForTurn(candidateText, caseData.mathSteps, revealedIdsNow);
-  const verifiedNow = [
-    ...stepVerified,
-    ...verifiedFromChecks(arithmetic, units.verified, pricing).filter(v => !stepVerified.some(x => Math.abs(x.value - v.value) < 1e-9)),
-  ];
-  const verifiedPrev = (flags.lastVerified as VerifiedFigure[] | undefined) ?? [];
+  const verifiedNow = candidateMath.verified;
+  let verifiedPrev = (flags.lastVerified as VerifiedFigure[] | undefined) ?? [];
   const explainProbedBefore = new Set((flags.explainProbed as string[] | undefined) ?? []);
   const verifiedHint = formatVerifiedHint(verifiedNow, explainProbedBefore);
   // Rule 6 option 4 (v4.11; widened 12 Oct after batch 20, where Tyler's
@@ -499,13 +495,48 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Figures a check found wrong, this turn or earlier: still wrong, so a probe
   // on them stays licensed (Maya, batch 18 v3: "16 divided by 18 is 1.6%" at
   // t20, re-raised at t24).
-  const flaggedFigures = [...new Set([...((flags.flaggedFigures as number[] | undefined) ?? []), ...recomputeFlags.map(f => f.candidateValue)])];
+  let flaggedFigures = [...new Set([...((flags.flaggedFigures as number[] | undefined) ?? []), ...recomputeFlags.map(f => f.candidateValue)])];
   // The figures the candidate derived (their numbers less the case's own):
   // what a challenge to "the candidate's math" can be about (math-talk.ts).
   const candidateFigures = candidateFiguresOf(
     [...turnRows.filter(t => t.role === 'candidate').map(t => t.text), candidateText],
     [caseData.prompt, ...Object.values(revealedValues(ledger))],
   );
+
+  // The background math checker (math-checker-live.ts; Lorenzo, 13 Oct): fired
+  // on this message beside the model call, never awaited — its verdict lands
+  // on a later turn. Not on a re-plan that only compares decisions.
+  const checkerConfig = extra.classify && ctx.background ? liveCheckerConfig() : null;
+  if (checkerConfig && ctx.background && statesQuantitativeClaim(candidateText)) {
+    const shown = [...shownExhibitIds];
+    ctx.background(startMathCheck({
+      caseData, candidateTurnIndex: ctx.nextTurnIndex, codeMath: candidateMath, config: checkerConfig,
+      misquotes: found.map(m => ({ item: m.items[0], cited: m.cited, sentence: m.sentence })),
+      input: {
+        revealedIds: revealedIdsNow, shownExhibitIds: shown, message: candidateText,
+        transcript: turnRows.filter(t => !(t.role === 'interviewer' && isSilenceLine(t.text)))
+          .map(t => ({ role: t.role === 'candidate' ? 'candidate' as const : 'interviewer' as const, text: t.text })),
+      },
+      vet: { caseData, revealedIds: revealedIdsNow, shownExhibitIds: shown, candidateTexts: [...turnRows.filter(t => t.role === 'candidate').map(t => t.text), candidateText] },
+      onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId: session.userId }); },
+    }));
+  }
+  // Verdicts on earlier messages that have landed: Rule 14 flags, one a turn
+  // (decided here; delivered once the turn kind is known, below).
+  const checkerHandled = ((flags.mathChecker as { handled?: string[] } | undefined)?.handled) ?? [];
+  const checkerPlan = planCheckerFlags({
+    rows: (reads.checkerEventRows ?? []).filter(r => r.category === MATH_CHECKER_CATEGORY),
+    handled: checkerHandled, turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
+    currentFlags: recomputeFlags, codeLineThisTurn: misquote !== null, attempts: recomputeAttempts, underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
+    candidateFigures, caseData, revealedIds: revealedIdsNow,
+  });
+  // Deterministic first: a stamp the checker found wrong no longer protects
+  // the figure; a landed flag's figure may be doubted (Rule 14).
+  if (checkerPlan.droppedStamps.length > 0) {
+    verifiedPrev = verifiedPrev.filter(v => !checkerPlan.droppedStamps.some(d => Math.abs(d.value - v.value) < 1e-9));
+    for (const d of checkerPlan.droppedStamps) ctx.events.push({ category: 'math_checker', subtype: 'stamp_dropped', payload: d });
+  }
+  flaggedFigures = [...new Set([...flaggedFigures, ...checkerPlan.flaggedFigures])];
 
   // Rule 13 stall ladder: evaluate BEFORE the model turn so a triggered rung's
   // guidance goes into this turn's prompt.
@@ -623,7 +654,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const recMathFlag = replyToRecAsk && !flags.recMathProbed && !timeUp && !recRevisionDue
     ? recomputeFlags.find(f => recomputeAction(f, recomputeAttempts[f.stepId] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)) !== 'shed')
     : undefined;
-  const recMathProbe = recMathFlag
+  let recMathProbe: RecMathProbe | null = recMathFlag
     ? { flag: recMathFlag, action: recomputeAction(recMathFlag, recomputeAttempts[recMathFlag.stepId] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)) }
     : null;
   const analysisDue = analysisOwed && (closeDue || awaitingRecAsk);
@@ -637,7 +668,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const requiredExhibit = requiredNext && !timeUp && !underTimePressure ? requiredNext.id : undefined;
   const pressureExhibit = requiredNext && !timeUp && underTimePressure ? requiredNext.id : undefined;
   const requiredExhibitDue = requiredExhibit !== undefined && ptClosed && (closeDue || awaitingRecAsk);
-  const kind: TurnKind = recRevisionDue ? 'rec_revision'
+  let kind: TurnKind = recRevisionDue ? 'rec_revision'
     : recMathProbe ? 'rec_math_probe'
     : requiredExhibitDue ? 'stage_exhibit'
     : analysisDue ? 'stage_analysis'
@@ -648,6 +679,37 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
           : awaitingRecAsk ? 'rec_ask'
             : stallDecision.intervene && stallDecision.rung === 1 && lastQuestion ? 'rung1'
               : 'model';
+  // The math checker's flag (Lorenzo, 13 Oct): on a model turn, a
+  // RECOMPUTE-style hint; at the close, an unresolved conclusion-changing flag
+  // holds the close one turn — code says Rule 14's line (once a case, not when
+  // time is up); anything left at the close goes to the report. On other
+  // code-written turns it waits.
+  const sel = checkerPlan.selected;
+  if (kind === 'close' && sel?.claim.changesConclusion && !timeUp && !flags.recMathProbed) {
+    kind = 'rec_math_probe';
+    recMathProbe = { checker: sel, action: sel.action === 'correct' ? 'correct' : 'probe' };
+  }
+  const checkerUsed = sel && (kind === 'model' || (kind === 'rec_math_probe' && recMathProbe && 'checker' in recMathProbe)) ? sel : null;
+  const checkerHandledNow = [...checkerPlan.handledNow];
+  const checkerDecisions = checkerPlan.decisions.filter(d => !sel || d.id !== sel.id || checkerUsed);
+  if (checkerUsed) {
+    recomputeAttempts[checkerUsed.key] = checkerUsed.attempt;
+    checkerHandledNow.push(checkerUsed.id);
+    derivedValueTexts.push(...checkerUsed.derived);
+    if (kind === 'model') recomputeHint = [recomputeHint, formatCheckerHint(checkerUsed)].filter(Boolean).join('\n\n');
+  }
+  if (kind === 'close') {
+    for (const w of [...(sel ? [{ id: sel.id, candidateTurnIndex: sel.candidateTurnIndex, claim: sel.claim }] : []), ...checkerPlan.waiting]) {
+      checkerDecisions.push({ id: w.id, candidateTurnIndex: w.candidateTurnIndex, outcome: 'unresolved_at_close', reason: timeUp ? 'time up' : 'the case closed', span: w.claim.span, candidateValue: w.claim.candidateValue, key: checkerKey(w.claim), changesConclusion: w.claim.changesConclusion });
+      checkerHandledNow.push(w.id);
+    }
+  }
+  for (const d of checkerDecisions) ctx.events.push({ category: 'math_checker', subtype: 'flag', payload: d });
+  if (checkerHandledNow.length > 0) flags.mathChecker = { handled: [...checkerHandled, ...checkerHandledNow] };
+  checks.record('math_checker', checkerUsed !== null, checkerUsed ? `checker flag delivered: ${checkerUsed.action}` : 'no checker flag delivered', {
+    started: Boolean(checkerConfig && statesQuantitativeClaim(candidateText)), selected: sel?.id ?? null, used: checkerUsed?.id ?? null,
+    decisions: checkerDecisions.map(d => ({ id: d.id, outcome: d.outcome, reason: d.reason })), waiting: checkerPlan.waiting.map(w => w.id),
+  });
   if (kind === 'close' && correcting.length < Math.min(2, perItem.length)) {
     correcting = perItem.slice(0, 2);
     misquote = misquoteOf(correcting);

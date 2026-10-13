@@ -45,6 +45,9 @@ export type UnitFlag = {
   timeframe: 'current' | 'prior';
   unconverted: number;     // share × change: the value without the conversion
   expected: number;        // the converted value at that base
+  // A period mismatch instead of a unit slip (13 Oct): the share is a figure
+  // of one year, applied to the other year's base, which the candidate named.
+  period?: { share: number; sharePeriod: 'current' | 'prior'; baseValue: number; basePeriod: 'current' | 'prior'; samePeriodBase: number };
 };
 
 export type UnitVerified = { span: string; stated: number; expected: number };
@@ -70,6 +73,9 @@ function baseValues(timeframes: Record<string, string> | undefined): BaseValue[]
   });
 }
 
+// The candidate assumes the share still holds: not a mismatch, an assumption.
+const ASSUMED = /\b(?:if|assum\w*|suppose|say|still|presumably|hypothetically)\b/i;
+
 const near = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.35, Math.abs(b) * 0.04);
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
@@ -77,7 +83,7 @@ export function checkNestedConversions(
   rawText: string,
   p: {
     bases: ShareBase[];
-    items: { id: string; timeframes?: Record<string, string> }[];
+    items: { id: string; value?: string; timeframes?: Record<string, string> }[];
     revealedIds: Iterable<string>;
   },
 ): { flags: UnitFlag[]; verified: UnitVerified[] } {
@@ -94,6 +100,22 @@ export function checkNestedConversions(
     const values = baseValues(p.items.find(i => i.id === base.item)?.timeframes);
     if (values.length === 0) continue;
     const names = [base.name, ...base.aliases].map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+    // The period of a share the case states of this base ("Coffee beans were
+    // 25% of COGS two years ago"), or of its complement ("the other 75%"): a
+    // share converts only at the base of its own period. Marisol t8 (batch
+    // 21): "25% of COGS, so against the current 58, that's 14.5 points" mixes
+    // the old mix with today's COGS and was verified correct.
+    const sharePeriod = (share: number): 'current' | 'prior' | undefined => {
+      for (const item of p.items.filter(i => revealed.has(i.id) && i.value)) {
+        for (const [fig, tf] of Object.entries(item.timeframes ?? {})) {
+          if (tf !== 'current' && tf !== 'prior') continue;
+          const f = parseFloat(fig);
+          const statesShare = new RegExp(`(?<![\\d.])${fig.replace('.', '\\.')}\\s*(?:%|percent)\\s+of\\s+(?:the\\s+|total\\s+)?(?:${names})\\b`, 'i').test(item.value!);
+          if (statesShare && (Math.abs(f - share) < 1e-9 || Math.abs(100 - f - share) < 1e-9)) return tf;
+        }
+      }
+      return undefined;
+    };
     // "25% of COGS" — not "10% of COGS growth", which is itself a result.
     const SHARE = new RegExp(`${NUM}${PCT}\\s+of\\s+(?:total\\s+|the\\s+|our\\s+|their\\s+)?(?:${names})\\b(?!\\s+(?:growth|increase|change|inflation|rise))`, 'gi');
     const CHANGE = new RegExp(String.raw`(?:\b(?:up|rose|risen|rising|increased|increasing|grew|grown|jumped|climbed|inflated|spiked)\s+(?:by\s+)?(?:about\s+|roughly\s+|~)?${NUM}${PCT}|${NUM}${PCT}\s+(?:rise|increase|jump|inflation|spike|hike|higher)\b|\+\s?${NUM}${PCT})`, 'gi');
@@ -127,7 +149,8 @@ export function checkNestedConversions(
         // share: the share restated as revenue points; delta: share × change; level: share × (1 + change).
         const unconverted: { value: number; share: number; change?: number; form: 'share' | 'delta' | 'level' }[] = [];
         for (const s of shares) {
-          for (const b of values) {
+          const period = sharePeriod(s);
+          for (const b of values.filter(v => period === undefined || v.timeframe === period)) {
             converted.push({ value: s * b.value / 100, share: s, base: b });
             for (const c of changes) {
               converted.push({ value: s * b.value / 100 * c / 100, share: s, change: c, base: b });
@@ -142,6 +165,30 @@ export function checkNestedConversions(
         }
         const ok = converted.find(c => near(stated, c.value));
         if (ok) { verified.push({ span: sentence, stated, expected: round1(ok.value) }); continue; }
+        // A clear period mismatch: a share the case gives for one year, on the
+        // other year's base, which the candidate names by its value ("25% of
+        // COGS … against the current 58 = 14.5 points"), with no assumption
+        // that the share held ("if beans are still 25% today").
+        const crossed = shares.flatMap(sh => {
+          const sp = sharePeriod(sh);
+          if (!sp) return [];
+          return values.filter(b => b.timeframe !== sp && new RegExp(`(?<![\\d.])${b.value}(?![\\d])`).test(window))
+            .flatMap(b => [{ v: sh * b.value / 100, change: undefined as number | undefined }, ...changes.flatMap(c => [{ v: sh * b.value / 100 * c / 100, change: c }, { v: sh * b.value / 100 * (1 + c / 100), change: c }])]
+              .map(x => ({ ...x, share: sh, sp, b })));
+        }).find(x => near(stated, x.v));
+        if (crossed && !ASSUMED.test(window)) {
+          const same = values.find(v => v.timeframe === crossed.sp);
+          if (same) {
+            flags.push({
+              kind: 'unit', span: sentence, stated, units,
+              quantity: `the ${crossed.share}% share of ${base.name}`,
+              base: `${base.name} at ${same.value}% of revenue (${crossed.sp === 'prior' ? 'two years ago' : 'today'})`,
+              baseValue: same.value, timeframe: crossed.sp, unconverted: crossed.share, expected: round1(crossed.share * same.value / 100),
+              period: { share: crossed.share, sharePeriod: crossed.sp, baseValue: crossed.b.value, basePeriod: crossed.b.timeframe, samePeriodBase: same.value },
+            });
+            continue;
+          }
+        }
         const miss = unconverted.find(u => near(stated, u.value));
         if (!miss) continue;
         // The base: the value the candidate cited ("COGS is 58% of revenue"),
@@ -166,5 +213,9 @@ export function checkNestedConversions(
 // so the probe is about what the candidate actually said. The model is told
 // the figure only so it can tell the flag is real; it never says it.
 export function formatUnitFlagLine(f: UnitFlag): string {
+  if (f.period) {
+    const when = (p: 'current' | 'prior') => p === 'prior' ? 'two years ago' : 'today';
+    return `- PERIOD: the candidate said ${f.stated} ${f.units} in "${f.span}". The ${f.period.share}% share of ${f.base.split(' ')[0]} is ${when(f.period.sharePeriod)}'s figure; they applied it to ${f.base.split(' ')[0]} at ${f.period.baseValue}% (${when(f.period.basePeriod)}). Probe once — "Which year's ${f.base.split(' ')[0]} does that ${f.period.share}% share belong to?" — and let them fix it; don't name the right base or a figure.`;
+  }
   return `- UNIT: the candidate said ${f.stated} ${f.units} in "${f.span}". ${f.quantity[0].toUpperCase()}${f.quantity.slice(1)} is ${f.unconverted} points of the cost line, not of revenue; with ${f.base} it is about ${f.expected} ${f.units}. Probe the units once — "Points of what?" — and let them convert; don't name the method or the figure.`;
 }

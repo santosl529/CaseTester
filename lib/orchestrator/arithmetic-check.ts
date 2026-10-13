@@ -37,7 +37,7 @@ export type ArithmeticClaim = {
 };
 
 type Tok =
-  | { t: 'num'; v: number; pct: boolean; scaled: boolean; raw: string }  // v carries its scale ($480M → 480e6)
+  | { t: 'num'; v: number; pct: boolean; scaled: boolean; unit: boolean; raw: string }  // v carries its scale ($480M → 480e6); unit: %, points, pp
   | { t: 'op'; v: '+' | '-' | '*' | '/' }
   | { t: 'eq' }
   | { t: 'approx' }
@@ -86,7 +86,7 @@ function tokenize(sentence: string): Tok[] {
       // A number glued to letters ("1.15x", "2nd", "2-thirds", "18-point") is not an operand.
       if (/^-?[a-z]/i.test(s)) { out.push({ t: 'break' }); s = s.replace(/^-?[a-z]+/i, ''); continue; }
       const scale = n[3] ? SCALE[n[3].toLowerCase()] : 1;
-      out.push({ t: 'num', v: parseFloat(n[1].replace(/,/g, '')) * scale, pct: Boolean(n[2] && /%|percent/i.test(n[2])), scaled: scale !== 1, raw: n[0].trim() });
+      out.push({ t: 'num', v: parseFloat(n[1].replace(/,/g, '')) * scale, pct: Boolean(n[2] && /%|percent/i.test(n[2])), scaled: scale !== 1, unit: Boolean(n[2]), raw: n[0].trim() });
       continue;
     }
     // "≈" / "~=" are both: an approximate result follows.
@@ -106,7 +106,7 @@ function tokenize(sentence: string): Tok[] {
   return out;
 }
 
-type Expr = { nums: number[]; ops: ('+' | '-' | '*' | '/')[]; pct: boolean; scaled: boolean; raw: string[]; pctAt: number[] };
+type Expr = { nums: number[]; ops: ('+' | '-' | '*' | '/')[]; pct: boolean; scaled: boolean; raw: string[]; pctAt: number[]; unitAt: number[] };
 
 function evaluate(e: Expr): number | null {
   if (e.nums.length !== e.ops.length + 1) return null;
@@ -154,10 +154,10 @@ export function checkStatedArithmetic(rawText: string): ArithmeticClaim[] {
     if (!sentence || !/\d/.test(sentence)) continue;
     const toks = tokenize(sentence);
     let left: Expr | null = null;      // the expression before an equals
-    let cur: Expr = { nums: [], ops: [], pct: false, scaled: false, raw: [], pctAt: [] };
+    let cur: Expr = { nums: [], ops: [], pct: false, scaled: false, raw: [], pctAt: [], unitAt: [] };
     let approx = false;
     let expectOperand = true;
-    const reset = () => { left = null; cur = { nums: [], ops: [], pct: false, scaled: false, raw: [], pctAt: [] }; approx = false; expectOperand = true; };
+    const reset = () => { left = null; cur = { nums: [], ops: [], pct: false, scaled: false, raw: [], pctAt: [], unitAt: [] }; approx = false; expectOperand = true; };
     const settle = () => {
       // A claim: an operation on the left, a single number on the right.
       if (left && cur.nums.length === 1 && cur.ops.length === 0 && left.ops.length > 0) {
@@ -169,6 +169,16 @@ export function checkStatedArithmetic(rawText: string): ArithmeticClaim[] {
           if (verdict !== 'correct' && left.pctAt.length > 0 && left.ops.every(o => o === '*' || o === '/')) {
             const asFactors = evaluate({ ...left, nums: left.nums.map((n, i) => (left!.pctAt.includes(i) ? 1 + n / 100 : n)) });
             if (asFactors !== null && verdictFor(rv, asFactors, true, approx) === 'correct') verdict = 'correct';
+          }
+          // The whole written as 1 beside figures in points: "1 − 94/1.10 = 1 −
+          // 85.5 = 14.5% margin" is 100 − 85.5 (default candidate ee081845 t17
+          // was flagged; the claim is right). Only "1 − …": a bare 1 that
+          // opens the expression and is subtracted from — an added or
+          // subtracted 1 is a point ("rose 1 point, so 13 + 1"), a 1 with a
+          // unit is that unit, and "1 + 4" is no whole (Lorenzo, 13 Oct).
+          if (verdict !== 'correct' && left.nums.some(n => n > 1) && left.nums[0] === 1 && left.ops[0] === '-' && !left.unitAt.includes(0)) {
+            const asHundred = evaluate({ ...left, nums: [100, ...left.nums.slice(1)] });
+            if (asHundred !== null && verdictFor(rv, asHundred, pct, approx) === 'correct') verdict = 'correct';
           }
           claims.push({
             span: sentence, expression: left.raw.join(' '), stated: rv, computed: lv,
@@ -187,6 +197,7 @@ export function checkStatedArithmetic(rawText: string): ArithmeticClaim[] {
       if (tok.t === 'num') {
         if (!expectOperand) { settle(); reset(); }
         if (tok.pct) cur.pctAt.push(cur.nums.length);
+        if (tok.unit) cur.unitAt.push(cur.nums.length);
         cur.nums.push(tok.v); cur.pct ||= tok.pct; cur.scaled ||= tok.scaled; cur.raw.push(tok.raw.trim());
         expectOperand = false;
         continue;
@@ -201,7 +212,7 @@ export function checkStatedArithmetic(rawText: string): ArithmeticClaim[] {
       if (expectOperand || cur.nums.length === 0) { reset(); continue; }
       settle();
       left = cur;
-      cur = { nums: [], ops: [], pct: false, scaled: false, raw: [], pctAt: [] };
+      cur = { nums: [], ops: [], pct: false, scaled: false, raw: [], pctAt: [], unitAt: [] };
       expectOperand = true;
     }
     settle();

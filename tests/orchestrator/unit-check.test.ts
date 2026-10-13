@@ -75,3 +75,36 @@ describe('a wrong conversion is flagged with the claim, units, base and timefram
     expect(line).toMatch(/don't name the method or the figure/);
   });
 });
+
+// Clear period mismatches (math checker, 13 Oct): a share the case gives for
+// one period applied to the other period's base — named by its value — is a
+// flag, not log-only. Batch 21 Marisol t8 and batch 5 Marisol t8; an explicit
+// assumption ("if beans are still 25% of COGS today", Tobias b2, Ines b3) is not.
+describe('period mismatch: a share of one year on the other year\'s base', () => {
+  const ALL = ['cogs_pct', 'bean_share_of_cogs', 'bean_price_change', 'non_bean_input_change'];
+  it.each([
+    ['Marisol b21', "Now let me decompose it with the inputs you gave. Beans are 25% of COGS, so against the current 58, that's 0.25 × 58 = 14.5 points of revenue."],
+    ['Marisol b5', "Beans were 25% of COGS, and applying that 25% share to today's 58% COGS line gives 14.5% of revenue, or about $70M on beans."],
+  ])('%s', (_who, text) => {
+    const { flags, verified } = run(text, ALL);
+    expect(verified).toEqual([]);
+    expect(flags).toHaveLength(1);
+    expect(flags[0]).toMatchObject({ stated: 14.5, period: { share: 25, sharePeriod: 'prior', baseValue: 58, basePeriod: 'current', samePeriodBase: 42 } });
+  });
+
+  it.each([
+    ['Tobias b2', "If beans are still 25% of COGS today, that's 25% of 58%, or 14.5% of revenue."],
+    ['Ines b3', "For today I need the current share — if beans are still 25% of COGS, that's 0.25 × 58% = 14.5% of revenue, so about 4 points of the 16."],
+    ['the base not named', 'Two years ago COGS was 42% of revenue and beans were 25% of COGS, so 10.5% of revenue; the price increase takes beans to 10.5 × 1.4 = 14.7% of revenue.'],
+  ])('no flag: %s', (_who, text) => {
+    expect(run(text, ALL).flags.filter(f => f.period)).toEqual([]);
+  });
+
+  it('the line asks which year, never names the right base or a figure', () => {
+    const [f] = run("Beans are 25% of COGS, so against the current 58, that's 0.25 × 58 = 14.5 points of revenue.", ALL).flags;
+    const line = formatUnitFlagLine(f);
+    expect(line).toMatch(/PERIOD/);
+    expect(line).toMatch(/which year/i);
+    expect(line).not.toMatch(/Points of what/);
+  });
+});

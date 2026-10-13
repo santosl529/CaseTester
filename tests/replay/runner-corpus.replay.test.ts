@@ -16,6 +16,15 @@
 // whatever the interviewer now says. A turn whose kind changed (code now
 // writes it, or now calls the model where code wrote it) is counted as
 // diverged; one with no saved model output gets a neutral model turn. Free.
+//
+// The math checker (step 3, 13 Oct): REPLAY_CHECKER=<a.jsonl>[,<b.jsonl>] —
+// recorded verdicts from scripts/eval-math-checker.ts (a later file wins);
+// a message without one gets no verdict. Each check is settled only after the
+// turn that started it has returned (a turn that waited would hang), and its
+// row becomes visible at the message's saved elapsed time plus the recorded
+// latency — so a verdict lands on the next turn only when the candidate took
+// longer than the check. Every checker event and turn is written to
+// <REPLAY_OUT>/checker-replay.jsonl. Without REPLAY_CHECKER the checker is off.
 import { describe, it, expect, vi } from 'vitest';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -23,6 +32,15 @@ import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
 
 type Row = Record<string, unknown>;
+// The replay's clock for the checker: rows land when it reaches them.
+const checkerClock = { nowMs: 0 };
+type PendingCheck = { key: string; resolve: (r: unknown) => void; reject: (e: Error) => void };
+const pendingChecks: PendingCheck[] = [];
+let currentKey = '';
+vi.mock('@/lib/orchestrator/math-checker', async orig => ({
+  ...(await orig<object>()),
+  checkMathClaims: () => new Promise((resolve, reject) => { pendingChecks.push({ key: currentKey, resolve, reject }); }),
+}));
 const store = { session: {} as Row, turns: [] as Row[], revealed: [] as Row[], exhibits: [] as Row[], events: [] as Row[] };
 vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
 vi.mock('@/db/client', async () => {
@@ -35,7 +53,8 @@ vi.mock('@/db/client', async () => {
         sessionTurns: { findMany: async () => [...store.turns].sort((a, b) => (a.turnIndex as number) - (b.turnIndex as number)) },
         exhibitsShown: { findMany: async () => [...store.exhibits] },
         revealedData: { findMany: async () => [...store.revealed] },
-        sessionEvents: { findMany: async () => store.events.filter(e => e.category === 'data_request') },
+        sessionEvents: { findMany: async () => store.events.filter(e => e.category === 'data_request'
+          || (e.category === 'math_checker' && ((e.landsAtMs as number | undefined) ?? -1) <= checkerClock.nowMs)) },
       },
       insert: (t: unknown) => ({ values: async (v: Row | Row[]) => { target(t)?.push(...(Array.isArray(v) ? v : [v])); } }),
       update: () => ({ set: (v: Row) => ({ where: async () => { if (store.session.status === 'active') store.session = { ...store.session, ...v }; } }) }),
@@ -74,6 +93,18 @@ const { runFiles } = await import('@/lib/eval/run-corpus');
 // REPLAY_ROOT: the saved runs live untracked in the main checkout, not in a worktree.
 const ROOT = process.env.REPLAY_ROOT ?? 'Case Interview Runs';
 const OUT = process.env.REPLAY_OUT ?? '';
+type RecordedVerdict = { id: string; latencyMs: number; model: string; error?: string; claims: Row[] };
+const RECORDED = new Map<string, RecordedVerdict>((process.env.REPLAY_CHECKER ?? '').split(',').filter(Boolean)
+  .flatMap(f => readFileSync(f, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l) as RecordedVerdict))
+  .filter(r => !r.error).map(r => [r.id, r]));
+if (!process.env.REPLAY_CHECKER) process.env.MATH_CHECKER_CONFIG = 'off';
+// Recorded before a field existed: its neutral value; the vetting reruns live.
+const rawClaim = (c: Row) => ({ pointer: '', actualShare: null, codeQuantity: { kind: 'none', stepId: null, price: null, target: null }, ...c });
+const checkerTally = { started: 0, pendingAtReturn: 0, recorded: 0, noVerdict: 0, landedNext: 0, landedLater: 0, neverLanded: 0 };
+let checkerOut: Row[] = [];
+// Per run: replay turn index of a candidate message → its saved index and clock
+// (they drift where the saved run had silence check-ins the replay doesn't).
+const replayIndex = new Map<number, { saved: number; ms: number }>();
 const FILTER = process.env.REPLAY_FILTER ?? '';
 const enabled = process.env.REPLAY_RUNNER === '1' && !!OUT && existsSync(ROOT);
 
@@ -102,10 +133,11 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
   store.turns = run.turns.filter(t => t.turnIndex < firstIndex).map(t => ({ id: `t${t.turnIndex}`, sessionId: sid, turnIndex: t.turnIndex, role: t.role, text: t.text, timestampMs: Date.now(), latencyMs: null }));
   void opening;
   store.revealed = []; store.exhibits = []; store.events = [];
+  replayIndex.clear();
   const records: TurnRecord[] = [];
   let diverged = 0;
   for (const [k, r] of saved.entries()) {
-    if (store.session.status !== 'active') return finish(records, header, run, file, diverged, true);
+    if (store.session.status !== 'active') { checkerReport(file, records, saved); return finish(records, header, run, file, diverged, true); }
     const savedModel = r.stateBefore.kind === 'model' || r.stateBefore.kind === 'rec_ask';
     modelTurn = savedModel ? r.parsedTurn : null;
     modelCalled = false;
@@ -123,13 +155,62 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
       coverageJsonb: gate?.coverageMayEnd ? FULL_COVERAGE : null,
     };
     let rec: TurnRecord | null = null;
-    await runTurn(sid, r.candidateText, { onTurnRecord: x => { rec = x; } });
+    checkerClock.nowMs = r.stateBefore.elapsedMs ?? 0;
+    // Label ids count turns as the corpus does: the turn file's index + 1.
+    currentKey = `${path.relative(ROOT, file).replace(/\.json$/, '')}#t${r.turnIndex + 1}`;
+    const deferred: (() => Promise<void>)[] = [];
+    const startedBefore = pendingChecks.length;
+    // The replay's own turn index for this message (a verdict row carries it) → the saved one and its clock.
+    replayIndex.set(store.turns.length, { saved: r.turnIndex, ms: r.stateBefore.elapsedMs ?? 0 });
+    await runTurn(sid, r.candidateText, { onTurnRecord: x => { rec = x; }, defer: t => { deferred.push(t); } });
+    // The turn has returned: its check is still pending (nothing awaited it).
+    const started = pendingChecks.splice(startedBefore);
+    checkerTally.started += started.length;
+    checkerTally.pendingAtReturn += started.length;
+    for (const c of started) {
+      const v = RECORDED.get(c.key);
+      if (v) { checkerTally.recorded++; c.resolve({ claims: v.claims.map(rawClaim), model: v.model, latencyMs: v.latencyMs, stopReason: 'end_turn' }); }
+      else { checkerTally.noVerdict++; c.reject(new Error('no recorded verdict')); }
+    }
+    const before = store.events.length;
+    await Promise.allSettled(deferred.map(t => t()));
+    for (const e of store.events.slice(before)) {
+      if (e.category !== 'math_checker' || e.landsAtMs !== undefined) continue;
+      const p = e.payloadJsonb as { latencyMs?: number };
+      if (e.subtype === 'verdict' || e.subtype === 'error') e.landsAtMs = (r.stateBefore.elapsedMs ?? 0) + (p.latencyMs ?? 0);
+    }
     if (!rec) continue;
     const got = rec as TurnRecord;
     if (got.stateBefore.kind !== r.stateBefore.kind || (modelCalled && !savedModel)) diverged++;
     records.push({ ...got, turnIndex: r.turnIndex });
   }
+  checkerReport(file, records, saved);
   return finish(records, header, run, file, diverged, false);
+}
+
+// The run's checker events and the turns they touched, for the step-3 report.
+function checkerReport(file: string, records: TurnRecord[], saved: { turnIndex: number; stateBefore: { elapsedMs?: number | null } }[]) {
+  if (!process.env.REPLAY_CHECKER) return;
+  const events = store.events.filter(e => e.category === 'math_checker');
+  const elapsed = saved.map(x => ({ t: x.turnIndex, ms: x.stateBefore.elapsedMs ?? 0 }));
+  for (const v of events.filter(e => e.subtype === 'verdict')) {
+    const n = replayIndex.get(v.turnIndex as number)?.saved ?? (v.turnIndex as number);
+    const next = elapsed.find(x => x.t > n);
+    const landed = elapsed.find(x => x.t > n && x.ms >= (v.landsAtMs as number));
+    if (!landed) checkerTally.neverLanded++;
+    else if (landed === next) checkerTally.landedNext++;
+    else checkerTally.landedLater++;
+  }
+  if (events.length === 0) return;
+  checkerOut.push({
+    run: path.relative(ROOT, file).replace(/\.json$/, ''),
+    events: events.map(e => ({ subtype: e.subtype, turnIndex: e.turnIndex, landsAtMs: e.landsAtMs, payload: e.payloadJsonb })),
+    turns: records.map(x => {
+      const check = x.checks.find(c => c.check === 'math_checker');
+      const hint = (x.stateBefore.promptContext as { recomputeHint?: string } | null)?.recomputeHint ?? '';
+      return { turnIndex: x.turnIndex, kind: x.stateBefore.kind, elapsedMs: x.stateBefore.elapsedMs, check: check?.detail ?? null, checkerHint: hint.includes('MATH CHECK FLAG') ? hint.slice(hint.indexOf('MATH CHECK FLAG')) : null, savedLine: x.savedLine };
+    }).filter(t => t.check && ((t.check as Row).used || ((t.check as Row).decisions as unknown[])?.length)),
+  });
 }
 
 function finish(records: TurnRecord[], header: ReturnType<typeof readTurnFile>['header'], run: RunJson, file: string, diverged: number, endedEarly: boolean) {
@@ -161,8 +242,10 @@ describe.skipIf(!enabled)('runner-level replay of the saved corpus', () => {
       if (r.skipped) { tally.skipped.push(`${path.relative(ROOT, f)}: ${r.skipped}`); continue; }
       tally.runs++; tally.turns += r.turns; tally.diverged += r.diverged; if (r.endedEarly) tally.endedEarly++;
     }
-    writeFileSync(path.join(OUT, 'replay-summary.json'), JSON.stringify(tally, null, 1));
-    log(JSON.stringify(tally));
+    writeFileSync(path.join(OUT, 'replay-summary.json'), JSON.stringify({ ...tally, checker: process.env.REPLAY_CHECKER ? checkerTally : 'off' }, null, 1));
+    if (process.env.REPLAY_CHECKER) writeFileSync(path.join(OUT, 'checker-replay.jsonl'), checkerOut.map(x => JSON.stringify(x)).join('\n') + '\n');
+    log(JSON.stringify({ ...tally, skipped: tally.skipped.length, checker: checkerTally }));
+    checkerOut = [];
     expect(tally.runs).toBeGreaterThan(0);
   }, 900_000);
 });
