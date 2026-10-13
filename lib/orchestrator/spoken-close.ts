@@ -79,19 +79,40 @@ const RISK_ASK =
 // ", Maya?", ", given all that?") keep it the whole ask (batch 18 follow-up):
 // "…recommend, data-wise, to look at next?" and "…recommend — which analysis
 // should we run next?" are analysis questions.
-const REC_ASK =
-  /\b(bottom.?line recommendation|recommendation to the (ceo|client)|final recommendation|what(?:'?s| is) your recommendation|give me your recommendation|what would you (tell|recommend) (to )?the (ceo|client)|pull it together|what would your (?:\w+ )?recommendation be|what would you recommend(?=\s*(?:[?.!]|[,;:\u2014\u2013]\s*(?!to\b)(?:and\b|what should\b|(?:\w+ ?){1,3}\?)|$))|what would you recommend (?!(?:we|i|us|to|as|in|looking)\b)[\w&' ]{1,40}?(?<!\bto) do)\b/i;
+const REC_ASK_CORE =
+  /\b(bottom.?line recommendation|recommendation to the (ceo|client)|final recommendation|what(?:'?s| is) your recommendation|give me your recommendation|what would you (?:actually |really |ultimately )?(tell|recommend) (to )?the (ceo|client)|pull (?:it|that|this|everything) together|what would your (?:\w+ )?recommendation be|what would you recommend(?=\s*(?:[?.!]|[,;:\u2014\u2013]\s*(?!to\b)(?:and\b|what should\b|(?:\w+ ?){1,3}\?)|$))|what would you recommend (?!(?:we|i|us|to|as|in|looking)\b)[\w&' ]{1,40}?(?<!\bto) do)\b/i;
 
 // A call for the candidate's conclusion, wider than the counted ask (fact
 // guards Phase 5, batch 20 D7): "what do you recommend the client do",
 // "the CEO wants your recommendation", and a lever choice — "which single lever
 // would you start with", "the most credible lever to close the gap". Not "which
 // branch would you start with" (structure). For holding an early ask only; the
-// end gate keeps counting REC_ASK. Batch 21 (Jasmine t22): "give the CEO one
+// end gate keeps counting recAsk. Batch 21 (Jasmine t22): "give the CEO one
 // sentence on what to do first" — the ask for what to do, not for the diagnosis.
 const CONCLUSION_ASK =
   /\bwhat do you recommend\b(?!\s+(?:we|i|us|as|in|looking)\b)(?!\s+to\s+(?!the\s+(?:ceo|client|board|company)\b))|\bpulling it (?:all )?together\b|\b(?:wants|needs|give me|hear|asks? (?:you )?for) your (?:\w+ )?recommendation\b|\bwhich\s+(?:single\s+|one\s+|of\s+(?:your|these|those|the)\s+)?(?:levers?|options?|moves?|actions?)\b[^?]{0,60}\b(?:first|start|prioriti[sz]e|pull|lead with)\b|\bmost credible lever\b|\bwhat would you do first\b|\bas the (?:primary|main|final|headline) recommendation\b|\brecommendation in front of the (?:ceo|client|board)\b|\b(?:one|a single|a one-line) (?:sentence|line)\b[^?]{0,40}?\bwhat (?:to do|(?:should|would|could) (?:the client|the company|the ceo|they) do|would you have (?:them|the client|the company|the ceo) do)\b/i;
-export function asksForConclusion(text: string): boolean { return REC_ASK.test(text) || CONCLUSION_ASK.test(text); }
+// Lorenzo, 13 Oct (Step 4, Blake ac38cd28 t14 "what would you actually
+// recommend to the CEO, and in what order?"; then a scan of every saved run):
+// the other ways an interviewer asks for the recommendation — which option
+// they'd recommend, what they'd put in front of / tell / advise the CEO, what
+// the client should do, their overall recommendation. Read per sentence.
+const REC_ASK_MORE = [
+  /\bwhich(?: one| of (?:those|these|them|your|the)(?: (?!figures?\b|numbers?\b|tests?\b|analys[ie]s\b|data\b)\w+)?| levers?| options?)?,? (?:would you|you'?d) (?:actually |really |ultimately )?recommend\b/i,
+  /\b(?:you'?d|would you) put in front of the (?:ceo|client|board)\b/i,
+  /(?<!\bchange what you )\b(?:tell|advise) the (?:ceo|client|board) to do\b|\b(?:one|first) thing (?:you'?d|you would) (?:tell|advise) the (?:ceo|client|board)\b/i,
+  /\bwhat would you (?:actually )?advise\b/i,
+  /\bwhat (?:\w+ ){1,2}would you (?:actually )?recommend to the (?:ceo|client|board)\b/i,
+  /\bwhat should (?!(?:we|i|you)\b)[\w&' ]{1,30}? do\b/i,
+  /\bwhat(?:'?s| is) your (?:single|overall|one-line|final|bottom-line) recommendation\b|\bgive the (?:ceo|client|board) (?:a|your) recommendation\b|\basking for your recommendation\b|\bwhat would you recommend to address\b/i,
+  /\bwhat would you do,? and in what order\b|\bif you were the (?:ceo|client), what would you do\b|\bwhat would you do (?:about|with) (?:the )?(?:price|prices|pricing|menu prices)\b/i,
+];
+const ABOUT_FIGURES = /\b(?:figures?|numbers?)\b/i;
+function recAsk(text: string): boolean {
+  if (REC_ASK_CORE.test(text)) return true;
+  return text.split(/(?<=[.!?:])\s+/).some(s => !ABOUT_FIGURES.test(s) && REC_ASK_MORE.some(r => r.test(s)));
+}
+
+export function asksForConclusion(text: string): boolean { return recAsk(text) || CONCLUSION_ASK.test(text); }
 
 // The risk question as a stage (fact guards Phase 5; batch 20 grading): the
 // strict asks, a contingency on the plan ("If the pilot shows traffic falling,
@@ -122,7 +143,7 @@ export function namesCandidateRecommendation(text: string): boolean {
 
 export function asksBrainstorm(text: string): boolean { return BRAINSTORM_ASK.test(text); }
 export function asksRisk(text: string): boolean { return RISK_ASK.test(text); }
-export function asksRecommendationAsk(text: string): boolean { return REC_ASK.test(text); }
+export function asksRecommendationAsk(text: string): boolean { return recAsk(text); }
 
 export type StageAdministration = {
   brainstormAsked: boolean;
@@ -141,8 +162,8 @@ export function stageAdministration(interviewerTexts: string[], recommendationRe
   return {
     brainstormAsked: interviewerTexts.some(asksBrainstorm),
     riskAsked: interviewerTexts.some(asksRisk),
-    recommendationAsked: interviewerTexts.some(t => REC_ASK.test(t)),
-    recommendationAskCount: interviewerTexts.filter(t => REC_ASK.test(t)).length,
+    recommendationAsked: interviewerTexts.some(t => recAsk(t)),
+    recommendationAskCount: interviewerTexts.filter(t => recAsk(t)).length,
     recommendationReceived,
   };
 }

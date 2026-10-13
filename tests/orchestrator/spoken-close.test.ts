@@ -156,3 +156,66 @@ describe('recommendation ask detection — "what would you recommend" (batch 13 
     for (const t of negatives) expect(stageAdministration([t], false).recommendationAsked, t).toBe(false);
   });
 });
+
+// Lorenzo, 13 Oct (Step 4, Blake ac38cd28 t14: "what would you actually
+// recommend to the CEO, and in what order?" wasn't counted, so the early ask
+// wasn't held and the end gate asked again). Every recommendation ask in the
+// saved runs that wasn't counted (hand-read from a scan of all runs).
+describe('recommendation asks found uncounted in the saved runs', () => {
+  const found = [
+      "Given that same-store footprint and menu prices were flat while coffee bean costs rose and COGS increased as a share of revenue, what is your current hypothesis for the margin decline, and what would you recommend to address it?",
+      "What would you do about the price customers pay?",
+      "Which of those would you put in front of the CEO first, and why?",
+      "Using what we know about this client, what's one action you'd put in front of the CEO, and why?",
+      "What would you do, and in what order?",
+      "Which one would you tell the CEO to do first, and why?",
+      "Pick the two or three of those ideas you'd put in front of the CEO first, and what criteria are you using to rank them?",
+      "Now use it: if input costs rose and prices never moved, what's the first thing you'd tell the CEO to do?",
+      "Of everything you've listed, which would you put in front of the CEO first, and what's your overall recommendation?",
+      "What would you advise, and what are the key steps to carry it out?",
+      "Of everything on the table, price, sourcing, and those other levers, what would you actually recommend to the CEO, and in what order?",
+      "With the time left, what is the one thing you would tell the CEO to do first, and what single result would make you change that?",
+      "Of those, which would you actually recommend to the CEO, and why that one first?",
+      "Beyond the levers you've covered, what else could Brew & Bean do to recover that 16-point COGS hit, and which of these would you actually recommend first?",
+      "And what would you advise the CEO to do about it?",
+      "With the clock nearly out, what's the one thing you'd tell the CEO?",
+      "Your analysis points to price, but a recommendation is a decision: what do you tell the CEO to do, in what order, and what has to be true for it to work?",
+      "Pull that together for the CEO: which levers would you recommend, in what order, and what is your overall recommendation?",
+      "Pull that together for the CEO: which levers would you actually recommend, in what order, and why?",
+      "Which of those levers would you recommend, in what order, and why?",
+      "Of those levers, which would you recommend to the CEO first, and why?",
+      "What should Brew & Bean do, and how would you sequence it?",
+      "The CEO is asking for your recommendation now: what should Brew & Bean do, and in what order?",
+      "Of those levers, which would you put in front of the CEO first, and what would you expect each to recover in margin points?",
+      "If you were the CEO, what would you do with menu prices, and what would worry you about it?",
+      "If you were presenting to the CEO now, what is your single recommendation to reverse the margin decline, and how would you sequence it?",
+      "If you'd like to give the CEO a recommendation before time runs out, what would you tell them?",
+      "If you'd like to give the CEO your recommendation before time runs out, what would it be?",
+      "If you were presenting to the CEO now, which of those would you recommend first, and why?"
+  ];
+  it.each(found)('counts: %s', q => {
+    expect(stageAdministration([q], false).recommendationAskCount).toBe(1);
+  });
+  it.each([
+    'Of everything you listed, which would you recommend the CEO act on first, and what\'s the single biggest risk to that recommendation?',
+    "Of everything you've laid out, which would you put in front of the CEO first, and what would you want to see before committing to it?",
+    'Which single recommendation would you put in front of the CEO, and what is its biggest risk?',
+    'Given the time left, what pricing action would you recommend to the CEO, and what is its biggest risk?',
+  ])('counts a recommendation ask with its risk: %s', q => {
+    expect(stageAdministration([q], false).recommendationAskCount).toBe(1);
+  });
+  it.each([
+    'What is the single biggest risk to your recommendation, and how would you mitigate it?',
+    'Which of those two figures would you put in front of the CEO, and what has to be true for it to hold?',
+    'What would you do next to narrow it down?',
+    'Which test would you recommend to check the bean assumption?',
+    'Before you recommend, think more broadly: beyond what we have discussed, what else could the client do?',
+    'Does that change your recommendation?',
+    "Given that a full recovery would take a very large price increase, what's the biggest risk to your recommendation, and how would that change what you tell the CEO to do?",
+    'What should we do next to size it?',
+    'If the pilot shows traffic falling, what would you do instead?',
+  ])('does not count: %s', q => {
+    expect(stageAdministration([q], false).recommendationAsked).toBe(false);
+  });
+});
+
