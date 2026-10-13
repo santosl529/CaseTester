@@ -159,8 +159,12 @@ export function checkPricingClaims(rawText: string, v: PricingModelValues): Pric
   }
   // The price needed for a target: "to get back to 24% they'd need about an 18% price rise".
   for (const [i, s] of sentences.entries()) {
+    // "I'd need a price increase of roughly 18 / 1.15 = 15.7%, call it 16%" — the last figure stated (batch 21, Marisol t10).
+    const needOf = /\bneed(?:s|ed)?\s+(?:a|an)\s+(?:menu\s+)?price\s+(?:increase|rise|hike)\s+of\b(.*)/i.exec(s);
+    const lastPct = needOf ? [...needOf[1].matchAll(/(\d+(?:\.\d+)?)\s*(?:%|percent)/gi)].at(-1) : undefined;
     const need = new RegExp(String.raw`\b(?:need(?:s|ed)?|requires?|would take|takes?|means?|holds?)\s+(?:a|an)?\s*${HEDGE}(?:an?\s+)?${NUM}\s*(?:%|percent)\s+(?:menu\s+)?(?:price\s+)?(?:increase|rise|hike)`, 'i').exec(s)
-      ?? new RegExp(String.raw`\b${HEDGE}${NUM}\s*(?:%|percent)\s+(?:menu\s+)?price\s+(?:increase|rise|hike)\s+(?:holds|restores|gets? back|recovers?)\s+(?:the\s+)?margin`, 'i').exec(s);
+      ?? new RegExp(String.raw`\b${HEDGE}${NUM}\s*(?:%|percent)\s+(?:menu\s+)?price\s+(?:increase|rise|hike)\s+(?:holds|restores|gets? back|recovers?)\s+(?:the\s+)?margin`, 'i').exec(s)
+      ?? (lastPct ? [lastPct[0], lastPct[1]] as unknown as RegExpExecArray : null);
     if (!need) continue;
     const window = `${sentences[i - 1] ?? ''} ${s}`;
     const target = /\bback to\s+(\d+(?:\.\d+)?)\s*%/i.exec(window)?.[1]

@@ -27,6 +27,8 @@ describe('pricing claims (batch 20 D6 grades)', () => {
     ["If we price up 16% and lose more than roughly 16% of cups, we're worse off on gross profit dollars.", ['breakeven:incorrect']],
     ["To get back to 24% they need roughly 18 points, about $86M. With volume held flat, they'd need about an 18% price rise.", ['needed:incorrect']],
     ['At 58% COGS: 58/42 ≈ 1.38, so ~38% price increase holds margin fully.', ['needed:incorrect']],
+    // batch 21 wave 2, Marisol t10: "a price increase of X%" to recover the 18 points (needed ≈ 23.7%)
+    ["To recover the 18 points of lost margin on a revenue base that's 15% bigger, I'd need a price increase of roughly 18 / 1.15 = 15.7%, call it 16% across the menu.", ['needed:incorrect']],
   ])('%s', (text, expected) => expect(verdicts(text)).toEqual(expected));
 
   it('a stated volume loss is checked at that volume (R10 t16: 5 points after a 7% drop is still short)', () => {

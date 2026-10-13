@@ -93,6 +93,9 @@ describe('stagesFromTurns', () => {
     expect(stagesFromTurns([{ turnIndex: 18, text: "You proposed a ten percent price increase, piloted in 20 stores. If the pilot shows traffic falling sharply, what's your plan, and how would you decide whether to proceed, adjust, or stop?" }], {}, true).riskAsked).toBe(true);
     expect(stagesFromTurns([{ turnIndex: 14, text: "If you had to put one recommendation in front of the CEO, which would you commit to, and what's the first step?" }], {}, false).recommendationAskCount).toBe(1);
   });
+  it('"what single result would make you change that?" is the risk question (batch 21 wave 2, Caleb t24)', () => {
+    expect(stagesFromTurns([{ turnIndex: 24, text: 'With the time left, what is the one thing you would tell the CEO to do first, and what single result would make you change that?' }], {}, true).riskAsked).toBe(true);
+  });
   it('falls back to the wording for turns with no recorded move (legacy sessions)', () => {
     const s = stagesFromTurns([{ turnIndex: 2, text: 'Beyond pricing, what else could the client do?' }], {}, true);
     expect(s).toMatchObject({ brainstormAsked: true, recommendationReceived: true });

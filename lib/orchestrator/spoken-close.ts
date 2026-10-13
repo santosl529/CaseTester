@@ -99,7 +99,7 @@ export function asksForConclusion(text: string): boolean { return REC_ASK.test(t
 // that?" (R16, R18: counted as the risk question, so the case closed with none
 // asked).
 const RISK_STAGE =
-  /\b(?:biggest risk|key risk|main risk|what could go wrong|what would change your mind|what would make you wrong|how would you de-?risk|risks? (?:to|of|with|in) (?:that|this|your) (?:recommendation|plan)|how would you test (?:the|your|that|this) (?:recommendation|plan|price increase|pricing move)|derail|risks? you'?ve (?:named|raised|flagged)|what (?:evidence|data|signal|result) would tell you (?:that'?s|you'?re|it'?s|you are) wrong)\b/i;
+  /\b(?:biggest risk|key risk|main risk|what could go wrong|what would change your mind|what would make you wrong|how would you de-?risk|risks? (?:to|of|with|in) (?:that|this|your) (?:recommendation|plan)|how would you test (?:the|your|that|this) (?:recommendation|plan|price increase|pricing move)|derail|risks? you'?ve (?:named|raised|flagged)|what (?:evidence|data|signal|result) would tell you (?:that'?s|you'?re|it'?s|you are) wrong|would make you change (?:that|it|course|your mind|your recommendation|the plan))\b/i;
 const CONTINGENCY = /\b(?:if|suppose)\b[^?]{0,160}?\b(?:what (?:would|do) you do|what'?s your plan|would you (?:stop|pause|pull back|roll back|change course|adjust)|how would you (?:decide|respond|react|adjust)|what'?s your fallback)\b|\bwhat (?:would|do) you do (?:if|then)\b/i;
 // A question about the candidate's own recommendation, volunteered or asked for
 // ("You proposed a ten percent price increase…", "that recommendation") — not
