@@ -112,6 +112,10 @@ const META_RELEASE_REASONING = new RegExp([
   /\bi'?m (?:releasing|revealing)\b/.source,
   /\b(?:is|are|it'?s) (?:now )?earned\b|\bearned (?:now|too)\b/.source,
   /\bthey(?:'ve| have)? (?:then |now |also )?(?:applied|handled|computed|derived|calculated|treated|converted|concluded)\b/.source,
+  // Lorenzo, 13 Oct (Larkspur, Marcus 27c2d0fb t22): "The system will speak
+  // the lease detail." — the machinery as the actor; "the booking system" is
+  // business talk and stays.
+  /\bthe (?:system|code|orchestrator|data line)\s+(?:(?:will|would|'ll|is going to|can|then)\s+)?(?:speak|say|says|release|releases|share|shares|handle|handles|give|gives|read|reads|deliver|delivers|provide|provides|answer|answers|cover|covers)\b/.source,
 ].join('|'), 'i');
 
 // "I'll show the exhibit" / "I'll reveal the bean price data" — a tool call
