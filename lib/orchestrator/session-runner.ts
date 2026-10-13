@@ -4,7 +4,7 @@ import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } fr
 import { and, eq } from 'drizzle-orm';
 import { recordSilenceStall, INITIAL_STALL_STATE, type StallState } from './stall';
 import {
-  evaluateSilence, checkInText, pauseText, INITIAL_SILENCE_STATE, type SilenceAction, type SilenceState,
+  evaluateSilence, checkInText, pauseText, restateOnTable, INITIAL_SILENCE_STATE, type SilenceAction, type SilenceState,
 } from './silence';
 import { isDistressVerdict, type DistressVerdict } from './distress';
 import { classifyDataRequests, type DetectedDataRequest } from './data-requests';
@@ -435,7 +435,7 @@ function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null
             : state.kind === 'rec_revision' ? pickScript([...REC_REVISION_QUESTIONS], seed)
               : recMath?.action === 'correct' ? pickScript([...REC_MATH_REVISION_QUESTIONS], seed)
               : recMath ? recMathLine(recMath.flag, 'probe')
-            : `Take your time. The question on the table is ${restate(state.lastQuestion ?? '')}`;
+            : `Take your time. ${restateOnTable(state.lastQuestion ?? '')}`;
   // The owed exhibit is handed over by code's own data line ("Here's an exhibit: …").
   const exhibit = state.kind === 'stage_exhibit' ? nextReadyExhibit(state.caseData.exhibits, state.shownExhibitIds, state.ledger)?.id ?? null : null;
   // Rule 14 past its probe: the figure, flat, before the revision question.
@@ -443,12 +443,6 @@ function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null
   return { move: 'other', requests, exhibit, rescueItem: null, say, question };
 }
 
-
-// "Which line moved most?" → "which line moved most?" (and no doubled lead-in).
-function restate(q: string): string {
-  const core = q.trim().replace(/^(?:take your time\.\s*)?the question on the table(?: is|:)\s*/i, '');
-  return core.charAt(0).toLowerCase() + core.slice(1);
-}
 
 // Text-mode silence (lib/orchestrator/silence.ts): the channel reports that the
 // candidate has been silent `silentMs` since the interviewer's last turn. No

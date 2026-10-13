@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  evaluateSilence, resumeOnCandidateTurn, effectiveElapsedMs, checkInText, pauseText,
+  evaluateSilence, resumeOnCandidateTurn, effectiveElapsedMs, checkInText, pauseText, restateOnTable,
   INITIAL_SILENCE_STATE, SILENCE_CHECK_IN_MS, SILENCE_PAUSE_MS, SILENCE_PAUSE_MAX_MS, SESSION_PAUSE_BUDGET_MS,
   type SilenceState,
 } from '@/lib/orchestrator/silence';
@@ -160,6 +160,22 @@ describe('checkInText', () => {
   it('restates the last question on the table', () => {
     expect(checkInText('Good. How would you structure this problem?'))
       .toBe('Still with me? Take your time. The question on the table: how would you structure this problem?');
+  });
+
+  it("lowers only a question word's capital — never an imperative's, a name's or an acronym's (batch 21 D8)", () => {
+    expect(checkInText(null, 'COGS rose 16 points — which input drove it?')).toBe('Still with me? Take your time. The question on the table: COGS rose 16 points — which input drove it?');
+    expect(checkInText(null, 'Hollis Bay needs 6 million bags — is that reachable?')).toBe('Still with me? Take your time. The question on the table: Hollis Bay needs 6 million bags — is that reachable?');
+    expect(checkInText(null, 'Lay out the main areas you would investigate.')).toBe('Still with me? Take your time. The question on the table: Lay out the main areas you would investigate.');
+  });
+
+  it('restateOnTable: the "is" form only for one sentence opening with a question word (batch 21 Destiny t4)', () => {
+    expect(restateOnTable('Which branch would you start with?')).toBe('The question on the table is which branch would you start with?');
+    expect(restateOnTable("Lay out the main areas you'd investigate to find why the margin fell, and how they fit together, before asking for any data. What would your approach be?"))
+      .toBe("The question on the table: Lay out the main areas you'd investigate to find why the margin fell, and how they fit together, before asking for any data. What would your approach be?");
+    expect(restateOnTable('Larkspur matched the fare — what happened to contribution per flight?')).toBe('The question on the table: Larkspur matched the fare — what happened to contribution per flight?');
+    expect(restateOnTable('Take your time. The question on the table is why margins fell?')).toBe('The question on the table is why margins fell?');
+    expect(restateOnTable('What framework would you use to break down this profit decline? Take a minute if you need it.'))
+      .toBe('The question on the table: What framework would you use to break down this profit decline? Take a minute if you need it.');
   });
 
   it('falls back to a bare check-in when there is no question', () => {
