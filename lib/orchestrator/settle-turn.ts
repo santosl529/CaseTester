@@ -189,7 +189,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   const decisions = turnData(plan, turn);
   const dataParts = renderDataLineParts(decisions, seed);
   const dataLines = dataParts.map(p => p.text);
-  const g = gateContext(plan, decisions.releases.map(r => r.value));
+  const g = gateContext(plan, decisions.releases.map(r => r.value), [...decisions.releases.map(r => r.id), ...(decisions.exhibit?.covers ?? [])]);
 
   // The model's words, vetoed sentence by sentence (never rewritten).
   const withheld: { sentence: string; reason: string; field: 'say' | 'question' }[] = [];
@@ -255,6 +255,13 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   for (const w of withheld.filter(x => x.reason === 'probe_guard' || x.reason === 'unsupported_challenge')) {
     // Prevented, not delivered: logged apart from the interviewer errors scoring marks (interviewer-errors.ts).
     ctx.events.push({ category: 'intervention', subtype: w.reason === 'probe_guard' ? 'challenge_on_verified_blocked' : 'unsupported_challenge_blocked', payload: { sentence: w.sentence, field: w.field } });
+  }
+  // A question withheld for a false fact is replaced by one that fits the phase
+  // (after whatever statement of the question is left: "Per-unit costs aren't
+  // something I have directly." still needs a question after it).
+  if (!codeWritten && kind !== 'rec_ask' && !question.trim().endsWith('?') && withheld.some(w => w.field === 'question' && w.reason === 'false_fact')) {
+    const fallback = pickFallbackQuestion({ figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: state.lastQuestion ?? null, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
+    question = question ? `${question} ${fallback}` : fallback;
   }
   const questionFallback = !codeWritten && kind !== 'rec_ask' && !question;
   if (questionFallback) question = 'Go on.';
@@ -674,6 +681,8 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
             stagesEnforced: stagesEnforcedSaved,
             unmappedToResolve: unmappedToResolveSaved,
             misquoteCorrected: misquoteCorrectedSaved,
+            // Misquoted figures still standing: closed when code corrects the item.
+            factEchoes: state.factEchoes.filter(e => !(decisions.correction && e.items.includes(decisions.correction.item))).slice(-12),
           },
         })
         .where(and(eq(sessions.id, sessionId), eq(sessions.status, 'active'))),

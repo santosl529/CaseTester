@@ -30,6 +30,7 @@ import { stageGateOpen, endAllowed, recommendationUnresolved } from './spoken-cl
 import { stagesFromTurns, type TurnMove } from './progress';
 import { CheckLog } from './check-log';
 import { findMisquotes, exhibitColumns, correctionLine, type QuoteAnchor } from './misquote';
+import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
 import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
 
@@ -454,6 +455,14 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   checks.record('misquote', misquotes.length > 0, misquote ? 'misquote of revealed data — code corrects it' : 'misquote already corrected — logged', {
     found: misquotes, correcting: misquote?.item ?? null, alreadyCorrected: [...misquotesCorrected],
   });
+  // The truth check's inputs (fact-check.ts): the case's facts, and the
+  // figures this message misquoted — the interviewer must not repeat them as fact.
+  const factBase = factBaseFor(caseData as never);
+  // Echoes stay open from earlier messages until code corrects the item (settle-turn.ts).
+  const factEchoes = [
+    ...((flags.factEchoes as Echo[] | undefined) ?? []),
+    ...findCandidateMisquotes(candidateText, factBase, new Set(revealedIdsNow), [...shownExhibitIds]).flatMap(m => echoesOf(m, factBase)),
+  ];
   const misquoteHint = misquote
     ? `MISQUOTE: the candidate stated ${misquote.label} as "${misquote.cited}", which the data doesn't say. The system corrects it right after your "say", in the data's words: "${misquoteItem!.value}" Do not repeat, correct, question or build on their figure yourself; ask your question on the corrected data.`
     : '';
@@ -632,7 +641,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       caseData, repliedToDistressOffer, shownExhibitIds, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
-      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, misquote, misquoteHint, misquotesCorrected,
+      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,

@@ -30,6 +30,7 @@ import { promisesExhibit } from './exhibits';
 import { revealedValues } from './data-ledger';
 import { turnData, pressureTestOutcomeNow } from './turn-data';
 import { renderDataLines } from './data-decisions';
+import { findFalseFacts, findEchoes, type FactBase, type Echo } from './fact-check';
 import { isGradingSentence } from './grading';
 
 export type GateContext = {
@@ -43,6 +44,9 @@ export type GateContext = {
   phase: Phase;
   acknowledged?: boolean;  // voice already spoke a backchannel this turn
   metaAsked?: boolean;     // the candidate asked how they're assessed (a report hand-off may answer it)
+  // The truth check (fact-check.ts F1): the case's facts, what has been
+  // revealed (ids), and the figures of misquotes still standing.
+  facts?: { fb: FactBase; revealed: Set<string>; echoes: Echo[] };
 };
 
 // A say sentence that is nothing but an acknowledgment ("Understood.") —
@@ -92,6 +96,10 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   if (rewriteSystemLanguage(sentence).rewrites.length > 0) return 'system_language';
   if (stripCopiedCheckIn(sentence).stripped) return 'copied_check_in';
   if (enforceNumericProvenance(sentence, g.allowedTexts).blocked) return 'provenance';
+  // A figure, direction or driver claim the case data contradicts, or a
+  // standing misquote repeated as fact ("the 19-point COGS increase"): the
+  // provenance check passes these when the number was said by anyone.
+  if (g.facts && (findFalseFacts(sentence, g.facts.fb, g.facts.revealed).length > 0 || findEchoes(sentence, g.facts.echoes, g.facts.fb).length > 0)) return 'false_fact';
   // Doubt on the candidate's math only with a flag behind it (probe-guard.ts):
   // on a verified figure "probe_guard", on an unverified one "unsupported_challenge".
   const challenge = challengeVerdict(sentence, {
@@ -113,9 +121,10 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
 }
 
 // The gate context for this turn; `extraRevealed` adds values released this turn.
-export function gateContext(plan: ModelPlan, extraRevealed: string[] = []): GateContext {
+export function gateContext(plan: ModelPlan, extraRevealed: string[] = [], extraRevealedIds: string[] = []): GateContext {
   const { ctx, state } = plan;
   const revealed = [...Object.values(revealedValues(state.ledger)), ...extraRevealed];
+  const revealedIds = new Set([...Object.keys(revealedValues(state.ledger)), ...extraRevealedIds]);
   return {
     allowedTexts: [
       state.caseData.prompt,
@@ -135,6 +144,7 @@ export function gateContext(plan: ModelPlan, extraRevealed: string[] = []): Gate
     acknowledged: Boolean(ctx.acknowledged),
     // Only on a turn the case continues past (model turns are never the close).
     metaAsked: state.kind === 'model' && asksAboutAssessment(ctx.candidateText),
+    facts: { fb: state.factBase, revealed: revealedIds, echoes: state.factEchoes },
   };
 }
 

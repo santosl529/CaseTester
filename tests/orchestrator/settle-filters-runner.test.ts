@@ -198,3 +198,72 @@ describe('code-written lines (step 4, batch 19)', () => {
     expect(r.interviewerText).not.toMatch(/come back to/);
   });
 });
+
+describe('the truth guard: nothing false about the case is spoken (fact checks, 12 Oct)', () => {
+  const COST = ['cogs_pct', 'labor_pct', 'overhead_pct'];
+  const withheldFor = (reason: string) => ((check('vetoes')?.detail as { withheld?: { reason: string; sentence: string }[] } | undefined)?.withheld ?? []).filter(w => w.reason === reason);
+
+  it('a false figure presupposed in the question is withheld and a phase-fit question replaces it (batch 20 R30 t6)', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const r = await say('So the question becomes why COGS rose 19 points. What drives that?', T({
+      say: 'Got it.', question: 'With those figures in hand, how much of the 19-point COGS increase does the bean cost change account for?',
+    }));
+    expect(r.interviewerText).not.toMatch(/19-point/);
+    expect(r.interviewerText).toMatch(/\?$/);
+    expect(withheldFor('false_fact')).toHaveLength(1);
+  });
+
+  it('a standing misquote repeated as fact is withheld (batch 20 R42 t14: "16 of the 19 points")', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const r = await say('COGS went from 42% to 61% of revenue, 19 points, and inputs explain about 16 of that.', T({
+      say: 'Right.', question: "You've got about 16 of the 19 points explained by input prices. What would you check next?",
+    }));
+    expect(r.interviewerText).not.toMatch(/19 points/);
+    expect(withheldFor('false_fact').length).toBeGreaterThan(0);
+  });
+
+  it('a direction the data contradicts is withheld (batch 20 R21 t18: "a falling ticket")', async () => {
+    seed({ phase: 'EXHIBIT', revealed: [...COST, 'avg_ticket'], flags: SATISFIED });
+    const r = await say('Ticket went from $6.20 to $6.80.', T({
+      say: 'Mm-hm.', question: 'What would a falling ticket with flat menu prices tell you about mix?',
+    }));
+    expect(r.interviewerText).not.toMatch(/falling ticket/);
+    expect(withheldFor('false_fact')).toHaveLength(1);
+  });
+
+  it('a "say" sentence with a false driver claim is withheld, the question stays (batch 19 Jasmine t18)', async () => {
+    seed({ phase: 'ANALYSIS', revealed: COST, flags: SATISFIED });
+    const r = await say('Beans doubled, I think.', T({ say: 'The 16-point COGS gap is mostly beans.', question: 'What would you check next?' }));
+    expect(r.interviewerText).toBe('What would you check next?');
+    expect(withheldFor('false_fact')).toHaveLength(1);
+  });
+
+  it('true statements about the case pass', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const r = await say('COGS went from 42% to 58%.', T({ say: 'Right.', question: 'How much of the 16-point COGS increase do beans explain?' }));
+    expect(r.interviewerText).toBe('Right. How much of the 16-point COGS increase do beans explain?');
+    expect(withheldFor('false_fact')).toEqual([]);
+  });
+});
+
+describe('the truth guard remembers misquotes still standing', () => {
+  it('a figure misquoted on an earlier turn and never corrected stays unsayable (R42 t14)', async () => {
+    seed({ phase: 'EXHIBIT', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: { ...SATISFIED, factEchoes: [{ value: 19, change: true, items: ['cogs_pct'], cited: 'to 61%' }] } });
+    const r = await say('Inputs explain about 16 points, with 19 points of COGS change overall.', T({
+      say: 'Right.', question: "You've got about 16 of the 19 points explained by input prices. What would you check next?",
+    }));
+    expect(r.interviewerText).not.toMatch(/19 points/);
+    expect((store.session.flagsJsonb as Row).factEchoes).toEqual([{ value: 19, change: true, items: ['cogs_pct'], cited: 'to 61%' }]);
+  });
+});
+
+describe('the truth guard leaves a question to answer', () => {
+  it('a false fact withheld after a statement still ends the turn on a question (R21 t12)', async () => {
+    seed({ phase: 'EXHIBIT', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: SATISFIED });
+    const r = await say('COGS rose 19 points, I think. Do we have per-unit costs?', T({
+      say: 'Understood.', question: "Per-unit costs aren't something I have directly. Which one is large enough to drive a 19-point COGS climb on its own?",
+    }));
+    expect(r.interviewerText).toMatch(/^Understood\. Per-unit costs aren't something I have directly\. .+\?$/);
+    expect(r.interviewerText).not.toMatch(/19-point/);
+  });
+});

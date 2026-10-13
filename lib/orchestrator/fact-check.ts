@@ -160,6 +160,14 @@ export function buildFactBase(c: CaseInput): FactBase {
   };
 }
 
+// One fact base per case (cases are loaded once and never change at runtime).
+const factBases = new Map<string, FactBase>();
+export function factBaseFor(c: CaseInput & { id: string }): FactBase {
+  let fb = factBases.get(c.id);
+  if (!fb) { fb = buildFactBase(c); factBases.set(c.id, fb); }
+  return fb;
+}
+
 // ---------------------------------------------------------------- figures
 
 export type Fig = { value: number; hi?: number; unit: 'percent' | 'points' | 'dollar' | 'plain'; hedged: boolean; text: string; decimals: number };

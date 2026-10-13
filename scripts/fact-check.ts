@@ -183,7 +183,8 @@ function main() {
   if (args.includes('--replays')) { replayMain(); return; }
   const arg = (k: string) => args.find(a => a.startsWith(`--${k}=`))?.split('=').slice(1).join('=');
   const group = arg('group');
-  const { runs: all, skipped } = loadCorpus(ROOT, id => getCaseById(id) as never);
+  // --root: a mirror corpus from tests/replay/runner-corpus.replay.test.ts.
+  const { runs: all, skipped } = loadCorpus(arg('root') ?? ROOT, id => getCaseById(id) as never);
   const runs = group ? all.filter(r => r.group.startsWith(group)) : all;
   const flags = runs.flatMap(checkRun);
   if (arg('out')) writeFileSync(arg('out')!, flags.map(f => JSON.stringify(f)).join('\n') + '\n');
