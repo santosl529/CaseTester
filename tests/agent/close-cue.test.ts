@@ -11,6 +11,14 @@ describe('hasCloseCue', () => {
     expect(hasCloseCue("That's a clear recommendation with the risks flagged. We'll stop there. A full written report will follow.")).toBe(true);
   });
 
+  // Fact guards Phase 5 (batch 20 R10, R20): said mid-case, then the case went on.
+  it('recognizes "that closes the case / out / the recommendation" as a close', () => {
+    expect(hasCloseCue('Thanks, that closes the case.')).toBe(true);
+    expect(hasCloseCue("That closes out the recommendation work we'll take from this case.")).toBe(true);
+    expect(hasCloseCue('That closes the recommendation and its fallback.')).toBe(true);
+    expect(hasCloseCue('That closes the gap on beans — what about the other inputs?')).toBe(false);
+  });
+
   it('does not treat a correction as a close, even one that says "before we close"', () => {
     expect(hasCloseCue('One flag before we close. The COGS dollar increase you computed includes normal growth — the margin problem is the 16-point compression, a different quantity than the $103M.')).toBe(false);
   });

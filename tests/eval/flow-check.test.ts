@@ -33,6 +33,16 @@ describe('flow detectors (batch 20 grading)', () => {
     expect(rules(run([REC({ elapsedMs: 19 * 60_000, kind: 'time_warning' }), RISK, CLOSE]))).toEqual(['STAGE:brainstorm']);
   });
 
+  it("D7: after code's one line back to the analysis, the recommendation may be asked", () => {
+    const back = T("Let's hold the recommendation for now: what's driving the margin drop, and what would you need to know to pin it down?", { kind: 'stage_analysis' });
+    expect(rules(run([BS, back, REC({ revealedBefore: [] }), RISK, CLOSE]))).toEqual([]);
+  });
+
+  it('CLOSE: the one-line answer to a question about assessment is no close line (Rule 16)', () => {
+    const report = T("That's a broad list. You'll get a full written report afterward, so I won't score it live. Which cost line would you look at next?");
+    expect(rules(run([BS, report, REC(), RISK, CLOSE]))).toEqual([]);
+  });
+
   it('STAGE: an analysis "how would you test that?" is no risk question (R16)', () => {
     const test = T('Does the bean move explain COGS, and how would you test that?', { revealedBefore: CORE });
     expect(rules(run([test, BS, REC(), CLOSE]))).toEqual(['STAGE:risk']);

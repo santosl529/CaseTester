@@ -9,6 +9,16 @@ const turn = (over: Partial<StageTurn>): StageTurn => ({
   recommendationDelivered: false, pressureTest: INITIAL_PRESSURE_TEST, candidateFigures: 0, ...over,
 });
 
+describe('the risk and recommendation stages read as the end gate does (fact guards Phase 5)', () => {
+  it('an analysis "how would you test that?" delivers no risk stage; a contingency after the recommendation does', () => {
+    expect(updateStages(undefined, turn({ question: 'Does the bean move explain it, and how would you test that?' })).risk.delivered).toBe(false);
+    let r = updateStages(undefined, turn({ question: 'The CEO wants your recommendation now. Which levers would you pull first?' }));
+    expect(r.recommendation.delivered).toBe(true);
+    r = updateStages(r, turn({ turnIndex: 6, question: 'If the pilot shows traffic falling, at what point would you stop the price increase?' }));
+    expect(r.risk.delivered).toBe(true);
+  });
+});
+
 describe('delivery and outcome', () => {
   it('an exhibit shown is delivered; it is assessed only when the reply engages with it', () => {
     let r = updateStages(undefined, turn({ exhibitShown: true, question: 'What does it tell you?' }));

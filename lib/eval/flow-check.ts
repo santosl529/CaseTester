@@ -14,14 +14,15 @@
 //          between (R17: "what would you prioritize" → "which branch would you
 //          start with" → "which one would you check first")
 import type { CorpusRun, CorpusTurn } from './run-corpus';
-import { asksForConclusion, asksBrainstorm, asksRiskQuestion, namesCandidateRecommendation, isClosingTurn } from '@/lib/orchestrator/spoken-close';
+import { asksForConclusion, asksBrainstorm, asksRiskQuestion, namesCandidateRecommendation, isClosingTurn, isReportAnswer } from '@/lib/orchestrator/spoken-close';
 import { TOTAL_CASE_MS } from '@/lib/orchestrator/state-machine';
 import { LOAD_SHED_REMAINING_MS } from '@/lib/orchestrator/pacing';
 import { CLOSE_SCRIPTS_BY_REASON } from '@/lib/agent/prompts/scripts';
+import { askIntents } from '@/lib/orchestrator/ask-intent';
 
 export type FlowFlag = { rule: 'D7' | 'STAGE' | 'CLOSE' | 'LOOP'; t: number; sub: string; text: string };
 
-type CaseLike = { exhibits: { id: string }[]; analysisCore?: { items: string[]; minItems?: number }; format?: string };
+type CaseLike = { exhibits: { id: string }[]; analysisCore?: { items: string[]; minItems?: number; ask?: string }; format?: string };
 
 const questionOf = (t: CorpusTurn) => t.segments.filter(s => s.kind === 'question' || s.kind === 'scripted').map(s => s.text).join(' ')
   || t.segments.filter(s => s.kind !== 'data').map(s => s.text).join(' ');
@@ -37,16 +38,6 @@ const BRAINSTORM_MOVE = /\b(?:what|how)\s+else\b|\bwhat\s+other\s+(?:ways|option
 const asksBrainstormStage = (t: CorpusTurn, q: string) => asksBrainstorm(q) || t.kind === 'stage_brainstorm' || (t.move === 'brainstorm' && BRAINSTORM_MOVE.test(q));
 const asksRecStage = (t: CorpusTurn, q: string) => asksForConclusion(q) || CODE_REC.has(t.kind) || namesCandidateRecommendation(q);
 
-// The ask's intent, for loops: rewordings of one ask share a tag.
-const INTENTS: [string, (q: string) => boolean][] = [
-  ['prioritize', q => /\bwhich\b[^?]{0,60}\b(?:first|start(?:\s+with)?|prioriti[sz]e|most important|matters most)\b|\bwhat would you prioriti[sz]e\b|\bwhere would you start\b/i.test(q)],
-  ['structure', q => /\b(?:organi[sz]e|framework|structure (?:this|it|the problem)|break (?:it|this|that) down)\b/i.test(q)],
-  ['clarify', q => /\b(?:clarify|clarifying|confirm(?:ed)?)\b/i.test(q)],
-  ['conclusion', asksForConclusion],
-  ['what_else', q => /\bwhat else\b|\bwhat other\b/i.test(q)],
-  ['implication', q => /\bwhat does (?:that|this) tell you\b|\bwhere does that leave\b|\bwhat do you make of\b/i.test(q)],
-];
-
 export function checkFlowRun(run: CorpusRun, c: CaseLike): FlowFlag[] {
   const flags: FlowFlag[] = [];
   const turns = run.turns.filter(t => !t.seeded);
@@ -55,7 +46,7 @@ export function checkFlowRun(run: CorpusRun, c: CaseLike): FlowFlag[] {
   const hasExhibit = c.exhibits.length > 0;
   const interviewerLed = (c.format ?? 'interviewer_led') === 'interviewer_led';
   let exhibitShown = false, brainstormAsked = false, riskAsked = false, recAsked = false;
-  let closedAt: number | null = null, lastOwed = '';
+  let closedAt: number | null = null, lastOwed = '', steered = false;
   let streak: { tag: string; n: number }[] = [];
   for (const t of turns) {
     const q = questionOf(t);
@@ -73,16 +64,20 @@ export function checkFlowRun(run: CorpusRun, c: CaseLike): FlowFlag[] {
       const owed = [
         ...(!brainstormAsked ? ['brainstorm'] : []),
         ...(hasExhibit && !exhibitShown ? ['exhibit'] : []),
-        ...(!coreAttempted ? ['analysis'] : []),
+        // Once code has asked back to the analysis, moving on is the rule.
+        ...(!coreAttempted && !steered ? ['analysis'] : []),
       ].join('+');
       if (owed && owed !== lastOwed) flags.push({ rule: 'D7', t: t.t, sub: owed, text: q.slice(0, 200) });
       lastOwed = owed;
     }
     // CLOSE: closing words from the model on a turn that isn't the close; code's close too early.
-    const modelText = t.segments.filter(s => s.author === 'model').map(s => s.text).join(' ');
+    // Not the one-line answer to a question about assessment (Rule 16).
+    const modelText = t.segments.filter(s => s.author === 'model').map(s => s.text).join(' ')
+      .split(/(?<=[.!?])\s+/).filter(x => !isReportAnswer(x)).join(' ');
     if (t.kind !== 'close' && (CLOSE_WORDS.test(modelText) || (modelText && isClosingTurn(modelText)))) {
       flags.push({ rule: 'CLOSE', t: t.t, sub: 'model_close_line', text: modelText.slice(0, 200) });
     }
+    steered ||= t.kind === 'stage_analysis' || (c.analysisCore?.ask !== undefined && q.includes(c.analysisCore.ask));
     brainstormAsked ||= asksBrainstormStage(t, q);
     recAsked ||= asksRecStage(t, q);
     riskAsked ||= asksRiskQuestion(q, recAsked);
@@ -93,7 +88,7 @@ export function checkFlowRun(run: CorpusRun, c: CaseLike): FlowFlag[] {
     }
     // LOOP: a third ask of the same intent in a row with nothing given.
     const given = t.releasedNow.length > 0 || t.exhibitNow !== null;
-    const tags = INTENTS.filter(([, f]) => f(q)).map(([k]) => k);
+    const tags = askIntents(q);
     streak = given ? [] : tags.map(tag => ({ tag, n: (streak.find(s => s.tag === tag)?.n ?? 0) + 1 }));
     const looped = streak.find(s => s.n === 3);
     if (looped) flags.push({ rule: 'LOOP', t: t.t, sub: looped.tag, text: q.slice(0, 200) });

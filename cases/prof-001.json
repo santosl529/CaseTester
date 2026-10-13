@@ -825,7 +825,7 @@
       "non_bean_input_change"
     ],
     "minItems": 2,
-    "ask": "Before we get to a recommendation: what's driving the margin drop, and what would you need to know to pin it down?"
+    "ask": "Let's hold the recommendation for now: what's driving the margin drop, and what would you need to know to pin it down?"
   },
   "pricingModel": {
     "costItems": [

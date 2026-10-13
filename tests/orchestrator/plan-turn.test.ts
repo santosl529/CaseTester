@@ -80,17 +80,35 @@ describe('planTurn turn kinds', () => {
     expect(kindOf(readsFixture({ phase: 'ANALYSIS', elapsedMs: late, flags: { graceAskFired: true } }), 'Raise prices.')).toBe('close');
   });
 
+  const CORE = ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'bean_price_change', 'non_bean_input_change'];
+  const endReads = (o: { revealed?: string[]; flags?: Record<string, unknown>; recAsk?: string; elapsedMs?: number } = {}) => readsFixture({
+    phase: 'RECOMMENDATION', elapsedMs: o.elapsedMs ?? 17 * 60 * 1000, revealed: o.revealed ?? CORE,
+    flags: { moves: { 4: 'brainstorm', 6: 'recommendation', 8: 'risk' }, stall: { recommendationDelivered: true }, ...o.flags },
+    extraTurns: [
+      { role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What else could they do?' },
+      { role: 'candidate', text: 'More ideas.' }, { role: 'interviewer', text: o.recAsk ?? 'What do you recommend?' },
+      { role: 'candidate', text: 'My recommendation is to raise menu prices.' }, { role: 'interviewer', text: 'What is the biggest risk?' },
+    ],
+  });
+  const RISK_REPLY = 'The biggest risk is volume loss; I would pilot it first.';
+
   it('closes once the recommendation is in and the risk probe was asked', () => {
-    const reads = readsFixture({
-      phase: 'RECOMMENDATION', elapsedMs: 17 * 60 * 1000,
-      flags: { moves: { 4: 'brainstorm', 6: 'recommendation', 8: 'risk' }, stall: { recommendationDelivered: true } },
-      extraTurns: [
-        { role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What else could they do?' },
-        { role: 'candidate', text: 'More ideas.' }, { role: 'interviewer', text: 'What do you recommend?' },
-        { role: 'candidate', text: 'My recommendation is to raise menu prices.' }, { role: 'interviewer', text: 'What is the biggest risk?' },
-      ],
-    });
-    expect(kindOf(reads, 'The biggest risk is volume loss; I would pilot it first.')).toBe('close');
+    expect(kindOf(endReads(), RISK_REPLY)).toBe('close');
+  });
+
+  // Fact guards Phase 5 (batch 20 R33, R32, R34): a recommendation the
+  // interviewer never asked for is asked for by code before the close.
+  it('a volunteered recommendation, never asked for: code asks before the close', () => {
+    expect(kindOf(endReads({ recAsk: 'Go on.' }), RISK_REPLY)).toBe('rec_ask');
+  });
+
+  // Batch 20 R14, R27, R28, R46: closed at 7–12 min with the COGS inputs never out.
+  it('no close before the core analysis: code asks back to it once, then the case may close', () => {
+    const plan = planTurn(endReads({ revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'] }), RISK_REPLY, deps());
+    if (plan.kind !== 'model') throw new Error('expected a model plan');
+    expect(plan.state.kind).toBe('stage_analysis');
+    expect(kindOf(endReads({ revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: { stagesEnforced: { analysis: true } } }), RISK_REPLY)).toBe('close');
+    expect(kindOf(endReads({ revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], elapsedMs: 21 * 60 * 1000 }), RISK_REPLY)).toBe('close');
   });
 
   it('stall rung 1 with a stored question is written by code; without one the model writes it', () => {

@@ -16,7 +16,7 @@
 // A stage is assessed only when answered (or done spontaneously). Scoring
 // reads the record; missing evidence becomes "not assessed", never an
 // invented rating (lib/scoring/stage-caps.ts).
-import { asksBrainstorm, asksRisk, asksRecommendationAsk } from './spoken-close';
+import { asksBrainstorm, asksForConclusion, asksRiskQuestion } from './spoken-close';
 import { classifyTurn } from './stall';
 import { isRefusalToStart } from './candidate-exit';
 import type { PressureTestState } from './pressure-test';
@@ -114,8 +114,10 @@ export function updateStages(prev: StageRecord | undefined, t: StageTurn): Stage
   };
   if (t.exhibitShown) deliver('exhibit', t.codeAsked === 'exhibit');
   if (t.codeAsked === 'brainstorm' || asksBrainstormNow(t.question)) deliver('brainstorm', t.codeAsked === 'brainstorm');
-  if (t.recAsked || asksRecommendationAsk(t.question)) deliver('recommendation');
-  if (asksRisk(t.question)) deliver('risk');
+  // As the end gate reads them (progress.ts): a recommendation ask in any
+  // wording; the risk question once a recommendation is on the table.
+  if (t.recAsked || asksForConclusion(t.question)) deliver('recommendation');
+  if (asksRiskQuestion(t.question, r.recommendation.delivered || Boolean(r.recommendation.outcome) || t.recommendationDelivered)) deliver('risk');
 
   if (t.ended === 'time_up') {
     for (const k of STAGES) if (!r[k].outcome && (r[k].delivered || k === 'exhibit' || k === 'brainstorm')) r[k] = { ...r[k], outcome: 'time_up' };

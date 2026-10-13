@@ -37,7 +37,7 @@ import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
 
 // What Plan decides a model-turn slot is (spec 2026-10-06 §6). 'model' and
 // 'rec_ask' call the interviewer model; the rest are written by code.
-export type TurnKind = 'model' | 'rec_ask' | 'close' | 'grace_ask' | 'time_warning' | 'rung1' | 'stage_exhibit' | 'stage_brainstorm' | 'rec_revision' | 'rec_math_probe';
+export type TurnKind = 'model' | 'rec_ask' | 'close' | 'grace_ask' | 'time_warning' | 'rung1' | 'stage_exhibit' | 'stage_brainstorm' | 'stage_analysis' | 'rec_revision' | 'rec_math_probe';
 
 // Why the case closes, so the closing line is true (v4.10; batch 18: 32
 // sessions said "That's time" before minute 18).
@@ -564,7 +564,10 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   );
   const stageGate = stageGateOpen(stages) && elapsedMs >= COVERAGE_MIN_GUARD_MS;
   const mayEnd = endAllowed({ coverageMayEnd, timeUp, stageGate, stages });
-  const awaitingRecAsk = coverageMayEnd && !stages.recommendationAsked && !recommendationReceived;
+  // Fact guards Phase 5 (batch 20 R33, R32): a recommendation the interviewer
+  // never asked for — volunteered mid-case — is asked for by code before the
+  // case may close.
+  const awaitingRecAsk = !stages.recommendationAsked && (recommendationReceived ? mayEnd : coverageMayEnd);
   const coverageSteer = formatCoverageSteer(coverage);
   checks.record('end_rec_ask_gate', awaitingRecAsk, 'coverage complete but the recommendation was never asked — code asks this turn');
   checks.record('end_gate', stageGate && !coverageMayEnd, 'stage gate opened the end (coverage below threshold)', {
@@ -579,7 +582,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     recommendationAsked: stages.recommendationAsked, recommendationDelivered: recommendationReceived,
   });
   const closeDue = (timeUp && !graceDue)
-    || (mayEnd && ((recommendationReceived && stages.riskAsked) || recommendationUnresolved(stages)));
+    || (mayEnd && ((recommendationReceived && stages.recommendationAsked && stages.riskAsked) || recommendationUnresolved(stages)));
+
   // Required stages before a normal end (v4.10, Rule 9; batch 18: the exhibit
   // never shown in 8 runs, the brainstorm never asked in 1): when the case
   // would close or code would ask for the recommendation, a stage never put to
@@ -593,6 +597,15 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const ptClosed = pressureTest.state === 'satisfied' || pressureTest.state === 'waived';
   const stageDue = owedStage !== undefined && ptClosed && !timeUp && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)
     && (closeDue || awaitingRecAsk);
+  // The core analysis (the case's analysisCore): no recommendation ask and no
+  // close before it is attempted — code asks back to it once, recorded like a
+  // stage it enforced (batch 20 R14, R27, R28, R46: closed at 7–12 min with the
+  // COGS inputs never out). Not when time is up or short; the model's own
+  // early ask is held in Settle.
+  const core = caseData.analysisCore;
+  const coreOut = core ? core.items.filter(id => revealedIdsNow.includes(id)).length : 0;
+  const analysisOwed = core !== undefined && coreOut < (core.minItems ?? core.items.length) && !stagesEnforced.analysis
+    && !timeUp && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS);
   // A recommendation that rests on a misquote (batch 20: Tyler's "revenue grew
   // 19%" said first in the final answer, R42, R05): code corrects the figure
   // and asks once whether the recommendation changes, rather than moving on or
@@ -609,8 +622,10 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const recMathProbe = recMathFlag
     ? { flag: recMathFlag, action: recomputeAction(recMathFlag, recomputeAttempts[recMathFlag.stepId] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)) }
     : null;
+  const analysisDue = analysisOwed && (closeDue || awaitingRecAsk);
   const kind: TurnKind = recRevisionDue ? 'rec_revision'
     : recMathProbe ? 'rec_math_probe'
+    : analysisDue ? 'stage_analysis'
     : closeDue && !stageDue ? 'close'
     : graceDue ? 'grace_ask'
       : shouldFireTimeWarning && !recommendationReceived ? 'time_warning'
@@ -694,7 +709,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       caseData, repliedToDistressOffer, shownExhibitIds, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
-      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, recMathProbe, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
+      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, recMathProbe, analysisOwed, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,

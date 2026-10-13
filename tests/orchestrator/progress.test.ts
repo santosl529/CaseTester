@@ -45,6 +45,29 @@ describe('stagesFromTurns', () => {
     const s = stagesFromTurns([{ turnIndex: 5, text: 'Okay.' }], { 5: 'code_rec_ask' }, false);
     expect(s).toMatchObject({ recommendationAsked: true, recommendationAskCount: 1 });
   });
+  // Fact guards Phase 5 (batch 20): the end gate closed on labels.
+  it('an analysis "how would you test that?" labelled risk is no risk question (R16, R18)', () => {
+    const s = stagesFromTurns([{ turnIndex: 9, text: 'Does the bean move explain it, and how would you test that?' }], { 9: 'risk' }, false);
+    expect(s.riskAsked).toBe(false);
+  });
+  it('a contingency on the plan after the recommendation is the risk question (R20, R26, R37)', () => {
+    const s = stagesFromTurns([
+      { turnIndex: 5, text: "What's your recommendation to the client?" },
+      { turnIndex: 7, text: 'If the pilot shows traffic falling, at what point would you stop the price increase, and what would you do instead?' },
+    ], { 5: 'code_rec_ask', 7: 'risk' }, true);
+    expect(s.riskAsked).toBe(true);
+  });
+  it('a risk question labelled recommendation is no recommendation ask (R36)', () => {
+    const s = stagesFromTurns([{ turnIndex: 9, text: "What would make you commit to it, and what's the single biggest risk to recommending it now?" }], { 9: 'recommendation' }, false);
+    expect(s).toMatchObject({ recommendationAskCount: 0, riskAsked: true });
+  });
+  it('a lever choice and "the CEO wants your recommendation" are recommendation asks', () => {
+    const s = stagesFromTurns([
+      { turnIndex: 5, text: 'The CEO wants your recommendation now. Which levers would you pull first?' },
+      { turnIndex: 7, text: 'Which one would you put forward to the CEO as the primary recommendation?' },
+    ], {}, false);
+    expect(s.recommendationAskCount).toBe(2);
+  });
   it('falls back to the wording for turns with no recorded move (legacy sessions)', () => {
     const s = stagesFromTurns([{ turnIndex: 2, text: 'Beyond pricing, what else could the client do?' }], {}, true);
     expect(s).toMatchObject({ brainstormAsked: true, recommendationReceived: true });

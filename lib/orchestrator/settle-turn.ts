@@ -27,7 +27,7 @@ import { logEvent } from '@/lib/analytics';
 import { TOTAL_CASE_MS, type Phase } from './state-machine';
 import { toCheckEventRows } from './check-log';
 import { pickScript, STAGE_EXHIBIT_QUESTIONS } from '@/lib/agent/prompts/scripts';
-import { BLOCKED_CLOSE_PROBES, asksRecommendationAsk } from './spoken-close';
+import { BLOCKED_CLOSE_PROBES, asksForConclusion } from './spoken-close';
 import { updateStages, type StageKey, type StageRecord } from './stage-evidence';
 import { renderDataLineParts, decisionRows } from './data-decisions';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
@@ -40,6 +40,7 @@ import type { ModelTurn, Move } from '@/lib/agent/models/turn-schema';
 import type { TurnValidation } from '@/lib/agent/models/interface';
 import type { ModelPlan } from './plan-turn';
 import { figureAsWritten } from './recompute';
+import { askIntents, advanceLine, type AskIntent } from './ask-intent';
 import type { ExhibitDisplay, HeardReport, PendingEvent, ScriptedPlan, TurnCtx, TurnResult } from './turn-types';
 
 export async function logSessionEvent(
@@ -154,9 +155,9 @@ export type Settled = {
   persist: (latency: { firstSegmentMs: number | null; streamed: boolean }, heard?: HeardReport | null) => Promise<TurnResult>;
 };
 
-const CODE_WRITTEN = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm', 'rec_revision', 'rec_math_probe']);
+const CODE_WRITTEN = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm', 'stage_analysis', 'rec_revision', 'rec_math_probe']);
 // Code's own stage asks, recorded as moves it is sure of.
-const STAGE_MOVE: Partial<Record<string, Move>> = { stage_exhibit: 'exhibit', stage_brainstorm: 'brainstorm', rec_revision: 'recommendation', rec_math_probe: 'recommendation' };
+const STAGE_MOVE: Partial<Record<string, Move>> = { stage_exhibit: 'exhibit', stage_brainstorm: 'brainstorm', stage_analysis: 'analysis', rec_revision: 'recommendation', rec_math_probe: 'recommendation' };
 
 // A figure the candidate gave as a result in this message ("= 53.8", "is
 // about 1.6%", "so 38%") — not an input or an index base ("index this to 100").
@@ -379,10 +380,16 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   }
   // Rule 9 v4.10: the model's own recommendation ask waits while the exhibit
   // or the brainstorm is still owed (as code's own ask already does) — code
-  // administers the stage instead, once. Not under time pressure.
-  let stageAsked: StageKey | undefined = kind === 'stage_exhibit' ? 'exhibit' : kind === 'stage_brainstorm' ? 'brainstorm' : undefined;
+  // administers the stage instead, once. Not under time pressure. Fact guards
+  // Phase 5: any call for the conclusion (a lever choice too — batch 20 R06,
+  // R23), and first the case's core analysis (code's one line back to it).
+  let stageAsked: StageKey | undefined = kind === 'stage_exhibit' ? 'exhibit' : kind === 'stage_brainstorm' ? 'brainstorm' : kind === 'stage_analysis' ? 'analysis' : undefined;
   let heldForExhibit: (typeof caseData.exhibits)[number] | undefined;
-  if (!codeWritten && kind === 'model' && state.owedStage && state.ptClosed && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) && asksRecommendationAsk(question)) {
+  if (!codeWritten && kind === 'model' && state.analysisOwed && caseData.analysisCore && asksForConclusion(question)) {
+    withheld.push({ sentence: question, reason: 'recommendation_held_for_stage', field: 'question' });
+    question = caseData.analysisCore.ask;
+    stageAsked = 'analysis';
+  } else if (!codeWritten && kind === 'model' && state.owedStage && state.ptClosed && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) && asksForConclusion(question)) {
     const asked = question;
     if (state.owedStage === 'brainstorm') {
       question = pickScript([...BLOCKED_CLOSE_PROBES.brainstorm], seed);
@@ -395,6 +402,16 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       }
     }
     if (stageAsked) withheld.push({ sentence: asked, reason: 'recommendation_held_for_stage', field: 'question' });
+  }
+  // Code's line back to the analysis on a turn whose own data line completes
+  // it (140fb90d replay: the other-input change released with "Let's hold the
+  // recommendation…") asks about the figures instead.
+  if (kind === 'stage_analysis' && caseData.analysisCore) {
+    const core = caseData.analysisCore;
+    const out = new Set([...Object.keys(revealedValues(ledger)), ...decisions.releases.map(r => r.id), ...(decisions.exhibit?.covers ?? [])]);
+    if (core.items.filter(id => out.has(id)).length >= (core.minItems ?? core.items.length)) {
+      question = pickFallbackQuestion({ figuresDelivered: true, seed, last: state.lastQuestion ?? null, phase: currentPhase });
+    }
   }
   checks.record('stage_hold', Boolean(stageAsked), stageAsked ? `owed stage administered by code: ${stageAsked}` : 'no stage owed this turn', { owed: state.owedStage ?? null, kind });
 
@@ -422,6 +439,20 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       if (pt.followUps?.at(-1) === before) pt.followUps = [...pt.followUps.slice(0, -1), question];
     }
     checks.record('pending_data', pending.changes.length > 0, 'question rewritten: the data was delivered this turn', { changes: pending.changes });
+  }
+
+  // Fact guards Phase 5 (batch 20 R17, R07): after two asks of one intent
+  // with nothing given, the third moves the case on instead of rewording it.
+  const askHistory = (flags.askIntents as { tags: AskIntent[]; given: boolean }[] | undefined) ?? [];
+  let askTags = askIntents(question);
+  if (!ended && (kind === 'model' || kind === 'rung1') && !figuresOut && askHistory.length >= 2) {
+    const [a, b] = askHistory.slice(-2);
+    const looping = askTags.filter(t => !a.given && !b.given && a.tags.includes(t) && b.tags.includes(t));
+    if (looping.length > 0) {
+      withheld.push({ sentence: question, reason: 'loop', field: 'question' });
+      question = advanceLine(looping);
+      askTags = askIntents(question);
+    }
   }
 
   checks.record('vetoes', withheld.length > 0, 'sentences of the model\'s own withheld', { withheld });
@@ -679,6 +710,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
             loadShedLogged: Boolean(flags.loadShedLogged) || loadShedLoggedThisTurn,
             moves: movesSaved,
             lastQuestion: lastQuestionSaved,
+            askIntents: qHeard ? [...askHistory, { tags: askTags, given: figuresOut }].slice(-2) : askHistory,
             pressureTest: ptSaved,
             stageEvidence: stagesSaved,
             stagesEnforced: stagesEnforcedSaved,

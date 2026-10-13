@@ -96,7 +96,8 @@ beforeEach(() => { modelQueue.length = 0; prompts.length = 0; classified.length 
 describe('a qualified re-ask is not answered with the unqualified figures', () => {
   it('Tyler t19 (batch 18): "the variable-versus-fixed split within COGS and labor" at the close → declined by name, not "As I mentioned: COGS is 58%…"', async () => {
     seed({ phase: 'RECOMMENDATION', elapsedMin: 14, coverage: ALL_COVERED, revealed: fx['tyler-t19'].revealed,
-      turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'Raise prices 10%.' }, { role: 'interviewer', text: "What's the biggest risk to that recommendation, and how would you test for it?" }],
+      turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'Inputs drove it.' }, { role: 'interviewer', text: "What's your recommendation to the client?" },
+        { role: 'candidate', text: 'Raise prices 10%.' }, { role: 'interviewer', text: "What's the biggest risk to that recommendation, and how would you test for it?" }],
       flags: { pressureTest: { state: 'satisfied', reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false }, stageEvidence: STAGES,
         stall: { ladderLevel: 0, consecutiveNoProgress: 0, consecutiveClarify: 0, lastCandidateQuestion: null, recommendationDelivered: true } } });
     // What the classifier mapped it to in batch 18.
@@ -143,4 +144,21 @@ describe('the exhibit is shown for the data it covers', () => {
     expect(store.revealed.map(x => x.ledgerItemId).sort()).toEqual(['cogs_pct', 'labor_pct', 'overhead_pct']);
     expect((flags().stageEvidence as Row).exhibit).toMatchObject({ delivered: true });
   });
+});
+
+// Fact guards Phase 5: code's line back to the core analysis.
+describe('the analysis turn', () => {
+  it("140fb90d replay: code's analysis turn whose own data line completes the analysis asks about the figures instead", async () => {
+    seed({ phase: 'RECOMMENDATION', elapsedMin: 13, coverage: ALL_COVERED, revealed: ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs'],
+      turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'Beans.' }, { role: 'interviewer', text: "What's your recommendation to the client?" },
+        { role: 'candidate', text: 'Raise prices 8% in a pilot.' }, { role: 'interviewer', text: "What's the biggest risk to that recommendation?" }],
+      flags: { pressureTest: { state: 'satisfied', reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false }, stall: { ladderLevel: 0, consecutiveNoProgress: 0, consecutiveClarify: 0, lastCandidateQuestion: null, recommendationDelivered: true } } });
+    classified.push([{ what: 'other input price change', ledgerItemIds: ['non_bean_input_change'], explicit: true, response: 'release' }]);
+    const r = await say('Volume loss. Can I get the price change for the other inputs?');
+    expect(r.interviewerText).toMatch(/up 37\.5%/);
+    expect(r.interviewerText).not.toMatch(/hold the recommendation/);
+    expect(r.interviewerText).toMatch(/\?$/);
+    expect(((store.session.flagsJsonb as Row).stagesEnforced as Row).analysis).toBe(true);
+  });
+
 });

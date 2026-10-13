@@ -219,11 +219,18 @@ describe('Rule 17-C5 — after the candidate chose to continue', () => {
   });
 });
 
+const STAGES_OWED_BRAINSTORM = {
+  structure: { delivered: true, outcome: 'answered' }, pressure_test: { delivered: true, outcome: 'answered' }, analysis: { delivered: true, outcome: 'answered' },
+  exhibit: { delivered: true, outcome: 'answered' }, brainstorm: { delivered: false }, recommendation: { delivered: false }, risk: { delivered: false }, pending: null,
+};
+
 describe('Rule 9 — required stages before a normal end, and the closing line', () => {
   const endDue = (stageEvidence: Row, elapsedMin = 13) => seed({
     phase: 'RECOMMENDATION', elapsedMin, coverage: ALL_COVERED,
-    turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'Raise prices 8% in a pilot.' }, { role: 'interviewer', text: "What's the biggest risk to that recommendation, and how would you test for it?" }],
-    revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'],
+    // The recommendation asked for, and the COGS inputs out (fact guards Phase 5: no close before either).
+    turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'Beans and dairy drove it.' }, { role: 'interviewer', text: "What's your recommendation to the client?" },
+      { role: 'candidate', text: 'Raise prices 8% in a pilot.' }, { role: 'interviewer', text: "What's the biggest risk to that recommendation, and how would you test for it?" }],
+    revealed: ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'bean_price_change', 'non_bean_input_change'],
     flags: { pressureTest: SATISFIED, stall: { ladderLevel: 0, consecutiveNoProgress: 0, consecutiveClarify: 0, lastCandidateQuestion: null, recommendationDelivered: true }, stageEvidence },
   });
   const STAGES = (over: Row = {}) => ({
@@ -261,11 +268,79 @@ describe('Rule 9 — required stages before a normal end, and the closing line',
 
   it("the model's own early recommendation ask waits for an owed brainstorm", async () => {
     seed({ phase: 'ANALYSIS', turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'COGS drove 16 of the 18 points.' }, { role: 'interviewer', text: 'Go on.' }],
-      revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: { pressureTest: SATISFIED, stageEvidence: STAGES({ brainstorm: { delivered: false }, recommendation: { delivered: false }, risk: { delivered: false }, pending: null }) } });
+      revealed: ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'bean_price_change'], flags: { pressureTest: SATISFIED, stageEvidence: STAGES({ brainstorm: { delivered: false }, recommendation: { delivered: false }, risk: { delivered: false }, pending: null }) } });
     const r = await say('So it is input inflation they never priced for.', T({ move: 'recommendation', question: "What's your recommendation to the CEO?" }));
     expect(r.interviewerText).not.toMatch(/recommendation to the CEO/);
     expect(r.interviewerText).toMatch(/what else could the client do|other levers|protect margin/);
     expect(ev('stage_hold', 'check')[0]?.payloadJsonb).toMatchObject({ decision: 'act' });
+  });
+});
+
+// Fact guards Phase 5 (batch 20 D7): no call for the conclusion before the
+// core analysis (two of the three COGS inputs out) or an owed brainstorm.
+describe('the recommendation waits for the core analysis', () => {
+  const ANALYSIS_ASK = "Let's hold the recommendation for now: what's driving the margin drop, and what would you need to know to pin it down?";
+  const COST_LINES = ['cogs_pct', 'labor_pct', 'overhead_pct'];
+  const early = (flags: Row = {}, revealed = COST_LINES) => seed({ phase: 'ANALYSIS', turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'COGS drove 16 of the 18 points.' }, { role: 'interviewer', text: 'Go on.' }],
+    revealed, flags: { pressureTest: SATISFIED, ...flags } });
+  const LEVER = T({ move: 'other', question: 'Of everything you proposed, which single lever would you start with first, and why?' });
+
+  it("R06: the model's lever ask with the COGS inputs never out → code's one line back to the analysis", async () => {
+    early();
+    const r = await say('So it is input inflation they never priced for.', LEVER);
+    expect(r.interviewerText).toBe(ANALYSIS_ASK);
+    expect((flags().stagesEnforced as Row).analysis).toBe(true);
+  });
+
+  it('asked once: after it, the ask goes through', async () => {
+    early({ stagesEnforced: { analysis: true }, stageEvidence: { ...STAGES_OWED_BRAINSTORM, brainstorm: { delivered: true, outcome: 'answered' } } });
+    const r = await say('So it is input inflation they never priced for.', LEVER);
+    expect(r.interviewerText).toMatch(/which single lever/);
+  });
+
+  it('R23: with the analysis attempted, a lever ask still waits for an owed brainstorm', async () => {
+    early({ stageEvidence: STAGES_OWED_BRAINSTORM }, [...COST_LINES, 'bean_share_of_cogs', 'non_bean_input_change']);
+    const r = await say('So it is input inflation.', T({ move: 'analysis', question: 'What is the most credible lever to close the gap, and what would it take?' }));
+    expect(r.interviewerText).toMatch(/what else could the client do|other levers|protect margin/);
+  });
+
+  it('R10: the model\'s "Thanks, that closes the case." mid-case is withheld; its question stays', async () => {
+    early({ stagesEnforced: { analysis: true } });
+    const r = await say('COGS as a percent of revenue, tracked monthly.', T({ move: 'other', say: 'Understood. Thanks, that closes the case.', question: "What's the single most important number you'd want the CEO to track monthly, and why?" }));
+    expect(r.ended).toBe(false);
+    expect(r.interviewerText).not.toMatch(/closes the case/);
+    expect(r.interviewerText).toMatch(/most important number/);
+  });
+
+  it("R14: code's own end with the COGS inputs never out → the line back to the analysis, not the close", async () => {
+    seed({ phase: 'RECOMMENDATION', elapsedMin: 13, coverage: ALL_COVERED, revealed: COST_LINES,
+      turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'Beans.' }, { role: 'interviewer', text: "What's your recommendation to the client?" },
+        { role: 'candidate', text: 'Raise prices 8% in a pilot.' }, { role: 'interviewer', text: "What's the biggest risk to that recommendation?" }],
+      flags: { pressureTest: SATISFIED, stall: { ladderLevel: 0, consecutiveNoProgress: 0, consecutiveClarify: 0, lastCandidateQuestion: null, recommendationDelivered: true } } });
+    const r = await say('Volume loss — I would pilot in 20 stores.');
+    expect(r.ended).toBe(false);
+    expect(r.interviewerText).toMatch(/what's driving the margin drop/);
+  });
+});
+
+// Fact guards Phase 5 (batch 20 R17, R07): after two asks of one intent with
+// nothing given, the third advances instead of rewording.
+describe('no third ask of the same thing', () => {
+  const stuck = (askIntents: Row[]) => seed({ phase: 'STRUCTURE', turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: "I'm stuck." }, { role: 'interviewer', text: 'Which branch would you start with, and why?' }],
+    flags: { pressureTest: SATISFIED, stagesEnforced: { analysis: true }, askIntents } });
+  const THIRD = T({ move: 'pressure_test', question: 'Let me make it concrete: of the areas you named, which one would you check first, and why?' });
+
+  it('R17: "what would you prioritize" → "which branch first" → "which one would you check first" — the third advances', async () => {
+    stuck([{ tags: ['prioritize'], given: false }, { tags: ['prioritize'], given: false }]);
+    const r = await say("I don't really have a structure, sorry.", THIRD);
+    expect(r.interviewerText).toBe("Let's move on: what data would you want to see first?");
+    expect(flags().askIntents).toEqual([{ tags: ['prioritize'], given: false }, { tags: [], given: false }]);
+  });
+
+  it('not when something was given between the asks', async () => {
+    stuck([{ tags: ['prioritize'], given: true }, { tags: ['prioritize'], given: false }]);
+    const r = await say("I don't really have a structure, sorry.", THIRD);
+    expect(r.interviewerText).toMatch(/which one would you check first/);
   });
 });
 
