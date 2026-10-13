@@ -239,6 +239,7 @@ export type VettedClaim = CheckerClaim & {
   correctionLine: string | null; // written by code: the second attempt when code computes the quantity
   correctionFigure: string | null; // code's figure in it, licensed for the provenance audit when spoken
   pointerLine: string | null;   // the second attempt when it doesn't
+  hintLine?: string | null;     // else the second attempt: the draft naming what they raised earlier (absent on verdicts before 13 Oct)
   vetNotes: string[];           // why a line was replaced or dropped
 };
 
@@ -453,8 +454,12 @@ export function relativeAsPoints(c: CheckerClaim, ctx: VetContext, fb: FactBase)
 // A probe asks about the candidate's own claim (Lorenzo, 13 Oct; 0bfe5f38 t21
 // "…and where does overhead sit?" pointed at the missing line): it names no
 // case component (a word of the case's ledger and exhibit text, not a plain word or the prompt's)
-// and no figure the candidate hasn't raised, and carries no arithmetic. The
-// pointer (Rule 14's second attempt) is the line that may name revealed data.
+// and no figure outside what it may name, and carries no arithmetic. Two steps
+// (Lorenzo, 13 Oct, Step-4 rulings): the first probe may name only what is in
+// the claim (the sentence it was said in), plus the target (the prompt's figures and their changes — "Does
+// that account for the full 18 points?"); a second probe, the hint, may also
+// name a component or figure the candidate raised in any message. The pointer
+// (Rule 14's second attempt) is the line that may name revealed data.
 // Function words, and the words a neutral probe is made of — never a component.
 const PLAIN_WORDS = new Set(`a an the of to and or in on for with by at as is are be was were its it this that these those what when why how who where which
 from per over into about after before between than then there their they them our your you my one two three four five six seven eight nine ten
@@ -475,14 +480,40 @@ export function caseComponents(c: CheckerCase): Set<string> {
   return new Set(wordsOf(text).filter(w => w.length >= 3 && !PLAIN_WORDS.has(w) && !prompt.has(w)));
 }
 const ARITHMETIC = /[=+×÷*]|\d\s*\/\s*\d/;
-export function probeLeads(probe: string, span: string, ctx: VetContext, components: Set<string>): string | null {
+// The target: the prompt's % and $ figures and their changes (not "two years").
+const targetNumbers = (c: CheckerCase) => [
+  ...[...c.prompt.matchAll(/\$\s?(\d[\d,]*(?:\.\d+)?)|(\d[\d,]*(?:\.\d+)?)\s?%/g)].map(m => parseFloat((m[1] ?? m[2]).replace(/,/g, ''))),
+  ...numbersOf(changeFigures([c.prompt]).join(' ')),
+];
+// The claim as they said it: the message's sentences the span comes from (the
+// check often quotes a clause — "that's five points of margin back" — of "A
+// 10% price increase … that's five points of margin back immediately."), each
+// with the sentence before it ("That recovers about 5 points" refers back).
+export function claimSentences(span: string, message: string): string[] {
+  const pieces = span.toLowerCase().split(/\s*(?:\.\.\.|…)\s*|(?<=[.!?])\s+/).map(x => x.trim().slice(0, 25)).filter(x => x.length >= 8);
+  const sentences = message.split(/(?<=[.!?])\s+/);
+  const hit = sentences.flatMap((x, i) => pieces.some(q => x.toLowerCase().includes(q)) ? sentences.slice(Math.max(0, i - 1), i + 1) : []);
+  return [span, ...hit];
+}
+export function probeLeads(probe: string, span: string, ctx: VetContext, components: Set<string>, step: 'first' | 'hint' = 'first'): string | null {
   if (ARITHMETIC.test(probe)) return 'carries arithmetic';
-  const theirWords = new Set([...ctx.candidateTexts, span].flatMap(wordsOf));
+  const theirs = step === 'first' ? claimSentences(span, ctx.candidateTexts.at(-1) ?? '') : [...ctx.candidateTexts, span];
+  const theirWords = new Set(theirs.flatMap(wordsOf));
   const named = [...new Set(wordsOf(probe))].filter(w => components.has(w) && !theirWords.has(w));
-  if (named.length) return `names ${named.join(', ')}`;
-  const theirNumbers = ctx.candidateTexts.flatMap(numbersOf);
+  if (named.length) return `names ${named.join(', ')}${step === 'first' ? ', not in the claim' : ''}`;
+  const theirNumbers = [...theirs.flatMap(numbersOf), ...targetNumbers(ctx.caseData)];
   const figures = numbersOf(probe).filter(n => !theirNumbers.some(a => near(n, a)));
-  return figures.length ? `names ${figures.join(', ')}, not theirs` : null;
+  return figures.length ? `names ${figures.join(', ')}, ${step === 'first' ? 'not in the claim' : 'not theirs'}` : null;
+}
+// A leading draft without its last ask: "…against the 18, and where does
+// overhead sit?" → "…against the 18?"; "How did you get it? Where does
+// overhead sit?" → "How did you get it?". null when nothing is left to ask.
+export function trimLastAsk(probe: string): string | null {
+  const clause = probe.match(/^(.*\S)(?:,\s*|\s+)(?:and|or)\s+(?:where|how|what|which|why|does|do|is|are)\b[^?]*\?\s*$/i);
+  if (clause && clause[1].split(/\s+/).length >= 3) return `${clause[1].replace(/[,;:—–-]+$/, '')}?`;
+  const asks = probe.split(/(?<=[.?!])\s+/);
+  const head = asks.slice(0, -1).join(' ');
+  return asks.length > 1 && head.endsWith('?') ? head : null;
 }
 // The neutral fallback quotes their figure only when it is a figure, not their working.
 const SHORT_FIGURE = /^(?:about |roughly |around |~)?[\d.,]+(?:\s*[–-]\s*[\d.,]+)?\s*(?:%|percent|points?|x)?$/i;
@@ -502,16 +533,26 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
   const revealed = new Set(ctx.revealedIds);
   const speakable = (line: string, extra: string[] = []) => !enforceNumericProvenance(line, [...sources, ...extra]).blocked && findFalseFacts(line, fb, revealed).length === 0;
   const components = caseComponents(ctx.caseData);
+  // A probe may name the target: the prompt's changes ("the full 18 points" from 24% to 6%).
+  const target = changeFigures([ctx.caseData.prompt]);
   return claims.map(c => {
     const vetNotes: string[] = [];
     const tolerated = isActionable(c) ? withinTolerance(c, ctx) : null;
     if (tolerated) vetNotes.push(`flag dropped — ${tolerated}`);
     const flag = isActionable(c) && !tolerated;
-    if (!flag) return { ...c, flag, probeLine: null, correctionLine: null, correctionFigure: null, pointerLine: null, vetNotes };
+    if (!flag) return { ...c, flag, probeLine: null, correctionLine: null, correctionFigure: null, pointerLine: null, hintLine: null, vetNotes };
     let probeLine: string | null = c.probe.trim() || null;
-    if (probeLine && !speakable(probeLine)) { vetNotes.push(`probe withheld (provenance/truth): ${probeLine}`); probeLine = null; }
+    let hintLine: string | null = null;
+    if (probeLine && !speakable(probeLine, target)) { vetNotes.push(`probe withheld (provenance/truth): ${probeLine}`); probeLine = null; }
     const leads = probeLine ? probeLeads(probeLine, c.span, ctx, components) : null;
-    if (probeLine && leads) { vetNotes.push(`probe withheld (leads: ${leads}): ${probeLine}`); probeLine = null; }
+    if (probeLine && leads) {
+      // Past the claim, but only to what they raised: the second probe's hint.
+      if (probeLine.endsWith('?') && !probeLeads(probeLine, c.span, ctx, components, 'hint')) hintLine = probeLine;
+      const trimmed = trimLastAsk(probeLine);
+      if (trimmed && speakable(trimmed, target) && !probeLeads(trimmed, c.span, ctx, components)) { vetNotes.push(`probe trimmed (leads: ${leads}): ${probeLine}`); probeLine = trimmed; }
+      else { vetNotes.push(`probe withheld (leads: ${leads}): ${probeLine}`); probeLine = null; }
+      if (hintLine) vetNotes.push('hint kept for the second probe');
+    }
     if (!probeLine) {
       const value = c.candidateValue.trim();
       const own = SHORT_FIGURE.test(value) && numbersOf(value).every(n => allowedNumbers.some(a => near(n, a))) ? value : '';
@@ -555,6 +596,6 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
       else if (!numbersOf(pointer).some(n => revealedNumbers.some(a => near(n, a)))) vetNotes.push(`pointer dropped (names no revealed figure): ${pointer}`);
       else pointerLine = pointer;
     }
-    return { ...c, flag, probeLine, correctionLine, correctionFigure, pointerLine, vetNotes };
+    return { ...c, flag, probeLine, correctionLine, correctionFigure, pointerLine, hintLine, vetNotes };
   });
 }

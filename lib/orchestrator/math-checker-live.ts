@@ -3,7 +3,7 @@
 // message that states a quantitative claim; the turn never waits for it. Its
 // vetted verdict is written as a session event when it lands, and the next
 // turn's Plan reads it: a flagged claim becomes a RECOMPUTE-style flag under
-// Rule 14 (probe, then code's correction or a pointer probe; unresolved → the
+// Rule 14 (probe, then code's correction or a second probe; unresolved → the
 // report), sharing the deterministic checks' attempt counter. Deterministic
 // checks stay first: a claim they already flagged in the message is not raised
 // twice, a checker "correct" on a figure they flagged is only logged, and a
@@ -197,14 +197,14 @@ export function probesOf(figs: number[], interviewerTexts: string[], candidateFi
 
 export type CheckerRow = { category?: string; subtype: string; turnIndex: number | null; payloadJsonb: unknown };
 
-export type CheckerOutcome = 'probe' | 'correct' | 'pointer' | 'unresolved' | 'shed' | 'stale' | 'expired' | 'dedupe' | 'disagrees_with_code' | 'unresolved_at_close';
+export type CheckerOutcome = 'probe' | 'correct' | 'pointer' | 'hint' | 'unresolved' | 'shed' | 'stale' | 'expired' | 'dedupe' | 'disagrees_with_code' | 'unresolved_at_close';
 export type CheckerDecision = {
   id: string; candidateTurnIndex: number; outcome: CheckerOutcome; reason: string;
   span: string; candidateValue: string; key: string; changesConclusion: boolean; line?: string;
 };
 export type CheckerSelection = {
   id: string; candidateTurnIndex: number; key: string; attempt: number;
-  action: 'probe' | 'correct' | 'pointer'; line: string; derived: string[];
+  action: 'probe' | 'correct' | 'pointer' | 'hint'; line: string; derived: string[];
   claim: VettedClaim;
 };
 export type CheckerPlanInput = {
@@ -321,8 +321,11 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     if (c.correctionLine) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'correct', line: c.correctionLine, derived: c.correctionFigure ? [c.correctionFigure] : [], claim: c }; continue; }
     // Code can't compute it: the pointer probe is the second attempt.
     if (c.pointerLine && (attempt === 2 || p.underTimePressure)) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'pointer', line: c.pointerLine, derived: [], claim: c }; continue; }
+    // Else the hint (Lorenzo, 13 Oct, Step-4 rulings): a component they raised
+    // earlier, named only in a second probe — never the first.
+    if (c.hintLine && attempt === 2) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'hint', line: c.hintLine, derived: [], claim: c }; continue; }
     // Past Rule 14 with nothing code can say: the report has it, and the case moves on.
-    decisions.push(decision(id, n, c, 'unresolved', `attempt ${attempt}: no correction code can write${c.pointerLine ? ', pointer already used' : ', no pointer'} — left for the report`, undefined, key));
+    decisions.push(decision(id, n, c, 'unresolved', `attempt ${attempt}: no correction code can write${c.pointerLine || c.hintLine ? ', second probe already used' : ', no pointer'} — left for the report`, undefined, key));
     handled.add(id);
     closedNow.push(key);
   }
@@ -339,7 +342,7 @@ export function formatCheckerHint(s: CheckerSelection): string {
   const said = `"${s.claim.span}"`;
   const line = s.action === 'probe'
     ? `- Earlier the candidate said ${said}; a check found it doesn't follow from the data they have. Probe once — "${s.line}" — Do not correct it or say the right figure.`
-    : s.action === 'pointer'
+    : s.action === 'pointer' || s.action === 'hint'
       ? `- Earlier the candidate said ${said}, still unresolved after a probe. Ask this, once, as written — "${s.line}" — and nothing else about it. Do not correct it or say the right figure.`
       : `- Earlier the candidate said ${said}; a check in code found it wrong. This overrides the no-correction rule: say this in "say", once, as written — "${s.line}" — then continue. No probe, no consolation, no figure of your own.`;
   return `MATH CHECK FLAG (a background check of an earlier message, vetted in code):\n${line}`;

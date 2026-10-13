@@ -98,6 +98,39 @@ describe('a verdict lands on the next turn as a Rule 14 flag', () => {
     expect(neither.handledNow).toContain('3:0');
   });
 
+  // Lorenzo, 13 Oct (Step-4 rulings): a hint naming a component the candidate
+  // raised earlier is a second probe only — after the first, never instead of it.
+  describe('the hint probe', () => {
+    const hint = 'You said 5 points. How does that sit with the overhead you mentioned?';
+    const noCorrection = { correctionLine: null, correctionFigure: null, hintLine: hint };
+    it('second attempt, no correction and no pointer: the hint', () => {
+      const p = planCheckerFlags(input({ attempts: { 'pricing:gain': 1 }, rows: [verdictRow(3, [vetted(noCorrection)])] }));
+      expect(p.selected).toMatchObject({ action: 'hint', line: hint, attempt: 2 });
+    });
+    it('the pointer comes before the hint; the correction before both', () => {
+      const pointer = planCheckerFlags(input({ attempts: { 'pricing:gain': 1 }, rows: [verdictRow(3, [vetted({ ...noCorrection, pointerLine: 'How does that fit with labor at 22% of revenue?' })])] }));
+      expect(pointer.selected?.action).toBe('pointer');
+      const corrected = planCheckerFlags(input({ attempts: { 'pricing:gain': 1 }, rows: [verdictRow(3, [vetted({ hintLine: hint })])] }));
+      expect(corrected.selected?.action).toBe('correct');
+    });
+    it('never the first probe — not even under time pressure, when the probe is skipped', () => {
+      expect(planCheckerFlags(input({ rows: [verdictRow(3, [vetted(noCorrection)])] })).selected?.action).toBe('probe');
+      const rushed = planCheckerFlags(input({ underTimePressure: true, rows: [verdictRow(3, [vetted(noCorrection)])] }));
+      expect(rushed.selected).toBeNull();
+      expect(rushed.decisions[0].outcome).toBe('unresolved');
+    });
+    it('past the second probe: unresolved, for the report', () => {
+      const p = planCheckerFlags(input({ attempts: { 'pricing:gain': 2 }, rows: [verdictRow(3, [vetted(noCorrection)])] }));
+      expect(p.selected).toBeNull();
+      expect(p.decisions[0].outcome).toBe('unresolved');
+    });
+    it('the model is told to ask it once, as written', () => {
+      const s = planCheckerFlags(input({ attempts: { 'pricing:gain': 1 }, rows: [verdictRow(3, [vetted(noCorrection)])] })).selected!;
+      expect(formatCheckerHint(s)).toContain(`"${hint}"`);
+      expect(formatCheckerHint(s)).toMatch(/still unresolved after a probe/);
+    });
+  });
+
   it('past the pointer, with no correction: unresolved', () => {
     const p = planCheckerFlags(input({ attempts: { 'pricing:gain': 2 }, rows: [verdictRow(3, [vetted({ correctionLine: null, correctionFigure: null, pointerLine: 'How does that fit with labor at 22% of revenue?' })])] }));
     expect(p.selected).toBeNull();

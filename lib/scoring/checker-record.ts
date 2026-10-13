@@ -49,6 +49,7 @@ function outcomeText(outcomes: CheckerDecision[]): string {
   if (corrected) return `Corrected: "${corrected.line}"`;
   if (has('stale')) return 'The candidate revised or withdrew it since.';
   if (has('pointer')) return 'Probed twice (the second time against the data); not corrected.';
+  if (has('hint')) return 'Probed twice (the second time with a hint); not corrected.';
   if (has('probe')) return 'Probed; not corrected.';
   if (has('expired')) return 'Not raised in the interview (it waited behind other checks and expired).';
   if (has('shed')) return 'Not raised in the interview (minor, under time pressure).';

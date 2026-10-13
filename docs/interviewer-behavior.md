@@ -2236,6 +2236,13 @@ to 58% of revenue; 38% is its growth on its own base."). If it can't, the
 error goes to the written report. Either way the error is closed: no further
 question about that figure goes out, and the case moves on.
 
+**Two-step probe (13 Oct, Lorenzo; 0bfe5f38 t19 — "…and where does overhead
+sit?").** The first probe on a claim names only what is in the claim, plus
+the target ("Does that account for the full 18 points?"). Only a second
+probe, if the first didn't resolve the error, may name a component the
+candidate raised earlier, as a hint ("…and where does overhead sit?"). After
+that, the correction or the report, as above.
+
 **Fast path (time pressure, case-breaking class only):** when the phase budget
 is exceeded, case-breaking errors skip the Socratic probe entirely and get an
 immediate one-sentence correction — "Quick correction — that's about 2 points,
