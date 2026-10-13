@@ -51,7 +51,9 @@ const PRICE_PATTERNS = [
 ];
 const PRICE_CONTEXT = /\b(?:price|prices|pricing|pass[- ]?through|passed through|menu)\b/i;
 const RANGE_PRICE = /\b\d+(?:\.\d+)?\s*(?:%|percent)?\s*(?:to|-|–)\s*\d+(?:\.\d+)?\s*(?:%|percent)\s*(?:menu\s+)?(?:price|increase|rise)/i;
-const VOLUME_LOSS = new RegExp(String.raw`\b(?:${NUM}\s*(?:%|percent)\s+(?:volume|traffic|transaction|cup|unit)s?\s+(?:drop|decline|loss|fall)|(?:volume|traffic|transactions)\s+(?:drops?|falls?|declines?)\s+(?:by\s+)?${NUM}\s*(?:%|percent))`, 'i');
+const VOLUME_LOSS_SRC = String.raw`\b(?:${NUM}\s*(?:%|percent)\s+(?:volume|traffic|transaction|cup|unit)s?\s+(?:drop|decline|loss|fall)|(?:volume|traffic|transactions)\s+(?:drops?|falls?|declines?)\s+(?:by\s+)?${NUM}\s*(?:%|percent))`;
+const VOLUME_LOSS_G = new RegExp(VOLUME_LOSS_SRC, 'gi');
+const VOLUME_LOSS = new RegExp(VOLUME_LOSS_SRC, 'i');
 
 // A cost's price, not the menu's ("a 40% price increase on beans", "bean price up 40%").
 const COST_WORDS = /\b(?:bean|beans|coffee|input|inputs|dairy|milk|packaging|commodity|cogs|supplier|wage|wages)\b/i;
@@ -73,9 +75,15 @@ function priceIn(s: string, context: string): number | null {
 
 // A hedged round figure ("about 10 points") may round the true one (8.5) — up to
 // 2.5 for a single multiple of 5 from 10 up; "about 5" for 6.1 is not a rounding.
-const hedgedRound = (s: string, claim: number) => claim >= 10 && claim % 5 === 0 && new RegExp(`\\b(?:about|roughly|around|approximately|maybe|call it|~)\\s*${claim}\\b`, 'i').test(s);
+const hedgedRound = (s: string, claim: number) => claim >= 10 && claim % 5 === 0 && new RegExp(`(?:\\b(?:about|roughly|around|approximately|maybe|call it)|~)\\s*${claim}\\b`, 'i').test(s);
 const fits = (claim: number, hi: number | undefined, targets: number[], tol: (t: number) => number) =>
   targets.some(t => hi !== undefined ? t >= Math.min(claim, hi) - tol(t) && t <= Math.max(claim, hi) + tol(t) : Math.abs(claim - t) <= tol(t));
+
+// A percentage in the sentence besides a result ("from 6% to about 11%") or a volume loss.
+const otherPercent = (s: string) => /\d\s*(?:%|percent)/i.test(s
+  .replace(new RegExp(String.raw`\b(?:from\s+${NUM}\s*%\s+)?(?:to|toward|towards)\s+${HEDGE}${NUM}\s*%`, 'gi'), '')
+  .replace(new RegExp(String.raw`\b${NUM}\s*(?:%|percent)\s+(?:of\s+)?(?:the\s+)?(?:volume|transactions?|traffic|cups|customers|units|visits)`, 'gi'), '')
+  .replace(VOLUME_LOSS_G, ''));
 
 export function checkPricingClaims(rawText: string, v: PricingModelValues): PricingClaim[] {
   const out: PricingClaim[] = [];
@@ -96,8 +104,10 @@ export function checkPricingClaims(rawText: string, v: PricingModelValues): Pric
     // 10% price increase. At -0.7 elasticity… That recovers about 5 points").
     const prev2 = sentences[i - 2] ?? '';
     const ownPrice = priceIn(s, prev);
-    // A sentence with its own price range ("a 10–12% increase…") borrows no price from before.
-    const p = ownPrice ?? (RANGE_PRICE.test(s) ? null : priceIn(prev, prev2) ?? priceIn(prev2, sentences[i - 3] ?? ''));
+    // A sentence with a percentage of its own that isn't the result or a volume
+    // loss ("a 10–12% increase…", "closer to 38%", "every 1% of price") borrows
+    // no price from before: that figure is the price it talks about.
+    const p = ownPrice ?? (otherPercent(s) ? null : priceIn(prev, prev2) ?? priceIn(prev2, sentences[i - 3] ?? ''));
     const lossM = VOLUME_LOSS.exec(s) ?? VOLUME_LOSS.exec(prev) ?? VOLUME_LOSS.exec(prev2);
     const loss = lossM ? Number(lossM[1] ?? lossM[2]) : 0;
     const push = (c: Omit<PricingClaim, 'verdict' | 'span'>, tol: (t: number) => number) => {
@@ -107,9 +117,11 @@ export function checkPricingClaims(rawText: string, v: PricingModelValues): Pric
 
     // Break-even volume: "can afford to lose about 10% of transactions before I'm worse off".
     const be = new RegExp(String.raw`\b(?:lose|losing|loses|costs?|lost|drop|shed)\s+(?:more than\s+|over\s+|up to\s+)?${HEDGE}${NUM}\s*(?:%|percent)\s+(?:of\s+)?(?:the\s+)?(?:volume|transactions?|traffic|cups|customers|units|visits)`, 'i').exec(s);
-    if (be && p !== null && /\b(?:worse off|break\s?even|breakeven|made it worse|self-defeating|net negative|margin[- ]neutral|neutral|flat|kill|wash|before (?:we|I|they)'re|still (?:be )?(?:ahead|flat))\b/i.test(s)) {
+    if (be && p !== null && !/\bdepends\b/i.test(s) && /\b(?:worse off|break\s?even|breakeven|made it worse|self-defeating|net negative|margin[- ]neutral|neutral|flat|kill|wash|before (?:we|I|they)'re|still (?:be )?(?:ahead|flat))\b/i.test(s)) {
       const x = Number(be[1]);
       const expected = v.contributions.map(cm => Math.round(1000 * (1 - cm / (cm + p))) / 10);
+      // Revenue held flat ("still hold revenue flat", "revenue falls") breaks even at P/(1+P).
+      if (/\brevenue\b/i.test(s) && !/\b(?:gross profit|contribution|profit dollars)\b/i.test(s)) expected.push(Math.round(1000 * p / (100 + p)) / 10);
       push({ kind: 'breakeven', price: p, stated: x, expected }, t => Math.max(2.5, 0.15 * t));
       continue;
     }
@@ -119,13 +131,18 @@ export function checkPricingClaims(rawText: string, v: PricingModelValues): Pric
       ?? new RegExp(String.raw`\b${HEDGE}${NUM}(?:\s*(?:to|-|–)\s*${NUM})?\s+(?:margin\s+)?points?\s+of\s+margin\b`, 'i').exec(s)
       // "recovers five of the 19 points"
       ?? new RegExp(String.raw`\b(?:recover(?:s|ing)?|restor(?:es|ing|e)|gets?\s+back)\s+${HEDGE}${NUM}\s+of\s+the\s+\d+(?:\.\d+)?\s+(?:margin\s+)?points\b`, 'i').exec(s);
-    // Points of margin, not of something else ("beans add about 6.4 points").
-    if (pts && (/\b(?:margin|profit)\b/i.test(s) || /\bof\s+the\s+\d+(?:\.\d+)?\s+(?:margin\s+)?points\b/i.test(s))) {
+    // Points of margin, not of something else ("beans add about 6.4 points"), not
+    // the margin lost ("of the 18 points of margin lost"), not a hypothetical
+    // target ("If we get back 8 of the 16 points").
+    const lostOrIf = pts && (/^\s*(?:loss|lost|declines?|compression|erosion|drop|fall)\b/i.test(s.slice(pts.index + pts[0].length))
+      || /\bif\s+(?:we|they|i|you)\s*$/i.test(s.slice(0, pts.index)));
+    if (pts && !lostOrIf && (/\b(?:margin|profit)\b/i.test(s) || /\bof\s+the\s+\d+(?:\.\d+)?\s+(?:margin\s+)?points\b/i.test(s))) {
       const lo = Number(pts[1]), hi = pts[2] !== undefined ? Number(pts[2]) : undefined;
       if (lo > 0 && lo < 40) push({ kind: 'gain', price: p, stated: lo, statedHi: hi, expected: gainAt(p, loss).map(g => Math.round(g * 10) / 10) }, t => Math.max(1, 0.12 * t));
     }
     // The new margin: "taking us from 6% to roughly 11%", "toward 14%".
-    const nm = new RegExp(String.raw`\b(?:margin\s+)?(?:from\s+${NUM}\s*%\s+)?(?:to|toward|towards)\s+${HEDGE}${NUM}\s*%`, 'i').exec(s);
+    // Not "volume loss up to about 9%", not "from 25% to 35% of COGS".
+    const nm = new RegExp(String.raw`\b(?:margin\s+)?(?:from\s+${NUM}\s*%\s+)?(?<!\bup\s+)(?:to|toward|towards)\s+${HEDGE}${NUM}\s*%(?!\s+of\s+(?:cogs|revenue|costs?|sales)\b)`, 'i').exec(s);
     // In "to get back to 24% they'd need…" the margin is the target, not a result (checked as 'needed' below).
     if (nm && !/\b(?:need(?:s|ed)?|requires?|would take|doesn't|does not|won't|can't|cannot|never)\b/i.test(s) && /\bmargin|\bfrom\s+6\s*%|\btaking us|\bgoing from|\bgets? (?:us|them)|\btakes? (?:us|them|it)\b/i.test(s) && Number(nm[2]) > v.margin && Number(nm[2]) < 40 && !/\bcogs\b[^.]{0,30}\bto\s+\S*\s*$/i.test(s.slice(0, nm.index + nm[0].length))) {
       push({ kind: 'new_margin', price: p, stated: Number(nm[2]), expected: gainAt(p, loss).map(g => Math.round((v.margin + g) * 10) / 10) }, t => Math.max(1, 0.1 * t));

@@ -54,3 +54,33 @@ describe('pricing claims — bindings and hedges', () => {
     ["Sizing it roughly: a 10% price increase, if volume held, would add about 10 points of margin on today's revenue.", ['gain:correct']],
   ])('%s', (text, expected) => expect(verdicts(text)).toEqual(expected));
 });
+
+// D6 flags read outside batch 20 (12 Oct): correct or not pricing claims.
+describe('pricing claims — false alarms read outside batch 20', () => {
+  const P = 'A 24% price increase would be needed for the full gap.';
+  it.each([
+    // "~10" is hedged like "about 10" (Ines b1)
+    ['Math: a 10% price increase on flat volume adds ~10 points of margin, taking 6% to roughly 15-16%.', ['gain:correct']],
+    // the margin lost is no gain; a share of COGS is no margin (Camila b1, b18)
+    [`${P} 16 of the 18 points of margin loss are COGS, and within that, beans more than doubled — from 25% to 35% of COGS.`, []],
+    [`${P} The support: of the 18 points of margin lost, 16 came from COGS.`, []],
+    // a volume loss "up to about 9%" is no new margin; revenue break-even is P/(1+P) (Ines b18, Lena b14, Owen b19, Nikhil b9)
+    ['A 10% price increase survives volume loss up to about 9% — below that, revenue per store is flat or up and margin still improves.', []],
+    ["Roughly, if a 15% price rise costs more than about 13% of volume, revenue falls and I've made it worse.", ['breakeven:correct']],
+    ['Concretely, at an 11% price increase I can afford to lose up to roughly 10% of transactions and still hold revenue flat.', ['breakeven:correct']],
+    // a sentence with its own percentage borrows no price from before (Wei b18, Arjun b18, Hugo b17, Micah b2)
+    [`${P} A 10.0000% increase yields revenue 126.5000, profit 18.4000, margin 14.5455% — recovering 8.5455 points, roughly 47.4747% of the gap.`, ['gain:correct']],
+    [`${P} A full pass-through of input inflation would be closer to 38%, which would overshoot to roughly a 32% margin.`, []],
+    [`${P} Cleaner rule: every 1% of price adds a bit under 1 point of margin at these cost levels.`, []],
+    // a hypothetical target, and a break-even left open, are no claims (Camila b19, Daniel b18)
+    ['A 38% price increase closes it. If we get back 8 of the 16 points, that\'s $38.4M.', []],
+    ["If I raise price 10% and lose 10% of volume, I'm worse on traffic but the per-unit economics improve, so the net depends on where the breakeven elasticity sits.", []],
+  ])('%s', (text, expected) => expect(verdicts(text)).toEqual(expected));
+
+  it.each([
+    // still errors: gross-profit break-even, unhedged 10 points, from 6% to 16%
+    ["Roughly, if a 10% price increase costs more than about 10% of transactions, I'm net worse off on gross profit dollars.", ['breakeven:incorrect']],
+    ["Price is the lever. It's the only lever sized to the problem — 10 points of margin from a 10% increase, versus one or 2 points from waste.", ['gain:incorrect']],
+    ['A 10% price increase is the lever. That takes them from 6% to 16%.', ['new_margin:incorrect']],
+  ])('still an error: %s', (text, expected) => expect(verdicts(text)).toEqual(expected));
+});
