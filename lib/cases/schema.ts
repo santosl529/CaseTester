@@ -157,6 +157,38 @@ export const CaseSchema = z.object({
     kind: z.enum(['level', 'change']).default('level'),
     of: z.array(z.string().min(2)).optional(),
   })).default([]),
+  // Fact checks (lib/orchestrator/fact-check.ts, 12 Oct): what code needs to
+  // tell a true statement about the case from a false one, beyond the ledger
+  // items' own figures (quoteAnchors + timeframes). Without it the case has no
+  // interviewer truth check, misquote check of prompt facts, or refusal check.
+  //   promptFacts — quantities the case prompt states (not ledger items): the
+  //     names people use, level or change, figures by period. Always known to
+  //     the candidate (the prompt is read out first).
+  //   names — more names for ledger items, beyond quoteAnchors (menu prices,
+  //     revenue per store), used to read refusals and claims.
+  //   groups — phrases that name several ledger items at once ("what's inside
+  //     COGS" → the bean share and the input price changes).
+  //   directions — up / down / flat per ledger item or prompt fact, where the
+  //     timeframes don't give it (an item with no figures, like flat menu prices).
+  //   drivers — how a total change splits into parts ("of the 16 COGS points,
+  //     beans 4.2, other inputs 11.8"), so "mostly beans" can be checked.
+  factAnchors: z.object({
+    promptFacts: z.array(z.object({
+      id: z.string().min(1),
+      names: z.array(z.string().min(2)).min(1),
+      kind: z.enum(['level', 'change']),
+      unit: z.enum(['percent', 'dollar', 'count']),
+      values: z.record(z.string(), z.enum(['current', 'prior', 'change', 'both'])),
+    })).default([]),
+    names: z.record(z.string(), z.array(z.string().min(2))).default({}),
+    groups: z.array(z.object({ names: z.array(z.string().min(2)).min(1), items: z.array(z.string()).min(1) })).default([]),
+    directions: z.record(z.string(), z.enum(['up', 'down', 'flat'])).default({}),
+    drivers: z.array(z.object({
+      of: z.string().min(1),               // a ledger item or prompt fact whose change is split
+      total: z.number(),
+      parts: z.array(z.object({ names: z.array(z.string().min(2)).min(1), value: z.number() })).min(2),
+    })).default([]),
+  }).optional(),
   // Deprecated: the judge scores against the generic 8-dimension rubric in
   // lib/scoring/rubric.ts (docs/Case Interview Feedback Rubric.pdf). Per-case
   // anchors are tolerated in case files but no longer read.
@@ -176,6 +208,29 @@ export const CaseSchema = z.object({
     const item = c.dataLedger.find(d => d.id === q.item);
     if (item && Object.keys(item.timeframes ?? {}).length === 0) ctx.addIssue({ code: 'custom', path: ['quoteAnchors', i, 'item'], message: `"${q.item}" has no timeframes, so it has no figures to check` });
   });
+  const f = c.factAnchors;
+  if (f) {
+    const factIds = new Set([...ledgerIds, ...f.promptFacts.map(p => p.id)]);
+    f.promptFacts.forEach((p, i) => {
+      if (ledgerIds.has(p.id)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'promptFacts', i, 'id'], message: `"${p.id}" is a ledger item, not a prompt fact` });
+      // Every figure must be stated in the prompt (or an exhibit): a prompt fact adds no new number.
+      for (const v of Object.keys(p.values)) {
+        const inPrompt = new RegExp(`(?<![\\d.])${v.replace('.', '\\.')}(?![\\d])`).test(c.prompt);
+        const inExhibit = c.exhibits.some(e => JSON.stringify(e.data).includes(`:${v}`));
+        if (!inPrompt && !inExhibit) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'promptFacts', i, 'values', v], message: `${v} is not stated in the prompt or an exhibit` });
+      }
+    });
+    for (const id of Object.keys(f.names)) if (!ledgerIds.has(id)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'names', id], message: `Unknown ledger item "${id}"` });
+    f.groups.forEach((g, i) => g.items.forEach((id, j) => {
+      if (!ledgerIds.has(id)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'groups', i, 'items', j], message: `Unknown ledger item "${id}"` });
+    }));
+    for (const id of Object.keys(f.directions)) if (!factIds.has(id)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'directions', id], message: `Unknown ledger item or prompt fact "${id}"` });
+    f.drivers.forEach((d, i) => {
+      if (!factIds.has(d.of)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'drivers', i, 'of'], message: `Unknown ledger item or prompt fact "${d.of}"` });
+      const sum = d.parts.reduce((a, p) => a + p.value, 0);
+      if (Math.abs(sum - d.total) > 0.05) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'drivers', i], message: `parts sum to ${sum}, not ${d.total}` });
+    });
+  }
 });
 
 export type Case = z.infer<typeof CaseSchema>;

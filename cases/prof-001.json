@@ -511,5 +511,301 @@
         "cost of goods"
       ]
     }
-  ]
+  ],
+  "factAnchors": {
+    "promptFacts": [
+      {
+        "id": "revenue_growth",
+        "names": [
+          "revenue",
+          "revenues",
+          "sales",
+          "top line",
+          "top-line"
+        ],
+        "kind": "change",
+        "unit": "percent",
+        "values": {
+          "15": "change"
+        }
+      },
+      {
+        "id": "net_margin",
+        "names": [
+          "net profit margin",
+          "net margin",
+          "profit margin",
+          "margin",
+          "margins",
+          "profit"
+        ],
+        "kind": "level",
+        "unit": "percent",
+        "values": {
+          "24": "prior",
+          "6": "current"
+        }
+      },
+      {
+        "id": "locations",
+        "names": [
+          "locations",
+          "stores",
+          "store count"
+        ],
+        "kind": "level",
+        "unit": "count",
+        "values": {
+          "200": "current"
+        }
+      }
+    ],
+    "names": {
+      "revenue_total": [
+        "revenue",
+        "total revenue",
+        "annual revenue",
+        "sales",
+        "top line"
+      ],
+      "revenue_per_store": [
+        "revenue per store",
+        "per-store revenue",
+        "average revenue per store",
+        "sales per store",
+        "revenue per location"
+      ],
+      "menu_price_change": [
+        "menu prices",
+        "menu price",
+        "menu pricing",
+        "price history",
+        "menu price history",
+        "menu price changes"
+      ],
+      "avg_ticket": [
+        "ticket size",
+        "transaction size",
+        "average transaction size",
+        "average check",
+        "spend per visit",
+        "transaction value"
+      ],
+      "bean_share_of_cogs": [
+        "bean",
+        "coffee bean",
+        "bean share",
+        "beans' share",
+        "bean share of cogs",
+        "coffee bean share"
+      ],
+      "bean_price_change": [
+        "bean",
+        "coffee bean",
+        "bean price",
+        "bean prices",
+        "bean costs",
+        "bean cost",
+        "coffee bean costs",
+        "coffee bean prices",
+        "coffee bean price",
+        "green coffee",
+        "bean inflation",
+        "bean price change"
+      ],
+      "non_bean_input_change": [
+        "other inputs",
+        "other input",
+        "other input costs",
+        "non-bean",
+        "non-bean inputs",
+        "dairy",
+        "milk",
+        "packaging",
+        "food costs",
+        "the other inputs",
+        "other input price change",
+        "other input price changes",
+        "other-input price change",
+        "non-bean input changes",
+        "non-bean input change",
+        "non-bean input inflation",
+        "other input inflation",
+        "other input changes",
+        "non-bean price change",
+        "non-bean price changes",
+        "other inputs figure",
+        "other-inputs figure",
+        "dairy, packaging and food",
+        "dairy, packaging, and food"
+      ],
+      "cogs_pct": [
+        "cogs",
+        "cost of goods sold",
+        "cost of goods",
+        "cost of sales"
+      ],
+      "labor_pct": [
+        "labor",
+        "labour",
+        "wages",
+        "labor costs"
+      ],
+      "overhead_pct": [
+        "overhead",
+        "rent",
+        "occupancy"
+      ],
+      "stores_count": [
+        "stores",
+        "store count",
+        "footprint",
+        "locations",
+        "number of stores",
+        "number of locations",
+        "store footprint"
+      ]
+    },
+    "groups": [
+      {
+        "names": [
+          "what's inside cogs",
+          "inside cogs",
+          "inside the cogs",
+          "cogs breakdown",
+          "breakdown of cogs",
+          "cogs by input",
+          "cogs split",
+          "split of cogs",
+          "split within cogs",
+          "composition of cogs",
+          "cogs composition",
+          "cogs components",
+          "components of cogs",
+          "input breakdown",
+          "breakdown by input",
+          "split by input",
+          "by input",
+          "what's driving cogs",
+          "what drove cogs",
+          "input level",
+          "input-level"
+        ],
+        "items": [
+          "bean_share_of_cogs",
+          "bean_price_change",
+          "non_bean_input_change"
+        ]
+      },
+      {
+        "names": [
+          "input price changes",
+          "input price change",
+          "input prices",
+          "input price",
+          "input costs",
+          "input cost",
+          "input cost changes",
+          "input inflation",
+          "ingredient costs",
+          "ingredient prices",
+          "commodity costs",
+          "commodity prices",
+          "price changes of the inputs",
+          "the inputs' price changes"
+        ],
+        "items": [
+          "bean_price_change",
+          "non_bean_input_change"
+        ]
+      },
+      {
+        "names": [
+          "cost breakdown",
+          "cost structure",
+          "cost lines",
+          "costs as a percent",
+          "costs as a percentage",
+          "cost split",
+          "breakdown of costs",
+          "cost base",
+          "line item",
+          "cost categories",
+          "cost percentages",
+          "cost lines as a share"
+        ],
+        "items": [
+          "cogs_pct",
+          "labor_pct",
+          "overhead_pct"
+        ]
+      }
+    ],
+    "directions": {
+      "menu_price_change": "flat"
+    },
+    "drivers": [
+      {
+        "of": "cogs_pct",
+        "total": 16,
+        "parts": [
+          {
+            "names": [
+              "beans",
+              "bean",
+              "coffee beans",
+              "bean costs",
+              "bean prices",
+              "bean price",
+              "bean inflation",
+              "green coffee",
+              "coffee prices"
+            ],
+            "value": 4.2
+          },
+          {
+            "names": [
+              "other inputs",
+              "other input",
+              "non-bean",
+              "non-bean inputs",
+              "dairy",
+              "packaging",
+              "everything else"
+            ],
+            "value": 11.8
+          }
+        ]
+      },
+      {
+        "of": "net_margin",
+        "total": 18,
+        "parts": [
+          {
+            "names": [
+              "cogs",
+              "cost of goods",
+              "cost of goods sold"
+            ],
+            "value": 16
+          },
+          {
+            "names": [
+              "overhead",
+              "rent"
+            ],
+            "value": 2
+          },
+          {
+            "names": [
+              "labor",
+              "labour",
+              "wages"
+            ],
+            "value": 0
+          }
+        ]
+      }
+    ]
+  }
 }

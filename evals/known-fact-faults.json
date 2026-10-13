@@ -1,0 +1,659 @@
+[
+ {
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/15-tyler-the-misquoter",
+  "t": 12,
+  "rule": "F1",
+  "source": "batch-20 grading.csv R21",
+  "quote": "a 19-point COGS climb",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/15-tyler-the-misquoter",
+  "t": 18,
+  "rule": "F1",
+  "source": "batch-20 grading.csv R21",
+  "quote": "a falling ticket",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/06-destiny-the-blank-slate",
+  "t": 26,
+  "rule": "F1",
+  "source": "batch-20 grading.csv R25",
+  "quote": "a flat or falling average ticket",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/15-tyler-the-misquoter",
+  "t": 6,
+  "rule": "F1",
+  "source": "batch-20 grading.csv R30",
+  "quote": "the 19-point COGS increase",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/15-tyler-the-misquoter",
+  "t": 8,
+  "rule": "F1",
+  "source": "batch-20 grading.csv R30",
+  "quote": "the 19-point COGS increase",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper",
+  "t": 10,
+  "rule": "F1",
+  "source": "batch-20 grading.csv R35",
+  "quote": "store count grew",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "default-candidate/live-run-2026-10-12-eb9f0abb",
+  "t": 10,
+  "rule": "F1",
+  "source": "batch-20 grading.csv R40",
+  "quote": "the new-store growth",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/15-tyler-the-misquoter",
+  "t": 8,
+  "rule": "F1",
+  "source": "batch-20 grading.csv R42",
+  "quote": "the 19-point COGS jump",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/15-tyler-the-misquoter",
+  "t": 14,
+  "rule": "F1",
+  "source": "batch-20 grading.csv R42",
+  "quote": "16 of the 19 points",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/15-tyler-the-misquoter",
+  "t": 10,
+  "rule": "F1",
+  "source": "batch-20 grading.csv R30",
+  "quote": "the remaining 15 points",
+  "note": "derived from the misquoted 19, no case quantity named",
+  "scope": "outside"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/15-tyler-the-misquoter",
+  "t": 16,
+  "rule": "F1",
+  "source": "batch-20 grading.csv R30",
+  "quote": "Your 11 points of leakage",
+  "note": "echo of a figure derived from the interviewer's own hypothetical",
+  "scope": "outside"
+ },
+ {
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/15-tyler-the-misquoter",
+  "t": 9,
+  "rule": "F2-next",
+  "source": "batch-20 grading.csv R05 D4",
+  "quote": "COGS 42 to 60 / 18 points",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/15-tyler-the-misquoter",
+  "t": 7,
+  "rule": "F2-next",
+  "source": "batch-20 grading.csv R21 D4",
+  "quote": "COGS 61% / 19 points",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/15-tyler-the-misquoter",
+  "t": 5,
+  "rule": "F2-next",
+  "source": "batch-20 grading.csv R30 D4",
+  "quote": "COGS 61% / 19 points",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/40-jasmine-the-early-finisher",
+  "t": 5,
+  "rule": "F2-next",
+  "source": "batch-20 grading.csv R33 D4",
+  "quote": "overhead up only 1 point",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/15-tyler-the-misquoter",
+  "t": 5,
+  "rule": "F2-next",
+  "source": "batch-20 grading.csv R42 D4",
+  "quote": "COGS 54%/61%",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/15-tyler-the-misquoter",
+  "t": 7,
+  "rule": "F2-next",
+  "source": "batch-20 grading.csv R46 D4",
+  "quote": "COGS 61%",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/15-tyler-the-misquoter",
+  "t": 7,
+  "rule": "F2-next",
+  "source": "batch-20 grading.csv R47 D4",
+  "quote": "COGS 61%",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/15-tyler-the-misquoter",
+  "t": 17,
+  "rule": "F2-rec",
+  "source": "batch-20 grading.csv R05 serious_misquote_into_rec",
+  "quote": "revenue grew 19%",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/15-tyler-the-misquoter",
+  "t": 25,
+  "rule": "F2-rec",
+  "source": "batch-20 grading.csv R21 serious_misquote_into_rec",
+  "quote": "COGS 61%",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/15-tyler-the-misquoter",
+  "t": 21,
+  "rule": "F2-rec",
+  "source": "batch-20 grading.csv R30 serious_misquote_into_rec",
+  "quote": "COGS 61%",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/15-tyler-the-misquoter",
+  "t": 15,
+  "rule": "F2-rec",
+  "source": "batch-20 grading.csv R42 serious_misquote_into_rec",
+  "quote": "COGS 61%, revenue 19%",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/15-tyler-the-misquoter",
+  "t": 17,
+  "rule": "F2-rec",
+  "source": "batch-20 grading.csv R46 serious_misquote_into_rec",
+  "quote": "$500M revenue",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/15-tyler-the-misquoter",
+  "t": 21,
+  "rule": "F2-rec",
+  "source": "batch-20 grading.csv R47 serious_misquote_into_rec",
+  "quote": "COGS 61%",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/40-jasmine-the-early-finisher",
+  "t": 17,
+  "rule": "F2-rec",
+  "source": "batch-20 grading.csv R14 serious_misquote_into_rec",
+  "quote": "38% price need",
+  "note": "candidate's unsupported premise, not a revealed figure",
+  "scope": "outside"
+ },
+ {
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/10-sofia-the-unit-confuser",
+  "t": 21,
+  "rule": "F2-rec",
+  "source": "batch-20 grading.csv R22 serious_misquote_into_rec",
+  "quote": "operational-leak premise",
+  "note": "premise built on data never released",
+  "scope": "outside"
+ },
+ {
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/10-sofia-the-unit-confuser",
+  "t": 17,
+  "rule": "F2-rec",
+  "source": "batch-20 grading.csv R48 serious_misquote_into_rec",
+  "quote": "28 points of revenue",
+  "note": "wrong derived figure (math), not a misquote of revealed data",
+  "scope": "outside"
+ },
+ {
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/51-anika-the-unorthodox-structurer",
+  "t": 13,
+  "rule": "F2-next",
+  "source": "batch-20 grading.csv R08 D4",
+  "quote": "food has no commodity exposure",
+  "note": "premise contradicting the data, no figure",
+  "scope": "outside"
+ },
+ {
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/40-jasmine-the-early-finisher",
+  "t": 7,
+  "rule": "F2-next",
+  "source": "batch-20 grading.csv R14 D4",
+  "quote": "38% price need",
+  "note": "unsupported premise",
+  "scope": "outside"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/10-sofia-the-unit-confuser",
+  "t": 13,
+  "rule": "F2-next",
+  "source": "batch-20 grading.csv R36 D4",
+  "quote": "new-store premise after the flat-footprint line",
+  "note": "direction premise, no figure",
+  "scope": "outside"
+ },
+ {
+  "run": "default-candidate/live-run-2026-10-12-fc290dc0",
+  "t": 8,
+  "rule": "F3",
+  "source": "batch-20 grading.csv R10",
+  "quote": "I don't have what's inside COGS",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper",
+  "t": 8,
+  "rule": "F3",
+  "source": "batch-20 grading.csv R23",
+  "quote": "I don't have COGS breakdown by input — beans, dairy…",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/40-jasmine-the-early-finisher",
+  "t": 38,
+  "rule": "F3",
+  "source": "batch-20 grading.csv R28",
+  "quote": "I don't have coffee bean … shares of COGS, today and two years ago",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/07-raj-the-slow-burner",
+  "t": 14,
+  "rule": "F4",
+  "source": "batch-20 grading.csv R04 D9",
+  "quote": "non-bean change in hand, never released",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/07-raj-the-slow-burner",
+  "t": 10,
+  "rule": "F4",
+  "source": "batch-20 grading.csv R07 D9",
+  "quote": "cost breakdown in hand right after deferring it",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/07-raj-the-slow-burner",
+  "t": 12,
+  "rule": "F4",
+  "source": "batch-20 grading.csv R12 D9",
+  "quote": "non-bean changes in hand, never released",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/40-jasmine-the-early-finisher",
+  "t": 22,
+  "rule": "F4",
+  "source": "batch-20 grading.csv R14 D9",
+  "quote": "'With those figures' with none given",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/54-owen-the-quiet-dropper",
+  "t": 12,
+  "rule": "F4",
+  "source": "batch-20 grading.csv R16 D9",
+  "quote": "other-input data in hand when only offered",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-1-7/54-owen-the-quiet-dropper",
+  "t": 4,
+  "rule": "F4",
+  "source": "batch-20 grading.csv R18 D9",
+  "quote": "cost breakdown in hand before the exhibit",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "default-candidate/live-run-2026-10-12-33f7479b",
+  "t": 10,
+  "rule": "F4",
+  "source": "batch-20 grading.csv R19 D9",
+  "quote": "other-input data in hand before release",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haiku-oct-12-runs-1-7/15-tyler-the-misquoter",
+  "t": 12,
+  "rule": "F4",
+  "source": "batch-20 grading.csv R21 D9",
+  "quote": "input price data in hand",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/10-sofia-the-unit-confuser",
+  "t": 14,
+  "rule": "F4",
+  "source": "batch-20 grading.csv R22 D9",
+  "quote": "question assumes figures after a refusal",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper",
+  "t": 8,
+  "rule": "F4",
+  "source": "batch-20 grading.csv R23 D9",
+  "quote": "claims figures in hand",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper",
+  "t": 10,
+  "rule": "F4",
+  "source": "batch-20 grading.csv R23 D9",
+  "quote": "claims figures in hand",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper",
+  "t": 22,
+  "rule": "F4",
+  "source": "batch-20 grading.csv R23 D9",
+  "quote": "claims figures in hand",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-sonnet-oct-12-runs-8-14/54-owen-the-quiet-dropper",
+  "t": 8,
+  "rule": "F4",
+  "source": "batch-20 grading.csv R26 D9",
+  "quote": "offer vs 'in hand'",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haikulow-oct-12-runs-8-14/51-anika-the-unorthodox-structurer",
+  "t": 14,
+  "rule": "F4",
+  "source": "batch-20 grading.csv R37 D9",
+  "quote": "average ticket in hand, never released",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-haiku-oct-12-runs-8-14/15-tyler-the-misquoter",
+  "t": 10,
+  "rule": "F4",
+  "source": "batch-20 grading.csv R47 D9",
+  "quote": "claims data in hand after deferring it",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "test runs/batch-20-sonnet-oct-12-runs-1-7/10-sofia-the-unit-confuser",
+  "t": 8,
+  "rule": "F4",
+  "source": "batch-20 grading.csv R43 D9",
+  "quote": "assumes price changes heard (only menu given)",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "default-candidate/live-run-2026-10-12-fc290dc0",
+  "t": 8,
+  "rule": "F4",
+  "source": "batch-20 grading.csv R10 D9",
+  "quote": "'With that breakdown in hand' after the refusal",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-18-oct-10-runs-22-31/13-micah-the-rounder",
+  "t": 8,
+  "rule": "F1",
+  "source": "batch-18 prescreen-check.md",
+  "quote": "Beans as the larger driver",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-18-oct-10-runs-72-81/51-anika-the-unorthodox-structurer",
+  "t": 14,
+  "rule": "F4",
+  "source": "batch-18 prescreen-check.md",
+  "quote": "What does the exhibit tell you (never shown)",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-18-oct-10-runs-22-31/16-amara-the-self-corrector",
+  "t": 8,
+  "rule": "F4",
+  "source": "batch-18 review-sheet.md (proposal, no verdict)",
+  "quote": "What does the exhibit tell you (never shown)",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-18-oct-10-runs-72-81/60-caleb-the-defensible-dissenter",
+  "t": 8,
+  "rule": "F4",
+  "source": "batch-18 review-sheet.md (proposal, no verdict)",
+  "quote": "What does the exhibit tell you (never shown)",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-18-oct-10-runs-72-81/60-caleb-the-defensible-dissenter",
+  "t": 10,
+  "rule": "F4",
+  "source": "batch-18 review-sheet.md (proposal, no verdict)",
+  "quote": "Now read the exhibit (never shown)",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-18-oct-10-runs-52-61/32-sam-the-distressed",
+  "t": 4,
+  "rule": "F4",
+  "source": "batch-18 review-sheet.md (proposal, no verdict)",
+  "quote": "What does that tell you about where the margin went (figures never delivered)",
+  "note": "bare \"that\", no named referent",
+  "scope": "in"
+ },
+ {
+  "run": "batch-18-oct-10-runs-62-71/47-bianca-the-defensive-personalizer",
+  "t": 10,
+  "rule": "F1",
+  "source": "batch-18 review-sheet.md (proposal, no verdict)",
+  "quote": "that figure (bean +40%) is your derivation",
+  "note": "misattributes case data to the candidate — no quantity claim",
+  "scope": "outside"
+ },
+ {
+  "run": "batch-18-oct-10-runs-72-81/59-nadia-the-backtracker",
+  "t": 8,
+  "rule": "F3",
+  "source": "batch-18 review-sheet.md (proposal, no verdict)",
+  "quote": "I don't have bean share of COGS today",
+  "note": "the case holds the share two years ago only; the reviewer wanted the price changes released instead — disputed",
+  "scope": "outside"
+ },
+ {
+  "run": "batch-17-oct-07-luna/18-nikhil-the-data-hoover",
+  "t": 38,
+  "rule": "F4",
+  "source": "batch-17 grading.md",
+  "quote": "exhibit asked about before it was handed over",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-17-oct-07-luna/18-nikhil-the-data-hoover",
+  "t": 42,
+  "rule": "F4",
+  "source": "batch-17 grading.md",
+  "quote": "exhibit asked about before it was handed over",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-17-oct-07-luna/56-devon-the-indirect-asker",
+  "t": 14,
+  "rule": "F4",
+  "source": "batch-17 grading.md",
+  "quote": "asked about 'the cost structure exhibit' never handed over",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-12-oct-06/09-derek-the-bulldozer",
+  "t": 14,
+  "rule": "F4",
+  "source": "batch-17 grading.md (Sonnet comparison)",
+  "quote": "a question built on offered data",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-12-oct-06/58-hugo-the-hidden-data-prober",
+  "t": 8,
+  "rule": "F4",
+  "source": "batch-17 grading.md (Sonnet comparison)",
+  "quote": "a question built on offered data (\"Once you have those\")",
+  "note": "pending wording, not an in-hand claim",
+  "scope": "in"
+ },
+ {
+  "run": "batch-19-oct-11-runs-20-24/40-jasmine-the-early-finisher",
+  "t": 18,
+  "rule": "F1",
+  "source": "progress.md",
+  "quote": "Given that the 16-point COGS gap is mostly beans",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-5-oct-02/06-destiny-the-blank-slate",
+  "t": 24,
+  "rule": "F3",
+  "source": "progress.md (batch-5 open fix list item 5)",
+  "quote": "I have the cost breakdown for today, but not for two years ago",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-19-oct-11-runs-10-19/15-tyler-the-misquoter",
+  "t": 5,
+  "rule": "F2-next",
+  "source": "progress.md (batch-19 wave 3+5) + misquote labels",
+  "quote": "COGS 61%",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-19-oct-11-runs-10-19/15-tyler-the-misquoter",
+  "t": 17,
+  "rule": "F2-next",
+  "source": "progress.md (batch-19 wave 3+5) + misquote labels",
+  "quote": "ticket $6.90",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-19-oct-11-runs-10-19/15-tyler-the-misquoter",
+  "t": 21,
+  "rule": "F2-rec",
+  "source": "progress.md",
+  "quote": "COGS 61%, ticket $6.90 in the recommendation",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-18-oct-10-runs-22-31/15-tyler-the-misquoter",
+  "t": 5,
+  "rule": "F2-next",
+  "source": "tests/orchestrator/fixtures/misquote-labelled.json",
+  "quote": "to 55%",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-12-oct-06/15-tyler-the-misquoter",
+  "t": 5,
+  "rule": "F2-next",
+  "source": "tests/orchestrator/fixtures/misquote-labelled.json",
+  "quote": "went from about 44%",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-12-oct-06/15-tyler-the-misquoter",
+  "t": 7,
+  "rule": "F2-next",
+  "source": "tests/orchestrator/fixtures/misquote-labelled.json",
+  "quote": "was about 44%",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-14-oct-07-cached-history/15-tyler-the-misquoter",
+  "t": 5,
+  "rule": "F2-next",
+  "source": "tests/orchestrator/fixtures/misquote-labelled.json",
+  "quote": "went from 41%",
+  "note": "",
+  "scope": "in"
+ },
+ {
+  "run": "batch-14-oct-07-state-in-system/15-tyler-the-misquoter",
+  "t": 5,
+  "rule": "F2-next",
+  "source": "tests/orchestrator/fixtures/misquote-labelled.json",
+  "quote": "to 61%",
+  "note": "",
+  "scope": "in"
+ }
+]
