@@ -116,13 +116,15 @@ export function checkPricingClaims(rawText: string, v: PricingModelValues): Pric
     };
 
     // Break-even volume: "can afford to lose about 10% of transactions before I'm worse off".
-    const be = new RegExp(String.raw`\b(?:lose|losing|loses|costs?|lost|drop|shed)\s+(?:more than\s+|over\s+|up to\s+)?${HEDGE}${NUM}\s*(?:%|percent)\s+(?:of\s+)?(?:the\s+)?(?:volume|transactions?|traffic|cups|customers|units|visits)`, 'i').exec(s);
+    // A range ("lose maybe 7–8% of volume") is wrong only when the whole range misses (13 Oct).
+    const be = new RegExp(String.raw`\b(?:lose|losing|loses|costs?|lost|drop|shed)\s+(?:more than\s+|over\s+|up to\s+)?${HEDGE}${NUM}(?:\s*%?\s*(?:to|-|–)\s*${NUM})?\s*(?:%|percent)\s+(?:of\s+)?(?:the\s+)?(?:volume|transactions?|traffic|cups|customers|units|visits)`, 'i').exec(s);
     if (be && p !== null && !/\bdepends\b/i.test(s) && /\b(?:worse off|break\s?even|breakeven|made it worse|self-defeating|net negative|margin[- ]neutral|neutral|flat|kill|wash|before (?:we|I|they)'re|still (?:be )?(?:ahead|flat))\b/i.test(s)) {
       const x = Number(be[1]);
+      const hi = be[2] !== undefined ? Number(be[2]) : undefined;
       const expected = v.contributions.map(cm => Math.round(1000 * (1 - cm / (cm + p))) / 10);
       // Revenue held flat ("still hold revenue flat", "revenue falls") breaks even at P/(1+P).
       if (/\brevenue\b/i.test(s)) expected.push(Math.round(1000 * p / (100 + p)) / 10);
-      push({ kind: 'breakeven', price: p, stated: x, expected }, t => Math.max(2.5, 0.15 * t));
+      push({ kind: 'breakeven', price: p, stated: x, ...(hi !== undefined ? { statedHi: hi } : {}), expected }, t => Math.max(2.5, 0.15 * t));
       continue;
     }
     if (p === null) continue;

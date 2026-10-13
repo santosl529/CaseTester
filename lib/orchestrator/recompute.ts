@@ -22,7 +22,7 @@ import { checkPricingClaims, pricingValues, type PricingClaim } from './pricing-
 // units, and — where the figure depends on one — the base and timeframe, from
 // the case facts the candidate has. Logged with the flag; never in a hint
 // beyond what the candidate already has.
-export type FlagClaim = { quantity: string; units?: string; base?: string; timeframe?: string; expression?: string };
+export type FlagClaim = { quantity: string; units?: string; base?: string; timeframe?: string; expression?: string; stated?: string /* a stated range, as said ("7–8") */ };
 
 export type RecomputeFlag = {
   // step: a case math step's answer; unit: a nested-percentage conversion
@@ -114,18 +114,22 @@ export function flagsFromPricing(claims: PricingClaim[]): RecomputeFlag[] {
     return {
       kind: 'pricing' as const, stepId: `pricing:${c.kind}`, description: pricingClaimText(c),
       expected, candidateValue: c.stated, errorClass, span: c.span,
-      claim: { quantity: pricingClaimText(c) },
+      claim: { quantity: pricingClaimText(c), ...(c.statedHi !== undefined ? { stated: statedOf(c) } : {}) },
     };
   });
 }
 
+// The stated figure as the candidate gave it: a range keeps both ends ("7–8").
+const statedOf = (c: PricingClaim) => c.statedHi !== undefined ? `${c.stated}–${c.statedHi}` : String(c.stated);
+
 function pricingClaimText(c: PricingClaim): string {
+  const x = statedOf(c);
   switch (c.kind) {
-    case 'gain': return `a ${c.price}% price rise recovers ${c.stated} points of margin`;
-    case 'new_margin': return `a ${c.price}% price rise takes margin to ${c.stated}%`;
-    case 'needed': return `a ${c.stated}% price rise reaches their target margin`;
-    case 'dollars': return `a ${c.price}% price rise is worth $${c.stated}M`;
-    case 'breakeven': return `a ${c.price}% price rise breaks even at a ${c.stated}% volume loss`;
+    case 'gain': return `a ${c.price}% price rise recovers ${x} points of margin`;
+    case 'new_margin': return `a ${c.price}% price rise takes margin to ${x}%`;
+    case 'needed': return `a ${x}% price rise reaches their target margin`;
+    case 'dollars': return `a ${c.price}% price rise is worth $${x}M`;
+    case 'breakeven': return `a ${c.price}% price rise breaks even at a ${x}% volume loss`;
   }
 }
 
@@ -187,7 +191,7 @@ export function recMathLine(f: RecomputeFlag, action: 'probe' | 'correct'): stri
   if (f.kind === 'arithmetic') return `${f.claim?.expression} is about ${Math.round(f.expected * 100) / 100}, not ${f.candidateValue}.`;
   if (f.kind === 'pricing') {
     const unit = (x: number) => ({ gain: `${x} points of margin`, new_margin: `${x}%`, needed: `${x}%`, dollars: `$${x}M`, breakeven: `${x}% of volume` } as Record<string, string>)[f.stepId.slice('pricing:'.length)] ?? String(x);
-    return `It's closer to ${unit(f.expected)}, not ${f.candidateValue}.`;
+    return `It's closer to ${unit(f.expected)}, not ${f.claim?.stated ?? f.candidateValue}.`;
   }
   const theirs = figureAsWritten(f.span, f.candidateValue);
   return `It's closer to ${theirs.replace(String(f.candidateValue), String(f.expected))}, not ${theirs}.`;
@@ -248,7 +252,8 @@ export function formatRecomputeHint(
       lines.push(`- The candidate said ${f.candidateValue} in "${f.span}" and it does not match the value derivable from the data they have. Probe once — "Walk me through that." Do not correct it or say what the right figure is.`);
     } else {
       derivedValues.push(String(f.expected));
-      lines.push(`- The candidate said ${f.candidateValue} in "${f.span}"; the figure derivable from the data they have is ${f.expected}. This overrides the no-correction rule: correct it in "say", one flat sentence quoting their figure — e.g. "It's closer to ${f.expected}, not ${f.candidateValue}. Let's take that and keep going." — then continue. No probe, no consolation.`);
+      const theirs = f.claim?.stated ?? f.candidateValue;
+      lines.push(`- The candidate said ${theirs} in "${f.span}"; the figure derivable from the data they have is ${f.expected}. This overrides the no-correction rule: correct it in "say", one flat sentence quoting their figure — e.g. "It's closer to ${f.expected}, not ${theirs}. Let's take that and keep going." — then continue. No probe, no consolation.`);
     }
   }
   if (lines.length === 0) return { hint: '', derivedValues };
