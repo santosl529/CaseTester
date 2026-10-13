@@ -9,7 +9,7 @@
 // TurnRecorder and written as a mirror corpus — a run JSON and a turn file
 // per run — that scripts/fact-check.ts scores like the originals:
 //
-//   REPLAY_RUNNER=1 REPLAY_OUT=<dir> [REPLAY_FILTER=batch-20] npx vitest run tests/replay/runner-corpus.replay.test.ts
+//   REPLAY_RUNNER=1 REPLAY_OUT=<dir> [REPLAY_FILTER=batch-20] [REPLAY_ROOT=<runs dir>] npx vitest run tests/replay/runner-corpus.replay.test.ts
 //   npx tsx scripts/fact-check.ts --root=<dir>
 //
 // Per turn, not per interview: the candidate's next message is the saved one
@@ -71,7 +71,8 @@ const { runTurn } = await import('@/lib/orchestrator/session-runner');
 const { readTurnFile, writeTurnFile } = await import('@/lib/eval/turn-file');
 const { runFiles } = await import('@/lib/eval/run-corpus');
 
-const ROOT = 'Case Interview Runs';
+// REPLAY_ROOT: the saved runs live untracked in the main checkout, not in a worktree.
+const ROOT = process.env.REPLAY_ROOT ?? 'Case Interview Runs';
 const OUT = process.env.REPLAY_OUT ?? '';
 const FILTER = process.env.REPLAY_FILTER ?? '';
 const enabled = process.env.REPLAY_RUNNER === '1' && !!OUT && existsSync(ROOT);
