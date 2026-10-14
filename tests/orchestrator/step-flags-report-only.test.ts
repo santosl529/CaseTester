@@ -41,3 +41,25 @@ describe('step flags on a case whose binding is not validated', () => {
     expect(p.ctx.checks.entries.find(c => c.check === 'recompute_report_only')).toMatchObject({ detail: { flags: expect.arrayContaining([expect.objectContaining({ stepId: 'lakeport_contribution_fy2023' })]) } });
   });
 });
+
+// Lorenzo, 13 Oct (Larkspur rulings): with a case's step flags report-only, the
+// Sonnet checker's probes still go out — a report-only flag is no deterministic
+// probe this turn and no code flag the checker's claim is deduped against.
+describe("the checker's probe on a case whose step flags are report-only", () => {
+  it('prof-002: the checker flag on an earlier message reaches the model while this message raises a report-only step flag (no deterministic probe holds it back)', () => {
+    const claim = {
+      span: 'the other four routes absorb about half the damage', quantity: 'share of the damage absorbed by the other routes', candidateValue: 'about half', assumptions: '', verdict: 'error' as const,
+      correctValue: null, correctLow: null, correctHigh: null, unit: 'share', derivation: '', errorType: 'conceptual' as const, changesConclusion: true, confidence: 'high' as const, probe: '', pointer: '',
+      codeQuantity: { kind: 'none' as const, stepId: null, price: null, target: null }, actualShare: null,
+      flag: true, probeLine: 'You said the other routes absorb about half the damage. Walk me through how you got there.', correctionLine: null, correctionFigure: null, pointerLine: null, vetNotes: [],
+    };
+    const reads = readsFixture({ caseId: 'prof-002', phase: 'ANALYSIS', revealed: LAKEPORT, flags: { pressureTest: { state: 'satisfied', reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } } });
+    reads.checkerEventRows = [{ id: 'v1', sessionId: 's1', phase: 'ANALYSIS', createdAt: new Date(), category: 'math_checker', subtype: 'verdict', turnIndex: 1,
+      payloadJsonb: { candidateTurnIndex: 1, latencyMs: 6000, model: 'claude-sonnet-5-5', claims: [claim], codeFlags: [], stamps: [] } }];
+    const p = planTurn(reads, WRONG, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+    if (p.kind !== 'model') throw new Error('expected a model plan');
+    expect(p.ctx.checks.entries.find(c => c.check === 'recompute_report_only')?.decision).toBe('act');
+    expect(p.state.recomputeHint).toMatch(/MATH CHECK FLAG[\s\S]*Walk me through how you got there/);
+    expect(p.state.recomputeHint).not.toMatch(/RECOMPUTE FLAG/);
+  });
+});
