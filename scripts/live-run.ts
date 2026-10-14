@@ -56,6 +56,7 @@ import { gitInfo } from '@/lib/eval/git-info';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
 import { INTERVIEWER_MODEL_ID, SCORING_MODEL_ID } from '@/lib/models';
 import { evalInterviewer, checkInterviewerModels, type ModelCheck } from '@/lib/eval/model-guard';
+import { simulatorReplyText, SimulatorReplyError } from '@/lib/eval/simulator-reply';
 
 const CANDIDATE_MODEL = 'claude-opus-5';
 // human pacing on a 20-minute clock can exceed 30 turns; --max-turns=N for a smoke run
@@ -264,14 +265,13 @@ async function candidateReply(client: Anthropic, transcript: Line[]): Promise<st
     cacheReadTokens: response.usage.cache_read_input_tokens ?? 0, cacheWriteTokens: response.usage.cache_creation_input_tokens ?? 0,
   });
   candidateUsage.models.add(response.model);
-  if (response.stop_reason === 'refusal') throw new Error('candidate simulator refused');
-  const text = response.content
-    .filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === 'text')
-    .map(b => b.text)
-    .join('\n')
-    .trim();
-  if (!text) throw new Error('candidate simulator returned no text');
-  return text;
+  // No text, or a refusal: the error names the stop reason and block types (Destiny, 13 Oct).
+  try {
+    return simulatorReplyText(response);
+  } catch (err) {
+    if (err instanceof SimulatorReplyError) console.error(`[live-run] ${err.message}`);
+    throw err;
+  }
 }
 
 // The app renders exhibits in a panel beside the chat; a text-only simulated
@@ -317,6 +317,7 @@ async function main() {
   let ended = false;
   let budgetStopped = false;
   let modelStopped = false;
+  let harnessError: string | null = null;
 
   try {
     for (let turn = 0; turn < MAX_TURNS && Date.now() - startedAt < MAX_WALL_MS; turn++) {
@@ -380,8 +381,13 @@ async function main() {
     }
   } catch (err) {
     // A refused call (the cap was reached mid-turn) stops the run; the records are still written.
-    if (!(err instanceof BudgetExceededError)) throw err;
-    budgetStopped = true;
+    if (err instanceof BudgetExceededError) budgetStopped = true;
+    else {
+      // Any other failure (Lorenzo, 13 Oct; Destiny's empty simulator reply
+      // lost an 11-minute run): the partial run is written, marked failed, not scored.
+      harnessError = err instanceof Error ? err.message : String(err);
+      console.error(`[live-run] RUN FAILED after ${turnRecords.length} turns — writing the partial run, not scored: ${harnessError}`);
+    }
   }
   await Promise.allSettled(background);
   if (budgetStopped) console.warn(`[live-run] RUN BUDGET REACHED — run stopped: ${BUDGET.summary()}`);
@@ -395,16 +401,17 @@ async function main() {
   // judge and the transcript files were never written.
   let scoring: { status: string };
   try {
-    scoring = budgetStopped ? { status: 'budget_stopped' } : modelStopped ? { status: 'model_mismatch' } : !ended ? { status: 'not_completed' } : NO_SCORE ? { status: 'skipped' } : await scoreSession({ sessionId, userId });
+    scoring = harnessError ? { status: 'harness_failed' } : budgetStopped ? { status: 'budget_stopped' } : modelStopped ? { status: 'model_mismatch' } : !ended ? { status: 'not_completed' } : NO_SCORE ? { status: 'skipped' } : await scoreSession({ sessionId, userId });
   } catch (err) {
     console.error('[live-run] scoring failed:', err instanceof Error ? err.message : err);
     scoring = { status: 'failed' };
   }
   console.log(`\n[live-run] ended=${ended} scoring=${scoring.status}`);
 
-  await writeArtifacts(sessionId, caseData.title, { ended, budgetStopped, scoring: scoring.status });
+  await writeArtifacts(sessionId, caseData.title, { ended, budgetStopped, scoring: scoring.status, harnessError });
   // A run answered by another model is a failed evaluation run.
   if (modelStopped) process.exitCode = 2;
+  if (harnessError) process.exitCode = 1;
 }
 
 // --finish=<sessionId> [--log-from=<file>]: score an already-run session and
@@ -421,7 +428,7 @@ async function finish(sessionId: string) {
   await writeArtifacts(sessionId, getCaseById(session.caseId).title);
 }
 
-async function writeArtifacts(sessionId: string, caseTitle: string, run?: { ended: boolean; budgetStopped: boolean; scoring: string }) {
+async function writeArtifacts(sessionId: string, caseTitle: string, run?: { ended: boolean; budgetStopped: boolean; scoring: string; harnessError?: string | null }) {
   const session = (await db.query.sessions.findFirst({ where: eq(sessions.id, sessionId) }))!;
   const turns = await db.query.sessionTurns.findMany({
     where: eq(sessionTurns.sessionId, sessionId),
@@ -464,7 +471,7 @@ async function writeArtifacts(sessionId: string, caseTitle: string, run?: { ende
   await mkdir(OUT_DIR, { recursive: true });
   if (turnHeader && run) {
     writeTurnFile(path.join(OUT_DIR, `${base}.turns.jsonl.gz`), turnHeader, turnRecords, {
-      type: 'end', ended: run.ended, budgetStopped: run.budgetStopped, scoring: run.scoring, modelCheck,
+      type: 'end', ended: run.ended, budgetStopped: run.budgetStopped, scoring: run.scoring, modelCheck, ...(run.harnessError ? { harnessError: run.harnessError } : {}),
       candidateUsage: { calls: candidateUsage.calls, input: candidateUsage.input, output: candidateUsage.output, usd: candidateUsage.usd },
     });
   }
@@ -473,6 +480,7 @@ async function writeArtifacts(sessionId: string, caseTitle: string, run?: { ende
   md.push(`# Live run — ${caseTitle}`, '');
   md.push(`- Session: \`${sessionId}\` · case \`${session.caseId}\` · status **${session.status}** · ${date}`);
   md.push(`- Overall: **${score?.overallRating ?? 'not scored'}**`);
+  if (run?.harnessError) md.push(`- **PARTIAL RUN — the harness stopped it:** ${run.harnessError}`);
   md.push(`- Candidate simulator: \`${CANDIDATE_MODEL}\` (sees only the transcript)`);
   if (modelCheck) md.push(`- Interviewer: config \`${modelCheck.config}\` · requested \`${modelCheck.requested}\` · answered by ${modelCheck.actual.map(a => `\`${a}\``).join(', ') || 'none recorded'} · **${modelCheck.ok ? 'model check passed' : `MODEL CHECK FAILED: ${modelCheck.problems.join('; ')}`}**`);
   if (PERSONA) {
@@ -535,7 +543,7 @@ async function writeArtifacts(sessionId: string, caseTitle: string, run?: { ende
   }
 
   await writeFile(path.join(OUT_DIR, `${base}.md`), md.join('\n'));
-  await writeFile(path.join(OUT_DIR, `${base}.json`), JSON.stringify({ session, turns, score, events, analytics, revealed, modelCheck }, null, 2));
+  await writeFile(path.join(OUT_DIR, `${base}.json`), JSON.stringify({ session, turns, score, events, analytics, revealed, modelCheck, ...(run?.harnessError ? { harnessError: run.harnessError } : {}) }, null, 2));
   const pdf = score ? await renderReportPdf(sessionId) : null;
   if (pdf) await writeFile(path.join(OUT_DIR, `${base}.pdf`), pdf.buffer);
   await writeFile(path.join(OUT_DIR, `${base}.log`), logLines.join('\n'));

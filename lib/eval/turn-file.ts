@@ -19,6 +19,8 @@ export type TurnFileEnd = {
   candidateUsage: { calls: number; input: number; output: number; usd: number };
   /** Requested vs returned interviewer model (lib/eval/model-guard.ts); absent before 11 Oct or without a declared interviewer. */
   modelCheck?: ModelCheck | null;
+  /** A partial run: the error that stopped it (scripts/live-run.ts; 13 Oct). */
+  harnessError?: string;
 };
 
 export function writeTurnFile(p: string, header: TurnFileHeader, turns: TurnRecord[], end: TurnFileEnd): void {

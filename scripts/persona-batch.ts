@@ -31,14 +31,16 @@ const RUNS = 'Case Interview Runs/test runs';
 const BATCH = arg('batch') ?? '';
 const BATCH_DIR = path.join(RUNS, BATCH);
 
-// The model check live-run wrote into the run record (null: none recorded).
-function modelCheckOf(runDir: string): ModelCheck | null {
+// What live-run wrote into the run record: the model check, and the error that stopped a partial run (null: none recorded).
+function runRecordOf(runDir: string): { modelCheck?: ModelCheck | null; harnessError?: string } {
   const file = readdirSync(runDir).find(f => f.endsWith('.json'));
-  if (!file) return null;
+  if (!file) return {};
   try {
-    return (JSON.parse(readFileSync(path.join(runDir, file), 'utf8')) as { modelCheck?: ModelCheck | null }).modelCheck ?? null;
-  } catch { return null; }
+    return JSON.parse(readFileSync(path.join(runDir, file), 'utf8')) as { modelCheck?: ModelCheck | null; harnessError?: string };
+  } catch { return {}; }
 }
+const modelCheckOf = (runDir: string) => runRecordOf(runDir).modelCheck ?? null;
+const harnessErrorOf = (runDir: string) => runRecordOf(runDir).harnessError ?? null;
 
 function spawnPersonaRun(e: PersonaEntry, pace: 'human' | 'fast', scored: boolean, env: NodeJS.ProcessEnv, caseId: string): { child: ChildProcess; promise: Promise<void> } {
   const child = spawn('npx', ['tsx', '--env-file=.env.local', ...liveRunArgs(e, { pace, batch: BATCH, scored, caseId })], { env, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -117,10 +119,11 @@ async function main() {
   const waveDir = path.join(RUNS, wave);
   const located = entries.map(e => ({ ...e, runDir: findRunDir(waveDir, e.personaId) }));
   const updated = markWaveResults(loadManifest(BATCH_DIR)!, located,
-    dir => existsSync(dir) && readdirSync(dir).some(f => f.endsWith('.json')), modelCheckOf);
+    dir => existsSync(dir) && readdirSync(dir).some(f => f.endsWith('.json')), modelCheckOf, harnessErrorOf);
   saveManifest(BATCH_DIR, updated);
   const results = updated.runs.filter(r => r.wave === wave);
   const mismatched = results.filter(r => r.failure === 'model_mismatch');
+  for (const r of results.filter(x => x.failure === 'harness')) console.error(`[wave] #${r.runNumber} persona ${r.personaId}: partial run (harness) — ${r.harnessError}`);
   console.log(`[wave] done: ${results.filter(r => r.status === 'done').length} ok, ${results.filter(r => r.status === 'failed').length} failed`);
   if (mismatched.length > 0) {
     console.error(`[wave] EVALUATION FAILED — interviewer model mismatch in ${mismatched.length} run(s): ${mismatched.map(r => `#${r.runNumber} ${r.interviewer?.problems.join('; ')}`).join(' | ')}`);

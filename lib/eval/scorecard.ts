@@ -144,6 +144,10 @@ export function scorecardRow(p: { runId: string; run: RunRecord; turnFile: { hea
     completion = 'technical_failure';
     flags.push({ turnIndex: null, kind: 'technical_failure', detail: 'turn file has no end line — the run died' });
   }
+  if (turnFile?.end?.harnessError) {
+    completion = 'technical_failure';
+    flags.push({ turnIndex: null, kind: 'technical_failure', detail: `partial run — the harness stopped it: ${turnFile.end.harnessError}` });
+  }
 
   const questions = (records ? records.map(r => r.savedLine) : interviewerTexts.slice(1)).map(questionOf);
   const maxSame = maxSameQuestion(questions);

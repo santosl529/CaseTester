@@ -18,8 +18,10 @@ export type PersonaEntry = {
   rerun: number;
   /** The interviewer the run declared and the model ids the API answered from (lib/eval/model-guard.ts). Absent before 11 Oct. */
   interviewer?: Pick<ModelCheck, 'config' | 'requested' | 'actual' | 'ok' | 'problems'>;
-  /** Why a run is failed when its record exists (e.g. model_mismatch). */
+  /** Why a run is failed when its record exists (e.g. model_mismatch; harness — a partial run the harness wrote after an error). */
   failure?: string;
+  /** The error that stopped a partial run (failure: harness). */
+  harnessError?: string;
 };
 export type Manifest = {
   batch: string; version: string;
@@ -121,6 +123,8 @@ export function fileHash(p: string): string {
 export function markWaveResults(
   m: Manifest, entries: PersonaEntry[], runJsonExists: (runDir: string) => boolean,
   modelCheckOf: (runDir: string) => ModelCheck | null = () => null,
+  // A partial run (Lorenzo, 13 Oct; Larkspur rulings d): its record exists, but the harness stopped it.
+  harnessErrorOf: (runDir: string) => string | null = () => null,
 ): Manifest {
   const done = new Map(entries.map(e => [e.runNumber, e]));
   return {
@@ -132,10 +136,11 @@ export function markWaveResults(
       const exists = Boolean(runDir && runJsonExists(runDir));
       const check = runDir && exists ? modelCheckOf(runDir) : null;
       const interviewer = check ? { config: check.config, requested: check.requested, actual: check.actual, ok: check.ok, problems: check.problems } : undefined;
-      const failure = !exists ? undefined : check && !check.ok ? 'model_mismatch' : undefined;
+      const harnessError = runDir && exists ? harnessErrorOf(runDir) : null;
+      const failure = !exists ? undefined : check && !check.ok ? 'model_mismatch' : harnessError ? 'harness' : undefined;
       return {
         ...r, runDir, status: exists && !failure ? 'done' : 'failed',
-        ...(interviewer ? { interviewer } : {}), ...(failure ? { failure } : {}),
+        ...(interviewer ? { interviewer } : {}), ...(failure ? { failure } : {}), ...(harnessError ? { harnessError } : {}),
       };
     }),
   };

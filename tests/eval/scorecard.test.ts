@@ -64,6 +64,13 @@ describe('scorecard', () => {
     expect(row.codeFlags.some(f => f.kind === 'technical_failure')).toBe(true);
   });
 
+  it('a partial run (the harness wrote it after an error) is a technical failure, with the error', () => {
+    const row = scorecardRow({ runId: 'r', run: run({ session: { id: 's', status: 'active' } }), turnFile: { header: { type: 'header', batch: null, version: null, wave: null, runNumber: null, commit: 'c', dirty: false, models: {}, persona: null, sessionId: 's', startedAt: '' }, turns: [turn(0)],
+      end: { type: 'end', ended: false, budgetStopped: false, scoring: 'harness_failed', harnessError: 'candidate simulator returned no text — stop reason end_turn, blocks [thinking], model claude-opus-5', candidateUsage: { calls: 1, input: 0, output: 0, usd: 0 } } } });
+    expect(row.completion).toBe('technical_failure');
+    expect(row.codeFlags).toContainEqual(expect.objectContaining({ kind: 'technical_failure', detail: expect.stringMatching(/partial run.*no text/) }));
+  });
+
   it('counts opportunities and repeated asks from events', () => {
     const ev = (subtype: string, turnIndex: number, payload: Record<string, unknown>, category = 'data_request') => ({ category, subtype, turnIndex, payloadJsonb: payload });
     const row = scorecardRow({ runId: 'r', turnFile: null, run: run({
