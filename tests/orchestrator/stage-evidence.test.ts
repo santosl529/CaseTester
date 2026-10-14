@@ -83,3 +83,17 @@ describe('what an interviewer-led case still owes before a normal end', () => {
     expect(missingRequiredStages(done, { hasExhibit: true })).toEqual([]);
   });
 });
+
+// Lorenzo, 13 Oct (Larkspur rulings e): before a brainstorm that waits on
+// exhibits is due, no question counts as it — only code's own ask.
+describe('a brainstorm not yet due', () => {
+  const ASK = "What else could Larkspur do to make sure it's profitable in the first year?";
+  it('a brainstorm question does not count while it waits', () => {
+    expect(updateStages(undefined, turn({ question: ASK, brainstormAsks: [ASK], brainstormDue: false })).brainstorm.delivered).toBe(false);
+    expect(updateStages(undefined, turn({ question: ASK, brainstormAsks: [ASK], brainstormDue: true })).brainstorm.delivered).toBe(true);
+    expect(updateStages(undefined, turn({ question: ASK, brainstormAsks: [ASK] })).brainstorm.delivered).toBe(true);
+  });
+  it("code's own ask counts", () => {
+    expect(updateStages(undefined, turn({ question: ASK, codeAsked: 'brainstorm', brainstormDue: false })).brainstorm.delivered).toBe(true);
+  });
+});

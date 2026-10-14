@@ -30,7 +30,7 @@ import { pickScript, STAGE_EXHIBIT_QUESTIONS } from '@/lib/agent/prompts/scripts
 import { BLOCKED_CLOSE_PROBES, asksForConclusion, analysisAskLine } from './spoken-close';
 import { updateStages, type StageKey, type StageRecord } from './stage-evidence';
 import { renderDataLineParts, decisionRows, nextReadyExhibit } from './data-decisions';
-import { brainstormAsks } from './brainstorm';
+import { brainstormAsks, asksOwnBrainstorm } from './brainstorm';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
 import { turnData, pressureTestOutcomeNow } from './turn-data';
@@ -432,6 +432,25 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     }
     if (stageAsked) withheld.push({ sentence: asked, reason: 'recommendation_held_for_stage', field: 'question' });
   }
+  // A brainstorm that waits on exhibits (Lorenzo, 13 Oct; Larkspur's assumes
+  // Exhibit 3's new-routes plan — Tyler t15, Omar t11, Marcus t19, Fiona t19
+  // asked it earlier): the model's brainstorm before it is due — its
+  // brainstorm move, or the case's own ask in any move — is held. Code hands
+  // over the next ready exhibit instead; with an exhibit already going out, a
+  // question about the figures. Never under time pressure (it is due then).
+  if (!codeWritten && kind === 'model' && !stageAsked && state.brainstormDue === false
+    && (turn.move === 'brainstorm' || asksOwnBrainstorm(question, brainstormAsks(caseData)))) {
+    withheld.push({ sentence: question, reason: 'brainstorm_held_for_exhibit', field: 'question' });
+    const next = decisions.exhibit ? undefined : nextReadyExhibit(caseData.exhibits, state.shownExhibitIds, ledger, state.stagesOut);
+    if (next) {
+      heldForExhibit = next;
+      question = `Here's an exhibit: ${next.title}. ${pickScript(STAGE_EXHIBIT_QUESTIONS, seed)}`;
+      stageAsked = 'exhibit';
+    } else {
+      question = pickFallbackQuestion({ figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase });
+    }
+    modelQuestion = '';
+  }
   // Code's line back to the analysis on a turn whose own data line completes
   // it (140fb90d replay: the other-input change released with "Let's hold the
   // recommendation…") asks about the figures instead.
@@ -699,7 +718,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       turnIndex: nextTurnIndex + 1, candidateText, question: qHeard ? question : '', exhibitShown: exhibitSaved !== undefined,
       released: bookedReveals.length + exhibitRevealsSaved.length > 0, recAsked: ASKS_RECOMMENDATION.has(kind) && qHeard,
       recommendationDelivered: stallSaved.recommendationDelivered, pressureTest: ptSaved, candidateFigures: state.candidateFigures.length,
-      codeAsked: stageAskedSaved, ended: endedSaved && state.timeUp ? 'time_up' : null, brainstormAsks: brainstormAsks(caseData),
+      codeAsked: stageAskedSaved, ended: endedSaved && state.timeUp ? 'time_up' : null, brainstormAsks: brainstormAsks(caseData), brainstormDue: state.brainstormDue,
     });
     const stagesEnforcedSaved = stageAskedSaved ? { ...state.stagesEnforced, [stageAskedSaved]: true } : state.stagesEnforced;
     // KF-4 (v4.10): when the gate closes this turn, the unmapped asks it held

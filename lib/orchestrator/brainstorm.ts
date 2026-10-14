@@ -9,10 +9,12 @@
 // its own `ask`.
 
 import { GENERIC_BRAINSTORM_ASKS, asksBrainstorm } from './spoken-close';
+import { exhibitOut, type ExhibitInfo } from './data-decisions';
+import type { DataLedger } from './data-ledger';
 
 export { GENERIC_BRAINSTORM_ASKS };
 
-export type CaseBrainstorm = { brainstorm?: { ask?: string | string[]; required?: boolean } };
+export type CaseBrainstorm = { brainstorm?: { ask?: string | string[]; required?: boolean; after?: string[] } };
 
 // Code's stage line: the case's own ask (rotated when several), else the generic pool.
 export function brainstormAsks(c: CaseBrainstorm): string[] {
@@ -39,8 +41,15 @@ const contentWords = (s: string) => new Set((s.toLowerCase().replace(/[’']s\b/
 // margin?" as prof-001's brainstorm.
 export const CASE_ASK_OVERLAP = 0.6;
 export function asksCaseBrainstorm(text: string, asks: string[]): boolean {
+  return asksOwnBrainstorm(text, asks.filter(a => !asksBrainstorm(a)));
+}
+// The case's own ask in the interviewer's words, whatever the generic grammar
+// says of it — what the brainstorm hold reads (Larkspur's ask is a "what else
+// could Larkspur do" the grammar knows; a generic "what else could it do?" in
+// an analysis question is not it).
+export function asksOwnBrainstorm(text: string, asks: string[]): boolean {
   const sentences = text.split(/(?<=[.?!])\s+/).filter(s => s.trim().endsWith('?'));
-  return asks.filter(a => !asksBrainstorm(a)).some(a => {
+  return asks.some(a => {
     const want = contentWords(a);
     if (want.size === 0) return false;
     return sentences.some(s => {
@@ -48,4 +57,12 @@ export function asksCaseBrainstorm(text: string, asks: string[]): boolean {
       return [...want].filter(w => got.has(w)).length / want.size >= CASE_ASK_OVERLAP;
     });
   });
+}
+
+// Lorenzo, 13 Oct (Larkspur rulings e): a brainstorm that waits on exhibits
+// (`brainstorm.after`) is due once each is out — shown, or its data released
+// as lines — and always under time pressure or at time-up (no hold then).
+export function brainstormDue(c: CaseBrainstorm & { exhibits: ExhibitInfo[] }, shown: ReadonlySet<string>, ledger: DataLedger, hurried: boolean): boolean {
+  if (hurried) return true;
+  return (c.brainstorm?.after ?? []).every(id => { const x = c.exhibits.find(e => e.id === id); return x === undefined || exhibitOut(x, shown, ledger); });
 }

@@ -358,6 +358,18 @@ case can close without one; scoring tells the judge the stage is "not part of
 this case" and rates Creativity on evidence elsewhere, with the caveat "This
 case has no brainstorm stage" (or not assessed).
 
+`brainstorm.after` (Lorenzo, 13 Oct): exhibits the brainstorm waits on, when
+its question assumes what they show (Larkspur's "…profitable in the first
+year?" assumes Exhibit 3's new-routes plan; prof-002 sets `["exhibit-3"]`).
+Until each is out — shown, or its data released as lines — the brainstorm
+isn't owed: code hands over the next ready exhibit instead; the interviewer's
+earlier brainstorm question (move `brainstorm`, or the case's own ask in any
+move) is held and replaced by that exhibit, or by a question about the figures
+when an exhibit already goes out that turn; no question counts as the
+brainstorm yet; the prompt says it comes after the exhibit. No wait under time
+pressure. The loader takes only known, required exhibits, none of which waits
+on the brainstorm itself.
+
 ## Pacing config (optional)
 
 Cases may set `pacing.phaseBudgetsMs` (per-phase time budgets, must sum to the

@@ -182,10 +182,14 @@ export const CaseSchema = z.object({
   // case's own brainstorm question — code's stage line (several rotate), and
   // the brainstorm when the interviewer asks it — and whether the case owes
   // one (false: no brainstorm module, as in Quillpath). Without it: the
-  // generic question, owed.
+  // generic question, owed. `after` (Lorenzo, 13 Oct; Larkspur's brainstorm
+  // assumes the new-routes plan): exhibits that must be out before it — code
+  // hands them over first, and the interviewer's earlier brainstorm question is
+  // held. Required exhibits only, none that waits on the brainstorm itself.
   brainstorm: z.object({
     ask: z.union([z.string().min(1), z.array(z.string().min(1)).min(1)]).optional(),
     required: z.boolean().default(true),
+    after: z.array(z.string().min(1)).optional(),
   }).optional(),
   // The core analysis (fact guards Phase 5, 12 Oct): the ledger items the case
   // turns on — no recommendation ask and no close before they are out, unless
@@ -298,6 +302,18 @@ export const CaseSchema = z.object({
     if (!ledgerIds.has(q.item)) ctx.addIssue({ code: 'custom', path: ['quoteAnchors', i, 'item'], message: `Unknown ledger item "${q.item}"` });
     const item = c.dataLedger.find(d => d.id === q.item);
     if (item && Object.keys(item.timeframes ?? {}).length === 0) ctx.addIssue({ code: 'custom', path: ['quoteAnchors', i, 'item'], message: `"${q.item}" has no timeframes, so it has no figures to check` });
+  });
+  // The brainstorm's own wait: known, required exhibits, none waiting (through its predecessors) on the brainstorm.
+  const waitsOnBrainstorm = (id: string, seen = new Set<string>()): boolean => {
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return (c.exhibits.find(x => x.id === id)?.after ?? []).some(a => isOrderStage(a) || waitsOnBrainstorm(a, seen));
+  };
+  (c.brainstorm?.after ?? []).forEach((id, j) => {
+    const ex = c.exhibits.find(x => x.id === id);
+    if (!ex) ctx.addIssue({ code: 'custom', path: ['brainstorm', 'after', j], message: `Unknown exhibit "${id}"` });
+    else if (ex.required !== true) ctx.addIssue({ code: 'custom', path: ['brainstorm', 'after', j], message: `"${id}" must be required: the brainstorm would wait on an exhibit that may never go out` });
+    else if (waitsOnBrainstorm(id)) ctx.addIssue({ code: 'custom', path: ['brainstorm', 'after', j], message: `"${id}" waits on the brainstorm itself` });
   });
   c.exhibits.forEach((e, i) => {
     (e.after ?? []).forEach((id, j) => {

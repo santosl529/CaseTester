@@ -1402,6 +1402,17 @@ shown before the per-flight math gives the answer away. Required exhibits
 shown under its table, never spoken; its title is spoken at handover and
 carries no figure the case prompt doesn't state (FR-4).
 
+**The brainstorm in the release order (13 Oct, Lorenzo; Larkspur — Tyler,
+Omar, Marcus and Fiona heard "…profitable in the first year?" before the
+new-routes exhibit it assumes).** A case's brainstorm may wait on exhibits
+(`brainstorm.after`; Larkspur: Exhibit 3). Until they are out, code hands over
+the next ready exhibit rather than ask it, and the interviewer's own
+brainstorm question — its brainstorm move, or the case's own question in any
+move — is held: the exhibit goes out in its place, or a question about the
+figures if an exhibit already went out that turn. A generic "what else could
+it do?" inside an analysis question is not held, but before the brainstorm is
+due no question counts as it. Under time pressure there is no wait.
+
 **v4.7 enforcement:** every figure is spoken by code from the ledger's approved
 wording, between the model's `say` and its question; the model never writes a
 data line. In voice, an item counts as revealed only when the segment carrying

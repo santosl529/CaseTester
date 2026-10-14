@@ -29,6 +29,7 @@ export function promptContextFor(plan: ModelPlan): PromptContext {
     openDataRequestsHint: state.openDataRequestsHint,
     conductRedirectHint: state.conductRedirectHint,
     turnNote: turnNoteFor(state.kind, ctx.acknowledged, { pressureTest: state.pressureTest.state, phase: ctx.currentPhase }),
-    brainstorm: { ask: brainstormAsks(caseData)[0], required: brainstormRequired(caseData) },
+    brainstorm: { ask: brainstormAsks(caseData)[0], required: brainstormRequired(caseData),
+      after: (caseData.brainstorm?.after ?? []).map(id => caseData.exhibits.find(e => e.id === id)?.title).filter((t): t is string => Boolean(t)) },
   };
 }

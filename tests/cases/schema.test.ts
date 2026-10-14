@@ -91,7 +91,8 @@ describe('CaseSchema quoteAnchors', () => {
 
 describe('CaseSchema exhibit release order', () => {
   const base = getCaseById('prof-002');
-  const exhibits = (patch: (e: typeof base.exhibits) => void) => { const e = structuredClone(base.exhibits); patch(e); return { ...base, exhibits: e }; };
+  // The exhibits' own order rules; the brainstorm's wait on Exhibit 3 has its own tests (brainstorm.after, below).
+  const exhibits = (patch: (e: typeof base.exhibits) => void) => { const e = structuredClone(base.exhibits); patch(e); return { ...base, brainstorm: { ...base.brainstorm, after: undefined }, exhibits: e }; };
   it('accepts the order Larkspur ships (1 → 2 → 3)', () => {
     expect(CaseSchema.safeParse(base).success).toBe(true);
     expect(base.exhibits.map(e => e.after ?? [])).toEqual([[], ['exhibit-1'], ['exhibit-2']]);
@@ -128,5 +129,19 @@ describe('CaseSchema exhibit notes', () => {
   it('rejects an empty note', () => {
     const e = structuredClone(base.exhibits); e[0].notes = '';
     expect(CaseSchema.safeParse({ ...base, exhibits: e }).success).toBe(false);
+  });
+});
+
+// Lorenzo, 13 Oct (Larkspur rulings e): the brainstorm may wait on exhibits.
+describe('brainstorm.after', () => {
+  const lark = getCaseById('prof-002');
+  const withAfter = (after: string[], exhibits = lark.exhibits) => ({ ...lark, exhibits, brainstorm: { ...lark.brainstorm, after } });
+  it("prof-002's brainstorm waits on Exhibit 3", () => expect(lark.brainstorm?.after).toEqual(['exhibit-3']));
+  it('names a known exhibit', () => expect(CaseSchema.safeParse(withAfter(['exhibit-9'])).success).toBe(false));
+  it('only a required exhibit (else the brainstorm could wait forever)', () => {
+    expect(CaseSchema.safeParse(withAfter(['exhibit-3'], lark.exhibits.map(e => (e.id === 'exhibit-3' ? { ...e, required: false } : e)))).success).toBe(false);
+  });
+  it('not an exhibit that itself waits on the brainstorm', () => {
+    expect(CaseSchema.safeParse(withAfter(['exhibit-3'], lark.exhibits.map(e => (e.id === 'exhibit-2' ? { ...e, after: ['exhibit-1', 'brainstorm'] } : e)))).success).toBe(false);
   });
 });

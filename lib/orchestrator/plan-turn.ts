@@ -28,7 +28,7 @@ import { stageGateOpen, endAllowed, recommendationUnresolved, asksRecommendation
 import { stagesFromTurns, type TurnMove } from './progress';
 import { CheckLog } from './check-log';
 import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
-import { brainstormAsks, brainstormRequired } from './brainstorm';
+import { brainstormAsks, brainstormRequired, brainstormDue } from './brainstorm';
 import { correctionLines } from './misquote';
 import { statesQuantitativeClaim, numbersOf } from './math-checker';
 import { startMathCheck, planCheckerFlags, formatCheckerHint, liveCheckerConfig, checkerKey, closedErrorRestated, stepOfKey, STEP_PROBE_CAP, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
@@ -665,8 +665,15 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const stagesOut: ReadonlySet<string> = new Set(stageRecord.brainstorm.delivered || stagesEnforced.brainstorm
     || timeUp || isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) ? ['brainstorm'] : []);
   // The exhibit stage is owed only while an exhibit is ready to hand over (release order).
-  const owedStage = missingRequiredStages(stageRecord, { hasExhibit: nextReadyExhibit(caseData.exhibits, shownExhibitIds, ledger, stagesOut) !== undefined, format: caseData.format, brainstormRequired: brainstormRequired(caseData) })
-    .find(k => !stagesEnforced[k]);
+  const exhibitReadyNow = nextReadyExhibit(caseData.exhibits, shownExhibitIds, ledger, stagesOut) !== undefined;
+  const missingStages = missingRequiredStages(stageRecord, { hasExhibit: exhibitReadyNow, format: caseData.format, brainstormRequired: brainstormRequired(caseData) })
+    .filter(k => !stagesEnforced[k]);
+  // A brainstorm that waits on exhibits (Lorenzo, 13 Oct; Larkspur's assumes
+  // the new-routes plan of Exhibit 3) is not owed before they are out: code
+  // hands over the next ready exhibit instead. No wait under time pressure.
+  const brainstormDueNow = brainstormDue(caseData, shownExhibitIds, ledger, timeUp || isUnderTimePressure(elapsedMs, TOTAL_CASE_MS));
+  let owedStage = missingStages.find(k => k !== 'brainstorm' || brainstormDueNow);
+  if (owedStage === undefined && missingStages.includes('brainstorm') && exhibitReadyNow) owedStage = 'exhibit';
   const ptClosed = pressureTest.state === 'satisfied' || pressureTest.state === 'waived';
   const stageDue = owedStage !== undefined && ptClosed && !timeUp && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)
     && (closeDue || awaitingRecAsk);
@@ -851,7 +858,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     kind: 'model' as const,
     ctx,
     state: {
-      caseData, repliedToDistressOffer, shownExhibitIds, stagesOut, ledger, catalog, dataRequestRows,
+      caseData, repliedToDistressOffer, shownExhibitIds, stagesOut, brainstormDue: brainstormDueNow, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
       derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, recMathProbe, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,

@@ -35,8 +35,9 @@ export type PromptContext = {
   // recommendation as the question — plan-turn.ts).
   turnNote?: string;
   // The case's brainstorm (lib/orchestrator/brainstorm.ts): its own question,
-  // or none owed. Absent: the generic question.
-  brainstorm?: { ask: string; required: boolean };
+  // or none owed. Absent: the generic question. `after`: the titles of the
+  // exhibits it waits on (Larkspur: Exhibit 3).
+  brainstorm?: { ask: string; required: boolean; after?: string[] };
 };
 
 // What each phase is for. The system tracks the phase from what you declare
@@ -44,7 +45,7 @@ export type PromptContext = {
 const GENERIC_BRAINSTORM_EXAMPLE = "Beyond what we've discussed, what else could the client do?";
 const brainstormStage = (b: PromptContext['brainstorm']) => (b && !b.required
   ? '- BRAINSTORM: this case has no brainstorm stage — don\'t ask an open brainstorming question; ideas the candidate offers on their own are fine.'
-  : `- BRAINSTORM: you must administer it — ask one open brainstorming question ("${b?.ask ?? GENERIC_BRAINSTORM_EXAMPLE}"), move "brainstorm". Every scored dimension needs its stage to actually happen.`);
+  : `- BRAINSTORM: you must administer it — ask one open brainstorming question ("${b?.ask ?? GENERIC_BRAINSTORM_EXAMPLE}"), move "brainstorm"${b?.after?.length ? `, only once ${b.after.map(t => `"${t}"`).join(' and ')} has been shown — the system holds an earlier one and hands over that exhibit instead` : ''}. Every scored dimension needs its stage to actually happen.`);
 const phaseGuide = (b: PromptContext['brainstorm']) => `Interview stages, in order (the system tracks the stage from your declared move; it is shown under CASE STATE):
 - INTRO / CLARIFY: the candidate confirms the prompt and asks scoping questions — typically 1–2 exchanges.
 - STRUCTURE: the candidate presents their framework and you apply your one pressure test (move "pressure_test"). Once it is answered, move on to the analysis.

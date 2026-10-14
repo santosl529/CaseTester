@@ -168,8 +168,12 @@ export type ExhibitInfo = { id: string; title: string; coversLedgerItems?: strin
 // and every item it requires is out. Larkspur's Exhibit 3 before the
 // per-flight math gives the answer away.
 const NO_STAGES: ReadonlySet<string> = new Set();
+// An exhibit is out once shown, or once all of its data went out as lines.
+export function exhibitOut(x: ExhibitInfo, shown: ReadonlySet<string>, ledger: DataLedger): boolean {
+  return shown.has(x.id) || ((x.coversLedgerItems ?? []).length > 0 && (x.coversLedgerItems ?? []).every(id => ledger.revealed.has(id)));
+}
 export function exhibitReady(e: ExhibitInfo, exhibits: ExhibitInfo[], shown: Set<string>, ledger: DataLedger, stagesOut: ReadonlySet<string> = NO_STAGES): boolean {
-  const out = (x: ExhibitInfo) => shown.has(x.id) || ((x.coversLedgerItems ?? []).length > 0 && (x.coversLedgerItems ?? []).every(id => ledger.revealed.has(id)));
+  const out = (x: ExhibitInfo) => exhibitOut(x, shown, ledger);
   return (e.after ?? []).every(id => {
     if (isOrderStage(id)) return stagesOut.has(id);
     const x = exhibits.find(y => y.id === id); return x === undefined || out(x);

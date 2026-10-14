@@ -38,7 +38,9 @@ vi.mock('@/lib/cases/loader', async orig => {
   const real = await orig<typeof import('@/lib/cases/loader')>();
   const hollis = real.getCaseById('launch-001');
   const variant = { ...hollis, id: 'launch-variant', exhibits: hollis.exhibits.map((e, i) => ({ ...e, required: false, after: i === 0 ? ['brainstorm'] : [`exhibit-${i}`] })) };
-  return { ...real, getCaseById: (id: string) => (id === 'launch-variant' ? variant : real.getCaseById(id)) };
+  const lark = real.getCaseById('prof-002');
+  const larkVariant = { ...lark, id: 'larkspur-variant', exhibits: lark.exhibits.map(e => ({ ...e, required: false })) };
+  return { ...real, getCaseById: (id: string) => (id === 'launch-variant' ? variant : id === 'larkspur-variant' ? larkVariant : real.getCaseById(id)) };
 });
 
 const modelQueue: ModelTurn[] = [];
@@ -400,5 +402,72 @@ describe("the LCC's frequency and aircraft size", () => {
     expect(r.interviewerText).toMatch(/it flies larger planes/);
     expect(r.interviewerText).toMatch(/I don't have the low-cost carrier's frequency\./);
     expect(r.interviewerText).not.toMatch(/aircraft size\./);
+  });
+});
+
+// Lorenzo, 13 Oct (Larkspur rulings e): Larkspur's brainstorm ("…profitable in
+// the first year?") assumes the new-routes plan, but the model asked it before
+// Exhibit 2 or 3 (Tyler t15, Omar t11, Marcus t19, Fiona t19). The brainstorm
+// waits on Exhibit 3 the way exhibits wait on each other: code hands over the
+// next ready exhibit instead, and the model's early brainstorm question — its
+// brainstorm move, or the case's own ask — is held. No hold under time pressure.
+describe('the brainstorm waits on Exhibit 3 (Larkspur)', () => {
+  const ASK = "What else could Larkspur do to make sure it's profitable in the first year?";
+  it("the model's brainstorm move before Exhibit 3 is held: Exhibit 2 is handed over instead, and no brainstorm is recorded", async () => {
+    seed({ caseId: 'prof-002', phase: 'ANALYSIS', shown: ['exhibit-1'], flags: PT_SATISFIED });
+    const r = await say('So the diagnosis is a price war on two routes.', T({ move: 'brainstorm', say: 'Got it.', question: 'What else could Larkspur do to get back to an operating profit within the next 12 months?' }));
+    expect(r.interviewerText).not.toMatch(/What else could Larkspur do/);
+    expect(r.interviewerText).toMatch(/Here's an exhibit: Hub–Lakeport — Economics of one one-way flight/);
+    expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2']);
+    expect(stageRecord().brainstorm.delivered).toBe(false);
+  });
+  it("the case's own ask with another move is held too (Marcus t19)", async () => {
+    seed({ caseId: 'prof-002', phase: 'ANALYSIS', shown: ['exhibit-1', 'exhibit-2'], flags: PT_SATISFIED });
+    const r = await say('Taking $4,200 — that changes the math.', T({ move: 'analysis', say: 'Right.', question: `Setting your own plan aside for a moment, w${ASK.slice(1)}` }));
+    expect(r.interviewerText).not.toMatch(/profitable in the first year/);
+    expect(r.interviewerText).toMatch(/Here's an exhibit: Proposed new routes/);
+  });
+  it('an exhibit already going out this turn: the held question becomes a question about the figures', async () => {
+    seed({ caseId: 'prof-002', phase: 'ANALYSIS', shown: ['exhibit-1'], flags: PT_SATISFIED });
+    const r = await say('Can I see the Lakeport economics?', T({ move: 'brainstorm', say: 'Sure.', exhibit: 'exhibit-2', question: ASK }));
+    expect(r.interviewerText).not.toMatch(/What else could Larkspur do/);
+    expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2']);
+    expect(r.interviewerText.match(/Here's an exhibit/g)).toHaveLength(1);
+    expect(r.interviewerText.trim()).toMatch(/\?$/);
+  });
+  it('a generic "what else" inside an analysis question is not the brainstorm: it goes out (Marcus t11)', async () => {
+    seed({ caseId: 'prof-002', phase: 'ANALYSIS', shown: ['exhibit-1', 'exhibit-2'], flags: PT_SATISFIED });
+    const q = 'Does exiting those two routes get Larkspur back to an operating profit, and if not, what else could it do?';
+    const r = await say('Exiting them stops the bleeding.', T({ move: 'analysis', say: 'Right.', question: q }));
+    expect(r.interviewerText).toContain(q);
+  });
+  it('once Exhibit 3 is out the brainstorm goes out and is recorded', async () => {
+    seed({ caseId: 'prof-002', phase: 'ANALYSIS', shown: ['exhibit-1', 'exhibit-2', 'exhibit-3'], flags: PT_SATISFIED });
+    const r = await say('The new routes earn $2,000 a flight.', T({ move: 'brainstorm', say: 'Right.', question: ASK }));
+    expect(r.interviewerText).toContain(ASK);
+    expect(stageRecord().brainstorm.delivered).toBe(true);
+  });
+  it('under time pressure (or at time-up) it is due: no hold', async () => {
+    const { brainstormDue } = await import('@/lib/orchestrator/brainstorm');
+    const c = (await import('@/lib/cases/loader')).getCaseById('prof-002');
+    const buildLedger = (revealed: string[] = []) => ({ items: c.dataLedger, revealed: new Set(revealed) });
+    const ledger = buildLedger();
+    expect(brainstormDue(c, new Set(['exhibit-1']), ledger, false)).toBe(false);
+    expect(brainstormDue(c, new Set(['exhibit-1']), ledger, true)).toBe(true);
+    expect(brainstormDue(c, new Set(['exhibit-1', 'exhibit-2', 'exhibit-3']), ledger, false)).toBe(true);
+    // Exhibit 3 out as lines counts too.
+    expect(brainstormDue(c, new Set(['exhibit-1', 'exhibit-2']), buildLedger(['new_routes_plan', 'new_routes_cost_flights', 'new_routes_context']), false)).toBe(true);
+  });
+  it("code's own stage: with the brainstorm owed but not due, code hands over the next exhibit, not the brainstorm (variant: no required exhibits)", async () => {
+    seed({ caseId: 'larkspur-variant', phase: 'ANALYSIS', elapsedMin: 15, coverage: ALL_COVERED, shown: ['exhibit-1'],
+      revealed: ['route_results_lakeport', 'route_results_port_avery', 'lakeport_fare'], flags: { ...PT_SATISFIED, stageEvidence: stagesWith({}) } });
+    const r = await say('So the fare cut explains it.');
+    expect(r.interviewerText).not.toMatch(/What else could Larkspur do/);
+    expect(r.interviewerText).toMatch(/Here's an exhibit: Hub–Lakeport/);
+  });
+  it('the model is told the brainstorm comes after Exhibit 3', async () => {
+    seed({ caseId: 'prof-002', phase: 'ANALYSIS', shown: ['exhibit-1'], flags: PT_SATISFIED });
+    await say('Okay.', T());
+    expect(stables.at(-1)).toMatch(/only once "Proposed new routes — Planning estimates[^"]*" has been shown/);
   });
 });

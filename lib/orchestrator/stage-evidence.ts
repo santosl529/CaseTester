@@ -72,6 +72,7 @@ export type StageTurn = {
   codeAsked?: StageKey;         // code administered this stage this turn
   ended?: 'time_up' | null;     // the session closed this turn at time-up
   brainstormAsks?: string[];    // the case's own brainstorm question (brainstorm.ts)
+  brainstormDue?: boolean;      // false: the brainstorm waits on exhibits — no question counts as it yet (code's own ask aside)
 };
 
 export function updateStages(prev: StageRecord | undefined, t: StageTurn): StageRecord {
@@ -115,7 +116,7 @@ export function updateStages(prev: StageRecord | undefined, t: StageTurn): Stage
     if (!r[k].outcome) { r.pending = k; r.pendingReplies = 0; }
   };
   if (t.exhibitShown) deliver('exhibit', t.codeAsked === 'exhibit');
-  if (t.codeAsked === 'brainstorm' || asksBrainstormNow(t.question) || asksCaseBrainstorm(t.question, t.brainstormAsks ?? [])) deliver('brainstorm', t.codeAsked === 'brainstorm');
+  if (t.codeAsked === 'brainstorm' || (t.brainstormDue !== false && (asksBrainstormNow(t.question) || asksCaseBrainstorm(t.question, t.brainstormAsks ?? [])))) deliver('brainstorm', t.codeAsked === 'brainstorm');
   // As the end gate reads them (progress.ts): a recommendation ask in any
   // wording; the risk question once a recommendation is on the table.
   if (t.recAsked || asksForConclusion(t.question)) deliver('recommendation');

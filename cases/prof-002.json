@@ -1097,7 +1097,10 @@
   },
   "format": "interviewer_led",
   "brainstorm": {
-    "ask": "What else could Larkspur do to make sure it's profitable in the first year?"
+    "ask": "What else could Larkspur do to make sure it's profitable in the first year?",
+    "after": [
+      "exhibit-3"
+    ]
   },
   "analysisCore": {
     "items": [
