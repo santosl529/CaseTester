@@ -594,19 +594,33 @@ export function findCandidateMisquotes(text: string, fb: FactBase, revealedIds: 
 // ledger item or prompt fact whose `covers` phrases are in X answers it. A
 // question ("whether the 15% growth is total or same-store revenue") is read
 // whole; a list ("the low-cost carrier's frequency and aircraft size") entry
-// by entry, and the entries nothing covers are what is left to refuse. An
-// entry cut finer than the case (by region, per item…) is not covered.
+// by entry, and the entries nothing covers are what is left to refuse. A
+// phrase is matched in the whole ask, so one that spans a list's "and" ("fares
+// and volume" — Owen c2cdbcc3 t5) covers every entry it touches. An entry cut
+// finer than the case (by region, per item…) is not covered.
 export type Coverage = { items: string[]; promptFacts: string[]; rest: string | null };
 export function coverageOf(what: string, fb: FactBase): Coverage {
   const text = what.trim();
+  const lower = lc(text);
   const question = /^(?:whether|if|how|why|which|what|when|where|who|is|are|was|were|do|does|did)\b/i.test(text) || text.endsWith('?');
-  const entries = question ? [text] : text.split(/,\s*(?:and\s+|or\s+)?|\s+(?:and|or|plus)\s+/i).map(e => e.trim()).filter(Boolean);
+  // Entries with their spans: a question is one entry; a list splits at commas, "and", "or", "plus".
+  const entries: { text: string; start: number; end: number }[] = [];
+  if (question) entries.push({ text, start: 0, end: text.length });
+  else {
+    let at = 0;
+    for (const m of text.matchAll(/,\s*(?:and\s+|or\s+)?|\s+(?:and|or|plus)\s+/gi)) {
+      entries.push({ text: text.slice(at, m.index), start: at, end: m.index ?? at });
+      at = (m.index ?? 0) + m[0].length;
+    }
+    entries.push({ text: text.slice(at), start: at, end: text.length });
+  }
+  const hits = fb.covers.flatMap(c => c.phrases.flatMap(p => [...lower.matchAll(new RegExp(`(?<![a-z])${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z])`, 'g'))]
+    .map(m => ({ cover: c, start: m.index ?? 0, end: (m.index ?? 0) + m[0].length }))));
   const items: string[] = [], promptFacts: string[] = [], left: string[] = [];
-  for (const entry of entries) {
-    const e = lc(entry);
-    const hits = GLOBAL_FINER.test(e) ? [] : fb.covers.filter(c => c.phrases.some(p => new RegExp(`(?<![a-z])${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z])`).test(e)));
-    if (hits.length === 0) { left.push(entry); continue; }
-    for (const h of hits) (h.say !== undefined ? promptFacts : items).push(h.id);
+  for (const entry of entries.filter(e => e.text.trim())) {
+    const covering = GLOBAL_FINER.test(lc(entry.text)) ? [] : hits.filter(h => h.start < entry.end && h.end > entry.start);
+    if (covering.length === 0) { left.push(entry.text.trim()); continue; }
+    for (const h of covering) (h.cover.say !== undefined ? promptFacts : items).push(h.cover.id);
   }
   return { items: [...new Set(items)], promptFacts: [...new Set(promptFacts)], rest: left.length ? left.join(' and ') : null };
 }

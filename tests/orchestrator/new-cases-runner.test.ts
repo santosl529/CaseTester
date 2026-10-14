@@ -471,3 +471,17 @@ describe('the brainstorm waits on Exhibit 3 (Larkspur)', () => {
     expect(stables.at(-1)).toMatch(/only once "Proposed new routes — Planning estimates[^"]*" has been shown/);
   });
 });
+
+// Lorenzo, 13 Oct (Owen c2cdbcc3 t5): "the revenue split between fares and
+// volume" is not refused — the same flights on each route, and the prompt's
+// planes-as-full fact, say it is all fare.
+describe('the fare / volume split', () => {
+  it('gives the routes and schedule line and restates that the planes are as full', async () => {
+    seed({ caseId: 'prof-002', phase: 'ANALYSIS', flags: PT_SATISFIED, shown: ['exhibit-1'] });
+    const r = await say('Do we know how the revenue drop splits between fares and volume?',
+      T({ say: 'Mm-hm.', requests: [{ what: 'the revenue split between fares and volume', itemIds: [], explicit: true, respond: 'release' }] }));
+    expect(r.interviewerText).toMatch(/The network is the same six routes as in FY2023, with the same number of flights on each\./);
+    expect(r.interviewerText).toMatch(/As I mentioned: Larkspur's planes are about as full as they were two years ago\./);
+    expect(r.interviewerText).not.toMatch(/I don't have/);
+  });
+});

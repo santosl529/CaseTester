@@ -127,7 +127,11 @@ margin"; Larkspur's competitor line answers "aircraft size". Keep phrases to
 the thing asked for, not a qualifier: "same-store sales", not "same-store" —
 "same-store transaction counts" asks for traffic, which the case doesn't
 hold. A covering item is given (restated if already out), a prompt fact is
-restated, and in a list only the entries nothing covers are refused.
+restated, and in a list only the entries nothing covers are refused. A
+phrase is matched across the whole ask ("fares and volume" covers both
+entries of the list it splits into). A prompt fact may carry no figure when
+the prompt states it only in words (Larkspur's `planes_as_full`, direction
+flat): it is restated by its `say`.
 
 **`ledgerLookupLive` (13 Oct).** The exact lookup also reads ledger lines no
 exhibit shows, figure by figure, for the quantity named next to each

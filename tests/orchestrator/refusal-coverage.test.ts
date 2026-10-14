@@ -25,7 +25,15 @@ describe('what covers an ask', () => {
   it('prof-002: "the low-cost carrier\'s frequency and aircraft size" — the aircraft size is covered, the frequency is not (Omar t9)', () => {
     expect(coverageOf("the low-cost carrier's frequency and aircraft size", p2)).toEqual({ items: ['competitor_costs'], promptFacts: [], rest: "the low-cost carrier's frequency" });
   });
+  // Lorenzo, 13 Oct (Owen c2cdbcc3 t5): flights are the same and the planes as full — the drop is all fare.
+  it('prof-002: "the revenue split between fares and volume" — the same flights, and the prompt\'s planes-as-full fact', () => {
+    expect(coverageOf('the revenue split between fares and volume', p2)).toEqual({ items: ['routes_schedule'], promptFacts: ['planes_as_full'], rest: null });
+  });
+  it('a phrase across a list keeps the rest of the list: "fares and volume, and the competitor\'s schedule"', () => {
+    expect(coverageOf("the revenue split between fares and volume, and the competitor's schedule", p2)).toEqual({ items: ['routes_schedule'], promptFacts: ['planes_as_full'], rest: "the competitor's schedule" });
+  });
   it.each([
+    ['prof-001', 'what the menu includes, drinks only or food too'],   // Maya c1b79f9e t4: the case doesn't hold it (Lorenzo)
     ['prof-001', 'same-store sales by region'],                 // a cut the case doesn't hold
     ['prof-001', 'same-store transaction counts'],              // traffic, not sales: the store count doesn't answer it (Raj 47ca643f t13)
     ['prof-001', 'same-store transaction volume for both years'],

@@ -1184,6 +1184,19 @@
           "4": "current"
         },
         "say": "Larkspur went from a $20 million operating profit two years ago to a $4 million operating loss."
+      },
+      {
+        "id": "planes_as_full",
+        "names": [
+          "planes as full",
+          "planes are as full",
+          "planes about as full",
+          "how full the planes are"
+        ],
+        "kind": "level",
+        "unit": "percent",
+        "values": {},
+        "say": "Larkspur's planes are about as full as they were two years ago."
       }
     ],
     "names": {
@@ -1328,6 +1341,42 @@
         "bigger planes",
         "larger aircraft",
         "bigger aircraft"
+      ],
+      "routes_schedule": [
+        "fares and volume",
+        "fare and volume",
+        "fares versus volume",
+        "fare versus volume",
+        "fares vs volume",
+        "fare vs volume",
+        "fares or volume",
+        "fare or volume",
+        "volume and fares",
+        "volume and fare",
+        "volume versus fares",
+        "volume versus fare",
+        "price and volume",
+        "price versus volume",
+        "volume and price",
+        "volume versus price"
+      ],
+      "planes_as_full": [
+        "fares and volume",
+        "fare and volume",
+        "fares versus volume",
+        "fare versus volume",
+        "fares vs volume",
+        "fare vs volume",
+        "fares or volume",
+        "fare or volume",
+        "volume and fares",
+        "volume and fare",
+        "volume versus fares",
+        "volume versus fare",
+        "price and volume",
+        "price versus volume",
+        "volume and price",
+        "volume versus price"
       ]
     },
     "groups": [
@@ -1383,7 +1432,8 @@
     ],
     "directions": {
       "fuel_prices": "flat",
-      "demand": "flat"
+      "demand": "flat",
+      "planes_as_full": "flat"
     },
     "drivers": [
       {
