@@ -360,6 +360,14 @@ describe('outsideAskScope', () => {
     ['the split of COGS by input', OTHER_CHANGE],                         // the batch-18 over-map (7 runs)
     ['the COGS breakdown by input', OTHER_CHANGE],
     ['green coffee cost per pound by year', SHARE],
+    // a fixed/variable cut: both words, the fixed part, "is fixed"
+    ['the fixed and variable split of labor', LABOR],
+    ['fixed/variable split of COGS', COGS],
+    ['COGS, fixed versus variable', COGS],
+    ['labor costs, variable vs. fixed', LABOR],
+    ['the fixed portion of COGS', COGS],
+    ['how much of labor is fixed', LABOR],
+    ['whether labor is mostly variable', LABOR],
   ])('out of scope: "%s"', (what, item) => {
     expect(outsideAskScope(what, item)).toBe(true);
   });
@@ -375,6 +383,10 @@ describe('outsideAskScope', () => {
     ['COGS by year', COGS],
     ['revenue per store', PER_STORE],
     ['whether the 15% revenue growth is total or per store', L('Total annual revenue', { 480: 'current' })],
+    // "the fixed costs" names a cost line, not a cut (Lorenzo, 13 Oct; Larkspur, Marcus 27c2d0fb t22)
+    ['what sits inside the fixed costs, including aircraft leases', L('Aircraft leases')],
+    ['the fixed costs and the aircraft leases', L('Aircraft leases')],
+    ['variable costs on the new routes', L('New routes: seats, load factor, fare and extras')],
   ])('in scope: "%s"', (what, item) => {
     expect(outsideAskScope(what, item)).toBe(false);
   });

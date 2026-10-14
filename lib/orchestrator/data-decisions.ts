@@ -111,7 +111,13 @@ export function labelMatch(what: string, items: { id: string; label: string; tim
 // the case not having it (the qualified data truly isn't there).
 const SPLIT_WORDS = String.raw`(?:split|breakdown|break-?down|decomposition|components?|composition|mix|makeup|make-up|detail)`;
 const HEAD_NOUN = (label: string) => label.toLowerCase().replace(/[^a-z0-9% ]+/g, ' ').split(/\s+/).find(w => w.length >= 3 && !['the', 'average', 'total', 'number'].includes(w)) ?? '';
-const CUT = /\b(?:per|by|for each)\s+(pound|lb|gallon|sku|product|store|location|region|market|month|quarter|week|day|daypart|channel|customer|segment|supplier|year)s?\b|\b(variable|fixed)\b/i;
+// A fixed/variable cut is a split of a cost by how it behaves: both words
+// ("variable-versus-fixed", "fixed and variable", "fixed/variable"), the
+// fixed part of something, or something that "is fixed". "The fixed costs" or
+// "the variable cost per flight" alone name a cost line, not a cut (Lorenzo,
+// 13 Oct; Larkspur, Marcus 27c2d0fb t22: "what sits inside the fixed costs,
+// including aircraft leases" lost the aircraft-leases item and was refused).
+const CUT = /\b(?:per|by|for each)\s+(pound|lb|gallon|sku|product|store|location|region|market|month|quarter|week|day|daypart|channel|customer|segment|supplier|year)s?\b|\b(variable|fixed)\b(?=[\s-]*(?:(?:versus|vs\.?|and|or|\/|to)[\s-]*(?:fixed|variable)\b|(?:portion|part|share|component|element|piece)s?\b))|\b(?:is|are|was|were)\s+(?:mostly\s+|largely\s+|partly\s+)?(variable|fixed)\b/i;
 const PART_LABEL = /\b(?:share|split|composition|breakdown|mix|component)\b/i;
 const CHANGE_LABEL = /\b(?:change|changes|growth|increase|inflation|trend)\b/i;
 const MOVEMENT_ASK = /\b(?:chang\w*|mov\w*|grow\w*|grew|increas\w*|inflat\w*|trend\w*|rose|risen|went up|over (?:time|the (?:two )?years)|year[- ]over[- ]year|both years|each year|price (?:trend|history|movement)|then (?:versus|vs\.?|and) now|(?:versus|vs\.?) (?:now|today)|before and after)\b/i;
@@ -146,7 +152,7 @@ export function outsideAskScope(what: string, item: { label: string; timeframes?
   const cut = CUT.exec(ask);
   // "total or per store" asks for either: the uncut figure is in scope.
   if (cut && !/\b(?:total|overall|in total)\s+(?:or|and)\b|\b(?:or|and)\s+(?:in\s+)?total\b/.test(ask)) {
-    const dim = (cut[1] ?? cut[2] ?? '').toLowerCase();
+    const dim = (cut[1] ?? cut[2] ?? cut[3] ?? '').toLowerCase();
     if (dim === 'year') return Object.values(item.timeframes ?? {}).length === 0 && !/\byear/.test(label);
     if (!label.includes(dim)) return true;
   }

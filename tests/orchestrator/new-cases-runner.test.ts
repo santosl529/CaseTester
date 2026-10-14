@@ -374,3 +374,17 @@ describe('an exhibit-stage exhibit that waits for the brainstorm (variant: Exhib
     expect(r.interviewerText).not.toMatch(/recommendation/i);
   });
 });
+
+// Lorenzo, 13 Oct (Larkspur review ruling a; Marcus 27c2d0fb t22): "the fixed
+// costs" names a cost line, not a fixed/variable cut — the ask names the
+// aircraft leases, which the case holds, so they go out; nothing is refused.
+describe('an ask inside the fixed costs that names the aircraft leases', () => {
+  it('releases the aircraft leases instead of "I don\'t have…"', async () => {
+    seed({ caseId: 'prof-002', phase: 'BRAINSTORM', flags: PT_SATISFIED, shown: ['exhibit-1', 'exhibit-2', 'exhibit-3'] });
+    const what = 'what sits inside the fixed costs, including aircraft leases';
+    const r = await say('Do we know what sits inside the $20M?', T({ move: 'brainstorm', say: 'Right.', requests: [{ what, itemIds: ['aircraft_leases'], explicit: true, respond: 'release' }] }));
+    expect(r.interviewerText).toContain('All nine aircraft are leased through 2030');
+    expect(r.interviewerText).not.toMatch(/I don't have/);
+    expect(store.revealed.map(x => x.ledgerItemId)).toContain('aircraft_leases');
+  });
+});
