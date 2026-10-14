@@ -695,6 +695,27 @@
         "store footprint"
       ]
     },
+    "covers": {
+      "stores_count": [
+        "same-store sales",
+        "same store sales",
+        "same-store revenue",
+        "same store revenue",
+        "same-store growth",
+        "same store growth",
+        "comparable-store sales",
+        "comparable store sales",
+        "new stores",
+        "new locations",
+        "store openings",
+        "opened stores",
+        "opening stores"
+      ],
+      "net_margin": [
+        "net margin",
+        "net profit margin"
+      ]
+    },
     "groups": [
       {
         "names": [

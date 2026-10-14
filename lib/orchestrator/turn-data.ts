@@ -6,7 +6,7 @@ import type { ModelTurn, DeclaredRequest } from '@/lib/agent/models/turn-schema'
 import { resolveRequests } from '@/lib/agent/models/turn-schema';
 import type { ModelPlan } from './plan-turn';
 import { decideData, exactResolver, labelMatch, outsideAskScope, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo } from './data-decisions';
-import { findFalseRefusals, groupItemsAsked } from './fact-check';
+import { findFalseRefusals, groupItemsAsked, coverageOf } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT } from './pressure-test';
 import { planForcedReleases } from './data-requests';
 import { revealedValues } from './data-ledger';
@@ -128,17 +128,39 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   const fb = state.factBase;
   const revealedNow = new Set(Object.keys(revealedValues(ledger)));
   const remapped: { what: string; ids: string[] }[] = [];
+  // Lorenzo, 13 Oct (Larkspur rulings a): then whether a ledger item or the
+  // prompt covers the ask — the case's `covers` phrases (coverageOf): a
+  // covering item is given like any other ask (restated when out), a prompt
+  // fact restated, and only what nothing covers is refused (Raj 55d12d38 t7
+  // same-store → the store count; Omar 9bbf41bc t9 aircraft size → the
+  // competitor line, the frequency still refused; Maya b0b28d36 t8 net margin).
+  const covered: { what: string; ids: string[]; promptFacts: string[]; rest: string | null }[] = [];
+  const promptRestates: { id: string; value: string; request: DeclaredRequest }[] = [];
   requests = requests.flatMap(r => {
     // Declared release or defer alike: after the pressure test a deferral becomes a release (below).
     if (!r.explicit || r.itemIds.length > 0) return [r];
     const ids = [...new Set(findFalseRefusals(`I don't have ${r.what}.`, fb, revealedNow).flatMap(f => f.items))]
       .filter(id => ledger.items.some(i => i.id === id));
-    if (ids.length === 0) return [r];
+    if (ids.length === 0) {
+      const cov = coverageOf(r.what, fb);
+      const covIds = cov.items.filter(id => ledger.items.some(i => i.id === id));
+      if (covIds.length === 0 && cov.promptFacts.length === 0) return [r];
+      covered.push({ what: r.what, ids: covIds, promptFacts: cov.promptFacts, rest: cov.rest });
+      for (const id of cov.promptFacts) {
+        const value = fb.covers.find(c => c.id === id)?.say;
+        if (value && !promptRestates.some(p => p.id === id)) promptRestates.push({ id, value, request: r });
+      }
+      return [
+        ...covIds.map(id => ({ ...r, itemIds: [id], what: ledger.items.find(i => i.id === id)!.label })),
+        ...(cov.rest ? [{ ...r, what: cov.rest, itemIds: [] as string[] }] : []),
+      ];
+    }
     remapped.push({ what: r.what, ids });
     // One ask per item, in its own label — a deferral must not promise the
     // finer cut the case doesn't hold ("bean cost per pound").
     return ids.map(id => ({ ...r, itemIds: [id], what: ledger.items.find(i => i.id === id)!.label }));
   });
+  if (covered.length > 0) plan.ctx.checks.act('refusal_covered', 'an ask code would have refused is covered by a ledger item or the prompt', { covered });
   if (remapped.length > 0) plan.ctx.checks.act('refusal_remapped', 'an ask code would have refused names data the case holds — mapped to it', { remapped });
   // After the pressure test, nothing is premature: a declared deferral is
   // released (or refused, when the case doesn't hold the data).
@@ -209,5 +231,10 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // the message — a code-written close or recommendation ask included (batch 20:
   // R21 and R47's corrections were decided at the close and never spoken).
   const correction = state.misquote ? { item: state.misquote.item, items: state.misquote.items, text: state.misquote.text } : null;
+  // A prompt fact that covers an ask is said again ("As I mentioned: …"); nothing is booked.
+  for (const p of promptRestates) {
+    decisions.restates.push({ id: p.id, value: p.value });
+    decisions.requests.push({ request: p.request, response: 'clarify', ledgerItemIds: [] });
+  }
   return { ...decisions, correction, gatedIds };
 }

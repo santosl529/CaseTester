@@ -1315,6 +1315,18 @@
         "overall demand"
       ]
     },
+    "covers": {
+      "competitor_costs": [
+        "aircraft size",
+        "plane size",
+        "size of their planes",
+        "size of its planes",
+        "larger planes",
+        "bigger planes",
+        "larger aircraft",
+        "bigger aircraft"
+      ]
+    },
     "groups": [
       {
         "names": [

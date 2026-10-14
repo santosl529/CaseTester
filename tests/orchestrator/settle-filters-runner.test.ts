@@ -709,3 +709,31 @@ describe('an ask naming a group gets every item of it (Phase 3: "COGS by input" 
     expect(r.interviewerText).not.toMatch(/25% of COGS|37\.5%/);
   });
 });
+
+// Lorenzo, 13 Oct (Larkspur rulings a, round 2): no "I don't have X" for what
+// a ledger item or the prompt covers (Raj 55d12d38 t7, Maya b0b28d36 t8).
+describe('a refusal of what the case holds becomes the line that holds it', () => {
+  const ask = (what: string) => ({ what, itemIds: [] as string[], explicit: true, respond: 'release' as const });
+  it('Raj t7: "whether the 15% growth is total or same-store revenue" gets the store count', async () => {
+    seed({ phase: 'ANALYSIS', flags: SATISFIED });
+    const r = await say('Is the 15% chain revenue or same-store revenue?', T({ say: 'Good question.', requests: [ask('whether the 15% growth is total or same-store revenue')], question: 'What does that tell you?' }));
+    expect(r.interviewerText).toMatch(/200 stores today — and it was 200 stores two years ago/);
+    expect(r.interviewerText).not.toMatch(/I don't have/);
+  });
+  it('…and once the store count is out, it is restated', async () => {
+    seed({ phase: 'ANALYSIS', flags: SATISFIED, revealed: ['stores_count'] });
+    const r = await say('Is that same-store?', T({ say: 'Mm-hm.', requests: [ask('same-store sales')], question: 'What does that tell you?' }));
+    expect(r.interviewerText).toMatch(/As I mentioned: 200 stores today/);
+  });
+  it('Maya t8: "whether the 24% to 6% margin is net margin for the whole chain" restates the prompt fact', async () => {
+    seed({ phase: 'CLARIFY', flags: SATISFIED });
+    const r = await say('Is the 24% to 6% net margin for the whole chain?', T({ move: 'clarify', say: 'Sure.', requests: [ask('whether the 24% to 6% margin is net margin for the whole chain')], question: 'How would you approach it?' }));
+    expect(r.interviewerText).toMatch(/As I mentioned: Net profit margin fell from 24% to 6% over the past two years\./);
+    expect(r.interviewerText).not.toMatch(/I don't have/);
+  });
+  it('what nothing covers is still refused', async () => {
+    seed({ phase: 'ANALYSIS', flags: SATISFIED });
+    const r = await say('Do you have competitor pricing?', T({ say: 'Mm-hm.', requests: [ask('competitor pricing')], question: 'What would you do without it?' }));
+    expect(r.interviewerText).toMatch(/I don't have competitor pricing\./);
+  });
+});

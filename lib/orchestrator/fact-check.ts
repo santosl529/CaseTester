@@ -56,6 +56,7 @@ export type FactBase = {
   exhibits: { id: string; data: Record<string, unknown>[]; coversLedgerItems?: string[] }[];
   answers: number[];                      // every math step's answers (cell lookup: derived, never a misquote)
   ledgerLookupLive?: boolean;             // ledger-line misquotes corrected (else report-only)
+  covers: { id: string; phrases: string[]; say?: string }[]; // asks a ledger item or prompt fact answers (say: a prompt fact's sentence)
 };
 
 type CaseInput = {
@@ -66,11 +67,12 @@ type CaseInput = {
   quoteAnchors: QuoteAnchor[];
   ledgerLookupLive?: boolean;
   factAnchors?: {
-    promptFacts: { id: string; names: string[]; kind: 'level' | 'change'; unit: 'percent' | 'dollar' | 'count'; values: Record<string, string> }[];
+    promptFacts: { id: string; names: string[]; kind: 'level' | 'change'; unit: 'percent' | 'dollar' | 'count'; values: Record<string, string>; say?: string }[];
     names: Record<string, string[]>;
     groups: { names: string[]; items: string[] }[];
     directions: Record<string, Direction>;
     drivers: { of: string; total: number; parts: { names: string[]; value: number }[] }[];
+    covers?: Record<string, string[]>;
   };
 };
 
@@ -163,6 +165,7 @@ export function buildFactBase(c: CaseInput): FactBase {
     anchors, ledger: c.dataLedger, promptLedger, exhibits: c.exhibits,
     answers: c.mathSteps.flatMap(s => [s.answer, ...(s.altAnswers ?? [])]),
     ledgerLookupLive: c.ledgerLookupLive,
+    covers: Object.entries(fa.covers ?? {}).map(([id, phrases]) => ({ id, phrases: phrases.map(lc), say: fa.promptFacts.find(p => p.id === id)?.say })),
   };
 }
 
@@ -586,6 +589,27 @@ export function findCandidateMisquotes(text: string, fb: FactBase, revealedIds: 
 }
 
 // ---------------------------------------------------------------- F3
+
+// Before code says "I don't have X" (Lorenzo, 13 Oct, Larkspur rulings a): a
+// ledger item or prompt fact whose `covers` phrases are in X answers it. A
+// question ("whether the 15% growth is total or same-store revenue") is read
+// whole; a list ("the low-cost carrier's frequency and aircraft size") entry
+// by entry, and the entries nothing covers are what is left to refuse. An
+// entry cut finer than the case (by region, per item…) is not covered.
+export type Coverage = { items: string[]; promptFacts: string[]; rest: string | null };
+export function coverageOf(what: string, fb: FactBase): Coverage {
+  const text = what.trim();
+  const question = /^(?:whether|if|how|why|which|what|when|where|who|is|are|was|were|do|does|did)\b/i.test(text) || text.endsWith('?');
+  const entries = question ? [text] : text.split(/,\s*(?:and\s+|or\s+)?|\s+(?:and|or|plus)\s+/i).map(e => e.trim()).filter(Boolean);
+  const items: string[] = [], promptFacts: string[] = [], left: string[] = [];
+  for (const entry of entries) {
+    const e = lc(entry);
+    const hits = GLOBAL_FINER.test(e) ? [] : fb.covers.filter(c => c.phrases.some(p => new RegExp(`(?<![a-z])${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z])`).test(e)));
+    if (hits.length === 0) { left.push(entry); continue; }
+    for (const h of hits) (h.say !== undefined ? promptFacts : items).push(h.id);
+  }
+  return { items: [...new Set(items)], promptFacts: [...new Set(promptFacts)], rest: left.length ? left.join(' and ') : null };
+}
 
 export type RefusalFlag = { refused: string; items: string[]; sentence: string };
 

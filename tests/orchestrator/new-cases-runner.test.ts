@@ -388,3 +388,17 @@ describe('an ask inside the fixed costs that names the aircraft leases', () => {
     expect(store.revealed.map(x => x.ledgerItemId)).toContain('aircraft_leases');
   });
 });
+
+// Lorenzo, 13 Oct (Larkspur rulings a, round 2; Omar 9bbf41bc t9): the
+// competitor line says it flies larger planes — that part is given; the
+// frequency, which the case doesn't hold, is still refused.
+describe("the LCC's frequency and aircraft size", () => {
+  it('gives the competitor line and refuses only the frequency', async () => {
+    seed({ caseId: 'prof-002', phase: 'ANALYSIS', flags: PT_SATISFIED, shown: ['exhibit-1'] });
+    const r = await say("Do we have the LCC's frequency and aircraft size on these routes?",
+      T({ say: 'Mm-hm.', requests: [{ what: "the low-cost carrier's frequency and aircraft size", itemIds: [], explicit: true, respond: 'release' }] }));
+    expect(r.interviewerText).toMatch(/it flies larger planes/);
+    expect(r.interviewerText).toMatch(/I don't have the low-cost carrier's frequency\./);
+    expect(r.interviewerText).not.toMatch(/aircraft size\./);
+  });
+});

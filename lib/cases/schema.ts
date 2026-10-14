@@ -233,6 +233,11 @@ export const CaseSchema = z.object({
   //     timeframes don't give it (an item with no figures, like flat menu prices).
   //   drivers — how a total change splits into parts ("of the 16 COGS points,
   //     beans 4.2, other inputs 11.8"), so "mostly beans" can be checked.
+  //   covers — per ledger item or prompt fact, phrases of asks it answers
+  //     though they don't name it ("same-store" → the store count, flat;
+  //     "aircraft size" → the competitor line). Before code refuses an ask it
+  //     checks these (Lorenzo, 13 Oct): a covering item is given, a prompt
+  //     fact restated (fact-check.ts coverageOf).
   factAnchors: z.object({
     promptFacts: z.array(z.object({
       id: z.string().min(1),
@@ -251,6 +256,7 @@ export const CaseSchema = z.object({
       total: z.number(),
       parts: z.array(z.object({ names: z.array(z.string().min(2)).min(1), value: z.number() })).min(2),
     })).default([]),
+    covers: z.record(z.string(), z.array(z.string().min(3)).min(1)).default({}),
   }).optional(),
   // Pricing math (lib/orchestrator/pricing-check.ts, 12 Oct): the cost lines a
   // price change leaves fixed in dollars at flat volume (their current shares
@@ -339,6 +345,7 @@ export const CaseSchema = z.object({
     f.groups.forEach((g, i) => g.items.forEach((id, j) => {
       if (!ledgerIds.has(id)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'groups', i, 'items', j], message: `Unknown ledger item "${id}"` });
     }));
+    for (const id of Object.keys(f.covers)) if (!factIds.has(id)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'covers', id], message: `Unknown ledger item or prompt fact "${id}"` });
     for (const id of Object.keys(f.directions)) if (!factIds.has(id)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'directions', id], message: `Unknown ledger item or prompt fact "${id}"` });
     f.drivers.forEach((d, i) => {
       if (!factIds.has(d.of)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'drivers', i, 'of'], message: `Unknown ledger item or prompt fact "${d.of}"` });

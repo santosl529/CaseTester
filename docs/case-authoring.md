@@ -118,6 +118,17 @@ transcripts and get zero false flags. Until then leave `stepFlagsLive` out —
 its step flags are logged (`recompute_report_only`) and never spoken. Set it
 to `true` only with that validation recorded (prof-001 is the only case).
 
+**`factAnchors.covers` (13 Oct).** Before code says "I don't have X" it checks
+whether a ledger item or a prompt fact covers X. Most asks are matched by an
+item's names; `covers` lists the asks an item or prompt fact answers without
+naming it: prof-001's store count (flat at 200) answers "same-store sales",
+"same-store revenue", "new stores"; its net-margin prompt fact answers "net
+margin"; Larkspur's competitor line answers "aircraft size". Keep phrases to
+the thing asked for, not a qualifier: "same-store sales", not "same-store" —
+"same-store transaction counts" asks for traffic, which the case doesn't
+hold. A covering item is given (restated if already out), a prompt fact is
+restated, and in a list only the entries nothing covers are refused.
+
 **`ledgerLookupLive` (13 Oct).** The exact lookup also reads ledger lines no
 exhibit shows, figure by figure, for the quantity named next to each
 (`lib/orchestrator/cell-lookup.ts`). Write such lines so each figure sits next
