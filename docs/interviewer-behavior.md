@@ -2245,6 +2245,18 @@ to 58% of revenue; 38% is its growth on its own base."). If it can't, the
 error goes to the written report. Either way the error is closed: no further
 question about that figure goes out, and the case moves on.
 
+**At most two probes per step per interview, whatever the value (13 Oct,
+Lorenzo; Larkspur, Jordan 9ab76a39 — "the four routes absorb half" probed
+three times under three wordings).** A step is what the error is about,
+without its value: the case's math step, the kind of pricing claim, the
+arithmetic expression; an error bound to none of these is its own step. Code's
+probes, the checker's probe, pointer and hint all count. Once a step has had
+two, a new wrong figure for it gets no probe: code's correction if it can
+write one (a correction is not a probe), else the written report. A word
+quantity ("half", "a fifth", "twice") identifies a restated error the way a
+figure does ("roughly half", "about half of the damage", "half"). The one
+flag on a closed error in the final recommendation (below) stays.
+
 **Two-step probe (13 Oct, Lorenzo; 0bfe5f38 t19 — "…and where does overhead
 sit?").** The first probe on a claim names only what is in the claim, plus
 the target ("Does that account for the full 18 points?"). Only a second

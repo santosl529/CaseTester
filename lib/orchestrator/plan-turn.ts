@@ -31,7 +31,7 @@ import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
 import { brainstormAsks, brainstormRequired } from './brainstorm';
 import { correctionLines } from './misquote';
 import { statesQuantitativeClaim, numbersOf } from './math-checker';
-import { startMathCheck, planCheckerFlags, formatCheckerHint, liveCheckerConfig, checkerKey, closedErrorRestated, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
+import { startMathCheck, planCheckerFlags, formatCheckerHint, liveCheckerConfig, checkerKey, closedErrorRestated, stepOfKey, STEP_PROBE_CAP, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
 import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
@@ -410,7 +410,17 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const recomputeFlags = candidateMath.flags;
   // Rule 14: the attempt counter is orchestrator state, not model judgment.
   const recomputeAttempts = recordAttempts((flags.recomputeAttempts as RecomputeAttempts | undefined) ?? {}, recomputeFlags);
-  const recomputeHinted = formatRecomputeHint(recomputeFlags, {
+  // At most two probes per step per interview, whatever the value (Lorenzo,
+  // 13 Oct, Larkspur rulings c): a flag that would probe a step already probed
+  // twice says nothing, and its figure licenses no doubt. Unit lines are code's restatements, not probes.
+  const stepProbes: Record<string, number> = { ...((flags.stepProbes as Record<string, number> | undefined) ?? {}) };
+  const wouldProbe = (f: RecomputeFlag) => f.kind !== 'unit' && recomputeAction(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)) === 'probe';
+  const cappedFlags = recomputeFlags.filter(f => wouldProbe(f) && (stepProbes[f.stepId] ?? 0) >= STEP_PROBE_CAP);
+  const liveFlags = recomputeFlags.filter(f => !cappedFlags.includes(f));
+  checks.record('step_probe_cap', cappedFlags.length > 0, 'two probes on the step already — no probe', {
+    capped: cappedFlags.map(f => ({ step: f.stepId, value: f.candidateValue, span: f.span })),
+  });
+  const recomputeHinted = formatRecomputeHint(liveFlags, {
     attempts: recomputeAttempts,
     underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
   });
@@ -505,7 +515,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Figures a check found wrong, this turn or earlier: still wrong, so a probe
   // on them stays licensed (Maya, batch 18 v3: "16 divided by 18 is 1.6%" at
   // t20, re-raised at t24).
-  let flaggedFigures = [...new Set([...((flags.flaggedFigures as number[] | undefined) ?? []), ...recomputeFlags.map(f => f.candidateValue)])];
+  let flaggedFigures = [...new Set([...((flags.flaggedFigures as number[] | undefined) ?? []), ...liveFlags.map(f => f.candidateValue)])]
+    .filter(v => !cappedFlags.some(f => f.candidateValue === v));
   // The figures the candidate derived (their numbers less the case's own):
   // what a challenge to "the candidate's math" can be about (math-talk.ts).
   const candidateFigures = candidateFiguresOf(
@@ -538,8 +549,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const checkerPlan = planCheckerFlags({
     rows: (reads.checkerEventRows ?? []).filter(r => r.category === MATH_CHECKER_CATEGORY),
     handled: checkerHandled, turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
-    currentFlags: recomputeFlags.filter(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS))), codeLineThisTurn: misquote !== null, attempts: recomputeAttempts, underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
-    candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed,
+    currentFlags: liveFlags.filter(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS))), codeLineThisTurn: misquote !== null, attempts: recomputeAttempts, underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
+    candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed, stepProbes,
   });
   // A flag past Rule 14 (corrected once, or left for the report) is closed:
   // its figures may not be probed again — the case moves on (Lorenzo, 13 Oct;
@@ -679,7 +690,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Rule 14's probe, the figure and a chance to revise — before the case moves
   // on. Once a case; not when time is up; a shed minor error stays shed.
   const recMathFlag = replyToRecAsk && !flags.recMathProbed && !timeUp && !recRevisionDue
-    ? recomputeFlags.find(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)))
+    ? liveFlags.find(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)))
     : undefined;
   // An error past Rule 14 said again in the recommendation (Lorenzo, 13 Oct;
   // Jordan 099f33e9 t25): one more flag, under the same once-a-case rule.
@@ -752,6 +763,17 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   if (checkerHandledNow.length > 0 || keysChanged || closedAfter.length !== (checkerMemory.closed ?? []).length) {
     flags.mathChecker = { handled: [...checkerHandled, ...checkerHandledNow], ...(Object.keys(checkerKeys).length ? { keys: checkerKeys } : {}), ...(closedAfter.length ? { closed: closedAfter } : {}) };
   }
+  // The probes this turn puts out, one per step: code's (in the model's hint,
+  // or its recommendation probe) and the checker's probe, pointer or hint.
+  const probedSteps = new Set<string>();
+  if (kind === 'model') for (const f of liveFlags) if (wouldProbe(f)) probedSteps.add(f.stepId);
+  if (kind === 'rec_math_probe' && recMathProbe?.action === 'probe') {
+    if ('flag' in recMathProbe && recMathProbe.flag.kind !== 'unit') probedSteps.add(recMathProbe.flag.stepId);
+    if ('closed' in recMathProbe) probedSteps.add(stepOfKey(recMathProbe.closed.key));
+  }
+  if (checkerUsed && checkerUsed.action !== 'correct') probedSteps.add(stepOfKey(checkerUsed.key));
+  for (const s of probedSteps) stepProbes[s] = (stepProbes[s] ?? 0) + 1;
+  if (probedSteps.size > 0) flags.stepProbes = stepProbes;
   checks.record('math_checker', checkerUsed !== null, checkerUsed ? `checker flag delivered: ${checkerUsed.action}` : 'no checker flag delivered', {
     started: Boolean(checkerConfig && statesQuantitativeClaim(candidateText)), selected: sel?.id ?? null, used: checkerUsed?.id ?? null,
     decisions: checkerDecisions.map(d => ({ id: d.id, outcome: d.outcome, reason: d.reason })), waiting: checkerPlan.waiting.map(w => w.id),

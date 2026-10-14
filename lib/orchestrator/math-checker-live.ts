@@ -101,6 +101,24 @@ export function checkerKey(c: CheckerClaim): string {
 
 const same = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.05, Math.abs(b) * 0.01);
 
+// Lorenzo, 13 Oct (Larkspur rulings, c; Jordan 9ab76a39's "the four routes
+// absorb half", probed three times under three wordings): at most two probes
+// per step per interview, whatever the value. A key's step is the key without
+// its value ("op_profit_swing@48" → "op_profit_swing"; "pricing:gain@5" →
+// "pricing:gain"); a claim bound to no step is its own error. The probes spent
+// on each step are counted in the session (flags.stepProbes, plan-turn.ts):
+// code's probes, the checker's probe, pointer and hint.
+export const STEP_PROBE_CAP = 2;
+export const stepOfKey = (key: string) => (key.includes('@') ? key.slice(0, key.lastIndexOf('@')) : key);
+
+// A word quantity is a figure for telling restatements apart: "roughly half",
+// "about half of the damage", "half" are one claim (they carry no number, or
+// only a case figure).
+const WORD_FIGURES: [RegExp, number][] = [[/\bhalf\b/i, 0.5], [/\b(?:a|one)[\s-]third\b/i, 1 / 3], [/\b(?:a|one)[\s-]quarter\b/i, 0.25], [/\b(?:a|one)[\s-]fifth\b/i, 0.2], [/\b(?:twice|double)\b/i, 2], [/\b(?:triple|three times)\b/i, 3]];
+export function wordFigures(text: string): number[] {
+  return WORD_FIGURES.filter(([re]) => re.test(text)).map(([, v]) => v);
+}
+
 // Lorenzo, 13 Oct (Step 4, Jordan 099f33e9: "about 40 points", "~40 points",
 // "38–40% growth" — seven probes, each rewording its own counter): a restated
 // error is the same flag. The flags raised so far, by key, with the candidate
@@ -220,6 +238,7 @@ export type CheckerPlanInput = {
   attempts: RecomputeAttempts;        // Rule 14's counter, this message's flags counted
   keys?: Record<string, CheckerKeyEntry>; // the flags raised so far (one per error, across messages)
   closed?: string[];                  // keys past Rule 14: corrected once, or left for the report
+  stepProbes?: Record<string, number>; // probes spent on each step this interview (STEP_PROBE_CAP)
   underTimePressure: boolean;
   candidateFigures: number[];
   caseData: CheckerCase; revealedIds: string[];
@@ -292,7 +311,8 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       }
       // Matched by their figures — their value's own numbers when all are case figures (a "40 points" when 40 is also the bean rise).
       const input = boundInput(c);
-      const idFigs = figs.length > 0 || c.actualShare !== null ? figs : numbersOf(c.candidateValue).filter(n => input === null || !same(n, input));
+      const ownFigs = figs.length > 0 || c.actualShare !== null ? figs : numbersOf(c.candidateValue).filter(n => input === null || !same(n, input));
+      const idFigs = [...ownFigs, ...wordFigures(c.candidateValue).filter(w => !ownFigs.some(x => same(x, w)))];
       const key = flagKeyFor(c, idFigs, keys);
       if (closed.has(key)) {
         decisions.push(decision(id, v.candidateTurnIndex, c, 'unresolved', 'restated after the flag closed (corrected, or left for the report)', undefined, key));
@@ -324,6 +344,14 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     const attempt = probed + 1;
     const action = recomputeAction({ errorClass: c.changesConclusion ? 'case_breaking' : 'minor' } as RecomputeFlag, attempt, p.underTimePressure);
     if (action === 'shed') { decisions.push(decision(id, n, c, 'shed', 'minor, under time pressure (Rule 15)', undefined, key)); handled.add(id); continue; }
+    // Two probes on the step already: a correction code can write is said (it is no probe); else the report.
+    if ((p.stepProbes?.[stepOfKey(key)] ?? 0) >= STEP_PROBE_CAP) {
+      if (c.correctionLine) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'correct', line: c.correctionLine, derived: c.correctionFigure ? [c.correctionFigure] : [], claim: c }; continue; }
+      decisions.push(decision(id, n, c, 'unresolved', `two probes on this step already (${stepOfKey(key)}) — left for the report`, undefined, key));
+      handled.add(id);
+      closedNow.push(key);
+      continue;
+    }
     if (action === 'probe' && c.probeLine) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'probe', line: c.probeLine, derived: [], claim: c }; continue; }
     if (c.correctionLine) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'correct', line: c.correctionLine, derived: c.correctionFigure ? [c.correctionFigure] : [], claim: c }; continue; }
     // Code can't compute it: the pointer probe is the second attempt.
