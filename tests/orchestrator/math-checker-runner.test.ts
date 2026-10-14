@@ -3,6 +3,7 @@
 // by the next turn, and an error has no effect. In-memory database, scripted
 // interviewer model, a controlled checker. No API calls.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { INITIAL_STAGES } from '@/lib/orchestrator/stage-evidence';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { CheckerClaim, CheckerResult } from '@/lib/orchestrator/math-checker';
 
@@ -142,7 +143,7 @@ describe('in place of the close, code says the checker\'s line', () => {
     const startedAt = new Date(Date.now() - 17 * 60_000);
     store.session = {
       ...store.session, phase: 'RECOMMENDATION', startedAt,
-      flagsJsonb: { ...(store.session.flagsJsonb as Row), moves: { 4: 'brainstorm', 6: 'recommendation', 8: 'risk' }, stall: { recommendationDelivered: true }, stagesEnforced: { analysis: true, exhibit: true, brainstorm: true } },
+      flagsJsonb: { ...(store.session.flagsJsonb as Row), moves: { 4: 'brainstorm', 6: 'recommendation', 8: 'risk' }, stall: { recommendationDelivered: true }, stagesEnforced: { analysis: true, exhibit: true, brainstorm: true }, stageEvidence: { ...INITIAL_STAGES, brainstorm: { delivered: true, deliveredAt: 4, outcome: 'answered' as const }, recommendation: { delivered: true, deliveredAt: 6, asks: 1, outcome: 'answered' as const }, risk: { delivered: true, deliveredAt: 8 }, pending: 'risk' as const } },
     };
     const more = [
       { role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What else could they do?' },

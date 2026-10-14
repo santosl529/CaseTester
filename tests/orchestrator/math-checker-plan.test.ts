@@ -1,6 +1,7 @@
 // The math checker in the Plan stage (step 3, 13 Oct): what a landed verdict
 // does to the turn, and when the check starts. No database, no model calls.
 import { describe, it, expect, vi } from 'vitest';
+import { INITIAL_STAGES } from '@/lib/orchestrator/stage-evidence';
 
 vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
 vi.mock('@/db/client', () => ({
@@ -101,7 +102,7 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
   const CORE = ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'bean_price_change', 'non_bean_input_change', 'menu_price_change'];
   const endReads = (o: { flags?: Record<string, unknown>; elapsedMs?: number } = {}) => readsFixture({
     phase: 'RECOMMENDATION', elapsedMs: o.elapsedMs ?? 17 * 60 * 1000, revealed: CORE,
-    flags: { moves: { 4: 'brainstorm', 6: 'recommendation', 8: 'risk' }, stall: { recommendationDelivered: true }, ...o.flags },
+    flags: { moves: { 4: 'brainstorm', 6: 'recommendation', 8: 'risk' }, stall: { recommendationDelivered: true }, stageEvidence: { ...INITIAL_STAGES, brainstorm: { delivered: true, deliveredAt: 4, outcome: 'answered' as const }, recommendation: { delivered: true, deliveredAt: 6, asks: 1, outcome: 'answered' as const }, risk: { delivered: true, deliveredAt: 8 }, pending: 'risk' as const }, ...o.flags },
     extraTurns: [
       { role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What else could they do?' },
       { role: 'candidate', text: 'More ideas.' }, { role: 'interviewer', text: 'What do you recommend?' },

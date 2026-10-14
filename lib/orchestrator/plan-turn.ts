@@ -18,17 +18,17 @@ import { classifyConduct, isPauseAccepted, isRiskToSelf, type ConductAssessment 
 import { classifyDistress, type DistressVerdict } from './distress';
 import { classifyConductModel, type ConductModelVerdict } from './conduct-model';
 import { classifyExitIntent, isBareSignOff, isRefusalToStart, exitReplyChoice, EXIT_CLARIFY, EXIT_CLOSE, REFUSAL_OFFER } from './candidate-exit';
-import { missingRequiredStages, INITIAL_STAGES, type StageKey, type StageRecord } from './stage-evidence';
+import { missingRequiredStages, stagesFromRecord, INITIAL_STAGES, type StageKey, type StageRecord } from './stage-evidence';
 import { caseFinished, hasAssessableEvidence } from './session-outcome';
 import { explicitRequestCues } from './request-signal';
 import { judgeProbeAnswer, judgeStructureGiven, probeAsHeard, INITIAL_PRESSURE_TEST, type PressureTestState } from './pressure-test';
 import { logEvent } from '@/lib/analytics';
 import { caseTotalMs, type Phase } from './state-machine';
 import { stageGateOpen, endAllowed, recommendationUnresolved, asksRecommendationAsk, asksForConclusion } from './spoken-close';
-import { stagesFromTurns, type TurnMove } from './progress';
+import type { TurnMove } from './progress';
 import { CheckLog } from './check-log';
 import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
-import { brainstormAsks, brainstormRequired, brainstormDue } from './brainstorm';
+import { brainstormRequired, brainstormDue } from './brainstorm';
 import { correctionLines } from './misquote';
 import { statesQuantitativeClaim, numbersOf } from './math-checker';
 import { startMathCheck, planCheckerFlags, formatCheckerHint, liveCheckerConfig, checkerKey, closedErrorRestated, stepOfKey, STEP_PROBE_CAP, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
@@ -135,7 +135,7 @@ export function planTurn(reads: TurnReads, candidateText: string, deps: PlanDeps
       // A finished case keeps its report (v4.10; batch 18, Sam: closing
       // gratitude drew a late offer and the finished case closed abandoned).
       // The C5 exchange itself is still excluded from scoring.
-      const finished = caseFinished(flags, turnRows.filter(t => t.role === 'interviewer').map(t => ({ turnIndex: t.turnIndex, text: t.text })));
+      const finished = caseFinished(flags);
       ctx.events.push({ category: 'conduct', subtype: 'C5_accept', payload: { reason: 'distress_pause_accepted', finished } });
       later(() => logEvent(finished ? 'case_complete' : 'case_abandoned', { reason: 'distress_pause_accepted', phase: currentPhase },
         { sessionId, userId: session.userId }));
@@ -304,7 +304,7 @@ function planExit(ctx: TurnCtx, reads: TurnReads, deps: PlanDeps): ScriptedPlan 
   const report = decision === 'stop' && evidence;
   const text = decision === 'declined' ? EXIT_CLOSE.declined : report ? EXIT_CLOSE.withReport : EXIT_CLOSE.noReport;
   const endReason = decision === 'declined' ? 'declined' : 'candidate_stop';
-  const partial = report && !caseFinished(flags, reads.turnRows.filter(t => t.role === 'interviewer').map(t => ({ turnIndex: t.turnIndex, text: t.text })));
+  const partial = report && !caseFinished(flags);
   ctx.events.push({ category: 'intervention', subtype: 'candidate_exit', payload: { decision, why, via: 'message', report, partial } });
   return {
     kind: 'scripted', ctx, interviewerText: text, delivery: 'decided', distressCheck: distressCheck(), conductCheck: conductCheck(),
@@ -617,12 +617,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // only — later, "I'd want…" is usually a next step, not a question.
   const requestCues = (['INTRO', 'CLARIFY', 'STRUCTURE', 'ANALYSIS', 'EXHIBIT'] as Phase[]).includes(currentPhase)
     ? explicitRequestCues(candidateText) : [];
-  const stages = stagesFromTurns(
-    turnRows.filter(t => t.role === 'interviewer').map(t => ({ turnIndex: t.turnIndex, text: t.text })),
-    moves,
-    recommendationReceived,
-    brainstormAsks(caseData),
-  );
+  // The end gate reads the stage record — what code owes reads it too (Lorenzo, 13 Oct: one source of truth).
+  const stageRecord = (flags.stageEvidence as StageRecord | undefined) ?? INITIAL_STAGES;
+  const stages = stagesFromRecord(stageRecord, recommendationReceived);
   const stageGate = stageGateOpen(stages, { brainstormRequired: brainstormRequired(caseData) }) && elapsedMs >= COVERAGE_MIN_GUARD_MS;
   const mayEnd = endAllowed({ coverageMayEnd, timeUp, stageGate, stages });
   // Fact guards Phase 5 (batch 20 R33, R32): a recommendation the interviewer
@@ -655,7 +652,6 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // the candidate is administered first — once, by code; whatever the reply
   // (answered, declined, unable) resolves it. Not under time pressure: the
   // recommendation comes first then, and the stage is recorded as time_up.
-  const stageRecord = (flags.stageEvidence as StageRecord | undefined) ?? INITIAL_STAGES;
   const stagesEnforced = (flags.stagesEnforced as Partial<Record<StageKey, boolean>> | undefined) ?? {};
   // Stages out for the exhibit release order (an exhibit's `after` may name
   // the brainstorm — Hollis Bay's sampling exhibit, Lorenzo 13 Oct): asked, or

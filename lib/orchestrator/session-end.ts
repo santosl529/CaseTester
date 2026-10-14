@@ -24,7 +24,7 @@ export async function endByCandidate(sessionId: string, userId: string, via: 'bu
   const flags = session.flagsJsonb as Record<string, unknown>;
   const report = hasAssessableEvidence(flags);
   const turns = await db.query.sessionTurns.findMany({ where: eq(sessionTurns.sessionId, sessionId) });
-  const partial = report && !caseFinished(flags, turns.filter(t => t.role === 'interviewer').map(t => ({ turnIndex: t.turnIndex, text: t.text })));
+  const partial = report && !caseFinished(flags);
   const status = report ? 'completed' : 'abandoned';
   await db.update(sessions).set({
     status, completedAt: new Date(), ...(report ? {} : { abandonPhase: session.phase }),

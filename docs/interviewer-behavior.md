@@ -1244,6 +1244,16 @@ released, an exhibit shown and its own recommendation ask — forward only
 has to do what the label says (batch 18: "Which lever matters most?" labelled
 `brainstorm` opened the end gate with no brainstorm asked). Code's own asks
 are trusted. The stage record (Rule 9) is read from what was delivered.
+**Since 13 Oct (Lorenzo) the stage record is the only reading:** the end gate,
+the close and "what is owed" all read it — one source of truth. The record
+reads as the end gate did: a brainstorm in the closing grammar ("what else
+could X do", "what other levers"), a `brainstorm` move in brainstorm wording,
+or the case's own ask (not any "what else": "What else would you need to rule
+out…?" is a probe); a recommendation ask in any wording, code's, or a
+`recommendation` move in recommendation wording that isn't a risk question;
+the risk question once a recommendation is on the table, in risk wording or
+as a `risk` move in risk words. It counts the recommendation asks (the
+two-ask limit).
 
 A pilot run completed an entire case while the session sat in CLARIFY.
 
@@ -1321,9 +1331,10 @@ Exhibit from numbers read aloud, and the brainstorm report rated Creativity
 (`lib/orchestrator/stage-evidence.ts`, `flags.stageEvidence`), updated after
 every turn from what the candidate got:
 - **delivered** — the stage was put to the candidate: the exhibit on screen,
-  a brainstorm question in the delivered text (an open "what else / what
-  other ways / beyond X, what…", or code's own), the recommendation or risk
-  asked, data released for the analysis, the probe asked;
+  a brainstorm question in the delivered text (the closing grammar, a
+  brainstorm move in brainstorm wording, the case's own ask, or code's own —
+  see Rule 9/12 above; since 13 Oct), the recommendation or risk asked, data
+  released for the analysis, the probe asked;
 - **outcome** — from the candidate's reply: `answered` (substantive),
   `declined`, `unable` (a hedge, or two replies that only asked something
   back), `waived` (the probe's v3 bound), `time_up`; a recommendation given

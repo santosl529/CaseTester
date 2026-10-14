@@ -718,7 +718,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       turnIndex: nextTurnIndex + 1, candidateText, question: qHeard ? question : '', exhibitShown: exhibitSaved !== undefined,
       released: bookedReveals.length + exhibitRevealsSaved.length > 0, recAsked: ASKS_RECOMMENDATION.has(kind) && qHeard,
       recommendationDelivered: stallSaved.recommendationDelivered, pressureTest: ptSaved, candidateFigures: state.candidateFigures.length,
-      codeAsked: stageAskedSaved, ended: endedSaved && state.timeUp ? 'time_up' : null, brainstormAsks: brainstormAsks(caseData), brainstormDue: state.brainstormDue,
+      codeAsked: stageAskedSaved, ended: endedSaved && state.timeUp ? 'time_up' : null, brainstormAsks: brainstormAsks(caseData), brainstormDue: state.brainstormDue, move: turnMoveSaved,
     });
     const stagesEnforcedSaved = stageAskedSaved ? { ...state.stagesEnforced, [stageAskedSaved]: true } : state.stagesEnforced;
     // KF-4 (v4.10): when the gate closes this turn, the unmapped asks it held

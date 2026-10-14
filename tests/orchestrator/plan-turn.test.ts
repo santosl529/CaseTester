@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { INITIAL_STAGES } from '@/lib/orchestrator/stage-evidence';
 
 // The Plan stage decides the turn without touching the database: a proxy db
 // records any use; the distress classifier that starts in Plan is stubbed.
@@ -83,7 +84,9 @@ describe('planTurn turn kinds', () => {
   const CORE = ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'bean_price_change', 'non_bean_input_change'];
   const endReads = (o: { revealed?: string[]; flags?: Record<string, unknown>; recAsk?: string; elapsedMs?: number } = {}) => readsFixture({
     phase: 'RECOMMENDATION', elapsedMs: o.elapsedMs ?? 17 * 60 * 1000, revealed: o.revealed ?? CORE,
-    flags: { moves: { 4: 'brainstorm', 6: 'recommendation', 8: 'risk' }, stall: { recommendationDelivered: true }, ...o.flags },
+    // The end gate reads the stage record (Lorenzo, 13 Oct): the transcript's stages, recorded.
+    flags: { moves: { 4: 'brainstorm', 6: 'recommendation', 8: 'risk' }, stall: { recommendationDelivered: true },
+      stageEvidence: o.recAsk ? { ...{ ...INITIAL_STAGES, brainstorm: { delivered: true, deliveredAt: 4, outcome: 'answered' as const }, recommendation: { delivered: true, deliveredAt: 6, asks: 1, outcome: 'answered' as const }, risk: { delivered: true, deliveredAt: 8 }, pending: 'risk' as const }, recommendation: { delivered: false, outcome: 'answered' as const, spontaneous: true } } : { ...INITIAL_STAGES, brainstorm: { delivered: true, deliveredAt: 4, outcome: 'answered' as const }, recommendation: { delivered: true, deliveredAt: 6, asks: 1, outcome: 'answered' as const }, risk: { delivered: true, deliveredAt: 8 }, pending: 'risk' as const }, ...o.flags },
     extraTurns: [
       { role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What else could they do?' },
       { role: 'candidate', text: 'More ideas.' }, { role: 'interviewer', text: o.recAsk ?? 'What do you recommend?' },

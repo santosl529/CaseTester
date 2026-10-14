@@ -1,7 +1,7 @@
 // The stage record (Rule 9 v4.10): delivery read from what was said or shown,
 // outcome from the candidate's reply — never from a move label.
 import { describe, it, expect } from 'vitest';
-import { updateStages, missingRequiredStages, replyOutcome, asksBrainstormNow, INITIAL_STAGES, type StageTurn } from '@/lib/orchestrator/stage-evidence';
+import { updateStages, missingRequiredStages, replyOutcome, asksBrainstormNow, stagesFromRecord, INITIAL_STAGES, type StageTurn } from '@/lib/orchestrator/stage-evidence';
 import { INITIAL_PRESSURE_TEST } from '@/lib/orchestrator/pressure-test';
 
 const turn = (over: Partial<StageTurn>): StageTurn => ({
@@ -33,7 +33,7 @@ describe('delivery and outcome', () => {
     let r = updateStages(undefined, turn({ question: "Beyond what we've discussed, what else could the client do?" }));
     r = updateStages(r, turn({ turnIndex: 6, candidateText: "I'd rather not brainstorm — I'll pass on this." }));
     expect(r.brainstorm.outcome).toBe('declined');
-    let u = updateStages(undefined, turn({ question: 'What other ways could they protect margin?' }));
+    let u = updateStages(undefined, turn({ question: 'What other ways could they protect margin?', move: 'brainstorm' }));
     u = updateStages(u, turn({ turnIndex: 6, candidateText: "I don't know." }));
     expect(u.brainstorm.outcome).toBe('unable');
   });
@@ -95,5 +95,54 @@ describe('a brainstorm not yet due', () => {
   });
   it("code's own ask counts", () => {
     expect(updateStages(undefined, turn({ question: ASK, codeAsked: 'brainstorm', brainstormDue: false })).brainstorm.delivered).toBe(true);
+  });
+});
+
+// Lorenzo, 13 Oct: the end gate reads the stage record — one source of truth
+// for what's owed — not its own reading of the transcript.
+describe('the end gate reads the stage record', () => {
+  it('stagesFromRecord: delivered stages and the recommendation asks counted', () => {
+    let r = updateStages(undefined, turn({ question: "Beyond what we've discussed, what else could the client do?" }));
+    r = updateStages(r, turn({ turnIndex: 6, question: "What's your recommendation to the CEO?", recAsked: true }));
+    r = updateStages(r, turn({ turnIndex: 8, candidateText: 'Hmm, not sure.', question: 'Pull it together — what would you tell the CEO to do?', recAsked: true }));
+    expect(stagesFromRecord(r, false)).toEqual({ brainstormAsked: true, riskAsked: false, recommendationAsked: true, recommendationAskCount: 2, recommendationReceived: false });
+  });
+  it('a stage the record lacks is not asked, whatever the transcript says', () => {
+    expect(stagesFromRecord(INITIAL_STAGES, true)).toEqual({ brainstormAsked: false, riskAsked: false, recommendationAsked: false, recommendationAskCount: 0, recommendationReceived: true });
+  });
+});
+
+// Lorenzo, 13 Oct: the record is the end gate's only reading, so it reads as
+// the end gate did — a move label counts when the text does what it says.
+describe('the record reads stages as the end gate did', () => {
+  it('a risk move in risk words, once a recommendation is on the table (Ines 62d06bd6 t20)', () => {
+    const q = "Understood. You named competitive reaction and price sensitivity as risks. Which single risk could most undermine this recommendation, and how would you know early that it's happening?";
+    const rec = updateStages(undefined, turn({ question: 'What do you recommend?', move: 'recommendation' }));
+    expect(updateStages(rec, turn({ turnIndex: 6, question: q, move: 'risk' })).risk.delivered).toBe(true);
+    expect(updateStages(rec, turn({ turnIndex: 6, question: q })).risk.delivered).toBe(false);
+    expect(updateStages(undefined, turn({ question: q, move: 'risk' })).risk.delivered).toBe(false);     // no recommendation yet
+  });
+  it("a recommendation move in recommendation words; code's ask by its move", () => {
+    // Jasmine e7e02f18 t6: only the move says it — the wording rule doesn't count it.
+    const q = "You've reached a recommendation, but before we close, which of your three levers carries the most risk to the client, and why?";
+    expect(updateStages(undefined, turn({ question: q, move: 'recommendation' })).recommendation.delivered).toBe(true);
+    expect(updateStages(undefined, turn({ question: q })).recommendation.delivered).toBe(false);
+    expect(updateStages(undefined, turn({ question: 'Okay.', move: 'code_rec_ask' })).recommendation.delivered).toBe(true);
+    expect(updateStages(undefined, turn({ question: 'Which of your levers carries the biggest risk to that recommendation?', move: 'recommendation' })).recommendation.delivered).toBe(false);
+  });
+  it('a "what else" probe is no brainstorm (Destiny df623412 t20, Tobias 79d7e1fa t9)', () => {
+    expect(updateStages(undefined, turn({ question: 'Got it. What else would you need to rule out before concluding beans are the driver?', move: 'pressure_test' })).brainstorm.delivered).toBe(false);
+    expect(updateStages(undefined, turn({ question: 'Does a flat labor percentage rule that out on its own, or what else would you want to see before you drop it?', move: 'analysis' })).brainstorm.delivered).toBe(false);
+    expect(updateStages(undefined, turn({ question: "Beyond what we've discussed, what else could the client do?" })).brainstorm.delivered).toBe(true);
+  });
+});
+
+describe('caseFinished reads the record', () => {
+  it('the recommendation answered and the risk asked', async () => {
+    const { caseFinished } = await import('@/lib/orchestrator/session-outcome');
+    const done = { ...INITIAL_STAGES, recommendation: { delivered: true, outcome: 'answered' as const }, risk: { delivered: true } };
+    expect(caseFinished({ stageEvidence: done })).toBe(true);
+    expect(caseFinished({ stageEvidence: { ...done, risk: { delivered: false } } })).toBe(false);
+    expect(caseFinished({})).toBe(false);
   });
 });

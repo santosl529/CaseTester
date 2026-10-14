@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { brainstormAsks, brainstormRequired, asksCaseBrainstorm, GENERIC_BRAINSTORM_ASKS } from '@/lib/orchestrator/brainstorm';
 import { getCaseById } from '@/lib/cases/loader';
-import { stagesFromTurns } from '@/lib/orchestrator/progress';
 import { stageGateOpen } from '@/lib/orchestrator/spoken-close';
 import { missingRequiredStages, updateStages, INITIAL_STAGES, type StageTurn } from '@/lib/orchestrator/stage-evidence';
 import { INITIAL_PRESSURE_TEST } from '@/lib/orchestrator/pressure-test';
@@ -36,7 +35,8 @@ describe('a case brainstorm', () => {
     ['entry-001', 'Say Aldermoor builds its own team — how could it reduce the risk of a slow start?'],
     ['prof-002', "What else could Larkspur do to make sure it's profitable in the first year?"],
   ])('recognises %s asked in the interviewer\'s words: %s', (id, question) => {
-    expect(stagesFromTurns([{ turnIndex: 9, text: question }], {}, false, brainstormAsks(getCaseById(id))).brainstormAsked).toBe(true);
+    expect(updateStages(undefined, { turnIndex: 9, candidateText: 'Okay.', question, exhibitShown: false, released: false, recAsked: false,
+      recommendationDelivered: false, pressureTest: INITIAL_PRESSURE_TEST, candidateFigures: 0, brainstormAsks: brainstormAsks(getCaseById(id)) }).brainstorm.delivered).toBe(true);
   });
 
   it.each([
@@ -53,11 +53,6 @@ describe('a case brainstorm', () => {
 describe('the stage gate and stage record read the case brainstorm', () => {
   const asks = brainstormAsks(getCaseById('launch-001'));
   const hollis = { turnIndex: 9, text: 'What could Hollis Bay do to get shoppers to try its chickpea snacks — and to keep buying them?' };
-
-  it('stagesFromTurns counts the case ask as the brainstorm', () => {
-    expect(stagesFromTurns([hollis], {}, false).brainstormAsked).toBe(false);
-    expect(stagesFromTurns([hollis], {}, false, asks).brainstormAsked).toBe(true);
-  });
 
   it('the gate opens without a brainstorm when the case owes none', () => {
     const s = { brainstormAsked: false, riskAsked: true, recommendationAsked: true, recommendationAskCount: 1, recommendationReceived: true };
@@ -83,6 +78,7 @@ describe("word overlap only for asks the generic grammar doesn't know", () => {
     expect(asksCaseBrainstorm('How does pricing protect margin for the client?', brainstormAsks(getCaseById('prof-001')))).toBe(false);
   });
   it('Larkspur: the grammar recognises its line ("what else could Larkspur do")', () => {
-    expect(stagesFromTurns([{ turnIndex: 9, text: "What else could Larkspur do to make sure it's profitable in the first year?" }], {}, false).brainstormAsked).toBe(true);
+    expect(updateStages(undefined, { turnIndex: 9, candidateText: 'Okay.', question: "What else could Larkspur do to make sure it's profitable in the first year?", exhibitShown: false, released: false, recAsked: false,
+      recommendationDelivered: false, pressureTest: INITIAL_PRESSURE_TEST, candidateFigures: 0 }).brainstorm.delivered).toBe(true);
   });
 });

@@ -1,18 +1,15 @@
 // Pure readings of a session's state for the end paths (Rule 18A, v4.10):
 // whether the case ran its course, and whether anything assessable happened.
 // Used by Plan (a typed stop) and session-end.ts (the End button).
-import { anyAssessable, type StageRecord } from './stage-evidence';
-import { stagesFromTurns, type TurnMove } from './progress';
+import { anyAssessable, INITIAL_STAGES, type StageRecord } from './stage-evidence';
 import type { PressureTestState } from './pressure-test';
 import type { StallState } from './stall';
 
 // The case has run its course: recommendation in and its risk probed.
-export function caseFinished(flags: Record<string, unknown>, interviewerTurns: { turnIndex: number; text: string }[]): boolean {
-  const rec = flags.stageEvidence as StageRecord | undefined;
-  if (rec) return rec.recommendation?.outcome === 'answered' && Boolean(rec.risk?.delivered);
-  const recommendationDelivered = Boolean((flags.stall as StallState | undefined)?.recommendationDelivered);
-  const stages = stagesFromTurns(interviewerTurns, (flags.moves as Record<number, TurnMove> | undefined) ?? {}, recommendationDelivered);
-  return recommendationDelivered && stages.riskAsked;
+// From the stage record only (Lorenzo, 13 Oct: one source of truth).
+export function caseFinished(flags: Record<string, unknown>): boolean {
+  const rec = (flags.stageEvidence as StageRecord | undefined) ?? INITIAL_STAGES;
+  return rec.recommendation?.outcome === 'answered' && Boolean(rec.risk?.delivered);
 }
 
 // Whether the candidate has done anything a report could assess.

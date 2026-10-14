@@ -16,7 +16,7 @@
 // A stage is assessed only when answered (or done spontaneously). Scoring
 // reads the record; missing evidence becomes "not assessed", never an
 // invented rating (lib/scoring/stage-caps.ts).
-import { asksBrainstorm, asksForConclusion, asksRiskQuestion } from './spoken-close';
+import { asksBrainstorm, asksForConclusion, asksRiskQuestion, type StageAdministration } from './spoken-close';
 import { asksCaseBrainstorm } from './brainstorm';
 import { classifyTurn } from './stall';
 import { isRefusalToStart } from './candidate-exit';
@@ -25,7 +25,8 @@ import type { PressureTestState } from './pressure-test';
 export const STAGES = ['structure', 'pressure_test', 'analysis', 'exhibit', 'brainstorm', 'recommendation', 'risk'] as const;
 export type StageKey = (typeof STAGES)[number];
 export type StageOutcome = 'answered' | 'declined' | 'unable' | 'waived' | 'time_up';
-export type StageEntry = { delivered: boolean; deliveredAt?: number; outcome?: StageOutcome; spontaneous?: boolean; codeAsked?: boolean };
+// asks: the turns that put the stage to the candidate (the recommendation's ask limit reads it).
+export type StageEntry = { delivered: boolean; deliveredAt?: number; outcome?: StageOutcome; spontaneous?: boolean; codeAsked?: boolean; asks?: number };
 export type StageRecord = Record<StageKey, StageEntry> & {
   pending?: StageKey | null;   // delivered last turn, waiting for the candidate's reply
   pendingReplies?: number;     // replies that only asked something back
@@ -45,6 +46,11 @@ export const INITIAL_STAGES: StageRecord = {
 // A brainstorm question in the interviewer's own words — the open "what else /
 // what other ways / beyond X" ask, not a single-lever probe.
 const BRAINSTORM_OPEN = /\b(?:what|how)\s+else\b|\bwhat\s+other\s+(?:ways|options|levers|ideas|things|moves|actions|initiatives)\b|\bother\s+ways\s+(?:to|could|might|can)\b|\bbeyond\s+[^?]{1,60}?,\s*what\b|\bas many (?:options|ideas)\b|\bbrainstorm/i;
+// The end gate's wording for a labelled move (progress.ts until 13 Oct).
+const BRAINSTORM_TEXT = /\b(?:what|how)\s+else\b|\bwhat\s+other\s+(?:ways|options|levers|ideas|things|moves|actions)\b|\bother\s+ways\s+(?:to|could|might|can)\b|\bas many (?:options|ideas)\b/i;
+const RISK_TEXT = /\b(?:risk|go wrong|change your mind|wrong about|break (?:it|that|this))\b/i;
+const REC_TEXT = /\b(?:recommend\w*|tell the (?:ceo|client)|should (?:they|the client|the company|brew)|what would you do|bottom.?line)\b/i;
+
 export function asksBrainstormNow(question: string): boolean {
   return asksBrainstorm(question) || BRAINSTORM_OPEN.test(question);
 }
@@ -73,6 +79,7 @@ export type StageTurn = {
   ended?: 'time_up' | null;     // the session closed this turn at time-up
   brainstormAsks?: string[];    // the case's own brainstorm question (brainstorm.ts)
   brainstormDue?: boolean;      // false: the brainstorm waits on exhibits — no question counts as it yet (code's own ask aside)
+  move?: string;                // the turn's move as saved: the model's declared move, code's stage move, or code_rec_ask
 };
 
 export function updateStages(prev: StageRecord | undefined, t: StageTurn): StageRecord {
@@ -112,15 +119,30 @@ export function updateStages(prev: StageRecord | undefined, t: StageTurn): Stage
 
   // This turn's deliveries; the newest becomes pending.
   const deliver = (k: StageKey, codeAsked = false) => {
+    r[k] = { ...r[k], asks: (r[k].asks ?? 0) + 1 };
     if (!r[k].delivered) r[k] = { ...r[k], delivered: true, deliveredAt: t.turnIndex, ...(codeAsked ? { codeAsked: true } : {}) };
     if (!r[k].outcome) { r.pending = k; r.pendingReplies = 0; }
   };
   if (t.exhibitShown) deliver('exhibit', t.codeAsked === 'exhibit');
-  if (t.codeAsked === 'brainstorm' || (t.brainstormDue !== false && (asksBrainstormNow(t.question) || asksCaseBrainstorm(t.question, t.brainstormAsks ?? [])))) deliver('brainstorm', t.codeAsked === 'brainstorm');
-  // As the end gate reads them (progress.ts): a recommendation ask in any
-  // wording; the risk question once a recommendation is on the table.
-  if (t.recAsked || asksForConclusion(t.question)) deliver('recommendation');
-  if (asksRiskQuestion(t.question, r.recommendation.delivered || Boolean(r.recommendation.outcome) || t.recommendationDelivered)) deliver('risk');
+  // The record is the end gate's only reading (Lorenzo, 13 Oct: one source of
+  // truth), so it reads as the end gate did (v4.10 round 3, fact guards Phase
+  // 5): a move label counts only when the delivered text does what it says.
+  // The brainstorm: the closing grammar ("what else could X do", "what other
+  // levers"), a brainstorm move in brainstorm wording, or the case's own ask —
+  // not any "what else" ("What else would you need to rule out…?" is a probe:
+  // Destiny df623412 t20); none before it is due.
+  const move = t.move;
+  const asksBrainstormStage = asksBrainstorm(t.question) || (move === 'brainstorm' && BRAINSTORM_TEXT.test(t.question)) || asksCaseBrainstorm(t.question, t.brainstormAsks ?? []);
+  if (t.codeAsked === 'brainstorm' || (t.brainstormDue !== false && asksBrainstormStage)) deliver('brainstorm', t.codeAsked === 'brainstorm');
+  // A recommendation ask in any wording, code's, or a recommendation move in
+  // recommendation wording that is no risk question.
+  if (t.recAsked || move === 'code_rec_ask' || asksForConclusion(t.question)
+    || (move === 'recommendation' && t.question.includes('?') && REC_TEXT.test(t.question) && !asksRiskQuestion(t.question, false))) deliver('recommendation');
+  // The risk question once a recommendation is on the table, in risk wording
+  // or as a risk move in risk words ("Which single risk could most undermine
+  // this recommendation…?" — Ines 62d06bd6 t20).
+  const recOnTable = r.recommendation.delivered || Boolean(r.recommendation.outcome) || t.recommendationDelivered;
+  if (asksRiskQuestion(t.question, recOnTable) || (recOnTable && move === 'risk' && t.question.includes('?') && RISK_TEXT.test(t.question))) deliver('risk');
 
   if (t.ended === 'time_up') {
     for (const k of STAGES) if (!r[k].outcome && (r[k].delivered || k === 'exhibit' || k === 'brainstorm')) r[k] = { ...r[k], outcome: 'time_up' };
@@ -148,4 +170,18 @@ export function missingRequiredStages(r: StageRecord | undefined, p: { hasExhibi
   if (p.hasExhibit && !rec.exhibit.delivered) out.push('exhibit');
   if (!rec.brainstorm.delivered && p.brainstormRequired !== false) out.push('brainstorm');
   return out;
+}
+
+// The end gate's reading (Lorenzo, 13 Oct: one source of truth for what's
+// owed — the record, not a second reading of the transcript). A record saved
+// before the ask count existed counts a delivered recommendation as one ask.
+export function stagesFromRecord(r: StageRecord, recommendationReceived: boolean): StageAdministration {
+  const rec = r.recommendation ?? { delivered: false };
+  return {
+    brainstormAsked: Boolean(r.brainstorm?.delivered),
+    riskAsked: Boolean(r.risk?.delivered),
+    recommendationAsked: rec.delivered,
+    recommendationAskCount: rec.asks ?? (rec.delivered ? 1 : 0),
+    recommendationReceived,
+  };
 }
