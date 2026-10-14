@@ -13,12 +13,17 @@
 // quantity. Derived figures (per flight, new, lost, combined…), hypotheticals
 // and arithmetic results are not quotes. The correction is the ledger line
 // that shows the cell, in its own words (the misquote path in plan-turn.ts).
+// A ledger line no exhibit shows (Port Avery's $11,000 variable cost, its
+// $240 → $160 fares) is read figure by figure for the quantity it names next
+// to each (ledgerFacts); its flags are report-only on a case until the lookup
+// is checked on its transcripts (ledgerLookupLive; Lorenzo, 13 Oct).
 import { normalizeNumberWords } from '@/lib/number-words';
 import type { MisquoteFlag } from './fact-check';
 
 type Kind = 'money' | 'percent' | 'count';
 type Scale = 'unit' | 'million';
-export type CellFact = { subject: string[]; quantity: string[]; period: string | null; value: number; kind: Kind; scale: Scale; item: string; exhibit: string | null };
+// `per`: a rate the ledger line states ("$11,000 per flight"); exhibit cells carry none.
+export type CellFact = { subject: string[]; quantity: string[]; period: string | null; value: number; kind: Kind; scale: Scale; item: string; exhibit: string | null; per?: string };
 
 type CaseLike = {
   dataLedger: { id: string; label?: string; value: string }[];
@@ -96,7 +101,90 @@ export function buildCellFacts(c: CaseLike): CellFact[] {
       }
     }
   }
-  return facts;
+  return [...facts, ...ledgerFacts(c, facts)];
+}
+
+// The figures of a ledger line no exhibit shows, each with the quantity the
+// line names next to it: "<quantity> is/was/of $X" ("variable cost of
+// $11,000"), "<quantity> fell from $A to $B" (the case's first and last
+// periods), "$X of <quantity>" ("$20 of extras"), "a X% <quantity>" ("a 75%
+// load factor"), "X <things>" ("80 seats", "6,000 US specialists"), "X% of
+// <things>". Not figures: a range ("6–12 months", "$4.29–$4.99"), a year, a
+// size ("80-seat"), a difference ("30% lower"), a change ("up 40%", "a 10%
+// increase"), a bound ("fewer than 5%"), a duration, billions. The subject is
+// a table's row or exhibit subject the line names ("Hub–Port Avery shows…").
+const STOP_WORD = /^(?:with|and|while|but|that|which|the|a|an|its|their|his|her|our|on|in|for|to|so|since|because|is|was|are|were|has|have|had|of|at|by|from|than|then|there|it|they|we|today|now|both|each|all|about|roughly|around|often|typically|usually|approximately|nearly|almost|one|two|three|ago|years?|months?|last|next|this|that)$/i;
+const PER_UNIT = String.raw`(flight|passenger|patient|seat|store|customer|bag|unit|transaction|ticket|trip|month|year)s?`;
+const LEDGER_FIG = /(\$\s?)?(\d[\d,]*(?:\.\d+)?)(\s?(?:%|M\b|million\b|billion\b))?/g;
+const HEDGE_BEFORE = /(?:about|roughly|around|often(?:\s+around)?|typically|approximately|nearly|almost|usually)\s+$/i;
+
+// The words of a noun phrase, stopped at punctuation or a function word.
+function phraseBack(t: string): string[] {
+  const words = (t.split(/[,;:()—–]/).at(-1) ?? '').trim().split(/\s+/).filter(Boolean);
+  const out: string[] = [];
+  for (const w of words.reverse()) { if (STOP_WORD.test(w) || !/^[a-z][a-z'-]*$/i.test(w) || out.length === 4) break; out.unshift(w); }
+  return out;
+}
+function phraseAhead(t: string): string[] {
+  const out: string[] = [];
+  for (const w of t.split(/[,;:.()—–]/)[0].trim().split(/\s+/).filter(Boolean)) { if (STOP_WORD.test(w) || /^per$/i.test(w) || !/^[a-z][a-z'-]*$/i.test(w) || out.length === 4) break; out.push(w); }
+  return out;
+}
+
+function ledgerFacts(c: CaseLike, tableFacts: CellFact[]): CellFact[] {
+  const shownBy = new Set(c.exhibits.flatMap(e => e.coversLedgerItems ?? []));
+  const subjects = [...new Map(tableFacts.map(x => [x.subject.join('|'), x.subject])).values()].filter(x => x.length > 0);
+  const periods = [...new Set(tableFacts.map(x => x.period).filter((p): p is string => p !== null))].sort();
+  const out: CellFact[] = [];
+  for (const d of c.dataLedger) {
+    if (shownBy.has(d.id)) continue;
+    const text = d.value;
+    const flat = lc(text).replace(/[–-]/g, ' ');
+    const subject = subjects.find(names => names.some(n => wordBoundary(n.replace(/[–-]/g, ' ')).test(flat))) ?? [];
+    let chainTo: { quantity: string[]; per?: string } | null = null;
+    for (const m of text.matchAll(LEDGER_FIG)) {
+      const start = m.index ?? 0, end = start + m[0].length;
+      const before = text.slice(0, start), after = text.slice(end);
+      const suffix = (m[3] ?? '').trim().toLowerCase();
+      const value = parseFloat(m[2].replace(/,/g, ''));
+      const kind: Kind = suffix === '%' ? 'percent' : m[1] || suffix ? 'money' : 'count';
+      const fromChain: { quantity: string[]; per?: string } | null = chainTo; chainTo = null;
+      if (suffix === 'billion') continue;
+      if (/[–-]\s*\$?\s*$/.test(before) || /^\s*[–-]\s*\$?\d|^-[a-z]/i.test(after)) continue;               // a range, a size
+      if (kind === 'count' && !m[1] && /^(?:19|20)\d\d$/.test(m[2])) continue;                                        // a year
+      if (/\b(?:months?|weeks?|days?|years?)\s*$/i.test(before) || /^\s*(?:months?|weeks?|days?|years?)\b/i.test(after) || /^\s+and\s+\d/.test(after)) continue;
+      if (/^\s*(?:lower|higher|more|less|above|below|cheaper|fewer|smaller|larger|bigger)\b/i.test(after)) continue;   // a difference
+      if (/\b(?:fewer|more|less) than\s*$|\b(?:at least|up to|under|over)\s*$/i.test(before)) continue;               // a bound
+      if (/\b(?:up|down|rose|fell|grew|growing|increased|decreased|declined|dropped)\s+(?:by\s+)?(?:about\s+|roughly\s+|around\s+)?$/i.test(before) || /^\s*(?:increase|decrease|rise|drop|decline|growth|change|jump)\b/i.test(after)) continue;   // a change
+      let quantity: string[] = [];
+      let per: string | undefined;
+      let period: string | null = null;
+      const fromWords = /\b(?:fell|rose|went|dropped|grew|climbed|moved|increased|decreased|declined)?\s*from\s*$/i.exec(before);
+      if (fromChain) { quantity = fromChain.quantity; per = fromChain.per; period = periods.at(-1) ?? null; }
+      else if (fromWords && /^\s*to\s+\$?\d/.test(after)) {
+        quantity = phraseBack(before.slice(0, fromWords.index));
+        period = periods[0] ?? null;
+      } else {
+        const link = /\s+(?:is|was|are|were|of)\s+$/i.exec(before.replace(HEDGE_BEFORE, ''));
+        if (link) quantity = phraseBack(before.replace(HEDGE_BEFORE, '').slice(0, link.index));
+        if (quantity.length === 0 && kind === 'money') { const of = /^\s+(?:of|in)\s+(.*)$/i.exec(after); if (of) quantity = phraseAhead(of[1]); }
+        if (quantity.length === 0 && kind === 'percent' && /\b(?:a|an)\s*$/i.test(before)) quantity = phraseAhead(after);
+        if (quantity.length === 0 && kind === 'count') quantity = phraseAhead(after);
+        if (quantity.length === 0 && kind === 'percent') { const of = /^\s+of\s+(.*)$/i.exec(after); if (of) quantity = phraseAhead(of[1]); }
+      }
+      if (quantity.length === 0) continue;
+      // A rate named in the figure's clause ("revenue per store is $2.4M") or after it ("$11,000 per flight", "$20 of extras per passenger").
+      const perHere = new RegExp(String.raw`^\s*(?:(?:of|in)\s+(?:[a-z'-]+\s+){0,4}?)?(?:per|a|each)\s+${PER_UNIT}\b`, 'i').exec(after);
+      const perInPhrase = new RegExp(String.raw`\bper\s+${PER_UNIT}\b`, 'i').exec(before.split(/[,;:—–]/).at(-1) ?? '');
+      // Per year or month is how the case counts, not a rate.
+      if (!fromChain) per = [perHere?.[1], perInPhrase?.[1]].map(u => u?.toLowerCase()).find(u => u && u !== 'year' && u !== 'month');
+      const phrase = lc(quantity.join(' '));
+      const names: string[] = fromChain ? quantity : [...new Set([...quantityNames(phrase), phrase, quantity.at(-1)!.toLowerCase(), quantity.at(-1)!.toLowerCase().replace(/s$/, '')])].filter(x => x.length >= 3);
+      out.push({ subject, quantity: names, period, value, kind, scale: suffix === 'm' || suffix === 'million' ? 'million' : 'unit', item: d.id, exhibit: null, ...(per ? { per } : {}) });
+      if (fromWords && /^\s*to\s+\$?\d/.test(after) && !fromChain) chainTo = { quantity: names, per };
+    }
+  }
+  return out;
 }
 
 type Fig = { value: number; kind: Kind | 'plain'; scale: Scale; text: string; start: number; end: number; hedged: boolean };
@@ -117,7 +205,7 @@ const PROJECTION = /\b(?:extrapolat\w*|project(?:ed|ing|ion)?|forecast\w*|next y
 const HYPOTHETICAL = /\b(?:if|would|could|suppose|assume|assuming|say we|let's say|imagine|target|goal|need|needs|scenario|half)\b/i;
 const DERIVED_BEFORE = /\b(?:new|extra|additional|incremental|lost|losing|more|less|added|eventual|potential|projected|combined|healthy|other|remaining|four)\s+$/i;
 // Per flight, passenger… is a derived rate; per year is how the tables count.
-const PER_AFTER = /^\s*(?:per|a|each|every)\s+(?:flight|passenger|seat|ticket|trip|patient|customer|bag|unit)\b/i;
+const PER_AFTER = /^\s*(?:per|a|each|every)\s+(flight|passenger|seat|ticket|trip|patient|customer|bag|unit)s?\b/i;
 const ARITH_NEAR = /[=≈×÷*/+]\s*$|^\s*[=≈×÷*/+]|^\s*(?:-|−)\s*\$?\d/;
 const LINK = /^[\s:—–-]*(?:(?:is|was|are|were|at|of|only|just|about|roughly|around|approximately|nearly|almost|~|stood at|sits at|came in at|held at|now|today|currently|in fy\s?\d{4}|flat|both years|a year|per year)\s*[:—–-]?\s*)*$/i;
 // A computed result, not a quote: "that's $21M", "= $150".
@@ -157,14 +245,16 @@ export function findCellMisquotes(text: string, c: CaseLike, revealedIds: string
       if (pool.length === 0 || pool.some(x => matches(f, x))) return;
       const nearest = pool.reduce((a, b) => Math.abs(Math.abs(b.value) - f.value) < Math.abs(Math.abs(a.value) - f.value) ? b : a);
       if (Math.abs(f.value - Math.abs(nearest.value)) / Math.abs(nearest.value || 1) > MISREAD) return;
-      if (!out.some(o => o.cited === f.text && o.sentence === s.slice(0, 220))) out.push({ items: [nearest.item], cited: f.text, sentence: s.slice(0, 220), kind: 'quote' });
+      if (!out.some(o => o.cited === f.text && o.sentence === s.slice(0, 220))) out.push({ items: [nearest.item], cited: f.text, sentence: s.slice(0, 220), kind: 'quote', ...(nearest.exhibit === null ? { fromLedgerLine: true } : {}) });
     };
     let prev: { f: Fig; x: CellFact } | null = null;
     for (const f of figs) {
       const before = s.slice(0, f.start), after = s.slice(f.end);
       // A hypothetical in the figure's own clause ("we need the base down, since contribution today is $15.4M" is a quote).
       if (changes.some(d => near(f.value, d)) || answers.some(a => near(f.value, a)) || RESULT_BEFORE.test(before)) { prev = null; continue; }
-      if (PROJECTION.test(before) || HYPOTHETICAL.test(before.split(/[,;:—–]\s*/).at(-1) ?? '') || ARITH_NEAR.test(before.slice(-3)) || ARITH_NEAR.test(after.slice(0, 4)) || PER_AFTER.test(after)) { prev = null; continue; }
+      // A rate said after the figure is derived — unless a released ledger line states that rate ("$11,000 per flight").
+      const perSaid = PER_AFTER.exec(after)?.[1].toLowerCase();
+      if (PROJECTION.test(before) || HYPOTHETICAL.test(before.split(/[,;:—–]\s*/).at(-1) ?? '') || ARITH_NEAR.test(before.slice(-3)) || ARITH_NEAR.test(after.slice(0, 4)) || (perSaid && !facts.some(x => x.per === perSaid))) { prev = null; continue; }
       const subject = subjects.filter(x => x.at < f.start).sort((a, b) => b.at - a.at)[0]?.name;
       const ofSubject = (x: CellFact) => !subject || x.subject.includes(subject);
       // A chain off a correct figure: "46.8 down to 33.6", "$46.8M and FY2025 was $33.6M".
@@ -187,10 +277,14 @@ export function findCellMisquotes(text: string, c: CaseLike, revealedIds: string
       }));
       const said = PERIOD_WORD.exec(s.slice(Math.max(0, f.start - 30), f.end + 20));
       const period = said ? (said[1] ?? latest) : null;
-      const inKind = named.filter(x => fits(f, x) || (f.kind === 'plain' && x.kind === 'count'));
+      const inKind = named.filter(x => (fits(f, x) || (f.kind === 'plain' && x.kind === 'count')) && (perSaid ? x.per === perSaid : true));
       if (inKind.length > 0) {
-        const pool = inKind.filter(ofSubject).filter(x => !period || !x.period || x.period === period);
-        flag(f, pool.length ? pool : inKind.filter(x => !period || !x.period || x.period === period));
+        const inPeriod = (x: CellFact) => !period || !x.period || x.period === period;
+        const own = inKind.filter(ofSubject).filter(inPeriod);
+        const pool = own.length ? own : inKind.filter(inPeriod);
+        // No rate said: a figure without one, when there is one.
+        const flat = pool.filter(x => !x.per);
+        flag(f, perSaid || flat.length === 0 ? pool : flat);
         const hit = inKind.find(x => matches(f, x) && ofSubject(x));
         prev = hit ? { f, x: hit } : null;
         continue;

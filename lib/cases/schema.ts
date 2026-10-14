@@ -263,6 +263,12 @@ export const CaseSchema = z.object({
   // (absent or false) they are report-only: logged, never a probe or a
   // correction. Only prof-001 is validated.
   stepFlagsLive: z.boolean().optional(),
+  // Ledger lookup live (Lorenzo, 13 Oct, Larkspur rulings b): a misread of a
+  // figure that only a ledger line states (no exhibit shows it; cell-lookup.ts)
+  // is corrected only once the lookup is checked on the case's transcripts.
+  // Until then (absent or false) such flags are report-only: logged, never
+  // corrected. No case is live yet.
+  ledgerLookupLive: z.boolean().optional(),
   pricingModel: z.object({
     costItems: z.array(z.string()).min(1),
     variableSets: z.array(z.array(z.string()).min(1)).min(1),

@@ -118,6 +118,16 @@ transcripts and get zero false flags. Until then leave `stepFlagsLive` out —
 its step flags are logged (`recompute_report_only`) and never spoken. Set it
 to `true` only with that validation recorded (prof-001 is the only case).
 
+**`ledgerLookupLive` (13 Oct).** The exact lookup also reads ledger lines no
+exhibit shows, figure by figure, for the quantity named next to each
+(`lib/orchestrator/cell-lookup.ts`). Write such lines so each figure sits next
+to its quantity ("variable cost of $11,000 per flight", "the average fare fell
+from $240 to $160", "a 75% load factor", "80 seats"). A misread of these
+figures is corrected only with `ledgerLookupLive: true`; until the lookup is
+checked on the case's transcripts (`step-binding-check.ts --misquotes`, every
+`misquote-report-only` flag read) leave it out — such flags are logged, never
+spoken. No case is live yet.
+
 `docs/interviewer-behavior.md` Rule 2/14's deterministic recompute check
 (`lib/orchestrator/recompute.ts`) and the judge's math grading
 (`lib/scoring/judge.ts`'s `DETERMINISTIC MATH CHECK RESULTS` section) both run

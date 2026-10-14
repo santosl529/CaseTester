@@ -461,7 +461,13 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const factBase = factBaseFor(caseData as never);
   const misquotesCorrected = (flags.misquoteCorrected as string[] | undefined) ?? [];
   const timesCorrected = (id: string) => misquotesCorrected.filter(x => x === id).length;
-  const found = findCandidateMisquotes(candidateText, factBase, new Set(revealedIdsNow), [...shownExhibitIds]);
+  const allFound = findCandidateMisquotes(candidateText, factBase, new Set(revealedIdsNow), [...shownExhibitIds]);
+  // A misread of a figure only a ledger line states is logged, not corrected,
+  // until the case's lookup is checked (ledgerLookupLive; Lorenzo, 13 Oct).
+  const found = allFound.filter(m => !m.reportOnly);
+  checks.record('misquote_report_only', found.length < allFound.length, 'misquote of a ledger-line figure on a case whose lookup is not checked — logged, not corrected', {
+    flags: allFound.filter(m => m.reportOnly).map(m => ({ item: m.items[0], cited: m.cited, sentence: m.sentence })),
+  });
   // The wording that corrects an item: the ledger's value, or the prompt fact's sentence.
   const wordingOf = (id: string) => caseData.dataLedger.find(d => d.id === id)?.value
     ?? caseData.factAnchors?.promptFacts.find(p => p.id === id)?.say;

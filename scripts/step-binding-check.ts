@@ -6,7 +6,8 @@
 // every step and arithmetic flag — the claim, the bound step, and its label
 // from --labels (real / false, hand-read) — and the precision per case. With
 // --misquotes: every misquote flag instead (the quote grammar and the exact
-// cell lookup), labelled from evals/misquote-labels.json.
+// cell lookup), labelled from evals/misquote-labels.json; a ledger-line flag on a
+// case whose lookup isn't live is listed as misquote-report-only.
 //
 //   npx tsx scripts/step-binding-check.ts "--root=Case Interview Runs/test runs/batch-22-larkspur-oct-13-runs-1-9" [--labels=evals/step-binding-labels.json] [--json]
 import { existsSync, readFileSync } from 'node:fs';
@@ -41,7 +42,7 @@ function flagsOf(source: string, caseId: string, turn: number, text: string, rev
   if (MISQUOTES) {
     const c = getCaseById(caseId);
     return findCandidateMisquotes(text, factBaseFor(c as never), new Set(revealed), shown)
-      .map(m => ({ source, caseId, turn, kind: 'misquote', stepId: m.items[0], value: parseFloat(m.cited.replace(/[^\d.]/g, '')) || 0, expected: 0, span: `${m.cited} — ${m.sentence}` }));
+      .map(m => ({ source, caseId, turn, kind: m.reportOnly ? 'misquote-report-only' : 'misquote', stepId: m.items[0], value: parseFloat(m.cited.replace(/[^\d.]/g, '')) || 0, expected: 0, span: `${m.cited} — ${m.sentence}` }));
   }
   const m = checkCandidateMath(text, getCaseById(caseId), revealed);
   return [...m.reportOnly, ...m.flags]

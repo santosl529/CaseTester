@@ -55,6 +55,7 @@ export type FactBase = {
   promptLedger: { id: string; value: string; timeframes?: Record<string, string> }[];
   exhibits: { id: string; data: Record<string, unknown>[]; coversLedgerItems?: string[] }[];
   answers: number[];                      // every math step's answers (cell lookup: derived, never a misquote)
+  ledgerLookupLive?: boolean;             // ledger-line misquotes corrected (else report-only)
 };
 
 type CaseInput = {
@@ -63,6 +64,7 @@ type CaseInput = {
   exhibits: { id: string; data: Record<string, unknown>[]; coversLedgerItems?: string[] }[];
   mathSteps: { answer: number; altAnswers?: number[]; cues: string[] }[];
   quoteAnchors: QuoteAnchor[];
+  ledgerLookupLive?: boolean;
   factAnchors?: {
     promptFacts: { id: string; names: string[]; kind: 'level' | 'change'; unit: 'percent' | 'dollar' | 'count'; values: Record<string, string> }[];
     names: Record<string, string[]>;
@@ -160,6 +162,7 @@ export function buildFactBase(c: CaseInput): FactBase {
     quantities, groups: fa.groups.map(g => ({ names: g.names.map(lc), items: g.items })), drivers: fa.drivers,
     anchors, ledger: c.dataLedger, promptLedger, exhibits: c.exhibits,
     answers: c.mathSteps.flatMap(s => [s.answer, ...(s.altAnswers ?? [])]),
+    ledgerLookupLive: c.ledgerLookupLive,
   };
 }
 
@@ -461,7 +464,8 @@ export function findFalseFacts(text: string, fb: FactBase, revealed: Set<string>
 
 // ---------------------------------------------------------------- F2
 
-export type MisquoteFlag = { items: string[]; cited: string; sentence: string; kind: 'quote' | 'pointChange' };
+// `fromLedgerLine`: a figure only a ledger line states (cell-lookup.ts); `reportOnly`: logged, not corrected (the case's ledgerLookupLive is off).
+export type MisquoteFlag = { items: string[]; cited: string; sentence: string; kind: 'quote' | 'pointChange'; fromLedgerLine?: boolean; reportOnly?: boolean };
 
 const POINTS_HYPOTHETICAL = /\b(?:if|would|could|need|needs|needed|target|restore|recover|get back|back to|claw back|close|offset|of the|out of|breakeven|break even|price increase|raise prices|per \$?100)\b/i;
 
@@ -511,7 +515,7 @@ export function findCandidateMisquotes(text: string, fb: FactBase, revealedIds: 
     .map(m => ({ items: [m.item], cited: m.cited, sentence: m.sentence, kind: 'quote' as const }));
   // Exact lookup of table cells and ledger figures (cell-lookup.ts; Lorenzo, 13 Oct after Larkspur).
   for (const m of findCellMisquotes(text, { dataLedger: fb.ledger, exhibits: fb.exhibits, mathSteps: fb.answers.map(answer => ({ answer })) }, [...revealed], shownExhibitIds)) {
-    if (!out.some(o => o.items.includes(m.items[0]) || o.cited.endsWith(m.cited))) out.push(m);
+    if (!out.some(o => o.items.includes(m.items[0]) || o.cited.endsWith(m.cited))) out.push(m.fromLedgerLine && !fb.ledgerLookupLive ? { ...m, reportOnly: true } : m);
   }
   let lastLevel: Quantity[] = [];
   // A message worked on an index restates every figure on its own base.
