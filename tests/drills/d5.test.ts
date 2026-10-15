@@ -296,9 +296,9 @@ describe('gradeSet with a follow-up', () => {
   it('grades the HY-2 data request in its own call that sees only the reply, with reasons before verdicts', async () => {
     const x = withDefend(hy2);
     const steps = run(x);
-    const seen: { kind?: CallKind; system: string; user: string }[] = [];
-    const call: CallModel = async (system, user, kind) => {
-      seen.push({ kind, system, user });
+    const seen: { kind?: CallKind; system: string; user: string; model?: string }[] = [];
+    const call: CallModel = async (system, user, kind, model) => {
+      seen.push({ kind, system, user, model });
       const own = x.checks.filter(c => c.detection === 'ai' && user.includes(`check_id "${c.check_id}"`));
       return { output: { items: [{ item_key: 'answer', checks: own.map(c => ({ check_id: c.check_id, reason: 'r', pass: true, evidence: c.evidence === 'whole' ? '' : answerText(steps[defendParts(x)!.reply].response) })), red_flags: user.includes('<interviewer_followup>') ? [] : x.red_flags.filter(f => f.detection === 'ai').map(f => ({ id: f.id, present: false, evidence: '' })), hypothesis_family: 'other', backup_family: null, injection_suspected: false }] }, usage: { input_tokens: 1, output_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } };
     };
@@ -309,9 +309,28 @@ describe('gradeSet with a follow-up', () => {
     expect(data.user).not.toContain('<student_main_answer>');
     expect(data.user).not.toContain('defend_consistent');
     expect(rest.user).not.toContain('check_id "defend_data_request"');
-    expect(rest.user).toContain('after Drop, the cause the stage 2 answer moves to');
+    expect(rest.system).toContain('after Drop, the cause the stage 2 answer moves to');
+    // The rules sit in the cached system prompt, not in the item.
+    expect(rest.user).not.toContain('<grading_rules>');
     expect([data.kind, rest.kind]).toEqual(['reasoned', 'reasoned']);
     expect(data.system).toContain('write "reason" first');
+    // Both follow-up calls go to Sonnet 5.5 (Matt, 2026-10-16).
+    expect([data.model, rest.model]).toEqual(['claude-sonnet-5-5', 'claude-sonnet-5-5']);
+  });
+
+  it('keeps every other call on Haiku 4.5 with the rules inside the item', async () => {
+    const x = withDefend(hy2);
+    const steps = run(x);
+    const seen: { system: string; user: string; model?: string }[] = [];
+    const call: CallModel = async (system, user, _kind, model) => {
+      seen.push({ system, user, model });
+      const own = x.checks.filter(c => c.detection === 'ai' && c.step < defendParts(x)!.start);
+      return { output: { items: [{ item_key: 'answer', checks: own.map(c => ({ check_id: c.check_id, pass: false, evidence: '' })), red_flags: x.red_flags.filter(f => f.detection === 'ai').map(f => ({ id: f.id, present: false, evidence: '' })), hypothesis_family: 'other', backup_family: null, injection_suspected: false }] }, usage: { input_tokens: 1, output_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } };
+    };
+    await gradeSet([{ key: 'a', item: x, steps, part: 'main' }], call);
+    expect(seen.length).toBeGreaterThan(0);
+    for (const c of seen) expect(c.model).toBe('claude-haiku-4-5');
+    expect(seen.some(c => c.user.includes('<grading_rules>'))).toBe(true);
   });
   const ok = (ids: string[], flags: string[]) => ({ output: { items: [{ item_key: 'answer', checks: ids.map(id => ({ check_id: id, pass: false, evidence: '' })), red_flags: flags.map(id => ({ id, present: false, evidence: '' })), hypothesis_family: null, backup_family: null, injection_suspected: false }] }, usage: { input_tokens: 1, output_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } });
 

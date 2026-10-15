@@ -8,7 +8,7 @@ import 'server-only';
 import Anthropic from '@anthropic-ai/sdk';
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
 import { z } from 'zod';
-import { DRILL_GRADER_MODEL_ID, DRILL_GRADER_PRICE } from '@/lib/models';
+import { DRILL_GRADER_MODELS, FALLBACK_BETA, FALLBACKS, drillGraderModel, type GraderModel } from '@/lib/models';
 import { getDrill, getMistakeTag } from '../config';
 import type { Item, RepairExtras } from '../item-schema';
 import { REPAIR_DRILLS, defendGradingRules, type RepairDrillId } from '../checklists';
@@ -37,8 +37,9 @@ import type { ItemGrade } from './apply';
 // the HY-2 follow-up's data request in a call that sees only the reply, says
 // in the consistency rule that after Drop the hypothesis is the cause stage 2
 // moves to, and has both HY-2 follow-up calls write a reason before each
-// verdict.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v32';
+// verdict. v33 routes the HY-2 follow-up's two calls to Sonnet 5.5 (rules in
+// its cached system prompt); every other call stays on Haiku 4.5 as in v32.
+export const GRADER_PROMPT_VERSION = 'drills-grader-v33';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 
@@ -110,8 +111,10 @@ export type CallKind = 'standard' | 'repair' | 'reasoned';
 // part: grade only the main answer or only the Defend reply (golden runs);
 // both by default.
 export interface GradingEntry { key: string; item: Item; steps: StepResult[]; part?: 'main' | 'defend' }
-export interface GradingUsage { input_tokens: number; output_tokens: number; cache_creation_input_tokens: number; cache_read_input_tokens: number; calls: number }
-export interface SetGrade { grades: Map<string, ItemGrade>; usage: GradingUsage; cost_usd: number; model_id: string; prompt_version: string }
+export interface GradingUsage { input_tokens: number; output_tokens: number; cache_creation_input_tokens: number; cache_read_input_tokens: number; calls: number; refusals: number; fallbacks: number }
+// cost_usd_no_cache: the same calls with no cache hits (every input token at
+// the full input price), the planning figure at pilot scale.
+export interface SetGrade { grades: Map<string, ItemGrade>; usage: GradingUsage; cost_usd: number; cost_usd_no_cache: number; model_id: string; prompt_version: string }
 
 // Student text can't close its own tag and smuggle in grader-level text.
 const fence = (s: string) => s.replace(/<\/?\s*student_(?:main_)?answer/gi, m => m.replace('<', '‹'));
@@ -278,21 +281,29 @@ function missing(e: GradingEntry, out: OutputItem | undefined, inPart: (step: nu
   ];
 }
 
-export type CallModel = (system: string, user: string, kind?: CallKind) => Promise<{ output: CallOutput | null; usage: Omit<GradingUsage, 'calls'> }>;
+// refused: the model declined (stop_reason "refusal"); fellBack: a fallback
+// model served the call (Sonnet 5.5's server-side fallback).
+export type CallModel = (system: string, user: string, kind?: CallKind, model?: GraderModel) => Promise<{ output: CallOutput | null; usage: Omit<GradingUsage, 'calls' | 'refusals' | 'fallbacks'>; refused?: boolean; fellBack?: boolean }>;
 
 export function anthropicCaller(client = new Anthropic()): CallModel {
-  return async (system, user, kind = 'standard') => {
+  return async (system, user, kind = 'standard', model = drillGraderModel()) => {
+    const cfg = DRILL_GRADER_MODELS[model];
     const response = await client.beta.messages.stream({
-      model: DRILL_GRADER_MODEL_ID,
+      model,
       max_tokens: 8000,
-      temperature: 0,
-      // Haiku caches prompts of 4,096+ tokens; this instruction block is
-      // shorter today, so it caches only once it grows. Harmless until then.
+      ...(cfg.temperature !== undefined && { temperature: cfg.temperature }),
+      ...(cfg.thinking && { thinking: cfg.thinking }),
+      ...(cfg.fallbacks && { betas: [FALLBACK_BETA], fallbacks: FALLBACKS }),
+      // The instructions and the drill's grading rules (see splitRules) form
+      // the cached prefix: Sonnet 5.5 and Haiku 5.5 cache from 512 tokens;
+      // Haiku 4.5 only from 4,096, which this prefix doesn't reach.
       system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
       messages: [{ role: 'user', content: user }],
       output_config: { format: kind === 'repair' ? REPAIR_OUTPUT_FORMAT : kind === 'reasoned' ? REASONED_OUTPUT_FORMAT : OUTPUT_FORMAT },
     }).finalMessage();
+    const fellBack = ((response.usage as { iterations?: { type: string }[] }).iterations ?? []).some(i => i.type === 'fallback_message');
     return {
+      refused: response.stop_reason === 'refusal', fellBack,
       output: response.stop_reason === 'refusal' ? null : response.parsed_output ?? null,
       usage: {
         input_tokens: response.usage.input_tokens,
@@ -317,6 +328,16 @@ export function familyName(item: Item, raw: string | null): string | null {
 
 export class GradingError extends Error {}
 
+// The drill's grading rules go into the cached system prompt, after the
+// instructions, so every answer to the same drill shares one prefix; the
+// item keeps its question, checks and answer.
+const RULES_RE = /\n?<grading_rules>\n([\s\S]*?)\n<\/grading_rules>/;
+export function splitRules(system: string, block: string): { system: string; user: string } {
+  const m = block.match(RULES_RE);
+  if (!m) return { system, user: block };
+  return { system: `${system}\n\nGrading rules for the item below; apply them to every check and red flag:\n<grading_rules>\n${m[1]}\n</grading_rules>`, user: block.replace(RULES_RE, '') };
+}
+
 // Grades a set's written answers, each in its own call (PRD "Checklist
 // grading call"): a student's score must never depend on their other
 // answers, and the grader's verdicts shifted with whatever shared its call.
@@ -326,30 +347,39 @@ export class GradingError extends Error {}
 const ANSWER_KEY = 'answer';
 
 export async function gradeSet(entries: GradingEntry[], call: CallModel = anthropicCaller()): Promise<SetGrade> {
-  const usage: GradingUsage = { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0, calls: 0 };
-  const tally = (res: Awaited<ReturnType<CallModel>>) => {
+  const usage: GradingUsage = { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0, calls: 0, refusals: 0, fallbacks: 0 };
+  // Each call priced at its own model's rates; the models used, for the record.
+  let cost = 0, noCache = 0;
+  const models = new Set<GraderModel>();
+  const tally = (res: Awaited<ReturnType<CallModel>>, model: GraderModel) => {
+    const p = DRILL_GRADER_MODELS[model].price, u = res.usage;
+    cost += (u.input_tokens * p.input + u.output_tokens * p.output + u.cache_creation_input_tokens * p.cache_write + u.cache_read_input_tokens * p.cache_read) / 1_000_000;
+    noCache += ((u.input_tokens + u.cache_creation_input_tokens + u.cache_read_input_tokens) * p.input + u.output_tokens * p.output) / 1_000_000;
+    models.add(model);
     usage.calls++;
+    if (res.refused) usage.refusals++;
+    if (res.fellBack) usage.fallbacks++;
     for (const k of Object.keys(res.usage) as (keyof typeof res.usage)[]) usage[k] += res.usage[k];
   };
 
   // One call: the main answer, or (PRD "Defend step") the follow-up reply.
   // inPart: the steps whose red flags the call answers; owns: its checks.
-  interface Part { system: string; block: (e: GradingEntry) => string; kind: CallKind; inPart: (step: number) => boolean; owns: (c: { step: number; check_id: string }) => boolean }
+  interface Part { system: string; block: (e: GradingEntry) => string; kind: CallKind; inPart: (step: number) => boolean; owns: (c: { step: number; check_id: string }) => boolean; model: GraderModel }
   const partsOf = (e: GradingEntry): { main: Part | null; defend: Part[] } => {
     const d = defendParts(e.item);
     const repair = getDrill(e.item.drill_id).stage === 'repair';
     const main: Part = {
       system: repair ? SYSTEM + REPAIR_SYSTEM : SYSTEM, block: buildItemBlock, kind: repair ? 'repair' : 'standard',
-      inPart: step => !d || step < d.start, owns: c => !d || c.step < d.start,
+      inPart: step => !d || step < d.start, owns: c => !d || c.step < d.start, model: drillGraderModel(),
     };
     const replied = d && answerText(e.steps[d.reply]?.response ?? { type: 'empty' });
     const inDefend = (step: number) => Boolean(d) && step >= d!.start;
     // HY-2: the data request in a call of its own that sees only the reply;
     // the drop result and consistency in a call that sees the hypothesis.
     const defend: Part[] = !replied ? [] : e.item.drill_id === 'HY-2' ? [
-      { system: SYSTEM + DEFEND_DATA_SYSTEM + REASONED_SYSTEM, block: buildDefendDataBlock, kind: 'reasoned', inPart: inDefend, owns: c => inDefend(c.step) && c.check_id === HY2_DATA_CHECK },
-      { system: SYSTEM + DEFEND_SYSTEM + REASONED_SYSTEM, block: buildDefendBlock, kind: 'reasoned', inPart: inDefend, owns: c => inDefend(c.step) && c.check_id !== HY2_DATA_CHECK },
-    ] : [{ system: SYSTEM + DEFEND_SYSTEM, block: buildDefendBlock, kind: 'standard', inPart: inDefend, owns: c => inDefend(c.step) }];
+      { system: SYSTEM + DEFEND_DATA_SYSTEM + REASONED_SYSTEM, block: buildDefendDataBlock, kind: 'reasoned', inPart: inDefend, owns: c => inDefend(c.step) && c.check_id === HY2_DATA_CHECK, model: drillGraderModel('hy2_followup') },
+      { system: SYSTEM + DEFEND_SYSTEM + REASONED_SYSTEM, block: buildDefendBlock, kind: 'reasoned', inPart: inDefend, owns: c => inDefend(c.step) && c.check_id !== HY2_DATA_CHECK, model: drillGraderModel('hy2_followup') },
+    ] : [{ system: SYSTEM + DEFEND_SYSTEM, block: buildDefendBlock, kind: 'standard', inPart: inDefend, owns: c => inDefend(c.step), model: drillGraderModel() }];
     return { main: e.part === 'defend' ? null : main, defend: e.part === 'main' ? [] : defend };
   };
 
@@ -359,8 +389,10 @@ export async function gradeSet(entries: GradingEntry[], call: CallModel = anthro
       try {
         // The same label in every call, so nothing about the answer's place in
         // the set (or its id) can reach the grader.
-        const res = await call(part.system, `<items>\n${part.block({ ...e, key: ANSWER_KEY })}\n</items>${note}`, part.kind);
-        tally(res);
+        const block = part.block({ ...e, key: ANSWER_KEY });
+        const { system, user } = DRILL_GRADER_MODELS[part.model].rulesInSystem ? splitRules(part.system, block) : { system: part.system, user: block };
+        const res = await call(system, `<items>\n${user}\n</items>${note}`, part.kind, part.model);
+        tally(res, part.model);
         const out = res.output && (part.kind === 'repair' ? RepairOutputSchema : part.kind === 'reasoned' ? ReasonedOutputSchema : OutputSchema).safeParse(res.output);
         if (!out?.success) { last = new Error('grader returned no valid structured output'); continue; }
         const items = out.data.items as OutputItem[];
@@ -405,8 +437,10 @@ export async function gradeSet(entries: GradingEntry[], call: CallModel = anthro
   // buildFamilyBlock). If it fails twice, the main call's family is used.
   const classify = async (e: GradingEntry) => {
     for (let i = 0; i < 2; i++) {
-      const res = await call(SYSTEM, `<items>\n${buildFamilyBlock(e)}\n</items>`);
-      tally(res);
+      const model = drillGraderModel();
+      const { system, user } = DRILL_GRADER_MODELS[model].rulesInSystem ? splitRules(SYSTEM, buildFamilyBlock(e)) : { system: SYSTEM, user: buildFamilyBlock(e) };
+      const res = await call(system, `<items>\n${user}\n</items>`, 'standard', model);
+      tally(res, model);
       const out = res.output && OutputSchema.safeParse(res.output);
       const item = out?.success ? out.data.items[0] : undefined;
       if (item?.hypothesis_family) return item;
@@ -437,8 +471,5 @@ export async function gradeSet(entries: GradingEntry[], call: CallModel = anthro
   };
 
   const grades = new Map(await Promise.all(entries.map(async e => [e.key, await gradeOne(e)] as const)));
-  const p = DRILL_GRADER_PRICE;
-  const cost = (usage.input_tokens * p.input + usage.output_tokens * p.output
-    + usage.cache_creation_input_tokens * p.cache_write + usage.cache_read_input_tokens * p.cache_read) / 1_000_000;
-  return { grades, usage, cost_usd: Number(cost.toFixed(6)), model_id: DRILL_GRADER_MODEL_ID, prompt_version: GRADER_PROMPT_VERSION };
+  return { grades, usage, cost_usd: Number(cost.toFixed(6)), cost_usd_no_cache: Number(noCache.toFixed(6)), model_id: [...models].sort().join('+') || drillGraderModel(), prompt_version: GRADER_PROMPT_VERSION };
 }

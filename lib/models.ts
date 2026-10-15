@@ -27,3 +27,30 @@ export const FALLBACKS = 'default' as const;
 export const DRILL_GRADER_MODEL_ID = 'claude-haiku-4-5';
 // Per million tokens, for grading_jobs.cost_usd.
 export const DRILL_GRADER_PRICE = { input: 1, output: 5, cache_write: 1.25, cache_read: 0.1 };
+
+// Candidate graders for the model comparison (2026-10-16; scripts pick one
+// with DRILL_GRADER_MODEL). Prices per million tokens, cache writes at the
+// 5-minute rate. Thinking is off on all three, as on Haiku 4.5 today: Sonnet
+// 5.5 rejects {type: "disabled"} and takes "between_tools"; neither newer
+// model accepts a non-default temperature, so only Haiku 4.5 keeps 0.
+export type GraderModel = 'claude-haiku-4-5' | 'claude-sonnet-5-5' | 'claude-haiku-5-5';
+// rulesInSystem: the drill's grading rules go into the cached system prompt.
+// Only for models that can cache a prompt this short (512 tokens); on Haiku
+// 4.5 (4,096) moving them gained nothing and cost four checks in the gate.
+export const DRILL_GRADER_MODELS: Record<GraderModel, { price: typeof DRILL_GRADER_PRICE; temperature?: number; thinking?: { type: 'disabled' | 'between_tools' }; fallbacks?: boolean; rulesInSystem?: boolean }> = {
+  'claude-haiku-4-5': { price: DRILL_GRADER_PRICE, temperature: 0 },
+  'claude-sonnet-5-5': { price: { input: 2, output: 10, cache_write: 2.5, cache_read: 0.2 }, thinking: { type: 'between_tools' }, fallbacks: true, rulesInSystem: true },
+  'claude-haiku-5-5': { price: { input: 0.1, output: 0.5, cache_write: 0.125, cache_read: 0.01 }, thinking: { type: 'disabled' }, rulesInSystem: true },
+};
+
+// Which model grades which call (Matt, 2026-10-16, after the comparison):
+// Haiku 4.5 everywhere except the HY-2 follow-up's two calls (data request;
+// drop result and consistency), which Sonnet 5.5 grades. DRILL_GRADER_MODEL
+// forces one model for every call, for testing a candidate with one gate run.
+export const DRILL_GRADER_HY2_FOLLOWUP_MODEL: GraderModel = 'claude-sonnet-5-5';
+export function drillGraderModel(call: 'default' | 'hy2_followup' = 'default'): GraderModel {
+  const m = process.env.DRILL_GRADER_MODEL;
+  if (!m) return call === 'hy2_followup' ? DRILL_GRADER_HY2_FOLLOWUP_MODEL : DRILL_GRADER_MODEL_ID;
+  if (!(m in DRILL_GRADER_MODELS)) throw new Error(`DRILL_GRADER_MODEL ${m} isn't one of ${Object.keys(DRILL_GRADER_MODELS).join(', ')}`);
+  return m as GraderModel;
+}
