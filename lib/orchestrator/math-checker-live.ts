@@ -356,6 +356,11 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const misreads: { key: string; figures: number[] }[] = [];
   const messageOf = (n: number) => (n === p.candidateTurnIndex ? p.candidateText : p.turnRows.find(t => t.role === 'candidate' && t.turnIndex === n)?.text ?? '');
   const sentenceOf = (text: string, span: string) => sentencesOf(text).find(s => s.includes(span.slice(0, 40))) ?? span;
+  // The flagged claims so far, for a later "correct" verdict on their figures.
+  const flaggedSoFar: { id: string; n: number; c: VettedClaim }[] = [];
+  const idFigsOf = (c: CheckerClaim) => { const f = ownFigures(c, caseNumbers); return [...f, ...wordFigures(c.candidateValue).filter(w => !f.some(x => same(x, w)))]; };
+  const vetCtx: VetContext = { caseData: p.caseData, revealedIds: p.revealedIds, shownExhibitIds: [], candidateTexts: laterMessages(-1).map(x => x.text) };
+  const reopened: { id: string; n: number; c: VettedClaim; key: string; figs: number[] }[] = [];
   for (const v of verdicts) {
     for (const f of v.codeFlags.filter(x => x.key.startsWith('misquote:'))) {
       const m = misreads.find(x => x.key === f.key);
@@ -387,6 +392,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       const told = c.flag ? [...numbersOf(sentenceOf(normalizeNumberWords(messageOf(v.candidateTurnIndex)), normalizeNumberWords(c.span))), ...numbersOf(normalizeNumberWords(c.candidateValue))] : [];
       const misread = misreads.find(m => told.some(n => m.figures.some(x => same(n, x))));
       if (misread) misread.figures.push(...numbersOf(normalizeNumberWords(c.candidateValue)));
+      if (c.flag) flaggedSoFar.push({ id, n: v.candidateTurnIndex, c });
       if (handled.has(id)) return;
       const figs = claimFigures(c, caseNumbers);
       const codeFlag = v.codeFlags.find(f => f.key === checkerKey(c) || figs.some(x => same(x, f.value)));
@@ -395,6 +401,31 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
         if (c.verdict === 'correct' && codeFlag) {
           decisions.push(decision(id, v.candidateTurnIndex, c, 'disagrees_with_code', `code flagged ${codeFlag.value} ("${codeFlag.span}"); the flag is kept`));
           handled.add(id);
+          return;
+        }
+        // A later "correct" on an open flag's figures closes it only when code's
+        // own figure for the flag's quantity agrees with the checker's (Lorenzo,
+        // 15 Oct; batch 25, Jasmine f4fcab5b t21: "~6 points out of 18 — a third"
+        // judged correct, code computes 10.1 for a 12% rise) — the agreement rule
+        // of corrections: 3% or 0.5.
+        if (c.verdict === 'correct') {
+          const mine = c.correctValue ?? (c.correctLow !== null && c.correctHigh !== null ? (c.correctLow + c.correctHigh) / 2 : null);
+          const said = idFigsOf(c);
+          // Their flagged result said again — its first figure or its word quantity, not
+          // an input it shares ("3.7 points (10.5 to 14.2)" isn't restated by "10.5"),
+          // and not a different named quantity.
+          const head = (x: CheckerClaim) => [...numbersOf(normalizeNumberWords(x.candidateValue)).slice(0, 1), ...wordFigures(x.candidateValue)];
+          const sameQuantity = (a: CheckerClaim, b: CheckerClaim) => a.codeQuantity.kind === 'none' || b.codeQuantity.kind === 'none'
+            || (a.codeQuantity.kind === b.codeQuantity.kind && a.codeQuantity.stepId === b.codeQuantity.stepId);
+          const open = flaggedSoFar.find(f => f.n < v.candidateTurnIndex && said.length > 0 && sameQuantity(f.c, c) && head(f.c).some(x => said.some(y => same(x, y))));
+          const key = open ? flagKeyFor(open.c, idFigsOf(open.c), keys) : null;
+          const code = open ? codeComputed(open.c, vetCtx) : null;
+          if (open && key && keys[key] && !closed.has(key) && code && mine !== null
+            && !code.values.some(x => Math.abs(x - mine) <= Math.max(0.5, 0.03 * Math.abs(x)))) {
+            decisions.push(decision(id, v.candidateTurnIndex, c, 'disagrees_with_code', `a restatement of ${key}: the checker said ${mine}, code computes ${code.values.join(' / ')}; the flag stays open`, undefined, key));
+            handled.add(id);
+            if (!reopened.some(r => r.key === key)) reopened.push({ ...open, key, figs: claimFigures(open.c, caseNumbers) });
+          }
         }
         return;
       }
@@ -442,6 +473,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       eligible.push({ id, n: v.candidateTurnIndex, c, key, figs, codeProbed: Boolean(codeFlag) });
     });
   }
+  for (const r of reopened) if (!eligible.some(e => e.key === r.key)) eligible.push({ id: r.id, n: r.n, c: r.c, key: r.key, figs: r.figs });
   // One checker probe a turn, conclusion-changing first; none beside a
   // deterministic flag on this message (that is the turn's probe) or a
   // misquote code corrects this turn (one math line a turn).

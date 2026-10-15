@@ -559,6 +559,60 @@ describe('a closed error in the recommendation: the same unit, never a bare numb
   });
 });
 
+// Lorenzo, 15 Oct (batch-25 ruling 8; Jasmine f4fcab5b): a later "correct"
+// verdict closes an open flag only when code's own figure for the flag's
+// quantity agrees with it — the agreement rule of corrections (3% or 0.5).
+describe('a later "correct" verdict closes an open flag only if code agrees', () => {
+  const gain12 = { kind: 'gain' as const, stepId: null, price: 12, target: null };
+  const third = vetted({ span: 'roll a 10-12% increase across core drinks after a short pilot, which closes maybe a third of the 18-point gap', candidateValue: 'about one third (about 6 points)', correctValue: 10.1, codeQuantity: gain12,
+    probeLine: 'You said a 10-12% price increase closes maybe a third of the 18-point gap. How did you get that, and what base did you measure it against?',
+    correctionLine: 'A 12% price rise lifts margin about 10.1 points, not 6.', correctionFigure: '10.1' });
+  const restated = (correctValue: number) => vetted({ flag: false, verdict: 'correct', span: '~6 points recovered out of 18 — a third', candidateValue: '6 points, one third', correctValue, codeQuantity: { kind: 'none', stepId: null, price: null, target: null }, probeLine: null, correctionLine: null, correctionFigure: null });
+  const run = (later: VettedClaim, closed: string[] = []) => planCheckerFlags(input({
+    rows: [verdictRow(17, [third]), { category: MATH_CHECKER_CATEGORY, subtype: 'flag', turnIndex: 19, payloadJsonb: { id: '17:0', candidateTurnIndex: 17, outcome: 'probe', reason: 'attempt 1', span: third.span, candidateValue: third.candidateValue, key: 'pricing:gain', changesConclusion: true, line: third.probeLine } }, verdictRow(21, [later])],
+    handled: ['17:0'], keys: { 'pricing:gain': { figures: [6, 1 / 3], since: 17 } }, attempts: { 'pricing:gain': 1 }, closed,
+    turnRows: [
+      { turnIndex: 17, role: 'candidate', text: 'Price first — roll a 10-12% increase across core drinks after a short pilot, which closes maybe a third of the 18-point gap.' },
+      { turnIndex: 20, role: 'interviewer', text: third.probeLine! },
+      { turnIndex: 21, role: 'candidate', text: 'Rough: at 12% higher revenue with COGS dollars fixed, COGS as a percent of revenue falls from 58 to about 58/1.12 ≈ 52, so ~6 points recovered out of 18 — a third.' },
+      { turnIndex: 22, role: 'interviewer', text: 'What would you need to see from the pilot?' },
+    ],
+    candidateTurnIndex: 23, candidateText: 'Transaction counts in the pilot stores.', candidateFigures: [6],
+  }));
+  it('Jasmine t21: "~6 points out of 18 — a third" judged correct (6.2) while code computes 10.1 — the flag stays open: its correction', () => {
+    const p = run(restated(6.2));
+    expect(p.decisions).toEqual(expect.arrayContaining([expect.objectContaining({ id: '21:0', outcome: 'disagrees_with_code' })]));
+    expect(p.selected).toMatchObject({ id: '17:0', action: 'correct', line: 'A 12% price rise lifts margin about 10.1 points, not 6.' });
+  });
+  it('when code agrees with the later verdict, it closes the flag as before', () => {
+    expect(run(restated(10)).selected).toBeNull();
+  });
+  it('a flag already closed (corrected, or left for the report) stays closed', () => {
+    expect(run(restated(6.2), ['pricing:gain']).selected).toBeNull();
+  });
+  it('a correct claim of another named quantity, with the same figure, is no restatement', () => {
+    const other = vetted({ flag: false, verdict: 'correct', span: 'six points is what the overhead line would need', candidateValue: '6 points', correctValue: 6, codeQuantity: { kind: 'step', stepId: 'bean_points_added', price: null, target: null }, probeLine: null, correctionLine: null });
+    expect(run(other).selected).toBeNull();
+  });
+  it("a correct claim sharing only an input figure isn't a restatement (Fiona 52743bea t11: \"10.5\" against her flagged \"3.7 points (10.5 to 14.2)\")", () => {
+    const flagged = vetted({ span: 'The remaining gap, 58 minus 54.3, is 3.7 points on beans, taking them from 10.5 to 14.2', candidateValue: '3.7 points (10.5 to 14.2)', correctValue: 4.2, codeQuantity: { kind: 'step', stepId: 'bean_points_added', price: null, target: null } });
+    const share = vetted({ flag: false, verdict: 'correct', span: 'Beans at 25% of 42 points, so 10.5 points of revenue', candidateValue: '10.5', correctValue: 10.5, codeQuantity: { kind: 'step', stepId: 'bean_share_of_revenue', price: null, target: null }, probeLine: null, correctionLine: null });
+    const p = planCheckerFlags(input({
+      rows: [verdictRow(7, [flagged]), verdictRow(11, [share])], handled: ['7:0'], keys: { 'bean_points_added@3.7': { figures: [3.7, 10.5, 14.2], since: 7 } },
+      turnRows: [{ turnIndex: 7, role: 'candidate', text: flagged.span }, { turnIndex: 8, role: 'interviewer', text: 'Go on.' }, { turnIndex: 11, role: 'candidate', text: share.span }, { turnIndex: 12, role: 'interviewer', text: 'Go on.' }],
+      candidateTurnIndex: 13, candidateText: 'Do we have the bean price?', candidateFigures: [3.7, 10.5],
+    }));
+    expect(p.decisions.find(d => d.id === '11:0')).toBeUndefined();
+    // …the same with the quantity unnamed: only the shared input figure links them.
+    const q = planCheckerFlags(input({
+      rows: [verdictRow(7, [flagged]), verdictRow(11, [{ ...share, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } }])], handled: ['7:0'], keys: { 'bean_points_added@3.7': { figures: [3.7, 10.5, 14.2], since: 7 } },
+      turnRows: [{ turnIndex: 7, role: 'candidate', text: flagged.span }, { turnIndex: 8, role: 'interviewer', text: 'Go on.' }, { turnIndex: 11, role: 'candidate', text: share.span }, { turnIndex: 12, role: 'interviewer', text: 'Go on.' }],
+      candidateTurnIndex: 13, candidateText: 'Do we have the bean price?', candidateFigures: [3.7, 10.5],
+    }));
+    expect(q.decisions.find(d => d.id === '11:0')).toBeUndefined();
+  });
+});
+
 // Lorenzo, 14 Oct (batch 24, Owen e64de272 and Marisol 4bf008fd): in a turn, the
 // claim the interviewer just questioned is the one a concession answers — the
 // checker line delivered on that interviewer turn; another open claim stays open.
