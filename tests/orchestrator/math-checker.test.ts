@@ -262,7 +262,7 @@ describe('FR-4: what a flag may put in the interviewer\'s mouth', () => {
 
 // Lorenzo, 13 Oct (rulings after the rerun, and after part 1): code writes
 // the correction from its own computation of the quantity the checker names,
-// naming the quantity and its input ("A 10% price rise lifts margin about 8.5
+// naming the quantity and its input ("From today's 6% margin, a 10% price rise lifts margin about 8.5
 // points, not 5.") — only when the checker's figure agrees with code's (3% or
 // 0.5), the input code computes from is in the claim's span, and every input
 // is revealed; through provenance and truth like any other line.
@@ -281,29 +281,29 @@ describe('code writes the correction', () => {
     expect(w.correctionLine ?? '').not.toMatch(/23\.9/);
     expect(codeCorrection(claim({ candidateValue: 'roughly 50%', codeQuantity: { kind: 'breakeven', stepId: null, price: 11, target: null } }), { value: 23.9, index: 2 }, ctx([text]))).toBeNull();
   });
-  it('a gain: "A 10% price rise lifts margin about 8.5 points, not 5."', () => {
+  it('a gain: "From today\'s 6% margin, a 10% price rise lifts margin about 8.5 points, not 5."', () => {
     const [v] = vetCheckerClaims([claim({
       span: 'a 10% price increase recovers about 5 points', candidateValue: 'about 5 points', correctValue: 8.5, codeQuantity: gain(10),
     })], ctx(['A 10% price increase recovers about 5 points.']));
-    expect(v.correctionLine).toBe('A 10% price rise lifts margin about 8.5 points, not 5.');
+    expect(v.correctionLine).toBe('From today\'s 6% margin, a 10% price rise lifts margin about 8.5 points, not 5.');
   });
 
   it('a new margin, a needed price for a margin and for a gain, a break-even', () => {
     const one = (over: Partial<CheckerClaim>, text: string) => vetCheckerClaims([claim({ span: text, ...over })], ctx([text]))[0].correctionLine;
     expect(one({ candidateValue: 'about 11%', correctValue: 14.5, codeQuantity: { ...gain(10), kind: 'new_margin' } }, 'A 10% price rise takes us from 6% to about 11%.'))
-      .toBe('A 10% price rise takes margin to about 14.5%, not 11%.');
+      .toBe('From today\'s 6% margin, a 10% price rise takes margin to about 14.5%, not 11%.');
     expect(one({ candidateValue: '10–12%', correctValue: 23.7, codeQuantity: { kind: 'needed_for_margin', stepId: null, price: null, target: 24 } }, 'To get back to 24% margin I need roughly 10–12% on menu prices.'))
-      .toBe('Getting back to a 24% margin takes about a 23.7% price rise, not 10–12%.');
+      .toBe('From today\'s 6% margin, getting back to a 24% margin takes about a 23.7% price rise, not 10–12%.');
     expect(one({ candidateValue: '16%', correctValue: 20.5, codeQuantity: { kind: 'needed_for_gain', stepId: null, price: null, target: 16 } }, 'Restoring the full 16 points would need roughly a 16% lift.'))
-      .toBe('Recovering 16 points of margin takes about a 20.5% price rise, not 16%.');
+      .toBe('From today\'s 6% margin, recovering 16 points of margin takes about a 20.5% price rise, not 16%.');
     expect(one({ candidateValue: '10%', correctValue: 19.2, codeQuantity: { ...gain(10), kind: 'breakeven' } }, 'A 10% rise breaks even if we lose 10% of volume.'))
-      .toBe('With COGS varying with volume, a 10% price rise breaks even at about a 19.2% volume loss, not 10%.');
+      .toBe('From today\'s 6% margin, with COGS varying with volume, a 10% price rise breaks even at about a 19.2% volume loss, not 10%.');
   });
 
   it("break-even: of code's answers, the one the checker's figure agrees with, and its cost lines named", () => {
     const text = 'A 10% rise breaks even if we lose 45% of volume.';
     const [v] = vetCheckerClaims([claim({ span: text, candidateValue: '45%', correctValue: 33.3, codeQuantity: { ...gain(10), kind: 'breakeven' } })], ctx([text]));
-    expect(v.correctionLine).toBe('With COGS and labor varying with volume, a 10% price rise breaks even at about a 33.3% volume loss, not 45%.');
+    expect(v.correctionLine).toBe('From today\'s 6% margin, with COGS and labor varying with volume, a 10% price rise breaks even at about a 33.3% volume loss, not 45%.');
   });
 
   it('a math step: the quantity named, in their units', () => {
@@ -334,9 +334,9 @@ describe('code writes the correction', () => {
   it('a value with several figures: the one in the quantity\'s unit (replay: Sofia b20 t16, "per 10% of price")', () => {
     const text = 'call it five points of margin back on a 10% price rise, going from 6% to roughly 11%';
     expect(vetCheckerClaims([claim({ span: text, candidateValue: '5 points gain, 11% margin', correctValue: 8.5, codeQuantity: gain(10) })], ctx([text]))[0].correctionLine)
-      .toBe('A 10% price rise lifts margin about 8.5 points, not 5.');
+      .toBe('From today\'s 6% margin, a 10% price rise lifts margin about 8.5 points, not 5.');
     expect(vetCheckerClaims([claim({ span: text, candidateValue: '5 points gain, 11% margin', correctValue: 14.5, codeQuantity: { ...gain(10), kind: 'new_margin' } })], ctx([text]))[0].correctionLine)
-      .toBe('A 10% price rise takes margin to about 14.5%, not 11%.');
+      .toBe('From today\'s 6% margin, a 10% price rise takes margin to about 14.5%, not 11%.');
   });
 
   it('the checker disagreeing with code: probe only, logged (1c9184cf t18, run 1: checker 38.1, code 20.5)', () => {
@@ -355,7 +355,7 @@ describe('code writes the correction', () => {
     const text = 'A 20% price rise is worth ten points.';
     expect(vetCheckerClaims([claim({ span: text, candidateValue: 'ten points', correctValue: 16.3, codeQuantity: gain(20) })], ctx([text]))[0].correctionLine).toBeNull();
     expect(vetCheckerClaims([claim({ span: text, candidateValue: 'ten points', correctValue: 15.9, codeQuantity: gain(20) })], ctx([text]))[0].correctionLine)
-      .toBe('A 20% price rise lifts margin about 15.7 points, not 10.');
+      .toBe('From today\'s 6% margin, a 20% price rise lifts margin about 15.7 points, not 10.');
   });
 
   it('a misnamed quantity is caught by the disagreement ("a 30% bean increase" named as the bean-share step)', () => {
@@ -380,25 +380,25 @@ describe('code writes the correction', () => {
   it('the sentence binds when exactly one figure there is the input (5 replay losses: the price before a dash, the clause after it)', () => {
     const text = 'A 10% price increase takes revenue to 110, COGS falls to 52.7% of revenue — that\'s 5.3 points of margin back from one move.';
     const [v] = vetCheckerClaims([claim({ span: "that's 5.3 points of margin back from one move", candidateValue: '5.3 points', correctValue: 8.5, codeQuantity: gain(10) })], ctx([text]));
-    expect(v.correctionLine).toBe('A 10% price rise lifts margin about 8.5 points, not 5.3.');
+    expect(v.correctionLine).toBe('From today\'s 6% margin, a 10% price rise lifts margin about 8.5 points, not 5.3.');
     const [t] = vetCheckerClaims([claim({ span: 'roughly 10–12% on menu prices to restore margin', candidateValue: '10–12%', correctValue: 23.7, codeQuantity: { kind: 'needed_for_margin', stepId: null, price: null, target: 24 } })],
       ctx(['To get back to 24% margin: roughly 10–12% on menu prices to restore margin.']));
-    expect(t.correctionLine).toBe('Getting back to a 24% margin takes about a 23.7% price rise, not 10–12%.');
+    expect(t.correctionLine).toBe('From today\'s 6% margin, getting back to a 24% margin takes about a 23.7% price rise, not 10–12%.');
     // A target gain is in points.
     const [g] = vetCheckerClaims([claim({ span: 'would need roughly a 16% lift', candidateValue: '16%', correctValue: 20.5, codeQuantity: { kind: 'needed_for_gain', stepId: null, price: null, target: 16 } })],
       ctx(['Restoring the full 16 points would need roughly a 16% lift.']));
-    expect(g.correctionLine).toBe('Recovering 16 points of margin takes about a 20.5% price rise, not 16%.');
+    expect(g.correctionLine).toBe('From today\'s 6% margin, recovering 16 points of margin takes about a 20.5% price rise, not 16%.');
     const [g25] = vetCheckerClaims([claim({ span: 'would need roughly a 25% lift', candidateValue: '25%', correctValue: 20.5, codeQuantity: { kind: 'needed_for_gain', stepId: null, price: null, target: 16 } })],
       ctx(['Getting the full 16 points back would need roughly a 25% lift.']));
-    expect(g25.correctionLine).toBe('Recovering 16 points of margin takes about a 20.5% price rise, not 25%.');
+    expect(g25.correctionLine).toBe('From today\'s 6% margin, recovering 16 points of margin takes about a 20.5% price rise, not 25%.');
   });
 
   it('two prices in one sentence: binds to the one the checker named; two of the same figure — the span decides', () => {
     const text = 'A 10% rise recovers about 5 points and a 20% rise would be closer to ten points.';
     const [ten] = vetCheckerClaims([claim({ span: 'recovers about 5 points', candidateValue: 'about 5 points', correctValue: 8.5, codeQuantity: gain(10) })], ctx([text]));
-    expect(ten.correctionLine).toBe('A 10% price rise lifts margin about 8.5 points, not 5.');
+    expect(ten.correctionLine).toBe('From today\'s 6% margin, a 10% price rise lifts margin about 8.5 points, not 5.');
     const [twenty] = vetCheckerClaims([claim({ span: 'would be closer to ten points', candidateValue: 'ten points', correctValue: 15.7, codeQuantity: gain(20) })], ctx([text]));
-    expect(twenty.correctionLine).toBe('A 20% price rise lifts margin about 15.7 points, not 10.');
+    expect(twenty.correctionLine).toBe('From today\'s 6% margin, a 20% price rise lifts margin about 15.7 points, not 10.');
     // A price the sentence doesn't hold: unbound.
     const [twelve] = vetCheckerClaims([claim({ span: 'recovers about 5 points', candidateValue: 'about 5 points', correctValue: 9.9, codeQuantity: gain(12) })], ctx([text]));
     expect(twelve.correctionLine).toBeNull();

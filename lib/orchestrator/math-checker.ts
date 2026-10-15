@@ -28,6 +28,7 @@ import { enforceNumericProvenance, changeFigures } from './numeric-provenance';
 import { buildFactBase, findFalseFacts, type FactBase } from './fact-check';
 import { pricingAnswers, pricingValues, statedContributions } from './pricing-check';
 import { inputsRevealed } from '@/lib/scoring/math-spans';
+import { statedBaseOf } from './unit-check';
 
 // ── the gate ────────────────────────────────────────────────────────────────
 
@@ -392,6 +393,39 @@ function unbound(c: CheckerClaim, input: number, message: string): string | null
   return matching.length > 1 ? `the claim's sentence states ${input} twice — which one the claim rests on is unclear` : `the claim's span (and sentence) doesn't state the ${input} code computes from`;
 }
 
+// Lorenzo, 15 Oct (batch 27 Sofia t17: "COGS is 58, and if beans are 25% of
+// COGS that's 25 points of revenue" corrected to the two-years-ago step's 10.5;
+// the checker's own derivation took 42 too, so its agreement wasn't
+// independent): the base comes from the candidate's words. A step of one year
+// whose input is a share base (prof-001's COGS) corrects no claim whose
+// sentence states that line at another level — it is another quantity; the
+// probe alone goes out. Returns why, or null.
+function otherYearBase(c: CheckerClaim, ctx: VetContext): string | null {
+  const q = c.codeQuantity;
+  if (q.kind !== 'step') return null;
+  const step = ctx.caseData.mathSteps.find(st => st.id === q.stepId);
+  if (!step || (step.timeframe !== 'prior' && step.timeframe !== 'current')) return null;
+  const message = normalizeNumberWords(ctx.candidateTexts.at(-1) ?? '');
+  const sentences = message.split(/(?<=[.!?])\s+|\n+/).map(s => s.trim()).filter(Boolean);
+  const span = normalizeNumberWords(c.span).trim().toLowerCase().slice(0, 30);
+  const at = sentences.findIndex(s => s.toLowerCase().includes(span));
+  if (at < 0) return null;
+  for (const base of (ctx.caseData.shareBases ?? []).filter(b => step.inputs?.includes(b.item))) {
+    const level = Object.entries(ctx.caseData.dataLedger.find(d => d.id === base.item)?.timeframes ?? {})
+      .find(([, tf]) => tf === step.timeframe || tf === 'both')?.[0];
+    if (level === undefined) continue;
+    const names = [base.name, ...base.aliases].map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+    const shareOf = (s: string) => [...s.matchAll(new RegExp(`(\\d+(?:\\.\\d+)?)\\s*(?:%|percent)\\s+of\\s+(?:the\\s+|total\\s+)?(?:${names})\\b`, 'gi'))].map(m => parseFloat(m[1]));
+    const window = [sentences[at - 1] ?? '', sentences[at]];
+    const shares = shareOf(window.join(' '));
+    const own = statedBaseOf(sentences[at], names, shares, []) ?? statedBaseOf(window[0], names, shares, []);
+    if (own !== undefined && !near(own, parseFloat(level))) {
+      return `the claim states ${base.name} at ${own}; the step is ${step.timeframe === 'prior' ? "two years ago's" : "today's"} (${level}) — another quantity`;
+    }
+  }
+  return null;
+}
+
 // Lorenzo, 13 Oct: code writes the correction from its own figure for the
 // quantity the checker names, naming the quantity and its input ("A 10% price
 // rise lifts margin about 8.5 points, not 5.") — the checker's arithmetic is
@@ -410,7 +444,10 @@ export function codeCorrection(c: CheckerClaim, at: { value: number; index: numb
   const bare = /point/i.test(theirs) ? theirs.match(FIGURE)![0] : theirs;
   const x = spokenFigure(at.value);
   const q = c.codeQuantity;
-  const line = (() => {
+  // A pricing answer is from today's cost structure: the line names that period (Lorenzo, 15 Oct).
+  const pv = q.kind !== 'step' ? pricingValues(ctx.caseData, new Set(ctx.revealedIds)) : null;
+  const today = (s: string | null) => (s && pv ? `From today's ${pv.margin}% margin, ${s[0].toLowerCase()}${s.slice(1)}` : s);
+  const line = today((() => {
     switch (q.kind) {
       case 'gain': return `${An(q.price)} ${q.price}% price rise lifts margin about ${x} points, not ${bare}.`;
       case 'new_margin': return `${An(q.price)} ${q.price}% price rise takes margin to about ${x}%, not ${bare}.`;
@@ -434,7 +471,7 @@ export function codeCorrection(c: CheckerClaim, at: { value: number; index: numb
       }
       default: return null;
     }
-  })();
+  })());
   return line ? { line, figure: x, theirs } : null;
 }
 
@@ -604,8 +641,10 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
       const input = boundInput(c);
       const unboundWhy = input === null ? null : unbound(c, input, ctx.candidateTexts.at(-1) ?? '');
       const said = numbersOf(ctx.candidateTexts.join(' '));
+      const otherYear = otherYearBase(c, ctx);
       if (agreeing.length === 0) vetNotes.push(`probe only: code computes ${code.values.map(round).join(' / ')}, the checker said ${mine}`);
       else if (unboundWhy) vetNotes.push(`probe only: ${unboundWhy}`);
+      else if (otherYear) vetNotes.push(`probe only: ${otherYear}`);
       else {
         const written = codeCorrection(c, agreeing[0], ctx);
         if (!written) vetNotes.push(`no correction: no figure of theirs in "${c.candidateValue}" (or no quantity to name)`);

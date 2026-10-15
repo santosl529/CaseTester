@@ -2,7 +2,7 @@ import { classifyError, type MathStepInput, type ErrorClass } from '@/lib/scorin
 import { assignSpans, findStepSpans, inputsRevealed } from '@/lib/scoring/math-spans';
 import { normalizeNumberWords, articleFor } from '@/lib/number-words';
 import { checkStatedArithmetic, type ArithmeticClaim } from './arithmetic-check';
-import { checkNestedConversions, formatUnitFlagLine, type ShareBase, type UnitFlag, type UnitVerified } from './unit-check';
+import { checkNestedConversions, formatUnitFlagLine, unitCorrectionLine, type PeriodQuestion, type ShareBase, type UnitFlag, type UnitVerified } from './unit-check';
 import { checkPricingClaims, pricingValues, type PricingClaim } from './pricing-check';
 
 // Rule 2/14 deterministic backstop (docs/interviewer-behavior.md): "Live
@@ -161,40 +161,18 @@ export function figureAsWritten(text: string, figure: number): string {
   return m ? m[0] : String(figure);
 }
 
-// The period fact that corrects a period mismatch (13 Oct): the share's own
-// year and that year's base — both figures the candidate was given. No
-// replacement figure: the right one may need data the flag doesn't carry.
-export function periodCorrection(u: UnitFlag): string {
-  const p = u.period!;
-  const line = u.base.split(' ')[0];
-  return `That ${p.share}% share of ${line} is from ${p.sharePeriod === 'prior' ? 'two years ago' : 'today'}, when ${line} was ${p.samePeriodBase}% of revenue.`;
-}
-
 // A flagged figure in the reply to a recommendation ask, said by code (fact
 // guards Phase 4): Rule 14's probe — the working, never the right figure — or,
-// past it, the correction in the candidate's units. A unit slip is corrected
-// by its units alone ("That's 25% of COGS, not 25 points of revenue"): its
-// revenue figure depends on which year's base the candidate meant.
+// past it, a unit slip's correction on the candidate's own base, naming the
+// quantity and its period (unitCorrectionLine; Lorenzo, 15 Oct). Only a unit
+// flag is corrected by code (codeMayCorrect): any other kind stays a probe.
 export function recMathLine(f: RecomputeFlag, action: 'probe' | 'correct'): string {
-  if (f.unit?.period) {
-    const line = f.unit.base.split(' ')[0];
-    return action === 'probe'
-      ? `Before we wrap up — which year's ${line} does that ${f.unit.period.share}% share belong to?`
-      : periodCorrection(f.unit);
-  }
-  if (action === 'probe') {
+  if (action === 'correct' && f.kind === 'unit' && f.unit) return unitCorrectionLine(f.unit);
+  {
     if (f.kind === 'pricing') return `Before we wrap up — you said ${f.claim?.quantity}. Walk me through how you sized that.`;
     const fig = f.kind === 'unit' ? `${f.candidateValue} ${f.claim?.units}` : figureAsWritten(f.span, f.candidateValue);
     return `Before we wrap up — walk me through how you got to ${fig}.`;
   }
-  if (f.kind === 'unit' && f.unit) return `That's ${f.unit.unconverted}% of ${f.unit.base.split(' ')[0]}, not ${f.candidateValue} ${f.unit.units}.`;
-  if (f.kind === 'arithmetic') return `${f.claim?.expression} is about ${Math.round(f.expected * 100) / 100}, not ${f.candidateValue}.`;
-  if (f.kind === 'pricing') {
-    const unit = (x: number) => ({ gain: `${x} points of margin`, new_margin: `${x}%`, needed: `${x}%`, dollars: `$${x}M`, breakeven: `${x}% of volume` } as Record<string, string>)[f.stepId.slice('pricing:'.length)] ?? String(x);
-    return `It's closer to ${unit(f.expected)}, not ${f.claim?.stated ?? f.candidateValue}.`;
-  }
-  const theirs = figureAsWritten(f.span, f.candidateValue);
-  return `It's closer to ${theirs.replace(String(f.candidateValue), String(f.expected))}, not ${theirs}.`;
 }
 
 // Rule 14 attempt state, per math step: how many times the candidate has
@@ -259,10 +237,6 @@ export function formatRecomputeHint(
     const action = recomputeAction(f, attempt, Boolean(opts.underTimePressure));
     if (action === 'shed' || !flagSpeaks(f, attempt, Boolean(opts.underTimePressure))) continue;
     if (f.kind === 'unit' && f.unit && action === 'probe') { lines.push(formatUnitFlagLine(f.unit)); continue; }
-    if (f.kind === 'unit' && f.unit?.period) {
-      lines.push(`- The candidate said ${f.candidateValue} in "${f.span}", applying a share from one year to the other year's base. This overrides the no-correction rule: say this in "say", once, as written — "${periodCorrection(f.unit)}" — then continue. No probe, no consolation, no figure of your own.`);
-      continue;
-    }
     if (f.kind === 'arithmetic' && action === 'probe') {
       lines.push(`- The candidate wrote ${f.claim?.expression} = ${f.candidateValue} in "${f.span}"; that operation doesn't give ${f.candidateValue}. Probe once — "Walk me through that calculation." Do not correct it or say the right figure.`);
       continue;
@@ -273,11 +247,13 @@ export function formatRecomputeHint(
     }
     if (action === 'probe') {
       lines.push(`- The candidate said ${f.candidateValue} in "${f.span}" and it does not match the value derivable from the data they have. Probe once — "Walk me through that." Do not correct it or say what the right figure is.`);
-    } else {
-      derivedValues.push(String(f.expected));
-      const theirs = f.claim?.stated ?? f.candidateValue;
-      lines.push(`- The candidate said ${theirs} in "${f.span}"; the figure derivable from the data they have is ${f.expected}. This overrides the no-correction rule: correct it in "say", one flat sentence quoting their figure — e.g. "It's closer to ${f.expected}, not ${theirs}. Let's take that and keep going." — then continue. No probe, no consolation.`);
+    } else if (f.kind === 'unit' && f.unit) {
+      // Lorenzo, 15 Oct: the correction names the quantity, the base and its period, on the candidate's own base.
+      const line = unitCorrectionLine(f.unit);
+      derivedValues.push(...(line.match(/\d+(?:\.\d+)?/g) ?? []));
+      lines.push(`- The candidate said ${f.candidateValue} ${f.unit.units} in "${f.span}" a second time. This overrides the no-correction rule: say this in "say", once, as written — "${line}" — then continue. No probe, no consolation, no figure of your own.`);
     }
+    // No other kind is corrected by code (codeMayCorrect): the bare "It's closer to X, not Y" is gone (Lorenzo, 15 Oct).
   }
   if (lines.length === 0) return { hint: '', derivedValues };
   return {
@@ -427,7 +403,7 @@ export type CandidateMath = {
   reportOnly: RecomputeFlag[];  // step flags of a case whose binding isn't validated: logged only (Lorenzo, 13 Oct)
   verified: VerifiedFigure[];
   arithmetic: ArithmeticClaim[];
-  units: { flags: UnitFlag[]; verified: UnitVerified[] };
+  units: { flags: UnitFlag[]; verified: UnitVerified[]; periodQuestions?: PeriodQuestion[] };
   pricing: PricingClaim[];
 };
 

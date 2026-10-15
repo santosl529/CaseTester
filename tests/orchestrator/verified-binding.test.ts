@@ -117,28 +117,19 @@ describe('correct arithmetic does not verify the claim it supports', () => {
   });
 });
 
-describe('a period flag (Marisol t8) is corrected by the period fact, never a figure code can\'t stand behind', () => {
+// Lorenzo, 15 Oct (batch-27 grade): Marisol t8's 14.5 is right on her own base — no flag, no correction, nothing for the judge to mark wrong.
+describe('a share on another year\'s base (Marisol t8) is no flag: nothing to correct, nothing marked wrong', () => {
   const marisol = "Beans are 25% of COGS, so against the current 58, that's 0.25 × 58 = 14.5 points of revenue.";
-  it('is a flag in the shared checks, with the period probe in the hint', async () => {
-    const { formatRecomputeHint } = await import('@/lib/orchestrator/recompute');
+  it('no flag in the shared checks; a period question instead', () => {
     const m = checkCandidateMath(marisol, prof, ALL);
-    const f = m.flags.find(x => x.unit?.period);
-    expect(f).toBeDefined();
-    expect(formatRecomputeHint([f!], { attempts: { [attemptKey(f!)]: 1 } }).hint).toMatch(/Which year's COGS does that 25% share belong to/);
-    const second = formatRecomputeHint([f!], { attempts: { [attemptKey(f!)]: 2 } });
-    expect(second.hint).toContain('That 25% share of COGS is from two years ago, when COGS was 42% of revenue.');
-    expect(second.hint).not.toMatch(/closer to 10\.5/);
-    expect(second.derivedValues).toEqual([]);
+    expect(m.flags.filter(x => x.kind === 'unit')).toEqual([]);
+    expect(m.units.periodQuestions).toEqual([expect.objectContaining({ stated: 14.5, baseValue: 58 })]);
   });
-
-  it('the recommendation line and the judge say the same', async () => {
-    const { recMathLine } = await import('@/lib/orchestrator/recompute');
+  it('the judge is not told it is wrong', async () => {
     const { verifyCandidateTurns, formatClaimChecksSection } = await import('@/lib/scoring/challenge-marks');
-    const f = checkCandidateMath(marisol, prof, ALL).flags.find(x => x.unit?.period)!;
-    expect(recMathLine(f, 'probe')).toMatch(/which year's COGS does that 25% share belong to\?/);
-    expect(recMathLine(f, 'correct')).toBe('That 25% share of COGS is from two years ago, when COGS was 42% of revenue.');
     const section = formatClaimChecksSection(verifyCandidateTurns([{ role: 'candidate', turnIndex: 1, text: marisol }], prof, () => ALL));
-    expect(section).toMatch(/VERIFIED WRONG: the 25% share of COGS is from two years ago; it was applied to COGS at 58% \(today\)/);
+    expect(section).not.toMatch(/— VERIFIED WRONG/);
+    expect(section).toMatch(/ARITHMETIC HOLDS \(0\.25 × 58 = 14\.5/);
   });
 });
 

@@ -186,10 +186,11 @@ describe('deadline guards found on the replay', () => {
 describe('a deadline yields to a math line', () => {
   // batch 24 4bf008f t17: code's period probe was due on the turn the brainstorm deadline passed.
   it('a deterministic flag on this message: the model turn carries it, the stage waits a turn', () => {
-    const flagged = "Beans are 25% of COGS, so applying that to today's 58% COGS, beans are 14.5 points of revenue.";
+    // (Since Lorenzo's batch-27 grade, 15 Oct, 4bf008f's own sentence — 25% of today's 58 — is no flag: a unit slip stands in for it.)
+    const flagged = "Beans are 25% of COGS, so that's 25 points of revenue sitting in beans.";
     const s = plan({ min: BLAKE.t17, shown: true, revealed: CORE, stages: { exhibit: SHOWN }, text: flagged });
     expect(s.kind).toBe('model');
-    expect(s.recomputeHint).toMatch(/period|year/i);
+    expect(s.recomputeHint).toMatch(/Points of what/);
     expect(plan({ min: BLAKE.t17, shown: true, revealed: CORE, stages: { exhibit: SHOWN } }).kind).toBe('stage_brainstorm');
   });
 });

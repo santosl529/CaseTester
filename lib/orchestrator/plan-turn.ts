@@ -33,6 +33,7 @@ import { correctionLines } from './misquote';
 import { statesQuantitativeClaim, numbersOf } from './math-checker';
 import { startMathCheck, planCheckerFlags, formatCheckerHint, liveCheckerConfig, checkerKey, closedErrorRestated, stepOfKey, STEP_PROBE_CAP, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
+import { formatPeriodQuestionLine } from './unit-check';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
 import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
 
@@ -438,6 +439,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
   });
   let recomputeHint = recomputeHinted.hint;
+  // A share applied to another year's base, right on that base: at most a question, never a flag (Lorenzo, 15 Oct).
+  const periodQuestions = units.periodQuestions ?? [];
+  if (periodQuestions.length > 0) recomputeHint = [recomputeHint, `PERIOD QUESTION (deterministic, this message):\n${periodQuestions.map(formatPeriodQuestionLine).join('\n')}`].filter(Boolean).join('\n\n');
   const derivedValueTexts = recomputeHinted.derivedValues;
   // Logged with span, attempt and the claim (quantity, units, base,
   // timeframe): the input to interviewer-error marking, and so a flag is
@@ -455,8 +459,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     flags: recomputeFlags.map(f => ({ kind: f.kind ?? 'step', stepId: f.stepId, candidateValue: f.candidateValue, expected: f.expected, errorClass: f.errorClass, span: f.span, claim: f.claim ?? null })),
   });
   checks.record('unit_check', units.flags.length > 0, 'nested conversion verified wrong — unit flag', {
-    flags: units.flags.map(f => ({ stated: f.stated, units: f.units, expected: f.expected, base: f.base })),
+    flags: units.flags.map(f => ({ stated: f.stated, units: f.units, expected: f.expected, base: f.base, baseStated: f.baseStated })),
     verified: units.verified.map(v => ({ stated: v.stated, expected: v.expected })),
+    periodQuestions: (units.periodQuestions ?? []).map(q => ({ stated: q.stated, share: q.share, sharePeriod: q.sharePeriod, baseValue: q.baseValue })),
   });
   checks.record('pricing_check', pricing.some(p => p.verdict === 'incorrect'), 'pricing claim the cost structure does not give — flag', {
     claims: pricing.map(p => ({ kind: p.kind, price: p.price, stated: p.stated, expected: p.expected, verdict: p.verdict })),

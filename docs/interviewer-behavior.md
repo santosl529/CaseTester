@@ -2250,8 +2250,10 @@ propagation; wrong-units, wrong-direction, and ≥2× magnitude are case-breakin
 by default.
 
 **Two-attempt cap (normal time):** probe → candidate retries → if still wrong,
-the interviewer supplies the correct figure and advances: "It's closer to 2
-points, not 6. Let's take that and keep going." Flat register, no consolation.
+the interviewer supplies the correct figure and advances, naming the quantity
+and its period ("Two years ago, 25% of the 42-point COGS line was about 10.5
+points of revenue, not 25."; the original "It's closer to 2 points, not 6." is
+retired — 15 Oct, below). Flat register, no consolation.
 Rationale: a candidate stuck on arithmetic generates no signal on six of the
 eight rubric dimensions; the loop burns clock and humiliates. The error, both
 attempts, and the correction are logged for the debrief — the recompute check
@@ -2263,8 +2265,20 @@ deterministic step, arithmetic or pricing flag probes; past the probe it says
 nothing. The correcting figure comes only through the background math checker:
 code's own figure for the quantity the checker names, once the checker's figure
 agrees and the input is bound, said with the quantity in words ("Hub–Lakeport
-contribution per flight in FY2023 is about $4,200, not $11,429."). Unit and
-period lines stay code's.
+contribution per flight in FY2023 is about $4,200, not $11,429."). Unit lines
+stay code's.
+
+**Corrections name the quantity and the period, on the candidate's own base
+(15 Oct 2026, Lorenzo; batch 27 Sofia t18 — "COGS is 58, and if beans are 25%
+of COGS that's 25 points of revenue" got "It's closer to 10.5, not 25.", a
+false correction: on her base it is 14.5).** A unit conversion is checked and
+corrected at the base level the candidate states; a figure right on their own
+base is no error — with a share of another year, at most one question which
+year the share is from. Code's unit correction says the quantity, base and
+period ("Today, 25% of the 58-point COGS line is about 14.5 points of revenue,
+not 25."); the bare "It's closer to X, not Y" is retired. The checker's
+corrections follow suit: a one-year step corrects no claim stated on another
+level, and a pricing correction opens "From today's 6% margin, …".
 
 **One error, one count (13 Oct, Lorenzo; Jordan 099f33e9 — "about 40
 points", "~40 points", "38–40%" probed seven times).** An error restated in a

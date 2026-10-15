@@ -128,3 +128,11 @@ describe('another of code\'s lines takes the question: the flag stays pending', 
     expect(checkOf(plan)).toMatchObject({ decision: 'act', detail: { heard: false } });
   });
 });
+
+// Lorenzo, 15 Oct: pricing corrections name today's margin. Said without that lead-in, the line is still heard — never said twice (replay: 5f1b5fa t19).
+describe('a correction without its period lead-in is heard', () => {
+  it('"A 12% price rise lifts margin about 10.1 points, not 6." holds "From today\'s 6% margin, a 12% price rise …"', () => {
+    expect(lineHeard('A 12% price rise lifts margin about 10.1 points, not 6. Setting that aside…', "From today's 6% margin, a 12% price rise lifts margin about 10.1 points, not 6.")).toBe(true);
+    expect(lineHeard('A 12% price rise lifts margin about 9 points, not 6.', "From today's 6% margin, a 12% price rise lifts margin about 10.1 points, not 6.")).toBe(false);
+  });
+});

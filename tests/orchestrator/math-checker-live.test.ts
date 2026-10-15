@@ -14,7 +14,7 @@ const vetted = (over: Partial<VettedClaim> = {}): VettedClaim => ({
   verdict: 'error', correctValue: 8.5, correctLow: null, correctHigh: null, unit: 'points', derivation: '', errorType: 'conceptual',
   changesConclusion: true, confidence: 'high', probe: '', pointer: '', codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null }, actualShare: null,
   flag: true, probeLine: 'You said a 10% price rise recovers about 5 points. Which cost lines did you include?',
-  correctionLine: 'A 10% price rise lifts margin about 8.5 points, not 5.', correctionFigure: '8.5', pointerLine: null, vetNotes: [],
+  correctionLine: 'From today\'s 6% margin, a 10% price rise lifts margin about 8.5 points, not 5.', correctionFigure: '8.5', pointerLine: null, vetNotes: [],
   ...over,
 });
 
@@ -75,7 +75,7 @@ describe('a verdict lands on the next turn as a Rule 14 flag', () => {
   it('second attempt — the shared counter: a deterministic flag on the same key earlier → the code-written correction', () => {
     const p = planCheckerFlags(input({ attempts: { 'pricing:gain@5': 1 } }));
     expect(p.selected?.action).toBe('correct');
-    expect(p.selected?.line).toBe('A 10% price rise lifts margin about 8.5 points, not 5.');
+    expect(p.selected?.line).toBe('From today\'s 6% margin, a 10% price rise lifts margin about 8.5 points, not 5.');
     expect(p.selected?.derived).toEqual(['8.5']);
     expect(p.selected?.attempt).toBe(2);
   });
@@ -174,7 +174,7 @@ describe('dedupe with the deterministic checks — one probe per claim', () => {
     expect(noCorrection.decisions[0]).toEqual(expect.objectContaining({ outcome: 'dedupe' }));
     expect(noCorrection.handledNow).toContain('3:0');
     const agreed = planCheckerFlags(input({ rows: [verdictRow(3, [vetted()], { codeFlags: [{ key: 'pricing:gain@5', value: 5, span: 'recovers about 5 points' }] })] }));
-    expect(agreed.selected).toMatchObject({ action: 'correct', attempt: 2, line: 'A 10% price rise lifts margin about 8.5 points, not 5.' });
+    expect(agreed.selected).toMatchObject({ action: 'correct', attempt: 2, line: 'From today\'s 6% margin, a 10% price rise lifts margin about 8.5 points, not 5.' });
   });
   it("a figure code corrected as a misquote in the message: dropped (replay: Tyler b19 \"revenue grew about 19%\")", () => {
     const tyler = vetted({ span: 'Revenue grew about 19% over the period', candidateValue: '19%', correctValue: 15, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
@@ -309,7 +309,7 @@ describe('the stale check — a late verdict on a claim since revised or withdra
   // Lorenzo, 15 Oct (batch-25 ruling 2): a fixed claim isn't probed or corrected again.
   describe('equivalent forms of the right figure, redos and more concessions (batch 25)', () => {
     const NONE = { kind: 'none' as const, stepId: null, price: null, target: null };
-    const marcus = vetted({ span: 'they need something like a 15-20% effective price increase to get back toward 24%', candidateValue: '15-20%', correctValue: 24, correctionLine: 'Getting back to a 24% margin takes about a 23.7% price rise, not 15-20%.', correctionFigure: '23.7', codeQuantity: { kind: 'needed_for_margin', stepId: null, price: null, target: 24 } });
+    const marcus = vetted({ span: 'they need something like a 15-20% effective price increase to get back toward 24%', candidateValue: '15-20%', correctValue: 24, correctionLine: 'From today\'s 6% margin, getting back to a 24% margin takes about a 23.7% price rise, not 15-20%.', correctionFigure: '23.7', codeQuantity: { kind: 'needed_for_margin', stepId: null, price: null, target: 24 } });
     const MARCUS_T9 = "Let me actually do it rather than hand-wave, because I think I was sloppy.\n\nSet revenue today at 100. Costs are 58 COGS, 22 labor, 14 overhead, total 94, profit 6. If I raise prices by x and volume holds, revenue becomes 100(1+x) and the dollar costs stay at 94. For a 24% margin I need 94/(1+x) = 76, so 1+x = 1.237 — about a 24% price increase, not 15-20%. I conflated the percentage-point gap with a price change, which isn't the same thing. So my earlier number was understated.";
     const owen = vetted({ span: "to recover the 16 points of COGS they'd need high-single-digit to low-double-digit price increases, phased", candidateValue: '~8-12%', correctValue: 20.5, correctionLine: null, codeQuantity: { kind: 'needed_for_gain', stepId: null, price: null, target: 16 } });
     const OWEN_T15 = "Let me actually run it, because I think I was loose.\n\nTake revenue of 100 today: COGS 58, labor 22, overhead 14, profit 6. If I raise prices 10% and volume holds, revenue goes to 110 and costs stay at 94 in dollars, so profit is 16 — a 14.5% margin. Better, but not 24%.\n\nTo get back to 24%: (R − 94)/R = 0.24, so R = 94/0.76 = 123.7. That's roughly a 24% price increase. So my earlier range was wrong — I was anchoring on the 16 point gap without accounting for the fact that price flows straight to the bottom line. Call it high-teens to mid-twenties to fully restore, which is a much harder ask.";
@@ -420,7 +420,7 @@ describe('the hint the interviewer model gets', () => {
     expect(formatCheckerHint(p)).toMatch(/Do not correct it or say the right figure/);
     const c = planCheckerFlags(input({ attempts: { 'pricing:gain@5': 1 } })).selected!;
     expect(formatCheckerHint(c)).toMatch(/overrides the no-correction rule/);
-    expect(formatCheckerHint(c)).toContain('"A 10% price rise lifts margin about 8.5 points, not 5."');
+    expect(formatCheckerHint(c)).toContain('"From today\'s 6% margin, a 10% price rise lifts margin about 8.5 points, not 5."');
   });
 });
 
@@ -441,7 +441,7 @@ describe('the background check', () => {
     const v = r.payload as VerdictPayload;
     expect(v.candidateTurnIndex).toBe(3);
     expect(v.claims[0].flag).toBe(true);
-    expect(v.claims[0].correctionLine).toBe('A 10% price rise lifts margin about 8.5 points, not 5.');
+    expect(v.claims[0].correctionLine).toBe('From today\'s 6% margin, a 10% price rise lifts margin about 8.5 points, not 5.');
   });
 
   it("code's flags are keyed by step and claimed value, as the checker keys its claims", async () => {
@@ -579,7 +579,7 @@ describe('a later "correct" verdict closes an open flag only if code agrees', ()
   const gain12 = { kind: 'gain' as const, stepId: null, price: 12, target: null };
   const third = vetted({ span: 'roll a 10-12% increase across core drinks after a short pilot, which closes maybe a third of the 18-point gap', candidateValue: 'about one third (about 6 points)', correctValue: 10.1, codeQuantity: gain12,
     probeLine: 'You said a 10-12% price increase closes maybe a third of the 18-point gap. How did you get that, and what base did you measure it against?',
-    correctionLine: 'A 12% price rise lifts margin about 10.1 points, not 6.', correctionFigure: '10.1' });
+    correctionLine: 'From today\'s 6% margin, a 12% price rise lifts margin about 10.1 points, not 6.', correctionFigure: '10.1' });
   const restated = (correctValue: number) => vetted({ flag: false, verdict: 'correct', span: '~6 points recovered out of 18 — a third', candidateValue: '6 points, one third', correctValue, codeQuantity: { kind: 'none', stepId: null, price: null, target: null }, probeLine: null, correctionLine: null, correctionFigure: null });
   const run = (later: VettedClaim, closed: string[] = []) => planCheckerFlags(input({
     rows: [verdictRow(17, [third]), { category: MATH_CHECKER_CATEGORY, subtype: 'flag', turnIndex: 19, payloadJsonb: { id: '17:0', candidateTurnIndex: 17, outcome: 'probe', reason: 'attempt 1', span: third.span, candidateValue: third.candidateValue, key: 'pricing:gain', changesConclusion: true, line: third.probeLine } }, verdictRow(21, [later])],
@@ -595,7 +595,7 @@ describe('a later "correct" verdict closes an open flag only if code agrees', ()
   it('Jasmine t21: "~6 points out of 18 — a third" judged correct (6.2) while code computes 10.1 — the flag stays open: its correction', () => {
     const p = run(restated(6.2));
     expect(p.decisions).toEqual(expect.arrayContaining([expect.objectContaining({ id: '21:0', outcome: 'disagrees_with_code' })]));
-    expect(p.selected).toMatchObject({ id: '17:0', action: 'correct', line: 'A 12% price rise lifts margin about 10.1 points, not 6.' });
+    expect(p.selected).toMatchObject({ id: '17:0', action: 'correct', line: 'From today\'s 6% margin, a 12% price rise lifts margin about 10.1 points, not 6.' });
   });
   it('when code agrees with the later verdict, it closes the flag as before', () => {
     expect(run(restated(10)).selected).toBeNull();

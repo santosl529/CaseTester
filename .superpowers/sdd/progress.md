@@ -6,8 +6,8 @@
 - **Live per case:** prof-001 — step flags live (`stepFlagsLive`), ledger lookup report-only, 20 min, exhibit required (15 Oct). prof-002 Larkspur — step flags and ledger lookup report-only, 25 min. entry-001, pricing-001, launch-001 — report-only, 20 min. The math checker runs on every case.
 - **Pass bar (batch 27, as batch 26):** zero false facts or false corrections; zero firm serious failures; zero dropped errors (the last message before time-up excepted, and flags that don't change the conclusion and close at the close); firm moderate faults ≤ 2 per interview, borderlines apart, last-message D6s not counted (Lorenzo, 15 Oct).
 - **Go/no-go (Lorenzo, fixed in advance):** any false statement or any firm serious failure = no go; otherwise the build goes to the club, even with dropped errors or moderate faults.
-- **Batch 27 (15 Oct, 1382a46, $5.70):** 10 ok; Claude's grade 19 faults (1.9/interview; 5 firm incl. 2 last-message D6s, 14 borderline); no F1, no false correction, no firm serious failure, no dropped error, ≤ 1 firm moderate per run — **go by the decision rule, and the pass bar met** (`Case Interview Runs/test runs/batch-27/hand-grading.md`).
-- **Waiting on Lorenzo:** his independent grade of batch 27, and the go to the club; nine findings in PRD §15 "After batch 27" (none fixed).
+- **Batch 27 (15 Oct, 1382a46, $5.70): no go (Lorenzo's grade, 15 Oct)** — Sofia t18 "It's closer to 10.5, not 25." is a false correction (the unit check always used base 42). Fixed 15 Oct: the unit check uses the candidate's base; every code-written correction names its quantity and period ("Unit-base round" below).
+- **Next:** batch 28 on Lorenzo's go only — same 10 personas, prof-001, Sofia and Jordan scored, cap $10 (estimate ≈ $6). Batch-27 findings 1–3, 5–9 after the club.
 - **Paid runs:** each wave needs Lorenzo's explicit go-ahead and a cap, one wave at a time, with a cost estimate.
 
 ## Rules in force
@@ -19,6 +19,7 @@
 - One error, one count; at most two probes per step per interview; after two, code's correction once or the report.
 - Checker probes come in two steps and never lead; the hint is the second probe; no probe carries arithmetic.
 - A checker line counts as delivered only if heard; code says it when the model leaves it out (15 Oct).
+- The unit check uses the base the candidate states; a figure right on their own base is no flag (at most a period question); every code-written correction names its quantity and period; no bare "It's closer to X, not Y" (15 Oct).
 - A late recommendation ask (the time warning, or code's ask past the recommendation deadline) also asks the biggest risk, in one question (15 Oct).
 - A due stage question (past its deadline or the time warning; the risk once the recommendation is in) beats a checker probe: the probe is held to the next turn, once; a correction goes first; a held line may hold the close once, never at time-up (15 Oct).
 - A concession withdraws only the claim it answers; a redo to a case-figure right answer only when it names the same quantity (15 Oct).
@@ -38,7 +39,7 @@
 | 24 | 14 Oct | prof-001 | 83ed9a9 | $6.39 | 1.8 | 1 false correction (Marcus t10) | 0 (3 borderline) | Fail |
 | 25 | 15 Oct | prof-001 | 6550fce | $6.09 | 2.4 | 0 | 0 (2 borderline) | Fail (dropped errors) |
 | 26 | 15 Oct | prof-001 | 770e95e | $5.93 | 2.4 (corrected) | 0 | 2 (Blake stages, Jasmine "5 points") | Fail |
-| 27 | 15 Oct | prof-001 | 1382a46 | $5.70 | 1.9 (Claude's grade) | 0 | 0 (1 borderline: Jordan's 38%) | Pass; go (awaiting Lorenzo's grade) |
+| 27 | 15 Oct | prof-001 | 1382a46 | $5.70 | 1.8 + 1 false correction (Lorenzo's grade) | 1 false correction (Sofia t18) | 0 | No go (fixed: unit base) |
 
 ## Fix rounds (full text in `progress-archive.md`)
 Post-plan hardening (July–Sep 2026) through Integration (13 Oct) were moved to `progress-archive.md` verbatim on 15 Oct; the rounds below moved there the same day (restructure), one line each here.
@@ -51,6 +52,11 @@ Post-plan hardening (July–Sep 2026) through Integration (13 Oct) were moved to
 - Batch-24 fixes (14–15 Oct): concessions withdraw only their claim; misquotes are figures stated as fact; COGS-by-input releases all three; given recommendations count; risk wordings; rhetorical questions at the close.
 - Batch-25 fixes (15 Oct): COGS split from the asking sentence; fixed claims not re-probed; relative-change correction; ordered plan = recommendation; stated variable share in pricing; "worth checking" is a need; transaction volume → ticket; later "correct" closes a flag only if code agrees.
 - Batch 23–25 records moved too: the table above has their numbers.
+
+## Unit-base round (15 Oct; Lorenzo's batch-27 grade; branch `larkspur-fixes`; free)
+- **Lorenzo's grade:** batch 27 no go — Sofia t18 is a false correction (her base 58 → 14.5; the check used 42). Jordan's 38% borderline moderate; Jordan t18 D8, Tyler t15 D6, Marisol D9 firm.
+- **Fix:** `statedBaseOf` — the candidate's stated base for the line; right on it with a share of another year → `PeriodQuestion` (no flag); `unitCorrectionLine` names quantity, base and period ("Today, 25% of the 58-point COGS line is about 14.5 points of revenue, not 25."); "It's closer to X, not Y" gone. Unit path doesn't wait for the checker. Checker: a one-year step corrects no claim stated on another level (Sofia's 17:3 "agreement" was the same base 42); pricing corrections open "From today's 6% margin"; a correction heard without that lead-in isn't said twice.
+- **Replay vs 1382a46 (220 runs, b27 verdicts added):** off 4 / on 9 spoken lines (4 rec-hold unit corrections, 5 pricing lines), 12 hint turns (7 corrections on the stated base or named, 4 period questions, 1 bug fixed); 1 checker decision; no new false correction. Tests +17, 13 updated; mutations 10/10. Artifacts `Case Interview Runs/replays/2026-10-15/b26-rulings/` (`replay27.sh`, `b27-verdicts.jsonl`, `unit-base-*.sd`).
 
 ## Batch 27 (15 Oct) — prof-001 wave after the batch-26 rulings builds
 - **Run:** `batch-27-oct-15-runs-1-10`, from `fact-guards` 1382a46 under `caffeinate -i`, personas 10, 14, 57, 53, 40, 19, 24, 15, 54, 7, scored 10 and 14. $5.70 (cap $10; estimate $6.00): simulator $2.28, Sonnet $2.25, Opus scoring $0.92, classifiers $0.25. 10 ok, 0 failed, no warnings; 101 checker verdicts, 59 flag rows, no errors/timeouts (max 16.1 s). Stage minutes: every run reached every stage before time-up (the script's "owing risk" for Blake and Marcus misreads their risk asks); closes 8:36–18:36.

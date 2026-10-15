@@ -297,7 +297,11 @@ export type CheckerOutcome = 'probe' | 'correct' | 'pointer' | 'hint' | 'unresol
 const lineForm = (t: string) => t.toLowerCase().replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, '-')
   .replace(/[^a-z0-9%$.,'\- ]+/g, ' ').replace(/(?<!\d)[.,]|[.,](?!\d)/g, ' ').replace(/\s+/g, ' ').trim();
 export function lineHeard(text: string, line: string): boolean {
-  return line.trim() !== '' && lineForm(text).includes(lineForm(line));
+  if (line.trim() === '') return false;
+  if (lineForm(text).includes(lineForm(line))) return true;
+  // A correction said without its period lead-in ("From today's 6% margin, …") is heard: code saying the whole line again would say it twice.
+  const core = line.replace(/^From today's \d+(?:\.\d+)?% margin,\s*/i, '');
+  return core !== line && lineForm(text).includes(lineForm(core));
 }
 export type CheckerDecision = {
   id: string; candidateTurnIndex: number; outcome: CheckerOutcome; reason: string;

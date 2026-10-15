@@ -368,11 +368,12 @@ describe('a math error in the recommendation gets one probe before the case move
     expect(r.interviewerText).toBe("Mm-hm. What's the biggest risk to that?");
   });
 
-  it('a unit slip past its probe is corrected without a figure that depends on the year', async () => {
+  // Lorenzo, 15 Oct: the correction names the quantity and the period. No base stated and the bean share not yet given (a share of the candidate's own): both years.
+  it('a unit slip past its probe is corrected with the quantity and its period', async () => {
     seed({ phase: 'RECOMMENDATION', revealed: COSTS, flags: { ...SATISFIED, recomputeAttempts: { 'unit:COGS@25': 1 } } });
     recAsked();
     const r = await say('My recommendation: hedge beans first. Beans are 25% of COGS, so 25 points of revenue sit in beans.', T({ move: 'risk' }));
-    expect(r.interviewerText).toMatch(/^That's 25% of COGS, not 25 points of revenue\. (Does that change your recommendation|Would that change your recommendation at all)\?$/);
+    expect(r.interviewerText).toMatch(/^25% of COGS is about 10\.5 points of revenue on two years ago's 42-point COGS line, or about 14\.5 on today's 58 — not 25\. (Does that change your recommendation|Would that change your recommendation at all)\?$/);
   });
 
   it('asked once: the next flagged answer goes on normally', async () => {
