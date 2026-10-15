@@ -131,7 +131,11 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // what was requested, released or restated (data-decisions.ts).
   const scoped: { what: string; ids: string[] }[] = [];
   requests = requests.flatMap(r => {
-    const out = r.itemIds.filter(id => { const item = ledger.items.find(i => i.id === id); return item !== undefined && outsideAskScope(r.what, item, namesOf(id)); });
+    // An item the case's own `covers` names for the ask is in its scope (Marisol
+    // 0f7551c2 t9: "transaction volume per store" mapped to the ticket, which the
+    // per-store cut had dropped; Lorenzo, 15 Oct, batch-25 ruling 7).
+    const coveredHere = new Set(coverageOf(r.what, fbGroups).items);
+    const out = r.itemIds.filter(id => { const item = ledger.items.find(i => i.id === id); return item !== undefined && !coveredHere.has(id) && outsideAskScope(r.what, item, namesOf(id)); });
     if (out.some(id => splitOfItem(r.what, ledger.items.find(i => i.id === id)!, namesOf(id)))) finerAsks.add(r.what);
     const kept = { ...r, itemIds: r.itemIds.filter(id => !out.includes(id)) };
     if (out.length > 0) scoped.push({ what: r.what, ids: out });

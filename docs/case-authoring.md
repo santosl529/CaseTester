@@ -124,9 +124,16 @@ item's names; `covers` lists the asks an item or prompt fact answers without
 naming it: prof-001's store count (flat at 200) answers "same-store sales",
 "same-store revenue", "new stores"; its net-margin prompt fact answers "net
 margin"; Larkspur's competitor line answers "aircraft size". Keep phrases to
-the thing asked for, not a qualifier: "same-store sales", not "same-store" —
-"same-store transaction counts" asks for traffic, which the case doesn't
-hold. A covering item is given (restated if already out), a prompt fact is
+the thing asked for, not a qualifier: "same-store sales", not "same-store".
+prof-001's average ticket answers transaction-volume asks ("transaction
+volume", "transaction counts", "transactions per store") — the case gives
+volume through the ticket and revenue (Lorenzo, 15 Oct; before that,
+"same-store transaction counts" was refused as traffic the case doesn't hold).
+A cut the case doesn't hold ("by store", "per item") isn't covered unless the
+phrase itself carries it ("transaction volume per store"), and a further cut
+beside a phrase ("broken down by customer segment", "per day") never is. An
+item a phrase names for an ask also stays in that ask's scope when the model
+maps it. A covering item is given (restated if already out), a prompt fact is
 restated, and in a list only the entries nothing covers are refused. A
 phrase is matched across the whole ask ("fares and volume" covers both
 entries of the list it splits into). A prompt fact may carry no figure when

@@ -114,10 +114,10 @@ describe('streamTurnSegments', () => {
   it('renders refusals and deferrals from the declaration', async () => {
     const { got, sink } = collect();
     await run(T({ requests: [
-      { what: 'transaction volume by store', itemIds: [], explicit: true, respond: 'release' },
+      { what: 'competitor pricing by store', itemIds: [], explicit: true, respond: 'release' },   // transaction volume is covered since 15 Oct (ruling 7)
       { what: 'the bean prices', itemIds: ['bean_price_change'], explicit: true, respond: 'defer' },
     ] }), undefined, sink);
-    expect(got.map(s => s.text)).toEqual(["I don't have transaction volume by store. I'll come back to the bean prices shortly."]);
+    expect(got.map(s => s.text)).toEqual(["I don't have competitor pricing by store. I'll come back to the bean prices shortly."]);
   });
 
   it("drops the model's own data talk and keeps streaming — the data line says it", async () => {

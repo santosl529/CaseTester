@@ -709,7 +709,26 @@
         "new locations",
         "store openings",
         "opened stores",
-        "opening stores"
+        "opening stores",
+        "same-store versus new",
+        "same store versus new",
+        "same-store vs new",
+        "same-store or new",
+        "new versus same-store"
+      ],
+      "avg_ticket": [
+        "transaction volume",
+        "transaction volumes",
+        "transaction count",
+        "transaction counts",
+        "number of transactions",
+        "volume of transactions",
+        "transactions per store",
+        "transaction volume per store",
+        "transaction volume by store",
+        "transaction count per store",
+        "transaction counts per store",
+        "transaction counts by store"
       ],
       "net_margin": [
         "net margin",

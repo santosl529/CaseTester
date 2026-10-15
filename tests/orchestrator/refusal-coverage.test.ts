@@ -19,6 +19,11 @@ describe('what covers an ask', () => {
     ['same-store sales', ['stores_count'], [], null],
     ['whether the growth came from new stores', ['stores_count'], [], null],
     ['whether the 24% to 6% margin is net margin for the whole chain', [], ['net_margin'], null],         // Maya t8
+    // Lorenzo, 15 Oct (batch-25 ruling 7): the case answers volume through the ticket and revenue.
+    ['transaction volume by store, same-store versus new', ['avg_ticket', 'stores_count'], [], null],     // Jordan 78c89dba t9
+    ['transaction volume per store', ['avg_ticket'], [], null],                                           // Tyler 47563861 t13, Marisol 0f7551c2 t9
+    ['same-store transaction counts', ['avg_ticket'], [], null],                                          // Raj 47ca643f t13 (refused before: traffic isn't the store count)
+    ['same-store transaction volume for both years', ['avg_ticket'], [], null],
   ] as const)('prof-001: "%s"', (what, items, facts, rest) => {
     expect(coverageOf(what, p1)).toEqual({ items, promptFacts: facts, rest });
   });
@@ -35,8 +40,9 @@ describe('what covers an ask', () => {
   it.each([
     ['prof-001', 'what the menu includes, drinks only or food too'],   // Maya c1b79f9e t4: the case doesn't hold it (Lorenzo)
     ['prof-001', 'same-store sales by region'],                 // a cut the case doesn't hold
-    ['prof-001', 'same-store transaction counts'],              // traffic, not sales: the store count doesn't answer it (Raj 47ca643f t13)
-    ['prof-001', 'same-store transaction volume for both years'],
+    ['prof-001', 'transaction volume by region'],               // a cut no phrase names
+    ['prof-001', 'transaction counts broken down by customer segment'],   // 567bdb1 t19 on the replay
+    ['prof-001', 'transactions per store per day'],
     ['prof-001', 'how they plan to renew stores'],              // a phrase is a whole word: "renew stores" isn't "new stores"
     ['prof-001', 'net margin by product category'],
     ['prof-001', 'price elasticity and competitor pricing'],

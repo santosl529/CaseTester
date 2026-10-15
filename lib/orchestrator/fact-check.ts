@@ -609,6 +609,7 @@ export function findCandidateMisquotes(text: string, fb: FactBase, revealedIds: 
 // and volume" — Owen c2cdbcc3 t5) covers every entry it touches. An entry cut
 // finer than the case (by region, per item…) is not covered.
 export type Coverage = { items: string[]; promptFacts: string[]; rest: string | null };
+const FURTHER_CUT = /\b(?:broken (?:down|out) by|split by|by (?:customer|segment|type|age|income|loyalty|hour|day|time)\w*|segments?|cohorts?|per (?:day|hour|customer|week|month))\b/;
 export function coverageOf(what: string, fb: FactBase): Coverage {
   const text = what.trim();
   const lower = lc(text);
@@ -628,7 +629,14 @@ export function coverageOf(what: string, fb: FactBase): Coverage {
     .map(m => ({ cover: c, start: m.index ?? 0, end: (m.index ?? 0) + m[0].length }))));
   const items: string[] = [], promptFacts: string[] = [], left: string[] = [];
   for (const entry of entries.filter(e => e.text.trim())) {
-    const covering = GLOBAL_FINER.test(lc(entry.text)) ? [] : hits.filter(h => h.start < entry.end && h.end > entry.start);
+    // A cut the case doesn't hold ("by store", "per item") isn't covered — unless the
+    // case's own phrase carries it ("transaction volume per store": the ticket and
+    // revenue per store answer it; Lorenzo, 15 Oct, batch-25 ruling 7).
+    // Nor a further cut beside the phrase ("transaction counts broken down by
+    // customer segment", "transactions per store per day" — 567bdb1 on the replay).
+    const overlapping = hits.filter(h => h.start < entry.end && h.end > entry.start
+      && !FURTHER_CUT.test(lower.slice(entry.start, h.start) + ' ' + lower.slice(h.end, entry.end)));
+    const covering = GLOBAL_FINER.test(lc(entry.text)) ? overlapping.filter(h => GLOBAL_FINER.test(lower.slice(h.start, h.end))) : overlapping;
     if (covering.length === 0) { left.push(entry.text.trim()); continue; }
     for (const h of covering) (h.cover.say !== undefined ? promptFacts : items).push(h.cover.id);
   }

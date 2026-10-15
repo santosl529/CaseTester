@@ -819,6 +819,27 @@ describe('a refusal of what the case holds becomes the line that holds it', () =
     expect(r.interviewerText).toMatch(/As I mentioned: Net profit margin fell from 24% to 6% over the past two years\./);
     expect(r.interviewerText).not.toMatch(/I don't have/);
   });
+  // Lorenzo, 15 Oct (batch-25 ruling 7): transaction volume → the average ticket.
+  const TICKET = /The average transaction is \$6\.80, up from \$6\.20 two years ago/;
+  it('Jordan 78c89dba t9: "transaction volume by store, same-store versus new" — the ticket and the store count', async () => {
+    seed({ phase: 'ANALYSIS', flags: SATISFIED, revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'] });
+    const r = await say('Do we have transaction volume by store, same-store versus new?', T({ say: 'Mm-hm.', requests: [ask('transaction volume by store, same-store versus new')], question: 'What does that tell you?' }));
+    expect(r.interviewerText).toMatch(TICKET);
+    expect(r.interviewerText).toMatch(/200 stores today/);
+    expect(r.interviewerText).not.toMatch(/I don't have/);
+  });
+  it('Tyler 47563861 t13: "transaction volume per store" — the ticket', async () => {
+    seed({ phase: 'ANALYSIS', flags: SATISFIED, revealed: ['cogs_pct', 'labor_pct', 'overhead_pct', 'stores_count'] });
+    const r = await say('Do we know transaction volume per store over the period?', T({ say: 'Got it.', requests: [ask('transaction volume per store')], question: 'What would you pull first?' }));
+    expect(r.interviewerText).toMatch(TICKET);
+    expect(r.interviewerText).not.toMatch(/I don't have/);
+  });
+  it('Marisol 0f7551c2 t9: mapped to the ticket and the store count, the ticket is no longer scoped out', async () => {
+    seed({ phase: 'ANALYSIS', flags: SATISFIED, revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'] });
+    const r = await say('Do we have transaction volume per store?', T({ say: 'Mm-hm.', requests: [{ what: 'transaction volume per store', itemIds: ['avg_ticket', 'stores_count'], explicit: true, respond: 'release' }], question: 'What does that tell you?' }));
+    expect(r.interviewerText).toMatch(TICKET);
+    expect(r.interviewerText).toMatch(/200 stores today/);
+  });
   it('what nothing covers is still refused', async () => {
     seed({ phase: 'ANALYSIS', flags: SATISFIED });
     const r = await say('Do you have competitor pricing?', T({ say: 'Mm-hm.', requests: [ask('competitor pricing')], question: 'What would you do without it?' }));
