@@ -60,8 +60,8 @@
     {
       "id": "overhead_pct",
       "label": "Overhead / rent as % of revenue",
-      "spoken": "overhead as a percent of revenue",
-      "value": "Overhead is 14% of revenue, up slightly from 12%.",
+      "spoken": "overhead and rent as a percent of revenue",
+      "value": "Overhead and rent are 14% of revenue, up slightly from 12%.",
       "releaseWhen": "ANALYSIS",
       "timeframes": {
         "14": "current",
@@ -471,6 +471,7 @@
     {
       "item": "overhead_pct",
       "names": [
+        "overhead and rent",
         "overhead",
         "rent",
         "occupancy"

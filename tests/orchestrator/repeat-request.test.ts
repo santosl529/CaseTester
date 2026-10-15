@@ -96,7 +96,7 @@ describe('explicit repeat requests restate the data', () => {
     const heard = await step(at(r1, 21));
     expect(heard).toMatch(/As I mentioned: COGS is 58% of revenue today, up from 42% two years ago\./);
     expect(heard).toMatch(/Labor is 22% of revenue/);
-    expect(heard).toMatch(/Overhead is 14% of revenue/);
+    expect(heard).toMatch(/Overhead and rent are 14% of revenue/);
     expect(heard).not.toMatch(/Here they are again/);
   });
 
