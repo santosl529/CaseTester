@@ -529,17 +529,27 @@ export function findCandidateMisquotes(text: string, fb: FactBase, revealedIds: 
     const hitsHere = nameHits(s, fb);
     // A pronoun carrying the last level item on ("COGS is the driver. It goes
     // from 42% two years ago to 61% currently"; "COGS was 42%, and currently it's 61%").
-    const levelHere = hitsHere.flatMap(h => h.quantities).filter(q => q.kind === 'level' && revealed.has(q.id) && q.unit === 'percent');
-    const carried = levelHere.length ? levelHere : lastLevel;
-    if (carried.length && !POINTS_HYPOTHETICAL.test(s)) {
+    const levelIn = (hs: typeof hitsHere) => hs.flatMap(h => h.quantities).filter(q => q.kind === 'level' && revealed.has(q.id) && q.unit === 'percent');
+    const levelHere = levelIn(hitsHere);
+    {
       const pro = new RegExp(`(?:^|[,:—–]\\s*(?:and|but|while)?\\s*(?:currently|today|now)?,?\\s*)(?:(?:you said|i think|i see|i read|so)\\s+)?it(?:'s|\\s+(?:is|was|sits at|stands at|stood at|now sits at)|\\s+(?:goes|went|moved|rose|climbed|jumped)(?=\\s+from))\\s+(?:(?:now|today|currently|at)\\s+)?(?:from\\s+)?(${FIGURE})(?:[^.?!]{0,40}?\\bto\\s+(${FIGURE}))?`, 'i').exec(s);
-      if (pro && !(levelHere.length && hitsHere.some(h => h.start > (pro.index ?? 0)))) {
+      // "It" is the level item named before it in this sentence, else the last
+      // sentence's ("It went from 42% to 58% … the 18-point margin decline" is
+      // COGS from before, not the margin named after). A hypothetical counts
+      // only up to the chain's end (Tyler 4228be02 t5: "…to about 54% today,
+      // which is most of the eighteen-point decline").
+      const levelBefore = pro ? levelIn(hitsHere.filter(h => h.start < (pro.index ?? 0))) : [];
+      const carried = levelBefore.length ? levelBefore : lastLevel;
+      const proEnd = (pro?.index ?? 0) + (pro?.[0].length ?? 0);
+      if (pro && carried.length && !POINTS_HYPOTHETICAL.test(s.slice(0, proEnd))) {
         // Every figure the chain runs through ("from 42% … to 54% last year to 61% now").
         const chain = [pro[1], ...[...s.slice((pro.index ?? 0) + pro[0].length - (pro[2]?.length ?? 0)).matchAll(new RegExp(`\\bto\\s+(${FIGURE})`, 'gi'))].map(x => x[1]), pro[2]];
         for (const g of uniq(chain.filter(Boolean))) {
           const f = parseFig(g);
           const tail = s.slice(s.indexOf(g) + g.length);
           if (/^\s+(?!of\b|today\b|now\b|currently\b|two\b|2\b|last\b|this\b|over\b|in\b|and\b|to\b)[a-z]{4,}/i.test(tail)) continue;
+          // A share applied to a base is no level ("It's 25% of 42, so beans were 10.5 points" — Sofia 3baae0b8 t11).
+          if (/^\s*of\s+\$?\d/i.test(tail)) continue;
           if (f && f.unit === 'percent' && !figureFits(f, carried, 'level') && !out.some(o => o.cited.endsWith(f.text))) out.push({ items: carried.map(q => q.id), cited: `it ${f.text}`, sentence: s.slice(0, 220), kind: 'quote' });
         }
       }

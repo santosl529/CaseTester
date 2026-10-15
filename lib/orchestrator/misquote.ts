@@ -98,7 +98,9 @@ function itemTargets(item: LedgerItem, exhibitCol: number[]): { value: number; u
   return [...stated, ...exhibitCol.map(v => ({ value: v, unit: 'percent' as Unit })), ...derived];
 }
 
-const HYPOTHETICAL = /\b(?:if|suppose|assume|assuming|say|would|could|will|target|scenario|pro forma|after a|post-|next year|another year|going forward|trend continues|in a year)\b/i;
+// A requirement or target is no quote either (Lorenzo, 14 Oct; Marcus db0e42c3 t9:
+// "to get COGS back …, I need revenue up about 28%" was corrected to the 15% growth).
+const HYPOTHETICAL = /\b(?:if|suppose|assume|assuming|say|would|could|will|target|scenario|pro forma|after a|post-|next year|another year|going forward|trend continues|in a year|need|needs|needed|have to|has to|must|requires?|required|to get|to restore|to recover)\b/i;
 const INDEXED_OR_ARITHMETIC = /\bindex|\bbase(?:line)?\b|\$100 of revenue|\brevenue (?:at |of )?1\d\d\b|\bon 1\d\d\b|\bcall [\w ]{0,20}\b100\b|[=÷×≈−]|\s-\s|\bdivided by\b|\btimes\b|\bminus\b|\bextrapolat|\brun rate\b|\bone more year\b|\bproject(?:ed|ion)?\b|\bnext year\b|\bwould\b|\bof the (?:problem|decline|gap|story|drop|change|increase|swing|deterioration)\b/i;
 const INDEXED_MESSAGE = /\bindex|\bbase-?100\b|\bon 1\d\d\b|\brevenue (?:of |at )?1\d\d\b/i;
 const PREPOSITION = /\b(?:in|of|within|inside|into|from|with)\s+(?:the\s+|total\s+)?$/i;
