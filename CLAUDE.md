@@ -43,7 +43,8 @@ See the PRD §3 for the proposed layout (`/lib/orchestrator`, `/lib/agent`, `/li
 - Case answer keys, data-ledger values, `*_key` fields, `math_steps.answer`, and `rubric_anchors` are SERVER-ONLY. They must never reach the client bundle.
 - Case content is human-authored JSON in `/cases`, validated against a zod schema on load — reject malformed cases at boot.
 - Deterministic checks (math tolerance, data-leak audit) are computed in code, never delegated to the LLM where ground truth exists.
-- Before working on a new task, read the PRD body (§0–15, not §16 History) and `.superpowers/sdd/progress.md` (its head plus the latest 2–3 sections). Read PRD §16, older progress sections and `.superpowers/sdd/progress-archive.md` only when the task needs the history.
+- Before working on a new task, start with `.superpowers/sdd/progress.md` "## Now" (then its rules, batches table and the latest round). Read the PRD only at §15 and the latest §16 entries unless a task needs more; read the rest of the PRD body, older §16 entries and `.superpowers/sdd/progress-archive.md` only when the task needs them.
+- Keep progress.md "## Now" current (≤ 15 lines) and move finished rounds to `progress-archive.md` verbatim, leaving one line each.
 - Always update progress.md, and the PRD sections the work touched, after finishing work
 
 ## Supabase
