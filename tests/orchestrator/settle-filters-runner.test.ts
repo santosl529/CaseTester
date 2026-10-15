@@ -469,6 +469,12 @@ describe('no refusal names data the case holds (fact checks F3)', () => {
     ['the split of COGS between beans, dairy and packaging', ['bean_share_of_cogs', 'non_bean_input_change']],
     ['the composition of COGS and the price change of the other inputs', ['bean_share_of_cogs', 'non_bean_input_change']],
     ['the split of COGS between beans and other inputs', ['bean_share_of_cogs']],
+    // Lorenzo, 14 Oct (batch 24): the model mapping all three no longer lets the scope rule drop the price changes.
+    ['COGS split by input (beans versus other inputs)', ['bean_share_of_cogs', 'bean_price_change', 'non_bean_input_change']],   // Raj ba2e03be t9
+    ['the split of the COGS line', ['bean_share_of_cogs', 'bean_price_change', 'non_bean_input_change']],                          // Sofia 84910bd6 t5
+    ['the split of the COGS line', ['bean_share_of_cogs', 'bean_price_change']],                                                   // Jordan 5c68b453 t5
+    ['the COGS line by component', []],
+    ['what makes up COGS', ['bean_share_of_cogs']],
   ] as [string, string[]][])('"%s" releases the bean share, the bean price change and the other inputs\' change', async (what, itemIds) => {
     seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
     const r = await say('Do we have a split of COGS by input category?', T({ say: 'Mm-hm.', requests: [ask(what, itemIds)], question: 'What does it tell you?' }));
@@ -737,3 +743,4 @@ describe('a refusal of what the case holds becomes the line that holds it', () =
     expect(r.interviewerText).toMatch(/I don't have competitor pricing\./);
   });
 });
+

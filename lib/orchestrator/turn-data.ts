@@ -91,11 +91,17 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     if (!r.explicit) return [r];
     const groupIds = groupItemsAsked(r.what, fbGroups).filter(id => ledger.items.some(i => i.id === id));
     if (groupIds.some(id => splitOfItem(r.what, ledger.items.find(i => i.id === id)!, namesOf(id)))) { finerAsks.add(r.what); return [r]; }
+    // Every item of the group: those the model left out, and those it mapped that
+    // the ask's wording would put out of scope — each asked in its own label, so
+    // the scope rule reads the item, not the wording (Lorenzo, 14 Oct; batch 24:
+    // Raj ba2e03be's "COGS split by input (beans versus other inputs)", mapped to
+    // all three, lost the two price changes to the split rule).
     const add = groupIds.filter(id => !r.itemIds.includes(id));
-    if (add.length === 0) return [r];
+    const scopedOut = groupIds.filter(id => r.itemIds.includes(id) && outsideAskScope(r.what, ledger.items.find(i => i.id === id)!, namesOf(id)));
+    if (groupIds.length === 0 || (add.length === 0 && scopedOut.length === 0)) return [r];
     // One ask per item, in its own label — said back without the candidate's
     // wording, which may carry a cut the case doesn't hold ("… and unit cost per pound").
-    const ids = [...new Set([...r.itemIds, ...add])];
+    const ids = [...new Set([...r.itemIds, ...add])];   // the model's order, then what it left out
     const asks = ids.map(id => ({ ...r, itemIds: [id], what: ledger.items.find(i => i.id === id)?.label ?? r.what }));
     for (const a of asks) grouped.set(a.what, new Set(ids));
     return asks;
