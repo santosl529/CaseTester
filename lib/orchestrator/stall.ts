@@ -74,6 +74,20 @@ const COMMIT_REFUSAL = /\b(can'?t (commit|recommend)|cannot (commit|recommend)|n
 const NEGATED_RECOMMENDATION =
   /\b(?:didn'?t|did not|couldn'?t|could not|can'?t|cannot|never|haven'?t|have not|don'?t|do not)\s+(?:\w+\s+){0,3}?(?:a |any |my |the )?recommendation\b|\bno recommendation\b/gi;
 
+// The reply to a recommendation ask (Lorenzo, 14 Oct; batch 24, Marcus
+// db0e42c3 t17: "…a pricing problem… So: raise prices, staged…" carried no
+// recommendation wording, and the case ran six more minutes): it is the
+// recommendation when it commits to an action — recommendation wording, or a
+// sentence that opens on what to do ("Raise…", "Lead with…", "Act on…", "So:
+// raise…") — and isn't a refusal, a hedge or a question back. More brainstorm
+// ("A few things beyond price…") or a risk answer is not.
+const COMMITS = /\b(?:my recommendation|i(?:'d| would)? recommend|bottom line|the fix is|the answer is)\b|\b(?:recommendation|headline):/i;
+const ACTION_LEAD = /(?:^|[.!?]\s+|\n\s*)(?:(?:so|okay|ok|then|first)[:,]?\s+)?(?:raise|increase|cut|reduce|lower|lock in|lock|hedge|renegotiate|reprice|pass (?:on|through)|introduce|launch|switch|lead with|act on|start with|go with|prioriti[sz]e|focus on|exit|attack)\b/i;
+export function answersRecommendationAsk(text: string, kind: TurnKind): boolean {
+  if (kind !== 'analysis' || COMMIT_REFUSAL.test(text)) return false;
+  return COMMITS.test(text.replace(NEGATED_RECOMMENDATION, ' ')) || ACTION_LEAD.test(text.trim()) || LEVER_LEAD.test(text.trim());
+}
+
 export function isRecommendationStatement(text: string, kind: TurnKind): boolean {
   if (COMMIT_REFUSAL.test(text)) return false;
   if (LEVER_LEAD.test(text.trim())) return true;

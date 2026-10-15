@@ -12,7 +12,7 @@ import { checkCandidateMath, formatRecomputeHint, recordAttempts, formatVerified
 import { candidateFiguresOf } from './math-talk';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
-import { evaluateStall, revertUndeliveredRung, isRecommendationStatement, INITIAL_STALL_STATE, type StallState } from './stall';
+import { evaluateStall, revertUndeliveredRung, isRecommendationStatement, answersRecommendationAsk, INITIAL_STALL_STATE, type StallState } from './stall';
 import { resumeOnCandidateTurn, effectiveElapsedMs, isSilenceLine, INITIAL_SILENCE_STATE, type SilenceState } from './silence';
 import { classifyConduct, isPauseAccepted, isRiskToSelf, type ConductAssessment } from './conduct';
 import { classifyDistress, type DistressVerdict } from './distress';
@@ -575,9 +575,13 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // own bounded ladder — re-ask, narrowed probe, waiver — is the escalation;
   // the stall ladder waits (no rung spent) and resumes after.
   const ptOpen = (flags.pressureTest as Partial<PressureTestState> | undefined)?.state === 'awaiting';
-  const stallDecision = ptOpen && rawStall.intervene
+  let stallDecision = ptOpen && rawStall.intervene
     ? { ...rawStall, intervene: false, rung: undefined, guidance: undefined, state: revertUndeliveredRung(rawStall.state, priorStall) }
     : rawStall;
+  // A substantive reply to a recommendation ask is the recommendation received, whatever its wording.
+  if (!stallDecision.state.recommendationDelivered && replyToRecAsk && answersRecommendationAsk(candidateText, stallDecision.classification.kind)) {
+    stallDecision = { ...stallDecision, state: { ...stallDecision.state, recommendationDelivered: true } };
+  }
   if (ptOpen && rawStall.intervene) checks.act('stall_deferred', 'stall rung withheld: the pressure-test ladder owns this turn', { rung: rawStall.rung });
   const recommendationReceived = stallDecision.state.recommendationDelivered;
 
