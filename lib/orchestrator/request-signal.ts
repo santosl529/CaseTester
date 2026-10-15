@@ -77,7 +77,9 @@ function asksAddressed(sentence: string, phase: Phase): boolean {
 // transaction count falling, or is the same customer buying less…? Those need
 // different responses." — the goodbye read out the average ticket): no
 // addressed cue, the message goes on with their own statements, and it is an
-// either/or or set up as their own question. A plain ask stays an ask.
+// either/or or set up as their own question. A plain ask stays an ask. Only the
+// close reads it so (Lorenzo, 15 Oct): mid-case, "Is it beans, or dairy?" is
+// a real ask even when the candidate guesses after it.
 const SELF_FRAME = /\b(?:i'?d (?:want|need) to know|i'?d ask|the (?:real |key )?question is|i'?d check|first,?\s+i'?d)\b/i;
 const EITHER_OR = /,\s*or\b|\bor is\b|\bor are\b|\bor does\b|\bor do\b/i;
 function rhetorical(sentences: string[], i: number): boolean {
@@ -90,14 +92,14 @@ function rhetorical(sentences: string[], i: number): boolean {
 
 // The sentences of the message that ask the interviewer for data — by an
 // addressed-ask cue, or as a question about case data — with any enumerated
-// list that follows one. A rhetorical question is none.
-export function addressedAskSentences(text: string, phase: Phase): string[] {
+// list that follows one. At the close, a rhetorical question is none.
+export function addressedAskSentences(text: string, phase: Phase, opts: { closing?: boolean } = {}): string[] {
   const out: string[] = [];
   let inAsk = false;
   // "1. Store count" would split after "1.": numbered lines become "1) …".
   const sentences = sentencesOf(text.replace(/(^|\n)\s*(\d+)[.)]\s+/g, '$1$2) '));
   sentences.forEach((s, i) => {
-    inAsk = (asksAddressed(s, phase) && !rhetorical(sentences, i)) || (inAsk && LIST_ITEM.test(s));
+    inAsk = (asksAddressed(s, phase) && !(opts.closing && rhetorical(sentences, i))) || (inAsk && LIST_ITEM.test(s));
     if (inAsk) out.push(s);
   });
   return out;

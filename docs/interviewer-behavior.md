@@ -1974,7 +1974,10 @@ mid-flow.
      follows such a sentence. The classifier's detections are answered only
      when such a sentence covers them; a lone question about the data, or an
      "I'd want …" sentence, covers only the items it names, so a rhetorical
-     question next to a next step answers nothing. Dropped detections are
+     question next to a next step answers nothing. At the close only, a
+     question the candidate asks themselves (no addressed cue, their own
+     statements follow, an either/or or set up as their own) is no ask;
+     mid-case it is answered (Lorenzo, 15 Oct). Dropped detections are
      recorded in the `code_written_requests` check (scorecard flag
      `code_written_ask_dropped`) and, while the case goes on, logged as
      passing mentions (`explicit: false`). **Accepted trade-off:** a

@@ -342,7 +342,7 @@ async function runTurnBody(
     // (the classified marker still goes in, so neither the background pass
     // nor scoring's backfill re-reads the exchange); when the case goes on,
     // they are logged as passing mentions so the classifier's record stays.
-    const askSentences = addressedAskSentences(candidateText, currentPhase);
+    const askSentences = addressedAskSentences(candidateText, currentPhase, { closing: state.kind === 'close' });
     const { kept, dropped } = matchAskDetections(askSentences, (detected ?? []).filter(r => r.explicit));
     if (detected !== null) {
       checks.record('code_written_requests', dropped.length > 0, 'detected requests no asking sentence covers — not answered', {

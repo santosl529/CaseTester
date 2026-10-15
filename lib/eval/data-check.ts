@@ -83,7 +83,7 @@ export function checkDataTurn(t: CorpusTurn, fb: FactBase, opts: { openBefore?: 
   if (offer && !offered.some(id => mentionStatesNeed(t.candidateText, labelOf(id)?.label ?? id))) out.push({ rule: 'D3', sub: 'offer', items: offered, text: offer[0] });
 
   // D9: each addressed ask answered.
-  const asks = addressedAskSentences(t.candidateText, (t.phase || 'ANALYSIS') as Phase);
+  const asks = addressedAskSentences(t.candidateText, (t.phase || 'ANALYSIS') as Phase, { closing: t.kind === 'close' });
   const answeredIds = new Set([...t.releasedNow, ...idsNamed(data.filter(s => DEFER.test(s.text) || EARLIER.test(s.text) || REFUSE.test(s.text)).map(s => s.text).join(' '), fb)]);
   // The model's own words can answer too: a restatement or a deferral in "say" / the question.
   const wordsText = words.map(s => s.text).join(' ');

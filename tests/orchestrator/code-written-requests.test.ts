@@ -220,6 +220,8 @@ describe('real asks in a final message are answered at the close', () => {
   });
 });
 
+const EITHER_OR_ASK = 'Is the store count up from two years ago, or flat? My guess is up, given the openings.';
+
 describe.each(KINDS.filter(k => k.kind !== 'close'))('$kind turn (the case goes on)', ({ kind, setup }) => {
   it('dropped detections are logged as passing mentions, never as asks', async () => {
     setup();
@@ -242,6 +244,28 @@ describe.each(KINDS.filter(k => k.kind !== 'close'))('$kind turn (the case goes 
     expect(revealed()).toEqual(['stores_count']);
     expect(r.interviewerText).toContain('200 stores');
     expect(check('code_written_requests')?.decision).toBe('pass');
+  });
+
+  // Lorenzo, 15 Oct: only the close reads an either/or the candidate goes on
+  // to answer as rhetorical; mid-case it is a real ask.
+  it('an either/or ask followed by a guess is answered', async () => {
+    setup();
+    detected = [det('Store count two years ago', ['stores_count'])];
+    const r = await runTurn('s1', EITHER_OR_ASK);
+    expect(turnKind()).toBe(kind);
+    expect(revealed()).toEqual(['stores_count']);
+    expect(r.interviewerText).toContain('200 stores');
+  });
+});
+
+describe('the same either/or at the close', () => {
+  it('is rhetorical: nothing released', async () => {
+    atClose();
+    detected = [det('Store count two years ago', ['stores_count'])];
+    const r = await runTurn('s1', EITHER_OR_ASK);
+    expect(turnKind()).toBe('close');
+    expect(revealed()).toEqual([]);
+    expect(r.interviewerText).not.toMatch(DATA_LINE);
   });
 });
 
