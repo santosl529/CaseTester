@@ -1,6 +1,6 @@
 # Drills branch progress
 
-## Start here (updated 2026-10-13)
+## Start here (updated 2026-10-15)
 
 **Status.** All 15 MVP drills are live: ten at Level 1 (PS-1, HY-1, EX-1, SY-1, CL-1, plus generated QN-1, QN-3, QN-4, EX-2, EX-3) and the five D2 drills (PS-3, HY-2, SY-2, CL-3, QN-5). Phases D0–D2 are done. Database (shared CaseTester Supabase project) is in sync with `/drill-items`.
 
@@ -21,7 +21,7 @@
 **What's left to build** (docs/prd-drills.md, "Build phases"):
 - D4 Training program: built. Only the lesson review is left: Matt approves or requests changes on `/drills/review/lessons` (local dev server), then `npm run db:seed-lessons`. Checked 2026-10-11: all 22 lessons still `status: draft` with no review notes; typecheck, tests (1258 passed) and lint pass.
 - D6 Pilot launch (after D3 and D4): analytics, WCAG audit, club pilot.
-- D5 Chains and Defend: built; full content batch drafted (2026-10-13). Left: the paid checks above, Matt's review of the batch and of every golden grade, each gate at ≥90%, then `live: true` on PS-4/HY-3/SY-3 and `defend.live: true` on PS-3/HY-2/SY-2/CL-3.
+- D5 Chains and Defend: built; content and golden sets approved (2026-10-15). Left: get the HY-2 follow-up's data request and consistency checks to ≥90% (proposal with Matt), then `live: true` on PS-4/HY-3/SY-3 and `defend.live: true` on PS-3/HY-2/SY-2/CL-3.
 - All schema changes must stay additive (new tables, enum values, columns).
 - Code vs PRD gap: the daily cap is 20 AI-graded sets (`AI_SETS_PER_DAY` in `lib/drills/sets/service.ts`); v2 says 150 AI-graded answers a day. Change when building that part.
 - Merging `drills` into `main`: coordinate migration numbering with the teammate (see Database notes). Drills migrations now run 0009–0012.
