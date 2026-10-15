@@ -304,11 +304,26 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     const line = [...p.turnRows].reverse().find(t => t.role === 'interviewer' && t.turnIndex < m)?.text;
     return line !== undefined && probesOf(ownFigures(c, caseNumbers), [line], p.candidateFigures) > 0;
   };
+  // Misreads code corrects (Lorenzo, 14 Oct; batch 24, Tyler 4228be02's COGS
+  // "about 54%"): one error with its framings — a claim whose sentence states
+  // the misread figure, or whose value repeats a figure of a framing already
+  // joined ("twelve points", then "12/18"), shares the correction's count.
+  const misreads: { key: string; figures: number[] }[] = [];
+  const messageOf = (n: number) => (n === p.candidateTurnIndex ? p.candidateText : p.turnRows.find(t => t.role === 'candidate' && t.turnIndex === n)?.text ?? '');
+  const sentenceOf = (text: string, span: string) => sentencesOf(text).find(s => s.includes(span.slice(0, 40))) ?? span;
   for (const v of verdicts) {
+    for (const f of v.codeFlags.filter(x => x.key.startsWith('misquote:'))) {
+      const m = misreads.find(x => x.key === f.key);
+      if (m) m.figures.push(f.value); else misreads.push({ key: f.key, figures: [f.value] });
+    }
     const laterRows = laterMessages(v.candidateTurnIndex);
     const later = laterRows.map(x => x.text);
     v.claims.forEach((c, i) => {
       const id = `${v.candidateTurnIndex}:${i}`;
+      // A framing of a misread grows it, whether decided now or on an earlier turn.
+      const told = c.flag ? [...numbersOf(sentenceOf(normalizeNumberWords(messageOf(v.candidateTurnIndex)), normalizeNumberWords(c.span))), ...numbersOf(normalizeNumberWords(c.candidateValue))] : [];
+      const misread = misreads.find(m => told.some(n => m.figures.some(x => same(n, x))));
+      if (misread) misread.figures.push(...numbersOf(normalizeNumberWords(c.candidateValue)));
       if (handled.has(id)) return;
       const figs = claimFigures(c, caseNumbers);
       const codeFlag = v.codeFlags.find(f => f.key === checkerKey(c) || figs.some(x => same(x, f.value)));
@@ -325,6 +340,11 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       // corrected it as a misquote (an exact lookup).
       if (codeFlag && (!c.correctionLine || codeFlag.key.startsWith('misquote:'))) {
         decisions.push(decision(id, v.candidateTurnIndex, c, 'dedupe', `the deterministic check flagged it (${codeFlag.key})`));
+        handled.add(id);
+        return;
+      }
+      if (misread) {
+        decisions.push(decision(id, v.candidateTurnIndex, c, 'dedupe', `a framing of a misread code corrects (${misread.key})`));
         handled.add(id);
         return;
       }

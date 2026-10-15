@@ -134,3 +134,41 @@ describe("in a turn: the checker's probe is counted, and a capped step gets none
     expect((p.ctx.flags.mathChecker as { closed?: string[] }).closed).toEqual(['pricing:gain@5']);
   });
 });
+
+// Lorenzo, 14 Oct (batch-24 ruling 4): restated misreads under different
+// framings share one count. Tyler 4228be02 read COGS as "about 54%" (58%); code
+// corrects the misquote, and the checker's framings of it — "twelve points",
+// "54% (12 points)", "two-thirds (12/18)", "about 67%" — are the same error, not
+// five more probes.
+describe('framings of a misread code corrects share its count', () => {
+  const misquoteRow = (n: number, claims: VettedClaim[]): CheckerRow => ({
+    category: MATH_CHECKER_CATEGORY, subtype: 'verdict', turnIndex: n,
+    payloadJsonb: { candidateTurnIndex: n, latencyMs: 6000, model: 'claude-sonnet-5-5', claims, codeFlags: [{ key: 'misquote:cogs_pct', value: 54, span: 'it goes from 42% to about 54% today' }], stamps: [] } satisfies VerdictPayload,
+  });
+  const c = (span: string, value: string) => claim({ span, candidateValue: value, quantity: 'COGS change', codeQuantity: NONE, correctionLine: null, probeLine: `You said ${value}. How did you get there?` });
+  const TURNS = [
+    { turnIndex: 5, role: 'candidate', text: 'COGS is the story: it goes from 42% to about 54% today, so roughly twelve points of margin, which is most of the eighteen-point decline.' },
+    { turnIndex: 6, role: 'interviewer', text: 'To correct one figure: COGS is 58% of revenue today, up from 42% two years ago. How did you get to that figure?' },
+    { turnIndex: 7, role: 'candidate', text: 'Against an eighteen-point margin drop that is about two-thirds of it. Twelve over eighteen is about 67%.' },
+    { turnIndex: 8, role: 'interviewer', text: 'What would you look at next?' },
+  ];
+  it('the framings get no probe of their own; an unrelated claim still does', () => {
+    const p = planCheckerFlags(input({
+      rows: [misquoteRow(5, [c('so roughly twelve points of margin', 'twelve points')]),
+        row(7, [c('that is about two-thirds of it', 'two-thirds (12/18)'), c('Twelve over eighteen is about 67%', 'about 67%')])],
+      turnRows: TURNS, candidateTurnIndex: 9, candidateText: 'Next I would look at menu prices.', candidateFigures: [54, 12, 67],
+    }));
+    expect(p.selected).toBeNull();
+    expect(p.decisions.map(d => [d.id, d.outcome])).toEqual([['5:0', 'dedupe'], ['7:0', 'dedupe'], ['7:1', 'dedupe']]);
+    // Turns later, with those framings handled: the next framing still joins ("that twelve-point swing is two-thirds" — t15).
+    const later = planCheckerFlags(input({
+      rows: [misquoteRow(5, [c('so roughly twelve points of margin', 'twelve points')]),
+        row(7, [c('that is about two-thirds of it', 'two-thirds (12/18)')]), row(15, [c('That twelve-point swing is two-thirds of the decline', '12 points, two-thirds')])],
+      handled: ['5:0', '7:0'], turnRows: [...TURNS, { turnIndex: 15, role: 'candidate', text: 'That twelve-point swing is two-thirds of the decline.' }, { turnIndex: 16, role: 'interviewer', text: 'Go on.' }],
+      candidateTurnIndex: 17, candidateText: 'Next.', candidateFigures: [12],
+    }));
+    expect(later.decisions).toEqual([expect.objectContaining({ id: '15:0', outcome: 'dedupe' })]);
+    const other = planCheckerFlags(input({ rows: [misquoteRow(5, [c('so roughly twelve points of margin', 'twelve points')]), row(7, [claim()])], turnRows: TURNS, candidateTurnIndex: 9, candidateText: 'Next.', candidateFigures: [5, 10] }));
+    expect(other.selected).toMatchObject({ id: '7:0', action: 'probe' });
+  });
+});
