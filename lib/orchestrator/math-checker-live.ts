@@ -319,6 +319,7 @@ export type CheckerPlanInput = {
   keys?: Record<string, CheckerKeyEntry>; // the flags raised so far (one per error, across messages)
   closed?: string[];                  // keys past Rule 14: corrected once, or left for the report
   stepProbes?: Record<string, number>; // probes spent on each step this interview (STEP_PROBE_CAP)
+  held?: string;                      // a line a due stage question held back (Settle): raised first, and it doesn't expire
   underTimePressure: boolean;
   candidateFigures: number[];
   caseData: CheckerCase; revealedIds: string[];
@@ -469,7 +470,8 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
         handled.add(id);
         return;
       }
-      if (later.length > CHECKER_MAX_WAIT_MESSAGES) {
+      // A line a due stage question held back waits for the next model turn (Lorenzo, 15 Oct).
+      if (later.length > CHECKER_MAX_WAIT_MESSAGES && id !== p.held) {
         decisions.push(decision(id, v.candidateTurnIndex, c, 'expired', `${later.length} messages since the claim`));
         handled.add(id);
         return;
@@ -494,7 +496,8 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   // One checker probe a turn, conclusion-changing first; none beside a
   // deterministic flag on this message (that is the turn's probe) or a
   // misquote code corrects this turn (one math line a turn).
-  eligible.sort((a, b) => Number(b.c.changesConclusion) - Number(a.c.changesConclusion) || a.n - b.n);
+  // A line a due stage held back goes out first, on the next turn it can.
+  eligible.sort((a, b) => Number(b.id === p.held) - Number(a.id === p.held) || Number(b.c.changesConclusion) - Number(a.c.changesConclusion) || a.n - b.n);
   let selected: CheckerSelection | null = null;
   const waiting = [...eligible];
   while (!selected && p.currentFlags.length === 0 && !p.codeLineThisTurn && waiting.length > 0) {

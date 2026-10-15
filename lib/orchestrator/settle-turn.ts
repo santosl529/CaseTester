@@ -28,7 +28,7 @@ import { caseTotalMs, type Phase } from './state-machine';
 import { toCheckEventRows } from './check-log';
 import { pickScript, STAGE_EXHIBIT_QUESTIONS } from '@/lib/agent/prompts/scripts';
 import { BLOCKED_CLOSE_PROBES, LATE_RECOMMENDATION_ASKS, asksForConclusion, analysisAskLine } from './spoken-close';
-import { updateStages, type StageKey, type StageRecord } from './stage-evidence';
+import { updateStages, stageQuestions, type StageKey, type StageRecord } from './stage-evidence';
 import { renderDataLineParts, decisionRows, nextReadyExhibit } from './data-decisions';
 import { brainstormAsks, asksOwnBrainstorm } from './brainstorm';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
@@ -490,14 +490,29 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // correction goes before the question; "say" has already been spoken). A
   // pressure-test step or a stage code administers keeps the question; the
   // line then waits (below).
+  // A due stage question in the model's words wins over a checker probe
+  // (Lorenzo, 15 Oct; batch 26 Jordan 6bd9edf3 t19 lost its risk question to
+  // "Walk me through that calculation."): the question stays, and the probe is
+  // held back to the next turn. Due: at or past the stage's deadline or after
+  // the time warning; the risk once the recommendation is in (Plan's stagesDue).
+  // A correction is no probe: it still goes first, before the stage question.
   const checkerLine = !codeWritten && kind === 'model' ? state.checkerLine : null;
   let checkerLineBy: 'model' | 'code' | null = null;
+  let heldForStage: StageKey | undefined;
   const codeTookQuestion = ['waived', 'reask', 'narrowed', 'code_asked', 'code_asked_structure'].includes(ptAction ?? '') || stageAsked !== undefined || heldForExhibit !== undefined;
   if (checkerLine && !codeTookQuestion) {
+    const asked = modelQuestion ? stageQuestions(modelQuestion, {
+      move: turn.move, recOnTable: state.stages.recommendationAsked || state.recommendationReceived,
+      brainstormAsks: brainstormAsks(caseData), brainstormDue: state.brainstormDue,
+    }) : null;
+    const dueAsked = asked ? (['risk', 'recommendation', 'brainstorm'] as const).find(k => asked[k] && state.stagesDue[k]) : undefined;
     if (lineHeard(`${say} ${question}`, checkerLine.line)) checkerLineBy = 'model';
+    else if (dueAsked && checkerLine.action !== 'correct' && !checkerLine.wasHeld) heldForStage = dueAsked;
     else {
-      question = checkerLine.action === 'correct' ? [checkerLine.line, question].filter(Boolean).join(' ') : checkerLine.line;
-      if (checkerLine.action !== 'correct') modelQuestion = '';
+      // A correction goes before the question; so does a line held back once already, before a due stage question it no longer waits for.
+      const before = checkerLine.action === 'correct' || (dueAsked !== undefined && checkerLine.wasHeld);
+      question = before ? [checkerLine.line, question].filter(Boolean).join(' ') : checkerLine.line;
+      if (!before) modelQuestion = '';
       checkerLineBy = 'code';
     }
   }
@@ -563,12 +578,13 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   const spokenText = [say, ...dataLines, question].map(s => s.trim()).filter(Boolean).join(' ');
 
   // Still not heard (a pressure-test step or another of code's lines took the
-  // question): the booking is undone and the flag stays pending for a later turn.
+  // question, or a due stage question held it back): the booking is undone and
+  // the flag stays pending for a later turn — a held-back one for the next.
   const checkerHeard = checkerLine ? lineHeard(spokenText, checkerLine.line) : null;
   if (checkerLine && !checkerHeard) {
     if (checkerLine.undo.attempt === undefined) delete recomputeAttempts[checkerLine.key];
     else recomputeAttempts[checkerLine.key] = checkerLine.undo.attempt;
-    flags.mathChecker = checkerLine.undo.mathChecker;
+    flags.mathChecker = { ...checkerLine.undo.mathChecker, ...(heldForStage ? { held: checkerLine.id } : {}) };
     if (checkerLine.undo.step) {
       const steps = { ...(flags.stepProbes as Record<string, number> | undefined) };
       steps[checkerLine.undo.step] = Math.max(0, (steps[checkerLine.undo.step] ?? 1) - 1);
@@ -576,14 +592,17 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     }
     for (const e of ctx.events) {
       if (e.category === 'math_checker' && e.subtype === 'flag' && (e.payload as { id?: string }).id === checkerLine.id) {
-        e.payload = { ...e.payload, outcome: 'undelivered', reason: 'chosen, not said: another line took the question' };
+        e.payload = { ...e.payload, outcome: 'undelivered', reason: heldForStage
+          ? `held back: the ${heldForStage} question is due and keeps the question; the line goes out next turn`
+          : 'chosen, not said: another line took the question' };
       }
     }
   }
   checks.record('checker_line', checkerLine !== null && (checkerLineBy === 'code' || !checkerHeard),
-    !checkerLine ? 'no checker line this turn' : !checkerHeard ? 'checker line not heard — booking undone, the flag stays pending'
+    !checkerLine ? 'no checker line this turn' : heldForStage ? `a due ${heldForStage} question keeps the question — the line is held back to the next turn`
+      : !checkerHeard ? 'checker line not heard — booking undone, the flag stays pending'
       : checkerLineBy === 'code' ? 'the model left the checker line out — code said it' : 'the model said the checker line',
-    checkerLine ? { id: checkerLine.id, action: checkerLine.action, line: checkerLine.line, by: checkerLineBy, heard: checkerHeard } : {});
+    checkerLine ? { id: checkerLine.id, action: checkerLine.action, line: checkerLine.line, by: checkerLineBy, heard: checkerHeard, ...(heldForStage ? { heldFor: heldForStage } : {}) } : {});
 
   // Book what was delivered (D3), and the exhibit with the items it displays.
   const undelivered = new Set(out.undeliveredRevealIds ?? []);
@@ -829,7 +848,9 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
             lastMessageElapsedMs: elapsedMs,
             graceAskFired: Boolean(flags.graceAskFired) || (kind === 'grace_ask' && qHeard),
             recRevisionAsked: Boolean(flags.recRevisionAsked) || (kind === 'rec_revision' && qHeard),
-            recMathProbed: Boolean(flags.recMathProbed) || (kind === 'rec_math_probe' && qHeard),
+            recMathProbed: Boolean(flags.recMathProbed) || (kind === 'rec_math_probe' && !state.heldCloseHold && qHeard),
+            // The close hold for a line a due stage held back: once an interview (Lorenzo, 15 Oct).
+            heldCloseHold: Boolean(flags.heldCloseHold) || (kind === 'rec_math_probe' && state.heldCloseHold && qHeard),
             recomputeAttempts,
             lastVerified: verifiedNow,
             flaggedFigures: state.flaggedFigures,

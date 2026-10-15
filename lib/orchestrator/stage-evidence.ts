@@ -82,6 +82,29 @@ export type StageTurn = {
   move?: string;                // the turn's move as saved: the model's declared move, code's stage move, or code_rec_ask
 };
 
+// The stages a delivered question asks, in the record's own reading (below):
+// the brainstorm, the recommendation, the risk. recOnTable: a recommendation
+// asked or given before this question.
+export type StageQuestions = { brainstorm: boolean; recommendation: boolean; risk: boolean };
+export function stageQuestions(question: string, o: { move?: string; recOnTable: boolean; brainstormAsks?: string[]; brainstormDue?: boolean }): StageQuestions {
+  // The brainstorm: the closing grammar ("what else could X do", "what other
+  // levers"), a brainstorm move in brainstorm wording, or the case's own ask —
+  // not any "what else" ("What else would you need to rule out…?" is a probe:
+  // Destiny df623412 t20); none before it is due.
+  const brainstorm = o.brainstormDue !== false
+    && (asksBrainstorm(question) || (o.move === 'brainstorm' && BRAINSTORM_TEXT.test(question)) || asksCaseBrainstorm(question, o.brainstormAsks ?? []));
+  // A recommendation ask in any wording, or a recommendation move in
+  // recommendation wording that is no risk question.
+  const recommendation = asksForConclusion(question)
+    || (o.move === 'recommendation' && question.includes('?') && REC_TEXT.test(question) && !asksRiskQuestion(question, false));
+  // The risk question once a recommendation is on the table, in risk wording
+  // or as a risk move in risk words ("Which single risk could most undermine
+  // this recommendation…?" — Ines 62d06bd6 t20).
+  const onTable = o.recOnTable || recommendation;
+  const risk = asksRiskQuestion(question, onTable) || (onTable && o.move === 'risk' && question.includes('?') && RISK_TEXT.test(question));
+  return { brainstorm, recommendation, risk };
+}
+
 export function updateStages(prev: StageRecord | undefined, t: StageTurn): StageRecord {
   const r: StageRecord = structuredClone(prev ?? INITIAL_STAGES);
   for (const k of STAGES) r[k] ??= { delivered: false };
@@ -127,22 +150,15 @@ export function updateStages(prev: StageRecord | undefined, t: StageTurn): Stage
   // The record is the end gate's only reading (Lorenzo, 13 Oct: one source of
   // truth), so it reads as the end gate did (v4.10 round 3, fact guards Phase
   // 5): a move label counts only when the delivered text does what it says.
-  // The brainstorm: the closing grammar ("what else could X do", "what other
-  // levers"), a brainstorm move in brainstorm wording, or the case's own ask —
-  // not any "what else" ("What else would you need to rule out…?" is a probe:
-  // Destiny df623412 t20); none before it is due.
   const move = t.move;
-  const asksBrainstormStage = asksBrainstorm(t.question) || (move === 'brainstorm' && BRAINSTORM_TEXT.test(t.question)) || asksCaseBrainstorm(t.question, t.brainstormAsks ?? []);
-  if (t.codeAsked === 'brainstorm' || (t.brainstormDue !== false && asksBrainstormStage)) deliver('brainstorm', t.codeAsked === 'brainstorm');
-  // A recommendation ask in any wording, code's, or a recommendation move in
-  // recommendation wording that is no risk question.
-  if (t.recAsked || move === 'code_rec_ask' || asksForConclusion(t.question)
-    || (move === 'recommendation' && t.question.includes('?') && REC_TEXT.test(t.question) && !asksRiskQuestion(t.question, false))) deliver('recommendation');
-  // The risk question once a recommendation is on the table, in risk wording
-  // or as a risk move in risk words ("Which single risk could most undermine
-  // this recommendation…?" — Ines 62d06bd6 t20).
-  const recOnTable = r.recommendation.delivered || Boolean(r.recommendation.outcome) || t.recommendationDelivered;
-  if (asksRiskQuestion(t.question, recOnTable) || (recOnTable && move === 'risk' && t.question.includes('?') && RISK_TEXT.test(t.question))) deliver('risk');
+  const codeRecAsk = t.recAsked || move === 'code_rec_ask';
+  const asked = stageQuestions(t.question, {
+    move, brainstormAsks: t.brainstormAsks, brainstormDue: t.brainstormDue,
+    recOnTable: r.recommendation.delivered || Boolean(r.recommendation.outcome) || t.recommendationDelivered || codeRecAsk,
+  });
+  if (t.codeAsked === 'brainstorm' || asked.brainstorm) deliver('brainstorm', t.codeAsked === 'brainstorm');
+  if (codeRecAsk || asked.recommendation) deliver('recommendation');
+  if (asked.risk) deliver('risk');
 
   if (t.ended === 'time_up') {
     for (const k of STAGES) if (!r[k].outcome && (r[k].delivered || k === 'exhibit' || k === 'brainstorm')) r[k] = { ...r[k], outcome: 'time_up' };

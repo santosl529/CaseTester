@@ -60,6 +60,7 @@ Post-plan hardening (July–Sep 2026) through Integration (13 Oct) were moved to
 
 **Builds** (one commit each, docs in each):
 - **Build 2 — a late recommendation ask also asks for the biggest risk.** The time-warning lines and `LATE_RECOMMENDATION_ASKS` (code's `rec_ask` at or past the brainstorm budget's end, `recAskLate`) ask both in one question; one line records both stages, the case closes on the next reply with the recommendation. Grace ask unchanged. Lorenzo's acceptance test (runner, Blake's real clock, checker on): t23's time warning asks the risk. Replay vs 320b90e: off 38 / on 36 lines in 23 runs — 28/26 the late asks, the rest downstream closes. Tests +19; mutations 6/6.
+- **Build 5 — a due stage question wins over the checker's probe.** `stagesDue` (brainstorm ≥ exhibit-budget end, recommendation ≥ brainstorm-budget end, either after the time warning; the risk once the recommendation is in); Settle keeps a model question that asks a due stage and holds the probe (`flags.mathChecker.held`): no expiry, raised first, the coverage ask yields to it, held once only; a correction goes first then the stage question; the close hold extends to a held line once an interview (`flags.heldCloseHold`), never at time-up. Jordan t19 keeps the risk; t21's redo states 18, the flag closes stale, the case closes (Lorenzo's acceptance met). Jasmine t31 unchanged. Replay vs 7858cce: off 0 / on 4 lines in 2 runs (Jordan t19/t21, 4bf008f t19/t21). Tests +19; mutations 14/14.
 
 ## Batch 26 (15 Oct) — prof-001 wave after the batch-25 fixes
 

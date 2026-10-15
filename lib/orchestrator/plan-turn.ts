@@ -74,8 +74,13 @@ export type ModelState = ModelPlan['state'];
 // The checker's line on a model turn, and how to undo its booking if it isn't heard (Settle).
 export type CheckerLinePlan = {
   id: string; key: string; action: CheckerSelection['action']; line: string;
-  undo: { attempt: number | undefined; step: string | null; mathChecker: { handled: string[]; keys?: Record<string, CheckerKeyEntry>; closed?: string[] } };
+  wasHeld?: boolean;   // held back once already by a due stage: not held again
+  undo: { attempt: number | undefined; step: string | null; mathChecker: CheckerMemory };
 };
+// flags.mathChecker. held: a line a due stage question held back (Settle), until it is raised or decided.
+export type CheckerMemory = { handled: string[]; keys?: Record<string, CheckerKeyEntry>; closed?: string[]; held?: string };
+// A stage the model's question may ask, and whether it is due (Lorenzo, 15 Oct): a due one wins over a checker probe.
+export type StagesDue = { brainstorm: boolean; recommendation: boolean; risk: boolean };
 export type RecMathProbe = { flag: RecomputeFlag; action: RecomputeAction } | { checker: CheckerSelection; action: 'probe' | 'correct' } | { closed: ClosedRestatement; action: 'probe' | 'correct' };
 
 // Rule 6 option 4: how many times code corrects one item's misquote in a session.
@@ -552,13 +557,14 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   }
   // Verdicts on earlier messages that have landed: Rule 14 flags, one a turn
   // (decided here; delivered once the turn kind is known, below).
-  const checkerMemory = (flags.mathChecker as { handled?: string[]; keys?: Record<string, CheckerKeyEntry>; closed?: string[] } | undefined) ?? {};
+  const checkerMemory = (flags.mathChecker as Partial<CheckerMemory> | undefined) ?? {};
   const checkerHandled = checkerMemory.handled ?? [];
+  const heldLine = checkerMemory.held && !checkerHandled.includes(checkerMemory.held) ? checkerMemory.held : undefined;
   const checkerPlan = planCheckerFlags({
     rows: (reads.checkerEventRows ?? []).filter(r => r.category === MATH_CHECKER_CATEGORY),
     handled: checkerHandled, turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
     currentFlags: liveFlags.filter(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS))), codeLineThisTurn: misquote !== null, attempts: recomputeAttempts, underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
-    candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed, stepProbes,
+    candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed, stepProbes, held: heldLine,
   });
   // A flag past Rule 14 (corrected once, or left for the report) is closed:
   // its figures may not be probed again — the case moves on (Lorenzo, 13 Oct;
@@ -643,7 +649,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     || liveFlags.some(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)));
   const byTime = (deadlineMs: number) => !mathLineNow && elapsedMs >= deadlineMs;
   const recAskByTime = (pressureTest.state === 'satisfied' || pressureTest.state === 'waived') && !stages.recommendationAsked && !timeUp && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) && byTime(deadlines.brainstormEnd);
-  const awaitingRecAsk = (!stages.recommendationAsked && (recommendationReceived ? mayEnd : coverageMayEnd)) || recAskByTime;
+  // A line a due stage held back goes out the next turn (Lorenzo, 15 Oct): code's coverage ask yields it that turn, as the deadlines yield to a math line.
+  const heldNow = heldLine !== undefined && checkerPlan.selected?.id === heldLine;
+  const awaitingRecAsk = (!stages.recommendationAsked && (recommendationReceived ? mayEnd : coverageMayEnd) && !heldNow) || recAskByTime;
   const coverageSteer = formatCoverageSteer(coverage);
   checks.record('end_rec_ask_gate', awaitingRecAsk, recAskByTime ? 'the brainstorm budget is spent and the recommendation was never asked — code asks' : 'coverage complete but the recommendation was never asked — code asks this turn', { recAskByTime });
   checks.record('end_gate', stageGate && !coverageMayEnd, 'stage gate opened the end (coverage below threshold)', {
@@ -765,9 +773,18 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // time is up); anything left at the close goes to the report. On other
   // code-written turns it waits.
   const sel = checkerPlan.selected;
+  // A line a due stage held back holds the close too (Lorenzo, 15 Oct; batch 26
+  // Jordan 6bd9edf3 t19 → t21), whether or not it changes the conclusion: at
+  // most once an interview (flags.heldCloseHold, apart from recMathProbed), not
+  // at time-up — then it goes to the report like any flag left at the close.
+  let heldCloseHold = false;
   if (kind === 'close' && sel?.claim.changesConclusion && !timeUp && !flags.recMathProbed) {
     kind = 'rec_math_probe';
     recMathProbe = { checker: sel, action: sel.action === 'correct' ? 'correct' : 'probe' };
+  } else if (kind === 'close' && sel && sel.id === heldLine && !timeUp && !flags.heldCloseHold) {
+    kind = 'rec_math_probe';
+    recMathProbe = { checker: sel, action: sel.action === 'correct' ? 'correct' : 'probe' };
+    heldCloseHold = true;
   }
   const checkerUsed = sel && (kind === 'model' || (kind === 'rec_math_probe' && recMathProbe && 'checker' in recMathProbe)) ? sel : null;
   const checkerHandledNow = [...checkerPlan.handledNow];
@@ -796,8 +813,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const raised = new Set([...Object.keys(checkerMemory.keys ?? {}), ...(checkerUsed ? [checkerUsed.key] : []), ...closedAfter]);
   const checkerKeys = Object.fromEntries(Object.entries(checkerPlan.keys).filter(([k, e]) => raised.has(k) && e.figures.length > 0));
   const keysChanged = JSON.stringify(checkerKeys) !== JSON.stringify(checkerMemory.keys ?? {});
-  if (checkerHandledNow.length > 0 || keysChanged || closedAfter.length !== (checkerMemory.closed ?? []).length) {
-    flags.mathChecker = { handled: [...checkerHandled, ...checkerHandledNow], ...(Object.keys(checkerKeys).length ? { keys: checkerKeys } : {}), ...(closedAfter.length ? { closed: closedAfter } : {}) };
+  const heldAfter = heldLine && !checkerHandledNow.includes(heldLine) ? heldLine : undefined;
+  if (checkerHandledNow.length > 0 || keysChanged || closedAfter.length !== (checkerMemory.closed ?? []).length || heldAfter !== checkerMemory.held) {
+    flags.mathChecker = { handled: [...checkerHandled, ...checkerHandledNow], ...(Object.keys(checkerKeys).length ? { keys: checkerKeys } : {}), ...(closedAfter.length ? { closed: closedAfter } : {}), ...(heldAfter ? { held: heldAfter } : {}) };
   }
   // The probes this turn puts out, one per step: code's (in the model's hint,
   // or its recommendation probe) and the checker's probe, pointer or hint.
@@ -821,10 +839,10 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     const keysUndo = Object.fromEntries(Object.entries(checkerPlan.keys).filter(([k, e]) => raisedUndo.has(k) && e.figures.length > 0));
     const handledUndo = [...checkerHandled, ...checkerHandledNow.filter(id => id !== checkerUsed.id)];
     checkerLine = {
-      id: checkerUsed.id, key: checkerUsed.key, action: checkerUsed.action, line: checkerUsed.line,
+      id: checkerUsed.id, key: checkerUsed.key, action: checkerUsed.action, line: checkerUsed.line, ...(checkerUsed.id === heldLine ? { wasHeld: true } : {}),
       undo: {
         attempt: attemptBeforeChecker, step: checkerStepOwn,
-        mathChecker: { handled: handledUndo, ...(Object.keys(keysUndo).length ? { keys: keysUndo } : {}), ...(closedKeys.length ? { closed: closedKeys } : {}) },
+        mathChecker: { handled: handledUndo, ...(Object.keys(keysUndo).length ? { keys: keysUndo } : {}), ...(closedKeys.length ? { closed: closedKeys } : {}), ...(heldLine ? { held: heldLine } : {}) },
       },
     };
   }
@@ -844,6 +862,15 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   });
   // A late recommendation ask — past the recommendation deadline — also asks the biggest risk (Lorenzo, 15 Oct).
   const recAskLate = kind === 'rec_ask' && elapsedMs >= deadlines.brainstormEnd;
+  // A stage question is due at or past its deadline or after the time warning;
+  // the risk question once the recommendation is in (Lorenzo, 15 Oct). Not
+  // merely because the model asked it — and not once the stage is done.
+  const timeWarned = Boolean(flags.timeWarningFired);
+  const stagesDue: StagesDue = {
+    brainstorm: !stages.brainstormAsked && (elapsedMs >= deadlines.exhibitEnd || timeWarned),
+    recommendation: !recommendationReceived && (elapsedMs >= deadlines.brainstormEnd || timeWarned),
+    risk: !stages.riskAsked && (recommendationReceived || timeWarned),
+  };
   const closeReason: CloseReason = timeUp ? 'time_up' : recommendationUnresolved(stages) && !recommendationReceived ? 'unresolved' : 'complete';
   checks.record('turn_kind', kind !== 'model', `turn decided by code: ${kind}`, { kind, timeUp, mayEnd, owedStage: owedStage ?? null, ...stages });
 
@@ -910,7 +937,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       caseData, repliedToDistressOffer, shownExhibitIds, stagesOut, brainstormDue: brainstormDueNow, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
-      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, recMathProbe, checkerLine, recAskLate, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
+      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, recMathProbe, checkerLine, recAskLate, stagesDue, heldCloseHold, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,
