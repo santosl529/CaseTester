@@ -21,7 +21,7 @@ import {
   type CheckerCase, type CheckerClaim, type CheckerInput, type CheckerResult, type VetContext, type VettedClaim,
 } from './math-checker';
 import { recomputeAction, attemptKey, type CandidateMath, type RecomputeAttempts, type RecomputeFlag } from './recompute';
-import { checkPricingClaims, pricingValues } from './pricing-check';
+import { checkPricingClaims, pricingAnswers, pricingValues } from './pricing-check';
 import { changeFigures } from './numeric-provenance';
 import { classifyMathTalk } from './math-talk';
 
@@ -164,10 +164,32 @@ export const CHECKER_MAX_WAIT_MESSAGES = 2;
 
 const sentencesOf = (text: string) => normalizeNumberWords(text).split(/(?<=[.!?])\s+|\n+/).map(s => s.trim()).filter(Boolean);
 // The candidate takes a claim back or redoes it.
-const WITHDRAWN = /\b(?:scratch that|i take (?:that|it) back|i was wrong|i mis-?(?:spoke|calculated|stated|read|sized)|let me (?:redo|correct|fix|recalculate|re-?do|re-?check|re-?run)|correction:|sorry,? (?:i meant|that should be|that'?s wrong)|(?:that'?s|that was) my (?:error|mistake)|my (?:error|mistake|bad)\b|you'?re right\b)/i;
+const WITHDRAWN = /\b(?:scratch that|i take (?:that|it) back|i was wrong|i was (?:loose|sloppy)|my (?:earlier|previous|original|first) (?:range|number|figure|estimate|answer|sizing|math) was (?:wrong|off|understated|overstated|too (?:low|high))|(?:i )?made the same (?:mistake|error) (?:again|twice)|i mis-?(?:spoke|calculated|stated|read|sized)|let me (?:redo|correct|fix|recalculate|re-?do|re-?check|re-?run)|correction:|sorry,? (?:i meant|that should be|that'?s wrong)|(?:that'?s|that was) my (?:error|mistake)|my (?:error|mistake|bad)\b|you'?re right\b)/i;
 // "Actually, …", "Wait — …" opening a sentence with a figure in it: a revision
 // ("may actually be a smaller part" mid-sentence is not — replay, Sofia b20).
 const REVISING = /^(?:actually|wait|on second thought)\b/i;
+
+// Equivalent forms of a figure (Lorenzo, 15 Oct; batch 25, Marcus f8ed869d t9):
+// "1+x = 1.237" is a 23.7% rise.
+const FACTOR = /\(?\s*1\s*\+\s*[a-z]\s*\)?\s*=\s*(1\.\d+)\b/gi;
+const factorFigures = (text: string) => [...text.matchAll(FACTOR)].map(m => Math.round(1000 * (Number(m[1]) - 1)) / 10);
+// A price change stated as the answer: "about a 24% price increase", "the menu
+// needs to go up about 23.7%", "raise prices 24%". Not a scenario ("a 10% price
+// rise recovers…"): the sentence says no more than what it takes.
+const PRICE_ANSWER = /(\d+(?:\.\d+)?)\s*%\s*(?:(?:menu|price|across-the-board)\s+)*(?:increase|rise|hike|lift)\b|\b(?:raise|lift|increase|take)\s+(?:menu\s+)?prices?\s+(?:up\s+)?(?:by\s+)?(?:about\s+|roughly\s+|~)?(\d+(?:\.\d+)?)\s*%|\bmenu\s+(?:needs|has)\s+to\s+(?:go\s+)?up\s+(?:by\s+)?(?:about\s+|roughly\s+|~)?(\d+(?:\.\d+)?)\s*%/gi;
+const SCENARIO = /\b(?:recovers?|gets?\s+(?:us|you)\s+to|leaves?|lifts?\s+margin|would\s+(?:give|add)|if\s+(?:i|we)\s+raise)\b/i;
+function priceAnswers(text: string): number[] {
+  return sentencesOf(text).filter(s => !SCENARIO.test(s))
+    .flatMap(s => [...s.matchAll(PRICE_ANSWER)].map(m => Number(m[1] ?? m[2] ?? m[3])));
+}
+// The prior margin the prompt names ("…margin has declined from 24% to 6%").
+const priorMarginOf = (prompt: string) => { const m = /margin[^.]*?\bfrom\s+(\d+(?:\.\d+)?)%\s+to\s+(\d+(?:\.\d+)?)%/i.exec(prompt); return m ? Number(m[1]) : null; };
+// The revenue growth the prompt names ("revenues have grown 15%"): a figure on
+// the other period's revenue is the same quantity on another base.
+const revenueGrowthOf = (prompt: string) => { const m = /\brevenues?\s+(?:have\s+|has\s+)?(?:grown|grew|risen|rose|increased|gone up|are up|is up)\s+(?:by\s+)?(\d+(?:\.\d+)?)%/i.exec(prompt); return m ? 1 + Number(m[1]) / 100 : null; };
+const NEEDED_KINDS = new Set(['needed_for_margin', 'needed_for_gain']);
+// A sentence that says which base it is on.
+const BASE_CUE = /\b(?:scal(?:e|ed|ing)|rebas\w*|re-?based|(?:today'?s|current|this year'?s|the new|the old|two years ago'?s?|prior) (?:revenue|base|dollars)|old[- ]dollar|in old dollars|index|times 1\.\d+|× ?1\.\d+|on (?:a|the) base of)\b/i;
 
 // Has the candidate revised or withdrawn the claim since? Read in every
 // candidate message after it: a withdrawal, a revision with a figure, the
@@ -193,14 +215,37 @@ export function isStale(c: CheckerClaim, later: (string | LaterMessage)[], caseD
   const step = q.kind === 'step' ? caseData.mathSteps.find(st => st.id === q.stepId) : undefined;
   const own = [...ownFigures(c, caseFigures), ...wordFigures(c.candidateValue)];
   const namesClaim = (text: string) => own.length > 0 && [...numbersOf(text), ...wordFigures(text)].some(n => own.some(x => same(n, x)));
+  // Lorenzo, 15 Oct (batch-25 ruling 2). A price the candidate states as the
+  // answer to a "needed" claim: the right figure even when it is also a case
+  // figure ("about a 24% price increase" — 24 is the prior margin), to the
+  // nearest point; or the price for the case's prior margin, a redo for another
+  // target (Owen d3db78c0 t15 redid his "8-12%" to recover 16 points as "roughly
+  // a 24% price increase" for a 24% margin) — a new claim, not a re-probe.
+  const priorMargin = priorMarginOf(caseData.prompt);
+  const redoTargets = pm && NEEDED_KINDS.has(q.kind) && priorMargin !== null && priorMargin > pm.margin ? [pricingAnswers(pm).neededForMargin(priorMargin)] : [];
+  const near = (n: number, r: number) => Math.abs(n - r) <= Math.max(0.5, Math.abs(r) * 0.02);
+  // The right figure on the other period's revenue (Marisol 0f7551c2 t15: "18.4"
+  // is her 16 points on today's revenue): the same quantity on another base.
+  const growth = revenueGrowthOf(caseData.prompt);
+  const rebased = growth === null ? [] : right.flatMap(r => [r * growth, r / growth]).filter(r => !caseFigures.some(x => same(r, x)) && !own.some(x => same(r, x)));
   for (const m of later) {
     const { text, questioned } = typeof m === 'string' ? { text: m, questioned: false } : m;
+    const figures = [...numbersOf(text), ...factorFigures(text)];
     const concession = sentencesOf(text).find(s => WITHDRAWN.test(s) || (REVISING.test(s) && /\d/.test(s)));
-    if (concession && (questioned || namesClaim(text) || numbersOf(text).some(n => right.some(r => same(n, r))))) {
+    if (concession && (questioned || namesClaim(text) || figures.some(n => right.some(r => same(n, r))))) {
       return WITHDRAWN.test(concession) ? `withdrawn: "${concession}"` : `revised: "${concession}"`;
     }
-    const stated = numbersOf(text).find(n => rightToCheck.some(r => same(n, r)));
+    const stated = figures.find(n => rightToCheck.some(r => same(n, r)));
     if (stated !== undefined) return `the right figure (${stated}) stated since`;
+    if (NEEDED_KINDS.has(q.kind)) {
+      const prices = [...priceAnswers(text), ...factorFigures(text)].filter(n => !own.some(x => same(n, x)));
+      const answer = prices.find(n => right.some(r => near(n, r)));
+      if (answer !== undefined) return `the right figure (${answer}) stated since`;
+      const redo = prices.find(n => redoTargets.some(r => near(n, r)));
+      if (redo !== undefined) return `redone for another target (${redo}% for the ${priorMargin}% margin)`;
+    }
+    const other = sentencesOf(text).filter(x => BASE_CUE.test(x)).flatMap(x => numbersOf(x)).find(n => rebased.some(r => same(n, r)));
+    if (other !== undefined) return `the right figure on another base (${other}) stated since`;
     if (pm && q.kind !== 'none' && q.kind !== 'step') {
       const kind = q.kind === 'needed_for_margin' || q.kind === 'needed_for_gain' ? 'needed' : q.kind;
       const again = checkPricingClaims(text, pm).find(x => x.kind === kind && (kind === 'needed' || x.price === q.price));
@@ -318,6 +363,24 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     }
     const laterRows = laterMessages(v.candidateTurnIndex);
     const later = laterRows.map(x => x.text);
+    // The figures of this message's claims answered since: a figure the message
+    // built on one of them (added or subtracted) went with it (Lorenzo, 15 Oct;
+    // batch 25, Marisol 0f7551c2 t13: "6.3 points" was 16.0 − 9.7, and her t15
+    // redo answered the 9.7).
+    const answered: number[] = [];
+    const sentencesHere = sentencesOf(normalizeNumberWords(messageOf(v.candidateTurnIndex)));
+    // Both operands in the claim's sentence or the one before it; the other is no
+    // flagged figure of the message ("16.3" isn't built on "5.8" because the
+    // message's total, 22.1, adds them).
+    const flaggedHere = v.claims.filter(x => x.flag).flatMap(x => numbersOf(normalizeNumberWords(x.candidateValue)));
+    const builtOn = (c: CheckerClaim, figs: number[]) => {
+      const at = sentencesHere.findIndex(x => x.includes(normalizeNumberWords(c.span).slice(0, 40)));
+      if (at < 0) return undefined;
+      const near = numbersOf(sentencesHere.slice(Math.max(0, at - 1), at + 1).join(' '));
+      return answered.find(a => near.some(x => same(x, a)) && figs.some(f => near
+        .filter(x => !same(x, a) && !flaggedHere.some(y => same(x, y)))
+        .some(x => same(f, Math.abs(x - a)) || same(f, x + a))));
+    };
     v.claims.forEach((c, i) => {
       const id = `${v.candidateTurnIndex}:${i}`;
       // A framing of a misread grows it, whether decided now or on an earlier turn.
@@ -349,7 +412,10 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
         return;
       }
       for (const s of v.stamps.filter(st => figs.some(x => same(x, st.value)))) droppedStamps.push({ ...s, candidateTurnIndex: v.candidateTurnIndex });
-      const stale = isStale(c, laterRows.map(x => ({ text: x.text, questioned: questionedBefore(id, c, x.index) })), p.caseData, p.revealedIds);
+      const stale = isStale(c, laterRows.map(x => ({ text: x.text, questioned: questionedBefore(id, c, x.index) })), p.caseData, p.revealedIds)
+        ?? (() => { const a = builtOn(c, figs); return a === undefined ? null : `built on ${a}, answered since`; })();
+      // Answered — not restated, which carries the error on.
+      if (stale && !stale.startsWith('restated')) answered.push(...ownFigures(c, caseNumbers));
       if (stale) {
         decisions.push(decision(id, v.candidateTurnIndex, c, 'stale', stale));
         handled.add(id);

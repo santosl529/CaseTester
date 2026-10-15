@@ -293,6 +293,94 @@ describe('the stale check — a late verdict on a claim since revised or withdra
     expect(p.selected).toBeNull();
     expect(p.decisions[0].outcome).toBe('stale');
   });
+  // Lorenzo, 15 Oct (batch-25 ruling 2): a fixed claim isn't probed or corrected again.
+  describe('equivalent forms of the right figure, redos and more concessions (batch 25)', () => {
+    const NONE = { kind: 'none' as const, stepId: null, price: null, target: null };
+    const marcus = vetted({ span: 'they need something like a 15-20% effective price increase to get back toward 24%', candidateValue: '15-20%', correctValue: 24, correctionLine: 'Getting back to a 24% margin takes about a 23.7% price rise, not 15-20%.', correctionFigure: '23.7', codeQuantity: { kind: 'needed_for_margin', stepId: null, price: null, target: 24 } });
+    const MARCUS_T9 = "Let me actually do it rather than hand-wave, because I think I was sloppy.\n\nSet revenue today at 100. Costs are 58 COGS, 22 labor, 14 overhead, total 94, profit 6. If I raise prices by x and volume holds, revenue becomes 100(1+x) and the dollar costs stay at 94. For a 24% margin I need 94/(1+x) = 76, so 1+x = 1.237 — about a 24% price increase, not 15-20%. I conflated the percentage-point gap with a price change, which isn't the same thing. So my earlier number was understated.";
+    const owen = vetted({ span: "to recover the 16 points of COGS they'd need high-single-digit to low-double-digit price increases, phased", candidateValue: '~8-12%', correctValue: 20.5, correctionLine: null, codeQuantity: { kind: 'needed_for_gain', stepId: null, price: null, target: 16 } });
+    const OWEN_T15 = "Let me actually run it, because I think I was loose.\n\nTake revenue of 100 today: COGS 58, labor 22, overhead 14, profit 6. If I raise prices 10% and volume holds, revenue goes to 110 and costs stay at 94 in dollars, so profit is 16 — a 14.5% margin. Better, but not 24%.\n\nTo get back to 24%: (R − 94)/R = 0.24, so R = 94/0.76 = 123.7. That's roughly a 24% price increase. So my earlier range was wrong — I was anchoring on the 16 point gap without accounting for the fact that price flows straight to the bottom line. Call it high-teens to mid-twenties to fully restore, which is a much harder ask.";
+    const marisol = vetted({ span: '22.1 points of input inflation against a 9.7-point gap means inflation over-explains by more than double.', candidateValue: '22.1 vs 9.7, more than double', correctValue: 16, correctionLine: null, codeQuantity: NONE });
+    const MARISOL_T15 = "Ah — no, they're not. 48.3 is dollars on today's revenue of 115, but 58 is a percentage. I have to convert it: 58% of 115 is 66.7.\n\nSo the gap is 66.7 minus 48.3, which is 18.4 points of extra COGS dollars on an index where two years ago revenue was 100.\n\nNow against inflation: my 16.0 points of inflation came off the two-years-ago base of 42, so that's also in old dollars. Scaling it up by the 15% revenue growth gives 16.0 times 1.15, about 18.4. That matches the 18.4 gap almost exactly.";
+    it('Marcus f8ed869d t9: "1+x = 1.237 — about a 24% price increase" answers his "15-20%" (no correction at t10)', () => {
+      expect(isStale(marcus, [MARCUS_T9], prof, COSTS)).not.toBeNull();
+    });
+    it.each([
+      'For a 24% margin I need 94/(1+x) = 76, so 1+x = 1.237.',       // the factor form read as 23.7%
+      'That works out to about a 24% price increase.',                  // a case figure stated as the answer
+      'So the menu needs to go up about 23.7%.',
+    ])('the right figure, in another form: %s', text => expect(isStale(marcus, [text], prof, COSTS)).not.toBeNull());
+    it('Owen d3db78c0 t15: the price redone for the 24% margin is a new claim; his "8-12%" is not re-asked at t16', () => {
+      expect(isStale(owen, [OWEN_T15], prof, COSTS)).not.toBeNull();
+      expect(isStale(owen, ["That's roughly a 24% price increase."], prof, COSTS)).toMatch(/another target|right figure/);
+    });
+    it('Marisol 0f7551c2 t15: "18.4" is her right 16 points on today\'s revenue — a redo on another base', () => {
+      expect(isStale(marisol, [MARISOL_T15], prof, COSTS)).toMatch(/another base/);
+    });
+    it('Marisol 0f7551c2: her t15 redo answers the t13 gap (9.7) and what she built on it (6.3 = 16.0 − 9.7) — no probe of either at t16', () => {
+      const T13 = 'So inflation accounts for 16 points of added cost, and the COGS gap I measured on a consistent base was 9.7. Inflation still over-explains, now by about 6.3 points rather than double. So the direction holds: input prices fully explain the COGS rise, and the client has clawed back roughly 6 points somewhere — probably procurement or mix.';
+      const gap = vetted({ span: 'the COGS gap I measured on a consistent base was 9.7', candidateValue: '9.7 points', correctValue: 16, correctionLine: null, codeQuantity: NONE, probeLine: 'Walk me through how you got to 9.7 points.' });
+      const over = vetted({ span: 'Inflation still over-explains, now by about 6.3 points ... the client has clawed back roughly 6 points somewhere', candidateValue: '6.3 points', correctValue: 0, correctionLine: null, codeQuantity: NONE, probeLine: 'Walk me through how you got to 6.3 points.' });
+      const p = planCheckerFlags(input({
+        rows: [verdictRow(13, [gap, over])],
+        turnRows: [{ turnIndex: 13, role: 'candidate', text: T13 }, { turnIndex: 14, role: 'interviewer', text: 'Which revenue base is that 58 on, and is the 48.3 on the same base?' }],
+        candidateTurnIndex: 15, candidateText: MARISOL_T15, candidateFigures: [9.7, 6.3],
+      }));
+      expect(p.selected).toBeNull();
+      expect(p.decisions.map(d => [d.id, d.outcome])).toEqual([['13:0', 'stale'], ['13:1', 'stale']]);
+      // A figure of the message that isn't built on the redone one stays open.
+      const other = vetted({ span: 'beans added 5.8 points', candidateValue: '5.8 points', correctValue: 4.2, correctionLine: null, codeQuantity: NONE });
+      const q = planCheckerFlags(input({
+        rows: [verdictRow(13, [gap, other])],
+        turnRows: [{ turnIndex: 13, role: 'candidate', text: `${T13} Beans added 5.8 points.` }, { turnIndex: 14, role: 'interviewer', text: 'Go on.' }],
+        candidateTurnIndex: 15, candidateText: MARISOL_T15, candidateFigures: [9.7, 5.8],
+      }));
+      expect(q.selected?.id).toBe('13:1');
+    });
+    it('a price answer to the nearest point is the right figure ("about a 20%" for 20.5)', () => {
+      const c = vetted({ span: 'a 22% margin needs about a 12% price rise', candidateValue: '12%', correctValue: 20.5, correctionLine: null, codeQuantity: { kind: 'needed_for_margin', stepId: null, price: null, target: 22 } });
+      expect(isStale(c, ['So it takes about a 20% price increase.'], prof, COSTS)).toMatch(/right figure \(20\)/);
+      expect(isStale(owen, ['A 24% price rise recovers the 18 points.'], prof, COSTS)).toBeNull();   // a scenario, not the answer
+    });
+    it('a rebased figure needs its base said (a bare "18.4" is no redo)', () => {
+      expect(isStale(marisol, ['Inflation is 18.4 points, and that is the story.'], prof, COSTS)).toBeNull();
+      expect(isStale(marisol, ['Scaled to today\'s revenue, that is 18.4 points.'], prof, COSTS)).not.toBeNull();
+    });
+    it('built on: only on a figure answered, not restated; and a total of flagged figures is no operand', () => {
+      const root = vetted({ span: 'Beans add 5.8 points of revenue to COGS', candidateValue: '5.8 points', correctValue: 4.2, correctionLine: null, codeQuantity: { kind: 'step', stepId: 'bean_points_added', price: null, target: null } });
+      const rest = vetted({ span: 'so the rest is 10.2 points', candidateValue: '10.2 points', correctValue: 11.8, correctionLine: null, codeQuantity: NONE });
+      const run = (claims: VettedClaim[], said: string, now: string) => planCheckerFlags(input({
+        rows: [verdictRow(3, claims)], turnRows: [{ turnIndex: 3, role: 'candidate', text: said }, { turnIndex: 4, role: 'interviewer', text: 'Go on.' }],
+        candidateTurnIndex: 5, candidateText: now, candidateFigures: [5.8, 10.2],
+      }));
+      // Restated (the step again, same error): the 10.2 built on it stays open.
+      expect(run([root, rest], 'Beans add 5.8 points of revenue to COGS. With COGS up 16, so the rest is 10.2 points.', 'Beans add 5.8 points of revenue to COGS, I am sure.').selected?.id).toBe('3:1');
+      const other = vetted({ span: 'other inputs 16.3', candidateValue: '16.3 points', correctValue: 11.8, correctionLine: null, codeQuantity: NONE });
+      const total = vetted({ span: 'together 22.1', candidateValue: '22.1 points', correctValue: 16, correctionLine: null, codeQuantity: NONE });
+      // The 5.8 answered; 16.3 = 22.1 − 5.8, but 22.1 is the flagged total that adds them.
+      const p = run([root, other, total], 'Beans 5.8 points, other inputs 16.3, together 22.1.', "You're right — let me redo it: beans add 4.2 points.");
+      expect(p.decisions.find(d => d.id === '3:1')?.reason ?? 'none').not.toMatch(/built on/);
+      // The answered figure must be beside the claim: 27.8 = 22 + 5.8 here is a coincidence.
+      const far = vetted({ span: 'Everything else comes to 27.8 points', candidateValue: '27.8 points', correctValue: 12, correctionLine: null, codeQuantity: NONE });
+      const q = run([root, far], 'Beans add 5.8 points of revenue to COGS. Labor is flat at 22. Everything else comes to 27.8 points.', "You're right — let me redo it: beans add 4.2 points.");
+      expect(q.decisions.find(d => d.id === '3:1')?.reason ?? 'none').not.toMatch(/built on/);
+    });
+    it.each([
+      'Let me actually run it, because I think I was loose.',
+      'I was loose there.',
+      'So my earlier range was wrong.',
+      'My earlier estimate was off by a lot.',
+      'I made the same mistake again — mixing percentage points of revenue with percent of a cost base.',
+      'You\'re right to push — I was sloppy.',
+    ])('a concession, answering a probe on it: %s', text => expect(isStale(owen, [{ text, questioned: true }], prof, COSTS)).not.toBeNull());
+    it.each([
+      ['a scenario price, not the answer', owen, 'A 15% price increase recovers most of it.'],
+      ['a scenario price, not the answer', marcus, 'A 10% price rise gets us to about 14.5%.'],
+      ['the margin itself, not a price answer', marcus, 'The margin was 24% two years ago.'],
+      ['a concession, unasked and naming nothing', owen, 'I think I was loose on the competitor point.'],
+      ['the wrong figure itself on another base', marisol, 'Inflation is 22.1 points against a 9.7-point gap.'],
+    ] as [string, VettedClaim, string][])('not stale — %s: %s', (_, c, text) => expect(isStale(c, [text], prof, COSTS)).toBeNull());
+  });
   it('a math step restated since, whatever the figure', () => {
     const step = vetted({ span: '10 percentage points of revenue', candidateValue: '10 percentage points', correctValue: 4.2, codeQuantity: { kind: 'step', stepId: 'bean_points_added', price: null, target: null } });
     expect(isStale(step, ['Beans add 6 points of revenue to COGS.'], prof, COSTS)).toMatch(/^restated/);
