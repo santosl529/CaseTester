@@ -30,6 +30,10 @@ describe('the reply to a recommendation ask', () => {
     'Lead with sourcing: renegotiate or lock bean contracts to recover most of the 16 points, pair it with a modest price increase.',           // Jasmine 766f97c6
     'Headline: this is an input cost problem they never priced for, so raise prices. The math: COGS went from 42% to 58%.',                    // Sam 42f3afb5
     'My recommendation: start raising menu prices immediately, phased, targeting roughly 20% cumulative.',                                     // 0bfe5f38
+    // Lorenzo, 15 Oct (batch-25 ruling 4): an ordered plan that opens on what to do first.
+    'Price first — roll a 10-12% increase across core drinks after a short pilot, which closes maybe a third of the 18-point gap. Second, supplier renegotiation and hedging on beans, since beans are 25% of COGS and up 40%; locking contracts could recover another few points.',   // Jasmine f4fcab5b t17
+    'Pricing first: take a 12% increase on core drinks now, then procurement.',
+    'Roll out a staged 12% price increase across core drinks, starting with a pilot.',
   ])('a committed answer is: %s', reply => expect(received(reply)).toBe(true));
   it.each([
     "Honestly, I can't commit to a recommendation without the elasticity data.",
@@ -41,6 +45,11 @@ describe('the reply to a recommendation ask', () => {
     'A few structural options, though each is slower and needs investment. Vertical integration on sourcing — buying green coffee direct.',     // Anika c3d664b4
     'On the revenue side, beyond straight price increases: Ticket size — upselling, bundling a pastry with a drink, larger sizes.',              // Marisol 4bf008fd
     "Biggest risk is that traffic falls enough to wipe out the gain. I'd mitigate with the pilot: raise in a small set of stores.",             // Destiny 15492909
+    // A list of directions in order, not a plan committed to (Marisol 0f7551c2 t19, a brainstorm reply).
+    "A few directions, beyond pricing.\n\nPricing first since it's the obvious one: prices flat two years while inputs rose ~40%.",
+    'Price first, then procurement, then mix — those are the three areas I would look at.',
+    'Pricing first since it is the obvious one, and procurement, where they could renegotiate supplier terms.',
+    'Take revenue of 100 today: COGS 58, labor 22, overhead 14, profit 6. If I raise prices 10% and volume holds, profit is 16.',   // Owen d3db78c0 t15's setup
   ])('a refusal, a hedge, a question back, more brainstorm or a risk answer is not: %s', reply => expect(received(reply)).toBe(false));
   it('the same analysis, not in reply to a recommendation ask, is not', () => expect(received(MARCUS, 'What else could the client do?', undefined)).toBe(false));
 });

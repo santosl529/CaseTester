@@ -82,10 +82,17 @@ const NEGATED_RECOMMENDATION =
 // raise…") — and isn't a refusal, a hedge or a question back. More brainstorm
 // ("A few things beyond price…") or a risk answer is not.
 const COMMITS = /\b(?:my recommendation|i(?:'d| would)? recommend|bottom line|the fix is|the answer is)\b|\b(?:recommendation|headline):/i;
-const ACTION_LEAD = /(?:^|[.!?]\s+|\n\s*)(?:(?:so|okay|ok|then|first)[:,]?\s+)?(?:raise|increase|cut|reduce|lower|lock in|lock|hedge|renegotiate|reprice|pass (?:on|through)|introduce|launch|switch|lead with|act on|start with|go with|prioriti[sz]e|focus on|exit|attack)\b/i;
+const ACTION_VERBS = 'raise|increase|cut|reduce|lower|lock in|lock|hedge|renegotiate|reprice|pass (?:on|through)|introduce|launch|switch|lead with|act on|start with|go with|prioriti[sz]e|focus on|exit|attack|roll(?: out)?|implement|push through|put through';
+const ACTION_LEAD = new RegExp(`(?:^|[.!?]\\s+|\\n\\s*)(?:(?:so|okay|ok|then|first)[:,]?\\s+)?(?:${ACTION_VERBS})\\b`, 'i');
+// An ordered plan that opens on what to do first (Lorenzo, 15 Oct; batch 25,
+// Jasmine f4fcab5b t17: "Price first — roll a 10-12% increase across core
+// drinks…"): "<lever> first", a dash or colon, then an action. A list of areas
+// in order ("Pricing first since it's the obvious one", "Price first, then
+// procurement…") is not.
+const FIRST_LEAD = new RegExp(`(?:^|[.!?]\\s+|\\n\\s*)(?:\\w+\\s+){0,2}?\\w+\\s+first\\s*(?:—|–|-{1,2}|:)\\s*(?:${ACTION_VERBS}|take)\\b`, 'i');
 export function answersRecommendationAsk(text: string, kind: TurnKind): boolean {
   if (kind !== 'analysis' || COMMIT_REFUSAL.test(text)) return false;
-  return COMMITS.test(text.replace(NEGATED_RECOMMENDATION, ' ')) || ACTION_LEAD.test(text.trim()) || LEVER_LEAD.test(text.trim());
+  return COMMITS.test(text.replace(NEGATED_RECOMMENDATION, ' ')) || ACTION_LEAD.test(text.trim()) || FIRST_LEAD.test(text.trim()) || LEVER_LEAD.test(text.trim());
 }
 
 export function isRecommendationStatement(text: string, kind: TurnKind): boolean {
