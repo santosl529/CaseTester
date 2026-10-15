@@ -386,9 +386,15 @@ on the brainstorm itself.
 Cases may set `pacing.phaseBudgetsMs` (per-phase time budgets, must sum to the
 total case time, `TOTAL_CASE_MS` — currently 20 minutes — enforced by
 `tests/cases/consistency.test.ts`) and
-`pacing.timeWarningMs` (default 30s before time runs out). Omitted entirely,
-the orchestrator falls back to an even split across the 8 active phases and
-the 30s default warning (`lib/orchestrator/pacing.ts`). The clock is one for
+`pacing.timeWarningMs` (default 90s before time runs out in text mode; the
+warning also fires early enough for the candidate's own pace — 15 Oct). Omitted
+entirely, the orchestrator falls back to an even split across the 8 active
+phases and the 90s default warning (`lib/orchestrator/pacing.ts`). **The
+budgets are stage deadlines (15 Oct):** a required lead exhibit and the core
+analysis are owed by the end of the ANALYSIS budget, later exhibits and the
+brainstorm by the end of EXHIBIT, the recommendation ask by the end of
+BRAINSTORM — so RECOMMENDATION + WRAP should leave room for two exchanges
+(the recommendation and its risk question, ~3 minutes at a typed pace). The clock is one for
 every case: the AI Casing cases were written for 25 minutes and run at 20, with
 their budgets scaled (Lorenzo, 13 Oct). Wave reports give each stage's minute
 per run (`scripts/stage-minutes.ts`). Prefer setting

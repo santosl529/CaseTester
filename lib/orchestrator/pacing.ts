@@ -39,6 +39,30 @@ export function resolveTimeWarningMs(caseData: Pick<Case, 'pacing'>): number {
   return caseData.pacing?.timeWarningMs ?? DEFAULT_TIME_WARNING_MS;
 }
 
+// The time warning fires on the first message inside its window — or on the
+// first message after which the next one, at the candidate's own pace, would
+// land past time-up (batch 26 Blake 4755c03a: exchanges took ~92 s, the
+// 90-second window; t23 came at 18:28.6, 1.4 s before it, t25 at 20:01 — no
+// warning). `lastExchangeMs` is the time since the previous candidate message.
+export function timeWarningDue(s: { elapsedMs: number; totalMs: number; windowMs: number; lastExchangeMs?: number }): boolean {
+  const remaining = s.totalMs - s.elapsedMs;
+  return remaining > 0 && remaining <= Math.max(s.windowMs, s.lastExchangeMs ?? 0);
+}
+
+// Stage deadlines from the phase budgets (Lorenzo, 15 Oct; batch 26 Blake
+// 4755c03a reached time-up with the exhibit never shown and no brainstorm or
+// risk question): once the analysis budget is spent, code administers what is
+// still owed of the case's lead exhibit and the core analysis; once the
+// exhibit budget is, later exhibits and the brainstorm; once the brainstorm
+// budget is, it asks for the recommendation — leaving the recommendation and
+// wrap budgets for the recommendation and its risk question.
+export type StageDeadlines = { analysisEnd: number; exhibitEnd: number; brainstormEnd: number };
+
+export function stageDeadlinesMs(budgets: Record<Phase, number>): StageDeadlines {
+  const through = (last: Phase) => ACTIVE_PHASES.slice(0, ACTIVE_PHASES.indexOf(last as Exclude<Phase, 'SCORING'>) + 1).reduce((a, p) => a + budgets[p], 0);
+  return { analysisEnd: through('ANALYSIS'), exhibitEnd: through('EXHIBIT'), brainstormEnd: through('BRAINSTORM') };
+}
+
 // Load-shedding window (Rule 15). In the last stretch the interviewer stops
 // optional probing and protects the recommendation. NOTE: deliberately keyed to
 // TOTAL remaining time, not per-phase budget — phase advancement is currently

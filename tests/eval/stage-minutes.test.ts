@@ -44,8 +44,13 @@ describe('stage minutes', () => {
   });
 });
 
-describe('a case without required exhibits (prof-001)', () => {
-  const brew = getCaseById('prof-001') as never;
+describe('a case without required exhibits (prof-001 with its exhibit optional)', () => {
+  const base = getCaseById('prof-001');
+  const brew = { ...base, exhibits: base.exhibits.map(e => ({ ...e, required: false })) } as never;
+  it('prof-001 itself owes its required exhibit by id (15 Oct)', () => {
+    const none = stageMinutes(run('prof-001', [T("What's your recommendation to the client?", 14), T(CLOSE, 15, { kind: 'close' })]), base as never);
+    expect(none.owedAtClose).toContain('exhibit-a');
+  });
   it('owes any one exhibit, not each', () => {
     const shown = stageMinutes(run('prof-001', [T('What does it tell you?', 5, { exhibitNow: 'exhibit-a' }), T("What's your recommendation to the client?", 14), T(CLOSE, 15, { kind: 'close' })]), brew);
     expect(shown.owedAtClose).not.toContain('exhibit');

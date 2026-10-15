@@ -151,6 +151,7 @@ describe('in place of the close, code says the checker\'s line', () => {
       { role: 'candidate', text: `My recommendation is to raise menu prices. ${CLAIM}` }, { role: 'interviewer', text: 'What is the biggest risk?' },
     ];
     store.turns.push(...more.map((t, i) => ({ id: `x${i}`, sessionId: 's1', turnIndex: 3 + i, role: t.role, text: t.text, timestampMs: startedAt.getTime() + i * 20_000, latencyMs: null })));
+    store.exhibits = [{ id: 'e0', sessionId: 's1', exhibitId: 'exhibit-a', shownAtMs: startedAt.getTime() }];   // required since 15 Oct
     const { vetCheckerClaims } = await import('@/lib/orchestrator/math-checker');
     const { getCaseById } = await import('@/lib/cases/loader');
     const claims = vetCheckerClaims([flaggedClaim], { caseData: getCaseById('prof-001'), revealedIds: COSTS, shownExhibitIds: [], candidateTexts: [more[4].text] });

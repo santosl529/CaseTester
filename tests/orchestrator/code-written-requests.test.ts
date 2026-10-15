@@ -123,7 +123,8 @@ const atClose = () => resetStore('RECOMMENDATION', { graceAskFired: true, pressu
 const KINDS: { kind: string; setup: () => void }[] = [
   { kind: 'close', setup: atClose },
   { kind: 'grace_ask', setup: () => resetStore('ANALYSIS', { pressureTest: SATISFIED }, TIME_UP) },
-  { kind: 'time_warning', setup: () => resetStore('ANALYSIS', { pressureTest: SATISFIED }, 19 * 60_000) },
+  // The exhibit is out: prof-001's is required (15 Oct), and an unshown one would go out with the time warning.
+  { kind: 'time_warning', setup: () => { resetStore('ANALYSIS', { pressureTest: SATISFIED }, 19 * 60_000); store.exhibits = [{ id: 'x1', sessionId: 's1', exhibitId: 'exhibit-a', shownAtMs: 0 }]; } },
 ];
 
 beforeEach(() => { detected = []; });

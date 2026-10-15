@@ -10,7 +10,7 @@ import { getCaseById } from '@/lib/cases/loader';
 import { createLedger, reveal, revealedValues, labelWithPeriod } from './data-ledger';
 import { checkCandidateMath, formatRecomputeHint, recordAttempts, formatVerifiedHint, recomputeAction, flagSpeaks, attemptKey, type RecomputeAttempts, type RecomputeFlag, type RecomputeAction, type VerifiedFigure } from './recompute';
 import { candidateFiguresOf } from './math-talk';
-import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk } from './pacing';
+import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk, stageDeadlinesMs, timeWarningDue } from './pacing';
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
 import { evaluateStall, revertUndeliveredRung, isRecommendationStatement, answersRecommendationAsk, INITIAL_STALL_STATE, type StallState } from './stall';
 import { resumeOnCandidateTurn, effectiveElapsedMs, isSilenceLine, INITIAL_SILENCE_STATE, type SilenceState } from './silence';
@@ -390,8 +390,11 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
 
   const phaseBudgetsMs = resolvePhaseBudgets(caseData, TOTAL_CASE_MS);
   const timeWarningMs = resolveTimeWarningMs(caseData);
-  const warningThresholdMs = TOTAL_CASE_MS - timeWarningMs;
-  const shouldFireTimeWarning = !flags.timeWarningFired && !timeUp && elapsedMs >= warningThresholdMs;
+  // The candidate's pace: the clock at their previous message (Settle saves it).
+  const lastExchangeMs = typeof flags.lastMessageElapsedMs === 'number' ? elapsedMs - flags.lastMessageElapsedMs : undefined;
+  const shouldFireTimeWarning = !flags.timeWarningFired && !timeUp
+    && timeWarningDue({ elapsedMs, totalMs: TOTAL_CASE_MS, windowMs: timeWarningMs, lastExchangeMs });
+  const deadlines = stageDeadlinesMs(phaseBudgetsMs);
 
   // Rule 2/14 (round-3, 11 Oct): the candidate's math is verified in code,
   // three ways, from THIS message — the case's math steps (only steps whose
@@ -629,9 +632,15 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Fact guards Phase 5 (batch 20 R33, R32): a recommendation the interviewer
   // never asked for — volunteered mid-case — is asked for by code before the
   // case may close.
-  const awaitingRecAsk = !stages.recommendationAsked && (recommendationReceived ? mayEnd : coverageMayEnd);
+  // Past the brainstorm budget the recommendation is asked by code, owed stages first (Lorenzo, 15 Oct; batch 26 Blake).
+  // A deadline yields for a turn that carries a math or misquote line (batch 19 4bf008f t17's checker probe): it fires on the next.
+  const mathLineNow = misquote !== null || Boolean(checkerPlan.selected)
+    || liveFlags.some(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)));
+  const byTime = (deadlineMs: number) => !mathLineNow && elapsedMs >= deadlineMs;
+  const recAskByTime = (pressureTest.state === 'satisfied' || pressureTest.state === 'waived') && !stages.recommendationAsked && !timeUp && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) && byTime(deadlines.brainstormEnd);
+  const awaitingRecAsk = (!stages.recommendationAsked && (recommendationReceived ? mayEnd : coverageMayEnd)) || recAskByTime;
   const coverageSteer = formatCoverageSteer(coverage);
-  checks.record('end_rec_ask_gate', awaitingRecAsk, 'coverage complete but the recommendation was never asked — code asks this turn');
+  checks.record('end_rec_ask_gate', awaitingRecAsk, recAskByTime ? 'the brainstorm budget is spent and the recommendation was never asked — code asks' : 'coverage complete but the recommendation was never asked — code asks this turn', { recAskByTime });
   checks.record('end_gate', stageGate && !coverageMayEnd, 'stage gate opened the end (coverage below threshold)', {
     coverageMayEnd, stageGate, ...stages,
   });
@@ -665,7 +674,11 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const stagesOut: ReadonlySet<string> = new Set(stageRecord.brainstorm.delivered || stagesEnforced.brainstorm
     || timeUp || isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) ? ['brainstorm'] : []);
   // The exhibit stage is owed only while an exhibit is ready to hand over (release order).
-  const exhibitReadyNow = nextReadyExhibit(caseData.exhibits, shownExhibitIds, ledger, stagesOut) !== undefined;
+  const readyExhibit = nextReadyExhibit(caseData.exhibits, shownExhibitIds, ledger, stagesOut);
+  const exhibitReadyNow = readyExhibit !== undefined;
+  // A case's lead exhibit is due once the analysis budget is spent; one ordered
+  // after an exhibit or the brainstorm once the exhibit budget is (Lorenzo, 15 Oct).
+  const exhibitDeadline = (e: { after?: string[] } | undefined) => e?.after?.length ? deadlines.exhibitEnd : deadlines.analysisEnd;
   const missingStages = missingRequiredStages(stageRecord, { hasExhibit: exhibitReadyNow, format: caseData.format, brainstormRequired: brainstormRequired(caseData) })
     .filter(k => !stagesEnforced[k]);
   // A brainstorm that waits on exhibits (Lorenzo, 13 Oct; Larkspur's assumes
@@ -675,8 +688,14 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   let owedStage = missingStages.find(k => k !== 'brainstorm' || brainstormDueNow);
   if (owedStage === undefined && missingStages.includes('brainstorm') && exhibitReadyNow) owedStage = 'exhibit';
   const ptClosed = pressureTest.state === 'satisfied' || pressureTest.state === 'waived';
+  // An owed stage is also administered once its deadline passes (Lorenzo, 15
+  // Oct): the exhibit after the analysis budget, the brainstorm after the
+  // exhibit budget (pacing.ts).
+  // An exhibit standing in for a brainstorm that waits on it is due with the brainstorm.
+  const stageDeadlinePassed = owedStage !== undefined
+    && byTime(owedStage === 'exhibit' && missingStages.includes('exhibit') ? exhibitDeadline(readyExhibit) : deadlines.exhibitEnd);
   const stageDue = owedStage !== undefined && ptClosed && !timeUp && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)
-    && (closeDue || awaitingRecAsk);
+    && (closeDue || awaitingRecAsk || stageDeadlinePassed);
   // The core analysis (the case's analysisCore): no recommendation ask and no
   // close before it is attempted — code asks back to it once, recorded like a
   // stage it enforced (batch 20 R14, R27, R28, R46: closed at 7–12 min with the
@@ -709,7 +728,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     : closedRec ? { closed: closedRec, action: closedRec.correction ? 'correct' : 'probe' }
     : null;
   if (closedRec?.correction) derivedValueTexts.push(...numbersOf(closedRec.correction).map(String));
-  const analysisDue = analysisOwed && (closeDue || awaitingRecAsk);
+  // …and once the analysis budget is spent (Lorenzo, 15 Oct; Blake 4755c03a's COGS inputs came at 17 min, his own ask).
+  const analysisByTime = analysisOwed && ptClosed && byTime(deadlines.analysisEnd);
+  const analysisDue = analysisOwed && (closeDue || awaitingRecAsk || analysisByTime);
   // Required exhibits (Lorenzo, 13 Oct): an unshown one is owed in the
   // analysis gate and the end gate — code hands the next one over (in the
   // release order) instead of asking for the recommendation or closing; the
@@ -719,7 +740,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const underTimePressure = isUnderTimePressure(elapsedMs, TOTAL_CASE_MS);
   const requiredExhibit = requiredNext && !timeUp && !underTimePressure ? requiredNext.id : undefined;
   const pressureExhibit = requiredNext && !timeUp && underTimePressure ? requiredNext.id : undefined;
-  const requiredExhibitDue = requiredExhibit !== undefined && ptClosed && (closeDue || awaitingRecAsk);
+  // The time backstop (Lorenzo, 15 Oct; batch 26 Blake: owed on every turn, never shown): once the analysis budget is spent, code hands it over.
+  // At the analysis deadline a ready required exhibit goes before code's analysis line: it carries the analysis data.
+  const requiredExhibitDue = requiredExhibit !== undefined && ptClosed && (closeDue || awaitingRecAsk || analysisByTime || byTime(exhibitDeadline(requiredNext)));
   let kind: TurnKind = recRevisionDue ? 'rec_revision'
     : recMathProbe ? 'rec_math_probe'
     : requiredExhibitDue ? 'stage_exhibit'

@@ -780,6 +780,8 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
             stall: stallSaved,
             advancedLastTurn: advancedThisTurn,
             timeWarningFired: Boolean(flags.timeWarningFired) || (kind === 'time_warning' && qHeard),
+            // The clock at this message: the next turn reads the candidate's pace from it (time warning).
+            lastMessageElapsedMs: elapsedMs,
             graceAskFired: Boolean(flags.graceAskFired) || (kind === 'grace_ask' && qHeard),
             recRevisionAsked: Boolean(flags.recRevisionAsked) || (kind === 'rec_revision' && qHeard),
             recMathProbed: Boolean(flags.recMathProbed) || (kind === 'rec_math_probe' && qHeard),

@@ -329,6 +329,7 @@
       "id": "exhibit-a",
       "title": "Brew & Bean Cost Structure Over Time",
       "chartType": "bar",
+      "required": true,
       "coversLedgerItems": [
         "cogs_pct",
         "labor_pct",

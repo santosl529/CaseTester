@@ -74,7 +74,7 @@ const STAGES = {
   risk: { delivered: true }, pending: 'risk',
 };
 
-function seed(p: { phase: string; turns?: { role: string; text: string }[]; flags?: Row; revealed?: string[]; elapsedMin?: number; coverage?: Row | null }) {
+function seed(p: { phase: string; turns?: { role: string; text: string }[]; flags?: Row; revealed?: string[]; exhibits?: string[]; elapsedMin?: number; coverage?: Row | null }) {
   const startedAt = new Date(Date.now() - (p.elapsedMin ?? 8) * 60_000);
   const turns = p.turns ?? [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'Revenue and costs.' }, { role: 'interviewer', text: 'Go on.' }];
   store.session = {
@@ -83,7 +83,7 @@ function seed(p: { phase: string; turns?: { role: string; text: string }[]; flag
   };
   store.turns = turns.map((t, i) => ({ id: `t${i}`, sessionId: 's1', turnIndex: i, role: t.role, text: t.text, timestampMs: startedAt.getTime() + i * 20_000, latencyMs: null }));
   store.revealed = (p.revealed ?? []).map((ledgerItemId, i) => ({ id: `r${i}`, sessionId: 's1', ledgerItemId, revealedAtMs: startedAt.getTime() }));
-  store.exhibits = []; store.events = [];
+  store.exhibits = (p.exhibits ?? []).map((exhibitId, i) => ({ id: `e${i}`, sessionId: 's1', exhibitId, shownAtMs: startedAt.getTime() })); store.events = [];
 }
 const flags = () => store.session.flagsJsonb as Row;
 async function say(text: string, model?: ModelTurn) {
@@ -96,7 +96,7 @@ beforeEach(() => { modelQueue.length = 0; prompts.length = 0; classified.length 
 
 describe('a qualified re-ask is not answered with the unqualified figures', () => {
   it('Tyler t19 (batch 18): "the variable-versus-fixed split within COGS and labor" at the close → declined by name, not "As I mentioned: COGS is 58%…"', async () => {
-    seed({ phase: 'RECOMMENDATION', elapsedMin: 14, coverage: ALL_COVERED, revealed: fx['tyler-t19'].revealed,
+    seed({ phase: 'RECOMMENDATION', elapsedMin: 14, coverage: ALL_COVERED, revealed: fx['tyler-t19'].revealed, exhibits: ['exhibit-a'],
       turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'Inputs drove it.' }, { role: 'interviewer', text: "What's your recommendation to the client?" },
         { role: 'candidate', text: 'Raise prices 10%.' }, { role: 'interviewer', text: "What's the biggest risk to that recommendation, and how would you test for it?" }],
       flags: { pressureTest: { state: 'satisfied', reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false }, stageEvidence: STAGES,
@@ -150,7 +150,7 @@ describe('the exhibit is shown for the data it covers', () => {
 // Fact guards Phase 5: code's line back to the core analysis.
 describe('the analysis turn', () => {
   it("140fb90d replay: code's analysis turn whose own data line completes the analysis asks about the figures instead", async () => {
-    seed({ phase: 'RECOMMENDATION', elapsedMin: 13, coverage: ALL_COVERED, revealed: ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs'],
+    seed({ phase: 'RECOMMENDATION', elapsedMin: 13, coverage: ALL_COVERED, revealed: ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs'], exhibits: ['exhibit-a'],
       turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'Beans.' }, { role: 'interviewer', text: "What's your recommendation to the client?" },
         { role: 'candidate', text: 'Raise prices 8% in a pilot.' }, { role: 'interviewer', text: "What's the biggest risk to that recommendation?" }],
       flags: { pressureTest: { state: 'satisfied', reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false }, stall: { ladderLevel: 0, consecutiveNoProgress: 0, consecutiveClarify: 0, lastCandidateQuestion: null, recommendationDelivered: true } } });

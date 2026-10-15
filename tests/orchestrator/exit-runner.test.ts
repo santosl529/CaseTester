@@ -84,7 +84,9 @@ function seed(p: { phase: string; turns: { role: string; text: string }[]; flags
   };
   store.turns = p.turns.map((t, i) => ({ id: `t${i}`, sessionId: 's1', turnIndex: i, role: t.role, text: t.text, timestampMs: startedAt.getTime() + i * 20_000, latencyMs: null }));
   store.revealed = (p.revealed ?? []).map((ledgerItemId, i) => ({ id: `r${i}`, sessionId: 's1', ledgerItemId, revealedAtMs: startedAt.getTime() }));
-  store.exhibits = (p.exhibits ?? []).map((exhibitId, i) => ({ id: `e${i}`, sessionId: 's1', exhibitId, shownAtMs: startedAt.getTime() }));
+  // A stage record whose exhibit went out implies its row (prof-001's exhibit is required since 15 Oct, read from the rows).
+  const shownByRecord = ((p.flags?.stageEvidence as Row | undefined)?.exhibit as Row | undefined)?.delivered ? ['exhibit-a'] : [];
+  store.exhibits = (p.exhibits ?? shownByRecord).map((exhibitId, i) => ({ id: `e${i}`, sessionId: 's1', exhibitId, shownAtMs: startedAt.getTime() }));
   store.events = [];
 }
 const flags = () => store.session.flagsJsonb as Row;
@@ -285,7 +287,7 @@ describe('the recommendation waits for the core analysis', () => {
   const ANALYSIS_PLAIN = "What's driving the margin drop, and what would you need to know to pin it down?";
   const COST_LINES = ['cogs_pct', 'labor_pct', 'overhead_pct'];
   const early = (flags: Row = {}, revealed = COST_LINES) => seed({ phase: 'ANALYSIS', turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'COGS drove 16 of the 18 points.' }, { role: 'interviewer', text: 'Go on.' }],
-    revealed, flags: { pressureTest: SATISFIED, ...flags } });
+    revealed, exhibits: ['exhibit-a'], flags: { pressureTest: SATISFIED, ...flags } });
   const LEVER = T({ move: 'other', question: 'Of everything you proposed, which single lever would you start with first, and why?' });
 
   it("R06: the model's lever ask with the COGS inputs never out → code's one line back to the analysis", async () => {
@@ -303,7 +305,7 @@ describe('the recommendation waits for the core analysis', () => {
 
   it('…or was just asked for one', async () => {
     seed({ phase: 'ANALYSIS', turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'COGS drove 16 of the 18 points.' }, { role: 'interviewer', text: "What's your recommendation to the client?" }],
-      revealed: COST_LINES, flags: { pressureTest: SATISFIED, lastQuestion: "What's your recommendation to the client?" } });
+      revealed: COST_LINES, exhibits: ['exhibit-a'], flags: { pressureTest: SATISFIED, lastQuestion: "What's your recommendation to the client?" } });
     const r = await say('I am not sure yet.', LEVER);
     expect(r.interviewerText).toBe(ANALYSIS_ASK);
   });
@@ -337,7 +339,7 @@ describe('the recommendation waits for the core analysis', () => {
   });
 
   it("R14: code's own end with the COGS inputs never out → the line back to the analysis, not the close", async () => {
-    seed({ phase: 'RECOMMENDATION', elapsedMin: 13, coverage: ALL_COVERED, revealed: COST_LINES,
+    seed({ phase: 'RECOMMENDATION', elapsedMin: 13, coverage: ALL_COVERED, revealed: COST_LINES, exhibits: ['exhibit-a'],
       turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'Beans.' }, { role: 'interviewer', text: "What's your recommendation to the client?" },
         { role: 'candidate', text: 'Raise prices 8% in a pilot.' }, { role: 'interviewer', text: "What's the biggest risk to that recommendation?" }],
       flags: { pressureTest: SATISFIED, stall: { ladderLevel: 0, consecutiveNoProgress: 0, consecutiveClarify: 0, lastCandidateQuestion: null, recommendationDelivered: true } } });
@@ -392,5 +394,15 @@ describe('a stale result after the session ended', () => {
     expect(r).toMatchObject({ interviewerText: '', ended: true, scoringSuppressed: true });
     expect(store.turns.length).toBe(before);
     expect(store.session.status).toBe('abandoned');
+  });
+});
+
+// Batch-26 fix 1: the time warning reads the candidate's pace from the clock Settle saves at each message.
+describe('the message clock for the time warning', () => {
+  it('Settle saves the clock at this message', async () => {
+    seed({ phase: 'ANALYSIS', elapsedMin: 8, turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'Revenue and costs.' }, { role: 'interviewer', text: 'Go on.' }], flags: { pressureTest: SATISFIED } });
+    await say('COGS rose from 42 to 58 percent of revenue.', T());
+    expect(flags().lastMessageElapsedMs as number).toBeGreaterThanOrEqual(8 * 60_000);
+    expect(flags().lastMessageElapsedMs as number).toBeLessThan(8 * 60_000 + 5_000);
   });
 });
