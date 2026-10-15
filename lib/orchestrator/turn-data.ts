@@ -9,6 +9,7 @@ import { decideData, exactResolver, labelMatch, outsideAskScope, splitOfItem, he
 import { findFalseRefusals, groupItemsAsked, coverageOf } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT } from './pressure-test';
 import { planForcedReleases } from './data-requests';
+import { askingSentences } from './request-signal';
 import { revealedValues } from './data-ledger';
 
 export function caseResolver(plan: ModelPlan): (raw: string) => string | null {
@@ -87,16 +88,34 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // Oct; Marcus 71a04add t12: "the split within the non-bean input costs" is
   // not the input price changes): no expansion; refused when nothing is left.
   const finerAsks = new Set<string>();
+  const inLedger = (id: string) => ledger.items.some(i => i.id === id);
+  // The candidate's own asking sentence names the group too (Lorenzo, 15 Oct;
+  // batch 25: Marcus f8ed869d t7 "a split of that 58 by category, coffee versus
+  // dairy versus food", labelled "the breakdown of COGS by category" — one item;
+  // Fiona 52743bea t5 "a split of COGS by component", labelled item by item): a
+  // declared ask mapped into a group the sentence names is that group's ask —
+  // what of it is still to come: a re-ask for "the rest of the COGS breakdown"
+  // isn't answered with the share given earlier.
+  const sentenceGroups = askingSentences(ctx.candidateText, ctx.currentPhase)
+    .map(s => groupItemsAsked(s, fbGroups).filter(inLedger)).filter(g => g.length > 0);
+  const toCome = (r: DeclaredRequest, g: string[]) => g.filter(id => r.itemIds.includes(id) || !ledger.revealed.has(id));
+  // Asked by another of the turn's requests: kept there, in the model's order.
+  const askedThisTurn = new Set(requests.filter(r => r.explicit).flatMap(r => r.itemIds));
+  // The groups this turn asks for, whole: the release cap never splits one.
+  const askedGroups: string[][] = [];
   requests = requests.flatMap(r => {
     if (!r.explicit) return [r];
-    const groupIds = groupItemsAsked(r.what, fbGroups).filter(id => ledger.items.some(i => i.id === id));
+    const named = groupItemsAsked(r.what, fbGroups).filter(inLedger);
+    const fromSentence = sentenceGroups.filter(g => r.itemIds.some(id => g.includes(id))).flatMap(g => toCome(r, g));
+    const groupIds = [...new Set([...named, ...fromSentence])];
     if (groupIds.some(id => splitOfItem(r.what, ledger.items.find(i => i.id === id)!, namesOf(id)))) { finerAsks.add(r.what); return [r]; }
     // Every item of the group: those the model left out, and those it mapped that
     // the ask's wording would put out of scope — each asked in its own label, so
     // the scope rule reads the item, not the wording (Lorenzo, 14 Oct; batch 24:
     // Raj ba2e03be's "COGS split by input (beans versus other inputs)", mapped to
     // all three, lost the two price changes to the split rule).
-    const add = groupIds.filter(id => !r.itemIds.includes(id));
+    if (groupIds.length > 0) askedGroups.push(groupIds);
+    const add = groupIds.filter(id => !r.itemIds.includes(id) && !askedThisTurn.has(id));
     const scopedOut = groupIds.filter(id => r.itemIds.includes(id) && outsideAskScope(r.what, ledger.items.find(i => i.id === id)!, namesOf(id)));
     if (groupIds.length === 0 || (add.length === 0 && scopedOut.length === 0)) return [r];
     // One ask per item, in its own label — said back without the candidate's
@@ -232,6 +251,10 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     stagesOut: state.stagesOut,
     open: state.openDataRequests,
     gateHeld,
+    // The release cap never splits a group the candidate asked for (Lorenzo, 15
+    // Oct; batch 25 Jasmine f4fcab5b t5, Owen d3db78c0 t5: the menu prices took a
+    // slot and the third COGS item was deferred).
+    groups: askedGroups,
   });
   // Code's correction of a misquote (plan-turn.ts), on any turn that answers
   // the message — a code-written close or recommendation ask included (batch 20:

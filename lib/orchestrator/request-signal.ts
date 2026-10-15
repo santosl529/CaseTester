@@ -93,16 +93,28 @@ function rhetorical(sentences: string[], i: number): boolean {
 // The sentences of the message that ask the interviewer for data — by an
 // addressed-ask cue, or as a question about case data — with any enumerated
 // list that follows one. At the close, a rhetorical question is none.
+// "1. Store count" would split after "1.": numbered lines become "1) …".
+const askSentencesOf = (text: string) => sentencesOf(text.replace(/(^|\n)\s*(\d+)[.)]\s+/g, '$1$2) '));
 export function addressedAskSentences(text: string, phase: Phase, opts: { closing?: boolean } = {}): string[] {
   const out: string[] = [];
   let inAsk = false;
-  // "1. Store count" would split after "1.": numbered lines become "1) …".
-  const sentences = sentencesOf(text.replace(/(^|\n)\s*(\d+)[.)]\s+/g, '$1$2) '));
+  const sentences = askSentencesOf(text);
   sentences.forEach((s, i) => {
     inAsk = (asksAddressed(s, phase) && !(opts.closing && rhetorical(sentences, i))) || (inAsk && LIST_ITEM.test(s));
     if (inAsk) out.push(s);
   });
   return out;
+}
+
+// The sentences where the candidate asks for something or states what they
+// want to see — addressed asks, guard B's cues, and "What I'd want next is
+// what's inside that COGS line" (Owen d3db78c0 t5, batch 25). Wider than
+// addressedAskSentences: it only widens an ask the model already declared
+// (a group the sentence names, turn-data.ts), never makes one.
+const STATED_WANT = /\b(?:i'?d|i\s+would)\s+(?:want|need|like)\b|\bi\s+(?:want|need)\s+to\s+(?:know|see|understand)\b/i;
+export function askingSentences(text: string, phase: Phase): string[] {
+  const addressed = new Set(addressedAskSentences(text, phase));
+  return askSentencesOf(text).filter(s => addressed.has(s) || explicitRequestCues(s).length > 0 || STATED_WANT.test(s));
 }
 
 // Words that name nothing in particular: they never make a match on their own.

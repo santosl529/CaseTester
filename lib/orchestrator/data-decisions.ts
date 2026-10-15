@@ -229,8 +229,12 @@ export function decideData(p: {
   gateHeld?: Set<string>;           // whats of requests the pressure-test gate turned into deferrals
   candidateText: string;           // the candidate's message: a mention is offered only when it states a need for the item
   cap?: number;
+  groups?: string[][];              // items asked as one group: the cap never splits one
 }): DataDecisions {
   const cap = p.cap ?? RELEASE_CAP;
+  // A group already going out completes past the cap; nothing else does.
+  const groupStarted = (id: string) => (p.groups ?? []).some(g => g.includes(id) && releases.some(r => g.includes(r.id)));
+  const overCap = (id: string) => releases.length >= cap && !groupStarted(id);
   const itemById = new Map(p.ledger.items.map(i => [i.id, i]));
   const exhibitById = new Map(p.exhibits.map(e => [e.id, e]));
   const openIds = new Set(p.open.map(o => o.ledgerItemId));
@@ -312,7 +316,7 @@ export function decideData(p: {
         continue;
       }
       if (!available(id)) continue;
-      if (orderHeld(id) || releases.length >= cap) { heldOver = true; continue; }
+      if (orderHeld(id) || overCap(id)) { heldOver = true; continue; }
       releases.push({ id, value: itemById.get(id)!.value, earlier: openIds.has(id) });
       releasing.add(id);
     }

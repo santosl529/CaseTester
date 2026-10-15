@@ -481,6 +481,75 @@ describe('no refusal names data the case holds (fact checks F3)', () => {
     for (const line of THREE) expect(r.interviewerText).toMatch(line);
   });
 
+  // Lorenzo, 15 Oct (batch-25 ruling 1): the expansion reads the candidate's own
+  // asking sentence, not the model's label, and the group goes out whole — the
+  // release cap counts it as one ask.
+  describe("a COGS split is read from the candidate's asking sentence (batch 25)", () => {
+    const MARCUS = "Good — this confirms it. COGS went 42 to 50 to 58, so 16 points of the 18-point margin drop sits in COGS. Labor is flat at 22, overhead moved 12 to 14, so only 2 points there. And menu prices haven't moved in two years, which is exactly the pass-through gap I flagged.\n\nSo the diagnosis is what I said: input costs rose, prices didn't follow. That's the whole thing.\n\nOne caveat I'd check — COGS as a percent could rise either because input prices went up or because they're selling a worse mix, more food and less high-margin espresso. Do we have a split of that 58 by category, coffee versus dairy versus food?\n\nEither way the fix doesn't change much. A roughly 16-point COGS gap means they need something like a 15-20% effective price increase to get back toward 24%, or a mix of pricing and supplier renegotiation. I'd still lead with pricing.";
+    const JASMINE = "Clear answer: it's COGS. As a percent of revenue, COGS went 42 → 50 → 58, so 16 of the 18 points of margin loss sit there. Labor is flat at 22, overhead drifted 12 → 14, only 2 points. And with store count flat at 200, this isn't an expansion story — it's happening inside the existing base.\n\nWhat's driving a 16-point COGS jump: either input cost inflation — green coffee and dairy have both spiked — or they haven't raised menu prices to pass it through, or mix shifted toward lower-margin items, or waste and spoilage went up. Given revenue grew 15% with flat stores, I'd want to know whether that 15% came from price or traffic. If it's all traffic and price is flat, that's the whole story.\n\nTwo asks: do we have a menu-price history, and a split of COGS into coffee, dairy, and other inputs?\n\nAssuming no price increases and commodity inflation, here's my recommendation: raise menu prices.";
+    const FIONA = "Okay, this is pretty clean. Labor is flat at 22% of revenue across all three years, overhead is up only 2 points, 12 to 14. COGS goes 42 to 50 to 58 — up 16 points, which accounts for essentially the entire 18-point margin drop.\n\nSo the question is entirely inside COGS. And that's still consistent with my waste hypothesis: spoilage sits in cost of goods sold, and if waste is rising it inflates COGS as a percent of revenue without any revenue coming back.\n\nBut it could equally be input cost inflation — coffee beans, dairy — or a shift toward lower-margin products, or a change in supplier terms.\n\nThe way to separate those: waste would be a volume-of-units-consumed problem, inflation would be a price-per-unit problem. Can I get a split of COGS by component, say beans, dairy, food, packaging, and ideally units purchased versus units sold?";
+    const OWEN = "COGS is clearly the driver. It went 42 to 50 to 58 as a percent of revenue — a 16 point swing over two years, and that accounts for almost the entire 18 point margin decline. Labor is flat at 22, overhead only moved 2 points, which is noise by comparison.\n\nWhat I'd want next is what's inside that COGS line. For a coffee chain I'd expect green coffee beans, dairy, syrups, cups and packaging, and food if they sell pastries. I want to know whether this is one input spiking or broad-based inflation across all of them.\n\nThe other thing I need before I can interpret it: this is COGS as a percent of revenue, so it could move because input costs rose or because prices didn't. Do we have menu price history over the same two years — have they raised prices at all?\n\nAlso worth checking whether product mix shifted toward lower-margin items like food.";
+    const MENU = /Menu prices have not changed in two years\./;
+    it.each([
+      ['Marcus f8ed869d t7', MARCUS, [ask('the breakdown of COGS by category', ['bean_share_of_cogs'])], false],
+      ['Jasmine f4fcab5b t5', JASMINE, [ask('menu price history', ['menu_price_change']), ask('the COGS split between coffee and other inputs', ['bean_share_of_cogs', 'non_bean_input_change'])], true],
+      ['Fiona 52743bea t5', FIONA, [ask("coffee beans' share of COGS", ['bean_share_of_cogs']), ask('price change of other inputs (dairy, packaging, food)', ['non_bean_input_change']), ask('units purchased versus units sold')], false],
+      ['Owen d3db78c0 t5', OWEN, [ask('menu price changes over two years', ['menu_price_change']), ask('the composition of COGS', ['bean_share_of_cogs']), ask('input price changes for beans and other inputs', ['bean_price_change', 'non_bean_input_change'])], true],
+    ] as [string, string, ReturnType<typeof ask>[], boolean][])('%s: all three COGS items go out, nothing deferred', async (_, text, requests, menu) => {
+      seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+      const r = await say(text, T({ say: 'A COGS-first read.', requests, question: 'What does it tell you?' }));
+      for (const line of THREE) expect(r.interviewerText).toMatch(line);
+      if (menu) expect(r.interviewerText).toMatch(MENU);
+      expect(r.interviewerText).not.toMatch(/I'll come back to/);
+    });
+    it("Owen's own sentence (\"What I'd want next is what's inside that COGS line\") widens per-item labels", async () => {
+      seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+      const r = await say(OWEN, T({ say: 'A COGS-first read.', requests: [ask('menu price changes over two years', ['menu_price_change']), ask("coffee beans' share of COGS", ['bean_share_of_cogs']), ask('coffee bean price change', ['bean_price_change'])], question: 'What does it tell you?' }));
+      for (const line of THREE) expect(r.interviewerText).toMatch(line);
+      expect(r.interviewerText).toMatch(MENU);
+    });
+    it('a re-ask for "the rest of the COGS breakdown" gets what is still to come, not the share again (Sofia 3baae0b t11)', async () => {
+      seed({ phase: 'EXHIBIT', revealed: [...COST, 'bean_share_of_cogs', 'bean_price_change'], flags: SATISFIED });
+      const r = await say('Bean inflation is real but it\'s not the main story. Do we have the rest of the COGS breakdown — dairy, packaging, food, waste?', T({ say: 'Mm-hm.', requests: [ask('non-bean input costs (dairy, packaging, food)', ['non_bean_input_change'])], question: 'What does it tell you?' }));
+      expect(r.interviewerText).toMatch(THREE[2]);
+      expect(r.interviewerText).not.toMatch(/25% of COGS/);
+    });
+    it("per-item asks keep the model's order: the menu price between them still goes out (Raj 76e4ff6 t9, batch 19)", async () => {
+      seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+      const r = await say('Now, COGS as a percent of revenue rising could mean input costs went up, or prices didn\'t keep pace, or mix shifted. Do we have the breakdown inside COGS — beans versus dairy versus packaging — and have menu prices changed at all in two years?', T({ say: 'Right.', requests: [
+        ask('coffee bean price change over two years', ['bean_price_change']), ask('menu price changes over two years', ['menu_price_change']),
+        ask("composition of COGS, coffee beans' share", ['bean_share_of_cogs']), ask('price change of dairy, packaging and food inputs', ['non_bean_input_change']),
+      ], question: 'What do those figures tell you?' }));
+      for (const line of THREE) expect(r.interviewerText).toMatch(line);
+      expect(r.interviewerText).toMatch(MENU);
+      expect(r.interviewerText).not.toMatch(/I'll come back to/);
+    });
+    it("Fiona's finer part of the same sentence is still refused", async () => {
+      seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+      const r = await say(FIONA, T({ say: 'A COGS-first read.', requests: [ask("coffee beans' share of COGS", ['bean_share_of_cogs']), ask('units purchased versus units sold')], question: 'What does it tell you?' }));
+      expect(r.interviewerText).toMatch(/I don't have units purchased versus units sold\./);
+    });
+    it('a group named only in a narrative sentence, not an ask, expands nothing', async () => {
+      seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+      const r = await say("I think the split of COGS is the story. Could I get the coffee bean share?", T({ say: 'Mm-hm.', requests: [ask('the coffee bean share of COGS', ['bean_share_of_cogs'])], question: 'What does it tell you?' }));
+      expect(r.interviewerText).toMatch(THREE[0]);
+      expect(r.interviewerText).not.toMatch(/up 40%|up 37\.5%/);
+    });
+    it('a split asked with no request the model mapped into the group expands nothing', async () => {
+      seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+      const r = await say('Do we have menu price history, and a split of COGS?', T({ say: 'Mm-hm.', requests: [ask('menu price history', ['menu_price_change'])], question: 'What does it tell you?' }));
+      expect(r.interviewerText).toMatch(MENU);
+      expect(r.interviewerText).not.toMatch(/25% of COGS|up 40%|up 37\.5%/);
+    });
+    it('the cap still holds items outside the group: four separate asks release three', async () => {
+      seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+      const r = await say('Could I get menu prices, the store count, the average ticket and the coffee bean price change?', T({ say: 'Mm-hm.', requests: [
+        ask('menu price history', ['menu_price_change']), ask('store count', ['stores_count']), ask('average ticket', ['avg_ticket']), ask('coffee bean price change', ['bean_price_change']),
+      ], question: 'What does it tell you?' }));
+      expect(r.interviewerText).toMatch(/I'll come back to/);
+    });
+  });
+
   it('the ask with its share already out: the rest goes out — no refusal (Jordan t7)', async () => {
     seed({ phase: 'EXHIBIT', revealed: [...COST, 'bean_share_of_cogs'], flags: SATISFIED });
     const r = await say("That's why I want the bean split.", T({ say: 'Mm-hm.', requests: [ask('COGS split by input category', ['bean_price_change', 'non_bean_input_change'])], question: 'What does it tell you?' }));
