@@ -143,6 +143,12 @@ export function claimFigures(c: CheckerClaim, caseNumbers: number[] = []): numbe
   return numbersOf(c.candidateValue).filter(n => (input === null || !same(n, input)) && !caseNumbers.some(x => same(n, x)));
 }
 const figuresOf = (c: CheckerClaim) => claimFigures(c);
+// The figures that identify a claim: its own, else — when every one is also a
+// case figure or its input ("a 16% lift" to restore 16 points) — the figures of its value as said.
+function ownFigures(c: CheckerClaim, caseNumbers: number[]): number[] {
+  const figs = claimFigures(c, caseNumbers);
+  return figs.length > 0 || c.actualShare !== null ? figs : numbersOf(c.candidateValue);
+}
 
 // The case's figures the candidate has: the prompt, released lines and their changes.
 export function caseNumbersOf(caseData: Pick<CheckerCase, 'prompt' | 'dataLedger'>, revealedIds: string[]): number[] {
@@ -168,7 +174,16 @@ const REVISING = /^(?:actually|wait|on second thought)\b/i;
 // right figure stated (when it isn't also a case figure), or the same claim
 // restated (a pricing claim of the same kind at the same price; the same math
 // step). Returns why, or null.
-export function isStale(c: CheckerClaim, laterTexts: string[], caseData: CheckerCase, revealedIds: string[]): string | null {
+// A concession — a withdrawal or an "Actually, …" revision — withdraws only
+// the claim it answers (Lorenzo, 14 Oct; batch 24: Owen e64de272's "You're
+// right, I stated that as fact" about competitors dropped his "27–28%",
+// Marisol 4bf008fd's "Let me redo it." about the bean share dropped her 27.6%):
+// the claim the interviewer just questioned (`questioned`), one whose own
+// figure the message names, or one the message redoes to its right figure (a
+// case figure counts here: Marisol's redo to "16.0" answers her "22.1") —
+// never every open claim.
+export type LaterMessage = { text: string; questioned?: boolean };
+export function isStale(c: CheckerClaim, later: (string | LaterMessage)[], caseData: CheckerCase, revealedIds: string[]): string | null {
   const ctx: VetContext = { caseData, revealedIds, shownExhibitIds: [], candidateTexts: [] };
   const right = [...(codeComputed(c, ctx)?.values ?? []), c.correctValue, c.correctLow, c.correctHigh].filter((x): x is number => x !== null);
   const caseFigures = caseNumbersOf(caseData, revealedIds);
@@ -176,10 +191,13 @@ export function isStale(c: CheckerClaim, laterTexts: string[], caseData: Checker
   const pm = pricingValues(caseData, new Set(revealedIds));
   const q = c.codeQuantity;
   const step = q.kind === 'step' ? caseData.mathSteps.find(st => st.id === q.stepId) : undefined;
-  for (const text of laterTexts) {
-    for (const s of sentencesOf(text)) {
-      if (WITHDRAWN.test(s)) return `withdrawn: "${s}"`;
-      if (REVISING.test(s) && /\d/.test(s)) return `revised: "${s}"`;
+  const own = [...ownFigures(c, caseFigures), ...wordFigures(c.candidateValue)];
+  const namesClaim = (text: string) => own.length > 0 && [...numbersOf(text), ...wordFigures(text)].some(n => own.some(x => same(n, x)));
+  for (const m of later) {
+    const { text, questioned } = typeof m === 'string' ? { text: m, questioned: false } : m;
+    const concession = sentencesOf(text).find(s => WITHDRAWN.test(s) || (REVISING.test(s) && /\d/.test(s)));
+    if (concession && (questioned || namesClaim(text) || numbersOf(text).some(n => right.some(r => same(n, r))))) {
+      return WITHDRAWN.test(concession) ? `withdrawn: "${concession}"` : `revised: "${concession}"`;
     }
     const stated = numbersOf(text).find(n => rightToCheck.some(r => same(n, r)));
     if (stated !== undefined) return `the right figure (${stated}) stated since`;
@@ -274,8 +292,21 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     .map(r => r.payloadJsonb as VerdictPayload)
     .filter(v => v.candidateTurnIndex < p.candidateTurnIndex)
     .sort((a, b) => a.candidateTurnIndex - b.candidateTurnIndex);
+  // The checker lines delivered on each interviewer turn (a flag row is decided
+  // on message m and spoken on m + 1): what the next candidate message answers.
+  const delivered = p.rows.filter(r => (r.category ?? MATH_CHECKER_CATEGORY) === MATH_CHECKER_CATEGORY && r.subtype === 'flag')
+    .map(r => ({ at: r.turnIndex, d: r.payloadJsonb as CheckerDecision }))
+    .filter(x => ['probe', 'pointer', 'hint', 'correct'].includes(x.d.outcome));
+  const laterMessages = (n: number) => [...p.turnRows.filter(t => t.role === 'candidate' && t.turnIndex > n).map(t => ({ text: t.text, index: t.turnIndex })), { text: p.candidateText, index: p.candidateTurnIndex }];
+  // Did the interviewer line just before message m question this claim — code's checker line on it, or the model asking about its own figures?
+  const questionedBefore = (id: string, c: CheckerClaim, m: number) => {
+    if (delivered.some(x => x.at === m - 2 && (x.d.id === id || x.d.key === checkerKey(c)))) return true;
+    const line = [...p.turnRows].reverse().find(t => t.role === 'interviewer' && t.turnIndex < m)?.text;
+    return line !== undefined && probesOf(ownFigures(c, caseNumbers), [line], p.candidateFigures) > 0;
+  };
   for (const v of verdicts) {
-    const later = [...p.turnRows.filter(t => t.role === 'candidate' && t.turnIndex > v.candidateTurnIndex).map(t => t.text), p.candidateText];
+    const laterRows = laterMessages(v.candidateTurnIndex);
+    const later = laterRows.map(x => x.text);
     v.claims.forEach((c, i) => {
       const id = `${v.candidateTurnIndex}:${i}`;
       if (handled.has(id)) return;
@@ -298,7 +329,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
         return;
       }
       for (const s of v.stamps.filter(st => figs.some(x => same(x, st.value)))) droppedStamps.push({ ...s, candidateTurnIndex: v.candidateTurnIndex });
-      const stale = isStale(c, later, p.caseData, p.revealedIds);
+      const stale = isStale(c, laterRows.map(x => ({ text: x.text, questioned: questionedBefore(id, c, x.index) })), p.caseData, p.revealedIds);
       if (stale) {
         decisions.push(decision(id, v.candidateTurnIndex, c, 'stale', stale));
         handled.add(id);

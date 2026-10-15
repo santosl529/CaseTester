@@ -236,13 +236,14 @@ describe('deterministic checks first', () => {
 describe('the stale check — a late verdict on a claim since revised or withdrawn is dropped', () => {
   const claim = vetted();
   const stale = (text: string) => isStale(claim, [text], prof, COSTS);
+  // A concession withdraws the claim the interviewer just questioned (Lorenzo, 14 Oct).
+  const staleAfterProbe = (text: string) => isStale(claim, [{ text, questioned: true }], prof, COSTS);
   it.each([
     'Scratch that, I mis-sized the gain.',
     'Actually, a 10% rise is closer to 8.5 points once labor and overhead shrink too.',
     'Let me redo the price math.',
-    // Tyler b19 t15, after code corrected his "revenue grew 19%".
-    "You're right, that's my error — the prompt said 15% and I don't have a source for 19%.",
-  ])('withdrawn or revised: %s', text => expect(stale(text)).not.toBeNull());
+    "You're right, that's my error — I'll redo it.",
+  ])('withdrawn or revised, answering a probe on it: %s', text => expect(staleAfterProbe(text)).not.toBeNull());
   it('the right figure stated since', () => expect(stale('So the gain is 8.5 points.')).not.toBeNull());
   it('the same pricing claim restated (same kind, same price)', () => expect(stale('A 10% price rise recovers 8 points of margin.')).not.toBeNull());
   it.each([
@@ -258,8 +259,37 @@ describe('the stale check — a late verdict on a claim since revised or withdra
     const whole = vetted({ span: 'the whole 18 points sits in COGS', candidateValue: 'the whole 18 points', correctValue: 16, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
     expect(isStale(whole, ['COGS went up 16 points, from 42 to 58.'], prof, COSTS)).toBeNull();
   });
+  // Lorenzo, 14 Oct (batch 24): a concession withdraws only the claim it answers —
+  // the one the interviewer just questioned, or one whose figure it names.
+  it.each([
+    // Tyler b19 t15, after code corrected his "revenue grew 19%" — not the pricing claim.
+    "You're right, that's my error — the prompt said 15% and I don't have a source for 19%.",
+    // Owen e64de272 t15, about the competitor assumption.
+    "You're right, I stated that as fact and it isn't — I don't have competitor pricing.",
+    // Marisol 4bf008fd t19, redoing the bean share.
+    'Fair point — the 25% was measured two years ago, so it belongs on the 42 base, not the 58. Let me redo it.',
+    'Scratch that, I mis-sized the gain.',
+  ])('a concession about something else withdraws nothing: %s', text => expect(stale(text)).toBeNull());
+  it('a redo that states the claim\'s right figure answers it, even a case figure (Marisol 4bf008fd t19: "…16.0 points" answers her 22.1)', () => {
+    const total = vetted({ span: 'Total input-driven increase: 5.8 plus 16.3 is 22.1 points', candidateValue: '22.1 points', correctValue: 16, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
+    expect(isStale(total, ['Let me redo it. Total input-driven increase: 4.2 plus 11.8 is 16.0 points.'], prof, COSTS)).not.toBeNull();
+    expect(isStale(total, ['Total input-driven increase is 16 points.'], prof, COSTS)).toBeNull();   // 16 is a case figure: no concession, no drop
+  });
+  it("the model's question on a claim whose figures are case figures questions it (1c9184cf t18 on \"a 16% lift\")", () => {
+    const lift = vetted({ span: 'restoring the full 16 points would need roughly a 16% lift', candidateValue: '16%', correctValue: 20.5, codeQuantity: { kind: 'needed_for_gain', stepId: null, price: null, target: 16 } });
+    const p = planCheckerFlags(input({
+      rows: [verdictRow(17, [lift])], handled: [],
+      turnRows: [{ turnIndex: 17, role: 'candidate', text: 'Restoring the full 16 points would need roughly a 16% lift.' },
+        { turnIndex: 18, role: 'interviewer', text: 'You said restoring the full 16 points would need roughly a 16% lift. Walk me through how you got from 16 points of margin to a 16% price increase.' }],
+      candidateTurnIndex: 19, candidateText: 'Let me redo that — I think I was sloppy.', candidateFigures: [16],
+    }));
+    expect(p.decisions[0]).toMatchObject({ outcome: 'stale' });
+  });
+  it('a concession that names the claim\'s figure withdraws it, unasked', () => {
+    expect(stale("Scratch that 5 points — I'll redo it.")).not.toBeNull();
+  });
   it('drops the flag with the reason, handled', () => {
-    const p = planCheckerFlags(input({ candidateText: 'Scratch that — the gain is bigger than I said.' }));
+    const p = planCheckerFlags(input({ candidateText: 'Scratch that — the 5 points is too low.' }));
     expect(p.selected).toBeNull();
     expect(p.decisions[0].outcome).toBe('stale');
   });
@@ -434,5 +464,26 @@ describe('a closed error in the recommendation: the same unit, never a bare numb
   it('a figure said in words matches it in digits ("forty points" closed, "40 points" again)', () => {
     const k = 'checker:forty points';
     expect(closedErrorRestated('It carries about 40 points of pressure.', [k], { [k]: { figures: [40], since: 3 } }, [row(k, 'forty points')])).toMatchObject({ said: '40 points' });
+  });
+});
+
+// Lorenzo, 14 Oct (batch 24, Owen e64de272 and Marisol 4bf008fd): in a turn, the
+// claim the interviewer just questioned is the one a concession answers — the
+// checker line delivered on that interviewer turn; another open claim stays open.
+describe('a concession withdraws only the claim it answers', () => {
+  const none = { kind: 'none' as const, stepId: null, price: null, target: null };
+  const bean = vetted({ span: 'Beans are 58 times 0.25, so 14.5 points', candidateValue: '14.5 points', quantity: 'bean points of revenue', correctValue: 10.5, codeQuantity: none, probeLine: 'Which year\'s COGS did you apply the 25% share to?' });
+  const price = vetted({ span: '16 on a base of 58 is around 27.6%', candidateValue: 'about 27.6%', quantity: 'price rise to restore COGS ratio', correctValue: 38, codeQuantity: none, probeLine: 'What base did you divide the 16 by?' });
+  const probeRow = (n: number, id: string, key: string): CheckerRow => ({ category: MATH_CHECKER_CATEGORY, subtype: 'flag', turnIndex: n,
+    payloadJsonb: { id, candidateTurnIndex: 15, outcome: 'probe', reason: 'attempt 1', span: '', candidateValue: '14.5 points', key, changesConclusion: true, line: bean.probeLine } });
+  it("Marisol t19: \"Let me redo it.\" withdraws the probed bean claim, not her 27.6%", () => {
+    const p = planCheckerFlags(input({
+      rows: [verdictRow(15, [bean]), verdictRow(17, [price]), probeRow(17, '15:0', 'checker:14.5 points')], handled: [],
+      turnRows: [{ turnIndex: 15, role: 'candidate', text: 'Beans are 58 times 0.25, so 14.5 points.' }, { turnIndex: 16, role: 'interviewer', text: 'What would you look at next?' },
+        { turnIndex: 17, role: 'candidate', text: '16 on a base of 58 is around 27.6%.' }, { turnIndex: 18, role: 'interviewer', text: "Which year's COGS did you apply the 25% share to?" }],
+      candidateTurnIndex: 19, candidateText: 'Fair point — the 25% was measured two years ago, so it belongs on the 42 base, not the 58. Let me redo it.', candidateFigures: [14.5, 27.6],
+    }));
+    expect(p.decisions.find(d => d.id === '15:0')).toMatchObject({ outcome: 'stale' });
+    expect(p.decisions.find(d => d.id === '17:0')?.outcome).not.toBe('stale');
   });
 });
