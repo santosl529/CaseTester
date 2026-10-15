@@ -281,7 +281,15 @@ export function probesOf(figs: number[], interviewerTexts: string[], candidateFi
 
 export type CheckerRow = { category?: string; subtype: string; turnIndex: number | null; payloadJsonb: unknown };
 
-export type CheckerOutcome = 'probe' | 'correct' | 'pointer' | 'hint' | 'unresolved' | 'shed' | 'stale' | 'expired' | 'dedupe' | 'disagrees_with_code' | 'unresolved_at_close';
+export type CheckerOutcome = 'probe' | 'correct' | 'pointer' | 'hint' | 'unresolved' | 'shed' | 'stale' | 'expired' | 'dedupe' | 'disagrees_with_code' | 'unresolved_at_close' | 'undelivered';
+
+// Whether the delivered text holds the checker's line (Lorenzo, 15 Oct): case,
+// quotes, dashes and spacing aside — a paraphrase is not the vetted line.
+const lineForm = (t: string) => t.toLowerCase().replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, '-')
+  .replace(/[^a-z0-9%$.,'\- ]+/g, ' ').replace(/(?<!\d)[.,]|[.,](?!\d)/g, ' ').replace(/\s+/g, ' ').trim();
+export function lineHeard(text: string, line: string): boolean {
+  return line.trim() !== '' && lineForm(text).includes(lineForm(line));
+}
 export type CheckerDecision = {
   id: string; candidateTurnIndex: number; outcome: CheckerOutcome; reason: string;
   span: string; candidateValue: string; key: string; changesConclusion: boolean; line?: string;

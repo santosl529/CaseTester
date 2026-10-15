@@ -114,6 +114,18 @@ describe('the verdict lands and the next turn reads it', () => {
     expect(store.events).toContainEqual(expect.objectContaining({ category: 'math_checker', subtype: 'flag', turnIndex: 5 }));
   });
 
+  // Batch-26 fix 2 (Jasmine 074b0534 t31): the model asked something else — code says the line, so it is booked as heard.
+  it('the model leaves the line out: code says it, and the booking stands', async () => {
+    await runTurn('s1', CLAIM);
+    calls[0].resolve({ claims: [flaggedClaim], model: 'claude-sonnet-5-5', latencyMs: 6000, stopReason: 'end_turn' });
+    await flush(); await flush();
+    const r = await runTurn('s1', 'Next I would look at the competitive response.');
+    expect(r.interviewerText).toContain('You said the whole 18 points sits in COGS. Which cost lines did you look at to get there?');
+    expect(r.interviewerText).not.toContain('What would you look at next?');
+    expect((store.session.flagsJsonb as Row).mathChecker).toEqual({ handled: ['3:0'] });
+    expect(store.events).toContainEqual(expect.objectContaining({ category: 'check', subtype: 'checker_line', payloadJsonb: expect.objectContaining({ detail: expect.objectContaining({ by: 'code', heard: true }) }) }));
+  });
+
   it('a verdict still out at the next turn lands on a later one', async () => {
     await runTurn('s1', CLAIM);
     await runTurn('s1', 'Next I would look at the competitive response.');

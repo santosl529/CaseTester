@@ -71,6 +71,11 @@ export type ModelState = ModelPlan['state'];
 
 // The recommendation's math probe: a deterministic flag, or the math checker's
 // (in place of the close).
+// The checker's line on a model turn, and how to undo its booking if it isn't heard (Settle).
+export type CheckerLinePlan = {
+  id: string; key: string; action: CheckerSelection['action']; line: string;
+  undo: { attempt: number | undefined; step: string | null; mathChecker: { handled: string[]; keys?: Record<string, CheckerKeyEntry>; closed?: string[] } };
+};
 export type RecMathProbe = { flag: RecomputeFlag; action: RecomputeAction } | { checker: CheckerSelection; action: 'probe' | 'correct' } | { closed: ClosedRestatement; action: 'probe' | 'correct' };
 
 // Rule 6 option 4: how many times code corrects one item's misquote in a session.
@@ -767,6 +772,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const checkerUsed = sel && (kind === 'model' || (kind === 'rec_math_probe' && recMathProbe && 'checker' in recMathProbe)) ? sel : null;
   const checkerHandledNow = [...checkerPlan.handledNow];
   const checkerDecisions = checkerPlan.decisions.filter(d => !sel || d.id !== sel.id || checkerUsed);
+  const attemptBeforeChecker = checkerUsed ? recomputeAttempts[checkerUsed.key] : undefined;
   if (checkerUsed) {
     recomputeAttempts[checkerUsed.key] = checkerUsed.attempt;
     checkerHandledNow.push(checkerUsed.id);
@@ -801,9 +807,27 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     if ('flag' in recMathProbe && recMathProbe.flag.kind !== 'unit') probedSteps.add(recMathProbe.flag.stepId);
     if ('closed' in recMathProbe) probedSteps.add(stepOfKey(recMathProbe.closed.key));
   }
+  const checkerStepOwn = checkerUsed && checkerUsed.action !== 'correct' && !probedSteps.has(stepOfKey(checkerUsed.key)) ? stepOfKey(checkerUsed.key) : null;
   if (checkerUsed && checkerUsed.action !== 'correct') probedSteps.add(stepOfKey(checkerUsed.key));
   for (const s of probedSteps) stepProbes[s] = (stepProbes[s] ?? 0) + 1;
   if (probedSteps.size > 0) flags.stepProbes = stepProbes;
+  // On a model turn the line is the model's to say: Settle checks the delivered
+  // text holds it, says it itself if the model left it out, and undoes this
+  // booking if it still isn't heard — the flag then stays pending (Lorenzo, 15
+  // Oct; batch 26 Jasmine 074b0534 t31, logged "used", never said).
+  let checkerLine: CheckerLinePlan | null = null;
+  if (checkerUsed && kind === 'model') {
+    const raisedUndo = new Set([...Object.keys(checkerMemory.keys ?? {}), ...closedKeys]);
+    const keysUndo = Object.fromEntries(Object.entries(checkerPlan.keys).filter(([k, e]) => raisedUndo.has(k) && e.figures.length > 0));
+    const handledUndo = [...checkerHandled, ...checkerHandledNow.filter(id => id !== checkerUsed.id)];
+    checkerLine = {
+      id: checkerUsed.id, key: checkerUsed.key, action: checkerUsed.action, line: checkerUsed.line,
+      undo: {
+        attempt: attemptBeforeChecker, step: checkerStepOwn,
+        mathChecker: { handled: handledUndo, ...(Object.keys(keysUndo).length ? { keys: keysUndo } : {}), ...(closedKeys.length ? { closed: closedKeys } : {}) },
+      },
+    };
+  }
   checks.record('math_checker', checkerUsed !== null, checkerUsed ? `checker flag delivered: ${checkerUsed.action}` : 'no checker flag delivered', {
     started: Boolean(checkerConfig && statesQuantitativeClaim(candidateText)), selected: sel?.id ?? null, used: checkerUsed?.id ?? null,
     decisions: checkerDecisions.map(d => ({ id: d.id, outcome: d.outcome, reason: d.reason })), waiting: checkerPlan.waiting.map(w => w.id),
@@ -884,7 +908,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       caseData, repliedToDistressOffer, shownExhibitIds, stagesOut, brainstormDue: brainstormDueNow, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
-      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, recMathProbe, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
+      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, recMathProbe, checkerLine, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,

@@ -36,6 +36,7 @@ import { derivePhase, type TurnMove } from './progress';
 import { turnData, pressureTestOutcomeNow } from './turn-data';
 import { isGradingSentence, gradingRemainder } from './grading';
 import { settlePendingData } from './pending-data';
+import { lineHeard } from './math-checker-live';
 import { vetoReason, gateContext, isHandoverAnnouncement, isDeliveryClaim } from './stream-turn';
 import type { ModelTurn, Move } from '@/lib/agent/models/turn-schema';
 import type { TurnValidation } from '@/lib/agent/models/interface';
@@ -480,6 +481,25 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     stageAsked = undefined;
     stageWaited = true;
   }
+  // The checker's line counts as delivered only if it is heard (Lorenzo, 15
+  // Oct; batch 26 Jasmine 074b0534 t31: its probe was logged "used" and the
+  // model asked for the recommendation instead): a model question that leaves
+  // it out — or paraphrases it past the vetting — gives way to code's line (a
+  // correction goes before the question; "say" has already been spoken). A
+  // pressure-test step or a stage code administers keeps the question; the
+  // line then waits (below).
+  const checkerLine = !codeWritten && kind === 'model' ? state.checkerLine : null;
+  let checkerLineBy: 'model' | 'code' | null = null;
+  const codeTookQuestion = ['waived', 'reask', 'narrowed', 'code_asked', 'code_asked_structure'].includes(ptAction ?? '') || stageAsked !== undefined || heldForExhibit !== undefined;
+  if (checkerLine && !codeTookQuestion) {
+    if (lineHeard(`${say} ${question}`, checkerLine.line)) checkerLineBy = 'model';
+    else {
+      question = checkerLine.action === 'correct' ? [checkerLine.line, question].filter(Boolean).join(' ') : checkerLine.line;
+      if (checkerLine.action !== 'correct') modelQuestion = '';
+      checkerLineBy = 'code';
+    }
+  }
+
   checks.record('stage_hold', Boolean(stageAsked), stageAsked ? `owed stage administered by code: ${stageAsked}`
     : stageWaited ? 'data went out this turn — the brainstorm waits a turn' : 'no stage owed this turn', { owed: state.owedStage ?? null, kind });
 
@@ -539,6 +559,29 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   if (withheld.length > 0) console.warn('[runner] withheld:', JSON.stringify(withheld));
 
   const spokenText = [say, ...dataLines, question].map(s => s.trim()).filter(Boolean).join(' ');
+
+  // Still not heard (a pressure-test step or another of code's lines took the
+  // question): the booking is undone and the flag stays pending for a later turn.
+  const checkerHeard = checkerLine ? lineHeard(spokenText, checkerLine.line) : null;
+  if (checkerLine && !checkerHeard) {
+    if (checkerLine.undo.attempt === undefined) delete recomputeAttempts[checkerLine.key];
+    else recomputeAttempts[checkerLine.key] = checkerLine.undo.attempt;
+    flags.mathChecker = checkerLine.undo.mathChecker;
+    if (checkerLine.undo.step) {
+      const steps = { ...(flags.stepProbes as Record<string, number> | undefined) };
+      steps[checkerLine.undo.step] = Math.max(0, (steps[checkerLine.undo.step] ?? 1) - 1);
+      flags.stepProbes = steps;
+    }
+    for (const e of ctx.events) {
+      if (e.category === 'math_checker' && e.subtype === 'flag' && (e.payload as { id?: string }).id === checkerLine.id) {
+        e.payload = { ...e.payload, outcome: 'undelivered', reason: 'chosen, not said: another line took the question' };
+      }
+    }
+  }
+  checks.record('checker_line', checkerLine !== null && (checkerLineBy === 'code' || !checkerHeard),
+    !checkerLine ? 'no checker line this turn' : !checkerHeard ? 'checker line not heard — booking undone, the flag stays pending'
+      : checkerLineBy === 'code' ? 'the model left the checker line out — code said it' : 'the model said the checker line',
+    checkerLine ? { id: checkerLine.id, action: checkerLine.action, line: checkerLine.line, by: checkerLineBy, heard: checkerHeard } : {});
 
   // Book what was delivered (D3), and the exhibit with the items it displays.
   const undelivered = new Set(out.undeliveredRevealIds ?? []);
