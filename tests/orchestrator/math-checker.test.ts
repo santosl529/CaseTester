@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import {
-  statesQuantitativeClaim, buildCheckerSystem, buildCheckerUser, vetCheckerClaims, isActionable,
+  statesQuantitativeClaim, buildCheckerSystem, buildCheckerUser, vetCheckerClaims, isActionable, relativeAsPoints,
   CheckerOutputSchema, type CheckerClaim, type VetContext,
 } from '@/lib/orchestrator/math-checker';
 import { MATH_CHECKER_CONFIGS } from '@/lib/models';
 import { getCaseById } from '@/lib/cases/loader';
+import { buildFactBase } from '@/lib/orchestrator/fact-check';
 
 const prof = getCaseById('prof-001');
 const COSTS = ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'menu_price_change', 'bean_price_change', 'non_bean_input_change'];
@@ -218,6 +219,32 @@ describe('FR-4: what a flag may put in the interviewer\'s mouth', () => {
       expect(vetCheckerClaims([claim({ ...jordan, span: 'COGS took 16 points of margin', candidateValue: '16 points' })], ctxJ(['COGS took 16 points of margin']))[0].correctionLine).toBeNull();
       expect(vetCheckerClaims([claim({ ...jordan, span: 'call it about 40 points of margin erosion', candidateValue: 'about 40 points' })], ctxJ(['call it about 40 points of margin erosion']))[0].correctionLine).toBeNull();
       expect(vetCheckerClaims([jordan], ctxJ([said], ['labor_pct']))[0].correctionLine).toBeNull();
+    });
+    // Lorenzo, 15 Oct (batch-25 ruling 3; Jordan 78c89dba t5): COGS named in
+    // the sentence before is the line — the correction line exactly as before.
+    it('the line named elsewhere in the same message (Jordan 78c89dba t5)', () => {
+      const t5 = "COGS, clearly. Labor is flat at 22% of revenue across all three years, and overhead only drifts from 12 to 14 — two points, basically noise. COGS is the whole story.\n\nLet me size it. COGS goes 42 to 50 to 58 percent of revenue. That's a 16-point move off a 42-point base, so it's grown about 38% relative to where it started — call it roughly 38 points of margin pressure. Against a total decline of 18 points, COGS more than fully accounts for it; the other lines are actually offsetting some of it. So this is a single-driver case.";
+      const c = claim({ span: 'call it roughly 38 points of margin pressure', candidateValue: '38 points', correctValue: 16, probe: 'You said roughly 38 points of margin pressure from COGS. How did you get from the 38% growth to points of margin?', codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
+      const [v] = vetCheckerClaims([c], ctxJ([t5]));
+      expect(v.correctionLine).toBe('COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.');
+      // Not from another message: the line must be named in this one.
+      expect(vetCheckerClaims([c], ctxJ([t5, 'Call it roughly 38 points of margin pressure.']))[0].correctionLine).toBeNull();
+    });
+    it("the prompt's own figures are no relative change (Jordan 78c89dba t7: the 18-point decline isn't overhead's 17%)", () => {
+      const t7 = "And then I'm reading that as 38 points of margin pressure, because every point COGS takes is a point profit doesn't get. The line grew 38%, so that's about 38 points coming out of profit — which is why I said it more than covers the 18-point decline on its own, with labor and overhead soaking up the rest.";
+      const c = claim({ span: 'it more than covers the 18-point decline on its own, with labor and overhead soaking up the rest', candidateValue: 'COGS exceeds 18 points; labor/overhead offset', correctValue: 16, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
+      expect(vetCheckerClaims([c], ctxJ([t7]))[0].correctionLine).toBeNull();
+    });
+    it('a line the span names comes first: "overhead … 38 points" is not COGS\'s 38%, though the message names COGS', () => {
+      const text = 'COGS went from 42 to 58. Overhead is carrying 38 points of the pressure.';
+      const c = claim({ span: 'Overhead is carrying 38 points of the pressure', candidateValue: '38 points', correctValue: 2, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
+      expect(vetCheckerClaims([c], ctxJ([text]))[0].correctionLine).toBeNull();
+    });
+    it("a line's own change in points is no relative change (0bfe5f38 t19: \"16 points of the 18\" isn't overhead's 17%)", () => {
+      const t19 = 'The 18-point margin decline is fully explained by input cost inflation — 4.2 points from beans up 40%, 11.8 points from other inputs up 37.5%, which is the full 16 points of COGS, and overhead adds the other 2.';
+      const c = claim({ span: 'The 18-point margin decline is fully explained by input cost inflation — 4.2 points from beans up 40%, 11.8 points from other inputs', candidateValue: 'fully (4.2 + 11.8 = 16 points of the 18)', correctValue: null, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
+      expect(vetCheckerClaims([c], ctxJ([t19]))[0].correctionLine).toBeNull();
+      expect(relativeAsPoints(c, ctxJ([t19]), buildFactBase(prof))).toBeNull();
     });
     it('not when their figure is said as a percent, not points', () => {
       const pct = claim({ ...jordan, span: 'COGS grew about 40% on its base', candidateValue: 'about 40%' });

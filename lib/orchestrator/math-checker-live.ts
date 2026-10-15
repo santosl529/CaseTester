@@ -515,7 +515,8 @@ const unitOfSaid = (text: string) => /%|percent/i.test(text) ? '%' : /\bpoints?\
 export function closedErrorRestated(text: string, closed: string[], keys: Record<string, CheckerKeyEntry>, rows: CheckerRow[]): ClosedRestatement | null {
   const flagRows = rows.filter(r => (r.category ?? MATH_CHECKER_CATEGORY) === MATH_CHECKER_CATEGORY && r.subtype === 'flag').map(r => r.payloadJsonb as CheckerDecision);
   const said = [...normalizeNumberWords(text).matchAll(/(\$\s?)?(\d+(?:\.\d+)?)(?:\s*(%|percent\b)|[\s-]*(?:percentage\s+)?(points?)\b|\s?(m|mn|million|bn|billion)\b)?/gi)]
-    .map(m => ({ value: parseFloat(m[2]), unit: m[3] ? '%' : m[4] ? 'points' : m[1] || m[5] ? 'money' : '', text: m[0].trim() }));
+    // Said back whole: "38-point" (from "a 38-point cost shock") is "38 points" (Jordan 78c89dba t16).
+    .map(m => ({ value: parseFloat(m[2]), unit: m[3] ? '%' : m[4] ? 'points' : m[1] || m[5] ? 'money' : '', text: m[4] ? `${m[2]} ${Number(m[2]) === 1 ? 'point' : 'points'}` : m[0].trim() }));
   for (const key of closed) {
     const figures = keys[key]?.figures ?? [];
     // In a unit the claim was said in — never a bare number (Larkspur: "two separate effects" matched "$2M").

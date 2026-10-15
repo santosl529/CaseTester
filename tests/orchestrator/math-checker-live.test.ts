@@ -549,6 +549,10 @@ describe('a closed error in the recommendation: the same unit, never a bare numb
     expect(closedErrorRestated('Damage I size at $48M of lost margin.', [k], { [k]: { figures: [48], since: 3 } }, [row(k, '$48M')])).toMatchObject({ key: k, said: '$48M' });
     expect(closedErrorRestated('Fares fell 48% on Lakeport.', [k], { [k]: { figures: [48], since: 3 } }, [row(k, '$48M')])).toBeNull();
   });
+  it('a hyphenated figure is said whole (Jordan 78c89dba t16: "walk me through how you got to 38-point.")', () => {
+    const k = 'checker:38 points';
+    expect(closedErrorRestated('Menu prices have not moved, so the client absorbed a 38-point cost shock in full.', [k], { [k]: { figures: [38], since: 5 } }, [row(k, '38 points')])).toMatchObject({ said: '38 points' });
+  });
   it('a figure said in words matches it in digits ("forty points" closed, "40 points" again)', () => {
     const k = 'checker:forty points';
     expect(closedErrorRestated('It carries about 40 points of pressure.', [k], { [k]: { figures: [40], since: 3 } }, [row(k, 'forty points')])).toMatchObject({ said: '40 points' });

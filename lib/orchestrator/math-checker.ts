@@ -437,17 +437,27 @@ export function codeCorrection(c: CheckerClaim, at: { value: number; index: numb
 // a figure in points that is a revealed share's growth on its own base, not its
 // change in points, for a line the claim names. Code writes the correction
 // from the case whatever quantity the checker named.
+// The line may be named anywhere in the claim's message (Lorenzo, 15 Oct; batch
+// 25, Jordan 78c89dba t5: "COGS goes 42 to 50 to 58 percent of revenue. … call it
+// roughly 38 points of margin pressure") — one the span names first.
 export function relativeAsPoints(c: CheckerClaim, ctx: VetContext, fb: FactBase): { line: string; figure: string; rel: string } | null {
   if (!/\bpoints?\b/i.test(`${c.candidateValue} ${c.span}`)) return null;
-  const theirs = numbersOf(c.candidateValue);
-  const span = c.span.toLowerCase();
-  for (const it of ctx.caseData.dataLedger) {
-    if (!ctx.revealedIds.includes(it.id)) continue;
-    const spoken = (it as { spoken?: string }).spoken ?? '';
-    const parts = spoken.match(/^(?:the )?(.+?) as a (?:percent|share) of (.+)$/i);
+  const named = (text: string) => (it: { id: string }) => fb.quantities.find(x => x.id === it.id)?.names
+    .some(n => new RegExp(`\\b${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text)) ?? false;
+  // The revealed shares of a base with both levels: the lines a correction can name.
+  const eligible = ctx.caseData.dataLedger.filter(it => ctx.revealedIds.includes(it.id)).flatMap(it => {
+    const parts = ((it as { spoken?: string }).spoken ?? '').match(/^(?:the )?(.+?) as a (?:percent|share) of (.+)$/i);
     const q = fb.quantities.find(x => x.id === it.id);
-    if (!parts || !q || q.unit !== 'percent' || q.prior === undefined || q.current === undefined || q.prior === 0) continue;
-    if (!q.names.some(n => new RegExp(`\\b${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(span))) continue;
+    if (!parts || !q || q.unit !== 'percent' || q.prior === undefined || q.current === undefined || q.prior === 0) return [];
+    return [{ id: it.id, parts, q: q as typeof q & { prior: number; current: number } }];
+  });
+  // Neither the prompt's figures nor a line's own change in points ("16 points of
+  // the 18" — 0bfe5f38 t19 — isn't overhead's 17% growth).
+  const notRelative = [...targetNumbers(ctx.caseData), ...eligible.map(e => Math.abs(e.q.current - e.q.prior))];
+  const theirs = numbersOf(c.candidateValue).filter(n => !notRelative.some(x => near(n, x)));
+  const inSpan = eligible.filter(named(c.span));
+  const lines = inSpan.length > 0 ? inSpan : eligible.filter(named(ctx.candidateTexts.at(-1) ?? ''));
+  for (const { parts, q } of lines) {
     const points = Math.abs(q.current - q.prior);
     const rel = (points / q.prior) * 100;
     const f = theirs.find(n => Math.abs(n - rel) <= Math.max(2, 0.06 * rel));
