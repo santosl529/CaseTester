@@ -620,6 +620,19 @@ describe('no refusal names data the case holds (fact checks F3)', () => {
   });
 });
 
+// Lorenzo, 15 Oct (batch-25 ruling 6; Blake cd75e075 t15): a need stated as
+// "worth checking the actual COGS percentage" is offered, not dropped.
+describe('a stated need in a passing mention is offered (Blake cd75e075 t15)', () => {
+  it('"Worth checking the actual COGS percentage" → the offer line', async () => {
+    seed({ phase: 'ANALYSIS', revealed: ['labor_pct', 'overhead_pct', 'stores_count', 'avg_ticket', 'menu_price_change', 'bean_price_change', 'non_bean_input_change'], flags: SATISFIED });
+    const r = await say("So I'm at roughly 11 from COGS plus 2 from overhead, 13 of 18, with about 5 unaccounted for. That residual probably means my COGS base assumption was wrong — I anchored on 30% of revenue from memory. If COGS was actually closer to 40%, the same 37.5–40% inflation gives you about 15 points instead of 11, and the whole decline closes out. Worth checking the actual COGS percentage rather than my benchmark.", T({
+      say: "You're reaching for the actual COGS percentage.", requests: [{ what: 'COGS as a percent of revenue, both years', itemIds: ['cogs_pct'], explicit: false, respond: 'release' }],
+      question: 'With those figures, does your COGS base assumption hold, and how do they change your account of the 18-point drop?',
+    }));
+    expect(r.interviewerText).toMatch(/I can share COGS as a percent of revenue if you'd like\./);
+  });
+});
+
 describe('the fallback does not re-ask what was just answered (batch 21 D8, Anika t4)', () => {
   it("the model's question withheld after she named where she'd start → a fallback that isn't \"what would you look at first\"", async () => {
     seed({ phase: 'STRUCTURE', flags: { lastQuestion: 'Which of your four levers do you prioritize, and what makes you confident the problem sits there rather than in the others?' } });

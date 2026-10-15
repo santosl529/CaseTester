@@ -59,14 +59,18 @@ const labelWords = (s: string): string[] => s.toLowerCase().replace(/%/g, ' perc
 // (Lorenzo's rule, 12 Oct): one sentence of their message names the item — a
 // distinctive word of its label, not a generic one like "revenue" or "price" —
 // and asks for it in statement form ("I'd want transaction data to confirm",
-// "whether prices on the menu moved", "I'd check dairy first"). Batch 19:
+// "whether prices on the menu moved", "I'd check dairy first", "worth checking
+// the actual COGS percentage" — Blake cd75e075 t15, batch 25). Batch 19:
 // 17 of 24 Haiku runs heard offers of data nobody asked for; over batches
 // 18–19 this keeps 8 of 60 offered items, each a real soft ask.
 const GENERIC_LABEL_WORDS = new Set(['price', 'change', 'cost', 'revenue', 'percent', 'total', 'average', 'number', 'other', 'over', 'year', 'period', 'current', 'prior', 'share', 'rate', 'data', 'value', 'input']);
-const NEED_CUE = /\b(?:i'?d (?:want|need|check|look|ask|pull|get|like)|i (?:want|need)|we'?d need|do we (?:have|know)|is there|can (?:i|we) (?:get|see)|would (?:want|need)|whether|needs? to (?:know|see|check)|still need|data on|data to confirm|i (?:haven't|have not) (?:been given|seen|got|had)|i don't think i've (?:been given|seen|got|had)|unless i missed|next steps?|to (?:confirm|verify|check))\b/i;
-const contentWords = (s: string) => (s.toLowerCase().match(/[a-z][a-z-]+/g) ?? []).map(w => (w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w));
+const NEED_CUE = /\b(?:i'?d (?:want|need|check|look|ask|pull|get|like)|i (?:want|need)|we'?d need|do we (?:have|know)|is there|can (?:i|we) (?:get|see)|would (?:want|need)|whether|needs? to (?:know|see|check)|still need|data on|data to confirm|i (?:haven't|have not) (?:been given|seen|got|had)|i don't think i've (?:been given|seen|got|had)|unless i missed|next steps?|to (?:confirm|verify|check)|worth (?:checking|confirming|verifying|knowing|pulling|getting|a look at))\b/i;
+const stemWord = (w: string) => (w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w);
+const contentWords = (s: string) => (s.toLowerCase().match(/[a-z][a-z-]+/g) ?? []).map(stemWord);
 export function mentionStatesNeed(candidateText: string, label: string): boolean {
-  const named = new Set(contentWords(label).filter(w => w.length >= 4 && !GENERIC_LABEL_WORDS.has(w) && !LABEL_IGNORED.has(w)));
+  // Four letters as said ("cogs" names the COGS line, though it stems to "cog").
+  const named = new Set((label.toLowerCase().match(/[a-z][a-z-]+/g) ?? []).filter(w => w.length >= 4).map(stemWord)
+    .filter(w => !GENERIC_LABEL_WORDS.has(w) && !LABEL_IGNORED.has(w)));
   if (named.size === 0) return false;
   // The item is what the need is for: named after the cue, in the same clause
   // — not in a subordinate one ("I'd check dairy and packaging first … even

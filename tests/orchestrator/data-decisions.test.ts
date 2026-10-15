@@ -400,6 +400,8 @@ describe('mentionStatesNeed', () => {
     // missing data said as such, and a next step that names the item (batch 20 replays: Tyler t14, Jasmine t6)
     ["I don't think I've been given the input price changes themselves — unless I missed them, all I have is beans at 25% of COGS.", 'Coffee bean price change over 2 years'],
     ['Next steps: test prices in a few markets, and get the COGS split by input to confirm beans are the driver.', "Composition of COGS: coffee beans' share of COGS"],
+    // Lorenzo, 15 Oct (batch-25 ruling 6; Blake cd75e075 t15)
+    ['Worth checking the actual COGS percentage rather than my benchmark.', 'COGS as % of revenue'],
   ])('a need for the item: %s', (text, label) => expect(mentionStatesNeed(text, label)).toBe(true));
 
   it.each([
@@ -412,6 +414,7 @@ describe('mentionStatesNeed', () => {
     ["I'd check dairy and packaging first since that's the bigger chunk, even though beans rose faster in percentage terms.", 'Coffee bean price change over 2 years'],
     // named before the need, not as its object
     ["Beans are a small piece, so I'd want to look at labor next.", 'Coffee bean price change over 2 years'],
+    ['It is worth noting that COGS rose 16 points.', 'COGS as % of revenue'],
   ])('not a need for the item: %s', (text, label) => expect(mentionStatesNeed(text, label)).toBe(false));
 });
 
