@@ -17,7 +17,7 @@ import type { OnUsage } from '@/lib/llm-usage';
 import { normalizeNumberWords } from '@/lib/number-words';
 import { findStepSpans } from '@/lib/scoring/math-spans';
 import {
-  checkMathClaims, vetCheckerClaims, codeComputed, boundInput, numbersOf,
+  checkMathClaims, vetCheckerClaims, codeComputed, boundInput, numbersOf, quantityWords,
   type CheckerCase, type CheckerClaim, type CheckerInput, type CheckerResult, type VetContext, type VettedClaim,
 } from './math-checker';
 import { recomputeAction, attemptKey, type CandidateMath, type RecomputeAttempts, type RecomputeFlag } from './recompute';
@@ -228,11 +228,20 @@ export function isStale(c: CheckerClaim, later: (string | LaterMessage)[], caseD
   // is her 16 points on today's revenue): the same quantity on another base.
   const growth = revenueGrowthOf(caseData.prompt);
   const rebased = growth === null ? [] : right.flatMap(r => [r * growth, r / growth]).filter(r => !caseFigures.some(x => same(r, x)) && !own.some(x => same(r, x)));
+  // A redo to the claim's right figure (Lorenzo, 15 Oct; batch 26 Marisol
+  // 2456aa9d t7: "Let me redo it in dollars" — about COGS — withdrew her labor
+  // claim, whose right figure, 15, its "Revenue grows 15%" also said): a right
+  // figure that is also a case figure counts only in a sentence naming the
+  // claim's quantity; any other right figure, anywhere in the message.
+  const subject = quantityWords(c.quantity);
+  const redoneToRight = (text: string) => [...numbersOf(text), ...factorFigures(text)].some(n => rightToCheck.some(r => same(n, r)))
+    || (subject.size > 0 && sentencesOf(text).some(x => [...numbersOf(x), ...factorFigures(x)].some(n => right.some(r => same(n, r)))
+      && [...quantityWords(x)].some(w => subject.has(w))));
   for (const m of later) {
     const { text, questioned } = typeof m === 'string' ? { text: m, questioned: false } : m;
     const figures = [...numbersOf(text), ...factorFigures(text)];
     const concession = sentencesOf(text).find(s => WITHDRAWN.test(s) || (REVISING.test(s) && /\d/.test(s)));
-    if (concession && (questioned || namesClaim(text) || figures.some(n => right.some(r => same(n, r))))) {
+    if (concession && (questioned || namesClaim(text) || redoneToRight(text))) {
       return WITHDRAWN.test(concession) ? `withdrawn: "${concession}"` : `revised: "${concession}"`;
     }
     const stated = figures.find(n => rightToCheck.some(r => same(n, r)));

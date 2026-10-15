@@ -497,6 +497,10 @@ lose lost loss gain recover recovery restore full half quarter because been hasn
 usually under until instead either every enough sure good actually probably likely kind bit expected current main large small lower low high higher
 question answer case data`.split(/\s+/));
 const wordsOf = (text: string) => (text.toLowerCase().match(/[a-z]+/g) ?? []).map(w => (w.length > 3 && w.endsWith('s') && !/(?:ss|is|us)$/.test(w) ? w.slice(0, -1) : w));
+// The words that name a claim's quantity ("Labor dollars" → labor): less plain words and "dollar".
+export function quantityWords(text: string): Set<string> {
+  return new Set(wordsOf(text).filter(w => w.length >= 3 && !PLAIN_WORDS.has(w) && w !== 'dollar'));
+}
 // The case's own vocabulary a probe could point with: ledger labels, spoken
 // names and values, and exhibit titles — less plain words and the prompt's.
 export function caseComponents(c: CheckerCase): Set<string> {

@@ -271,9 +271,22 @@ describe('the stale check — a late verdict on a claim since revised or withdra
     'Scratch that, I mis-sized the gain.',
   ])('a concession about something else withdraws nothing: %s', text => expect(stale(text)).toBeNull());
   it('a redo that states the claim\'s right figure answers it, even a case figure (Marisol 4bf008fd t19: "…16.0 points" answers her 22.1)', () => {
-    const total = vetted({ span: 'Total input-driven increase: 5.8 plus 16.3 is 22.1 points', candidateValue: '22.1 points', correctValue: 16, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
+    const total = vetted({ span: 'Total input-driven increase: 5.8 plus 16.3 is 22.1 points', quantity: 'total input-driven COGS increase', candidateValue: '22.1 points', correctValue: 16, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
     expect(isStale(total, ['Let me redo it. Total input-driven increase: 4.2 plus 11.8 is 16.0 points.'], prof, COSTS)).not.toBeNull();
     expect(isStale(total, ['Total input-driven increase is 16 points.'], prof, COSTS)).toBeNull();   // 16 is a case figure: no concession, no drop
+  });
+  // Lorenzo, 15 Oct (batch-26 ruling 4): a redo withdraws a flag only if it restates the same quantity.
+  it('Marisol 2456aa9d t7: "Let me redo it in dollars" about COGS does not withdraw her labor-dollars claim, though it says 15%', () => {
+    const labor = vetted({ span: 'labor is flat, which means labor dollars held steady while revenue grew 15%', quantity: 'Labor dollars', candidateValue: 'held steady', correctValue: 15, unit: '% growth in labor dollars', codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
+    const t7 = "Fair push — these are percentages of revenue, so the 42 and 58 move with revenue, not dollars. Let me redo it in dollars. Call revenue 100 two years ago, so COGS is 42. Revenue grows 15%, so current revenue is 115, and 58% of that is 66.7. So COGS dollars went 42 to 66.7, up 58.8%.";
+    expect(isStale(labor, [t7], prof, COSTS)).toBeNull();
+    // The quantity is read in the sentence that holds the figure, and "dollars" names no quantity.
+    expect(isStale(labor, ['Labor is fine. Let me redo it in dollars: revenue grew 15%.'], prof, COSTS)).toBeNull();
+    // A redo of the labor claim itself, to its right figure, still withdraws it.
+    expect(isStale(labor, ['Let me redo it: labor dollars grew 15% too, in line with revenue.'], prof, COSTS)).not.toBeNull();
+  });
+  it('a right figure that is no case figure still answers a redo anywhere in the message', () => {
+    expect(isStale(claim, ['Let me redo it. It comes to 8.5.'], prof, COSTS)).not.toBeNull();
   });
   it("the model's question on a claim whose figures are case figures questions it (1c9184cf t18 on \"a 16% lift\")", () => {
     const lift = vetted({ span: 'restoring the full 16 points would need roughly a 16% lift', candidateValue: '16%', correctValue: 20.5, codeQuantity: { kind: 'needed_for_gain', stepId: null, price: null, target: 16 } });
