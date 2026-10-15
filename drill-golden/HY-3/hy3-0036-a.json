@@ -1,0 +1,21 @@
+{
+  "answer_id": "hy3-0036-a",
+  "item_id": "hy3-0036",
+  "drill_id": "HY-3",
+  "answer_type": "normal",
+  "notes": "Fits all the facts and is framed as something to test (rule 12).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Demand probably fell short of the 85% forecast, since downtime is normal. I'd compare orders with the forecast by product."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "fix_2": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

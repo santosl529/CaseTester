@@ -1,8 +1,8 @@
 {
   "item_id": "sy2-0008",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-2",
-  "status": "live",
+  "status": "draft",
   "level": 2,
   "tier": 1,
   "skills": [
@@ -186,10 +186,10 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-12",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
     "similarity_checked_at": "2026-10-11",
@@ -197,5 +197,34 @@
   },
   "generator": null,
   "is_example": false,
-  "firm_style": null
+  "firm_style": null,
+  "defend": {
+    "type": "challenge",
+    "text": "Our marketing head says we've already lost 6% of jobs, and a cheaper rival only takes more, so we should match now.",
+    "valid": false,
+    "reason": "The jobs lost are all small apartment moves at a 10% margin, while whole-house moves earn 25% and make 70% of profit. Matching would cut profit by about $1.2M a year to defend the least valuable work.",
+    "checks": [
+      {
+        "check_id": "defend_evidence",
+        "question": "Does the reason use a fact or number from the fact sheet or the challenge that supports the decision?",
+        "weight": 0.4,
+        "fail_tag": "M.no_evidence_in_defense",
+        "feedback": "Use a fact or number from the case that supports your decision.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "After Update, does the reply say how the recommendation changes; after Hold, does it restate the recommendation, without contradicting the main answer?",
+        "weight": 0.2,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Say what changes if you update, or restate your recommendation if you hold.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Hold. The 6% we lost are small apartment moves at a 10% margin; matching would cut profit by about $1.2M to defend them. I'd still not match."
+  }
 }

@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0006-d1",
+  "item_id": "sy2-0006",
+  "drill_id": "SY-2",
+  "answer_type": "off_topic",
+  "notes": "No fact behind it (rule 12); it does say specifically what the recommendation becomes, and after Update it may contradict the main answer (rule 13).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Launch the frozen lasagna. The 50-store test points to $3M a year of sales at a 25% margin, $750,000 a year, so the $2M freezer line pays back in under 3 years, and our biggest retailer has offered freezer space in 300 stores. The main risk is that the test stores sold better than average. The next step is to launch in the 300 offered stores and track weekly sales against plan."
+    },
+    {
+      "type": "choice",
+      "option_id": "update"
+    },
+    {
+      "type": "text",
+      "value": "Update. We should buy a competitor's sauce brand instead."
+    }
+  ],
+  "labels": {
+    "defend_evidence": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0020-d1",
+  "item_id": "hy2-0020",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "Tests the reporting-surge cause it moved to (rule 9).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Repairs now take 30 days instead of 10, likely because crews are fixing fewer potholes per day. I'd compare repairs per crew per day with last year."
+    },
+    {
+      "type": "choice",
+      "option_id": "drop"
+    },
+    {
+      "type": "text",
+      "value": "Drop: crews fix as many as before. Reports doubled after the new app, so the backlog grew."
+    },
+    {
+      "type": "text",
+      "value": "The backlog by week since the app launched. If it grew before reports rose, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

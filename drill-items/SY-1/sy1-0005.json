@@ -1,8 +1,8 @@
 {
   "item_id": "sy1-0005",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-1",
-  "status": "live",
+  "status": "draft",
   "level": 1,
   "tier": 3,
   "skills": [
@@ -12,7 +12,7 @@
   ],
   "case_type": "m_and_a",
   "industry": null,
-  "prompt": "The client asks: \"Should we acquire RivalCo for $500M?\" Fact sheet: RivalCo is worth about $400M on its own; synergies are estimated at $15M a year, worth about $150M; integration would cost $60M; RivalCo earns $30M a year; RivalCo's CEO is a former colleague of our CEO. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should we acquire RivalCo for $500M?\" Fact sheet: RivalCo is worth about $400M on its own; synergies are estimated at $15M a year, worth about $150M; integration would cost $60M; RivalCo earns $30M a year; RivalCo's shares have risen 20% since rumors of a deal. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -33,10 +33,10 @@
     },
     {
       "id": "c",
-      "text": "Buy RivalCo. The two CEOs already know each other, so integration should go smoothly.",
+      "text": "Buy RivalCo now. Its shares have risen 20% since the deal rumors, so waiting will only cost more.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "The CEOs' history doesn't change the value math: $490M against a $500M price."
+      "feedback": "The share price doesn't change what RivalCo is worth to us: about $490M after synergies and integration costs, below the $500M price."
     },
     {
       "id": "d",
@@ -54,18 +54,19 @@
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "RivalCo's CEO is a former colleague of our CEO."
+      "RivalCo's shares have risen 20% since rumors of a deal."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-10",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-15",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

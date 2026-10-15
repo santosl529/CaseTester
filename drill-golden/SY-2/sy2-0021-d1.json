@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0021-d1",
+  "item_id": "sy2-0021",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Consolidate into two shelters. Running five costs $6M a year against $4.2M for two, a $1.8M saving, so the $5M build pays back in under 3 years, and two shelters need $2M of repairs soon anyway. The main risk is that half of residents would drive over 40 minutes, which could cut adoptions. The next step is to plan weekend mobile adoption events in the far towns before closing any shelter."
+    },
+    {
+      "type": "choice",
+      "option_id": "update"
+    },
+    {
+      "type": "text",
+      "value": "Update. Capped at 200 each, two shelters hold 400 animals, not 600, so consolidate to three."
+    }
+  ],
+  "labels": {
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

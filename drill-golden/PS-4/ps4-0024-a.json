@@ -1,0 +1,56 @@
+{
+  "answer_id": "ps4-0024-a",
+  "item_id": "ps4-0024",
+  "drill_id": "PS-4",
+  "answer_type": "normal",
+  "notes": "Adds cloud hosting and software subscriptions (rule 8); the rest kept.",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "People",
+          "points": [
+            "engineering",
+            "sales",
+            "support"
+          ]
+        },
+        {
+          "title": "Cloud hosting",
+          "points": [
+            "servers",
+            "data storage"
+          ]
+        },
+        {
+          "title": "Software tools",
+          "points": [
+            "subscriptions we pay for"
+          ]
+        },
+        {
+          "title": "Offices",
+          "points": [
+            "headquarters",
+            "regional offices"
+          ]
+        },
+        {
+          "title": "Marketing",
+          "points": [
+            "advertising",
+            "trade shows"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,8 +1,8 @@
 {
   "item_id": "sy1-0026",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-1",
-  "status": "live",
+  "status": "draft",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -12,7 +12,7 @@
   ],
   "case_type": "pricing",
   "industry": "Airlines / Travel / Hospitality",
-  "prompt": "The client asks: \"Should we cut our coffee price from $4 to $3?\" Fact sheet: we sell 1,000 cups a day; each cup costs $1.50 to make; a survey suggests sales would rise to 1,200 cups a day at $3; our café uses fair-trade beans. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should we cut our coffee price from $4 to $3?\" Fact sheet: we sell 1,000 cups a day; each cup costs $1.50 to make; a survey suggests sales would rise to 1,200 cups a day at $3; the café's espresso machine, bought for $12,000, is paid off. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -33,10 +33,10 @@
     },
     {
       "id": "c",
-      "text": "Cut the price to $3. Our fair-trade beans give customers a reason to come back once they try us.",
+      "text": "Cut the price to $3. Our espresso machine is paid off, so the extra cups cost us almost nothing.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "The beans don't change the math: profit falls at $3."
+      "feedback": "The machine is paid for either way, and each cup still costs $1.50 to make. At $3 we'd need about 1,670 cups a day, and the survey says 1,200."
     },
     {
       "id": "d",
@@ -54,18 +54,19 @@
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "Our café uses fair-trade beans."
+      "The café's espresso machine, bought for $12,000, is paid off."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-10",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-15",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": true,

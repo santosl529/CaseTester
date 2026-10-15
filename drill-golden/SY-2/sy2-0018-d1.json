@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0018-d1",
+  "item_id": "sy2-0018",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Invest in a pressing line. Plants have 6-month waitlists for new orders and vinyl sales have grown 10% a year for five years, and a $1.5M line earns about $1.2M a year ($1.20 on each of 1 million records), so it pays back in about 15 months. The main risk is that three new plants added 15% to industry capacity last year, which could shorten the waitlists. The next step is to sign pressing contracts with labels before buying."
+    },
+    {
+      "type": "choice",
+      "option_id": "update"
+    },
+    {
+      "type": "text",
+      "value": "Update. With 40% more capacity coming, the 6-month waitlists will go, so I'd wait before investing."
+    }
+  ],
+  "labels": {
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

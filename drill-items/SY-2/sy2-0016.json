@@ -1,8 +1,8 @@
 {
   "item_id": "sy2-0016",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-2",
-  "status": "live",
+  "status": "draft",
   "level": 2,
   "tier": 2,
   "skills": [
@@ -192,10 +192,10 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-12",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
     "similarity_checked_at": "2026-10-11",
@@ -203,5 +203,34 @@
   },
   "generator": null,
   "is_example": false,
-  "firm_style": null
+  "firm_style": null,
+  "defend": {
+    "type": "challenge",
+    "text": "Our head of stores says the 1-in-8 failures came from test stores on the old stock system; stores on the new system failed 1 order in 100.",
+    "valid": true,
+    "reason": "At 1 in 100, 6,000 of 600,000 orders fail, losing about $90,000 of profit a year, far below the $800,000 net saving, so closing the warehouse pays once every store uses the new system.",
+    "checks": [
+      {
+        "check_id": "defend_evidence",
+        "question": "Does the reason use a fact or number from the fact sheet or the challenge that supports the decision?",
+        "weight": 0.4,
+        "fail_tag": "M.no_evidence_in_defense",
+        "feedback": "Use a fact or number from the case that supports your decision.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "After Update, does the reply say how the recommendation changes; after Hold, does it restate the recommendation, without contradicting the main answer?",
+        "weight": 0.2,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Say what changes if you update, or restate your recommendation if you hold.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Update. At 1 failed order in 100, we'd lose about $90,000 a year, far below the $800,000 saving. I'd close the warehouse once all stores use the new system."
+  }
 }

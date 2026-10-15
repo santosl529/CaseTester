@@ -1,8 +1,8 @@
 {
   "item_id": "sy1-0015",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-1",
-  "status": "live",
+  "status": "draft",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -12,7 +12,7 @@
   ],
   "case_type": "operations",
   "industry": null,
-  "prompt": "The client asks: \"Should we outsource customer service?\" Fact sheet: in-house service costs $6M a year; an outsourcer quoted $4M a year; our satisfaction score is 85%; the outsourcer's clients average 70%; each point of satisfaction lost costs about $150k a year in churn; the outsourcer is based in Ireland. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should we outsource customer service?\" Fact sheet: in-house service costs $6M a year; an outsourcer quoted $4M a year; our satisfaction score is 85%; the outsourcer's clients average 70%; each point of satisfaction lost costs about $150k a year in churn; most companies in our industry outsource customer service. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -40,10 +40,10 @@
     },
     {
       "id": "d",
-      "text": "Outsource. The vendor is based in Ireland, where English-speaking staff are easy to hire and keep.",
+      "text": "Outsource customer service. Most companies in our industry already do, and we'd save $2M a year like them.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "Where the vendor is doesn't change the math: the churn cost exceeds the saving."
+      "feedback": "What others do doesn't count our churn. A 15-point satisfaction drop would cost about $2.25M a year, more than the $2M saved."
     }
   ],
   "numeric": null,
@@ -54,18 +54,19 @@
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "The outsourcer is based in Ireland."
+      "Most companies in our industry outsource customer service."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-10",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-15",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

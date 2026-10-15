@@ -1,8 +1,8 @@
 {
   "item_id": "sy1-0021",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-1",
-  "status": "live",
+  "status": "draft",
   "level": 1,
   "tier": 3,
   "skills": [
@@ -12,7 +12,7 @@
   ],
   "case_type": "market_entry",
   "industry": "Tech / SaaS",
-  "prompt": "The client asks: \"Should we launch our ride-hailing app in a new city?\" Fact sheet: the city has 2 million people; the incumbent holds 85% share; drivers earn 20% more with the incumbent; acquiring a customer would cost $40, against a $35 lifetime value; entry requires a $5M license; the city hosts a large music festival. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should we launch our ride-hailing app in a new city?\" Fact sheet: the city has 2 million people; the incumbent holds 85% share; drivers earn 20% more with the incumbent; acquiring a customer would cost $40, against a $35 lifetime value; entry requires a $5M license; the city has a third fewer taxis than it did five years ago. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -33,10 +33,10 @@
     },
     {
       "id": "c",
-      "text": "Enter the city. Its large annual music festival brings a surge of riders.",
+      "text": "Enter the city. It has a third fewer taxis than five years ago, leaving riders short of options.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "One festival doesn't fix the unit economics."
+      "feedback": "Fewer taxis don't fix the economics. Each customer costs $40 to win and brings only $35, and the incumbent holds 85%."
     },
     {
       "id": "d",
@@ -54,18 +54,19 @@
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "The city hosts a large music festival each year."
+      "The city has a third fewer taxis than it did five years ago."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-10",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-15",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

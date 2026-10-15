@@ -1,8 +1,8 @@
 {
   "item_id": "hy2-0040",
-  "version": 1,
+  "version": 2,
   "drill_id": "HY-2",
-  "status": "live",
+  "status": "draft",
   "level": 2,
   "tier": 3,
   "skills": [
@@ -183,10 +183,10 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-11",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
     "similarity_checked_at": "2026-10-11",
@@ -194,5 +194,42 @@
   },
   "generator": null,
   "is_example": false,
-  "firm_style": null
+  "firm_style": null,
+  "defend": {
+    "type": "justify",
+    "text": "What data would you ask for first to test your hypothesis, and what result would make you drop it?",
+    "checks": [
+      {
+        "check_id": "defend_data_request",
+        "question": "Does the reply name specific data that would test the hypothesis: a metric plus a cut, a comparison or a time period?",
+        "weight": 0.4,
+        "fail_tag": "M.untestable_hypothesis",
+        "feedback": "Name the specific data you would ask for.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_drop_result",
+        "question": "Does the reply state a result that would make the student drop the hypothesis?",
+        "weight": 0.35,
+        "fail_tag": "M.untestable_hypothesis",
+        "feedback": "Say what result would make you drop it.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "Does the reply test the student's own hypothesis as it stands after stage 2?",
+        "weight": 0.25,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Test your own hypothesis, not a different one.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Profit by center, against how full each is and teachers hired. If the 15 new centers' shortfall doesn't explain most of the 30% miss, I'd drop it."
+  }
 }

@@ -1,0 +1,25 @@
+{
+  "answer_id": "cl3-0004-d1",
+  "item_id": "cl3-0004",
+  "drill_id": "CL-3",
+  "answer_type": "borderline",
+  "notes": "'Police cars drive a lot' isn't a case fact (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd split running costs per car into maintenance and repairs, fuel, insurance, and miles driven. I'd start with repair cost per car by car age over three years, since the fleet's average age doubled and older cars cost more to fix."
+    },
+    {
+      "type": "text",
+      "value": "Fuel, since police cars drive a lot."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

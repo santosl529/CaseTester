@@ -1,0 +1,66 @@
+{
+  "answer_id": "ps3-0032-d1",
+  "item_id": "ps3-0032",
+  "drill_id": "PS-3",
+  "answer_type": "short",
+  "notes": "The 22% (100% less 78%) is worked out from the case and supports finding who is missed (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Who is missed",
+          "points": [
+            "regions",
+            "rural vs urban",
+            "income",
+            "which doses are skipped"
+          ]
+        },
+        {
+          "title": "Access",
+          "points": [
+            "clinic distance and hours",
+            "mobile teams",
+            "vaccine stock"
+          ]
+        },
+        {
+          "title": "Parents",
+          "points": [
+            "trust",
+            "reminders",
+            "community leaders"
+          ]
+        },
+        {
+          "title": "Health system",
+          "points": [
+            "nurses",
+            "records that track missed doses",
+            "school-entry checks"
+          ]
+        },
+        {
+          "title": "Funding and incentives",
+          "points": [
+            "budget",
+            "benefits linked to vaccination"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Who is missed, the 22%."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

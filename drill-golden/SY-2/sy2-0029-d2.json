@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0029-d2",
+  "item_id": "sy2-0029",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "Wrong call (code); the 2028 rule supports installing, and the recommendation is restated (rules 12, 13).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Install carbon capture. A government credit of $85 a ton on 1 million tons a year pays $85M a year for 12 years, far above the $15M running cost, so the $200M pays back in about 3 years, and two states will require low-carbon cement for public projects from 2028. The main risk is that the credit is cut or repealed. The next step is to sign a binding credit agreement before committing."
+    },
+    {
+      "type": "choice",
+      "option_id": "hold"
+    },
+    {
+      "type": "text",
+      "value": "Hold. Two states require low-carbon cement from 2028, so we need capture anyway. Install it."
+    }
+  ],
+  "labels": {
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

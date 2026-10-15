@@ -1,0 +1,42 @@
+{
+  "answer_id": "ps4-0017-a",
+  "item_id": "ps4-0017",
+  "drill_id": "PS-4",
+  "answer_type": "off_topic",
+  "notes": "Answers a growth question, not the watch's price. The office lease bucket is still there (rule 9); collector demand, comparable editions and production cost are dropped (rule 4). No-new-flaw passes by code because keeps-right fails (rule 3).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Office lease",
+          "points": [
+            "rent for the head office",
+            "lease renewal"
+          ]
+        },
+        {
+          "title": "Store openings",
+          "points": [
+            "new boutiques",
+            "staff"
+          ]
+        },
+        {
+          "title": "Online sales",
+          "points": [
+            "website",
+            "delivery"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "no_new_flaw": true,
+    "keeps_right": false
+  },
+  "red_flags": {},
+  "family": null
+}

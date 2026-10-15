@@ -23,6 +23,7 @@ export interface ItemGrade {
   family: string | null;
   backup_family?: string | null;             // HY-2: family of a stage 1 backup cause
   new_flaw_tag?: string | null;              // Repair: the kind of new flaw the edit added
+  new_flaw_quote?: string | null;            // Repair: where the grader says that flaw is
   injection_suspected: boolean;
   qa_flags: string[];                        // checks whose quote never verified
 }
@@ -96,6 +97,28 @@ export function unchangedRepair(item: Item, steps: StepResult[]): boolean {
   return norm(answerText(steps[0]?.response ?? { type: 'empty' })) === norm(original);
 }
 
+// Content words, for matching a quoted part of an edit with the original.
+const partWords = (t: string) => new Set((t.toLowerCase().match(/[a-z]{4,}/g) ?? []).map(w => w.replace(/s$/, '')));
+const shareOf = (a: Set<string>, b: Set<string>) => (a.size ? [...a].filter(w => b.has(w)).length / a.size : 0);
+// Buckets (one per line) or sentences.
+const partsOf = (text: string) => text.split(/\n|(?<=[.!?])\s+/).map(p => p.trim()).filter(Boolean);
+export const CARRIED_OVER_MIN = 0.5;
+
+// Repair: is the grader's "new" flaw a planted flaw the edit left in place?
+// Its kind must be an unfixed planted flaw's, and its quote must come from a
+// bucket or sentence of the edit that is mostly the original's own words.
+export function plantedFlawLeftInPlace(item: Item, checks: { check_id: string; pass: boolean }[], grade: ItemGrade | null, edited: string): boolean {
+  const flaws = (item.extras as RepairExtras).flaws ?? [];
+  const unfixed = flaws.filter((_, i) => checks.find(c => c.check_id === `fix_${i + 1}`)?.pass === false).map(f => f.tag);
+  const quote = grade?.new_flaw_quote?.trim();
+  if (!grade?.new_flaw_tag || !unfixed.includes(grade.new_flaw_tag) || !quote || !quoteFound(quote, edited)) return false;
+  const flawed = (item.extras as RepairExtras).flawed_answer;
+  const original = partsOf(item.input.type === 'structured_buckets' ? answerText(parseFramework(flawed)) : flawed).map(partWords);
+  const part = partsOf(edited).find(p => quoteFound(quote, p));
+  const candidates = [partWords(quote), ...(part ? [partWords(part)] : [])];
+  return candidates.some(c => original.some(o => shareOf(c, o) >= CARRIED_OVER_MIN));
+}
+
 // Up to the first sentence break (., ! or ? followed by a space).
 export const firstSentence = (text: string) => text.trim().split(/(?<=[.!?])\s+/)[0] ?? '';
 
@@ -152,6 +175,15 @@ export function applyGrade(item: Item, steps: StepResult[], timedOut: boolean, g
   const keeps = checks.find(c => c.check_id === 'keeps_right');
   const noNew = checks.find(c => c.check_id === 'no_new_flaw');
   if (repairSpec && keeps && noNew && !keeps.pass && !noNew.pass && !unchanged && !failsOnInjection.has('no_new_flaw')) {
+    Object.assign(noNew, { pass: true, evidence: '', by: 'code' as const });
+  }
+  // Repair: a planted flaw left in place isn't new (rule 3). When the grader
+  // names a new flaw of the same kind as a planted flaw the edit didn't fix,
+  // and quotes it from a bucket or sentence carried over from the original,
+  // it is that planted flaw: no-new-flaw passes by code. A flaw quoted from a
+  // part the student added (a second irrelevant bucket) still fails.
+  if (repairSpec && noNew && !noNew.pass && !unchanged && !failsOnInjection.has('no_new_flaw')
+    && plantedFlawLeftInPlace(item, checks, grade, written[0] ?? '')) {
     Object.assign(noNew, { pass: true, evidence: '', by: 'code' as const });
   }
   // SY-2: an off-topic answer isn't also flagged for its position (rule 8).

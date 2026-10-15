@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0019-d1",
+  "item_id": "sy2-0019",
+  "drill_id": "SY-2",
+  "answer_type": "short",
+  "notes": "Too vague to use a fact (rule 12); doesn't restate the recommendation (rule 13).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Close the 4 mall showrooms and push online rentals. Those 4 cause 80% of the losses, all in malls that lost their anchor stores, while the other 11 showrooms are profitable. Online rentals grew 30% last year to a quarter of revenue, so they can absorb the closed stores' customers. The main risk is the cost of closing early, about 6 months' rent each. The next step is to negotiate lease exits and move their stock online."
+    },
+    {
+      "type": "choice",
+      "option_id": "hold"
+    },
+    {
+      "type": "text",
+      "value": "Hold, malls."
+    }
+  ],
+  "labels": {
+    "defend_evidence": false,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

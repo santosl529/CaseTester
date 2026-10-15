@@ -1,0 +1,20 @@
+{
+  "answer_id": "sy3-0022-a",
+  "item_id": "sy3-0022",
+  "drill_id": "SY-3",
+  "answer_type": "short",
+  "notes": "Commits to buying, but without the $4M of fees saved the deciding fact isn't used (rule 17). The $80M and $10M are dropped: keeps-right only (rules 3, 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Buy it."
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "no_new_flaw": true,
+    "keeps_right": false
+  },
+  "red_flags": {},
+  "family": null
+}

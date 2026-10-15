@@ -258,7 +258,7 @@ describe('the Repair drills (PRD "Repair drills")', () => {
     const call: CallModel = async (_system, user, kind) => {
       seen.push({ kind, user });
       const checks = sy3.checks.map(c => ({ check_id: c.check_id, pass: c.check_id !== 'no_new_flaw', evidence: c.evidence === 'whole' ? '' : 'Keep the price at $4.' }));
-      return { output: { items: [{ item_key: 'answer', checks, red_flags: [], hypothesis_family: null, backup_family: null, injection_suspected: false, new_flaw_tag: 'M.irrelevant_facts' }] }, usage: { input_tokens: 1, output_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } };
+      return { output: { items: [{ item_key: 'answer', checks, red_flags: [], hypothesis_family: null, backup_family: null, injection_suspected: false, new_flaw_tag: 'M.irrelevant_facts', new_flaw_quote: 'Our fair-trade beans bring people back.' }] }, usage: { input_tokens: 1, output_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } };
     };
     const steps = run(sy3, [{ type: 'text', value: 'Keep the price at $4. Our fair-trade beans bring people back.' }]);
     const out = await gradeSet([{ key: 'a1', item: sy3, steps }], call);
@@ -266,6 +266,27 @@ describe('the Repair drills (PRD "Repair drills")', () => {
     expect(seen[0].kind).toBe('repair');
     expect(seen[0].user).toContain(`<original_answer>\n${sy3.extras.flawed_answer}\n</original_answer>`);
     expect(out.grades.get('a1')!.new_flaw_tag).toBe('M.irrelevant_facts');
+    expect(out.grades.get('a1')!.new_flaw_quote).toBe('Our fair-trade beans bring people back.');
+  });
+
+  it('passes no-new-flaw by code only when the "new" flaw is an unfixed planted flaw in a part the original had', () => {
+    const item = ItemSchema.parse(JSON.parse(fs.readFileSync('drill-items/PS-4/ps4-0008.json', 'utf-8')));
+    const buckets = (lines: string[]): StepResponse => ({ type: 'buckets', buckets: lines.map(l => { const [title, rest] = l.split(': '); return { title, points: rest.split('; ') }; }) });
+    const kept = ['Passenger demand: travelers between the two cities; fares they would pay', 'Cost per flight: fuel and crew; airport fees',
+      'Competition: other airlines flying the route; trains', 'Brand awareness: awareness of the airline across the country; advertising reach'];
+    const noNew = (lines: string[], tag: string, quote: string) => {
+      const steps = run(item, [buckets(lines)]);
+      const base = allPass(item);
+      const grade = { ...base, checks: { ...base.checks, fix_1: { pass: false, evidence: '' }, no_new_flaw: { pass: false, evidence: '' } }, new_flaw_tag: tag, new_flaw_quote: quote };
+      return applyGrade(item, steps, false, grade).check_results.checks.find(c => c.check_id === 'no_new_flaw');
+    };
+    // The brand bucket the original planted, left in place: not new.
+    expect(noNew(kept, 'M.irrelevant_bucket', 'Brand awareness')).toMatchObject({ pass: true, by: 'code' });
+    // A second irrelevant bucket the student added: the grader's verdict stands.
+    expect(noNew([...kept, 'Loyalty program: points for frequent flyers; lounge access'], 'M.irrelevant_bucket', 'Loyalty program')?.pass).toBe(false);
+    // A new flaw of another kind, or one with no quote: the verdict stands.
+    expect(noNew(kept, 'M.overlapping_buckets', 'Brand awareness')?.pass).toBe(false);
+    expect(noNew(kept, 'M.irrelevant_bucket', '')?.pass).toBe(false);
   });
 });
 

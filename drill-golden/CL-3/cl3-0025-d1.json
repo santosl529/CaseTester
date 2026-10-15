@@ -1,0 +1,25 @@
+{
+  "answer_id": "cl3-0025-d1",
+  "item_id": "cl3-0025",
+  "drill_id": "CL-3",
+  "answer_type": "off_topic",
+  "notes": "Not what to look at next (rule 2); not in the main answer (rule 4).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd look at the price gain from selling after harvest, drying-cost savings, the facility's building and running costs, and crop volume. I'd start with monthly grain prices for five years, harvest against spring, since storage pays mainly by letting us sell later at higher prices."
+    },
+    {
+      "type": "text",
+      "value": "They should plant more corn next year."
+    }
+  ],
+  "labels": {
+    "defend_answers": false,
+    "defend_evidence": false,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

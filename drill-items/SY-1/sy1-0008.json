@@ -1,8 +1,8 @@
 {
   "item_id": "sy1-0008",
-  "version": 3,
+  "version": 4,
   "drill_id": "SY-1",
-  "status": "live",
+  "status": "draft",
   "level": 1,
   "tier": 1,
   "skills": [
@@ -12,7 +12,7 @@
   ],
   "case_type": "growth_strategy",
   "industry": "Retail / E-commerce",
-  "prompt": "The client asks: \"Should we start selling online?\" Fact sheet: online sales in the category grow 25% a year; 40% of our customers say they would buy online; setting up online sales costs $1M; expected first-year online sales are $4M at a 20% margin; we have 30 stores; our stores were renovated in 2021. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should we start selling online?\" Fact sheet: online sales in the category grow 25% a year; 40% of our customers say they would buy online; setting up online sales costs $1M; expected first-year online sales are $4M at a 20% margin; we have 30 stores; our store leases have 8 years left to run. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -34,10 +34,10 @@
     },
     {
       "id": "c",
-      "text": "Stay in stores. They were renovated in 2021, so they're our best channel and where customers expect to find us.",
+      "text": "Stay in stores. Our leases have 8 years left to run, so that's where our money should go.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "A recent renovation doesn't answer whether online pays. The growth and margin math does."
+      "feedback": "Selling online doesn't mean leaving the stores. The category grows 25% a year online, and $4M of sales at a 20% margin nearly covers the $1M setup."
     },
     {
       "id": "d",
@@ -54,18 +54,18 @@
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "Our stores were renovated in 2021."
+      "Our store leases have 8 years left to run."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-10",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-10-15",
     "similarity_method": "web"
   },
   "generator": null,

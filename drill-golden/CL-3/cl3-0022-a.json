@@ -3,7 +3,7 @@
   "item_id": "cl3-0022",
   "drill_id": "CL-3",
   "answer_type": "normal",
-  "notes": "",
+  "notes": "'Costs' names the Costs driver (rule 2) but is part of the breakdown, not a data request; the requests (enrollment by school and grade for five years, discounts as a share of list tuition) are specific (rule 5; Matt, 2026-10-15).",
   "responses": [
     {
       "type": "text",

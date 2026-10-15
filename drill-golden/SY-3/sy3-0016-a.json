@@ -1,0 +1,20 @@
+{
+  "answer_id": "sy3-0016-a",
+  "item_id": "sy3-0016",
+  "drill_id": "SY-3",
+  "answer_type": "normal",
+  "notes": "The supplier's founding date is gone (rule 16).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Buy the machine. It pays back in 4 years, inside our 5-year hurdle, and lasts 8 years."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

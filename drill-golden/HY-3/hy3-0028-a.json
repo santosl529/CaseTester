@@ -1,0 +1,20 @@
+{
+  "answer_id": "hy3-0028-a",
+  "item_id": "hy3-0028",
+  "drill_id": "HY-3",
+  "answer_type": "normal",
+  "notes": "A specific cause data can check (rule 12).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "We've probably reached most of the new parents our ads can find online, since new customers halved at the same spend. I'd check cost per new customer by month."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,20 @@
+{
+  "answer_id": "hy3-0011-a",
+  "item_id": "hy3-0011",
+  "drill_id": "HY-3",
+  "answer_type": "normal",
+  "notes": "A specific cause data can check replaces the vague one (rule 12).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Ingredient prices have probably outpaced menu prices, since food went from 30% to 32% of revenue. I'd compare cost per sandwich with menu prices by month."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

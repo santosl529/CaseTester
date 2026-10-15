@@ -1,8 +1,8 @@
 {
   "item_id": "sy1-0030",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-1",
-  "status": "live",
+  "status": "draft",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -12,7 +12,7 @@
   ],
   "case_type": "industry_analysis",
   "industry": "Consumer / CPG",
-  "prompt": "The client asks: \"Should we invest in the home fitness equipment industry?\" Fact sheet: industry sales fell 30% in each of the last two years; inventories are high; prices are falling 10% a year; the major players' margins fell from 20% to 2%; home workouts were popular on social media. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should we invest in the home fitness equipment industry?\" Fact sheet: industry sales fell 30% in each of the last two years; inventories are high; prices are falling 10% a year; the major players' margins fell from 20% to 2%; the industry's best-known brand has 5 million app subscribers. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -20,10 +20,10 @@
   "options": [
     {
       "id": "a",
-      "text": "Invest now. Home workouts were popular on social media, so demand will come back once inventories clear.",
+      "text": "Invest now. The best-known brand has 5 million app subscribers, a loyal base that will keep buying.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "Social media buzz isn't evidence of recovery. Sales, prices and margins are all falling."
+      "feedback": "A subscriber count doesn't fix the economics. Sales fell 30% in each of the last two years, and margins fell from 20% to 2%."
     },
     {
       "id": "b",
@@ -54,18 +54,19 @@
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "Home workouts were popular on social media."
+      "The industry's best-known brand has 5 million app subscribers."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-10",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-15",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

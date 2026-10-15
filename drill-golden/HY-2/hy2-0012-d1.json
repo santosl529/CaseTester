@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0012-d1",
+  "item_id": "hy2-0012",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "The brand likely lost attention after the deal, probably because the buyer's sales team has many other products to sell. I'd compare sales by store, by which team covers it."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: sales held where the brand's own team stayed and fell 20% where the buyer's busy sales force took over."
+    },
+    {
+      "type": "text",
+      "value": "Sales per store by which sales team covers it, month by month. If the buyer's stores held up as well, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

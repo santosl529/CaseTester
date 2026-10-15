@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0003-d1",
+  "item_id": "sy2-0003",
+  "drill_id": "SY-2",
+  "answer_type": "short",
+  "notes": "No reason (rule 12) and no restated recommendation (rule 13).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Enter Canada, starting with one province. The distributor projects $1.5M of first-year sales at a 30% margin, $450,000, which covers the $300,000 listing fees and $40,000 of French labels, and barbecue-sauce sales there grew 4% last year. The main risk is that the projection is optimistic while the fees are paid up front. The next step is to launch in Ontario with the distributor and compare sales with the projection after six months."
+    },
+    {
+      "type": "choice",
+      "option_id": "hold"
+    },
+    {
+      "type": "text",
+      "value": "Hold."
+    }
+  ],
+  "labels": {
+    "defend_evidence": false,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

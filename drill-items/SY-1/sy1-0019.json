@@ -1,8 +1,8 @@
 {
   "item_id": "sy1-0019",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-1",
-  "status": "live",
+  "status": "draft",
   "level": 1,
   "tier": 3,
   "skills": [
@@ -12,7 +12,7 @@
   ],
   "case_type": "new_product_launch",
   "industry": "Consumer / CPG",
-  "prompt": "The client asks: \"Should we launch the premium dog food line nationally?\" Fact sheet: the premium segment is worth $800M and growing 12% a year; the line reached 1% share in a test market; break-even requires a 2% share; the national launch costs $10M; our company sponsors a dog show. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should we launch the premium dog food line nationally?\" Fact sheet: the premium segment is worth $800M and growing 12% a year; the line reached 1% share in a test market; break-even requires a 2% share; the national launch costs $10M; a well-known veterinary nutritionist developed the line. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -27,10 +27,10 @@
     },
     {
       "id": "b",
-      "text": "Launch nationally. Our dog show sponsorship gives the line built-in awareness among premium buyers.",
+      "text": "Launch nationally. A well-known veterinary nutritionist developed the line, which will win buyers over.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "The sponsorship doesn't change the test result: 1% share against 2% needed."
+      "feedback": "Who developed it didn't lift the test share above 1%, and break-even needs 2%."
     },
     {
       "id": "c",
@@ -54,18 +54,19 @@
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "Our company sponsors a dog show."
+      "A well-known veterinary nutritionist developed the line."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-10",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-15",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

@@ -1,8 +1,8 @@
 {
   "item_id": "sy2-0019",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-2",
-  "status": "live",
+  "status": "draft",
   "level": 2,
   "tier": 2,
   "skills": [
@@ -185,10 +185,10 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-12",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
     "similarity_checked_at": "2026-10-11",
@@ -196,5 +196,34 @@
   },
   "generator": null,
   "is_example": false,
-  "firm_style": null
+  "firm_style": null,
+  "defend": {
+    "type": "challenge",
+    "text": "A retail-property analyst says US mall traffic rose 3% last year, so the 4 mall showrooms should recover.",
+    "valid": false,
+    "reason": "The 4 showrooms sit in malls that lost their anchor stores; a national average doesn't change their losses, which are 80% of the chain's.",
+    "checks": [
+      {
+        "check_id": "defend_evidence",
+        "question": "Does the reason use a fact or number from the fact sheet or the challenge that supports the decision?",
+        "weight": 0.4,
+        "fail_tag": "M.no_evidence_in_defense",
+        "feedback": "Use a fact or number from the case that supports your decision.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "After Update, does the reply say how the recommendation changes; after Hold, does it restate the recommendation, without contradicting the main answer?",
+        "weight": 0.2,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Say what changes if you update, or restate your recommendation if you hold.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Hold. Those 4 showrooms are in malls that lost their anchors, and they cause 80% of the losses; a national 3% rise won't fix that. I'd still close them."
+  }
 }

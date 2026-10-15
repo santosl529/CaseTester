@@ -1,8 +1,8 @@
 {
   "item_id": "sy1-0017",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-1",
-  "status": "live",
+  "status": "draft",
   "level": 1,
   "tier": 3,
   "skills": [
@@ -12,7 +12,7 @@
   ],
   "case_type": "investment_decision",
   "industry": "Healthcare Provider / Payor",
-  "prompt": "The client asks: \"Should the hospital build a new surgical wing?\" Fact sheet: the wing costs $120M and adds 8 operating rooms; current operating rooms run at 95% with a 6-week waitlist; each operating room earns about $3M a year in profit; the hurdle is a 7-year payback; the hospital won a quality award in 2024. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should the hospital build a new surgical wing?\" Fact sheet: the wing costs $120M and adds 8 operating rooms; current operating rooms run at 95% with a 6-week waitlist; each operating room earns about $3M a year in profit; the hurdle is a 7-year payback; the chief of surgery has pushed for the wing for years. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -33,10 +33,10 @@
     },
     {
       "id": "c",
-      "text": "Build the wing. The 2024 quality award will draw patients and help fill the 8 new rooms quickly.",
+      "text": "Build the wing. The chief of surgery has pushed for it for years, so the surgeons will make it work.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "The award doesn't show demand. The 95% use and 6-week waitlist do."
+      "feedback": "Support from surgeons doesn't show the wing pays. Rooms run at 95% with a 6-week waitlist, and 8 more rooms at $3M each repay $120M in 5 years."
     },
     {
       "id": "d",
@@ -54,18 +54,19 @@
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "The hospital won a quality award in 2024."
+      "The chief of surgery has pushed for the wing for years."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-10",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-15",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

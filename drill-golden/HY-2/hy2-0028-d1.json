@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0028-d1",
+  "item_id": "hy2-0028",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Keeping 65% of clients instead of 90% likely means the buyer raised prices after the deal. I'd compare renewal rates before and after the deal, by client, and ask clients who left why."
+    },
+    {
+      "type": "choice",
+      "option_id": "revise"
+    },
+    {
+      "type": "text",
+      "value": "Revise: clients whose broker stayed renewed at 92%. The losses follow the 12 brokers who left."
+    },
+    {
+      "type": "text",
+      "value": "Renewal rates for clients whose broker left against those whose broker stayed. If both renewed near 92%, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

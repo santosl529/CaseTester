@@ -1,0 +1,62 @@
+{
+  "answer_id": "ps3-0027-d1",
+  "item_id": "ps3-0027",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Uses the 18% returns of car parts sold online (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Why parts come back",
+          "points": [
+            "wrong fit",
+            "damaged",
+            "changed mind"
+          ]
+        },
+        {
+          "title": "Fitment data",
+          "points": [
+            "vehicle lookup accuracy",
+            "descriptions and photos"
+          ]
+        },
+        {
+          "title": "Fulfillment",
+          "points": [
+            "wrong part picked",
+            "damage in packing"
+          ]
+        },
+        {
+          "title": "Customer help",
+          "points": [
+            "chat before buying",
+            "installation guides"
+          ]
+        },
+        {
+          "title": "Return policy",
+          "points": [
+            "free returns",
+            "restocking fees"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Why parts come back: car parts must fit one exact car, so with 18% returned, wrong fits are likely and I'd confirm that first."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

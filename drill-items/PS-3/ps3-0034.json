@@ -1,8 +1,8 @@
 {
   "item_id": "ps3-0034",
-  "version": 1,
+  "version": 2,
   "drill_id": "PS-3",
-  "status": "live",
+  "status": "draft",
   "level": 2,
   "tier": 3,
   "skills": [
@@ -12,7 +12,7 @@
   ],
   "case_type": "market_sizing",
   "industry": "Industrials / Manufacturing",
-  "prompt": "An investor wants to estimate the yearly global market for replacement batteries for electric cars in 2030, in dollars.",
+  "prompt": "An investor wants to estimate the yearly global market for replacement batteries for electric cars in 2030, in dollars. Electric-car batteries are typically under warranty for 8 years.",
   "exhibit": null,
   "input": {
     "type": "structured_buckets",
@@ -137,7 +137,7 @@
       "step": 0
     }
   ],
-  "model_answer": "Electric cars on the road in 2030: fleet by age; sales growth to 2030\nShare needing a new battery: battery life in years and miles; warranties\nReplace, repair or scrap: module repairs; scrapping older cars\nPrice per battery: cost per kWh in 2030; pack size\nCheck: compare with today's replacements by region",
+  "model_answer": "Electric cars on the road in 2030: fleet by age; sales growth to 2030\nShare needing a new battery: battery life in years and miles; how fast packs wear out\nReplace, repair or scrap: module repairs; scrapping older cars\nPrice per battery: cost per kWh in 2030; pack size\nCheck: compare with today's replacements by region",
   "explanation": "A strong framework covers Fleet by age, Replacement rate, Replace, repair or scrap, Price per battery, Sanity check, above all Replacement rate. Watch for overlap: Warranties change who pays, not how many batteries are replaced; keep them out of the count unless sizing who pays.",
   "extras": {
     "must_cover": [
@@ -205,16 +205,53 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
-    "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-11",
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-10-15",
     "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,
-  "firm_style": null
+  "firm_style": null,
+  "defend": {
+    "type": "justify",
+    "text": "Which bucket would you dig into first, and why?",
+    "checks": [
+      {
+        "check_id": "defend_answers",
+        "question": "Does the reply answer the follow-up and commit to one choice?",
+        "weight": 0.35,
+        "fail_tag": "M.dodged_question",
+        "feedback": "Answer the question asked, and pick one.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_evidence",
+        "question": "Does the reply give a reason that uses a fact from the case supporting what it picks?",
+        "weight": 0.4,
+        "fail_tag": "M.no_evidence_in_defense",
+        "feedback": "Back your choice with a fact from the case that supports it.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "Is the reply consistent with the student's own main answer?",
+        "weight": 0.25,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Keep your reply consistent with your own answer.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Share needing a new battery. An 8-year warranty suggests most packs last at least that long, so the 2030 market turns on how many cars on the road are older than that and how fast packs wear."
+  }
 }

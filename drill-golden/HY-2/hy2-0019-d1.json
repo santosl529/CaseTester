@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0019-d1",
+  "item_id": "hy2-0019",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Buyers likely aren't coming back for refills because they can't find them in stores. I'd compare refill sales in stores that stock refills with those that don't."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: only 20% of stores stock refills, and where they do, refill sales match plan."
+    },
+    {
+      "type": "text",
+      "value": "Refill sales per lipstick in stores that stock refills against those that don't. If they're no higher where refills are stocked, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

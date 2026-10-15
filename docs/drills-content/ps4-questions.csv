@@ -59,3 +59,198 @@ Bike costs: buying bikes; repairs","the usage, revenue-per-ride and bike-cost bu
 Revenue per ride: fares; memberships
 Bike costs: buying bikes; repairs
 Network costs: stations and docks; trucks moving bikes between stations"
+ps4-0011,ps1-0003,1,A regional grocery chain's profits fell 15% over two years.,"Revenue: number of shoppers; spend per visit
+Costs: cost of goods; labor; rent
+Shopper traffic: visits by store; trends over two years","the revenue bucket (shoppers, spend per visit) and the cost bucket (cost of goods, labor, rent)","Revenue: shoppers by store; spend per visit by category
+Costs: cost of goods; labor; rent; other store costs"
+ps4-0012,ps1-0006,1,A sportswear brand is deciding whether to launch a line of smart running shoes with built-in sensors.,"Runner demand: runners wanting sensor data; how many would buy
+Price: what runners would pay; price of regular running shoes
+Costs: manufacturing; sensors
+Interest in smart gear: runners using fitness trackers; interest in smart clothing","the demand, price and cost buckets","Runner demand: runners wanting sensor data; runners already using fitness trackers
+Price: what runners would pay; price of regular running shoes
+Costs: manufacturing; sensors
+Competition: running watches and trackers; rivals' smart shoes"
+ps4-0013,ps1-0010,1,A bakery chain is deciding whether to buy a second industrial oven line.,"Oven cost: price of the oven; installation
+Upfront investment: total cash needed; financing
+Extra demand: orders the line would serve; extra revenue
+Running costs: energy; labor; maintenance","the extra demand and running cost buckets, and the upfront costs themselves: oven price, installation and financing","Upfront cost: oven and installation; financing
+Extra demand: orders the line would serve; extra revenue
+Running costs: energy; labor; maintenance"
+ps4-0014,ps1-0011,1,A European e-bike maker is deciding whether to enter the US market.,"US demand: e-bike sales; growth by region
+Competitors: leading brands; their market shares
+Entry costs: distribution; marketing; import duties","the demand, competitor and entry-cost buckets","US demand: e-bike sales; growth by region
+Competitors: leading brands; their market shares
+Entry costs: distribution; marketing; import duties
+Our ability to win: brand awareness in the US; dealers who would stock us; fit with US riders"
+ps4-0015,ps1-0014,1,A boutique hotel group wants to grow profit by 30%.,"Room rates: rates by season; discounts
+Occupancy: rooms filled per night; booking channels
+Operating costs: staff; energy; supplies","the room-rate, occupancy and operating-cost buckets","Room rates: rates by season; discounts
+Occupancy: rooms filled per night; booking channels
+Revenue beyond rooms: restaurant and bar; events and weddings
+Operating costs: staff; energy; supplies"
+ps4-0016,ps1-0016,1,A toothpaste maker is deciding whether to launch a subscription for refillable toothpaste tablets.,"Demand: shoppers wanting refillable tablets; how often they'd reorder
+Pricing: price against regular toothpaste; subscription discounts
+Competitors: brands already selling tablets; their prices","the demand, pricing and competitor buckets","Demand: shoppers wanting refillable tablets; how often they'd reorder
+Pricing: price against regular toothpaste; subscription discounts
+Competitors: brands already selling tablets; their prices
+Economics: making and shipping each refill; cost to win a subscriber; cancellations"
+ps4-0017,ps1-0023,1,A luxury watch brand is setting the price for a new limited-edition model.,"Office lease: rent for the head office; lease renewal
+Collector demand: what collectors would pay for scarcity; size of the waiting list
+Comparable editions: rivals' limited-edition prices; resale prices
+Production cost: parts; hours of craftsmanship","the collector demand, comparable editions and production cost buckets","Collector demand: what collectors would pay for scarcity; size of the waiting list
+Comparable editions: rivals' limited-edition prices; resale prices
+Production cost: parts; hours of craftsmanship
+Brand positioning: price against our regular models; effect on the brand's image"
+ps4-0018,ps1-0026,1,A snack company is deciding whether to launch a high-protein chip.,"Competition: protein bars and snacks; rival protein chips
+Costs: making the chip; distribution
+Demand: shoppers buying high-protein snacks; how often they buy
+Launch ads: which athlete should front them; the ads' slogan","the competition, cost and demand buckets","Demand: shoppers buying high-protein snacks; how often they buy
+Competition: protein bars and snacks; rival protein chips
+Costs: making the chip; distribution
+Economics: price per bag; margin; volume needed to break even"
+ps4-0019,ps1-0032,1,A national park service wants to reduce overcrowding at its three most visited parks.,"Product: trails; visitor centers
+Price: entry fees; annual passes
+Place: park entrances; parking
+Promotion: park websites; travel guides","the entry fees and parking it lists, which still belong as a lever and a limit on capacity","Visitor demand: visits by park, season and hour; where crowds build up
+Capacity: trails; parking; facilities
+Levers: timed reservations; peak pricing; shuttles
+Impact: visitor experience; damage to the parks"
+ps4-0020,ps1-0033,1,A movie theater chain wants to set prices for a new premium recliner seat.,"Strengths: comfortable recliners; our premium screens
+Weaknesses: recliners take more space; fewer seats per screen
+Opportunities: moviegoers paying more for comfort; rivals' premium seat prices
+Threats: streaming at home; rival chains","what moviegoers would pay for comfort, rivals' premium seat prices and the fewer seats per screen, which still belong","Willingness to pay: what moviegoers pay for comfort; by film and time
+Competitor seats: rivals' premium seat prices
+Cost: recliners; fewer seats per screen
+Cannibalization: regular-seat buyers trading up or staying away"
+ps4-0021,ps1-0004,2,A meal-kit company wants to double revenue in three years.,"Customer base: new customers; keeping current ones
+Order frequency and basket: orders per month; meals per box
+New products: ready-to-eat meals; snacks and desserts
+Revenue per customer: spend per customer per year; price increases","the customer base, frequency and basket, and new product buckets, and price increases as a lever","Customer base: new customers; keeping current ones
+Revenue per customer: orders per month; meals per box; price increases
+New products: ready-to-eat meals; snacks and desserts
+New channels: grocery stores; corporate lunches"
+ps4-0022,ps1-0008,2,A hospital wants to cut emergency room waiting times.,"Arrivals: patients by hour; by severity
+Peak staffing: doctors and nurses on duty at peak hours
+Capacity by shift: doctors and nurses per shift; patients each can see
+Triage and registration: time to triage; registration steps","the arrivals and triage buckets, and staff capacity by shift","Arrivals: patients by hour; by severity
+Triage and registration: time to triage; registration steps
+Treatment capacity: doctors and nurses per shift, including peaks; patients each can see
+Outflow: waits for a hospital bed; discharge speed"
+ps4-0023,ps1-0012,2,A chain of fitness studios has seen profits fall for two years.,"Membership revenue: members; average fee
+Other revenue: retail; personal training
+Fixed costs: rent; equipment",the two revenue buckets and the fixed cost bucket,"Membership revenue: members; average fee
+Other revenue: retail; personal training
+Fixed costs: rent; equipment
+Variable costs: instructor pay per class; utilities; marketing"
+ps4-0024,ps1-0018,2,A software company wants to cut costs by 15%.,"Employees: engineering; sales; support
+Office rent: headquarters; regional offices
+Marketing and events: advertising; trade shows","the employee, office rent, and marketing and events buckets","Employees: engineering; sales; support
+Cloud and tools: hosting bills; software subscriptions
+Office rent: headquarters; regional offices
+Marketing and events: advertising; trade shows"
+ps4-0025,ps1-0020,2,A client wants to estimate the annual market for dog-walking services in a large city.,"Households: households in the city
+Dog ownership: share of households with a dog; dogs per household
+Price: price per walk; discounts for regular walks","the household, dog-ownership and price buckets","Households: households in the city
+Dog ownership: share of households with a dog; dogs per household
+Paid walking: share of owners using a walker; walks per week
+Price: price per walk; discounts for regular walks"
+ps4-0026,ps1-0025,2,A hotel chain wants to reduce operating costs.,"Staff: housekeeping; front desk; overtime
+Energy: heating and cooling; lighting
+Guest satisfaction: last year's survey scores; online reviews
+Supplies and laundry: toiletries; washing linen","the staff, energy, and supplies and laundry buckets","Staff: housekeeping; front desk; overtime
+Energy: heating and cooling; lighting
+Supplies and laundry: toiletries; washing linen
+Maintenance and overhead: repairs; head-office costs"
+ps4-0027,ps1-0027,2,A warehouse is shipping orders 30% slower than last year.,"Orders: order volume; mix of items per order
+Next season: holiday sales forecasts; planned promotions
+Picking and packing: items picked per hour; packing stations
+Shipping: carrier pickup times; loading docks","the order, picking and packing, and shipping buckets","Orders: order volume; mix of items per order
+Picking and packing: items picked per hour; packing stations
+Capacity: staff per shift; equipment breakdowns
+Shipping: carrier pickup times; loading docks"
+ps4-0028,ps1-0028,2,A hospital network is deciding whether to acquire a smaller rural hospital.,"Finances: the rural hospital's profit; patient volumes
+Fit: services we lack there; referrals to our hospitals
+Regulation: antitrust review; state approval
+Announcement: a campaign to tell the community; press events","the finance, fit and regulation buckets","Finances: the rural hospital's profit; patient volumes
+Fit: services we lack there; referrals to our hospitals
+Regulation: antitrust review; state approval
+Price and integration: purchase price; cost to upgrade systems and equipment"
+ps4-0029,ps1-0031,2,A US pet insurance company is deciding whether to enter Germany.,"Revenue: price; number of policies
+Fixed costs: offices; systems
+Variable costs: claims; sales commissions","the economics it lists (price, policies, offices, systems, claims and commissions), which still belong in the answer","German market: pet owners; share with insurance; growth
+Competition: local insurers; their prices and coverage
+Entry economics: price per policy; claims; commissions; setup costs
+Ability to win: distribution partners; German regulation; brand"
+ps4-0030,ps1-0035,2,A pizza delivery chain wants to cut average delivery time from 40 to 30 minutes.,"Revenue: price; orders
+Fixed costs: stores; ovens
+Variable costs: drivers; ingredients","the ovens and drivers it lists, which still matter as the cooking and delivery steps","Order taking: time to take and send orders
+Prep and cooking: making the pizza; oven time
+Waiting for a driver: drivers per shift; orders per trip
+The drive: distance; traffic; finding the address"
+ps4-0031,ps1-0019,3,A state government wants to raise its high school graduation rate from 76% to 84%.,"Schools: teacher quality; class sizes
+Students: attendance; grades and credits
+Current programs: tutoring the state funds; their results","the school, student and current-program buckets","Schools: teacher quality; class sizes
+Students: attendance; grades and credits
+Outside school: family income; health; students working long hours
+Current programs: tutoring the state funds; their results"
+ps4-0032,ps1-0021,3,A Japanese ramen chain is deciding whether to open restaurants in Canada.,"Canadian demand: interest in ramen; cities with large Asian populations
+Japan financing: how the chain funded its growth at home; its bank loans
+Restaurant economics: opening costs; rent; staff; sales per restaurant",the Canadian demand and restaurant economics buckets,"Canadian demand: interest in ramen; cities with large Asian populations
+Competition: local ramen shops; other Asian restaurants
+Restaurant economics: opening costs; rent; staff; sales per restaurant
+Ability to operate: noodle and broth suppliers; hiring cooks"
+ps4-0033,ps1-0029,3,A city is deciding whether to build a new public swimming pool.,"Opening campaign: marketing for the first season; launch events
+Visitors and fees: expected visitors; ticket prices
+Construction: building cost; land
+Community benefits: health programs; youth swimming lessons","the visitors and fees, construction, and community benefit buckets","Visitors and fees: expected visitors; ticket prices
+Construction: building cost; land
+Running costs: lifeguards and staff; heating and water; upkeep
+Community benefits: health programs; youth swimming lessons"
+ps4-0034,ps1-0036,3,A media company is deciding whether to buy a popular podcast network.,"Podcast market: listeners; growth in ad spending
+Competitors: other podcast networks; streaming platforms
+Production costs: cost of new shows; hosts' pay
+Our ability to win listeners: our brand; our marketing reach","the podcast market bucket and hosts' pay, which still belong","Podcast market: listeners; growth in ad spending
+The network: audience by show; profits; contracts with top hosts
+Synergies: selling ads across our media; promoting shows
+Price vs value: the asking price; return on it"
+ps4-0035,ps1-0041,3,A Korean skincare brand is deciding whether to sell in US drugstores.,"US drugstore sales: shoppers; price per product
+Shipping costs: freight; import duties
+Shelf and marketing costs: drugstore shelf fees; advertising","the costs it lists (freight, duties, shelf fees and advertising), which still belong under entry economics","US demand: shoppers buying Korean skincare; growth
+Competition: other Korean brands; US drugstore brands
+Entry economics: freight and duties; shelf fees; advertising
+Ability to win: brand awareness; drugstore relationships"
+ps4-0036,ps1-0042,3,An online furniture retailer's operating margin fell from 12% to 7%.,"Prices: discounting by category; price changes
+Product costs: supplier prices; freight from factories
+Delivery and returns: delivery cost per order; returns
+Marketing and overhead: ads; head-office costs
+Gross margin by category: margin on sofas, beds and tables","the price, product cost, delivery and returns, and marketing and overhead buckets","Prices: discounting and price changes by category
+Product costs: supplier prices; freight from factories
+Delivery and returns: delivery cost per order; returns
+Marketing and overhead: ads; head-office costs"
+ps4-0037,ps1-0043,3,A ski resort's profit fell 20% in a season when visits were flat.,"Visits: day tickets; season passes
+Prices: ticket prices; pass prices
+Costs: staff; snowmaking; lift maintenance
+Next season's marketing: ad campaigns; early-bird pass offers","the visits, price and cost buckets","Visits: day tickets; season passes
+Prices: ticket prices; pass prices
+Spending per visit: rentals; lessons; food and drink
+Costs: staff; snowmaking; lift maintenance"
+ps4-0038,ps1-0045,3,A hospital network is deciding how to price a new telehealth visit.,"Telehealth market: size in the region; growth
+Competitors: other telehealth providers; their services
+Our capabilities: doctors available online; video platform","the competing providers it lists, which still belong once compared on price","Willingness to pay: patients paying themselves; insurers
+Competitor prices: other telehealth providers' fees
+Reimbursement: what insurers and government cover for virtual visits
+Cost per visit: doctor time; video platform"
+ps4-0039,ps1-0047,3,A hospital wants to cut average length of stay from 5.2 to 4.5 days.,"Admission to diagnosis: time to first tests; waits for specialists
+Diagnosis to end of treatment: procedures; recovery days
+Treatment speed: tests and procedures per day; time to recover
+Case mix: conditions treated; patient ages","the admission-to-diagnosis, diagnosis-to-end-of-treatment and case-mix buckets","Admission to diagnosis: time to first tests; waits for specialists
+Diagnosis to end of treatment: procedures per day; recovery days
+Ready to discharge: waits for nursing-home beds; discharge paperwork
+Case mix: conditions treated; patient ages"
+ps4-0040,ps1-0048,3,A food-delivery app's contribution per order fell from $3.10 to $2.40.,"Order value and commission: average basket; commission rate
+Courier pay: pay per order; bonuses
+Payment and refunds: card fees; refunds per order
+Order volume: orders per month; new customers","the order value and commission, courier pay, and payment and refund buckets","Order value and commission: average basket; commission rate
+Courier pay: pay per order; bonuses
+Payment and refunds: card fees; refunds per order
+Promotions: discounts per order; free-delivery offers"

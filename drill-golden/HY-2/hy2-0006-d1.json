@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0006-d1",
+  "item_id": "hy2-0006",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With volume flat and prices up only 3%, the company is likely using more material per pack, probably through waste. I'd compare material used per pack with last year."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: waste rose from 2% to 9% of material with the new film supplier, so each pack uses more film."
+    },
+    {
+      "type": "text",
+      "value": "Waste rate by film supplier, by week. If the old supplier's film also wastes 9%, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,48 @@
+{
+  "answer_id": "ps4-0040-a",
+  "item_id": "ps4-0040",
+  "drill_id": "PS-4",
+  "answer_type": "normal",
+  "notes": "Order volume replaced by a per-order cost (rule 9).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Order value and commission",
+          "points": [
+            "average basket",
+            "commission rate"
+          ]
+        },
+        {
+          "title": "Courier pay",
+          "points": [
+            "pay per order",
+            "bonuses"
+          ]
+        },
+        {
+          "title": "Payment and refunds",
+          "points": [
+            "card fees",
+            "refunds per order"
+          ]
+        },
+        {
+          "title": "Promotions",
+          "points": [
+            "discounts the app funds per order"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

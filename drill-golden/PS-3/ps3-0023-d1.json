@@ -1,0 +1,63 @@
+{
+  "answer_id": "ps3-0023-d1",
+  "item_id": "ps3-0023",
+  "drill_id": "PS-3",
+  "answer_type": "borderline",
+  "notes": "The governor's goal is the question itself; it doesn't support examiners over sites or booking rules (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Demand",
+          "points": [
+            "tests booked per week",
+            "retests after failing",
+            "no-shows"
+          ]
+        },
+        {
+          "title": "Examiners",
+          "points": [
+            "number",
+            "tests per examiner per day",
+            "vacation and turnover"
+          ]
+        },
+        {
+          "title": "Sites and slots",
+          "points": [
+            "locations",
+            "hours",
+            "weekend slots"
+          ]
+        },
+        {
+          "title": "Booking rules",
+          "points": [
+            "no-show penalties",
+            "waiting periods before retests"
+          ]
+        },
+        {
+          "title": "Outside testers",
+          "points": [
+            "driving schools or contractors giving tests"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Examiners, since the governor wants faster tests."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

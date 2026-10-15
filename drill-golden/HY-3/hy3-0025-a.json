@@ -1,0 +1,20 @@
+{
+  "answer_id": "hy3-0025-a",
+  "item_id": "hy3-0025",
+  "drill_id": "HY-3",
+  "answer_type": "normal",
+  "notes": "One cause leads (rule 12).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Half the rivals' shelf space is probably holding back supermarket sales. I'd compare sales per store where we have more and less space."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

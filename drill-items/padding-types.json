@@ -32,32 +32,32 @@
     ],
     "sy1-0004": [
       {
-        "fact": "The supplier was founded in 1950.",
-        "type": "history"
+        "fact": "The current machine was overhauled for $300k last year.",
+        "type": "sunk_cost"
       }
     ],
     "sy1-0005": [
       {
-        "fact": "RivalCo's CEO is a former colleague of our CEO.",
-        "type": "people"
+        "fact": "RivalCo's shares have risen 20% since rumors of a deal.",
+        "type": "outside_context"
       }
     ],
     "sy1-0006": [
       {
-        "fact": "The company's last launch was a sparkling water.",
-        "type": "history"
+        "fact": "Developing the bar has cost $1.5M so far.",
+        "type": "sunk_cost"
       }
     ],
     "sy1-0007": [
       {
-        "fact": "The company has 5,000 employees.",
-        "type": "people"
+        "fact": "The two plants are the company's oldest.",
+        "type": "operations_detail"
       }
     ],
     "sy1-0008": [
       {
-        "fact": "Our stores were renovated in 2021.",
-        "type": "history"
+        "fact": "Our store leases have 8 years left to run.",
+        "type": "operations_detail"
       }
     ],
     "sy1-0009": [
@@ -80,8 +80,8 @@
     ],
     "sy1-0012": [
       {
-        "fact": "One of our managers grew up in Texas.",
-        "type": "people"
+        "fact": "Our California restaurants' sales grew 2% last year.",
+        "type": "neutral_number"
       }
     ],
     "sy1-0013": [
@@ -92,14 +92,14 @@
     ],
     "sy1-0014": [
       {
-        "fact": "Our largest shareholder is based in Spain.",
-        "type": "location"
+        "fact": "We spent $500,000 on a Brazil market study last year.",
+        "type": "sunk_cost"
       }
     ],
     "sy1-0015": [
       {
-        "fact": "The outsourcer is based in Ireland.",
-        "type": "location"
+        "fact": "Most companies in our industry outsource customer service.",
+        "type": "outside_context"
       }
     ],
     "sy1-0016": [
@@ -110,20 +110,20 @@
     ],
     "sy1-0017": [
       {
-        "fact": "The hospital won a quality award in 2024.",
-        "type": "award_or_rating"
+        "fact": "The chief of surgery has pushed for the wing for years.",
+        "type": "people"
       }
     ],
     "sy1-0018": [
       {
-        "fact": "We have 200 sales staff.",
-        "type": "people"
+        "fact": "The rival raised $50M from investors last year.",
+        "type": "outside_context"
       }
     ],
     "sy1-0019": [
       {
-        "fact": "Our company sponsors a dog show.",
-        "type": "branding"
+        "fact": "A well-known veterinary nutritionist developed the line.",
+        "type": "people"
       }
     ],
     "sy1-0020": [
@@ -134,20 +134,20 @@
     ],
     "sy1-0021": [
       {
-        "fact": "The city hosts a large music festival each year.",
+        "fact": "The city has a third fewer taxis than it did five years ago.",
         "type": "outside_context"
       }
     ],
     "sy1-0022": [
       {
-        "fact": "Product X launched in 2015.",
-        "type": "history"
+        "fact": "Product X's product manager retires next year.",
+        "type": "people"
       }
     ],
     "sy1-0023": [
       {
-        "fact": "The warehouse is near the airport.",
-        "type": "location"
+        "fact": "Two rival warehouses in the region automated last year.",
+        "type": "outside_context"
       }
     ],
     "sy1-0024": [
@@ -158,20 +158,20 @@
     ],
     "sy1-0025": [
       {
-        "fact": "The program was designed by a university.",
-        "type": "people"
+        "fact": "About 2,000 adults applied for last year's pilot.",
+        "type": "neutral_number"
       }
     ],
     "sy1-0026": [
       {
-        "fact": "Our café uses fair-trade beans.",
-        "type": "operations_detail"
+        "fact": "The café's espresso machine, bought for $12,000, is paid off.",
+        "type": "sunk_cost"
       }
     ],
     "sy1-0027": [
       {
-        "fact": "The distributor sponsors a local soccer team.",
-        "type": "branding"
+        "fact": "The distributor delivers to about 1,200 stores.",
+        "type": "neutral_number"
       }
     ],
     "sy1-0028": [
@@ -188,8 +188,8 @@
     ],
     "sy1-0030": [
       {
-        "fact": "Home workouts were popular on social media.",
-        "type": "outside_context"
+        "fact": "The industry's best-known brand has 5 million app subscribers.",
+        "type": "neutral_number"
       }
     ],
     "sy1-0031": [
@@ -495,6 +495,126 @@
     "sy3-0010": [
       {
         "fact": "the group bought the division in 2015 for $150M",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy3-0016": [
+      {
+        "fact": "the current machine was overhauled for $300k last year",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy3-0024": [
+      {
+        "fact": "RivalCo's shares have risen 20% since rumors of a deal",
+        "type": "outside_context"
+      }
+    ],
+    "sy3-0017": [
+      {
+        "fact": "developing the bar has cost $1.5M so far",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy3-0018": [
+      {
+        "fact": "the two plants are the company's oldest",
+        "type": "operations_detail"
+      }
+    ],
+    "sy3-0012": [
+      {
+        "fact": "our store leases have 8 years left to run",
+        "type": "operations_detail"
+      }
+    ],
+    "sy3-0019": [
+      {
+        "fact": "our California restaurants' sales grew 2% last year",
+        "type": "neutral_number"
+      }
+    ],
+    "sy3-0020": [
+      {
+        "fact": "we spent $500,000 on a Brazil market study last year",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy3-0013": [
+      {
+        "fact": "most companies in our industry outsource customer service",
+        "type": "outside_context"
+      }
+    ],
+    "sy3-0025": [
+      {
+        "fact": "the chief of surgery has pushed for the wing for years",
+        "type": "people"
+      }
+    ],
+    "sy3-0021": [
+      {
+        "fact": "the rival raised $50M from investors last year",
+        "type": "outside_context"
+      }
+    ],
+    "sy3-0026": [
+      {
+        "fact": "a well-known veterinary nutritionist developed the line",
+        "type": "people"
+      }
+    ],
+    "sy3-0027": [
+      {
+        "fact": "the city has a third fewer taxis than it did five years ago",
+        "type": "outside_context"
+      }
+    ],
+    "sy3-0014": [
+      {
+        "fact": "product X's product manager retires next year",
+        "type": "people"
+      }
+    ],
+    "sy3-0028": [
+      {
+        "fact": "two rival warehouses in the region automated last year",
+        "type": "outside_context"
+      }
+    ],
+    "sy3-0029": [
+      {
+        "fact": "about 2,000 adults applied for last year's pilot",
+        "type": "neutral_number"
+      }
+    ],
+    "sy3-0015": [
+      {
+        "fact": "the café's espresso machine, bought for $12,000, is paid off",
+        "type": "sunk_cost"
+      }
+    ],
+    "sy3-0022": [
+      {
+        "fact": "the distributor delivers to about 1,200 stores",
+        "type": "neutral_number"
+      }
+    ],
+    "sy3-0023": [
+      {
+        "fact": "the industry's best-known brand has 5 million app subscribers",
+        "type": "neutral_number"
+      }
+    ],
+    "sy3-0011": [
+      {
+        "fact": "Canada has about 40 million people",
+        "type": "neutral_number"
+      }
+    ],
+    "sy3-0030": [
+      {
+        "fact": "the call center's $1M renovation finished last year",
         "type": "sunk_cost"
       }
     ]

@@ -1,0 +1,42 @@
+{
+  "answer_id": "ps4-0029-a",
+  "item_id": "ps4-0029",
+  "drill_id": "PS-4",
+  "answer_type": "borderline",
+  "notes": "Still a profit tree with 'German' added: renaming generic headings with the market doesn't fix it (rule 10).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "German revenue",
+          "points": [
+            "price",
+            "number of policies"
+          ]
+        },
+        {
+          "title": "German fixed costs",
+          "points": [
+            "offices",
+            "systems"
+          ]
+        },
+        {
+          "title": "German variable costs",
+          "points": [
+            "claims",
+            "commissions"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

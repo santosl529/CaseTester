@@ -80,7 +80,7 @@ ps3-0017,1,operations,A food bank takes six weeks on average to get donated food
 Warehouse steps: receiving; sorting; inspecting; storing
 Volunteers and staff: shifts; training; sorting speed
 Orders and delivery: how pantries order; truck routes and frequency",Sorting speed belongs under volunteers and staff; the sorting step's waiting time belongs under warehouse steps.
-ps3-0018,1,market_sizing,"A camera-equipment company wants to estimate the yearly US market for wedding photography, in dollars.","Weddings: weddings per year
+ps3-0018,1,market_sizing,"A camera-equipment company wants to estimate the yearly US market for wedding photography, in dollars. About 2 million couples marry in the US each year.","Weddings: weddings per year
 Share hiring a photographer: professionals vs friends; small ceremonies
 Spend per wedding: budget, mid-range and luxury packages; albums and extras
 Check: photographers × weddings each × average fee",Small ceremonies affect the share that hire a photographer; don't also cut the number of weddings for them.
@@ -99,7 +99,7 @@ Synergies: shared dispatch and buying; selling service plans
 Price vs value: earnings and synergies against $60M
 Integration: keeping technicians and owners; systems; local brands
 Risks: technician shortages; local reputation after the sale",Keeping owners shows up in integration and risks; plan it under integration and size the downside under risks.
-ps3-0022,2,industry_analysis,A private equity fund asks whether the North American pickleball-court construction industry is attractive to invest in.,"Demand: players and growth; courts needed vs built; who pays
+ps3-0022,2,industry_analysis,A private equity fund asks whether the North American pickleball-court construction industry is attractive to invest in. The number of US pickleball players roughly tripled from 2020 to 2023.,"Demand: players and growth; courts needed vs built; who pays
 Staying power: fad or lasting sport; converting tennis courts
 Competition: number of builders; ease of entry; price pressure
 Margins: price per court; materials; labor
@@ -129,7 +129,7 @@ Fitment data: vehicle lookup accuracy; descriptions and photos
 Fulfillment: wrong part picked; damage in packing
 Customer help: chat before buying; installation guides
 Return policy: free returns; restocking fees",Wrong fit can come from fitment data or picking errors; split it by cause before fixing either.
-ps3-0028,2,new_product_launch,"A car insurer is deciding whether to launch insurance priced on how customers drive, measured by a phone app.","Customer uptake: safe drivers wanting discounts; privacy worries
+ps3-0028,2,new_product_launch,"A car insurer is deciding whether to launch insurance priced on how customers drive, measured by a phone app. Claims take 75 cents of every premium dollar it collects.","Customer uptake: safe drivers wanting discounts; privacy worries
 Claims savings: whether app data predicts claims; discounts vs claims saved
 Effect on current customers: who switches; what is left on standard plans
 Competitors: rivals' app programs; their discounts
@@ -159,8 +159,8 @@ The law firm: revenue per lawyer; clients; partner earnings
 Price vs value: $150M against profit after partner pay, plus synergies
 Rules and conflicts: audit independence; legal ethics; other states' rules
 People: keeping partners after the sale; culture",Cross-selling shows up in strategic logic and price vs value; describe it under logic and count it only under value.
-ps3-0034,3,market_sizing,"An investor wants to estimate the yearly global market for replacement batteries for electric cars in 2030, in dollars.","Electric cars on the road in 2030: fleet by age; sales growth to 2030
-Share needing a new battery: battery life in years and miles; warranties
+ps3-0034,3,market_sizing,"An investor wants to estimate the yearly global market for replacement batteries for electric cars in 2030, in dollars. Electric-car batteries are typically under warranty for 8 years.","Electric cars on the road in 2030: fleet by age; sales growth to 2030
+Share needing a new battery: battery life in years and miles; how fast packs wear out
 Replace, repair or scrap: module repairs; scrapping older cars
 Price per battery: cost per kWh in 2030; pack size
 Check: compare with today's replacements by region","Warranties change who pays, not how many batteries are replaced; keep them out of the count unless sizing who pays."

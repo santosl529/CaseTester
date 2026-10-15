@@ -1,8 +1,8 @@
 {
   "item_id": "sy2-0029",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-2",
-  "status": "live",
+  "status": "draft",
   "level": 2,
   "tier": 3,
   "skills": [
@@ -187,10 +187,10 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-12",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
     "similarity_checked_at": "2026-10-11",
@@ -198,5 +198,34 @@
   },
   "generator": null,
   "is_example": false,
-  "firm_style": null
+  "firm_style": null,
+  "defend": {
+    "type": "challenge",
+    "text": "A tax-policy analyst says the government has cut the credit to $20 a ton for new projects.",
+    "valid": true,
+    "reason": "At $20 a ton, 1 million tons earns $20M a year, only $5M above the $15M running cost, so $200M would take 40 years to pay back, far past the credit's 12 years.",
+    "checks": [
+      {
+        "check_id": "defend_evidence",
+        "question": "Does the reason use a fact or number from the fact sheet or the challenge that supports the decision?",
+        "weight": 0.4,
+        "fail_tag": "M.no_evidence_in_defense",
+        "feedback": "Use a fact or number from the case that supports your decision.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "After Update, does the reply say how the recommendation changes; after Hold, does it restate the recommendation, without contradicting the main answer?",
+        "weight": 0.2,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Say what changes if you update, or restate your recommendation if you hold.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Update. At $20 a ton the credit pays $20M a year, only $5M above running costs, so $200M never pays back in 12 years. I'd hold off installing."
+  }
 }

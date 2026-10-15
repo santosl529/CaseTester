@@ -1,0 +1,20 @@
+{
+  "answer_id": "hy3-0016-a",
+  "item_id": "hy3-0016",
+  "drill_id": "HY-3",
+  "answer_type": "short",
+  "notes": "Still a fix, not something to test (rule 12). The 70% dairy-buyer fact is gone: keeps-right only (rules 3, 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Drop the line."
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "no_new_flaw": true,
+    "keeps_right": false
+  },
+  "red_flags": {},
+  "family": null
+}

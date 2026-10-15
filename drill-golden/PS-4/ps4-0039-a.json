@@ -1,0 +1,42 @@
+{
+  "answer_id": "ps4-0039-a",
+  "item_id": "ps4-0039",
+  "drill_id": "PS-4",
+  "answer_type": "off_topic",
+  "notes": "Answers a profit question, not length of stay: the discharge wait is still missing (rule 8), and dropping the treatment-speed bucket along with everything else doesn't fit the case (rule 2). Right parts dropped; no-new-flaw passes by code (rule 3).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Revenue per patient",
+          "points": [
+            "insurer mix",
+            "billing"
+          ]
+        },
+        {
+          "title": "Costs",
+          "points": [
+            "nurses",
+            "supplies"
+          ]
+        },
+        {
+          "title": "New services",
+          "points": [
+            "outpatient clinics"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "fix_2": false,
+    "no_new_flaw": true,
+    "keeps_right": false
+  },
+  "red_flags": {},
+  "family": null
+}

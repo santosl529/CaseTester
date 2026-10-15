@@ -1,0 +1,20 @@
+{
+  "answer_id": "hy3-0030-a",
+  "item_id": "hy3-0030",
+  "drill_id": "HY-3",
+  "answer_type": "short",
+  "notes": "Framed as likely and the retrofit fix is gone (rule 12); it still ties the cost to the new buildings. Lacking a test is a weakness the original had too (rules 3, 13).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "New buildings, probably."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

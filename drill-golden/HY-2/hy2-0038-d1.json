@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0038-d1",
+  "item_id": "hy2-0038",
+  "drill_id": "HY-2",
+  "answer_type": "short",
+  "notes": "Metric plus a period (rule 7), but no result that would drop it (rule 8).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Sales likely fell because people have lost interest in road trips since the boom. I'd compare campground bookings and road-trip surveys with two years ago."
+    },
+    {
+      "type": "choice",
+      "option_id": "drop"
+    },
+    {
+      "type": "text",
+      "value": "Drop: campground bookings are flat. Boom-era buyers are flooding the market with cheap used motor homes."
+    },
+    {
+      "type": "text",
+      "value": "Used prices by month."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

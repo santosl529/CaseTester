@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0021-d1",
+  "item_id": "hy2-0021",
+  "drill_id": "HY-2",
+  "answer_type": "borderline",
+  "notes": "A result that would confirm it, not drop it (rule 8).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With wage rates flat, the 15% rise in cost per building likely comes from crews spending more hours in each building. I'd compare hours on site per building with last year."
+    },
+    {
+      "type": "choice",
+      "option_id": "drop"
+    },
+    {
+      "type": "text",
+      "value": "Drop: hours on site are unchanged. Travel between buildings doubled, so the cost is travel time."
+    },
+    {
+      "type": "text",
+      "value": "Travel time between buildings this year against last. If it went up, that's the cause."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

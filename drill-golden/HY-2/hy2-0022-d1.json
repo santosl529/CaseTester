@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0022-d1",
+  "item_id": "hy2-0022",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Selling 4,000 saunas against 50,000 planned likely means the $3,000 price is too high for most households. I'd compare how many quotes turn into sales at different prices."
+    },
+    {
+      "type": "choice",
+      "option_id": "drop"
+    },
+    {
+      "type": "text",
+      "value": "Drop: 30% of quotes became sales, above plan, so price isn't it. Far fewer homes have room for one."
+    },
+    {
+      "type": "text",
+      "value": "Quote requests from homes with room for a sauna against those without. If they request at the same rate, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

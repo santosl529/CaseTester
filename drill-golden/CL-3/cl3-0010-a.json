@@ -3,7 +3,7 @@
   "item_id": "cl3-0010",
   "drill_id": "CL-3",
   "answer_type": "borderline",
-  "notes": "Starts with synergies rather than the key's starting point, but it says where and why (rules 3 and 4); the critical driver is still covered. 'Savings per route' is a metric with a cut (rule 5).",
+  "notes": "Starts with synergies rather than the key's starting point, but it says where and why (rules 3 and 4); the critical driver is still covered. 'Savings per route' is a metric with a cut, and 'contract end dates' is already broken down by contract (rule 5; Matt, 2026-10-15).",
   "responses": [
     {
       "type": "text",

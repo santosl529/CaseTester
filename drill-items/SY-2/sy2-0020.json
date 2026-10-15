@@ -1,8 +1,8 @@
 {
   "item_id": "sy2-0020",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-2",
-  "status": "live",
+  "status": "draft",
   "level": 2,
   "tier": 2,
   "skills": [
@@ -186,10 +186,10 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
-    "drafting_model": null,
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-12",
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
     "similarity_checked_at": "2026-10-13",
@@ -197,5 +197,34 @@
   },
   "generator": null,
   "is_example": false,
-  "firm_style": null
+  "firm_style": null,
+  "defend": {
+    "type": "challenge",
+    "text": "An online-travel consultant says more travelers book online every year, so pulling them away from the travel sites will fail.",
+    "valid": false,
+    "reason": "Direct booking is online too, and 70% of customers say they'd book directly for a 5% discount, which saves about $952,000 a year against the 22% commission.",
+    "checks": [
+      {
+        "check_id": "defend_evidence",
+        "question": "Does the reason use a fact or number from the fact sheet or the challenge that supports the decision?",
+        "weight": 0.4,
+        "fail_tag": "M.no_evidence_in_defense",
+        "feedback": "Use a fact or number from the case that supports your decision.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "After Update, does the reply say how the recommendation changes; after Hold, does it restate the recommendation, without contradicting the main answer?",
+        "weight": 0.2,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Say what changes if you update, or restate your recommendation if you hold.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Hold. Direct booking is online too, and 70% of customers say they'd switch for 5% off, saving about $952,000 a year. I'd still launch direct booking."
+  }
 }

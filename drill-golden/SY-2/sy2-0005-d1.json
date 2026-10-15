@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0005-d1",
+  "item_id": "sy2-0005",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "Uses a figure worked out from the challenge and sheet (rule 12).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Add a weekend printing shift. The backlog comes from printing, which runs five days a week at full capacity while packing has spare time, so a shift that adds 40% printing capacity attacks the bottleneck. It costs $18,000 a month, less than the $25,000 a month we refund in shipping on late orders. The main risk is that demand drops after the season, leaving an idle shift. The next step is to run it for two months and track days to ship."
+    },
+    {
+      "type": "choice",
+      "option_id": "hold"
+    },
+    {
+      "type": "text",
+      "value": "Hold. Even at $21,000 a month with packers, it's below the $25,000 of refunds. Add the weekend shift."
+    }
+  ],
+  "labels": {
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,20 @@
+{
+  "answer_id": "sy3-0026-a",
+  "item_id": "sy3-0026",
+  "drill_id": "SY-3",
+  "answer_type": "borderline",
+  "notes": "Decides on the deciding fact (rule 17). The segment's $800M size and 12% growth are dropped: keeps-right only (rules 3, 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Hold off nationally. The test reached 1% share, and break-even needs 2%."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": false
+  },
+  "red_flags": {},
+  "family": null
+}

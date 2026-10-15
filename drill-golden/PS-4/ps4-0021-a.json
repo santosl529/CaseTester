@@ -1,0 +1,43 @@
+{
+  "answer_id": "ps4-0021-a",
+  "item_id": "ps4-0021",
+  "drill_id": "PS-4",
+  "answer_type": "normal",
+  "notes": "Frequency, basket and price now sit in one revenue-per-customer bucket (rule 7).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Customers",
+          "points": [
+            "new customers",
+            "keeping current ones"
+          ]
+        },
+        {
+          "title": "Revenue per customer",
+          "points": [
+            "orders per month",
+            "meals per box",
+            "price increases"
+          ]
+        },
+        {
+          "title": "New products",
+          "points": [
+            "ready-to-eat meals",
+            "desserts"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

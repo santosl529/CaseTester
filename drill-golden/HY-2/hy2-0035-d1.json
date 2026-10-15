@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0035-d1",
+  "item_id": "hy2-0035",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With arrivals up only 5%, longer waits more likely come from slower unloading at the berth. I'd compare crane moves per hour with last year."
+    },
+    {
+      "type": "choice",
+      "option_id": "drop"
+    },
+    {
+      "type": "text",
+      "value": "Drop: cranes work at normal speed. The yard is full because containers wait 9 days for pickup."
+    },
+    {
+      "type": "text",
+      "value": "Days containers sit in the yard and truck appointments per day, by week. If dwell time fell back but berth waits stayed at 4 days, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

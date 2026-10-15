@@ -1,0 +1,63 @@
+{
+  "answer_id": "ps3-0015-d1",
+  "item_id": "ps3-0015",
+  "drill_id": "PS-3",
+  "answer_type": "borderline",
+  "notes": "Two options, no pick (rule 2); generic reason (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Current members",
+          "points": [
+            "members with no loan",
+            "share of their borrowing we hold"
+          ]
+        },
+        {
+          "title": "New members",
+          "points": [
+            "local employers",
+            "young people opening first accounts"
+          ]
+        },
+        {
+          "title": "Loan products",
+          "points": [
+            "car loans",
+            "home loans",
+            "small-business loans"
+          ]
+        },
+        {
+          "title": "Channels",
+          "points": [
+            "online applications",
+            "car-dealer partners",
+            "approval speed"
+          ]
+        },
+        {
+          "title": "Risk and funding",
+          "points": [
+            "keeping credit standards",
+            "deposits to fund new loans"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "New members or loan products, both matter a lot."
+    }
+  ],
+  "labels": {
+    "defend_answers": false,
+    "defend_evidence": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0004-d1",
+  "item_id": "hy2-0004",
+  "drill_id": "HY-2",
+  "answer_type": "borderline",
+  "notes": "Tests the price cause the student revised away from; after stage 2 the hypothesis is the rainy days (rule 9).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Revenue likely fell because the 15% price rise lost more visitors than it gained per ticket. I'd compare daily visits with last year, separating hot and rainy days."
+    },
+    {
+      "type": "choice",
+      "option_id": "revise"
+    },
+    {
+      "type": "text",
+      "value": "Revise: hot-weekend visits held at the higher price. The drop is on rainy days, and there were twice as many."
+    },
+    {
+      "type": "text",
+      "value": "Visits on hot days at the old and new price. If they held steady, I'd drop the idea that the price drove people away."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

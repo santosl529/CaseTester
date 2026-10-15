@@ -1,0 +1,21 @@
+{
+  "answer_id": "sy3-0030-a",
+  "item_id": "sy3-0030",
+  "drill_id": "SY-3",
+  "answer_type": "off_topic",
+  "notes": "Answers a different question, so it fixes nothing (rule 2): the hedge stays, and dropping the renovation along with everything else isn't a fix that fits the case. The savings and satisfaction figures are dropped: keeps-right only (rules 3, 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "We should renegotiate the call center's lease and cut overtime to save money."
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "fix_2": false,
+    "no_new_flaw": true,
+    "keeps_right": false
+  },
+  "red_flags": {},
+  "family": null
+}

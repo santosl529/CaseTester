@@ -1,0 +1,44 @@
+{
+  "answer_id": "ps4-0032-b",
+  "item_id": "ps4-0032",
+  "drill_id": "PS-4",
+  "answer_type": "borderline",
+  "notes": "Funding the Canadian restaurants bears on whether to open them, so the irrelevant bucket is fixed (rule 9). Competition is still missing (rule 8).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Canadian demand",
+          "points": [
+            "interest in ramen",
+            "cities with large Asian populations"
+          ]
+        },
+        {
+          "title": "Funding in Canada",
+          "points": [
+            "bank loans for new restaurants"
+          ]
+        },
+        {
+          "title": "Restaurant economics",
+          "points": [
+            "opening costs",
+            "rent",
+            "staff",
+            "sales per restaurant"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "fix_2": false,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

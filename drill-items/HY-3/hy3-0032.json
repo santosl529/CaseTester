@@ -1,0 +1,93 @@
+{
+  "item_id": "hy3-0032",
+  "version": 1,
+  "drill_id": "HY-3",
+  "status": "draft",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "growth_strategy",
+  "industry": "Retail / E-commerce",
+  "prompt": "A meal-kit company acquires customers at $90 each. Half cancel within two months, and the average customer orders four boxes with $25 margin each.\n\nA candidate offered the initial hypothesis below. Fix it.",
+  "exhibit": null,
+  "input": {
+    "type": "free_text",
+    "max_words": 40
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "fix_1",
+      "question": "The original had this flaw: it only restates the facts, as a number worked out from them: it names no cause. Does the edited answer fix it? One way to fix it: names a likely cause, such as the half who cancel early never paying back their $90. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "weight": 0.5,
+      "fail_tag": "M.restates_facts",
+      "feedback": "The flaw is still there: it only restates the facts, as a number worked out from them: it names no cause.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "no_new_flaw",
+      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: restated the facts, shotgun hypotheses, overconfident hypothesis, untestable hypothesis, ignored the facts? The original's own flaw (it only restates the facts, as a number worked out from them: it names no cause) doesn't count as new, even if the edit leaves it in place or rewords it, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
+      "weight": 0.3,
+      "fail_tag": "M.restates_facts",
+      "feedback": "Your edit added a new flaw. Change only what needs fixing.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "keeps_right",
+      "question": "Does the edit keep the substance of each part of the original that was right: it is framed as likely, and its math is right: four boxes at $25 is about $100 against $90? Rewording or condensing a part is fine; dropping one fails.",
+      "weight": 0.2,
+      "fail_tag": "M.ignores_facts",
+      "feedback": "Keep what was already right: it is framed as likely, and its math is right: four boxes at $25 is about $100 against $90.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    }
+  ],
+  "red_flags": [],
+  "model_answer": "The half who cancel within two months probably never pay back their $90, while those who stay lift the average to about $100. I'd compare margin per customer by how long they stayed.",
+  "explanation": "The flaw: it only restates the facts, as a number worked out from them: it names no cause. What was right: it is framed as likely, and its math is right: four boxes at $25 is about $100 against $90.",
+  "extras": {
+    "derived_from": "hy1-0018",
+    "flawed_answer": "Customers likely bring about $100 of margin against $90 to acquire, so each one barely pays back.",
+    "flaws": [
+      {
+        "tag": "M.restates_facts",
+        "hint": "it only restates the facts, as a number worked out from them: it names no cause",
+        "fix": "names a likely cause, such as the half who cancel early never paying back their $90"
+      }
+    ],
+    "right_parts": "it is framed as likely, and its math is right: four boxes at $25 is about $100 against $90",
+    "grading_rules": [
+      "Compare the edited answer with the original answer. Judge the edited answer as a whole, as an interviewer would read it.",
+      "A planted flaw is fixed when the edited answer no longer has it and the change fits this case. Rewording the flaw without removing it does not fix it. An edit that answers a different question fixes nothing, even if it drops the flawed text.",
+      "A new flaw is one the original did not have, of the kinds listed. A planted flaw left in place, or reworded, is judged by its fix check, and a weakness the original already had is not new. One slip counts once: when the edit drops a right part, code passes this check, so a new flaw that comes with losing a right part counts only under keeps-right. When the edit adds a new flaw, name its kind in new_flaw_tag.",
+      "Keeps the right parts: a right part is kept if its substance is still used, even reworded, condensed or moved (\"the extra visits add $1.2M\" keeps \"40% joined and visited 12% more\"). Deleting it, or changing it so it is no longer right, fails.",
+      "Judge each check on its own. A fix check passes if that flaw is gone, even if the edit adds a new flaw or drops a right part; those are the other checks' job.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check.",
+      "A good hypothesis names one specific cause as the lead and the driver it works through, uses at least one given fact and contradicts none, says what data would confirm or reject it, and is framed as something to test.",
+      "Restating the facts (\"revenue fell while volume held\", the same as a ratio such as \"conversion fell\", or a number worked out from them such as \"passengers fell about 9%\") is fixed only when a cause is named; a ratio or a worked-out number is not a cause. Listing several causes is fixed only when one leads. Stating a cause as settled fact, or jumping to a fix, is fixed only when it is framed as something to test: hedged words or framing (\"probably\", \"likely\", \"might\", \"my hypothesis is\", \"I'd test\") frame it so, even when several causes are listed, since whether one leads is the shotgun check's job. A vague cause is fixed when it is replaced by a specific cause that data could confirm or reject. Ignoring or contradicting a fact is fixed only when the cause fits all the given facts.",
+      "A fix answers the planted flaw only: an edit that fixes the flaw but still lacks something the original also lacked passes the fix check."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-15",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

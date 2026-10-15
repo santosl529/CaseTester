@@ -1,0 +1,110 @@
+{
+  "item_id": "sy3-0025",
+  "version": 1,
+  "drill_id": "SY-3",
+  "status": "draft",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence"
+  ],
+  "case_type": "investment_decision",
+  "industry": "Healthcare Provider / Payor",
+  "prompt": "The client asks: \"Should the hospital build a new surgical wing?\" Fact sheet: the wing costs $120M and adds 8 operating rooms; current operating rooms run at 95% with a 6-week waitlist; each operating room earns about $3M a year in profit; the hurdle is a 7-year payback; the chief of surgery has pushed for the wing for years.\n\nA candidate gave the recommendation below. Fix it.",
+  "exhibit": null,
+  "input": {
+    "type": "free_text",
+    "max_words": 80
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "fix_1",
+      "question": "The original had this flaw: the recommendation comes last instead of first. Does the edited answer fix it? One way to fix it: opens with the recommendation to build the wing. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "weight": 0.25,
+      "fail_tag": "M.buried_recommendation",
+      "feedback": "The flaw is still there: the recommendation comes last instead of first.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "fix_2",
+      "question": "The original had this flaw: it leans on a fact that doesn't bear on the decision: the chief of surgery's support. Does the edited answer fix it? One way to fix it: removes the chief of surgery's support, or mentions it only to dismiss it. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "weight": 0.25,
+      "fail_tag": "M.irrelevant_facts",
+      "feedback": "The flaw is still there: it leans on a fact that doesn't bear on the decision: the chief of surgery's support.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "no_new_flaw",
+      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: buried recommendation, hedged recommendation, irrelevant facts, unsupported recommendation, ignored the deciding fact? The original's own flaws (the recommendation comes last instead of first; it leans on a fact that doesn't bear on the decision: the chief of surgery's support) don't count as new, even if the edit leaves them in place or rewords them, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
+      "weight": 0.3,
+      "fail_tag": "M.buried_recommendation",
+      "feedback": "Your edit added a new flaw. Change only what needs fixing.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "keeps_right",
+      "question": "Does the edit keep the substance of each part of the original that was right: the facts it uses: rooms at 95% with a 6-week waitlist, and 8 rooms earning about $24M a year to repay $120M in 5 years? Rewording or condensing a part is fine; dropping one fails.",
+      "weight": 0.2,
+      "fail_tag": "M.unsupported_recommendation",
+      "feedback": "Keep what was already right: the facts it uses: rooms at 95% with a 6-week waitlist, and 8 rooms earning about $24M a year to repay $120M in 5 years.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    }
+  ],
+  "red_flags": [],
+  "model_answer": "Build the surgical wing. Operating rooms run at 95% with a 6-week waitlist, and 8 more rooms at about $3M a year each earn $24M, repaying the $120M in 5 years, inside the 7-year hurdle.",
+  "explanation": "The flaws: the recommendation comes last instead of first; it leans on a fact that doesn't bear on the decision: the chief of surgery's support. What was right: the facts it uses: rooms at 95% with a 6-week waitlist, and 8 rooms earning about $24M a year to repay $120M in 5 years.",
+  "extras": {
+    "derived_from": "sy1-0017",
+    "flawed_answer": "Operating rooms run at 95% with a 6-week waitlist, and 8 new rooms would earn about $24M a year, repaying $120M in 5 years. The chief of surgery has also pushed for the wing for years. The hospital should build it.",
+    "flaws": [
+      {
+        "tag": "M.buried_recommendation",
+        "hint": "the recommendation comes last instead of first",
+        "fix": "opens with the recommendation to build the wing"
+      },
+      {
+        "tag": "M.irrelevant_facts",
+        "hint": "it leans on a fact that doesn't bear on the decision: the chief of surgery's support",
+        "fix": "removes the chief of surgery's support, or mentions it only to dismiss it"
+      }
+    ],
+    "right_parts": "the facts it uses: rooms at 95% with a 6-week waitlist, and 8 rooms earning about $24M a year to repay $120M in 5 years",
+    "grading_rules": [
+      "Compare the edited answer with the original answer. Judge the edited answer as a whole, as an interviewer would read it.",
+      "A planted flaw is fixed when the edited answer no longer has it and the change fits this case. Rewording the flaw without removing it does not fix it. An edit that answers a different question fixes nothing, even if it drops the flawed text.",
+      "A new flaw is one the original did not have, of the kinds listed. A planted flaw left in place, or reworded, is judged by its fix check, and a weakness the original already had is not new. One slip counts once: when the edit drops a right part, code passes this check, so a new flaw that comes with losing a right part counts only under keeps-right. When the edit adds a new flaw, name its kind in new_flaw_tag.",
+      "Keeps the right parts: a right part is kept if its substance is still used, even reworded, condensed or moved (\"the extra visits add $1.2M\" keeps \"40% joined and visited 12% more\"). Deleting it, or changing it so it is no longer right, fails.",
+      "Judge each check on its own. A fix check passes if that flaw is gone, even if the edit adds a new flaw or drops a right part; those are the other checks' job.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check.",
+      "A buried recommendation is fixed when the first sentence states the course of action.",
+      "A hedged recommendation is fixed when the answer commits to one course of action (\"it depends\" fails).",
+      "Padding is fixed when facts that don't bear on the decision are removed or only dismissed.",
+      "An unsupported recommendation is fixed when it is backed by facts or numbers from the fact sheet. Ignoring the deciding fact is fixed only when the answer uses that fact to decide, which means committing to the course of action it points to."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-15",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

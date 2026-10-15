@@ -1,8 +1,8 @@
 {
   "item_id": "sy1-0012",
-  "version": 2,
+  "version": 3,
   "drill_id": "SY-1",
-  "status": "live",
+  "status": "draft",
   "level": 1,
   "tier": 2,
   "skills": [
@@ -12,7 +12,7 @@
   ],
   "case_type": "market_entry",
   "industry": "Airlines / Travel / Hospitality",
-  "prompt": "The client asks: \"Should we open restaurants in Texas?\" Fact sheet: the Texas market is worth $2B and growing 6% a year; the top three players hold 20% share; each restaurant costs $1.5M and pays back in 3 years; our hurdle is a 4-year payback; we run 50 restaurants in California; one of our managers grew up in Texas. Which is the best recommendation?",
+  "prompt": "The client asks: \"Should we open restaurants in Texas?\" Fact sheet: the Texas market is worth $2B and growing 6% a year; the top three players hold 20% share; each restaurant costs $1.5M and pays back in 3 years; our hurdle is a 4-year payback; we run 50 restaurants in California; our California restaurants' sales grew 2% last year. Which is the best recommendation?",
   "exhibit": null,
   "input": {
     "type": "single_choice"
@@ -34,10 +34,10 @@
     },
     {
       "id": "c",
-      "text": "Enter Texas. One of our managers grew up there, knows the market and can lead the first openings.",
+      "text": "Enter Texas. Our California sales grew only 2% last year, so we need a new market to grow.",
       "correct": false,
       "tag": "M.irrelevant_facts",
-      "feedback": "One manager's background doesn't make the case. The market and payback do."
+      "feedback": "California's growth doesn't make Texas pay. Texas is a $2B market growing 6% a year, and each restaurant pays back in 3 years, inside the 4-year hurdle."
     },
     {
       "id": "d",
@@ -54,18 +54,19 @@
   "extras": {
     "answer_type": "recommendation",
     "irrelevant_facts": [
-      "One of our managers grew up in Texas."
+      "Our California restaurants' sales grew 2% last year."
     ]
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-10",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-10"
+    "similarity_checked_at": "2026-10-15",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

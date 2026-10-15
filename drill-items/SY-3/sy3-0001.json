@@ -67,7 +67,7 @@
     "right_parts": "the revenue math (about 10% more, $1.1M a month) and the rivals' $22–28 range",
     "grading_rules": [
       "Compare the edited answer with the original answer. Judge the edited answer as a whole, as an interviewer would read it.",
-      "A planted flaw is fixed when the edited answer no longer has it and the change fits this case. Rewording the flaw without removing it does not fix it.",
+      "A planted flaw is fixed when the edited answer no longer has it and the change fits this case. Rewording the flaw without removing it does not fix it. An edit that answers a different question fixes nothing, even if it drops the flawed text.",
       "A new flaw is one the original did not have, of the kinds listed. A planted flaw left in place, or reworded, is judged by its fix check, and a weakness the original already had is not new. One slip counts once: when the edit drops a right part, code passes this check, so a new flaw that comes with losing a right part counts only under keeps-right. When the edit adds a new flaw, name its kind in new_flaw_tag.",
       "Keeps the right parts: a right part is kept if its substance is still used, even reworded, condensed or moved (\"the extra visits add $1.2M\" keeps \"40% joined and visited 12% more\"). Deleting it, or changing it so it is no longer right, fails.",
       "Judge each check on its own. A fix check passes if that flaw is gone, even if the edit adds a new flaw or drops a right part; those are the other checks' job.",
