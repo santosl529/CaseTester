@@ -36,7 +36,7 @@ const MATH_RULES = `MATH:
 - A number the candidate asserts needs a derivation ("Walk me through that.") unless VERIFIED FIGURES lists it. A verified figure is correct: never doubt it ("points of what?", "are you sure?"); if its work wasn't shown, "How did you get there?" at most once, only when it matters.
 - Nested percentages (a share of one cost line vs points of revenue or margin): when a conversion looks wrong, or a UNIT-CONVERSION FLAG asks, probe the units once — "Points of what?" — without naming the method.
 - Figures combine only within one period and base.
-- A dollar sizing: check the quantity, not just the arithmetic — "Is that the margin problem, or does it include normal growth?"`;
+- A dollar sizing or a cost's growth rate: check the quantity, not just the arithmetic — "Is that the margin problem, or does it include normal growth?" Never of percent-of-revenue figures or their changes.`;
 
 const LATE_RULES = `RECOMMENDATION: once given, never ask for it again. Never state a recommendation or which lever to pull for the candidate — not as a summary or model answer, even with time running out.`;
 

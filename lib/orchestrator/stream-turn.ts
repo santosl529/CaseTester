@@ -7,6 +7,7 @@
 // turn-data.ts) is delivered. The question is never delivered here: Settle
 // sends it with the tail. Nothing is delivered before the distress verdict
 // (D1). Stream never books a reveal; Settle books what was delivered (D3).
+import { growthProbeOnRatio } from './growth-probe';
 import type { TurnTimer } from './turn-timer';
 import type { TurnEvent, TurnValidation } from '@/lib/agent/models/interface';
 import { toRequests, type ModelTurn } from '@/lib/agent/models/turn-schema';
@@ -45,6 +46,7 @@ export type GateContext = {
   phase: Phase;
   acknowledged?: boolean;  // voice already spoke a backchannel this turn
   metaAsked?: boolean;     // the candidate asked how they're assessed (a report hand-off may answer it)
+  candidateMessage?: string; // the message this turn answers (the growth probe reads its claim)
   // The truth check (fact-check.ts F1): the case's facts, what has been
   // revealed (ids), and the figures of misquotes still standing.
   facts?: { fb: FactBase; revealed: Set<string>; echoes: Echo[]; correcting?: Echo[]; delivery?: DeliveryContext };
@@ -121,6 +123,8 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   }, new Set(), opts.previous);
   if (challenge && !('explainKey' in challenge)) return challenge.test === 'unsupported_challenge' ? 'unsupported_challenge' : 'probe_guard';
   if (withholdAssumptionChallenges(sentence, g.openItems).withheld.length > 0) return 'assumption_guard';
+  // "…the margin problem, or cost that grew with revenue?" only of a dollar or growth-rate claim (growth-probe.ts; Lorenzo, 15 Oct).
+  if (growthProbeOnRatio(sentence, opts.previous, g.candidateMessage ?? '')) return 'growth_probe_on_ratio';
   if ((hasCloseCue(sentence) || isClosingTurn(sentence)) && !(g.metaAsked && isReportAnswer(sentence))) return 'close_cue';
   // Rule 1: no verdict on their work, in "say" or the question (grading.ts).
   if (isGradingSentence(sentence)) return 'grading';
@@ -162,6 +166,7 @@ export function gateContext(plan: ModelPlan, extraRevealed: string[] = [], extra
     acknowledged: Boolean(ctx.acknowledged),
     // Only on a turn the case continues past (model turns are never the close).
     metaAsked: state.kind === 'model' && asksAboutAssessment(ctx.candidateText),
+    candidateMessage: ctx.candidateText,
     facts: {
       fb: state.factBase, revealed: revealedIds, echoes: state.factEchoes,
       // The figures of the items code corrects this turn: unsayable, probe or not.

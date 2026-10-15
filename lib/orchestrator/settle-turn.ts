@@ -275,7 +275,9 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // (Jasmine 35897f4a t18 "That's all I have on the case.") — is replaced by one that fits the phase
   // (after whatever statement of the question is left: "Per-unit costs aren't
   // something I have directly." still needs a question after it).
-  if (!codeWritten && kind !== 'rec_ask' && !question.trim().endsWith('?') && withheld.some(w => w.field === 'question' && (w.reason === 'false_fact' || w.reason === 'undelivered_claim' || w.reason === 'false_refusal' || w.reason === 'close_cue'))) {
+  if (!codeWritten && kind !== 'rec_ask' && !question.trim().endsWith('?') && withheld.some(w => w.field === 'question' && (w.reason === 'false_fact' || w.reason === 'undelivered_claim' || w.reason === 'false_refusal' || w.reason === 'close_cue'
+      // A withheld growth probe (growth-probe.ts) leaves an ask when "Walk me through it." stays.
+      || (w.reason === 'growth_probe_on_ratio' && !/\b(?:walk|talk) me through\b|\btell me\b/i.test(question))))) {
     const fallback = pickFallbackQuestion({ figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
     modelQuestion = question;
     question = question ? `${question} ${fallback}` : fallback;
