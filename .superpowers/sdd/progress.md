@@ -6,8 +6,8 @@
 - **Live per case:** prof-001 — step flags live (`stepFlagsLive`), ledger lookup report-only, 20 min, exhibit required (15 Oct). prof-002 Larkspur — step flags and ledger lookup report-only, 25 min. entry-001, pricing-001, launch-001 — report-only, 20 min. The math checker runs on every case.
 - **Pass bar (batch 27, as batch 26):** zero false facts or false corrections; zero firm serious failures; zero dropped errors (the last message before time-up excepted, and flags that don't change the conclusion and close at the close); firm moderate faults ≤ 2 per interview, borderlines apart, last-message D6s not counted (Lorenzo, 15 Oct).
 - **Go/no-go (Lorenzo, fixed in advance):** any false statement or any firm serious failure = no go; otherwise the build goes to the club, even with dropped errors or moderate faults.
-- **Lorenzo ruled on the batch-26 fix report (15 Oct; "Rulings round (batch 26)" below):** the deadlines approved; build 2 (a late recommendation ask also asks the risk), 5 (a due stage question beats the checker line), 6 ("overhead including rent"); the new cases' 3-minute recommendation + risk + close logged for before their wave; batch 27 go.
-- **Next:** builds 2, 5, 6 done (15 Oct; "Rulings round (batch 26)"); batch 27 — prof-001, personas 10, 14, 57, 53, 40, 19, 24, 15, 54, 7, Sofia and Jordan scored, cap $10 (≈ $6), dry run first, then the wave under `caffeinate -i`; then hand-grade (`.superpowers/sdd/next-session-prompt-b26-rulings.md` has the steps).
+- **Batch 27 (15 Oct, 1382a46, $5.70):** 10 ok; Claude's grade 19 faults (1.9/interview; 5 firm incl. 2 last-message D6s, 14 borderline); no F1, no false correction, no firm serious failure, no dropped error, ≤ 1 firm moderate per run — **go by the decision rule, and the pass bar met** (`Case Interview Runs/test runs/batch-27/hand-grading.md`).
+- **Waiting on Lorenzo:** his independent grade of batch 27, and the go to the club; nine findings in PRD §15 "After batch 27" (none fixed).
 - **Paid runs:** each wave needs Lorenzo's explicit go-ahead and a cap, one wave at a time, with a cost estimate.
 
 ## Rules in force
@@ -38,6 +38,7 @@
 | 24 | 14 Oct | prof-001 | 83ed9a9 | $6.39 | 1.8 | 1 false correction (Marcus t10) | 0 (3 borderline) | Fail |
 | 25 | 15 Oct | prof-001 | 6550fce | $6.09 | 2.4 | 0 | 0 (2 borderline) | Fail (dropped errors) |
 | 26 | 15 Oct | prof-001 | 770e95e | $5.93 | 2.4 (corrected) | 0 | 2 (Blake stages, Jasmine "5 points") | Fail |
+| 27 | 15 Oct | prof-001 | 1382a46 | $5.70 | 1.9 (Claude's grade) | 0 | 0 (1 borderline: Jordan's 38%) | Pass; go (awaiting Lorenzo's grade) |
 
 ## Fix rounds (full text in `progress-archive.md`)
 Post-plan hardening (July–Sep 2026) through Integration (13 Oct) were moved to `progress-archive.md` verbatim on 15 Oct; the rounds below moved there the same day (restructure), one line each here.
@@ -50,6 +51,12 @@ Post-plan hardening (July–Sep 2026) through Integration (13 Oct) were moved to
 - Batch-24 fixes (14–15 Oct): concessions withdraw only their claim; misquotes are figures stated as fact; COGS-by-input releases all three; given recommendations count; risk wordings; rhetorical questions at the close.
 - Batch-25 fixes (15 Oct): COGS split from the asking sentence; fixed claims not re-probed; relative-change correction; ordered plan = recommendation; stated variable share in pricing; "worth checking" is a need; transaction volume → ticket; later "correct" closes a flag only if code agrees.
 - Batch 23–25 records moved too: the table above has their numbers.
+
+## Batch 27 (15 Oct) — prof-001 wave after the batch-26 rulings builds
+- **Run:** `batch-27-oct-15-runs-1-10`, from `fact-guards` 1382a46 under `caffeinate -i`, personas 10, 14, 57, 53, 40, 19, 24, 15, 54, 7, scored 10 and 14. $5.70 (cap $10; estimate $6.00): simulator $2.28, Sonnet $2.25, Opus scoring $0.92, classifiers $0.25. 10 ok, 0 failed, no warnings; 101 checker verdicts, 59 flag rows, no errors/timeouts (max 16.1 s). Stage minutes: every run reached every stage before time-up (the script's "owing risk" for Blake and Marcus misreads their risk asks); closes 8:36–18:36.
+- **Hand grading** (`Case Interview Runs/test runs/batch-27/hand-grading.md`): 19 faults, 1.9/interview (5 firm incl. 2 last-message D6s, 14 borderline) — D2 1, D6 7, D8 4, D9 6, other 1. Serious: none firm; Jordan's "38% to pass through" in his risk answer borderline. Pass bar: all four lines met. Decision rule: go.
+- **Fixes live:** no stage deadline, time warning, late ask or held line was needed this wave; 15 checker lines heard (10 by code, 5 by the model), none unheard; no growth probe; one harmless concession overreach (Sofia t9).
+- **Findings for Lorenzo:** PRD §15 "After batch 27" (nine; the biggest: a bare "Walk me through that calculation." loses its referent; "most of the gap" claims never flagged; transaction-volume asks answered with revenue per store).
 
 ## Rulings round (batch 26) (15 Oct; Lorenzo's rulings on the batch-26 fix report; branch `larkspur-fixes`; free)
 1. **The extra stage deadlines approved** (core analysis, brainstorm, recommendation ask; each yields one turn to a math or misquote line) — his decision.
