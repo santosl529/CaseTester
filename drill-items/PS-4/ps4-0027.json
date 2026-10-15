@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: the next-season bucket doesn't belong: next season's sales can't explain why shipping slowed this year. Does the edited answer fix it? One way to fix it: removes it, or replaces it with something that could explain the slowdown, such as staffing or equipment. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: the next-season bucket doesn't belong: next season's sales can't explain why shipping slowed this year. Does the edited answer fix it? One way to fix it: removes it, or replaces it with something that could explain the slowdown, such as staffing or equipment. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.irrelevant_bucket",
       "feedback": "The flaw is still there: the next-season bucket doesn't belong: next season's sales can't explain why shipping slowed this year.",

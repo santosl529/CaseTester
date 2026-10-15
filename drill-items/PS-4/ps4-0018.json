@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: the launch-ads bucket doesn't belong: choosing an athlete matters only once the launch is decided. Does the edited answer fix it? One way to fix it: removes the launch-ads bucket, or replaces it with something that bears on the decision, such as price and margin. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: the launch-ads bucket doesn't belong: choosing an athlete matters only once the launch is decided. Does the edited answer fix it? One way to fix it: removes the launch-ads bucket, or replaces it with something that bears on the decision, such as price and margin. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.irrelevant_bucket",
       "feedback": "The flaw is still there: the launch-ads bucket doesn't belong: choosing an athlete matters only once the launch is decided.",

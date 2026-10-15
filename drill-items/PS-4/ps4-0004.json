@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: the labor and staffing buckets overlap: staffing levels drive labor cost. Does the edited answer fix it? One way to fix it: folds crew schedules and staffing levels into the labor bucket, as drivers of labor cost. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: the labor and staffing buckets overlap: staffing levels drive labor cost. Does the edited answer fix it? One way to fix it: folds crew schedules and staffing levels into the labor bucket, as drivers of labor cost. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.overlapping_buckets",
       "feedback": "The flaw is still there: the labor and staffing buckets overlap: staffing levels drive labor cost.",

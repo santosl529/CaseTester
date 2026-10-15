@@ -22,7 +22,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: the recommendation comes last instead of first. Does the edited answer fix it? One way to fix it: opens with the recommendation not to invest now, then gives the facts. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: the recommendation comes last instead of first. Does the edited answer fix it? One way to fix it: opens with the recommendation not to invest now, then gives the facts. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.buried_recommendation",
       "feedback": "The flaw is still there: the recommendation comes last instead of first.",

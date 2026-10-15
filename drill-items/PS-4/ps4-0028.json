@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: the announcement bucket doesn't belong: announcing the deal comes after deciding it. Does the edited answer fix it? One way to fix it: removes it, or replaces it with something that bears on the decision, such as the price and integration costs. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: the announcement bucket doesn't belong: announcing the deal comes after deciding it. Does the edited answer fix it? One way to fix it: removes it, or replaces it with something that bears on the decision, such as the price and integration costs. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.irrelevant_bucket",
       "feedback": "The flaw is still there: the announcement bucket doesn't belong: announcing the deal comes after deciding it.",

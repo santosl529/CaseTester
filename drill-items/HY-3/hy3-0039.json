@@ -21,7 +21,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it is too vague to test, and it never says why waits doubled. Does the edited answer fix it? One way to fix it: replaces it with a specific cause that fits the facts and that data could test, such as the clinic running near full capacity. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it is too vague to test, and it never says why waits doubled. Does the edited answer fix it? One way to fix it: replaces it with a specific cause that fits the facts and that data could test, such as the clinic running near full capacity. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.untestable_hypothesis",
       "feedback": "The flaw is still there: it is too vague to test, and it never says why waits doubled.",

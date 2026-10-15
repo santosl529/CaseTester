@@ -24,17 +24,17 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: the guest satisfaction bucket doesn't belong: last year's scores aren't a cost that can be cut. Does the edited answer fix it? One way to fix it: removes the guest satisfaction bucket, or replaces it with a cost area such as maintenance or overhead. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: the guest satisfaction bucket doesn't belong: survey scores and reviews aren't costs the chain can cut. Does the edited answer fix it? One way to fix it: removes the guest satisfaction bucket, with or without a cost area such as maintenance in its place. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.irrelevant_bucket",
-      "feedback": "The flaw is still there: the guest satisfaction bucket doesn't belong: last year's scores aren't a cost that can be cut.",
+      "feedback": "The flaw is still there: the guest satisfaction bucket doesn't belong: survey scores and reviews aren't costs the chain can cut.",
       "step": 0,
       "detection": "ai",
       "evidence": "whole"
     },
     {
       "check_id": "no_new_flaw",
-      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: overlapping buckets, missing bucket, irrelevant bucket, generic framework, shallow structure? The original's own flaw (the guest satisfaction bucket doesn't belong: last year's scores aren't a cost that can be cut) doesn't count as new, even if the edit leaves it in place or rewords it, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
+      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: overlapping buckets, missing bucket, irrelevant bucket, generic framework, shallow structure? The original's own flaw (the guest satisfaction bucket doesn't belong: survey scores and reviews aren't costs the chain can cut) doesn't count as new, even if the edit leaves it in place or rewords it, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
       "weight": 0.3,
       "fail_tag": "M.overlapping_buckets",
       "feedback": "Your edit added a new flaw. Change only what needs fixing.",
@@ -54,16 +54,16 @@
     }
   ],
   "red_flags": [],
-  "model_answer": "Staff: housekeeping; front desk; overtime\nEnergy: heating and cooling; lighting\nSupplies and laundry: toiletries; washing linen\nMaintenance and overhead: repairs; head-office costs",
-  "explanation": "The flaw: the guest satisfaction bucket doesn't belong: last year's scores aren't a cost that can be cut. What was right: the staff, energy, and supplies and laundry buckets.",
+  "model_answer": "Staff: housekeeping; front desk; overtime\nEnergy: heating and cooling; lighting\nSupplies and laundry: toiletries; washing linen\nMaintenance: repair call-outs per hotel; equipment service contracts",
+  "explanation": "The flaw: the guest satisfaction bucket doesn't belong: survey scores and reviews aren't costs the chain can cut. What was right: the staff, energy, and supplies and laundry buckets.",
   "extras": {
     "derived_from": "ps1-0025",
     "flawed_answer": "Staff: housekeeping; front desk; overtime\nEnergy: heating and cooling; lighting\nGuest satisfaction: last year's survey scores; online reviews\nSupplies and laundry: toiletries; washing linen",
     "flaws": [
       {
         "tag": "M.irrelevant_bucket",
-        "hint": "the guest satisfaction bucket doesn't belong: last year's scores aren't a cost that can be cut",
-        "fix": "removes the guest satisfaction bucket, or replaces it with a cost area such as maintenance or overhead"
+        "hint": "the guest satisfaction bucket doesn't belong: survey scores and reviews aren't costs the chain can cut",
+        "fix": "removes the guest satisfaction bucket, with or without a cost area such as maintenance in its place"
       }
     ],
     "right_parts": "the staff, energy, and supplies and laundry buckets",
@@ -86,10 +86,10 @@
     "drafting_model": null,
     "reviewed_by": null,
     "reviewed_at": null,
-    "similarity_check": "passed",
+    "similarity_check": "pending",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-15",
-    "similarity_method": "web"
+    "similarity_checked_at": null,
+    "similarity_method": null
   },
   "generator": null,
   "is_example": false,

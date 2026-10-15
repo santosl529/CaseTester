@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: the ingredient-cost bucket doesn't belong: cheaper ingredients don't grow revenue. Does the edited answer fix it? One way to fix it: removes the ingredient-cost bucket, or replaces it with a revenue lever such as price. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: the ingredient-cost bucket doesn't belong: cheaper ingredients don't grow revenue. Does the edited answer fix it? One way to fix it: removes the ingredient-cost bucket, or replaces it with a revenue lever such as price. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.irrelevant_bucket",
       "feedback": "The flaw is still there: the ingredient-cost bucket doesn't belong: cheaper ingredients don't grow revenue.",

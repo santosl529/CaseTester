@@ -2,9 +2,10 @@
 // (docs/drills-content-templates README) into /drill-items (questions) and
 // /drill-golden (graded sample answers). Re-running is safe: draft items are
 // rewritten; an item that is already in review or live is never overwritten
-// (edit it, bump its version). The one exception: a reviewed item that only
-// gains or changes its Defend follow-up (defend.csv) is written as a new draft
-// version, keeping its similarity check, for review.
+// (edit it, bump its version). The one exception: a reviewed item whose only
+// changes are ones students never see (its Defend follow-up from defend.csv,
+// its grading rules, or the wording of its check questions) is written as a
+// new draft version, keeping its similarity check, for review.
 //
 //   npm run drills:import -- <folder with the CSVs> [--include-examples] [--dry-run]
 import fs from 'fs';
@@ -34,7 +35,13 @@ const { items, golden, problems } = importContent(tables, { includeExamples, sou
 
 // An item's content, apart from its review state, industry tag and version.
 const content = (i: Record<string, unknown>) => JSON.stringify({ ...i, status: undefined, authorship: undefined, version: undefined, industry: undefined });
-const withoutDefend = (i: Record<string, unknown>) => content({ ...i, defend: undefined });
+// What students see: the item without its follow-up, grading rules or check
+// questions (the grader's text).
+const studentFacing = (i: Record<string, unknown>) => {
+  const extras = { ...(i.extras as Record<string, unknown>), grading_rules: undefined };
+  const checks = (i.checks as Record<string, unknown>[] | undefined)?.map(c => ({ ...c, question: undefined }));
+  return content({ ...i, defend: undefined, extras, checks });
+};
 // The new file in the old file's key order, so a review diff shows only what changed.
 const inOrder = (existing: Record<string, unknown>, item: Record<string, unknown>) =>
   Object.fromEntries([...new Set([...Object.keys(existing), ...Object.keys(item)])].filter(k => item[k] !== undefined).map(k => [k, item[k]]));
@@ -45,9 +52,10 @@ for (const item of items) {
   if (fs.existsSync(file)) {
     const existing = JSON.parse(fs.readFileSync(file, 'utf-8'));
     if (existing.status !== 'draft') {
-      if (content(existing) !== content(item) && withoutDefend(existing) === withoutDefend(item)) {
-        // Only the Defend follow-up changed: a new draft version for review.
-        // The case is unchanged, so its similarity check carries over.
+      if (content(existing) !== content(item) && studentFacing(existing) === studentFacing(item)) {
+        // Only grader-facing text changed (follow-up, rules, check questions):
+        // a new draft version for review. The case is unchanged, so its
+        // similarity check carries over.
         Object.assign(item, {
           version: existing.version + 1, industry: existing.industry,
           authorship: { ...existing.authorship, author_of_record: 'Draft — awaiting human review', drafting_model: 'claude-opus-5-5', reviewed_by: null, reviewed_at: null },

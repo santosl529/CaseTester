@@ -22,7 +22,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it backs the recommendation with no facts from the fact sheet. Does the edited answer fix it? One way to fix it: backs it with the numbers that decide it: about $6,000 of extra tax and $4,000 of lower benefits for each $5,000 spent. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it backs the recommendation with no facts from the fact sheet. Does the edited answer fix it? One way to fix it: backs it with the numbers that decide it: about $6,000 of extra tax and $4,000 of lower benefits for each $5,000 spent. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.unsupported_recommendation",
       "feedback": "The flaw is still there: it backs the recommendation with no facts from the fact sheet.",

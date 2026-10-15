@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it misses how many dog owners pay for walks, and how often. Does the edited answer fix it? One way to fix it: adds a bucket or sub-points on the share of dog owners using paid walkers and how many walks a year they buy. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it misses how many dog owners pay for walks, and how often. Does the edited answer fix it? One way to fix it: adds a bucket or sub-points on the share of dog owners using paid walkers and how many walks a year they buy. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.missing_bucket",
       "feedback": "The flaw is still there: it misses how many dog owners pay for walks, and how often.",

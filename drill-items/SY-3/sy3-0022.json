@@ -22,7 +22,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it ignores the deciding fact: owning the distributor also saves the $4M a year we pay it in fees. Does the edited answer fix it? One way to fix it: counts the $4M of fees saved, which brings payback under 6 years and means buying. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it ignores the deciding fact: owning the distributor also saves the $4M a year we pay it in fees. Does the edited answer fix it? One way to fix it: counts the $4M of fees saved, which brings payback under 6 years and means buying. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.ignores_deciding_fact",
       "feedback": "The flaw is still there: it ignores the deciding fact: owning the distributor also saves the $4M a year we pay it in fees.",

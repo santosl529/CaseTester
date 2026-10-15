@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: the opening-campaign bucket doesn't belong: promotion won't decide whether to build. Does the edited answer fix it? One way to fix it: removes it, or replaces it with something that bears on the decision. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: the opening-campaign bucket doesn't belong: promotion won't decide whether to build. Does the edited answer fix it? One way to fix it: removes it, or replaces it with something that bears on the decision. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.25,
       "fail_tag": "M.irrelevant_bucket",
       "feedback": "The flaw is still there: the opening-campaign bucket doesn't belong: promotion won't decide whether to build.",
@@ -34,7 +34,7 @@
     },
     {
       "check_id": "fix_2",
-      "question": "The original had this flaw: it misses the yearly cost of running the pool: staff, heating, water and upkeep. Does the edited answer fix it? One way to fix it: adds a bucket or sub-points on running costs, such as lifeguards, heating and upkeep. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it misses the yearly cost of running the pool: staff, heating, water and upkeep. Does the edited answer fix it? One way to fix it: adds a bucket or sub-points on running costs, such as lifeguards, heating and upkeep. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.25,
       "fail_tag": "M.missing_bucket",
       "feedback": "The flaw is still there: it misses the yearly cost of running the pool: staff, heating, water and upkeep.",

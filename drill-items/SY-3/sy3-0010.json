@@ -22,7 +22,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: the recommendation comes last instead of first. Does the edited answer fix it? One way to fix it: opens with the recommendation to sell the division for $50M. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: the recommendation comes last instead of first. Does the edited answer fix it? One way to fix it: opens with the recommendation to sell the division for $50M. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.25,
       "fail_tag": "M.buried_recommendation",
       "feedback": "The flaw is still there: the recommendation comes last instead of first.",
@@ -32,7 +32,7 @@
     },
     {
       "check_id": "fix_2",
-      "question": "The original had this flaw: it leans on a fact that doesn't bear on the decision: what the group paid for the division in 2015. Does the edited answer fix it? One way to fix it: removes the 2015 purchase price, or mentions it only to dismiss it. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it leans on a fact that doesn't bear on the decision: what the group paid for the division in 2015. Does the edited answer fix it? One way to fix it: removes the 2015 purchase price, or mentions it only to dismiss it. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.25,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "The flaw is still there: it leans on a fact that doesn't bear on the decision: what the group paid for the division in 2015.",

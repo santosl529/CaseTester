@@ -30,8 +30,11 @@ import type { ItemGrade } from './apply';
 // backstop in apply.ts); HY-2 data requests need one of a cut, comparison or
 // period and are judged on their own; Justify facts need only support the
 // pick; Challenge reasons are judged as written whatever the decision; HY-3
-// hedged words count as framing, and ratios aren't causes.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v30';
+// hedged words count as framing, and ratios aren't causes. v31 aligns the
+// check questions with those rules (Repair fix, HY-2 data request and
+// consistency, Challenge restatement), shows the Challenge choice as a bare
+// Hold or Update, and counts a misstated SY-2 fact as a reason.
+export const GRADER_PROMPT_VERSION = 'drills-grader-v31';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 
@@ -171,7 +174,9 @@ export function buildDefendBlock(e: GradingEntry): string {
   ];
   if (d.decision >= 0) {
     const r = steps[d.decision]?.response;
-    const chose = r?.type === 'choice' ? spec[d.decision].choices?.find(c => c.id === r.option_id)?.text ?? r.option_id : '(none)';
+    // The bare choice ("Hold" or "Update"), not the button's label, which the
+    // grader once quoted as the reply restating the recommendation.
+    const chose = r?.type === 'choice' ? r.option_id.charAt(0).toUpperCase() + r.option_id.slice(1) : '(none)';
     parts.push(`<student_decision>${chose}</student_decision>`);
   }
   parts.push(`<student_answer>\n${fence(answerText(steps[d.reply]?.response ?? { type: 'empty' })) || '(blank)'}\n</student_answer>`, '</item>');

@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it's a generic SWOT: it doesn't organize the price around what moviegoers would pay, rivals' prices and the seat's cost. Does the edited answer fix it? One way to fix it: replaces the SWOT with pricing buckets: willingness to pay, competitors' premium seats, the cost of seats and space, and cannibalization of regular seats. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it's a generic SWOT: it doesn't organize the price around what moviegoers would pay, rivals' prices and the seat's cost. Does the edited answer fix it? One way to fix it: replaces the SWOT with pricing buckets: willingness to pay, competitors' premium seats, the cost of seats and space, and cannibalization of regular seats. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.generic_framework",
       "feedback": "The flaw is still there: it's a generic SWOT: it doesn't organize the price around what moviegoers would pay, rivals' prices and the seat's cost.",

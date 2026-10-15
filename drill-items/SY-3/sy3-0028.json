@@ -22,7 +22,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it ignores the deciding fact: fewer errors save another $300k a year, bringing payback to about 3.6 years. Does the edited answer fix it? One way to fix it: counts the $300k of error savings, which brings payback inside the 4-year hurdle and means automating. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it ignores the deciding fact: fewer errors save another $300k a year, bringing payback to about 3.6 years. Does the edited answer fix it? One way to fix it: counts the $300k of error savings, which brings payback inside the 4-year hurdle and means automating. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.ignores_deciding_fact",
       "feedback": "The flaw is still there: it ignores the deciding fact: fewer errors save another $300k a year, bringing payback to about 3.6 years.",

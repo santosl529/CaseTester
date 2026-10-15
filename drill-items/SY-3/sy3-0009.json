@@ -22,7 +22,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it ignores the deciding fact: the extra visits add about $1.2M of profit, less than the $2M a year the program costs. Does the edited answer fix it? One way to fix it: uses the profit the extra visits add, about $1.2M against the $2M cost, to decide, which means not rolling it out as it is. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it ignores the deciding fact: the extra visits add about $1.2M of profit, less than the $2M a year the program costs. Does the edited answer fix it? One way to fix it: uses the profit the extra visits add, about $1.2M against the $2M cost, to decide, which means not rolling it out as it is. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.ignores_deciding_fact",
       "feedback": "The flaw is still there: it ignores the deciding fact: the extra visits add about $1.2M of profit, less than the $2M a year the program costs.",

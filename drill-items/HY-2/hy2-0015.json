@@ -202,7 +202,7 @@
     "checks": [
       {
         "check_id": "defend_data_request",
-        "question": "Does the reply name specific data that would test the hypothesis: a metric plus a cut, a comparison or a time period?",
+        "question": "Does the reply name specific data: a metric plus at least one of a cut, a comparison or a time period? Judge only that; whether the data fits the hypothesis is for the other checks.",
         "weight": 0.4,
         "fail_tag": "M.untestable_hypothesis",
         "feedback": "Name the specific data you would ask for.",
@@ -222,7 +222,7 @@
       },
       {
         "check_id": "defend_consistent",
-        "question": "Does the reply test the student's own hypothesis as it stands after stage 2?",
+        "question": "Do the reply's data request and drop result test the same cause as the student's hypothesis as it stands after stage 2? A vague request or a result that would confirm it is judged by the other checks, not here.",
         "weight": 0.25,
         "fail_tag": "M.inconsistent_defense",
         "feedback": "Test your own hypothesis, not a different one.",

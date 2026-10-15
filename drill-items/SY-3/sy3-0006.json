@@ -22,7 +22,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it pads the case with a fact that doesn't bear on the decision: the plant manager's tenure. Does the edited answer fix it? One way to fix it: removes the plant manager's tenure, or mentions it only to dismiss it. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it pads the case with a fact that doesn't bear on the decision: the plant manager's tenure. Does the edited answer fix it? One way to fix it: removes the plant manager's tenure, or mentions it only to dismiss it. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.irrelevant_facts",
       "feedback": "The flaw is still there: it pads the case with a fact that doesn't bear on the decision: the plant manager's tenure.",

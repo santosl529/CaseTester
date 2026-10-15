@@ -22,7 +22,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it ignores the deciding fact: break-even needs a 2% share, and the test reached only 1%. Does the edited answer fix it? One way to fix it: uses the 1% test share against the 2% needed to decide, which means holding off on the national launch. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it ignores the deciding fact: break-even needs a 2% share, and the test reached only 1%. Does the edited answer fix it? One way to fix it: uses the 1% test share against the 2% needed to decide, which means holding off on the national launch. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.ignores_deciding_fact",
       "feedback": "The flaw is still there: it ignores the deciding fact: break-even needs a 2% share, and the test reached only 1%.",

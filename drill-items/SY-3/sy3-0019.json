@@ -22,7 +22,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: its only reason, our record in California, doesn't show that Texas pays. Does the edited answer fix it? One way to fix it: backs the recommendation with the facts that decide it: a $2B market growing 6% a year, a fragmented field, and a 3-year payback inside the 4-year hurdle. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: its only reason, our record in California, doesn't show that Texas pays. Does the edited answer fix it? One way to fix it: backs the recommendation with the facts that decide it: a $2B market growing 6% a year, a fragmented field, and a 3-year payback inside the 4-year hurdle. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.unsupported_recommendation",
       "feedback": "The flaw is still there: its only reason, our record in California, doesn't show that Texas pays.",

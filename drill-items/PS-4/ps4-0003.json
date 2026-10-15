@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it misses late materials from suppliers, before production starts. Does the edited answer fix it? One way to fix it: adds a bucket or sub-points on suppliers: late or short deliveries of wood, fabric or parts. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it misses late materials from suppliers, before production starts. Does the edited answer fix it? One way to fix it: adds a bucket or sub-points on suppliers: late or short deliveries of wood, fabric or parts. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.missing_bucket",
       "feedback": "The flaw is still there: it misses late materials from suppliers, before production starts.",

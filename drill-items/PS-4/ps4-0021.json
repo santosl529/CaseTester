@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: the revenue-per-customer bucket overlaps the frequency and basket bucket: revenue per customer is frequency times basket. Does the edited answer fix it? One way to fix it: merges them into one revenue-per-customer bucket (orders, basket size, price), or replaces one with something missing, such as new channels. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: the revenue-per-customer bucket overlaps the frequency and basket bucket: revenue per customer is frequency times basket. Does the edited answer fix it? One way to fix it: merges them into one revenue-per-customer bucket (orders, basket size, price), or replaces one with something missing, such as new channels. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.overlapping_buckets",
       "feedback": "The flaw is still there: the revenue-per-customer bucket overlaps the frequency and basket bucket: revenue per customer is frequency times basket.",

@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it's a generic market-entry framework: it never asks what patients or insurers would pay. Does the edited answer fix it? One way to fix it: replaces it with pricing buckets: what patients and insurers would pay, competitors' prices, reimbursement rules and cost per visit. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it's a generic market-entry framework: it never asks what patients or insurers would pay. Does the edited answer fix it? One way to fix it: replaces it with pricing buckets: what patients and insurers would pay, competitors' prices, reimbursement rules and cost per visit. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.generic_framework",
       "feedback": "The flaw is still there: it's a generic market-entry framework: it never asks what patients or insurers would pay.",

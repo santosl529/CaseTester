@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: the lease bucket and the rent and revenue-sharing bucket overlap: both cover what the airport charges. Does the edited answer fix it? One way to fix it: puts what the airport charges (lease, rent and revenue share) in one bucket, so bucket 1 keeps only staff and supplies. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: the lease bucket and the rent and revenue-sharing bucket overlap: both cover what the airport charges. Does the edited answer fix it? One way to fix it: puts what the airport charges (lease, rent and revenue share) in one bucket, so bucket 1 keeps only staff and supplies. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.overlapping_buckets",
       "feedback": "The flaw is still there: the lease bucket and the rent and revenue-sharing bucket overlap: both cover what the airport charges.",

@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: the oven cost and upfront investment buckets overlap: the oven and its installation are the investment. Does the edited answer fix it? One way to fix it: merges them into one upfront-cost bucket (oven, installation, financing). Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: the oven cost and upfront investment buckets overlap: the oven and its installation are the investment. Does the edited answer fix it? One way to fix it: merges them into one upfront-cost bucket (oven, installation, financing). Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.overlapping_buckets",
       "feedback": "The flaw is still there: the oven cost and upfront investment buckets overlap: the oven and its installation are the investment.",

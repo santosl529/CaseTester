@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: the shopper traffic bucket repeats the revenue bucket: shoppers are part of revenue. Does the edited answer fix it? One way to fix it: folds visits by store into the revenue bucket and removes the traffic bucket, or replaces it with an area the framework lacks. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: the shopper traffic bucket repeats the revenue bucket: shoppers are part of revenue. Does the edited answer fix it? One way to fix it: folds visits by store into the revenue bucket and removes the traffic bucket, or replaces it with an area the framework lacks. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.overlapping_buckets",
       "feedback": "The flaw is still there: the shopper traffic bucket repeats the revenue bucket: shoppers are part of revenue.",

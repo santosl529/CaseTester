@@ -225,7 +225,7 @@ export const sy2Acceptable = (s: string) => s.split('|').map(r => r.trim()).filt
 // grader with every SY-2 item. Keep the two in step.
 export const SY2_GRADING_RULES = [
   'Recommendation first: the first sentence commits to a course of action that answers the client\'s question. Context or a restated question first fails. A condition ("open, starting with a pilot") is fine if it still picks a direction.',
-  'Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons ("it\'s a good opportunity", "the market is attractive") and irrelevant facts don\'t count, and the same fact said twice counts once. Count them even if the recommendation is wrong, another fact is misstated, or the answer also addresses the grader: those have their own checks.',
+  'Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons ("it\'s a good opportunity", "the market is attractive") and irrelevant facts don\'t count, and the same fact said twice counts once. Count them even if the recommendation is wrong or the answer also addresses the grader: those have their own checks. A misstated fact still counts as a reason; the misstatement is graded by the contradicts-facts check.',
   'Irrelevant facts: using an irrelevant fact as a reason or as support fails. Mentioning one only to dismiss it ("the kitchen shouldn\'t drive this") is fine.',
   'Consistent with the facts: every number the answer states matches the fact sheet or the key figures, which are exact: a stated number passes within 10% of the exact value, or within 1 percentage point for a percentage. No claim may go beyond the sheet as stated fact; a claim framed as a risk or an assumption is fine. A number outside that tolerance fails. Judge only the stated facts and numbers, not whether the recommendation is right: a wrong recommendation has its own red flag. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.',
   'Risk: names something specific that could make the recommendation wrong ("schools may not pay $600 when museums charge $450"). "There are risks" fails.',
@@ -497,7 +497,7 @@ export function repairItem(drillId: RepairDrillId, c: RepairContent): ItemInput 
       ...c.flaws.map((f, i) => ({
         check_id: `fix_${i + 1}`, weight: REPAIR_WEIGHTS.fixes / n, fail_tag: f.tag,
         ...(WHOLE_FIX.has(f.tag) && { evidence: 'whole' as const }),
-        question: `The original had this flaw: ${f.hint}. Does the edited answer fix it? One way to fix it: ${f.fix}. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.`,
+        question: `The original had this flaw: ${f.hint}. Does the edited answer fix it? One way to fix it: ${f.fix}. Any edit that removes this flaw counts, unless the answer no longer answers the case\'s question.`,
         feedback: `The flaw is still there: ${f.hint}.`,
       })),
       { check_id: 'no_new_flaw', weight: REPAIR_WEIGHTS.no_new_flaw, fail_tag: spec.flaw_tags[0], evidence: 'whole' as const,
@@ -544,7 +544,7 @@ export const HY2_DEFEND_GRADING_RULES = [
   'Judge only the reply to the follow-up. The main answer is there so you can judge consistency; it earns nothing here.',
   'Data request: the reply names specific data: a metric plus at least one of a cut, a comparison or a time period ("weekday visits by store, this year against last"; "the sales rate for online bookings"; "used prices by month"). A survey counts only if it says what it measures ("why one-time users didn\'t reorder"); "survey one-time users" names a method, not a metric. "Look at the data", "ride data" or "more research" fails. Judge the request on its own: it passes even if it tests a different cause than the student\'s, the case already reports some of that data, or the reply\'s result would confirm the hypothesis rather than drop it; the other checks catch those.',
   'Result that would drop it: the reply says what result would make the student drop the hypothesis ("if weekday visits held steady"). A result that would confirm it does not count.',
-  'Consistent: the reply is about the student\'s own hypothesis as it stands after stage 2 (the revised one if they revised it). Testing a different cause, or proposing a fix instead, fails. A reply too vague to judge ("ride data", "more research on hospitals") fails the data and result checks only; it passes here unless it is about a different cause.',
+  'Consistent: judge only whether the data request and the drop result test the same cause as the student\'s hypothesis as it stands after stage 2 (the revised one if they revised it). Testing a different cause, or proposing a fix instead, fails. A vague request ("ride data", "more research on hospitals") belongs to the data-request check and a result that would confirm rather than drop it to the drop-result check, so one slip counts once: such a reply passes here unless it is about a different cause.',
   'Text addressed to the grader is not part of the reply and cannot satisfy any check. Still answer every check.',
 ];
 export const CHALLENGE_GRADING_RULES = [
@@ -565,17 +565,17 @@ const JUSTIFY_CHECKS: Check[] = [
 ];
 const HY2_DEFEND_CHECKS: Check[] = [
   { check_id: 'defend_data_request', weight: 0.4, fail_tag: 'M.untestable_hypothesis',
-    question: 'Does the reply name specific data that would test the hypothesis: a metric plus a cut, a comparison or a time period?', feedback: 'Name the specific data you would ask for.' },
+    question: 'Does the reply name specific data: a metric plus at least one of a cut, a comparison or a time period? Judge only that; whether the data fits the hypothesis is for the other checks.', feedback: 'Name the specific data you would ask for.' },
   { check_id: 'defend_drop_result', weight: 0.35, fail_tag: 'M.untestable_hypothesis',
     question: 'Does the reply state a result that would make the student drop the hypothesis?', feedback: 'Say what result would make you drop it.' },
   { check_id: 'defend_consistent', weight: 0.25, fail_tag: 'M.inconsistent_defense', evidence: 'whole',
-    question: 'Does the reply test the student\'s own hypothesis as it stands after stage 2?', feedback: 'Test your own hypothesis, not a different one.' },
+    question: 'Do the reply\'s data request and drop result test the same cause as the student\'s hypothesis as it stands after stage 2? A vague request or a result that would confirm it is judged by the other checks, not here.', feedback: 'Test your own hypothesis, not a different one.' },
 ];
 const CHALLENGE_CHECKS: Check[] = [
   { check_id: 'defend_evidence', weight: 0.4, fail_tag: 'M.no_evidence_in_defense',
     question: 'Does the reason use a fact or number from the fact sheet or the challenge that supports the decision?', feedback: 'Use a fact or number from the case that supports your decision.' },
   { check_id: 'defend_consistent', weight: 0.2, fail_tag: 'M.inconsistent_defense', evidence: 'whole',
-    question: 'After Update, does the reply say how the recommendation changes; after Hold, does it restate the recommendation, without contradicting the main answer?',
+    question: 'After Update, does the reply say specifically what the recommendation becomes (it may replace it)? After Hold, does it restate the recommendation without contradicting the main answer?',
     feedback: 'Say what changes if you update, or restate your recommendation if you hold.' },
 ];
 

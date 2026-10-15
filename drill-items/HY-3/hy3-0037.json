@@ -21,7 +21,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it doesn't fit the numbers: with books up 4%, a 6% total fall needs gifts and toys down about 30%. Does the edited answer fix it? One way to fix it: names a fall in gift and toy sales that fits the numbers, about 30%. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it doesn't fit the numbers: with books up 4%, a 6% total fall needs gifts and toys down about 30%. Does the edited answer fix it? One way to fix it: names a fall in gift and toy sales that fits the numbers, about 30%. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.ignores_facts",
       "feedback": "The flaw is still there: it doesn't fit the numbers: with books up 4%, a 6% total fall needs gifts and toys down about 30%.",

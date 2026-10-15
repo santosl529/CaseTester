@@ -21,7 +21,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it only restates the facts: it names no cause. Does the edited answer fix it? One way to fix it: names a likely cause for traffic rising while orders stayed flat, such as the new visitors being less ready to buy. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it only restates the facts: it names no cause. Does the edited answer fix it? One way to fix it: names a likely cause for traffic rising while orders stayed flat, such as the new visitors being less ready to buy. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.restates_facts",
       "feedback": "The flaw is still there: it only restates the facts: it names no cause.",

@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it's a generic 4Ps list: it never looks at when and where crowds build up, or at each park's capacity. Does the edited answer fix it? One way to fix it: replaces the 4Ps with buckets about crowding, such as visitor demand by park, season and hour; capacity; and levers like reservations or pricing. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it's a generic 4Ps list: it never looks at when and where crowds build up, or at each park's capacity. Does the edited answer fix it? One way to fix it: replaces the 4Ps with buckets about crowding, such as visitor demand by park, season and hour; capacity; and levers like reservations or pricing. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.generic_framework",
       "feedback": "The flaw is still there: it's a generic 4Ps list: it never looks at when and where crowds build up, or at each park's capacity.",

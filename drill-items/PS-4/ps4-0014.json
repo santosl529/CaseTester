@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it misses whether this client can beat US competitors: its brand, channels and product fit. Does the edited answer fix it? One way to fix it: adds a bucket or sub-points on the client's ability to win, such as its brand, dealer channels or product fit for US riders. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it misses whether this client can beat US competitors: its brand, channels and product fit. Does the edited answer fix it? One way to fix it: adds a bucket or sub-points on the client's ability to win, such as its brand, dealer channels or product fit for US riders. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.missing_bucket",
       "feedback": "The flaw is still there: it misses whether this client can beat US competitors: its brand, channels and product fit.",

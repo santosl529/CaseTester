@@ -73,7 +73,7 @@ hy2-0031,,,,"Cancellation rates by months waited for delivery. If buyers who wai
 hy2-0032,,,,"Customers lost by region, against where the marketplace delivers next day. If we lost as many where it doesn't, I'd drop it."
 hy2-0033,,,,"Cost per test, in house against outside labs, by month. If outside-lab tests cost no more than in-house ones, I'd drop it."
 hy2-0034,,,,"Each customer's spending change, split by console adoption. If non-adopters' spending fell no more than adopters', I'd drop it."
-hy2-0035,,,,"Daily yard occupancy and truck appointments, against berth waits. If berth waits rose before the yard filled up, I'd drop it."
+hy2-0035,,,,"Daily yard occupancy and truck pickup appointments, by week. If berth waits rose while the yard still had room, the full yard isn't the cause and I'd drop it."
 hy2-0036,,,,"Peak trips by who pays the toll, before and after the rise. If employer-paid drivers cut peak trips as much as self-payers, I'd drop it."
 hy2-0037,,,,"Sales by café, against local awareness from surveys. If cafés where most shoppers know what they sell still miss plan, I'd drop it."
 hy2-0038,,,,"New motor-home sales by month, against used listings and prices. If new sales fell before used listings rose, I'd drop it."

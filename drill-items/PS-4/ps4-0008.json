@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: the brand-awareness bucket doesn't belong: national awareness can't decide one route. Does the edited answer fix it? One way to fix it: removes the brand-awareness bucket, or narrows it to awareness in the two cities. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: the brand-awareness bucket doesn't belong: national awareness can't decide one route. Does the edited answer fix it? One way to fix it: removes the brand-awareness bucket, or narrows it to awareness in the two cities. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.25,
       "fail_tag": "M.irrelevant_bucket",
       "feedback": "The flaw is still there: the brand-awareness bucket doesn't belong: national awareness can't decide one route.",
@@ -34,7 +34,7 @@
     },
     {
       "check_id": "fix_2",
-      "question": "The original had this flaw: it misses competition: other airlines on the route, and driving or rail instead. Does the edited answer fix it? One way to fix it: adds a bucket or sub-points on competition from other airlines on the route, or from driving or rail. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it misses competition: other airlines on the route, and driving or rail instead. Does the edited answer fix it? One way to fix it: adds a bucket or sub-points on competition from other airlines on the route, or from driving or rail. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.25,
       "fail_tag": "M.missing_bucket",
       "feedback": "The flaw is still there: it misses competition: other airlines on the route, and driving or rail instead.",

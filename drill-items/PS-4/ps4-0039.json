@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it misses the days patients wait after they're ready to go home. Does the edited answer fix it? One way to fix it: adds a bucket or sub-points on delays after treatment ends, such as waits for nursing-home beds or discharge paperwork. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it misses the days patients wait after they're ready to go home. Does the edited answer fix it? One way to fix it: adds a bucket or sub-points on delays after treatment ends, such as waits for nursing-home beds or discharge paperwork. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.25,
       "fail_tag": "M.missing_bucket",
       "feedback": "The flaw is still there: it misses the days patients wait after they're ready to go home.",
@@ -34,7 +34,7 @@
     },
     {
       "check_id": "fix_2",
-      "question": "The original had this flaw: the treatment speed bucket repeats the diagnosis-to-end-of-treatment bucket. Does the edited answer fix it? One way to fix it: merges treatment speed into the diagnosis-to-end-of-treatment bucket, or removes it. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: the treatment speed bucket repeats the diagnosis-to-end-of-treatment bucket. Does the edited answer fix it? One way to fix it: merges treatment speed into the diagnosis-to-end-of-treatment bucket, or removes it. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.25,
       "fail_tag": "M.overlapping_buckets",
       "feedback": "The flaw is still there: the treatment speed bucket repeats the diagnosis-to-end-of-treatment bucket.",

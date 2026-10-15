@@ -24,7 +24,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: the office lease bucket doesn't belong: head-office rent can't set this watch's price. Does the edited answer fix it? One way to fix it: removes the office lease bucket, or replaces it with something that bears on the price, such as brand positioning. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: the office lease bucket doesn't belong: head-office rent can't set this watch's price. Does the edited answer fix it? One way to fix it: removes the office lease bucket, or replaces it with something that bears on the price, such as brand positioning. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.irrelevant_bucket",
       "feedback": "The flaw is still there: the office lease bucket doesn't belong: head-office rent can't set this watch's price.",

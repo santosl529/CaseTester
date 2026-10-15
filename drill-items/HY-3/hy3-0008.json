@@ -21,7 +21,7 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it lists four causes and picks none to lead. Does the edited answer fix it? One way to fix it: leads with one cause, ideally the shift to government insurance, which pays less. Any edit that removes this flaw counts, whatever else the edit gets right or wrong.",
+      "question": "The original had this flaw: it lists four causes and picks none to lead. Does the edited answer fix it? One way to fix it: leads with one cause, ideally the shift to government insurance, which pays less. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.shotgun_hypotheses",
       "feedback": "The flaw is still there: it lists four causes and picks none to lead.",
