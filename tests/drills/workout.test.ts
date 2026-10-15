@@ -30,8 +30,8 @@ const shape = (w: ReturnType<typeof buildWorkout>) => w.blocks.map(b => [b.slot,
 describe('workout mix (PRD "Workouts")', () => {
   it('estimates a set as items × tier time limit × 0.8', () => {
     expect(setMinutes('QN-4', 2, 6)).toBeCloseTo(4.8);         // 6 × 60 s × 0.8
-    expect(setMinutes('PS-3', 2, 4)).toBeCloseTo(6.4);         // 4 × 120 s × 0.8
-    expect(setMinutes('HY-2', 2, 4)).toBeCloseTo(6.4);         // 4 × (75 + 45) s × 0.8
+    expect(setMinutes('PS-3', 2, 4)).toBeCloseTo(9.6);         // 4 × (120 + 60 follow-up) s × 0.8
+    expect(setMinutes('HY-2', 2, 4)).toBeCloseTo(9.6);         // 4 × (75 + 45 + 60 follow-up) s × 0.8
     expect(setMinutes('QN-4', 2, 6, 1.5)).toBeCloseTo(7.2);    // time accommodation
   });
 
@@ -73,7 +73,7 @@ describe('workout mix (PRD "Workouts")', () => {
       prescriptions: [rx('QN.setup', 2), rx('PS.mece', 1)],
     }));
     expect(shape(w)).toEqual([
-      ['weak', 'PS.mece', 'PS-3', 2, 'normal', 4],
+      ['weak', 'PS.mece', 'PS-3', 2, 'normal', 3],
       ['unfamiliar', 'QN.setup', 'QN-4', 2, 'transfer', 6],
     ]);
   });
@@ -138,7 +138,7 @@ describe('tracks inside workouts (PRD "Tracks")', () => {
       sprint_day: { date: '2026-10-14', day: 6, activities: ['review'], workout_minutes: 20, cases: 0 },
     }));
     expect(day6.review_only).toBe(true);
-    expect(day6.blocks.map(b => [b.slot, b.skill_id, b.size])).toEqual([['review', 'QN.setup', 3], ['review', 'PS.mece', 4]]);
+    expect(day6.blocks.map(b => [b.slot, b.skill_id, b.size])).toEqual([['review', 'QN.setup', 3], ['review', 'PS.mece', 3]]);
     const dayBefore = buildWorkout(input({ progress: p, interview_days_out: 1 }));
     expect(dayBefore).toMatchObject({ target_minutes: 15, review_only: true });
   });

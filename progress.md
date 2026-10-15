@@ -1,6 +1,6 @@
 # Drills branch progress
 
-## Start here (updated 2026-10-15)
+## Start here (updated 2026-10-16)
 
 **Status.** All 15 MVP drills are live: ten at Level 1 (PS-1, HY-1, EX-1, SY-1, CL-1, plus generated QN-1, QN-3, QN-4, EX-2, EX-3) and the five D2 drills (PS-3, HY-2, SY-2, CL-3, QN-5). Phases D0–D2 are done. Database (shared CaseTester Supabase project) is in sync with `/drill-items`.
 
@@ -14,14 +14,14 @@
 
 **SY-2 (30) and SY-1 (8) new versions are live (2026-10-12, Matt approved); Defend stays off for live students** (`defend.live` false on all four drills, pinned by a config test) until D5 passes its gate (golden sets: Claude drafts and grades, Matt checks every grade; the "half human-written" rule was dropped 2026-10-11). Watch: the SY-2 reasons check sits at 91% (3 misses in 34); flag it if it drops below 90% when human-written answers arrive.
 
-**D5 status (2026-10-15):** content and golden sets approved; grader `drills-grader-v32`. Gate: every check ≥90% except the HY-2 follow-up's consistency (76%). Matt's fallback: launch D5 with the six passing gates, keep the HY-2 follow-up off, and let HY-2 count as Practiced without a Defend step; he wants to be told before that switch. Not switched yet.
+**D5 is live (2026-10-16, Matt's go-ahead after the confirming gate):** PS-4, HY-3 and SY-3 live (110 Repair items); the follow-up on for PS-3, HY-2, SY-2 and CL-3 (`defend.live` true, pinned by the config test). Grader `drills-grader-v33`: Haiku 4.5 for every check except the HY-2 follow-up's, which Sonnet 5.5 grades. Every check in all 11 gates ≥90%. All smokes pass.
 
 **SY-2 live versions (database, 2026-10-15):** v1: sy2-0010, 0022, 0024, 0026 (identical to their follow-up drafts for students); v2: sy2-0001–0009, 0015–0021, 0027–0030; v3: sy2-0011, 0012, 0013, 0014, 0023, 0025 (padding fixes published 2026-10-15, follow-ups dormant). One live version per item.
 
 **What's left to build** (docs/prd-drills.md, "Build phases"):
 - D4 Training program: built. Only the lesson review is left: Matt approves or requests changes on `/drills/review/lessons` (local dev server), then `npm run db:seed-lessons`. Checked 2026-10-11: all 22 lessons still `status: draft` with no review notes; typecheck, tests (1258 passed) and lint pass.
 - D6 Pilot launch (after D3 and D4): analytics, WCAG audit, club pilot.
-- D5 Chains and Defend: built; content and golden sets approved (2026-10-15). Left: get the HY-2 follow-up's data request and consistency checks to ≥90% (proposal with Matt), then `live: true` on PS-4/HY-3/SY-3 and `defend.live: true` on PS-3/HY-2/SY-2/CL-3.
+- D5 Chains and Defend: shipped 2026-10-16. Open: Matt's review of Sonnet's steady disagreements on CL-3 specific requests and PS-3 no overlap; EX-5 (P1) not built.
 - All schema changes must stay additive (new tables, enum values, columns).
 - Code vs PRD gap: the daily cap is 20 AI-graded sets (`AI_SETS_PER_DAY` in `lib/drills/sets/service.ts`); v2 says 150 AI-graded answers a day. Change when building that part.
 - Merging `drills` into `main`: coordinate migration numbering with the teammate (see Database notes). Drills migrations now run 0009–0012.
@@ -498,3 +498,11 @@
 - Matt's pick: Haiku 4.5 on today's layout (rules in the item, temperature 0) for every call except the HY-2 follow-up's two calls, which Sonnet 5.5 grades (between_tools, server-side fallback, rules in its cached system prompt). `drillGraderModel(call)` in lib/models.ts; `DRILL_GRADER_MODEL` still forces one model everywhere, so a future model change is one gate run. Each call is priced at its own model's rates; `model_id` records both (`claude-haiku-4-5+claude-sonnet-5-5`); `cost_usd_no_cache` reported. Grader `drills-grader-v33`. Tests cover the routing.
 - Confirming gate ($1.49): every check in all 11 gates ≥90%. HY-2 follow-up: consistency 100%, data request 97%, drop result 100%. Every other check identical to the v32 run (lowest 90%). No refusals. Cost per graded answer $0.0045 without caching, $0.0040 with: about $0.91 per student per month at 200 answers (gate mix), under the $1.25 budget.
 - Sonnet's steady disagreements on CL-3 specific requests (cl3-0003-a, 0007-a, 0010-a, 0018-a, 0021-a, 0023-a) and PS-3 no overlap (ps3-0009-a, 0019-a, 0022-a, 0023-a, 0032-a), all label Y and Sonnet N in both runs, sent to Matt. Sonnet's reasons weren't recorded (only HY-2 follow-up calls write reasons).
+
+## D5 shipped (2026-10-16)
+
+- Confirming gate passed (see the routing entry), so Matt's instruction applied: D5 switched on. 110 Repair items and the follow-up versions of PS-3 (40), HY-2 (40), CL-3 (40) and SY-2 (24) published (reviewed by Matt 2026-10-15); ps4-0026 re-checked for similarity first (passed, $0.10). Config: PS-4, HY-3, SY-3 `live`; `defend.live` on all four Construct drills. Seed: 254 updated, 144 older versions retired, 0 conflicts.
+- PRD: "Model" in Checklist grading call now names the grader per check. There was no "HY-2 follow-up off at launch" note to drop; it was never added.
+- Importer bug fixed: it compared items as JSON strings, so a live item whose keys sat in a different order looked edited. That turned the six SY-2 items published on 10-15 back into v4 drafts in the files (the database kept them live at v3; students unaffected). The comparison now ignores key order; the six are back to v3 live in the files.
+- Tests updated for post-D5 behavior, each matching the PRD: 50–79% in the diagnostic places in Repair (Recognize tier 2 only where a skill has no Repair drill, e.g. CL.next_step); after Recognizes the next set is Repair; a skill with no Recognize drill below 50% goes to Repair if it has one (PS.depth → PS-4), else stays at Construct (HY.update); follow-up sets are one item shorter at T2–T3 and estimated with the 60 s follow-up. D5 smoke now picks live follow-up items (it looked for drafts).
+- All smokes pass (D2, D3, D4, tracks, diagnostic, D5). Typecheck, 1569 tests and lint pass.

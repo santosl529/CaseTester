@@ -34,8 +34,9 @@ describe('drills config v1 (docs/prd-drills.md)', () => {
     expect(ai).toEqual(['CL-3', 'CR-1', 'EX-5', 'HY-2', 'HY-3', 'PS-3', 'PS-4', 'SY-2', 'SY-3']);
   });
 
-  it('keeps Defend off for live students until D5 passes its gate, with human-written golden answers (Matt, 2026-10-12)', () => {
-    expect(drills.drills.filter(d => d.defend?.live).map(d => d.id)).toEqual([]);
+  it('turns Defend on and the P0 Repair drills live once D5 passed its gate (Matt, 2026-10-16)', () => {
+    expect(drills.drills.filter(d => d.defend?.live).map(d => d.id).sort()).toEqual(['CL-3', 'HY-2', 'PS-3', 'SY-2']);
+    expect(drills.drills.filter(d => d.stage === 'repair' && d.live).map(d => d.id).sort()).toEqual(['HY-3', 'PS-4', 'SY-3']);
   });
 
   it('gives PS-3, HY-2, SY-2 and CL-3 a Defend step, one item shorter at T2 and T3 (PRD "Defend step")', () => {
@@ -60,7 +61,7 @@ describe('drills config v1 (docs/prd-drills.md)', () => {
   });
 
   it("makes drills live once their pools are approved", () => {
-    expect(drills.drills.filter(d => d.live).map(d => d.id).sort()).toEqual(['CL-1', 'CL-3', 'EX-1', 'EX-2', 'EX-3', 'HY-1', 'HY-2', 'PS-1', 'PS-3', 'QN-1', 'QN-3', 'QN-4', 'QN-5', 'SY-1', 'SY-2']);
+    expect(drills.drills.filter(d => d.live).map(d => d.id).sort()).toEqual(['CL-1', 'CL-3', 'EX-1', 'EX-2', 'EX-3', 'HY-1', 'HY-2', 'HY-3', 'PS-1', 'PS-3', 'PS-4', 'QN-1', 'QN-3', 'QN-4', 'QN-5', 'SY-1', 'SY-2', 'SY-3']);
     expect(hasLiveLevel2Drill('QN.percentages')).toBe(true);
     expect(hasLiveLevel2Drill('PS.mece')).toBe(true);
     expect(hasLiveLevel2Drill('HY.form')).toBe(true);

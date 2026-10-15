@@ -188,16 +188,18 @@ describe('a student climbing one skill (PRD "Where a student starts")', () => {
     expect(nextSetFor({ ...low, stage: 'recognize' }, {}, ctx)).toMatchObject({ drill_id: 'QN-4', stage: 'construct' });
   });
 
-  it('skills with no Recognize drill stay at Construct when they score below 50%', () => {
+  it('skills with no Recognize drill go to Repair below 50% if they have one, else stay at Construct', () => {
     const p = progress({ skill_id: 'PS.depth', state: 'learning', stage: 'construct' });
-    expect(applySet(p, set('PS-3', 2, { 'PS.depth': 0.2 }), at(0)).progress.get('PS.depth')!.stage).toBe('construct');
+    expect(applySet(p, set('PS-3', 2, { 'PS.depth': 0.2 }), at(0)).progress.get('PS.depth')!.stage).toBe('repair');
+    const q = progress({ skill_id: 'HY.update', state: 'learning', stage: 'construct' });
+    expect(applySet(q, set('HY-2', 2, { 'HY.update': 0.2 }), at(0)).progress.get('HY.update')!.stage).toBe('construct');
   });
 
-  it('Recognize path: two Level 1 sets ≥ 80% at tier 2 → Recognizes, then Construct', () => {
+  it('Recognize path: two Level 1 sets ≥ 80% at tier 2 → Recognizes, then Repair', () => {
     let u = applySet(progress({ skill_id: 'PS.mece', state: 'learning', stage: 'recognize' }), set('PS-1', 2, { 'PS.mece': 0.875 }), at(0));
     u = applySet(u.progress, set('PS-1', 3, { 'PS.mece': 0.875 }), at(0));
     expect(u.transitions.map(t => t.to)).toEqual(['recognizes']);
-    expect(nextSetFor(u.progress.get('PS.mece')!, {}, at(0))).toMatchObject({ drill_id: 'PS-3', stage: 'construct' });
+    expect(nextSetFor(u.progress.get('PS.mece')!, {}, at(0))).toMatchObject({ drill_id: 'PS-4', stage: 'repair' });
   });
 
   it('skills with no live Construct drill reach Practiced from Level 1, and transfer on Level 1 at tier 3', () => {

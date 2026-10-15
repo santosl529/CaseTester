@@ -16,10 +16,11 @@ describe('the diagnostic', () => {
     expect(parts.slice(0, 8).reduce((s, p) => s + p.size, 0)).toBe(22);
   });
 
-  it('places by score: below 50% Recognize, 50–79% Recognize tier 2 (no Repair drill yet), 80%+ test-out', () => {
+  it('places by score: below 50% Recognize, 50–79% Repair (Recognize tier 2 with no Repair drill), 80%+ test-out', () => {
     expect(placeFor('PS.mece', 0.49)).toBe('recognize');
-    expect(placeFor('PS.mece', 0.5)).toBe('recognize_t2');
-    expect(placeFor('PS.mece', 0.79)).toBe('recognize_t2');
+    expect(placeFor('PS.mece', 0.5)).toBe('repair');
+    expect(placeFor('PS.mece', 0.79)).toBe('repair');
+    expect(placeFor('CL.next_step', 0.6)).toBe('recognize_t2');
     expect(placeFor('PS.mece', 0.8)).toBe('test_out');
   });
 
@@ -30,7 +31,7 @@ describe('the diagnostic', () => {
     ];
     expect(combinedTotals(parts).get('PS.mece')).toEqual({ sum: 3, weight: 4, count: 4 });
     expect(placements(parts)).toEqual({
-      'PS.mece': { score: 0.75, count: 4, place: 'recognize_t2' },
+      'PS.mece': { score: 0.75, count: 4, place: 'repair' },
       'PS.case_specific': { score: 0, count: 2, place: 'recognize' },
     });
   });

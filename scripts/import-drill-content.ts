@@ -33,8 +33,13 @@ for (const drill of ['PS-1', 'HY-1', 'SY-1']) {
 }
 const { items, golden, problems } = importContent(tables, { includeExamples, sources });
 
-// An item's content, apart from its review state, industry tag and version.
-const content = (i: Record<string, unknown>) => JSON.stringify({ ...i, status: undefined, authorship: undefined, version: undefined, industry: undefined });
+// An item's content, apart from its review state, industry tag and version,
+// with keys sorted: a file's key order (kept for small review diffs) can
+// differ from a freshly built item's, and that alone once made six unchanged
+// live SY-2 items look edited and get new versions.
+const canonical = (v: unknown): unknown => Array.isArray(v) ? v.map(canonical)
+  : v && typeof v === 'object' ? Object.fromEntries(Object.keys(v).sort().filter(k => (v as Record<string, unknown>)[k] !== undefined).map(k => [k, canonical((v as Record<string, unknown>)[k])])) : v;
+const content = (i: Record<string, unknown>) => JSON.stringify(canonical({ ...i, status: undefined, authorship: undefined, version: undefined, industry: undefined }));
 // What students see: the item without its follow-up, grading rules or check
 // questions (the grader's text).
 const studentFacing = (i: Record<string, unknown>) => {

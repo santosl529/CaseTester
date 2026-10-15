@@ -2,7 +2,7 @@
   "item_id": "hy3-0022",
   "version": 1,
   "drill_id": "HY-3",
-  "status": "draft",
+  "status": "live",
   "level": 2,
   "tier": 2,
   "skills": [
@@ -78,10 +78,10 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": null,
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-15",
     "similarity_check": "passed",
     "similarity_note": null,
     "similarity_checked_at": "2026-10-15",

@@ -110,7 +110,8 @@ async function fourteenDayRule() {
 // run doesn't depend on which items the planner happens to pick.
 async function defendSet(drillId: string) {
   const { set_id } = await startSet(student, { drill_id: drillId, tier: 2 });
-  const rows = await db.select().from(drillItems).where(and(eq(drillItems.drillId, drillId), eq(drillItems.status, 'draft')));
+  // Live since D5 shipped (2026-10-16); drafts carried the follow-ups before.
+  const rows = await db.select().from(drillItems).where(and(eq(drillItems.drillId, drillId), eq(drillItems.status, 'live')));
   const withFollowup = rows.filter(r => (r.payload as Item).defend).slice(0, 3);
   const plan: ItemRef[] = withFollowup.map(r => ({ kind: 'authored', item_id: r.itemId, version: r.version, defend: true }));
   await db.update(drillSets).set({ itemPlan: plan, size: plan.length }).where(eq(drillSets.id, set_id));

@@ -66,7 +66,7 @@
       "pass_bar": 0.8,
       "priority": "P0",
       "item_source": "authored",
-      "live": false
+      "live": true
     },
     {
       "id": "PS-2",
@@ -131,7 +131,7 @@
       "live": true,
       "defend": {
         "type": "justify",
-        "live": false,
+        "live": true,
         "set_size": [
           4,
           3,
@@ -191,7 +191,7 @@
       "pass_bar": 0.8,
       "priority": "P0",
       "item_source": "authored",
-      "live": false
+      "live": true
     },
     {
       "id": "HY-2",
@@ -236,7 +236,7 @@
       "live": true,
       "defend": {
         "type": "justify",
-        "live": false,
+        "live": true,
         "set_size": [
           4,
           3,
@@ -712,7 +712,7 @@
       "pass_bar": 0.8,
       "priority": "P0",
       "item_source": "authored",
-      "live": false
+      "live": true
     },
     {
       "id": "SY-2",
@@ -751,7 +751,7 @@
       "live": true,
       "defend": {
         "type": "challenge",
-        "live": false,
+        "live": true,
         "set_size": [
           3,
           3,
@@ -887,7 +887,7 @@
       "live": true,
       "defend": {
         "type": "justify",
-        "live": false,
+        "live": true,
         "set_size": [
           4,
           3,

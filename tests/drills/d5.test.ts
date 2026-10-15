@@ -134,7 +134,8 @@ describe('the Defend step (PRD "Defend step")', () => {
 
   it('runs at tiers 2–3 only, never in the diagnostic, and only once switched on', () => {
     const live = { ...getDrill('PS-3'), defend: { ...getDrill('PS-3').defend!, live: true } };
-    expect(defendRuns(getDrill('PS-3'), 2, 'continue')).toBe(false);
+    const off = { ...getDrill('PS-3'), defend: { ...getDrill('PS-3').defend!, live: false } };
+    expect(defendRuns(off, 2, 'continue')).toBe(false);
     expect(defendRuns(live, 1, 'continue')).toBe(false);
     expect(defendRuns(live, 2, 'diagnostic')).toBe(false);
     expect(defendRuns(live, 2, 'prescription')).toBe(true);
