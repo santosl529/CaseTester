@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  statesQuantitativeClaim, buildCheckerSystem, buildCheckerUser, vetCheckerClaims, isActionable, relativeAsPoints,
+  statesQuantitativeClaim, buildCheckerSystem, buildCheckerUser, vetCheckerClaims, isActionable, relativeAsPoints, codeCorrection,
   CheckerOutputSchema, type CheckerClaim, type VetContext,
 } from '@/lib/orchestrator/math-checker';
 import { MATH_CHECKER_CONFIGS } from '@/lib/models';
@@ -270,6 +270,17 @@ describe('code writes the correction', () => {
   const ctx = (texts: string[], over: Partial<VetContext> = {}): VetContext => ({ caseData: prof, revealedIds: COSTS, shownExhibitIds: [], candidateTexts: texts, ...over });
   const gain = (price: number) => ({ kind: 'gain' as const, stepId: null, price, target: null });
 
+  // Lorenzo, 15 Oct (batch-25 ruling 5; Raj 36b40584 t21): a break-even at the
+  // variable share the candidate states is right — no flag; never a correction from it.
+  it("a break-even at the candidate's own variable share (Raj t21: ~65% → 23.9%) is not flagged", () => {
+    const text = "If variable costs are say 58% COGS plus some variable labor, call it ~65%, then an 11% price rise lifts contribution per unit from 35 to 46 cents per dollar of old revenue. I could lose roughly 24% of units before I'm worse off.";
+    const [v] = vetCheckerClaims([claim({ span: "I could lose roughly 24% of units before I'm worse off", candidateValue: 'roughly 24%', correctValue: 20.8, codeQuantity: { kind: 'breakeven', stepId: null, price: 11, target: null } })], ctx([text]));
+    expect(v.flag).toBe(false);
+    const [w] = vetCheckerClaims([claim({ span: "I could lose roughly 50% of units before I'm worse off", candidateValue: 'roughly 50%', correctValue: 23.9, codeQuantity: { kind: 'breakeven', stepId: null, price: 11, target: null } })], ctx([text.replace('roughly 24%', 'roughly 50%')]));
+    expect(w.flag).toBe(true);
+    expect(w.correctionLine ?? '').not.toMatch(/23\.9/);
+    expect(codeCorrection(claim({ candidateValue: 'roughly 50%', codeQuantity: { kind: 'breakeven', stepId: null, price: 11, target: null } }), { value: 23.9, index: 2 }, ctx([text]))).toBeNull();
+  });
   it('a gain: "A 10% price rise lifts margin about 8.5 points, not 5."', () => {
     const [v] = vetCheckerClaims([claim({
       span: 'a 10% price increase recovers about 5 points', candidateValue: 'about 5 points', correctValue: 8.5, codeQuantity: gain(10),

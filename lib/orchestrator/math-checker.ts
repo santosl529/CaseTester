@@ -26,7 +26,7 @@ import type { OnUsage } from '@/lib/llm-usage';
 import { normalizeNumberWords, articleFor } from '@/lib/number-words';
 import { enforceNumericProvenance, changeFigures } from './numeric-provenance';
 import { buildFactBase, findFalseFacts, type FactBase } from './fact-check';
-import { pricingAnswers, pricingValues } from './pricing-check';
+import { pricingAnswers, pricingValues, statedContributions } from './pricing-check';
 import { inputsRevealed } from '@/lib/scoring/math-spans';
 
 // ── the gate ────────────────────────────────────────────────────────────────
@@ -283,7 +283,11 @@ export function codeComputed(c: CheckerClaim, ctx: VetContext): { values: number
   if (q.kind === 'new_margin' && q.price !== null) return { values: a.newMargin(q.price), tol: x => Math.max(1, 0.1 * x) };
   if (q.kind === 'needed_for_margin' && q.target !== null && q.target > v.margin && q.target < 100) return { values: [a.neededForMargin(q.target)], tol: x => Math.max(2, 0.12 * x) };
   if (q.kind === 'needed_for_gain' && q.target !== null && q.target > 0 && v.margin + q.target < 100) return { values: [a.neededForGain(q.target)], tol: x => Math.max(2, 0.12 * x) };
-  if (q.kind === 'breakeven' && q.price !== null) return { values: a.breakeven(q.price), tol: x => Math.max(2.5, 0.15 * x) };
+  // Also at a variable-cost share the candidate stated in the message (after the case's sets: a correction names only those).
+  if (q.kind === 'breakeven' && q.price !== null) {
+    const own = statedContributions(ctx.candidateTexts.at(-1) ?? '', q.price).filter(cm => !v.contributions.includes(cm));
+    return { values: [...a.breakeven(q.price), ...own.map(cm => Math.round(1000 * (1 - cm / (cm + q.price!))) / 10)], tol: x => Math.max(2.5, 0.15 * x) };
+  }
   return null;
 }
 
@@ -414,6 +418,8 @@ export function codeCorrection(c: CheckerClaim, at: { value: number; index: numb
       case 'needed_for_gain': return `Recovering ${q.target} points of margin takes about ${articleFor(x)} ${x}% price rise, not ${bare}.`;
       case 'breakeven': {
         const set = ctx.caseData.pricingModel?.variableSets[at.index] ?? [];
+        // An answer at the candidate's own variable share has no case set to name: no line.
+        if (set.length === 0) return null;
         return `With ${set.map(id => lineName(ctx, id)).join(' and ')} varying with volume, ${articleFor(q.price!)} ${q.price}% price rise breaks even at about ${articleFor(x)} ${x}% volume loss, not ${bare}.`;
       }
       case 'step': {

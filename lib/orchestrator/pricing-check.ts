@@ -108,10 +108,31 @@ export function pricingAnswers(v: PricingModelValues) {
     newMargin: (p: number, loss = 0) => gain(p, loss).map(g => v.margin + g),
     neededForMargin,
     neededForGain: (g: number) => neededForMargin(v.margin + g),
-    breakeven: (p: number) => v.contributions.map(cm => Math.round(1000 * (1 - cm / (cm + p))) / 10),
+    breakeven: (p: number) => v.contributions.map(cm => breakevenAt(p, cm)),
     dollars: (p: number) => v.revenue === undefined ? null : Math.round(v.revenue * p) / 100,
   };
 }
+
+// A variable-cost share the candidate states (Lorenzo, 15 Oct; batch 25, Raj
+// 36b40584 t21: "If variable costs are say 58% COGS plus some variable labor,
+// call it ~65%, then an 11% price rise…"): every percentage in a sentence about
+// variable costs, but the price change and what follows a price/volume word. A
+// break-even is also right at that share — the assumption is theirs, the
+// arithmetic is what's checked.
+export function statedContributions(rawText: string, price: number): number[] {
+  const out: number[] = [];
+  for (const s of normalizeNumberWords(rawText).split(/(?<=[.?!])\s+|\n+/)) {
+    if (!/\bvariable\b/i.test(s)) continue;
+    for (const m of s.matchAll(/(\d+(?:\.\d+)?)\s*(?:%|percent)(?!\s*(?:menu\s+)?(?:price|increase|rise|hike|of\s+(?:units|volume|transactions|traffic)))/gi)) {
+      const x = Number(m[1]);
+      if (x === price || x <= 10 || x >= 100) continue;
+      const cm = Math.round((100 - x) * 10) / 10;
+      if (!out.includes(cm)) out.push(cm);
+    }
+  }
+  return out;
+}
+const breakevenAt = (p: number, cm: number) => Math.round(1000 * (1 - cm / (cm + p))) / 10;
 
 export function checkPricingClaims(rawText: string, v: PricingModelValues): PricingClaim[] {
   const out: PricingClaim[] = [];
@@ -141,7 +162,7 @@ export function checkPricingClaims(rawText: string, v: PricingModelValues): Pric
     if (be && p !== null && !/\bdepends\b/i.test(s) && /\b(?:worse off|break\s?even|breakeven|made it worse|self-defeating|net negative|margin[- ]neutral|neutral|flat|kill|wash|before (?:we|I|they)'re|still (?:be )?(?:ahead|flat))\b/i.test(s)) {
       const x = Number(be[1]);
       const hi = be[2] !== undefined ? Number(be[2]) : undefined;
-      const expected = answers.breakeven(p);
+      const expected = [...answers.breakeven(p), ...statedContributions(rawText, p).filter(cm => !v.contributions.includes(cm)).map(cm => breakevenAt(p, cm))];
       // Revenue held flat ("still hold revenue flat", "revenue falls") breaks even at P/(1+P).
       if (/\brevenue\b/i.test(s)) expected.push(Math.round(1000 * p / (100 + p)) / 10);
       push({ kind: 'breakeven', price: p, stated: x, ...(hi !== undefined ? { statedHi: hi } : {}), expected }, t => Math.max(2.5, 0.15 * t));

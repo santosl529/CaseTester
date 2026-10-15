@@ -108,3 +108,27 @@ describe('pricing answers from the cost structure', () => {
     expect(a.breakeven(10)).toEqual([19.2, 33.3]);
   });
 });
+
+// Lorenzo, 15 Oct (batch-25 ruling 5; Raj 36b40584 t21): a break-even is checked
+// also at the variable-cost share the candidate states — 65% variable leaves 35
+// of contribution, and 11 / (35 + 11) ≈ 23.9%.
+describe('a variable-cost share the candidate states', () => {
+  const RAJ = "Biggest risk: traffic loss big enough to offset the price gain. The math is forgiving, though — at 94% costs, contribution per dollar is thin, so I'd compute breakeven volume loss directly. If variable costs are say 58% COGS plus some variable labor, call it ~65%, then an 11% price rise lifts contribution per unit from 35 to 46 cents per dollar of old revenue. I could lose roughly 24% of units before I'm worse off. That's a wide cushion.";
+  it("Raj's break-even at his own 65% is right", () => {
+    const [c] = checkPricingClaims(RAJ, v);
+    expect(c).toMatchObject({ kind: 'breakeven', price: 11, stated: 24, verdict: 'correct' });
+    expect(c.expected).toEqual([20.8, 35.5, 23.9]);
+  });
+  it('not a wrong figure at the stated share, and the price itself is no variable share', () => {
+    expect(verdicts(RAJ.replace('roughly 24%', 'roughly 50%'))).toEqual(['breakeven:incorrect']);
+    expect(verdicts("Variable costs are 65% and we raise prices 11%, so we can lose about 11% of units before we're worse off.")).toEqual(['breakeven:incorrect']);
+    expect(verdicts('If variable costs are about 58%, an 11% price rise lets me lose roughly 11% of units before I\'m worse off.')).toEqual(['breakeven:incorrect']);
+  });
+  it('a volume loss in the same sentence is no variable share', () => {
+    expect(checkPricingClaims("With variable costs at 65%, an 11% price rise means we can lose roughly 24% of units before we're worse off.", v)[0].expected).toEqual([20.8, 35.5, 23.9]);
+  });
+  it('no stated share: the case\'s sets only', () => {
+    expect(checkPricingClaims("Costs are 94% of revenue. An 11% price rise lets me lose roughly 24% of units before I'm worse off.", v)[0].expected).toEqual([20.8, 35.5]);
+  });
+});
+
