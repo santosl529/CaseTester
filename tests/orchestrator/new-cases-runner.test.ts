@@ -270,7 +270,7 @@ describe('required exhibits (Lorenzo, 13 Oct)', () => {
   it('under time pressure there is no hold: the next required exhibit goes out with the recommendation ask', async () => {
     seed({ caseId: 'prof-002', phase: 'ANALYSIS', elapsedMin: 23.7, shown: ['exhibit-1'], revealed: CORE, flags: PT_SATISFIED });
     const r = await say('So the fare cut explains it.', T({ move: 'recommendation', question: "What's your recommendation to the CEO?" }));
-    expect(r.interviewerText).toMatch(/^Here's an exhibit: Hub–Lakeport.*\(\$\)\. .*recommendation to the CEO\?$/);   // the time warning is the ask here
+    expect(r.interviewerText).toMatch(/^Here's an exhibit: Hub–Lakeport.*\(\$\)\. .*recommendation.*biggest risk to it\?$/);   // the time warning is the ask here (with the risk since 15 Oct)
     expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2']);
   });
 
@@ -347,7 +347,7 @@ describe('Hollis Bay: the sampling exhibit after the brainstorm', () => {
     seed({ ...BEFORE, elapsedMin: 18.7, flags: { ...PT_SATISFIED, stageEvidence: stagesWith({}) } });
     const r = await say('So it breaks even.', T({ move: 'recommendation', question: "What's your recommendation to the CEO?" }));
     expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2', 'exhibit-3']);
-    expect(r.interviewerText).toMatch(/^Here's an exhibit: Proposal — In-store sampling program.*recommendation to the CEO\?$/);
+    expect(r.interviewerText).toMatch(/^Here's an exhibit: Proposal — In-store sampling program.*recommendation.*biggest risk to it\?$/);
   });
 });
 

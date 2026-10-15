@@ -17,10 +17,13 @@ export const GRACE_ASK_SCRIPTS = [
 // then one of these asks about it.
 export const STAGE_EXHIBIT_QUESTIONS = ['What does this exhibit tell you?', 'What do you take from this exhibit?'];
 
+// A late recommendation ask also asks for the biggest risk (Lorenzo, 15 Oct;
+// batch 26 Blake 4755c03a: the recommendation came only with this line, and
+// time-up left no turn for the risk question). One question.
 export const TIME_WARNING_SCRIPTS = [
-  "We're near time. What's your bottom-line recommendation to the CEO?",
-  "We're almost out of time — what would you tell the CEO right now?",
-  "Time's nearly up. Give me your bottom-line recommendation.",
+  "We're near time. What's your bottom-line recommendation to the CEO, and the biggest risk to it?",
+  "We're almost out of time — what would you tell the CEO, and what's the biggest risk to it?",
+  "Time's nearly up. What's your bottom-line recommendation, and what's the biggest risk to it?",
 ];
 
 // Round-3 stale release: an earlier request released by code once its stage

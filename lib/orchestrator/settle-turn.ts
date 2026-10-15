@@ -27,7 +27,7 @@ import { logEvent } from '@/lib/analytics';
 import { caseTotalMs, type Phase } from './state-machine';
 import { toCheckEventRows } from './check-log';
 import { pickScript, STAGE_EXHIBIT_QUESTIONS } from '@/lib/agent/prompts/scripts';
-import { BLOCKED_CLOSE_PROBES, asksForConclusion, analysisAskLine } from './spoken-close';
+import { BLOCKED_CLOSE_PROBES, LATE_RECOMMENDATION_ASKS, asksForConclusion, analysisAskLine } from './spoken-close';
 import { updateStages, type StageKey, type StageRecord } from './stage-evidence';
 import { renderDataLineParts, decisionRows, nextReadyExhibit } from './data-decisions';
 import { brainstormAsks, asksOwnBrainstorm } from './brainstorm';
@@ -227,7 +227,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // Whether this message answered the last question (a fallback must not ask it again).
   const lastAnswered = stallDecision.classification.kind === 'analysis';
   let question = codeWritten ? turn.question : keep(turn.question, 'question');
-  if (kind === 'rec_ask') question = pickScript([...BLOCKED_CLOSE_PROBES.recommendation], seed);
+  if (kind === 'rec_ask') question = pickScript([...(state.recAskLate ? LATE_RECOMMENDATION_ASKS : BLOCKED_CLOSE_PROBES.recommendation)], seed);
   // The model's own words in the question, as the turn goes on — emptied
   // wherever code replaces the question, kept when code only appends. The
   // pressure test is asked by the model's words or code's own probe, never by

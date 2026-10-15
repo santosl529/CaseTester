@@ -387,7 +387,8 @@ same way):
 
 - **Time warning due + case-breaking correction pending (Tier 2 vs. Tier 3):**
   both fire in one turn, correction first — "Quick correction — that's about 2
-  points, not 6. And we're near time: what's your bottom-line recommendation?"
+  points, not 6. And we're near time: what's your bottom-line recommendation,
+  and the biggest risk to it?"
   Tier 2 wins the scheduling; the Tier 3 correction is compressed, never
   dropped (Rule 15 already marks it never-shed).
 - **Phase repair needed mid-candidate-thread (Tier 1 vs. Tiers 4/5):** repair
@@ -406,7 +407,8 @@ same way):
 - **Time warning due + open data request (Tier 1 vs. Tier 2):** both fire in
   one turn, request first — release or refuse, then the recommendation ask:
   "The average transaction is $6.80, up from $6.20 two years ago. And we're
-  near time: what's your bottom-line recommendation?" Deferral is not available here: there is
+  near time: what's your bottom-line recommendation, and the biggest risk to
+  it?" Deferral is not available here: there is
   no later turn to defer to. Run 4 (3:39) is the failure this prevents — the
   recommendation ask displaced the candidate's price request, and the
   recommendation inherited the untested assumption.
@@ -1863,7 +1865,12 @@ mid-flow.
 
 - Time warning fires deterministically at T−30s (configurable),
   orchestrator-triggered, regardless of phase: "We're near time. What's your
-  bottom-line recommendation to the CEO?"
+  bottom-line recommendation to the CEO, and the biggest risk to it?" A late
+  recommendation ask — the time warning, or code's ask past the
+  recommendation deadline — also asks for the biggest risk, in one question
+  (Lorenzo, 15 Oct 2026; batch 26 Blake 4755c03a reached time-up with the
+  risk never asked). The grace ask at time-up asks for the recommendation
+  only.
 - CLOSE exit criterion: final recommendation delivered → one brief, neutral
   close ("That's time. Thanks for working through it.") → debrief handoff.
   Never a contentless continuation prompt after synthesis; never re-opening

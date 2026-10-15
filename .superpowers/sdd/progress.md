@@ -58,6 +58,9 @@ Post-plan hardening (July–Sep 2026) through Integration (13 Oct) were moved to
 6. **The overhead spoken name becomes "overhead including rent"** (lists: "COGS, labor, and overhead including rent"); the data line stays "Overhead and rent are 14% of revenue, up slightly from 12%." Build before batch 27.
 7. **After the club (Lorenzo, 15 Oct):** batch-23 gap 1 ("38% to get COGS back to 42%"), batch-23 gap 6 ("10% adds roughly 60 cents… call it 6 points"), batch-25 item 3 (a concession restating the claim's own figure withdraws it), the fuller batch-25 fix 6, the launcher's estimate basis.
 
+**Builds** (one commit each, docs in each):
+- **Build 2 — a late recommendation ask also asks for the biggest risk.** The time-warning lines and `LATE_RECOMMENDATION_ASKS` (code's `rec_ask` at or past the brainstorm budget's end, `recAskLate`) ask both in one question; one line records both stages, the case closes on the next reply with the recommendation. Grace ask unchanged. Lorenzo's acceptance test (runner, Blake's real clock, checker on): t23's time warning asks the risk. Replay vs 320b90e: off 38 / on 36 lines in 23 runs — 28/26 the late asks, the rest downstream closes. Tests +19; mutations 6/6.
+
 ## Batch 26 (15 Oct) — prof-001 wave after the batch-25 fixes
 
 - **Run:** `batch-26-oct-15-runs-1-10`, from `fact-guards` 770e95e under `caffeinate -i`, personas 10, 14, 57, 53, 40, 19, 24, 15, 54, 7, scored 10 and 14. $5.93 (cap $10): simulator $2.38, Sonnet (interviewer + checker) $2.34, Opus scoring $0.92, classifiers $0.28. 10 ok, 0 failed, no warnings; 101 checker verdicts, 39 flag rows, no errors/timeouts (max 20.1 s). Stage minutes: Blake closed owing exhibit, brainstorm, risk; the rest owed nothing.

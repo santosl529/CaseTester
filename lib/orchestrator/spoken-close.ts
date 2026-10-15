@@ -232,6 +232,14 @@ export const BLOCKED_CLOSE_PROBES = {
 
 export type BlockedCloseProbe = keyof typeof BLOCKED_CLOSE_PROBES;
 
+// Code's recommendation ask past the recommendation deadline also asks for the
+// biggest risk, in one question (Lorenzo, 15 Oct; batch 26 Blake 4755c03a).
+export const LATE_RECOMMENDATION_ASKS = [
+  "Pull it together — what's your recommendation to the CEO, and what's the biggest risk to it?",
+  "Based on what you have, what would you tell the CEO to do, and what's the biggest risk to it?",
+  "What's your recommendation to the client, and what's the biggest risk to it?",
+] as const;
+
 export function chooseBlockedCloseProbe(s: StageAdministration): BlockedCloseProbe {
   if (!s.brainstormAsked) return 'brainstorm';
   if (!s.recommendationReceived && s.recommendationAskCount < RECOMMENDATION_ASK_LIMIT) return 'recommendation';

@@ -842,6 +842,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   checks.record('misquote', perItem.length > 0, misquote ? 'misquote of revealed data — code corrects it' : 'misquote corrected twice already — logged', {
     found, correcting: correcting.map(m => m.item), alreadyCorrected: misquotesCorrected,
   });
+  // A late recommendation ask — past the recommendation deadline — also asks the biggest risk (Lorenzo, 15 Oct).
+  const recAskLate = kind === 'rec_ask' && elapsedMs >= deadlines.brainstormEnd;
   const closeReason: CloseReason = timeUp ? 'time_up' : recommendationUnresolved(stages) && !recommendationReceived ? 'unresolved' : 'complete';
   checks.record('turn_kind', kind !== 'model', `turn decided by code: ${kind}`, { kind, timeUp, mayEnd, owedStage: owedStage ?? null, ...stages });
 
@@ -908,7 +910,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       caseData, repliedToDistressOffer, shownExhibitIds, stagesOut, brainstormDue: brainstormDueNow, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
-      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, recMathProbe, checkerLine, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
+      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, recMathProbe, checkerLine, recAskLate, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,
