@@ -450,6 +450,13 @@ describe('spoken whats', () => {
     expect(renderDataLines({ ...decideData(base()), gateDefers: ['COGS as % of revenue', 'Labor as % of revenue', 'Overhead / rent as % of revenue'] }, 's'))
       .toEqual(["I'll share COGS, labor and overhead as a percent of revenue once we've settled your structure."]);
   });
+  // Lorenzo, 15 Oct (ruling 6): prof-001's overhead is spoken "overhead including rent" — "COGS, labor, and overhead including rent".
+  it('the spoken overhead name in a list: a comma before the last; none in a pair', () => {
+    expect(renderDataLines({ ...decideData(base()), gateDefers: ['COGS as a percent of revenue', 'labor as a percent of revenue', 'overhead including rent as a percent of revenue'] }, 's'))
+      .toEqual(["I'll share COGS, labor, and overhead including rent as a percent of revenue once we've settled your structure."]);
+    expect(renderDataLines({ ...decideData(base()), gateDefers: ['labor as a percent of revenue', 'overhead including rent as a percent of revenue'] }, 's'))
+      .toEqual(["I'll share labor and overhead including rent as a percent of revenue once we've settled your structure."]);
+  });
   it('a catalog heading before a colon is not said (remapped asks, 12 Oct)', () => {
     expect(renderDataLines({ ...decideData(base()), gateDefers: ["Composition of COGS: coffee beans' share of COGS", 'Coffee bean price change over 2 years'] }, 's'))
       .toEqual(["I'll share coffee beans' share of COGS and coffee bean price change once we've settled your structure."]);   // no period qualifier in a promise (batch 21 D8)

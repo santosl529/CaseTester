@@ -101,7 +101,7 @@ describe('pressure-test state', () => {
     expect(pt()?.state).toBe('awaiting');
     expect(revealed()).not.toContain('cogs_pct');
     // v3: the reason, out loud — the cost breakdown named by its lines (a group ask, 12 Oct).
-    expect(heard).toMatch(/I'll share COGS, labor, and overhead and rent as a percent of revenue once we've settled your structure\./);
+    expect(heard).toMatch(/I'll share COGS, labor, and overhead including rent as a percent of revenue once we've settled your structure\./);
   });
 
   // Lorenzo, 13 Oct (Tyler af62e2e2 t4): a substantive reply the judge didn't count is still a reply.
@@ -192,7 +192,7 @@ describe('bounded fallbacks', () => {
     expect(heard[2]).toMatch(/Let's leave the structure there\./);
     // The waiver releases what was held: the three cost lines, as their exhibit (a group ask, 12 Oct).
     expect(heard[2]).toMatch(/COGS|Here's an exhibit: Brew & Bean Cost Structure/);
-    for (const h of heard.slice(0, 2)) expect(h).toMatch(/I'll share COGS, labor, and overhead and rent as a percent of revenue once we've settled your structure\./);
+    for (const h of heard.slice(0, 2)) expect(h).toMatch(/I'll share COGS, labor, and overhead including rent as a percent of revenue once we've settled your structure\./);
     expect(heard.filter(h => /MECE/.test(h))).toHaveLength(0);
     expect(pt()).toMatchObject({ state: 'waived', awaitingReplies: 3 });
     expect(pt()?.satisfiedAt).toBeUndefined();

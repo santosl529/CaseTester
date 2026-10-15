@@ -429,8 +429,9 @@ const joinWhat = (whats: string[], conj: 'and' | 'or') => {
   // A suffix every item shares is said once: "COGS and labor as a percent of revenue".
   const tail = / as a (?:percent|share) of revenue$/i.exec(u[0])?.[0];
   const items = tail && u.every(x => x.toLowerCase().endsWith(tail.toLowerCase())) ? u.map(x => x.slice(0, -tail.length)) : u;
-  // An item that has its own "and" gets a comma before the last ("COGS, labor, and overhead and rent").
-  const serial = items.length > 2 && items.some(x => / and /.test(x)) ? ',' : '';
+  // An item that has its own "and" or "including" gets a comma before the last
+  // ("COGS, labor, and overhead including rent" — Lorenzo, 15 Oct).
+  const serial = items.length > 2 && items.some(x => / (?:and|including) /.test(x)) ? ',' : '';
   return `${items.slice(0, -1).join(', ')}${serial} ${conj} ${items.at(-1)}${items === u ? '' : tail}`;
 };
 

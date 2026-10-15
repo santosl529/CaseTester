@@ -1,13 +1,13 @@
 # SDD Progress Ledger — Voice AI Mock Case Interview Text Product
 
 ## Now
-- **Branch:** `fact-guards` = `larkspur-fixes` (batch-26 fixes 1–5 + this docs commit), fast-forwarded 15 Oct; never pushed (no remote branch). Worktree `.claude/worktrees/integration`; paid waves run from the main checkout.
-- **Tests:** 2728 pass (9 skipped); `npx tsc --noEmit` and `npx eslint .` clean.
+- **Branch:** `fact-guards` = `larkspur-fixes` (batch-26 fixes 1–5, the rulings docs, builds 2, 5, 6), fast-forwarded 15 Oct; never pushed (no remote branch). Worktree `.claude/worktrees/integration`; paid waves run from the main checkout.
+- **Tests:** 2767 pass (9 skipped); `npx tsc --noEmit` and `npx eslint .` clean.
 - **Live per case:** prof-001 — step flags live (`stepFlagsLive`), ledger lookup report-only, 20 min, exhibit required (15 Oct). prof-002 Larkspur — step flags and ledger lookup report-only, 25 min. entry-001, pricing-001, launch-001 — report-only, 20 min. The math checker runs on every case.
 - **Pass bar (batch 27, as batch 26):** zero false facts or false corrections; zero firm serious failures; zero dropped errors (the last message before time-up excepted, and flags that don't change the conclusion and close at the close); firm moderate faults ≤ 2 per interview, borderlines apart, last-message D6s not counted (Lorenzo, 15 Oct).
 - **Go/no-go (Lorenzo, fixed in advance):** any false statement or any firm serious failure = no go; otherwise the build goes to the club, even with dropped errors or moderate faults.
 - **Lorenzo ruled on the batch-26 fix report (15 Oct; "Rulings round (batch 26)" below):** the deadlines approved; build 2 (a late recommendation ask also asks the risk), 5 (a due stage question beats the checker line), 6 ("overhead including rent"); the new cases' 3-minute recommendation + risk + close logged for before their wave; batch 27 go.
-- **Next:** builds 2, 5, 6 (one commit each), fast-forward `fact-guards`, then batch 27 — prof-001, personas 10, 14, 57, 53, 40, 19, 24, 15, 54, 7, Sofia and Jordan scored, cap $10 (≈ $6), dry run first, then the wave under `caffeinate -i`; then hand-grade (`.superpowers/sdd/next-session-prompt-b26-rulings.md` has the steps).
+- **Next:** builds 2, 5, 6 done (15 Oct; "Rulings round (batch 26)"); batch 27 — prof-001, personas 10, 14, 57, 53, 40, 19, 24, 15, 54, 7, Sofia and Jordan scored, cap $10 (≈ $6), dry run first, then the wave under `caffeinate -i`; then hand-grade (`.superpowers/sdd/next-session-prompt-b26-rulings.md` has the steps).
 - **Paid runs:** each wave needs Lorenzo's explicit go-ahead and a cap, one wave at a time, with a cost estimate.
 
 ## Rules in force
@@ -19,6 +19,8 @@
 - One error, one count; at most two probes per step per interview; after two, code's correction once or the report.
 - Checker probes come in two steps and never lead; the hint is the second probe; no probe carries arithmetic.
 - A checker line counts as delivered only if heard; code says it when the model leaves it out (15 Oct).
+- A late recommendation ask (the time warning, or code's ask past the recommendation deadline) also asks the biggest risk, in one question (15 Oct).
+- A due stage question (past its deadline or the time warning; the risk once the recommendation is in) beats a checker probe: the probe is held to the next turn, once; a correction goes first; a held line may hold the close once, never at time-up (15 Oct).
 - A concession withdraws only the claim it answers; a redo to a case-figure right answer only when it names the same quantity (15 Oct).
 - Only a conclusion-changing flag holds the close; other flags left at the close go to the report and are not dropped errors (15 Oct).
 - Stage deadlines from the phase budgets: lead exhibit and core analysis at the analysis budget's end, ordered exhibits and the brainstorm at the exhibit budget's end, the recommendation ask at the brainstorm budget's end (15 Oct; all approved by Lorenzo, 15 Oct).
@@ -61,6 +63,7 @@ Post-plan hardening (July–Sep 2026) through Integration (13 Oct) were moved to
 **Builds** (one commit each, docs in each):
 - **Build 2 — a late recommendation ask also asks for the biggest risk.** The time-warning lines and `LATE_RECOMMENDATION_ASKS` (code's `rec_ask` at or past the brainstorm budget's end, `recAskLate`) ask both in one question; one line records both stages, the case closes on the next reply with the recommendation. Grace ask unchanged. Lorenzo's acceptance test (runner, Blake's real clock, checker on): t23's time warning asks the risk. Replay vs 320b90e: off 38 / on 36 lines in 23 runs — 28/26 the late asks, the rest downstream closes. Tests +19; mutations 6/6.
 - **Build 5 — a due stage question wins over the checker's probe.** `stagesDue` (brainstorm ≥ exhibit-budget end, recommendation ≥ brainstorm-budget end, either after the time warning; the risk once the recommendation is in); Settle keeps a model question that asks a due stage and holds the probe (`flags.mathChecker.held`): no expiry, raised first, the coverage ask yields to it, held once only; a correction goes first then the stage question; the close hold extends to a held line once an interview (`flags.heldCloseHold`), never at time-up. Jordan t19 keeps the risk; t21's redo states 18, the flag closes stale, the case closes (Lorenzo's acceptance met). Jasmine t31 unchanged. Replay vs 7858cce: off 0 / on 4 lines in 2 runs (Jordan t19/t21, 4bf008f t19/t21). Tests +19; mutations 14/14.
+- **Build 6 — "overhead including rent".** prof-001 `overhead_pct` spoken "overhead including rent as a percent of revenue", data line unchanged, anchor name added; a list comma before the last also after an item with "including" — "COGS, labor, and overhead including rent"; pair "labor and overhead including rent". Replay vs ce13047: off 27 / on 27 lines, all deferrals naming the item. Mutations 5/5.
 
 ## Batch 26 (15 Oct) — prof-001 wave after the batch-25 fixes
 
