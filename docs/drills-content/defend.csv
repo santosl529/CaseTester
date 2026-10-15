@@ -62,7 +62,7 @@ hy2-0020,,,,"Reported potholes and the repair backlog by week, around the app's 
 hy2-0021,,,,"Travel hours per building, by contract area. If cost per building rose as much where buildings are close together, I'd drop it."
 hy2-0022,,,,"Quote requests per household, split by whether the home has room for a sauna. If homes with room requested quotes no more often than the rest, I'd drop it."
 hy2-0023,,,,"Single-ticket sales by day of the week, this season and two seasons ago. If the remaining Saturday shows also lost half their single tickets, I'd drop it."
-hy2-0024,,,,"To test that the plan overstated lighting's share, I'd meter each use of electricity in a few stores for a month. If lighting is near 55% of use, I'd drop it."
+hy2-0024,,,,"To test that the plan overstated lighting's share, I'd meter each use of electricity in a few stores for a month. If lighting really is about 55% of use, as the plan assumed, I'd drop it."
 hy2-0025,,,,"Upright and digital piano sales by region over the five years. If uprights fell as much where digital pianos sell little, I'd drop it."
 hy2-0026,,,,"Tuition collected per student after aid, two years ago and now. If it rose close to the 4% list-price increase, I'd drop it."
 hy2-0027,,,,"Sales by retailer, this year against last. If sales lost at the 150-store chain don't explain most of the gap to the category's 10%, I'd drop it."

@@ -292,6 +292,27 @@ describe('the Repair drills (PRD "Repair drills")', () => {
 
 describe('gradeSet with a follow-up', () => {
   afterEach(() => vi.restoreAllMocks());
+
+  it('grades the HY-2 data request in its own call that sees only the reply, with reasons before verdicts', async () => {
+    const x = withDefend(hy2);
+    const steps = run(x);
+    const seen: { kind?: CallKind; system: string; user: string }[] = [];
+    const call: CallModel = async (system, user, kind) => {
+      seen.push({ kind, system, user });
+      const own = x.checks.filter(c => c.detection === 'ai' && user.includes(`check_id "${c.check_id}"`));
+      return { output: { items: [{ item_key: 'answer', checks: own.map(c => ({ check_id: c.check_id, reason: 'r', pass: true, evidence: c.evidence === 'whole' ? '' : answerText(steps[defendParts(x)!.reply].response) })), red_flags: user.includes('<interviewer_followup>') ? [] : x.red_flags.filter(f => f.detection === 'ai').map(f => ({ id: f.id, present: false, evidence: '' })), hypothesis_family: 'other', backup_family: null, injection_suspected: false }] }, usage: { input_tokens: 1, output_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } };
+    };
+    await gradeSet([{ key: 'a', item: x, steps, part: 'defend' }], call);
+    const data = seen.find(c => c.user.includes('check_id "defend_data_request"'))!;
+    const rest = seen.find(c => c.user.includes('check_id "defend_consistent"'))!;
+    expect(seen).toHaveLength(2);
+    expect(data.user).not.toContain('<student_main_answer>');
+    expect(data.user).not.toContain('defend_consistent');
+    expect(rest.user).not.toContain('check_id "defend_data_request"');
+    expect(rest.user).toContain('after Drop, the cause the stage 2 answer moves to');
+    expect([data.kind, rest.kind]).toEqual(['reasoned', 'reasoned']);
+    expect(data.system).toContain('write "reason" first');
+  });
   const ok = (ids: string[], flags: string[]) => ({ output: { items: [{ item_key: 'answer', checks: ids.map(id => ({ check_id: id, pass: false, evidence: '' })), red_flags: flags.map(id => ({ id, present: false, evidence: '' })), hypothesis_family: null, backup_family: null, injection_suspected: false }] }, usage: { input_tokens: 1, output_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } });
 
   it('makes one call for the main answer and one for the reply, and skips the reply call when there is none', async () => {
