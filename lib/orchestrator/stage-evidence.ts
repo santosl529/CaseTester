@@ -48,7 +48,7 @@ export const INITIAL_STAGES: StageRecord = {
 const BRAINSTORM_OPEN = /\b(?:what|how)\s+else\b|\bwhat\s+other\s+(?:ways|options|levers|ideas|things|moves|actions|initiatives)\b|\bother\s+ways\s+(?:to|could|might|can)\b|\bbeyond\s+[^?]{1,60}?,\s*what\b|\bas many (?:options|ideas)\b|\bbrainstorm/i;
 // The end gate's wording for a labelled move (progress.ts until 13 Oct).
 const BRAINSTORM_TEXT = /\b(?:what|how)\s+else\b|\bwhat\s+other\s+(?:ways|options|levers|ideas|things|moves|actions)\b|\bother\s+ways\s+(?:to|could|might|can)\b|\bas many (?:options|ideas)\b/i;
-const RISK_TEXT = /\b(?:risk|go wrong|change your mind|wrong about|break (?:it|that|this))\b/i;
+const RISK_TEXT = /\b(?:risks?|go wrong|change your mind|wrong about|break (?:it|that|this))\b/i;
 const REC_TEXT = /\b(?:recommend\w*|tell the (?:ceo|client)|should (?:they|the client|the company|brew)|what would you do|bottom.?line)\b/i;
 
 export function asksBrainstormNow(question: string): boolean {

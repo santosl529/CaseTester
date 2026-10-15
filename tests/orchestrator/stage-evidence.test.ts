@@ -119,7 +119,8 @@ describe('the record reads stages as the end gate did', () => {
     const q = "Understood. You named competitive reaction and price sensitivity as risks. Which single risk could most undermine this recommendation, and how would you know early that it's happening?";
     const rec = updateStages(undefined, turn({ question: 'What do you recommend?', move: 'recommendation' }));
     expect(updateStages(rec, turn({ turnIndex: 6, question: q, move: 'risk' })).risk.delivered).toBe(true);
-    expect(updateStages(rec, turn({ turnIndex: 6, question: q })).risk.delivered).toBe(false);
+    expect(updateStages(rec, turn({ turnIndex: 6, question: q })).risk.delivered).toBe(true);   // its words say it too, since 14 Oct (risk-question.test.ts)
+    expect(updateStages(rec, turn({ turnIndex: 6, question: 'Which of those matters most to you?', move: 'risk' })).risk.delivered).toBe(false);   // a risk move needs risk words
     expect(updateStages(undefined, turn({ question: q, move: 'risk' })).risk.delivered).toBe(false);     // no recommendation yet
   });
   it("a recommendation move in recommendation words; code's ask by its move", () => {

@@ -140,11 +140,20 @@ const CONTINGENCY = /\b(?:if|suppose)\b[^?]{0,160}?\b(?:what (?:would|do) you do
 // "what's your plan?", which is the contingency's own wording.
 const CANDIDATE_REC_REF = /\byou'?re recommending\b|\b(?:your|that) recommendation\b|\byou(?:'ve)? proposed\b|\byour proposal\b/i;
 
+// Risk asked without "biggest risk" (Lorenzo, 14 Oct; batch 24, Fiona
+// a4485b6d t14: "You named lock-in and customer reaction as risks. Of
+// everything that could stop this plan…, which is the single biggest, and how
+// would you mitigate it?"; Ines 62d06bd6 t20 "Which single risk could most
+// undermine this recommendation…?"): counted like a contingency, once a
+// recommendation is on the table — "how would you mitigate the waste
+// problem?" mid-case is analysis.
+const RISK_LOOSE = /\b(?:how would you mitigate|mitigate (?:it|that|them|this|the risk)|biggest threat|single biggest|which (?:single )?risk|could (?:most )?(?:undermine|sink|stop|derail|kill|break) (?:this|the|your|that)|named [^.?]{1,80}? as (?:the )?(?:main |key |two )?risks?)\b/i;
+
 // A contingency counts only once a recommendation has been asked for
 // (afterRecommendation), or when it is about the candidate's own — not an
 // analysis "Suppose the mix test shows…" (6a7fd865 replay).
 export function asksRiskQuestion(text: string, afterRecommendation = true): boolean {
-  return RISK_STAGE.test(text) || ((afterRecommendation || CANDIDATE_REC_REF.test(text)) && CONTINGENCY.test(text));
+  return RISK_STAGE.test(text) || ((afterRecommendation || CANDIDATE_REC_REF.test(text)) && (CONTINGENCY.test(text) || RISK_LOOSE.test(text)));
 }
 // A risk question that names a recommendation already made ("You're
 // recommending an 11% price increase … the single biggest risk to that
