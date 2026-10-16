@@ -2347,6 +2347,14 @@ flag there: code's correction again and "Does that change your
 recommendation?" (or, with no correction, "Before we wrap up — walk me through
 how you got to <figure>."). One flag, once a case; not when time is up.
 
+**No "your recommendation" before one is received (16 Oct, Lorenzo; batch 29
+Jordan t13 — "Would that change your recommendation at all?" with no
+recommendation given).** Code asks whether a correction changes the
+recommendation (the misquote's revision question, the math probe on the
+recommendation, the closed-error flag) only once a recommendation is in. A
+recommendation ask that code's own line replaced does not count as asked: the
+reply to it is no recommendation reply.
+
 **The final answers are checked before the close (16 Oct, Lorenzo; batches
 23–28: 19 of 60 runs closed with time left before they were).** A wrong figure
 in the recommendation or the replies after it is report material, not a

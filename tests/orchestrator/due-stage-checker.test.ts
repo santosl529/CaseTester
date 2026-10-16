@@ -143,6 +143,25 @@ describe('Settle: a due stage question keeps the question; the probe waits', () 
     expect(s.spokenText).toBe(`Right. ${JASMINE_PROBE}`);
     expect(checkOf(plan)).toMatchObject({ detail: { by: 'code', heard: true } });
   });
+  // Batch 29 Jordan ea27d1f6 t11: the probe took his recommendation ask, the
+  // "recommendation" label stayed, and t13 was read as the reply to it.
+  it('a recommendation ask the probe replaced keeps no "recommendation" label (Jordan b29 t11)', async () => {
+    const JORDAN_B29_T11: ModelTurn = { move: 'recommendation', requests: [], exhibit: null, rescueItem: null, say: 'Got it, a broad set of levers.', question: 'Pulling that together, what is your recommendation to the CEO: which levers would you pull first, and in what sequence?' };
+    const plan = settlePlan({ id: '7:1', key: 'checker:offsets absorb ~20 points', action: 'probe', line: JORDAN_LINE, due: {} });
+    const s = await settleTurn(plan, outcome(JORDAN_B29_T11));
+    expect(s.spokenText).toBe(`Got it, a broad set of levers. ${JORDAN_LINE}`);
+    store.session = { id: plan.ctx.sessionId, status: 'active', flagsJsonb: {} };
+    await s.persist({ firstSegmentMs: null, streamed: false });
+    const moves = (store.session.flagsJsonb as { moves: Record<number, string> }).moves;
+    expect(moves[plan.ctx.nextTurnIndex + 1]).toBeUndefined();
+    // Asked in the model's words, the label stands.
+    const asked = settlePlan({ id: '7:1', key: 'checker:offsets absorb ~20 points', action: 'probe', line: JORDAN_LINE, due: {} });
+    asked.state.checkerLine = null;
+    const t = await settleTurn(asked, outcome(JORDAN_B29_T11));
+    store.session = { id: asked.ctx.sessionId, status: 'active', flagsJsonb: {} };
+    await t.persist({ firstSegmentMs: null, streamed: false });
+    expect((store.session.flagsJsonb as { moves: Record<number, string> }).moves[asked.ctx.nextTurnIndex + 1]).toBe('recommendation');
+  });
   it('past 16:00 the same recommendation ask is due: it stays, and the probe is held back', async () => {
     const plan = settlePlan({ id: '27:2', key: 'checker:about 5 points', action: 'probe', line: JASMINE_PROBE, due: { recommendation: true } });
     const s = await settleTurn(plan, outcome(JASMINE_T31));

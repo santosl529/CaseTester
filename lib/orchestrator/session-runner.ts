@@ -437,11 +437,13 @@ const REC_REVISION_QUESTIONS = ['With that corrected, does your recommendation c
 // After code corrects the candidate's own math in the recommendation (Rule 14
 // past its probe): the correction is theirs, so no "corrected figure" talk.
 const REC_MATH_REVISION_QUESTIONS = ['Does that change your recommendation?', 'Would that change your recommendation at all?'] as const;
+// …and with no recommendation received yet, nothing about "your recommendation" (batch 29 Jordan ea27d1f6 t13).
+const ANALYSIS_REVISION_QUESTIONS = ['Does that change your analysis?', 'How does that change your numbers?'] as const;
 
 
 // A code-written turn as a turn of the interviewer's shape: the message's data
 // requests (answered by Settle's data line) and the scripted line.
-function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null): ModelTurn {
+export function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null): ModelTurn {
   const { ctx, state } = plan;
   const seed = `${ctx.sessionId}:${ctx.nextTurnIndex}`;
   const recMath = state.kind === 'rec_math_probe' ? state.recMathProbe : null;
@@ -459,9 +461,9 @@ function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null
         : state.kind === 'stage_brainstorm' ? pickScript(brainstormAsks(state.caseData), seed)
           : state.kind === 'stage_exhibit' ? pickScript(STAGE_EXHIBIT_QUESTIONS, seed)
           : state.kind === 'stage_analysis' && state.caseData.analysisCore ? analysisAskLine(state.caseData.analysisCore.ask, state.recommendationInPlay)
-            : state.kind === 'rec_revision' ? pickScript([...REC_REVISION_QUESTIONS], seed)
+            : state.kind === 'rec_revision' ? pickScript([...(state.recommendationReceived ? REC_REVISION_QUESTIONS : ANALYSIS_REVISION_QUESTIONS)], seed)
               : state.kind === 'close_wait' ? closeWaitLine(state.lastQuestion ?? '', seed)
-              : recMath?.action === 'correct' ? pickScript([...REC_MATH_REVISION_QUESTIONS], seed)
+              : recMath?.action === 'correct' ? pickScript([...(state.recommendationReceived ? REC_MATH_REVISION_QUESTIONS : ANALYSIS_REVISION_QUESTIONS)], seed)
               : recMath ? recLine('probe')
             : `Take your time. ${restateOnTable(state.lastQuestion ?? '')}`;
   // The owed exhibit is handed over by code's own data line ("Here's an exhibit: …").

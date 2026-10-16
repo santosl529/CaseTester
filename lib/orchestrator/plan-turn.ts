@@ -783,20 +783,21 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // and asks once whether the recommendation changes, rather than moving on or
   // closing on it. Not when time is up — the correction still goes out first.
   // With the gate the correction comes a turn after the reply, so: a misquote released from a recommendation reply.
-  const recRevisionDue = misquote !== null && misquote.all.some(m => recReplyAt(m.n)) && !flags.recRevisionAsked && !timeUp;
+  // No "your recommendation" question before one is received (batch 29 Jordan ea27d1f6 t13).
+  const recRevisionDue = misquote !== null && misquote.all.some(m => recReplyAt(m.n)) && recommendationReceived && !flags.recRevisionAsked && !timeUp;
   // A recommendation that rests on math a check flagged (fact guards Phase 4,
   // 12 Oct; batch 20: "a 10% price increase recovers about 5 points" said first
   // in the final answer, then the close): one code-written probe — or, past
   // Rule 14's probe, the figure and a chance to revise — before the case moves
   // on. Once a case; not when time is up; a shed minor error stays shed.
   // A flag released from a recommendation reply (the gate).
-  const recMathFlag = !flags.recMathProbed && !timeUp && !recRevisionDue && wrapUps > 0
+  const recMathFlag = recommendationReceived && !flags.recMathProbed && !timeUp && !recRevisionDue && wrapUps > 0
     ? liveFlags.find(f => recReplyAt(fromOf(f)) && flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)))
     : undefined;
   // An error past Rule 14 said again in the recommendation (Lorenzo, 13 Oct;
   // Jordan 099f33e9 t25): one more flag, under the same once-a-case rule — once
   // the reply's verdict flags it too (the gate).
-  const closedRec = !flags.recMathProbed && !timeUp && !recRevisionDue && !recMathFlag && wrapUps > 0
+  const closedRec = recommendationReceived && !flags.recMathProbed && !timeUp && !recRevisionDue && !recMathFlag && wrapUps > 0
     ? closedErrorAgreed({
       rows: checkerRows, candidateTurnIndex: ctx.nextTurnIndex, recReply: recReplyAt, closed: closedKeys, keys: checkerPlan.keys,
       messages: [...turnRows.filter(t => t.role === 'candidate').map(t => ({ index: t.turnIndex, text: t.text })), { index: ctx.nextTurnIndex, text: candidateText }],

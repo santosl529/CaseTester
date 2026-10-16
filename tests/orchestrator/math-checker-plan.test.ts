@@ -384,3 +384,66 @@ describe('pendingFinalChecks', () => {
     expect(pendingFinalChecks({ messages: msgs, from: 7, memory: { waits: [7] }, rows: [row(7)], checked })).toEqual([]);
   });
 });
+
+// Batch 29 Jordan ea27d1f6 t13 (Lorenzo, 16 Oct): "COGS rose 16 points … Would
+// that change your recommendation at all?" before any recommendation — the
+// turn before had a "recommendation" label code's probe had replaced. No
+// "your recommendation" question goes out before one is received.
+describe('no recommendation question before a recommendation is received (Jordan b29 t13)', () => {
+  const CORRECTION = 'COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.';
+  const KEY = 'cogs_dollar_impact@38';
+  const T13 = "Sure. Beans are 25% of COGS. COGS is now 58 points of revenue, so beans are about 0.25 × 58 ≈ 14.5 points of revenue.\n\nIf we win a 10% reduction on bean costs — which is aggressive for a commodity in a tight market — that's 0.10 × 14.5 ≈ 1.45 points of margin. Call it a point and a half.\n\nEven a 20% win is only about 3 points. And the other 75% of COGS — dairy, packaging, food — is 43.5 points of revenue; a 5% improvement there is about 2 points.\n\nSo realistically, stacking sourcing and waste initiatives together, you might recover 4 to 6 points of margin. Against roughly 38 to 40 points of gross COGS pressure, that's a sixth of the problem at best. It gets you from 6% to maybe 11%, not back to 24%.\n\nThat's why I keep landing on price. Prices have been flat for two years while inputs ran up nearly 40% — there's real headroom there.";
+  const reads = (flags: Record<string, unknown> = {}) => readsFixture({
+    phase: 'BRAINSTORM', elapsedMs: 11 * 60 * 1000, revealed: COSTS,
+    flags: { pressureTest: { state: 'satisfied', reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false },
+      moves: { 6: 'recommendation' }, mathChecker: { handled: ['3:0'], keys: { [KEY]: { figures: [38, 40], since: 3 } }, closed: [KEY] }, ...flags },
+    extraTurns: [
+      { role: 'candidate', text: "I'm reading that as a 38% increase on the 42 base, so roughly 38 points of margin pressure from COGS alone." },
+      { role: 'interviewer', text: `${CORRECTION} What else could Brew & Bean do to restore its margin?` },
+      { role: 'candidate', text: 'A few buckets. On COGS directly: renegotiate green coffee contracts, consolidate suppliers. On mix: push higher-margin items.' },
+      { role: 'interviewer', text: 'Got it, a broad set of levers. Walk me through that calculation.' },
+      { role: 'candidate', text: T13 },
+      { role: 'interviewer', text: 'What would you look at next?' },
+    ],
+  });
+  const rows = () => [
+    { id: 'f5', sessionId: 's1', category: 'math_checker', subtype: 'flag', turnIndex: 5, phase: 'ANALYSIS', payloadJsonb: { id: '3:0', outcome: 'correct', key: KEY, candidateValue: '38-40 points', line: CORRECTION } },
+    verdict(7, { claims: [flagOn('38-40 points', 16)] }),
+  ];
+  const plan = (flags?: Record<string, unknown>) => modelState(planTurn(withVerdict(reads(flags), rows() as never), 'I would look at dairy contracts next.', deps()));
+  it('t13 replied to no recommendation ask (the label was a replaced question\'s), and no recommendation is in: no closed-error flag', () => {
+    const p = plan();
+    expect(p.state.kind).not.toBe('rec_math_probe');
+    expect(p.state.recMathProbe).toBeNull();
+  });
+  it('with a recommendation received, the same reply gets the flag (the guard is what holds it)', () => {
+    const p = plan({ stall: { recommendationDelivered: true } });
+    expect(p.state.kind).toBe('rec_math_probe');
+    expect(p.state.recMathProbe).toMatchObject({ closed: { key: KEY, correction: CORRECTION }, action: 'correct' });
+  });
+});
+
+// The same guard on the recommendation reply's own lines: a misquote or a code
+// flag released from a reply that gave no recommendation asks nothing about it.
+describe('the reply\'s released lines ask about a recommendation only once one is in', () => {
+  const MISQ = 'Revenue grew about 19% over the period, and COGS is the story.';
+  const WRONG = 'A 10% price increase recovers about 5 points of margin.';
+  const reads = (text: string, flags: Record<string, unknown> = {}) => readsFixture({
+    phase: 'RECOMMENDATION', elapsedMs: 14 * 60 * 1000, revealed: COSTS,
+    flags: { pressureTest: { state: 'satisfied', reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false }, moves: { 4: 'recommendation' }, ...flags },
+    extraTurns: [{ role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What is your recommendation to the CEO?' }, { role: 'candidate', text }, { role: 'interviewer', text: 'What would you look at next?' }],
+  });
+  const at = (text: string, claims: VettedClaim[], flags?: Record<string, unknown>) =>
+    modelState(planTurn(withVerdict(reads(text, flags), [verdict(5, { claims, codeFlags: codeFlagsOf(text, COSTS) })]), 'I would look at dairy contracts next.', deps())).state;
+  it('a misquote: corrected, but no "does your recommendation change?" without a recommendation', () => {
+    const none = at(MISQ, [flagOn('about 19%', 15)]);
+    expect(none.misquote).not.toBeNull();
+    expect(none.kind).not.toBe('rec_revision');
+    expect(at(MISQ, [flagOn('about 19%', 15)], { stall: { recommendationDelivered: true } }).kind).toBe('rec_revision');
+  });
+  it('a code flag: no recommendation math probe without a recommendation', () => {
+    expect(at(WRONG, [flagged]).kind).not.toBe('rec_math_probe');
+    expect(at(WRONG, [flagged], { stall: { recommendationDelivered: true } }).kind).toBe('rec_math_probe');
+  });
+});
+

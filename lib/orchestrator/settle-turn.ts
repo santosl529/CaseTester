@@ -642,8 +642,11 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     .filter((p): p is Phase => p !== undefined);
   // What the question does: code's own stage ask (by kind, or held in place of
   // the model's recommendation ask), else the model's declared move.
+  // A question code replaced keeps no "recommendation" label (batch 29 Jordan
+  // ea27d1f6 t11: the checker line took the model's recommendation ask, the
+  // label stayed, and t13 was read as the reply to a recommendation ask).
   const declaredMove: Move | undefined = (stageAsked ? STAGE_MOVE[`stage_${stageAsked}`] : undefined)
-    ?? (codeWritten || kind === 'rec_ask' ? undefined : turn.move);
+    ?? (codeWritten || kind === 'rec_ask' || (turn.move === 'recommendation' && !modelQuestion) ? undefined : turn.move);
   const nextPhaseValue = derivePhase(currentPhase, {
     move: declaredMove,
     releasedReleaseWhen: releaseWhenOf([...newReveals, ...exhibitReveals]), exhibitShown: exhibit !== undefined,
