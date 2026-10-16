@@ -327,6 +327,8 @@ export type CheckerPlanInput = {
   // The final answers the close waits on (close-hold.ts; Lorenzo, 16 Oct): their
   // flags are raised before any other, never shed under time pressure, never expired.
   finalAnswer?: (candidateTurnIndex: number) => boolean;
+  // Among the final answers' flags, which first (close-hold.ts holdRank): the recommendation reply's, then the largest error.
+  rank?: (candidateTurnIndex: number, c: VettedClaim) => number;
   underTimePressure: boolean;
   candidateFigures: number[];
   caseData: CheckerCase; revealedIds: string[];
@@ -506,7 +508,8 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   // A line a due stage held back goes out first, on the next turn it can.
   // Then a final answer's (close-hold.ts).
   const final = (n: number) => Number(Boolean(p.finalAnswer?.(n)));
-  eligible.sort((a, b) => Number(b.id === p.held) - Number(a.id === p.held) || final(b.n) - final(a.n) || Number(b.c.changesConclusion) - Number(a.c.changesConclusion) || a.n - b.n);
+  const rank = (x: { n: number; c: VettedClaim }) => (final(x.n) && p.rank ? p.rank(x.n, x.c) : 0);
+  eligible.sort((a, b) => Number(b.id === p.held) - Number(a.id === p.held) || final(b.n) - final(a.n) || rank(b) - rank(a) || Number(b.c.changesConclusion) - Number(a.c.changesConclusion) || a.n - b.n);
   let selected: CheckerSelection | null = null;
   const waiting = [...eligible];
   while (!selected && p.currentFlags.length === 0 && !p.codeLineThisTurn && waiting.length > 0) {

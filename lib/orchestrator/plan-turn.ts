@@ -30,11 +30,11 @@ import { CheckLog } from './check-log';
 import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
 import { brainstormRequired, brainstormDue } from './brainstorm';
 import { correctionLines } from './misquote';
-import { statesQuantitativeClaim, numbersOf } from './math-checker';
+import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-checker';
 import { startMathCheck, planCheckerFlags, formatCheckerHint, liveCheckerConfig, checkerKey, closedErrorRestated, stepOfKey, STEP_PROBE_CAP, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { formatPeriodQuestionLine } from './unit-check';
-import { finalAnswersFrom, inFinalScope, pendingFinalChecks, probedAlready, answersWait, isRedo, type CloseHoldMemory } from './close-hold';
+import { finalAnswersFrom, inFinalScope, pendingFinalChecks, probedAlready, answersWait, isRedo, wrapUpsLeft, claimError, relativeError, holdRank, type CloseHoldMemory } from './close-hold';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
 import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
 
@@ -572,12 +572,16 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const finalFrom = finalAnswersFrom(flags.stageEvidence as StageRecord | undefined);
   const finalAnswer = (n: number) => inFinalScope(n, finalFrom);
   const candidateIndexes = [...turnRows.filter(t => t.role === 'candidate').map(t => t.turnIndex), ctx.nextTurnIndex];
-  const checkerPlan = planCheckerFlags({
+  // At most two wrap-up probes an interview; the recommendation's own figures first, then the largest error (Lorenzo, 16 Oct).
+  const wrapUps = wrapUpsLeft(closeHold);
+  const rank = (n: number, c: VettedClaim) => holdRank(n, finalFrom, claimError(c));
+  const checkerInput = {
     rows: (reads.checkerEventRows ?? []).filter(r => r.category === MATH_CHECKER_CATEGORY),
     handled: checkerHandled, turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
     currentFlags: liveFlags.filter(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS))), codeLineThisTurn: misquote !== null, attempts: recomputeAttempts, underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
-    candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed, stepProbes, held: heldLine, finalAnswer,
-  });
+    candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed, stepProbes, held: heldLine, finalAnswer, rank,
+  };
+  let checkerPlan = planCheckerFlags(checkerInput);
   // A flag past Rule 14 (corrected once, or left for the report) is closed:
   // its figures may not be probed again — the case moves on (Lorenzo, 13 Oct;
   // Jordan 099f33e9, seven probes on one "40 points").
@@ -740,12 +744,12 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // in the final answer, then the close): one code-written probe — or, past
   // Rule 14's probe, the figure and a chance to revise — before the case moves
   // on. Once a case; not when time is up; a shed minor error stays shed.
-  const recMathFlag = replyToRecAsk && !flags.recMathProbed && !timeUp && !recRevisionDue
+  const recMathFlag = replyToRecAsk && !flags.recMathProbed && !timeUp && !recRevisionDue && wrapUps > 0
     ? liveFlags.find(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)))
     : undefined;
   // An error past Rule 14 said again in the recommendation (Lorenzo, 13 Oct;
   // Jordan 099f33e9 t25): one more flag, under the same once-a-case rule.
-  const closedRec = replyToRecAsk && !flags.recMathProbed && !timeUp && !recRevisionDue && !recMathFlag
+  const closedRec = replyToRecAsk && !flags.recMathProbed && !timeUp && !recRevisionDue && !recMathFlag && wrapUps > 0
     ? closedErrorRestated(candidateText, closedKeys, checkerPlan.keys, reads.checkerEventRows ?? [])
     : null;
   let recMathProbe: RecMathProbe | null = recMathFlag
@@ -784,7 +788,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // holds the close one turn — code says Rule 14's line (once a case, not when
   // time is up); anything left at the close goes to the report. On other
   // code-written turns it waits.
-  const sel = checkerPlan.selected;
+  let sel = checkerPlan.selected;
   // A line a due stage held back holds the close too (Lorenzo, 15 Oct; batch 26
   // Jordan 6bd9edf3 t19 → t21), whether or not it changes the conclusion: at
   // most once an interview (flags.heldCloseHold, apart from recMathProbed), not
@@ -798,26 +802,39 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   let finalProbeKey: string | null = recMathProbe && finalAnswer(ctx.nextTurnIndex)
     ? ('flag' in recMathProbe ? attemptKey(recMathProbe.flag) : 'closed' in recMathProbe ? recMathProbe.closed.key : null) : null;
   let finalHold = false;
-  const selFinal = sel !== null && finalAnswer(sel.candidateTurnIndex);
-  const selRedo = sel !== null && isRedo(sel.candidateTurnIndex, candidateIndexes, closeHold);
-  const codeFinal = kind === 'close' && !timeUp && finalAnswer(ctx.nextTurnIndex) && !isRedo(ctx.nextTurnIndex, candidateIndexes, closeHold)
-    ? liveFlags.find(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, false) && !probedAlready(attemptKey(f), ctx.nextTurnIndex, closeHold, candidateIndexes))
+  const holdable = kind === 'close' && !timeUp && wrapUps > 0;
+  const finalSel = (s: CheckerSelection | null) => s !== null && finalAnswer(s.candidateTurnIndex) && !isRedo(s.candidateTurnIndex, candidateIndexes, closeHold)
+    && !probedAlready(s.key, s.candidateTurnIndex, closeHold, candidateIndexes);
+  const codeFinal = holdable && finalAnswer(ctx.nextTurnIndex) && !isRedo(ctx.nextTurnIndex, candidateIndexes, closeHold)
+    ? liveFlags.filter(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, false) && !probedAlready(attemptKey(f), ctx.nextTurnIndex, closeHold, candidateIndexes))
+      .sort((a, b) => relativeError(b.candidateValue, b.expected) - relativeError(a.candidateValue, a.expected))[0]
     : undefined;
-  if (codeFinal) {
+  // The closing message's own flag blocks the checker's selection (one math
+  // line a turn): the checker's best final flag, chosen as if it didn't, may go
+  // first — when it is in the recommendation, or the larger error.
+  if (codeFinal && !sel) {
+    const alt = planCheckerFlags({ ...checkerInput, currentFlags: [], codeLineThisTurn: false });
+    const codeRank = holdRank(ctx.nextTurnIndex, finalFrom, relativeError(codeFinal.candidateValue, codeFinal.expected));
+    if (alt.selected && finalSel(alt.selected) && rank(alt.selected.candidateTurnIndex, alt.selected.claim) > codeRank) { checkerPlan = alt; sel = alt.selected; }
+  }
+  const selFinal = sel !== null && finalAnswer(sel.candidateTurnIndex);
+  const checkerFirst = sel !== null && finalSel(sel) && codeFinal !== undefined
+    && rank(sel.candidateTurnIndex, sel.claim) > holdRank(ctx.nextTurnIndex, finalFrom, relativeError(codeFinal.candidateValue, codeFinal.expected));
+  if (codeFinal && !checkerFirst) {
     kind = 'rec_math_probe';
     recMathProbe = { flag: codeFinal, action: recomputeAction(codeFinal, recomputeAttempts[attemptKey(codeFinal)] ?? 1, false) };
     finalProbeKey = attemptKey(codeFinal);
     finalHold = true;
-  } else if (kind === 'close' && sel && selFinal && !selRedo && !timeUp && !probedAlready(sel.key, sel.candidateTurnIndex, closeHold, candidateIndexes)) {
+  } else if (holdable && sel && finalSel(sel)) {
     kind = 'rec_math_probe';
     recMathProbe = { checker: sel, action: sel.action === 'correct' ? 'correct' : 'probe' };
     finalProbeKey = sel.key;
     finalHold = true;
     heldCloseHold = sel.id === heldLine && !flags.heldCloseHold;
-  } else if (kind === 'close' && sel?.claim.changesConclusion && !selFinal && !timeUp && !flags.recMathProbed) {
+  } else if (holdable && sel?.claim.changesConclusion && !selFinal && !flags.recMathProbed) {
     kind = 'rec_math_probe';
     recMathProbe = { checker: sel, action: sel.action === 'correct' ? 'correct' : 'probe' };
-  } else if (kind === 'close' && sel && !selFinal && sel.id === heldLine && !timeUp && !flags.heldCloseHold) {
+  } else if (holdable && sel && !selFinal && sel.id === heldLine && !flags.heldCloseHold) {
     kind = 'rec_math_probe';
     recMathProbe = { checker: sel, action: sel.action === 'correct' ? 'correct' : 'probe' };
     heldCloseHold = true;
@@ -829,7 +846,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     messages: [...turnRows.filter(t => t.role === 'candidate').map(t => ({ index: t.turnIndex, text: t.text })), { index: ctx.nextTurnIndex, text: candidateText }],
     from: finalFrom, memory: closeHold, rows: reads.checkerEventRows ?? [], checked: statesQuantitativeClaim,
   }) : [];
-  if (kind === 'close' && !timeUp && pendingFinal.length > 0 && !answersWait(ctx.nextTurnIndex, candidateIndexes, closeHold)) kind = 'close_wait';
+  // With no wrap-up probe left nothing can be probed: no wait.
+  if (kind === 'close' && holdable && pendingFinal.length > 0 && !answersWait(ctx.nextTurnIndex, candidateIndexes, closeHold)) kind = 'close_wait';
   checks.record('close_hold', kind === 'close_wait' || finalHold, kind === 'close_wait' ? 'a final answer\'s verdict has not landed — the follow-up, not the close'
     : finalHold ? 'a final answer\'s flag — probed before the close' : 'no close hold on the final answers', {
     finalFrom, pending: pendingFinal, probeKey: finalProbeKey, waits: closeHold.waits ?? [], probed: closeHold.probed ?? [],

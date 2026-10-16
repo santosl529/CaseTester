@@ -18,7 +18,29 @@
 // Only time-up overrides it. Plan decides (plan-turn.ts); Settle keeps the
 // memory (settle-turn.ts).
 import { asksRiskQuestion } from './spoken-close';
-import { stepOfKey } from './math-checker-live';
+import { stepOfKey, claimFigures } from './math-checker-live';
+import type { CheckerClaim } from './math-checker';
+
+// At most two wrap-up probes an interview (Lorenzo, 16 Oct): code's "Before we
+// wrap up — …" lines, of every kind (the recommendation reply's math probe, a
+// held line, the close holds); the rest go to the report.
+export const WRAP_UP_PROBES = 2;
+export const wrapUpsLeft = (memory: CloseHoldMemory) => WRAP_UP_PROBES - (memory.probeTurns?.length ?? 0);
+
+// Which wrong figure the close probes first (Lorenzo, 16 Oct): one in the
+// recommendation reply itself, then the largest error — relative to the right
+// figure (the checker's, or code's).
+export function relativeError(said: number | undefined, right: number | null | undefined): number {
+  if (said === undefined || right === null || right === undefined || !Number.isFinite(said) || !Number.isFinite(right)) return 0;
+  return Math.abs(said - right) / Math.max(Math.abs(right), 1e-9);
+}
+export function claimError(c: CheckerClaim): number {
+  const right = c.correctValue ?? (c.correctLow !== null && c.correctHigh !== null ? (c.correctLow + c.correctHigh) / 2 : null);
+  return relativeError(claimFigures(c)[0], right);
+}
+export function holdRank(n: number, from: number | null, error: number): number {
+  return (n === from ? 1e6 : 0) + Math.min(error, 1e5);
+}
 import { pickScript } from '@/lib/agent/prompts/scripts';
 import type { StageRecord } from './stage-evidence';
 

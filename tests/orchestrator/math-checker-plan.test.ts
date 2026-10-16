@@ -226,6 +226,44 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
     expect(modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probeTurns: [7] } } }), [clean()]), FIGURES, on())).state.kind).toBe('close');
     expect(modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probeTurns: [7] } } }), [clean()]), SOFIA_T15, deps())).state.kind).toBe('close');
   });
+  // Lorenzo, 16 Oct: at most two wrap-up probes an interview; the recommendation's own figures first, then the largest error.
+  it('two wrap-up probes said already: the close, the flag to the report, and no follow-up', () => {
+    const p = modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probeTurns: [1, 2] } } }), [verdict(7)]), RISK, deps()));
+    expect(p.state.kind).toBe('close');
+    expect(p.ctx.events).toContainEqual(expect.objectContaining({ payload: expect.objectContaining({ id: '7:0', outcome: 'unresolved_at_close' }) }));
+    expect(modelState(planTurn(endReads({ flags: { closeHold: { probeTurns: [1, 2] } } }), RISK, on())).state.kind).toBe('close');
+  });
+  it('…nor the recommendation reply\'s own math probe', () => {
+    const recReads = (flags: Record<string, unknown> = {}) => readsFixture({ phase: 'RECOMMENDATION', elapsedMs: 15 * 60 * 1000, revealed: CORE,
+      flags: { moves: { 4: 'brainstorm' }, stageEvidence: { ...INITIAL_STAGES, brainstorm: { delivered: true, deliveredAt: 4, outcome: 'answered' as const } }, ...flags },
+      extraTurns: [{ role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What would you recommend to the CEO?' }] });
+    expect(modelState(planTurn(recReads(), `My recommendation: raise prices. ${CLAIM}`, deps())).state.kind).toBe('rec_math_probe');
+    expect(modelState(planTurn(recReads({ closeHold: { probeTurns: [1, 2] } }), `My recommendation: raise prices. ${CLAIM}`, deps())).state.kind).not.toBe('rec_math_probe');
+  });
+  const BIG: VettedClaim = { ...flagged, span: 'the underlying pressure is about 40 points', quantity: 'underlying pressure', candidateValue: 'about 40 points', correctValue: 16, codeQuantity: { kind: 'none', stepId: null, price: null, target: null },
+    probeLine: 'You said the underlying pressure is about 40 points. How did you get that?', correctionLine: null, correctionFigure: null, changesConclusion: false };
+  const later = (flags: Record<string, unknown> = {}) => readsFixture({
+    phase: 'RECOMMENDATION', elapsedMs: 17 * 60 * 1000, revealed: CORE,
+    flags: { moves: { 4: 'brainstorm', 6: 'recommendation', 8: 'risk' }, stall: { recommendationDelivered: true }, stageEvidence: { ...INITIAL_STAGES, brainstorm: { delivered: true, deliveredAt: 4, outcome: 'answered' as const }, recommendation: { delivered: true, deliveredAt: 6, asks: 1, outcome: 'answered' as const }, risk: { delivered: true, deliveredAt: 8 } }, ...flags },
+    extraTurns: [
+      { role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What else could they do?' },
+      { role: 'candidate', text: 'More ideas.' }, { role: 'interviewer', text: 'What do you recommend?' },
+      { role: 'candidate', text: `My recommendation is to raise menu prices. ${CLAIM}` }, { role: 'interviewer', text: 'What is the biggest risk?' },
+      { role: 'candidate', text: 'Volume loss; the underlying pressure is about 40 points.' }, { role: 'interviewer', text: 'How would you guard against that?' },
+    ],
+  });
+  it('the recommendation reply\'s figure goes first, even against a larger error later', () => {
+    const p = modelState(planTurn(withVerdict(later(), [verdict(7), verdict(9, { claims: [BIG] })]), 'A pilot in a few stores.', deps()));
+    expect(p.state.recMathProbe).toEqual(expect.objectContaining({ checker: expect.objectContaining({ id: '7:0' }) }));
+  });
+  it('then the largest error', () => {
+    const p = modelState(planTurn(withVerdict(later(), [verdict(7, { claims: [] }), verdict(9, { claims: [{ ...flagged, changesConclusion: true }, BIG] })]), 'A pilot in a few stores.', deps()));
+    expect(p.state.recMathProbe).toEqual(expect.objectContaining({ checker: expect.objectContaining({ id: '9:1' }) }));
+  });
+  it('the recommendation reply\'s checker flag goes before the closing message\'s own deterministic flag', () => {
+    const p = modelState(planTurn(withVerdict(endReads(), [verdict(7)]), SOFIA_T15, deps()));
+    expect(p.state.recMathProbe).toEqual(expect.objectContaining({ checker: expect.objectContaining({ id: '7:0' }) }));
+  });
   it('never at time-up', () => {
     expect(modelState(planTurn(endReads({ elapsedMs: 21 * 60 * 1000, flags: { graceAskFired: true } }), RISK, on())).state.kind).toBe('close');
   });
