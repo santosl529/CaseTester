@@ -10,7 +10,9 @@
 //   restatement), or the redo — the reply right after the probe — still wrong
 //   at another value: that goes to the report and the case closes;
 // - a reply whose verdict hasn't landed yet holds the close one turn: code asks
-//   the stage's natural follow-up instead (once an interview).
+//   the stage's natural follow-up instead — but not for the answer to that
+//   follow-up, nor twice in a row (the bound: the redo after a probe gets its
+//   wait; the follow-up's own answer closes, its verdict to the report).
 // Only time-up overrides it. Plan decides (plan-turn.ts); Settle keeps the
 // memory (settle-turn.ts).
 import { asksRiskQuestion } from './spoken-close';
@@ -19,7 +21,7 @@ import { pickScript } from '@/lib/agent/prompts/scripts';
 import type { StageRecord } from './stage-evidence';
 
 export type CloseHoldMemory = {
-  waited?: boolean;     // the follow-up turn was asked
+  waits?: number[];     // the messages the follow-up was asked on: the next message is its answer
   probed?: { key: string; at: number }[];   // the final answers' figures probed (code's hold, or the checker's line heard on a model turn), and the message the probe answered
 };
 
@@ -27,6 +29,12 @@ export type CloseHoldMemory = {
 export function finalAnswersFrom(record: StageRecord | undefined): number | null {
   const rec = record?.recommendation;
   return rec?.delivered && rec.deliveredAt !== undefined ? rec.deliveredAt + 1 : null;
+}
+
+// The answer to the follow-up: the first message after one it was asked on.
+export function answersWait(m: number, candidateIndexes: number[], memory: CloseHoldMemory): boolean {
+  const prev = Math.max(-1, ...candidateIndexes.filter(i => i < m));
+  return (memory.waits ?? []).includes(prev);
 }
 
 // A final answer: from the recommendation reply on.
@@ -54,12 +62,13 @@ type Row = { category?: string | null; subtype?: string | null; payloadJsonb?: u
 // Final answers the checker ran on whose verdict (or error) hasn't landed — the
 // current message's always: its check has only just started.
 export function pendingFinalChecks(p: {
-  messages: { index: number; text: string }[]; from: number | null;
+  messages: { index: number; text: string }[]; from: number | null; memory: CloseHoldMemory;
   rows: Row[]; checked: (text: string) => boolean;
 }): number[] {
+  const indexes = p.messages.map(m => m.index);
   const landed = new Set(p.rows.filter(r => r.category === 'math_checker' && (r.subtype === 'verdict' || r.subtype === 'error'))
     .map(r => (r.payloadJsonb as { candidateTurnIndex?: number }).candidateTurnIndex));
-  return p.messages.filter(m => inFinalScope(m.index, p.from) && p.checked(m.text) && !landed.has(m.index))
+  return p.messages.filter(m => inFinalScope(m.index, p.from) && !answersWait(m.index, indexes, p.memory) && p.checked(m.text) && !landed.has(m.index))
     .map(m => m.index);
 }
 

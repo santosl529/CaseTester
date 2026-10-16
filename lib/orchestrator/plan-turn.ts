@@ -34,7 +34,7 @@ import { statesQuantitativeClaim, numbersOf } from './math-checker';
 import { startMathCheck, planCheckerFlags, formatCheckerHint, liveCheckerConfig, checkerKey, closedErrorRestated, stepOfKey, STEP_PROBE_CAP, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { formatPeriodQuestionLine } from './unit-check';
-import { finalAnswersFrom, inFinalScope, pendingFinalChecks, probedAlready, type CloseHoldMemory } from './close-hold';
+import { finalAnswersFrom, inFinalScope, pendingFinalChecks, probedAlready, answersWait, type CloseHoldMemory } from './close-hold';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
 import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
 
@@ -822,15 +822,16 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     heldCloseHold = true;
   }
   // A final answer whose verdict hasn't landed (the closing message's own, as a
-  // rule): the stage's natural follow-up instead of the close, once an interview.
+  // rule): the stage's natural follow-up instead of the close — not for its own
+  // answer, nor twice in a row.
   const pendingFinal = checkerConfig ? pendingFinalChecks({
     messages: [...turnRows.filter(t => t.role === 'candidate').map(t => ({ index: t.turnIndex, text: t.text })), { index: ctx.nextTurnIndex, text: candidateText }],
-    from: finalFrom, rows: reads.checkerEventRows ?? [], checked: statesQuantitativeClaim,
+    from: finalFrom, memory: closeHold, rows: reads.checkerEventRows ?? [], checked: statesQuantitativeClaim,
   }) : [];
-  if (kind === 'close' && !timeUp && pendingFinal.length > 0 && !closeHold.waited) kind = 'close_wait';
+  if (kind === 'close' && !timeUp && pendingFinal.length > 0 && !answersWait(ctx.nextTurnIndex, candidateIndexes, closeHold)) kind = 'close_wait';
   checks.record('close_hold', kind === 'close_wait' || finalHold, kind === 'close_wait' ? 'a final answer\'s verdict has not landed — the follow-up, not the close'
     : finalHold ? 'a final answer\'s flag — probed before the close' : 'no close hold on the final answers', {
-    finalFrom, pending: pendingFinal, probeKey: finalProbeKey, waited: Boolean(closeHold.waited), probed: closeHold.probed ?? [],
+    finalFrom, pending: pendingFinal, probeKey: finalProbeKey, waits: closeHold.waits ?? [], probed: closeHold.probed ?? [],
   });
   const checkerUsed = sel && (kind === 'model' || (kind === 'rec_math_probe' && recMathProbe && 'checker' in recMathProbe)) ? sel : null;
   const checkerHandledNow = [...checkerPlan.handledNow];

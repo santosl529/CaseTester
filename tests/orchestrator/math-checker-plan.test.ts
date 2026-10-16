@@ -16,6 +16,7 @@ vi.mock('@/lib/orchestrator/math-checker', async orig => ({ ...(await orig<objec
 import { planTurn, type TurnReads } from '@/lib/orchestrator/plan-turn';
 import { planCheckerFlags } from '@/lib/orchestrator/math-checker-live';
 import { getCaseById } from '@/lib/cases/loader';
+import { pendingFinalChecks } from '@/lib/orchestrator/close-hold';
 import type { VettedClaim } from '@/lib/orchestrator/math-checker';
 import type { CheckerJob, VerdictPayload } from '@/lib/orchestrator/math-checker-live';
 import type { VerifiedFigure } from '@/lib/orchestrator/recompute';
@@ -204,8 +205,18 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
     const err = { ...verdict(7), subtype: 'error', payloadJsonb: { candidateTurnIndex: 7, error: 'overloaded', timedOut: false, latencyMs: 30000 } };
     expect(modelState(planTurn(withVerdict(endReads(), [err as never]), RISK, on())).state.kind).toBe('close');
   });
-  it('once an interview; never at time-up', () => {
-    expect(modelState(planTurn(endReads({ flags: { closeHold: { waited: true } } }), RISK, on())).state.kind).toBe('close');
+  const FIGURES = 'The biggest risk is volume loss: if traffic falls more than 10%, the rise stops paying.';
+  const clean = () => verdict(7, { claims: [] });
+  it('the follow-up\'s own answer is not waited on, and it is never asked twice in a row', () => {
+    // Asked on message 7: message 9 answers it — its figures close the case, their verdict to the report.
+    expect(modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { waits: [7] } } }), [clean()]), FIGURES, on())).state.kind).toBe('close');
+    // …even with message 7's own verdict still out.
+    expect(modelState(planTurn(endReads({ flags: { closeHold: { waits: [7] } } }), RISK, on())).state.kind).toBe('close');
+  });
+  it('a follow-up asked earlier does not use it up: a later reply with figures gets its own', () => {
+    expect(modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { waits: [3] } } }), [clean()]), FIGURES, on())).state.kind).toBe('close_wait');
+  });
+  it('never at time-up', () => {
     expect(modelState(planTurn(endReads({ elapsedMs: 21 * 60 * 1000, flags: { graceAskFired: true } }), RISK, on())).state.kind).toBe('close');
   });
   // Batch 28 Sofia 0a43682d t15: "beans are 25% of COGS, so call that 25 points of
@@ -265,5 +276,19 @@ describe('the check starts on a gated message, beside the model call', () => {
     vi.stubEnv('MATH_CHECKER_CONFIG', 'off');
     try { planTurn(analysis(), 'So a 10% price rise gives back about 5 points.', deps(j => jobs.push(j))); } finally { vi.unstubAllEnvs(); }
     expect(jobs).toHaveLength(0);
+  });
+});
+
+// close-hold.ts directly: which final answers the close still waits on.
+describe('pendingFinalChecks', () => {
+  const msgs = [{ index: 5, text: 'Ideas.' }, { index: 7, text: 'A 10% rise gives 5 points.' }, { index: 9, text: 'Pilot in 20 stores.' }, { index: 11, text: 'Start with dairy.' }];
+  const row = (n: number, subtype = 'verdict') => ({ category: 'math_checker', subtype, payloadJsonb: { candidateTurnIndex: n } });
+  const checked = (t: string) => /\d/.test(t);
+  it('from the recommendation reply on, checked messages whose verdict or error has not landed', () => {
+    expect(pendingFinalChecks({ messages: msgs, from: 7, memory: {}, rows: [], checked })).toEqual([7, 9]);
+    expect(pendingFinalChecks({ messages: msgs, from: 7, memory: {}, rows: [row(7), row(9, 'error')], checked })).toEqual([]);
+  });
+  it('not the answer to the follow-up', () => {
+    expect(pendingFinalChecks({ messages: msgs, from: 7, memory: { waits: [7] }, rows: [row(7)], checked })).toEqual([]);
   });
 });

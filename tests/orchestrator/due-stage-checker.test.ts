@@ -256,7 +256,7 @@ describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the er
     const r21 = await runTurn('s1', JORDAN.t21);
     expect(r21.ended).toBe(false);
     expect(decisionsFor('17:1').at(-1)).toMatchObject({ outcome: 'stale' });
-    expect((flags().closeHold as Row).waited).toBe(true);
+    expect((flags().closeHold as Row).waits).toEqual([21]);
     at(17.9);
     const r23 = await runTurn('s1', 'Test it in a few markets first, and watch add-on attach rates weekly.');
     expect(r23.ended).toBe(true);
@@ -278,7 +278,7 @@ describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the er
     at(17.9);
     const r23 = await runTurn('s1', 'It is just 16 plus 2: the COGS rise and the overhead rise make the 18.');
     expect(r23.ended).toBe(false);
-    expect((flags().closeHold as Row).waited).toBe(true);
+    expect((flags().closeHold as Row).waits).toEqual([23]);
     at(18.6);
     const r25 = await runTurn('s1', 'Test it in a few markets first.');
     expect(r25.ended).toBe(true);

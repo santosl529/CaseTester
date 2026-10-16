@@ -794,7 +794,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     const finalLineHeard = checkerLine !== null && checkerHeard === true && holdFrom !== null && Number(checkerLine.id.split(':')[0]) >= holdFrom;
     const probedNow = [...(kind === 'rec_math_probe' && qHeard && state.closeHoldPlan.probeKey ? [state.closeHoldPlan.probeKey] : []), ...(finalLineHeard ? [checkerLine.key] : [])];
     const closeHoldSaved: CloseHoldMemory = {
-      ...(holdPrev.waited || (kind === 'close_wait' && qHeard) ? { waited: true } : {}),
+      ...(holdPrev.waits?.length || (kind === 'close_wait' && qHeard) ? { waits: [...(holdPrev.waits ?? []), ...(kind === 'close_wait' && qHeard ? [nextTurnIndex] : [])] } : {}),
       ...(probedNow.length || holdPrev.probed?.length ? { probed: [...(holdPrev.probed ?? []), ...probedNow.filter(k => !holdPrev.probed?.some(p => p.key === k)).map(key => ({ key, at: nextTurnIndex }))] } : {}),
     };
     // KF-4 (v4.10): when the gate closes this turn, the unmapped asks it held
