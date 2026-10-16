@@ -136,22 +136,23 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     // per-store cut had dropped; Lorenzo, 15 Oct, batch-25 ruling 7).
     const cov = coverageOf(r.what, fbGroups);
     const coveredHere = new Set(cov.items);
-    // An ask the covers answer whole is what they name (Lorenzo, 16 Oct; batch 27,
-    // Fiona f4bd1da5 t9 "transaction volume per store" mapped to revenue per store
-    // and the store count, Marcus 9cb2554f t15 to the ticket and revenue per store):
-    // an item they name the model left out is added, and one it mapped that neither
-    // they nor the ask's words name is dropped — the ticket, not revenue per store.
-    // (An ask the model mapped to nothing goes to the coverage step below, prompt facts and all.)
-    const whole = r.explicit && r.itemIds.length > 0 && cov.rest === null && cov.items.some(id => ledger.items.some(i => i.id === id));
-    if (whole) {
+    // A per-store ask the covers answer whole (Lorenzo, 16 Oct; batch 27, Fiona
+    // f4bd1da5 t9 "transaction volume per store" mapped to revenue per store and
+    // the store count, Marcus 9cb2554f t15 to the ticket and revenue per store):
+    // the item the covers name is added where the model left it out, and a mapped
+    // item that is only the cut — its label per store, named by neither the
+    // covers nor the ask — is dropped: the ticket, not revenue per store.
+    // (An ask the model mapped to nothing goes to the coverage step below.)
+    const storeCut = /\b(?:per|by) (?:store|location)\b/i;
+    if (r.explicit && r.itemIds.length > 0 && cov.rest === null && storeCut.test(r.what) && cov.items.some(id => ledger.items.some(i => i.id === id))) {
       const lower = r.what.toLowerCase();
       const named = (id: string) => [...namesOf(id), ledger.items.find(i => i.id === id)?.label ?? '']
         .some(n => n && new RegExp(`(?<![a-z])${n.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z])`).test(lower));
       const added = cov.items.filter(id => !r.itemIds.includes(id) && ledger.items.some(i => i.id === id));
-      const unnamed = r.itemIds.filter(id => !coveredHere.has(id) && !named(id));
-      if (added.length > 0 || unnamed.length > 0) {
-        plan.ctx.checks.act('request_covers', 'an ask the case\'s covers answer whole gets the items they name', { what: r.what, added, dropped: unnamed });
-        r = { ...r, itemIds: [...r.itemIds.filter(id => !unnamed.includes(id)), ...added] };
+      const cutOnly = r.itemIds.filter(id => !coveredHere.has(id) && !named(id) && storeCut.test(ledger.items.find(i => i.id === id)?.label ?? ''));
+      if (added.length > 0 || cutOnly.length > 0) {
+        plan.ctx.checks.act('request_covers', 'a per-store ask the case\'s covers answer: the item they name, not the per-store cut', { what: r.what, added, dropped: cutOnly });
+        r = { ...r, itemIds: [...r.itemIds.filter(id => !cutOnly.includes(id)), ...added] };
       }
     }
     const out = r.itemIds.filter(id => { const item = ledger.items.find(i => i.id === id); return item !== undefined && !coveredHere.has(id) && outsideAskScope(r.what, item, namesOf(id)); });
