@@ -51,6 +51,21 @@ const BRAINSTORM_TEXT = /\b(?:what|how)\s+else\b|\bwhat\s+other\s+(?:ways|option
 const RISK_TEXT = /\b(?:risks?|go wrong|change your mind|wrong about|break (?:it|that|this))\b/i;
 const REC_TEXT = /\b(?:recommend\w*|tell the (?:ceo|client)|should (?:they|the client|the company|brew)|what would you do|bottom.?line)\b/i;
 
+// A risk the candidate names in their own recommendation, with how they'd
+// handle it (Lorenzo, 16 Oct; batch 29 Raj 2a86cb76 t17: "Key risk is volume
+// loss. … so I'd pilot in 20 stores and measure before chain-wide rollout." —
+// no risk question was ever read as one, and the end gate stayed shut from 10:42
+// to time-up): the risk stage is done, spontaneously. A named risk ("the key
+// risk is …", "the biggest risk …") with a mitigation in that sentence or the
+// next two.
+const RISK_NAMED = /\b(?:key|main|biggest|primary|major|chief|central|core|largest|single biggest)\s+risks?\b|\bthe\s+risk\s+(?:is|here is|would be)\b|\brisks?\s+(?:is|are)\s+that\b/i;
+const MITIGATION = /\b(?:mitigat\w*|pilot\w*|test(?:ing|ed)?\s+(?:it\s+)?(?:in|on|with|first)\b|hedg\w*|guard\w*\s+against|protect\w*|monitor\w*|measur\w*|stag(?:e|ed|ing)\b|phas(?:e|ed|ing)\b|before\s+(?:a\s+)?(?:chain[- ]wide|full|national|broad)\b|so\s+i'?d\b|to\s+(?:limit|contain|offset)\b)/i;
+export function namesRiskAndMitigation(text: string): boolean {
+  const sentences = text.split(/(?<=[.!?])\s+|\n+/).map(x => x.trim()).filter(Boolean);
+  const i = sentences.findIndex(x => RISK_NAMED.test(x));
+  return i >= 0 && MITIGATION.test(sentences.slice(i, i + 3).join(' '));
+}
+
 export function asksBrainstormNow(question: string): boolean {
   return asksBrainstorm(question) || BRAINSTORM_OPEN.test(question);
 }
@@ -108,6 +123,8 @@ export function stageQuestions(question: string, o: { move?: string; recOnTable:
 export function updateStages(prev: StageRecord | undefined, t: StageTurn): StageRecord {
   const r: StageRecord = structuredClone(prev ?? INITIAL_STAGES);
   for (const k of STAGES) r[k] ??= { delivered: false };
+  // The message that brings the recommendation in (as the reply to its ask, below, or given unasked).
+  const recInNow = t.recommendationDelivered && !r.recommendation.outcome;
 
   // The reply to what was pending.
   if (r.pending) {
@@ -139,6 +156,8 @@ export function updateStages(prev: StageRecord | undefined, t: StageTurn): Stage
   if (t.recommendationDelivered && !r.recommendation.outcome) {
     r.recommendation = { ...r.recommendation, outcome: 'answered', spontaneous: !r.recommendation.delivered };
   }
+  // A risk the recommendation names with its mitigation is the risk, answered unasked.
+  if (recInNow && !r.risk.delivered && !r.risk.outcome && namesRiskAndMitigation(t.candidateText)) r.risk = { ...r.risk, outcome: 'answered', spontaneous: true };
 
   // This turn's deliveries; the newest becomes pending.
   const deliver = (k: StageKey, codeAsked = false) => {
@@ -195,7 +214,8 @@ export function stagesFromRecord(r: StageRecord, recommendationReceived: boolean
   const rec = r.recommendation ?? { delivered: false };
   return {
     brainstormAsked: Boolean(r.brainstorm?.delivered),
-    riskAsked: Boolean(r.risk?.delivered),
+    // Asked, or given unasked in the recommendation (namesRiskAndMitigation).
+    riskAsked: Boolean(r.risk?.delivered || r.risk?.spontaneous),
     recommendationAsked: rec.delivered,
     recommendationAskCount: rec.asks ?? (rec.delivered ? 1 : 0),
     recommendationReceived,

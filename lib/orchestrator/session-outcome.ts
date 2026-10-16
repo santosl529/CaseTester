@@ -5,11 +5,12 @@ import { anyAssessable, INITIAL_STAGES, type StageRecord } from './stage-evidenc
 import type { PressureTestState } from './pressure-test';
 import type { StallState } from './stall';
 
-// The case has run its course: recommendation in and its risk probed.
+// The case has run its course: recommendation in and its risk probed (or
+// given in the recommendation itself — Lorenzo, 16 Oct).
 // From the stage record only (Lorenzo, 13 Oct: one source of truth).
 export function caseFinished(flags: Record<string, unknown>): boolean {
   const rec = (flags.stageEvidence as StageRecord | undefined) ?? INITIAL_STAGES;
-  return rec.recommendation?.outcome === 'answered' && Boolean(rec.risk?.delivered);
+  return rec.recommendation?.outcome === 'answered' && Boolean(rec.risk?.delivered || rec.risk?.spontaneous);
 }
 
 // Whether the candidate has done anything a report could assess.

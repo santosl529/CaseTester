@@ -1,7 +1,7 @@
 // The stage record (Rule 9 v4.10): delivery read from what was said or shown,
 // outcome from the candidate's reply — never from a move label.
 import { describe, it, expect } from 'vitest';
-import { updateStages, missingRequiredStages, replyOutcome, asksBrainstormNow, stagesFromRecord, INITIAL_STAGES, type StageTurn } from '@/lib/orchestrator/stage-evidence';
+import { updateStages, missingRequiredStages, replyOutcome, asksBrainstormNow, stagesFromRecord, namesRiskAndMitigation, INITIAL_STAGES, type StageTurn } from '@/lib/orchestrator/stage-evidence';
 import { INITIAL_PRESSURE_TEST } from '@/lib/orchestrator/pressure-test';
 
 const turn = (over: Partial<StageTurn>): StageTurn => ({
@@ -147,3 +147,42 @@ describe('caseFinished reads the record', () => {
     expect(caseFinished({})).toBe(false);
   });
 });
+
+// Lorenzo, 16 Oct (batch 29 Raj 2a86cb76 t17, verbatim): a risk named in the
+// candidate's own recommendation, with its mitigation, counts as the risk — no
+// risk question was ever read as one and the end gate stayed shut to time-up.
+const RAJ_T17 = "My recommendation: Brew & Bean should pass through input inflation with a targeted menu price increase, backed by procurement hedging — this is a pass-through failure, not an operating problem.\n\nThe math: on 100 of revenue, COGS is 58, labor 22, overhead 14, profit 6. Hold costs flat and raise prices 10% — revenue 110, costs 94, profit 16, or 14.5% margin. A full return to 24% needs roughly a 24% increase, which is too aggressive in one move.\n\nSo, sequenced. Immediate: 8–10% price increase, weighted toward food and specialty drinks where elasticity is lowest, paired with a loyalty program to protect volume. Near-term: hedge or forward-contract green coffee and renegotiate dairy using 200-store scale — that stops the bleeding recurring. Medium-term: mix steering and a portioning/waste audit for a few more points.\n\nKey risk is volume loss. At 10%, we can afford to lose roughly 20% of units before we're worse off than today, so I'd pilot in 20 stores and measure before chain-wide rollout.";
+describe('a risk named in the candidate\'s own recommendation (Raj b29 t17)', () => {
+  it('names a risk and its mitigation', () => {
+    expect(namesRiskAndMitigation(RAJ_T17)).toBe(true);
+    expect(namesRiskAndMitigation('The biggest risk is that customers trade down, so I would test it in a few markets first.')).toBe(true);
+  });
+  it('not a risk without a mitigation, nor a plan with no risk named, nor risk talk that names none', () => {
+    expect(namesRiskAndMitigation('My recommendation: raise prices 10%. Key risk is volume loss.')).toBe(false);
+    expect(namesRiskAndMitigation('My recommendation: raise prices 10%, piloted in 20 stores first.')).toBe(false);
+    expect(namesRiskAndMitigation('Pricing carries some risk, but I would pilot it in 20 stores.')).toBe(false);
+  });
+  it('the recommendation received with it: the risk is answered unasked — the end gate reads it as done', async () => {
+    const r = updateStages({ ...INITIAL_STAGES, recommendation: { delivered: true, deliveredAt: 16, asks: 1 } }, turn({ turnIndex: 18, candidateText: RAJ_T17, recommendationDelivered: true, question: 'You said you can afford to lose roughly 20% of units. Walk me through how you got that?' }));
+    expect(r.recommendation.outcome).toBe('answered');
+    expect(r.risk).toMatchObject({ delivered: false, outcome: 'answered', spontaneous: true });
+    expect(stagesFromRecord(r, true).riskAsked).toBe(true);
+    const { caseFinished } = await import('@/lib/orchestrator/session-outcome');
+    expect(caseFinished({ stageEvidence: r })).toBe(true);
+  });
+  it('as the reply to the pending recommendation ask (Raj\'s real path: t16 asked, t17 answered)', () => {
+    const asked = updateStages(undefined, turn({ turnIndex: 16, question: 'Which levers would you actually pull, and in what order? Give me your recommendation for the CEO.' }));
+    expect(asked.pending).toBe('recommendation');
+    const r = updateStages(asked, turn({ turnIndex: 18, candidateText: RAJ_T17, recommendationDelivered: true, question: 'You said you can afford to lose roughly 20% of units. Walk me through how you got that?' }));
+    expect(r.recommendation.outcome).toBe('answered');
+    expect(r.risk).toMatchObject({ outcome: 'answered', spontaneous: true });
+    expect(stagesFromRecord(r, true).riskAsked).toBe(true);
+  });
+  it('only in the recommendation itself: a later message naming a risk is no answer to an unasked risk', () => {
+    const rec = updateStages({ ...INITIAL_STAGES, recommendation: { delivered: true, deliveredAt: 16, asks: 1 } }, turn({ turnIndex: 18, candidateText: 'My recommendation: raise prices 10%.', recommendationDelivered: true }));
+    const later = updateStages(rec, turn({ turnIndex: 20, candidateText: 'Key risk is volume loss, so I would pilot it.', recommendationDelivered: true }));
+    expect(later.risk.outcome).toBeUndefined();
+    expect(stagesFromRecord(later, true).riskAsked).toBe(false);
+  });
+});
+

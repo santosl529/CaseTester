@@ -1267,7 +1267,15 @@ out…?" is a probe); a recommendation ask in any wording, code's, or a
 `recommendation` move in recommendation wording that isn't a risk question;
 the risk question once a recommendation is on the table, in risk wording or
 as a `risk` move in risk words. It counts the recommendation asks (the
-two-ask limit).
+two-ask limit). **A risk the candidate names in their own recommendation,
+with how they'd handle it, is the risk, answered unasked (16 Oct, Lorenzo;
+batch 29 Raj t17 — "Key risk is volume loss. … so I'd pilot in 20 stores and
+measure before chain-wide rollout." — no risk question was read as one, and
+the case ran from 10:42 to time-up):** a named risk ("the key/main/biggest
+risk …", "the risk is …") with a mitigation in that sentence or the next two
+("pilot", "hedge", "phase", "test in", "so I'd", …), in the message that
+brings the recommendation in; the end gate and "the case ran its course"
+read it as done.
 
 A pilot run completed an entire case while the session sat in CLARIFY.
 
