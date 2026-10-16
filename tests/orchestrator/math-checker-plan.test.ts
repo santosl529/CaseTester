@@ -205,6 +205,7 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
     const err = { ...verdict(7), subtype: 'error', payloadJsonb: { candidateTurnIndex: 7, error: 'overloaded', timedOut: false, latencyMs: 30000 } };
     expect(modelState(planTurn(withVerdict(endReads(), [err as never]), RISK, on())).state.kind).toBe('close');
   });
+  const SOFIA_T15 = 'COGS is 58 points of revenue, so variable contribution is roughly 42 points. And beans are 25% of COGS, so call that 25 points of revenue cushioning the downside.';
   const FIGURES = 'The biggest risk is volume loss: if traffic falls more than 10%, the rise stops paying.';
   const clean = () => verdict(7, { claims: [] });
   it('the follow-up\'s own answer is not waited on, and it is never asked twice in a row', () => {
@@ -216,13 +217,21 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
   it('a follow-up asked earlier does not use it up: a later reply with figures gets its own', () => {
     expect(modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { waits: [3] } } }), [clean()]), FIGURES, on())).state.kind).toBe('close_wait');
   });
+  // Batch 28 Jasmine 2… t17 → t19: "22%" probed by code, "17–18%" in the redo — the case closes, the report has it.
+  it('the redo of code\'s probe holds nothing and is not waited on', () => {
+    // Code probed on message 5: message 7 is the redo — its flag holds nothing.
+    const p = modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probeTurns: [5] } } }), [verdict(7)]), RISK, on()));
+    expect(p.state.kind).toBe('close');
+    // Code probed on message 7: the closing message 9 is the redo — its figures are not waited on, nor its own deterministic flag raised.
+    expect(modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probeTurns: [7] } } }), [clean()]), FIGURES, on())).state.kind).toBe('close');
+    expect(modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probeTurns: [7] } } }), [clean()]), SOFIA_T15, deps())).state.kind).toBe('close');
+  });
   it('never at time-up', () => {
     expect(modelState(planTurn(endReads({ elapsedMs: 21 * 60 * 1000, flags: { graceAskFired: true } }), RISK, on())).state.kind).toBe('close');
   });
   // Batch 28 Sofia 0a43682d t15: "beans are 25% of COGS, so call that 25 points of
   // revenue" — the unit check's flag blocks the checker's line that turn (one math
   // line a turn) and the checker defers to it, so code's own line holds the close.
-  const SOFIA_T15 = 'COGS is 58 points of revenue, so variable contribution is roughly 42 points. And beans are 25% of COGS, so call that 25 points of revenue cushioning the downside.';
   it('the closing message\'s own deterministic flag, in the final answers: code\'s line holds the close once', () => {
     const p = modelState(planTurn(withVerdict(endReads(), [verdict(7, { claims: [] })]), SOFIA_T15, deps()));
     expect(p.state.kind).toBe('rec_math_probe');

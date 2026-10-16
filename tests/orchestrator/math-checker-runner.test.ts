@@ -173,15 +173,10 @@ describe('in place of the close, code says the checker\'s line', () => {
     expect(r.interviewerText).toContain('Before we wrap up — you said the whole 18 points sits in COGS. Which cost lines did you look at to get there?');
     // A final answer's hold (Lorenzo, 16 Oct): its own memory, the once-a-case counter untouched.
     expect((store.session.flagsJsonb as Row).recMathProbed).toBe(false);
-    expect((store.session.flagsJsonb as Row).closeHold).toEqual({ probed: [{ key: 'checker:the whole 18 points', at: 9 }] });
-    // The redo, still wrong: no second probe. Its own verdict is out — the follow-up once — then the close; the report has it.
+    expect((store.session.flagsJsonb as Row).closeHold).toEqual({ probed: [{ key: 'checker:the whole 18 points', at: 9 }], probeTurns: [9] });
+    // The redo, still wrong: it holds nothing and is not waited on — the case closes, the report has it.
     const r11 = await runTurn('s1', 'I looked at COGS. It is all 18 points in COGS.');
-    expect(r11.ended).toBe(false);
-    expect(r11.interviewerText).not.toMatch(/18 points/);
-    calls.at(-1)!.resolve({ claims: [flaggedClaim], model: 'claude-sonnet-5-5', latencyMs: 6000, stopReason: 'end_turn' });
-    await flush(); await flush();
-    const r13 = await runTurn('s1', 'Start with the dairy contracts.');
-    expect(r13.ended).toBe(true);
+    expect(r11.ended).toBe(true);
   });
 });
 
@@ -228,7 +223,7 @@ describe('a final answer not yet checked: the stage\'s follow-up, not the close'
     store.events.push({ sessionId: 's1', category: 'math_checker', subtype: 'verdict', turnIndex: 7, phase: 'RECOMMENDATION', payloadJsonb: { candidateTurnIndex: 7, latencyMs: 4000, model: 'claude-sonnet-5-5', claims: [], codeFlags: [], stamps: [] } });
   }
   const RISK = `Volume loss. ${CLAIM}`;
-  it('the risk answer\'s verdict is out: code asks how they would guard against it; its verdict lands with a flag — probed once; the redo gets its follow-up; then the close', async () => {
+  it('the risk answer\'s verdict is out: code asks how they would guard against it; its verdict lands with a flag — probed once; the redo closes', async () => {
     atTheClose();
     const r9 = await runTurn('s1', RISK);
     expect(r9.ended).toBe(false);
@@ -239,12 +234,9 @@ describe('a final answer not yet checked: the stage\'s follow-up, not the close'
     const r11 = await runTurn('s1', 'I would pilot it in 20 stores and watch traffic weekly.');
     expect(r11.ended).toBe(false);
     expect(r11.interviewerText).toContain('Before we wrap up — you said the whole 18 points sits in COGS.');
-    // The redo has figures: its own follow-up (the bound is per answer, not per interview); its answer closes.
+    // The redo of code's probe holds nothing and is not waited on: the close.
     const r13 = await runTurn('s1', 'Still the whole 18 points, I think.');
-    expect(r13.ended).toBe(false);
-    expect(r13.interviewerText).not.toMatch(/18 points/);
-    const r15 = await runTurn('s1', 'Start with the dairy contracts.');
-    expect(r15.ended).toBe(true);
+    expect(r13.ended).toBe(true);
   });
   it('the verdict lands clean: the follow-up\'s answer closes the case', async () => {
     atTheClose();

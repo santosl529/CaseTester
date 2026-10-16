@@ -7,8 +7,10 @@
 //   its conclusion-changing rating — or, when the closing message carries a
 //   deterministic flag on it, code's own line (the checker defers to it);
 // - one extra probe per figure: its key, or its step at the same value (a
-//   restatement), or the redo — the reply right after the probe — still wrong
-//   at another value: that goes to the report and the case closes;
+//   restatement), or the reply right after a model turn's probe of it;
+// - the redo — the reply to code's own probe ("Before we wrap up — …") — holds
+//   nothing and is not waited on: still wrong, it goes to the report and the
+//   case closes (batch 28 Jasmine: "22%" probed, "17–18%" in the redo);
 // - a reply whose verdict hasn't landed yet holds the close one turn: code asks
 //   the stage's natural follow-up instead — but not for the answer to that
 //   follow-up, nor twice in a row (the bound: the redo after a probe gets its
@@ -22,6 +24,7 @@ import type { StageRecord } from './stage-evidence';
 
 export type CloseHoldMemory = {
   waits?: number[];     // the messages the follow-up was asked on: the next message is its answer
+  probeTurns?: number[]; // the messages code's own probe was asked on: the next message is the redo
   probed?: { key: string; at: number }[];   // the final answers' figures probed (code's hold, or the checker's line heard on a model turn), and the message the probe answered
 };
 
@@ -31,10 +34,13 @@ export function finalAnswersFrom(record: StageRecord | undefined): number | null
   return rec?.delivered && rec.deliveredAt !== undefined ? rec.deliveredAt + 1 : null;
 }
 
-// The answer to the follow-up: the first message after one it was asked on.
+// The answer to the follow-up, and the redo of code's probe: the first message after one they were asked on.
+const previous = (m: number, candidateIndexes: number[]) => Math.max(-1, ...candidateIndexes.filter(i => i < m));
 export function answersWait(m: number, candidateIndexes: number[], memory: CloseHoldMemory): boolean {
-  const prev = Math.max(-1, ...candidateIndexes.filter(i => i < m));
-  return (memory.waits ?? []).includes(prev);
+  return (memory.waits ?? []).includes(previous(m, candidateIndexes));
+}
+export function isRedo(m: number, candidateIndexes: number[], memory: CloseHoldMemory): boolean {
+  return (memory.probeTurns ?? []).includes(previous(m, candidateIndexes));
 }
 
 // A final answer: from the recommendation reply on.
@@ -68,7 +74,7 @@ export function pendingFinalChecks(p: {
   const indexes = p.messages.map(m => m.index);
   const landed = new Set(p.rows.filter(r => r.category === 'math_checker' && (r.subtype === 'verdict' || r.subtype === 'error'))
     .map(r => (r.payloadJsonb as { candidateTurnIndex?: number }).candidateTurnIndex));
-  return p.messages.filter(m => inFinalScope(m.index, p.from) && !answersWait(m.index, indexes, p.memory) && p.checked(m.text) && !landed.has(m.index))
+  return p.messages.filter(m => inFinalScope(m.index, p.from) && !answersWait(m.index, indexes, p.memory) && !isRedo(m.index, indexes, p.memory) && p.checked(m.text) && !landed.has(m.index))
     .map(m => m.index);
 }
 

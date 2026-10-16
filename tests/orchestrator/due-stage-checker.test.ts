@@ -272,16 +272,12 @@ describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the er
     expect(r21.interviewerText).toBe(`Before we wrap up — walk me through that calculation.`);
     expect(flags().heldCloseHold).toBe(true);
     expect(flags().recMathProbed).toBe(true);   // the conclusion-changing hold's own counter, untouched (already spent at t15)
-    // The final answers' verdicts landed clean (close-hold.ts); the redo's own is out: the follow-up once, then the close.
+    // The final answers' verdicts landed clean (close-hold.ts); the redo of code's probe is not waited on: the close.
     for (const c of calls) c.resolve({ claims: [], model: 'claude-sonnet-5-5', latencyMs: 6000, stopReason: 'end_turn' });
     await flush(); await flush();
     at(17.9);
     const r23 = await runTurn('s1', 'It is just 16 plus 2: the COGS rise and the overhead rise make the 18.');
-    expect(r23.ended).toBe(false);
-    expect((flags().closeHold as Row).waits).toEqual([23]);
-    at(18.6);
-    const r25 = await runTurn('s1', 'Test it in a few markets first.');
-    expect(r25.ended).toBe(true);
+    expect(r23.ended).toBe(true);
   });
   it('its counter is its own: the conclusion-changing close hold (recMathProbed) stays unspent', async () => {
     seedJordan({ recMathProbed: false });
@@ -337,10 +333,7 @@ describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the er
     expect((flags().closeHold as Row).probed).toHaveLength(2);
     at(18.6);
     const r25 = await runTurn('s1', 'Sixteen plus two is the eighteen.');
-    expect(r25.ended).toBe(false);   // its own figures not yet checked: the follow-up, once
-    at(19.2);
-    const r27 = await runTurn('s1', 'Test it in a few markets first.');
-    expect(r27.ended).toBe(true);
+    expect(r25.ended).toBe(true);   // the redo of code's probe: the close
   });
 });
 

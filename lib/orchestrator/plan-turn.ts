@@ -34,7 +34,7 @@ import { statesQuantitativeClaim, numbersOf } from './math-checker';
 import { startMathCheck, planCheckerFlags, formatCheckerHint, liveCheckerConfig, checkerKey, closedErrorRestated, stepOfKey, STEP_PROBE_CAP, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { formatPeriodQuestionLine } from './unit-check';
-import { finalAnswersFrom, inFinalScope, pendingFinalChecks, probedAlready, answersWait, type CloseHoldMemory } from './close-hold';
+import { finalAnswersFrom, inFinalScope, pendingFinalChecks, probedAlready, answersWait, isRedo, type CloseHoldMemory } from './close-hold';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
 import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
 
@@ -792,14 +792,15 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // A flag in the final answers holds the close whatever its rating, once per
   // figure (close-hold.ts; Lorenzo, 16 Oct): the closing message's own
   // deterministic flag first — one math line a turn, and the checker defers to
-  // it — else the checker's. A redo still wrong (its step probed) holds nothing.
+  // it — else the checker's. The redo of code's probe holds nothing: still wrong, the report has it.
   let heldCloseHold = false;
   // The figure this turn probes in the final answers (its one extra probe), and whether the probe is this hold's own.
   let finalProbeKey: string | null = recMathProbe && finalAnswer(ctx.nextTurnIndex)
     ? ('flag' in recMathProbe ? attemptKey(recMathProbe.flag) : 'closed' in recMathProbe ? recMathProbe.closed.key : null) : null;
   let finalHold = false;
   const selFinal = sel !== null && finalAnswer(sel.candidateTurnIndex);
-  const codeFinal = kind === 'close' && !timeUp && finalAnswer(ctx.nextTurnIndex)
+  const selRedo = sel !== null && isRedo(sel.candidateTurnIndex, candidateIndexes, closeHold);
+  const codeFinal = kind === 'close' && !timeUp && finalAnswer(ctx.nextTurnIndex) && !isRedo(ctx.nextTurnIndex, candidateIndexes, closeHold)
     ? liveFlags.find(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, false) && !probedAlready(attemptKey(f), ctx.nextTurnIndex, closeHold, candidateIndexes))
     : undefined;
   if (codeFinal) {
@@ -807,7 +808,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     recMathProbe = { flag: codeFinal, action: recomputeAction(codeFinal, recomputeAttempts[attemptKey(codeFinal)] ?? 1, false) };
     finalProbeKey = attemptKey(codeFinal);
     finalHold = true;
-  } else if (kind === 'close' && sel && selFinal && !timeUp && !probedAlready(sel.key, sel.candidateTurnIndex, closeHold, candidateIndexes)) {
+  } else if (kind === 'close' && sel && selFinal && !selRedo && !timeUp && !probedAlready(sel.key, sel.candidateTurnIndex, closeHold, candidateIndexes)) {
     kind = 'rec_math_probe';
     recMathProbe = { checker: sel, action: sel.action === 'correct' ? 'correct' : 'probe' };
     finalProbeKey = sel.key;
