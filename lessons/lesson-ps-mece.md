@@ -13,10 +13,10 @@ review_notes:
 A good structure is **MECE** (mutually exclusive, collectively exhaustive): its buckets don't overlap, and together they cover everything that could explain the answer.
 
 ## Why interviewers care
-Overlapping buckets make you analyze the same thing twice and lose the thread. A missing bucket means the real cause can sit outside your framework, and you won't find it. Interviewers check both within seconds of seeing your structure.
+Overlapping buckets make you analyze the same thing twice. A missing bucket means the real cause can sit outside your framework, and you won't find it. Interviewers spot both within seconds.
 
 ## Why it works
-A case is a search for the cause. When every likely cause has a clear home, you can rule buckets out one at a time and trust that the answer is in what's left. An overlap means ruling out one bucket half-rules out another; a gap means you can rule out every bucket and still miss the answer.
+A case is a search for the cause. When every likely cause has a clear home, you can rule buckets out one at a time and trust what's left. An overlap means ruling out one bucket half-rules out another; a gap means you can rule out every bucket and still miss the answer.
 
 ## The pattern
 1. Start from the client's question and the number it hinges on: profit, wait time, market size.
@@ -28,20 +28,20 @@ A case is a search for the cause. When every likely cause has a clear home, you 
 ## Worked example
 A city library's book checkouts fell 20% in two years.
 
-First draft: (1) Visitors; (2) Foot traffic; (3) Digital lending. "Visitors" and "Foot traffic" overlap: both count people coming in. And nothing covers whether people who visit borrow less once inside.
+First draft: (1) Visitors; (2) Foot traffic; (3) Digital lending. "Visitors" and "Foot traffic" overlap: both count people coming in. Nothing covers whether visitors borrow less once inside.
 
 Better: (1) **How many people visit**: by branch and opening hours; (2) **How much visitors borrow**: share who borrow, books per loan; (3) **Borrowing that moved elsewhere**: e-books and audiobooks. Shorter hours, a weaker collection and a switch to e-books each have a clear home. A switch to e-books would also cut visits, but bucket 3 is where you'd measure it.
 
 ## Another example
-Estimate the yearly UK market for school uniforms.
+A chicken restaurant's drive-through wait at lunch rose from 3 minutes to 6.
 
-First draft: (1) Number of pupils; (2) Number of schools; (3) Spend per pupil. Pupils and schools count the same children: an overlap. And nothing covers hand-me-downs, so spend per pupil isn't the price of a new set.
+First draft: (1) Cars arriving; (2) The lunch rush; (3) Kitchen speed. "Cars arriving" and "The lunch rush" overlap: both count cars. Nothing covers the speaker and window, where cars wait to order, pay and collect even when the kitchen is fast.
 
-Better: (1) **Pupils who wear a uniform**, by school stage; (2) **New items bought per pupil a year**, net of hand-me-downs; (3) **Price per item**. Pupils × items × price gives the total, with one bucket per driver.
+Better: (1) **Arrivals**: cars per 15 minutes at lunch; (2) **Ordering and paying**: time at the speaker and the window; (3) **The kitchen**: time to make each order; (4) **Hand-off**: cars waiting for a late order. Every minute of the wait sits in one step.
 
 ## Tricky cases
 - **"Demand" and "Market size" for a new co-working space.** Overlap: both size the pool of people who might rent.
-- **Renaming an overlapping bucket but keeping its sub-points.** Still an overlap: "Audience: tickets by screen" next to "Revenue: tickets sold; price" counts tickets twice: change what the bucket examines, not its name.
+- **Renaming an overlapping bucket but keeping its sub-points.** Still an overlap. "Audience: tickets by screen" next to "Revenue: tickets sold; price" counts tickets twice, so change what the bucket examines, not its name.
 - **Adding "Members: members per month" to a framework about a 15% fee rise at a yoga studio.** Still a gap: today's members don't say how many would quit at the higher fee. A nearby topic doesn't fill a gap.
 
 ## Common mistakes

@@ -53,6 +53,6 @@ Deciding fact: the yearly saving. $40K − $10K = $30K a year, so the $150K pays
 - `M.ignores_deciding_fact`: a confident answer that never uses the fact that decides it.
 
 ## Quick check
-Should a gym add a 6 a.m. class? Facts: 40 members have asked for it; the instructor costs $60 a class; each class would bring in about $150 in drop-in fees; the gym's logo was redesigned in March. Which fact do you leave out, and what's the recommendation?
+Should a gym add a 6 a.m. class? Facts: 40 members have asked for it; the instructor costs $60 a class; the class would bring in about $150 a class in extra fees; the gym's logo was redesigned in March. Which fact do you leave out, and what's the recommendation?
 
-**Answer:** Leave out the logo. Add the class: about $150 in fees against $60 for the instructor is $90 a class, and 40 members have asked for it.
+**Answer:** Leave out the logo. Add the class: about $150 a class in extra fees against $60 for the instructor is $90 a class, and 40 members have asked for it.

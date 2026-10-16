@@ -30,23 +30,23 @@ A follow-up checks whether your answer rests on the case. If your choice is tied
 3. **Update** if it does. Say what your recommendation becomes. A change within the plan counts ("open next spring, not now").
 
 ## Worked example
-A chain of laundromats' profit fell 30% while customer visits held steady. Your framework: revenue per visit; costs per visit; machines.
+A chain of laundromats' profit fell 30% while customer visits held steady. Water and energy prices rose sharply. Your framework: visits; revenue per visit; cost per visit.
 
 Follow-up: "Which bucket would you dig into first, and why?"
 
-Strong: "**Revenue per visit.** Visits held steady while profit fell 30%, so the drop is per visit; I'd check prices and the mix of washes."
+Strong: "**Cost per visit.** Visits held steady while profit fell 30%, and water and energy prices rose sharply, so each wash costs more; I'd check water and energy cost per visit."
 
-Weak: "Revenue, because it's the most important." No case fact.
+Weak: "Revenue per visit, because it's the most important." No case fact.
 
 ## Another example
-You recommended that a bakery chain open a fourth shop: it would earn $80K a year after rent and pay back its $200K fit-out in 2.5 years, inside the chain's 3-year limit.
+You recommended that a bakery chain open a fourth shop: $80K a year after rent repays its $200K fit-out in 2.5 years, inside the 3-year limit.
 
 "A local realtor says rents in the area rose 5% last year." **Hold.** "The $80K already includes our signed rent, so this doesn't change it. I'd still open the shop."
 
 "Our CFO says the $80K leaves out $30K a year for a second delivery van." **Update.** "That makes it $50K a year, a 4-year payback, past our 3-year limit. I'd open only if the fit-out comes down to about $150K."
 
 ## Tricky cases
-- **A case fact that doesn't support your pick.** "Machines, because visits held steady" fails: steady visits point to what each visit brings in or costs, not to the machines. The fact has to back what you picked.
+- **A case fact that doesn't support your pick.** "Visits, because profit fell 30%" fails: visits held steady, so the fall isn't in visits. The fact has to back what you picked.
 - **A true fact that doesn't change your deciding facts.** It's a reason to hold, not to update.
 - **Choosing Hold and saying nothing else.** "Hold." is a decision, not a defense: give the fact and restate your recommendation.
 
