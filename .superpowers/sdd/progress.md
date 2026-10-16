@@ -1,14 +1,12 @@
 # SDD Progress Ledger — Voice AI Mock Case Interview Text Product
 
 ## Now
-- **Branch:** `larkspur-fixes` (worktree `.claude/worktrees/integration`) = `fact-guards` 74cfa53 + the close-hold round (16 Oct, below), fast-forwarded into `fact-guards` for batch 29; never pushed.
+- **The build is frozen (Lorenzo, 16 Oct): no code change for any finding.** `club-beta` = f69545c (batch 30's commit; tag local, not pushed) is what gets deployed. Findings go to PRD §15 "After batch 30"; a false statement → report run, turn, mechanism and the report-only setting that would silence it — change nothing.
+- **Branch:** `larkspur-fixes` (worktree `.claude/worktrees/integration`) = `fact-guards` (main checkout); never pushed.
 - **Tests:** 2852 pass (9 skipped); `npx tsc --noEmit` and `npx eslint .` clean.
-- **Live per case:** prof-001 — step flags live (`stepFlagsLive`), ledger lookup report-only, 20 min, exhibit required (15 Oct). prof-002 Larkspur — step flags and ledger lookup report-only, 25 min. entry-001, pricing-001, launch-001 — report-only, 20 min. The math checker runs on every case.
-- **Pass bar (batch 27, as batch 26):** zero false facts or false corrections; zero firm serious failures; zero dropped errors (the last message before time-up excepted, and flags that don't change the conclusion and close at the close); firm moderate faults ≤ 2 per interview, borderlines apart, last-message D6s not counted (Lorenzo, 15 Oct). Since 16 Oct a wrong final figure is report material; closing before it is checked is the failure.
-- **Go/no-go (Lorenzo, fixed in advance):** any false statement or any firm serious failure = no go; otherwise the build goes to the club, even with dropped errors or moderate faults.
-- **Batch 28 (15 Oct, 579dc4b, $6.34): no go by Claude's grade** (Sofia t13's "5.8 points" never raised). Lorenzo's rule change (16 Oct): the final answers are checked before the close — built, with the per-store ticket and Raj's risk wording ("Close-hold round" below).
-- **Batch 29 (16 Oct, 59e352e, $5.59): NO GO (Lorenzo's grade, agreeing with Claude's; + a borderline repeat: Jordan's correction said three times)** — one false correction: Marisol t15 "To correct one figure: other input costs … up 37.5%" for her right "Other inputs rose 11.8 [points]" (code's misquote check). Every other line of Lorenzo's 16 Oct bar met; 6 firm moderate (≤ 2 each), 4 borderline; 2 wrap-up probes, 8 follow-ups; closes 7:06–18:58 plus Raj at time-up (risk never read). `Case Interview Runs/test runs/batch-29/hand-grading.md`.
-- **B29 rulings round (16 Oct, in progress; below):** (1) the checker gate on code's own lines — built; (2) no "your recommendation" question before one is received (Jordan t13) — built; (3) a risk in the candidate's own recommendation counts (Raj) — built. Batch 30 dry-run done (47a38b1): launcher ≈ $6.00; Claude's ≈ $5.8 expected, ≈ $7 worst, cap $10. **Waiting on Lorenzo's go** (and his rulings on PRD §15 "The checker gate").
+- **Live per case:** prof-001 — step flags live (`stepFlagsLive`), ledger lookup report-only, 20 min, exhibit required. prof-002 Larkspur — step flags and ledger lookup report-only, 25 min. entry-001, pricing-001, launch-001 — report-only, 20 min. The math checker runs on every case; since 16 Oct code's corrections and probes wait for its flag (the gate).
+- **Report-only switches:** `stepFlagsLive`, `ledgerLookupLive`; none for quote misquotes, unit, arithmetic, pricing; `MATH_CHECKER_CONFIG=off` silences all code lines (PRD §15).
+- **Batch 30 (16 Oct, f69545c, $8.43 of $14; 16 runs): GO by Claude's grade** — no false statement, no serious failure, 2 firm moderate (Marisol), 4 borderline. `Case Interview Runs/test runs/batch-30/hand-grading.md`. Awaiting Lorenzo's own grade.
 - **Paid runs:** each wave needs Lorenzo's explicit go-ahead and a cap, one wave at a time, with a cost estimate.
 
 ## Rules in force
@@ -45,6 +43,7 @@
 | 27 | 15 Oct | prof-001 | 1382a46 | $5.70 | 1.8 + 1 false correction (Lorenzo's grade) | 1 false correction (Sofia t18) | 0 | No go (fixed: unit base) |
 | 28 | 15 Oct | prof-001 | 579dc4b | $6.34 | 1.3 (Claude's grade) | 0 | 1 (Sofia "5.8 points" into rec) | No go (Claude; awaiting Lorenzo) |
 | 29 | 16 Oct | prof-001 | 59e352e | $5.59 | 0.6 firm + 0.4 borderline | 1 false correction (Marisol t15) | 0 | No go (Lorenzo) |
+| 30 | 16 Oct | prof-001 (16 runs) | f69545c `club-beta` | $8.43 | 0.13 firm + 0.25 borderline (Claude's grade) | 0 | 0 | Go (Claude; awaiting Lorenzo) |
 
 ## Fix rounds (full text in `progress-archive.md`)
 Post-plan hardening (July–Sep 2026) through Integration (13 Oct) were moved to `progress-archive.md` verbatim on 15 Oct; the rounds below moved there the same day (restructure), one line each here.
@@ -83,4 +82,5 @@ Post-plan hardening (July–Sep 2026) through Integration (13 Oct) were moved to
 - **Fix 3 — a risk named with its mitigation in the candidate's own recommendation counts as the risk** (`namesRiskAndMitigation`, stage record `spontaneous`; end gate and `caseFinished`). Replay vs fix 2: Raj closes at 13:45 (was time-up 21:26); 5 more runs close earlier on a real risk-and-mitigation (b18 ×2, b20, b23, b25). Tests 2852 (+5); mutations 6/6.
 - **Batch 30 estimate:** dry run (47a38b1, same command as batch 29 with `--batch=batch-30`) ≈ $6.00 (runs $3.94 + checker ≈110 calls $2.06). Claude's: batch 29 was $5.59 for 118 candidate turns (≈ $0.04–0.05 a turn, $0.88 scoring); on the replay the three fixes net 0 turns on batch 29's runs (Raj −5, Tyler +4 from delayed corrections, Jordan +1) and +0.2 a run on batches 23–28 (understated: the replay extends open runs by at most 4 turns) → ≈ +4 turns, ≈ $5.8 expected, ≈ $7 worst; cap $10. Not run.
 - **After batch 30 (Lorenzo, 16 Oct): the build is frozen** — no code change for any finding; log findings in PRD §15 "After batch 30"; any false statement → report run, turn, mechanism and which report-only setting would silence it, change nothing; tag the wave's commit `club-beta` (not pushed).
+- **Lorenzo's rulings (16 Oct):** the gate's calls (a)–(e) approved; batch 30 run as two waves plus the default candidate (his go, cap $14). **Batch 30:** $8.43, 16/16 ok, go by Claude's grade (PRD §16); tagged `club-beta` at f69545c; the build frozen.
 
