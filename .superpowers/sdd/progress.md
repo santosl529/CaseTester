@@ -7,7 +7,8 @@
 - **Pass bar (batch 27, as batch 26):** zero false facts or false corrections; zero firm serious failures; zero dropped errors (the last message before time-up excepted, and flags that don't change the conclusion and close at the close); firm moderate faults ≤ 2 per interview, borderlines apart, last-message D6s not counted (Lorenzo, 15 Oct). Since 16 Oct a wrong final figure is report material; closing before it is checked is the failure.
 - **Go/no-go (Lorenzo, fixed in advance):** any false statement or any firm serious failure = no go; otherwise the build goes to the club, even with dropped errors or moderate faults.
 - **Batch 28 (15 Oct, 579dc4b, $6.34): no go by Claude's grade** (Sofia t13's "5.8 points" never raised). Lorenzo's rule change (16 Oct): the final answers are checked before the close — built, with the per-store ticket and Raj's risk wording ("Close-hold round" below).
-- **Batch 29:** Lorenzo's go (16 Oct, one wave, cap $10; estimate ≈ $7). His bar: no false statement (fact, correction, refusal); no close with time left while a checker-flagged final figure is unprobed; no owed stage missing; a direct ask for held data gets it; a wrong final figure is report material; firm moderate ≤ 2 per interview.
+- **Batch 29 (16 Oct, 59e352e, $5.59): NO GO by Claude's grade** — one false correction: Marisol t15 "To correct one figure: other input costs … up 37.5%" for her right "Other inputs rose 11.8 [points]" (code's misquote check). Every other line of Lorenzo's 16 Oct bar met; 6 firm moderate (≤ 2 each), 4 borderline; 2 wrap-up probes, 8 follow-ups; closes 7:06–18:58 plus Raj at time-up (risk never read). `Case Interview Runs/test runs/batch-29/hand-grading.md`.
+- **Waiting on Lorenzo:** his grade of batch 29 and which of its six findings to fix. No wave until he says.
 - **Paid runs:** each wave needs Lorenzo's explicit go-ahead and a cap, one wave at a time, with a cost estimate.
 
 ## Rules in force
@@ -42,6 +43,7 @@
 | 26 | 15 Oct | prof-001 | 770e95e | $5.93 | 2.4 (corrected) | 0 | 2 (Blake stages, Jasmine "5 points") | Fail |
 | 27 | 15 Oct | prof-001 | 1382a46 | $5.70 | 1.8 + 1 false correction (Lorenzo's grade) | 1 false correction (Sofia t18) | 0 | No go (fixed: unit base) |
 | 28 | 15 Oct | prof-001 | 579dc4b | $6.34 | 1.3 (Claude's grade) | 0 | 1 (Sofia "5.8 points" into rec) | No go (Claude; awaiting Lorenzo) |
+| 29 | 16 Oct | prof-001 | 59e352e | $5.59 | 0.6 firm + 0.4 borderline (Claude's grade) | 1 false correction (Marisol t15) | 0 | No go (Claude; awaiting Lorenzo) |
 
 ## Fix rounds (full text in `progress-archive.md`)
 Post-plan hardening (July–Sep 2026) through Integration (13 Oct) were moved to `progress-archive.md` verbatim on 15 Oct; the rounds below moved there the same day (restructure), one line each here.
