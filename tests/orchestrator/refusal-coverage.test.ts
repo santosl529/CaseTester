@@ -24,6 +24,9 @@ describe('what covers an ask', () => {
     ['transaction volume per store', ['avg_ticket'], [], null],                                           // Tyler 47563861 t13, Marisol 0f7551c2 t9
     ['same-store transaction counts', ['avg_ticket'], [], null],                                          // Raj 47ca643f t13 (refused before: traffic isn't the store count)
     ['same-store transaction volume for both years', ['avg_ticket'], [], null],
+    // Lorenzo, 16 Oct: "transaction volume (or average ticket) per store" is the ticket, not revenue per store.
+    ['transaction volume or average ticket per store', ['avg_ticket'], [], null],                         // Marcus 9cb2554f t15 (batch 27), as said
+    ['average ticket and transaction data per store', ['avg_ticket'], [], null],                          // Marcus 9cb2554f t15, as the model wrote it
   ] as const)('prof-001: "%s"', (what, items, facts, rest) => {
     expect(coverageOf(what, p1)).toEqual({ items, promptFacts: facts, rest });
   });

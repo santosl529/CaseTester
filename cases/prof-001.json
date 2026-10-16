@@ -731,7 +731,14 @@
         "transaction volume by store",
         "transaction count per store",
         "transaction counts per store",
-        "transaction counts by store"
+        "transaction counts by store",
+        "transaction data",
+        "transaction data per store",
+        "average ticket",
+        "average tickets",
+        "average ticket per store",
+        "average ticket by store",
+        "ticket per store"
       ],
       "net_margin": [
         "net margin",

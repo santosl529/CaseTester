@@ -135,7 +135,8 @@ describe('corpus final messages at the close', () => {
     detected = CORPUS.nikhil.detected;
     const r = await runTurn('s1', CORPUS.nikhil.text);
     expect(turnKind()).toBe('close');
-    expect(new Set(revealed())).toEqual(new Set(['revenue_per_store', 'menu_price_change', 'avg_ticket']));
+    // "Transaction counts by store" is the ticket, not revenue per store (Lorenzo, 16 Oct): out already by the first ask.
+    expect(new Set(revealed())).toEqual(new Set(['menu_price_change', 'avg_ticket']));
     expect(r.interviewerText).toMatch(/I don't have (regional demographics or competitor price points|competitor price points or regional demographics)\./);
     expect(explicitRows().length).toBe(4);
     expect(check('code_written_requests')?.decision).toBe('pass');

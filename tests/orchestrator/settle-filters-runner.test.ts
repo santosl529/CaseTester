@@ -835,11 +835,25 @@ describe('a refusal of what the case holds becomes the line that holds it', () =
     expect(r.interviewerText).toMatch(TICKET);
     expect(r.interviewerText).not.toMatch(/I don't have/);
   });
+  // Lorenzo, 16 Oct: the ask the covers answer whole gets what they name — the ticket — not the model's other mapping.
   it('Marisol 0f7551c2 t9: mapped to the ticket and the store count, the ticket is no longer scoped out', async () => {
     seed({ phase: 'ANALYSIS', flags: SATISFIED, revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'] });
     const r = await say('Do we have transaction volume per store?', T({ say: 'Mm-hm.', requests: [{ what: 'transaction volume per store', itemIds: ['avg_ticket', 'stores_count'], explicit: true, respond: 'release' }], question: 'What does that tell you?' }));
     expect(r.interviewerText).toMatch(TICKET);
-    expect(r.interviewerText).toMatch(/200 stores today/);
+    expect(r.interviewerText).not.toMatch(/200 stores today/);
+  });
+  const PER_STORE = /Average revenue per store/;
+  it('Marcus 9cb2554f t15 (batch 27): "transaction volume or average ticket per store", mapped to the ticket and revenue per store — the ticket only', async () => {
+    seed({ phase: 'ANALYSIS', flags: SATISFIED, revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'] });
+    const r = await say('Do we have transaction volume or average ticket per store? That would tell me whether there\'s headroom on attach rather than price.', T({ say: 'Got it.', requests: [{ what: 'average ticket and transaction data per store', itemIds: ['avg_ticket', 'revenue_per_store'], explicit: true, respond: 'release' }], question: 'What is your recommendation to the CEO?' }));
+    expect(r.interviewerText).toMatch(TICKET);
+    expect(r.interviewerText).not.toMatch(PER_STORE);
+  });
+  it('Fiona f4bd1da5 t9 (batch 27): "transaction volume per store", mapped to revenue per store and the store count — the ticket instead', async () => {
+    seed({ phase: 'ANALYSIS', flags: SATISFIED, revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'] });
+    const r = await say('Do we have data on transaction volume per store?', T({ say: 'Right.', requests: [{ what: 'transaction volume per store', itemIds: ['revenue_per_store', 'stores_count'], explicit: true, respond: 'release' }], question: 'What else could they do?' }));
+    expect(r.interviewerText).toMatch(TICKET);
+    expect(r.interviewerText).not.toMatch(PER_STORE);
   });
   it('what nothing covers is still refused', async () => {
     seed({ phase: 'ANALYSIS', flags: SATISFIED });
