@@ -6,8 +6,9 @@
 // - a figure the checker rated wrong in those replies is probed once, whatever
 //   its conclusion-changing rating — or, when the closing message carries a
 //   deterministic flag on it, code's own line (the checker defers to it);
-// - one extra probe per figure, counted by its step: a redo still wrong, even
-//   at another value, goes to the report and the case closes;
+// - one extra probe per figure: its key, or its step at the same value (a
+//   restatement), or the redo — the reply right after the probe — still wrong
+//   at another value: that goes to the report and the case closes;
 // - a reply whose verdict hasn't landed yet holds the close one turn: code asks
 //   the stage's natural follow-up instead (once an interview).
 // Only time-up overrides it. Plan decides (plan-turn.ts); Settle keeps the
@@ -19,7 +20,7 @@ import type { StageRecord } from './stage-evidence';
 
 export type CloseHoldMemory = {
   waited?: boolean;     // the follow-up turn was asked
-  probed?: string[];    // flag keys probed in the final answers (code's hold, or the checker's line heard on a model turn)
+  probed?: { key: string; at: number }[];   // the final answers' figures probed (code's hold, or the checker's line heard on a model turn), and the message the probe answered
 };
 
 // The first candidate message after the recommendation ask, as the stage record has it (one source of truth).
@@ -33,9 +34,20 @@ export function inFinalScope(m: number, from: number | null): boolean {
   return from !== null && m >= from;
 }
 
-// The figure has had its one extra probe: a key of the same step was probed.
-export function probedAlready(key: string, memory: CloseHoldMemory): boolean {
-  return (memory.probed ?? []).some(k => stepOfKey(k) === stepOfKey(key));
+// The figure has had its one extra probe: the same key; the same step at the
+// same value, or a step whose key carries none; or the redo — the first message
+// after that step's probe — at another value (Sofia b28: "5.8 points" in the
+// recommendation and "4.2 points" in the risk answer are two figures).
+const valueOf = (k: string) => { const i = k.lastIndexOf('@'); const v = i < 0 ? NaN : Number(k.slice(i + 1)); return Number.isFinite(v) ? v : null; };
+export function probedAlready(key: string, n: number, memory: CloseHoldMemory, candidateIndexes: number[]): boolean {
+  const v = valueOf(key);
+  return (memory.probed ?? []).some(p => {
+    if (p.key === key) return true;
+    if (stepOfKey(p.key) !== stepOfKey(key)) return false;
+    const pv = valueOf(p.key);
+    const redo = Math.min(...candidateIndexes.filter(i => i > p.at)) === n;
+    return pv === null || v === null || Math.abs(pv - v) <= Math.max(0.05, Math.abs(v) * 0.01) || redo;
+  });
 }
 
 type Row = { category?: string | null; subtype?: string | null; payloadJsonb?: unknown };

@@ -571,6 +571,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const closeHold = (flags.closeHold as CloseHoldMemory | undefined) ?? {};
   const finalFrom = finalAnswersFrom(flags.stageEvidence as StageRecord | undefined);
   const finalAnswer = (n: number) => inFinalScope(n, finalFrom);
+  const candidateIndexes = [...turnRows.filter(t => t.role === 'candidate').map(t => t.turnIndex), ctx.nextTurnIndex];
   const checkerPlan = planCheckerFlags({
     rows: (reads.checkerEventRows ?? []).filter(r => r.category === MATH_CHECKER_CATEGORY),
     handled: checkerHandled, turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
@@ -799,14 +800,14 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   let finalHold = false;
   const selFinal = sel !== null && finalAnswer(sel.candidateTurnIndex);
   const codeFinal = kind === 'close' && !timeUp && finalAnswer(ctx.nextTurnIndex)
-    ? liveFlags.find(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, false) && !probedAlready(attemptKey(f), closeHold))
+    ? liveFlags.find(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, false) && !probedAlready(attemptKey(f), ctx.nextTurnIndex, closeHold, candidateIndexes))
     : undefined;
   if (codeFinal) {
     kind = 'rec_math_probe';
     recMathProbe = { flag: codeFinal, action: recomputeAction(codeFinal, recomputeAttempts[attemptKey(codeFinal)] ?? 1, false) };
     finalProbeKey = attemptKey(codeFinal);
     finalHold = true;
-  } else if (kind === 'close' && sel && selFinal && !timeUp && !probedAlready(sel.key, closeHold)) {
+  } else if (kind === 'close' && sel && selFinal && !timeUp && !probedAlready(sel.key, sel.candidateTurnIndex, closeHold, candidateIndexes)) {
     kind = 'rec_math_probe';
     recMathProbe = { checker: sel, action: sel.action === 'correct' ? 'correct' : 'probe' };
     finalProbeKey = sel.key;

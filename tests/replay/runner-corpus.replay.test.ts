@@ -184,6 +184,29 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
     if (got.stateBefore.kind !== r.stateBefore.kind || (modelCalled && !savedModel)) diverged++;
     records.push({ ...got, turnIndex: r.turnIndex });
   }
+  // REPLAY_EXTEND=<n> (close hold, 16 Oct): a run the saved messages leave open
+  // gets up to n neutral replies — no figures, so no check starts — at the run's
+  // own pace (the median gap of its last four messages), so what code does after
+  // a hold (a probe, the close) is seen. Their turns carry `extended: true`.
+  const extend = Number(process.env.REPLAY_EXTEND ?? 0);
+  const ms = saved.map(x => x.stateBefore.elapsedMs ?? 0);
+  const gaps = ms.slice(-5).slice(1).map((m, i) => m - ms.slice(-5)[i]).sort((a, b) => a - b);
+  const gap = gaps.length ? gaps[Math.floor(gaps.length / 2)] : 90_000;
+  let lastIndex = saved.at(-1)!.turnIndex, lastMs = ms.at(-1) ?? 0;
+  for (let i = 0; i < extend && store.session.status === 'active'; i++) {
+    lastIndex += 2; lastMs += gap;
+    modelTurn = NEUTRAL; modelCalled = false; detections = []; judge = { answered: true, reason: 'replay' };
+    store.session = { ...store.session, startedAt: new Date(Date.now() - lastMs) };
+    checkerClock.nowMs = lastMs;
+    currentKey = `extended#${lastIndex}`;
+    let rec: TurnRecord | null = null;
+    const deferred: (() => Promise<void>)[] = [];
+    replayIndex.set(store.turns.length, { saved: lastIndex, ms: lastMs });
+    await runTurn(sid, 'Understood. I would start with a small pilot and review it with the CEO.', { onTurnRecord: x => { rec = x; }, defer: t => { deferred.push(t); } });
+    for (const c of pendingChecks.splice(0)) c.reject(new Error('no recorded verdict'));
+    await Promise.allSettled(deferred.map(t => t()));
+    if (rec) records.push({ ...(rec as TurnRecord), turnIndex: lastIndex, extended: true } as TurnRecord);
+  }
   checkerReport(file, records, saved);
   return finish(records, header, run, file, diverged, false);
 }

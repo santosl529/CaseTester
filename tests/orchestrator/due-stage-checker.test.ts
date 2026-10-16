@@ -306,7 +306,7 @@ describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the er
     const r21 = await runTurn('s1', JORDAN.t21Risk);
     expect(r21.ended).toBe(false);
     expect(r21.interviewerText).toBe('Before we wrap up — walk me through that calculation.');
-    expect((flags().closeHold as Row).probed).toEqual([expect.stringMatching(/growth masks/)]);
+    expect((flags().closeHold as Row).probed).toEqual([{ key: expect.stringMatching(/growth masks/), at: 21 }]);
   });
   it('limit: at time-up the hold is skipped and the line goes to the report', async () => {
     at(15.55);

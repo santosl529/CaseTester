@@ -795,7 +795,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     const probedNow = [...(kind === 'rec_math_probe' && qHeard && state.closeHoldPlan.probeKey ? [state.closeHoldPlan.probeKey] : []), ...(finalLineHeard ? [checkerLine.key] : [])];
     const closeHoldSaved: CloseHoldMemory = {
       ...(holdPrev.waited || (kind === 'close_wait' && qHeard) ? { waited: true } : {}),
-      ...(probedNow.length || holdPrev.probed?.length ? { probed: [...new Set([...(holdPrev.probed ?? []), ...probedNow])] } : {}),
+      ...(probedNow.length || holdPrev.probed?.length ? { probed: [...(holdPrev.probed ?? []), ...probedNow.filter(k => !holdPrev.probed?.some(p => p.key === k)).map(key => ({ key, at: nextTurnIndex }))] } : {}),
     };
     // KF-4 (v4.10): when the gate closes this turn, the unmapped asks it held
     // are put to the interviewer next turn — once; then they lapse (logged).

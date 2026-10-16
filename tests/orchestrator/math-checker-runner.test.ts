@@ -173,7 +173,7 @@ describe('in place of the close, code says the checker\'s line', () => {
     expect(r.interviewerText).toContain('Before we wrap up — you said the whole 18 points sits in COGS. Which cost lines did you look at to get there?');
     // A final answer's hold (Lorenzo, 16 Oct): its own memory, the once-a-case counter untouched.
     expect((store.session.flagsJsonb as Row).recMathProbed).toBe(false);
-    expect((store.session.flagsJsonb as Row).closeHold).toEqual({ probed: ['checker:the whole 18 points'] });
+    expect((store.session.flagsJsonb as Row).closeHold).toEqual({ probed: [{ key: 'checker:the whole 18 points', at: 9 }] });
     // The redo, still wrong: no second probe. Its own verdict is out — the follow-up once — then the close; the report has it.
     const r11 = await runTurn('s1', 'I looked at COGS. It is all 18 points in COGS.');
     expect(r11.ended).toBe(false);
@@ -205,7 +205,7 @@ describe('a final answer\'s flag raised on a model turn', () => {
     await flush(); await flush();
     const r9 = await runTurn('s1', 'I would sequence pricing first, then procurement.');
     expect(r9.interviewerText).toContain('You said the whole 18 points sits in COGS.');
-    expect((store.session.flagsJsonb as Row).closeHold).toEqual({ probed: ['checker:the whole 18 points'] });
+    expect((store.session.flagsJsonb as Row).closeHold).toEqual({ probed: [{ key: 'checker:the whole 18 points', at: 9 }] });
   });
 });
 

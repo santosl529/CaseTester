@@ -129,7 +129,7 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
     expect(p.state.closeHoldPlan).toEqual({ from: 7, probeKey: 'pricing:gain@5', hold: true });
   });
   it('once per figure: probed already, the close goes ahead and the flag goes to the report', () => {
-    const p = modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probed: ['pricing:gain@5'] } } }), [verdict(7)]), RISK, deps()));
+    const p = modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probed: [{ key: 'pricing:gain@5', at: 3 }] } } }), [verdict(7)]), RISK, deps()));
     expect(p.state.kind).toBe('close');
     expect(p.ctx.events).toContainEqual(expect.objectContaining({ category: 'math_checker', payload: expect.objectContaining({ id: '7:0', outcome: 'unresolved_at_close' }) }));
   });
@@ -157,8 +157,9 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
     expect(planAt().decisions).toContainEqual(expect.objectContaining({ id: '7:0', outcome: 'expired' }));
     expect(planAt(n => n >= 7).selected).toMatchObject({ id: '7:0' });
   });
+  // The probe answered message 5; message 7 is its redo.
   it('a redo still wrong at another value: its step had the probe — the close, the flag to the report', () => {
-    const p = modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probed: ['pricing:gain@4'] } } }), [verdict(7)]), RISK, deps()));
+    const p = modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probed: [{ key: 'pricing:gain@4', at: 5 }] } } }), [verdict(7)]), RISK, deps()));
     expect(p.state.kind).toBe('close');
     expect(p.ctx.events).toContainEqual(expect.objectContaining({ payload: expect.objectContaining({ id: '7:0', outcome: 'unresolved_at_close' }) }));
   });
@@ -216,7 +217,15 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
     expect(p.state.kind).toBe('rec_math_probe');
     expect(p.state.recMathProbe).toEqual(expect.objectContaining({ flag: expect.objectContaining({ kind: 'unit', candidateValue: 25 }) }));
     expect(p.state.closeHoldPlan).toMatchObject({ probeKey: 'unit:COGS@25', hold: true });
-    expect(modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probed: ['unit:COGS@25'] } } }), [verdict(7, { claims: [] })]), SOFIA_T15, deps())).state.kind).toBe('close');
+    expect(modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probed: [{ key: 'unit:COGS@25', at: 7 }] } } }), [verdict(7, { claims: [] })]), SOFIA_T15, deps())).state.kind).toBe('close');
+  });
+  // Batch 28 Sofia: "5.8 points" in the recommendation (t13), "4.2 points" in the risk answer (t15) — the same step, two figures.
+  it('the same step at another value, not the redo of its probe: another figure — probed once too', () => {
+    const p = modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probed: [{ key: 'pricing:gain@4', at: 9 }] } } }), [verdict(7)]), RISK, deps()));
+    expect(p.state.kind).toBe('rec_math_probe');
+    // The same figure under another key (a restatement, code's flag and the checker's): no second probe.
+    expect(modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probed: [{ key: 'pricing:gain@5.0', at: 9 }] } } }), [verdict(7)]), RISK, deps())).state.kind).toBe('close');
+    expect(modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probed: [{ key: 'pricing:gain', at: 9 }] } } }), [verdict(7)]), RISK, deps())).state.kind).toBe('close');
   });
 });
 
