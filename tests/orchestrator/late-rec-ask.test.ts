@@ -239,7 +239,8 @@ describe("Blake 4755c03a, checker on, on his real clock: the risk is asked befor
     expect(stages().risk.delivered).toBe(true);
   });
 
-  it('a reply before time-up that gives the recommendation and the risk closes the case', async () => {
+  // Lorenzo, 16 Oct (close-hold.ts): its figures not yet checked, it holds the close one turn — the stage's follow-up — until time-up.
+  it('a reply before time-up that gives the recommendation and the risk: the follow-up, then the close', async () => {
     for (const [min, text] of [[BLAKE.t15, SAID.t15], [BLAKE.t17, SAID.t17], [BLAKE.t19, SAID.t19], [BLAKE.t21, SAID.t21], [BLAKE.t23, SAID.t23]] as const) {
       at(min);
       await runTurn('s1', text);
@@ -247,7 +248,11 @@ describe("Blake 4755c03a, checker on, on his real clock: the risk is asked befor
     }
     at(19.6);
     const r = await runTurn('s1', "My recommendation: raise menu prices about 10% now, in two steps, and renegotiate dairy and packaging contracts. The biggest risk is traffic loss, so I'd pilot the increase in a few markets first and watch transactions.");
-    expect(r.ended).toBe(true);
-    expect(r.interviewerText).toMatch(/covered everything|covers what I wanted/);
+    expect(r.ended).toBe(false);
+    expect(kindOf(25)).toBe('close_wait');
+    at(19.9);
+    const r27 = await runTurn('s1', 'Dairy contracts first — they are the fastest to move.');
+    expect(r27.ended).toBe(true);
+    expect(r27.interviewerText).toMatch(/covered everything|covers what I wanted/);
   });
 });

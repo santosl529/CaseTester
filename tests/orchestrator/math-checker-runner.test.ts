@@ -171,7 +171,67 @@ describe('in place of the close, code says the checker\'s line', () => {
     const r = await runTurn('s1', 'The biggest risk is volume loss; I would pilot it first.');
     expect(r.ended).toBe(false);
     expect(r.interviewerText).toContain('Before we wrap up — you said the whole 18 points sits in COGS. Which cost lines did you look at to get there?');
-    expect((store.session.flagsJsonb as Row).recMathProbed).toBe(true);
+    // A final answer's hold (Lorenzo, 16 Oct): its own memory, the once-a-case counter untouched.
+    expect((store.session.flagsJsonb as Row).recMathProbed).toBe(false);
+    expect((store.session.flagsJsonb as Row).closeHold).toEqual({ probed: ['checker:the whole 18 points'], after: [9] });
+    // The redo, still wrong: it holds nothing — the case closes, the report has it.
+    const r11 = await runTurn('s1', 'I looked at COGS. It is all 18 points in COGS.');
+    expect(r11.ended).toBe(true);
+  });
+});
+
+// Lorenzo, 16 Oct (batches 23–28: 19 of 60 closed before the final answers were checked).
+describe('a final answer not yet checked: the stage\'s follow-up, not the close', () => {
+  beforeEach(seed);
+  function atTheClose() {
+    const startedAt = new Date(Date.now() - 17 * 60_000);
+    store.session = {
+      ...store.session, phase: 'RECOMMENDATION', startedAt,
+      flagsJsonb: { ...(store.session.flagsJsonb as Row), lastQuestion: 'What is the biggest risk to that?', moves: { 4: 'brainstorm', 6: 'recommendation', 8: 'risk' }, stall: { recommendationDelivered: true }, stagesEnforced: { analysis: true, exhibit: true, brainstorm: true }, stageEvidence: { ...INITIAL_STAGES, brainstorm: { delivered: true, deliveredAt: 4, outcome: 'answered' as const }, recommendation: { delivered: true, deliveredAt: 6, asks: 1, outcome: 'answered' as const }, risk: { delivered: true, deliveredAt: 8 }, pending: 'risk' as const } },
+    };
+    const more = [
+      { role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What else could they do?' },
+      { role: 'candidate', text: 'More ideas.' }, { role: 'interviewer', text: 'What do you recommend?' },
+      { role: 'candidate', text: 'My recommendation is to raise menu prices about 10%.' }, { role: 'interviewer', text: 'What is the biggest risk to that?' },
+    ];
+    store.turns.push(...more.map((t, i) => ({ id: `x${i}`, sessionId: 's1', turnIndex: 3 + i, role: t.role, text: t.text, timestampMs: startedAt.getTime() + i * 20_000, latencyMs: null })));
+    store.exhibits = [{ id: 'e0', sessionId: 's1', exhibitId: 'exhibit-a', shownAtMs: startedAt.getTime() }];
+    store.events.push({ sessionId: 's1', category: 'math_checker', subtype: 'verdict', turnIndex: 7, phase: 'RECOMMENDATION', payloadJsonb: { candidateTurnIndex: 7, latencyMs: 4000, model: 'claude-sonnet-5-5', claims: [], codeFlags: [], stamps: [] } });
+  }
+  const RISK = `Volume loss. ${CLAIM}`;
+  it('the risk answer\'s verdict is out: code asks how they would guard against it; its verdict lands with a flag — probed once; the redo closes', async () => {
+    atTheClose();
+    const r9 = await runTurn('s1', RISK);
+    expect(r9.ended).toBe(false);
+    expect(r9.interviewerText).toMatch(/^(How would you guard against that\?|What would you put in place to guard against that\?)$/);
+    expect((store.session.flagsJsonb as Row).closeHold).toEqual({ waited: true, after: [9] });
+    calls.at(-1)!.resolve({ claims: [flaggedClaim], model: 'claude-sonnet-5-5', latencyMs: 8000, stopReason: 'end_turn' });
+    await flush(); await flush();
+    const r11 = await runTurn('s1', 'I would pilot it in 20 stores and watch traffic weekly.');
+    expect(r11.ended).toBe(false);
+    expect(r11.interviewerText).toContain('Before we wrap up — you said the whole 18 points sits in COGS.');
+    const r13 = await runTurn('s1', 'Still the whole 18 points, I think.');
+    expect(r13.ended).toBe(true);
+  });
+  it('the verdict lands clean: the follow-up\'s answer closes the case', async () => {
+    atTheClose();
+    await runTurn('s1', RISK);
+    calls.at(-1)!.resolve({ claims: [], model: 'claude-sonnet-5-5', latencyMs: 8000, stopReason: 'end_turn' });
+    await flush(); await flush();
+    const r11 = await runTurn('s1', 'I would pilot it in 20 stores and watch traffic weekly.');
+    expect(r11.ended).toBe(true);
+  });
+  it('still out after the follow-up: the case closes (the follow-up is once an interview)', async () => {
+    atTheClose();
+    await runTurn('s1', RISK);
+    const r11 = await runTurn('s1', 'I would pilot it in 20 stores and watch traffic weekly.');
+    expect(r11.ended).toBe(true);
+  });
+  it('time up: no hold — the close', async () => {
+    atTheClose();
+    store.session = { ...store.session, startedAt: new Date(Date.now() - 20.5 * 60_000), flagsJsonb: { ...(store.session.flagsJsonb as Row), graceAskFired: true } };
+    const r = await runTurn('s1', RISK);
+    expect(r.ended).toBe(true);
   });
 });
 

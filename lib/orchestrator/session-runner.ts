@@ -1,3 +1,4 @@
+import { closeWaitLine } from './close-hold';
 import { TurnTimer } from './turn-timer';
 import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
@@ -430,7 +431,7 @@ async function runTurnBody(
   }, report));
 }
 
-const CODE_WRITTEN_KINDS = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm', 'stage_analysis', 'rec_revision', 'rec_math_probe']);
+const CODE_WRITTEN_KINDS = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm', 'stage_analysis', 'rec_revision', 'rec_math_probe', 'close_wait']);
 // After code corrects a misquote in the recommendation: one chance to revise it.
 const REC_REVISION_QUESTIONS = ['With that corrected, does your recommendation change?', 'Given the corrected figure, would you change your recommendation?'] as const;
 // After code corrects the candidate's own math in the recommendation (Rule 14
@@ -459,6 +460,7 @@ function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null
           : state.kind === 'stage_exhibit' ? pickScript(STAGE_EXHIBIT_QUESTIONS, seed)
           : state.kind === 'stage_analysis' && state.caseData.analysisCore ? analysisAskLine(state.caseData.analysisCore.ask, state.recommendationInPlay)
             : state.kind === 'rec_revision' ? pickScript([...REC_REVISION_QUESTIONS], seed)
+              : state.kind === 'close_wait' ? closeWaitLine(state.lastQuestion ?? '', seed)
               : recMath?.action === 'correct' ? pickScript([...REC_MATH_REVISION_QUESTIONS], seed)
               : recMath ? recLine('probe')
             : `Take your time. ${restateOnTable(state.lastQuestion ?? '')}`;

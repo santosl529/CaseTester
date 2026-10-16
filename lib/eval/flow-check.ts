@@ -28,7 +28,7 @@ type CaseLike = { exhibits: { id: string; required?: boolean }[]; analysisCore?:
 const questionOf = (t: CorpusTurn) => t.segments.filter(s => s.kind === 'question' || s.kind === 'scripted').map(s => s.text).join(' ')
   || t.segments.filter(s => s.kind !== 'data').map(s => s.text).join(' ');
 const CODE_REC = new Set(['rec_ask', 'grace_ask', 'time_warning']);
-const AFTER_REC = new Set(['rec_revision', 'rec_math_probe', 'close']);
+const AFTER_REC = new Set(['rec_revision', 'rec_math_probe', 'close_wait', 'close']);
 const CLOSE_WORDS = /\bthat closes (?:the case|out|the recommendation)\b|\bwe'?ll (?:stop|leave it|wrap up) (?:there|here)\b/i;
 
 // Stages as the batch-20 grading counts them — what was actually asked, not

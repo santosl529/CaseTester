@@ -5,6 +5,7 @@
 // lock (only what follows the already-delivered speech goes out) and one
 // commit. Code-written turns (close, grace ask, time warning, rung 1) arrive
 // here as a turn whose words are code's own and are not vetoed.
+import type { CloseHoldMemory } from './close-hold';
 import type { TurnTimer } from './turn-timer';
 import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
@@ -157,7 +158,7 @@ export type Settled = {
   persist: (latency: { firstSegmentMs: number | null; streamed: boolean }, heard?: HeardReport | null) => Promise<TurnResult>;
 };
 
-const CODE_WRITTEN = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm', 'stage_analysis', 'rec_revision', 'rec_math_probe']);
+const CODE_WRITTEN = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm', 'stage_analysis', 'rec_revision', 'rec_math_probe', 'close_wait']);
 // Code's own stage asks, recorded as moves it is sure of.
 const STAGE_MOVE: Partial<Record<string, Move>> = { stage_exhibit: 'exhibit', stage_brainstorm: 'brainstorm', stage_analysis: 'analysis', rec_revision: 'recommendation', rec_math_probe: 'recommendation' };
 
@@ -785,6 +786,20 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       codeAsked: stageAskedSaved, ended: endedSaved && state.timeUp ? 'time_up' : null, brainstormAsks: brainstormAsks(caseData), brainstormDue: state.brainstormDue, move: turnMoveSaved,
     });
     const stagesEnforcedSaved = stageAskedSaved ? { ...state.stagesEnforced, [stageAskedSaved]: true } : state.stagesEnforced;
+    // The close hold's memory (close-hold.ts; Lorenzo, 16 Oct): the follow-up
+    // asked, the final answers' figures probed (code's hold, or the checker's line
+    // heard on a model turn), and the messages whose reply was a hold turn — its
+    // reply, the redo or the follow-up's answer, holds the close no more.
+    const holdPrev = (flags.closeHold as CloseHoldMemory | undefined) ?? {};
+    const holdFrom = state.closeHoldPlan.from;
+    const finalLineHeard = checkerLine !== null && checkerHeard === true && holdFrom !== null && Number(checkerLine.id.split(':')[0]) >= holdFrom;
+    const holdTurn = (qHeard && (kind === 'close_wait' || kind === 'rec_math_probe')) || finalLineHeard;
+    const probedNow = [...(kind === 'rec_math_probe' && qHeard && state.closeHoldPlan.probeKey ? [state.closeHoldPlan.probeKey] : []), ...(finalLineHeard ? [checkerLine.key] : [])];
+    const closeHoldSaved: CloseHoldMemory = {
+      ...(holdPrev.waited || (kind === 'close_wait' && qHeard) ? { waited: true } : {}),
+      ...(probedNow.length || holdPrev.probed?.length ? { probed: [...new Set([...(holdPrev.probed ?? []), ...probedNow])] } : {}),
+      ...(holdTurn || holdPrev.after?.length ? { after: [...(holdPrev.after ?? []), ...(holdTurn ? [nextTurnIndex] : [])] } : {}),
+    };
     // KF-4 (v4.10): when the gate closes this turn, the unmapped asks it held
     // are put to the interviewer next turn — once; then they lapse (logged).
     const closed = (st: string | undefined) => st === 'satisfied' || st === 'waived';
@@ -848,9 +863,10 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
             lastMessageElapsedMs: elapsedMs,
             graceAskFired: Boolean(flags.graceAskFired) || (kind === 'grace_ask' && qHeard),
             recRevisionAsked: Boolean(flags.recRevisionAsked) || (kind === 'rec_revision' && qHeard),
-            recMathProbed: Boolean(flags.recMathProbed) || (kind === 'rec_math_probe' && !state.heldCloseHold && qHeard),
+            recMathProbed: Boolean(flags.recMathProbed) || (kind === 'rec_math_probe' && !state.heldCloseHold && !state.closeHoldPlan.probeKey && qHeard),
             // The close hold for a line a due stage held back: once an interview (Lorenzo, 15 Oct).
             heldCloseHold: Boolean(flags.heldCloseHold) || (kind === 'rec_math_probe' && state.heldCloseHold && qHeard),
+            ...(Object.keys(closeHoldSaved).length ? { closeHold: closeHoldSaved } : {}),
             recomputeAttempts,
             lastVerified: verifiedNow,
             flaggedFigures: state.flaggedFigures,

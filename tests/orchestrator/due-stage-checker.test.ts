@@ -242,7 +242,8 @@ function seedJordan(o: { heldCloseHold?: boolean; recMathProbed?: boolean } = {}
 
 describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the error resolved before the close", () => {
   beforeEach(() => seedJordan());
-  it('t19 keeps the risk question and holds the probe; t21, his redo states the right figure — the flag is answered and the case closes', async () => {
+  // Since 16 Oct (close-hold.ts) t21's own figures, not yet checked, hold the close one turn: the stage's follow-up.
+  it('t19 keeps the risk question and holds the probe; t21, his redo states the right figure — the flag is answered; the follow-up, then the close', async () => {
     at(15.55);
     MODEL.turn = JORDAN_T19;
     const r19 = await runTurn('s1', JORDAN.t19);
@@ -253,8 +254,12 @@ describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the er
     MODEL.turn = NEUTRAL;
     at(17.10);
     const r21 = await runTurn('s1', JORDAN.t21);
-    expect(r21.ended).toBe(true);
+    expect(r21.ended).toBe(false);
     expect(decisionsFor('17:1').at(-1)).toMatchObject({ outcome: 'stale' });
+    expect((flags().closeHold as Row).waited).toBe(true);
+    at(17.9);
+    const r23 = await runTurn('s1', 'Test it in a few markets first, and watch add-on attach rates weekly.');
+    expect(r23.ended).toBe(true);
   });
   it('a t21 that leaves the calculation unfixed: code says the held line before the close ("Before we wrap up —"), then closes', async () => {
     at(15.55);
@@ -267,6 +272,9 @@ describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the er
     expect(r21.interviewerText).toBe(`Before we wrap up — walk me through that calculation.`);
     expect(flags().heldCloseHold).toBe(true);
     expect(flags().recMathProbed).toBe(true);   // the conclusion-changing hold's own counter, untouched (already spent at t15)
+    // The final answers' verdicts landed clean (close-hold.ts): the redo closes the case.
+    for (const c of calls) c.resolve({ claims: [], model: 'claude-sonnet-5-5', latencyMs: 6000, stopReason: 'end_turn' });
+    await flush(); await flush();
     at(17.9);
     const r23 = await runTurn('s1', 'It is just 16 plus 2: the COGS rise and the overhead rise make the 18.');
     expect(r23.ended).toBe(true);
@@ -283,7 +291,8 @@ describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the er
     expect(flags().heldCloseHold).toBe(true);
     expect(flags().recMathProbed).toBe(false);
   });
-  it('limit: a second held line in the same interview goes to the report at the close', async () => {
+  // Since 16 Oct t17 is a final answer (after the recommendation at t15): its flag is probed once at the close whatever the held-line counter.
+  it('a second held line, in the final answers: still probed once before the close', async () => {
     seedJordan({ heldCloseHold: true });
     at(15.55);
     MODEL.turn = JORDAN_T19;
@@ -291,8 +300,9 @@ describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the er
     MODEL.turn = NEUTRAL;
     at(17.10);
     const r21 = await runTurn('s1', JORDAN.t21Risk);
-    expect(r21.ended).toBe(true);
-    expect(decisionsFor('17:1').at(-1)).toMatchObject({ outcome: 'unresolved_at_close', reason: 'the case closed' });
+    expect(r21.ended).toBe(false);
+    expect(r21.interviewerText).toBe('Before we wrap up — walk me through that calculation.');
+    expect((flags().closeHold as Row).probed).toEqual([expect.stringMatching(/growth masks/)]);
   });
   it('limit: at time-up the hold is skipped and the line goes to the report', async () => {
     at(15.55);
@@ -304,13 +314,26 @@ describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the er
     expect(r21.ended).toBe(true);
     expect(decisionsFor('17:1').at(-1)).toMatchObject({ outcome: 'unresolved_at_close', reason: 'time up' });
   });
-  it('limit: a flag that doesn\'t change the conclusion and no stage held back still goes to the report at the close', async () => {
+  // Since 16 Oct: in the final answers it is probed once, whatever its rating; the redo then closes.
+  it('a flag that doesn\'t change the conclusion and no stage held back: in the final answers, probed once before the close', async () => {
     // The risk was asked at t19 in the model's words with the probe said too — nothing held.
     store.session = { ...store.session, flagsJsonb: { ...flags(), stageEvidence: { ...(flags().stageEvidence as Row), risk: { delivered: true, deliveredAt: 18 } }, mathChecker: { handled: [] } } };
     at(17.10);
     const r = await runTurn('s1', JORDAN.t21Risk);
-    expect(r.ended).toBe(true);
-    expect(decisionsFor('17:1').at(-1)).toMatchObject({ outcome: 'unresolved_at_close' });
+    expect(r.ended).toBe(false);
+    // Its registry cleared here, the first of t17's two flags goes first: "forty points".
+    expect(r.interviewerText).toMatch(/^Before we wrap up — you said the underlying pressure is roughly forty points/);
+    expect(decisionsFor('17:0').at(-1)).toMatchObject({ outcome: 'probe' });
+    for (const c of calls) c.resolve({ claims: [], model: 'claude-sonnet-5-5', latencyMs: 6000, stopReason: 'end_turn' });
+    await flush(); await flush();
+    at(17.9);
+    // The redo holds nothing; t17's other flag gets its own one probe; then the close.
+    const r23 = await runTurn('s1', 'It is still forty points, I think.');
+    expect(r23.interviewerText).toBe('Before we wrap up — walk me through that calculation.');
+    expect((flags().closeHold as Row).probed).toHaveLength(2);
+    at(18.6);
+    const r25 = await runTurn('s1', 'Sixteen plus two is the eighteen.');
+    expect(r25.ended).toBe(true);
   });
 });
 

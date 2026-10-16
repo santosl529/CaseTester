@@ -14,6 +14,8 @@ const { checkMathClaims } = vi.hoisted(() => ({ checkMathClaims: vi.fn(() => new
 vi.mock('@/lib/orchestrator/math-checker', async orig => ({ ...(await orig<object>()), checkMathClaims }));
 
 import { planTurn, type TurnReads } from '@/lib/orchestrator/plan-turn';
+import { planCheckerFlags } from '@/lib/orchestrator/math-checker-live';
+import { getCaseById } from '@/lib/cases/loader';
 import type { VettedClaim } from '@/lib/orchestrator/math-checker';
 import type { CheckerJob, VerdictPayload } from '@/lib/orchestrator/math-checker-live';
 import type { VerifiedFigure } from '@/lib/orchestrator/recompute';
@@ -118,8 +120,16 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
     expect((p.ctx.flags.mathChecker as { handled: string[] }).handled).toContain('7:0');
   });
 
-  it('once a case: after the recommendation math probe, the close goes ahead and the flag goes to the report', () => {
+  // Lorenzo, 16 Oct (close-hold.ts): a flag in the final answers — the
+  // recommendation reply and every reply after it — holds the close whatever its
+  // rating and whatever the once-a-case counter, once per figure.
+  it('a final answer\'s flag holds the close even with the recommendation math probe spent', () => {
     const p = modelState(planTurn(withVerdict(endReads({ flags: { recMathProbed: true } }), [verdict(7)]), RISK, deps()));
+    expect(p.state.kind).toBe('rec_math_probe');
+    expect(p.state.closeHoldPlan).toEqual({ from: 7, probeKey: 'pricing:gain@5' });
+  });
+  it('once per figure: probed already, the close goes ahead and the flag goes to the report', () => {
+    const p = modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probed: ['pricing:gain@5'] } } }), [verdict(7)]), RISK, deps()));
     expect(p.state.kind).toBe('close');
     expect(p.ctx.events).toContainEqual(expect.objectContaining({ category: 'math_checker', payload: expect.objectContaining({ id: '7:0', outcome: 'unresolved_at_close' }) }));
   });
@@ -130,9 +140,73 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
     expect(p.ctx.events).toContainEqual(expect.objectContaining({ payload: expect.objectContaining({ outcome: 'unresolved_at_close', reason: 'time up' }) }));
   });
 
-  it('a minor flag does not hold the close', () => {
+  it('a minor flag in the final answers holds the close too', () => {
     const minor = verdict(7, { claims: [{ ...flagged, changesConclusion: false }] });
-    expect(modelState(planTurn(withVerdict(endReads(), [minor]), RISK, deps())).state.kind).toBe('close');
+    const p = modelState(planTurn(withVerdict(endReads(), [minor]), RISK, deps()));
+    expect(p.state.kind).toBe('rec_math_probe');
+    expect(p.state.recMathProbe).toEqual(expect.objectContaining({ action: 'probe', checker: expect.objectContaining({ id: '7:0' }) }));
+  });
+  it('…and under time pressure it is not shed', () => {
+    const minor = verdict(7, { claims: [{ ...flagged, changesConclusion: false }] });
+    expect(modelState(planTurn(withVerdict(endReads({ elapsedMs: 19 * 60 * 1000 }), [minor]), RISK, deps())).state.kind).toBe('rec_math_probe');
+  });
+  it('…nor expired, however many messages since', () => {
+    const turnRows = [9, 11].map(i => ({ turnIndex: i, role: 'candidate', text: 'I would pilot it first.' }));
+    const caseData = getCaseById('prof-001');
+    const planAt = (finalAnswer?: (n: number) => boolean) => planCheckerFlags({ rows: [verdict(7)] as never, handled: [], turnRows, candidateText: 'And watch traffic.', candidateTurnIndex: 13, currentFlags: [], attempts: {}, underTimePressure: false, candidateFigures: [], caseData, revealedIds: CORE, finalAnswer });
+    expect(planAt().decisions).toContainEqual(expect.objectContaining({ id: '7:0', outcome: 'expired' }));
+    expect(planAt(n => n >= 7).selected).toMatchObject({ id: '7:0' });
+  });
+  it('a flag in the reply to a close hold (a redo still wrong) holds nothing: the close, the flag to the report', () => {
+    const p = modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { after: [5] } } }), [verdict(7)]), RISK, deps()));
+    expect(p.state.kind).toBe('close');
+    expect(p.ctx.events).toContainEqual(expect.objectContaining({ payload: expect.objectContaining({ id: '7:0', outcome: 'unresolved_at_close' }) }));
+  });
+
+  // Before the recommendation the earlier rules stand (Lorenzo, 13–15 Oct).
+  const preRec = (flags: Record<string, unknown> = {}) => readsFixture({
+    phase: 'RECOMMENDATION', elapsedMs: 17 * 60 * 1000, revealed: CORE,
+    flags: { moves: { 4: 'brainstorm', 6: 'recommendation', 8: 'risk' }, stall: { recommendationDelivered: true }, stageEvidence: { ...INITIAL_STAGES, brainstorm: { delivered: true, deliveredAt: 4, outcome: 'answered' as const }, recommendation: { delivered: true, deliveredAt: 6, asks: 1, outcome: 'answered' as const }, risk: { delivered: true, deliveredAt: 8 }, pending: 'risk' as const }, ...flags },
+    extraTurns: [
+      { role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What else could they do?' },
+      { role: 'candidate', text: CLAIM }, { role: 'interviewer', text: 'What do you recommend?' },
+      { role: 'candidate', text: 'My recommendation is to raise menu prices.' }, { role: 'interviewer', text: 'What is the biggest risk?' },
+    ],
+  });
+  it('before the recommendation, a conclusion-changing flag holds the close once a case', () => {
+    expect(modelState(planTurn(withVerdict(preRec(), [verdict(5)]), RISK, deps())).state.kind).toBe('rec_math_probe');
+    const p = modelState(planTurn(withVerdict(preRec({ recMathProbed: true }), [verdict(5)]), RISK, deps()));
+    expect(p.state.kind).toBe('close');
+    expect(p.ctx.events).toContainEqual(expect.objectContaining({ category: 'math_checker', payload: expect.objectContaining({ id: '5:0', outcome: 'unresolved_at_close' }) }));
+  });
+  it('before the recommendation, a minor flag does not hold the close', () => {
+    const minor = verdict(5, { claims: [{ ...flagged, changesConclusion: false }] });
+    expect(modelState(planTurn(withVerdict(preRec(), [minor]), RISK, deps())).state.kind).toBe('close');
+  });
+
+  // A final answer whose verdict hasn't landed: the follow-up, not the close (checker on).
+  const on = () => deps(() => {});
+  it('the recommendation reply\'s verdict still out: the stage\'s follow-up instead of the close', () => {
+    const p = modelState(planTurn(endReads(), RISK, on()));
+    expect(p.state.kind).toBe('close_wait');
+    expect(p.ctx.checks.entries.find(c => c.check === 'close_hold')?.detail).toMatchObject({ finalFrom: 7, pending: [7] });
+  });
+  it('the closing message states figures: its own check has only started — the follow-up', () => {
+    const clean = verdict(7, { claims: [] });
+    expect(modelState(planTurn(withVerdict(endReads(), [clean]), 'The biggest risk is volume loss: if traffic falls more than 10%, the rise stops paying.', on())).state.kind).toBe('close_wait');
+  });
+  it('every final answer checked (or nothing to check): the close', () => {
+    const clean = verdict(7, { claims: [] });
+    expect(modelState(planTurn(withVerdict(endReads(), [clean]), RISK, on())).state.kind).toBe('close');
+  });
+  it('an error row counts as returned', () => {
+    const err = { ...verdict(7), subtype: 'error', payloadJsonb: { candidateTurnIndex: 7, error: 'overloaded', timedOut: false, latencyMs: 30000 } };
+    expect(modelState(planTurn(withVerdict(endReads(), [err as never]), RISK, on())).state.kind).toBe('close');
+  });
+  it('once an interview; never at time-up; a hold reply is not waited on', () => {
+    expect(modelState(planTurn(endReads({ flags: { closeHold: { waited: true } } }), RISK, on())).state.kind).toBe('close');
+    expect(modelState(planTurn(endReads({ elapsedMs: 21 * 60 * 1000, flags: { graceAskFired: true } }), RISK, on())).state.kind).toBe('close');
+    expect(modelState(planTurn(endReads({ flags: { closeHold: { after: [5] } } }), RISK, on())).state.kind).toBe('close');
   });
 });
 

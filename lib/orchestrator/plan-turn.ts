@@ -34,12 +34,13 @@ import { statesQuantitativeClaim, numbersOf } from './math-checker';
 import { startMathCheck, planCheckerFlags, formatCheckerHint, liveCheckerConfig, checkerKey, closedErrorRestated, stepOfKey, STEP_PROBE_CAP, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { formatPeriodQuestionLine } from './unit-check';
+import { finalAnswersFrom, inFinalScope, pendingFinalChecks, type CloseHoldMemory } from './close-hold';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
 import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
 
 // What Plan decides a model-turn slot is (spec 2026-10-06 §6). 'model' and
 // 'rec_ask' call the interviewer model; the rest are written by code.
-export type TurnKind = 'model' | 'rec_ask' | 'close' | 'grace_ask' | 'time_warning' | 'rung1' | 'stage_exhibit' | 'stage_brainstorm' | 'stage_analysis' | 'rec_revision' | 'rec_math_probe';
+export type TurnKind = 'model' | 'rec_ask' | 'close' | 'grace_ask' | 'time_warning' | 'rung1' | 'stage_exhibit' | 'stage_brainstorm' | 'stage_analysis' | 'rec_revision' | 'rec_math_probe' | 'close_wait';
 
 // Why the case closes, so the closing line is true (v4.10; batch 18: 32
 // sessions said "That's time" before minute 18).
@@ -565,11 +566,17 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const checkerMemory = (flags.mathChecker as Partial<CheckerMemory> | undefined) ?? {};
   const checkerHandled = checkerMemory.handled ?? [];
   const heldLine = checkerMemory.held && !checkerHandled.includes(checkerMemory.held) ? checkerMemory.held : undefined;
+  // The final answers — the recommendation reply and every reply after it, less
+  // the replies to a close hold — are checked before the case closes (close-hold.ts; Lorenzo, 16 Oct).
+  const closeHold = (flags.closeHold as CloseHoldMemory | undefined) ?? {};
+  const finalFrom = finalAnswersFrom(flags.stageEvidence as StageRecord | undefined);
+  const candidateIndexes = [...turnRows.filter(t => t.role === 'candidate').map(t => t.turnIndex), ctx.nextTurnIndex];
+  const finalAnswer = (n: number) => inFinalScope(n, finalFrom, candidateIndexes, closeHold);
   const checkerPlan = planCheckerFlags({
     rows: (reads.checkerEventRows ?? []).filter(r => r.category === MATH_CHECKER_CATEGORY),
     handled: checkerHandled, turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
     currentFlags: liveFlags.filter(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS))), codeLineThisTurn: misquote !== null, attempts: recomputeAttempts, underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
-    candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed, stepProbes, held: heldLine,
+    candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed, stepProbes, held: heldLine, finalAnswer,
   });
   // A flag past Rule 14 (corrected once, or left for the report) is closed:
   // its figures may not be probed again — the case moves on (Lorenzo, 13 Oct;
@@ -782,15 +789,37 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Jordan 6bd9edf3 t19 → t21), whether or not it changes the conclusion: at
   // most once an interview (flags.heldCloseHold, apart from recMathProbed), not
   // at time-up — then it goes to the report like any flag left at the close.
+  // A flag in the final answers holds the close whatever its rating, once per
+  // figure (close-hold.ts; Lorenzo, 16 Oct); one in a reply to a close hold — a
+  // redo still wrong — holds nothing: the report has it.
   let heldCloseHold = false;
-  if (kind === 'close' && sel?.claim.changesConclusion && !timeUp && !flags.recMathProbed) {
+  let finalProbeKey: string | null = null;
+  const selFinal = sel !== null && finalAnswer(sel.candidateTurnIndex);
+  const selAfterRec = sel !== null && finalFrom !== null && sel.candidateTurnIndex >= finalFrom;
+  if (kind === 'close' && sel && selFinal && !timeUp && !(closeHold.probed ?? []).includes(sel.key)) {
     kind = 'rec_math_probe';
     recMathProbe = { checker: sel, action: sel.action === 'correct' ? 'correct' : 'probe' };
-  } else if (kind === 'close' && sel && sel.id === heldLine && !timeUp && !flags.heldCloseHold) {
+    finalProbeKey = sel.key;
+    heldCloseHold = sel.id === heldLine && !flags.heldCloseHold;
+  } else if (kind === 'close' && sel?.claim.changesConclusion && !selAfterRec && !timeUp && !flags.recMathProbed) {
+    kind = 'rec_math_probe';
+    recMathProbe = { checker: sel, action: sel.action === 'correct' ? 'correct' : 'probe' };
+  } else if (kind === 'close' && sel && !selAfterRec && sel.id === heldLine && !timeUp && !flags.heldCloseHold) {
     kind = 'rec_math_probe';
     recMathProbe = { checker: sel, action: sel.action === 'correct' ? 'correct' : 'probe' };
     heldCloseHold = true;
   }
+  // A final answer whose verdict hasn't landed (the closing message's own, as a
+  // rule): the stage's natural follow-up instead of the close, once an interview.
+  const pendingFinal = checkerConfig ? pendingFinalChecks({
+    messages: [...turnRows.filter(t => t.role === 'candidate').map(t => ({ index: t.turnIndex, text: t.text })), { index: ctx.nextTurnIndex, text: candidateText }],
+    from: finalFrom, memory: closeHold, rows: reads.checkerEventRows ?? [], checked: statesQuantitativeClaim,
+  }) : [];
+  if (kind === 'close' && !timeUp && pendingFinal.length > 0 && !closeHold.waited) kind = 'close_wait';
+  checks.record('close_hold', kind === 'close_wait' || finalProbeKey !== null, kind === 'close_wait' ? 'a final answer\'s verdict has not landed — the follow-up, not the close'
+    : finalProbeKey ? 'a final answer\'s flag — probed before the close' : 'no close hold on the final answers', {
+    finalFrom, pending: pendingFinal, probeKey: finalProbeKey, waited: Boolean(closeHold.waited), probed: closeHold.probed ?? [],
+  });
   const checkerUsed = sel && (kind === 'model' || (kind === 'rec_math_probe' && recMathProbe && 'checker' in recMathProbe)) ? sel : null;
   const checkerHandledNow = [...checkerPlan.handledNow];
   const checkerDecisions = checkerPlan.decisions.filter(d => !sel || d.id !== sel.id || checkerUsed);
@@ -942,7 +971,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       caseData, repliedToDistressOffer, shownExhibitIds, stagesOut, brainstormDue: brainstormDueNow, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
-      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, recMathProbe, checkerLine, recAskLate, stagesDue, heldCloseHold, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
+      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, recMathProbe, checkerLine, recAskLate, stagesDue, heldCloseHold, closeHoldPlan: { from: finalFrom, probeKey: finalProbeKey }, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,

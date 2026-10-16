@@ -324,6 +324,9 @@ export type CheckerPlanInput = {
   closed?: string[];                  // keys past Rule 14: corrected once, or left for the report
   stepProbes?: Record<string, number>; // probes spent on each step this interview (STEP_PROBE_CAP)
   held?: string;                      // a line a due stage question held back (Settle): raised first, and it doesn't expire
+  // The final answers the close waits on (close-hold.ts; Lorenzo, 16 Oct): their
+  // flags are raised before any other, never shed under time pressure, never expired.
+  finalAnswer?: (candidateTurnIndex: number) => boolean;
   underTimePressure: boolean;
   candidateFigures: number[];
   caseData: CheckerCase; revealedIds: string[];
@@ -475,7 +478,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
         return;
       }
       // A line a due stage question held back waits for the next model turn (Lorenzo, 15 Oct).
-      if (later.length > CHECKER_MAX_WAIT_MESSAGES && id !== p.held) {
+      if (later.length > CHECKER_MAX_WAIT_MESSAGES && id !== p.held && !p.finalAnswer?.(v.candidateTurnIndex)) {
         decisions.push(decision(id, v.candidateTurnIndex, c, 'expired', `${later.length} messages since the claim`));
         handled.add(id);
         return;
@@ -501,7 +504,9 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   // deterministic flag on this message (that is the turn's probe) or a
   // misquote code corrects this turn (one math line a turn).
   // A line a due stage held back goes out first, on the next turn it can.
-  eligible.sort((a, b) => Number(b.id === p.held) - Number(a.id === p.held) || Number(b.c.changesConclusion) - Number(a.c.changesConclusion) || a.n - b.n);
+  // Then a final answer's (close-hold.ts).
+  const final = (n: number) => Number(Boolean(p.finalAnswer?.(n)));
+  eligible.sort((a, b) => Number(b.id === p.held) - Number(a.id === p.held) || final(b.n) - final(a.n) || Number(b.c.changesConclusion) - Number(a.c.changesConclusion) || a.n - b.n);
   let selected: CheckerSelection | null = null;
   const waiting = [...eligible];
   while (!selected && p.currentFlags.length === 0 && !p.codeLineThisTurn && waiting.length > 0) {
@@ -515,7 +520,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     // A claim code flagged was probed by code: it comes back only as the correction.
     const probed = Math.max(p.attempts[key] ?? 0, probesOf(keys[key]?.figures ?? claimFigures(c), interviewerSince, p.candidateFigures), codeProbed ? 1 : 0);
     const attempt = probed + 1;
-    const action = recomputeAction({ errorClass: c.changesConclusion ? 'case_breaking' : 'minor' } as RecomputeFlag, attempt, p.underTimePressure);
+    const action = recomputeAction({ errorClass: c.changesConclusion ? 'case_breaking' : 'minor' } as RecomputeFlag, attempt, p.underTimePressure && !p.finalAnswer?.(n));
     if (action === 'shed') { decisions.push(decision(id, n, c, 'shed', 'minor, under time pressure (Rule 15)', undefined, key)); handled.add(id); continue; }
     // Two probes on the step already: a correction code can write is said (it is no probe); else the report.
     if ((p.stepProbes?.[stepOfKey(key)] ?? 0) >= STEP_PROBE_CAP) {
