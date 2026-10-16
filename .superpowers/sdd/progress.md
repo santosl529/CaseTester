@@ -7,7 +7,8 @@
 - **Pass bar (batch 27, as batch 26):** zero false facts or false corrections; zero firm serious failures; zero dropped errors (the last message before time-up excepted, and flags that don't change the conclusion and close at the close); firm moderate faults ≤ 2 per interview, borderlines apart, last-message D6s not counted (Lorenzo, 15 Oct).
 - **Go/no-go (Lorenzo, fixed in advance):** any false statement or any firm serious failure = no go; otherwise the build goes to the club, even with dropped errors or moderate faults.
 - **Batch 27 (15 Oct, 1382a46, $5.70): no go (Lorenzo's grade, 15 Oct)** — Sofia t18 "It's closer to 10.5, not 25." is a false correction (the unit check always used base 42). Fixed 15 Oct: the unit check uses the candidate's base; every code-written correction names its quantity and period ("Unit-base round" below).
-- **Next:** batch 28 on Lorenzo's go only — same 10 personas, prof-001, Sofia and Jordan scored, cap $10 (estimate ≈ $6). Batch-27 findings 1–3, 5–9 after the club.
+- **Batch 28 (15 Oct, 579dc4b, $6.34): no go by Claude's grade** — Sofia t13's "a 10% rise recovers about 5.8 points" (≈8.5) into her recommendation, never raised (the batch-26 Jasmine failure); no false statement; 13 faults (`test runs/batch-28/hand-grading.md`).
+- **Waiting on Lorenzo:** his grade of batch 28 and what to fix (PRD §15 "After batch 28": eight findings, none fixed). No wave until he says.
 - **Paid runs:** each wave needs Lorenzo's explicit go-ahead and a cap, one wave at a time, with a cost estimate.
 
 ## Rules in force
@@ -40,6 +41,7 @@
 | 25 | 15 Oct | prof-001 | 6550fce | $6.09 | 2.4 | 0 | 0 (2 borderline) | Fail (dropped errors) |
 | 26 | 15 Oct | prof-001 | 770e95e | $5.93 | 2.4 (corrected) | 0 | 2 (Blake stages, Jasmine "5 points") | Fail |
 | 27 | 15 Oct | prof-001 | 1382a46 | $5.70 | 1.8 + 1 false correction (Lorenzo's grade) | 1 false correction (Sofia t18) | 0 | No go (fixed: unit base) |
+| 28 | 15 Oct | prof-001 | 579dc4b | $6.34 | 1.3 (Claude's grade) | 0 | 1 (Sofia "5.8 points" into rec) | No go (Claude; awaiting Lorenzo) |
 
 ## Fix rounds (full text in `progress-archive.md`)
 Post-plan hardening (July–Sep 2026) through Integration (13 Oct) were moved to `progress-archive.md` verbatim on 15 Oct; the rounds below moved there the same day (restructure), one line each here.
@@ -52,6 +54,11 @@ Post-plan hardening (July–Sep 2026) through Integration (13 Oct) were moved to
 - Batch-24 fixes (14–15 Oct): concessions withdraw only their claim; misquotes are figures stated as fact; COGS-by-input releases all three; given recommendations count; risk wordings; rhetorical questions at the close.
 - Batch-25 fixes (15 Oct): COGS split from the asking sentence; fixed claims not re-probed; relative-change correction; ordered plan = recommendation; stated variable share in pricing; "worth checking" is a need; transaction volume → ticket; later "correct" closes a flag only if code agrees.
 - Batch 23–25 records moved too: the table above has their numbers.
+
+## Batch 28 (15 Oct) — prof-001 wave after the unit-base fix
+- **Run:** `batch-28-oct-15-runs-1-10`, `fact-guards` 579dc4b, same 10 personas, Sofia and Jordan scored; $6.34 (cap $10): simulator $2.65, Sonnet $2.42, Opus $0.95, classifiers $0.31. 10 ok; 109 verdicts, 49 flag rows, no errors/timeouts (max 14.8 s). Every run reached every stage (the tools' three "owed" rows are misreads).
+- **Claude's grade:** 13 faults, 1.3/interview (4 firm incl. 2 last-message D6s, 9 borderline); no false fact or correction; **1 firm serious** — Sofia t13 "recovers about 5.8 points" (≈8.5) into her recommendation, never raised: the pricing check reads nothing in the sentence, the checker rated it not conclusion-changing and landed at the close. Borderline serious: Blake's recommendation on an untested hypothesis with the COGS data held (an accepted offer, t13). Verdict: no go.
+- **Fixes live:** Marisol's 25% × 58 no flag; Jordan's late rec ask asked the risk (t22); rec holds on Jordan t24 and Jasmine t18 answered; deadlines fired (Jordan, Marisol brainstorm; Blake analysis).
 
 ## Unit-base round (15 Oct; Lorenzo's batch-27 grade; branch `larkspur-fixes`; free)
 - **Lorenzo's grade:** batch 27 no go — Sofia t18 is a false correction (her base 58 → 14.5; the check used 42). Jordan's 38% borderline moderate; Jordan t18 D8, Tyler t15 D6, Marisol D9 firm.
