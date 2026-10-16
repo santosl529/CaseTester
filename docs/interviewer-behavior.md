@@ -1852,7 +1852,8 @@ refused twice. A goodbye in the model's own words is withheld.
 covered everything I wanted to…"; the recommendation refused twice
 (`unresolved`): "We'll stop there…" (batch 18: 32 sessions said "That's our
 time" before minute 18). An owed stage is administered before a normal close
-(Rule 9). One close per session still holds, and a turn that finishes after
+(Rule 9); since 16 Oct the final answers are checked first (Rule 14, "The
+final answers are checked before the close"). One close per session still holds, and a turn that finishes after
 the session ended — the End button pressed while it ran — writes nothing and
 cannot revive the session (every session update applies only to an active
 row; a stale result is dropped whole).
@@ -2316,6 +2317,25 @@ probes, that comes back in the reply to the recommendation ask gets one more
 flag there: code's correction again and "Does that change your
 recommendation?" (or, with no correction, "Before we wrap up — walk me through
 how you got to <figure>."). One flag, once a case; not when time is up.
+
+**The final answers are checked before the close (16 Oct, Lorenzo; batches
+23–28: 19 of 60 runs closed with time left before they were).** A wrong figure
+in the recommendation or the replies after it is report material, not a
+failure; closing before they are checked is. When the case would close with
+time left: (1) a figure the checker rated wrong in the recommendation reply or
+any reply after it is probed once — "Before we wrap up — …" — whatever its
+conclusion-changing rating; when the closing message carries a deterministic
+flag (a unit, pricing, step or arithmetic check), code's own line goes first
+(one math line a turn, and the checker defers to it); (2) one extra probe per
+figure — a restatement at the same value is the same figure; (3) the redo, the
+reply to code's probe, holds nothing: still wrong, it goes to the report and
+the case closes; (4) a final answer whose verdict hasn't landed (the closing
+message's own, as a rule) holds the close one turn: code asks the stage's
+natural follow-up ("How would you guard against that?" after the risk, else
+"What would you have the client do first?") — never for the follow-up's own
+answer or the redo, nor twice in a row. Only time-up overrides it. Before the
+recommendation the earlier rules stand: a conclusion-changing flag holds the
+close once a case; a line a due stage held back, once an interview.
 
 **Fast path (time pressure, case-breaking class only):** when the phase budget
 is exceeded, case-breaking errors skip the Socratic probe entirely and get an
