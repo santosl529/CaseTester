@@ -16,6 +16,7 @@ import type { VettedClaim } from '@/lib/orchestrator/math-checker';
 import { planTurn } from '@/lib/orchestrator/plan-turn';
 import { getCaseById } from '@/lib/cases/loader';
 import { readsFixture } from './fixtures/turn-reads';
+import { codeFlagsOf, vettedFlag, verdictRow } from './helpers/checker-claim';
 
 const prof = getCaseById('prof-001');
 const COSTS = ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'menu_price_change', 'bean_price_change', 'non_bean_input_change'];
@@ -96,8 +97,11 @@ describe('word quantities identify a restated error (Jordan 9ab76a39)', () => {
 describe('in a turn: probes counted per step, and the deterministic flags capped too', () => {
   const PT = { pressureTest: { state: 'satisfied', reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } };
   const WRONG = 'The COGS increase is costing us about $95M a year.';
+  // The claim at message 3, released now by the checker's flag on it (the gate, 16 Oct).
   const plan = (flags: Record<string, unknown>) => {
-    const p = planTurn(readsFixture({ phase: 'ANALYSIS', revealed: ['cogs_pct', 'revenue_total'], flags: { ...PT, ...flags } }), WRONG, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+    const reads = readsFixture({ phase: 'ANALYSIS', revealed: ['cogs_pct', 'revenue_total'], flags: { ...PT, ...flags }, extraTurns: [{ role: 'candidate', text: WRONG }, { role: 'interviewer', text: 'What would you look at next?' }] });
+    reads.checkerEventRows = [verdictRow(3, [vettedFlag('about $95M', 76.8, { errorType: 'conceptual' })], codeFlagsOf(WRONG, ['cogs_pct', 'revenue_total']))] as never;
+    const p = planTurn(reads, 'Next I would look at competitors.', { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
     if (p.kind !== 'model') throw new Error('expected a model plan');
     return p;
   };

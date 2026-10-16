@@ -237,16 +237,17 @@ export function formatRecomputeHint(
     const action = recomputeAction(f, attempt, Boolean(opts.underTimePressure));
     if (action === 'shed' || !flagSpeaks(f, attempt, Boolean(opts.underTimePressure))) continue;
     if (f.kind === 'unit' && f.unit && action === 'probe') { lines.push(formatUnitFlagLine(f.unit)); continue; }
+    // Said a turn after the claim (the gate): each probe names the figure as they said it.
     if (f.kind === 'arithmetic' && action === 'probe') {
-      lines.push(`- The candidate wrote ${f.claim?.expression} = ${f.candidateValue} in "${f.span}"; that operation doesn't give ${f.candidateValue}. Probe once — "Walk me through that calculation." Do not correct it or say the right figure.`);
+      lines.push(`- The candidate wrote ${f.claim?.expression} = ${f.candidateValue} in "${f.span}"; that operation doesn't give ${f.candidateValue}. Probe once — "You had ${f.claim?.expression} as ${f.candidateValue}. Walk me through that calculation." Do not correct it or say the right figure.`);
       continue;
     }
     if (f.kind === 'pricing' && action === 'probe') {
-      lines.push(`- The candidate said ${f.claim?.quantity} in "${f.span}"; that doesn't follow from the cost structure they have. Probe once — "Walk me through how you sized that price move." Do not correct it or say the right figure.`);
+      lines.push(`- The candidate said ${f.claim?.quantity} in "${f.span}"; that doesn't follow from the cost structure they have. Probe once — "You said ${f.claim?.quantity}. Walk me through how you sized that price move." Do not correct it or say the right figure.`);
       continue;
     }
     if (action === 'probe') {
-      lines.push(`- The candidate said ${f.candidateValue} in "${f.span}" and it does not match the value derivable from the data they have. Probe once — "Walk me through that." Do not correct it or say what the right figure is.`);
+      lines.push(`- The candidate said ${f.candidateValue} in "${f.span}" and it does not match the value derivable from the data they have. Probe once — "You said ${figureAsWritten(f.span, f.candidateValue)}. Walk me through that." Do not correct it or say what the right figure is.`);
     } else if (f.kind === 'unit' && f.unit) {
       // Lorenzo, 15 Oct: the correction names the quantity, the base and its period, on the candidate's own base.
       const line = unitCorrectionLine(f.unit);
@@ -257,7 +258,7 @@ export function formatRecomputeHint(
   }
   if (lines.length === 0) return { hint: '', derivedValues };
   return {
-    hint: `RECOMPUTE FLAG (deterministic, matched to what the candidate said this turn):\n${lines.join('\n')}`,
+    hint: `RECOMPUTE FLAG (deterministic, about an earlier message of the candidate's, and the math check agrees):\n${lines.join('\n')}`,
     derivedValues,
   };
 }

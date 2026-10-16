@@ -21,6 +21,7 @@ import type { VettedClaim } from '@/lib/orchestrator/math-checker';
 import type { CheckerJob, VerdictPayload } from '@/lib/orchestrator/math-checker-live';
 import type { VerifiedFigure } from '@/lib/orchestrator/recompute';
 import { readsFixture } from './fixtures/turn-reads';
+import { checkerClaim, codeFlagsOf } from './helpers/checker-claim';
 
 const COSTS = ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'menu_price_change', 'bean_price_change', 'non_bean_input_change', 'revenue_total', 'avg_ticket', 'stores_count'];
 const CLAIM = 'A 10% price increase recovers about 5 points of margin.';
@@ -34,6 +35,10 @@ const flagged: VettedClaim = {
 const verdict = (candidateTurnIndex: number, extra: Partial<VerdictPayload> = {}) => ({
   id: `ev${candidateTurnIndex}`, sessionId: 's1', category: 'math_checker', subtype: 'verdict', turnIndex: candidateTurnIndex, phase: 'ANALYSIS',
   payloadJsonb: { candidateTurnIndex, latencyMs: 6000, model: 'claude-sonnet-5-5', claims: [flagged], codeFlags: [], stamps: [], ...extra },
+});
+// A vetted flag of the checker's on a figure (it releases code's line on that figure: the gate).
+const flagOn = (candidateValue: string, correctValue: number, over: Partial<VettedClaim> = {}): VettedClaim => ({
+  ...checkerClaim(candidateValue, { correctValue }), flag: true, probeLine: null, correctionLine: null, correctionFigure: null, pointerLine: null, vetNotes: [], ...over,
 });
 const withVerdict = (reads: TurnReads, rows: ReturnType<typeof verdict>[]) => ({ ...reads, checkerEventRows: rows } as unknown as TurnReads);
 const deps = (background?: (j: CheckerJob) => void) => ({ sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {}, background });
@@ -73,10 +78,17 @@ describe('a landed verdict on a model turn', () => {
   });
 
   it('held while code corrects a misquote this turn — one math line a turn', () => {
-    const p = modelState(planTurn(withVerdict(analysis(), [verdict(3)]), "Revenue grew about 19% over the period, so volume is clearly healthy — that's a decent sign demand isn't fragile.", deps()));
+    // Message 3 also misquoted revenue growth, and the checker flagged that too: code's correction is released now.
+    const MISQ = "Revenue grew about 19% over the period, so volume is clearly healthy — that's a decent sign demand isn't fragile.";
+    const reads = readsFixture({ phase: 'ANALYSIS', revealed: COSTS,
+      flags: { pressureTest: { state: 'satisfied', reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } },
+      extraTurns: [{ role: 'candidate', text: `${CLAIM} ${MISQ}` }, { role: 'interviewer', text: 'What would you look at next?' }] });
+    const row = verdict(3, { claims: [flagged, flagOn('about 19%', 15)], codeFlags: codeFlagsOf(MISQ, COSTS) });
+    const p = modelState(planTurn(withVerdict(reads, [row]), 'Next I would look at competitors.', deps()));
     expect(p.state.misquote).not.toBeNull();
     expect(p.state.recomputeHint ?? '').not.toMatch(/MATH CHECK FLAG/);
-    expect(p.ctx.flags.mathChecker).toBeUndefined();
+    // The checker's flag on the price claim waits; its flag on the misquote is code's line (dedupe).
+    expect((p.ctx.flags.mathChecker as { handled: string[] }).handled).toEqual(['3:1']);
   });
 
   it('not raised again once handled', () => {
@@ -234,11 +246,16 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
     expect(modelState(planTurn(endReads({ flags: { closeHold: { probeTurns: [1, 2] } } }), RISK, on())).state.kind).toBe('close');
   });
   it('…nor the recommendation reply\'s own math probe', () => {
+    // The reply (message 5) with a wrong pricing claim; the checker flagged it; message 7 is now.
+    const REPLY = `My recommendation: raise prices. ${CLAIM}`;
     const recReads = (flags: Record<string, unknown> = {}) => readsFixture({ phase: 'RECOMMENDATION', elapsedMs: 15 * 60 * 1000, revealed: CORE,
-      flags: { moves: { 4: 'brainstorm' }, stageEvidence: { ...INITIAL_STAGES, brainstorm: { delivered: true, deliveredAt: 4, outcome: 'answered' as const } }, ...flags },
-      extraTurns: [{ role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What would you recommend to the CEO?' }] });
-    expect(modelState(planTurn(recReads(), `My recommendation: raise prices. ${CLAIM}`, deps())).state.kind).toBe('rec_math_probe');
-    expect(modelState(planTurn(recReads({ closeHold: { probeTurns: [1, 2] } }), `My recommendation: raise prices. ${CLAIM}`, deps())).state.kind).not.toBe('rec_math_probe');
+      flags: { moves: { 4: 'brainstorm' }, stall: { recommendationDelivered: true }, stageEvidence: { ...INITIAL_STAGES, brainstorm: { delivered: true, deliveredAt: 4, outcome: 'answered' as const } }, ...flags },
+      extraTurns: [{ role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What would you recommend to the CEO?' }, { role: 'candidate', text: REPLY }, { role: 'interviewer', text: 'What is the biggest risk?' }] });
+    const row = verdict(5, { codeFlags: codeFlagsOf(REPLY, CORE) });
+    expect(modelState(planTurn(withVerdict(recReads(), [row]), 'Volume loss.', deps())).state.kind).toBe('rec_math_probe');
+    expect(modelState(planTurn(withVerdict(recReads({ closeHold: { probeTurns: [1, 2] } }), [row]), 'Volume loss.', deps())).state.kind).not.toBe('rec_math_probe');
+    // Not on the reply itself: its verdict can't have landed (the gate).
+    expect(modelState(planTurn(recReads(), REPLY, deps())).state.kind).not.toBe('rec_math_probe');
   });
   const BIG: VettedClaim = { ...flagged, span: 'the underlying pressure is about 40 points', quantity: 'underlying pressure', candidateValue: 'about 40 points', correctValue: 16, codeQuantity: { kind: 'none', stepId: null, price: null, target: null },
     probeLine: 'You said the underlying pressure is about 40 points. How did you get that?', correctionLine: null, correctionFigure: null, changesConclusion: false };
@@ -260,8 +277,20 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
     const p = modelState(planTurn(withVerdict(later(), [verdict(7, { claims: [] }), verdict(9, { claims: [{ ...flagged, changesConclusion: true }, BIG] })]), 'A pilot in a few stores.', deps()));
     expect(p.state.recMathProbe).toEqual(expect.objectContaining({ checker: expect.objectContaining({ id: '9:1' }) }));
   });
-  it('the recommendation reply\'s checker flag goes before the closing message\'s own deterministic flag', () => {
-    const p = modelState(planTurn(withVerdict(endReads(), [verdict(7)]), SOFIA_T15, deps()));
+  // A final answer (message 9) with a deterministic flag the checker also flagged; message 11 closes.
+  const sofiaReads = (flags: Record<string, unknown> = {}) => readsFixture({
+    phase: 'RECOMMENDATION', elapsedMs: 17 * 60 * 1000, revealed: CORE,
+    flags: { moves: { 4: 'brainstorm', 6: 'recommendation', 8: 'risk' }, stall: { recommendationDelivered: true }, stageEvidence: { ...INITIAL_STAGES, brainstorm: { delivered: true, deliveredAt: 4, outcome: 'answered' as const }, recommendation: { delivered: true, deliveredAt: 6, asks: 1, outcome: 'answered' as const }, risk: { delivered: true, deliveredAt: 8 } }, closeHold: { waits: [3] }, ...flags },
+    extraTurns: [
+      { role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What else could they do?' },
+      { role: 'candidate', text: 'More ideas.' }, { role: 'interviewer', text: 'What do you recommend?' },
+      { role: 'candidate', text: `My recommendation is to raise menu prices. ${CLAIM}` }, { role: 'interviewer', text: 'What is the biggest risk?' },
+      { role: 'candidate', text: SOFIA_T15 }, { role: 'interviewer', text: 'How would you guard against that?' },
+    ],
+  });
+  const sofiaRow = () => verdict(9, { claims: [flagOn('25 points of revenue', 14.5, { errorType: 'unit' })], codeFlags: codeFlagsOf(SOFIA_T15, CORE) });
+  it('the recommendation reply\'s checker flag goes before a later final answer\'s deterministic flag', () => {
+    const p = modelState(planTurn(withVerdict(sofiaReads(), [verdict(7), sofiaRow()]), 'I would pilot it first.', deps()));
     expect(p.state.recMathProbe).toEqual(expect.objectContaining({ checker: expect.objectContaining({ id: '7:0' }) }));
   });
   it('never at time-up', () => {
@@ -270,12 +299,21 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
   // Batch 28 Sofia 0a43682d t15: "beans are 25% of COGS, so call that 25 points of
   // revenue" — the unit check's flag blocks the checker's line that turn (one math
   // line a turn) and the checker defers to it, so code's own line holds the close.
-  it('the closing message\'s own deterministic flag, in the final answers: code\'s line holds the close once', () => {
-    const p = modelState(planTurn(withVerdict(endReads(), [verdict(7, { claims: [] })]), SOFIA_T15, deps()));
+  // With the gate (16 Oct) code's flag goes out once the checker flags the same claim: a turn later.
+  it('a final answer\'s deterministic flag, released by the checker\'s: code\'s line holds the close once', () => {
+    const p = modelState(planTurn(withVerdict(sofiaReads(), [verdict(7, { claims: [] }), sofiaRow()]), 'I would pilot it first.', deps()));
     expect(p.state.kind).toBe('rec_math_probe');
     expect(p.state.recMathProbe).toEqual(expect.objectContaining({ flag: expect.objectContaining({ kind: 'unit', candidateValue: 25 }) }));
     expect(p.state.closeHoldPlan).toMatchObject({ probeKey: 'unit:COGS@25', hold: true });
-    expect(modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probed: [{ key: 'unit:COGS@25', at: 7 }] } } }), [verdict(7, { claims: [] })]), SOFIA_T15, deps())).state.kind).toBe('close');
+    expect(modelState(planTurn(withVerdict(sofiaReads({ closeHold: { waits: [3], probed: [{ key: 'unit:COGS@25', at: 9 }] } }), [verdict(7, { claims: [] }), sofiaRow()]), 'I would pilot it first.', deps())).state.kind).toBe('close');
+    // The closing message's own flag has no verdict yet: not raised.
+    expect(modelState(planTurn(withVerdict(endReads(), [verdict(7, { claims: [] })]), SOFIA_T15, deps())).state.recMathProbe ?? null).toBeNull();
+  });
+  it('a flag released from a message before the final answers holds no close', () => {
+    // The recommendation was received at message 11 (deliveredAt 10): message 9 is no final answer.
+    const stageEvidence = { ...INITIAL_STAGES, brainstorm: { delivered: true, deliveredAt: 4, outcome: 'answered' as const }, recommendation: { delivered: true, deliveredAt: 10, asks: 1, outcome: 'answered' as const }, risk: { delivered: true, deliveredAt: 10 } };
+    const p = modelState(planTurn(withVerdict(sofiaReads({ stageEvidence }), [verdict(7, { claims: [] }), sofiaRow()]), 'I would pilot it first.', deps()));
+    expect(p.state.closeHoldPlan.hold).toBe(false);
   });
   // Batch 28 Sofia: "5.8 points" in the recommendation (t13), "4.2 points" in the risk answer (t15) — the same step, two figures.
   it('the same step at another value, not the redo of its probe: another figure — probed once too', () => {
@@ -289,16 +327,23 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
 
 describe('a closed error said again in the recommendation (Lorenzo, 13 Oct; Jordan 099f33e9 t25)', () => {
   it("code's correction again, its figure licensed for the provenance audit", () => {
+    // The reply (message 5) said the closed figure again; its verdict flags it (the gate); message 7 is now.
+    const REPLY = 'My recommendation: raise prices. That gets about 5 points back.';
     const reads = readsFixture({
       phase: 'RECOMMENDATION', elapsedMs: 17 * 60 * 1000, revealed: COSTS,
-      flags: { moves: { 4: 'brainstorm', 8: 'risk' }, stagesEnforced: { analysis: true, exhibit: true, brainstorm: true }, mathChecker: { handled: ['3:0'], keys: { 'pricing:gain': { figures: [5], since: 3 } }, closed: ['pricing:gain'] } },
-      extraTurns: [{ role: 'candidate', text: CLAIM }, { role: 'interviewer', text: 'What would you recommend to the CEO?' }],
+      flags: { moves: { 4: 'brainstorm', 8: 'risk' }, stall: { recommendationDelivered: true }, stagesEnforced: { analysis: true, exhibit: true, brainstorm: true }, mathChecker: { handled: ['3:0'], keys: { 'pricing:gain': { figures: [5], since: 3 } }, closed: ['pricing:gain'] } },
+      extraTurns: [{ role: 'candidate', text: CLAIM }, { role: 'interviewer', text: 'What would you recommend to the CEO?' }, { role: 'candidate', text: REPLY }, { role: 'interviewer', text: 'What is the biggest risk?' }],
     });
     const row = { id: 'f5', sessionId: 's1', category: 'math_checker', subtype: 'flag', turnIndex: 5, phase: 'ANALYSIS', payloadJsonb: { id: '3:0', outcome: 'correct', key: 'pricing:gain', candidateValue: 'about 5 points', line: flagged.correctionLine } };
-    const p = modelState(planTurn({ ...reads, checkerEventRows: [row] } as unknown as TurnReads, 'My recommendation: raise prices. That gets about 5 points back.', deps()));
+    const agrees = verdict(5, { claims: [flagOn('about 5 points', 8.5)] });
+    const p = modelState(planTurn({ ...reads, checkerEventRows: [row, agrees] } as unknown as TurnReads, 'Volume loss.', deps()));
     expect(p.state.kind).toBe('rec_math_probe');
-    expect(p.state.recMathProbe).toEqual({ closed: { key: 'pricing:gain', said: '5 points', correction: flagged.correctionLine }, action: 'correct' });
+    expect(p.state.recMathProbe).toEqual({ closed: { key: 'pricing:gain', said: '5 points', correction: flagged.correctionLine, n: 5 }, action: 'correct' });
     expect(p.state.derivedValueTexts).toContain('8.5');
+    // The reply's verdict rates it correct (or hasn't landed): nothing.
+    const clears = verdict(5, { claims: [{ ...flagOn('about 5 points', 5), flag: false, verdict: 'correct' }] });
+    expect(modelState(planTurn({ ...reads, checkerEventRows: [row, clears] } as unknown as TurnReads, 'Volume loss.', deps())).state.kind).not.toBe('rec_math_probe');
+    expect(modelState(planTurn({ ...reads, checkerEventRows: [row] } as unknown as TurnReads, 'Volume loss.', deps())).state.kind).not.toBe('rec_math_probe');
   });
 });
 

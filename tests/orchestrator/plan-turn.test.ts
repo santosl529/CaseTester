@@ -14,6 +14,7 @@ vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<obje
 
 import { planTurn } from '@/lib/orchestrator/plan-turn';
 import { readsFixture } from './fixtures/turn-reads';
+import { codeFlagsOf, vettedFlag, verdictRow } from './helpers/checker-claim';
 
 const deps = () => ({ sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
 
@@ -143,17 +144,29 @@ describe('planTurn pricing claims', () => {
     return p.state;
   };
   const WRONG = 'A 10% price increase recovers about 5 points of margin if volume holds.';
+  // The gate (16 Oct): the claim at message 3, the checker's flag on it landed; message 5 is now.
+  const released = (flags?: Record<string, unknown>) => {
+    const reads = readsFixture({ phase: 'ANALYSIS', revealed: COSTS, flags, extraTurns: [{ role: 'candidate', text: WRONG }, { role: 'interviewer', text: 'What would you look at next?' }] });
+    const row = verdictRow(3, [vettedFlag('about 5 points', 8.5, { errorType: 'conceptual' })], codeFlagsOf(WRONG, COSTS));
+    const p = planTurn({ ...reads, checkerEventRows: [row] } as never, 'Next I would look at competitors.', deps());
+    if (p.kind !== 'model') throw new Error('expected a model plan');
+    return p.state;
+  };
 
-  it('a wrong claim is flagged and probed once, without the right figure', () => {
-    const s = plan(WRONG);
+  it('a wrong claim is held on its own turn; once the checker flags it, probed once, without the right figure', () => {
+    const own = plan(WRONG);
+    expect(own.recomputeFlags).toEqual([]);
+    expect(own.recomputeHint ?? '').not.toMatch(/RECOMPUTE FLAG/);
+    expect(own.flaggedFigures).not.toContain(5);
+    const s = released();
     expect(s.recomputeFlags).toMatchObject([{ kind: 'pricing', stepId: 'pricing:gain', candidateValue: 5, expected: 8.5 }]);
-    expect(s.recomputeHint).toMatch(/Probe once/);
+    expect(s.recomputeHint).toMatch(/Probe once — "You said a 10% price rise recovers 5 points of margin\. Walk me through/);
     expect(s.recomputeHint).not.toContain('8.5');
     expect(s.flaggedFigures).toContain(5);
   });
 
   it('wrong again after the probe: code says nothing — the correction is the checker\'s (Lorenzo, 13 Oct)', () => {
-    const s = plan(WRONG, { flags: { recomputeAttempts: { 'pricing:gain@5': 1 } } });
+    const s = released({ recomputeAttempts: { 'pricing:gain@5': 1 } });
     expect(s.recomputeHint ?? '').not.toMatch(/closer to|RECOMPUTE FLAG/);
     expect(s.derivedValueTexts).not.toContain('8.5');
     expect(s.recomputeAttempts['pricing:gain@5']).toBe(2);

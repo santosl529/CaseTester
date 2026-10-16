@@ -19,6 +19,8 @@ import { resolvePhaseBudgets, stageDeadlinesMs, timeWarningDue, DEFAULT_TIME_WAR
 import { caseTotalMs } from '@/lib/orchestrator/state-machine';
 import { INITIAL_STAGES, type StageRecord } from '@/lib/orchestrator/stage-evidence';
 import { readsFixture } from './fixtures/turn-reads';
+import { codeFlagsOf, vettedFlag, verdictRow } from './helpers/checker-claim';
+import type { VettedClaim } from '@/lib/orchestrator/math-checker';
 
 const MIN = 60_000;
 // Blake 4755c03a's candidate messages, minutes since the start (session clock).
@@ -32,11 +34,14 @@ const MSG = "Occupancy and overhead — I haven't touched either. Rent is the ob
 // Coverage short of complete (Blake's: the end gate never opened on coverage), so only the deadline can ask.
 const LOW = { structure: 20, quantitative: 20, dataExhibit: 20, judgment: 20, creativity: 20, synthesis: 20, communication: 20, pushback: 20 };
 
-function plan(o: { min: number; stages?: Partial<StageRecord>; shown?: boolean; revealed?: string[]; flags?: Record<string, unknown>; pt?: string; caseId?: string; text?: string }) {
+// landed: an earlier message (3) and the checker's flags on it (the gate releases code's lines on them).
+function plan(o: { min: number; stages?: Partial<StageRecord>; shown?: boolean; revealed?: string[]; flags?: Record<string, unknown>; pt?: string; caseId?: string; text?: string; landed?: { text: string; claims: VettedClaim[] } }) {
   const reads = readsFixture({
     phase: 'ANALYSIS', elapsedMs: Math.round(o.min * MIN), revealed: o.revealed ?? ['labor_pct', 'overhead_pct'], caseId: o.caseId,
     flags: { pressureTest: { state: o.pt ?? 'satisfied', askedAt: 2 }, stageEvidence: { ...INITIAL_STAGES, structure: ANSWERED, pressure_test: ANSWERED, ...o.stages }, ...o.flags },
+    extraTurns: o.landed ? [{ role: 'candidate', text: o.landed.text }, { role: 'interviewer', text: 'What would you look at next?' }] : [],
   });
+  if (o.landed) reads.checkerEventRows = [verdictRow(3, o.landed.claims, codeFlagsOf(o.landed.text, o.revealed ?? ['labor_pct', 'overhead_pct'], o.caseId))] as never;
   if (o.shown) (reads as { exhibitRows: unknown[] }).exhibitRows = [{ id: 'x1', sessionId: 's1', exhibitId: 'exhibit-a', shownAtMs: 0 }];
   (reads.session as { coverageJsonb: unknown }).coverageJsonb = LOW;
   const p = planTurn(reads, o.text ?? MSG, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
@@ -185,12 +190,15 @@ describe('deadline guards found on the replay', () => {
 
 describe('a deadline yields to a math line', () => {
   // batch 24 4bf008f t17: code's period probe was due on the turn the brainstorm deadline passed.
-  it('a deterministic flag on this message: the model turn carries it, the stage waits a turn', () => {
+  // Since the gate (16 Oct) code's flag goes out a turn after its message, once the checker flags it too.
+  it('a deterministic flag released this turn: the model turn carries it, the stage waits a turn', () => {
     // (Since Lorenzo's batch-27 grade, 15 Oct, 4bf008f's own sentence — 25% of today's 58 — is no flag: a unit slip stands in for it.)
     const flagged = "Beans are 25% of COGS, so that's 25 points of revenue sitting in beans.";
-    const s = plan({ min: BLAKE.t17, shown: true, revealed: CORE, stages: { exhibit: SHOWN }, text: flagged });
+    const s = plan({ min: BLAKE.t17, shown: true, revealed: CORE, stages: { exhibit: SHOWN }, landed: { text: flagged, claims: [vettedFlag('25 points of revenue', 10.5, { errorType: 'unit' })] } });
     expect(s.kind).toBe('model');
-    expect(s.recomputeHint).toMatch(/Points of what/);
+    expect(s.recomputeHint).toMatch(/points of what/);
+    // On the flagged message itself nothing is said yet, so the deadline doesn't wait.
+    expect(plan({ min: BLAKE.t17, shown: true, revealed: CORE, stages: { exhibit: SHOWN }, text: flagged }).kind).toBe('stage_brainstorm');
     expect(plan({ min: BLAKE.t17, shown: true, revealed: CORE, stages: { exhibit: SHOWN } }).kind).toBe('stage_brainstorm');
   });
 });

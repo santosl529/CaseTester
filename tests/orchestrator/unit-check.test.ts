@@ -71,8 +71,9 @@ describe('a wrong conversion is flagged with the claim, units, base and timefram
   it('the interviewer line names the claim and asks for the units, without the method', () => {
     const line = formatUnitFlagLine(run("If beans are 25% of COGS, that's 25 points of revenue.").flags[0]);
     expect(line).toMatch(/the candidate said 25 points of revenue/);
-    expect(line).toMatch(/Points of what\?/);
-    expect(line).toMatch(/don't name the method or the figure/);
+    // Said a turn after the claim (the gate, 16 Oct): the probe names their figure.
+    expect(line).toMatch(/"You put the 25% share of COGS at 25 points — points of what\?"/);
+    expect(line).toMatch(/don't name the method or the right figure/);
   });
 });
 

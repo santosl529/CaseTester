@@ -40,7 +40,13 @@ export function liveCheckerConfig(env: Record<string, string | undefined> = proc
 
 // ── the background job ──────────────────────────────────────────────────────
 
-export type CodeFlagRef = { key: string; value: number; span: string };
+// A code finding on the message (a deterministic flag, or a misquote code would
+// correct) and, since 16 Oct, the finding itself: code's line on it waits for
+// this verdict (the gate, gateCodeFindings).
+export type CodeFinding =
+  | { kind: 'flag'; flag: RecomputeFlag }
+  | { kind: 'misquote'; item: string; cited: string; sentence: string };
+export type CodeFlagRef = { key: string; value: number; span: string; finding?: CodeFinding };
 export type StampRef = { stepId: string; value: number; span: string };
 export type VerdictPayload = {
   candidateTurnIndex: number; latencyMs: number; model: string;
@@ -51,6 +57,14 @@ export type VerdictPayload = {
 export type CheckerErrorPayload = { candidateTurnIndex: number; error: string; timedOut: boolean; latencyMs: number };
 export type CheckerJobResult = { subtype: 'verdict'; payload: VerdictPayload } | { subtype: 'error'; payload: CheckerErrorPayload };
 export type CheckerJob = { candidateTurnIndex: number; result: Promise<CheckerJobResult>; abort: () => void };
+
+// The message's code findings as the verdict carries them (the gate's input).
+export function codeFlagRefs(codeMath: Pick<CandidateMath, 'flags'>, misquotes: { item: string; cited: string; sentence: string }[]): CodeFlagRef[] {
+  return [
+    ...codeMath.flags.map(f => ({ key: attemptKey(f), value: f.candidateValue, span: f.span, finding: { kind: 'flag' as const, flag: f } })),
+    ...misquotes.flatMap(m => numbersOf(m.cited).slice(0, 1).map(value => ({ key: `misquote:${m.item}`, value, span: m.sentence, finding: { kind: 'misquote' as const, ...m } }))),
+  ];
+}
 
 // One check of one message. The result never rejects: an API error or a
 // timeout is an error row, with no effect on any turn.
@@ -71,10 +85,7 @@ export function startMathCheck(p: {
     .then((r): CheckerJobResult => ({ subtype: 'verdict', payload: {
       candidateTurnIndex: p.candidateTurnIndex, latencyMs: r.latencyMs, model: r.model,
       claims: vetCheckerClaims(r.claims, p.vet),
-      codeFlags: [
-        ...p.codeMath.flags.map(f => ({ key: attemptKey(f), value: f.candidateValue, span: f.span })),
-        ...(p.misquotes ?? []).flatMap(m => numbersOf(m.cited).slice(0, 1).map(value => ({ key: `misquote:${m.item}`, value, span: m.sentence }))),
-      ],
+      codeFlags: codeFlagRefs(p.codeMath, p.misquotes ?? []),
       stamps: p.codeMath.verified.map(v => ({ stepId: v.stepId, value: v.value, span: v.span })),
     } }))
     .catch((e: unknown): CheckerJobResult => ({ subtype: 'error', payload: {
@@ -424,9 +435,9 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       const figs = claimFigures(c, caseNumbers);
       const codeFlag = v.codeFlags.find(f => f.key === checkerKey(c) || figs.some(x => same(x, f.value)));
       if (!c.flag) {
-        // Deterministic first: a code flag stands whatever the checker says.
+        // A code flag the checker rates correct: code's line on it is dropped (the gate, gateCodeFindings).
         if (c.verdict === 'correct' && codeFlag) {
-          decisions.push(decision(id, v.candidateTurnIndex, c, 'disagrees_with_code', `code flagged ${codeFlag.value} ("${codeFlag.span}"); the flag is kept`));
+          decisions.push(decision(id, v.candidateTurnIndex, c, 'disagrees_with_code', `code flagged ${codeFlag.value} ("${codeFlag.span}"); the checker rates it correct — code's line is dropped`));
           handled.add(id);
           return;
         }
@@ -458,7 +469,8 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       }
       // A code flag probes but never corrects (Lorenzo, 13 Oct): a claim it
       // flagged still brings the checker's agreed correction — unless code
-      // corrected it as a misquote (an exact lookup).
+      // corrected it as a misquote (an exact lookup). The checker's flag here is
+      // what releases code's line (the gate): code's line is the one said.
       if (codeFlag && (!c.correctionLine || codeFlag.key.startsWith('misquote:'))) {
         decisions.push(decision(id, v.candidateTurnIndex, c, 'dedupe', `the deterministic check flagged it (${codeFlag.key})`));
         handled.add(id);
@@ -552,6 +564,90 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   };
 }
 
+// ── the gate on code's own lines (Lorenzo, 16 Oct; batch 29 Marisol t15) ────
+// No code-written correction (a misquote, a unit slip) and no code probe (a
+// deterministic step, arithmetic, pricing or unit flag) is said unless the
+// checker also rates that claim wrong: its flag — an error it is sure of, kept
+// by the vetting — on a claim of the same message, matched by key or by the
+// figure in the claim's value (as the dedupe matches). The message's verdict
+// never lands within its own turn, so code's line goes out a turn later at the
+// earliest; until the verdict lands the finding waits. A verdict that rates the
+// claim correct, or doesn't rate it, drops the finding (logged); so does an
+// answer since (stale) or a wait past CHECKER_MAX_WAIT_MESSAGES (expired) —
+// except in the final answers, which the close hold waits on.
+// A misquote's data line states the case's figures: the checker's right figure
+// must agree with one of them or a change they imply — the agreement rule of
+// corrections, 3% or 0.5 — so a flag on another reading of the claim releases
+// nothing.
+export type GateOutcome = 'released' | 'checker_correct' | 'not_rated' | 'checker_disagrees' | 'stale' | 'expired';
+export type GateDecision = {
+  id: string; candidateTurnIndex: number; key: string; value: number; span: string;
+  finding: CodeFinding; outcome: GateOutcome; reason: string;
+};
+export type ReleasedFinding = { id: string; candidateTurnIndex: number; finding: CodeFinding };
+
+// The checker's right figure for a claim, and whether it agrees with one of code's (3% or 0.5).
+const rightOf = (c: CheckerClaim) => c.correctValue ?? (c.correctLow !== null && c.correctHigh !== null ? (c.correctLow + c.correctHigh) / 2 : null);
+function rightAgrees(c: CheckerClaim, figures: number[]): boolean {
+  const agree = (x: number, y: number) => Math.abs(x - y) <= Math.max(0.5, 0.03 * Math.abs(x));
+  const mine = rightOf(c);
+  if (mine !== null && figures.some(x => agree(x, mine))) return true;
+  return c.correctLow !== null && c.correctHigh !== null && figures.some(x => x >= c.correctLow! - 0.5 && x <= c.correctHigh! + 0.5);
+}
+
+export function gateMatches(ref: Pick<CodeFlagRef, 'key' | 'value'>, c: CheckerClaim): boolean {
+  return ref.key === checkerKey(c) || numbersOf(normalizeNumberWords(c.candidateValue)).some(x => same(x, ref.value));
+}
+
+export function gateCodeFindings(p: {
+  rows: CheckerRow[]; handled: string[];
+  turnRows: { turnIndex: number; role: string; text: string }[];
+  candidateText: string; candidateTurnIndex: number;
+  caseData: CheckerCase; revealedIds: string[];
+  finalAnswer?: (candidateTurnIndex: number) => boolean;
+  // The right figures code's line on the finding states, or null: no figure to agree on (the flag is enough).
+  codeFigures?: (f: CodeFinding) => number[] | null;
+}): { released: ReleasedFinding[]; decisions: GateDecision[] } {
+  const handled = new Set(p.handled);
+  const released: ReleasedFinding[] = [];
+  const decisions: GateDecision[] = [];
+  const verdicts = p.rows
+    .filter(r => (r.category ?? MATH_CHECKER_CATEGORY) === MATH_CHECKER_CATEGORY && r.subtype === 'verdict')
+    .map(r => r.payloadJsonb as VerdictPayload)
+    .filter(v => v.candidateTurnIndex < p.candidateTurnIndex)
+    .sort((a, b) => a.candidateTurnIndex - b.candidateTurnIndex);
+  for (const v of verdicts) {
+    const later = [...p.turnRows.filter(t => t.role === 'candidate' && t.turnIndex > v.candidateTurnIndex).map(t => t.text), p.candidateText];
+    (v.codeFlags ?? []).forEach((ref, i) => {
+      const id = `${v.candidateTurnIndex}:code:${i}`;
+      if (!ref.finding || handled.has(id)) return;
+      const decide = (outcome: GateOutcome, reason: string) => {
+        decisions.push({ id, candidateTurnIndex: v.candidateTurnIndex, key: ref.key, value: ref.value, span: ref.span, finding: ref.finding!, outcome, reason });
+        if (outcome === 'released') released.push({ id, candidateTurnIndex: v.candidateTurnIndex, finding: ref.finding! });
+      };
+      const matched = v.claims.filter(c => gateMatches(ref, c));
+      const flaggedAll = matched.filter(c => c.flag);
+      const figures = p.codeFigures?.(ref.finding) ?? null;
+      const flagged = figures === null ? flaggedAll[0] : flaggedAll.find(c => rightAgrees(c, figures));
+      if (!flagged && flaggedAll.length > 0) {
+        decide('checker_disagrees', `the checker flags "${flaggedAll[0].candidateValue}" but its right figure (${rightOf(flaggedAll[0]) ?? 'none'}) is none of code's (${figures!.join(', ')})`);
+        return;
+      }
+      if (!flagged) {
+        const correct = matched.find(c => c.verdict === 'correct');
+        if (correct) decide('checker_correct', `the checker rates "${correct.candidateValue}" correct`);
+        else decide('not_rated', matched.length ? `the checker's verdict on it is ${matched.map(c => `${c.verdict}/${c.confidence}`).join(', ')} — no flag` : 'no claim of the checker on this figure');
+        return;
+      }
+      const stale = isStale(flagged, later, p.caseData, p.revealedIds);
+      if (stale) { decide('stale', stale); return; }
+      if (later.length > CHECKER_MAX_WAIT_MESSAGES && !p.finalAnswer?.(v.candidateTurnIndex)) { decide('expired', `${later.length} messages since the claim`); return; }
+      decide('released', `the checker flags "${flagged.candidateValue}"`);
+    });
+  }
+  return { released, decisions };
+}
+
 // The selected flag as the interviewer model reads it: Rule 14's line, said
 // as written.
 export function formatCheckerHint(s: CheckerSelection): string {
@@ -576,6 +672,28 @@ export function formatCheckerHint(s: CheckerSelection): string {
 export type ClosedRestatement = { key: string; said: string; correction: string | null };
 // A figure's unit as written: money ($, M), a percent, points — or none.
 const unitOfSaid = (text: string) => /%|percent/i.test(text) ? '%' : /\bpoints?\b/i.test(text) ? 'points' : /\$|\d\s*(?:m|mn|million|bn|billion)\b/i.test(text) ? 'money' : '';
+// …with the checker's agreement (the gate, 16 Oct): found in a recommendation
+// reply whose verdict has landed and flags a claim at the restated figure —
+// so on a later turn than the reply. Returns the reply's index too.
+export function closedErrorAgreed(p: {
+  rows: CheckerRow[]; candidateTurnIndex: number; messages: { index: number; text: string }[];
+  recReply: (n: number) => boolean; closed: string[]; keys: Record<string, CheckerKeyEntry>;
+}): (ClosedRestatement & { n: number }) | null {
+  const verdicts = p.rows
+    .filter(r => (r.category ?? MATH_CHECKER_CATEGORY) === MATH_CHECKER_CATEGORY && r.subtype === 'verdict')
+    .map(r => r.payloadJsonb as VerdictPayload)
+    .filter(v => v.candidateTurnIndex < p.candidateTurnIndex)
+    .sort((a, b) => b.candidateTurnIndex - a.candidateTurnIndex);
+  for (const v of verdicts) {
+    const n = v.candidateTurnIndex;
+    if (p.messages.filter(m => m.index > n).length > CHECKER_MAX_WAIT_MESSAGES || !p.recReply(n)) continue;
+    const text = p.messages.find(m => m.index === n)?.text;
+    const hit = text === undefined ? null : closedErrorRestated(text, p.closed, p.keys, p.rows);
+    const value = hit ? numbersOf(hit.said)[0] : undefined;
+    if (hit && value !== undefined && v.claims.some(c => c.flag && numbersOf(normalizeNumberWords(c.candidateValue)).some(x => same(x, value)))) return { ...hit, n };
+  }
+  return null;
+}
 export function closedErrorRestated(text: string, closed: string[], keys: Record<string, CheckerKeyEntry>, rows: CheckerRow[]): ClosedRestatement | null {
   const flagRows = rows.filter(r => (r.category ?? MATH_CHECKER_CATEGORY) === MATH_CHECKER_CATEGORY && r.subtype === 'flag').map(r => r.payloadJsonb as CheckerDecision);
   const said = [...normalizeNumberWords(text).matchAll(/(\$\s?)?(\d+(?:\.\d+)?)(?:\s*(%|percent\b)|[\s-]*(?:percentage\s+)?(points?)\b|\s?(m|mn|million|bn|billion)\b)?/gi)]

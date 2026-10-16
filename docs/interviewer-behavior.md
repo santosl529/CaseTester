@@ -22,7 +22,8 @@ Each change is detailed in its rule:
 2. **A misquote of revealed data is corrected by code (Rule 6 option 4).** A
    figure quoted for a revealed item that matches none of its figures gets one
    flat sentence in the ledger's words (Tyler's "61%" for the exhibit's 58% ran
-   uncorrected into his recommendation).
+   uncorrected into his recommendation) — since 16 Oct a turn later, once the
+   math checker also flags the figure (the gate, Rule 14).
 3. **The question treats this turn's data as heard (Rule 11).** "Once you have
    those figures…" right after code read them out (21 of 24 Haiku runs vs 3 of
    14 Sonnet runs) is rewritten or withheld, in the model's words and code's.
@@ -724,6 +725,9 @@ those. From v4.10:
   (`challenge_on_verified_blocked`, `unsupported_challenge_blocked`); doubts
   that were delivered are marked for scoring (Rule 3).
 - The prompt says it the same way: doubt only what a RECOMPUTE FLAG names.
+- **Since 16 Oct a flag licenses doubt once the checker agrees** (the gate,
+  Rule 14): code's flags on a message count from the turn their verdict
+  releases them, not the message's own turn.
 
 **Verify-only steps and the unit-check hint (v4.6).** All four batch-2 doubt
 probes landed on 10.5 (beans as points of revenue), and that figure had no
@@ -1037,6 +1041,14 @@ data line: "To correct one figure: COGS is 58% of revenue today, up from 42%
 two years ago." Once per item per session; a repeat after the correction is
 logged for scoring (`misquote_repeated`), not corrected again. The model is
 told this turn not to repeat, correct, question or build on the figure.
+**Since 16 Oct (Lorenzo; batch 29 Marisol t15 — her right "Other inputs rose
+11.8 [points]" got "To correct one figure: other input costs … are up
+37.5%"): the correction waits for the math checker.** It is said on a later
+turn, once the checker's verdict on the message flags the same figure and its
+right figure is one the data line states (or a change it implies); a verdict
+that rates it correct, or doesn't rate it, drops it (logged). The model is told
+nothing about a held misquote; the truth check still keeps its figures
+unsayable as fact until it is corrected or the checker clears it.
 Derived figures never trigger it: points, multiples, relative changes,
 shares ("89% of the problem"), projections, hypotheticals, index
 restatements, sums, and anything computed in the same message. Measured over
@@ -2269,6 +2281,23 @@ agrees and the input is bound, said with the quantity in words ("Hub–Lakeport
 contribution per flight in FY2023 is about $4,200, not $11,429."). Unit lines
 stay code's.
 
+**The checker gate on code's own lines (16 Oct, Lorenzo; batch 29 Marisol
+64224460 t15, a false misquote correction the checker had rated correct).** No
+code-written correction (a misquote, a unit slip) and no code probe (a
+deterministic step, arithmetic, pricing or unit flag) is said unless the math
+checker also rates that claim wrong — the rule the checker's own corrections
+already follow. Its verdict on a message never lands within that message's
+turn, so code's line goes out a turn later at the earliest, naming the figure
+as the candidate said it ("You said a 10% price rise recovers 5 points of
+margin. Walk me through how you sized that."). Not rated, rated correct, or
+flagged on another reading: the line is dropped and logged; answered since, or
+waited past two messages (final answers apart), likewise. The same gate holds
+the model's own doubt: a figure licenses a doubt only once a flag on it has
+landed, and the growth probe ("Is that the margin problem, or does it include
+normal growth?") is asked only of a figure a landed flag covers — so never of
+the message it answers (batch 29 Marisol t5: the probe of her right "16 dollars
+on a 100 base" led her into a new error).
+
 **Corrections name the quantity and the period, on the candidate's own base
 (15 Oct 2026, Lorenzo; batch 27 Sofia t18 — "COGS is 58, and if beans are 25%
 of COGS that's 25 points of revenue" got "It's closer to 10.5, not 25.", a
@@ -2324,9 +2353,10 @@ in the recommendation or the replies after it is report material, not a
 failure; closing before they are checked is. When the case would close with
 time left: (1) a figure the checker rated wrong in the recommendation reply or
 any reply after it is probed once — "Before we wrap up — …" — whatever its
-conclusion-changing rating; when the closing message carries a deterministic
-flag (a unit, pricing, step or arithmetic check), code's own line goes first
-(one math line a turn, and the checker defers to it); (2) one extra probe per
+conclusion-changing rating; when a final answer carries a deterministic flag
+(a unit, pricing, step or arithmetic check) the checker has released (the
+gate: a turn after its message), code's own line goes first (one math line a
+turn, and the checker defers to it); (2) one extra probe per
 figure — a restatement at the same value is the same figure; (3) the redo, the
 reply to code's probe, holds nothing: still wrong, it goes to the report and
 the case closes; (4) a final answer whose verdict hasn't landed (the closing

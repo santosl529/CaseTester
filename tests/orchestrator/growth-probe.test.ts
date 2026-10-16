@@ -11,7 +11,7 @@ vi.mock('@/db/client', () => ({ db: {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
 vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => [] }));
 
-import { growthProbeOnRatio, isGrowthProbe } from '@/lib/orchestrator/growth-probe';
+import { growthProbeOnRatio, growthProbeUnchecked, isGrowthProbe } from '@/lib/orchestrator/growth-probe';
 import { settleTurn, type ModelOutcome } from '@/lib/orchestrator/settle-turn';
 import { INITIAL_PRESSURE_TEST } from '@/lib/orchestrator/pressure-test';
 import { readFileSync } from 'node:fs';
@@ -73,10 +73,44 @@ describe('Marisol 2456aa9d t6 through Settle', () => {
   });
 });
 
+// Lorenzo, 16 Oct (batch 29 Marisol 64224460 t5 → t7): the gate on doubt. Her
+// "COGS is up 16 dollars on a 100 base — a 38% increase on the original 42"
+// was right; the probe of it led her into a new error ("15 of the 38 points is
+// growth"). The probe is said only of a figure a landed flag covers.
+const MARISOL_B29_SETUP = 'Before we go further, you sized COGS as sixteen dollars on a hundred base, up thirty-eight percent.';
+const MARISOL_B29_PROBE = 'Is that the margin problem, or does it include normal growth from higher revenue?';
+describe('the growth probe only of a flagged claim (the gate)', () => {
+  it('Marisol b29 t5: no flag on her figures — withheld', () => {
+    expect(growthProbeUnchecked(MARISOL_B29_PROBE, MARISOL_B29_SETUP, [])).toBe(true);
+    // a flag on another figure licenses nothing here
+    expect(growthProbeUnchecked(MARISOL_B29_PROBE, MARISOL_B29_SETUP, [77])).toBe(true);
+  });
+  it('a dollar figure a landed flag covers, quoted in the probe or its setup — said', () => {
+    expect(growthProbeUnchecked(KEPT[0][1], KEPT[0][2], [77])).toBe(false);
+    expect(growthProbeUnchecked(KEPT[1][1], KEPT[1][2], [47])).toBe(false);
+  });
+  it('not a growth probe: nothing to gate', () => {
+    expect(growthProbeUnchecked('Walk me through how you got to $77M.', undefined, [])).toBe(false);
+  });
+  it('through Settle: withheld with no flag, a question still ends the turn', async () => {
+    const T = (over: Partial<ModelTurn> = {}): ModelTurn => ({ move: 'analysis', requests: [], exhibit: null, rescueItem: null, say: '', question: 'What drove it?', ...over });
+    const usage = { model: '', actualModels: [] as string[], inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, apiCalls: 0 };
+    const plan = modelPlanFixture({ distress: null, candidateText: 'Let me put dollars on it. COGS is up 16 dollars on a 100 base — a 38% increase on the original 42.' });
+    plan.state.pressureTest = { ...INITIAL_PRESSURE_TEST, state: 'satisfied', satisfiedAt: 2 };
+    plan.state.requiredExhibit = undefined; plan.state.analysisOwed = false; plan.state.owedStage = undefined;
+    const s = await settleTurn(plan, { turn: T({ question: `${MARISOL_B29_SETUP} ${MARISOL_B29_PROBE}` }), validation: null, modelCallStart: 0, modelLatencyMs: 0, distressWaitMs: 0, turnUsage: usage, delivered: [], undeliveredRevealIds: [] });
+    expect(s.spokenText).not.toMatch(/normal growth/);
+    expect(s.spokenText).toMatch(/\?$/);
+    const vetoes = plan.ctx.checks.entries.find(c => c.check === 'vetoes')?.detail as { withheld: { reason: string }[] };
+    expect(vetoes.withheld.map(w => w.reason)).toContain('growth_probe_unchecked');
+  });
+});
+
 describe('the prompt rule', () => {
   it('scopes the probe to dollars and growth rates', () => {
     const p = readFileSync('lib/agent/prompts/system.ts', 'utf8');
     expect(p).toMatch(/in dollars, or states how fast a cost grew/);
     expect(p).toMatch(/Never ask it of figures stated as a percent of revenue/);
+    expect(p).toMatch(/only of a figure this turn's MATH CHECK FLAG or RECOMPUTE FLAG names/);
   });
 });

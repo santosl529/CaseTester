@@ -21,7 +21,7 @@ vi.mock('@/db/client', async () => {
         sessionTurns: { findMany: async () => [...store.turns].sort((a, b) => (a.turnIndex as number) - (b.turnIndex as number)) },
         exhibitsShown: { findMany: async () => [...store.exhibits] },
         revealedData: { findMany: async () => [...store.revealed] },
-        sessionEvents: { findMany: async () => store.events.filter(e => e.category === 'data_request') },
+        sessionEvents: { findMany: async () => store.events.filter(e => e.category === 'data_request' || e.category === 'math_checker') },
       },
       insert: (t: unknown) => ({ values: async (v: Row | Row[]) => { target(t)?.push(...(Array.isArray(v) ? v : [v])); } }),
       update: () => ({ set: (v: Row) => ({ where: async () => { store.session = { ...store.session, ...v }; } }) }),
@@ -56,6 +56,7 @@ vi.mock('@/lib/orchestrator/pressure-test', async orig => ({
 }));
 
 const { runTurn } = await import('@/lib/orchestrator/session-runner');
+const { codeFlagsOf, vettedFlag, verdictRow } = await import('./helpers/checker-claim');
 
 type Fixture = {
   candidate: string; phase: string; revealed: string[]; shownExhibits: string[]; pressureTest: Row | null;
@@ -117,14 +118,21 @@ describe('doubt on correct math without a flag is not spoken (batch 18)', () => 
 });
 
 describe('a real error still gets its probe', () => {
-  it('Sofia t12: 25% × 40% = 10 "percentage points of revenue" — the unit flag names the claim and "Points of what?" is spoken', async () => {
-    const r = await replay('sofia-t11');
-    expect(r.prompt).toMatch(/UNIT: the candidate said 10 points of revenue/);
-    expect(r.prompt).toMatch(/COGS at 42% of revenue \(two years ago\)/);
-    expect(r.text).toMatch(/Points of what\?/);
-    expect(r.check('math_challenge')?.decision).toBe('pass');
-    const flag = r.events.find(e => e.subtype === 'recompute_flag')?.payloadJsonb as Row;
+  // The gate (16 Oct): held on its own turn, said on the next once the checker flags it too.
+  it('Sofia t12: 25% × 40% = 10 "percentage points of revenue" — held; released by the checker\'s flag, the unit flag names the claim and "Points of what?" is spoken', async () => {
+    const f = fx['sofia-t11'];
+    const own = await replay('sofia-t11');
+    expect(own.prompt).not.toMatch(/UNIT:/);
+    const flag = own.events.find(e => e.subtype === 'recompute_flag')?.payloadJsonb as Row;
     expect(flag).toMatchObject({ kind: 'unit', candidateValue: 10, expected: 4.2, claim: { units: 'points of revenue', timeframe: 'prior' } });
+    const n = store.turns.find(t => t.role === 'candidate' && t.text === f.candidate)!.turnIndex as number;
+    store.events.push(verdictRow(n, [vettedFlag('10 points of revenue', 4.2, { errorType: 'unit' })], codeFlagsOf(f.candidate, f.revealed, 'prof-001', f.shownExhibits)));
+    modelQueue.length = 0;
+    modelQueue.push(f.model, f.model);
+    const r = await runTurn('s1', 'I would look at the other inputs next.', {});
+    expect(prompts.at(-1)).toMatch(/UNIT: the candidate said 10 points of revenue/);
+    expect(prompts.at(-1)).toMatch(/COGS at 42% of revenue \(two years ago\)/);
+    expect(r.interviewerText).toMatch(/Points of what\?/);
   });
 
   it('Maya t25 (KF-2): her 16 / 18 = 1.6% was flagged earlier — the check is spoken whole, not cut to "one thing to check: …"', async () => {

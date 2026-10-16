@@ -1,4 +1,6 @@
 import { sentencesOf } from './stall';
+import { numbersOf } from './math-checker';
+import { normalizeNumberWords } from '@/lib/number-words';
 
 // The "is that the margin problem, or does it include cost that simply grew
 // with revenue?" probe (system prompt, RIGOR) checks a dollar sizing: cost
@@ -46,3 +48,15 @@ export function growthProbeOnRatio(sentence: string, previous: string | undefine
 // A cost growth rate in a sentence that isn't about shares ("COGS is up about 38%" on "a 42% base" is a share's growth — Sofia d8ee5c25 t5).
 // Cost growth named as a rate counts whatever its unit ("a 27-point gap between cost growth and revenue growth" — Jasmine 074b0534 t4).
 const dollarGrowth = (text: string) => sentencesOf(text).some(x => (COST_GROWTH.test(x) && !SHARE.test(x) && !/%\s*base\b/i.test(x)) || /\b(?:costs?|cogs|spend|expense)\s+growth\b/i.test(x));
+
+// The gate on doubt (Lorenzo, 16 Oct; batch 29 Marisol 64224460 t5: "the
+// margin problem, or normal growth?" of her right "16 dollars on a 100 base"
+// led her into a new error): the probe is said only of a claim the checker has
+// flagged — a figure of a landed flag (or of a code flag it released) quoted
+// in the probe or the sentence before it. The message the turn answers has no
+// verdict yet, so a probe of it is always withheld.
+export function growthProbeUnchecked(sentence: string, previous: string | undefined, flagged: number[]): boolean {
+  if (!isGrowthProbe(sentence)) return false;
+  const quoted = numbersOf(normalizeNumberWords(`${previous ?? ''} ${sentence}`));
+  return !quoted.some(n => flagged.some(f => Math.abs(n - f) <= Math.max(0.05, Math.abs(f) * 0.01)));
+}

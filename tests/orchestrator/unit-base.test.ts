@@ -22,6 +22,7 @@ import { checkCandidateMath, formatRecomputeHint, recMathLine, attemptKey } from
 import { planTurn } from '@/lib/orchestrator/plan-turn';
 import { INITIAL_STAGES } from '@/lib/orchestrator/stage-evidence';
 import { readsFixture } from './fixtures/turn-reads';
+import { checkerClaim, codeFlagsOf } from './helpers/checker-claim';
 
 const prof = getCaseById('prof-001');
 const ALL = ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'bean_price_change', 'non_bean_input_change', 'menu_price_change'];
@@ -50,14 +51,26 @@ describe('Sofia t17: the base she states, 58, is the base of the check and of th
     expect(hint.derivedValues).toEqual(expect.arrayContaining(['14.5']));
     expect(recMathLine(f, 'correct')).toBe(SOFIA_LINE);
   });
-  it('through Plan, on her real turn (the third time she said it): the hint carries the line on her base', () => {
+  // With the gate (16 Oct) the line waits for the checker's flag on her claim. In
+  // batch 27 the checker flagged it while binding it to two years ago's base
+  // (right figure 10.5): that flag releases code's line, and the line is on her
+  // base, named — "Today, … 14.5" — never "closer to 10.5".
+  it('through Plan, on her real turn (the third time she said it): held; released by the checker\'s flag, the hint carries the line on her base', () => {
     const reads = readsFixture({ phase: 'ANALYSIS', elapsedMs: 13.9 * 60_000, revealed: ALL,
-      flags: { pressureTest: { state: 'satisfied', askedAt: 2 }, recomputeAttempts: { 'unit:COGS@25': 1 }, stageEvidence: { ...INITIAL_STAGES, exhibit: { delivered: true, deliveredAt: 4, outcome: 'answered' }, brainstorm: { delivered: true, deliveredAt: 10, outcome: 'answered' } } } });
+      flags: { pressureTest: { state: 'satisfied', askedAt: 2 }, recomputeAttempts: { 'unit:COGS@25': 1 }, stageEvidence: { ...INITIAL_STAGES, exhibit: { delivered: true, deliveredAt: 4, outcome: 'answered' }, brainstorm: { delivered: true, deliveredAt: 10, outcome: 'answered' } } },
+      extraTurns: [{ role: 'candidate', text: SOFIA_T17 }, { role: 'interviewer', text: 'What else would you check on the ticket?' }] });
     (reads as { exhibitRows: unknown[] }).exhibitRows = [{ id: 'x1', sessionId: 's1', exhibitId: 'exhibit-a', shownAtMs: 0 }];
-    const p = planTurn(reads, SOFIA_T17, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+    const deps = { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} };
+    const held = planTurn(reads, SOFIA_T17, deps);
+    if (held.kind !== 'model') throw new Error('expected a model plan');
+    expect(held.state.recomputeHint).not.toMatch(/UNIT|14\.5/);
+    // b27's verdict on it: an error, bound to the two-years-ago step (10.5).
+    const b27 = { ...checkerClaim('25 points of revenue', { correctValue: 10.5, errorType: 'unit' }), flag: true, probeLine: null, correctionLine: null, correctionFigure: null, pointerLine: null, vetNotes: [] };
+    const row = { category: 'math_checker', subtype: 'verdict', turnIndex: 3, payloadJsonb: { candidateTurnIndex: 3, latencyMs: 9000, model: 'm', claims: [b27], codeFlags: codeFlagsOf(SOFIA_T17, ALL), stamps: [] } };
+    const p = planTurn({ ...reads, checkerEventRows: [row] } as never, 'I would look at the food mix next.', deps);
     if (p.kind !== 'model') throw new Error('expected a model plan');
     expect(p.state.recomputeHint).toContain(SOFIA_LINE);
-    expect(p.state.recomputeHint).not.toMatch(/closer to/);
+    expect(p.state.recomputeHint).not.toMatch(/closer to|10\.5/);
   });
 });
 

@@ -248,7 +248,7 @@ export function checkNestedConversions(
 // so the probe is about what the candidate actually said. The model is told
 // the figure only so it can tell the flag is real; it never says it.
 export function formatUnitFlagLine(f: UnitFlag): string {
-  return `- UNIT: the candidate said ${f.stated} ${f.units} in "${f.span}". ${f.quantity[0].toUpperCase()}${f.quantity.slice(1)} is ${f.unconverted} points of the cost line, not of revenue; with ${f.base} it is about ${f.expected} ${f.units}. Probe the units once — "Points of what?" — and let them convert; don't name the method or the figure.`;
+  return `- UNIT: the candidate said ${f.stated} ${f.units} in "${f.span}". ${f.quantity[0].toUpperCase()}${f.quantity.slice(1)} is ${f.unconverted} points of the cost line, not of revenue; with ${f.base} it is about ${f.expected} ${f.units}. Probe the units once, naming their figure — "You put ${f.quantity} at ${f.stated} points — points of what?" — and let them convert; don't name the method or the right figure.`;
 }
 
 // Code's correction of a unit slip (Lorenzo, 15 Oct): the quantity, the base

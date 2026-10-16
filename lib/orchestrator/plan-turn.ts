@@ -10,6 +10,7 @@ import { getCaseById } from '@/lib/cases/loader';
 import { createLedger, reveal, revealedValues, labelWithPeriod } from './data-ledger';
 import { checkCandidateMath, formatRecomputeHint, recordAttempts, formatVerifiedHint, recomputeAction, flagSpeaks, attemptKey, type RecomputeAttempts, type RecomputeFlag, type RecomputeAction, type VerifiedFigure } from './recompute';
 import { candidateFiguresOf } from './math-talk';
+import { changeFigures } from './numeric-provenance';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk, stageDeadlinesMs, timeWarningDue } from './pacing';
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
 import { evaluateStall, revertUndeliveredRung, isRecommendationStatement, answersRecommendationAsk, INITIAL_STALL_STATE, type StallState } from './stall';
@@ -31,7 +32,7 @@ import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
 import { brainstormRequired, brainstormDue } from './brainstorm';
 import { correctionLines } from './misquote';
 import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-checker';
-import { startMathCheck, planCheckerFlags, formatCheckerHint, liveCheckerConfig, checkerKey, closedErrorRestated, stepOfKey, STEP_PROBE_CAP, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
+import { startMathCheck, planCheckerFlags, gateCodeFindings, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { formatPeriodQuestionLine } from './unit-check';
 import { finalAnswersFrom, inFinalScope, pendingFinalChecks, probedAlready, answersWait, isRedo, wrapUpsLeft, claimError, relativeError, holdRank, type CloseHoldMemory } from './close-hold';
@@ -422,7 +423,37 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const revealedIdsNow = Object.keys(revealedValues(ledger));
   const candidateMath = checkCandidateMath(candidateText, caseData, revealedIdsNow);
   const { arithmetic, units, pricing } = candidateMath;
-  const recomputeFlags = candidateMath.flags;
+  // The final answers — the recommendation reply and every reply after it — are
+  // checked before the case closes (close-hold.ts; Lorenzo, 16 Oct).
+  const closeHold = (flags.closeHold as CloseHoldMemory | undefined) ?? {};
+  const finalFrom = finalAnswersFrom(flags.stageEvidence as StageRecord | undefined);
+  const finalAnswer = (n: number) => inFinalScope(n, finalFrom);
+  const gateWordingOf = (id: string) => caseData.dataLedger.find(d => d.id === id)?.value
+    ?? caseData.factAnchors?.promptFacts.find(p => p.id === id)?.say;
+  // The gate on code's own lines (math-checker-live.ts gateCodeFindings;
+  // Lorenzo, 16 Oct; batch 29 Marisol t15): a deterministic flag or a misquote
+  // found in this message waits for the checker's verdict on it — said on a
+  // later turn only if the checker also flags that claim, else dropped. What
+  // code says now comes from earlier messages whose verdict has landed.
+  const checkerConfig = extra.classify && ctx.background ? liveCheckerConfig() : null;
+  const checkerRows = (reads.checkerEventRows ?? []).filter(r => r.category === MATH_CHECKER_CATEGORY);
+  const gateMemory = (flags.codeGate as { handled?: string[] } | undefined) ?? {};
+  // The figures a misquote's data line states, and the changes they imply ("58% today, up from 42%" → 16). A unit
+  // line names its quantity and period, true on the base it names (Lorenzo, 16 Oct): the checker's flag is enough.
+  const codeFigures = (f: CodeFinding): number[] | null => {
+    if (f.kind !== 'misquote') return null;
+    const w = gateWordingOf(f.item);
+    return w === undefined ? [] : [...numbersOf(w), ...changeFigures([w]).map(Number)];
+  };
+  const gate = gateCodeFindings({
+    rows: checkerRows, handled: gateMemory.handled ?? [], turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
+    caseData, revealedIds: revealedIdsNow, finalAnswer, codeFigures,
+  });
+  if (gate.decisions.length > 0) flags.codeGate = { handled: [...(gateMemory.handled ?? []), ...gate.decisions.map(d => d.id)] };
+  const releasedFlags = gate.released.flatMap(r => r.finding.kind === 'flag' ? [{ flag: r.finding.flag, n: r.candidateTurnIndex }] : []);
+  const recomputeFlags = releasedFlags.map(r => r.flag);
+  // The message a released flag was said in.
+  const fromOf = (f: RecomputeFlag) => releasedFlags.find(r => r.flag === f)?.n ?? ctx.nextTurnIndex;
   // Rule 14: the attempt counter is orchestrator state, not model judgment.
   const recomputeAttempts = recordAttempts((flags.recomputeAttempts as RecomputeAttempts | undefined) ?? {}, recomputeFlags);
   // At most two probes per step per interview, whatever the value (Lorenzo,
@@ -447,17 +478,17 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Logged with span, attempt and the claim (quantity, units, base,
   // timeframe): the input to interviewer-error marking, and so a flag is
   // never invisible again.
-  for (const f of recomputeFlags) {
+  for (const f of candidateMath.flags) {
     ctx.events.push({ category: 'intervention', subtype: 'recompute_flag', payload: {
       kind: f.kind ?? 'step', stepId: f.stepId, candidateValue: f.candidateValue, expected: f.expected, errorClass: f.errorClass,
-      span: f.span, attempt: recomputeAttempts[attemptKey(f)], claim: f.claim ?? null,
+      span: f.span, attempt: (recomputeAttempts[attemptKey(f)] ?? 0) + 1, claim: f.claim ?? null,
     } });
   }
   checks.record('recompute_report_only', candidateMath.reportOnly.length > 0, 'step flags on a case whose binding is not validated — logged, not raised', {
     flags: candidateMath.reportOnly.map(f => ({ stepId: f.stepId, candidateValue: f.candidateValue, expected: f.expected, span: f.span })),
   });
-  checks.record('recompute', recomputeFlags.length > 0, 'mismatch flagged', {
-    flags: recomputeFlags.map(f => ({ kind: f.kind ?? 'step', stepId: f.stepId, candidateValue: f.candidateValue, expected: f.expected, errorClass: f.errorClass, span: f.span, claim: f.claim ?? null })),
+  checks.record('recompute', candidateMath.flags.length > 0, 'mismatch flagged — held for the checker\'s verdict', {
+    flags: candidateMath.flags.map(f => ({ kind: f.kind ?? 'step', stepId: f.stepId, candidateValue: f.candidateValue, expected: f.expected, errorClass: f.errorClass, span: f.span, claim: f.claim ?? null })),
   });
   checks.record('unit_check', units.flags.length > 0, 'nested conversion verified wrong — unit flag', {
     flags: units.flags.map(f => ({ stated: f.stated, units: f.units, expected: f.expected, base: f.base, baseStated: f.baseStated })),
@@ -482,7 +513,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // misquotes went uncorrected in 6 of 6 runs): a figure the candidate quotes
   // wrong for an item already revealed, or for a prompt fact, is corrected by
   // code — one flat sentence in the data's own words, first in the data line
-  // (turn-data.ts), on every kind of turn, so before any recommendation ask.
+  // (turn-data.ts), on every kind of turn — once the checker also flags it
+  // (the gate, above): on a later turn than the message.
   // Read with the fact checks' grammar (fact-check.ts F2: pronoun chains,
   // changes in points, prompt facts). An item misquoted again after its
   // correction is corrected again, up to MISQUOTE_CORRECTIONS_PER_ITEM; past
@@ -498,19 +530,24 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     flags: allFound.filter(m => m.reportOnly).map(m => ({ item: m.items[0], cited: m.cited, sentence: m.sentence })),
   });
   // The wording that corrects an item: the ledger's value, or the prompt fact's sentence.
-  const wordingOf = (id: string) => caseData.dataLedger.find(d => d.id === id)?.value
-    ?? caseData.factAnchors?.promptFacts.find(p => p.id === id)?.say;
+  const wordingOf = gateWordingOf;
   const labelOf = (id: string) => caseData.dataLedger.find(d => d.id === id)?.label ?? caseData.factAnchors?.promptFacts.find(p => p.id === id)?.names[0] ?? id;
-  const perItem: { item: string; cited: string; sentence: string }[] = [];
-  for (const m of found) {
-    const item = m.items.find(id => wordingOf(id) !== undefined);
-    if (item && !perItem.some(x => x.item === item)) perItem.push({ item, cited: m.cited, sentence: m.sentence });
+  // The item code corrects for a misquote: the first of its items with wording.
+  const correctedItemOf = (items: string[]) => items.find(id => wordingOf(id) !== undefined) ?? items[0];
+  const perItem: { item: string; cited: string; sentence: string; n: number }[] = [];
+  for (const r of gate.released) {
+    if (r.finding.kind !== 'misquote' || wordingOf(r.finding.item) === undefined || perItem.some(x => x.item === (r.finding as { item: string }).item)) continue;
+    perItem.push({ item: r.finding.item, cited: r.finding.cited, sentence: r.finding.sentence, n: r.candidateTurnIndex });
   }
-  // The reply to a recommendation ask is always corrected: a misquote must not stand in the recommendation.
-  const lastAsked = [...turnRows].reverse().find(t => t.role === 'interviewer');
+  // Whether message n replied to a recommendation ask (the interviewer turn before it).
   const flagsMoves = (flags.moves as Record<number, TurnMove> | undefined) ?? {};
-  const replyToRecAsk = lastAsked !== undefined && (flagsMoves[lastAsked.turnIndex] === 'recommendation' || asksRecommendationAsk(lastAsked.text));
-  const capped = perItem.filter(m => replyToRecAsk || timesCorrected(m.item) < MISQUOTE_CORRECTIONS_PER_ITEM).slice(0, 2);
+  const recReplyAt = (n: number) => {
+    const asked = [...turnRows].reverse().find(t => t.role === 'interviewer' && t.turnIndex < n);
+    return asked !== undefined && (flagsMoves[asked.turnIndex] === 'recommendation' || asksRecommendationAsk(asked.text));
+  };
+  const replyToRecAsk = recReplyAt(ctx.nextTurnIndex);
+  // The reply to a recommendation ask is always corrected: a misquote must not stand in the recommendation.
+  const capped = perItem.filter(m => recReplyAt(m.n) || timesCorrected(m.item) < MISQUOTE_CORRECTIONS_PER_ITEM).slice(0, 2);
   const misquoteOf = (list: typeof perItem) => list.length > 0 ? {
     ...list[0], label: labelOf(list[0].item), items: list.map(m => m.item), all: list,
     text: correctionLines(list.map(m => wordingOf(m.item)!)),
@@ -521,10 +558,12 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // The truth check's inputs (fact-check.ts): the case's facts, and the
   // figures misquoted and not yet corrected — the interviewer must not repeat
   // them as fact. They stay open until code corrects the item (settle-turn.ts).
+  // A misquote the checker rates correct was no misquote: its figures stand.
+  const clearedEchoes = gate.decisions.flatMap(d => d.outcome === 'checker_correct' && d.finding.kind === 'misquote' ? [d.finding] : []);
   const factEchoes = [
     ...((flags.factEchoes as Echo[] | undefined) ?? []),
     ...found.flatMap(m => echoesOf(m, factBase)),
-  ];
+  ].filter(e => !clearedEchoes.some(c => e.cited === c.cited && e.items.includes(c.item)));
   const misquoteHint = misquote
     ? `MISQUOTE: the candidate stated ${misquote.all.map(m => `${labelOf(m.item)} as "${m.cited}"`).join(' and ')}, which the data doesn't say. The system corrects it right after your "say", in the data's words: "${misquote.text}" Do not repeat, correct, question or build on their figure yourself; ask your question on the corrected data.`
     : '';
@@ -546,12 +585,12 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // The background math checker (math-checker-live.ts; Lorenzo, 13 Oct): fired
   // on this message beside the model call, never awaited — its verdict lands
   // on a later turn. Not on a re-plan that only compares decisions.
-  const checkerConfig = extra.classify && ctx.background ? liveCheckerConfig() : null;
-  if (checkerConfig && ctx.background && statesQuantitativeClaim(candidateText)) {
+  const checkerRuns = Boolean(checkerConfig && ctx.background && statesQuantitativeClaim(candidateText));
+  if (checkerConfig && ctx.background && checkerRuns) {
     const shown = [...shownExhibitIds];
     ctx.background(startMathCheck({
       caseData, candidateTurnIndex: ctx.nextTurnIndex, codeMath: candidateMath, config: checkerConfig,
-      misquotes: found.map(m => ({ item: m.items[0], cited: m.cited, sentence: m.sentence })),
+      misquotes: found.map(m => ({ item: correctedItemOf(m.items), cited: m.cited, sentence: m.sentence })),
       input: {
         revealedIds: revealedIdsNow, shownExhibitIds: shown, message: candidateText,
         transcript: turnRows.filter(t => !(t.role === 'interviewer' && isSilenceLine(t.text)))
@@ -561,22 +600,27 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId: session.userId }); },
     }));
   }
+  // The gate's log: what this message holds for its verdict, and what earlier
+  // messages' verdicts released or dropped. With no check on the message (no
+  // claim the checker reads, or the checker off) its findings are never said.
+  checks.record('code_gate', candidateMath.flags.length + found.length + gate.decisions.length > 0,
+    'code\'s lines wait for the checker: held, released or dropped', {
+      held: checkerRuns ? [...candidateMath.flags.map(f => attemptKey(f)), ...found.map(m => `misquote:${correctedItemOf(m.items)}`)] : [],
+      unchecked: checkerRuns ? [] : [...candidateMath.flags.map(f => attemptKey(f)), ...found.map(m => `misquote:${correctedItemOf(m.items)}`)],
+      decisions: gate.decisions.map(d => ({ id: d.id, key: d.key, value: d.value, outcome: d.outcome, reason: d.reason })),
+    });
+  for (const d of gate.decisions) ctx.events.push({ category: 'math_checker', subtype: 'code_gate', payload: { ...d } });
   // Verdicts on earlier messages that have landed: Rule 14 flags, one a turn
   // (decided here; delivered once the turn kind is known, below).
   const checkerMemory = (flags.mathChecker as Partial<CheckerMemory> | undefined) ?? {};
   const checkerHandled = checkerMemory.handled ?? [];
   const heldLine = checkerMemory.held && !checkerHandled.includes(checkerMemory.held) ? checkerMemory.held : undefined;
-  // The final answers — the recommendation reply and every reply after it — are
-  // checked before the case closes (close-hold.ts; Lorenzo, 16 Oct).
-  const closeHold = (flags.closeHold as CloseHoldMemory | undefined) ?? {};
-  const finalFrom = finalAnswersFrom(flags.stageEvidence as StageRecord | undefined);
-  const finalAnswer = (n: number) => inFinalScope(n, finalFrom);
   const candidateIndexes = [...turnRows.filter(t => t.role === 'candidate').map(t => t.turnIndex), ctx.nextTurnIndex];
   // At most two wrap-up probes an interview; the recommendation's own figures first, then the largest error (Lorenzo, 16 Oct).
   const wrapUps = wrapUpsLeft(closeHold);
   const rank = (n: number, c: VettedClaim) => holdRank(n, finalFrom, claimError(c));
   const checkerInput = {
-    rows: (reads.checkerEventRows ?? []).filter(r => r.category === MATH_CHECKER_CATEGORY),
+    rows: checkerRows,
     handled: checkerHandled, turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
     currentFlags: liveFlags.filter(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS))), codeLineThisTurn: misquote !== null, attempts: recomputeAttempts, underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
     candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed, stepProbes, held: heldLine, finalAnswer, rank,
@@ -738,19 +782,25 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // 19%" said first in the final answer, R42, R05): code corrects the figure
   // and asks once whether the recommendation changes, rather than moving on or
   // closing on it. Not when time is up — the correction still goes out first.
-  const recRevisionDue = misquote !== null && replyToRecAsk && !flags.recRevisionAsked && !timeUp;
+  // With the gate the correction comes a turn after the reply, so: a misquote released from a recommendation reply.
+  const recRevisionDue = misquote !== null && misquote.all.some(m => recReplyAt(m.n)) && !flags.recRevisionAsked && !timeUp;
   // A recommendation that rests on math a check flagged (fact guards Phase 4,
   // 12 Oct; batch 20: "a 10% price increase recovers about 5 points" said first
   // in the final answer, then the close): one code-written probe — or, past
   // Rule 14's probe, the figure and a chance to revise — before the case moves
   // on. Once a case; not when time is up; a shed minor error stays shed.
-  const recMathFlag = replyToRecAsk && !flags.recMathProbed && !timeUp && !recRevisionDue && wrapUps > 0
-    ? liveFlags.find(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)))
+  // A flag released from a recommendation reply (the gate).
+  const recMathFlag = !flags.recMathProbed && !timeUp && !recRevisionDue && wrapUps > 0
+    ? liveFlags.find(f => recReplyAt(fromOf(f)) && flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)))
     : undefined;
   // An error past Rule 14 said again in the recommendation (Lorenzo, 13 Oct;
-  // Jordan 099f33e9 t25): one more flag, under the same once-a-case rule.
-  const closedRec = replyToRecAsk && !flags.recMathProbed && !timeUp && !recRevisionDue && !recMathFlag && wrapUps > 0
-    ? closedErrorRestated(candidateText, closedKeys, checkerPlan.keys, reads.checkerEventRows ?? [])
+  // Jordan 099f33e9 t25): one more flag, under the same once-a-case rule — once
+  // the reply's verdict flags it too (the gate).
+  const closedRec = !flags.recMathProbed && !timeUp && !recRevisionDue && !recMathFlag && wrapUps > 0
+    ? closedErrorAgreed({
+      rows: checkerRows, candidateTurnIndex: ctx.nextTurnIndex, recReply: recReplyAt, closed: closedKeys, keys: checkerPlan.keys,
+      messages: [...turnRows.filter(t => t.role === 'candidate').map(t => ({ index: t.turnIndex, text: t.text })), { index: ctx.nextTurnIndex, text: candidateText }],
+    })
     : null;
   let recMathProbe: RecMathProbe | null = recMathFlag
     ? { flag: recMathFlag, action: recomputeAction(recMathFlag, recomputeAttempts[attemptKey(recMathFlag)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)) }
@@ -799,27 +849,28 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // it — else the checker's. The redo of code's probe holds nothing: still wrong, the report has it.
   let heldCloseHold = false;
   // The figure this turn probes in the final answers (its one extra probe), and whether the probe is this hold's own.
-  let finalProbeKey: string | null = recMathProbe && finalAnswer(ctx.nextTurnIndex)
-    ? ('flag' in recMathProbe ? attemptKey(recMathProbe.flag) : 'closed' in recMathProbe ? recMathProbe.closed.key : null) : null;
+  let finalProbeKey: string | null = recMathProbe && 'flag' in recMathProbe && finalAnswer(fromOf(recMathProbe.flag)) ? attemptKey(recMathProbe.flag)
+    : closedRec && finalAnswer(closedRec.n) ? closedRec.key : null;
   let finalHold = false;
   const holdable = kind === 'close' && !timeUp && wrapUps > 0;
   const finalSel = (s: CheckerSelection | null) => s !== null && finalAnswer(s.candidateTurnIndex) && !isRedo(s.candidateTurnIndex, candidateIndexes, closeHold)
     && !probedAlready(s.key, s.candidateTurnIndex, closeHold, candidateIndexes);
-  const codeFinal = holdable && finalAnswer(ctx.nextTurnIndex) && !isRedo(ctx.nextTurnIndex, candidateIndexes, closeHold)
-    ? liveFlags.filter(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, false) && !probedAlready(attemptKey(f), ctx.nextTurnIndex, closeHold, candidateIndexes))
-      .sort((a, b) => relativeError(b.candidateValue, b.expected) - relativeError(a.candidateValue, a.expected))[0]
+  // A final answer's flag released this turn (the gate), the redo's apart.
+  const codeFinal = holdable
+    ? liveFlags.filter(f => finalAnswer(fromOf(f)) && !isRedo(fromOf(f), candidateIndexes, closeHold)
+      && flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, false) && !probedAlready(attemptKey(f), fromOf(f), closeHold, candidateIndexes))
+      .sort((a, b) => holdRank(fromOf(b), finalFrom, relativeError(b.candidateValue, b.expected)) - holdRank(fromOf(a), finalFrom, relativeError(a.candidateValue, a.expected)))[0]
     : undefined;
-  // The closing message's own flag blocks the checker's selection (one math
-  // line a turn): the checker's best final flag, chosen as if it didn't, may go
+  const codeRank = codeFinal ? holdRank(fromOf(codeFinal), finalFrom, relativeError(codeFinal.candidateValue, codeFinal.expected)) : 0;
+  // Code's released flag blocks the checker's selection (one math line a
+  // turn): the checker's best final flag, chosen as if it didn't, may go
   // first — when it is in the recommendation, or the larger error.
   if (codeFinal && !sel) {
     const alt = planCheckerFlags({ ...checkerInput, currentFlags: [], codeLineThisTurn: false });
-    const codeRank = holdRank(ctx.nextTurnIndex, finalFrom, relativeError(codeFinal.candidateValue, codeFinal.expected));
     if (alt.selected && finalSel(alt.selected) && rank(alt.selected.candidateTurnIndex, alt.selected.claim) > codeRank) { checkerPlan = alt; sel = alt.selected; }
   }
   const selFinal = sel !== null && finalAnswer(sel.candidateTurnIndex);
-  const checkerFirst = sel !== null && finalSel(sel) && codeFinal !== undefined
-    && rank(sel.candidateTurnIndex, sel.claim) > holdRank(ctx.nextTurnIndex, finalFrom, relativeError(codeFinal.candidateValue, codeFinal.expected));
+  const checkerFirst = sel !== null && finalSel(sel) && codeFinal !== undefined && rank(sel.candidateTurnIndex, sel.claim) > codeRank;
   if (codeFinal && !checkerFirst) {
     kind = 'rec_math_probe';
     recMathProbe = { flag: codeFinal, action: recomputeAction(codeFinal, recomputeAttempts[attemptKey(codeFinal)] ?? 1, false) };

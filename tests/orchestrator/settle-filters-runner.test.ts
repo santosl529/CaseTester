@@ -5,10 +5,17 @@
 // (Rule 6 option 4, v4.11).
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
+import type { CheckerClaim } from '@/lib/orchestrator/math-checker';
+import { checkerClaim, landed } from './helpers/checker-claim';
 
 type Row = Record<string, unknown>;
 const store = { session: {} as Row, turns: [] as Row[], revealed: [] as Row[], exhibits: [] as Row[], events: [] as Row[] };
-vi.mock('@/lib/orchestrator/math-checker', async orig => ({ ...(await orig<object>()), checkMathClaims: async () => { throw new Error('no math checker calls in tests'); } }));
+// The math checker (the gate, 16 Oct): the claims it returns for a message; none set → no verdict.
+let checkerReply: ((message: string) => CheckerClaim[]) | null = null;
+vi.mock('@/lib/orchestrator/math-checker', async orig => ({ ...(await orig<object>()), checkMathClaims: async (a: { input: { message: string } }) => {
+  if (!checkerReply) throw new Error('no math checker calls in tests');
+  return { claims: checkerReply(a.input.message), model: 'test', latencyMs: 1, stopReason: 'end_turn' };
+} }));
 vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
 vi.mock('@/db/client', async () => {
   const { getTableName } = await import('drizzle-orm');
@@ -20,7 +27,7 @@ vi.mock('@/db/client', async () => {
         sessionTurns: { findMany: async () => [...store.turns].sort((a, b) => (a.turnIndex as number) - (b.turnIndex as number)) },
         exhibitsShown: { findMany: async () => [...store.exhibits] },
         revealedData: { findMany: async () => [...store.revealed] },
-        sessionEvents: { findMany: async () => store.events.filter(e => e.category === 'data_request') },
+        sessionEvents: { findMany: async () => store.events.filter(e => e.category === 'data_request' || e.category === 'math_checker') },
       },
       insert: (t: unknown) => ({ values: async (v: Row | Row[]) => { target(t)?.push(...(Array.isArray(v) ? v : [v])); } }),
       // Honours "only while active": an update to an ended session is dropped.
@@ -91,7 +98,28 @@ const BEAN_ASK = [
   { what: 'non-bean input price change', itemIds: ['non_bean_input_change'], explicit: true, respond: 'release' as const },
 ];
 
-beforeEach(() => { modelQueue.length = 0; prompts.length = 0; classified.length = 0; judgeVerdict = null; distressVerdict = () => ({ label: 'none', reason: '' }); });
+beforeEach(() => { modelQueue.length = 0; prompts.length = 0; classified.length = 0; judgeVerdict = null; distressVerdict = () => ({ label: 'none', reason: '' }); checkerReply = null; });
+
+// The gate (16 Oct): code's line on a message waits for the checker's verdict on
+// it. The checker flags `flagged` in the message `claim`; after it, `next` is
+// the reply the line goes out on. Returns both turns.
+async function claimThenNext(claim: string, flagged: CheckerClaim[], model: ModelTurn, next: string, nextModel: ModelTurn = model) {
+  checkerReply = m => (m === claim ? flagged : []);
+  const first = await say(claim, model);
+  await landed();
+  const second = await say(next, nextModel);
+  return [first, second] as const;
+}
+// …with the clock past the case's 20 minutes by the next message.
+async function claimThenTimeUp(claim: string, flagged: CheckerClaim[], next: string) {
+  store.session = { ...store.session, startedAt: new Date(Date.now() - 15 * 60_000) };
+  checkerReply = m => (m === claim ? flagged : []);
+  const first = await say(claim, T({ say: 'Mm-hm.', question: 'What else would you weigh?' }));
+  await landed();
+  store.session = { ...store.session, startedAt: new Date(Date.now() - 25 * 60_000) };
+  const second = await say(next, T());
+  return [first, second] as const;
+}
 
 describe('data released this turn is already heard when the question plays', () => {
   it('Tyler t8 (batch 19): "Once you have those two figures, how much…" → "With those two figures, how much…"', async () => {
@@ -153,9 +181,11 @@ const events = (subtype: string) => store.events.filter(e => e.category === 'int
 
 describe('a misquote of revealed data is corrected by code, once (Rule 6 option 4)', () => {
   const COST = ['cogs_pct', 'labor_pct', 'overhead_pct'];
-  it('Tyler t5 (batch 19): "COGS goes from 42% to 61%" → one flat sentence in the data line, after say', async () => {
+  const COGS_61 = [checkerClaim('61%', { correctValue: 58 })];
+  it('Tyler t5 (batch 19): "COGS goes from 42% to 61%" → held for the checker; once it flags the claim, one flat sentence in the data line, after say', async () => {
     seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
-    const r = await say('The whole story is COGS — it goes from 42% to 61% of revenue over two years.', T({ say: 'Mm-hm.', question: 'What sits inside COGS?' }));
+    const [held, r] = await claimThenNext('The whole story is COGS — it goes from 42% to 61% of revenue over two years.', COGS_61, T({ say: 'Mm-hm.', question: 'What sits inside COGS?' }), 'Dairy and packaging are probably in there too.');
+    expect(held.interviewerText).toBe('Mm-hm. What sits inside COGS?');
     expect(r.interviewerText).toBe('Mm-hm. To correct one figure: COGS is 58% of revenue today, up from 42% two years ago. What sits inside COGS?');
     expect(prompts.at(-1)).toMatch(/MISQUOTE: the candidate stated COGS as % of revenue as "to 61%"/);
     expect(flagsNow().misquoteCorrected).toEqual(['cogs_pct']);
@@ -164,14 +194,14 @@ describe('a misquote of revealed data is corrected by code, once (Rule 6 option 
 
   it('a repeat after one correction is corrected again (batch 20 R05: "from 42 to 60" after the t6 correction)', async () => {
     seed({ phase: 'EXHIBIT', revealed: COST, flags: { ...SATISFIED, misquoteCorrected: ['cogs_pct'] } });
-    const r = await say('COGS went from 42% to 61% of revenue, and that explains the decline.', T({ say: 'Mm-hm.', question: 'What sits inside COGS?' }));
+    const [, r] = await claimThenNext('COGS went from 42% to 61% of revenue, and that explains the decline.', COGS_61, T({ say: 'Mm-hm.', question: 'What sits inside COGS?' }), 'Dairy and packaging are probably in there too.');
     expect(r.interviewerText).toBe('Mm-hm. To correct one figure: COGS is 58% of revenue today, up from 42% two years ago. What sits inside COGS?');
     expect(flagsNow().misquoteCorrected).toEqual(['cogs_pct', 'cogs_pct']);
   });
 
   it('after two corrections of an item a repeat is logged for scoring, not corrected a third time', async () => {
     seed({ phase: 'EXHIBIT', revealed: COST, flags: { ...SATISFIED, misquoteCorrected: ['cogs_pct', 'cogs_pct'] } });
-    const r = await say('COGS went from 42% to 61% of revenue, and that explains the decline.', T({ say: 'Mm-hm.', question: 'What sits inside COGS?' }));
+    const [, r] = await claimThenNext('COGS went from 42% to 61% of revenue, and that explains the decline.', COGS_61, T({ say: 'Mm-hm.', question: 'What sits inside COGS?' }), 'Dairy and packaging are probably in there too.');
     expect(r.interviewerText).toBe('Mm-hm. What sits inside COGS?');
     expect(events('misquote_repeated')).toMatchObject([{ payloadJsonb: { item: 'cogs_pct', cited: 'to 61%' } }]);
     expect(flagsNow().misquoteCorrected).toEqual(['cogs_pct', 'cogs_pct']);
@@ -179,21 +209,60 @@ describe('a misquote of revealed data is corrected by code, once (Rule 6 option 
 
   it('the forms the grammar missed live are corrected (batch 20: pronoun chain, change in points, prompt fact)', async () => {
     seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
-    const a = await say("COGS is the driver. It goes from 42% two years ago to 61% currently — that's a 19-point increase.", T({ say: 'Right.', question: 'What sits inside COGS?' }));
+    const [, a] = await claimThenNext("COGS is the driver. It goes from 42% two years ago to 61% currently — that's a 19-point increase.", COGS_61, T({ say: 'Right.', question: 'What sits inside COGS?' }), 'Dairy and packaging are probably in there too.');
     expect(a.interviewerText).toMatch(/^Right\. To correct one figure: COGS is 58% of revenue today, up from 42% two years ago\. What sits inside COGS\?$/);
     seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
-    const b = await say("So the question becomes why COGS rose 19 points.", T({ say: 'Right.', question: 'What sits inside COGS?' }));
+    const [, b] = await claimThenNext('So the question becomes why COGS rose 19 points.', [checkerClaim('19 points', { correctValue: 16 })], T({ say: 'Right.', question: 'What sits inside COGS?' }), 'Dairy and packaging are probably in there too.');
     expect(b.interviewerText).toMatch(/To correct one figure: COGS is 58%/);
     seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
-    const c = await say("Risks: they've grown revenue 19% with flat prices.", T({ say: 'Right.', question: 'What else?' }));
+    const [, c] = await claimThenNext("Risks: they've grown revenue 19% with flat prices.", [checkerClaim('19%', { correctValue: 15 })], T({ say: 'Right.', question: 'What else?' }), 'Volume loss is the other one.');
     expect(c.interviewerText).toBe('Right. To correct one figure: revenue grew 15% over the past two years. What else?');
   });
 
   it('two items misquoted in one message are corrected in one line', async () => {
     seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
-    const r = await say('COGS went from 42% to 61%. Revenue grew about 19% on volume.', T({ say: 'Right.', question: 'What else?' }));
+    const [, r] = await claimThenNext('COGS went from 42% to 61%. Revenue grew about 19% on volume.', [...COGS_61, checkerClaim('about 19%', { correctValue: 15 })], T({ say: 'Right.', question: 'What else?' }), 'Volume loss is the other one.');
     expect(r.interviewerText).toBe('Right. To correct two figures: COGS is 58% of revenue today, up from 42% two years ago. And revenue grew 15% over the past two years. What else?');
     expect(flagsNow().misquoteCorrected).toEqual(['cogs_pct', 'revenue_growth']);
+  });
+
+  // The gate's other side (Lorenzo, 16 Oct; batch 29 Marisol 64224460 t15: "Other
+  // inputs rose 11.8" — 11.8 points, right — read as a misquote of the 37.5%
+  // price change; the checker rated the message all correct).
+  const BEANS = [...COST, 'bean_share_of_cogs', 'bean_price_change', 'non_bean_input_change'];
+  const MARISOL_T15 = "But that's the share of the cost base, not the share of the increase. Beans rose 4.2 against the 18-point profit decline, so about 23%. Other inputs rose 11.8, which is 11.8 over 18, about 66%.";
+  it('Marisol t15: the checker rates the claim correct — code\'s correction is never said, and logged', async () => {
+    seed({ phase: 'EXHIBIT', revealed: BEANS, flags: SATISFIED });
+    const [held, r] = await claimThenNext(MARISOL_T15, [checkerClaim('23%', { verdict: 'correct', correctValue: 23, errorType: null }), checkerClaim('66%', { verdict: 'correct', correctValue: 66, errorType: null })],
+      T({ say: 'Right.', question: 'What would you tell the CEO?' }), 'I would tell the CEO to start with dairy and packaging.');
+    expect(held.interviewerText).not.toMatch(/To correct/);
+    expect(r.interviewerText).not.toMatch(/To correct/);
+    expect(flagsNow().misquoteCorrected ?? []).toEqual([]);
+    const gate = store.events.filter(e => e.category === 'math_checker' && e.subtype === 'code_gate').map(e => e.payloadJsonb as Row);
+    expect(gate).toMatchObject([{ key: 'misquote:non_bean_input_change', value: 11.8, outcome: 'not_rated' }]);
+  });
+
+  it('a correct verdict on the misquoted figure itself drops it as checker_correct, and its figure is sayable again', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    await claimThenNext('COGS went from 42% to 61% of revenue.', [checkerClaim('61%', { verdict: 'correct', correctValue: 61, errorType: null })], T({ say: 'Right.', question: 'What sits inside COGS?' }), 'Dairy and packaging are probably in there too.');
+    const gate = store.events.filter(e => e.category === 'math_checker' && e.subtype === 'code_gate').map(e => e.payloadJsonb as Row);
+    expect(gate).toMatchObject([{ outcome: 'checker_correct' }]);
+    expect(flagsNow().factEchoes).toEqual([]);
+  });
+
+  it('no verdict — the checker failed or never ran — means no correction', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const a = await say('COGS went from 42% to 61% of revenue.', T({ say: 'Right.', question: 'What sits inside COGS?' }));
+    await landed();
+    const b = await say('Dairy and packaging are probably in there too.', T({ say: 'Right.', question: 'What sits inside COGS?' }));
+    expect(`${a.interviewerText} ${b.interviewerText}`).not.toMatch(/To correct/);
+  });
+
+  it('a flag on another reading of the claim releases no misquote line (the checker\'s right figure is none of the data line\'s)', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    const [, r] = await claimThenNext('COGS went from 42% to 61% of revenue.', [checkerClaim('61%', { correctValue: 30 })], T({ say: 'Right.', question: 'What sits inside COGS?' }), 'Dairy and packaging are probably in there too.');
+    expect(r.interviewerText).not.toMatch(/To correct/);
+    expect(store.events.filter(e => e.category === 'math_checker' && e.subtype === 'code_gate').map(e => (e.payloadJsonb as Row).outcome)).toEqual(['checker_disagrees']);
   });
 
   it('a figure for data not yet revealed is the candidate\'s own claim — no correction', async () => {
@@ -290,19 +359,28 @@ describe('the truth guard leaves a question to answer', () => {
     const r = await say('COGS rose 19 points, I think. Do we have per-unit costs?', T({
       say: 'Understood.', question: "Per-unit costs aren't something I have directly. Which one is large enough to drive a 19-point COGS climb on its own?",
     }));
-    expect(r.interviewerText).toMatch(/^Understood\. To correct one figure: COGS is 58%.*\. Per-unit costs aren't something I have directly\. .+\?$/);
+    // The misquote's correction waits for the checker (the gate); the question still ends the turn.
+    expect(r.interviewerText).toMatch(/^Understood\. Per-unit costs aren't something I have directly\. .+\?$/);
     expect(r.interviewerText).not.toMatch(/19-point/);
   });
 });
 
 describe('the misquote correction is spoken on a code-written close (batch 20 R21 t26, R47 t22)', () => {
-  it('a misquote in the final answer gets its correction before the goodbye', async () => {
+  it('a misquote in a final answer, flagged by the checker, gets its correction before the goodbye', async () => {
     seed({ phase: 'RECOMMENDATION', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: { ...SATISFIED, graceAskFired: true } });
-    store.session = { ...store.session, startedAt: new Date(Date.now() - 25 * 60_000) };
-    const r = await say('My recommendation: COGS went from 42% to 61% of revenue, so raise prices.', T());
+    const [, r] = await claimThenTimeUp('My recommendation: COGS went from 42% to 61% of revenue, so raise prices.', [checkerClaim('61%', { correctValue: 58 })], 'And I would pilot it first.');
     expect(r.ended).toBe(true);
     expect(r.interviewerText).toMatch(/^To correct one figure: COGS is 58% of revenue today, up from 42% two years ago\. .+report/);
     expect(flagsNow().misquoteCorrected).toEqual(['cogs_pct']);
+  });
+
+  it('at time-up the closing message\'s own misquote has no verdict yet: the case closes without it (the report has it)', async () => {
+    seed({ phase: 'RECOMMENDATION', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: { ...SATISFIED, graceAskFired: true } });
+    store.session = { ...store.session, startedAt: new Date(Date.now() - 25 * 60_000) };
+    checkerReply = () => [checkerClaim('61%', { correctValue: 58 })];
+    const r = await say('My recommendation: COGS went from 42% to 61% of revenue, so raise prices.', T());
+    expect(r.ended).toBe(true);
+    expect(r.interviewerText).not.toMatch(/To correct/);
   });
 });
 
@@ -310,10 +388,12 @@ describe('a recommendation resting on a misquote gets one chance to revise (batc
   const recAsked = () => { store.turns[store.turns.length - 1] = { ...store.turns[store.turns.length - 1], text: "Pull it together — what's your recommendation to the CEO?" }; };
   const REC = "My recommendation: raise prices. They've grown revenue 19% with flat prices, so demand is healthy.";
 
+  const REV_19 = [checkerClaim('19%', { correctValue: 15 })];
   it('the correction, then "does your recommendation change?" — not the close', async () => {
     seed({ phase: 'RECOMMENDATION', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: SATISFIED });
     recAsked();
-    const r = await say(REC, T({ move: 'risk', question: "What's the biggest risk to that?" }));
+    const [held, r] = await claimThenNext(REC, REV_19, T({ move: 'risk', question: "What's the biggest risk to that?" }), 'The biggest risk is losing volume to the chains.', T({ move: 'other', question: 'How would you guard against that?' }));
+    expect(held.interviewerText).toBe("What's the biggest risk to that?");
     expect(r.ended).toBe(false);
     expect(r.interviewerText).toMatch(/^To correct one figure: revenue grew 15% over the past two years\. (With that corrected, does your recommendation change|Given the corrected figure, would you change your recommendation)\?$/);
     expect(flagsNow().recRevisionAsked).toBe(true);
@@ -322,15 +402,14 @@ describe('a recommendation resting on a misquote gets one chance to revise (batc
   it('asked once: a second misquoted answer is corrected but the case goes on normally', async () => {
     seed({ phase: 'RECOMMENDATION', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: { ...SATISFIED, recRevisionAsked: true } });
     recAsked();
-    const r = await say(REC, T({ move: 'risk', say: 'Mm-hm.', question: "What's the biggest risk to that?" }));
-    expect(r.interviewerText).toBe("Mm-hm. To correct one figure: revenue grew 15% over the past two years. What's the biggest risk to that?");
+    const [, r] = await claimThenNext(REC, REV_19, T({ move: 'risk', say: 'Mm-hm.', question: "What's the biggest risk to that?" }), 'The biggest risk is losing volume to the chains.', T({ move: 'other', say: 'Mm-hm.', question: 'How would you guard against that?' }));
+    expect(r.interviewerText).toBe('Mm-hm. To correct one figure: revenue grew 15% over the past two years. How would you guard against that?');
   });
 
   it('when time is up the correction still precedes the close', async () => {
     seed({ phase: 'RECOMMENDATION', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: { ...SATISFIED, graceAskFired: true } });
-    store.session = { ...store.session, startedAt: new Date(Date.now() - 25 * 60_000) };
     recAsked();
-    const r = await say(REC, T());
+    const [, r] = await claimThenTimeUp(REC, REV_19, 'The biggest risk is losing volume to the chains.');
     expect(r.ended).toBe(true);
     expect(r.interviewerText).toMatch(/^To correct one figure: revenue grew 15% over the past two years\. .+report/);
   });
@@ -341,10 +420,12 @@ describe('a math error in the recommendation gets one probe before the case move
   const COSTS = ['cogs_pct', 'labor_pct', 'overhead_pct', 'revenue_total'];
   const REC = 'My recommendation: raise menu prices. A 10% price increase recovers about 5 points of margin if volume holds.';
 
+  const GAIN_5 = [checkerClaim('about 5 points', { correctValue: 8.5, errorType: 'conceptual' })];
   it('a wrong pricing claim: one code-written probe, without the right figure — not the close', async () => {
     seed({ phase: 'RECOMMENDATION', revealed: COSTS, flags: SATISFIED });
     recAsked();
-    const r = await say(REC, T({ move: 'risk', question: "What's the biggest risk to that?" }));
+    const [held, r] = await claimThenNext(REC, GAIN_5, T({ move: 'risk', question: "What's the biggest risk to that?" }), 'The biggest risk is losing volume to the chains.');
+    expect(held.interviewerText).toBe("What's the biggest risk to that?");
     expect(r.ended).toBe(false);
     expect(r.interviewerText).toBe('Before we wrap up — you said a 10% price rise recovers 5 points of margin. Walk me through how you sized that.');
     expect(flagsNow().recMathProbed).toBe(true);
@@ -354,7 +435,7 @@ describe('a math error in the recommendation gets one probe before the case move
   it('a wrong figure of a math step is probed as the candidate wrote it', async () => {
     seed({ phase: 'RECOMMENDATION', revealed: COSTS, flags: SATISFIED });
     recAsked();
-    const r = await say('My recommendation: fix procurement first. Sixteen points on $480 million is about $20 million of margin impact.', T({ move: 'risk' }));
+    const [, r] = await claimThenNext('My recommendation: fix procurement first. Sixteen points on $480 million is about $20 million of margin impact.', [checkerClaim('about $20 million', { correctValue: 77, errorType: 'arithmetic' })], T({ move: 'risk' }), 'The biggest risk is losing volume to the chains.');
     expect(r.interviewerText).toBe('Before we wrap up — walk me through how you got to $20 million.');
   });
 
@@ -372,7 +453,7 @@ describe('a math error in the recommendation gets one probe before the case move
   it('a unit slip past its probe is corrected with the quantity and its period', async () => {
     seed({ phase: 'RECOMMENDATION', revealed: COSTS, flags: { ...SATISFIED, recomputeAttempts: { 'unit:COGS@25': 1 } } });
     recAsked();
-    const r = await say('My recommendation: hedge beans first. Beans are 25% of COGS, so 25 points of revenue sit in beans.', T({ move: 'risk' }));
+    const [, r] = await claimThenNext('My recommendation: hedge beans first. Beans are 25% of COGS, so 25 points of revenue sit in beans.', [checkerClaim('25 points of revenue', { correctValue: 14.5, errorType: 'unit' })], T({ move: 'risk' }), 'The biggest risk is losing volume to the chains.');
     expect(r.interviewerText).toMatch(/^25% of COGS is about 10\.5 points of revenue on two years ago's 42-point COGS line, or about 14\.5 on today's 58 — not 25\. (Does that change your recommendation|Would that change your recommendation at all)\?$/);
   });
 
@@ -401,17 +482,16 @@ describe('the correction cap never applies to the recommendation (batch 20 R30, 
   it('an item corrected twice already is corrected again in the reply to a recommendation ask', async () => {
     seed({ phase: 'RECOMMENDATION', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: { ...SATISFIED, misquoteCorrected: ['cogs_pct', 'cogs_pct'], recRevisionAsked: true } });
     store.turns[store.turns.length - 1] = { ...store.turns[store.turns.length - 1], text: "What's your recommendation to the client?" };
-    const r = await say('My recommendation: COGS went from 42% to 61% of revenue, so raise prices.', T({ move: 'risk', say: 'Mm-hm.', question: "What's the biggest risk?" }));
-    expect(r.interviewerText).toBe("Mm-hm. To correct one figure: COGS is 58% of revenue today, up from 42% two years ago. What's the biggest risk?");
+    const [, r] = await claimThenNext('My recommendation: COGS went from 42% to 61% of revenue, so raise prices.', [checkerClaim('61%', { correctValue: 58 })], T({ move: 'risk', say: 'Mm-hm.', question: "What's the biggest risk?" }), 'The biggest risk is losing volume to the chains.', T({ move: 'other', say: 'Mm-hm.', question: 'How would you guard against that?' }));
+    expect(r.interviewerText).toBe('Mm-hm. To correct one figure: COGS is 58% of revenue today, up from 42% two years ago. How would you guard against that?');
   });
 });
 
 describe('nothing repeats a figure on the turn code corrects it', () => {
   it('a probe of the wrong figure is withheld after the correction (batch 20 R21 t6 replay)', async () => {
     seed({ phase: 'EXHIBIT', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: SATISFIED });
-    const r = await say("COGS is the driver. It goes from 42% two years ago to 61% currently — that's a 19-point increase.", T({
-      say: 'Right.', question: 'Walk me through how you got from 42% and 61% to a 19-point COGS increase.',
-    }));
+    const probe = T({ say: 'Right.', question: 'Walk me through how you got from 42% and 61% to a 19-point COGS increase.' });
+    const [, r] = await claimThenNext("COGS is the driver. It goes from 42% two years ago to 61% currently — that's a 19-point increase.", [checkerClaim('61%', { correctValue: 58 })], probe, 'Dairy and packaging are probably in there too.');
     expect(r.interviewerText).toMatch(/^Right\. To correct one figure: COGS is 58% of revenue today, up from 42% two years ago\. .+\?$/);
     expect(r.interviewerText).not.toMatch(/61%|19-point/);
   });
@@ -420,14 +500,13 @@ describe('nothing repeats a figure on the turn code corrects it', () => {
 describe('no misquote is left standing at the goodbye', () => {
   it('the close corrects an item already corrected twice (batch 20 R42 c21 replay)', async () => {
     seed({ phase: 'RECOMMENDATION', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: { ...SATISFIED, graceAskFired: true, misquoteCorrected: ['revenue_growth', 'revenue_growth'] } });
-    store.session = { ...store.session, startedAt: new Date(Date.now() - 25 * 60_000) };
-    const r = await say('Revenue is up 19% with margin collapsing.', T());
+    const [, r] = await claimThenTimeUp('Revenue is up 19% with margin collapsing.', [checkerClaim('19%', { correctValue: 15 })], 'That is my answer.');
     expect(r.ended).toBe(true);
     expect(r.interviewerText).toMatch(/^To correct one figure: revenue grew 15% over the past two years\. /);
   });
   it('on the correcting turn a bare probe of the wrong figure goes too ("Walk me through where the 19% comes from")', async () => {
     seed({ phase: 'EXHIBIT', revealed: ['cogs_pct', 'labor_pct', 'overhead_pct'], flags: SATISFIED });
-    const r = await say('Revenue grew about 19% over the period, so volume is healthy.', T({ say: 'Mm-hm.', question: 'Walk me through where the 19% comes from.' }));
+    const [, r] = await claimThenNext('Revenue grew about 19% over the period, so volume is healthy.', [checkerClaim('about 19%', { correctValue: 15 })], T({ say: 'Mm-hm.', question: 'Walk me through where the 19% comes from.' }), 'Volume is the other piece I would check.');
     expect(r.interviewerText).toMatch(/^Mm-hm\. To correct one figure: revenue grew 15% over the past two years\. .+\?$/);
     expect(r.interviewerText).not.toMatch(/19%/);
   });

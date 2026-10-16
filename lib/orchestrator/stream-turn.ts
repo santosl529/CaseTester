@@ -7,7 +7,7 @@
 // turn-data.ts) is delivered. The question is never delivered here: Settle
 // sends it with the tail. Nothing is delivered before the distress verdict
 // (D1). Stream never books a reveal; Settle books what was delivered (D3).
-import { growthProbeOnRatio } from './growth-probe';
+import { growthProbeOnRatio, growthProbeUnchecked } from './growth-probe';
 import type { TurnTimer } from './turn-timer';
 import type { TurnEvent, TurnValidation } from '@/lib/agent/models/interface';
 import { toRequests, type ModelTurn } from '@/lib/agent/models/turn-schema';
@@ -125,6 +125,8 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   if (withholdAssumptionChallenges(sentence, g.openItems).withheld.length > 0) return 'assumption_guard';
   // "…the margin problem, or cost that grew with revenue?" only of a dollar or growth-rate claim (growth-probe.ts; Lorenzo, 15 Oct).
   if (growthProbeOnRatio(sentence, opts.previous, g.candidateMessage ?? '')) return 'growth_probe_on_ratio';
+  // …and only of a claim the checker flagged (the gate; Lorenzo, 16 Oct).
+  if (growthProbeUnchecked(sentence, opts.previous, g.flagged ?? [])) return 'growth_probe_unchecked';
   if ((hasCloseCue(sentence) || isClosingTurn(sentence)) && !(g.metaAsked && isReportAnswer(sentence))) return 'close_cue';
   // Rule 1: no verdict on their work, in "say" or the question (grading.ts).
   if (isGradingSentence(sentence)) return 'grading';

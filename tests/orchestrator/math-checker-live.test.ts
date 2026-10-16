@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  checkerKey, isStale, modelProbed, planCheckerFlags, startMathCheck, formatCheckerHint, liveCheckerConfig, closedErrorRestated,
+  checkerKey, isStale, modelProbed, planCheckerFlags, startMathCheck, formatCheckerHint, liveCheckerConfig, closedErrorRestated, gateCodeFindings, codeFlagRefs,
   MATH_CHECKER_CATEGORY, type CheckerRow, type CheckerPlanInput, type VerdictPayload,
 } from '@/lib/orchestrator/math-checker-live';
 import type { CheckerClaim, VettedClaim } from '@/lib/orchestrator/math-checker';
@@ -436,7 +436,7 @@ describe('the background check', () => {
   it('a verdict: the claims vetted at the message, the code flags (misquotes too) and stamps of the message', async () => {
     const job = startMathCheck({ ...base, misquotes: [{ item: 'revenue_growth', cited: 'grew about 19%', sentence: 'Revenue grew about 19%.' }], check: async () => ({ claims: [raw()], model: 'claude-sonnet-5-5', latencyMs: 5000, stopReason: 'end_turn' }) });
     const r = await job.result;
-    expect((r.payload as VerdictPayload).codeFlags).toEqual([{ key: 'misquote:revenue_growth', value: 19, span: 'Revenue grew about 19%.' }]);
+    expect((r.payload as VerdictPayload).codeFlags).toEqual([{ key: 'misquote:revenue_growth', value: 19, span: 'Revenue grew about 19%.', finding: { kind: 'misquote', item: 'revenue_growth', cited: 'grew about 19%', sentence: 'Revenue grew about 19%.' } }]);
     expect(r.subtype).toBe('verdict');
     const v = r.payload as VerdictPayload;
     expect(v.candidateTurnIndex).toBe(3);
@@ -447,7 +447,7 @@ describe('the background check', () => {
   it("code's flags are keyed by step and claimed value, as the checker keys its claims", async () => {
     const codeMath = { ...base.codeMath, flags: [{ kind: 'step' as const, stepId: 'cogs_dollar_impact', description: '', expected: 76.8, candidateValue: 40, errorClass: 'case_breaking' as const, span: 'about 40 points' }] };
     const r = await startMathCheck({ ...base, codeMath, check: async () => ({ claims: [raw()], model: 'm', latencyMs: 1, stopReason: 'end_turn' }) }).result;
-    expect((r.payload as VerdictPayload).codeFlags).toEqual([{ key: 'cogs_dollar_impact@40', value: 40, span: 'about 40 points' }]);
+    expect((r.payload as VerdictPayload).codeFlags).toEqual([{ key: 'cogs_dollar_impact@40', value: 40, span: 'about 40 points', finding: { kind: 'flag', flag: codeMath.flags[0] } }]);
   });
 
   it('an error or a timeout resolves to an error row — never a rejection', async () => {
@@ -644,5 +644,51 @@ describe('a concession withdraws only the claim it answers', () => {
     }));
     expect(p.decisions.find(d => d.id === '15:0')).toMatchObject({ outcome: 'stale' });
     expect(p.decisions.find(d => d.id === '17:0')?.outcome).not.toBe('stale');
+  });
+});
+
+// The gate on code's own lines (Lorenzo, 16 Oct; batch 29 Marisol t15): a code
+// finding on message 3 is said only once message 3's verdict flags that claim.
+describe('gateCodeFindings', () => {
+  const WRONG = 'A 10% price increase recovers about 5 points of margin.';
+  const pricing = { kind: 'pricing' as const, stepId: 'pricing:gain', description: '', expected: 8.5, candidateValue: 5, errorClass: 'case_breaking' as const, span: WRONG };
+  const MISQ = { item: 'cogs_pct', cited: 'to 61%', sentence: 'COGS went from 42% to 61%.' };
+  const refs = codeFlagRefs({ flags: [pricing] }, [MISQ]);
+  const turnRows = [{ turnIndex: 3, role: 'candidate', text: WRONG }, { turnIndex: 4, role: 'interviewer', text: 'What would you look at next?' }];
+  const gate = (claims: VettedClaim[], o: { now?: string; at?: number; rows?: { turnIndex: number; role: string; text: string }[]; handled?: string[]; final?: boolean } = {}) => gateCodeFindings({
+    rows: [verdictRow(3, claims, { codeFlags: refs })], handled: o.handled ?? [], turnRows: o.rows ?? turnRows, candidateText: o.now ?? 'Next I would look at competitors.',
+    candidateTurnIndex: o.at ?? 5, caseData: prof, revealedIds: COSTS, finalAnswer: o.final ? () => true : undefined,
+    codeFigures: (f: { kind: string }) => (f.kind === 'misquote' ? [58, 42, 16] : null),
+  });
+  const MISQ_FLAG = vetted({ span: '61%', candidateValue: '61%', correctValue: 58, errorType: 'misquote', codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
+
+  it('both flagged by the checker: released, each once', () => {
+    const g = gate([vetted(), MISQ_FLAG]);
+    expect(g.released.map(r => r.id)).toEqual(['3:code:0', '3:code:1']);
+    expect(g.decisions.map(d => d.outcome)).toEqual(['released', 'released']);
+    expect(gate([vetted(), MISQ_FLAG], { handled: ['3:code:0', '3:code:1'] }).decisions).toEqual([]);
+  });
+  it('not before the verdict lands: the message\'s own turn decides nothing', () => {
+    expect(gate([vetted()], { at: 3, rows: [] }).decisions).toEqual([]);
+  });
+  it('rated correct: dropped as checker_correct', () => {
+    const g = gate([vetted({ verdict: 'correct', flag: false })]);
+    expect(g.released).toEqual([]);
+    expect(g.decisions[0]).toMatchObject({ id: '3:code:0', outcome: 'checker_correct' });
+  });
+  it('not rated (no claim on the figure, unverifiable, low confidence, a flag the vetting dropped): dropped as not_rated', () => {
+    expect(gate([]).decisions.map(d => d.outcome)).toEqual(['not_rated', 'not_rated']);
+    expect(gate([vetted({ verdict: 'error', confidence: 'low', flag: false })]).decisions[0]).toMatchObject({ outcome: 'not_rated' });
+  });
+  it('a misquote line needs the checker\'s right figure among the data line\'s (or its change): else checker_disagrees', () => {
+    expect(gate([MISQ_FLAG]).released.map(r => r.finding.kind)).toEqual(['misquote']);
+    expect(gate([{ ...MISQ_FLAG, correctValue: 16 }]).released.map(r => r.finding.kind)).toEqual(['misquote']);
+    expect(gate([{ ...MISQ_FLAG, correctValue: 30 }]).decisions[1]).toMatchObject({ outcome: 'checker_disagrees' });
+  });
+  it('answered since: stale; waited past two messages: expired — except in the final answers', () => {
+    expect(gate([vetted()], { now: 'Let me redo it: a 10% rise recovers about 8.5 points.' }).decisions[0]).toMatchObject({ outcome: 'stale' });
+    const later = [...turnRows, { turnIndex: 5, role: 'candidate', text: 'Competitors.' }, { turnIndex: 6, role: 'interviewer', text: 'Go on.' }, { turnIndex: 7, role: 'candidate', text: 'And suppliers.' }, { turnIndex: 8, role: 'interviewer', text: 'Go on.' }];
+    expect(gate([vetted()], { at: 9, rows: later }).decisions[0]).toMatchObject({ outcome: 'expired' });
+    expect(gate([vetted()], { at: 9, rows: later, final: true }).decisions[0]).toMatchObject({ outcome: 'released' });
   });
 });
