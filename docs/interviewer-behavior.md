@@ -2333,7 +2333,9 @@ the case closes; (4) a final answer whose verdict hasn't landed (the closing
 message's own, as a rule) holds the close one turn: code asks the stage's
 natural follow-up ("How would you guard against that?" after the risk, else
 "What would you have the client do first?") — never for the follow-up's own
-answer or the redo, nor twice in a row. Only time-up overrides it. Before the
+answer or the redo, nor twice in a row; (5) at most two wrap-up probes an
+interview — the recommendation's own figures first, then the largest error;
+the rest go to the report. Only time-up overrides it. Before the
 recommendation the earlier rules stand: a conclusion-changing flag holds the
 close once a case; a line a due stage held back, once an interview.
 
