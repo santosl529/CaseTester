@@ -787,18 +787,15 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     });
     const stagesEnforcedSaved = stageAskedSaved ? { ...state.stagesEnforced, [stageAskedSaved]: true } : state.stagesEnforced;
     // The close hold's memory (close-hold.ts; Lorenzo, 16 Oct): the follow-up
-    // asked, the final answers' figures probed (code's hold, or the checker's line
-    // heard on a model turn), and the messages whose reply was a hold turn — its
-    // reply, the redo or the follow-up's answer, holds the close no more.
+    // asked, and the final answers' figures probed — code's hold, or the
+    // checker's line heard on a model turn.
     const holdPrev = (flags.closeHold as CloseHoldMemory | undefined) ?? {};
     const holdFrom = state.closeHoldPlan.from;
     const finalLineHeard = checkerLine !== null && checkerHeard === true && holdFrom !== null && Number(checkerLine.id.split(':')[0]) >= holdFrom;
-    const holdTurn = (qHeard && (kind === 'close_wait' || kind === 'rec_math_probe')) || finalLineHeard;
     const probedNow = [...(kind === 'rec_math_probe' && qHeard && state.closeHoldPlan.probeKey ? [state.closeHoldPlan.probeKey] : []), ...(finalLineHeard ? [checkerLine.key] : [])];
     const closeHoldSaved: CloseHoldMemory = {
       ...(holdPrev.waited || (kind === 'close_wait' && qHeard) ? { waited: true } : {}),
       ...(probedNow.length || holdPrev.probed?.length ? { probed: [...new Set([...(holdPrev.probed ?? []), ...probedNow])] } : {}),
-      ...(holdTurn || holdPrev.after?.length ? { after: [...(holdPrev.after ?? []), ...(holdTurn ? [nextTurnIndex] : [])] } : {}),
     };
     // KF-4 (v4.10): when the gate closes this turn, the unmapped asks it held
     // are put to the interviewer next turn — once; then they lapse (logged).
@@ -863,7 +860,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
             lastMessageElapsedMs: elapsedMs,
             graceAskFired: Boolean(flags.graceAskFired) || (kind === 'grace_ask' && qHeard),
             recRevisionAsked: Boolean(flags.recRevisionAsked) || (kind === 'rec_revision' && qHeard),
-            recMathProbed: Boolean(flags.recMathProbed) || (kind === 'rec_math_probe' && !state.heldCloseHold && !state.closeHoldPlan.probeKey && qHeard),
+            recMathProbed: Boolean(flags.recMathProbed) || (kind === 'rec_math_probe' && !state.heldCloseHold && !state.closeHoldPlan.hold && qHeard),
             // The close hold for a line a due stage held back: once an interview (Lorenzo, 15 Oct).
             heldCloseHold: Boolean(flags.heldCloseHold) || (kind === 'rec_math_probe' && state.heldCloseHold && qHeard),
             ...(Object.keys(closeHoldSaved).length ? { closeHold: closeHoldSaved } : {}),

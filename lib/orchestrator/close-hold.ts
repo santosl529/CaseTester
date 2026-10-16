@@ -4,21 +4,22 @@
 // the final answers is report material, not a failure; closing before they are
 // checked is. When the case would close with time left:
 // - a figure the checker rated wrong in those replies is probed once, whatever
-//   its conclusion-changing rating (one extra probe per figure);
+//   its conclusion-changing rating — or, when the closing message carries a
+//   deterministic flag on it, code's own line (the checker defers to it);
+// - one extra probe per figure, counted by its step: a redo still wrong, even
+//   at another value, goes to the report and the case closes;
 // - a reply whose verdict hasn't landed yet holds the close one turn: code asks
-//   the stage's natural follow-up instead (once an interview);
-// - the reply to either (the redo, or the follow-up's answer) holds nothing —
-//   a redo still wrong goes to the report, and the case closes.
+//   the stage's natural follow-up instead (once an interview).
 // Only time-up overrides it. Plan decides (plan-turn.ts); Settle keeps the
 // memory (settle-turn.ts).
 import { asksRiskQuestion } from './spoken-close';
+import { stepOfKey } from './math-checker-live';
 import { pickScript } from '@/lib/agent/prompts/scripts';
 import type { StageRecord } from './stage-evidence';
 
 export type CloseHoldMemory = {
   waited?: boolean;     // the follow-up turn was asked
-  probed?: string[];    // checker keys probed in the final answers
-  after?: number[];     // candidate messages whose interviewer reply was a hold turn: the next message is its reply
+  probed?: string[];    // flag keys probed in the final answers (code's hold, or the checker's line heard on a model turn)
 };
 
 // The first candidate message after the recommendation ask, as the stage record has it (one source of truth).
@@ -27,28 +28,26 @@ export function finalAnswersFrom(record: StageRecord | undefined): number | null
   return rec?.delivered && rec.deliveredAt !== undefined ? rec.deliveredAt + 1 : null;
 }
 
-// A reply to a hold turn: the candidate message right after one in memory.after.
-export function isHoldReply(m: number, candidateIndexes: number[], memory: CloseHoldMemory): boolean {
-  const prev = Math.max(-1, ...candidateIndexes.filter(i => i < m));
-  return prev >= 0 && (memory.after ?? []).includes(prev);
+// A final answer: from the recommendation reply on.
+export function inFinalScope(m: number, from: number | null): boolean {
+  return from !== null && m >= from;
 }
 
-// A final answer the close waits on: from the recommendation reply on, not a hold reply.
-export function inFinalScope(m: number, from: number | null, candidateIndexes: number[], memory: CloseHoldMemory): boolean {
-  return from !== null && m >= from && !isHoldReply(m, candidateIndexes, memory);
+// The figure has had its one extra probe: a key of the same step was probed.
+export function probedAlready(key: string, memory: CloseHoldMemory): boolean {
+  return (memory.probed ?? []).some(k => stepOfKey(k) === stepOfKey(key));
 }
 
 type Row = { category?: string | null; subtype?: string | null; payloadJsonb?: unknown };
 // Final answers the checker ran on whose verdict (or error) hasn't landed — the
 // current message's always: its check has only just started.
 export function pendingFinalChecks(p: {
-  messages: { index: number; text: string }[]; from: number | null; memory: CloseHoldMemory;
+  messages: { index: number; text: string }[]; from: number | null;
   rows: Row[]; checked: (text: string) => boolean;
 }): number[] {
-  const indexes = p.messages.map(m => m.index);
   const landed = new Set(p.rows.filter(r => r.category === 'math_checker' && (r.subtype === 'verdict' || r.subtype === 'error'))
     .map(r => (r.payloadJsonb as { candidateTurnIndex?: number }).candidateTurnIndex));
-  return p.messages.filter(m => inFinalScope(m.index, p.from, indexes, p.memory) && p.checked(m.text) && !landed.has(m.index))
+  return p.messages.filter(m => inFinalScope(m.index, p.from) && p.checked(m.text) && !landed.has(m.index))
     .map(m => m.index);
 }
 

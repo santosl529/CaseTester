@@ -126,7 +126,7 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
   it('a final answer\'s flag holds the close even with the recommendation math probe spent', () => {
     const p = modelState(planTurn(withVerdict(endReads({ flags: { recMathProbed: true } }), [verdict(7)]), RISK, deps()));
     expect(p.state.kind).toBe('rec_math_probe');
-    expect(p.state.closeHoldPlan).toEqual({ from: 7, probeKey: 'pricing:gain@5' });
+    expect(p.state.closeHoldPlan).toEqual({ from: 7, probeKey: 'pricing:gain@5', hold: true });
   });
   it('once per figure: probed already, the close goes ahead and the flag goes to the report', () => {
     const p = modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probed: ['pricing:gain@5'] } } }), [verdict(7)]), RISK, deps()));
@@ -157,8 +157,8 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
     expect(planAt().decisions).toContainEqual(expect.objectContaining({ id: '7:0', outcome: 'expired' }));
     expect(planAt(n => n >= 7).selected).toMatchObject({ id: '7:0' });
   });
-  it('a flag in the reply to a close hold (a redo still wrong) holds nothing: the close, the flag to the report', () => {
-    const p = modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { after: [5] } } }), [verdict(7)]), RISK, deps()));
+  it('a redo still wrong at another value: its step had the probe — the close, the flag to the report', () => {
+    const p = modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probed: ['pricing:gain@4'] } } }), [verdict(7)]), RISK, deps()));
     expect(p.state.kind).toBe('close');
     expect(p.ctx.events).toContainEqual(expect.objectContaining({ payload: expect.objectContaining({ id: '7:0', outcome: 'unresolved_at_close' }) }));
   });
@@ -203,10 +203,20 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
     const err = { ...verdict(7), subtype: 'error', payloadJsonb: { candidateTurnIndex: 7, error: 'overloaded', timedOut: false, latencyMs: 30000 } };
     expect(modelState(planTurn(withVerdict(endReads(), [err as never]), RISK, on())).state.kind).toBe('close');
   });
-  it('once an interview; never at time-up; a hold reply is not waited on', () => {
+  it('once an interview; never at time-up', () => {
     expect(modelState(planTurn(endReads({ flags: { closeHold: { waited: true } } }), RISK, on())).state.kind).toBe('close');
     expect(modelState(planTurn(endReads({ elapsedMs: 21 * 60 * 1000, flags: { graceAskFired: true } }), RISK, on())).state.kind).toBe('close');
-    expect(modelState(planTurn(endReads({ flags: { closeHold: { after: [5] } } }), RISK, on())).state.kind).toBe('close');
+  });
+  // Batch 28 Sofia 0a43682d t15: "beans are 25% of COGS, so call that 25 points of
+  // revenue" — the unit check's flag blocks the checker's line that turn (one math
+  // line a turn) and the checker defers to it, so code's own line holds the close.
+  const SOFIA_T15 = 'COGS is 58 points of revenue, so variable contribution is roughly 42 points. And beans are 25% of COGS, so call that 25 points of revenue cushioning the downside.';
+  it('the closing message\'s own deterministic flag, in the final answers: code\'s line holds the close once', () => {
+    const p = modelState(planTurn(withVerdict(endReads(), [verdict(7, { claims: [] })]), SOFIA_T15, deps()));
+    expect(p.state.kind).toBe('rec_math_probe');
+    expect(p.state.recMathProbe).toEqual(expect.objectContaining({ flag: expect.objectContaining({ kind: 'unit', candidateValue: 25 }) }));
+    expect(p.state.closeHoldPlan).toMatchObject({ probeKey: 'unit:COGS@25', hold: true });
+    expect(modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probed: ['unit:COGS@25'] } } }), [verdict(7, { claims: [] })]), SOFIA_T15, deps())).state.kind).toBe('close');
   });
 });
 

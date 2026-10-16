@@ -34,7 +34,7 @@ import { statesQuantitativeClaim, numbersOf } from './math-checker';
 import { startMathCheck, planCheckerFlags, formatCheckerHint, liveCheckerConfig, checkerKey, closedErrorRestated, stepOfKey, STEP_PROBE_CAP, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { formatPeriodQuestionLine } from './unit-check';
-import { finalAnswersFrom, inFinalScope, pendingFinalChecks, type CloseHoldMemory } from './close-hold';
+import { finalAnswersFrom, inFinalScope, pendingFinalChecks, probedAlready, type CloseHoldMemory } from './close-hold';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
 import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
 
@@ -566,12 +566,11 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const checkerMemory = (flags.mathChecker as Partial<CheckerMemory> | undefined) ?? {};
   const checkerHandled = checkerMemory.handled ?? [];
   const heldLine = checkerMemory.held && !checkerHandled.includes(checkerMemory.held) ? checkerMemory.held : undefined;
-  // The final answers — the recommendation reply and every reply after it, less
-  // the replies to a close hold — are checked before the case closes (close-hold.ts; Lorenzo, 16 Oct).
+  // The final answers — the recommendation reply and every reply after it — are
+  // checked before the case closes (close-hold.ts; Lorenzo, 16 Oct).
   const closeHold = (flags.closeHold as CloseHoldMemory | undefined) ?? {};
   const finalFrom = finalAnswersFrom(flags.stageEvidence as StageRecord | undefined);
-  const candidateIndexes = [...turnRows.filter(t => t.role === 'candidate').map(t => t.turnIndex), ctx.nextTurnIndex];
-  const finalAnswer = (n: number) => inFinalScope(n, finalFrom, candidateIndexes, closeHold);
+  const finalAnswer = (n: number) => inFinalScope(n, finalFrom);
   const checkerPlan = planCheckerFlags({
     rows: (reads.checkerEventRows ?? []).filter(r => r.category === MATH_CHECKER_CATEGORY),
     handled: checkerHandled, turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
@@ -790,21 +789,33 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // most once an interview (flags.heldCloseHold, apart from recMathProbed), not
   // at time-up — then it goes to the report like any flag left at the close.
   // A flag in the final answers holds the close whatever its rating, once per
-  // figure (close-hold.ts; Lorenzo, 16 Oct); one in a reply to a close hold — a
-  // redo still wrong — holds nothing: the report has it.
+  // figure (close-hold.ts; Lorenzo, 16 Oct): the closing message's own
+  // deterministic flag first — one math line a turn, and the checker defers to
+  // it — else the checker's. A redo still wrong (its step probed) holds nothing.
   let heldCloseHold = false;
-  let finalProbeKey: string | null = null;
+  // The figure this turn probes in the final answers (its one extra probe), and whether the probe is this hold's own.
+  let finalProbeKey: string | null = recMathProbe && finalAnswer(ctx.nextTurnIndex)
+    ? ('flag' in recMathProbe ? attemptKey(recMathProbe.flag) : 'closed' in recMathProbe ? recMathProbe.closed.key : null) : null;
+  let finalHold = false;
   const selFinal = sel !== null && finalAnswer(sel.candidateTurnIndex);
-  const selAfterRec = sel !== null && finalFrom !== null && sel.candidateTurnIndex >= finalFrom;
-  if (kind === 'close' && sel && selFinal && !timeUp && !(closeHold.probed ?? []).includes(sel.key)) {
+  const codeFinal = kind === 'close' && !timeUp && finalAnswer(ctx.nextTurnIndex)
+    ? liveFlags.find(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, false) && !probedAlready(attemptKey(f), closeHold))
+    : undefined;
+  if (codeFinal) {
+    kind = 'rec_math_probe';
+    recMathProbe = { flag: codeFinal, action: recomputeAction(codeFinal, recomputeAttempts[attemptKey(codeFinal)] ?? 1, false) };
+    finalProbeKey = attemptKey(codeFinal);
+    finalHold = true;
+  } else if (kind === 'close' && sel && selFinal && !timeUp && !probedAlready(sel.key, closeHold)) {
     kind = 'rec_math_probe';
     recMathProbe = { checker: sel, action: sel.action === 'correct' ? 'correct' : 'probe' };
     finalProbeKey = sel.key;
+    finalHold = true;
     heldCloseHold = sel.id === heldLine && !flags.heldCloseHold;
-  } else if (kind === 'close' && sel?.claim.changesConclusion && !selAfterRec && !timeUp && !flags.recMathProbed) {
+  } else if (kind === 'close' && sel?.claim.changesConclusion && !selFinal && !timeUp && !flags.recMathProbed) {
     kind = 'rec_math_probe';
     recMathProbe = { checker: sel, action: sel.action === 'correct' ? 'correct' : 'probe' };
-  } else if (kind === 'close' && sel && !selAfterRec && sel.id === heldLine && !timeUp && !flags.heldCloseHold) {
+  } else if (kind === 'close' && sel && !selFinal && sel.id === heldLine && !timeUp && !flags.heldCloseHold) {
     kind = 'rec_math_probe';
     recMathProbe = { checker: sel, action: sel.action === 'correct' ? 'correct' : 'probe' };
     heldCloseHold = true;
@@ -813,11 +824,11 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // rule): the stage's natural follow-up instead of the close, once an interview.
   const pendingFinal = checkerConfig ? pendingFinalChecks({
     messages: [...turnRows.filter(t => t.role === 'candidate').map(t => ({ index: t.turnIndex, text: t.text })), { index: ctx.nextTurnIndex, text: candidateText }],
-    from: finalFrom, memory: closeHold, rows: reads.checkerEventRows ?? [], checked: statesQuantitativeClaim,
+    from: finalFrom, rows: reads.checkerEventRows ?? [], checked: statesQuantitativeClaim,
   }) : [];
   if (kind === 'close' && !timeUp && pendingFinal.length > 0 && !closeHold.waited) kind = 'close_wait';
-  checks.record('close_hold', kind === 'close_wait' || finalProbeKey !== null, kind === 'close_wait' ? 'a final answer\'s verdict has not landed — the follow-up, not the close'
-    : finalProbeKey ? 'a final answer\'s flag — probed before the close' : 'no close hold on the final answers', {
+  checks.record('close_hold', kind === 'close_wait' || finalHold, kind === 'close_wait' ? 'a final answer\'s verdict has not landed — the follow-up, not the close'
+    : finalHold ? 'a final answer\'s flag — probed before the close' : 'no close hold on the final answers', {
     finalFrom, pending: pendingFinal, probeKey: finalProbeKey, waited: Boolean(closeHold.waited), probed: closeHold.probed ?? [],
   });
   const checkerUsed = sel && (kind === 'model' || (kind === 'rec_math_probe' && recMathProbe && 'checker' in recMathProbe)) ? sel : null;
@@ -971,7 +982,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       caseData, repliedToDistressOffer, shownExhibitIds, stagesOut, brainstormDue: brainstormDueNow, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
-      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, recMathProbe, checkerLine, recAskLate, stagesDue, heldCloseHold, closeHoldPlan: { from: finalFrom, probeKey: finalProbeKey }, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
+      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, recMathProbe, checkerLine, recAskLate, stagesDue, heldCloseHold, closeHoldPlan: { from: finalFrom, probeKey: finalProbeKey, hold: finalHold }, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,

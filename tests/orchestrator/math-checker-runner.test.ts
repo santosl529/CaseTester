@@ -173,10 +173,39 @@ describe('in place of the close, code says the checker\'s line', () => {
     expect(r.interviewerText).toContain('Before we wrap up — you said the whole 18 points sits in COGS. Which cost lines did you look at to get there?');
     // A final answer's hold (Lorenzo, 16 Oct): its own memory, the once-a-case counter untouched.
     expect((store.session.flagsJsonb as Row).recMathProbed).toBe(false);
-    expect((store.session.flagsJsonb as Row).closeHold).toEqual({ probed: ['checker:the whole 18 points'], after: [9] });
-    // The redo, still wrong: it holds nothing — the case closes, the report has it.
+    expect((store.session.flagsJsonb as Row).closeHold).toEqual({ probed: ['checker:the whole 18 points'] });
+    // The redo, still wrong: no second probe. Its own verdict is out — the follow-up once — then the close; the report has it.
     const r11 = await runTurn('s1', 'I looked at COGS. It is all 18 points in COGS.');
-    expect(r11.ended).toBe(true);
+    expect(r11.ended).toBe(false);
+    expect(r11.interviewerText).not.toMatch(/18 points/);
+    calls.at(-1)!.resolve({ claims: [flaggedClaim], model: 'claude-sonnet-5-5', latencyMs: 6000, stopReason: 'end_turn' });
+    await flush(); await flush();
+    const r13 = await runTurn('s1', 'Start with the dairy contracts.');
+    expect(r13.ended).toBe(true);
+  });
+});
+
+// Lorenzo, 16 Oct: the checker's line on a final answer, heard on a model turn, is that figure's one extra probe.
+describe('a final answer\'s flag raised on a model turn', () => {
+  beforeEach(seed);
+  it('counts as its probe: at the close it is not probed again', async () => {
+    const startedAt = new Date(Date.now() - 15 * 60_000);
+    store.session = {
+      ...store.session, phase: 'RECOMMENDATION', startedAt,
+      flagsJsonb: { ...(store.session.flagsJsonb as Row), moves: { 4: 'brainstorm', 6: 'recommendation' }, stall: { recommendationDelivered: true }, stagesEnforced: { analysis: true, exhibit: true, brainstorm: true }, stageEvidence: { ...INITIAL_STAGES, brainstorm: { delivered: true, deliveredAt: 4, outcome: 'answered' as const }, recommendation: { delivered: true, deliveredAt: 6, asks: 1, outcome: 'answered' as const } } },
+    };
+    const more = [
+      { role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What else could they do?' },
+      { role: 'candidate', text: 'More ideas.' }, { role: 'interviewer', text: 'What do you recommend?' },
+    ];
+    store.turns.push(...more.map((t, i) => ({ id: `x${i}`, sessionId: 's1', turnIndex: 3 + i, role: t.role, text: t.text, timestampMs: startedAt.getTime() + i * 20_000, latencyMs: null })));
+    store.exhibits = [{ id: 'e0', sessionId: 's1', exhibitId: 'exhibit-a', shownAtMs: startedAt.getTime() }];
+    await runTurn('s1', `My recommendation is to raise menu prices. ${CLAIM}`);
+    calls[0].resolve({ claims: [flaggedClaim], model: 'claude-sonnet-5-5', latencyMs: 6000, stopReason: 'end_turn' });
+    await flush(); await flush();
+    const r9 = await runTurn('s1', 'I would sequence pricing first, then procurement.');
+    expect(r9.interviewerText).toContain('You said the whole 18 points sits in COGS.');
+    expect((store.session.flagsJsonb as Row).closeHold).toEqual({ probed: ['checker:the whole 18 points'] });
   });
 });
 
@@ -204,7 +233,7 @@ describe('a final answer not yet checked: the stage\'s follow-up, not the close'
     const r9 = await runTurn('s1', RISK);
     expect(r9.ended).toBe(false);
     expect(r9.interviewerText).toMatch(/^(How would you guard against that\?|What would you put in place to guard against that\?)$/);
-    expect((store.session.flagsJsonb as Row).closeHold).toEqual({ waited: true, after: [9] });
+    expect((store.session.flagsJsonb as Row).closeHold).toEqual({ waited: true });
     calls.at(-1)!.resolve({ claims: [flaggedClaim], model: 'claude-sonnet-5-5', latencyMs: 8000, stopReason: 'end_turn' });
     await flush(); await flush();
     const r11 = await runTurn('s1', 'I would pilot it in 20 stores and watch traffic weekly.');

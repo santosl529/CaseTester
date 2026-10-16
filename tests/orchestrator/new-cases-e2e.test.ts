@@ -211,6 +211,9 @@ describe.each(SCRIPTS.flatMap(s => (['correct', 'error'] as const).map(v => ({ .
       expect(close.ended).toBe(false);
       expect(close.interviewerText).toContain('Before we wrap up — you said it clears the bar by about 40%. Which figures did you use to get there?');
       close = await at(min++, 'I took it from the exhibits; on reflection it is closer to 10%, which still clears the bar.');
+      // The redo's own figure is not yet checked (close-hold.ts, 16 Oct): the stage's follow-up once, then the close.
+      expect(close.ended).toBe(false);
+      close = await at(min++, 'A pilot first, with a clear stop rule.');
     }
     expect(close.ended).toBe(true);
     expect(store.session.status).toBe('completed');
