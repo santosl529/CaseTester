@@ -35,6 +35,10 @@ export default async function LessonReviewPage() {
             <p className="text-xs text-muted-foreground">{l.file} · v{l.version} · {l.words} of {MAX_WORDS} words</p>
             {problems.length > 0 && <ul role="alert" className="list-disc pl-5 text-sm text-destructive">{problems.map(p => <li key={p}>{p}</li>)}</ul>}
             <LessonBody lesson={{ ...l, skill_name: getSkill(l.skill_id).name, mistakes: l.mistakes.map(m => ({ ...m, label: getMistakeTag(m.tag)?.label ?? m.tag })) }} />
+            <details className="rounded-lg border p-4">
+              <summary className="cursor-pointer text-sm font-medium">Summary card (Standard, Sprint and self-directed students)</summary>
+              <div className="pt-4"><LessonBody mode="summary" lesson={{ ...l, skill_name: getSkill(l.skill_id).name, mistakes: l.mistakes.map(m => ({ ...m, label: getMistakeTag(m.tag)?.label ?? m.tag })) }} /></div>
+            </details>
             <LessonReviewButtons lessonId={l.lesson_id} status={l.status} notes={l.authorship.review_notes} />
           </section>
         );

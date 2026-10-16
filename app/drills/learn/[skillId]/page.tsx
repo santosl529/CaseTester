@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { studentOrRedirect } from '@/lib/drills/session';
 import { lessonForSkill } from '@/lib/drills/program/lessons-store';
+import { activeProgram } from '@/lib/drills/program/store';
+import { db } from '@/db/client';
 import { LessonBody } from '@/components/drills/lesson';
 import { LessonActions } from '@/components/drills/lesson-actions';
 
@@ -15,12 +17,16 @@ export default async function LessonPage({ params, searchParams }: {
   params: Promise<{ skillId: string }>;
   searchParams: Promise<{ source?: string; workout?: string; block?: string }>;
 }) {
-  await studentOrRedirect();
+  const studentId = await studentOrRedirect();
   const { skillId } = await params;
   const sp = await searchParams;
   const lesson = await lessonForSkill(decodeURIComponent(skillId));
   if (!lesson) notFound();
   const source: Source = SOURCES.includes(sp.source as Source) ? sp.source as Source : 'library';
+  // Foundations gets the full lesson; every other track a summary card with
+  // "Read full lesson" (Matt, 2026-10-16).
+  const program = await activeProgram(db, studentId);
+  const mode = program?.track === 'foundations' ? 'full' : 'summary';
   const start = sp.workout && sp.block !== undefined
     ? { workout_id: sp.workout, block: Number(sp.block) }
     : { skill_id: lesson.skill_id, quick_start: true };
@@ -30,7 +36,7 @@ export default async function LessonPage({ params, searchParams }: {
         <Link href="/drills" className="text-muted-foreground underline-offset-4 hover:underline">← Training home</Link>
         <Link href="/drills/learn" className="text-muted-foreground underline-offset-4 hover:underline">All lessons</Link>
       </nav>
-      <LessonBody lesson={lesson} />
+      <LessonBody lesson={lesson} mode={mode} />
       <LessonActions lessonId={lesson.lesson_id} version={lesson.version} source={source} start={start} skippable={source === 'auto'} />
     </main>
   );

@@ -6,7 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 import { DRILLS_CONFIG, getMistakeTag, getSkill } from '@/lib/drills/config';
-import { loadLessons } from '@/lib/drills/lessons';
+import { loadLessons, MAX_WORDS } from '@/lib/drills/lessons';
 
 const OUT = path.join(process.cwd(), 'docs/drills-content/lessons-review.md');
 const order = DRILLS_CONFIG.taxonomy.skills.map(s => s.id);
@@ -17,7 +17,7 @@ const status = { draft: 'Draft', in_review: 'Changes requested', live: 'Approved
 const parts = [
   '# Drill lessons: first read',
   '',
-  `${lessons.length} lessons, one per skill, in skill order. Each is what a student sees on the lesson page. Generated from \`/lessons\` by \`npm run drills:lessons-doc\`; approve or request changes on the review page (\`/drills/review/lessons\`), not here.`,
+  `${lessons.length} lessons, one per skill, in skill order. Lessons marked **new format** have the four added sections (Why it works, Another example, Tricky cases, Quick check). Each is what a student sees on the lesson page. Generated from \`/lessons\` by \`npm run drills:lessons-doc\`; approve or request changes on the review page (\`/drills/review/lessons\`), not here.`,
   '',
   '## Contents',
   '',
@@ -29,13 +29,17 @@ for (const l of lessons) {
   if (skill.area !== area) { area = skill.area; parts.push('', '---', '', `# ${areaName(area)}`); }
   parts.push(
     '', `## ${skill.name}: ${l.title}`, '',
-    `*${status[l.status]} · ${l.words} of 400 words · \`${l.file}\`*${l.authorship.review_notes ? ` · Your notes: ${l.authorship.review_notes}` : ''}`, '',
+    `*${status[l.status]}${l.why_it_works ? ' · new format' : ''} · ${l.words} of ${MAX_WORDS} words · \`${l.file}\`*${l.authorship.review_notes ? ` · Your notes: ${l.authorship.review_notes}` : ''}`, '',
     `> ${l.idea}`, '',
     '**Why interviewers care**', '', l.why, '',
+    ...(l.why_it_works ? ['**Why it works**', '', l.why_it_works, ''] : []),
     '**The pattern**', '', l.pattern, '',
     '**Worked example**', '', l.worked_example, '',
+    ...(l.another_example ? ['**Another example**', '', l.another_example, ''] : []),
+    ...(l.tricky_cases ? ['**Tricky cases**', '', l.tricky_cases, ''] : []),
     '**Common mistakes**', '',
     ...l.mistakes.map(m => { const label = getMistakeTag(m.tag)?.label ?? m.tag; return `- ${label[0].toUpperCase()}${label.slice(1)}: ${m.line}`; }),
+    ...(l.quick_check ? ['', '**Quick check**', '', l.quick_check.question, '', `*Answer (hidden until the student asks):* ${l.quick_check.answer}`] : []),
   );
 }
 fs.writeFileSync(OUT, parts.join('\n') + '\n');

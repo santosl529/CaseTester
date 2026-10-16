@@ -3,7 +3,7 @@ lesson_id: lesson-qn-magnitude
 skill_id: QN.magnitude
 version: 1
 status: draft
-title: Zeros and units
+title: Keep track of zeros and units
 drafting_model: claude-opus-5-5
 reviewed_by:
 reviewed_at:

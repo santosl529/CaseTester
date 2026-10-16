@@ -22,15 +22,20 @@ export interface LessonView {
   pattern: string;
   worked_example: string;
   mistakes: { tag: string; label: string; line: string }[];
+  why_it_works: string | null;
+  another_example: string | null;
+  tricky_cases: string | null;
+  quick_check: { question: string; answer: string } | null;
 }
 
 const visible = () => (previewDrafts() ? ['live', 'draft', 'in_review'] as const : ['live'] as const);
 
 function toView(row: typeof lessons.$inferSelect): LessonView {
-  const b = JSON.parse(row.body) as { title: string; idea: string; why: string; pattern: string };
+  const b = JSON.parse(row.body) as { title: string; idea: string; why: string; pattern: string } & Partial<Pick<LessonView, 'why_it_works' | 'another_example' | 'tricky_cases' | 'quick_check'>>;
   return {
     lesson_id: row.lessonId, version: row.version, skill_id: row.skillId, skill_name: getSkill(row.skillId).name,
-    status: row.status, ...b, worked_example: row.workedExample,
+    status: row.status, ...b, why_it_works: b.why_it_works ?? null, another_example: b.another_example ?? null,
+    tricky_cases: b.tricky_cases ?? null, quick_check: b.quick_check ?? null, worked_example: row.workedExample,
     mistakes: (row.mistakes as { tag: string; line: string }[]).map(m => ({ ...m, label: getMistakeTag(m.tag)?.label ?? m.tag })),
   };
 }

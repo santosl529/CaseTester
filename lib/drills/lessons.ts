@@ -3,15 +3,20 @@
 // Each file has a front-matter block, then five sections:
 //   ## The idea · ## Why interviewers care · ## The pattern
 //   ## Worked example · ## Common mistakes (one "- `M.tag`: line" per tag)
-// Readable in about 3 minutes: 400 words or fewer, front matter excluded.
+// and, in the v2 format (Matt, 2026-10-16), four more: ## Why it works ·
+// ## Another example (a different case type and industry) · ## Tricky cases
+// (borderline answers with the verdict and why) · ## Quick check (a question,
+// then a line starting "**Answer:**"). Lessons move to v2 one at a time, so a
+// lesson has all four or none. 600 words or fewer, front matter excluded.
 import fs from 'fs';
 import path from 'path';
 import { z } from 'zod';
 import { DRILLS_CONFIG, getSkill } from './config';
 
 export const LESSONS_DIR = path.join(process.cwd(), 'lessons');
-export const MAX_WORDS = 400;
+export const MAX_WORDS = 600;
 const SECTIONS = ['The idea', 'Why interviewers care', 'The pattern', 'Worked example', 'Common mistakes'] as const;
+export const V2_SECTIONS = ['Why it works', 'Another example', 'Tricky cases', 'Quick check'] as const;
 
 const MetaSchema = z.object({
   lesson_id: z.string().regex(/^lesson-[a-z]{2}-[a-z_]+$/),
@@ -37,6 +42,12 @@ export interface Lesson {
   pattern: string;
   worked_example: string;
   mistakes: { tag: string; line: string }[];
+  // v2 sections (null until the lesson moves to v2).
+  why_it_works: string | null;
+  another_example: string | null;
+  tricky_cases: string | null;
+  quick_check: { question: string; answer: string } | null;
+  v2_missing: string[];
   authorship: { drafting_model: string; reviewed_by: string; reviewed_at: string; review_notes: string };
   words: number;
 }
@@ -62,10 +73,17 @@ export function parseLesson(file: string, raw: string): Lesson {
     if (!mm) throw new Error(`${file}: a common mistake must look like "- \`M.tag\`: line" (${l.trim()})`);
     return { tag: mm[1], line: mm[2].trim() };
   });
+  const check = sections.get('Quick check');
+  const split = check?.split(/^\*\*Answer:\*\*\s*/m);
+  const v2 = V2_SECTIONS.filter(s => sections.get(s));
   return {
     file, lesson_id: meta.lesson_id, skill_id: meta.skill_id, version: meta.version, status: meta.status, title: meta.title,
     idea: sections.get('The idea')!, why: sections.get('Why interviewers care')!, pattern: sections.get('The pattern')!,
     worked_example: sections.get('Worked example')!, mistakes,
+    why_it_works: sections.get('Why it works') ?? null, another_example: sections.get('Another example') ?? null,
+    tricky_cases: sections.get('Tricky cases') ?? null,
+    quick_check: split ? { question: split[0].trim(), answer: (split[1] ?? '').trim() } : null,
+    v2_missing: v2.length ? V2_SECTIONS.filter(s => !sections.get(s)) : [],
     authorship: { drafting_model: meta.drafting_model, reviewed_by: meta.reviewed_by, reviewed_at: meta.reviewed_at, review_notes: meta.review_notes },
     words: words(meta.title) + words(m[2].replace(/^## .*$/gm, '')),
   };
@@ -79,6 +97,8 @@ export function lessonProblems(l: Lesson): string[] {
   if (!skill) return [`${l.file}: unknown skill ${l.skill_id}`];
   if (l.lesson_id !== lessonIdFor(l.skill_id)) out.push(`${l.file}: lesson_id should be ${lessonIdFor(l.skill_id)}`);
   if (l.words > MAX_WORDS) out.push(`${l.file}: ${l.words} words (limit ${MAX_WORDS})`);
+  if (l.v2_missing.length) out.push(`${l.file}: a v2 lesson needs every new section; missing ${l.v2_missing.map(s => `"## ${s}"`).join(', ')}`);
+  if (l.quick_check && (!l.quick_check.question || !l.quick_check.answer)) out.push(`${l.file}: the quick check needs a question and a line starting "**Answer:**"`);
   const tags = DRILLS_CONFIG.taxonomy.mistake_tags.filter(t => t.skill === l.skill_id && !t.deprecated).map(t => t.id);
   const listed = l.mistakes.map(m => m.tag);
   for (const t of tags) if (!listed.includes(t)) out.push(`${l.file}: no common-mistake line for ${t}`);

@@ -35,5 +35,5 @@ Tailored:
 Each bucket would change the answer, and each says where to look first.
 
 ## Common mistakes
-- `M.generic_framework`: a memorized list (profit tree, 4Ps, SWOT) whose headings and sub-points never mention this client.
+- `M.generic_framework`: a memorized list (profit tree, 4Ps, SWOT) whose headings and sub-points never mention this client. Adding the client's name to generic headings ("German revenue, German costs") is still generic.
 - `M.irrelevant_bucket`: a bucket that wouldn't change the answer, like head-office rent when the question is pricing a new product.

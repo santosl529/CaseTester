@@ -24,7 +24,7 @@ Interview exhibits often hide one detail that changes the answer. Catching it is
 6. Periods: quarters or years? Do the columns cover the same span?
 
 ## Worked example
-A bar chart of sales shows one bar about twice as tall as the other, labeled 95 and 105. The axis starts at 90, so the real increase is 10 ÷ 95, about **11%**, not a doubling.
+A bar chart of sales shows one bar twice as tall as the other, labeled 95 and 105. The axis starts at 85, so the bars are 10 and 20 tall, but the real increase is 10 ÷ 95, about **11%**, not a doubling.
 
 A footnote reads "excludes online sales". Any conclusion is about store sales only.
 

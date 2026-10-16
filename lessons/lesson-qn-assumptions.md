@@ -16,8 +16,8 @@ Pick numbers you can justify in one line, from something you know or can work ou
 Interviewers accept a range of reasonable assumptions. They push back when a number has no basis or is far from reality.
 
 ## The pattern
-1. Anchor to figures you know: about 330M people and 130M households in the US, about 50 working weeks a year.
-2. Work out what you don't know: "a haircut every 6 weeks is about 8 a year".
+1. Anchor to figures you know: about 340M people and 130M households in the US, about 50 working weeks a year.
+2. Work out what you don't know: "a haircut every 6 weeks is about 8–9 a year".
 3. Use round numbers that keep the math easy.
 4. Say the basis out loud, in a few words.
 

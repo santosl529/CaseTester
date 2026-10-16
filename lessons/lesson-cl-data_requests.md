@@ -18,7 +18,7 @@ Asking for "all the data" signals there's no plan. Interviewers reward candidate
 ## The pattern
 1. Break the metric down: profit = price − costs; costs = feed + labor + transport.
 2. Start where the problem most likely sits, and say why: the part that changed most, the biggest cost, or the part the client controls.
-3. Make each request a metric plus a cut or a time period: "feed cost per liter by month for two years".
+3. Make each request a metric plus at least one of a cut, a comparison or a time period: "feed cost per liter by month for two years".
 4. Keep it to a few requests, grouped by driver.
 5. Diagnose before proposing fixes.
 

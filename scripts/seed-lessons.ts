@@ -10,9 +10,12 @@ import { db } from '@/db/client';
 import { lessons } from '@/db/schema';
 import { lessonProblems, loadLessons, type Lesson } from '@/lib/drills/lessons';
 
-const content = (l: Pick<Lesson, 'title' | 'idea' | 'why' | 'pattern' | 'worked_example' | 'mistakes'>) =>
-  JSON.stringify([l.title, l.idea, l.why, l.pattern, l.worked_example, l.mistakes]);
-const body = (l: Lesson) => JSON.stringify({ title: l.title, idea: l.idea, why: l.why, pattern: l.pattern });
+type Stored = Pick<Lesson, 'title' | 'idea' | 'why' | 'pattern' | 'worked_example' | 'mistakes'> & Partial<Pick<Lesson, 'why_it_works' | 'another_example' | 'tricky_cases' | 'quick_check'>>;
+const content = (l: Stored) =>
+  JSON.stringify([l.title, l.idea, l.why, l.pattern, l.worked_example, l.mistakes, l.why_it_works ?? null, l.another_example ?? null, l.tricky_cases ?? null, l.quick_check ?? null]);
+// The v2 sections ride in the body JSON, so no new columns are needed.
+const body = (l: Lesson) => JSON.stringify({ title: l.title, idea: l.idea, why: l.why, pattern: l.pattern,
+  why_it_works: l.why_it_works, another_example: l.another_example, tricky_cases: l.tricky_cases, quick_check: l.quick_check });
 
 async function main() {
   const all = loadLessons();

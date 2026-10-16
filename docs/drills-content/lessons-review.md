@@ -1,6 +1,6 @@
 # Drill lessons: first read
 
-22 lessons, one per skill, in skill order. Each is what a student sees on the lesson page. Generated from `/lessons` by `npm run drills:lessons-doc`; approve or request changes on the review page (`/drills/review/lessons`), not here.
+23 lessons, one per skill, in skill order. Lessons marked **new format** have the four added sections (Why it works, Another example, Tricky cases, Quick check). Each is what a student sees on the lesson page. Generated from `/lessons` by `npm run drills:lessons-doc`; approve or request changes on the review page (`/drills/review/lessons`), not here.
 
 ## Contents
 
@@ -10,7 +10,7 @@
 4. Forming a hypothesis: A hypothesis you can test
 5. Updating a hypothesis: Keep, revise or drop
 6. Arithmetic: Clean arithmetic under time pressure
-7. Zeros and units: Zeros and units
+7. Zeros and units: Keep track of zeros and units
 8. Percentages: Percent change, percent of, and percentage points
 9. Growth: Growth compounds
 10. Math setup: Set up the formula before you calculate
@@ -26,6 +26,7 @@
 20. Mid-case summary: Summarize the case so far
 21. Driving next steps: Propose the next step yourself
 22. Data requests: Ask for specific data, in order
+23. Handling pushback: Defending your answer
 
 ---
 
@@ -33,13 +34,17 @@
 
 ## MECE structure: Buckets that don't overlap and miss nothing
 
-*Draft · 287 of 400 words · `lessons/lesson-ps-mece.md`*
+*Draft · new format · 600 of 600 words · `lessons/lesson-ps-mece.md`*
 
-> A good structure splits the problem into buckets that don't overlap and that, together, cover everything that could explain the answer.
+> A good structure is **MECE** (mutually exclusive, collectively exhaustive): its buckets don't overlap, and together they cover everything that could explain the answer.
 
 **Why interviewers care**
 
 Overlapping buckets make you analyze the same thing twice and lose the thread. A missing bucket means the real cause can sit outside your framework, and you won't find it. Interviewers check both within seconds of seeing your structure.
+
+**Why it works**
+
+A case is a search for the cause. When every likely cause has a clear home, you can rule buckets out one at a time and trust that the answer is in what's left. An overlap means ruling out one bucket half-rules out another; a gap means you can rule out every bucket and still miss the answer.
 
 **The pattern**
 
@@ -55,16 +60,36 @@ A city library's book checkouts fell 20% in two years.
 
 First draft: (1) Visitors; (2) Foot traffic; (3) Digital lending. "Visitors" and "Foot traffic" overlap: both count people coming in. And nothing covers whether people who visit borrow less once inside.
 
-Better: (1) **How many people visit**: by branch and opening hours; (2) **How much visitors borrow**: share who borrow, books per loan; (3) **Borrowing that moved elsewhere**: e-books and audiobooks. Shorter hours, a weaker collection and a switch to e-books each land in exactly one bucket.
+Better: (1) **How many people visit**: by branch and opening hours; (2) **How much visitors borrow**: share who borrow, books per loan; (3) **Borrowing that moved elsewhere**: e-books and audiobooks. Shorter hours, a weaker collection and a switch to e-books each have a clear home. A switch to e-books would also cut visits, but bucket 3 is where you'd measure it.
+
+**Another example**
+
+Estimate the yearly UK market for school uniforms.
+
+First draft: (1) Number of pupils; (2) Number of schools; (3) Spend per pupil. Pupils and schools count the same children: an overlap. And nothing covers hand-me-downs, so spend per pupil isn't the price of a new set.
+
+Better: (1) **Pupils who wear a uniform**, by school stage; (2) **New items bought per pupil a year**, net of hand-me-downs; (3) **Price per item**. Pupils × items × price gives the total, with one bucket per driver.
+
+**Tricky cases**
+
+- **"Demand" and "Market size" for a new co-working space.** Overlap: both size the pool of people who might rent.
+- **Renaming an overlapping bucket but keeping its sub-points.** Still an overlap: "Audience: tickets by screen" next to "Revenue: tickets sold; price" counts tickets twice: change what the bucket examines, not its name.
+- **Adding "Members: members per month" to a framework about a 15% fee rise at a yoga studio.** Still a gap: today's members don't say how many would quit at the higher fee. A nearby topic doesn't fill a gap.
 
 **Common mistakes**
 
 - Overlapping buckets: two buckets that send you to the same data, like "Demand" and "Market size".
 - Missing bucket: a likely cause that no bucket would find, like leaving out costs on a profit question.
 
+**Quick check**
+
+A taxi company's profit per car fell. A candidate's buckets: (1) Fares per trip; (2) Trips per car per day. Is it MECE?
+
+*Answer (hidden until the student asks):* No, there's a gap: it covers only revenue. Profit is revenue minus costs, so it needs a third bucket for cost per car: fuel, repairs, insurance and driver pay.
+
 ## Case-specific structure: A structure built for this case
 
-*Draft · 265 of 400 words · `lessons/lesson-ps-case_specific.md`*
+*Draft · 279 of 600 words · `lessons/lesson-ps-case_specific.md`*
 
 > Each bucket should be about this client and this decision, in its heading or its sub-points. A memorized framework only works once you adapt it.
 
@@ -95,12 +120,12 @@ Each bucket would change the answer, and each says where to look first.
 
 **Common mistakes**
 
-- Generic framework: a memorized list (profit tree, 4Ps, SWOT) whose headings and sub-points never mention this client.
+- Generic framework: a memorized list (profit tree, 4Ps, SWOT) whose headings and sub-points never mention this client. Adding the client's name to generic headings ("German revenue, German costs") is still generic.
 - Irrelevant bucket: a bucket that wouldn't change the answer, like head-office rent when the question is pricing a new product.
 
 ## Structure depth: Sub-points that say what you'd look at
 
-*Draft · 207 of 400 words · `lessons/lesson-ps-depth.md`*
+*Draft · 207 of 600 words · `lessons/lesson-ps-depth.md`*
 
 > Under each bucket, name the specific things you'd examine, so the interviewer can see where your analysis goes next.
 
@@ -139,7 +164,7 @@ The concrete version tells the interviewer exactly what you'd request next.
 
 ## Forming a hypothesis: A hypothesis you can test
 
-*Draft · 266 of 400 words · `lessons/lesson-hy-form.md`*
+*Draft · 266 of 600 words · `lessons/lesson-hy-form.md`*
 
 > Lead with one likely cause, say which fact points to it, and say what data would confirm or reject it, framed as something to check.
 
@@ -176,9 +201,9 @@ Strong: "Rentals are flat, so revenue per rental fell about 15%. My hypothesis i
 
 ## Updating a hypothesis: Keep, revise or drop
 
-*Draft · 239 of 400 words · `lessons/lesson-hy-update.md`*
+*Draft · 344 of 600 words · `lessons/lesson-hy-update.md`*
 
-> When a new fact arrives, say what it does to your hypothesis: keep it if the fact supports it, revise it if the fact points to a different cause, drop it if the fact rules it out.
+> When a new fact arrives, say what it does to your hypothesis: keep it if the fact is what your hypothesis predicts, revise it if the fact leaves your cause possible but shows the main cause is elsewhere, and drop it if the fact rules your cause out.
 
 **Why interviewers care**
 
@@ -188,7 +213,10 @@ Interviewers feed you data to see whether you follow the evidence. Clinging to y
 
 1. Recall your current hypothesis and its mechanism.
 2. Ask: is the new fact what I'd expect if I'm right?
-3. Decide: keep, revise or drop.
+3. Decide:
+   - **Keep**: the fact is what your hypothesis predicts.
+   - **Revise**: the fact doesn't rule your cause out, but shows the main cause is elsewhere or narrower. Move your lead to what the fact points to.
+   - **Drop**: the fact rules your cause out: what it says happened didn't happen. Say what the fact points to instead.
 4. Explain in one sentence that uses the fact: name the cause it points to, or say what it does to the mechanism.
 
 **Worked example**
@@ -197,9 +225,11 @@ Your hypothesis for the bike-rental shop: customers switched from daily to hourl
 
 New fact: the share of hourly rentals is unchanged, but the shop cut its daily price 20% in spring.
 
-Decision: **revise**. "The rental mix didn't change, so it isn't a shift to hourly rentals. The 20% cut to the daily price lowers revenue per rental, so price is now my lead cause."
+Decision: **drop**. "The rental mix didn't change, so it isn't a shift to hourly rentals. The 20% cut to the daily price lowers revenue per rental, so price is now my lead cause."
 
-If the new fact had been "hourly rentals rose from 30% to 55% of rentals", you would **keep** your hypothesis, because that is exactly what it predicts.
+If the new fact had been "hourly rentals rose slightly, from 30% to 33%, and the daily price fell 20%", you would **revise**: some customers did switch, but 3 points can't explain the fall, so the price cut becomes your lead cause.
+
+If it had been "hourly rentals rose from 30% to 55% of rentals", you would **keep** your hypothesis, because that is exactly what it predicts.
 
 **Common mistakes**
 
@@ -212,7 +242,7 @@ If the new fact had been "hourly rentals rose from 30% to 55% of rentals", you w
 
 ## Arithmetic: Clean arithmetic under time pressure
 
-*Draft · 183 of 400 words · `lessons/lesson-qn-arithmetic.md`*
+*Draft · 183 of 600 words · `lessons/lesson-qn-arithmetic.md`*
 
 > Break hard calculations into easy steps you can check, and say each step out loud.
 
@@ -242,9 +272,9 @@ Check: $45,000 ÷ 36 = 1,250. And $45,000 is close to the $40,000 estimate, so n
 
 - Arithmetic error: a slip in an operation, often in the last step or when carrying a digit.
 
-## Zeros and units: Zeros and units
+## Zeros and units: Keep track of zeros and units
 
-*Draft · 203 of 400 words · `lessons/lesson-qn-magnitude.md`*
+*Draft · 206 of 600 words · `lessons/lesson-qn-magnitude.md`*
 
 > Track zeros and units on purpose: write numbers in thousands, millions or billions, and label every result.
 
@@ -277,7 +307,7 @@ If the $120 were a monthly price, convert first: $120 × 12 = $1,440 a year, and
 
 ## Percentages: Percent change, percent of, and percentage points
 
-*Draft · 210 of 400 words · `lessons/lesson-qn-percentages.md`*
+*Draft · 210 of 600 words · `lessons/lesson-qn-percentages.md`*
 
 > Percent change divides by the starting value, and a change between two percentages is measured in percentage points.
 
@@ -310,7 +340,7 @@ That is up **3 percentage points**, or 25% in relative terms (3 ÷ 12).
 
 ## Growth: Growth compounds
 
-*Draft · 183 of 400 words · `lessons/lesson-qn-growth.md`*
+*Draft · 183 of 600 words · `lessons/lesson-qn-growth.md`*
 
 > Each year's growth applies to the previous year's total, not to the starting number.
 
@@ -341,7 +371,7 @@ Adding the rates instead (20% × 3 = 60%) gives $80M, which is $6.4M too low.
 
 ## Math setup: Set up the formula before you calculate
 
-*Draft · 211 of 400 words · `lessons/lesson-qn-setup.md`*
+*Draft · 211 of 600 words · `lessons/lesson-qn-setup.md`*
 
 > Before calculating, write the formula in words, then plug in the numbers.
 
@@ -373,7 +403,7 @@ Wrong setup: $60,000 ÷ $12 = 5,000. It divides by price, as if each burrito cos
 
 ## Sizing structure: Build the estimate as a chain of drivers
 
-*Draft · 255 of 400 words · `lessons/lesson-qn-sizing_structure.md`*
+*Draft · 255 of 600 words · `lessons/lesson-qn-sizing_structure.md`*
 
 > An estimate is a chain of drivers that multiply to the answer, with each thing counted once.
 
@@ -407,7 +437,7 @@ Double count: adding "number of bikes" next to "households with a bike". Driver 
 
 ## Sizing assumptions: Assumptions you can justify
 
-*Draft · 174 of 400 words · `lessons/lesson-qn-assumptions.md`*
+*Draft · 174 of 600 words · `lessons/lesson-qn-assumptions.md`*
 
 > Pick numbers you can justify in one line, from something you know or can work out.
 
@@ -417,8 +447,8 @@ Interviewers accept a range of reasonable assumptions. They push back when a num
 
 **The pattern**
 
-1. Anchor to figures you know: about 330M people and 130M households in the US, about 50 working weeks a year.
-2. Work out what you don't know: "a haircut every 6 weeks is about 8 a year".
+1. Anchor to figures you know: about 340M people and 130M households in the US, about 50 working weeks a year.
+2. Work out what you don't know: "a haircut every 6 weeks is about 8–9 a year".
 3. Use round numbers that keep the math easy.
 4. Say the basis out loud, in a few words.
 
@@ -436,7 +466,7 @@ Unreasonable: "Every worker buys 3 coffees a day." It has no basis, and it is ab
 
 ## Sanity checking: Check the number before you present it
 
-*Draft · 196 of 400 words · `lessons/lesson-qn-sanity_check.md`*
+*Draft · 196 of 600 words · `lessons/lesson-qn-sanity_check.md`*
 
 > Before you present a number, compare it with something you know.
 
@@ -470,7 +500,7 @@ If the estimate were $45M, that is $1.5M per store, about $4,000 a day: plausibl
 
 ## Chart takeaway: Find the takeaway that answers the question
 
-*Draft · 249 of 400 words · `lessons/lesson-ex-takeaway.md`*
+*Draft · 249 of 600 words · `lessons/lesson-ex-takeaway.md`*
 
 > The takeaway is the one thing in the chart that answers the client's question, stated with the number that proves it.
 
@@ -507,7 +537,7 @@ Takeaway: "**Labor costs explain the profit drop: up $15M while revenue and the 
 
 ## Exhibit traps: Catch the detail that changes the answer
 
-*Draft · 241 of 400 words · `lessons/lesson-ex-traps.md`*
+*Draft · 248 of 600 words · `lessons/lesson-ex-traps.md`*
 
 > Before reading values, check the units, where the axis starts, which axis each series uses, the footnotes, whether values are indexed, and whether the periods match.
 
@@ -526,7 +556,7 @@ Interview exhibits often hide one detail that changes the answer. Catching it is
 
 **Worked example**
 
-A bar chart of sales shows one bar about twice as tall as the other, labeled 95 and 105. The axis starts at 90, so the real increase is 10 ÷ 95, about **11%**, not a doubling.
+A bar chart of sales shows one bar twice as tall as the other, labeled 95 and 105. The axis starts at 85, so the bars are 10 and 20 tall, but the real increase is 10 ÷ 95, about **11%**, not a doubling.
 
 A footnote reads "excludes online sales". Any conclusion is about store sales only.
 
@@ -541,7 +571,7 @@ A footnote reads "excludes online sales". Any conclusion is about store sales on
 
 ## Data extraction: Pull the right number from a dense table
 
-*Draft · 166 of 400 words · `lessons/lesson-ex-extraction.md`*
+*Draft · 166 of 600 words · `lessons/lesson-ex-extraction.md`*
 
 > Find the exact row, column and period the question asks for before you calculate.
 
@@ -576,7 +606,7 @@ Easy slips: West's 2023 profit next to its 2024 revenue, or the East row just ab
 
 ## Answer first: Lead with the answer
 
-*Draft · 184 of 400 words · `lessons/lesson-sy-answer_first.md`*
+*Draft · 184 of 600 words · `lessons/lesson-sy-answer_first.md`*
 
 > State your recommendation in the first sentence, then support it.
 
@@ -608,13 +638,17 @@ Answer first: "**Yes: start selling to hotels, beginning with 10 in our city.** 
 
 ## Supporting evidence: Back it with the facts that decide it
 
-*Draft · 249 of 400 words · `lessons/lesson-sy-evidence.md`*
+*Draft · new format · 582 of 600 words · `lessons/lesson-sy-evidence.md`*
 
 > Support your recommendation with the two or three facts that decide it, with their numbers, and leave out the rest.
 
 **Why interviewers care**
 
-Interviewers check whether you can separate what matters from what doesn't. Most cases have one deciding fact; missing it, or padding with irrelevant ones, weakens the answer.
+Interviewers check whether you can separate what matters from what doesn't. Most cases have one **deciding fact**, the fact your answer turns on; missing it, or padding with irrelevant ones, weakens the answer.
+
+**Why it works**
+
+A recommendation is only as strong as the fact that would change it. Lead with that fact and its number, and the listener can check your logic in seconds. Padding makes them sort out what matters, and they may sort it differently from you.
 
 **The pattern**
 
@@ -627,11 +661,27 @@ Interviewers check whether you can separate what matters from what doesn't. Most
 
 Should a dental group buy a second X-ray machine?
 
-Facts: patients wait three weeks for an X-ray slot; the machine costs $90K; each extra scan earns $120, and about 1,000 more scans a year would fit; the office was repainted last year.
+Facts: patients wait three weeks for an X-ray slot; the machine costs $90K; each extra scan adds $120 of profit after costs, and about 1,000 more scans a year would fit; the office was repainted last year.
 
-Deciding fact: payback. 1,000 × $120 = $120K a year, so the $90K is back in about nine months. Irrelevant: the repainting.
+Deciding fact: **payback**, the time the extra profit takes to repay the cost. 1,000 × $120 = $120K a year, so the $90K is back in about nine months. Irrelevant: the repainting.
 
-"**Buy it.** About 1,000 extra scans a year at $120 bring in $120K, paying back the $90K in about nine months, and it clears a three-week wait."
+"**Buy it.** About 1,000 extra scans a year at $120 of profit each bring in $120K, paying back the $90K in about nine months, and it clears a three-week wait."
+
+**Another example**
+
+Should a winery build its own bottling line?
+
+Facts: renting a mobile bottling truck costs $40K a year; its own line would cost $150K, plus $10K a year to run, and lasts 15 years; it bottles the same volume every year; a new label design cost $8K last year.
+
+Deciding fact: the yearly saving. $40K − $10K = $30K a year, so the $150K pays back in five years, a third of the line's life. Irrelevant: the label design, which is spent either way.
+
+"**Build the line.** It saves $30K a year against renting the truck, so the $150K pays back in five years, well within its 15-year life."
+
+**Tricky cases**
+
+- **Mentioning an irrelevant fact only to dismiss it.** Fine: "The repainting shouldn't drive this" shows you saw it and set it aside.
+- **A number you work out from the facts.** It counts as using them: "1,000 × $120 = $120K a year" uses the scan facts.
+- **The right call with no reason.** "Buy it." makes the right call but never uses the payback, so it misses the deciding fact. A right answer still needs its reason.
 
 **Common mistakes**
 
@@ -639,9 +689,15 @@ Deciding fact: payback. 1,000 × $120 = $120K a year, so the $90K is back in abo
 - Irrelevant facts: using a fact that doesn't bear on the decision as a reason.
 - Ignored the deciding fact: a confident answer that never uses the fact that decides it.
 
+**Quick check**
+
+Should a gym add a 6 a.m. class? Facts: 40 members have asked for it; the instructor costs $60 a class; each class would bring in about $150 in drop-in fees; the gym's logo was redesigned in March. Which fact do you leave out, and what's the recommendation?
+
+*Answer (hidden until the student asks):* Leave out the logo. Add the class: about $150 in fees against $60 for the instructor is $90 a class, and 40 members have asked for it.
+
 ## Complete recommendation: Close with a risk and a next step
 
-*Draft · 165 of 400 words · `lessons/lesson-sy-complete.md`*
+*Draft · 165 of 600 words · `lessons/lesson-sy-complete.md`*
 
 > A complete recommendation ends with one specific risk and one concrete next step.
 
@@ -669,7 +725,7 @@ Specific: "**The main risk is that hotels want custom-branded chocolates we can'
 
 ## Mid-case summary: Summarize the case so far
 
-*Draft · 172 of 400 words · `lessons/lesson-sy-summary.md`*
+*Draft · 172 of 600 words · `lessons/lesson-sy-summary.md`*
 
 > A mid-case summary says what you've found, what it means so far, and what is still open, accurately.
 
@@ -700,7 +756,7 @@ Inaccurate versions: "Revenue fell" (it was flat); "Staffing is fine" (not check
 
 ## Driving next steps: Propose the next step yourself
 
-*Draft · 222 of 400 words · `lessons/lesson-cl-next_step.md`*
+*Draft · 222 of 600 words · `lessons/lesson-cl-next_step.md`*
 
 > After each finding, propose the next analysis yourself: the one that moves the case furthest toward the answer.
 
@@ -733,7 +789,7 @@ Weaker choices: "Let's look at the number of visits" (already answered); "Let's 
 
 ## Data requests: Ask for specific data, in order
 
-*Draft · 250 of 400 words · `lessons/lesson-cl-data_requests.md`*
+*Draft · 256 of 600 words · `lessons/lesson-cl-data_requests.md`*
 
 > Break the metric into its drivers, say which you'd start with and why, and ask for specific data.
 
@@ -745,7 +801,7 @@ Asking for "all the data" signals there's no plan. Interviewers reward candidate
 
 1. Break the metric down: profit = price − costs; costs = feed + labor + transport.
 2. Start where the problem most likely sits, and say why: the part that changed most, the biggest cost, or the part the client controls.
-3. Make each request a metric plus a cut or a time period: "feed cost per liter by month for two years".
+3. Make each request a metric plus at least one of a cut, a comparison or a time period: "feed cost per liter by month for two years".
 4. Keep it to a few requests, grouped by driver.
 5. Diagnose before proposing fixes.
 
@@ -762,3 +818,67 @@ Vague: "information on costs". A laundry list: ten requests with no order. Too e
 - Vague data request: a request with no metric, cut or period ("information about costs").
 - Laundry list: many requests with no structure or starting point.
 - Premature solution: proposing fixes ("cut staff") before finding the cause.
+
+## Handling pushback: Defending your answer
+
+*Draft · new format · 598 of 600 words · `lessons/lesson-cl-pushback.md`*
+
+> When the interviewer asks about your answer, answer the question and back it with a case fact. When they push back, **hold** if the challenge doesn't change the facts your answer turns on, and **update** if it does.
+
+**Why interviewers care**
+
+The follow-up is often the real test. Interviewers watch whether you stand by a sound answer, change a weak one, and give a reason either way.
+
+**Why it works**
+
+A follow-up checks whether your answer rests on the case. If your choice is tied to a fact, you can defend it; if a challenge changes that fact, the honest move is to change your answer and say how.
+
+**The pattern**
+
+**Justify** ("Which bucket would you dig into first, and why?"):
+1. Pick one thing, and say it first.
+2. Back it with a case fact that supports it: a number, or something the case says.
+3. Stay consistent with your own answer. If you pick something new, say why.
+
+**Challenge** ("Our CFO says…"):
+1. Ask: does this change the facts my recommendation turns on?
+2. **Hold** if it doesn't. Give the reason with a fact, and restate your recommendation.
+3. **Update** if it does. Say what your recommendation becomes. A change within the plan counts ("open next spring, not now").
+
+**Worked example**
+
+A chain of laundromats' profit fell 30% while customer visits held steady. Your framework: revenue per visit; costs per visit; machines.
+
+Follow-up: "Which bucket would you dig into first, and why?"
+
+Strong: "**Revenue per visit.** Visits held steady while profit fell 30%, so the drop is per visit; I'd check prices and the mix of washes."
+
+Weak: "Revenue, because it's the most important." No case fact.
+
+**Another example**
+
+You recommended that a bakery chain open a fourth shop: it would earn $80K a year after rent and pay back its $200K fit-out in 2.5 years, inside the chain's 3-year limit.
+
+"A local realtor says rents in the area rose 5% last year." **Hold.** "The $80K already includes our signed rent, so this doesn't change it. I'd still open the shop."
+
+"Our CFO says the $80K leaves out $30K a year for a second delivery van." **Update.** "That makes it $50K a year, a 4-year payback, past our 3-year limit. I'd open only if the fit-out comes down to about $150K."
+
+**Tricky cases**
+
+- **A case fact that doesn't support your pick.** "Machines, because visits held steady" fails: steady visits point to what each visit brings in or costs, not to the machines. The fact has to back what you picked.
+- **A true fact that doesn't change your deciding facts.** It's a reason to hold, not to update.
+- **Choosing Hold and saying nothing else.** "Hold." is a decision, not a defense: give the fact and restate your recommendation.
+
+**Common mistakes**
+
+- Dodged the question: listing options without picking one, or answering a different question.
+- No evidence in defense: a generic reason ("it's the most important"), or a case fact that doesn't support the pick.
+- Defense inconsistent with your answer: picking something your answer never mentioned without saying why, or a Hold that contradicts your recommendation.
+- Caved to invalid pushback: updating when the challenge doesn't change your deciding facts.
+- Ignored valid pushback: holding when it does.
+
+**Quick check**
+
+You recommended a $600K oven that saves $200K a year, a 3-year payback against a 4-year limit. The plant manager says: "The supplier just raised the price to $900K." Hold or update, and why?
+
+*Answer (hidden until the student asks):* Update: at $900K the payback is 4.5 years, past the limit. I'd push the price down to $800K, the most that pays back in 4 years, or not buy.
