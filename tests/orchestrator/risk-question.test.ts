@@ -12,10 +12,16 @@ describe('a risk question once a recommendation is on the table', () => {
     "Understood. You named competitive reaction and price sensitivity as risks. Which single risk could most undermine this recommendation, and how would you know early that it's happening?",   // Ines 62d06bd6 t20
     'If you raise prices and customers do respond by buying less, what is the biggest threat to your recommendation, and how would you structure the increase to protect against it?',              // Daniel 903bd42f t20
     'What could sink this plan in the first six months?',
+    // Lorenzo, 16 Oct: the risk question in any risk wording — the end gate stayed shut ten minutes on Raj's.
+    "Understood. You named traffic loss as a risk and inflation continuing as another. Suppose the pilot comes back and traffic falls more than you expected. Walk me through what you'd do, and which of those two risks worries you more for the CEO.",   // Raj 2eb0fdd3 t18 (batch 28)
+    'Right. You said an 8 to 10% price increase recovers most of the gap. Walk me through that. And of the risks you named, which one would most undermine the recommendation, and why?',   // Blake 57406d0f (batch 27)
+    'Understood. You named volume loss as a risk. Suppose the price increase causes volume to fall more than you expected. What would you watch for, and how would that change your plan?',   // Marcus 9cb2554f (batch 27)
   ])('%s', q => expect(asksRiskQuestion(q, true)).toBe(true));
   it.each([
     'How would you mitigate the waste problem in the stores?',
     'Which single input could most undermine the bean story?',
+    'Which of those two inputs worries you more?',
+    'Suppose bean prices fall next year. How would that change your plan for the analysis?',
   ])('before a recommendation, an analysis question is not: %s', q => expect(asksRiskQuestion(q, false)).toBe(false));
 });
 

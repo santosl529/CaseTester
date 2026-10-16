@@ -4,7 +4,8 @@
 // stage still owed). Read from saved or replayed runs (run-corpus.ts), with
 // the live stage predicates; minutes are the case clock before the turn.
 import type { CorpusRun, CorpusTurn } from './run-corpus';
-import { asksForConclusion, asksBrainstorm, asksRiskQuestion, namesCandidateRecommendation } from '@/lib/orchestrator/spoken-close';
+import { asksForConclusion, asksBrainstorm, namesCandidateRecommendation } from '@/lib/orchestrator/spoken-close';
+import { stageQuestions } from '@/lib/orchestrator/stage-evidence';
 import { brainstormAsks, brainstormRequired, asksCaseBrainstorm, type CaseBrainstorm } from '@/lib/orchestrator/brainstorm';
 import { probeIntents, EARLY_PHASES } from '@/lib/orchestrator/pressure-test';
 import type { Phase } from '@/lib/orchestrator/state-machine';
@@ -39,7 +40,8 @@ export function stageMinutes(run: CorpusRun, c: CaseLike): StageMinutes {
     if (asksBrainstorm(q) || t.kind === 'stage_brainstorm' || (t.move === 'brainstorm' && BRAINSTORM_MOVE.test(q)) || asksCaseBrainstorm(q, caseAsks)) at('brainstorm', t);
     // As the flow detector counts it: asked, code's ask, or a volunteered one named in the risk question.
     if (asksForConclusion(q) || CODE_REC.has(t.kind) || namesCandidateRecommendation(q)) { at('recommendation', t); recAsked = true; }
-    if (asksRiskQuestion(q, recAsked)) at('risk', t);
+    // As the stage record reads it: risk wording, or a risk move in risk words (Lorenzo, 16 Oct).
+    if (stageQuestions(q, { move: t.move ?? undefined, recOnTable: recAsked }).risk) at('risk', t);
     if (t.kind === 'close') { at('close', t); closed = true; break; }
   }
   // Required exhibits one by one; a case without them owes any one exhibit (prof-001).

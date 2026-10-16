@@ -44,6 +44,25 @@ describe('stage minutes', () => {
   });
 });
 
+// Lorenzo, 16 Oct (batch 28, Raj 2eb0fdd3 t18): a risk question without a
+// question mark, and a risk move in risk words, are the risk — no "owing risk".
+describe('the risk as the end gate reads it', () => {
+  const p1 = getCaseById('prof-001') as never;
+  const rec = T('Pulling it together for the CEO, what is your recommendation, and what would you do first?', 8.3);
+  it("Raj's \"which of those two risks worries you more\" is the risk", () => {
+    const m = stageMinutes(run('prof-001', [T('What does it tell you?', 3, { exhibitNow: 'exhibit-a' }), rec,
+      T("Understood. Suppose the pilot comes back and traffic falls more than you expected. Walk me through what you'd do, and which of those two risks worries you more for the CEO.", 9.9),
+      T(CLOSE, 12, { kind: 'close' })]), p1);
+    expect(m.minutes.risk).toBe(9.9);
+    expect(m.owedAtClose).not.toContain('risk');
+  });
+  it('a risk move in risk words counts, as in the stage record', () => {
+    const m = stageMinutes(run('prof-001', [T('What does it tell you?', 3, { exhibitNow: 'exhibit-a' }), rec,
+      T('Of the risks you see, which matters most to the CEO?', 9, { move: 'risk' }), T(CLOSE, 12, { kind: 'close' })]), p1);
+    expect(m.minutes.risk).toBe(9);
+  });
+});
+
 describe('a case without required exhibits (prof-001 with its exhibit optional)', () => {
   const base = getCaseById('prof-001');
   const brew = { ...base, exhibits: base.exhibits.map(e => ({ ...e, required: false })) } as never;

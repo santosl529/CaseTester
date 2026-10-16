@@ -134,7 +134,7 @@ export function analysisAskLine(ask: string, recommendationInPlay: boolean): str
 // asked).
 const RISK_STAGE =
   /\b(?:biggest risk|key risk|main risk|what could go wrong|what would change your mind|what would make you wrong|how would you de-?risk|risks? (?:to|of|with|in) (?:that|this|your) (?:recommendation|plan)|how would you test (?:the|your|that|this) (?:recommendation|plan|price increase|pricing move)|derail|risks? you'?ve (?:named|raised|flagged)|what (?:evidence|data|signal|result) would tell you (?:that'?s|you'?re|it'?s|you are) wrong|would make you change (?:that|it|course|your mind|your recommendation|the plan))\b/i;
-const CONTINGENCY = /\b(?:if|suppose)\b[^?]{0,160}?\b(?:what (?:would|do) you do|what'?s your plan|would you (?:stop|pause|pull back|roll back|change course|adjust)|how would you (?:decide|respond|react|adjust)|what'?s your fallback)\b|\bwhat (?:would|do) you do (?:if|then)\b/i;
+const CONTINGENCY = /\b(?:if|suppose)\b[^?]{0,160}?\b(?:what (?:would|do) you do|what'?s your plan|would you (?:stop|pause|pull back|roll back|change course|adjust)|how would you (?:decide|respond|react|adjust)|how would (?:that|this|it) change (?:your|the) (?:plan|recommendation)|what'?s your fallback)\b|\bwhat (?:would|do) you do (?:if|then)\b/i;
 // A question about the candidate's own recommendation, volunteered or asked for
 // ("You proposed a ten percent price increase…", "that recommendation") — not
 // "what's your plan?", which is the contingency's own wording.
@@ -147,7 +147,11 @@ const CANDIDATE_REC_REF = /\byou'?re recommending\b|\b(?:your|that) recommendati
 // undermine this recommendation…?"): counted like a contingency, once a
 // recommendation is on the table — "how would you mitigate the waste
 // problem?" mid-case is analysis.
-const RISK_LOOSE = /\b(?:how would you mitigate|mitigate (?:it|that|them|this|the risk)|biggest threat|single biggest|which (?:single )?risk|could (?:most )?(?:undermine|sink|stop|derail|kill|break) (?:this|the|your|that)|named [^.?]{1,80}? as (?:the )?(?:main |key |two )?risks?)\b/i;
+// Lorenzo, 16 Oct (batch 28, Raj 2eb0fdd3 t18 "…which of those two risks
+// worries you more for the CEO." — no question mark, so the risk move didn't
+// count; the end gate stayed shut ten minutes): "which (one) of those risks
+// worries you", "which one would most undermine…".
+const RISK_LOOSE = /\b(?:how would you mitigate|mitigate (?:it|that|them|this|the risk)|biggest threat|single biggest|which (?:single )?risk|which (?:one|of (?:those|these|the|your)(?: \w+)? risks)\b[^.?]{0,40}?\b(?:worr(?:y|ies)|concerns?|scares?) you|(?:could|would|might) (?:most )?(?:undermine|sink|stop|derail|kill|break) (?:this|the|your|that)|named [^.?]{1,80}? as (?:the )?(?:main |key |two )?risks?)\b/i;
 
 // A contingency counts only once a recommendation has been asked for
 // (afterRecommendation), or when it is about the candidate's own — not an
