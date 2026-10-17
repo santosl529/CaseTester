@@ -269,8 +269,12 @@ export const SCENARIO_RARE_WORD_MAX_ITEMS = 6;
 const scenarioText = (item: Item) => `${item.prompt} ${item.exhibit ? JSON.stringify(item.exhibit) : ''}`.toLowerCase();
 
 function scenarioWords(item: Item): Set<string> {
+  return wordsOf(scenarioText(item));
+}
+
+function wordsOf(text: string): Set<string> {
   const out = new Set<string>();
-  for (const w of scenarioText(item).match(/[a-z][a-z'-]{3,}/g) ?? []) {
+  for (const w of text.match(/[a-z][a-z'-]{3,}/g) ?? []) {
     if (!SCENARIO_STOP.has(w)) out.add(w.replace(/('s|s)$/, ''));
   }
   return out;
@@ -280,8 +284,12 @@ function scenarioWords(item: Item): Set<string> {
 // Years and small bare numbers (counts like "3 buckets") are left out.
 const SCALE: Record<string, number> = { k: 1e3, m: 1e6, million: 1e6, b: 1e9, billion: 1e9 };
 function scenarioNumbers(item: Item): Set<number> {
+  return numbersOf(scenarioText(item));
+}
+
+function numbersOf(text: string): Set<number> {
   const out = new Set<number>();
-  for (const m of scenarioText(item).matchAll(/(\$?)(\d[\d,]*(?:\.\d+)?)\s?(%|k|m|b|million|billion)?\b/g)) {
+  for (const m of text.matchAll(/(\$?)(\d[\d,]*(?:\.\d+)?)\s?(%|k|m|b|million|billion)?\b/g)) {
     let v = Number(m[2].replace(/,/g, ''));
     const unit = m[3];
     if (unit && SCALE[unit]) v *= SCALE[unit];
@@ -321,6 +329,55 @@ export function scenarioOverlaps(items: Item[], reviewed: ReviewedPair[] = []): 
 export function scenarioProblems(items: Item[], reviewed: ReviewedPair[] = []): string[] {
   return scenarioOverlaps(items, reviewed).map(o =>
     `${o.a} and ${o.b} may share a scenario (${[...o.words.map(w => `"${w}"`), ...o.numbers.map(String)].join(', ')}): change one, or record them in drill-items/scenario-reviewed.json`);
+}
+
+// ------------------------------------------------- lessons and drill items
+
+// A lesson's examples, tricky cases and quick check mustn't reuse a drill
+// item's scenario with the same question, or the lesson gives that item's
+// answer away. The same client type alone is fine (Matt, 2026-10-17: a
+// laundromat whose costs rose gives nothing away about one whose customers
+// moved to smaller machines). So a lesson part is flagged when it shares with
+// an item distinctive words (the client and what's asked about) and figures,
+// on the same terms as two items: 2+ words and a figure, 3+ words, or one
+// word and 2+ figures. A word is distinctive if few items use it and few
+// lessons do (so lesson prose such as "cause" or "change" doesn't count); a
+// figure, if few items use it (so 10% or 20% doesn't). A human may record a
+// flagged pair as different in lessons/scenario-reviewed.json, with a reason.
+export interface LessonPart { lesson_id: string; id: string; text: string }
+export const LESSON_RARE_WORD_MAX_LESSONS = 2;
+
+// "laundromats'" and "laundromat's" both count as "laundromat".
+const lessonText = (text: string) => text.toLowerCase().replace(/'(?=[^a-z]|$)/g, '');
+
+export function lessonScenarioOverlaps(parts: LessonPart[], items: Item[], reviewed: ReviewedPair[] = []): ScenarioOverlap[] {
+  const facts = items.filter(item => getDrill(item.drill_id).stage !== 'repair')
+    .map(item => ({ item, words: wordsOf(lessonText(scenarioText(item))), numbers: scenarioNumbers(item) }));
+  const itemWords = new Map<string, number>(), itemNumbers = new Map<number, number>();
+  for (const f of facts) {
+    for (const w of f.words) itemWords.set(w, (itemWords.get(w) ?? 0) + 1);
+    for (const n of f.numbers) itemNumbers.set(n, (itemNumbers.get(n) ?? 0) + 1);
+  }
+  const lessonParts = parts.map(part => ({ part, words: wordsOf(lessonText(part.text)), numbers: numbersOf(lessonText(part.text)) }));
+  const lessonsUsing = new Map<string, Set<string>>();
+  for (const p of lessonParts) for (const w of p.words) lessonsUsing.set(w, (lessonsUsing.get(w) ?? new Set()).add(p.part.lesson_id));
+  const rareWord = (w: string) => itemWords.get(w)! <= SCENARIO_RARE_WORD_MAX_ITEMS && lessonsUsing.get(w)!.size <= LESSON_RARE_WORD_MAX_LESSONS;
+  const ok = new Set(reviewed.map(p => [...p.items].sort().join(' ')));
+  const out: ScenarioOverlap[] = [];
+  for (const p of lessonParts) {
+    for (const f of facts) {
+      const w = [...p.words].filter(x => f.words.has(x) && rareWord(x));
+      const n = [...p.numbers].filter(x => f.numbers.has(x) && itemNumbers.get(x)! <= SCENARIO_RARE_WORD_MAX_ITEMS);
+      const same = (w.length >= 2 && n.length >= 1) || w.length >= 3 || (w.length >= 1 && n.length >= 2);
+      if (same && !ok.has([p.part.id, f.item.item_id].sort().join(' '))) out.push({ a: p.part.id, b: f.item.item_id, words: w.sort(), numbers: n.sort((x, y) => x - y) });
+    }
+  }
+  return out;
+}
+
+export function lessonScenarioProblems(parts: LessonPart[], items: Item[], reviewed: ReviewedPair[] = []): string[] {
+  return lessonScenarioOverlaps(parts, items, reviewed).map(o =>
+    `${o.a} may reuse ${o.b}'s scenario and question (${[...o.words.map(w => `"${w}"`), ...o.numbers.map(String)].join(', ')}): change the lesson, or record the pair in lessons/scenario-reviewed.json`);
 }
 
 // SY-2 Challenges (PRD "Defend step"): whether the pushback is valid must not

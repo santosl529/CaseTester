@@ -67,12 +67,14 @@ function Rest({ lesson }: { lesson: LessonContent }) {
 // students get the full lesson; other tracks get a summary card (the idea and
 // the pattern) with "Read full lesson" to expand the rest (Matt, 2026-10-16).
 // The review page renders the same component.
-export function LessonBody({ lesson, mode = 'full' }: { lesson: LessonContent; mode?: 'full' | 'summary' }) {
+// `embedded` (inside another page, such as set results) titles it with an h2.
+export function LessonBody({ lesson, mode = 'full', embedded = false }: { lesson: LessonContent; mode?: 'full' | 'summary'; embedded?: boolean }) {
+  const Title = embedded ? 'h2' : 'h1';
   const head = (
     <>
       <header className="space-y-1">
         <p className="text-sm text-muted-foreground">{lesson.skill_name} · {mode === 'summary' ? 'lesson summary' : 'short lesson'}</p>
-        <h1 className="text-xl font-semibold">{lesson.title}</h1>
+        <Title className="text-xl font-semibold">{lesson.title}</Title>
       </header>
       <section aria-labelledby="idea" className="space-y-2">
         <h2 id="idea" className="sr-only">The idea</h2>
@@ -103,6 +105,45 @@ export function LessonBody({ lesson, mode = 'full' }: { lesson: LessonContent; m
       {lesson.why_it_works && <Section id="why-it-works" title="Why it works">{lesson.why_it_works}</Section>}
       <Section id="pattern" title="The pattern">{lesson.pattern}</Section>
       <Rest lesson={lesson} />
+    </article>
+  );
+}
+
+export interface IntroLessonContent {
+  title: string;
+  idea: string;
+  sections: { heading: string; body: string; skills: string[] | null }[];
+}
+
+// "How a case interview works", the Foundations intro: the four stages of a
+// case, each with the skills it uses. A skill links to its lesson when
+// `skills` gives it an href; one with no lesson is marked as practiced in
+// full cases.
+export function IntroLessonBody({ lesson, skills }: { lesson: IntroLessonContent; skills: Record<string, { name: string; href: string | null }> }) {
+  return (
+    <article className="space-y-6">
+      <header className="space-y-1">
+        <p className="text-sm text-muted-foreground">Start here · short lesson</p>
+        <h1 className="text-xl font-semibold">{lesson.title}</h1>
+      </header>
+      <div className="rounded-lg border-l-4 border-foreground/70 bg-muted/40 p-4 text-base font-medium"><ReactMarkdown>{lesson.idea}</ReactMarkdown></div>
+      {lesson.sections.map((s, i) => (
+        <section key={s.heading} aria-labelledby={`intro-${i}`} className={`space-y-2${s.skills ? ' rounded-lg border p-4' : ''}`}>
+          <h2 id={`intro-${i}`} className="font-medium">{s.heading}</h2>
+          <Md>{s.body}</Md>
+          {s.skills && (
+            <p className="text-sm">
+              <span className="font-medium">Skills: </span>
+              {s.skills.map((id, j) => (
+                <span key={id}>
+                  {j > 0 && ' · '}
+                  {skills[id]?.href ? <a href={skills[id].href!} className="underline underline-offset-4">{skills[id].name}</a> : <>{skills[id]?.name ?? id} <span className="text-muted-foreground">(practiced in full cases)</span></>}
+                </span>
+              ))}
+            </p>
+          )}
+        </section>
+      ))}
     </article>
   );
 }

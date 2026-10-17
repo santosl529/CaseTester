@@ -49,7 +49,7 @@ export default async function BrowseDrillsPage() {
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <StartSetButton body={{ skill_id: s.id, quick_start: true, browse: true }} label="Quick start" size="sm" />
-                  {s.has_lesson && <Link href={`/drills/learn/${encodeURIComponent(s.id)}`} className="text-sm underline underline-offset-4">3-min lesson</Link>}
+                  {s.has_lesson && <Link href={`/drills/learn/${encodeURIComponent(s.id)}`} className="text-sm underline underline-offset-4">Short lesson</Link>}
                 </div>
                 <details className="group">
                   <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">Pick a drill and tier</summary>

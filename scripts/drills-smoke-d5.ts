@@ -19,7 +19,8 @@ import './smoke-log';
 import { randomUUID } from 'crypto';
 import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
-import { analyticsEvents, drillAttempts, drillItems, drillSets, drillTiers, gradingJobs, prescriptions, skillStateEvents, skillStates, studentDrillSettings } from '@/db/schema';
+import { analyticsEvents, drillAttempts, drillItems, drillSets, drillTiers, gradingJobs, lessonViews, prescriptions, skillStateEvents, skillStates, studentDrillSettings } from '@/db/schema';
+import { recordLessonView } from '@/lib/drills/program/lessons-store';
 import { loadAuthoredItems } from '@/lib/drills/authored';
 import { modelAnswerSteps } from '@/lib/drills/model-answers';
 import { withDefend } from '@/lib/drills/defend';
@@ -155,6 +156,12 @@ async function defendSet(drillId: string) {
   check(skipped.score > 0 && skipped.score <= 0.75 + 1e-9, `${drillId}: skipped follow-up scored ${skipped.score} (main answer should count, up to 75%)`);
   check(attempts.slice(0, -1).every(a => a.defendResponse && a.defendScore !== null && a.defendTimeMs !== null), `${drillId}: Defend columns not filled in`);
   if (drillId === 'SY-2') check(graded.slice(0, -1).every(d => d?.decision?.right), 'SY-2: a model Hold/Update decision was scored wrong');
+  // "Defending your answer" shows on the results of the first set with a
+  // follow-up reply, and not again once seen.
+  if (drillId === 'PS-3') {
+    check(results.defend_lesson?.skill_id === 'CL.pushback', `PS-3: first follow-up results lack "Defending your answer" (${results.defend_lesson?.lesson_id ?? 'none'})`);
+    if (results.defend_lesson) await recordLessonView(student, results.defend_lesson.lesson_id, { version: results.defend_lesson.version, source: 'follow_up', seconds_open: 30, skipped: false });
+  } else check(results.defend_lesson === null, `${drillId}: "Defending your answer" shown again after it was seen`);
   console.log(`${drillId} with Defend: ${results.items.map(i => `${Math.round(i.feedback.score * 100)}%`).join(' ')}; follow-ups ${graded.map(d => (d?.skipped ? 'skipped' : `${d?.checks.filter(c => c.pass).length}/${d?.checks.length}`)).join(', ')}`);
 }
 
@@ -176,6 +183,8 @@ async function main() {
     await db.delete(skillStateEvents).where(eq(skillStateEvents.studentId, student));
     await db.delete(skillStates).where(eq(skillStates.studentId, student));
     await db.delete(studentDrillSettings).where(eq(studentDrillSettings.studentId, student));
+    await db.delete(lessonViews).where(eq(lessonViews.studentId, student));
+    await new Promise(r => setTimeout(r, 1500));
     await db.delete(analyticsEvents).where(eq(analyticsEvents.userId, student));
     console.log(`cleaned up test student ${student}`);
   }

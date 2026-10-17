@@ -12,6 +12,7 @@ import fs from 'fs';
 import path from 'path';
 import { z } from 'zod';
 import { DRILLS_CONFIG, getSkill } from './config';
+import type { LessonPart, ReviewedPair } from './content-checks';
 
 export const LESSONS_DIR = path.join(process.cwd(), 'lessons');
 export const MAX_WORDS = 600;
@@ -55,18 +56,25 @@ export interface Lesson {
 export const lessonIdFor = (skillId: string) => `lesson-${skillId.toLowerCase().replace('.', '-')}`;
 const words = (text: string) => text.replace(/[`*#>_-]/g, ' ').split(/\s+/).filter(Boolean).length;
 
-export function parseLesson(file: string, raw: string): Lesson {
+// The front matter as key/value pairs, the body, and its "## " sections in order.
+function splitFile(file: string, raw: string) {
   const m = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!m) throw new Error(`${file}: missing front matter`);
-  const meta = MetaSchema.parse(Object.fromEntries(m[1].split('\n').filter(l => l.includes(':')).map(l => {
+  const meta = Object.fromEntries(m[1].split('\n').filter(l => l.includes(':')).map(l => {
     const i = l.indexOf(':');
     return [l.slice(0, i).trim(), l.slice(i + 1).trim()];
-  })));
+  }));
   const sections = new Map<string, string>();
   for (const block of m[2].split(/^## /m).slice(1)) {
     const nl = block.indexOf('\n');
     sections.set(block.slice(0, nl).trim(), block.slice(nl + 1).trim());
   }
+  return { meta, body: m[2], sections };
+}
+
+export function parseLesson(file: string, raw: string): Lesson {
+  const { meta: rawMeta, body, sections } = splitFile(file, raw);
+  const meta = MetaSchema.parse(rawMeta);
   for (const s of SECTIONS) if (!sections.get(s)) throw new Error(`${file}: missing section "## ${s}"`);
   const mistakes = sections.get('Common mistakes')!.split('\n').filter(l => l.trim().startsWith('-')).map(l => {
     const mm = l.match(/^-\s*`(M\.[a-z_]+)`:\s*(.+)$/);
@@ -85,7 +93,7 @@ export function parseLesson(file: string, raw: string): Lesson {
     quick_check: split ? { question: split[0].trim(), answer: (split[1] ?? '').trim() } : null,
     v2_missing: v2.length ? V2_SECTIONS.filter(s => !sections.get(s)) : [],
     authorship: { drafting_model: meta.drafting_model, reviewed_by: meta.reviewed_by, reviewed_at: meta.reviewed_at, review_notes: meta.review_notes },
-    words: words(meta.title) + words(m[2].replace(/^## .*$/gm, '')),
+    words: words(meta.title) + words(body.replace(/^## .*$/gm, '')),
   };
 }
 
@@ -117,7 +125,8 @@ export function loadLessons(dir = LESSONS_DIR): Lesson[] {
 // Writes a review decision into the lesson's front matter (the review page,
 // local development only).
 export function recordLessonReview(lessonId: string, decision: { approve: true; reviewer: string } | { approve: false; reviewer: string; notes: string }, dir = LESSONS_DIR) {
-  const file = fs.readdirSync(dir).filter(f => f.endsWith('.md')).find(f => parseLesson(f, fs.readFileSync(path.join(dir, f), 'utf-8')).lesson_id === lessonId);
+  const file = lessonId === INTRO_LESSON_ID ? INTRO_PATH
+    : fs.readdirSync(dir).filter(f => f.endsWith('.md')).find(f => parseLesson(f, fs.readFileSync(path.join(dir, f), 'utf-8')).lesson_id === lessonId);
   if (!file) throw new Error(`Unknown lesson ${lessonId}`);
   const full = path.join(dir, file);
   const raw = fs.readFileSync(full, 'utf-8');
@@ -140,3 +149,108 @@ export const P0_LESSON_SKILLS = (): string[] => {
 };
 
 export const skillTitle = (id: string) => getSkill(id).name;
+
+// "How a case interview works" (Matt, 2026-10-16): the intro lesson for
+// Foundations, on the four stages of a case (clarify, structure, analyze,
+// recommend), what interviewers look for in each, and the skills each uses.
+// It has no skill of its own, so it lives in lessons/intro/ with its own
+// layout: ## The idea, then any sections. A numbered section ("## 1. Clarify")
+// is a stage and ends with a line naming its skills: "Skills: PS.mece, PS.depth".
+// "{{plan_weeks}}" becomes the six-week plan's week themes from the program
+// config, so the lesson can't drift from the plan.
+export const INTRO_LESSON_ID = 'lesson-intro';
+export const INTRO_PATH = path.join('intro', 'how-a-case-interview-works.md');
+
+const IntroMetaSchema = MetaSchema.omit({ lesson_id: true, skill_id: true }).extend({ lesson_id: z.literal(INTRO_LESSON_ID) });
+
+export interface IntroLesson {
+  file: string;
+  lesson_id: string;
+  version: number;
+  status: Lesson['status'];
+  title: string;
+  idea: string;
+  sections: { heading: string; body: string; skills: string[] | null }[];
+  authorship: Lesson['authorship'];
+  words: number;
+}
+
+export const planWeeksText = () => DRILLS_CONFIG.programs.weeks.filter(w => w.week > 0).map(w => `- Week ${w.week}: ${w.theme}`).join('\n');
+
+export function parseIntroLesson(file: string, raw: string): IntroLesson {
+  const { meta: rawMeta, body, sections } = splitFile(file, raw.replaceAll('{{plan_weeks}}', planWeeksText()));
+  const meta = IntroMetaSchema.parse(rawMeta);
+  const idea = sections.get('The idea');
+  if (!idea) throw new Error(`${file}: missing section "## The idea"`);
+  return {
+    file, lesson_id: meta.lesson_id, version: meta.version, status: meta.status, title: meta.title, idea,
+    sections: [...sections].filter(([h]) => h !== 'The idea').map(([heading, text]) => {
+      const line = /^\d+\./.test(heading) ? text.match(/^Skills:(.*)$/m) : null;
+      return {
+        heading,
+        body: line ? text.replace(line[0], '').trim() : text,
+        skills: /^\d+\./.test(heading) ? (line?.[1] ?? '').split(',').map(s => s.trim()).filter(Boolean) : null,
+      };
+    }),
+    authorship: { drafting_model: meta.drafting_model, reviewed_by: meta.reviewed_by, reviewed_at: meta.reviewed_at, review_notes: meta.review_notes },
+    words: words(meta.title) + words(body.replace(/^## .*$/gm, '').replace(/^Skills:.*$/gm, '')),
+  };
+}
+
+export function loadIntroLesson(dir = LESSONS_DIR): IntroLesson | null {
+  const full = path.join(dir, INTRO_PATH);
+  return fs.existsSync(full) ? parseIntroLesson(path.join('lessons', INTRO_PATH), fs.readFileSync(full, 'utf-8')) : null;
+}
+
+// The length limit, a reviewer for live, and the stages' skills: each stage
+// names at least one, every one is a real skill, and every skill with a lesson
+// appears in some stage, so the map stays complete as lessons are added.
+export function introProblems(intro: IntroLesson, lessonSkills: string[]): string[] {
+  const out: string[] = [];
+  const f = intro.file;
+  if (intro.words > MAX_WORDS) out.push(`${f}: ${intro.words} words (limit ${MAX_WORDS})`);
+  const stages = intro.sections.filter(s => s.skills);
+  if (!stages.length) out.push(`${f}: no stages (sections numbered "## 1. …")`);
+  for (const s of stages) if (!s.skills!.length) out.push(`${f}: stage "${s.heading}" needs a line "Skills: …"`);
+  const named = stages.flatMap(s => s.skills!);
+  const known = new Set(DRILLS_CONFIG.taxonomy.skills.map(s => s.id));
+  for (const id of named) if (!known.has(id)) out.push(`${f}: unknown skill ${id}`);
+  for (const id of lessonSkills) if (!named.includes(id)) out.push(`${f}: no stage names ${id}, which has a lesson`);
+  if (new Set(named).size !== named.length) out.push(`${f}: a skill is named in two stages`);
+  if (intro.status === 'live' && !intro.authorship.reviewed_by) out.push(`${f}: a live lesson needs reviewed_by`);
+  return out;
+}
+
+// Every part of a lesson that can carry a scenario, for the check against
+// drill items (lessonScenarioProblems in content-checks.ts): each section,
+// each tricky case and each common-mistake line on its own.
+export function lessonParts(l: Lesson): LessonPart[] {
+  const lesson_id = l.lesson_id;
+  const id = (s: string) => `${lesson_id}#${s}`;
+  const out: LessonPart[] = [
+    { lesson_id, id: id('idea'), text: l.idea }, { lesson_id, id: id('why'), text: l.why }, { lesson_id, id: id('pattern'), text: l.pattern },
+    { lesson_id, id: id('example'), text: l.worked_example },
+  ];
+  if (l.why_it_works) out.push({ lesson_id, id: id('why-it-works'), text: l.why_it_works });
+  if (l.another_example) out.push({ lesson_id, id: id('another-example'), text: l.another_example });
+  (l.tricky_cases ?? '').split('\n').filter(x => x.trim().startsWith('-')).forEach((x, i) => out.push({ lesson_id, id: id(`tricky-${i + 1}`), text: x }));
+  for (const m of l.mistakes) out.push({ lesson_id, id: id(m.tag), text: m.line });
+  if (l.quick_check) out.push({ lesson_id, id: id('quick-check'), text: `${l.quick_check.question} ${l.quick_check.answer}` });
+  return out;
+}
+
+export function introParts(intro: IntroLesson): LessonPart[] {
+  const lesson_id = intro.lesson_id;
+  return [{ lesson_id, id: `${lesson_id}#idea`, text: intro.idea }, ...intro.sections.map((s, i) => ({ lesson_id, id: `${lesson_id}#section-${i + 1}`, text: s.body }))];
+}
+
+// Lesson parts a human has checked against a flagged drill item and recorded
+// as a different scenario or question (same shape as
+// drill-items/scenario-reviewed.json).
+const ReviewedLessonPairsSchema = z.object({
+  pairs: z.array(z.object({ items: z.tuple([z.string(), z.string()]), reason: z.string().min(10) })),
+});
+export function loadReviewedLessonScenarios(dir = LESSONS_DIR): ReviewedPair[] {
+  const file = path.join(dir, 'scenario-reviewed.json');
+  return fs.existsSync(file) ? ReviewedLessonPairsSchema.parse(JSON.parse(fs.readFileSync(file, 'utf-8'))).pairs : [];
+}

@@ -2,13 +2,17 @@
 // "Lessons"). Like drill items: a new lesson_id@version is inserted; a draft
 // or a lesson in review is updated in place; a live lesson may only change
 // its review record; any other edit to it needs a new version. Refuses to
-// seed while any lesson has a problem (length, mistake lines, reviewer).
+// seed while any lesson has a problem (length, mistake lines, reviewer), or
+// reuses a drill item's scenario and question. "How a case interview works"
+// isn't seeded (a static page, lessons/intro/), but it is checked here too.
 //
 //   npm run db:seed-lessons
 import { and, eq, lt } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { lessons } from '@/db/schema';
-import { lessonProblems, loadLessons, type Lesson } from '@/lib/drills/lessons';
+import { introParts, introProblems, lessonParts, lessonProblems, loadIntroLesson, loadLessons, loadReviewedLessonScenarios, type Lesson } from '@/lib/drills/lessons';
+import { loadAuthoredItems } from '@/lib/drills/authored';
+import { lessonScenarioProblems } from '@/lib/drills/content-checks';
 
 type Stored = Pick<Lesson, 'title' | 'idea' | 'why' | 'pattern' | 'worked_example' | 'mistakes'> & Partial<Pick<Lesson, 'why_it_works' | 'another_example' | 'tricky_cases' | 'quick_check'>>;
 const content = (l: Stored) =>
@@ -19,7 +23,12 @@ const body = (l: Lesson) => JSON.stringify({ title: l.title, idea: l.idea, why: 
 
 async function main() {
   const all = loadLessons();
-  const problems = all.flatMap(lessonProblems);
+  const intro = loadIntroLesson();
+  const problems = [
+    ...all.flatMap(lessonProblems),
+    ...(intro ? introProblems(intro, all.map(l => l.skill_id)) : []),
+    ...lessonScenarioProblems([...all.flatMap(lessonParts), ...(intro ? introParts(intro) : [])], loadAuthoredItems(), loadReviewedLessonScenarios()),
+  ];
   if (problems.length) throw new Error(`Lesson problems:\n${problems.join('\n')}`);
   let inserted = 0, updated = 0, unchanged = 0;
   const conflicts: string[] = [];

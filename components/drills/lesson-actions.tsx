@@ -3,20 +3,13 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 
-type Source = 'auto' | 'intro' | 'library' | 'low_score';
+type Source = 'auto' | 'intro' | 'library' | 'low_score' | 'follow_up';
 
-// "Try it" (and "Skip" when the lesson opened automatically): logs the view
-// with how long the lesson was open, then starts the skill's next set, or
-// the workout block that opened the lesson.
-export function LessonActions({ lessonId, version, source, start, skippable }: {
-  lessonId: string; version: number; source: Source; start: Record<string, unknown>; skippable: boolean;
-}) {
-  const router = useRouter();
+// Logs a lesson view with how long it was open, once: when the student acts,
+// or when they leave the page.
+function useLessonViewLog(lessonId: string, version: number, source: Source) {
   const opened = useRef(0);
   const logged = useRef(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-
   const log = (skipped: boolean) => {
     if (logged.current) return;
     logged.current = true;
@@ -32,6 +25,34 @@ export function LessonActions({ lessonId, version, source, start, skippable }: {
     return () => { window.removeEventListener('pagehide', leave); leave(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  return log;
+}
+
+// A lesson shown inside another page ("Defending your answer" on the results
+// of a student's first follow-up): logs the view, renders nothing.
+export function LessonViewLog({ lessonId, version, source }: { lessonId: string; version: number; source: Source }) {
+  useLessonViewLog(lessonId, version, source);
+  return null;
+}
+
+// The intro lesson's one action: log the view, then go on (to the training
+// home, or back to the Learn library).
+export function IntroLessonActions({ lessonId, version, source, next }: { lessonId: string; version: number; source: Source; next: { href: string; label: string } }) {
+  const router = useRouter();
+  const log = useLessonViewLog(lessonId, version, source);
+  return <Button size="lg" onClick={() => { log(false); router.push(next.href); }}>{next.label}</Button>;
+}
+
+// "Try it" (and "Skip" when the lesson opened automatically): logs the view
+// with how long the lesson was open, then starts the skill's next set, or
+// the workout block that opened the lesson.
+export function LessonActions({ lessonId, version, source, start, skippable }: {
+  lessonId: string; version: number; source: Source; start: Record<string, unknown>; skippable: boolean;
+}) {
+  const router = useRouter();
+  const log = useLessonViewLog(lessonId, version, source);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
 
   async function go(skipped: boolean) {
     log(skipped);

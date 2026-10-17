@@ -12,7 +12,8 @@ import { loadProgress, loadTiers, progressContext } from '../progress/store';
 import { openPrescriptions, skillProfile } from '../progress/profile';
 import { inProgressSet } from '../sets/service';
 import { DIAGNOSTIC_PARTS, diagnosticView } from './diagnostic-store';
-import { hasSeenLesson, lessonForSkill } from './lessons-store';
+import { hasSeenLesson, introLesson, lessonForSkill } from './lessons-store';
+import { INTRO_LESSON_ID } from '../lessons';
 import { buildWorkout, type WorkoutBlock } from './workout';
 import { daysBetween, localDate } from './plan';
 import {
@@ -58,6 +59,9 @@ export async function homeView(studentId: string, now = new Date()) {
     const lesson = await lessonForSkill(nextBlock.skill_id);
     lessonFirst = Boolean(lesson && !(await hasSeenLesson(studentId, lesson.lesson_id)));
   }
+  // Foundations reads "How a case interview works" first, before week 1
+  // (Matt, 2026-10-17): until it's seen, the home leads with it.
+  const introFirst = program.track === 'foundations' && introLesson() !== null && !(await hasSeenLesson(studentId, INTRO_LESSON_ID));
   const rx = await openPrescriptions(studentId);
   const allPracticed = rx.length > 0 && rx.every(r => stateRank(progress.get(r.skill_id)?.state ?? 'not_started') >= stateRank('practiced'));
   const caseLeft = status ? status.cases.done < status.cases.target : (view!.day?.cases ?? 0) > 0;
@@ -65,7 +69,7 @@ export async function homeView(studentId: string, now = new Date()) {
   if (nextCase) await logDrillEvent(studentId, 'next_case_card_shown', { recommended_case_id: nextCase.case_id, retake: nextCase.retake });
 
   return {
-    kind: 'plan' as const, resume, weakest, diagnostic, program: view!, week_status: status, workout, lesson_first: lessonFirst,
+    kind: 'plan' as const, resume, weakest, diagnostic, program: view!, week_status: status, workout, lesson_first: lessonFirst, intro_first: introFirst,
     estimated_minutes: workout ? Math.round(workout.blocks.reduce((s, b) => s + b.minutes, 0)) : null,
     diagnose_today: !workout && ((view!.plan.kind === 'weeks' && week?.week === 0) || (view!.plan.kind === 'days' && view!.day?.day === 1)),
     next_case: nextCase,

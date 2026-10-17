@@ -513,4 +513,55 @@
 - v2 format (code): four optional sections (Why it works, Another example, Tricky cases, Quick check with a "**Answer:**" line), all four or none per lesson until every lesson moves; limit 600 words; stored in the lesson body JSON (no migration); lesson page renders them, quick check behind a native "Show answer" reveal; Foundations students see the full lesson, every other track (Standard, Sprint, self-directed) a summary card (idea and pattern) with "Read full lesson"; the review page shows both; header says "short lesson" instead of "3-minute lesson". Review doc generator includes the new sections. Tests updated and added.
 - For Matt's review: MECE and Supporting evidence rewritten in v2; new lesson "Defending your answer" (`lessons/lesson-cl-pushback.md`, skill CL.pushback, its five mistake tags). Examples, tricky cases and quick checks use scenarios that appear in no drill item, so lessons don't give away drill answers.
 - Waiting on Matt's format approval: the other 20 lessons in v2, "How a case interview works" (needs lessons without a skill: the id pattern and schema assume one), and showing "Defending your answer" after a student's first follow-up.
-- Not committed. Typecheck, 1571 tests and lint pass.
+- Committed in 6605214.
+
+## Lessons: format approved, all lessons in v2 (2026-10-16)
+
+- Matt approved the v2 format with fixes, now applied and committed (7ad3e4b):
+  - Defending your answer: the laundromat example has one fact pointing one way (water and energy prices rose sharply), the strong pick is cost per visit, and tricky case 1 is "Visits, because profit fell 30%".
+  - Supporting evidence: the quick check says "about $150 a class in extra fees".
+  - MECE: tricky case 2 is split into sentences, and the second example is a drive-through wait (Matt suggested emergency-room waits, but that's a drill case: ps1-0008 / ps4-0022).
+- The other 20 lessons are now in v2 (≤600 words, jargon defined on first use, a second example in another case type and industry, tricky cases from the grading-guide rules or the drills' trap logic, a quick check). New scenarios were checked with a word-boundary grep against `drill-items` and `drill-golden`, and swapped where they matched.
+- Forming a hypothesis: step 4 is "Say how you'd test it, and what result would make you drop it". The examples and the quick check end with a drop result, and one tricky case covers a drop result that would actually confirm the hypothesis. This is the HY-2 follow-up content.
+- New: "How a case interview works" (`lessons/intro/how-a-case-interview-works.md`, `lesson_id: lesson-intro`, no skill).
+  - Content: the idea; who steers (interviewer-led vs candidate-led); four numbered stages (Clarify, Structure, Analyze, Recommend), each with what happens, what interviewers look for, and a `Skills:` line; and how the six-week plan follows that order.
+  - Code: `parseIntroLesson` / `loadIntroLesson` / `introProblems` in `lib/drills/lessons.ts`. Its checks: ≤600 words; every stage names skills; every named skill exists; every skill with a lesson is named in exactly one stage.
+  - `recordLessonReview` handles it. The review page shows it first, with review buttons and skill links. The review doc includes it. Tests added.
+  - It isn't in the lessons table or shown to students yet: placement for Foundations comes after approval.
+- Sent to Matt for final approval: all 23 lessons, plus the intro (`docs/drills-content/lessons-review.md`, regenerated; approve on `/drills/review/lessons`).
+- After approval:
+  - `npm run db:seed-lessons`;
+  - show "Defending your answer" after a student's first follow-up, and in the Learn library;
+  - place the intro for Foundations. This needs a call: `lessons.skill_id` is not null, so the intro needs either a sentinel skill id or a static page.
+- Committed with the round below.
+
+## Lessons approved and live; intro and Defending triggers (2026-10-17)
+
+- Matt approved all 23 lessons and the intro, with four fixes (applied):
+  - **Chart takeaway:** the hot-sauce takeaway now says "Online is gaining share fastest", since a share isn't an amount.
+  - **Updating a hypothesis:** the backup tricky case now matches the HY-2 grader exactly (`hy2DecisionTag`). When the fact rules out the lead, Drop is right. Revise is also right when stage 1 named a backup and the fact is what the backup predicts (its family accepts keep). Matt expected Drop only, so he's been told the grader accepts both.
+  - **MECE:** the drive-through's kitchen and hand-off buckets are merged into "Waiting for food: kitchen time per order; orders remade".
+  - **Intro:** Clarifying questions has no lesson, so the intro now marks it "(practiced in full cases)", and the idea line says most skills have a drill and a lesson. The six weeks are generated from `programs.weeks` (`{{plan_weeks}}`). The old hand-written week 3 and weeks 4–6 lines didn't match the config.
+- **New check: lessons against drill items** (`lessonScenarioOverlaps` in `lib/drills/content-checks.ts`).
+  - It flags a lesson part (section, tricky case, mistake line, quick check) that shares a drill item's scenario and question.
+  - The terms are the same as item-vs-item: 2+ distinctive words and a figure, 3+ words, or 1 word and 2+ figures.
+  - A word counts as distinctive only if few items and at most 2 lessons use it. A figure counts only if few items use it.
+  - The same client alone isn't flagged: the laundromat stays (Matt).
+  - Reviewed pairs go in `lessons/scenario-reviewed.json`; it records one, winery vs ex1-0045.
+  - It found one real case: ex-traps' indexed two-line example asked ex1-0044's question, so it's rewritten as one indexed line read as an amount.
+  - It runs in the lesson tests and in `db:seed-lessons`.
+- **Published:** `npm run db:seed-lessons` → 23 lessons live (22 updated, CL.pushback inserted).
+- **"Defending your answer":**
+  - `setResults` returns `defend_lesson` (the CL.pushback lesson) when the set has a written follow-up reply and the student hasn't seen the lesson.
+  - The results page shows its summary card at the top and logs a view with `source: 'follow_up'`, a new value in the text column, so no migration.
+  - It's in the Learn library like every lesson.
+- **Intro placement** (a static page, `/drills/learn/intro`, read from `lessons/intro/`; Matt):
+  - Foundations: the home leads with a "Start here" card (`intro_first`) until it's read, and the workout start goes through it.
+  - Learn library: "Start here" at the top, for every track.
+  - Views: logged under `lesson-intro` (`recordLessonView` handles the skill-less lesson).
+  - Build: `next.config.ts` traces `lessons/intro/**` into the `/drills` and `/api/drills` routes, so the file ships on Vercel.
+- **Copy:** "3-min lesson" is now "short lesson" (drill intro, browse, results, Learn).
+- **Checks:**
+  - Smokes extended: D5 checks the Defending card on the first follow-up and not again after it's seen; tracks checks the Foundations intro card, and none for Sprint.
+  - Tracks, D4 and D5 smokes pass. Production build passes. Typecheck, 1576 tests and lint pass. Committed and pushed.
+- **PRD updates to flag to Matt (not edited):** Lessons (600 words, the v2 sections, the summary card for non-Foundations tracks, 23 lessons with CL.pushback, the intro and its placement, Defending after the first follow-up, the lesson-vs-item scenario rule), the launch pool table (22 → 23 lessons + intro), and "Read the 3-min lesson" in the drill intro.

@@ -2,12 +2,12 @@
 lesson_id: lesson-cl-pushback
 skill_id: CL.pushback
 version: 1
-status: draft
+status: live
 title: Defending your answer
 drafting_model: claude-opus-5-5
-reviewed_by:
-reviewed_at:
-review_notes:
+reviewed_by: Matthew Santos
+reviewed_at: 2026-10-17
+review_notes: 
 ---
 ## The idea
 When the interviewer asks about your answer, answer the question and back it with a case fact. When they push back, **hold** if the challenge doesn't change the facts your answer turns on, and **update** if it does.

@@ -2,12 +2,12 @@
 lesson_id: lesson-ps-mece
 skill_id: PS.mece
 version: 1
-status: draft
+status: live
 title: Buckets that don't overlap and miss nothing
 drafting_model: claude-opus-5-5
-reviewed_by:
-reviewed_at:
-review_notes:
+reviewed_by: Matthew Santos
+reviewed_at: 2026-10-17
+review_notes: 
 ---
 ## The idea
 A good structure is **MECE** (mutually exclusive, collectively exhaustive): its buckets don't overlap, and together they cover everything that could explain the answer.
@@ -35,9 +35,9 @@ Better: (1) **How many people visit**: by branch and opening hours; (2) **How mu
 ## Another example
 A chicken restaurant's drive-through wait at lunch rose from 3 minutes to 6.
 
-First draft: (1) Cars arriving; (2) The lunch rush; (3) Kitchen speed. "Cars arriving" and "The lunch rush" overlap: both count cars. Nothing covers the speaker and window, where cars wait to order, pay and collect even when the kitchen is fast.
+First draft: (1) Cars arriving; (2) The lunch rush; (3) Kitchen speed. "Cars arriving" and "The lunch rush" overlap: both count cars. Nothing covers the speaker and the pay window, where cars wait to order and pay even when the kitchen is fast.
 
-Better: (1) **Arrivals**: cars per 15 minutes at lunch; (2) **Ordering and paying**: time at the speaker and the window; (3) **The kitchen**: time to make each order; (4) **Hand-off**: cars waiting for a late order. Every minute of the wait sits in one step.
+Better: (1) **Arrivals**: cars per 15 minutes at lunch; (2) **Ordering and paying**: time at the speaker and the pay window; (3) **Waiting for food**: kitchen time per order; orders remade. Every minute of the wait sits in one step.
 
 ## Tricky cases
 - **"Demand" and "Market size" for a new co-working space.** Overlap: both size the pool of people who might rent.

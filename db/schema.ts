@@ -463,7 +463,7 @@ export const lessonViews = pgTable('lesson_views', {
   studentId: uuid('student_id').notNull(),
   lessonId: text('lesson_id').notNull(),
   version: integer('version').notNull(),
-  source: text('source').notNull(),            // auto | intro | library | low_score
+  source: text('source').notNull(),            // auto | intro | library | low_score | follow_up
   secondsOpen: integer('seconds_open'),
   skipped: boolean('skipped').notNull().default(false),
   viewedAt: timestamp('viewed_at', { withTimezone: true }).notNull().defaultNow(),

@@ -30,7 +30,7 @@ import { loadProgress, loadTiers, progressContext } from '../progress/store';
 import type { WorkoutBlock } from '../program/workout';
 import type { DiagnosticPart } from '../program/diagnostic';
 import { attachDiagnosticSet, diagnosticView, startDiagnostic } from '../program/diagnostic-store';
-import { lessonSkills } from '../program/lessons-store';
+import { defendLessonFor, lessonSkills } from '../program/lessons-store';
 import { allowedTiers } from '../program/tiers';
 import { defendRuns, defendSeconds, defendStart, setSizeAt } from '../defend';
 import type { RepairExtras } from '../item-schema';
@@ -415,7 +415,7 @@ export async function setView(studentId: string, setId: string) {
   if (example) await logDrillEvent(studentId, 'drill_example_viewed', { drill_id: drill.id });
   const limits = drillLimitsMs(drill, set.tier as Tier, settings.timeMultiplier);
   const diagnostic = set.source === 'diagnostic' ? await diagnosticPartOf(studentId, set.id) : null;
-  // "Read the 3-min lesson" on the intro: the set's skill, or the drill's first
+  // "Read the short lesson" on the intro: the set's skill, or the drill's first
   // primary skill that has a lesson.
   const withLesson = diagnostic ? new Set<string>() : await lessonSkills();
   const lessonSkill = [set.focusSkill, ...drill.primary_skills].find(id => id && withLesson.has(id)) ?? null;
@@ -705,6 +705,8 @@ export async function setResults(studentId: string, setId: string) {
     from_workout: set.workoutId !== null,
     // A set below 50% offers the skill's lesson (PRD "Lessons").
     lesson_skill: await lowScoreLesson(set, set.setScore ?? setScore(results)),
+    // "Defending your answer" after the student's first follow-up reply.
+    defend_lesson: attempts.some(a => answeredFollowUp(a.defendResponse)) ? await defendLessonFor(studentId) : null,
     set_id: set.id,
     status: 'completed' as const,
     drill: { id: drill.id, name: drill.name, level: drill.level },
@@ -726,6 +728,13 @@ export async function setResults(studentId: string, setId: string) {
       };
     }),
   };
+}
+
+// A follow-up counts once the student wrote a reply (a skipped or empty one
+// doesn't).
+export function answeredFollowUp(defendResponse: unknown): boolean {
+  const text = (defendResponse as { text?: unknown } | null)?.text;
+  return typeof text === 'string' && text.trim().length > 0;
 }
 
 async function lowScoreLesson(set: SetRow, score: number): Promise<{ id: string; name: string } | null> {

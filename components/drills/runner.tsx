@@ -243,7 +243,7 @@ export function DrillRunner({ view }: { view: RunnerView }) {
         </ul>
         {view.diagnostic && <p className="text-sm text-muted-foreground">No feedback during the diagnostic: answer and move on. You&apos;ll see where you start at the end.</p>}
         {view.lesson_skill && (
-          <p className="text-sm"><Link href={`/drills/learn/${encodeURIComponent(view.lesson_skill)}?source=intro`} className="underline underline-offset-4">Read the 3-min lesson</Link> first if this skill is new to you.</p>
+          <p className="text-sm"><Link href={`/drills/learn/${encodeURIComponent(view.lesson_skill)}?source=intro`} className="underline underline-offset-4">Read the short lesson</Link> first if this skill is new to you.</p>
         )}
         {view.repair_hint && <p className="text-sm">{view.repair_hint}</p>}
         {view.defend && (

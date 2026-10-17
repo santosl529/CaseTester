@@ -3,6 +3,8 @@ import { buttonVariants } from '@/components/ui/button';
 import { DrillChart } from '@/components/drills/chart';
 import { ItemFeedbackPanel } from '@/components/drills/runner';
 import { RetryButton } from '@/components/drills/retry-button';
+import { LessonBody } from '@/components/drills/lesson';
+import { LessonViewLog } from '@/components/drills/lesson-actions';
 import type { setResults } from '@/lib/drills/sets/service';
 
 type Results = Extract<Awaited<ReturnType<typeof setResults>>, { status: 'completed' }>;
@@ -30,7 +32,7 @@ export function SetResults({ results }: { results: Results }) {
         </p>
         {results.mistakes && <p className="text-sm">{results.mistakes.text}</p>}
         {results.lesson_skill && (
-          <p className="text-sm">A tough set. <Link href={`/drills/learn/${encodeURIComponent(results.lesson_skill.id)}?source=low_score`} className="font-medium underline underline-offset-4">Read the 3-minute lesson on {results.lesson_skill.name}</Link> before the next one.</p>
+          <p className="text-sm">A tough set. <Link href={`/drills/learn/${encodeURIComponent(results.lesson_skill.id)}?source=low_score`} className="font-medium underline underline-offset-4">Read the short lesson on {results.lesson_skill.name}</Link> before the next one.</p>
         )}
         {results.skill_changes.map(c => (
           <p key={`${c.skill_id}-${c.to}`} className="text-sm font-medium">
@@ -44,6 +46,14 @@ export function SetResults({ results }: { results: Results }) {
           </p>
         )}
       </header>
+
+      {results.defend_lesson && (
+        <section aria-label="Defending your answer" className="space-y-3 rounded-lg border p-4">
+          <p className="text-sm font-medium">You just answered your first follow-up. Here is how to defend an answer, and what the follow-up checks.</p>
+          <LessonBody lesson={results.defend_lesson} mode="summary" embedded />
+          <LessonViewLog lessonId={results.defend_lesson.lesson_id} version={results.defend_lesson.version} source="follow_up" />
+        </section>
+      )}
 
       <div className="flex flex-wrap gap-3">
         <Link href="/drills" className={buttonVariants({ size: 'lg' })}>{results.from_workout ? 'Continue workout' : 'Back to training'}</Link>

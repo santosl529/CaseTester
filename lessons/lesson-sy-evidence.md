@@ -2,12 +2,12 @@
 lesson_id: lesson-sy-evidence
 skill_id: SY.evidence
 version: 1
-status: draft
+status: live
 title: Back it with the facts that decide it
 drafting_model: claude-opus-5-5
-reviewed_by:
-reviewed_at:
-review_notes:
+reviewed_by: Matthew Santos
+reviewed_at: 2026-10-17
+review_notes: 
 ---
 ## The idea
 Support your recommendation with the two or three facts that decide it, with their numbers, and leave out the rest.

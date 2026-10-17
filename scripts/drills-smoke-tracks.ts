@@ -16,12 +16,14 @@ import path from 'path';
 import { and, eq } from 'drizzle-orm';
 import { db } from '@/db/client';
 import {
-  analyticsEvents, caseResults, diagnostics, drillTiers, prescriptions, skillStateEvents, skillStates,
+  analyticsEvents, caseResults, diagnostics, drillTiers, lessonViews, prescriptions, skillStateEvents, skillStates,
   studentDrillSettings, studentProfiles, studentPrograms, workouts,
 } from '@/db/schema';
 import { ingestCaseResult } from '@/lib/drills/progress/ingest';
 import { onboard, programView, todayWorkout } from '@/lib/drills/program/store';
 import { homeView } from '@/lib/drills/program/home';
+import { recordLessonView } from '@/lib/drills/program/lessons-store';
+import { INTRO_LESSON_ID, loadIntroLesson } from '@/lib/drills/lessons';
 import type { WorkoutBlock } from '@/lib/drills/program/workout';
 
 const DAY = 86_400_000;
@@ -52,6 +54,12 @@ async function main() {
       `F day 2: ${JSON.stringify(bf[0])}`);
     const [planRx] = await db.select().from(prescriptions).where(and(eq(prescriptions.studentId, f), eq(prescriptions.sourceType, 'plan')));
     check(planRx?.skillId === 'PS.mece', `F plan prescription: ${planRx?.skillId}`);
+    // "How a case interview works" leads the Foundations home until it's read.
+    const homeF = await homeView(f, new Date(Date.now() + DAY));
+    check(homeF.kind === 'plan' && homeF.intro_first, 'F home should lead with "How a case interview works"');
+    await recordLessonView(f, INTRO_LESSON_ID, { version: loadIntroLesson()!.version, source: 'auto', seconds_open: 60, skipped: false });
+    const homeF2 = await homeView(f, new Date(Date.now() + DAY));
+    check(homeF2.kind === 'plan' && !homeF2.intro_first, 'F home still leads with the intro after it was read');
 
     // Sprint, no weak spots yet: day 2's workout is empty and the home says what to do.
     const s = await newStudent();
@@ -64,6 +72,7 @@ async function main() {
     check(empty !== null && (empty.blocks as WorkoutBlock[]).length === 0, 'S day 2 with no weak spots: an empty workout');
     const homeEmpty = await homeView(s, new Date(Date.now() + DAY));
     check(homeEmpty.kind === 'plan' && homeEmpty.workout?.blocks.length === 0, 'S home should show the empty workout state');
+    check(homeEmpty.kind === 'plan' && !homeEmpty.intro_first, 'S home should not lead with the intro (Foundations only)');
 
     // Sprint with a case result: day 3 has a 15-minute workout (case day) at tier 2+.
     await ingestCaseResult({ ...fixture, case_attempt_id: `smoke-tracks-${s}`, student_id: s, completed_at: new Date().toISOString() });
@@ -76,7 +85,7 @@ async function main() {
       await db.delete(workouts).where(eq(workouts.studentId, id));
       await db.delete(studentPrograms).where(eq(studentPrograms.studentId, id));
       await db.delete(diagnostics).where(eq(diagnostics.studentId, id));
-      for (const t of [prescriptions, skillStateEvents, skillStates, caseResults, drillTiers, studentDrillSettings]) await db.delete(t).where(eq(t.studentId, id));
+      for (const t of [prescriptions, skillStateEvents, skillStates, caseResults, drillTiers, studentDrillSettings, lessonViews]) await db.delete(t).where(eq(t.studentId, id));
       await db.delete(studentProfiles).where(eq(studentProfiles.userId, id));
     }
     await new Promise(r => setTimeout(r, 1500));

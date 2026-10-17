@@ -128,6 +128,14 @@ export default async function DrillsHomePage() {
       </header>
       {resume}
 
+      {home.intro_first && (
+        <section aria-labelledby="start-here" className="space-y-3 rounded-lg border p-4">
+          <h2 id="start-here" className="font-medium">Start here: how a case interview works</h2>
+          <p className="text-sm">A short lesson on the four stages of a case, what interviewers look for in each, and the skills your plan trains for each one. Read it before your first workout.</p>
+          <Link href="/drills/learn/intro?source=auto" className={buttonVariants({ size: 'lg' })}>Read it now</Link>
+        </section>
+      )}
+
       {home.diagnose_today && (
         <section aria-labelledby="today" className="space-y-3 rounded-lg border p-4">
           <h2 id="today" className="font-medium">Today: your starting point</h2>
@@ -172,7 +180,9 @@ export default async function DrillsHomePage() {
           {workout.status === 'completed' || next === -1
             ? <p className="text-sm font-medium">Workout done. Nice work.</p>
             : workout.blocks[next].status === 'todo'
-              ? home.lesson_first
+              ? home.intro_first
+                ? <Link href="/drills/learn/intro?source=auto" className={buttonVariants({ size: 'lg' })}>{started ? 'Continue workout' : "Start today's workout"}</Link>
+                : home.lesson_first
                 ? <Link href={`/drills/learn/${encodeURIComponent(workout.blocks[next].skill_id)}?source=auto&workout=${workout.id}&block=${next}`} className={buttonVariants({ size: 'lg' })}>{started ? 'Continue workout' : "Start today's workout"}</Link>
                 : <StartSetButton body={{ workout_id: workout.id, block: next }} label={started ? 'Continue workout' : "Start today's workout"} size="lg" />
               : workout.blocks[next].set_id && <Link href={`/drills/sets/${workout.blocks[next].set_id}`} className={buttonVariants({ size: 'lg' })}>Continue workout</Link>}
