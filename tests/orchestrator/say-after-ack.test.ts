@@ -88,9 +88,12 @@ describe('vetoReason on an acknowledged turn', () => {
     allowedTexts: ['COGS is 58% of revenue.'], verified: [], alreadyProbed: new Set(), flaggedThisTurn: false,
     openItems: [], phase: 'ANALYSIS', acknowledged: true, candidateMessage: "I'd look at costs first, so COGS.", ...over,
   });
-  it('drops an echo only when the voice acknowledged', () => {
+  it('drops an echo on a voice turn, acknowledged or not (17 Oct), never on a text turn', () => {
     expect(vetoReason('A COGS-first read.', g())).toBe('echo_after_ack');
+    expect(vetoReason('A COGS-first read.', g({ acknowledged: false, voice: true }))).toBe('echo_after_ack');
+    expect(vetoReason('Understood.', g({ acknowledged: false, voice: true }))).toBe('double_ack');
     expect(vetoReason('A COGS-first read.', g({ acknowledged: false }))).toBeNull();
+    expect(vetoReason('Understood.', g({ acknowledged: false, voice: false }))).toBeNull();
   });
   it('the question field is never touched', () => {
     expect(vetoReason('A COGS-first read.', g(), { inQuestion: true })).toBeNull();

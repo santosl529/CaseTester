@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ACKS, ACK_POOLS, ALL_ACKS, LONG_ANSWER_WORDS, ackKind, ackSpeechText, pickAck, shouldAcknowledge } from '@/lib/voice/acknowledge';
+import { ACKS, ACK_POOLS, ALL_ACKS, FILLER_GAP_MS, FILLER_TAIL_MS, ackBeats, ackKind, ackSpeechText, isThinkingFiller, joinBeats, pickAck, shouldAcknowledge } from '@/lib/voice/acknowledge';
 
 describe('instant acknowledgment', () => {
   it('rotates through neutral backchannels and never repeats the last one', () => {
@@ -41,23 +41,44 @@ describe('instant acknowledgment', () => {
     for (const a of ALL_ACKS) expect(a).not.toMatch(/\bright\b/i);
   });
 
-  it('answers and questions get open, trailing fillers that lead into speech (17 Oct)', () => {
-    for (const a of [...ACK_POOLS.answer, ...ACK_POOLS.question]) {
+  it('answers and questions get thinking sounds only — nothing that confirms (Lorenzo, 17 Oct)', () => {
+    expect([...ACK_POOLS.answer]).toEqual(['Hmm…', 'Mhm…', 'Okay…', 'Alright…', 'Hmm… okay…', 'Hmm… alright…', 'Mhm… okay…', 'Mhm… alright…']);
+    expect(ACK_POOLS.question).toEqual(ACK_POOLS.answer);
+    for (const a of ACK_POOLS.answer) {
+      expect(a).not.toMatch(/got it|thanks|i see|understood|sure|follow|so\b/i);
       expect(a).toMatch(/…$/);
-      expect(a.split(/\s+/).length).toBeLessThanOrEqual(2);
+      expect(isThinkingFiller(a)).toBe(true);
     }
-    expect(ackSpeechText('Okay, so…')).toBe('Okay, so...');
-    expect(ackSpeechText('Take your time.')).toBe('Take your time.');
+    expect(ACK_POOLS.stuck).toEqual(['Take your time.', 'Sure, take a moment.']);
+    expect(isThinkingFiller('Take your time.')).toBe(false);
+    expect(isThinkingFiller(null)).toBe(false);
   });
 
-  it('stays silent after a long answer — the natural pause stands (17 Oct)', () => {
-    const words = (n: number) => Array.from({ length: n }, (_, i) => (i === 0 ? 'Costs' : 'matter')).join(' ') + '.';
-    expect(LONG_ANSWER_WORDS).toBe(40);
-    expect(shouldAcknowledge(words(39))).toBe(true);
-    expect(shouldAcknowledge(words(40))).toBe(false);
-    // session 314295e0 t5 (41 words, with a data ask) and t1 (144 words)
-    expect(shouldAcknowledge("I'm thinking right now. I don't really think anything is really missing. Um, I think I do just need to look at the cost first. If you could... if you have that... if you have the cogs, that'll be really helpful.")).toBe(false);
-    expect(shouldAcknowledge("Yeah. Like, I was just saying, I'd want to check the costs first, so COGS.")).toBe(true);
+  it('a filler is synthesized beat by beat, each with its ellipsis spelled out; other acks whole', () => {
+    expect(ackBeats('Hmm… okay…')).toEqual(['Hmm…', 'Okay…']);
+    expect(ackBeats('Mhm… alright…')).toEqual(['Mhm…', 'Alright…']);
+    expect(ackBeats('Okay…')).toEqual(['Okay…']);
+    expect(ackBeats('Okay, let me check.')).toEqual(['Okay, let me check.']);
+    expect(ackSpeechText('Okay…')).toBe('Okay...');
+    expect(ackSpeechText('Take your time.')).toBe('Take your time.');
+    // Every beat is one of four clips.
+    expect(new Set(ACKS.flatMap(ackBeats))).toEqual(new Set(['Hmm…', 'Mhm…', 'Okay…', 'Alright…']));
+  });
+
+  it('joins beats with ~400ms between them and ~300ms after the last', () => {
+    const RATE = 24000;
+    const beat = (ms: number) => new Uint8Array((RATE * ms) / 1000 * 2).fill(1);
+    expect(FILLER_GAP_MS).toBe(400);
+    expect(FILLER_TAIL_MS).toBe(300);
+    const two = joinBeats([beat(500), beat(600)], RATE);
+    expect(two.length / 2 / RATE * 1000).toBe(500 + 400 + 600 + 300);
+    expect(two.subarray((RATE * 0.5) * 2, (RATE * 0.9) * 2).every(b => b === 0)).toBe(true);   // the gap is silence
+    expect(joinBeats([beat(500)], RATE, 400, 250).length / 2 / RATE * 1000).toBe(750);
+  });
+
+  it('long answers get a filler too (Lorenzo, 17 Oct)', () => {
+    const long = Array.from({ length: 144 }, () => 'costs').join(' ');
+    expect(shouldAcknowledge(long)).toBe(true);
   });
 
   it('stays silent on an empty turn', () => {

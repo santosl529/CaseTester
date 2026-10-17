@@ -25,7 +25,7 @@ import type { Phase } from '@/lib/orchestrator/state-machine';
 import { DeepgramFluxSTT } from './deepgram';
 import { CartesiaTTS, defaultVoiceId } from './cartesia';
 import { FakeTTS } from './fake-tts';
-import { ALL_ACKS, ackSpeechText } from './acknowledge';
+import { ALL_ACKS, FILLER_GAP_MS, FILLER_TAIL_MS, ackBeats, ackSpeechText, isThinkingFiller, joinBeats } from './acknowledge';
 import { Playout } from './playout';
 import { SpeechEndTracker, trimSilence } from './pcm';
 import { TtsCharBudget, RunCharCap, monthlyLedgerFile, ttsRunCap } from './tts-budget';
@@ -42,25 +42,42 @@ const IN_RATE = 16000;    // Flux in
 const num = (k: string, d: number) => Number(process.env[k] ?? d);
 
 // The acknowledgments, synthesized once per TTS + voice and cached on disk.
+// A thinking filler is its beats, each its own clip, joined with silence
+// (ackBeats, joinBeats; Lorenzo, 17 Oct); any other acknowledgment is one clip.
 async function loadAcks(tts: TTSProvider, voice: string, take: (n: number) => boolean): Promise<Map<string, Uint8Array>> {
-  const acks = new Map<string, Uint8Array>();
-  for (const ack of ALL_ACKS) {
-    // Keyed on the text the TTS reads (the trailing fillers spell their ellipsis out).
-    const speech = ackSpeechText(ack);
+  const clips = new Map<string, Uint8Array | null>();
+  const clip = async (text: string): Promise<Uint8Array | null> => {
+    if (clips.has(text)) return clips.get(text)!;
+    // Keyed on the text the TTS reads (a filler beat spells its ellipsis out).
+    const speech = ackSpeechText(text);
     const file = path.join('.voice-cache/acks', `${tts.name}-${voice}-${createHash('sha1').update(speech).digest('hex').slice(0, 10)}.pcm`);
+    let pcm: Uint8Array | null = null;
+    if (existsSync(file)) pcm = new Uint8Array(readFileSync(file));
+    else if (take(speech.length)) {
+      const utt = await tts.open({ encoding: 'pcm_s16le', sampleRate: OUT_RATE });
+      const parts: Uint8Array[] = [];
+      utt.onAudio(p => parts.push(p));
+      await utt.push(speech);
+      await utt.end();
+      pcm = new Uint8Array(Buffer.concat(parts));
+      mkdirSync(path.dirname(file), { recursive: true });
+      writeFileSync(file, pcm);
+    }
     // Trimmed at both ends as loaded: the TTS pads ~0.1–0.2s of silence each side,
     // which delays the first sound and lengthens the gap after the ack.
-    if (existsSync(file)) { acks.set(ack, trimSilence(new Uint8Array(readFileSync(file)), OUT_RATE)); continue; }
-    if (!take(speech.length)) break;
-    const utt = await tts.open({ encoding: 'pcm_s16le', sampleRate: OUT_RATE });
-    const parts: Uint8Array[] = [];
-    utt.onAudio(p => parts.push(p));
-    await utt.push(speech);
-    await utt.end();
-    const pcm = Buffer.concat(parts);
-    mkdirSync(path.dirname(file), { recursive: true });
-    writeFileSync(file, pcm);
-    acks.set(ack, trimSilence(new Uint8Array(pcm), OUT_RATE));
+    const trimmed = pcm ? trimSilence(pcm, OUT_RATE) : null;
+    clips.set(text, trimmed);
+    return trimmed;
+  };
+  const acks = new Map<string, Uint8Array>();
+  for (const ack of ALL_ACKS) {
+    const beats: Uint8Array[] = [];
+    for (const b of ackBeats(ack)) {
+      const c = await clip(b);
+      if (c) beats.push(c);
+    }
+    if (beats.length !== ackBeats(ack).length) continue;   // the budget refused a beat: no such ack
+    acks.set(ack, isThinkingFiller(ack) ? joinBeats(beats, OUT_RATE, num('VOICE_FILLER_GAP_MS', FILLER_GAP_MS), num('VOICE_FILLER_TAIL_MS', FILLER_TAIL_MS)) : beats[0]);
   }
   return acks;
 }
@@ -155,7 +172,7 @@ export default defineAgent({
       [e.id, { id: e.id, title: e.title, chartType: e.chartType, data: e.data as Record<string, unknown>[], ...(e.notes ? { notes: e.notes } : {}) }]));
     const controller = new VoiceTurnController({
       now: () => Date.now(), clock: realClock, playout, tts, format: { encoding: 'pcm_s16le', sampleRate: OUT_RATE },
-      runTurn: (text, o) => runTurn(session.id, text, { ...o, defer: task => { background.push(task().catch(() => {})); } }),
+      runTurn: (text, o) => runTurn(session.id, text, { ...o, voice: true, defer: task => { background.push(task().catch(() => {})); } }),
       afterTurn: result => {
         const before = phase;
         phase = result.phase;

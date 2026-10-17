@@ -46,6 +46,7 @@ export type GateContext = {
   openItems: OpenRequestItem[];
   phase: Phase;
   acknowledged?: boolean;  // voice already spoke a backchannel this turn
+  voice?: boolean;         // the turn is spoken, acknowledged or not
   metaAsked?: boolean;     // the candidate asked how they're assessed (a report hand-off may answer it)
   candidateMessage?: string; // the message this turn answers (the growth probe reads its claim)
   checkerLine?: string;    // this turn's checker line, if the model is to say it (never dropped after an ack)
@@ -141,9 +142,9 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   if (opts.inQuestion && g.facts?.delivery?.refusedNow && !sentence.trim().endsWith('?') && REFUSAL_TALK.test(sentence)) return 'data_talk';
   if (['BRAINSTORM', 'RECOMMENDATION', 'WRAP'].includes(g.phase) && suppliesRecommendation(sentence)) return 'synthesis';
   if (!opts.inQuestion && sentence.trim().endsWith('?')) return 'question_in_say';
-  // After the voice's acknowledgment: no second acknowledgment and no echo of
+  // On a voice turn (acknowledged or not): no acknowledgment and no echo of
   // their point without a figure (say-after-ack.ts; Lorenzo's voice test, 17 Oct).
-  if (!opts.inQuestion && g.acknowledged) return sayAfterAckReason(sentence, { candidateMessage: g.candidateMessage, checkerLine: g.checkerLine });
+  if (!opts.inQuestion && (g.acknowledged || g.voice)) return sayAfterAckReason(sentence, { candidateMessage: g.candidateMessage, checkerLine: g.checkerLine });
   return null;
 }
 
@@ -170,6 +171,7 @@ export function gateContext(plan: ModelPlan, extraRevealed: string[] = [], extra
     openItems: state.openDataRequests.map(r => ({ ledgerItemId: r.ledgerItemId, label: r.label })),
     phase: ctx.currentPhase,
     acknowledged: Boolean(ctx.acknowledged),
+    voice: Boolean(ctx.voice),
     // Only on a turn the case continues past (model turns are never the close).
     metaAsked: state.kind === 'model' && asksAboutAssessment(ctx.candidateText),
     candidateMessage: ctx.candidateText,

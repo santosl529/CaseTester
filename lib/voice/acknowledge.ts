@@ -3,17 +3,18 @@
 // so the candidate hears the interviewer within ~endpoint time while the
 // model's turn is still being written. Neutral only — never grading ("Right."
 // is left out: after an answer it can sound like "you're right").
-// Since 17 Oct the answer and question acknowledgments are open, trailing
-// fillers that lead into what follows ("Okay, so…") instead of closed
-// two-beat ones: Lorenzo's voice test (session 314295e0) heard "Understood,
-// okay." then a gap then the model's own line, which read as robotic.
+// Since 17 Oct (Lorenzo's ruling, v2) answers and questions get thinking
+// sounds only — no confirming words ("Got it, thanks.", "I see",
+// "Understood" confirmed, which is unnatural) — each beat synthesized alone
+// with trailing intonation and joined in code with silence (ackBeats,
+// joinBeats). The reply's first segment then opens with a connector
+// (connector.ts).
 import { classifyConduct } from '@/lib/orchestrator/conduct';
 import { pickScript } from '@/lib/agent/prompts/scripts';
 import { explicitRequestCues } from '@/lib/orchestrator/request-signal';
 
-// Trailing fillers, synthesized with continuing intonation (ackSpeechText):
-// they lead into the question rather than close a beat. Never "Right".
-export const ACKS = ['Okay, so…', 'Mm, okay…', 'Hmm…', 'Mm-hm, so…'] as const;
+// Thinking sounds, one beat or two (joined with FILLER_GAP_MS between them).
+export const ACKS = ['Hmm…', 'Mhm…', 'Okay…', 'Alright…', 'Hmm… okay…', 'Hmm… alright…', 'Mhm… okay…', 'Mhm… alright…'] as const;
 
 // One pool per kind of message (9 Oct): "Got it, thanks." after "Sorry. Hold
 // on." or a question read as not listening. A data ask gets "let me check",
@@ -21,18 +22,46 @@ export const ACKS = ['Okay, so…', 'Mm, okay…', 'Hmm…', 'Mm-hm, so…'] as 
 export const ACK_POOLS = {
   answer: ACKS,
   stuck: ['Take your time.', 'Sure, take a moment.'],
-  question: ['Okay, so…', 'Mm, so…', 'Sure, so…'],
+  question: ACKS,
   data_request: ['Okay, let me check.', 'Sure, one second.'],
 } as const;
 export type AckKind = keyof typeof ACK_POOLS;
 export type Ack = (typeof ACK_POOLS)[AckKind][number];
 // Every phrase, for synthesizing the audio once at startup.
-export const ALL_ACKS: readonly Ack[] = Object.values(ACK_POOLS).flat();
+export const ALL_ACKS: readonly Ack[] = [...new Set(Object.values(ACK_POOLS).flat())];
 
 // The text sent to the TTS: an ellipsis spelled out, which the TTS reads with
 // trailing, unfinished intonation (17 Oct).
 export function ackSpeechText(ack: string): string {
   return ack.replace(/…/g, '...');
+}
+
+// A thinking filler (the answer and question pools): its reply opens with a connector.
+export function isThinkingFiller(ack: string | null): boolean {
+  return ack !== null && (ACKS as readonly string[]).includes(ack);
+}
+
+// A filler's beats, each synthesized as its own clip ("Hmm… okay…" → "Hmm…",
+// "Okay…"); any other acknowledgment is one clip, as written.
+export function ackBeats(ack: string): string[] {
+  if (!isThinkingFiller(ack)) return [ack];
+  return ack.split(/(?<=…)\s+/).map(b => b.charAt(0).toUpperCase() + b.slice(1));
+}
+
+// Silence between a filler's beats and after its last (Lorenzo, 17 Oct: "try
+// about 400ms between beats and 300ms after the last"); the agent can override
+// them with VOICE_FILLER_GAP_MS / VOICE_FILLER_TAIL_MS.
+export const FILLER_GAP_MS = 400;
+export const FILLER_TAIL_MS = 300;
+
+// The beats' clips (trimmed) joined: gap between them, tail after the last.
+export function joinBeats(clips: Uint8Array[], sampleRate: number, gapMs = FILLER_GAP_MS, tailMs = FILLER_TAIL_MS): Uint8Array {
+  const pause = (ms: number) => new Uint8Array(Math.round((sampleRate * ms) / 1000) * 2);
+  const parts = clips.flatMap((c, i) => (i < clips.length - 1 ? [c, pause(gapMs)] : [c, pause(tailMs)]));
+  const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
+  let o = 0;
+  for (const p of parts) { out.set(p, o); o += p.length; }
+  return out;
 }
 
 // Only short messages get a kind: a long answer that opens with "let me take a
@@ -68,17 +97,12 @@ export function pickAck(seed: string, last: string | null, kind: AckKind = 'answ
   return pool[(pool.indexOf(first) + 1) % pool.length];
 }
 
-// No acknowledgment after a long answer (17 Oct): the pause before the
-// interviewer speaks is natural there, and a filler over it sounds canned.
-export const LONG_ANSWER_WORDS = 40;
-
 // No acknowledgment when the conduct floor (the regex layer, instant) flags
 // the message: a distress offer, warning or redirect comes first, and "Mm-hm."
 // before "Let's set the case aside — are you okay?" is wrong. Subtle distress
 // that only the model layer catches can still get one.
 export function shouldAcknowledge(candidateText: string): boolean {
   if (!candidateText.trim()) return false;
-  if (candidateText.trim().split(/\s+/).length >= LONG_ANSWER_WORDS) return false;
   const { category } = classifyConduct(candidateText, 0);
   return category === 'none' || category === 'C1';
 }

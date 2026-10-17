@@ -9,7 +9,8 @@ import { TurnCancelled, isCancelledTurn, type HeardReport, type Segment } from '
 import type { ServerMessage } from '@/lib/voice/protocol';
 import type { TTSProvider } from '@/lib/voice/types';
 import { fakeClock, sink } from './helpers/playout-fakes';
-import { ACK_POOLS } from '@/lib/voice/acknowledge';
+import { ACK_POOLS, ackKind, pickAck } from '@/lib/voice/acknowledge';
+import { pickConnector } from '@/lib/voice/connector';
 
 const RATE = 24000;
 const ACK_MS = 300;
@@ -74,16 +75,92 @@ describe('the instant acknowledgment', () => {
   });
 });
 
-describe('no acknowledgment after a long answer (17 Oct)', () => {
-  it('the first sound is the interviewer\'s own line, and the record has no ack', async () => {
+describe('long answers get a filler too (Lorenzo, 17 Oct)', () => {
+  it('a 45-word answer hears a thinking filler first', async () => {
     const long = Array.from({ length: 45 }, () => 'costs').join(' ');
     const h = harness([[seg('tail', 'Which branch first?')]]);
     await h.c.ready(''); h.c.onStt(final(long));
     await h.advance(3000);
     const rec = h.records[0] as { ack: string | null; firstSoundMs: number; firstUsefulMs: number };
-    expect(rec.ack).toBeNull();
-    expect(rec.firstSoundMs).toBe(rec.firstUsefulMs);
-    expect(h.texts).toEqual([long]);
+    expect(ACK_POOLS.answer).toContain(rec.ack);
+    expect(rec.firstSoundMs).toBeLessThan(rec.firstUsefulMs);
+  });
+});
+
+// A TTS that records what it was asked to say.
+class RecordingTTS extends FakeTTS {
+  pushed: string[] = [];
+  async open(format: Parameters<FakeTTS['open']>[0]) {
+    const u = await super.open(format);
+    return { ...u, push: async (text: string) => { this.pushed.push(text); await u.push(text); } };
+  }
+}
+// A session seed whose first turn, after `text`, opens with `want`.
+function seedFor(text: string, segmentText: string, want: string): string {
+  for (let i = 0; i < 200; i++) {
+    const ack = pickAck(`k${i}:1`, null, ackKind(text));
+    if (pickConnector({ seed: `k${i}:1:connector`, filler: ack, segmentText, recent: [] }) === want) return `k${i}`;
+  }
+  throw new Error('no seed');
+}
+
+describe('the connector after a filler (Lorenzo, 17 Oct)', () => {
+  const ANSWER = "I'd start with costs, specifically COGS.";
+  const DATA = 'There are 120 stores.';
+
+  it('is spoken before the first segment, and nowhere else: not in the segment, captions, the heard report or the runner', async () => {
+    const tts = new RecordingTTS(10, 0);
+    const h = harness([[seg('data', DATA, { revealIds: ['stores_count'] }), seg('tail', 'Where would you start?')]], { tts, sessionSeed: seedFor(ANSWER, DATA, 'So,') });
+    await h.c.ready(''); h.c.onStt(final(ANSWER));
+    await h.advance(5000);
+    expect(tts.pushed).toEqual([`So, ${DATA}`, 'Where would you start?']);     // the second segment gets none
+    expect(h.texts).toEqual([ANSWER]);
+    expect(h.reports[0].segments.map(s => [s.text, s.playback, s.heardChars])).toEqual([[DATA, 'played', DATA.length], ['Where would you start?', 'played', 22]]);
+    expect(h.captions('interviewer').every(m => !/\bSo,/.test(m.text))).toBe(true);
+    expect(h.captions('interviewer').at(-1)).toMatchObject({ final: true, text: `${DATA} Where would you start?` });
+  });
+
+  it('a cut while the connector plays has heard none of the line; its words never shift the heard cursor', async () => {
+    const tts = new RecordingTTS(40, 0);   // "So, There are 120 stores." — 5 words, 200ms each
+    const h = harness([[seg('data', DATA, { revealIds: ['stores_count'] })]], { tts, sessionSeed: seedFor(ANSWER, DATA, 'So,') });
+    await h.c.ready(''); h.c.onStt(final(ANSWER));
+    await h.advance(650);                   // ack 0–300ms; the connector 300–500ms; heard cursor at 500ms
+    h.c.onStt(speech('wait sorry'));
+    await h.advance(2000);
+    const [data] = h.reports[0].segments;
+    expect(tts.pushed[0]).toBe(`So, ${DATA}`);
+    expect(data.heardChars).toBe(0);
+    expect(h.reports[0].segments[0].text).toBe(DATA);
+  });
+
+  it('a correction keeps its exact wording after the connector', async () => {
+    const LINE = "From today's 6% margin, a 10% price rise lifts margin about 8.5 points, not 5.";
+    const tts = new RecordingTTS(10, 0);
+    const h = harness([[seg('tail', LINE)]], { tts, sessionSeed: seedFor(ANSWER, LINE, 'So,') });
+    await h.c.ready(''); h.c.onStt(final(ANSWER));
+    await h.advance(5000);
+    expect(tts.pushed).toEqual([`So, ${LINE}`]);
+    expect(h.reports[0].segments[0]).toMatchObject({ text: LINE, playback: 'played', heardChars: LINE.length });
+  });
+
+  it('none after "Take your time." — only thinking fillers lead into a connector', async () => {
+    const tts = new RecordingTTS(10, 0);
+    const h = harness([[seg('tail', 'Where would you start?')]], { tts });
+    await h.c.ready(''); h.c.onStt(final('Sorry. Hold on.'));
+    await h.advance(3000);
+    expect(ACK_POOLS.stuck).toContain((h.records[0] as { ack: string }).ack);
+    expect(tts.pushed).toEqual(['Where would you start?']);
+  });
+
+  it('never the same connector three turns running', async () => {
+    const tts = new RecordingTTS(10, 0);
+    const turns = Array.from({ length: 12 }, () => [seg('tail', 'Where would you start?')]);
+    const h = harness(turns, { tts });
+    await h.c.ready('');
+    for (let i = 0; i < 12; i++) { h.c.onStt(final(`${ANSWER} Number ${i}.`)); await h.advance(3000); }
+    const opens = tts.pushed.map(p => (p.startsWith('So, ') ? 'So,' : ''));
+    expect(opens).toHaveLength(12);
+    for (let i = 2; i < opens.length; i++) expect(opens[i] === opens[i - 1] && opens[i] === opens[i - 2]).toBe(false);
   });
 });
 
@@ -197,7 +274,7 @@ describe('trace (recording)', () => {
     h.c.onStt(speech('mhm')); h.c.onStt(final('mhm'));
     h.c.onStt(speech('wait sorry'));
     await h.advance(2000);
-    expect(trace).toEqual(['final', 'turn_start', 'ack_start', 'segment_start', 'backchannel', 'cut', 'turn_end']);
+    expect(trace).toEqual(['final', 'turn_start', 'connector', 'ack_start', 'segment_start', 'backchannel', 'cut', 'turn_end']);
   });
 });
 

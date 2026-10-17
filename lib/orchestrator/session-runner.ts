@@ -68,6 +68,9 @@ export type RunTurnOptions = {
   // (lib/voice/acknowledge.ts). The model is told not to acknowledge again,
   // and the saved interviewer line starts with it.
   acknowledged?: string;
+  // Voice: the turn is spoken. The model's "say" loses acknowledgments and
+  // echoes without a figure on every voice turn (say-after-ack.ts, 17 Oct).
+  voice?: boolean;
   // Speculative draft (speculative-turn.ts): every delivery and write waits on
   // the gate; cancelled, they throw DraftCancelled and deferred work is dropped.
   gate?: DraftGate;
@@ -181,7 +184,7 @@ async function runTurnBody(
   sessionId: string, candidateText: string, later: (task: () => Promise<void>) => void, opts: RunTurnOptions,
   background: (job: CheckerJob, phase: Phase) => void = () => {},
 ): Promise<TurnResult> {
-  const { acknowledged, gate } = opts;
+  const { acknowledged, voice, gate } = opts;
   // A draft's segments wait for acceptance: a resolved buffer is not delivery.
   const sink: SegmentSink | undefined = opts.onSegment && gate
     ? async seg => { await gate.wait(); await opts.onSegment!(seg); }
@@ -226,7 +229,7 @@ async function runTurnBody(
   // Plan (plan-turn.ts): everything decided before the model call, no writes.
   const phaseNow = (reads.session?.phase ?? 'INTRO') as Phase;
   const plan = planTurn(reads, candidateText, {
-    sessionId, now: Date.now(), turnStartMs, later, acknowledged, background: job => background(job, phaseNow),
+    sessionId, now: Date.now(), turnStartMs, later, acknowledged, voice, background: job => background(job, phaseNow),
   });
   timer.mark('plan_done');
   opts.onPlanFingerprint?.(planFingerprint(plan));

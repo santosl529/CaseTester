@@ -13,7 +13,8 @@ import { HEARD_MARGIN_MS, type Clock, type Outcome, type Playout } from './playo
 import type { PcmFormat, SttEvent, TTSProvider } from './types';
 import type { ServerMessage, VoiceState } from './protocol';
 import { classifierWaits, type TurnRecord } from './records';
-import { ackKind, pickAck, shouldAcknowledge } from './acknowledge';
+import { ackKind, isThinkingFiller, pickAck, shouldAcknowledge } from './acknowledge';
+import { connectorWordCount, pickConnector, spokenWithConnector } from './connector';
 
 // How long heard() waits for the browser to confirm an exhibit it was sent.
 export const EXHIBIT_CONFIRM_MS = 1500;
@@ -55,6 +56,7 @@ type CutKind = 'barge' | 'blocked' | 'end';
 type Live = {
   seq: number; text: string; carried: boolean; replaces: number | null; opening: boolean;
   ack: string | null; prevAck: string | null;
+  connectorDecided: boolean;   // the first spoken segment has been given its connector (or none)
   finalAt: number; speechEndAt: number | null; startedAt: number | null;
   entries: Entry[];
   cutAt: number | null; cutKind: CutKind | null; cutOutcome: Map<string, Outcome> | null;
@@ -75,6 +77,7 @@ export class VoiceTurnController {
   private carry: { text: string; seq: number } | null = null;   // barge-in before anything was heard
   private pending: string | null = null;                        // audio blocked before anything was heard
   private lastAck: string | null = null;
+  private connectors: string[] = [];   // the connector chosen on each of the last two filler turns
 
   constructor(private d: ControllerDeps) {}
 
@@ -193,7 +196,7 @@ export class VoiceTurnController {
 
   private newLive(text: string, finalAt: number, opening: boolean): Live {
     const t: Live = {
-      seq: ++this.seq, text, carried: false, replaces: null, opening, ack: null, prevAck: this.lastAck,
+      seq: ++this.seq, text, carried: false, replaces: null, opening, ack: null, prevAck: this.lastAck, connectorDecided: false,
       finalAt, speechEndAt: null, startedAt: null, entries: [],
       cutAt: null, cutKind: null, cutOutcome: null, finalizing: false, report: null, waiters: [],
       firstSoundAt: null, firstUsefulAt: null, firstAcceptedAt: null, ttsFirstAudioAt: null,
@@ -255,7 +258,22 @@ export class VoiceTurnController {
     if (t.cutAt !== null && seg.kind !== 'scripted') throw new Error('cut');
     const text = seg.text.trim();
     if (!text && !seg.exhibitId) return;
-    if (text && !this.d.ttsAllow(text.length)) throw new Error('tts cap');
+    // After a thinking filler, the first spoken segment opens with a connector
+    // ("So, …"), in the TTS text only: the segment, captions and heard checks
+    // keep the line as written (connector.ts).
+    let spoken = text;
+    let skipWords = 0;
+    if (text && !t.connectorDecided) {
+      t.connectorDecided = true;
+      if (isThinkingFiller(t.ack)) {
+        const c = pickConnector({ seed: `${this.d.sessionSeed}:${t.seq}:connector`, filler: t.ack!, segmentText: text, recent: this.connectors });
+        this.connectors = [...this.connectors, c].slice(-2);
+        spoken = spokenWithConnector(c, text);
+        skipWords = connectorWordCount(c);
+        this.d.trace?.('connector', { seq: t.seq, connector: c });
+      }
+    }
+    if (text && !this.d.ttsAllow(spoken.length)) throw new Error('tts cap');
     const e: Entry = { id: `${t.seq}:${t.entries.length}`, seg, heardChars: 0, shownFull: false, exhibitSentAt: null, exhibitConfirmed: false, cancel: () => {} };
     t.entries.push(e);
     t.firstAcceptedAt ??= this.d.now();
@@ -284,8 +302,13 @@ export class VoiceTurnController {
         e.cancel = () => { cancelled = true; void utt.cancel().catch(() => {}); };
         if (cancelled) { await utt.cancel().catch(() => {}); return; }
         utt.onAudio((pcm, at) => { t.ttsFirstAudioAt ??= at; this.d.playout.push(e.id, pcm); });
-        utt.onWords?.(ws => this.d.playout.words(e.id, ws));
-        await utt.push(text);
+        utt.onWords?.(ws => {
+          // The connector's words are not the segment's: skip them, keeping the times.
+          const n = Math.min(skipWords, ws.length);
+          skipWords -= n;
+          if (ws.length > n) this.d.playout.words(e.id, ws.slice(n));
+        });
+        await utt.push(spoken);
         await utt.end();
         this.d.playout.finish(e.id);
       } catch {

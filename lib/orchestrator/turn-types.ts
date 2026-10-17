@@ -66,6 +66,8 @@ export type TurnCtx = {
   // Voice: a backchannel the voice layer already spoke when the candidate's
   // turn ended. The model is told; the saved interviewer line starts with it.
   acknowledged?: string;
+  // Voice: the turn is spoken, acknowledged or not.
+  voice?: boolean;
 };
 
 // A turn with no model call (conduct, distress, inactive session): the text

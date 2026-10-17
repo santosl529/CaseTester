@@ -64,6 +64,7 @@ export type PlanDeps = {
   later: TurnCtx['later'];
   background?: TurnCtx['background'];
   acknowledged?: string;   // voice: a backchannel already spoken at end-of-turn
+  voice?: boolean;         // the turn is spoken (the say rule applies on every voice turn)
   // false: no distress classifier call — a re-plan only to compare decisions
   // (speculative-turn.ts), whose verdict nobody reads.
   classify?: boolean;
@@ -102,7 +103,7 @@ export function planTurn(reads: TurnReads, candidateText: string, deps: PlanDeps
   const ctx: TurnCtx = {
     sessionId, userId: session.userId, candidateText, now, turnStartMs: deps.turnStartMs,
     nextTurnIndex, currentPhase, flags, conduct, checks: new CheckLog(), events: [], later: deps.later,
-    background: deps.background, acknowledged: deps.acknowledged,
+    background: deps.background, acknowledged: deps.acknowledged, voice: deps.voice,
   };
   const later = deps.later;
 

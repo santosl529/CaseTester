@@ -5,7 +5,9 @@ vi.mock('@/db/client', () => ({ db: {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
 vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => [] }));
 
-import { vetoReason, streamTurnSegments, type GateContext } from '@/lib/orchestrator/stream-turn';
+import { vetoReason, streamTurnSegments, gateContext, type GateContext } from '@/lib/orchestrator/stream-turn';
+import { planTurn } from '@/lib/orchestrator/plan-turn';
+import { readsFixture } from './fixtures/turn-reads';
 import { eventsFromTurn } from '@/lib/agent/models/turn-events';
 import type { TurnEvent } from '@/lib/agent/models/interface';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
@@ -130,6 +132,23 @@ describe('streamTurnSegments', () => {
     }), plan, sink);
     expect(got.map(s => [s.kind, s.text])).toEqual([['say', 'Revenue grew 15%.'], ['data', expect.stringContaining('200 stores')]]);
     expect(out).toMatchObject({ kind: 'done', bufferSwitch: null, deliveredRevealIds: ['stores_count'] });
+  });
+
+  it('the voice flag reaches the gate from the runner\'s plan deps; text turns stay unflagged', () => {
+    const deps = { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} };
+    const voice = planTurn(readsFixture({ phase: 'ANALYSIS' }), 'Costs first.', { ...deps, voice: true });
+    const text = planTurn(readsFixture({ phase: 'ANALYSIS' }), 'Costs first.', deps);
+    if (voice.kind !== 'model' || text.kind !== 'model') throw new Error('expected model plans');
+    expect(gateContext(voice).voice).toBe(true);
+    expect(gateContext(text).voice).toBe(false);
+  });
+
+  it('on a voice turn without an ack, drops the echo too (17 Oct)', async () => {
+    const plan = modelPlanFixture({ distress: null, candidateText: "I'd check the store count first, then costs. Can I see the store count?" });
+    plan.ctx.voice = true;
+    const { got, sink } = collect();
+    await run(T({ say: 'Understood. A store-count check.', requests: [{ what: 'store count', itemIds: ['stores_count'], explicit: true, respond: 'release' }] }), plan, sink);
+    expect(got.map(s => s.kind)).toEqual(['data']);
   });
 
   it("drops the model's own data talk and keeps streaming — the data line says it", async () => {
