@@ -13,7 +13,7 @@ import { HEARD_MARGIN_MS, type Clock, type Outcome, type Playout } from './playo
 import type { PcmFormat, SttEvent, TTSProvider } from './types';
 import type { ServerMessage, VoiceState } from './protocol';
 import { classifierWaits, type TurnRecord } from './records';
-import { ackKind, isThinkingFiller, pickAck, shouldAcknowledge } from './acknowledge';
+import { FILLER_DELAY_MS, ackKind, isThinkingFiller, pickAck, shouldAcknowledge } from './acknowledge';
 import { connectorWordCount, pickConnector, spokenWithConnector } from './connector';
 
 // How long heard() waits for the browser to confirm an exhibit it was sent.
@@ -43,6 +43,8 @@ export type ControllerDeps = {
   canStartTurn: () => boolean;                   // the ledger's reserve
   bargeMinWords: number;
   sessionSeed: string;
+  // How long after end of turn the acknowledgment waits (FILLER_DELAY_MS); 0 plays it at once.
+  fillerDelayMs?: number;
   // Optional: the turn-taking decisions as they happen (session recording).
   trace?: (type: string, data?: Record<string, unknown>) => void;
 };
@@ -57,6 +59,8 @@ type Live = {
   seq: number; text: string; carried: boolean; replaces: number | null; opening: boolean;
   ack: string | null; prevAck: string | null;
   connectorDecided: boolean;   // the first spoken segment has been given its connector (or none)
+  ackState: 'none' | 'pending' | 'played' | 'skipped';
+  ackSkipped: string | null;   // why a planned acknowledgment didn't play
   finalAt: number; speechEndAt: number | null; startedAt: number | null;
   entries: Entry[];
   cutAt: number | null; cutKind: CutKind | null; cutOutcome: Map<string, Outcome> | null;
@@ -196,7 +200,7 @@ export class VoiceTurnController {
 
   private newLive(text: string, finalAt: number, opening: boolean): Live {
     const t: Live = {
-      seq: ++this.seq, text, carried: false, replaces: null, opening, ack: null, prevAck: this.lastAck, connectorDecided: false,
+      seq: ++this.seq, text, carried: false, replaces: null, opening, ack: null, prevAck: this.lastAck, connectorDecided: false, ackState: 'none', ackSkipped: null,
       finalAt, speechEndAt: null, startedAt: null, entries: [],
       cutAt: null, cutKind: null, cutOutcome: null, finalizing: false, report: null, waiters: [],
       firstSoundAt: null, firstUsefulAt: null, firstAcceptedAt: null, ttsFirstAudioAt: null,
@@ -208,6 +212,11 @@ export class VoiceTurnController {
     return t;
   }
 
+  // The acknowledgment, FILLER_DELAY_MS after end of turn (Lorenzo, 17 Oct:
+  // in session 9ccf0836 Flux ended 7 of 28 turns at mid-calculation pauses and
+  // the filler played over his thinking). By then, if he has spoken again (a
+  // voiced mic frame after the one that ended the turn, or a cut), or the
+  // reply has started, nothing plays — logged.
   private playAck(t: Live): void {
     if (!shouldAcknowledge(t.text)) return;
     const ack = pickAck(`${this.d.sessionSeed}:${t.seq}`, this.lastAck, ackKind(t.text));
@@ -215,10 +224,32 @@ export class VoiceTurnController {
     if (!pcm) return;
     this.lastAck = ack;
     t.ack = ack;
-    const id = `${t.seq}:ack`;
-    this.d.playout.open(id, { text: ack, interruptible: true, onStart: at => { t.firstSoundAt ??= at; this.d.trace?.('ack_start', { seq: t.seq, ack, at }); } });
-    this.d.playout.push(id, pcm);
-    this.d.playout.finish(id);
+    const play = () => {
+      t.ackState = 'played';
+      const id = `${t.seq}:ack`;
+      this.d.playout.open(id, { text: ack, interruptible: true, onStart: at => { t.firstSoundAt ??= at; this.d.trace?.('ack_start', { seq: t.seq, ack, at }); } });
+      this.d.playout.push(id, pcm);
+      this.d.playout.finish(id);
+    };
+    const delay = this.d.fillerDelayMs ?? FILLER_DELAY_MS;
+    if (delay <= 0) { play(); return; }
+    t.ackState = 'pending';
+    this.d.clock.at(this.d.now() + delay, () => {
+      if (t.ackState !== 'pending') return;
+      const lastVoiced = this.d.speechEndAt();
+      const why = this.state === 'ended' || t.cutAt !== null ? 'cut'
+        : lastVoiced !== null && t.speechEndAt !== null && lastVoiced > t.speechEndAt ? 'speech_resumed'
+          : t.entries.length > 0 ? 'reply_ready' : null;
+      if (why) this.skipAck(t, why);
+      else play();
+    });
+  }
+
+  private skipAck(t: Live, why: string): void {
+    t.ackState = 'skipped';
+    t.ackSkipped = why;
+    if (this.lastAck === t.ack) this.lastAck = t.prevAck;   // an unheard ack doesn't count (§5.5)
+    this.d.trace?.('ack_skipped', { seq: t.seq, ack: t.ack, why });
   }
 
   private async execute(t: Live): Promise<void> {
@@ -261,11 +292,12 @@ export class VoiceTurnController {
     // After a thinking filler, the first spoken segment opens with a connector
     // ("So, …"), in the TTS text only: the segment, captions and heard checks
     // keep the line as written (connector.ts).
+    if (t.ackState === 'pending') this.skipAck(t, 'reply_ready');   // the reply came first: no filler before it
     let spoken = text;
     let skipWords = 0;
     if (text && !t.connectorDecided) {
       t.connectorDecided = true;
-      if (isThinkingFiller(t.ack)) {
+      if (t.ackState === 'played' && isThinkingFiller(t.ack)) {
         const c = pickConnector({ seed: `${this.d.sessionSeed}:${t.seq}:connector`, filler: t.ack!, segmentText: text, recent: this.connectors });
         this.connectors = [...this.connectors, c].slice(-2);
         spoken = spokenWithConnector(c, text);
@@ -407,7 +439,9 @@ export class VoiceTurnController {
     const from = t.speechEndAt;
     const rel = (x: number | null) => (x !== null && from !== null ? x - from : null);
     const rec: TurnRecord = {
-      turnSeq: t.seq, at: new Date(this.d.now()).toISOString(), candidateText: t.text, carried: t.carried, ack: t.ack,
+      turnSeq: t.seq, at: new Date(this.d.now()).toISOString(), candidateText: t.text, carried: t.carried,
+      ack: t.ackState === 'skipped' ? null : t.ack, ackSkipped: t.ackSkipped ? { ack: t.ack!, why: t.ackSkipped } : null,
+      cutMs: t.cutAt !== null ? t.cutAt - t.finalAt : null,
       phase: r?.phase ?? null, ended: r?.ended ?? false,
       speechEndAt: from, finalAt: t.finalAt, endpointMs: from !== null ? t.finalAt - from : null,
       queueWaitMs: t.startedAt !== null ? t.startedAt - t.finalAt : 0,

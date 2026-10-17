@@ -63,6 +63,10 @@ export function ackBeats(ack: string): string[] {
 // them with VOICE_FILLER_GAP_MS / VOICE_FILLER_TAIL_MS.
 export const FILLER_GAP_MS = 400;
 export const FILLER_TAIL_MS = 300;
+// The filler starts this long after end of turn (Lorenzo, 17 Oct): a pause
+// Flux took for the end of the turn is often the candidate thinking, and a
+// filler over it sounds like talking over them (VOICE_FILLER_DELAY_MS).
+export const FILLER_DELAY_MS = 500;
 
 // The beats' clips (trimmed) joined: gap between them, tail after the last.
 export function joinBeats(clips: Uint8Array[], sampleRate: number, gapMs = FILLER_GAP_MS, tailMs = FILLER_TAIL_MS): Uint8Array {

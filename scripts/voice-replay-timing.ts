@@ -16,7 +16,7 @@ import { readFileSync } from 'node:fs';
 import { ackKind, pickAck, shouldAcknowledge } from '@/lib/voice/acknowledge';
 import { sayAfterAckReason } from '@/lib/orchestrator/say-after-ack';
 import { pickConnector, spokenWithConnector } from '@/lib/voice/connector';
-import { isThinkingFiller } from '@/lib/voice/acknowledge';
+import { FILLER_DELAY_MS, isThinkingFiller } from '@/lib/voice/acknowledge';
 import type { TurnRecord } from '@/lib/voice/records';
 
 const CHARS_PER_SEC = 15.5;
@@ -93,7 +93,8 @@ function main() {
       recent = [...recent, connector].slice(-2);
       first.text = spokenWithConnector(connector, first.text);
     }
-    const after = { ...schedule(r, ack, kept, (r.endpointMs ?? 0) + 1), dropped };
+    // The filler waits FILLER_DELAY_MS after end of turn (a reply ready first goes first).
+    const after = { ...schedule(r, ack, kept, (r.endpointMs ?? 0) + FILLER_DELAY_MS), dropped };
     rows.push({ seq: r.turnSeq, words: r.candidateText.trim().split(/\s+/).length, before, after, connector, r });
   }
 

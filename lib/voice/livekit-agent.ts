@@ -24,7 +24,7 @@ import type { Phase } from '@/lib/orchestrator/state-machine';
 import { DeepgramFluxSTT } from './deepgram';
 import { CartesiaTTS, defaultVoiceId } from './cartesia';
 import { FakeTTS } from './fake-tts';
-import { FILLER_GAP_MS, FILLER_TAIL_MS } from './acknowledge';
+import { FILLER_DELAY_MS, FILLER_GAP_MS, FILLER_TAIL_MS } from './acknowledge';
 import { loadAcks } from './ack-audio';
 import { Playout } from './playout';
 import { SpeechEndTracker } from './pcm';
@@ -141,7 +141,7 @@ export default defineAgent({
       exhibitById: id => exhibits.get(id) ?? null,
       send, record, speechEndAt: () => vad.lastVoicedAt,
       ttsAllow, canStartTurn: () => fake || ledger.canStartTurn(),
-      bargeMinWords: num('VOICE_BARGE_MIN_WORDS', 2), sessionSeed: session.id,
+      bargeMinWords: num('VOICE_BARGE_MIN_WORDS', 2), sessionSeed: session.id, fillerDelayMs: num('VOICE_FILLER_DELAY_MS', FILLER_DELAY_MS),
       trace: rec ? (type, data) => rec.event(type, data) : undefined,
     });
 

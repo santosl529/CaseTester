@@ -16,7 +16,7 @@ const RATE = 24000;
 const ACK_MS = 300;
 const result = (o: Record<string, unknown> = {}) => ({ interviewerText: '', phase: 'CLARIFY', ended: false, auditPassed: true, ...o }) as never;
 
-function harness(script: (Segment[] | { segs: Segment[]; ended?: boolean })[], o: Partial<ControllerDeps> = {}) {
+function harness(script: (Segment[] | { segs: Segment[]; ended?: boolean; delayMs?: number })[], o: Partial<ControllerDeps> = {}) {
   const { clock, advance } = fakeClock();
   const sent: ServerMessage[] = [];
   const reports: HeardReport[] = [];
@@ -25,7 +25,8 @@ function harness(script: (Segment[] | { segs: Segment[]; ended?: boolean })[], o
   const runTurn: RunTurnFn = async (text, opts) => {
     texts.push(text);
     const step = script.shift() ?? [];
-    const { segs, ended } = Array.isArray(step) ? { segs: step, ended: false } : step;
+    const { segs, ended, delayMs } = Array.isArray(step) ? { segs: step, ended: false, delayMs: 0 } : step;
+    if (delayMs) await new Promise<void>(r => clock.at(clock.now() + delayMs, r));   // the model's latency
     for (const s of segs) await opts.onSegment(s).catch(() => {});
     const r = await opts.heard();
     reports.push(r);
@@ -40,7 +41,7 @@ function harness(script: (Segment[] | { segs: Segment[]; ended?: boolean })[], o
     ackPcm: () => new Uint8Array((RATE * ACK_MS / 1000) * 2),
     exhibitById: id => ({ id, title: 'Costs', chartType: 'table', data: [] }),
     send: m => sent.push(m), record: r => records.push(r as never), speechEndAt: () => clock.now() - 300,
-    ttsAllow: () => true, canStartTurn: () => true, bargeMinWords: 2, sessionSeed: 's1',
+    ttsAllow: () => true, canStartTurn: () => true, bargeMinWords: 2, sessionSeed: 's1', fillerDelayMs: 0,
     ...o,
   });
   const captions = (who: 'interviewer' | 'candidate') =>
@@ -161,6 +162,88 @@ describe('the connector after a filler (Lorenzo, 17 Oct)', () => {
     const opens = tts.pushed.map(p => (p.startsWith('So, ') ? 'So,' : ''));
     expect(opens).toHaveLength(12);
     for (let i = 2; i < opens.length; i++) expect(opens[i] === opens[i - 1] && opens[i] === opens[i - 2]).toBe(false);
+  });
+});
+
+describe('the filler waits 500ms after end of turn (Lorenzo, 17 Oct: Flux ended 7 of 28 turns mid-calculation)', () => {
+  const ANSWER = "I'd start with costs, specifically COGS.";
+  // speechEndAt: the last voiced mic frame; `voiced(at)` moves it as the candidate speaks again.
+  function delayed(script: Parameters<typeof harness>[0], o: Partial<ControllerDeps> = {}) {
+    let lastVoiced: number | null = null;
+    const h = harness(script, { fillerDelayMs: 500, speechEndAt: () => lastVoiced, ...o });
+    return { ...h, voiced: (at: number) => { lastVoiced = at; } };
+  }
+
+  it('plays at 500ms when nothing happened, and the first sound is recorded then', async () => {
+    const h = delayed([{ segs: [seg('tail', 'Where would you start?')], delayMs: 1500 }]);
+    await h.c.ready('');
+    h.voiced(h.clock.now() - 300);
+    h.c.onStt(final(ANSWER));
+    await h.advance(499);
+    expect(h.records).toHaveLength(0);
+    await h.advance(4000);
+    const rec = h.records[0] as { ack: string | null; ackSkipped: unknown; firstSoundMs: number };
+    expect(ACK_POOLS.answer).toContain(rec.ack);
+    expect(rec.ackSkipped).toBeNull();
+    expect(rec.firstSoundMs).toBe(300 + 500);   // from the last voiced frame: 300ms to end of turn, then the wait
+  });
+
+  it('speech before then: no filler — the turn is cut and carried, and the skip is logged', async () => {
+    const trace: [string, Record<string, unknown> | undefined][] = [];
+    const h = delayed([{ segs: [seg('tail', 'Where would you start?')], delayMs: 1500 }, { segs: [seg('tail', 'Go on.')], delayMs: 1500 }], { trace: (type, data) => trace.push([type, data]) });
+    await h.c.ready('');
+    h.voiced(h.clock.now() - 200);
+    h.c.onStt(final("I'm saying it's ten points of the thirty seven point five percent."));
+    await h.advance(250);
+    h.voiced(h.clock.now());                 // he speaks again
+    h.c.onStt(speech('increasing'));         // Flux's first word: the turn is cut before anything played
+    await h.advance(300);
+    expect(trace.some(([type]) => type === 'ack_start')).toBe(false);
+    expect(trace.find(([type]) => type === 'ack_skipped')?.[1]).toMatchObject({ why: 'cut' });
+    h.c.onStt(final('increasing COGS.'));
+    await h.advance(4000);
+    const [cancelled] = h.records as { cancelled: boolean; ack: string | null; ackSkipped: { why: string } | null; cutMs: number }[];
+    expect(cancelled).toMatchObject({ cancelled: true, ack: null, ackSkipped: { why: 'cut' } });
+    expect(cancelled.cutMs).toBe(250);
+    expect(h.texts.at(-1)).toBe("I'm saying it's ten points of the thirty seven point five percent. increasing COGS.");
+  });
+
+  it('a voiced frame without a word yet is enough: nothing plays over him', async () => {
+    const h = delayed([{ segs: [seg('tail', 'Where would you start?')], delayMs: 1500 }]);
+    await h.c.ready('');
+    h.voiced(h.clock.now() - 200);
+    h.c.onStt(final(ANSWER));
+    await h.advance(300);
+    h.voiced(h.clock.now());                 // the mic hears him; Flux has no word yet
+    await h.advance(4000);
+    const rec = h.records[0] as { ack: string | null; ackSkipped: { why: string } | null };
+    expect(rec).toMatchObject({ ack: null, ackSkipped: { why: 'speech_resumed' } });
+  });
+
+  it('a reply ready before 500ms goes first: the filler is skipped, never queued behind it', async () => {
+    const h = delayed([[seg('tail', 'Where would you start?')]]);
+    await h.c.ready('');
+    h.voiced(h.clock.now() - 200);
+    h.c.onStt(final(ANSWER));
+    await h.advance(3000);
+    const rec = h.records[0] as { ack: string | null; ackSkipped: { why: string } | null; firstSoundMs: number; firstUsefulMs: number };
+    expect(rec).toMatchObject({ ack: null, ackSkipped: { why: 'reply_ready' } });
+    expect(rec.firstSoundMs).toBe(rec.firstUsefulMs);
+  });
+
+  it('no connector when the filler was skipped', async () => {
+    class Rec extends FakeTTS { pushed: string[] = []; async open(f: Parameters<FakeTTS['open']>[0]) { const u = await super.open(f); return { ...u, push: async (x: string) => { this.pushed.push(x); await u.push(x); } }; } }
+    for (let i = 0; i < 20; i++) {
+      const tts = new Rec(10, 0);
+      const h = delayed([{ segs: [seg('tail', 'Where would you start?')], delayMs: 1500 }], { tts, sessionSeed: `n${i}` });
+      await h.c.ready('');
+      h.voiced(h.clock.now() - 200);
+      h.c.onStt(final(ANSWER));
+      await h.advance(300);
+      h.voiced(h.clock.now());
+      await h.advance(3000);
+      expect(tts.pushed).toEqual(['Where would you start?']);
+    }
   });
 });
 
