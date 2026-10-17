@@ -58,10 +58,10 @@ describe('vetoReason', () => {
     expect(vetoReason('Is that MECE?', g())).toBe('question_in_say');
     expect(vetoReason('Is that MECE?', g(), { inQuestion: true })).toBeNull();
   });
-  it('drops a bare acknowledgment when voice already acknowledged, keeps a restatement', () => {
+  it('drops a bare acknowledgment and a restatement when voice already acknowledged (restatements: 17 Oct)', () => {
     expect(vetoReason('Understood.', g({ acknowledged: true }))).toBe('double_ack');
     expect(vetoReason('Okay', g({ acknowledged: true }))).toBe('double_ack');
-    expect(vetoReason('A cost-first split.', g({ acknowledged: true }))).toBeNull();
+    expect(vetoReason('A cost-first split.', g({ acknowledged: true }))).toBe('echo_after_ack');
     expect(vetoReason('Understood.', g())).toBeNull();
     // demo, 7 Oct: two-beat acks and an ack-led comment after the voice's ack
     expect(vetoReason('Okay, got it.', g({ acknowledged: true }))).toBe('double_ack');
@@ -118,6 +118,18 @@ describe('streamTurnSegments', () => {
       { what: 'the bean prices', itemIds: ['bean_price_change'], explicit: true, respond: 'defer' },
     ] }), undefined, sink);
     expect(got.map(s => s.text)).toEqual(["I don't have competitor pricing by store. I'll come back to the bean prices shortly."]);
+  });
+
+  it('after the voice acknowledged: drops the echo, keeps a figure, and still delivers code\'s data line (17 Oct)', async () => {
+    const plan = modelPlanFixture({ distress: null, candidateText: "I'd check the store count first, then costs. Can I see the store count?" });
+    plan.ctx.acknowledged = 'Okay, so…';
+    const { got, sink } = collect();
+    const out = await run(T({
+      say: 'Understood. A store-count check. Revenue grew 15%.',
+      requests: [{ what: 'store count', itemIds: ['stores_count'], explicit: true, respond: 'release' }],
+    }), plan, sink);
+    expect(got.map(s => [s.kind, s.text])).toEqual([['say', 'Revenue grew 15%.'], ['data', expect.stringContaining('200 stores')]]);
+    expect(out).toMatchObject({ kind: 'done', bufferSwitch: null, deliveredRevealIds: ['stores_count'] });
   });
 
   it("drops the model's own data talk and keeps streaming — the data line says it", async () => {
