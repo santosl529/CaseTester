@@ -1,6 +1,6 @@
-# Timing replay — session 314295e0 under the 17 Oct voice rules
+# Timing replay — session 314295e0 under the 17 Oct voice rules (v2)
 
-Free replay (`npx tsx scripts/voice-replay-timing.ts "Case Interview Runs/voice-live/2026-10-17/314295e0-0170-4a80-9f44-1bdc3788a666.jsonl"`, branch `voice-feel`). Measured: end of turn, when each segment reached the TTS, the TTS first-audio latency, ack clip lengths. Estimated: model/data segment lengths at 15.5 chars/s + 200ms. The model's words are the recorded ones (written with the "already acknowledged" note); on a turn that loses its ack the live model would be prompted without it. All times from the moment the candidate stopped speaking.
+Free replay (`npx tsx scripts/voice-replay-timing.ts "Case Interview Runs/voice-live/2026-10-17/314295e0-0170-4a80-9f44-1bdc3788a666.jsonl"`, branch `voice-feel`). v2 = Lorenzo's ruling of 17 Oct: thinking-sound fillers on every turn (beats joined: 400ms between, 300ms after), a "So," connector before the reply's first segment ~75% of filler turns, the say rule on every voice turn. Measured: end of turn, when each segment reached the TTS, the TTS first-audio latency, ack clip lengths. Estimated: model/data segment lengths at 15.5 chars/s + 200ms. The model's words are the recorded ones. All times from the moment the candidate stopped speaking; "silence after ack" counts, after v2, from the end of the filler's 300ms tail. v1 (trailing fillers, no ack after 40+ words) was replaced by this ruling; its replay is in git history (bba1104).
 
 ```
 Calibration (before arm vs measured):
@@ -18,22 +18,19 @@ Calibration (before arm vs measured):
 ```
 | turn | words | ack before → after | first sound | silence after ack | model say | first words after the ack (say/data/question) | question starts |
 |---|---|---|---|---|---|---|---|
-| 2 | 144 | Understood, okay. → — (none) | 0.96s → 3.15s | 0.95s → – | “A cost-first view, with revenue as a second branch.” → “A cost-first view, with revenue as a second branch.” | 3.15s → 3.15s | 6.64s → 6.64s |
-| 3 | 5 | Mm-hm, sure. → Okay, so… | 0.52s → 0.52s | 0.38s → 0.40s | “MECE means mutually exclusive, collectively exhaustive.” → “MECE means mutually exclusive, collectively exhaustive.” | 1.95s → 1.95s | 5.70s → 5.70s |
-| 4 | 41 | Got it, thanks. → — (none) | 0.55s → 1.91s | 0.39s → – | — → — | 1.91s → 1.91s | 5.66s → 5.66s |
-| 5 | 15 | Okay, got it. → Mm, okay… | 0.33s → 0.33s | 0.45s → 0.27s | — → — | 1.74s → 1.74s | 8.32s → 8.32s |
-| 6 | 46 | Mm-hm, I see. → — (none) | 0.48s → 2.03s | 0.34s → – | “A sixteen-point rise, and a relative increase on top.” → “A sixteen-point rise, and a relative increase on top.” | 2.03s → 2.03s | 8.68s → 8.68s |
-| 7 | 22 | Mm-hm, sure. → Mm, so… | 0.20s → 0.20s | 1.08s → 1.02s | — → — | 2.35s → 2.35s | 5.58s → 5.58s |
+| 2 | 144 | Understood, okay. → Okay… | 0.96s → 0.95s | 0.95s → 1.95s | “A cost-first view, with revenue as a second branch.” → dropped | 3.15s → 3.68s | 6.64s → 3.68s |
+| 3 | 5 | Mm-hm, sure. → Alright… | 0.52s → 0.52s | 0.38s → 0.66s | “MECE means mutually exclusive, collectively exhaustive.” → “So, MECE means mutually exclusive, collectively exhaustive.” | 1.95s → 1.95s | 5.70s → 5.96s |
+| 4 | 41 | Got it, thanks. → Hmm… okay… | 0.55s → 0.55s | 0.39s → 0.00s | — → — | 1.91s → 2.11s | 5.66s → 5.86s |
+| 5 | 15 | Okay, got it. → Hmm… alright… | 0.33s → 0.33s | 0.45s → 0.00s | — → — | 1.74s → 1.89s | 8.32s → 8.74s |
+| 6 | 46 | Mm-hm, I see. → Mhm… okay… | 0.48s → 0.48s | 0.34s → 0.00s | “A sixteen-point rise, and a relative increase on top.” → “So, A sixteen-point rise, and a relative increase on top.” | 2.03s → 2.04s | 8.68s → 8.96s |
+| 7 | 22 | Mm-hm, sure. → Mhm… alright… | 0.20s → 0.20s | 1.08s → 0.58s | — → — | 2.35s → 2.35s | 5.58s → 5.58s |
 | 8 | 27 | Okay, let me check. → Okay, let me check. | 0.22s → 0.22s | 1.12s → 1.12s | — → — | 2.38s → 2.38s | 12.00s → 12.00s |
-| 9 | 64 | Got it, thanks. → — (none) | 0.26s → 3.30s | 2.08s → – | — → — | 3.30s → 3.30s | 6.21s → 6.21s |
-| 10 | 34 | Mm-hm, sure. → Okay, so… | 0.28s → 0.28s | 0.34s → 0.46s | “A volume check.” → dropped | 1.68s → 1.77s | 17.56s → 16.49s |
-| 11 | 16 | Got it, thanks. → Mm, okay… | 0.38s → 0.38s | 1.71s → 1.52s | — → — | 3.05s → 3.05s | 3.05s → 3.05s |
+| 9 | 64 | Got it, thanks. → Mhm… | 0.26s → 0.26s | 2.08s → 2.36s | — → — | 3.30s → 3.30s | 6.21s → 6.46s |
+| 10 | 34 | Mm-hm, sure. → Mhm… alright… | 0.28s → 0.28s | 0.34s → 0.00s | “A volume check.” → dropped | 1.68s → 1.83s | 17.56s → 16.55s |
+| 11 | 16 | Got it, thanks. → Hmm… | 0.38s → 0.38s | 1.71s → 1.99s | — → — | 3.05s → 3.05s | 3.05s → 3.05s |
 
-Variant (not built): the say rule on every voice turn, ack or not — only turns that differ from "after":
-| turn | first sound | model say | question starts |
-|---|---|---|---|
-| 2 | 3.15s → 3.68s | “A cost-first view, with revenue as a second branch.” → dropped | 6.64s → 3.68s |
-
-Medians (before → after): first sound 0.33s → 0.38s; silence after the ack 0.45s → 0.46s; question starts 6.21s → 6.21s (variant 5.70s).
-Acks: 10 → 6; model say lines spoken after an ack: 4 → 1.
+Medians (before → after): first sound 0.33s → 0.33s; silence after the ack 0.45s → 0.58s; question starts 6.21s → 5.96s. (After: the silence counts from the end of the filler's 300ms tail.)
+Connectors: t2 So,, t3 So,, t4 none, t5 So,, t6 So,, t7 none, t8 none, t9 So,, t10 none, t11 none.
+Acks: 10 → 10; model say lines spoken after an ack: 4 → 2.
+  dropped t2: A cost-first view, with revenue as a second branch. [echo_after_ack]
   dropped t10: A volume check. [echo_after_ack]

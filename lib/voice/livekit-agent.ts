@@ -5,8 +5,7 @@
 // leaves, the time limit hits, or a budget refuses. Haiku 5.5 interviews here
 // (INTERVIEWER_PROVIDER, set by `npm run voice:agent`); background checks are
 // the production mix.
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
+import { appendFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { defineAgent, type JobContext } from '@livekit/agents';
 import {
@@ -25,9 +24,10 @@ import type { Phase } from '@/lib/orchestrator/state-machine';
 import { DeepgramFluxSTT } from './deepgram';
 import { CartesiaTTS, defaultVoiceId } from './cartesia';
 import { FakeTTS } from './fake-tts';
-import { ALL_ACKS, FILLER_GAP_MS, FILLER_TAIL_MS, ackBeats, ackSpeechText, isThinkingFiller, joinBeats } from './acknowledge';
+import { FILLER_GAP_MS, FILLER_TAIL_MS } from './acknowledge';
+import { loadAcks } from './ack-audio';
 import { Playout } from './playout';
-import { SpeechEndTracker, trimSilence } from './pcm';
+import { SpeechEndTracker } from './pcm';
 import { TtsCharBudget, RunCharCap, monthlyLedgerFile, ttsRunCap } from './tts-budget';
 import { VoiceTurnController } from './turn-controller';
 import { DATA_TOPIC, parseClientMessage, type ServerMessage } from './protocol';
@@ -40,47 +40,6 @@ import type { SttEvent, TTSProvider } from './types';
 const OUT_RATE = 24000;   // Cartesia out
 const IN_RATE = 16000;    // Flux in
 const num = (k: string, d: number) => Number(process.env[k] ?? d);
-
-// The acknowledgments, synthesized once per TTS + voice and cached on disk.
-// A thinking filler is its beats, each its own clip, joined with silence
-// (ackBeats, joinBeats; Lorenzo, 17 Oct); any other acknowledgment is one clip.
-async function loadAcks(tts: TTSProvider, voice: string, take: (n: number) => boolean): Promise<Map<string, Uint8Array>> {
-  const clips = new Map<string, Uint8Array | null>();
-  const clip = async (text: string): Promise<Uint8Array | null> => {
-    if (clips.has(text)) return clips.get(text)!;
-    // Keyed on the text the TTS reads (a filler beat spells its ellipsis out).
-    const speech = ackSpeechText(text);
-    const file = path.join('.voice-cache/acks', `${tts.name}-${voice}-${createHash('sha1').update(speech).digest('hex').slice(0, 10)}.pcm`);
-    let pcm: Uint8Array | null = null;
-    if (existsSync(file)) pcm = new Uint8Array(readFileSync(file));
-    else if (take(speech.length)) {
-      const utt = await tts.open({ encoding: 'pcm_s16le', sampleRate: OUT_RATE });
-      const parts: Uint8Array[] = [];
-      utt.onAudio(p => parts.push(p));
-      await utt.push(speech);
-      await utt.end();
-      pcm = new Uint8Array(Buffer.concat(parts));
-      mkdirSync(path.dirname(file), { recursive: true });
-      writeFileSync(file, pcm);
-    }
-    // Trimmed at both ends as loaded: the TTS pads ~0.1–0.2s of silence each side,
-    // which delays the first sound and lengthens the gap after the ack.
-    const trimmed = pcm ? trimSilence(pcm, OUT_RATE) : null;
-    clips.set(text, trimmed);
-    return trimmed;
-  };
-  const acks = new Map<string, Uint8Array>();
-  for (const ack of ALL_ACKS) {
-    const beats: Uint8Array[] = [];
-    for (const b of ackBeats(ack)) {
-      const c = await clip(b);
-      if (c) beats.push(c);
-    }
-    if (beats.length !== ackBeats(ack).length) continue;   // the budget refused a beat: no such ack
-    acks.set(ack, isThinkingFiller(ack) ? joinBeats(beats, OUT_RATE, num('VOICE_FILLER_GAP_MS', FILLER_GAP_MS), num('VOICE_FILLER_TAIL_MS', FILLER_TAIL_MS)) : beats[0]);
-  }
-  return acks;
-}
 
 export default defineAgent({
   entry: async (ctx: JobContext) => {
@@ -153,7 +112,7 @@ export default defineAgent({
     const ledger = new TtsCharBudget(monthlyLedgerFile(), num('VOICE_TTS_CHAR_CAP', 90_000));
     const run = runCap === null ? null : new RunCharCap(runCap);
     const ttsAllow = (n: number) => fake || (run!.take(n) && ledger.take(n));
-    const acks = await loadAcks(tts, voice, ttsAllow);
+    const acks = await loadAcks(tts, voice, ttsAllow, { sampleRate: OUT_RATE, gapMs: num('VOICE_FILLER_GAP_MS', FILLER_GAP_MS), tailMs: num('VOICE_FILLER_TAIL_MS', FILLER_TAIL_MS) });
 
     // Timing records (spec §7).
     const recFile = path.join('Case Interview Runs/voice-live', new Date().toISOString().slice(0, 10), `${session.id}.jsonl`);

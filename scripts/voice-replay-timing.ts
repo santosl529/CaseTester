@@ -1,6 +1,7 @@
 // Timing replay of a recorded voice session under the current voice rules
-// (17 Oct: trailing fillers, no ack after a long answer, no model echo after
-// an ack). Free — no model, STT or TTS calls.
+// (17 Oct, v2: thinking-sound fillers on every turn, a connector before the
+// reply's first segment, the say rule on every voice turn). Free — no model,
+// STT or TTS calls.
 //
 // Measured, from the session's per-turn record (.jsonl): end of turn, when
 // each segment reached the TTS (marks, from the turn's start), the TTS's
@@ -8,24 +9,25 @@
 // lengths (the cached audio, trimmed as the agent trims it).
 // ESTIMATED: how long a model or data segment plays — CHARS_PER_SEC plus
 // PAD_MS, calibrated on the session's own say → question gaps. The model's
-// words are the recorded ones: on a turn that loses its ack the real model
-// would have been prompted without the "already acknowledged" note, and
-// might have written its own "Understood." first.
+// words are the recorded ones.
 //
 //   npx tsx scripts/voice-replay-timing.ts "Case Interview Runs/voice-live/2026-10-17/314295e0-0170-4a80-9f44-1bdc3788a666.jsonl"
 import { readFileSync } from 'node:fs';
 import { ackKind, pickAck, shouldAcknowledge } from '@/lib/voice/acknowledge';
 import { sayAfterAckReason } from '@/lib/orchestrator/say-after-ack';
+import { pickConnector, spokenWithConnector } from '@/lib/voice/connector';
+import { isThinkingFiller } from '@/lib/voice/acknowledge';
 import type { TurnRecord } from '@/lib/voice/records';
 
 const CHARS_PER_SEC = 15.5;
 const PAD_MS = 200;
 // Trimmed clip lengths, ms (Cartesia sonic-3.5, the session's voice): the
-// acknowledgments before 17 Oct and the trailing fillers after.
+// acknowledgments before 17 Oct, and the thinking fillers as the agent joins
+// them (400ms between beats, 300ms after the last — included here).
 const ACK_MS: Record<string, number> = {
   'Okay, got it.': 960, 'Mm-hm, I see.': 1200, 'Understood, okay.': 1240, 'Okay, I follow.': 1080, 'Got it, thanks.': 960,
   'Okay, sure.': 960, 'Mm-hm, sure.': 1060, 'Okay, let me check.': 1040, 'Sure, one second.': 1400, 'Take your time.': 720, 'Sure, take a moment.': 1540,
-  'Okay, so…': 1040, 'Mm, okay…': 1140, 'Hmm…': 380, 'Mm-hm, so…': 1160, 'Mm, so…': 1120, 'Sure, so…': 1080,
+  'Hmm…': 680, 'Mhm…': 680, 'Okay…': 780, 'Alright…': 780, 'Hmm… okay…': 1560, 'Hmm… alright…': 1560, 'Mhm… okay…': 1560, 'Mhm… alright…': 1560,
 };
 const playMs = (text: string) => Math.round((text.length / CHARS_PER_SEC) * 1000) + PAD_MS;
 
@@ -65,33 +67,34 @@ function main() {
   const s = (ms: number | null | undefined) => (ms === null || ms === undefined ? '–' : `${(ms / 1000).toFixed(2)}s`);
 
   let lastAck: string | null = null;
-  const rows: { seq: number; words: number; before: Arm; after: Arm; variant: Arm; r: TurnRecord }[] = [];
+  const rows: { seq: number; words: number; before: Arm; after: Arm; connector: string; r: TurnRecord }[] = [];
+  let recent: string[] = [];
   for (const r of records) {
     const segs = segTurns.find(t => t.turnSeq === r.turnSeq)!.segments;
     const before = schedule(r, r.ack, segs, r.firstSoundMs ?? (r.endpointMs ?? 0));
     // The rules now: the ack (the agent seeds pickAck with the session id and turn seq).
     const ack: string | null = shouldAcknowledge(r.candidateText) ? pickAck(`${sessionId}:${r.turnSeq}`, lastAck, ackKind(r.candidateText)) : null;
     if (ack) lastAck = ack;
-    // The say rule as built drops only after an ack; the variant (not built,
-    // for comparison) drops on every voice turn, ack or not.
-    const filterSay = (onlyAfterAck: boolean) => {
-      const dropped: string[] = [];
-      const kept: Seg[] = segs.flatMap(sg => {
-        if (sg.kind !== 'say' || (onlyAfterAck && !ack) || !sg.text) return [sg];
-        const sentences = sg.text.split(/(?<=[.!?])\s+/).filter(Boolean);
-        const keep = sentences.filter(x => {
-          const why = sayAfterAckReason(x, { candidateMessage: r.candidateText });
-          if (why) dropped.push(`${x} [${why}]`);
-          return why === null;
-        });
-        return keep.length ? [{ ...sg, text: keep.join(' ') }] : [];
+    // The say rule on every voice turn; the connector before the first spoken segment.
+    const dropped: string[] = [];
+    const kept: Seg[] = segs.flatMap(sg => {
+      if (sg.kind !== 'say' || !sg.text) return [sg];
+      const keep = sg.text.split(/(?<=[.!?])\s+/).filter(Boolean).filter(x => {
+        const why = sayAfterAckReason(x, { candidateMessage: r.candidateText });
+        if (why) dropped.push(`${x} [${why}]`);
+        return why === null;
       });
-      return { kept, dropped };
-    };
-    const built = filterSay(true), every = filterSay(false);
-    const after = { ...schedule(r, ack, built.kept, (r.endpointMs ?? 0) + 1), dropped: built.dropped };
-    const variant = { ...schedule(r, ack, every.kept, (r.endpointMs ?? 0) + 1), dropped: every.dropped };
-    rows.push({ seq: r.turnSeq, words: r.candidateText.trim().split(/\s+/).length, before, after, variant, r });
+      return keep.length ? [{ ...sg, text: keep.join(' ') }] : [];
+    });
+    let connector = '';
+    const first = kept.find(sg => sg.text);
+    if (isThinkingFiller(ack) && first?.text) {
+      connector = pickConnector({ seed: `${sessionId}:${r.turnSeq}:connector`, filler: ack!, segmentText: first.text, recent });
+      recent = [...recent, connector].slice(-2);
+      first.text = spokenWithConnector(connector, first.text);
+    }
+    const after = { ...schedule(r, ack, kept, (r.endpointMs ?? 0) + 1), dropped };
+    rows.push({ seq: r.turnSeq, words: r.candidateText.trim().split(/\s+/).length, before, after, connector, r });
   }
 
   // Calibration: the before arm against what was measured.
@@ -117,17 +120,11 @@ function main() {
     const v = xs.filter((x): x is number => x !== null).sort((a, b) => a - b);
     return v.length ? v[Math.floor((v.length - 1) / 2)] : null;
   };
-  const sum = (f: (a: Arm) => number | null, k: 'before' | 'after' | 'variant') => med(rows.map(x => f(x[k])));
-  console.log('\nVariant (not built): the say rule on every voice turn, ack or not — only turns that differ from "after":');
-  console.log('| turn | first sound | model say | question starts |\n|---|---|---|---|');
-  for (const { seq, after, variant } of rows) {
-    if (variant.dropped.length === after.dropped.length) continue;
-    const sayA = after.segs.find(x => x.kind === 'say')?.text, sayV = variant.segs.find(x => x.kind === 'say')?.text;
-    console.log(`| ${seq} | ${s(firstSound(after))} → ${s(firstSound(variant))} | ${sayA ? `“${sayA}”` : '—'} → ${sayV ? `“${sayV}”` : 'dropped'} | ${s(question(after))} → ${s(question(variant))} |`);
-  }
+  const sum = (f: (a: Arm) => number | null, k: 'before' | 'after') => med(rows.map(x => f(x[k])));
   console.log(`\nMedians (before → after): first sound ${s(sum(firstSound, 'before'))} → ${s(sum(firstSound, 'after'))}; ` +
     `silence after the ack ${s(sum(silence, 'before'))} → ${s(sum(silence, 'after'))}; ` +
-    `question starts ${s(sum(question, 'before'))} → ${s(sum(question, 'after'))} (variant ${s(sum(question, 'variant'))}).`);
+    `question starts ${s(sum(question, 'before'))} → ${s(sum(question, 'after'))}. (After: the silence counts from the end of the filler's 300ms tail.)`);
+  console.log(`Connectors: ${rows.map(x => `t${x.seq} ${x.connector || 'none'}`).join(', ')}.`);
   console.log(`Acks: ${rows.filter(x => x.before.ack).length} → ${rows.filter(x => x.after.ack).length}; model say lines spoken after an ack: ${rows.filter(x => x.before.ack && x.before.segs.some(g => g.kind === 'say')).length} → ${rows.filter(x => x.after.ack && x.after.segs.some(g => g.kind === 'say')).length}.`);
   for (const { seq, after } of rows) for (const d of after.dropped) console.log(`  dropped t${seq}: ${d}`);
 }
