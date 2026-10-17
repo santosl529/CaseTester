@@ -33,7 +33,7 @@ import { turnData, pressureTestOutcomeNow } from './turn-data';
 import { renderDataLines } from './data-decisions';
 import { findFalseFacts, findEchoes, findFalseRefusals, findUndeliveredClaims, type FactBase, type Echo, type DeliveryContext } from './fact-check';
 import { isGradingSentence } from './grading';
-import { sayAfterAckReason } from './say-after-ack';
+import { sayAfterAckReason, sayFiguresOf } from './say-after-ack';
 
 export type GateContext = {
   allowedTexts: string[];
@@ -50,6 +50,7 @@ export type GateContext = {
   metaAsked?: boolean;     // the candidate asked how they're assessed (a report hand-off may answer it)
   candidateMessage?: string; // the message this turn answers (the growth probe reads its claim)
   checkerLine?: string;    // this turn's checker line, if the model is to say it (never dropped after an ack)
+  sayFigures?: number[];   // the case's and the candidate's figures: a "say" sentence with one is never dropped (say-after-ack.ts)
   // The truth check (fact-check.ts F1): the case's facts, what has been
   // revealed (ids), and the figures of misquotes still standing.
   facts?: { fb: FactBase; revealed: Set<string>; echoes: Echo[]; correcting?: Echo[]; delivery?: DeliveryContext };
@@ -144,7 +145,7 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   if (!opts.inQuestion && sentence.trim().endsWith('?')) return 'question_in_say';
   // On a voice turn (acknowledged or not): no acknowledgment and no echo of
   // their point without a figure (say-after-ack.ts; Lorenzo's voice test, 17 Oct).
-  if (!opts.inQuestion && (g.acknowledged || g.voice)) return sayAfterAckReason(sentence, { candidateMessage: g.candidateMessage, checkerLine: g.checkerLine });
+  if (!opts.inQuestion && (g.acknowledged || g.voice)) return sayAfterAckReason(sentence, { candidateMessage: g.candidateMessage, checkerLine: g.checkerLine, figures: g.sayFigures });
   return null;
 }
 
@@ -176,6 +177,7 @@ export function gateContext(plan: ModelPlan, extraRevealed: string[] = [], extra
     metaAsked: state.kind === 'model' && asksAboutAssessment(ctx.candidateText),
     candidateMessage: ctx.candidateText,
     ...(state.checkerLine ? { checkerLine: state.checkerLine.line } : {}),
+    sayFigures: sayFiguresOf([state.caseData.prompt, ...revealed, ...state.derivedValueTexts], state.candidateFigures),
     facts: {
       fb: state.factBase, revealed: revealedIds, echoes: state.factEchoes,
       // The figures of the items code corrects this turn: unsayable, probe or not.

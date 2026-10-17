@@ -141,6 +141,8 @@ describe('streamTurnSegments', () => {
     if (voice.kind !== 'model' || text.kind !== 'model') throw new Error('expected model plans');
     expect(gateContext(voice).voice).toBe(true);
     expect(gateContext(text).voice).toBe(false);
+    // The say rule's figures: the case's (the prompt's 24, 6, 15, 200) and the candidate's.
+    expect(gateContext(voice).sayFigures).toEqual(expect.arrayContaining([24, 6, 15, 200]));
   });
 
   it('on a voice turn without an ack, drops the echo too (17 Oct)', async () => {

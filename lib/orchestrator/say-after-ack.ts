@@ -14,11 +14,30 @@ const BARE_ACK = new RegExp(`^${ACK_WORD}(?:[,.!…]+\\s*${ACK_WORD})*[.!…]*$`
 // Acknowledgment words leading a comment ("Understood, that fills the gaps." — demo, 7 Oct).
 const ACK_LEAD = new RegExp(`^${ACK_WORD}(?:[,.!…]+\\s*${ACK_WORD})*[,.!…]+\\s+`, 'i');
 
-// Any figure: digits, %, $, a spelled number ("a sixteen-point rise"), or a
-// multiple ("doubled", "half"). Ordinals ("a second branch") are not figures.
-export function hasFigure(sentence: string): boolean {
-  if (/[\d%$]/.test(normalizeNumberWords(sentence))) return true;
-  return /\b(?:half|halved|halve|double[ds]?|doubling|twice|triple[ds]?|tripling|quarter)\b/i.test(sentence);
+// A figure worth protecting (Lorenzo, 17 Oct, after "A three-bucket list."
+// survived): a percentage, points, money, or a number that matches a case or
+// candidate figure. A count of structure ("three buckets", "a two-branch
+// split", "four levers") is not a figure.
+const STRUCTURE_NOUN = '(?:bucket|branch(?:e)?|part|piece|lever|step|idea|option|area|driver|factor|angle|thing|side|layer|level|categor(?:y|ie)|group|question|hypothes(?:i|e)|way|prong|tier|stage|phase|pillar|theme|component|segment|lens|dimension|reason|risk|issue|bullet)s?';
+const COUNT_WORD = '(?:\\d+|one|two|three|four|five|six|seven|eight|nine|ten|several|a few)';
+const STRUCTURE_COUNT = new RegExp(`\\b${COUNT_WORD}(?:[\\s-]+(?:main|key|big|broad|separate|different|distinct|core|clear|cost|revenue|simple))?[\\s-]+${STRUCTURE_NOUN}\\b`, 'gi');
+// A number with a unit — a percentage, points, money — or a share or
+// multiple in words ("half of COGS", "doubled"). A unit word alone ("costs
+// held in dollars") is not a figure.
+const UNIT = /\d(?:\.\d+)?[\s-]*(?:%|percent(?:age)?|points?|pts|pp|bps|dollars?|cents?|million|billion|thousand)\b|%|\$\s*\d/i;
+const SHARE_WORD = /\b(?:half|halved|halve|double[ds]?|doubling|twice|triple[ds]?|tripling|(?:a|one|two)[\s-]+(?:third|quarter)s?|(?:a|one|three)[\s-]+quarters?)\b/i;
+const numbersOf = (t: string) => (normalizeNumberWords(t).match(/\d+(?:\.\d+)?/g) ?? []).map(Number);
+
+// The figures a "say" sentence may carry: every number the case has said or
+// released, and the candidate's own figures.
+export function sayFiguresOf(caseTexts: string[], candidateFigures: readonly number[] = []): number[] {
+  return [...new Set([...caseTexts.flatMap(numbersOf), ...candidateFigures])];
+}
+
+export function hasFigure(sentence: string, figures: readonly number[] = []): boolean {
+  const s = sentence.replace(STRUCTURE_COUNT, ' ');
+  if (UNIT.test(normalizeNumberWords(s)) || SHARE_WORD.test(s)) return true;
+  return numbersOf(s).some(n => figures.some(f => Math.abs(f - n) < 1e-9));
 }
 
 // A finite verb or auxiliary: the sentence says something, not just names it.
@@ -55,9 +74,9 @@ export function isAckOnly(sentence: string): boolean {
 // pushback: a noun phrase ("A COGS-first read.", "Price times volume, and
 // beans, rent, staff.") or a description of them ("You said menu prices
 // haven't kept pace.").
-export function isSummaryEcho(sentence: string, candidateMessage = ''): boolean {
+export function isSummaryEcho(sentence: string, candidateMessage = '', figures: readonly number[] = []): boolean {
   const s = sentence.trim();
-  if (!s || s.endsWith('?') || hasFigure(s)) return false;
+  if (!s || s.endsWith('?') || hasFigure(s, figures)) return false;
   if (s.split(/\s+/).length > 14) return false;
   if (YOU_DESCRIBE.test(s)) {
     // "You said …" reports their words, negation included; "you've / you're" must not hedge.
@@ -70,17 +89,18 @@ export function isSummaryEcho(sentence: string, candidateMessage = ''): boolean 
 }
 
 // Why a "say" sentence is not spoken after the voice's acknowledgment, or null.
-export function sayAfterAckReason(sentence: string, ctx: { candidateMessage?: string; checkerLine?: string }): 'double_ack' | 'echo_after_ack' | null {
+// `figures`: the case's and the candidate's figures (gateContext).
+export function sayAfterAckReason(sentence: string, ctx: { candidateMessage?: string; checkerLine?: string; figures?: readonly number[] }): 'double_ack' | 'echo_after_ack' | null {
   const s = sentence.trim();
   if (!s) return null;
   if (isAckOnly(s)) return 'double_ack';
   // Never: a figure, or the checker's line (a probe can read like a description).
-  if (hasFigure(s)) return null;
+  if (hasFigure(s, ctx.figures)) return null;
   if (ctx.checkerLine && norm(ctx.checkerLine).includes(norm(s).replace(/[.]+$/, ''))) return null;
   // An acknowledgment leading a comment: the voice already said the
   // acknowledgment (demo, 7 Oct) — unless the comment pushes back
   // ("Understood, a benchmark, not client data." — batch 28).
   const lead = ACK_LEAD.exec(s);
   if (lead) return PUSHBACK.test(s.slice(lead[0].length)) ? null : 'double_ack';
-  return isSummaryEcho(s, ctx.candidateMessage) ? 'echo_after_ack' : null;
+  return isSummaryEcho(s, ctx.candidateMessage, ctx.figures) ? 'echo_after_ack' : null;
 }
