@@ -13,6 +13,10 @@ export type ItemRef =
   | { kind: 'generated'; template_id: string; template_version: number; seed: number }
   | { kind: 'authored'; item_id: string; version: number; defend?: true };
 
+// PRD "Cost controls": the AI-graded answers a plan asks for, one per item
+// plus one per Defend reply (graded in its own call).
+export const aiAnswersInPlan = (plan: ItemRef[]) => plan.length + plan.filter(r => r.kind === 'authored' && r.defend).length;
+
 // FNV-1a: a set id → a 32-bit seed for its plan.
 export function hashSeed(s: string): number {
   let h = 0x811c9dc5;

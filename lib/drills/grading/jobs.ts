@@ -13,7 +13,7 @@ import { getDrill } from '../config';
 import { ItemSchema, type Item, type Tier } from '../item-schema';
 import { rebuildItem } from '../generators/registry';
 import { logDrillEvent } from '../events';
-import type { ItemRef } from '../sets/plan';
+import { aiAnswersInPlan, type ItemRef } from '../sets/plan';
 import type { ItemResult, StepResult } from '../sets/scoring';
 import { nextTier, passed, setScore, skillScores } from '../sets/summary';
 import { applyGrade, unchangedRepair, type CheckResults } from './apply';
@@ -248,10 +248,11 @@ export async function retryStaleGrading(call?: CallModel): Promise<number> {
   return sets.length;
 }
 
-// PRD cost control: at most this many AI-graded sets per student per day.
-export async function aiSetsToday(studentId: string, drillIds: string[]): Promise<number> {
+// PRD cost control: the AI-graded answers a student's sets asked for in the
+// last 24 hours, finished or not.
+export async function aiAnswersToday(studentId: string, drillIds: string[]): Promise<number> {
   if (drillIds.length === 0) return 0;
-  const [row] = await db.select({ n: sql<number>`count(*)::int` }).from(drillSets)
+  const rows = await db.select({ plan: drillSets.itemPlan }).from(drillSets)
     .where(and(eq(drillSets.studentId, studentId), inArray(drillSets.drillId, drillIds), sql`${drillSets.startedAt} > now() - interval '24 hours'`));
-  return row?.n ?? 0;
+  return rows.reduce((n, r) => n + aiAnswersInPlan(r.plan as ItemRef[]), 0);
 }

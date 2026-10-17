@@ -811,10 +811,10 @@ Each spec below lists: how it works, set size and time limit per item by difficu
 | Covers each main driver in the key (one check per driver, typically 3–4) | 25% split evenly | `M.vague_data_request` |
 | States where to start | 15% | `M.laundry_list` |
 | Gives a reason for starting there | 10% | `M.laundry_list` |
-| Data requests are specific (name a metric plus a cut or time period) | 25% | `M.vague_data_request` |
+| Data requests are specific (each names a specific measure; the first also has a cut, a comparison or a time period) | 25% | `M.vague_data_request` |
 
 - **Red flags:** Proposes solutions before diagnosing (cap 0.5, `M.premature_solution`). Six or more unstructured requests (cap 0.5, `M.laundry_list`). Missed critical driver: each item marks one driver as critical, the one to start with, or two where another is an equally fair place to start, and an answer that covers neither is capped at 0.6 (`M.vague_data_request`, checked by code from that driver's check). Off-topic: the answer addresses a different question, for example it recommends a strategy instead of asking for information (cap 0.2, `M.vague_data_request`).
-- **Grading rules:** The CL-3 rules in `docs/drills-grading-guide.md` are sent to the grader with every item, word for word. Among them: a generic word ("costs", "market data") doesn't cover a specific driver; every data request must name a metric plus a cut or period, and drivers listed to break the metric down are not requests; "because it's important" is not a reason for the starting point, but a reason may come before the starting point.
+- **Grading rules:** The CL-3 rules in `docs/drills-grading-guide.md` are sent to the grader with every item, word for word. Among them: a generic word ("costs", "market data") doesn't cover a specific driver; every data request must name a specific measure and the first must also include a cut, a comparison or a time period, and drivers listed to break the metric down are not requests; "because it's important" is not a reason for the starting point, but a reason may come before the starting point.
 - **Defend (T2–T3):** Justify. "If that first analysis comes back flat, what would you look at next, and why?" Graded with the generic Justify checks in its own call.
 - **Answer key:** Driver breakdown with the critical driver(s) marked, best starting point with reason, examples of specific vs vague requests, model answer, and the Defend model reply.
 - **Item source:** Authored. AI-drafted, human QA.

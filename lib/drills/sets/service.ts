@@ -14,13 +14,13 @@ import { DRILLS_CONFIG, TAXONOMY_VERSION, getDrill, getSkill, type Drill } from 
 import { ItemSchema, type Item, type Tier } from '../item-schema';
 import { toPublicItem, type PublicItem } from '../public-item';
 import { generatorsForDrill } from '../generators/registry';
-import { planAuthored, planGenerated, type ItemRef } from './plan';
+import { aiAnswersInPlan, planAuthored, planGenerated, type ItemRef } from './plan';
 import { ScoringError, StepResponseSchema, itemSteps, scoreItem, scoreStep, type ItemResult, type StepResponse, type StepResult } from './scoring';
 import { mistakeSummary, nextTier, passed, setScore } from './summary';
 import { drillLimitsMs, itemLimitsMs, startsStage, stepLimitMs, stepStartedAt } from './timing';
 import { formatNumericAnswer, itemFeedback, stepFeedback, type ItemFeedback, type StepFeedback } from './feedback';
 import {
-  aiSetsToday, enqueueGrading, finalizeSet, kickGrading, planOf, resolveItem, resultOf, runAfterResponse,
+  aiAnswersToday, enqueueGrading, finalizeSet, kickGrading, planOf, resolveItem, resultOf, runAfterResponse,
 } from '../grading/jobs';
 import type { CheckResults } from '../grading/apply';
 import { logDrillEvent } from '../events';
@@ -49,8 +49,8 @@ interface PendingStep { steps: StepResult[]; keys: string[]; stage_started_at?: 
 
 const rules = DRILLS_CONFIG.rules;
 const isAiGraded = (drill: Drill) => drill.scoring !== 'auto';
-// PRD "Cost controls": a per-student limit of AI-graded sets per day.
-const AI_SETS_PER_DAY = 20;
+// PRD "Cost controls": a per-student limit of AI-graded answers per day.
+const AI_ANSWERS_PER_DAY = 150;
 
 export { previewDrafts };
 
@@ -233,12 +233,6 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
 
   const existing = await inProgressSet(studentId);
   if (existing) throw new DrillError('set_in_progress', 409, 'Finish or leave your current set first', { set_id: existing.id });
-  if (isAiGraded(drill)) {
-    const aiDrills = DRILLS_CONFIG.drills.drills.filter(isAiGraded).map(d => d.id);
-    if (await aiSetsToday(studentId, aiDrills) >= AI_SETS_PER_DAY) {
-      throw new DrillError('daily_limit', 429, `You've reached today's limit of ${AI_SETS_PER_DAY} written-answer sets. Auto-checked drills are unlimited.`);
-    }
-  }
 
   const setId = randomUUID();
   // Fixed for the whole set: whether it runs the Defend follow-up.
@@ -252,6 +246,12 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
   } else {
     plan = await planAuthoredSet(studentId, setId, drill, size, tier, fresh && choice.focusSkill ? { mode: fresh, skill: choice.focusSkill } : null, defend);
     if (plan.length === 0) throw new DrillError('no_items', 404, 'No items are live for this drill yet');
+  }
+  if (isAiGraded(drill)) {
+    const aiDrills = DRILLS_CONFIG.drills.drills.filter(isAiGraded).map(d => d.id);
+    if (await aiAnswersToday(studentId, aiDrills) + aiAnswersInPlan(plan) > AI_ANSWERS_PER_DAY) {
+      throw new DrillError('daily_limit', 429, `This set would go over today's limit of ${AI_ANSWERS_PER_DAY} written answers. Auto-checked drills are unlimited.`);
+    }
   }
   const stage = choice.focusSkill ? stageOfDrill(drill.id, choice.focusSkill) : drill.stage;
 

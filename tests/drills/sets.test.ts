@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { planAuthored, planGenerated, hashSeed } from '@/lib/drills/sets/plan';
+import { aiAnswersInPlan, planAuthored, planGenerated, hashSeed } from '@/lib/drills/sets/plan';
 import { scoreItem, scoreStep, ScoringError, type StepResult } from '@/lib/drills/sets/scoring';
 import { mistakeSummary, nextTier, setScore, skillScores, timeLimitMs, passed } from '@/lib/drills/sets/summary';
 import { getDrill } from '@/lib/drills/config';
@@ -68,6 +68,17 @@ describe('authored plans (PRD "Serving rules")', () => {
 const qn4 = () => getGenerator('calc_breakeven_units', 1).generate(3, 1);
 const correctOption = (item: Item) => item.options.find(o => o.correct)!.id;
 const wrongOption = (item: Item) => item.options.find(o => !o.correct)!;
+
+describe('daily cap (PRD "Cost controls")', () => {
+  it('counts one answer per item and one more per Defend reply', () => {
+    expect(aiAnswersInPlan([
+      { kind: 'authored', item_id: 'cl3-0001', version: 1 },
+      { kind: 'authored', item_id: 'cl3-0002', version: 1, defend: true },
+      { kind: 'generated', template_id: 't', template_version: 1, seed: 1 },
+    ])).toBe(4);
+    expect(aiAnswersInPlan([])).toBe(0);
+  });
+});
 
 describe('item scoring (PRD "Item scoring rules")', () => {
   it('scores single choice and tags the chosen wrong option', () => {

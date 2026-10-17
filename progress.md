@@ -14,11 +14,10 @@
 
 **Next steps** (in this order):
 1. **Matt:** approve the Data requests lesson v2 on `/drills/review/lessons`, and OK publishing it plus the 40 CL-3 drafts (new specific-requests wording; see "CL-3 request rule", 2026-10-17). Then `npm run db:seed-lessons` and `npm run db:seed-drill-items`. Until then students see the old lesson and are graded on the old wording.
-2. **Daily cap:** the code allows 20 AI-graded sets a day (`AI_SETS_PER_DAY` in `lib/drills/sets/service.ts`); PRD v2 says 150 AI-graded answers a day. The suggestion is to change the code to match before the pilot; it needs Matt's OK.
-3. **D6 pilot launch** (on hold): analytics, WCAG audit, club pilot.
-4. **Merging `drills` into `main`:** agree migration numbering with the teammate first (see Database notes). Drills migrations are 0009–0017. Matt was given a note for the teammate about the `next.config.ts` change (traces `lessons/intro/**` into the drills routes).
-5. **Watch:** SY-2's reasons check is at 91% (3 misses in 34), and CL-3 specific requests is at 90% (28/31); flag either if it drops below 90% once real student answers arrive.
-6. **Later (P1):** EX-5, PS-2 Clarifying questions, CL-2 Hold or fold, and the BJ, CR and CM drills; each skill's lesson ships with its drill. PS-2 would give Clarifying questions its lesson, the only intro skill without one.
+2. **D6 pilot launch** (on hold): analytics, WCAG audit, club pilot.
+3. **Merging `drills` into `main`:** agree migration numbering with the teammate first (see Database notes). Drills migrations are 0009–0017. Matt was given a note for the teammate about the `next.config.ts` change (traces `lessons/intro/**` into the drills routes).
+4. **Watch:** SY-2's reasons check is at 91% (3 misses in 34), and CL-3 specific requests is at 90% (28/31); flag either if it drops below 90% once real student answers arrive.
+5. **Later (P1):** EX-5, PS-2 Clarifying questions, CL-2 Hold or fold, and the BJ, CR and CM drills; each skill's lesson ships with its drill. PS-2 would give Clarifying questions its lesson, the only intro skill without one.
 
 **Standing rules:** all schema changes stay additive (new tables, enum values, columns). Lessons and their examples must not reuse a drill item's scenario with the same question (`lessonScenarioOverlaps`); the same client alone is fine.
 
@@ -594,5 +593,10 @@
 - Data requests lesson v2 (`in_review`, not seeded): step 3 is Matt's wording; the vague-request mistake line matches the rule; tricky case 3 is now "Only the first request needs a slice"; the quick check answer says "measure". Review doc regenerated.
 - The importer turned all 40 CL-3 items into draft versions (grader-facing change only, similarity check kept). Not seeded.
 - Gates (Haiku 4.5, $0.41): CL-3 all ≥90%, specific requests 90% (28/31; misses 0010-a, 0019-a, 0023-a, all human Y); PS-3 all ≥90%, no overlap 94% (29/31; misses 0002-a, 0022-a). No routing to Sonnet needed. CL-3 model answers: 81/81 at 100%, no change over 3 runs ($1.27). Plus $0.11 for the Sonnet reasons run. Total about $1.79.
-- PRD to flag (not edited): `docs/prd-drills.md` CL-3 checklist row ("name a metric plus a cut or time period") and the grading-rules line below it.
+- PRD updated with Matt's go-ahead: the CL-3 checklist row and the grading-rules line below it.
+
+## Daily cap: 150 AI-graded answers (2026-10-17)
+
+- Matt approved matching the PRD. `startSet` now caps AI-graded answers, not sets: `AI_ANSWERS_PER_DAY = 150` in `lib/drills/sets/service.ts`, counted by `aiAnswersToday` (`lib/drills/grading/jobs.ts`) over the last 24 hours as one answer per planned item plus one per Defend reply (`aiAnswersInPlan`, `lib/drills/sets/plan.ts`; unfinished sets count). The check runs after the plan is built and refuses a set that would go over 150. Still a rolling 24 hours, not the student's calendar day (unchanged).
+- Test added. Typecheck, 1577 tests and lint pass; D2 and D5 smokes pass.
 
