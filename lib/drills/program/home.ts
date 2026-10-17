@@ -67,6 +67,9 @@ export async function homeView(studentId: string, now = new Date()) {
   const caseLeft = status ? status.cases.done < status.cases.target : (view!.day?.cases ?? 0) > 0;
   const nextCase = caseLeft || allPracticed ? await nextCaseFor(studentId) : null;
   if (nextCase) await logDrillEvent(studentId, 'next_case_card_shown', { recommended_case_id: nextCase.case_id, retake: nextCase.retake });
+  await logDrillEvent(studentId, 'drills_home_viewed', {
+    track: program.track, week: week?.week ?? null, sprint_day: view!.day?.day ?? null, open_prescriptions: rx.length, interview_days_out: view!.interview_days_out,
+  });
 
   return {
     kind: 'plan' as const, resume, weakest, diagnostic, program: view!, week_status: status, workout, lesson_first: lessonFirst, intro_first: introFirst,
@@ -80,6 +83,7 @@ export async function homeView(studentId: string, now = new Date()) {
 // top weaknesses, recent progress, what's due, a Sprint offer and the Monday recap.
 async function selfDirected(studentId: string, profile: Awaited<ReturnType<typeof skillProfile>>, view: NonNullable<Awaited<ReturnType<typeof programView>>>, now: Date) {
   const [progress, tiers, ctx, rx] = await Promise.all([loadProgress(db, studentId), loadTiers(db, studentId), progressContext(db, studentId, now), openPrescriptions(studentId)]);
+  await logDrillEvent(studentId, 'drills_home_viewed', { track: 'self_directed', week: null, open_prescriptions: rx.length, interview_days_out: view.interview_days_out });
   const [settings] = await db.select({ m: studentDrillSettings.timeMultiplier }).from(studentDrillSettings).where(eq(studentDrillSettings.studentId, studentId));
   const workout = buildWorkout({
     track: 'standard', week: null, sprint_day: null, interview_days_out: view.interview_days_out, progress, tiers,
@@ -88,7 +92,7 @@ async function selfDirected(studentId: string, profile: Awaited<ReturnType<typeo
   });
   const order: WorkoutBlock['slot'][] = ['weak', 'unfamiliar', 'review'];
   const pick = [...workout.blocks].sort((a, b) => order.indexOf(a.slot) - order.indexOf(b.slot))[0] ?? null;
-  const suggested = pick && { skill_id: pick.skill_id, skill_name: getSkill(pick.skill_id).name, drill_name: getDrill(pick.drill_id).name, reason: pick.reason, minutes: Math.round(pick.minutes), kind: pick.kind };
+  const suggested = pick && { skill_id: pick.skill_id, skill_name: getSkill(pick.skill_id).name, drill_name: getDrill(pick.drill_id).name, reason: pick.reason, minutes: Math.round(pick.minutes), kind: pick.kind, slot: pick.slot };
   if (suggested) await logDrillEvent(studentId, 'suggestion_shown', { drill_id: pick!.drill_id, skill_id: pick!.skill_id, reason: pick!.reason, source: pick!.slot });
 
   const weaknesses = profile.top_mistakes.slice(0, 3);
@@ -117,7 +121,7 @@ async function selfDirected(studentId: string, profile: Awaited<ReturnType<typeo
       cases: profile.history.filter(h => h.kind === 'case' && localDate(timezone, h.at) >= localDate(timezone, since)).length,
       moved_up: movedUp, weakest: weaknesses[0]?.skill_name ?? null,
     };
-    await logDrillEvent(studentId, 'weekly_summary_viewed', { week_of: today });
+    await logDrillEvent(studentId, 'weekly_summary_viewed', { week: today });
   }
 
   return {

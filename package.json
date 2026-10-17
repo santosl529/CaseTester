@@ -24,6 +24,9 @@
     "drills:smoke:diagnostic": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-diagnostic.ts",
     "drills:smoke:d5": "DRILLS_PREVIEW_DRAFTS=1 tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-d5.ts",
     "drills:smoke:tracks": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-tracks.ts",
+    "drills:smoke:events": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-events.ts",
+    "drills:a11y": "tsx --conditions=react-server --env-file=.env.local scripts/drills-a11y.ts",
+    "drills:reports": "tsx --conditions=react-server --env-file=.env.local scripts/drills-reports.ts",
     "drills:similarity": "tsx --env-file=.env.local scripts/drills-similarity.ts",
     "drills:industry": "tsx --env-file=.env.local scripts/drills-industry.ts",
     "drills:review-sheet": "tsx --conditions=react-server scripts/drills-review-sheet.ts",
@@ -52,6 +55,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20.19.43",
     "@types/react": "^19",
@@ -62,9 +66,13 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "eslint-plugin-boundaries": "^6.0.2",
+    "playwright": "1.63.0",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
     "typescript": "^5",
     "vitest": "^4.1.9"
+  },
+  "overrides": {
+    "playwright-core": "1.63.0"
   }
 }

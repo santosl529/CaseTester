@@ -7,6 +7,7 @@
 //
 //   npm run drills:smoke:d2      (makes a few Haiku calls, about $0.02)
 import './smoke-log';
+import { checkSmokeEvents } from './smoke-events';
 import { randomUUID } from 'crypto';
 import { eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
@@ -150,6 +151,9 @@ async function main() {
     await db.delete(skillStateEvents).where(eq(skillStateEvents.studentId, student));
     await db.delete(skillStates).where(eq(skillStates.studentId, student));
     await db.delete(studentDrillSettings).where(eq(studentDrillSettings.studentId, student));
+    // Unawaited event writes (void logDrillEvent) land shortly after.
+    await new Promise(r => setTimeout(r, 1500));
+    await checkSmokeEvents([student], failures);
     await db.delete(analyticsEvents).where(eq(analyticsEvents.userId, student));
     console.log(`cleaned up test student ${student}`);
   }

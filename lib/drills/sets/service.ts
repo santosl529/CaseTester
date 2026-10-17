@@ -104,7 +104,8 @@ export const StartSetSchema = z.object({
   tier: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
   // Started from Browse drills, or from the Suggested next card (analytics).
   browse: z.boolean().optional(),
-  suggestion: z.boolean().optional(),
+  // The Suggested next card's reason and slot, logged with suggestion_started.
+  suggestion: z.object({ reason: z.string().transform(s => s.slice(0, 300)), source: z.enum(['weak', 'unfamiliar', 'review']) }).optional(),
 }).refine(b => b.skill_id || b.drill_id || b.prescription_id || b.workout_id || b.diagnostic_part !== undefined,
   'skill_id, drill_id, prescription_id, workout_id or diagnostic_part is required')
   .refine(b => !b.workout_id || b.block !== undefined, 'block is required with workout_id')
@@ -278,7 +279,7 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
     browse: input.browse ?? false, suggested: input.browse ? await hasOpenPrescription(studentId, choice.focusSkill) : null,
   });
   if (input.suggestion) {
-    await logDrillEvent(studentId, 'suggestion_started', { set_id: setId, drill_id: drill.id, skill_id: choice.focusSkill, kind });
+    await logDrillEvent(studentId, 'suggestion_started', { set_id: setId, drill_id: drill.id, skill_id: choice.focusSkill, kind, reason: input.suggestion.reason, source: input.suggestion.source });
   }
   return { set_id: setId };
 }

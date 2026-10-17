@@ -9,27 +9,17 @@ import { db } from '@/db/client';
 import { studentProfiles } from '@/db/schema';
 import { logEvent } from '@/lib/analytics';
 import { TAXONOMY_VERSION } from './config';
+import { DRILL_EVENT_PROPS, type DrillEvent, type EventProps, type PendingEvent } from './event-props';
 
-export type DrillEvent =
-  | 'drill_set_started' | 'drill_example_viewed' | 'drill_example_skipped' | 'drill_item_served'
-  | 'drill_attempt_submitted' | 'drill_set_completed' | 'drill_set_expired'
-  | 'grading_job_completed' | 'grading_injection_suspected'
-  // D3: the loop.
-  | 'skill_state_changed' | 'prescription_created' | 'prescription_dismissed' | 'prescription_completed'
-  | 'case_result_received' | 'transfer_check_completed' | 'prerequisite_prescribed' | 'transfer_pool_exhausted'
-  // D4: the training program.
-  | 'onboarding_completed' | 'diagnostic_completed' | 'program_assigned' | 'program_switched' | 'program_week_started'
-  | 'workout_built' | 'workout_completed' | 'lesson_viewed' | 'lesson_skipped' | 'suggestion_shown' | 'suggestion_started'
-  | 'drill_catalog_viewed' | 'weekly_summary_viewed' | 'next_case_card_shown' | 'next_case_card_clicked'
-  // D5: Repair drills and Defend.
-  | 'defend_submitted' | 'repair_pool_exhausted';
+export type { DrillEvent, EventProps, PendingEvent } from './event-props';
 
 const APP_VERSION = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'dev';
 
 // Inside a request, the event is written after the response is sent (Next's
 // after()), so logging adds no latency for the student. Outside one (scripts),
-// it is written straight away.
-export function logDrillEvent(studentId: string, type: DrillEvent, props: Record<string, unknown>): Promise<void> {
+// it is written straight away. The type requires the PRD's key properties
+// for the event (event-props.ts).
+export function logDrillEvent<E extends DrillEvent>(studentId: string, type: E, props: EventProps<E>): Promise<void> {
   const write = () => writeDrillEvent(studentId, type, props);
   try {
     after(write);
@@ -39,11 +29,20 @@ export function logDrillEvent(studentId: string, type: DrillEvent, props: Record
   }
 }
 
+// Events built inside a transaction, logged once it commits.
+export async function logPendingEvents(studentId: string, events: PendingEvent[]): Promise<void> {
+  for (const e of events) await logDrillEvent<DrillEvent>(studentId, e.type, e.props as EventProps<DrillEvent>);
+}
+
 async function writeDrillEvent(studentId: string, type: DrillEvent, props: Record<string, unknown>): Promise<void> {
   try {
     const [profile] = await db.select({ orgId: studentProfiles.orgId }).from(studentProfiles).where(eq(studentProfiles.userId, studentId));
+    // A key property passed as undefined is stored as null, so it is never
+    // missing from the row (JSON drops undefined).
+    const required = Object.fromEntries(DRILL_EVENT_PROPS[type].map(k => [k, props[k] ?? null]));
     await logEvent(type, {
       ...props,
+      ...required,
       student_id: studentId,
       org_id: profile?.orgId ?? null,
       taxonomy_version: TAXONOMY_VERSION,

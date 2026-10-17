@@ -8,6 +8,7 @@
 //
 //   npm run drills:smoke:d3
 import './smoke-log';
+import { checkSmokeEvents } from './smoke-events';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
@@ -133,6 +134,7 @@ async function main() {
     await db.delete(studentDrillSettings).where(eq(studentDrillSettings.studentId, student));
     // Events are written after the response; give them a moment, then remove them.
     await new Promise(r => setTimeout(r, 1500));
+    await checkSmokeEvents([student], failures);
     await db.delete(analyticsEvents).where(eq(analyticsEvents.userId, student));
   }
   if (failures.length) {

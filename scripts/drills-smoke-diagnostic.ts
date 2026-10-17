@@ -8,6 +8,7 @@
 //
 //   npm run drills:smoke:diagnostic
 import './smoke-log';
+import { checkSmokeEvents } from './smoke-events';
 import { randomUUID } from 'crypto';
 import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
@@ -117,6 +118,7 @@ async function main() {
       await db.delete(studentProfiles).where(eq(studentProfiles.userId, s));
     }
     await new Promise(r => setTimeout(r, 1500));
+    await checkSmokeEvents(students, failures);
     for (const s of students) await db.delete(analyticsEvents).where(eq(analyticsEvents.userId, s));
   }
   if (failures.length) {

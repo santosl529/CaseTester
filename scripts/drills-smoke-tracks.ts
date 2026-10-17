@@ -10,6 +10,7 @@
 //
 //   npm run drills:smoke:tracks
 import './smoke-log';
+import { checkSmokeEvents } from './smoke-events';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
@@ -89,6 +90,7 @@ async function main() {
       await db.delete(studentProfiles).where(eq(studentProfiles.userId, id));
     }
     await new Promise(r => setTimeout(r, 1500));
+    await checkSmokeEvents(students, failures);
     for (const id of students) await db.delete(analyticsEvents).where(eq(analyticsEvents.userId, id));
   }
   if (failures.length) {

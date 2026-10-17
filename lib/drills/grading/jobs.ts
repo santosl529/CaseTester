@@ -12,7 +12,7 @@ import { drillAttempts, drillItems, drillSets, drillTiers, gradingJobs } from '@
 import { getDrill } from '../config';
 import { ItemSchema, type Item, type Tier } from '../item-schema';
 import { rebuildItem } from '../generators/registry';
-import { logDrillEvent } from '../events';
+import { logDrillEvent, logPendingEvents } from '../events';
 import { aiAnswersInPlan, type ItemRef } from '../sets/plan';
 import type { ItemResult, StepResult } from '../sets/scoring';
 import { nextTier, passed, setScore, skillScores } from '../sets/summary';
@@ -114,7 +114,7 @@ export async function finalizeSet(setId: string): Promise<boolean> {
   });
   if (event) {
     await logDrillEvent(event.studentId, 'drill_set_completed', event.props);
-    for (const e of event.progress) await logDrillEvent(event.studentId, e.type, e.props);
+    await logPendingEvents(event.studentId, event.progress);
     if (event.diagnosticScore !== null && await afterDiagnostic(event.studentId, event.diagnosticScore)) {
       await markDiagnosticMove(event.studentId, 'foundations');
     }
@@ -170,7 +170,7 @@ export async function runGradingJob(jobId: string, call?: CallModel): Promise<'s
   if (problem) {
     await db.update(gradingJobs).set({ status: 'failed', retries: job.retries + 1, error: problem, latencyMs: Date.now() - started })
       .where(eq(gradingJobs.id, job.id));
-    void logDrillEvent(set.studentId, 'grading_job_completed', { job_id: job.id, status: 'failed', retries: job.retries + 1, latency_ms: Date.now() - started, error: problem });
+    void logDrillEvent(set.studentId, 'grading_job_completed', { job_id: job.id, status: 'failed', retries: job.retries + 1, latency_ms: Date.now() - started, input_tokens: 0, output_tokens: 0, cost_usd: 0, error: problem });
     console.error(`drills: grading job ${job.id} failed`, problem);
     if (answered >= set.size) await finalizeSet(job.setId);
     return 'failed';
@@ -220,7 +220,11 @@ export async function runGradingJob(jobId: string, call?: CallModel): Promise<'s
       .where(eq(gradingJobs.id, job.id));
     await db.update(drillAttempts).set({ gradingStatus: 'delayed' })
       .where(and(eq(drillAttempts.setId, job.setId), eq(drillAttempts.gradingStatus, 'pending')));
-    void logDrillEvent(set.studentId, 'grading_job_completed', { job_id: job.id, status: 'failed', retries: job.retries + 1, latency_ms: Date.now() - started, error: message.slice(0, 200) });
+    // A call that threw reports no usage, so its tokens and cost are unknown.
+    void logDrillEvent(set.studentId, 'grading_job_completed', {
+      job_id: job.id, status: 'failed', retries: job.retries + 1, latency_ms: Date.now() - started,
+      input_tokens: null, output_tokens: null, cost_usd: null, error: message.slice(0, 200),
+    });
     console.error(`drills: grading job ${job.id} failed`, message);
     return 'failed';
   }

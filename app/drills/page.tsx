@@ -74,7 +74,7 @@ export default async function DrillsHomePage() {
             <h2 id="suggested" className="font-medium">Suggested next</h2>
             <p className="text-sm"><span className="font-medium">{home.suggested.skill_name}</span> · {home.suggested.drill_name} · about {Math.max(1, home.suggested.minutes)} min</p>
             <p className="text-sm text-muted-foreground">{home.suggested.reason}</p>
-            <StartSetButton body={{ skill_id: home.suggested.skill_id, quick_start: true, suggestion: true }} label="Start" />
+            <StartSetButton body={{ skill_id: home.suggested.skill_id, quick_start: true, suggestion: { reason: home.suggested.reason, source: home.suggested.slot } }} label="Start" />
           </section>
         )}
         {home.weaknesses.length > 0 && (

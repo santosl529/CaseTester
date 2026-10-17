@@ -2,7 +2,7 @@
 
 ## Start here (updated 2026-10-17)
 
-**Status.** Phases D0–D5 are done and pushed to `drills`. D6 (pilot launch) is on hold until Matt lifts it.
+**Status.** Phases D0–D5 are done and pushed to `drills`. D6 (pilot launch) is in progress (Matt lifted the hold 2026-10-17): events, the accessibility audit and the reports are built and not yet committed; see "D6: events, accessibility audit, reports" below.
 - **Drills:** all 15 MVP drills are live, plus D5's Repair drills (PS-4, HY-3, SY-3; 110 items), and the follow-up is on for PS-3, HY-2, SY-2 and CL-3 (`defend.live` true, pinned by a config test).
 - **Training program (D4):** complete. The gate's last item, the lesson review, is done.
 - **Lessons:** all 23 are live in v2 (Matt approved 2026-10-17), plus "How a case interview works", a static page at `/drills/learn/intro` read from `lessons/intro/`.
@@ -13,10 +13,11 @@
 - **Database:** the shared CaseTester Supabase project, in sync with `/drill-items` and `/lessons`.
 
 **Next steps** (in this order):
-1. **D6 pilot launch** (on hold): analytics, WCAG audit, club pilot.
-2. **Merging `drills` into `main`:** agree migration numbering with the teammate first (see Database notes). Drills migrations are 0009–0017. Matt was given a note for the teammate about the `next.config.ts` change (traces `lessons/intro/**` into the drills routes).
-3. **Watch:** SY-2's reasons check is at 91% (3 misses in 34), and CL-3 specific requests is at 90% (28/31); flag either if it drops below 90% once real student answers arrive.
-4. **Later (P1):** EX-5, PS-2 Clarifying questions, CL-2 Hold or fold, and the BJ, CR and CM drills; each skill's lesson ships with its drill. PS-2 would give Clarifying questions its lesson, the only intro skill without one.
+1. **D6, Matt's decisions:** where the reports live (local-dev page, production admin page, or the command line as now); timed items under WCAG 2.2.1 (add "No time limit", or treat the limit as essential); whether item health's pull-to-review runs as a daily job or by hand from the report; go-ahead for the PRD updates listed in the D6 entry; whether to commit.
+2. **D6, before the pilot:** a person runs the manual accessibility checklist (`docs/drills-a11y-audit.md`); the landing page's placeholder-only labels are fixed on `main`; the club code is in `CLUB_CODES` on Vercel; `CRON_SECRET` and a Vercel Cron for `/api/internal/drills/grading`. Then the pilot itself (gate: students finish Week 0 and Week 1 and complete the full loop).
+3. **Merging `drills` into `main`:** agree migration numbering with the teammate first (see Database notes). Drills migrations are 0009–0017. Matt was given a note for the teammate about the `next.config.ts` change (traces `lessons/intro/**` into the drills routes).
+4. **Watch:** SY-2's reasons check is at 91% (3 misses in 34), and CL-3 specific requests is at 90% (28/31); flag either if it drops below 90% once real student answers arrive.
+5. **Later (P1):** EX-5, PS-2 Clarifying questions, CL-2 Hold or fold, and the BJ, CR and CM drills; each skill's lesson ships with its drill. PS-2 would give Clarifying questions its lesson, the only intro skill without one.
 
 **Standing rules:** all schema changes stay additive (new tables, enum values, columns). Lessons and their examples must not reuse a drill item's scenario with the same question (`lessonScenarioOverlaps`); the same client alone is fine.
 
@@ -38,9 +39,12 @@
 - `npm run drills:smoke:d3`: the loop end to end against the real database (free; no AI calls).
 - `npm run drills:smoke:d5`: Repair sets, the 14-day rule and Defend sets end to end (preview drafts, about $0.05).
 - `npm run drills:golden -- --part defend` runs only the follow-up gates; `npm run drills:models -- --d5` only the Repair and follow-up model answers.
+- `npm run drills:smoke:events`: the events the other smokes don't reach, plus the reports on real rows (free; stub grader).
+- After UI changes: `npm run dev`, then `npm run drills:a11y` (free; see `docs/drills-a11y-audit.md`).
 - Free: `npm run typecheck`, `npm test` (includes the model-answer unit test and the cross-drill scenario check), `npm run lint`, then `npm run db:seed-drill-items`.
 
 **Gotchas:**
+- After switching branches, run `npm ci`: `main`'s packages lack `server-only`, and tests and smokes fail to load with them (2026-10-17). Delete `.next/dev` if typecheck reports missing voice pages from `main`.
 - Changing the stored shape of an answer key breaks grading for items already in the database until re-seeded (live items need new versions).
 - Each grader-wording change shifts a few borderline answers; re-run the gates and `drills:models`.
 - Never name a source for a QN-5 figure unless it has been looked up (add the link); otherwise write it as reasoning.
@@ -604,4 +608,19 @@
 - Matt approved the Data requests lesson v2 in chat; recorded with `recordLessonReview` (status live). `db:seed-lessons`: v2 inserted, v1 retired, 0 conflicts.
 - The 40 CL-3 drafts (new specific-requests wording) published: status live, reviewed by Matt 2026-10-17. `db:seed-drill-items`: 40 inserted, 40 older versions retired, 0 conflicts. Students are now graded on the new rule.
 - Tests pass; D5 smoke passes on the live items.
+
+## D6: events, accessibility audit, reports (2026-10-17, not committed)
+
+Matt lifted the D6 hold ("build D6"). Answers: reports location "not sure yet"; Playwright + axe-core approved; cost alert as a banner on the reports.
+
+- **Events.** `lib/drills/event-props.ts` lists each event's PRD key properties; `logDrillEvent` is typed so every call must pass them, and `logPendingEvents` logs events built inside transactions. A key property passed as undefined is stored as null. `tests/drills/events.test.ts` parses the PRD's Events table and fails if the list drifts, or if an event is never logged in the code.
+  - Gaps fixed: `drills_home_viewed` was never logged (now on both home kinds: track, week, open prescriptions, interview days out); `suggestion_started` lacked reason and source (the Suggested next card now sends them); `weekly_summary_viewed` sent `week_of` (now `week`); failed `grading_job_completed` lacked tokens and cost (0 when no call was made, null when the call threw).
+  - `scripts/smoke-events.ts`: every smoke now fails if an event row lacks a key property, and prints the events it fired. New `npm run drills:smoke:events` fires the rest (stub grader, free). Together they fire 30 of 35 events; not reached: next_case_card_clicked, drill_catalog_viewed (route-only), workout_completed, transfer_pool_exhausted, repair_pool_exhausted.
+  - D1 smoke was broken since D5 (it ran the AI-graded Repair drills as auto-checked); now runs only auto-checked D1 drills.
+- **Accessibility.** `npm run drills:a11y` (Playwright 1.63.0 and @axe-core/playwright 4.13.0, pinned two weeks old; `playwright-core` overridden to 1.63.0) signs in a throwaway Supabase user and scans 32 pages: axe WCAG 2.1 A/AA, a Tab walk checking each stop shows focus, and reflow at 320 px. Result: 0 axe violations, focus shown on every stop. Fixed: wide data tables (EX-3) made the page scroll sideways; they now scroll in their own focusable box (`components/drills/chart.tsx`). Report and manual checklist: `docs/drills-a11y-audit.md`.
+  - Open for Matt: WCAG 2.2.1 (timed items need off, 10×, or extend; the setting offers 1.5×/2×).
+- **Reports.** `lib/drills/reports/` (`data.ts` loads one club's rows, or all students minus the test orgs; `compute.ts` is one pure function per PRD report, each with its definition in `how`; `index.ts` builds them all). `npm run drills:reports [-- --org <id> --days N --json]` prints them. Includes the cost alert (last 7 days, per active student scaled to a month, alert above $1.25 + 25%) and event health. 12 fixture tests; the events smoke checks the reports on real rows. No real students yet, so every report reads zero.
+  - Not built: item health's automatic pull to review (the report flags items; needs Matt's call), the monthly human sample for grading agreement, a reports page (location undecided).
+- **PRD updates to flag (not edited):** Events table: add `repair_pool_exhausted` (drill_id, available); `weekly_summary_viewed.week` is the Monday's date. MVP reports: the definitions in `compute.ts`. Accessibility: the audit doc and the 2.2.1 decision.
+- Checks: typecheck, 1595 tests, lint, all eight smokes and the production build pass.
 

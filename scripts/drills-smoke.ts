@@ -5,8 +5,8 @@
 //
 //   npx tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke.ts
 import './smoke-log';
+import { checkSmokeEvents } from './smoke-events';
 import { randomUUID } from 'crypto';
-import { D2_DRILLS } from '@/lib/drills/model-answers';
 import { and, eq } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { analyticsEvents, drillAttempts, drillItems, drillSets, drillTiers, prescriptions, skillStateEvents, skillStates, studentDrillSettings } from '@/db/schema';
@@ -14,6 +14,7 @@ import { DRILLS_CONFIG } from '@/lib/drills/config';
 import { rebuildItem } from '@/lib/drills/generators/registry';
 import { ItemSchema, type Item, type Tier } from '@/lib/drills/item-schema';
 import type { ItemRef } from '@/lib/drills/sets/plan';
+import { D2_DRILLS } from '@/lib/drills/model-answers';
 import {
   DrillError, completeSet, fetchItem, setResults, setView, startSet, submitAttempt, updateSettings,
 } from '@/lib/drills/sets/service';
@@ -129,8 +130,9 @@ async function runDrill(drillId: string, skillId: string, level: 1 | 2) {
 async function main() {
   try {
     await updateSettings(student, { time_multiplier: 1.5 });
-    // The D1 drills; the D2 drills have their own smoke (drills:smoke:d2).
-    const live = DRILLS_CONFIG.drills.drills.filter(d => d.live && !D2_DRILLS.includes(d.id));
+    // The D1 drills: the D2 drills (QN-5 included) and the AI-graded D5
+    // drills have their own smokes.
+    const live = DRILLS_CONFIG.drills.drills.filter(d => d.live && d.scoring === 'auto' && !D2_DRILLS.includes(d.id));
     for (const drill of live) await runDrill(drill.id, drill.skills[0], drill.level);
     // CR.volume is trained only by CR-1 (P1), which isn't live yet.
     await expectError('no_live_drill', () => startSet(student, { skill_id: 'CR.volume' }), 'skill with no live drill');
@@ -144,6 +146,9 @@ async function main() {
     await db.delete(skillStateEvents).where(eq(skillStateEvents.studentId, student));
     await db.delete(skillStates).where(eq(skillStates.studentId, student));
     await db.delete(studentDrillSettings).where(eq(studentDrillSettings.studentId, student));
+    // Unawaited event writes (void logDrillEvent) land shortly after.
+    await new Promise(r => setTimeout(r, 1500));
+    await checkSmokeEvents([student], failures);
     await db.delete(analyticsEvents).where(eq(analyticsEvents.userId, student));
     console.log(`cleaned up test student ${student}`);
   }

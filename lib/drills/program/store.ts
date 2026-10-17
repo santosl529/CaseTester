@@ -13,7 +13,7 @@ import {
 } from '@/db/schema';
 import { loadCases } from '@/lib/cases/loader';
 import { DRILLS_CONFIG, getDrill, getMistakeTag, getSkill } from '../config';
-import { logDrillEvent } from '../events';
+import { logDrillEvent, logPendingEvents, type EventProps } from '../events';
 import { isLiveDrill } from '../live';
 import type { CaseResultPayload } from '../case-result';
 import type { ProgressMap } from '../progress/engine';
@@ -228,7 +228,7 @@ export async function todayWorkout(studentId: string, now = new Date()): Promise
     const [row] = await tx.insert(workouts).values(values).onConflictDoNothing().returning();
     return { row, workout, events };
   });
-  for (const e of built.events) await logDrillEvent(studentId, e.type, e.props);
+  await logPendingEvents(studentId, built.events);
   if (!built.row) {
     const [raced] = await db.select().from(workouts).where(and(eq(workouts.studentId, studentId), eq(workouts.date, today)));
     return raced ?? null;
@@ -242,7 +242,7 @@ export async function todayWorkout(studentId: string, now = new Date()): Promise
 
 // Called when a set finishes (lib/drills/grading/jobs.ts finalizeSet): marks
 // the workout complete once every block's set is done.
-export async function markWorkoutProgress(tx: Tx, workoutId: string): Promise<{ studentId: string; props: Record<string, unknown> } | null> {
+export async function markWorkoutProgress(tx: Tx, workoutId: string): Promise<{ studentId: string; props: EventProps<'workout_completed'> } | null> {
   const [w] = await tx.select().from(workouts).where(eq(workouts.id, workoutId)).for('update');
   if (!w || w.status === 'completed' || w.status === 'expired') return null;
   const blocks = w.blocks as WorkoutBlock[];

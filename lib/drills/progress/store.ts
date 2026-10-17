@@ -9,7 +9,6 @@ import { db } from '@/db/client';
 import { caseResults, drillSets, drillTiers, prescriptions, sessions, skillStateEvents, skillStates, studentDrillSettings } from '@/db/schema';
 import { DRILLS_CONFIG, TAXONOMY_VERSION, getDrill, getMistakeTag } from '../config';
 import { CaseResultPayloadSchema, type CaseResultPayload } from '../case-result';
-import type { DrillEvent } from '../events';
 import { isLiveDrill } from '../live';
 import type { ItemResult } from '../sets/scoring';
 import {
@@ -23,7 +22,8 @@ type Exec = typeof db | Tx;
 type SetRow = typeof drillSets.$inferSelect;
 type StateRow = typeof skillStates.$inferSelect;
 type PrescriptionSource = (typeof prescriptions.$inferInsert)['sourceType'];
-export interface PendingEvent { type: DrillEvent; props: Record<string, unknown> }
+export type { PendingEvent } from '../event-props';
+import type { PendingEvent } from '../event-props';
 
 const rules = DRILLS_CONFIG.rules;
 const DAY = 86_400_000;

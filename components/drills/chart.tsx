@@ -233,8 +233,13 @@ function DataTable({ spec, visible }: { spec: ChartSpec; visible: boolean }) {
         columns: ['', ...spec.series.map(s => s.name)],
         rows: spec.categories.map((c, i) => [c, ...spec.series.map(s => formatValue(s.values[i], seriesFormat(spec, s.axis)))]),
       };
+  // A wide table scrolls inside its own box, not the page (WCAG 1.4.10
+  // allows two-dimensional scrolling for data tables); focusable so keyboard
+  // users can scroll it too.
   return (
-    <table className={`w-full border-collapse text-sm ${visible ? '' : 'mt-2'}`}>
+    <div role="region" aria-label={`${spec.title}: data table`} tabIndex={0}
+      className={`overflow-x-auto rounded-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 ${visible ? '' : 'mt-2'}`}>
+    <table className="w-full border-collapse text-sm">
       <caption className="sr-only">{spec.title}{spec.units_label ? ` (${spec.units_label})` : ''}</caption>
       <thead>
         <tr>{table.columns.map((c, i) => <th key={i} scope="col" className={cell}>{c}</th>)}</tr>
@@ -249,6 +254,7 @@ function DataTable({ spec, visible }: { spec: ChartSpec; visible: boolean }) {
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
 

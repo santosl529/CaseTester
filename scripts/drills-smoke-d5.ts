@@ -16,6 +16,7 @@
 //
 //   npm run drills:smoke:d5      (makes Haiku calls, about $0.05)
 import './smoke-log';
+import { checkSmokeEvents } from './smoke-events';
 import { randomUUID } from 'crypto';
 import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
@@ -185,6 +186,7 @@ async function main() {
     await db.delete(studentDrillSettings).where(eq(studentDrillSettings.studentId, student));
     await db.delete(lessonViews).where(eq(lessonViews.studentId, student));
     await new Promise(r => setTimeout(r, 1500));
+    await checkSmokeEvents([student], failures);
     await db.delete(analyticsEvents).where(eq(analyticsEvents.userId, student));
     console.log(`cleaned up test student ${student}`);
   }
