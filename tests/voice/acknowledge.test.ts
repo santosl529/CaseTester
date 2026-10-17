@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ACKS, ACK_POOLS, ALL_ACKS, ackKind, pickAck, shouldAcknowledge } from '@/lib/voice/acknowledge';
+import { ACKS, ACK_POOLS, ALL_ACKS, LONG_ANSWER_WORDS, ackKind, ackSpeechText, pickAck, shouldAcknowledge } from '@/lib/voice/acknowledge';
 
 describe('instant acknowledgment', () => {
   it('rotates through neutral backchannels and never repeats the last one', () => {
@@ -35,6 +35,29 @@ describe('instant acknowledgment', () => {
   it('stays silent on distress or hostility — the conduct response comes first', () => {
     expect(shouldAcknowledge("Honestly I'm going to bomb every interview I do. I don't know why I'm even doing this.")).toBe(false);
     expect(shouldAcknowledge("You're an idiot, just answer the question.")).toBe(false);
+  });
+
+  it('never says "right" — after an answer it can sound like "you\'re right"', () => {
+    for (const a of ALL_ACKS) expect(a).not.toMatch(/\bright\b/i);
+  });
+
+  it('answers and questions get open, trailing fillers that lead into speech (17 Oct)', () => {
+    for (const a of [...ACK_POOLS.answer, ...ACK_POOLS.question]) {
+      expect(a).toMatch(/…$/);
+      expect(a.split(/\s+/).length).toBeLessThanOrEqual(2);
+    }
+    expect(ackSpeechText('Okay, so…')).toBe('Okay, so...');
+    expect(ackSpeechText('Take your time.')).toBe('Take your time.');
+  });
+
+  it('stays silent after a long answer — the natural pause stands (17 Oct)', () => {
+    const words = (n: number) => Array.from({ length: n }, (_, i) => (i === 0 ? 'Costs' : 'matter')).join(' ') + '.';
+    expect(LONG_ANSWER_WORDS).toBe(40);
+    expect(shouldAcknowledge(words(39))).toBe(true);
+    expect(shouldAcknowledge(words(40))).toBe(false);
+    // session 314295e0 t5 (41 words, with a data ask) and t1 (144 words)
+    expect(shouldAcknowledge("I'm thinking right now. I don't really think anything is really missing. Um, I think I do just need to look at the cost first. If you could... if you have that... if you have the cogs, that'll be really helpful.")).toBe(false);
+    expect(shouldAcknowledge("Yeah. Like, I was just saying, I'd want to check the costs first, so COGS.")).toBe(true);
   });
 
   it('stays silent on an empty turn', () => {

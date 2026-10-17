@@ -25,7 +25,7 @@ import type { Phase } from '@/lib/orchestrator/state-machine';
 import { DeepgramFluxSTT } from './deepgram';
 import { CartesiaTTS, defaultVoiceId } from './cartesia';
 import { FakeTTS } from './fake-tts';
-import { ALL_ACKS } from './acknowledge';
+import { ALL_ACKS, ackSpeechText } from './acknowledge';
 import { Playout } from './playout';
 import { SpeechEndTracker, trimSilence } from './pcm';
 import { TtsCharBudget, RunCharCap, monthlyLedgerFile, ttsRunCap } from './tts-budget';
@@ -45,15 +45,17 @@ const num = (k: string, d: number) => Number(process.env[k] ?? d);
 async function loadAcks(tts: TTSProvider, voice: string, take: (n: number) => boolean): Promise<Map<string, Uint8Array>> {
   const acks = new Map<string, Uint8Array>();
   for (const ack of ALL_ACKS) {
-    const file = path.join('.voice-cache/acks', `${tts.name}-${voice}-${createHash('sha1').update(ack).digest('hex').slice(0, 10)}.pcm`);
+    // Keyed on the text the TTS reads (the trailing fillers spell their ellipsis out).
+    const speech = ackSpeechText(ack);
+    const file = path.join('.voice-cache/acks', `${tts.name}-${voice}-${createHash('sha1').update(speech).digest('hex').slice(0, 10)}.pcm`);
     // Trimmed at both ends as loaded: the TTS pads ~0.1–0.2s of silence each side,
     // which delays the first sound and lengthens the gap after the ack.
     if (existsSync(file)) { acks.set(ack, trimSilence(new Uint8Array(readFileSync(file)), OUT_RATE)); continue; }
-    if (!take(ack.length)) break;
+    if (!take(speech.length)) break;
     const utt = await tts.open({ encoding: 'pcm_s16le', sampleRate: OUT_RATE });
     const parts: Uint8Array[] = [];
     utt.onAudio(p => parts.push(p));
-    await utt.push(ack);
+    await utt.push(speech);
     await utt.end();
     const pcm = Buffer.concat(parts);
     mkdirSync(path.dirname(file), { recursive: true });

@@ -74,6 +74,19 @@ describe('the instant acknowledgment', () => {
   });
 });
 
+describe('no acknowledgment after a long answer (17 Oct)', () => {
+  it('the first sound is the interviewer\'s own line, and the record has no ack', async () => {
+    const long = Array.from({ length: 45 }, () => 'costs').join(' ');
+    const h = harness([[seg('tail', 'Which branch first?')]]);
+    await h.c.ready(''); h.c.onStt(final(long));
+    await h.advance(3000);
+    const rec = h.records[0] as { ack: string | null; firstSoundMs: number; firstUsefulMs: number };
+    expect(rec.ack).toBeNull();
+    expect(rec.firstSoundMs).toBe(rec.firstUsefulMs);
+    expect(h.texts).toEqual([long]);
+  });
+});
+
 describe('a turn heard in full', () => {
   it('reports every segment played, captions the whole line, and records first sound before first useful', async () => {
     const h = harness([[seg('say', 'Fair point.'), seg('data', 'There are 120 stores.', { revealIds: ['stores_count'] }), seg('tail', 'Where would you start?')]]);
