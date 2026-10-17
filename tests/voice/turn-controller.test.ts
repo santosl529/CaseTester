@@ -76,13 +76,13 @@ describe('the instant acknowledgment', () => {
 });
 
 describe('long answers get a filler too (Lorenzo, 17 Oct)', () => {
-  it('a 45-word answer hears a thinking filler first', async () => {
+  it('a 45-word answer hears a two-beat thinking filler first', async () => {
     const long = Array.from({ length: 45 }, () => 'costs').join(' ');
     const h = harness([[seg('tail', 'Which branch first?')]]);
     await h.c.ready(''); h.c.onStt(final(long));
     await h.advance(3000);
     const rec = h.records[0] as { ack: string | null; firstSoundMs: number; firstUsefulMs: number };
-    expect(ACK_POOLS.answer).toContain(rec.ack);
+    expect(ACK_POOLS.long).toContain(rec.ack);
     expect(rec.firstSoundMs).toBeLessThan(rec.firstUsefulMs);
   });
 });

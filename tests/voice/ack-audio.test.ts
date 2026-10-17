@@ -25,7 +25,7 @@ describe('loadAcks', () => {
     const tts = new CountingTTS();
     const cacheDir = mkdtempSync(path.join(tmpdir(), 'acks-'));
     const acks = await loadAcks(tts, 'v', () => true, { sampleRate: RATE, gapMs: 400, tailMs: 300, cacheDir });
-    expect(tts.said.filter(s => s.endsWith('...')).sort()).toEqual(['Alright...', 'Hmm...', 'Mhm...', 'Okay...']);
+    expect(tts.said.filter(s => s.endsWith('...')).sort()).toEqual(['Alright...', 'Hmm...', 'Let me see...', 'Mhm...', 'Okay...']);
     expect(tts.said).toContain('Take your time.');
     // "Hmm..." is 6 chars at 80ms = 480ms of tone; "Okay..." 7 chars = 560ms.
     expect(ms(acks.get('Hmm…')!)).toBeCloseTo(480 + 300, -1);

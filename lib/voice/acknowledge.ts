@@ -13,17 +13,27 @@ import { classifyConduct } from '@/lib/orchestrator/conduct';
 import { pickScript } from '@/lib/agent/prompts/scripts';
 import { explicitRequestCues } from '@/lib/orchestrator/request-signal';
 
-// Thinking sounds, one beat or two (joined with FILLER_GAP_MS between them).
-export const ACKS = ['Hmm…', 'Mhm…', 'Okay…', 'Alright…', 'Hmm… okay…', 'Hmm… alright…', 'Mhm… okay…', 'Mhm… alright…'] as const;
+// Thinking sounds (Lorenzo, 17 Oct): one beat after a short message, two
+// (joined with FILLER_GAP_MS between them) after an answer of
+// LONG_ANSWER_WORDS or more — by length only, no latency prediction.
+export const ONE_BEAT = ['Hmm…', 'Mhm…', 'Okay…', 'Alright…'] as const;
+export const TWO_BEATS = ['Hmm… okay…', 'Hmm… alright…', 'Mhm… okay…', 'Mhm… alright…'] as const;
+// A data ask: the thinking sounds or "Let me see…" — never a promise of data
+// (code may still refuse or defer the ask).
+export const LET_ME_SEE = 'Let me see…';
+// Every thinking filler: its reply opens with a connector (connector.ts).
+export const ACKS = [...ONE_BEAT, ...TWO_BEATS, LET_ME_SEE] as const;
+export const LONG_ANSWER_WORDS = 40;
 
 // One pool per kind of message (9 Oct): "Got it, thanks." after "Sorry. Hold
-// on." or a question read as not listening. A data ask gets "let me check",
-// never a promise — code may still refuse or defer it.
+// on." or a question read as not listening. Since 17 Oct only the stuck pool
+// has words; the rest are thinking sounds.
 export const ACK_POOLS = {
-  answer: ACKS,
+  answer: ONE_BEAT,
+  long: TWO_BEATS,
   stuck: ['Take your time.', 'Sure, take a moment.'],
-  question: ACKS,
-  data_request: ['Okay, let me check.', 'Sure, one second.'],
+  question: ONE_BEAT,
+  data_request: [...ONE_BEAT, LET_ME_SEE],
 } as const;
 export type AckKind = keyof typeof ACK_POOLS;
 export type Ack = (typeof ACK_POOLS)[AckKind][number];
@@ -36,7 +46,7 @@ export function ackSpeechText(ack: string): string {
   return ack.replace(/…/g, '...');
 }
 
-// A thinking filler (the answer and question pools): its reply opens with a connector.
+// A thinking filler (every pool but stuck): its reply opens with a connector.
 export function isThinkingFiller(ack: string | null): boolean {
   return ack !== null && (ACKS as readonly string[]).includes(ack);
 }
@@ -66,8 +76,8 @@ export function joinBeats(clips: Uint8Array[], sampleRate: number, gapMs = FILLE
 
 // Only short messages get a kind: a long answer that opens with "let me take a
 // second" or asks a rhetorical question is still an answer (on the 9 Oct
-// check, cues anywhere in long persona answers misfired more than random).
-const MAX_KIND_WORDS = 40;
+// check, cues anywhere in long persona answers misfired more than random) —
+// 'long', two beats, from LONG_ANSWER_WORDS on.
 const STUCK = [
   /\b(i'?m|i\s+am)\s+(stuck|lost|confused|blanking|not\s+sure)\b/i,
   /\bi\s+(really\s+)?(don'?t|do\s+not)\s+(really\s+)?know\b/i,
@@ -82,7 +92,7 @@ const QUESTION = [/\?/, /^\s*(sorry[.,—–-]?\s*)?(quick\s+question|can\s+i\s+
 // not an answer. STT may drop a "?", so a question opener counts too.
 export function ackKind(candidateText: string): AckKind {
   const t = candidateText.trim();
-  if (t.split(/\s+/).length > MAX_KIND_WORDS) return 'answer';
+  if (t.split(/\s+/).length >= LONG_ANSWER_WORDS) return 'long';
   if (STUCK.some(re => re.test(t))) return 'stuck';
   if (explicitRequestCues(t).length) return 'data_request';
   if (QUESTION.some(re => re.test(t))) return 'question';

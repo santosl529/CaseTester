@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ACKS, ACK_POOLS, ALL_ACKS, FILLER_GAP_MS, FILLER_TAIL_MS, ackBeats, ackKind, ackSpeechText, isThinkingFiller, joinBeats, pickAck, shouldAcknowledge } from '@/lib/voice/acknowledge';
+import { ACKS, ACK_POOLS, ALL_ACKS, FILLER_GAP_MS, FILLER_TAIL_MS, LONG_ANSWER_WORDS, ackBeats, ackKind, ackSpeechText, isThinkingFiller, joinBeats, pickAck, shouldAcknowledge } from '@/lib/voice/acknowledge';
 
 describe('instant acknowledgment', () => {
   it('rotates through neutral backchannels and never repeats the last one', () => {
@@ -41,17 +41,33 @@ describe('instant acknowledgment', () => {
     for (const a of ALL_ACKS) expect(a).not.toMatch(/\bright\b/i);
   });
 
-  it('answers and questions get thinking sounds only — nothing that confirms (Lorenzo, 17 Oct)', () => {
-    expect([...ACK_POOLS.answer]).toEqual(['Hmm…', 'Mhm…', 'Okay…', 'Alright…', 'Hmm… okay…', 'Hmm… alright…', 'Mhm… okay…', 'Mhm… alright…']);
+  it('answers, questions and data asks get thinking sounds only — nothing that confirms or promises (Lorenzo, 17 Oct)', () => {
+    expect([...ACK_POOLS.answer]).toEqual(['Hmm…', 'Mhm…', 'Okay…', 'Alright…']);
     expect(ACK_POOLS.question).toEqual(ACK_POOLS.answer);
-    for (const a of ACK_POOLS.answer) {
-      expect(a).not.toMatch(/got it|thanks|i see|understood|sure|follow|so\b/i);
+    expect([...ACK_POOLS.long]).toEqual(['Hmm… okay…', 'Hmm… alright…', 'Mhm… okay…', 'Mhm… alright…']);
+    expect([...ACK_POOLS.data_request]).toEqual(['Hmm…', 'Mhm…', 'Okay…', 'Alright…', 'Let me see…']);
+    for (const a of [...ACK_POOLS.answer, ...ACK_POOLS.long, ...ACK_POOLS.data_request]) {
+      expect(a).not.toMatch(/got it|thanks|i see|understood|sure|follow|check|second|so\b/i);
       expect(a).toMatch(/…$/);
       expect(isThinkingFiller(a)).toBe(true);
     }
     expect(ACK_POOLS.stuck).toEqual(['Take your time.', 'Sure, take a moment.']);
     expect(isThinkingFiller('Take your time.')).toBe(false);
     expect(isThinkingFiller(null)).toBe(false);
+  });
+
+  it('two beats after an answer of 40 words or more, one beat otherwise — by length only (Lorenzo, 17 Oct)', () => {
+    const words = (n: number) => Array.from({ length: n }, () => 'costs').join(' ');
+    expect(LONG_ANSWER_WORDS).toBe(40);
+    expect(ackKind(words(39))).toBe('answer');
+    expect(ackKind(words(40))).toBe('long');
+    // session 314295e0: t5 (41 words, with a data ask) and t1 (144 words) get two beats; t11 (22 words) one
+    expect(ackKind("I'm thinking right now. I don't really think anything is really missing. Um, I think I do just need to look at the cost first. If you could... if you have that... if you have the cogs, that'll be really helpful.")).toBe('long');
+    expect(ackKind('Uh, coffee beans were twenty five percent of cogs two years ago. I need a... do you know what it is now?')).not.toBe('long');
+    for (let i = 0; i < 20; i++) {
+      expect(ACK_POOLS.long).toContain(pickAck(`s:${i}`, null, ackKind(words(60))));
+      expect(pickAck(`s:${i}`, null, ackKind('Costs first.')).split('…').filter(Boolean)).toHaveLength(1);
+    }
   });
 
   it('a filler is synthesized beat by beat, each with its ellipsis spelled out; other acks whole', () => {
@@ -61,8 +77,9 @@ describe('instant acknowledgment', () => {
     expect(ackBeats('Okay, let me check.')).toEqual(['Okay, let me check.']);
     expect(ackSpeechText('Okay…')).toBe('Okay...');
     expect(ackSpeechText('Take your time.')).toBe('Take your time.');
-    // Every beat is one of four clips.
-    expect(new Set(ACKS.flatMap(ackBeats))).toEqual(new Set(['Hmm…', 'Mhm…', 'Okay…', 'Alright…']));
+    expect(ackBeats('Let me see…')).toEqual(['Let me see…']);
+    // Every beat is one of five clips.
+    expect(new Set(ACKS.flatMap(ackBeats))).toEqual(new Set(['Hmm…', 'Mhm…', 'Okay…', 'Alright…', 'Let me see…']));
   });
 
   it('joins beats with ~400ms between them and ~300ms after the last', () => {
@@ -97,8 +114,7 @@ describe('instant acknowledgment', () => {
     }
   });
 
-  it('defaults to the answer pool, which is today\'s list', () => {
-    expect(ACK_POOLS.answer).toEqual(ACKS);
+  it('defaults to the answer pool', () => {
     expect(pickAck('s:1', null)).toBe(pickAck('s:1', null, 'answer'));
   });
 });
@@ -136,14 +152,14 @@ describe('ackKind', () => {
     ]) expect(ackKind(t), t).toBe('question');
   });
 
-  it('answer: ordinary statements, and anything over 40 words', () => {
+  it('answer: ordinary statements under 40 words; 40 or more is a long answer', () => {
     for (const t of [
       "I'd split profit into revenue and costs.",
       'Cost of goods rose about four points.',
       "Okay. So I guess I'd look at three things. First, revenue — like what's happening with sales. Second, costs. Sorry, that's kind of broad.",
       'Customer wait times are longer at peak, so labor could matter.',
       'If they hold on to flat prices, margin keeps falling.',
-      'Let me take a second to lay this out. So profit equals revenue minus cost, and since revenue is actually up 15% while margin fell from 24% to 6%, my instinct is costs are growing faster than revenue — but I want to confirm the revenue side first. Does that work?',
     ]) expect(ackKind(t), t).toBe('answer');
+    expect(ackKind('Let me take a second to lay this out. So profit equals revenue minus cost, and since revenue is actually up 15% while margin fell from 24% to 6%, my instinct is costs are growing faster than revenue — but I want to confirm the revenue side first. Does that work?')).toBe('long');
   });
 });
