@@ -1,8 +1,8 @@
 {
   "item_id": "cl3-0005",
-  "version": 2,
+  "version": 3,
   "drill_id": "CL-3",
-  "status": "live",
+  "status": "draft",
   "level": 2,
   "tier": 1,
   "skills": [
@@ -91,7 +91,7 @@
     },
     {
       "check_id": "specific_requests",
-      "question": "Judge only the data the answer asks to see, not the drivers it lists to break the metric down (\"profit is revenue minus marketing and content costs\" is a breakdown, not a request). Does every data request name a metric plus a cut or a time period (\"marketing spend per new student by channel for two years\")?",
+      "question": "Judge only the data the answer asks to see, not the drivers it lists to break the metric down (\"profit is revenue minus marketing and content costs\" is a breakdown, not a request). Does every data request name a specific measure, and does the first one also include a cut, a comparison or a time period (\"marketing spend per new student by channel for two years\")?",
       "weight": 0.25,
       "fail_tag": "M.vague_data_request",
       "feedback": "Make requests specific, like: Booking lead time and inquiries turned away by day of the week for two years; competitor venues' prices by day.",
@@ -169,7 +169,7 @@
       "Driver coverage: a driver counts if the answer names it or asks for data on it, tied to this case. A generic word alone (\"costs\", \"market data\") does not cover a specific driver (\"ingredient cost per cup\") unless the request makes it specific.",
       "Where to start: the answer names one driver or analysis to look at first (\"I'd start with\", \"first\"). Listing everything with no order fails.",
       "Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). The reason can come before the starting point (\"The list grows when operations fall behind referrals, so I'd start with operations per week\"). \"Because it's important\" fails.",
-      "Specific requests: judge only the data the answer asks to see. Drivers listed to break the metric down (\"profit is revenue minus marketing and content costs\", \"I'd look at price, mix and costs\") are the breakdown, not requests. Every request must name a metric plus a cut or a time period (\"ingredient cost per cup by month for two years\"); one vague request (\"information about costs\") fails the check.",
+      "Specific requests: judge only the data the answer asks to see. Drivers listed to break the metric down (\"profit is revenue minus marketing and content costs\", \"I'd look at price, mix and costs\") are the breakdown, not requests. Every data request must name a specific measure (\"the share of applications sent back\"); a request that names none (\"information about costs\") fails the check. The first request must also include a cut, a comparison or a time period (\"ingredient cost per cup by month for two years\").",
       "Solution before diagnosis: the answer proposes fixes (\"cut staff\", \"raise prices\") before finding the cause. A hypothesis to test is not a solution.",
       "Six or more unstructured requests: count separate data requests; six or more with no grouping by driver is a laundry list.",
       "Off-topic: the answer addresses a different question from the one asked, for example it recommends a strategy instead of asking for information.",
@@ -178,10 +178,10 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Matthew Santos",
+    "author_of_record": "Draft — awaiting human review",
     "drafting_model": "claude-opus-5-5",
-    "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-10-15",
+    "reviewed_by": null,
+    "reviewed_at": null,
     "similarity_check": "passed",
     "similarity_note": null,
     "similarity_checked_at": "2026-10-11",

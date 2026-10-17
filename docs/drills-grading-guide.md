@@ -148,10 +148,12 @@ Each question marks one driver as critical, the one to start with, or two where 
 4. **(grader)** Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). The reason can come before the starting point ("The list grows when operations fall behind referrals, so I'd start with operations per week"). "Because it's important" fails.
    - *cl3-0021-a:* "The list grows when operations fall behind referrals" comes before the starting point and is its reason, so it passes.
    - *cl3-0004-a:* "since the cars are older" uses the situation, so it passes.
-5. **(grader)** Specific requests: judge only the data the answer asks to see. Drivers listed to break the metric down ("profit is revenue minus marketing and content costs", "I'd look at price, mix and costs") are the breakdown, not requests. Every request must name a metric plus a cut or a time period ("ingredient cost per cup by month for two years"); one vague request ("information about costs") fails the check.
-   - *cl3-0004-a:* "maintenance costs and fuel costs" name no cut or period.
+5. **(grader)** Specific requests: judge only the data the answer asks to see. Drivers listed to break the metric down ("profit is revenue minus marketing and content costs", "I'd look at price, mix and costs") are the breakdown, not requests. Every data request must name a specific measure ("the share of applications sent back"); a request that names none ("information about costs") fails the check. The first request must also include a cut, a comparison or a time period ("ingredient cost per cup by month for two years").
+   - *cl3-0004-a:* its first request, "maintenance costs", names a measure but no cut, comparison or period.
+   - *cl3-0014-a:* "customer data" names no measure.
+   - *cl3-0007-a:* the first request is sliced ("average weeks per step this year against last"), and "then the share of applications sent back" names a specific measure, so it passes.
    - *cl3-0026-a:* "Profit is revenue minus marketing, content, instructor and platform costs" is the breakdown; its one request names a metric, a cut and a period, so it passes.
-   - *cl3-0010-a:* "contract end dates" is already broken down by contract, data you could pull without asking anything else, so it is specific.
+   - *cl3-0010-a:* the first request, "savings per route", is cut by route; "contract end dates" names a specific measure, so it passes.
    - *cl3-0029-a:* drivers named as the breakdown aren't requests; its one request is specific.
 6. **(grader)** Solution before diagnosis: the answer proposes fixes ("cut staff", "raise prices") before finding the cause. A hypothesis to test is not a solution.
    - *cl3-0008-a*, *cl3-0016-a*, *cl3-0027-a:* fixes proposed with no diagnosis.

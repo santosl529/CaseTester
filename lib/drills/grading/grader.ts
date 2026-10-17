@@ -39,7 +39,7 @@ import type { ItemGrade } from './apply';
 // moves to, and has both HY-2 follow-up calls write a reason before each
 // verdict. v33 routes the HY-2 follow-up's two calls to Sonnet 5.5 (rules in
 // its cached system prompt); every other call stays on Haiku 4.5 as in v32.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v33';
+export const GRADER_PROMPT_VERSION = 'drills-grader-v34';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 

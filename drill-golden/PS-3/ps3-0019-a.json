@@ -3,7 +3,7 @@
   "item_id": "ps3-0019",
   "drill_id": "PS-3",
   "answer_type": "borderline",
-  "notes": "A SWOT, but every sub-point is about this chain and the free tool, so no generic flag (rule 11) and case-specific passes (rule 6). Never sizes the revenue at risk: misses the critical area (rule 12). Weaknesses and Threats look at different things (fees vs who leaves), so no overlap (rule 8).",
+  "notes": "A SWOT, but every sub-point is about this chain and the free tool, so no generic flag (rule 11) and case-specific passes (rule 6). Never sizes the revenue at risk: misses the critical area (rule 12). Weaknesses and Threats overlap (rule 8): both would have the student look at simple filers and the chain's price against the free tool (Matt, 2026-10-17).",
   "responses": [
     {
       "type": "buckets",
@@ -43,7 +43,7 @@
     "cover_3": true,
     "cover_4": true,
     "cover_5": false,
-    "no_overlap": true,
+    "no_overlap": false,
     "case_specific": true,
     "concrete_subpoints": true
   },

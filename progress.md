@@ -9,15 +9,15 @@
   - The intro leads the Foundations home until it's read, and heads the Learn library for every track.
   - "Defending your answer" shows on the results of a student's first follow-up reply.
   - PRD updated to match.
-- **Grader:** `drills-grader-v33`. Haiku 4.5 grades every check except the HY-2 follow-up's, which Sonnet 5.5 grades. Every check in all 11 gates is ≥90%.
+- **Grader:** `drills-grader-v34`. Haiku 4.5 grades every check except the HY-2 follow-up's, which Sonnet 5.5 grades. Every check in all 11 gates is ≥90%.
 - **Database:** the shared CaseTester Supabase project, in sync with `/drill-items` and `/lessons`.
 
 **Next steps** (in this order):
-1. **Matt:** review Sonnet's steady disagreements on CL-3 "specific requests" and PS-3 "no overlap". Labels change only if a written rule changes.
+1. **Matt:** approve the Data requests lesson v2 on `/drills/review/lessons`, and OK publishing it plus the 40 CL-3 drafts (new specific-requests wording; see "CL-3 request rule", 2026-10-17). Then `npm run db:seed-lessons` and `npm run db:seed-drill-items`. Until then students see the old lesson and are graded on the old wording.
 2. **Daily cap:** the code allows 20 AI-graded sets a day (`AI_SETS_PER_DAY` in `lib/drills/sets/service.ts`); PRD v2 says 150 AI-graded answers a day. The suggestion is to change the code to match before the pilot; it needs Matt's OK.
 3. **D6 pilot launch** (on hold): analytics, WCAG audit, club pilot.
 4. **Merging `drills` into `main`:** agree migration numbering with the teammate first (see Database notes). Drills migrations are 0009–0017. Matt was given a note for the teammate about the `next.config.ts` change (traces `lessons/intro/**` into the drills routes).
-5. **Watch:** SY-2's reasons check is at 91% (3 misses in 34); flag it if it drops below 90% once real student answers arrive.
+5. **Watch:** SY-2's reasons check is at 91% (3 misses in 34), and CL-3 specific requests is at 90% (28/31); flag either if it drops below 90% once real student answers arrive.
 6. **Later (P1):** EX-5, PS-2 Clarifying questions, CL-2 Hold or fold, and the BJ, CR and CM drills; each skill's lesson ships with its drill. PS-2 would give Clarifying questions its lesson, the only intro skill without one.
 
 **Standing rules:** all schema changes stay additive (new tables, enum values, columns). Lessons and their examples must not reuse a drill item's scenario with the same question (`lessonScenarioOverlaps`); the same client alone is fine.
@@ -28,7 +28,7 @@
 
 **How the AI-graded drills work** (details in the history below):
 - Content source: CSVs in `docs/drills-content/` (templates and README in `docs/drills-content-templates/`). `npm run drills:import -- docs/drills-content` writes `/drill-items` (questions) and `/drill-golden` (graded sample answers). Edit the CSVs, not the JSON, for drafts; a live item needs a new version (edit the JSON, bump `version`, status draft; Matt approves).
-- Grading: `lib/drills/grading/grader.ts`, prompt version `drills-grader-v33`: Haiku 4.5 at temperature 0, except the HY-2 follow-up's two calls, which go to Sonnet 5.5 (models in `lib/models.ts`, `drillGraderModel`). One call per answer, all under the neutral label "answer", so a score never depends on other answers or position. HY-2 also makes a stage-1-only call to classify the hypothesis family. Code settles what it can (`lib/drills/grading/apply.ts`): caps, the PS-3 no-overlap gate, injection backstop, critical area/driver caps, SY-2 first-sentence and fact-sheet-number checks.
+- Grading: `lib/drills/grading/grader.ts`, prompt version `drills-grader-v34`: Haiku 4.5 at temperature 0, except the HY-2 follow-up's two calls, which go to Sonnet 5.5 (models in `lib/models.ts`, `drillGraderModel`). One call per answer, all under the neutral label "answer", so a score never depends on other answers or position. HY-2 also makes a stage-1-only call to classify the hypothesis family. Code settles what it can (`lib/drills/grading/apply.ts`): caps, the PS-3 no-overlap gate, injection backstop, critical area/driver caps, SY-2 first-sentence and fact-sheet-number checks.
 - Grading rules: `docs/drills-grading-guide.md`. The rules marked (grader) are sent to the grader word for word from `PS3/HY2/SY2/CL3_GRADING_RULES` in `lib/drills/checklists.ts`; a test keeps them identical. When a grade needs a call no rule covers, add a rule first.
 - All 123 graded sample answers were written by Claude and reviewed by Matt (his label changes are applied).
 
@@ -576,4 +576,23 @@
   - "Read the short lesson" in the drill intro.
   - Also, for consistency: the overview table and glossary rows (no longer "3-minute"), and `lesson_views.source` (`follow_up`; the intro logged as `lesson-intro`).
 - `next.config.ts` (shared with the case product): drafted a note for Matt to send the teammate.
+
+## Sonnet's disagreements explained (2026-10-17)
+
+- Asked Sonnet 5.5 for a reason before each verdict on the 11 steady disagreements (scratch script, same layout as the comparison run, $0.11). Nothing in the repo changed.
+- **CL-3 specific requests (6 of 6 still N).** One reading throughout: the rule says *every* request must name a metric plus a cut or a time period, and each answer has one request with neither: "the top brands' shares" (0003), "the share of applications sent back" (0007), "contract end dates" (0010), "import duties on scooters" (0018), "cancellations for lack of beds" (0021). On 0023 it reads "all for two years" as a loose catch-all.
+  - Sonnet is reading the written rule literally. The labels (and the items' own `specific_request_examples`, e.g. "share of applications sent back for corrections", "contract end dates and renewal rates") assume an allowance the rule doesn't state: a narrow, case-specific metric counts without a cut or period. Haiku reads it the same loose way, which is why its gate passes.
+  - Options for Matt: (a) write the allowance into the rule (e.g. a metric narrow enough to pull as asked counts; a period stated once for a list covers the list), then recheck every CL-3 label; or (b) keep the rule literal, relabel those answers N and fix the examples. (b) would likely drop Haiku's agreement and change student feedback.
+- **PS-3 no overlap (3 of 5 now pass).** With a reason first, Sonnet agrees with the labels on 0009, 0023 and 0032, so those were noise from verdict-only output. Still N: 0019 (Weaknesses "high fees on simple returns" and Threats "the free tool taking simple filers" both cover the simple-filer weakness; a fair judgment call for Matt) and 0022 (New entrants and Rivalry "both examine competitive dynamics"; the label looks right).
+- If Sonnet ever grades these checks, use the reason-first output (`reasoned`).
+
+## CL-3 request rule; ps3-0019-a relabeled (2026-10-17)
+
+- Matt's rule for CL-3 specific requests (rule 5): "Every data request must name a specific measure. The first request must also include a cut, a comparison or a time period." Updated in `CL3_GRADING_RULES`, the check question and the grading guide (new examples cl3-0007-a, cl3-0014-a; cl3-0004-a and cl3-0010-a reworded). Grader `drills-grader-v34`.
+- Every CL-3 label rechecked against the new wording: none flip. 0004-a and 0012-a stay N (first request has a measure but no slice); 0002, 0014, 0024, 0035 stay N (no measure); the Y labels all have a sliced first request.
+- ps3-0019-a relabeled no_overlap N (Matt): Weaknesses and Threats both lead to simple filers and the chain's price against the free tool.
+- Data requests lesson v2 (`in_review`, not seeded): step 3 is Matt's wording; the vague-request mistake line matches the rule; tricky case 3 is now "Only the first request needs a slice"; the quick check answer says "measure". Review doc regenerated.
+- The importer turned all 40 CL-3 items into draft versions (grader-facing change only, similarity check kept). Not seeded.
+- Gates (Haiku 4.5, $0.41): CL-3 all ≥90%, specific requests 90% (28/31; misses 0010-a, 0019-a, 0023-a, all human Y); PS-3 all ≥90%, no overlap 94% (29/31; misses 0002-a, 0022-a). No routing to Sonnet needed. CL-3 model answers: 81/81 at 100%, no change over 3 runs ($1.27). Plus $0.11 for the Sonnet reasons run. Total about $1.79.
+- PRD to flag (not edited): `docs/prd-drills.md` CL-3 checklist row ("name a metric plus a cut or time period") and the grading-rules line below it.
 
