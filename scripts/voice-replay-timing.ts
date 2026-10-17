@@ -1,7 +1,7 @@
 // Timing replay of a recorded voice session under the current voice rules
-// (17 Oct, v2: thinking-sound fillers on every turn, a connector before the
-// reply's first segment, the say rule on every voice turn). Free — no model,
-// STT or TTS calls.
+// (17 Oct, v2: thinking-sound fillers on every turn — two beats after 40+
+// words, one otherwise — a connector before the reply's first segment, the
+// say rule on every voice turn). Free — no model, STT or TTS calls.
 //
 // Measured, from the session's per-turn record (.jsonl): end of turn, when
 // each segment reached the TTS (marks, from the turn's start), the TTS's
@@ -27,7 +27,7 @@ const PAD_MS = 200;
 const ACK_MS: Record<string, number> = {
   'Okay, got it.': 960, 'Mm-hm, I see.': 1200, 'Understood, okay.': 1240, 'Okay, I follow.': 1080, 'Got it, thanks.': 960,
   'Okay, sure.': 960, 'Mm-hm, sure.': 1060, 'Okay, let me check.': 1040, 'Sure, one second.': 1400, 'Take your time.': 720, 'Sure, take a moment.': 1540,
-  'Hmm…': 680, 'Mhm…': 680, 'Okay…': 780, 'Alright…': 780, 'Hmm… okay…': 1560, 'Hmm… alright…': 1560, 'Mhm… okay…': 1560, 'Mhm… alright…': 1560,
+  'Hmm…': 680, 'Mhm…': 680, 'Okay…': 780, 'Alright…': 780, 'Hmm… okay…': 1560, 'Hmm… alright…': 1560, 'Mhm… okay…': 1560, 'Mhm… alright…': 1560, 'Let me see…': 1000,
 };
 const playMs = (text: string) => Math.round((text.length / CHARS_PER_SEC) * 1000) + PAD_MS;
 
