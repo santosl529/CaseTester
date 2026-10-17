@@ -2,12 +2,12 @@
 lesson_id: lesson-cl-data_requests
 skill_id: CL.data_requests
 version: 2
-status: in_review
+status: live
 title: Ask for specific data, in order
 drafting_model: claude-opus-5-5
 reviewed_by: Matthew Santos
 reviewed_at: 2026-10-17
-review_notes: Step 3, the vague-request mistake and a tricky case changed to match the new CL-3 specific-requests rule (Matt, 2026-10-17).
+review_notes: 
 ---
 ## The idea
 Break the metric into its **drivers** (the parts that add or multiply up to it), say which you'd start with and why, and ask for specific data.

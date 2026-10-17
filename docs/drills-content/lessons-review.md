@@ -1303,7 +1303,7 @@ Objective: find out why a dry cleaner's profit fell 20%. Latest finding: revenue
 
 ## Data requests: Ask for specific data, in order
 
-*Changes requested · new format · 524 of 600 words · `lessons/lesson-cl-data_requests.md`* · Your notes: Step 3, the vague-request mistake and a tricky case changed to match the new CL-3 specific-requests rule (Matt, 2026-10-17).
+*Approved · new format · 524 of 600 words · `lessons/lesson-cl-data_requests.md`*
 
 > Break the metric into its **drivers** (the parts that add or multiply up to it), say which you'd start with and why, and ask for specific data.
 
