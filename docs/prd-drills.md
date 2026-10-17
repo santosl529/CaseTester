@@ -22,7 +22,7 @@ v2 turns drills into a structured training program: a diagnostic, three tracks w
 | Diagnostic at signup | A 15-minute check places each skill and suggests a track | Training program | P0 |
 | Tracks and plans | Foundations (6 weeks), Standard (6 weeks) or Sprint (7 days), each with weekly focus areas, targets and milestones | Training program | P0 |
 | Practice on my own, browse drills | Students can skip the plan, or step off it any time, and still see their weaknesses, progress and suggestions | Training program, User experience | P0 |
-| Lessons | A 3-minute lesson per skill, opened automatically in Foundations and offered everywhere else | Training program, Content system | P0 for the 22 P0 skills |
+| Lessons | A short lesson per skill (600 words or fewer), opened automatically in Foundations and offered everywhere else, plus a "How a case interview works" intro | Training program, Content system | P0 for the 22 P0 skills, plus `CL.pushback` and the intro |
 | Skill tree | Skills have prerequisites; a student stuck on a skill is sent to the missing prerequisite first | Skill taxonomy | P0 |
 | Drill chains and Repair drills | Each skill climbs Learn → Recognize → Repair → Construct → Defend → Transfer; 5 new drills | Drill catalog | P0 / P1 |
 | Defend follow-up | A scripted interviewer follow-up after Construct answers at tiers 2–3, answered in writing | Drill catalog, Scoring | P0 |
@@ -134,7 +134,7 @@ Every part of the system uses these terms with exactly these meanings; the API, 
 | Drill set | 3–10 items of one drill, served together. The unit of practice, scoring and AI grading. | 8 Setup-only items on breakeven |
 | Workout | A daily session of 2–4 drill sets, about 20 minutes: 50% weak spots, 25% spaced review, 25% unfamiliar material. | "Today: 20 min, 3 sets" |
 | Transfer check | A Construct set of unseen items from a new case type and industry. Passing it turns Practiced into Mastered. | 4 unseen Framework builder items on a pricing case |
-| Lesson | A 3-minute static page per skill: the idea, a worked example and the common mistakes. | "Building a case-specific framework" |
+| Lesson | A short static page per skill: the idea, the pattern, worked examples, tricky cases, the common mistakes and a quick check. | "Building a case-specific framework" |
 | Track | The program a student follows: Foundations, Standard or Sprint. | Standard |
 | Program plan | A track's schedule: weekly focus skill areas, workout and case targets, and milestones. | Week 2: Hypotheses and exhibits |
 | Diagnostic | A 15-minute mixed set at signup that places each skill and suggests a track. | — |
@@ -266,10 +266,22 @@ Week 0 takes about 50 minutes (diagnostic + baseline case). At the default, the 
 
 ### Lessons
 
-- One lesson per skill, readable in about 3 minutes (400 words or fewer): the idea in one sentence, why interviewers care, a step-by-step pattern, one worked example, the common mistakes (one line per mistake tag) and a **Try it** button that starts the skill's next set.
+- One short lesson per skill (600 words or fewer), with these parts:
+  - the idea in one sentence;
+  - why interviewers care;
+  - why it works (two or three sentences on the logic);
+  - a step-by-step pattern;
+  - a worked example, and a second example in a different case type and industry;
+  - tricky cases: two or three borderline answers, each with its verdict and the reason, taken from the grading rules (or, for auto-scored drills, the drill's trap logic);
+  - the common mistakes, one line per mistake tag;
+  - a quick check: one question, with the answer revealed on request. It is not graded and makes no AI call.
+- Jargon is defined on first use. A **Try it** button starts the skill's next set.
+- **Two levels:** Foundations students see the full lesson. Standard, Sprint and self-directed students see a summary card (the idea and the pattern) with **Read full lesson** to expand the rest.
 - Static content with no AI at runtime, authored with the same AI-drafted, human-reviewed workflow as items.
 - **When shown:** in Foundations, automatically before the first set of each skill (Skip allowed). In every track: from the drill intro, from the Learn library, and offered after any set below 50%.
-- **P0:** lessons for the 22 skills trained by P0 drills. Lessons for other skills ship with their drills.
+- **Defending your answer** (`CL.pushback`): how to answer a Justify or Challenge follow-up. It is shown, as a summary card, at the top of the results of the first set in which the student writes a follow-up reply, until they have seen it; it is also in the Learn library.
+- **How a case interview works:** an intro lesson with no skill. It covers who steers (interviewer-led or candidate-led) and the four stages (clarify, structure, analyze, recommend). For each stage it gives what happens, what interviewers look for, and the skills it uses; skills without a lesson are marked as practiced in full cases. It ends with how the six-week plan builds those skills, which is generated from the plan config (`programs.weeks`), so it can't drift from the plan. It is a static page (`/drills/learn/intro`), not a lessons-table row. Foundations students see it first, before week 1: the training home leads with it, and the first workout starts through it, until it has been read. It heads the Learn library for every track.
+- **P0:** lessons for the 22 skills trained by P0 drills, plus `CL.pushback` (trained by the Defend follow-ups) and the intro. Lessons for other skills ship with their drills.
 - Lessons are not scored and don't change skill states.
 - Students see a lesson only once it is approved (live).
 
@@ -302,7 +314,7 @@ For self-directed students, steps 3–5 are replaced by the Suggested next card.
 
 - Shows drill name, skill trained, stage, why it was prescribed, number of items, time per item and pass bar.
 - On a student's first time with a drill, shows one worked example. A "Skip example" button hides it for future sets.
-- A **Read the 3-min lesson** link for the skill. In Foundations, the lesson opens automatically before the first set of each skill.
+- A **Read the short lesson** link for the skill. In Foundations, the lesson opens automatically before the first set of each skill.
 - For Repair drills, states how much the student is told about the flaw at this tier.
 
 ### Item screen
@@ -1204,10 +1216,20 @@ New in v2:
 
 ### Lessons
 
-- Format: `lesson_id`, `skill_id`, `version`, `status` (draft, in\_review, live, retired), `body` (markdown, 400 words or fewer), `worked_example`, `mistakes` (list of {tag, one-line explanation}), `authorship`.
+- Format: `lesson_id`, `skill_id`, `version`, `status` (draft, in\_review, live, retired), `body` (markdown, 600 words or fewer, title included), `worked_example`, `mistakes` (list of {tag, one-line explanation}), `authorship`.
 - Same workflow as authored items: AI-drafted from a lesson prompt and this PRD, reviewed by a human who becomes author of record, similarity-checked, versioned.
 - The reviewer confirms the pattern matches how the drill's answer keys grade, so lessons never teach something the checklists penalize.
-- Authoring: one markdown file per lesson in `/lessons` (front matter, then five sections: The idea, Why interviewers care, The pattern, Worked example, Common mistakes). Validation checks the 400-word limit, one common-mistake line for each of the skill's mistake tags (and no others), and a reviewer on live lessons. Worked examples use fresh scenarios, never a drill item's, so a lesson can't give away an item's answer.
+- Authoring: one markdown file per lesson in `/lessons`. Each file has front matter, then nine sections: The idea, Why interviewers care, Why it works, The pattern, Worked example, Another example, Tricky cases, Common mistakes, and Quick check (a question, then a line starting "**Answer:**"). Validation checks:
+  - the 600-word limit;
+  - one common-mistake line for each of the skill's mistake tags, and no others;
+  - all four newer sections present, or none;
+  - an answer to the quick check;
+  - a reviewer on live lessons.
+- The intro lives in `/lessons/intro/` with its own layout: The idea, then sections, where each numbered stage ends with a `Skills:` line. Validation checks the word limit, that every named skill exists, and that every skill with a lesson appears in exactly one stage. The intro is checked and reviewed like a lesson but not seeded.
+- **Scenarios:** a lesson's examples, tricky cases and quick check must not reuse a drill item's scenario with the same question, so a lesson can't give away an item's answer. The same client type alone is allowed. A content check flags a lesson part that shares with an item on the same terms as two items: 2+ distinctive words and a figure, 3+ such words, or one word and 2+ figures.
+  - A word is distinctive if few items and at most two lessons use it; a figure, if few items use it.
+  - A human may record a flagged pair as different in `lessons/scenario-reviewed.json`, with a reason.
+  - The check runs in the tests and in `npm run db:seed-lessons`, which refuses to publish while it flags anything.
 - Review: a review page in the app (local development only) shows each lesson exactly as students see it, with Approve and Request changes; decisions are written into the lesson file and published with `npm run db:seed-lessons`. A combined file for reading outside the app is generated by `npm run drills:lessons-doc` (`docs/drills-content/lessons-review.md`).
 
 ### Launch pool sizes (P0)
@@ -1227,7 +1249,7 @@ New in v2:
 | SY-3 Fix the recommendation | 30 (derived from SY-1) | 6 sets before repeats |
 | CL-1 What's next? | 80 | 10 sets before repeats |
 | CL-3 What do you need to know? | 40, each with a Defend follow-up | 10+ sets before repeats |
-| Lessons | 22 | One per skill trained by a P0 drill |
+| Lessons | 23, plus the intro | One per skill trained by a P0 drill, plus Defending your answer (`CL.pushback`) and How a case interview works |
 
 QN-1, QN-3, QN-4, EX-2 and EX-3 are fully generated and need no authored pool.
 
@@ -1281,7 +1303,7 @@ Config files live in the repo and are validated with zod at startup. Changing a 
 | `student_programs` (new) | student\_id, track (foundations, standard, sprint, self\_directed), plan\_version, start\_date (local), started\_at, interview\_date, workouts\_per\_week, cases\_done, current\_week, status (active, completed, switched) | One active row per student; a track switch closes the row and opens a new one. `current_week` is the plan week the student was last seen in, for the week-rollover event |
 | `workouts` (new) | workout\_id, student\_id, program\_week, date (in the student's time zone), target\_minutes, blocks (JSON: slot, drill\_id, skill\_id, stage, tier, set\_id), status (planned, in\_progress, completed, expired) | One per student per day |
 | `lessons` (new) | lesson\_id, skill\_id, version, status, body, worked\_example, mistakes (JSON), authorship (JSON) | Versioned like items |
-| `lesson_views` (new) | student\_id, lesson\_id, version, source (auto, intro, library, low\_score), seconds\_open, skipped, viewed\_at |  |
+| `lesson_views` (new) | student\_id, lesson\_id, version, source (auto, intro, library, low\_score, follow\_up), seconds\_open, skipped, viewed\_at | The intro is logged as `lesson-intro` (no lessons row). |
 | `diagnostics` (new) | diagnostic\_id, student\_id, parts (JSON: drill\_id, size, set\_id, and per finished part its skill totals, item scores and missed tags), status (in\_progress, completed, skipped), overall\_score, placements (JSON), moved\_to\_track, started\_at, completed\_at | One in-progress diagnostic per student. Placement is redone as parts finish; a skipped one can be resumed |
 | `grade_disputes` (P1) | dispute\_id, attempt\_id, student\_comment, status, reviewer\_notes, created\_at | QA queue |
 

@@ -565,3 +565,15 @@
   - Smokes extended: D5 checks the Defending card on the first follow-up and not again after it's seen; tracks checks the Foundations intro card, and none for Sprint.
   - Tracks, D4 and D5 smokes pass. Production build passes. Typecheck, 1576 tests and lint pass. Committed and pushed.
 - **PRD updates to flag to Matt (not edited):** Lessons (600 words, the v2 sections, the summary card for non-Foundations tracks, 23 lessons with CL.pushback, the intro and its placement, Defending after the first follow-up, the lesson-vs-item scenario rule), the launch pool table (22 → 23 lessons + intro), and "Read the 3-min lesson" in the drill intro.
+
+## Follow-ups (2026-10-17)
+
+- HY-2 backup rule: Matt keeps it as is. Revise counts when the student moves to a backup they named up front and the fact points to it. No grader change.
+- PRD updated with Matt's go-ahead:
+  - Lessons (format, two levels, Defending your answer and its trigger, the intro and its placement, with a line that its six-week description is generated from `programs.weeks`);
+  - the authoring section (nine sections, validation, the intro's layout, the lesson-vs-item scenario rule);
+  - the launch pool table (23 lessons plus the intro);
+  - "Read the short lesson" in the drill intro.
+  - Also, for consistency: the overview table and glossary rows (no longer "3-minute"), and `lesson_views.source` (`follow_up`; the intro logged as `lesson-intro`).
+- `next.config.ts` (shared with the case product): drafted a note for Matt to send the teammate.
+
