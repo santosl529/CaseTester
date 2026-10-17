@@ -1,34 +1,34 @@
 # Drills branch progress
 
-## Start here (updated 2026-10-16)
+## Start here (updated 2026-10-17)
 
-**Status.** All 15 MVP drills are live: ten at Level 1 (PS-1, HY-1, EX-1, SY-1, CL-1, plus generated QN-1, QN-3, QN-4, EX-2, EX-3) and the five D2 drills (PS-3, HY-2, SY-2, CL-3, QN-5). Phases D0–D2 are done. Database (shared CaseTester Supabase project) is in sync with `/drill-items`.
+**Status.** Phases D0–D5 are done and pushed to `drills`. D6 (pilot launch) is on hold until Matt lifts it.
+- **Drills:** all 15 MVP drills are live, plus D5's Repair drills (PS-4, HY-3, SY-3; 110 items), and the follow-up is on for PS-3, HY-2, SY-2 and CL-3 (`defend.live` true, pinned by a config test).
+- **Training program (D4):** complete. The gate's last item, the lesson review, is done.
+- **Lessons:** all 23 are live in v2 (Matt approved 2026-10-17), plus "How a case interview works", a static page at `/drills/learn/intro` read from `lessons/intro/`.
+  - The intro leads the Foundations home until it's read, and heads the Learn library for every track.
+  - "Defending your answer" shows on the results of a student's first follow-up reply.
+  - PRD updated to match.
+- **Grader:** `drills-grader-v33`. Haiku 4.5 grades every check except the HY-2 follow-up's, which Sonnet 5.5 grades. Every check in all 11 gates is ≥90%.
+- **Database:** the shared CaseTester Supabase project, in sync with `/drill-items` and `/lessons`.
 
-**PRD v2 is merged** into `docs/prd-drills.md` (2026-10-11, committed). The repo copy is the source of truth. v2 adds the training program, skill tree, Repair drills, Defend step, Practiced state and transfer checks, and renumbers the phases (D3 loop, D4 training program, D5 chains and Defend, D6 pilot).
+**Next steps** (in this order):
+1. **Matt:** review Sonnet's steady disagreements on CL-3 "specific requests" and PS-3 "no overlap". Labels change only if a written rule changes.
+2. **Daily cap:** the code allows 20 AI-graded sets a day (`AI_SETS_PER_DAY` in `lib/drills/sets/service.ts`); PRD v2 says 150 AI-graded answers a day. The suggestion is to change the code to match before the pilot; it needs Matt's OK.
+3. **D6 pilot launch** (on hold): analytics, WCAG audit, club pilot.
+4. **Merging `drills` into `main`:** agree migration numbering with the teammate first (see Database notes). Drills migrations are 0009–0017. Matt was given a note for the teammate about the `next.config.ts` change (traces `lessons/intro/**` into the drills routes).
+5. **Watch:** SY-2's reasons check is at 91% (3 misses in 34); flag it if it drops below 90% once real student answers arrive.
+6. **Later (P1):** EX-5, PS-2 Clarifying questions, CL-2 Hold or fold, and the BJ, CR and CM drills; each skill's lesson ships with its drill. PS-2 would give Clarifying questions its lesson, the only intro skill without one.
 
-**D3 started 2026-10-11** (Matt's go-ahead). The pilot launches after D3 and D4; D5 ships during the pilot.
-
-**D3 is done and committed (2026-10-11).** Gate: `tests/drills/progress.test.ts` (scripted scenarios) and `npm run drills:smoke:d3`. Screenshots of "Your skills" and the results screen (desktop and phone) sent to Matt.
-
-**D4 is built** (committed and pushed). The D4 gate's scripted students pass (`drills:smoke:d4` Standard, `drills:smoke:tracks` Foundations and Sprint, `drills:smoke:diagnostic`). Matt: hold off on the next phase (D6) for now. Waiting on his lesson review (`/drills/review/lessons`, then `npm run db:seed-lessons`), which is the gate's last item. Screenshots in `~/Desktop/drills-d4-screenshots/`.
-
-**SY-2 (30) and SY-1 (8) new versions are live (2026-10-12, Matt approved); Defend stays off for live students** (`defend.live` false on all four drills, pinned by a config test) until D5 passes its gate (golden sets: Claude drafts and grades, Matt checks every grade; the "half human-written" rule was dropped 2026-10-11). Watch: the SY-2 reasons check sits at 91% (3 misses in 34); flag it if it drops below 90% when human-written answers arrive.
-
-**D5 is live (2026-10-16, Matt's go-ahead after the confirming gate):** PS-4, HY-3 and SY-3 live (110 Repair items); the follow-up on for PS-3, HY-2, SY-2 and CL-3 (`defend.live` true, pinned by the config test). Grader `drills-grader-v33`: Haiku 4.5 for every check except the HY-2 follow-up's, which Sonnet 5.5 grades. Every check in all 11 gates ≥90%. All smokes pass.
+**Standing rules:** all schema changes stay additive (new tables, enum values, columns). Lessons and their examples must not reuse a drill item's scenario with the same question (`lessonScenarioOverlaps`); the same client alone is fine.
 
 **SY-2 live versions (database, 2026-10-15):** v1: sy2-0010, 0022, 0024, 0026 (identical to their follow-up drafts for students); v2: sy2-0001–0009, 0015–0021, 0027–0030; v3: sy2-0011, 0012, 0013, 0014, 0023, 0025 (padding fixes published 2026-10-15, follow-ups dormant). One live version per item.
 
-**What's left to build** (docs/prd-drills.md, "Build phases"):
-- D4 Training program: built. Only the lesson review is left: Matt approves or requests changes on `/drills/review/lessons` (local dev server), then `npm run db:seed-lessons`. Checked 2026-10-11: all 22 lessons still `status: draft` with no review notes; typecheck, tests (1258 passed) and lint pass.
-- D6 Pilot launch (after D3 and D4): analytics, WCAG audit, club pilot.
-- D5 Chains and Defend: shipped 2026-10-16. Open: Matt's review of Sonnet's steady disagreements on CL-3 specific requests and PS-3 no overlap; EX-5 (P1) not built.
-- All schema changes must stay additive (new tables, enum values, columns).
-- Code vs PRD gap: the daily cap is 20 AI-graded sets (`AI_SETS_PER_DAY` in `lib/drills/sets/service.ts`); v2 says 150 AI-graded answers a day. Change when building that part.
-- Merging `drills` into `main`: coordinate migration numbering with the teammate (see Database notes). Drills migrations now run 0009–0012.
+**Lessons workflow:** edit the markdown in `/lessons` (or `/lessons/intro/`). `npm test` checks length, mistake lines, the four v2 sections, the quick-check answer and drill-scenario reuse. `npm run drills:lessons-doc` regenerates `docs/drills-content/lessons-review.md`; Matt approves on `/drills/review/lessons` (local dev). Then `npm run db:seed-lessons`; a live lesson's content change needs a version bump. The intro isn't seeded: it ships as a file.
 
 **How the AI-graded drills work** (details in the history below):
 - Content source: CSVs in `docs/drills-content/` (templates and README in `docs/drills-content-templates/`). `npm run drills:import -- docs/drills-content` writes `/drill-items` (questions) and `/drill-golden` (graded sample answers). Edit the CSVs, not the JSON, for drafts; a live item needs a new version (edit the JSON, bump `version`, status draft; Matt approves).
-- Grading: `lib/drills/grading/grader.ts`, Haiku 4.5, temperature 0, prompt version `drills-grader-v19`. One call per answer, all under the neutral label "answer", so a score never depends on other answers or position. HY-2 also makes a stage-1-only call to classify the hypothesis family. Code settles what it can (`lib/drills/grading/apply.ts`): caps, the PS-3 no-overlap gate, injection backstop, critical area/driver caps, SY-2 first-sentence and fact-sheet-number checks.
+- Grading: `lib/drills/grading/grader.ts`, prompt version `drills-grader-v33`: Haiku 4.5 at temperature 0, except the HY-2 follow-up's two calls, which go to Sonnet 5.5 (models in `lib/models.ts`, `drillGraderModel`). One call per answer, all under the neutral label "answer", so a score never depends on other answers or position. HY-2 also makes a stage-1-only call to classify the hypothesis family. Code settles what it can (`lib/drills/grading/apply.ts`): caps, the PS-3 no-overlap gate, injection backstop, critical area/driver caps, SY-2 first-sentence and fact-sheet-number checks.
 - Grading rules: `docs/drills-grading-guide.md`. The rules marked (grader) are sent to the grader word for word from `PS3/HY2/SY2/CL3_GRADING_RULES` in `lib/drills/checklists.ts`; a test keeps them identical. When a grade needs a call no rule covers, add a rule first.
 - All 123 graded sample answers were written by Claude and reviewed by Matt (his label changes are applied).
 
