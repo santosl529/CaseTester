@@ -17,7 +17,6 @@ import { sessions, sessionTurns } from '@/db/schema';
 import { runTurn } from '@/lib/orchestrator/session-runner';
 import { runPostTurnBackground } from '@/lib/orchestrator/post-turn';
 import { getCaseById } from '@/lib/cases/loader';
-import { requireRunBudget } from '@/lib/llm-budget';
 import type { ExhibitDisplay } from '@/lib/orchestrator/turn-types';
 import type { Phase } from '@/lib/orchestrator/state-machine';
 import { DeepgramFluxSTT } from './deepgram';
@@ -29,6 +28,7 @@ import { loadAcks } from './ack-audio';
 import { Playout } from './playout';
 import { SpeechEndTracker } from './pcm';
 import { RunCharCap, ttsRunCap } from './tts-budget';
+import { installSessionBudget } from './session-budget';
 import { openTtsLedger } from './tts-ledger-store';
 import { VoiceTurnController } from './turn-controller';
 import { DATA_TOPIC, parseClientMessage, type ServerMessage } from './protocol';
@@ -53,8 +53,9 @@ export default defineAgent({
       ctx.shutdown('no active session');
       return;
     }
-    // Budgets first: nothing paid starts without them (spec §9).
-    requireRunBudget('voice-agent');
+    // Budgets first: nothing paid starts without them (spec §9). The LLM cap is
+    // this session's (LLM_BUDGET_USD, default $1.00; session-budget.ts).
+    installSessionBudget();
     const runCap = ttsRunCap(process.env);
     const fake = runCap === null;
     const caseData = getCaseById(session.caseId);

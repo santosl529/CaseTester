@@ -12,7 +12,7 @@
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx db/migrate.ts",
-    "voice:agent": "LLM_BUDGET_USD=${LLM_BUDGET_USD:-1.00} VOICE_RECORDS_DIR=\"${VOICE_RECORDS_DIR:-Case Interview Runs/voice-live}\" tsx --env-file=${VOICE_ENV_FILE:-.env.local} scripts/voice-agent.ts dev"
+    "voice:agent": "VOICE_RECORDS_DIR=\"${VOICE_RECORDS_DIR:-Case Interview Runs/voice-live}\" tsx --env-file=${VOICE_ENV_FILE:-.env.local} scripts/voice-agent.ts dev"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
