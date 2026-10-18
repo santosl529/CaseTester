@@ -3,7 +3,7 @@
 // voice_tts_usage row, keeping the larger of the two — the cap counts what was
 // spent before the move. Free (one database write).
 //
-//   npx tsx --env-file=.env.local scripts/voice-tts-seed.ts [--month=2026-10] [--dry]
+//   npx tsx --env-file=.env.local scripts/voice-tts-seed.ts [--month=2026-10] [--file=<ledger json>] [--dry]
 import { existsSync, readFileSync } from 'node:fs';
 import { ledgerMonth } from '@/lib/voice/tts-budget';
 
@@ -11,7 +11,7 @@ const month = process.argv.find(a => a.startsWith('--month='))?.slice(8) ?? ledg
 const dry = process.argv.includes('--dry');
 
 async function main() {
-  const file = `.voice-cache/tts-chars-${month}.json`;
+  const file = process.argv.find(a => a.startsWith('--file='))?.slice(7) ?? `.voice-cache/tts-chars-${month}.json`;
   const fromFile = existsSync(file) ? (JSON.parse(readFileSync(file, 'utf8')) as { used: number }).used : 0;
   const { sql } = await import('drizzle-orm');
   const { db } = await import('@/db/client');
