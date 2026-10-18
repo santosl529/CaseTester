@@ -664,7 +664,15 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
       if (!pointer.endsWith('?')) vetNotes.push(`pointer dropped (not a question): ${pointer}`);
       else if (!speakable(pointer)) vetNotes.push(`pointer dropped (provenance/truth): ${pointer}`);
       else if (!numbersOf(pointer).some(n => revealedNumbers.some(a => near(n, a)))) vetNotes.push(`pointer dropped (names no revealed figure): ${pointer}`);
-      else pointerLine = pointer;
+      else {
+        // The probes' leads check, against the claim's span (Lorenzo, 18 Oct; batch 31
+        // Owen 8b041a8f t16: "…the cost structure in Exhibit A, where COGS is 58% of
+        // revenue and labor and overhead are largely fixed?" — an assumption stated as
+        // an exhibit fact, naming what the claim didn't).
+        const leads = probeLeads(pointer, c.span, ctx, components);
+        if (leads) vetNotes.push(`pointer withheld (leads: ${leads}): ${pointer}`);
+        else pointerLine = pointer;
+      }
     }
     return { ...c, flag, probeLine, correctionLine, correctionFigure, pointerLine, hintLine, vetNotes };
   });
