@@ -23,7 +23,7 @@ import { poolPattern, slotOf } from '@/lib/orchestrator/phrasing';
 export type DataFlag = { rule: 'D1' | 'D3' | 'D9'; sub: string; items: string[]; text: string };
 
 // Code's lines in any of their variants (phrasing.ts, 17 Oct).
-export const DEFER = new RegExp(`\\b(?:I'll come back to|I'll share|once we've settled|shortly)\\b|${poolPattern('defer', 'gate_defer', 'offer', 'unmapped_defer').source}`, 'i');
+export const DEFER = new RegExp(`\\b(?:I'll come back to|I'll share|once we've settled|shortly)\\b|${poolPattern('defer', 'gate_defer').source}`, 'i');
 const REFUSE = new RegExp(`\\b(?:I don't have|isn't something I have|not something (?:I|we) have|we don't have|that's not in the case)\\b|${poolPattern('refuse').source}`, 'i');
 export const EARLIER = new RegExp(`\\bOn what you asked for\\b|${poolPattern('earlier', 'restate').source}`, 'i');
 

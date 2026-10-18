@@ -15,19 +15,20 @@
 // variety across sessions).
 
 export const PHRASE_POOLS = {
-  // data-decisions.ts: what was asked, held for later. {X}: the same text, capitalized, opening a sentence.
+  // data-decisions.ts: what was asked, held for later. The slot is never a verb's subject:
+  // what was asked is often plural ("menu price changes").
   defer: [
     'I\'ll come back to {x} shortly.',
     'Let\'s hold {x} for a little later.',
-    '{X} is something we\'ll get to in a bit.',
+    'On {x}: we\'ll get there in a bit.',
     'Hold that thought on {x} — we\'ll come back to it shortly.',
-    'We\'ll get there; {x} comes up a little later.',
+    'That\'s for a little later — we\'ll come back to {x}.',
   ],
   // …and what the case doesn't hold.
   refuse: [
     'I don\'t have {x}.',
-    '{X} isn\'t something I have.',
-    '{X}, I\'m afraid, isn\'t something I have.',
+    'That\'s not something I have — {x}.',
+    'When it comes to {x}, I\'m afraid I don\'t have that.',
     'As for {x}, that\'s not something I have.',
     '{X} — I\'m afraid that\'s not something I have.',
   ],
@@ -83,7 +84,7 @@ export const PHRASE_POOLS = {
     'I\'ll share {x} once we\'ve settled your structure.',
     'Once your structure is settled, I\'ll share {x}.',
     'Let\'s settle your structure, and then I\'ll share {x}.',
-    '{X} comes once we\'ve settled your structure.',
+    'You\'ll get {x} once we\'ve settled your structure.',
     'I\'ll get you {x} after we\'ve settled your structure.',
   ],
   unmapped_defer: [
@@ -96,7 +97,7 @@ export const PHRASE_POOLS = {
   offer: [
     'I can share {x} if you\'d like.',
     'If it would help, I can share {x}.',
-    '{X} is something I can share, if you\'d like.',
+    'Say the word and I can share {x}.',
     'Should you want it, I can share {x}.',
     'I\'m happy to share {x} if that would help.',
   ],
@@ -422,6 +423,20 @@ export const PHRASE_POOLS = {
   ],
 } as const;
 
+// Lines code said before brief B (item 4a, 17–18 Oct) and no longer chooses:
+// still read by the evaluators and the echo veto (poolPattern, anyVariant), so
+// the saved runs read as they did.
+export const RETIRED_POOLS: Partial<Record<PhrasePool, readonly string[]>> = {
+  defer: ['We\'ll get to {x} in a bit.', 'I\'ll get to {x} a little later.', 'We\'ll come back to {x} in a moment.'],
+  refuse: ['I don\'t have {x} to share.', 'Unfortunately, I don\'t have {x}.', 'I\'m afraid I don\'t have {x}.'],
+  exhibit: ['Take a look at this exhibit: {x}.', 'Have a look at this exhibit: {x}.', 'I\'ll put up an exhibit: {x}.'],
+  restate: ['As I said earlier: {x}', 'To repeat: {x}', 'Just to restate: {x}'],
+  earlier: ['Coming back to what you asked for earlier:'],
+  correct_one: ['One correction: {x}', 'A quick correction: {x}', 'Just to correct a figure: {x}'],
+  correct_two: ['Two corrections: {x}', 'A quick correction on two figures: {x}', 'Just to correct two figures: {x}'],
+  wrap_up: ['One more thing before we wrap up — {x}', 'Quickly, before we wrap up — {x}', 'Last thing before we wrap up — {x}'],
+};
+
 // Pools chosen by seed on their first use (they rotated by seed before).
 export const SEEDED_FIRST: ReadonlySet<string> = new Set([
   'figures_q', 'no_figures_q', 'analysis_q', 'brainstorm_q', 'late_q', 'time_pressure_q', 'hypothesis_q', 'structure_ask',
@@ -499,11 +514,11 @@ const variantPattern = (v: string) => {
   const body = !SLOT.test(v) ? words(v) : `${before ? words(before) : ''}${before && after ? '\\s*' : ''}.+?${after ? `\\s*${words(after)}` : ''}`;
   return new RegExp(`(?:^|[.!?]\\s+|\\s)${body}`, 'i');
 };
-// Any variant of the pools — for the evaluators that read code's lines by their
-// words: a lead-in by its words before the slot (as before), a whole line by
-// its words on both sides of it.
+// Any variant of the pools, retired ones too — for the evaluators that read
+// code's lines by their words: a lead-in by its words before the slot (as
+// before), a whole line by its words on both sides of it.
 export function poolPattern(...pools: PhrasePool[]): RegExp {
-  const alts = pools.flatMap(p => (PHRASE_POOLS[p] as readonly string[]).map(v => {
+  const alts = pools.flatMap(p => [...(PHRASE_POOLS[p] as readonly string[]), ...(RETIRED_POOLS[p] ?? [])].map(v => {
     if (!SLOT.test(v)) return words(v.trim());
     const { before, after } = fixedParts(v);
     if (!after) return words(before);
@@ -514,7 +529,7 @@ export function poolPattern(...pools: PhrasePool[]): RegExp {
 
 // Any variant of a pool with \`x\` in its place, as written — "Here's an exhibit: T." or "This exhibit is T.".
 export function anyVariant(pool: PhrasePool, x = ''): RegExp {
-  return new RegExp((PHRASE_POOLS[pool] as readonly string[]).map(v => esc(fill(v, x))).join('|'));
+  return new RegExp([...(PHRASE_POOLS[pool] as readonly string[]), ...(RETIRED_POOLS[pool] ?? [])].map(v => esc(fill(v, x))).join('|'));
 }
 
 // The slot's text in the variant of the pool found in \`text\` ("I can

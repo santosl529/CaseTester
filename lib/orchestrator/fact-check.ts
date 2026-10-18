@@ -646,15 +646,18 @@ export function coverageOf(what: string, fb: FactBase): Coverage {
 export type RefusalFlag = { refused: string; items: string[]; sentence: string };
 
 const REFUSAL = [
+  // Code's refusal variants first (phrasing.ts refuse, 18 Oct; the first pattern that matches is read): "That's not something I have — X.",
+  // "When it comes to X, I'm afraid I don't have that.", "As for X, that's not something
+  // I have.", "X — I'm afraid that's not something I have."
+  /\b(?:that|it)(?:'s| is)\s+not\s+something\s+(?:I|we)\s+have\s+[—–:]\s+(.+)/i,
+  /\bwhen it comes to\s+(.+?),\s+(?:I'm afraid\s+)?(?:I|we)\s+(?:don't|do not)\s+have\b/i,
+  /\bas for\s+(.+?),\s+(?:that|it)(?:'s| is)\s+not\s+something\s+(?:I|we)\s+have\b/i,
+  /^(.+?)\s+[—–]\s+(?:I'm afraid\s+)?(?:that|it)(?:'s| is)\s+not\s+something\s+(?:I|we)\s+have\b/i,
   /\b(?:I|we)\s+(?:don't|do not|didn't|did not)\s+have\s+(.+)/i,
   /^(.+?)\s+(?:isn't|is not|aren't|are not)\s+(?:something|data|information|figures?|numbers?)\s+(?:that\s+)?(?:I|we)\s+have\b/i,
   /\b(?:that|this|it)(?:'s| is)\s+not\s+(?:something|data)\s+(?:that\s+)?(?:I|we)\s+have(?:\s+(?:on|for)\s+(.+))?/i,
   /\bthere(?:'s| is)\s+no\s+(.+?)\s+(?:data|figure|breakdown|information)\b/i,
   /\b(.+?)\s+(?:isn't|is not|aren't|are not)\s+(?:available|in the case|part of the case|something the case (?:has|gives))/i,
-  // Code's refusal variants (phrasing.ts refuse, 18 Oct): "As for X, that's not something
-  // I have.", "X — I'm afraid that's not something I have."
-  /\bas for\s+(.+?),\s+(?:that|it)(?:'s| is)\s+not\s+something\s+(?:I|we)\s+have\b/i,
-  /^(.+?)\s+[—–]\s+(?:I'm afraid\s+)?(?:that|it)(?:'s| is)\s+not\s+something\s+(?:I|we)\s+have\b/i,
   // "I have the cost breakdown for today, but not for two years ago."
   /\bI have\s+(.+?),?\s+but not\s+((?:for|from)\s+(?:two|2) years ago|(?:for|from)\s+(?:today|now|this year|the current year)|(?:for|from)\s+(?:both|either) years?)/i,
 ];
