@@ -9,7 +9,7 @@
 // count is checked against --cap and added to the monthly ledger.
 //
 //   npx tsx --env-file=<.env.local> scripts/voice-pronounce-demo.ts --out="Case Interview Runs/voice-demos/2026-10-17-pronunciation" --cap=1000 [--dry]
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { CartesiaTTS, CARTESIA_MODEL, defaultVoiceId } from '@/lib/voice/cartesia';
 import { TtsCharBudget, RunCharCap, monthlyLedgerFile } from '@/lib/voice/tts-budget';
@@ -21,6 +21,8 @@ const flag = (n: string) => process.argv.find(a => a.startsWith(`--${n}=`))?.spl
 const OUT = flag('out') ?? 'Case Interview Runs/voice-demos/2026-10-17-pronunciation';
 const CAP = Number(flag('cap') ?? 0);
 const DRY = process.argv.includes('--dry');
+// --only=<id>[,<id>]: just those renders (file stems, e.g. 02-mece-new); index.txt and words.json are updated, not rewritten.
+const ONLY = (flag('only') ?? '').split(',').filter(Boolean);
 
 // Lines in the interviewer's own wording (batches 27–30, 9ccf0836), one per term.
 export const LINES: { id: string; text: string; listen: string; newOnly?: boolean }[] = [
@@ -69,6 +71,7 @@ async function main() {
     if (l.newOnly) return [{ file: `${l.id}.wav`, text: now, line: l }];
     return [{ file: `${l.id}-today.wav`, text: l.text, line: l }, ...(now !== l.text ? [{ file: `${l.id}-new.wav`, text: now, line: l }] : [])];
   });
+  if (ONLY.length) jobs.splice(0, jobs.length, ...jobs.filter(j => ONLY.includes(j.file.replace(/\.wav$/, ''))));
   const chars = jobs.reduce((n, j) => n + j.text.length, 0);
   console.log(`${jobs.length} renders, ${chars} characters (model ${CARTESIA_MODEL})`);
   if (DRY) { for (const j of jobs) console.log(`  ${j.file}  ${j.text}`); return; }
@@ -79,6 +82,21 @@ async function main() {
   const voice = await defaultVoiceId();
   const tts = new CartesiaTTS(voice);
   mkdirSync(OUT, { recursive: true });
+  if (ONLY.length) {
+    const wordsFile = path.join(OUT, 'words.json');
+    const all = existsSync(wordsFile) ? JSON.parse(readFileSync(wordsFile, 'utf8')) as Record<string, Word[]> : {};
+    const notes: string[] = [];
+    for (const j of jobs) {
+      const { pcm, words } = await render(tts, j.text);
+      writeFileSync(path.join(OUT, j.file), wav(pcm));
+      all[j.file] = words;
+      notes.push(`${j.file}  — re-rendered ${new Date().toISOString().slice(0, 10)} (${j.text.length} characters)\n    TTS text: ${j.text}\n    words back: ${words.map(w => w.word).join(' | ')}`);
+      console.log(`wrote ${j.file}`);
+    }
+    writeFileSync(wordsFile, JSON.stringify(all, null, 1));
+    appendFileSync(path.join(OUT, 'index.txt'), `\n${notes.join('\n')}\n`);
+    return;
+  }
   const index: string[] = [`Pronunciation demo — ${new Date().toISOString().slice(0, 10)} · Cartesia ${CARTESIA_MODEL} · ${chars} characters`,
     '"-today" is what plays now; "-new" is with pronounce.ts (COGS → "cogs", MECE → "mee-see"). Only COGS and MECE change.', ''];
   const allWords: Record<string, Word[]> = {};

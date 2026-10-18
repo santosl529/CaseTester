@@ -1,6 +1,6 @@
 // How the voice says a term (Lorenzo's brief, 17 Oct): "COGS" as "cogs", not
-// spelled out; "MECE" as "mee cee" — two words (Lorenzo, 17 Oct: "mee-see" came
-// out as one syllable, "meece"). In the TTS text only, like the "So,"
+// spelled out; "MECE" always "mee-see" (Lorenzo, 17 Oct: of "mee-see" and
+// "mee cee" rendered side by side, the hyphen sounds best). In the TTS text only, like the "So,"
 // connector (connector.ts): the saved text, captions, transcripts and heard
 // checks keep the line as written. The TTS's word timestamps come back for the
 // spoken words; they are folded back onto the written tokens (WordFolder), so
@@ -11,7 +11,7 @@ import type { Word } from './types';
 // MECE in any case — it is no other word.
 export const PRONUNCIATIONS: readonly { term: RegExp; say: string }[] = [
   { term: /\bCOGS\b/g, say: 'cogs' },
-  { term: /\bMECE\b/gi, say: 'mee cee' },
+  { term: /\bMECE\b/gi, say: 'mee-see' },
 ];
 
 export type SpeechText = {

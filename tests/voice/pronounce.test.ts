@@ -1,19 +1,19 @@
 // Terms said as words, in the TTS text only (Lorenzo's brief, 17 Oct): "COGS"
-// → "cogs", "MECE" → "mee cee"; the heard cursor stays on the written line.
+// → "cogs", "MECE" → "mee-see"; the heard cursor stays on the written line.
 import { describe, it, expect } from 'vitest';
 import { speechTextFor, WordFolder } from '@/lib/voice/pronounce';
 
 describe('speechTextFor', () => {
   it.each([
     ['COGS rose 16 points.', 'cogs rose 16 points.'],
-    ['Is that split MECE?', 'Is that split mee cee?'],
-    ['Is it Mece? Is it mece, or MECE.', 'Is it mee cee? Is it mee cee, or mee cee.'],
+    ['Is that split MECE?', 'Is that split mee-see?'],
+    ['Is it Mece? Is it mece, or MECE.', 'Is it mee-see? Is it mee-see, or mee-see.'],
     ["Beans were 25% of COGS, and COGS' share grew.", "Beans were 25% of cogs, and cogs' share grew."],
     ['Brew & Bean, the US, $480M, 10–12%.', 'Brew & Bean, the US, $480M, 10–12%.'],
     ['cogs and Cogs stay as written; COGSY is no term.', 'cogs and Cogs stay as written; COGSY is no term.'],
   ])('%s', (written, spoken) => expect(speechTextFor(written).text).toBe(spoken));
-  it('MECE becomes two spoken tokens — the map says so; spacing kept', () => {
-    expect(speechTextFor('Is  that MECE?')).toEqual({ text: 'Is  that mee cee?', counts: [1, 1, 2] });
+  it('one spoken token per written token; spacing kept', () => {
+    expect(speechTextFor('Is  that MECE?')).toEqual({ text: 'Is  that mee-see?', counts: [1, 1, 1] });
   });
 });
 

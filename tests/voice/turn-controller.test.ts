@@ -140,7 +140,7 @@ describe('the connector after a filler (Lorenzo, 17 Oct)', () => {
     const h = harness([[seg('tail', LINE)]], { tts, sessionSeed: seedFor(ANSWER, LINE, 'So,') });
     await h.c.ready(''); h.c.onStt(final(ANSWER));
     await h.advance(5000);
-    expect(tts.pushed).toEqual(['So, cogs rose 16 points. Is that split mee cee?']);
+    expect(tts.pushed).toEqual(['So, cogs rose 16 points. Is that split mee-see?']);
     expect(h.reports[0].segments[0]).toMatchObject({ text: LINE, playback: 'played', heardChars: LINE.length });
     expect(h.captions('interviewer').at(-1)).toMatchObject({ final: true, text: LINE });
   });
@@ -604,20 +604,3 @@ describe('the filler toggle', () => {
   });
 });
 
-describe('MECE said in two words (Lorenzo, 17 Oct): the heard cursor still counts the written line', () => {
-  // Spoken "Is that mee cee? Then which branch first?": 7 words, ~234ms each (40ms a character).
-  it.each([
-    [900, 'Is that'],          // "mee" played, "cee?" not yet: MECE is not heard
-    [1100, 'Is that MECE?'],   // both played: MECE heard, nothing past it
-  ])('cut at %ims: heard "%s"', async (cutAt, heard) => {
-    const LINE = 'Is that MECE? Then which branch first?';
-    const tts = new RecordingTTS(40, 0);
-    const h = harness([[seg('tail', LINE)]], { tts, ...noAck });
-    await h.c.ready(''); h.c.onStt(final('I would split it into revenue and costs.'));
-    await h.advance(cutAt);
-    h.c.onStt(speech('wait sorry'));
-    await h.advance(2000);
-    expect(tts.pushed[0]).toBe('Is that mee cee? Then which branch first?');
-    expect(LINE.slice(0, h.reports[0].segments[0].heardChars)).toBe(heard);
-  });
-});
