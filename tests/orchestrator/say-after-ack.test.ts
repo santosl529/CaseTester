@@ -7,7 +7,7 @@ import path from 'node:path';
 import { sayAfterAckReason, hasFigure, isSummaryEcho, sayFiguresOf } from '@/lib/orchestrator/say-after-ack';
 import { candidateFiguresOf } from '@/lib/orchestrator/math-talk';
 import { getCaseById } from '@/lib/cases/loader';
-import { vetoReason, type GateContext } from '@/lib/orchestrator/stream-turn';
+import { vetoReason, dropAckOpening, type GateContext } from '@/lib/orchestrator/stream-turn';
 
 type Row = { run: string; turnIndex: number; candidate: string | null; sentence: string; expect: 'drop' | 'keep' | 'either' };
 const fixture = JSON.parse(readFileSync(path.join(__dirname, 'fixtures/say-after-ack-batch30.json'), 'utf8')) as { sentences: Row[] };
@@ -144,8 +144,27 @@ describe('vetoReason on an acknowledged turn', () => {
     expect(vetoReason('A COGS-first read.', g({ acknowledged: false }))).toBeNull();
     expect(vetoReason('Understood.', g({ acknowledged: false, voice: false }))).toBeNull();
   });
-  it('the question field is never touched', () => {
+  it('the question field is never touched by the echo rule', () => {
     expect(vetoReason('A COGS-first read.', g(), { inQuestion: true })).toBeNull();
+  });
+  // Session 9ccf0836 T30 (17 Oct): the stuck filler "Take your time.", then the
+  // model's question opening with the same words — "Take your time. Take your time. …".
+  it('the filler the voice just said, again in the question or in say: dropped', () => {
+    const ack = g({ ackText: 'Take your time.' });
+    expect(vetoReason('Take your time.', ack, { inQuestion: true })).toBe('double_ack');
+    expect(vetoReason('Take your time.', ack)).toBe('double_ack');
+    expect(vetoReason('Take a moment.', g({ ackText: 'Sure, take a moment.' }), { inQuestion: true })).toBe('double_ack');
+    expect(vetoReason('Ten points of COGS convert to revenue using one share of revenue.', ack, { inQuestion: true })).toBeNull();
+    // Another filler: kept (a comfort line the voice didn't say).
+    expect(vetoReason('Take your time.', g({ ackText: 'Hmm…' }), { inQuestion: true })).toBeNull();
+    // A text turn has no filler.
+    expect(vetoReason('Take your time.', g({ acknowledged: false, voice: false }), { inQuestion: true })).toBeNull();
+  });
+  it("code's own stall line drops an opening the filler already said", () => {
+    expect(dropAckOpening('Take your time. The question on the table: which input drove it?', 'Take your time.')).toBe('The question on the table: which input drove it?');
+    expect(dropAckOpening('Take your time. The question on the table: which input drove it?', 'Hmm…')).toBe('Take your time. The question on the table: which input drove it?');
+    expect(dropAckOpening('Take your time.', 'Take your time.')).toBe('Take your time.');
+    expect(dropAckOpening('Take your time. Which input?', undefined)).toBe('Take your time. Which input?');
   });
   it("keeps the checker's line from the gate context", () => {
     expect(vetoReason("You've used revenue as the base.", g({ checkerLine: "You've used revenue as the base." }))).toBeNull();

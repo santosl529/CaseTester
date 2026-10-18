@@ -46,6 +46,7 @@ export type GateContext = {
   openItems: OpenRequestItem[];
   phase: Phase;
   acknowledged?: boolean;  // voice already spoke a backchannel this turn
+  ackText?: string;        // …and its words: the model saying them again doubles them (repeatsAck)
   voice?: boolean;         // the turn is spoken, acknowledged or not
   metaAsked?: boolean;     // the candidate asked how they're assessed (a report hand-off may answer it)
   candidateMessage?: string; // the message this turn answers (the growth probe reads its claim)
@@ -55,6 +56,22 @@ export type GateContext = {
   // revealed (ids), and the figures of misquotes still standing.
   facts?: { fb: FactBase; revealed: Set<string>; echoes: Echo[]; correcting?: Echo[]; delivery?: DeliveryContext };
 };
+
+// A short sentence whose every word is in the filler just said ("Take your
+// time." after "Take your time."; "Take a moment." after "Sure, take a moment.").
+export function repeatsAck(sentence: string, ack: string): boolean {
+  const words = (t: string) => t.toLowerCase().replace(/[‘’]/g, "'").match(/[a-z']+/g) ?? [];
+  const mine = words(sentence);
+  const theirs = new Set(words(ack));
+  return mine.length > 0 && mine.length <= 5 && !sentence.trim().endsWith('?') && mine.every(w => theirs.has(w));
+}
+
+// A code-written question's opening sentence that repeats the filler ("Take
+// your time. The question on the table: …" after "Take your time."): dropped.
+export function dropAckOpening(question: string, ack: string | undefined): string {
+  const [first, ...rest] = question.trim().split(/(?<=[.!?])\s+/);
+  return ack && rest.length > 0 && repeatsAck(first, ack) ? rest.join(' ') : question;
+}
 
 // A say sentence that is nothing but an acknowledgment ("Understood.") —
 // doubled when the voice layer already said "Got it." (spike, Tyler t4).
@@ -103,6 +120,9 @@ export function isHandoverAnnouncement(sentence: string): boolean {
 // `inQuestion`: the sentence is (part of) the question field — a question
 // there is expected; in "say" it is not.
 export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?: boolean; previous?: string } = {}): string | null {
+  // The filler the voice just said, again in the model's words — in "say" or
+  // the question (session 9ccf0836 T30: "Take your time. Take your time. …").
+  if (g.ackText && (g.acknowledged || g.voice) && repeatsAck(sentence, g.ackText)) return 'double_ack';
   if (stripFabricatedTurn(sentence).fabricated !== null) return 'fabricated_turn';
   if (stripMetaLeak(sentence).strippedSentences.length > 0) return 'meta_leak';
   if (rewriteSystemLanguage(sentence).rewrites.length > 0) return 'system_language';
@@ -172,6 +192,7 @@ export function gateContext(plan: ModelPlan, extraRevealed: string[] = [], extra
     openItems: state.openDataRequests.map(r => ({ ledgerItemId: r.ledgerItemId, label: r.label })),
     phase: ctx.currentPhase,
     acknowledged: Boolean(ctx.acknowledged),
+    ...(ctx.acknowledged ? { ackText: ctx.acknowledged } : {}),
     voice: Boolean(ctx.voice),
     // Only on a turn the case continues past (model turns are never the close).
     metaAsked: state.kind === 'model' && asksAboutAssessment(ctx.candidateText),

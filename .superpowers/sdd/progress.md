@@ -6,9 +6,10 @@
 - **Tests:** 2852 pass (9 skipped); `npx tsc --noEmit` and `npx eslint .` clean.
 - **Live per case:** prof-001 — step flags live (`stepFlagsLive`), ledger lookup report-only, 20 min, exhibit required. prof-002 Larkspur — step flags and ledger lookup report-only, 25 min. entry-001, pricing-001, launch-001 — report-only, 20 min. The math checker runs on every case; since 16 Oct code's corrections and probes wait for its flag (the gate).
 - **Report-only switches:** `stepFlagsLive`, `ledgerLookupLive`; none for quote misquotes, unit, arithmetic, pricing; `MATH_CHECKER_CONFIG=off` silences all code lines (PRD §15).
-- **Batch 30 (16 Oct, f69545c, $8.43 of $14; 16 runs): GO by Claude's grade** — no false statement, no serious failure, 2 firm moderate (Marisol), 4 borderline. `Case Interview Runs/test runs/batch-30/hand-grading.md`. Awaiting Lorenzo's own grade.
+- **Batch 30 (16 Oct, f69545c, $8.43 of $14; 16 runs): GO by Claude's grade, recounted 17 Oct (Lorenzo's ruling): 1 false correction (Noor t16)** — so the "no false statement" bar was not met; the go/no-go is his to re-rule. No serious failure, 2 firm moderate (Marisol), 4 borderline. `Case Interview Runs/test runs/batch-30/hand-grading.md`.
 - **Paid runs:** each wave needs Lorenzo's explicit go-ahead and a cap, one wave at a time, with a cost estimate.
-- **Voice feel (17 Oct): branch `voice-feel` (worktree `.claude/worktrees/voice-feel`) off `club-beta`, not merged or deployed — Lorenzo listens live first.** Thinking-sound fillers starting 500ms after end of turn (skipped if he speaks again), a spoken-only "So," connector, the say rule on every voice turn (structure counts aren't figures). Tests 3086 pass (9 skipped). **Awaiting his go:** the converted-quantity correction fix (PRD §15, session 9ccf0836); his word on batch 30's grade (Noor t16 is in that class — a false correction the grade called true); the prompt proposal.
+- **Voice feel (17 Oct): branch `voice-feel` (worktree `.claude/worktrees/voice-feel`) off `club-beta`, not merged, not pushed, not deployed — Lorenzo listens live first.** Thinking-sound fillers starting 500ms after end of turn (skipped if he speaks again), a spoken-only "So," connector, the say rule on every voice turn (structure counts aren't figures). Tests 3117 pass (9 skipped).
+- **Voice-feel brief (teammate's test, 17 Oct; 5 items, one at a time):** item 1 built — "not X" only on code's own quantity, else a conversion line and the step closes (c41159e; replay: only Noor t16 changes, no new false or dropped true correction); the filler said twice (repeatsAck). Next: item 2 pronunciation, 3 filler toggle, 4 phrase variation, 5 voice listening set (paid renders: estimate first; include voice 533b2990-5b82-45a4-b9f2-367776972ca6). The prompt proposal still awaits Lorenzo.
 
 ## Rules in force
 - Code corrects a computed figure only with the checker's agreement (3% / 0.5), naming the quantity; deterministic step, arithmetic and pricing flags only probe (13 Oct).
@@ -44,7 +45,7 @@
 | 27 | 15 Oct | prof-001 | 1382a46 | $5.70 | 1.8 + 1 false correction (Lorenzo's grade) | 1 false correction (Sofia t18) | 0 | No go (fixed: unit base) |
 | 28 | 15 Oct | prof-001 | 579dc4b | $6.34 | 1.3 (Claude's grade) | 0 | 1 (Sofia "5.8 points" into rec) | No go (Claude; awaiting Lorenzo) |
 | 29 | 16 Oct | prof-001 | 59e352e | $5.59 | 0.6 firm + 0.4 borderline | 1 false correction (Marisol t15) | 0 | No go (Lorenzo) |
-| 30 | 16 Oct | prof-001 (16 runs) | f69545c `club-beta` | $8.43 | 0.13 firm + 0.25 borderline (Claude's grade) | 0 | 0 | Go (Claude; awaiting Lorenzo) |
+| 30 | 16 Oct | prof-001 (16 runs) | f69545c `club-beta` | $8.43 | 0.13 firm + 0.25 borderline (Claude's grade) | 1 false correction (Noor t16; recounted 17 Oct, Lorenzo's ruling) | 0 | Go by Claude's grade, bar since unmet (awaiting Lorenzo) |
 
 ## Fix rounds (full text in `progress-archive.md`)
 Post-plan hardening (July–Sep 2026) through Integration (13 Oct) were moved to `progress-archive.md` verbatim on 15 Oct; the rounds below moved there the same day (restructure), one line each here.

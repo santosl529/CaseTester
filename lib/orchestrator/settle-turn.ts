@@ -38,7 +38,7 @@ import { turnData, pressureTestOutcomeNow } from './turn-data';
 import { isGradingSentence, gradingRemainder } from './grading';
 import { settlePendingData } from './pending-data';
 import { lineHeard } from './math-checker-live';
-import { vetoReason, gateContext, isHandoverAnnouncement, isDeliveryClaim } from './stream-turn';
+import { vetoReason, gateContext, isHandoverAnnouncement, isDeliveryClaim, dropAckOpening } from './stream-turn';
 import type { ModelTurn, Move } from '@/lib/agent/models/turn-schema';
 import type { TurnValidation } from '@/lib/agent/models/interface';
 import type { ModelPlan } from './plan-turn';
@@ -227,7 +227,10 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   const say = codeWritten ? turn.say : keep(turn.say, 'say');
   // Whether this message answered the last question (a fallback must not ask it again).
   const lastAnswered = stallDecision.classification.kind === 'analysis';
-  let question = codeWritten ? turn.question : keep(turn.question, 'question');
+  // A code-written question opening with the filler the voice just said ("Take
+  // your time. The question on the table: …" after "Take your time.") drops
+  // that opening; the model's words are vetted above (vetoReason).
+  let question = codeWritten ? dropAckOpening(turn.question, ctx.acknowledged) : keep(turn.question, 'question');
   if (kind === 'rec_ask') question = pickScript([...(state.recAskLate ? LATE_RECOMMENDATION_ASKS : BLOCKED_CLOSE_PROBES.recommendation)], seed);
   // The model's own words in the question, as the turn goes on — emptied
   // wherever code replaces the question, kept when code only appends. The
