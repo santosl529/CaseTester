@@ -139,3 +139,25 @@ export const analyticsEvents = pgTable('analytics_events', {
   payloadJsonb: jsonb('payload_jsonb'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }).enableRLS();
+
+// The monthly Cartesia character ledger (voice deploy, 18 Oct): one row per
+// calendar month (UTC, 'YYYY-MM'), shared by every agent job on every worker
+// and the local voice scripts. Incremented in one statement
+// (lib/voice/tts-ledger-store.ts), so concurrent jobs share one cap.
+// Server-only: RLS on, no policies.
+export const voiceTtsUsage = pgTable('voice_tts_usage', {
+  month: text('month').primaryKey(),
+  used: integer('used').notNull().default(0),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}).enableRLS();
+
+// A voice session's per-turn records (lib/voice/records.ts), one row per line
+// the agent used to append to Case Interview Runs/voice-live/<date>/<id>.jsonl:
+// turn records, client timing lines, the closing summary. In insert order;
+// scripts/voice-export.ts writes them back out as that file. Server-only.
+export const voiceSessionLines = pgTable('voice_session_lines', {
+  id: bigint('id', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
+  sessionId: uuid('session_id').notNull().references(() => sessions.id),
+  line: jsonb('line').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, t => [index('voice_session_lines_session_idx').on(t.sessionId)]).enableRLS();

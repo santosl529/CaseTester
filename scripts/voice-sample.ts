@@ -13,7 +13,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { CartesiaTTS, CARTESIA_MODEL } from '@/lib/voice/cartesia';
-import { TtsCharBudget, RunCharCap, monthlyLedgerFile } from '@/lib/voice/tts-budget';
+import { RunCharCap } from '@/lib/voice/tts-budget';
 import { speechTextFor } from '@/lib/voice/pronounce';
 
 const RATE = 24000;
@@ -49,7 +49,7 @@ async function main() {
   if (DRY) return;
   if (!(CAP > 0) || chars > CAP) throw new Error(`--cap=${CAP} must cover ${chars} characters`);
   const run = new RunCharCap(CAP);
-  const ledger = new TtsCharBudget(monthlyLedgerFile(), Number(process.env.VOICE_TTS_CHAR_CAP ?? 90_000), 0);
+  const ledger = await (await import('@/lib/voice/tts-ledger-store')).openTtsLedger(0);
   if (!run.take(chars) || !ledger.take(chars)) throw new Error('over the run cap or the monthly ledger');
   const tts = new CartesiaTTS(VOICE, MODEL);
   mkdirSync(OUT, { recursive: true });
@@ -69,6 +69,8 @@ async function main() {
     console.log(`wrote ${j.id}.wav`);
   }
   writeFileSync(path.join(OUT, 'index.txt'), index.join('\n') + '\n');
+  await ledger.flush();
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+// The database pool stays open: exit when done.
+main().then(() => process.exit(0), e => { console.error(e); process.exit(1); });

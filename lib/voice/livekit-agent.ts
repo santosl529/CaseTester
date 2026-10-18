@@ -29,7 +29,8 @@ import { FILLER_DELAY_MS, fillerRateFrom, FILLER_GAP_MS, FILLER_TAIL_MS } from '
 import { loadAcks } from './ack-audio';
 import { Playout } from './playout';
 import { SpeechEndTracker } from './pcm';
-import { TtsCharBudget, RunCharCap, monthlyLedgerFile, ttsRunCap } from './tts-budget';
+import { RunCharCap, ttsRunCap } from './tts-budget';
+import { openTtsLedger } from './tts-ledger-store';
 import { VoiceTurnController } from './turn-controller';
 import { DATA_TOPIC, parseClientMessage, type ServerMessage } from './protocol';
 import { summarize, type TurnRecord } from './records';
@@ -115,7 +116,7 @@ export default defineAgent({
     const voice = fake ? 'tone' : await defaultVoiceId();
     const tts: TTSProvider = fake ? new FakeTTS() : new CartesiaTTS(voice);
     if (tts instanceof CartesiaTTS) await tts.connect();
-    const ledger = new TtsCharBudget(monthlyLedgerFile(), num('VOICE_TTS_CHAR_CAP', 90_000));
+    const ledger = await openTtsLedger();   // the month's row in voice_tts_usage, shared by every job
     const run = runCap === null ? null : new RunCharCap(runCap);
     const ttsAllow = (n: number) => fake || (run!.take(n) && ledger.take(n));
     const acks = await loadAcks(tts, voice, ttsAllow, { sampleRate: OUT_RATE, gapMs: num('VOICE_FILLER_GAP_MS', FILLER_GAP_MS), tailMs: num('VOICE_FILLER_TAIL_MS', FILLER_TAIL_MS) });
@@ -183,7 +184,8 @@ export default defineAgent({
       await controller.idle().catch(() => {});
       await Promise.allSettled(background);
       if (tts instanceof CartesiaTTS) tts.close();
-      const summary = { why, ...summarize(records), ttsCharsThisRun: run?.used ?? 0, ttsCharsThisMonth: ledger.used };
+      await ledger.flush();
+      const summary = { why, ...summarize(records), ttsCharsThisRun: run?.used ?? 0, ttsCharsThisMonth: ledger.used, ...(ledger.writeErrors ? { ttsLedgerWriteErrors: ledger.writeErrors } : {}) };
       appendFileSync(recFile, JSON.stringify({ summary }) + '\n');
       if (rec) {
         const dir = path.join('.voice-cache/recordings', `${session.id}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`);

@@ -23,7 +23,7 @@ import { ACKS, FILLER_GAP_MS, FILLER_TAIL_MS, ackKind, isThinkingFiller, pickAck
 import { loadAcks } from '@/lib/voice/ack-audio';
 import { NO_CONNECTOR, pickConnector, spokenWithConnector } from '@/lib/voice/connector';
 import { CartesiaTTS, defaultVoiceId } from '@/lib/voice/cartesia';
-import { TtsCharBudget, RunCharCap, monthlyLedgerFile } from '@/lib/voice/tts-budget';
+import { RunCharCap } from '@/lib/voice/tts-budget';
 import { trimSilence } from '@/lib/voice/pcm';
 import { sayAfterAckReason } from '@/lib/orchestrator/say-after-ack';
 import type { TurnRecord } from '@/lib/voice/records';
@@ -73,7 +73,7 @@ async function main() {
   const records = readFileSync(session, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l) as TurnRecord).filter(r => 'candidateText' in r);
   const segTurns = (JSON.parse(readFileSync(session.replace(/[^/]+\.jsonl$/, f => `${f.split('-')[0]}-segments.json`), 'utf8')) as { turns: { turnSeq: number; segments: Seg[] }[] }).turns;
 
-  const ledger = new TtsCharBudget(monthlyLedgerFile(), Number(process.env.VOICE_TTS_CHAR_CAP ?? 90_000));
+  const ledger = await (await import('@/lib/voice/tts-ledger-store')).openTtsLedger();
   const run = new RunCharCap(Number(flag('cap') ?? 1000));
   let spent = 0;
   const take = (n: number) => { const ok = run.take(n) && ledger.take(n); if (ok) spent += n; return ok; };
@@ -166,6 +166,7 @@ async function main() {
     }
   }
   tts.close();
+  await ledger.flush();
   notes.push(`\nCartesia characters this run: ${spent} (monthly ledger now ${ledger.used}).`);
   writeFileSync(path.join(out, 'timeline.txt'), notes.join('\n') + '\n');
   console.log(notes.join('\n'));
