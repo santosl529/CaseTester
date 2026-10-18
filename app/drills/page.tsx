@@ -10,6 +10,7 @@ import { homeCheckin } from '@/lib/drills/feedback';
 
 const TRACK = { foundations: 'Foundations', standard: 'Standard', sprint: 'Sprint', self_directed: 'Practice on my own' } as const;
 const SLOT = { review: 'Review', weak: 'Weak spot', unfamiliar: 'Something new' } as const;
+const SOURCE = { case: 'your first full case', diagnostic: 'your diagnostic', questionnaire: 'your answers' } as const;
 const STATE = { not_started: 'Not started', learning: 'Learning', recognizes: 'Recognizes', practiced: 'Practiced', mastered: 'Mastered', validated: 'Validated' } as const;
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 const dateLabel = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
@@ -26,6 +27,7 @@ export default async function DrillsHomePage() {
 
   const nav = (
     <nav className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+      {home.plan.source && <Link href="/drills/plan" className="underline-offset-4 hover:underline">Your plan</Link>}
       <Link href="/drills/browse" className="underline-offset-4 hover:underline">Browse drills</Link>
       <Link href="/drills/learn" className="underline-offset-4 hover:underline">Learn</Link>
       <Link href="/drills/profile" className="underline-offset-4 hover:underline">Your skills</Link>
@@ -47,6 +49,36 @@ export default async function DrillsHomePage() {
       <Link href="/drills/diagnostic" className={buttonVariants({ variant: d.done > 0 ? 'default' : 'outline' })}>{d.done > 0 ? 'Continue the diagnostic' : 'Start the diagnostic'}</Link>
     </section>
   ));
+  const self = home.kind === 'self_directed';
+  // No plan yet: three ways to get one (D6 round 2); the first one done makes it.
+  const getPlan = !home.plan.source && (
+    <section aria-labelledby="get-plan" className="space-y-3 rounded-lg border p-4">
+      <h2 id="get-plan" className="font-medium">{self ? 'Find your starting point' : 'Get your plan'}</h2>
+      <p className="text-sm">Pick one. {self ? 'Suggestions' : 'Your plan and first workout'} are ready as soon as you finish, and you can do the others later to sharpen {self ? 'them' : 'it'}.</p>
+      <ul className="grid gap-3 sm:grid-cols-3">
+        <li className="flex flex-col justify-between gap-3 rounded-lg border p-3 text-sm">
+          <span><span className="block font-medium">Answer a few questions</span><span className="text-muted-foreground">2–3 minutes. The quickest start; your first workouts include short checks.</span></span>
+          <Link href="/drills/questionnaire" className={buttonVariants({ size: 'sm' })}>Answer questions</Link>
+        </li>
+        <li className="flex flex-col justify-between gap-3 rounded-lg border p-3 text-sm">
+          <span><span className="block font-medium">Take the diagnostic</span><span className="text-muted-foreground">About 15 minutes of short questions. More accurate.</span></span>
+          <Link href="/drills/diagnostic" className={buttonVariants({ size: 'sm', variant: 'outline' })}>{d.done > 0 ? `Continue (part ${Math.min(d.done + 1, d.of)} of ${d.of})` : 'Start the diagnostic'}</Link>
+        </li>
+        <li className="flex flex-col justify-between gap-3 rounded-lg border p-3 text-sm">
+          <span><span className="block font-medium">Take a full case</span><span className="text-muted-foreground">About 35 minutes. The most accurate.</span></span>
+          <Link href="/" className={buttonVariants({ size: 'sm', variant: 'outline' })}>Go to cases</Link>
+        </li>
+      </ul>
+    </section>
+  );
+  // A new plan the student hasn't opened yet.
+  const planReady = home.plan.source && !home.plan.seen && (
+    <section aria-labelledby="plan-ready" className="space-y-2 rounded-lg border border-foreground p-4">
+      <h2 id="plan-ready" className="font-medium">{self ? 'Your starting point is ready' : 'Your plan is ready'}</h2>
+      <p className="text-sm">Built from {SOURCE[home.plan.source]}. {self ? 'See where you start and what to practice first.' : "See this week's focus, your schedule and your first workout."}</p>
+      <Link href="/drills/plan" className={buttonVariants({ size: 'lg' })}>{self ? 'See your starting point' : 'See your plan'}</Link>
+    </section>
+  );
   const weakest = home.weakest && (
     <section aria-labelledby="weakest" className="space-y-1">
       <h2 id="weakest" className="font-medium">Your weakest skill right now</h2>
@@ -64,7 +96,9 @@ export default async function DrillsHomePage() {
         </header>
         {resume}
         {checkinCard}
-        {(d.status === 'not_started' || (d.status !== 'completed' && d.done > 0)) && diagnosticCard('A 15-minute check that shows where each skill starts, so suggestions fit you from day one.')}
+        {getPlan}
+        {planReady}
+        {home.plan.source && d.status !== 'completed' && d.done > 0 && diagnosticCard('')}
         {home.summary && (
           <section aria-labelledby="summary" className="space-y-1 rounded-lg border p-4">
             <h2 id="summary" className="font-medium">Your week</h2>
@@ -80,7 +114,7 @@ export default async function DrillsHomePage() {
             <h2 id="suggested" className="font-medium">Suggested next</h2>
             <p className="text-sm"><span className="font-medium">{home.suggested.skill_name}</span> · {home.suggested.drill_name} · about {Math.max(1, home.suggested.minutes)} min</p>
             <p className="text-sm text-muted-foreground">{home.suggested.reason}</p>
-            <StartSetButton body={{ skill_id: home.suggested.skill_id, quick_start: true, suggestion: { reason: home.suggested.reason, source: home.suggested.slot } }} label="Start" />
+            <StartSetButton body={{ skill_id: home.suggested.skill_id, quick_start: true, placement_check: home.suggested.check || undefined, suggestion: { reason: home.suggested.reason, source: home.suggested.slot } }} label="Start" />
           </section>
         )}
         {home.weaknesses.length > 0 && (
@@ -143,18 +177,9 @@ export default async function DrillsHomePage() {
         </section>
       )}
 
-      {home.diagnose_today && (
-        <section aria-labelledby="today" className="space-y-3 rounded-lg border p-4">
-          <h2 id="today" className="font-medium">Today: your starting point</h2>
-          <p className="text-sm">{d.status === 'completed'
-            ? 'Diagnostic done. Now take a baseline case so we can see how you do in a full interview. Your first workout is tomorrow.'
-            : 'Two things today: a 15-minute diagnostic, then a baseline case. Your first workout is tomorrow.'}</p>
-          {d.status !== 'completed' && (
-            <Link href="/drills/diagnostic" className={buttonVariants({ size: 'lg' })}>{d.done > 0 ? `Continue the diagnostic (part ${Math.min(d.done + 1, d.of)} of ${d.of})` : 'Start the diagnostic'}</Link>
-          )}
-        </section>
-      )}
-      {!home.diagnose_today && d.status !== 'completed' && d.done > 0 && diagnosticCard('')}
+      {getPlan}
+      {planReady}
+      {home.plan.source && d.status !== 'completed' && d.done > 0 && diagnosticCard('')}
 
       {workout && workout.blocks.length === 0 && (
         <section aria-labelledby="workout" className="space-y-2 rounded-lg border p-4">

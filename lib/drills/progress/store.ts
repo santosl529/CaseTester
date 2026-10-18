@@ -276,12 +276,12 @@ export async function ingestCaseResultTx(raw: unknown, now = new Date()): Promis
     events.push(...await saveProgress(tx, studentId, before, u.progress, u.transitions, { type: 'case', id: payload.case_attempt_id }));
 
     // "When a newer case arrives, open prescriptions are recalculated": the
-    // last case's (and the diagnostic's) are superseded, and so is any other
+    // last case's (and the diagnostic's and questionnaire's) are superseded, and so is any other
     // prescription for a skill this case prescribes. Plan prescriptions stay.
     const skills = u.prescriptions.map(p => p.skill_id);
     await closePrescriptions(tx, studentId, skills.length
-      ? sql`(${prescriptions.sourceType} in ('case', 'diagnostic') or ${inArray(prescriptions.skillId, skills)})`
-      : sql`${prescriptions.sourceType} in ('case', 'diagnostic')`, 'superseded');
+      ? sql`(${prescriptions.sourceType} in ('case', 'diagnostic', 'questionnaire') or ${inArray(prescriptions.skillId, skills)})`
+      : sql`${prescriptions.sourceType} in ('case', 'diagnostic', 'questionnaire')`, 'superseded');
     const tiers = await loadTiers(tx, studentId);
     for (const p of u.prescriptions) {
       events.push(...await createPrescription(tx, studentId, u.progress, tiers, ctx, {

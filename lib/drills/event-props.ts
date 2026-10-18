@@ -48,6 +48,13 @@ export const DRILL_EVENT_PROPS = {
   checkin_shown: ['kind'],
   checkin_answered: ['kind', 'rating'],
   checkin_dismissed: ['kind'],
+  // D6 round 2: plans, timer options and pauses.
+  questionnaire_completed: ['questionnaire_id', 'ratings', 'hardest'],
+  plan_created: ['source', 'track', 'previous_source', 'focus_skills'],
+  timer_chosen: ['set_id', 'untimed', 'timer_hidden'],
+  timer_visibility_changed: ['set_id', 'position', 'timer_hidden'],
+  timer_paused: ['set_id', 'position', 'reason'],
+  timer_resumed: ['set_id', 'position', 'reason', 'paused_ms'],
   // A Repair set had to use items derived from ones seen in the last 14 days.
   repair_pool_exhausted: ['drill_id', 'available'],
 } as const satisfies Record<string, readonly string[]>;

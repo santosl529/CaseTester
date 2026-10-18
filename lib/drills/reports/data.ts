@@ -76,7 +76,7 @@ export async function loadReportData(filter: ReportFilter): Promise<ReportData> 
 
   return {
     ...empty,
-    programs: programs.map(p => ({ studentId: p.studentId, track: p.track as Track, status: p.status, currentWeek: p.currentWeek, startedAt: p.startedAt })),
+    programs: programs.map(p => ({ studentId: p.studentId, track: p.track as Track, status: p.status, currentWeek: p.currentWeek, startedAt: p.startedAt, planSource: p.planSource })),
     sets: sets.map(s => ({
       id: s.id, studentId: s.studentId, drillId: s.drillId, tier: s.tier, size: s.size, source: s.source, isTransferCheck: s.isTransferCheck,
       workoutId: s.workoutId, slot: s.slot, prescriptionId: s.prescriptionId, focusSkill: s.focusSkill, status: s.status,

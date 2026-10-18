@@ -12,7 +12,7 @@ export interface ReportData {
   from: Date;
   to: Date;
   students: { id: string; orgId: string | null }[];
-  programs: { studentId: string; track: Track; status: string; currentWeek: number; startedAt: Date }[];
+  programs: { studentId: string; track: Track; status: string; currentWeek: number; startedAt: Date; planSource?: string | null }[];
   sets: {
     id: string; studentId: string; drillId: string; tier: number; size: number; source: string; isTransferCheck: boolean;
     workoutId: string | null; slot: string | null; prescriptionId: string | null; focusSkill: string | null;
@@ -100,6 +100,44 @@ export function programFunnel(data: ReportData) {
 
 const firstProgram = (data: ReportData, studentId: string) =>
   data.programs.filter(p => p.studentId === studentId).sort((a, b) => a.startedAt.getTime() - b.startedAt.getTime())[0] ?? null;
+
+// ---------------------------------------------------------- plan sources
+
+// How students got their plan (D6 round 2): each student's active program.
+export function planSources(data: ReportData) {
+  const active = data.programs.filter(p => p.status === 'active');
+  const count = (s: string | null) => active.filter(p => (p.planSource ?? null) === s).length;
+  return {
+    how: "Each student's active program: the source its plan was built from (a later, more reliable source replaces an earlier one), or none yet.",
+    case: count('case'), diagnostic: count('diagnostic'), questionnaire: count('questionnaire'), none: count(null),
+  };
+}
+
+// ------------------------------------------------------------------ pauses
+
+// Timer pauses while Report a problem or the feedback box is open (D6 round
+// 2), per student in the period, most paused time first: a student who pauses
+// often or for long may be using it to gain time.
+export function pauses(data: ReportData) {
+  const resumed = data.events.filter(e => e.type === 'timer_resumed' && inRange(e.createdAt, data));
+  const by = new Map<string, { student: string; club: string | null; pauses: number; total_ms: number; longest_ms: number; reasons: Record<string, number> }>();
+  const club = new Map(data.students.map(s => [s.id, s.orgId]));
+  for (const e of resumed) {
+    const ms = Number(e.payload.paused_ms) || 0;
+    const r = by.get(e.studentId) ?? { student: e.studentId, club: club.get(e.studentId) ?? null, pauses: 0, total_ms: 0, longest_ms: 0, reasons: {} };
+    r.pauses++;
+    r.total_ms += ms;
+    r.longest_ms = Math.max(r.longest_ms, ms);
+    const reason = String(e.payload.reason);
+    r.reasons[reason] = (r.reasons[reason] ?? 0) + 1;
+    by.set(e.studentId, r);
+  }
+  return {
+    how: 'Pauses that ended in the period (timer_resumed), per student, most paused time first. A pause ends when the dialog closes, or on a reload or submit.',
+    total: resumed.length,
+    students: [...by.values()].sort((a, b) => b.total_ms - a.total_ms).slice(0, 25),
+  };
+}
 
 // ------------------------------------------------------- drill effectiveness
 

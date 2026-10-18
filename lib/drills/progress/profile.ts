@@ -29,7 +29,7 @@ export async function openPrescriptions(studentId: string) {
     .where(and(eq(prescriptions.studentId, studentId), inArray(prescriptions.status, ['open', 'in_progress', 'paused'])))
     .orderBy(desc(prescriptions.priority), asc(prescriptions.createdAt));
   // Case prescriptions before drill ones at the same priority.
-  const order = { case: 0, diagnostic: 1, plan: 2, drill: 3 } as const;
+  const order = { case: 0, diagnostic: 1, questionnaire: 2, plan: 3, drill: 4 } as const;
   return rows
     .sort((a, b) => b.priority - a.priority || order[a.sourceType] - order[b.sourceType])
     .map(r => ({

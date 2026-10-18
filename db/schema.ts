@@ -156,7 +156,7 @@ export const attemptGradingStatusEnum = pgEnum('attempt_grading_status', ['not_n
 export const gradingJobStatusEnum = pgEnum('grading_job_status', ['queued', 'running', 'succeeded', 'failed']);
 export const skillStateEnum = pgEnum('skill_state', ['not_started', 'learning', 'recognizes', 'practiced', 'mastered', 'validated']);
 export const skillEventSourceEnum = pgEnum('skill_event_source', ['set', 'case', 'review']);
-export const prescriptionSourceEnum = pgEnum('prescription_source', ['case', 'drill', 'diagnostic', 'plan']);
+export const prescriptionSourceEnum = pgEnum('prescription_source', ['case', 'drill', 'diagnostic', 'plan', 'questionnaire']);
 export const prescriptionStatusEnum = pgEnum('prescription_status', ['open', 'in_progress', 'completed', 'dismissed', 'superseded', 'paused']);
 
 // The student record drills extends (PRD: "nullable org_id on the user
@@ -177,6 +177,8 @@ export const studentDrillSettings = pgTable('student_drill_settings', {
   // "No time limit" (D6, WCAG 2.2.1): no timer, nothing times out. The
   // multiplier still sizes workout estimates.
   untimed: boolean('untimed').notNull().default(false),
+  // "Hide timer" (D6 round 2): the student's last choice, the default for new sets.
+  hideTimer: boolean('hide_timer').notNull().default(false),
   interviewDate: date('interview_date'),
   skippedExamples: text('skipped_examples').array().notNull().default(sql`'{}'::text[]`),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -242,8 +244,18 @@ export const drillSets = pgTable('drill_sets', {
   stage: text('stage'),                       // recognize | repair | construct
   tier: integer('tier').notNull(),
   size: integer('size').notNull(),
-  // The student's "No time limit" setting when the set started, fixed for the set.
+  // The student's "No time limit" setting when the set started, fixed once
+  // the first item is served.
   untimed: boolean('untimed').notNull().default(false),
+  // The countdown is hidden (the limit still applies); the student can show
+  // or hide it at any time.
+  timerHidden: boolean('timer_hidden').notNull().default(false),
+  // The clock is paused while Report a problem or the feedback box is open:
+  // paused_at while paused; paused_ms totals the set's pauses (for reports).
+  pausedAt: timestamp('paused_at', { withTimezone: true }),
+  pausedMs: integer('paused_ms').notNull().default(0),
+  // A short check of a questionnaire placement; its score re-places the skill.
+  isPlacementCheck: boolean('is_placement_check').notNull().default(false),
   source: drillSetSourceEnum('source').notNull(),
   // A transfer check (PRD "Transfer check"): unseen items, new case types.
   isTransferCheck: boolean('is_transfer_check').notNull().default(false),
@@ -425,6 +437,11 @@ export const studentPrograms = pgTable('student_programs', {
   workoutsPerWeek: integer('workouts_per_week'),
   // Onboarding answer: '0', '1-5' or '6+'.
   casesDone: text('cases_done'),
+  // What the plan was built from (D6 round 2): case > diagnostic >
+  // questionnaire. Null until the first one arrives; workouts start then.
+  planSource: text('plan_source'),
+  planCreatedAt: timestamp('plan_created_at', { withTimezone: true }),
+  planSeenAt: timestamp('plan_seen_at', { withTimezone: true }),
   // The plan week the student was last seen in, for the week-rollover event.
   currentWeek: integer('current_week').notNull().default(0),
   status: programStatusEnum('status').notNull().default('active'),
@@ -573,3 +590,13 @@ export const drillCheckins = pgTable('drill_checkins', {
   uniqueIndex('drill_checkins_per_set').on(t.studentId, t.setId).where(sql`${t.kind} = 'set_usefulness'`),
   check('drill_checkins_rating', sql`${t.rating} is null or ${t.rating} between 1 and 5`),
 ]).enableRLS();
+
+// The 2–3 minute questionnaire (D6 round 2): self-ratings 1–5 and the area the
+// student finds hardest. The latest one counts; the least reliable plan source.
+export const drillQuestionnaires = pgTable('drill_questionnaires', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  studentId: uuid('student_id').notNull(),
+  ratings: jsonb('ratings').notNull(),          // { structuring, math, charts, recommendations }: 1–5
+  hardest: text('hardest'),                     // one of those areas, or null ("not sure")
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, t => [index('drill_questionnaires_student_idx').on(t.studentId, t.createdAt)]).enableRLS();

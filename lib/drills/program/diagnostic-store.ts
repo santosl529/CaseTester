@@ -3,7 +3,7 @@
 // changes from its sets. Placement only moves skills from Not started to
 // Learning (with a starting stage), and is redone as parts finish.
 import 'server-only';
-import { and, desc, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { diagnostics, drillSets, drillTiers, prescriptions } from '@/db/schema';
 import { DRILLS_CONFIG, getDrill, getSkill } from '../config';
@@ -76,15 +76,51 @@ export async function diagnosticView(studentId: string) {
   };
 }
 
-// Records the set on its part when the part starts.
+// Records the set on its part when the part starts. One field, set in the
+// database: a read-then-write here once overwrote the previous part's "done"
+// while that part was still being graded (2026-10-18), and the diagnostic
+// never finished.
 export async function attachDiagnosticSet(diagnosticId: string, index: number, setId: string) {
-  const [row] = await db.select().from(diagnostics).where(eq(diagnostics.id, diagnosticId));
-  const parts = row.parts as DiagnosticPart[];
-  parts[index] = { ...parts[index], set_id: setId };
-  await db.update(diagnostics).set({ parts }).where(eq(diagnostics.id, diagnosticId));
+  await db.update(diagnostics)
+    .set({ parts: sql`jsonb_set(${diagnostics.parts}, ${`{${index},set_id}`}::text[], to_jsonb(${setId}::text))` })
+    .where(eq(diagnostics.id, diagnosticId));
 }
 
 const STAGE: Record<Place, Stage | null> = { recognize: 'recognize', recognize_t2: 'recognize', repair: 'repair', test_out: null };
+
+// Places skills (diagnostic, questionnaire): only skills the student hasn't
+// practiced (Not started, or Learning with no practice) move to Learning with
+// a starting stage, and Recognize starts at tier 1 or 2 unless the student
+// already has a tier there from their own practice. The caller saves.
+export async function applyPlacements(tx: Tx, studentId: string, placed: Record<string, { place: Place }>, reason: string, opts: { practiced?: boolean } = {}) {
+  const before = await loadProgress(tx, studentId, true);
+  const after = new Map([...before].map(([k, v]) => [k, { ...v }]));
+  const transitions: Transition[] = [];
+  for (const [skillId, p] of Object.entries(placed)) {
+    const s = after.get(skillId);
+    if (s && (s.state !== 'not_started' && s.state !== 'learning')) continue;
+    // A placement check is practice itself, so it may re-place a practiced skill.
+    if (s && s.last_practiced_at && !opts.practiced) continue;
+    const next = s ?? newProgress(skillId);
+    if (next.state === 'not_started') transitions.push({ skill_id: skillId, from: 'not_started', to: 'learning', reason });
+    next.state = 'learning';
+    next.stage = STAGE[p.place];
+    after.set(skillId, next);
+    const recognize = stageDrills(skillId, isLiveDrill).recognize;
+    if (recognize && (p.place === 'recognize' || p.place === 'recognize_t2')) {
+      const practiced = await tx.select({ id: drillSets.id }).from(drillSets).where(and(
+        eq(drillSets.studentId, studentId), eq(drillSets.drillId, recognize), eq(drillSets.status, 'completed'))).limit(5);
+      const own = opts.practiced || practiced.length === 0 || (await tx.select({ id: drillSets.id }).from(drillSets).where(and(
+        inArray(drillSets.id, practiced.map(x => x.id)), eq(drillSets.source, 'diagnostic')))).length === practiced.length;
+      if (own) {
+        const tier = p.place === 'recognize_t2' ? 2 : 1;
+        await tx.insert(drillTiers).values({ studentId, drillId: recognize, currentTier: tier, updatedAt: new Date() })
+          .onConflictDoUpdate({ target: [drillTiers.studentId, drillTiers.drillId], set: { currentTier: tier, updatedAt: new Date() } });
+      }
+    }
+  }
+  return { before, after, transitions };
+}
 
 // Runs in finalizeSet's transaction when a diagnostic part's set is scored:
 // stores the part's totals, redoes placement from every finished part, and
@@ -108,32 +144,7 @@ export async function onDiagnosticSetDone(tx: Tx, set: typeof drillSets.$inferSe
   // Learning with no practice), moved to Learning with a starting stage.
   const placed = placements(parts, isLiveDrill);
   const studentId = set.studentId;
-  const before = await loadProgress(tx, studentId, true);
-  const after = new Map([...before].map(([k, v]) => [k, { ...v }]));
-  const transitions: Transition[] = [];
-  for (const [skillId, p] of Object.entries(placed)) {
-    const s = after.get(skillId);
-    if (s && (s.state !== 'not_started' && s.state !== 'learning')) continue;
-    if (s && s.last_practiced_at) continue;
-    const next = s ?? newProgress(skillId);
-    if (next.state === 'not_started') transitions.push({ skill_id: skillId, from: 'not_started', to: 'learning', reason: 'diagnostic placement' });
-    next.state = 'learning';
-    next.stage = STAGE[p.place];
-    after.set(skillId, next);
-    // Recognize at tier 1 or tier 2, unless the student already has a tier there.
-    const recognize = stageDrills(skillId, isLiveDrill).recognize;
-    if (recognize && (p.place === 'recognize' || p.place === 'recognize_t2')) {
-      const practiced = await tx.select({ id: drillSets.id }).from(drillSets).where(and(
-        eq(drillSets.studentId, studentId), eq(drillSets.drillId, recognize), eq(drillSets.status, 'completed'))).limit(5);
-      const own = practiced.length === 0 || (await tx.select({ id: drillSets.id }).from(drillSets).where(and(
-        inArray(drillSets.id, practiced.map(x => x.id)), eq(drillSets.source, 'diagnostic')))).length === practiced.length;
-      if (own) {
-        const tier = p.place === 'recognize_t2' ? 2 : 1;
-        await tx.insert(drillTiers).values({ studentId, drillId: recognize, currentTier: tier, updatedAt: new Date() })
-          .onConflictDoUpdate({ target: [drillTiers.studentId, drillTiers.drillId], set: { currentTier: tier, updatedAt: new Date() } });
-      }
-    }
-  }
+  const { before, after, transitions } = await applyPlacements(tx, studentId, placed, 'diagnostic placement');
   const events = await saveProgress(tx, studentId, before, after, transitions, { type: 'set', id: `diagnostic:${row.id}` });
 
   const complete = parts.every(p => p.done);
@@ -144,6 +155,9 @@ export async function onDiagnosticSetDone(tx: Tx, set: typeof drillSets.$inferSe
   }).where(eq(diagnostics.id, row.id));
   if (!complete) return { events, completed: null };
 
+  // The diagnostic outranks the questionnaire: its prescriptions give way.
+  await tx.update(prescriptions).set({ status: 'superseded', closedAt: new Date() })
+    .where(and(eq(prescriptions.studentId, studentId), eq(prescriptions.sourceType, 'questionnaire'), inArray(prescriptions.status, ['open', 'in_progress', 'paused'])));
   // Up to 3 prescriptions from the diagnostic's mistakes, for skills with none open.
   const open = new Set((await tx.select({ s: prescriptions.skillId }).from(prescriptions)
     .where(and(eq(prescriptions.studentId, studentId), inArray(prescriptions.status, ['open', 'in_progress', 'paused'])))).map(r => r.s));

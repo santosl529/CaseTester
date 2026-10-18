@@ -27,7 +27,7 @@ import { logDrillEvent } from '../events';
 import { isLive, previewDrafts } from '../live';
 import { lowerName, newProgress, nextSetFor, stageOfDrill, type SetKind } from '../progress/engine';
 import { loadProgress, loadTiers, progressContext } from '../progress/store';
-import type { WorkoutBlock } from '../program/workout';
+import { checkSize, type WorkoutBlock } from '../program/workout';
 import type { DiagnosticPart } from '../program/diagnostic';
 import { attachDiagnosticSet, diagnosticView, startDiagnostic } from '../program/diagnostic-store';
 import { defendLessonFor, lessonSkills } from '../program/lessons-store';
@@ -58,7 +58,7 @@ export { previewDrafts };
 
 async function settingsFor(studentId: string) {
   const [row] = await db.select().from(studentDrillSettings).where(eq(studentDrillSettings.studentId, studentId));
-  return { timeMultiplier: row?.timeMultiplier ?? 1, untimed: row?.untimed ?? false, skippedExamples: row?.skippedExamples ?? [] };
+  return { timeMultiplier: row?.timeMultiplier ?? 1, untimed: row?.untimed ?? false, hideTimer: row?.hideTimer ?? false, skippedExamples: row?.skippedExamples ?? [] };
 }
 
 async function loadSet(studentId: string, setId: string): Promise<SetRow> {
@@ -105,6 +105,8 @@ export const StartSetSchema = z.object({
   // Started from Browse drills, or from the Suggested next card (analytics).
   browse: z.boolean().optional(),
   // The Suggested next card's reason and slot, logged with suggestion_started.
+  // A self-directed quick check of a questionnaire placement (with quick_start).
+  placement_check: z.boolean().optional(),
   suggestion: z.object({ reason: z.string().transform(s => s.slice(0, 300)), source: z.enum(['weak', 'unfamiliar', 'review']) }).optional(),
 }).refine(b => b.skill_id || b.drill_id || b.prescription_id || b.workout_id || b.diagnostic_part !== undefined,
   'skill_id, drill_id, prescription_id, workout_id or diagnostic_part is required')
@@ -126,6 +128,8 @@ interface SetChoice {
   block?: number;
   slot?: string;
   diagnostic?: { id: string; part: number };
+  // A quick check of a questionnaire placement (its score re-places the skill).
+  check?: boolean;
 }
 
 async function chooseSet(studentId: string, input: z.infer<typeof StartSetSchema>): Promise<SetChoice> {
@@ -155,7 +159,7 @@ async function chooseSet(studentId: string, input: z.infer<typeof StartSetSchema
     return {
       drill, tier: block.tier as Tier, source: block.kind === 'review' ? 'review' : 'continue', prescriptionId: block.prescription_id,
       focusSkill: block.skill_id, focusTag: focusFor(drill, rx?.focusTag ?? state?.tag ?? null), kind: block.kind, size: block.size,
-      workoutId: w.id, block: input.block, slot: block.slot,
+      workoutId: w.id, block: input.block, slot: block.slot, check: block.check === true,
     };
   }
   if (input.quick_start) {
@@ -169,6 +173,7 @@ async function chooseSet(studentId: string, input: z.infer<typeof StartSetSchema
     return {
       drill, tier: next.tier as Tier, source: next.kind === 'review' ? 'review' : rx ? 'prescription' : 'specific',
       prescriptionId: rx?.id ?? null, focusSkill: p.skill_id, focusTag: focusFor(drill, rx?.focusTag ?? p.next_focus_tag), kind: next.kind,
+      ...(input.placement_check && { check: true, size: checkSize(drill.id, next.tier) }),
     };
   }
   if (input.prescription_id) {
@@ -236,8 +241,9 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
   if (existing) throw new DrillError('set_in_progress', 409, 'Finish or leave your current set first', { set_id: existing.id });
 
   const setId = randomUUID();
-  // Fixed for the whole set: "No time limit", and whether it runs the Defend follow-up.
-  const { untimed } = await settingsFor(studentId);
+  // The student's last timer choices are the set's defaults; "No time limit"
+  // is fixed once the first item is served. Whether it runs Defend is fixed now.
+  const { untimed, hideTimer } = await settingsFor(studentId);
   const defend = defendRuns(drill, tier, choice.source);
   const size = choice.size ?? setSizeFor(drill, kind, tier, defend);
   const fresh = kind === 'transfer' ? 'transfer' : choice.slot === 'unfamiliar' ? 'unfamiliar' : null;
@@ -259,9 +265,10 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
 
   try {
     await db.insert(drillSets).values({
-      id: setId, studentId, drillId: drill.id, level: drill.level, stage, tier, size: plan.length, untimed,
+      id: setId, studentId, drillId: drill.id, level: drill.level, stage, tier, size: plan.length, untimed, timerHidden: hideTimer,
       source: choice.source, prescriptionId: choice.prescriptionId, isTransferCheck: kind === 'transfer',
       focusSkill: choice.focusSkill, focusTag: choice.focusTag, itemPlan: plan, taxonomyVersion: TAXONOMY_VERSION,
+      isPlacementCheck: choice.check === true,
       workoutId: choice.workoutId ?? null, slot: choice.slot ?? null,
     });
     if (choice.workoutId !== undefined) await attachToWorkout(choice.workoutId, choice.block!, setId);
@@ -436,6 +443,9 @@ export async function setView(studentId: string, setId: string) {
     skills: skills.map(s => ({ id: s.id, name: s.name })),
     focus_skill: set.focusSkill ? skills.find(s => s.id === set.focusSkill)?.name ?? null : null,
     untimed: set.untimed,
+    timer_hidden: set.timerHidden,
+    // The timed/untimed choice is open until the first item is served.
+    timer_choice_open: set.currentPosition === 0 && set.currentServedAt === null,
     time_limit_ms: limits[0],
     stage_limits_ms: limits,
     ai_graded: isAiGraded(drill),
@@ -466,6 +476,8 @@ export async function fetchItem(studentId: string, setId: string, position: numb
     .where(and(eq(drillSets.id, setId), eq(drillSets.studentId, studentId)));
   if (!row) throw new DrillError('not_found', 404, 'Set not found');
   const { set } = row;
+  // A pause left open (a reload with a dialog open) ends here.
+  if (set.pausedAt && await resumePaused(set.id, studentId, 'reload')) return fetchItem(studentId, setId, position);
   if (set.status !== 'in_progress') throw new DrillError('set_closed', 409, `This set is ${set.status}`);
   if (position !== set.currentPosition) {
     throw new DrillError('out_of_order', 409, 'Items are served in order', { position: set.currentPosition });
@@ -536,6 +548,8 @@ export async function submitAttempt(studentId: string, setId: string, body: z.in
     .where(and(eq(drillSets.id, setId), eq(drillSets.studentId, studentId)));
   if (!row) throw new DrillError('not_found', 404, 'Set not found');
   const { set, prior } = row;
+  // Submitting ends a pause; the clock is read again after it.
+  if (set.pausedAt && !prior && await resumePaused(set.id, studentId, 'submit')) return submitAttempt(studentId, setId, body, retried);
 
   // A repeated key returns the original result.
   if (prior) return itemFeedback(await resolveItem(planOf(set)[prior.position], set.tier as Tier), resultOf(prior), prior.checkResults as CheckResults | null);
@@ -776,6 +790,8 @@ export const SettingsSchema = z.object({
   time_multiplier: z.union([z.literal(1), z.literal(1.5), z.literal(2)]).optional(),
   // "No time limit" (WCAG 2.2.1); applies to sets started afterwards.
   untimed: z.boolean().optional(),
+  // "Hide timer": the default for new sets.
+  hide_timer: z.boolean().optional(),
   skip_example_for: z.string().optional(),
 });
 
@@ -784,11 +800,92 @@ export async function updateSettings(studentId: string, body: z.infer<typeof Set
   if (body.skip_example_for) getDrill(body.skip_example_for);
   const skipped = body.skip_example_for && !current.skippedExamples.includes(body.skip_example_for)
     ? [...current.skippedExamples, body.skip_example_for] : current.skippedExamples;
-  const values = { timeMultiplier: body.time_multiplier ?? current.timeMultiplier, untimed: body.untimed ?? current.untimed, skippedExamples: skipped, updatedAt: new Date() };
+  const values = {
+    timeMultiplier: body.time_multiplier ?? current.timeMultiplier, untimed: body.untimed ?? current.untimed, hideTimer: body.hide_timer ?? current.hideTimer,
+    skippedExamples: skipped, updatedAt: new Date(),
+  };
   await db.insert(studentDrillSettings).values({ studentId, ...values })
     .onConflictDoUpdate({ target: studentDrillSettings.studentId, set: values });
   if (body.skip_example_for) await logDrillEvent(studentId, 'drill_example_skipped', { drill_id: body.skip_example_for });
-  return { time_multiplier: values.timeMultiplier, untimed: values.untimed, skipped_examples: skipped };
+  return { time_multiplier: values.timeMultiplier, untimed: values.untimed, hide_timer: values.hideTimer, skipped_examples: skipped };
 }
 
 export { settingsFor, formatNumericAnswer };
+
+// ----------------------------------------------------------- timer options
+
+// Timed or No timer, and Hide timer (D6 round 2). The timed/untimed choice is
+// made on the intro screen and fixed once the first item is served; the timer
+// can be shown or hidden at any time. Both become the student's defaults.
+export const TimerSchema = z.object({
+  untimed: z.boolean().optional(),
+  hidden: z.boolean().optional(),
+  // Sent with the intro screen's Start: logs the choice.
+  at_start: z.boolean().default(false),
+});
+
+export async function setTimer(studentId: string, setId: string, body: z.input<typeof TimerSchema>) {
+  if (!z.uuid().safeParse(setId).success) throw new DrillError('not_found', 404, 'Set not found');
+  const set = await loadSet(studentId, setId);
+  if (set.status !== 'in_progress') throw new DrillError('set_closed', 409, `This set is ${set.status}`);
+  const open = set.currentPosition === 0 && set.currentServedAt === null;
+  const untimed = body.untimed !== undefined && open ? body.untimed : set.untimed;
+  const hidden = body.hidden ?? set.timerHidden;
+  await db.update(drillSets).set({ untimed, timerHidden: hidden }).where(eq(drillSets.id, set.id));
+  await updateSettings(studentId, { hide_timer: hidden, ...(body.untimed !== undefined && open && { untimed }) });
+  if (body.at_start) await logDrillEvent(studentId, 'timer_chosen', { set_id: set.id, untimed, timer_hidden: hidden });
+  else if (hidden !== set.timerHidden) await logDrillEvent(studentId, 'timer_visibility_changed', { set_id: set.id, position: set.currentPosition, timer_hidden: hidden });
+  return { untimed, timer_hidden: hidden };
+}
+
+// ------------------------------------------------------------------ pauses
+
+// The clock pauses while Report a problem or the feedback box is open (D6
+// round 2). Resuming moves the item's start (and a stage's) forward by the
+// pause, so every limit check and the time recorded leave it out. Each pause
+// is logged (timer_paused / timer_resumed) so the reports can spot abuse.
+export const PauseSchema = z.object({
+  action: z.enum(['pause', 'resume']),
+  reason: z.enum(['feedback', 'report']),
+});
+
+export async function pauseTimer(studentId: string, setId: string, body: z.infer<typeof PauseSchema>) {
+  if (!z.uuid().safeParse(setId).success) throw new DrillError('not_found', 404, 'Set not found');
+  const set = await loadSet(studentId, setId);
+  // Nothing to pause: no item on the clock, or no clock.
+  if (set.status !== 'in_progress' || !set.currentServedAt || set.untimed) return { paused: false };
+  if (body.action === 'pause') {
+    const [paused] = await db.update(drillSets).set({ pausedAt: new Date() })
+      .where(and(eq(drillSets.id, set.id), isNull(drillSets.pausedAt), eq(drillSets.currentPosition, set.currentPosition)))
+      .returning({ id: drillSets.id });
+    if (paused) await logDrillEvent(studentId, 'timer_paused', { set_id: set.id, position: set.currentPosition, reason: body.reason });
+    return { paused: true };
+  }
+  await resumePaused(set.id, studentId, body.reason);
+  // The clock after the pause, for the countdown.
+  const fresh = await loadSet(studentId, setId);
+  const [settings] = await db.select({ m: studentDrillSettings.timeMultiplier }).from(studentDrillSettings).where(eq(studentDrillSettings.studentId, studentId));
+  const item = await resolveItem(planOf(fresh)[fresh.currentPosition], fresh.tier as Tier);
+  const pending = fresh.pendingStep as PendingStep | null;
+  return { paused: false, ...stepTiming(getDrill(fresh.drillId), item, fresh.tier as Tier, settings?.m ?? 1, pending?.steps.length ?? 0, fresh.currentServedAt!, pending?.stage_started_at) };
+}
+
+// Ends a pause, if one is open. Returns true when it did.
+async function resumePaused(setId: string, studentId: string, reason: string): Promise<boolean> {
+  const done = await db.transaction(async tx => {
+    const [s] = await tx.select().from(drillSets).where(and(eq(drillSets.id, setId), eq(drillSets.studentId, studentId))).for('update');
+    if (!s?.pausedAt) return null;
+    const ms = Math.max(0, Date.now() - s.pausedAt.getTime());
+    const pending = s.pendingStep as PendingStep | null;
+    await tx.update(drillSets).set({
+      pausedAt: null, pausedMs: s.pausedMs + ms,
+      currentServedAt: s.currentServedAt ? new Date(s.currentServedAt.getTime() + ms) : null,
+      pendingStep: pending?.stage_started_at ? { ...pending, stage_started_at: new Date(Date.parse(pending.stage_started_at) + ms).toISOString() } : pending,
+    }).where(eq(drillSets.id, s.id));
+    return { position: s.currentPosition, ms };
+  });
+  if (!done) return false;
+  await logDrillEvent(studentId, 'timer_resumed', { set_id: setId, position: done.position, reason, paused_ms: done.ms });
+  return true;
+}
+

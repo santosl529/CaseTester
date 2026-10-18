@@ -14,7 +14,7 @@
 
 **Next steps** (in this order):
 1. **D6, before the pilot:** a person runs the manual accessibility checklist (`docs/drills-a11y-audit.md`); the landing page's placeholder-only labels are fixed on `main`; the club code is in `CLUB_CODES` on Vercel; `CRON_SECRET` and a Vercel Cron for `/api/internal/drills/grading`. Then the pilot itself (gate: students finish Week 0 and Week 1 and complete the full loop).
-2. **Merging `drills` into `main`:** agree migration numbering with the teammate first (see Database notes). Drills migrations are 0009–0019. Matt was given a note for the teammate about the `next.config.ts` change (traces `lessons/intro/**` into the drills routes).
+2. **Merging `drills` into `main`:** agree migration numbering with the teammate first (see Database notes). Drills migrations are 0009–0020. Matt was given a note for the teammate about the `next.config.ts` change (traces `lessons/intro/**` into the drills routes).
 3. **Watch:** SY-2's reasons check is at 91% (3 misses in 34), and CL-3 specific requests is at 90% (28/31); flag either if it drops below 90% once real student answers arrive.
 4. **Later (P1):** EX-5, PS-2 Clarifying questions, CL-2 Hold or fold, and the BJ, CR and CM drills; each skill's lesson ships with its drill. PS-2 would give Clarifying questions its lesson, the only intro skill without one.
 
@@ -39,6 +39,7 @@
 - `npm run drills:smoke:d5`: Repair sets, the 14-day rule and Defend sets end to end (preview drafts, about $0.05).
 - `npm run drills:golden -- --part defend` runs only the follow-up gates; `npm run drills:models -- --d5` only the Repair and follow-up model answers.
 - `npm run drills:smoke:events`: the events the other smokes don't reach, plus the reports on real rows (free; stub grader).
+- `npm run drills:smoke:plan`: the questionnaire plan, quick checks, source priority, timer options and pauses, self-directed checks (free).
 - `npm run drills:smoke:feedback`: the feedback button, Report a problem, check-in rules, the review queue, the daily limit and the feedback reports (free).
 - After UI changes: `npm run dev`, then `npm run drills:a11y` (free; see `docs/drills-a11y-audit.md`).
 - Free: `npm run typecheck`, `npm test` (includes the model-answer unit test and the cross-drill scenario check), `npm run lint`, then `npm run db:seed-drill-items`.
@@ -647,4 +648,17 @@ Matt lifted the D6 hold ("build D6"). Answers: reports location "not sure yet"; 
 - **PRD**: new "Pilot feedback (D6)" section; data model (20 tables; the three new ones replace `grade_disputes`); API rows; events; a Feedback row in MVP reports; D6 phase row; grade disputes dropped from P1.
 - **Audit**: 40 pages including the open dialogs, both check-ins and the review queue; 0 axe violations, focus on every stop, no sideways scrolling; phone-width screenshots of every page. Screens for Matt: `logs/a11y/2026-10-18T00-58-14-366Z/`.
 - Checks: typecheck, 1599 tests, lint, all nine smokes and the production build pass.
+
+## D6 round 2: plan sources, timer options, pauses, drill descriptions (2026-10-18)
+
+- **Matt's diagnostic bug, found:** `attachDiagnosticSet` read the parts list and wrote it back. Starting SY-2 while PS-3 was still grading wrote a stale list over PS-3's "done", so the diagnostic stayed in progress (9 of 10) and no plan or prescriptions were made. Now one jsonb_set update; `healDiagnostic` (lib/drills/grading/jobs.ts) records any finished-but-unrecorded part when the home, the diagnostic page or the plan page loads. Matt's account (WHARTON2026, a86e6194…) repairs itself on his next visit. Also by design: week 0 had no workout ("first workout tomorrow").
+- **Migration 0020** (additive, applied): `prescription_source` + 'questionnaire'; table `drill_questionnaires`; `drill_sets` timer_hidden, paused_at, paused_ms, is_placement_check; `student_drill_settings.hide_timer`; `student_programs` plan_source, plan_created_at, plan_seen_at.
+- **Plans** (`lib/drills/program/plan-source.ts`, rules in `questionnaire.ts`): no workouts until a source; the first (case session, diagnostic, questionnaire) sets start_date to yesterday so week 1 / Sprint day 2 is today; case > diagnostic > questionnaire; switches carry the source (and start week 1 today once a plan exists). Questionnaire: ratings → PS+HY / QN / EX / SY+CL; 1–2 Recognize T1, 3 Recognize T2, 4–5 Repair (never test-out); up to 3 prescriptions (hardest, then ≤3 ratings); quick checks (up to 2 half-size sets leading each workout, one per area) re-place via diagnostic thresholds (`applyPlacementCheck`). Diagnostic supersedes questionnaire prescriptions. Pages: `/drills/questionnaire`, `/drills/plan` (Your plan / Your starting point), home "Get your plan" and "Your plan is ready", diagnostic "See your plan". Onboarding now goes to the home. Self-directed: same placements; the suggestion is a quick check, or week 1's first focus skill when nothing is prescribed.
+- **Timer:** intro chooses Timed / No timer (locked after the first item; `PUT /sets/{id}/timer`) and Hide the countdown; Show/Hide timer mid-set; hidden shows "Less than 10 seconds left". Defaults are the student's last choice.
+- **Pauses:** Report a problem and the feedback box pause the item's clock (`POST /sets/{id}/pause`); resume shifts served_at (and a stage start) forward, so limits and time_ms leave the pause out; a reload or submit ends an open pause. Reports: Timer pauses per student; Plan sources.
+- **Browse/Learn:** drill cards by interview stage (from the intro lesson's Skills lines), two lines from `lib/drills/config/drill-descriptions.json` (drafts; review CSV `docs/drills-content/drill-descriptions.csv`), skills, items, minutes at the student's tier, tier + Start; Practice a skill (quick start) below. Learn and lessons list the drills that practice the skill.
+- **Events:** questionnaire_completed, plan_created, timer_chosen, timer_visibility_changed, timer_paused/_resumed. **PRD** updated (Getting a plan, intro/item screens, Browse, Lessons, data model, API, events, reports).
+- **Audit:** 46 pages, 0 violations, focus on every stop (walk limit raised to 150), no sideways scrolling. Screens: `logs/a11y/2026-10-18T05-16-24-513Z/`.
+- Checks: typecheck, 1608 tests, lint, all ten smokes and the build pass.
+- Report loaders: 11 parallel queries stalled the pooler earlier; still sequential.
 

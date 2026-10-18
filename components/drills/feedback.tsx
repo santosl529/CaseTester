@@ -33,10 +33,18 @@ function Comment({ id, value, onChange, label }: { id: string; value: string; on
   );
 }
 
+// While a dialog is open on an item, the item's clock is paused (D6 round 2):
+// the runner listens for these and tells the server.
+type PauseReason = 'feedback' | 'report';
+function openWithPause(dialog: HTMLDialogElement | null, reason: PauseReason) {
+  window.dispatchEvent(new CustomEvent('drills:timer-pause', { detail: reason }));
+  dialog?.showModal();
+}
+
 // A modal with a title, a form and Cancel / Send; shows "Thanks" once sent.
-function FeedbackDialog({ dialogRef, title, children, onSend, canSend, reset }: {
+function FeedbackDialog({ dialogRef, title, children, onSend, canSend, reset, pauseReason }: {
   dialogRef: React.RefObject<HTMLDialogElement | null>; title: string; children: React.ReactNode;
-  onSend: () => Promise<string | null>; canSend: boolean; reset: () => void;
+  onSend: () => Promise<string | null>; canSend: boolean; reset: () => void; pauseReason: PauseReason;
 }) {
   const titleId = useId();
   const [busy, setBusy] = useState(false);
@@ -49,7 +57,8 @@ function FeedbackDialog({ dialogRef, title, children, onSend, canSend, reset }: 
     reset();
   };
   return (
-    <dialog ref={dialogRef} aria-labelledby={titleId} onClose={() => { setSent(false); setError(''); }}
+    <dialog ref={dialogRef} aria-labelledby={titleId}
+      onClose={() => { setSent(false); setError(''); window.dispatchEvent(new CustomEvent('drills:timer-resume', { detail: pauseReason })); }}
       className="m-auto w-[min(92vw,28rem)] rounded-lg border bg-background p-0 text-foreground backdrop:bg-black/40">
       <div className="space-y-4 p-4">
         <h2 id={titleId} className="text-base font-semibold">{title}</h2>
@@ -100,12 +109,12 @@ export function FeedbackButton() {
   const setId = /^\/drills\/sets\/([0-9a-f-]{36})/.exec(pathname)?.[1];
   return (
     <>
-      <button type="button" onClick={() => ref.current?.showModal()} aria-label="Feedback"
+      <button type="button" onClick={() => openWithPause(ref.current, 'feedback')} aria-label="Feedback"
         className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 inline-flex size-11 items-center justify-center gap-2 rounded-full border bg-background text-sm font-medium shadow-md hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:size-auto sm:px-4 sm:py-2">
         <MessageSquare aria-hidden="true" className="size-4" />
         <span className="hidden sm:inline">Feedback</span>
       </button>
-      <FeedbackDialog dialogRef={ref} title="Send feedback" canSend={category !== ''} reset={() => { setCategory(''); setText(''); }}
+      <FeedbackDialog dialogRef={ref} title="Send feedback" canSend={category !== ''} pauseReason="feedback" reset={() => { setCategory(''); setText(''); }}
         onSend={() => post('/api/drills/feedback', {
           category, comment: text, page: pathname, set_id: setId,
           device: `${navigator.userAgent.slice(0, 240)} · ${window.innerWidth}×${window.innerHeight}`,
@@ -143,11 +152,11 @@ export function ReportProblem({ setId, position, screen }: { setId: string; posi
   const id = useId();
   return (
     <>
-      <button type="button" onClick={() => ref.current?.showModal()}
+      <button type="button" onClick={() => openWithPause(ref.current, 'report')}
         className="rounded-sm text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
         Report a problem
       </button>
-      <FeedbackDialog dialogRef={ref} title={`Report a problem with item ${position + 1}`} canSend={reason !== ''}
+      <FeedbackDialog dialogRef={ref} title={`Report a problem with item ${position + 1}`} canSend={reason !== ''} pauseReason="report"
         reset={() => { setReason(''); setText(''); }}
         onSend={() => post(`/api/drills/sets/${setId}/reports`, { position, reason, comment: text, screen })}>
         <fieldset className="space-y-2">

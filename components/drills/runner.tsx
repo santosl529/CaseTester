@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,10 @@ export interface RunnerView {
   defend: { type: 'justify' | 'challenge'; seconds: number; max_words: number } | null;
   // "No time limit": no timer; the limits are only a pace target.
   untimed: boolean;
+  // The countdown is hidden (the limit still applies).
+  timer_hidden: boolean;
+  // Timed or No timer can still be chosen (no item served yet).
+  timer_choice_open: boolean;
 }
 
 interface LoadedItem {
@@ -110,6 +114,10 @@ export function DrillRunner({ view }: { view: RunnerView }) {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [showExample, setShowExample] = useState(Boolean(view.example));
+  // Timer options (D6 round 2): chosen on the intro; hide or show any time.
+  const [untimed, setUntimed] = useState(view.untimed);
+  const [hidden, setHidden] = useState(view.timer_hidden);
+  const [paused, setPaused] = useState(false);
   const keys = useRef(new Map<string, string>());
   const headingRef = useRef<HTMLHeadingElement>(null);
   const patch = (p: Partial<Draft>) => setDraft(d => ({ ...d, ...p }));
@@ -119,6 +127,37 @@ export function DrillRunner({ view }: { view: RunnerView }) {
     if (!keys.current.has(slot)) keys.current.set(slot, crypto.randomUUID());
     return keys.current.get(slot)!;
   };
+
+  // Saves the timer choice (Timed / No timer before the first item; Hide
+  // timer any time); the server keeps them as the student's defaults.
+  const saveTimer = (body: { untimed?: boolean; hidden?: boolean; at_start?: boolean }) =>
+    fetch(`/api/drills/sets/${view.set_id}/timer`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
+  const toggleHidden = (next: boolean) => {
+    setHidden(next);
+    void saveTimer({ hidden: next });
+  };
+
+  // The clock pauses while Report a problem or the feedback box is open
+  // (components/drills/feedback.tsx sends these events).
+  const phaseRef = useRef(phase);
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
+  useEffect(() => {
+    const onPause = (e: Event) => {
+      if (phaseRef.current !== 'item' || untimed) return;
+      setPaused(true);
+      void fetch(`/api/drills/sets/${view.set_id}/pause`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'pause', reason: (e as CustomEvent).detail }) });
+    };
+    const onResume = async (e: Event) => {
+      if (phaseRef.current !== 'item' || untimed) return;
+      const res = await fetch(`/api/drills/sets/${view.set_id}/pause`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'resume', reason: (e as CustomEvent).detail }) }).catch(() => null);
+      const data = res?.ok ? await res.json().catch(() => null) : null;
+      if (data && typeof data.remaining_ms === 'number') setDeadline(Date.now() + data.remaining_ms);
+      setPaused(false);
+    };
+    window.addEventListener('drills:timer-pause', onPause);
+    window.addEventListener('drills:timer-resume', onResume);
+    return () => { window.removeEventListener('drills:timer-pause', onPause); window.removeEventListener('drills:timer-resume', onResume); };
+  }, [untimed, view.set_id]);
 
   const finish = useCallback(async () => {
     setPhase('finishing');
@@ -162,6 +201,14 @@ export function DrillRunner({ view }: { view: RunnerView }) {
     setPhase('item');
     requestAnimationFrame(() => headingRef.current?.focus());
   }, [finish, view.set_id]);
+
+  // Start (or Resume): the timer choice is saved before the first item, so the
+  // server's clock knows whether this set is timed.
+  const startOrResume = async () => {
+    if (view.timer_choice_open) await saveTimer({ untimed, hidden: untimed ? false : hidden, at_start: true });
+    else if (hidden !== view.timer_hidden) await saveTimer({ hidden });
+    await loadItem(view.position);
+  };
 
   const stepSpecs: Step[] = loaded ? (loaded.item.input.steps ?? [{ type: loaded.item.input.type, weight: 1, max_words: loaded.item.input.max_words }]) : [];
   const stepIndex = steps.length;
@@ -243,7 +290,7 @@ export function DrillRunner({ view }: { view: RunnerView }) {
           <li className="rounded-lg border p-3"><span className="block text-muted-foreground">Items</span><span className="font-medium">{view.size}</span></li>
           <li className="rounded-lg border p-3">
             <span className="block text-muted-foreground">Time per item</span>
-            {view.untimed
+            {untimed
               ? <><span className="font-medium">No time limit</span><span className="block text-xs text-muted-foreground">Timed target: {time}</span></>
               : <span className="font-medium">{time}</span>}
           </li>
@@ -257,7 +304,7 @@ export function DrillRunner({ view }: { view: RunnerView }) {
         {view.defend && (
           <p className="text-sm">
             After each answer, the interviewer asks one follow-up{view.defend.type === 'challenge' ? ' that pushes back on your recommendation: hold it or update it, then say why' : ' about it'}.
-            {view.untimed ? `Write up to ${view.defend.max_words} words.` : `You get ${view.defend.seconds} s and up to ${view.defend.max_words} words.`}
+            {untimed ? `Write up to ${view.defend.max_words} words.` : `You get ${view.defend.seconds} s and up to ${view.defend.max_words} words.`}
           </p>
         )}
         {!view.diagnostic && view.ai_graded && (
@@ -282,7 +329,29 @@ export function DrillRunner({ view }: { view: RunnerView }) {
             <p className="text-sm text-muted-foreground">{view.example.explanation}</p>
           </section>
         )}
-        <Button size="lg" onClick={() => loadItem(view.position)}>{view.position > 0 ? 'Resume' : 'Start'}</Button>
+        <fieldset className="space-y-2">
+          <legend className="mb-1 text-sm font-medium">Timer</legend>
+          {view.timer_choice_open ? (
+            <div className="flex flex-wrap gap-2">
+              {[{ v: false, label: `Timed (${time} per item)` }, { v: true, label: 'No timer' }].map(o => (
+                <label key={String(o.v)} className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm has-checked:border-foreground has-focus-visible:ring-3 has-focus-visible:ring-ring/50">
+                  <input type="radio" name="timer" checked={untimed === o.v} onChange={() => setUntimed(o.v)} />
+                  {o.label}
+                </label>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">{untimed ? 'This set has no timer.' : 'This set is timed.'}</p>
+          )}
+          {!untimed && (
+            <label className="flex items-start gap-2 text-sm">
+              <input type="checkbox" checked={hidden} onChange={e => setHidden(e.target.checked)} className="mt-1" />
+              <span>Hide the countdown <span className="text-muted-foreground">(the time limit still applies; we warn you 10 seconds before it runs out)</span></span>
+            </label>
+          )}
+          <p className="text-xs text-muted-foreground">{untimed ? 'Untimed sets count fully toward your progress, and your results show how long you took.' : 'You can show or hide the timer during the set.'}</p>
+        </fieldset>
+        <Button size="lg" onClick={startOrResume}>{view.position > 0 ? 'Resume' : 'Start'}</Button>
         {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       </section>
     );
@@ -314,8 +383,14 @@ export function DrillRunner({ view }: { view: RunnerView }) {
       <h1 ref={headingRef} tabIndex={-1} className="whitespace-pre-line text-base font-medium leading-relaxed outline-none">{item.prompt}</h1>
       {item.exhibit && <DrillChart spec={item.exhibit} />}
 
-      {phase === 'item' && !view.untimed && (
-        <Timer key={deadline} deadline={deadline} totalMs={limitMs} onExpire={() => submit({ timedOut: true })} />
+      {phase === 'item' && !untimed && (
+        <div className="space-y-1">
+          <Timer key={`${loaded.position}-${limitMs}`} deadline={deadline} totalMs={limitMs} hidden={hidden} paused={paused} onExpire={() => submit({ timedOut: true })} />
+          <button type="button" onClick={() => toggleHidden(!hidden)} aria-pressed={hidden}
+            className="rounded-sm text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+            {hidden ? 'Show timer' : 'Hide timer'}
+          </button>
+        </div>
       )}
 
       {/* Finished steps: auto-checked ones show their verdict (QN-4's formula

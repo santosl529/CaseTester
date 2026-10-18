@@ -16,7 +16,7 @@ import {
   analyticsEvents, caseResults, diagnostics, drillAttempts, drillSets, drillTiers, gradingJobs, prescriptions,
   skillStateEvents, skillStates, studentDrillSettings, studentProfiles, studentPrograms, workouts,
 } from '@/db/schema';
-import { resolveItem, planOf } from '@/lib/drills/grading/jobs';
+import { healDiagnostic, resolveItem, planOf } from '@/lib/drills/grading/jobs';
 import { modelAnswerSteps } from '@/lib/drills/model-answers';
 import { completeSet, fetchItem, startSet, submitAttempt } from '@/lib/drills/sets/service';
 import type { StepResponse } from '@/lib/drills/sets/scoring';
@@ -87,6 +87,16 @@ async function main() {
     check(tiersA.length === 0, `A: diagnostic sets changed tiers: ${tiersA.map(t => `${t.drillId}=${t.currentTier}`)}`);
     const [progA] = await db.select().from(studentPrograms).where(and(eq(studentPrograms.studentId, a), eq(studentPrograms.status, 'active')));
     check(progA.track === 'standard', `A track: ${progA.track}`);
+    // The finished diagnostic made the plan (D6 round 2).
+    check(progA.planSource === 'diagnostic', `A plan source: ${progA.planSource}`);
+
+    // A part finished but left unrecorded (the 2026-10-18 lost update): the
+    // next visit records it and finishes the diagnostic.
+    const [diagA] = await db.select().from(diagnostics).where(eq(diagnostics.id, firstId));
+    const parts = (diagA.parts as { done?: boolean }[]).map((p, i) => (i === 9 ? { ...p, done: false } : p));
+    await db.update(diagnostics).set({ parts, status: 'in_progress', completedAt: null }).where(eq(diagnostics.id, firstId));
+    check(await healDiagnostic(a), 'heal: nothing to repair');
+    check((await diagnosticView(a))?.status === 'completed', 'heal: the diagnostic should be completed again');
 
     // Student B: all wrong.
     const b = await newStudent();
@@ -98,6 +108,7 @@ async function main() {
     check(rxB.length > 0 && rxB.length <= 3 && rxB.every(r => r.sourceType === 'diagnostic'), `B prescriptions: ${rxB.map(r => `${r.skillId}/${r.sourceType}`)}`);
     const [progB] = await db.select().from(studentPrograms).where(and(eq(studentPrograms.studentId, b), eq(studentPrograms.status, 'active')));
     check(progB.track === 'foundations', `B track should be foundations, is ${progB.track}`);
+    check(progB.planSource === 'diagnostic', `B plan source after the move: ${progB.planSource}`);
     check((await diagnosticView(b))?.moved_to_track === 'foundations', 'B: the diagnostic should record the move to Foundations');
     check((await diagnosticView(a))?.moved_to_track === null, 'A: no track move expected');
     const pe = await db.select().from(drillTiers).where(and(eq(drillTiers.studentId, b), eq(drillTiers.drillId, 'PS-1')));

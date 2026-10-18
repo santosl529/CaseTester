@@ -141,6 +141,13 @@
       "when": 1792282927371,
       "tag": "0019_drills_d6_feedback",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1792298210678,
+      "tag": "0020_drills_d6_plan_timer",
+      "breakpoints": true
     }
   ]
 }

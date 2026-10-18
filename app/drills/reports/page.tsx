@@ -137,6 +137,16 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
           rows={r.loop_funnel.steps.map(s => [s.step, s.n, pct(s.of_previous), pct(s.of_first)])} />
       </Section>
 
+      <Section id="plan-sources" title="How students got their plan" how={r.plan_sources.how}>
+        <Table caption="Plan sources" head={['Source', 'Students']}
+          rows={[['A full case', r.plan_sources.case], ['The diagnostic', r.plan_sources.diagnostic], ['The questionnaire', r.plan_sources.questionnaire], ['No plan yet', r.plan_sources.none]]} />
+      </Section>
+
+      <Section id="pauses" title={`Timer pauses (${r.pauses.total})`} how={r.pauses.how}>
+        <Table caption="Timer pauses by student" head={['Student', 'Club', 'Pauses', 'Total paused', 'Longest', 'Reasons']}
+          rows={r.pauses.students.map(p => [p.student.slice(0, 8), p.club ?? '–', p.pauses, `${Math.round(p.total_ms / 1000)} s`, `${Math.round(p.longest_ms / 1000)} s`, Object.entries(p.reasons).map(([k, n]) => `${k} ×${n}`).join(', ')])} />
+      </Section>
+
       <Section id="program" title="Program funnel" how={r.program_funnel.how}>
         <Table caption="Program funnel" head={['Track', ...r.program_funnel.tracks.find(t => t.track === 'standard')!.steps.map(s => s.step)]}
           rows={r.program_funnel.tracks.map(t => [t.track, ...t.steps.map(s => s.n)])} />

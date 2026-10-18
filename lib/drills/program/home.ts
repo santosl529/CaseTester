@@ -7,15 +7,18 @@ import { db } from '@/db/client';
 import { drillSets, skillStateEvents, studentDrillSettings } from '@/db/schema';
 import { getDrill, getSkill } from '../config';
 import { logDrillEvent } from '../events';
-import { stateRank, type SkillStateName } from '../progress/engine';
+import { newProgress, stateRank, type SkillStateName } from '../progress/engine';
 import { loadProgress, loadTiers, progressContext } from '../progress/store';
 import { openPrescriptions, skillProfile } from '../progress/profile';
 import { inProgressSet } from '../sets/service';
 import { DIAGNOSTIC_PARTS, diagnosticView } from './diagnostic-store';
 import { hasSeenLesson, introLesson, lessonForSkill } from './lessons-store';
 import { INTRO_LESSON_ID } from '../lessons';
-import { buildWorkout, type WorkoutBlock } from './workout';
-import { daysBetween, localDate } from './plan';
+import { blockFor, buildWorkout, planPrescriptionSkill, type WorkoutBlock } from './workout';
+import { buildPlan, daysBetween, localDate } from './plan';
+import { pendingChecks, planFromCase, type PlanSource } from './plan-source';
+import { healDiagnostic } from '../grading/jobs';
+import { isLiveDrill } from '../live';
 import {
   activeProgram, latestEvidence, nextCaseFor, noteWeekRollover, programView, studentToday, todayWorkout, weekStatus,
   workoutWithStatus,
@@ -31,15 +34,22 @@ async function weakestSkill(studentId: string, profile: Awaited<ReturnType<typeo
 }
 
 export async function homeView(studentId: string, now = new Date()) {
-  const program = await activeProgram(db, studentId);
-  if (!program) return { kind: 'onboarding' as const };
+  if (!(await activeProgram(db, studentId))) return { kind: 'onboarding' as const };
+  // A diagnostic part that finished unrecorded, and a completed case, both
+  // make the plan before the home is built.
+  await healDiagnostic(studentId);
+  await planFromCase(studentId);
+  const program = (await activeProgram(db, studentId))!;
+  // No plan yet: the home offers the diagnostic, the questionnaire or a case.
+  // A plan the student hasn't opened yet: the home leads with it.
+  const plan = { source: program.planSource as PlanSource | null, seen: program.planSeenAt !== null };
   const [view, current, profile] = await Promise.all([programView(studentId, now), inProgressSet(studentId), skillProfile(studentId, now)]);
   const resume = current && current.source !== 'diagnostic' ? { set_id: current.id, drill_name: getDrill(current.drillId).name } : null;
   const weakest = await weakestSkill(studentId, profile);
   const d = await diagnosticView(studentId);
   const diagnostic = { status: d?.status ?? 'not_started', done: d?.done ?? 0, of: DIAGNOSTIC_PARTS };
 
-  if (program.track === 'self_directed') return { kind: 'self_directed' as const, resume, weakest, diagnostic, ...(await selfDirected(studentId, profile, view!, now)) };
+  if (program.track === 'self_directed') return { kind: 'self_directed' as const, resume, weakest, diagnostic, plan, ...(await selfDirected(studentId, profile, view!, now)) };
 
   const progress = await loadProgress(db, studentId);
   const { timezone } = await studentToday(studentId, now);
@@ -72,7 +82,7 @@ export async function homeView(studentId: string, now = new Date()) {
   });
 
   return {
-    kind: 'plan' as const, resume, weakest, diagnostic, program: view!, week_status: status, workout, lesson_first: lessonFirst, intro_first: introFirst,
+    kind: 'plan' as const, resume, weakest, diagnostic, plan, program: view!, week_status: status, workout, lesson_first: lessonFirst, intro_first: introFirst,
     estimated_minutes: workout ? Math.round(workout.blocks.reduce((s, b) => s + b.minutes, 0)) : null,
     diagnose_today: !workout && ((view!.plan.kind === 'weeks' && week?.week === 0) || (view!.plan.kind === 'days' && view!.day?.day === 1)),
     next_case: nextCase,
@@ -85,14 +95,23 @@ async function selfDirected(studentId: string, profile: Awaited<ReturnType<typeo
   const [progress, tiers, ctx, rx] = await Promise.all([loadProgress(db, studentId), loadTiers(db, studentId), progressContext(db, studentId, now), openPrescriptions(studentId)]);
   await logDrillEvent(studentId, 'drills_home_viewed', { track: 'self_directed', week: null, open_prescriptions: rx.length, interview_days_out: view.interview_days_out });
   const [settings] = await db.select({ m: studentDrillSettings.timeMultiplier }).from(studentDrillSettings).where(eq(studentDrillSettings.studentId, studentId));
-  const workout = buildWorkout({
-    track: 'standard', week: null, sprint_day: null, interview_days_out: view.interview_days_out, progress, tiers,
+  const input = {
+    track: 'standard' as const, week: null, sprint_day: null, interview_days_out: view.interview_days_out, progress, tiers,
     prescriptions: rx.map(r => ({ id: r.id, skill_id: r.skill_id, priority: r.priority, source: r.source, reason: r.reason, created_at: new Date(0) })),
-    missed_milestone_skills: [], time_multiplier: settings?.m ?? 1, ctx,
-  });
+    missed_milestone_skills: [], time_multiplier: settings?.m ?? 1, ctx, checks: await pendingChecks(studentId),
+  };
+  const workout = buildWorkout(input);
   const order: WorkoutBlock['slot'][] = ['weak', 'unfamiliar', 'review'];
-  const pick = [...workout.blocks].sort((a, b) => order.indexOf(a.slot) - order.indexOf(b.slot))[0] ?? null;
-  const suggested = pick && { skill_id: pick.skill_id, skill_name: getSkill(pick.skill_id).name, drill_name: getDrill(pick.drill_id).name, reason: pick.reason, minutes: Math.round(pick.minutes), kind: pick.kind, slot: pick.slot };
+  let pick: WorkoutBlock | null = [...workout.blocks].sort((a, b) => order.indexOf(a.slot) - order.indexOf(b.slot))[0] ?? null;
+  // A plan source but nothing prescribed yet (a case with no findings):
+  // start where week 1 of a plan would.
+  if (!pick && view.plan_source) {
+    const weekOne = buildPlan({ track: 'standard', start_date: view.today, interview_date: null, workouts_per_week: 4 });
+    const skill = weekOne.kind === 'weeks' ? planPrescriptionSkill(weekOne.weeks[1], progress, input.prescriptions, isLiveDrill) : null;
+    const b = skill ? blockFor(progress.get(skill) ?? newProgress(skill), input, 'weak') : null;
+    if (b) pick = { ...b, slot: 'weak', reason: `A good first step: ${getSkill(b.skill_id).name}.`, prescription_id: null, set_id: null };
+  }
+  const suggested = pick && { skill_id: pick.skill_id, skill_name: getSkill(pick.skill_id).name, drill_name: getDrill(pick.drill_id).name, reason: pick.reason, minutes: Math.round(pick.minutes), kind: pick.kind, slot: pick.slot, check: pick.check === true };
   if (suggested) await logDrillEvent(studentId, 'suggestion_shown', { drill_id: pick!.drill_id, skill_id: pick!.skill_id, reason: pick!.reason, source: pick!.slot });
 
   const weaknesses = profile.top_mistakes.slice(0, 3);

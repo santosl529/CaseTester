@@ -19,7 +19,7 @@ import type { CaseResultPayload } from '../case-result';
 import type { ProgressMap } from '../progress/engine';
 import { createPlanPrescription, loadProgress, loadTiers, progressContext, type PendingEvent } from '../progress/store';
 import {
-  assignTrack, buildPlan, currentDay, currentWeek, daysBetween, localDate, offerSprint, type CasesDone, type Plan,
+  addDays, assignTrack, buildPlan, currentDay, currentWeek, daysBetween, localDate, offerSprint, type CasesDone, type Plan,
   type PlanWeek, type Track,
 } from './plan';
 import {
@@ -27,6 +27,7 @@ import {
   type WorkoutBlock,
 } from './workout';
 import { DIFFICULTY_TIER, pickNextCase, type NextCase } from './next-case';
+import { pendingChecks } from './plan-source';
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type Exec = typeof db | Tx;
@@ -90,10 +91,15 @@ async function openProgram(studentId: string, p: {
 }, reason: string): Promise<ProgramRow> {
   const { row, switched } = await db.transaction(async tx => {
     const closed = await tx.update(studentPrograms).set({ status: 'switched', endedAt: new Date() })
-      .where(and(eq(studentPrograms.studentId, studentId), eq(studentPrograms.status, 'active'))).returning({ id: studentPrograms.id });
+      .where(and(eq(studentPrograms.studentId, studentId), eq(studentPrograms.status, 'active')))
+      .returning({ id: studentPrograms.id, planSource: studentPrograms.planSource, planCreatedAt: studentPrograms.planCreatedAt, planSeenAt: studentPrograms.planSeenAt });
+    // The plan's source carries over: a switch doesn't send the student back
+    // to "get your plan".
+    const carried = closed[0] ?? null;
     const [row] = await tx.insert(studentPrograms).values({
       studentId, track: p.track, planVersion: programs.version, startDate: p.startDate, interviewDate: p.interviewDate,
       workoutsPerWeek: p.workoutsPerWeek, casesDone: p.casesDone,
+      planSource: carried?.planSource ?? null, planCreatedAt: carried?.planCreatedAt ?? null, planSeenAt: carried?.planSeenAt ?? null,
     }).returning();
     // Today's workout belonged to the old plan; tomorrow's is built from the new one.
     await tx.update(workouts).set({ status: 'expired' })
@@ -125,8 +131,11 @@ export async function changeProgram(studentId: string, input: z.infer<typeof Cha
     if (track !== 'sprint' && current.track !== 'sprint') track = current.track;
   }
   if (track === 'sprint' && !interviewDate) throw new ProgramError('bad_request', 'Sprint needs an interview date.');
+  // With a plan already made, the rebuilt plan's week 1 (Sprint day 2) starts
+  // today; before one, it starts at week 0 like onboarding.
   await openProgram(studentId, {
-    track, startDate: today, interviewDate, workoutsPerWeek: input.availability ? workoutsPerWeek(input.availability) : (current.workoutsPerWeek ?? workoutsPerWeek()),
+    track, startDate: current.planSource ? addDays(today, -1) : today, interviewDate,
+    workoutsPerWeek: input.availability ? workoutsPerWeek(input.availability) : (current.workoutsPerWeek ?? workoutsPerWeek()),
     casesDone: current.casesDone,
   }, input.track ? 'student_switched' : 'settings_changed');
   return programView(studentId);
@@ -175,6 +184,7 @@ export async function programView(studentId: string, now = new Date()) {
     track: program.track, start_date: program.startDate, interview_date: program.interviewDate,
     interview_days_out: program.interviewDate ? daysBetween(today, program.interviewDate) : null,
     workouts_per_week: program.workoutsPerWeek, today, plan, week, day,
+    plan_source: program.planSource as 'case' | 'diagnostic' | 'questionnaire' | null, plan_seen: program.planSeenAt !== null,
     total_weeks: plan.kind === 'weeks' ? plan.weeks.length - 1 : null,
     sprint_day_index: plan.kind === 'days' ? plan.days.findIndex(d => d.date === today) + 1 : null,
   };
@@ -193,11 +203,14 @@ export async function todayWorkout(studentId: string, now = new Date()): Promise
   const [existing] = await db.select().from(workouts).where(and(eq(workouts.studentId, studentId), eq(workouts.date, today)));
   if (existing && existing.status !== 'expired') return existing;
 
+  // No plan yet: the diagnostic, the questionnaire or a case makes one.
+  if (!program.planSource) return null;
   const plan = planOf(program);
   const week = currentWeek(plan, today);
   const day = currentDay(plan, today);
   // Week 0 and Sprint day 1 are the diagnostic and the baseline case.
   if ((plan.kind === 'weeks' && week?.week === 0) || (plan.kind === 'days' && (!day || day.workout_minutes === 0))) return null;
+  const checks = await pendingChecks(studentId);
 
   const built = await db.transaction(async tx => {
     // Older unfinished workouts close at midnight.
@@ -218,7 +231,7 @@ export async function todayWorkout(studentId: string, now = new Date()): Promise
       interview_days_out: program.interviewDate ? daysBetween(today, program.interviewDate) : null,
       progress, tiers: await loadTiers(tx, studentId), prescriptions: rx,
       missed_milestone_skills: plan.kind === 'weeks' ? missedMilestoneSkills(week, plan.weeks, progress) : [],
-      time_multiplier: settings?.m ?? 1, ctx,
+      time_multiplier: settings?.m ?? 1, ctx, checks,
     });
     const values = { studentId, programId: program.id, programWeek: week?.week ?? null, date: today, targetMinutes: workout.target_minutes, blocks: workout.blocks, status: 'planned' as const };
     if (existing) {

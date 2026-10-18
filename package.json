@@ -26,6 +26,7 @@
     "drills:smoke:tracks": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-tracks.ts",
     "drills:smoke:events": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-events.ts",
     "drills:smoke:feedback": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-feedback.ts",
+    "drills:smoke:plan": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-plan.ts",
     "drills:a11y": "tsx --conditions=react-server --env-file=.env.local scripts/drills-a11y.ts",
     "drills:reports": "tsx --conditions=react-server --env-file=.env.local scripts/drills-reports.ts",
     "drills:export-disputes": "tsx --conditions=react-server --env-file=.env.local scripts/drills-export-disputes.ts",

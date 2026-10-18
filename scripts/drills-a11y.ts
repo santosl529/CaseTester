@@ -20,20 +20,21 @@ import { chromium, type Page } from 'playwright';
 import { AxeBuilder } from '@axe-core/playwright';
 import { db } from '@/db/client';
 import {
-  analyticsEvents, diagnostics, drillAttempts, drillCheckins, drillFeedback, drillItemReports, drillSets, drillTiers, gradingJobs, lessonViews,
+  analyticsEvents, diagnostics, drillAttempts, drillCheckins, drillFeedback, drillItemReports, drillQuestionnaires, drillSets, drillTiers, gradingJobs, lessonViews,
   prescriptions, sessions, skillStateEvents, skillStates, studentDrillSettings, studentPrograms, studentProfiles, workouts,
 } from '@/db/schema';
 import { reportProblem } from '@/lib/drills/feedback';
+import { submitQuestionnaire } from '@/lib/drills/program/plan-source';
 import { DRILLS_CONFIG } from '@/lib/drills/config';
 import { enqueueGrading, planOf, resolveItem, runGradingJob } from '@/lib/drills/grading/jobs';
 import type { CallModel } from '@/lib/drills/grading/grader';
 import type { Tier } from '@/lib/drills/item-schema';
-import { completeSet, fetchItem, inProgressSet, startSet, submitAttempt, updateSettings } from '@/lib/drills/sets/service';
-import { onboard } from '@/lib/drills/program/store';
+import { completeSet, fetchItem, inProgressSet, setTimer, startSet, submitAttempt, updateSettings } from '@/lib/drills/sets/service';
+import { changeProgram, onboard } from '@/lib/drills/program/store';
 
 const BASE = process.env.A11Y_BASE_URL ?? 'http://localhost:3000';
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
-const MAX_TABS = 60;
+const MAX_TABS = 150;
 // Screenshots of each page (desktop width), for the manual review.
 const RUN = new Date().toISOString().replace(/[:.]/g, '-');
 const SHOTS = path.join(process.cwd(), 'logs', 'a11y', RUN);
@@ -180,7 +181,11 @@ async function main() {
     await scan(page, 'Onboarding', '/drills/start', p => p.waitForSelector('main form', { timeout: 15_000 }));
     await onboard(student, { wants_plan: true, interview_date: null, cases_done: '1-5', availability: 'standard', timezone: 'America/New_York' });
 
-    await scan(page, 'Training home', '/drills');
+    await scan(page, 'Training home (no plan yet: Get your plan)', '/drills');
+    await scan(page, 'Questionnaire', '/drills/questionnaire', p => p.waitForSelector('main form', { timeout: 15_000 }));
+    await submitQuestionnaire(student, { interview_date: null, cases_done: '1-5', availability: 'standard', ratings: { structuring: 2, math: 3, charts: 4, recommendations: 3 }, hardest: 'structuring' });
+    await scan(page, 'Training home (Your plan is ready)', '/drills');
+    await scan(page, 'Your plan', '/drills/plan');
     await scan(page, 'Diagnostic', '/drills/diagnostic');
     await scan(page, 'Browse drills', '/drills/browse');
     await scan(page, 'Learn library', '/drills/learn');
@@ -215,6 +220,21 @@ async function main() {
       await scan(page, 'Set: EX-1 untimed', `/drills/sets/${set_id}`, setReady);
       await expire(set_id);
       await updateSettings(student, { untimed: false });
+    }
+
+    // A hidden timer, about 8 seconds before time runs out: the warning shows.
+    {
+      const { set_id } = await startSet(student, { drill_id: 'PS-1' });
+      await setTimer(student, set_id, { untimed: false, hidden: true, at_start: true });
+      await fetchItem(student, set_id, 0);
+      const [s] = await db.select().from(drillSets).where(eq(drillSets.id, set_id));
+      const limit = DRILLS_CONFIG.drills.drills.find(d => d.id === 'PS-1')!.time_limits_s![s.tier - 1] * 1000;
+      await db.update(drillSets).set({ currentServedAt: new Date(Date.now() - limit + 9_000) }).where(eq(drillSets.id, set_id));
+      await scan(page, 'Item with a hidden timer (10-second warning)', `/drills/sets/${set_id}`, async p => {
+        await setReady(p);
+        await p.getByText('Less than 10 seconds left.').waitFor({ timeout: 10_000 });
+      });
+      await expire(set_id);
     }
 
     // HY-2 stage 2: the new fact revealed, after stage 1.
@@ -270,6 +290,10 @@ async function main() {
       await reportProblem(student, set_id, { position: 0, reason: 'grade_unfair', comment: 'I asked for costs by month.', screen: 'results' });
       await scan(page, 'Review queue (local dev)', '/drills/review/reports');
       await scan(page, 'Pilot reports with feedback (the audit club)', '/drills/reports?org=a11y-test');
+      // Practice on my own: the starting point instead of a plan.
+      await changeProgram(student, { track: 'self_directed' });
+      await scan(page, 'Your starting point (practice on my own)', '/drills/plan');
+      await scan(page, 'Training home (practice on my own)', '/drills');
     }
   } finally {
     await browser.close();
@@ -286,7 +310,7 @@ async function main() {
     await db.delete(workouts).where(eq(workouts.studentId, student));
     await db.delete(studentPrograms).where(eq(studentPrograms.studentId, student));
     await db.delete(diagnostics).where(eq(diagnostics.studentId, student));
-    for (const t of [prescriptions, skillStateEvents, skillStates, drillTiers, studentDrillSettings, lessonViews]) await db.delete(t).where(eq(t.studentId, student));
+    for (const t of [prescriptions, skillStateEvents, skillStates, drillTiers, studentDrillSettings, lessonViews, drillQuestionnaires]) await db.delete(t).where(eq(t.studentId, student));
     await db.delete(studentProfiles).where(eq(studentProfiles.userId, student));
     await new Promise(r => setTimeout(r, 1500));
     await db.delete(analyticsEvents).where(eq(analyticsEvents.userId, student));

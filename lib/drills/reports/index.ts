@@ -3,8 +3,8 @@
 import 'server-only';
 import { auditEventRows, missingEvents } from '../event-audit';
 import {
-  costAlert, defend, drillEffectiveness, engagement, gradingCost, itemHealth, lessons, loopFunnel, planVsSelf, programFunnel, stuckRule,
-  transfer, workoutMix,
+  costAlert, defend, drillEffectiveness, engagement, gradingCost, itemHealth, lessons, loopFunnel, pauses, planSources, planVsSelf, programFunnel,
+  stuckRule, transfer, workoutMix,
 } from './compute';
 import { loadEventRows, loadReportData, type ReportFilter } from './data';
 
@@ -20,6 +20,8 @@ export async function buildReports(filter: ReportFilter) {
     cost_alert: costAlert(data),
     loop_funnel: loopFunnel(data),
     program_funnel: programFunnel(data),
+    plan_sources: planSources(data),
+    pauses: pauses(data),
     drill_effectiveness: drillEffectiveness(data),
     transfer: transfer(data),
     lessons: lessons(data),

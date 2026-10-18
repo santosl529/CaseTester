@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { drillsForSkill } from '@/lib/drills/drill-info';
 import { notFound } from 'next/navigation';
 import { studentOrRedirect } from '@/lib/drills/session';
 import { lessonForSkill } from '@/lib/drills/program/lessons-store';
@@ -37,6 +38,14 @@ export default async function LessonPage({ params, searchParams }: {
         <Link href="/drills/learn" className="text-muted-foreground underline-offset-4 hover:underline">All lessons</Link>
       </nav>
       <LessonBody lesson={lesson} mode={mode} />
+      {drillsForSkill(lesson.skill_id).length > 0 && (
+        <section aria-labelledby="practice" className="space-y-1">
+          <h2 id="practice" className="text-sm font-medium">Drills that practice this</h2>
+          <ul className="flex flex-wrap gap-2 text-sm">
+            {drillsForSkill(lesson.skill_id).map(d => <li key={d.drill_id} className="rounded-full border px-3 py-1">{d.name}</li>)}
+          </ul>
+        </section>
+      )}
       <LessonActions lessonId={lesson.lesson_id} version={lesson.version} source={source} start={start} skippable={source === 'auto'} />
     </main>
   );

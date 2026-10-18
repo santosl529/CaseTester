@@ -20,7 +20,8 @@ import { applyGrade, unchangedRepair, type CheckResults } from './apply';
 import { defendParts, withDefend } from '../defend';
 import { applySetProgress } from '../progress/store';
 import { afterDiagnostic, markWorkoutProgress } from '../program/store';
-import { markDiagnosticMove, onDiagnosticSetDone } from '../program/diagnostic-store';
+import { latestDiagnostic, markDiagnosticMove, onDiagnosticSetDone } from '../program/diagnostic-store';
+import { applyPlacementCheck, recordPlanSource } from '../program/plan-source';
 import { gradeSet, type CallModel } from './grader';
 import { gradingRunProblem } from './run-checks';
 
@@ -104,6 +105,8 @@ export async function finalizeSet(setId: string): Promise<boolean> {
       .onConflictDoUpdate({ target: [drillTiers.studentId, drillTiers.drillId], set: { currentTier: tier, updatedAt: now } });
     // Skill states, stages, transfer and review dates, prescriptions.
     const progress = await applySetProgress(tx, set, results, skills);
+    // A quick check of a questionnaire placement re-places its skill.
+    if (set.isPlacementCheck) progress.events.push(...await applyPlacementCheck(tx, set, skills));
     const workout = set.workoutId ? await markWorkoutProgress(tx, set.workoutId) : null;
     if (workout) progress.events.push({ type: 'workout_completed', props: workout.props });
     return {
@@ -115,11 +118,37 @@ export async function finalizeSet(setId: string): Promise<boolean> {
   if (event) {
     await logDrillEvent(event.studentId, 'drill_set_completed', event.props);
     await logPendingEvents(event.studentId, event.progress);
-    if (event.diagnosticScore !== null && await afterDiagnostic(event.studentId, event.diagnosticScore)) {
-      await markDiagnosticMove(event.studentId, 'foundations');
-    }
+    if (event.diagnosticScore !== null) await diagnosticFinished(event.studentId, event.diagnosticScore);
   }
   return event !== null;
+}
+
+// The last diagnostic part is done: a low score may move a new Standard
+// student to Foundations, and the diagnostic makes (or updates) the plan.
+async function diagnosticFinished(studentId: string, overall: number) {
+  if (await afterDiagnostic(studentId, overall)) await markDiagnosticMove(studentId, 'foundations');
+  await recordPlanSource(studentId, 'diagnostic');
+}
+
+// Records diagnostic parts whose set finished without being recorded (a lost
+// update fixed 2026-10-18 left one student's diagnostic unfinished), as
+// finalizeSet would have. Run when the home or the diagnostic page loads.
+export async function healDiagnostic(studentId: string): Promise<boolean> {
+  const diag = await latestDiagnostic(studentId);
+  if (!diag || diag.status === 'completed') return false;
+  const stuck = (diag.parts as { set_id?: string; done?: boolean }[]).filter(p => p.set_id && !p.done).map(p => p.set_id!);
+  if (!stuck.length) return false;
+  const sets = await db.select().from(drillSets).where(and(inArray(drillSets.id, stuck), eq(drillSets.status, 'completed')));
+  for (const set of sets) {
+    const out = await db.transaction(async tx => {
+      const attempts = await tx.select().from(drillAttempts).where(eq(drillAttempts.setId, set.id)).orderBy(asc(drillAttempts.position));
+      const items = await Promise.all(planOf(set).map(ref => resolveItem(ref, set.tier as Tier)));
+      return onDiagnosticSetDone(tx, set, attempts.map(a => ({ skills: items[a.position]?.skills ?? [], result: resultOf(a) })));
+    });
+    await logPendingEvents(set.studentId, out.events);
+    if (out.completed !== null) await diagnosticFinished(set.studentId, out.completed);
+  }
+  return sets.length > 0;
 }
 
 // Moves a finished set to grading and queues its job. Returns the job id.

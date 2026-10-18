@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { studentOrRedirect } from '@/lib/drills/session';
 import { DRILLS_CONFIG } from '@/lib/drills/config';
 import { introLesson, lessonSkills } from '@/lib/drills/program/lessons-store';
+import { drillsForSkill } from '@/lib/drills/drill-info';
 
 // The Learn library (docs/prd-drills.md "Training home"): "How a case
 // interview works" first, for every track (Matt, 2026-10-17), then one short
@@ -36,9 +37,12 @@ export default async function LearnPage() {
           <ul className="divide-y rounded-lg border">
             {a.skills.map(s => (
               <li key={s.id}>
-                <Link href={`/drills/learn/${encodeURIComponent(s.id)}`} className="flex flex-wrap items-baseline justify-between gap-2 p-3 text-sm hover:bg-muted/50">
-                  <span className="font-medium">{s.name}</span>
-                  <span className="text-muted-foreground">{s.description}</span>
+                <Link href={`/drills/learn/${encodeURIComponent(s.id)}`} className="block space-y-0.5 p-3 text-sm hover:bg-muted/50">
+                  <span className="flex flex-wrap items-baseline justify-between gap-2">
+                    <span className="font-medium">{s.name}</span>
+                    <span className="text-muted-foreground">{s.description}</span>
+                  </span>
+                  {drillsForSkill(s.id).length > 0 && <span className="block text-xs text-muted-foreground">Practiced in: {drillsForSkill(s.id).map(d => d.name).join(', ')}</span>}
                 </Link>
               </li>
             ))}

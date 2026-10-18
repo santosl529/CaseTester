@@ -19,7 +19,7 @@ export interface OpenPrescription {
   id: string;
   skill_id: string;
   priority: number;
-  source: 'case' | 'drill' | 'diagnostic' | 'plan';
+  source: 'case' | 'drill' | 'diagnostic' | 'plan' | 'questionnaire';
   reason: string;
   created_at: Date;
 }
@@ -36,6 +36,9 @@ export interface WorkoutBlock {
   reason: string;
   prescription_id: string | null;
   set_id: string | null;
+  // A short check of a questionnaire placement (D6 round 2): its score
+  // re-places the skill.
+  check?: boolean;
 }
 
 export interface WorkoutInput {
@@ -49,6 +52,8 @@ export interface WorkoutInput {
   missed_milestone_skills: string[];
   time_multiplier: number;
   ctx: Context;
+  // Questionnaire placements still to confirm, one skill per area, in order.
+  checks?: string[];
 }
 
 export interface Workout {
@@ -75,7 +80,11 @@ const reviewSize = (drillId: string, tier: number) => {
   return size > r.full_size_at_or_below ? Math.ceil(size * r.size_fraction) : size;
 };
 
-const SOURCE_ORDER = { case: 0, diagnostic: 1, plan: 2, drill: 3 } as const;
+// A quick check's size: the half-size set a review uses.
+export const checkSize = (drillId: string, tier: number) => reviewSize(drillId, tier);
+
+const SOURCE_ORDER = { case: 0, diagnostic: 1, questionnaire: 2, plan: 3, drill: 4 } as const;
+export const CHECKS_PER_WORKOUT = 2;
 
 function inFocus(skillId: string, week: PlanWeek | null): boolean {
   if (!week) return false;
@@ -161,6 +170,17 @@ export function buildWorkout(input: WorkoutInput): Workout {
   const weakBudget = target * w.mix.weak;
   let weakMinutes = 0;
   let weakSets = 0;
+  // Quick checks of a questionnaire placement come first: up to 2, half size.
+  for (const skillId of (input.checks ?? []).slice(0, CHECKS_PER_WORKOUT)) {
+    if (used.has(skillId)) continue;
+    const b = take('weak', state(skillId), `Quick check: confirms where you start in ${lowerName(skillId)}.`);
+    if (!b) continue;
+    b.size = checkSize(b.drill_id, b.tier);
+    b.minutes = setMinutes(b.drill_id, b.tier, b.size, input.time_multiplier);
+    b.check = true;
+    weakMinutes += b.minutes;
+    weakSets++;
+  }
   for (const { rx } of ranked) {
     if (weakSets >= 2 || (weakSets >= 1 && weakMinutes >= weakBudget)) break;
     if (used.has(rx.skill_id) || transferDue(state(rx.skill_id), input)) continue;

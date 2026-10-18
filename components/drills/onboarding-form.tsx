@@ -32,8 +32,9 @@ export function OnboardingForm({ availability, today }: { availability: Availabi
     const data = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) { setError(data.message ?? 'Something went wrong. Please try again.'); return; }
-    // Next: the diagnostic (it can be skipped there).
-    router.push('/drills/diagnostic');
+    // Next: the training home, which offers three ways to get the plan
+    // (questions, the diagnostic or a case).
+    router.push('/drills');
   }
 
   const radio = 'flex items-start gap-3 rounded-lg border p-3 text-sm has-[:checked]:border-foreground';
@@ -82,7 +83,7 @@ export function OnboardingForm({ availability, today }: { availability: Availabi
       )}
 
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-      <Button type="submit" size="lg" disabled={busy}>{wantsPlan ? 'Build my plan' : 'Start practicing'}</Button>
+      <Button type="submit" size="lg" disabled={busy}>{wantsPlan ? 'Next: get your plan' : 'Next: find your starting point'}</Button>
     </form>
   );
 }

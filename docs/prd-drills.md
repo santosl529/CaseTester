@@ -192,7 +192,7 @@ Students who don't want a plan choose **Practice on my own** at onboarding or in
 
 ### Onboarding and diagnostic
 
-- **Questions:** follow a plan or practice on my own; interview date (optional); practice cases done (0, 1–5, 6+); and, for plans, time available per week (about 1.5–2, 2–2.5 or 3 hours, which sets 3, 4 or 6 workouts a week; the hours include planned cases).
+- **Questions:** follow a plan or practice on my own; interview date (optional); practice cases done (0, 1–5, 6+); and, for plans, time available per week (about 1.5–2, 2–2.5 or 3 hours, which sets 3, 4 or 6 workouts a week; the hours include planned cases). Then the home offers three ways to get the plan (see Getting a plan).
 - **Time zone:** captured from the browser during drills onboarding, with no question to the student. Workout days, the Monday summary and interview-date counts use it.
 - **Diagnostic:** about 15 minutes, in 10 short parts, one drill each: 22 auto-checked items at tier 2 timing (3 each from PS-1, HY-1, EX-1, SY-1 and CL-1; 2 from QN-1; 3 from QN-3; 2 from EX-2) and 2 short Construct items (1 PS-3, 1 SY-2, no Defend). AI cost: 2 grading calls.
 - **One flow:** the parts run back to back as one flow ("Part 3 of 10") with no per-item feedback and no results screen between parts; placement shows at the end. Diagnostic sets change no tiers, streaks or skill states beyond placement.
@@ -204,11 +204,26 @@ Students who don't want a plan choose **Practice on my own** at onboarding or in
 - **Skip:** "I'll take a case first" skips the diagnostic; the track default placement is used.
 - **Baseline case:** Standard and Sprint schedule a first full case in Week 0 (Sprint: Day 1). Foundations offers it as optional.
 
+### Getting a plan (D6 round 2)
+
+A student gets a learning plan after whichever comes first: a full case, the diagnostic, or a 2–3 minute questionnaire. Until then the training home shows **Get your plan** with all three (questions, about 2–3 minutes; the diagnostic, about 15 minutes; a full case, about 35 minutes), and no workouts are built.
+
+- **Starting the plan:** the first source starts the plan that day: week 1 (Sprint: day 2) begins today, so the first workout is ready at once. A later track switch keeps the plan's source and also starts week 1 the same day.
+- **Priority:** case > diagnostic > questionnaire. A more reliable source updates the plan when it arrives (the diagnostic re-places skills no one has practiced and its prescriptions replace the questionnaire's; a case's findings replace both, as before). A less reliable one never overrides a better one; its answers are kept.
+- **A full case** counts when the student completes a case session (case results update prescriptions when the case grader sends them).
+- **The questionnaire** builds on the onboarding questions (interview date, practice cases done, hours per week; prefilled and editable) and adds a 1–5 self-rating for structuring (PS and HY skills), math (QN), charts and exhibits (EX) and recommendations (SY and CL), plus "What do you find hardest?" (one of the four, or not sure). No AI calls.
+  - Self-ratings are the least reliable source, so placement is conservative: 1–2 starts at Recognize tier 1, 3 at Recognize tier 2, 4–5 at Repair (Recognize tier 2 for skills with no Repair drill). A self-rating never places a skill at a Construct test-out.
+  - Up to 3 prescriptions (source `questionnaire`): the first skill, in prerequisite order, of the hardest area and of each area rated 3 or lower, hardest first. Priorities are kept below a diagnostic's.
+  - **Quick checks:** while the plan rests on the questionnaire, each workout starts with up to 2 half-size check sets, one per area in order of need. A check's score re-places its skill as the diagnostic would (below 50% Recognize tier 1, 50–79% Repair, 80%+ Construct test-out), if the skill is still Learning. Checks stop once each area has had one, or when a diagnostic or case arrives.
+- **Your plan** screen, shown after any of the three (and linked from the home until opened): the track and its length, this week's theme and focus skills, where the student starts (top prescriptions with reasons), the weekly schedule, and **Start first workout**. Foundations still reads the intro and each skill's lesson first.
+- **Practice on my own:** the same placements and suggestions, without a plan: **Your starting point** shows where the student starts and starts the first suggestion (a quick check while there is one). With a source but nothing prescribed yet, the suggestion is the first week-1 focus skill.
+- **Diagnostic fix (2026-10-18):** starting a diagnostic part while the previous part was still grading could overwrite that part's "done", so the diagnostic never finished. The part's set is now recorded in one database update, and the home, the diagnostic page and the plan page record any finished part found unrecorded.
+
 ### Six-week plan (Foundations and Standard)
 
 | Week | Theme | Focus skill areas | Milestone: skills at Practiced or above by week end |
 | --- | --- | --- | --- |
-| 0 (day 1) | Diagnose | All | Plan set |
+| 0 (day 1) | Diagnose | All | Plan set (week 1 starts the day the plan is made; see Getting a plan) |
 | 1 | Structure and math | PS; QN setup, percentages, magnitude | `PS.mece`, `PS.case_specific`, `QN.setup` |
 | 2 | Hypotheses and exhibits | HY; EX; QN sizing | `HY.form`, `EX.takeaway`, `QN.sizing_structure` |
 | 3 | Judgment and synthesis | SY; CL; BJ | `SY.answer_first`, `SY.evidence`, `CL.next_step` |
@@ -283,6 +298,7 @@ Week 0 takes about 50 minutes (diagnostic + baseline case). At the default, the 
 - **How a case interview works:** an intro lesson with no skill. It covers who steers (interviewer-led or candidate-led) and the four stages (clarify, structure, analyze, recommend). For each stage it gives what happens, what interviewers look for, and the skills it uses; skills without a lesson are marked as practiced in full cases. It ends with how the six-week plan builds those skills, which is generated from the plan config (`programs.weeks`), so it can't drift from the plan. It is a static page (`/drills/learn/intro`), not a lessons-table row. Foundations students see it first, before week 1: the training home leads with it, and the first workout starts through it, until it has been read. It heads the Learn library for every track.
 - **P0:** lessons for the 22 skills trained by P0 drills, plus `CL.pushback` (trained by the Defend follow-ups) and the intro. Lessons for other skills ship with their drills.
 - Lessons are not scored and don't change skill states.
+- The Learn library and each lesson list the drills that practice the lesson's skill.
 - Students see a lesson only once it is approved (live).
 
 ## User experience and flows
@@ -316,16 +332,18 @@ For self-directed students, steps 3–5 are replaced by the Suggested next card.
 - On a student's first time with a drill, shows one worked example. A "Skip example" button hides it for future sets.
 - A **Read the short lesson** link for the skill. In Foundations, the lesson opens automatically before the first set of each skill.
 - For Repair drills, states how much the student is told about the flaw at this tier.
+- **Timer (D6 round 2):** Timed or No timer, chosen here before the first item (default: the student's last choice) and fixed once the first item is served. If timed, a **Hide the countdown** option: the limit still applies, and the item shows a warning about 10 seconds before time runs out. Hidden-timer sets count as timed; untimed sets work as No time limit (see Accessibility).
 
 ### Item screen
 
-- Prompt, any exhibit (chart or table), the input and a visible countdown timer.
+- Prompt, any exhibit (chart or table), the input and a visible countdown timer, with **Hide timer** / **Show timer** at any time (hidden: "Less than 10 seconds left" appears near the end).
+- **Pauses (D6 round 2):** while Report a problem or the feedback box is open, the item's clock is paused; time spent in them doesn't count toward the item's time. Each pause is logged and shown in the reports. Check-ins appear only outside items, so they never run against a clock.
 - Input types: single choice, multi-select, ordering (drag or keyboard), numeric entry and free text with a live word counter that blocks typing past the cap.
 - Numeric entry accepts common formats and parses them: `2.5M`, `2,500,000`, `2.5 million`, `$2.5m`, `25%`, `0.25` (where the item expects a percent, both `25` and `0.25` are accepted if the item allows it).
 - When time runs out, the item auto-submits whatever is entered. Empty answers score 0 and log `M.timeout`.
 - **Skip** is allowed; it scores 0 and logs `M.skipped`. Skips are excluded from mistake analysis.
 - Leaving mid-set saves progress. An unfinished set expires after 24 hours; completed attempts are kept.
-- Coming back to a set mid-way (reload, new tab) shows the intro with a **Resume** button. The item's timer keeps running on the server in the meantime.
+- Coming back to a set mid-way (reload, new tab) shows the intro with a **Resume** button. The item's timer keeps running on the server in the meantime (a pause left open ends when the item is loaded again).
 - An answer that reaches the server more than 2 seconds after the time limit counts as a timeout: it scores 0 and logs `M.timeout`, even if it is correct. Without this, the server-side timer could be bypassed. An untimed set (No time limit, see Accessibility) has no timeouts.
 
 ### Defend step screen
@@ -358,7 +376,8 @@ For self-directed students, steps 3–5 are replaced by the Suggested next card.
 
 ### Browse drills (practice something specific)
 
-- Available to every student, on a plan or not. Drills are grouped by skill area, then skill. Each skill shows its state and stage, its drills by stage (Recognize, Repair, Construct) and a **Suggested** badge if it has an open prescription.
+- Available to every student, on a plan or not. **Drill cards** (D6 round 2) are grouped by the interview stage they train (Clarify, Structure, Analyze, Recommend, from the intro lesson's stage-to-skill mapping). Each card shows two short lines (what you do; how it helps in the interview), the stage(s), the skills, the number of items, the time at the student's tier, and a tier to start at. The lines live in `lib/drills/config/drill-descriptions.json`.
+- Below the cards, **Practice a skill** lists skills by area with their state, a **Suggested** badge if the skill has an open prescription, the short lesson and **Quick start**.
 - **Quick start:** pick a skill; the system picks the drill, stage and tier from the student's skill state.
 - **Pick exactly:** choose a specific drill and stage. The tier can be any level up to one above the student's current tier on that drill (first time: tier 1 or 2), so nobody starts at the hardest level cold.
 - Browsed sets count toward skill states, tiers, mastery and prescriptions exactly like workout sets. For plan students they don't count toward weekly workout targets, and the plan adapts to the new skill states.
@@ -381,6 +400,7 @@ For self-directed students, steps 3–5 are replaced by the Suggested next card.
 - A time setting in Settings: Standard, 1.5×, 2× or **No time limit** (WCAG 2.2.1 Timing Adjustable). The multipliers scale every time limit, and mastery uses the adjusted limits.
   - With No time limit there is no timer and nothing times out. Untimed sets count fully toward every skill state, including Mastered: students who need extra time aren't blocked from mastery.
   - Results still show the time taken against the timed (1×) target, so students can work on pace.
+  - The set's intro also offers Timed / No timer, and Hide timer (see Drill intro screen).
   - The setting applies to sets started after it changes; each set records it (`drill_sets.untimed`).
 - Audit: `npm run drills:a11y` (axe WCAG 2.1 A/AA, keyboard focus and 320 px reflow on every drills page) plus a manual screen-reader checklist; results in `docs/drills-a11y-audit.md`.
 - Timers announce remaining time to screen readers at 50%, 25% and 10 seconds.
@@ -1278,7 +1298,7 @@ v2 adds about 110 Repair items, 150 Defend follow-ups and 22 lessons to review b
 
 ## Data model
 
-The drills system needs 20 tables (with the pilot feedback tables) plus 4 versioned config files; the `drill_attempts` table is the most important, because it is the item-level record everything else is computed from.
+The drills system needs 21 tables (with the pilot feedback tables and `drill_questionnaires`) plus 4 versioned config files; the `drill_attempts` table is the most important, because it is the item-level record everything else is computed from.
 
 ### Config files (versioned, loaded at startup)
 
@@ -1294,10 +1314,10 @@ Config files live in the repo and are validated with zod at startup. Changing a 
 | Table | Key fields | Notes |
 | --- | --- | --- |
 | `student_profiles` | user\_id, org\_id (nullable), timezone, created\_at | The student record. The app has no users table, so drills adds this one. `timezone` is the browser's IANA time zone, stored at signup |
-| `student_drill_settings` | student\_id, time\_multiplier (1, 1.5, 2), untimed, skipped\_examples\[\] | Extends `student_profiles`. `interview_date` moves to `student_programs` |
+| `student_drill_settings` | student\_id, time\_multiplier (1, 1.5, 2), untimed, hide\_timer, skipped\_examples\[\] | Extends `student_profiles`. `interview_date` moves to `student_programs` |
 | `drill_items` | item\_id, version, drill\_id, status (draft, in\_review, live, retired), is\_example, stage, industry, tier, skills\[\], payload (JSON, per Content system), authorship (JSON), created\_at | Authored items only; generated items are rebuilt from seeds |
 | `drill_item_stats` | item\_id, version, attempts, correct\_rate, avg\_time\_ms, option\_counts (JSON), computed\_at | Refreshed daily |
-| `drill_sets` | set\_id, student\_id, drill\_id, level, stage, tier, size, untimed, source (prescription, continue, specific, review, diagnostic, plan), prescription\_id, workout\_id, slot (weak, review, unfamiliar), is\_transfer\_check, focus\_skill, focus\_tag, item\_plan (JSON), status (in\_progress, grading, completed, expired), current\_position, current\_served\_at, pending\_step (JSON), set\_score, passed, skill\_scores (JSON), taxonomy\_version, started\_at, completed\_at | One row per set. Items are served in order, so the timer for the item in play lives here (`current_served_at`). `item_plan` fixes the set's items at start. `pending_step` holds a multi-step item's finished steps, so a step can't change after its feedback is shown. One in-progress set per student, enforced by a unique index. Browse drills sets use `specific` |
+| `drill_sets` | set\_id, student\_id, drill\_id, level, stage, tier, size, untimed, timer\_hidden, paused\_at, paused\_ms, is\_placement\_check, source (prescription, continue, specific, review, diagnostic, plan), prescription\_id, workout\_id, slot (weak, review, unfamiliar), is\_transfer\_check, focus\_skill, focus\_tag, item\_plan (JSON), status (in\_progress, grading, completed, expired), current\_position, current\_served\_at, pending\_step (JSON), set\_score, passed, skill\_scores (JSON), taxonomy\_version, started\_at, completed\_at | One row per set. Items are served in order, so the timer for the item in play lives here (`current_served_at`). `item_plan` fixes the set's items at start. `pending_step` holds a multi-step item's finished steps, so a step can't change after its feedback is shown. One in-progress set per student, enforced by a unique index. Browse drills sets use `specific` |
 | `drill_attempts` | attempt\_id, set\_id, student\_id, position, idempotency\_key, item\_id + item\_version **or** template\_id + template\_version + seed (enforced by a check constraint), response (JSON), served\_at, time\_ms, time\_limit\_ms, timed\_out, skipped, score, step\_scores (JSON), mistake\_tags\[\], check\_results (JSON: check\_id, pass, evidence), red\_flags\[\], defend\_response (JSON: decision, text), defend\_time\_ms, defend\_score, defend\_check\_results (JSON), grading\_status, grader\_prompt\_version, model\_id, submitted\_at | One row per item answered; the Defend step is part of the same row. Never deleted |
 | `grading_jobs` | job\_id, set\_id, status, retries, input\_tokens, output\_tokens, cost\_usd, latency\_ms, error, created\_at | Tracks AI grading for a set |
 | `drill_tiers` | student\_id, drill\_id, current\_tier, updated\_at | Current tier per student per drill |
@@ -1305,13 +1325,14 @@ Config files live in the repo and are validated with zod at startup. Changing a 
 | `skill_state_events` | student\_id, skill\_id, from\_state, to\_state, reason, source\_type (set, case, review), source\_id, created\_at | Full history, for the profile and analytics |
 | `case_results` | case\_attempt\_id, student\_id, case\_id, case\_type, difficulty\_tier, rubric\_scores (JSON), skills\_observed\[\], findings (JSON), taxonomy\_version, received\_at | Written from the case grader payload |
 | `prescriptions` | prescription\_id, student\_id, skill\_id, drill\_id, level, stage, tier, focus\_tag, priority, reason\_text, evidence\_quote, source\_type (case, drill, diagnostic, plan), source\_id, status (open, in\_progress, completed, dismissed, superseded, paused), created\_at, closed\_at | Open prescriptions drive the workout's weak-spot slot |
-| `student_programs` (new) | student\_id, track (foundations, standard, sprint, self\_directed), plan\_version, start\_date (local), started\_at, interview\_date, workouts\_per\_week, cases\_done, current\_week, status (active, completed, switched) | One active row per student; a track switch closes the row and opens a new one. `current_week` is the plan week the student was last seen in, for the week-rollover event |
+| `student_programs` (new) | student\_id, track (foundations, standard, sprint, self\_directed), plan\_version, start\_date (local), started\_at, interview\_date, workouts\_per\_week, cases\_done, current\_week, status (active, completed, switched), plan\_source (case, diagnostic, questionnaire), plan\_created\_at, plan\_seen\_at | One active row per student; a track switch closes the row and opens a new one. `current_week` is the plan week the student was last seen in, for the week-rollover event |
 | `workouts` (new) | workout\_id, student\_id, program\_week, date (in the student's time zone), target\_minutes, blocks (JSON: slot, drill\_id, skill\_id, stage, tier, set\_id), status (planned, in\_progress, completed, expired) | One per student per day |
 | `lessons` (new) | lesson\_id, skill\_id, version, status, body, worked\_example, mistakes (JSON), authorship (JSON) | Versioned like items |
 | `lesson_views` (new) | student\_id, lesson\_id, version, source (auto, intro, library, low\_score, follow\_up), seconds\_open, skipped, viewed\_at | The intro is logged as `lesson-intro` (no lessons row). |
 | `diagnostics` (new) | diagnostic\_id, student\_id, parts (JSON: drill\_id, size, set\_id, and per finished part its skill totals, item scores and missed tags), status (in\_progress, completed, skipped), overall\_score, placements (JSON), moved\_to\_track, started\_at, completed\_at | One in-progress diagnostic per student. Placement is redone as parts finish; a skipped one can be resumed |
 | `drill_feedback` (D6) | id, student\_id, category (broken, confusing, idea), comment, page, set\_id, position, item\_id, item\_version, template\_id, device, app\_version, created\_at | The feedback button. The set and item in play are resolved on the server |
 | `drill_item_reports` (D6) | id, student\_id, set\_id, position, attempt\_id, item\_id, item\_version, template\_id, screen (item, results), reason (answer\_key\_wrong, question\_confusing, grade\_unfair, other), comment, status (open, labeled, resolved, dismissed), labels (JSON), red\_flags (JSON), reviewer\_notes, reviewed\_by, reviewed\_at, exported\_at, created\_at | "Report a problem", grade disputes included. The review queue: Matt's labels per check, exported to the golden sets |
+| `drill_questionnaires` (D6) | id, student\_id, ratings (JSON: structuring, math, charts, recommendations, 1–5), hardest, created\_at | The latest one counts. Prescription source `questionnaire` |
 | `drill_checkins` (D6) | id, student\_id, kind (set\_usefulness, first\_case, week\_1), set\_id, rating (1–5), comment, status (shown, answered, dismissed), created\_at, answered\_at | Written when shown. One usefulness check-in per set; each open question once per student |
 
 The student's `org_id` (school or club) lives on `student_profiles`. It is set from the club code the first time the student passes the club-code gate (today, when starting a case) and isn't changed afterwards. Events read it from there.
@@ -1380,6 +1401,9 @@ Route handlers live under `/api`. Each endpoint is marked with the phase that bu
 | `POST /api/drills/feedback` (D6) | The feedback button: category, optional comment, page, set id, device | `{ ok }` |
 | `POST /api/drills/sets/{id}/reports` (D6) | Report a problem with an item: position, reason, optional comment, screen. Grade disputes use the reason "My grade seems unfair" | `{ ok }` |
 | `POST /api/drills/checkins/{id}` (D6) | Answer (rating and/or comment) or dismiss a check-in | `{ ok }` |
+| `POST /api/drills/questionnaire` (D6) | The questionnaire: onboarding answers, four 1–5 ratings, hardest area | `{ ok }`; the plan is made |
+| `PUT /api/drills/sets/{id}/timer` (D6) | Timed / No timer (before the first item), Hide timer (any time) | The set's timer settings |
+| `POST /api/drills/sets/{id}/pause` (D6) | Pause or resume the item's clock (reason: feedback, report) | On resume, the time limit and time remaining |
 | `PUT /api/drills/review/reports/{id}` (D6, local development only) | Label or close a report in the review queue | `{ ok }` |
 
 The club-code check has its own route, `POST /api/club`, called at the club step. It records `org_id` and gates drills; case start still checks the code too.
@@ -1461,6 +1485,11 @@ Every event carries `student_id`, `org_id` (school or club, if any), `timestamp`
 | `feedback_submitted` | Feedback button sent | feedback\_id, category, page |
 | `item_report_submitted` | "Report a problem" sent (a grade dispute when the reason is grade\_unfair) | report\_id, reason, screen, item\_id, attempt\_id |
 | `checkin_shown` / `_answered` / `_dismissed` | Check-in lifecycle | kind, rating |
+| `questionnaire_completed` | Questionnaire submitted | questionnaire\_id, ratings, hardest |
+| `plan_created` | A plan source made or updated the plan | source, track, previous\_source, focus\_skills |
+| `timer_chosen` | Timer chosen at a set's start | set\_id, untimed, timer\_hidden |
+| `timer_visibility_changed` | Timer shown or hidden mid-set | set\_id, position, timer\_hidden |
+| `timer_paused` / `_resumed` | Item clock paused while a dialog is open, and resumed | set\_id, position, reason, paused\_ms |
 | `repair_pool_exhausted` | A Repair set had to use items derived from ones seen in the last 14 days | drill\_id, available |
 
 ### MVP reports
@@ -1478,6 +1507,8 @@ Every event carries `student_id`, `org_id` (school or club, if any), `timestamp`
 | Plan vs self-directed | Practice volume, skills reaching Mastered, transfer pass rates and case rubric gains between the two groups | Students grouped by their latest program. Sets per week cover the period; Mastered and transfer cover all time. Rubric gain: average rating (needs work 0, meets bar 1, strong 2) on the last case minus the first, for students with two or more cases |
 | Engagement | Sets per active student per week, share of students returning within 7 days, average session length | Students with a set started in the period. Returning: another set on a later day within 7 days of their first set in the period. A session is a run of sets less than 30 minutes apart |
 | Item health | Correct rate, average time and distractor pull per item; items flagged for review | Authored items, answered (not skipped) attempts; correct means a full score. Flags follow the Item health rules; in the pilot they need 20+ attempts and items are pulled by hand |
+| Plan sources (D6) | How students got their plan | Each student's active program: case, diagnostic, questionnaire, or no plan yet |
+| Timer pauses (D6) | Pauses per student, to spot abuse | Pauses ended in the period (`timer_resumed`), per student: count, total and longest paused time, reasons; most paused time first |
 | Feedback (D6) | Feedback button entries, item reports and check-in answers; reported items; check-in average by week | Newest first (latest 100), filterable by type, page and club. Reported items appear beside the flagged items. Usefulness check-ins: answers, average (1–5) and dismissals per week (weeks start Monday) |
 | Grading quality and cost | Agreement with human labels per check, retry and failure rates, cost per graded answer and per active student | Grading jobs created in the period. Cost per workout counts workouts with a graded set; cost per active student per month scales the period to 30 days. Agreement comes from the golden-set gate (`npm run drills:golden`); the monthly human sample is not built yet |
 

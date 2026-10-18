@@ -1,0 +1,78 @@
+{
+  "status": "draft",
+  "note": "Two lines per drill for Browse drills and Learn (D6 round 2): what you do, and how it helps in the interview. Drafts for Matt's review (docs/drills-content/drill-descriptions.csv).",
+  "drills": {
+    "PS-1": {
+      "what": "Find the one flaw in a candidate's framework: an overlap, a gap, or a bucket that doesn't belong.",
+      "why": "Interviewers judge your structure in the first two minutes; spotting weak frameworks fast keeps you from building one."
+    },
+    "PS-4": {
+      "what": "Fix a flawed framework so it's MECE and fits the case.",
+      "why": "Interviewers judge your structure in the first two minutes; this trains you to catch gaps before they do."
+    },
+    "PS-3": {
+      "what": "Build your own framework for a case: 2–5 buckets, each with concrete sub-points.",
+      "why": "It's the first thing you say after the prompt; a tailored structure sets up the rest of the case."
+    },
+    "HY-1": {
+      "what": "Pick the strongest starting hypothesis from four, given a few opening facts.",
+      "why": "Interviewers want a testable guess early, not a list of everything that could be wrong."
+    },
+    "HY-3": {
+      "what": "Rewrite a weak hypothesis so it names one cause, fits the facts and can be tested.",
+      "why": "A vague or overconfident hypothesis is a common early slip; a sharp one drives the whole analysis."
+    },
+    "HY-2": {
+      "what": "State a hypothesis and how you'd test it, then keep, revise or drop it when a new fact arrives.",
+      "why": "Interviewers hand you new data mid-case to see if you adapt instead of defending your first guess."
+    },
+    "QN-1": {
+      "what": "Pick the right calculation for a business question, without solving it.",
+      "why": "Interviewers grade your setup first; a wrong setup sinks even perfect arithmetic."
+    },
+    "QN-3": {
+      "what": "Solve quick percentages, growth and big-number problems in your head.",
+      "why": "Case math is done by hand under time pressure; speed and accuracy keep the case moving."
+    },
+    "QN-4": {
+      "what": "Set up and solve a two-step business word problem.",
+      "why": "Most case math looks like this: choose the formula, then get the number right."
+    },
+    "QN-5": {
+      "what": "Size a market: pick the drivers, make assumptions, and sanity-check the result.",
+      "why": "Sizing questions test how you structure an unknown number; the logic counts as much as the answer."
+    },
+    "EX-1": {
+      "what": "Pick the takeaway from a chart that matters most for the client.",
+      "why": "When you're handed an exhibit, the interviewer expects the 'so what' in seconds, not a tour of every bar."
+    },
+    "EX-2": {
+      "what": "Answer a question about a chart with one planted trap: units, axes, indexing or footnotes.",
+      "why": "Exhibits are often built to mislead; catching the trap is what separates strong candidates."
+    },
+    "EX-3": {
+      "what": "Find the one or two numbers that matter in a dense table and do a quick calculation.",
+      "why": "Data-heavy exhibits test whether you can find what's relevant fast instead of reading everything."
+    },
+    "SY-1": {
+      "what": "Choose the best recommendation from four, given the case facts.",
+      "why": "The recommendation is what the interviewer remembers; this trains your ear for answer-first summaries."
+    },
+    "SY-3": {
+      "what": "Rewrite a flawed recommendation so it leads with the answer and uses the right evidence.",
+      "why": "Burying the answer or citing the wrong facts is a common way to lose a strong case at the end."
+    },
+    "SY-2": {
+      "what": "Write the recommendation you'd give in about 60 seconds, from a short fact sheet.",
+      "why": "Every case ends with 'so what should the client do?'; this is the closest drill to that moment."
+    },
+    "CL-1": {
+      "what": "Pick the best next step, given where a case stands.",
+      "why": "Interviewers notice candidates who drive the case forward instead of waiting to be told what to do."
+    },
+    "CL-3": {
+      "what": "Say what data you'd ask for and where you'd start, in up to 60 words.",
+      "why": "Specific, prioritized requests show the interviewer you have a plan, not a wish list."
+    }
+  }
+}

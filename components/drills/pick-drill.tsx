@@ -15,15 +15,17 @@ export interface PickableDrill {
 
 // "Pick exactly" (docs/prd-drills.md "Browse drills"): a drill and a tier up to
 // one above the student's current tier on it.
-export function PickDrill({ skillId, drill }: { skillId: string; drill: PickableDrill }) {
+export function PickDrill({ skillId, drill, compact = false }: { skillId: string; drill: PickableDrill; compact?: boolean }) {
   const [tier, setTier] = useState(drill.current_tier ?? Math.max(...drill.tiers));
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 py-2 text-sm">
-      <span>
-        <span className="text-muted-foreground">{STAGE[drill.stage]} · </span>
-        <span className="font-medium">{drill.name}</span>
-        {drill.items && <span className="text-muted-foreground"> · {drill.items} items</span>}
-      </span>
+      {compact ? <span className="text-muted-foreground">{STAGE[drill.stage]} drill</span> : (
+        <span>
+          <span className="text-muted-foreground">{STAGE[drill.stage]} · </span>
+          <span className="font-medium">{drill.name}</span>
+          {drill.items && <span className="text-muted-foreground"> · {drill.items} items</span>}
+        </span>
+      )}
       <span className="flex flex-wrap items-center gap-2">
         <fieldset className="flex items-center gap-1">
           <legend className="sr-only">Tier for {drill.name}</legend>
@@ -34,7 +36,7 @@ export function PickDrill({ skillId, drill }: { skillId: string; drill: Pickable
             </label>
           ))}
         </fieldset>
-        <StartSetButton body={{ drill_id: drill.drill_id, skill_id: skillId, tier, browse: true }} label="Start" size="sm" variant="outline" />
+        <StartSetButton body={{ drill_id: drill.drill_id, skill_id: skillId, tier, browse: true }} label={compact ? `Start ${drill.name}` : 'Start'} size="sm" variant="outline" />
       </span>
     </div>
   );

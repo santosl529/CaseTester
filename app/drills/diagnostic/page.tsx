@@ -7,6 +7,7 @@ import { db } from '@/db/client';
 import { buttonVariants } from '@/components/ui/button';
 import { StartSetButton } from '@/components/drills/start-set-button';
 import { RefreshWhileGrading, SkipDiagnosticButton } from '@/components/drills/diagnostic-actions';
+import { healDiagnostic } from '@/lib/drills/grading/jobs';
 
 const PLACE = {
   recognize: 'Starts with recognizing good answers',
@@ -21,6 +22,8 @@ const STATUS = { todo: '', in_progress: 'In progress', grading: 'Grading…', do
 // whatever parts are finished.
 export default async function DiagnosticPage() {
   const studentId = await studentOrRedirect();
+  // A part whose set finished unrecorded is recorded now, finishing the diagnostic.
+  await healDiagnostic(studentId);
   const [view, program] = await Promise.all([diagnosticView(studentId), activeProgram(db, studentId)]);
   const track = program?.track ?? null;
   const parts = DRILLS_CONFIG.programs.diagnostic.parts.length;
@@ -102,7 +105,10 @@ export default async function DiagnosticPage() {
       )}
 
       {view.status === 'completed' && (
-        <Link href="/drills" className={buttonVariants({ size: 'lg' })}>Go to your training home</Link>
+        <div className="flex flex-wrap gap-3">
+          <Link href="/drills/plan" className={buttonVariants({ size: 'lg' })}>{track === 'self_directed' ? 'See your starting point' : 'See your plan'}</Link>
+          <Link href="/drills" className={buttonVariants({ variant: 'outline', size: 'lg' })}>Training home</Link>
+        </div>
       )}
     </main>
   );
