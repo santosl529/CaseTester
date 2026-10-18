@@ -12,14 +12,14 @@
 //     --out="Case Interview Runs/voice-demos/2026-10-18-voice-533b2990-sonic36" --cap=1300 [--speed=1.0] [--dry]
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { CartesiaTTS } from '@/lib/voice/cartesia';
+import { CartesiaTTS, CARTESIA_MODEL } from '@/lib/voice/cartesia';
 import { TtsCharBudget, RunCharCap, monthlyLedgerFile } from '@/lib/voice/tts-budget';
 import { speechTextFor } from '@/lib/voice/pronounce';
 
 const RATE = 24000;
 const flag = (n: string) => process.argv.find(a => a.startsWith(`--${n}=`))?.split('=').slice(1).join('=');
 const VOICE = flag('voice');
-const MODEL = flag('model') ?? 'sonic-3.6';
+const MODEL = flag('model') ?? CARTESIA_MODEL;
 const OUT = flag('out') ?? `Case Interview Runs/voice-demos/2026-10-18-voice-${(VOICE ?? 'x').slice(0, 8)}-${MODEL.replace(/[^a-z0-9]/gi, '')}`;
 const CAP = Number(flag('cap') ?? 0);
 const DRY = process.argv.includes('--dry');

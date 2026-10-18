@@ -7,7 +7,10 @@ import Cartesia from '@cartesia/cartesia-js';
 import type { RawOutputFormat } from '@cartesia/cartesia-js/resources/tts';
 import type { PcmFormat, TTSProvider, TTSUtterance, Word } from './types';
 
-export const CARTESIA_MODEL = 'sonic-3.5';
+// Lorenzo, 18 Oct: voice 533b2990 on sonic-3.6, chosen by ear (the sample in
+// Case Interview Runs/voice-demos/2026-10-18-voice-533b2990-sonic36/).
+export const CARTESIA_MODEL = 'sonic-3.6';
+export const DEFAULT_VOICE_ID = '533b2990-5b82-45a4-b9f2-367776972ca6';
 
 export function cartesiaClient(): Cartesia {
   return new Cartesia({ apiKey: process.env.CARTESIA_API_KEY });
@@ -35,7 +38,8 @@ export function continuation(text: string): string {
 }
 
 export class CartesiaTTS implements TTSProvider {
-  readonly name = 'cartesia';
+  // The model is in the name: the acknowledgment cache (ack-audio.ts) is keyed on it, so another model re-synthesizes them.
+  get name(): string { return `cartesia-${this.model}`; }
   private client = cartesiaClient();
   private ws: Awaited<ReturnType<Cartesia['tts']['websocket']>> | null = null;
 
@@ -111,14 +115,8 @@ export class CartesiaTTS implements TTSProvider {
   }
 }
 
-// A voice from the catalog when none is configured: the first English one.
-export async function defaultVoiceId(): Promise<string> {
-  const configured = process.env.CARTESIA_VOICE_ID;
-  if (configured) return configured;
-  const client = cartesiaClient();
-  for await (const v of client.voices.list({ limit: 50 } as never)) {
-    const voice = v as { id: string; language?: string };
-    if (!voice.language || voice.language === 'en') return voice.id;
-  }
-  throw new Error('No Cartesia voice found; set CARTESIA_VOICE_ID');
+// The interviewer's voice: CARTESIA_VOICE_ID when set, else the approved one
+// (until 18 Oct the first English voice of the catalog, which could change under us).
+export async function defaultVoiceId(env: Record<string, string | undefined> = process.env): Promise<string> {
+  return env.CARTESIA_VOICE_ID?.trim() || DEFAULT_VOICE_ID;
 }
