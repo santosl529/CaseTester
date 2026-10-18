@@ -431,7 +431,8 @@ export const SEEDED_FIRST: ReadonlySet<string> = new Set([
 ]);
 export type PhrasePool = keyof typeof PHRASE_POOLS;
 // The last uses of each pool this session, newest last (variant indexes).
-export type PhraseUses = Partial<Record<PhrasePool, number[]>>;
+// Registry pools by name; a case's data-line versions as "data:<itemId>".
+export type PhraseUses = Partial<Record<PhrasePool | `data:${string}`, number[]>>;
 export const PHRASE_MEMORY = 3;
 
 // The variant for this use: the first use in a session is the pool's first
@@ -450,6 +451,18 @@ export function variantIndex(pool: PhrasePool, uses: PhraseUses | undefined, see
   const free = base.filter(i => !recent.includes(i));
   const pick = free.length > 0 ? free : base;
   return pick[seedHash(`${seed}:${pool}`) % pick.length];
+}
+
+// A pool outside the registry (a case's pre-written data-line versions,
+// lib/cases/data-line-variants.ts): chosen by seed on its first use — an item
+// is usually released once a session, so variety comes across sessions — then
+// never one of its last PHRASE_MEMORY uses.
+export function versionIndex(key: `data:${string}`, count: number, uses: PhraseUses | undefined, seed: string): number {
+  const all = Array.from({ length: count }, (_, i) => i);
+  const recent = (uses?.[key] ?? []).slice(-PHRASE_MEMORY);
+  const free = all.filter(i => !recent.includes(i));
+  const pick = free.length > 0 ? free : all;
+  return pick[seedHash(`${seed}:${key}`) % pick.length];
 }
 
 function seedHash(seed: string): number {
@@ -519,11 +532,16 @@ export function slotOf(pool: PhrasePool, text: string): string | null {
 }
 
 // The session's uses after a turn that said \`spoken\`: each variant heard, by pool, the last PHRASE_MEMORY kept.
-export function recordPhraseUses(spoken: string, uses: PhraseUses | undefined): PhraseUses {
+// \`extra\`: pools outside the registry heard too (a case's data-line versions, by "data:<itemId>").
+export function recordPhraseUses(spoken: string, uses: PhraseUses | undefined, extra?: Record<string, readonly string[]>): PhraseUses {
   const out: PhraseUses = { ...(uses ?? {}) };
-  for (const pool of Object.keys(PHRASE_POOLS) as PhrasePool[]) {
+  const pools: [keyof PhraseUses, readonly string[]][] = [
+    ...(Object.keys(PHRASE_POOLS) as PhrasePool[]).map(p => [p, PHRASE_POOLS[p]] as [keyof PhraseUses, readonly string[]]),
+    ...Object.entries(extra ?? {}).map(([k, vs]) => [k as keyof PhraseUses, vs] as [keyof PhraseUses, readonly string[]]),
+  ];
+  for (const [pool, vs] of pools) {
     // Longest variant first: "One more thing before we wrap up —" is not also "Before we wrap up —".
-    const order = (PHRASE_POOLS[pool] as readonly string[]).map((v, i) => ({ v, i })).sort((a, b) => b.v.length - a.v.length);
+    const order = vs.map((v, i) => ({ v, i })).sort((a, b) => b.v.length - a.v.length);
     let rest = spoken;
     const said: number[] = [];
     for (const { v, i } of order) {

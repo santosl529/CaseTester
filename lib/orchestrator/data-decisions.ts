@@ -12,7 +12,9 @@ import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import type { RequestedUnanswered } from '@/lib/scoring/data-coverage';
 import type { RequestResponse } from './data-requests';
 import { canReveal, type DataLedger } from './data-ledger';
-import { line, phrase, PHRASE_POOLS, type PhraseUses } from './phrasing';
+import { line, phrase, versionIndex, PHRASE_POOLS, type PhraseUses } from './phrasing';
+import { dataLineVersions } from '@/lib/cases/loader';
+import { dataLineVariantsOn } from '@/lib/cases/data-line-variants';
 import { isOrderStage } from '@/lib/cases/schema';
 
 export const RELEASE_CAP = 3;
@@ -441,14 +443,21 @@ const joinWhat = (whats: string[], conj: 'and' | 'or') => {
 export type DataLinePart = { kind: 'correction' | 'leadin' | 'release' | 'restate' | 'exhibit' | 'refusals' | 'defers' | 'offers'; ids: string[]; text: string };
 
 // `uses`: the session's recent connecting words (phrasing.ts) — the content is verbatim.
+// With DATA_LINE_VARIANTS=1, a ledger line that has pre-written versions
+// (cases/variants; prof-001) is said in one of them — checked on load to state
+// exactly the ledger's figures, periods and units; otherwise the ledger line.
+function dataLine(value: string, uses: PhraseUses | undefined, seed: string): string {
+  const d = dataLineVariantsOn() ? dataLineVersions(value) : null;
+  return d ? d.versions[versionIndex(`data:${d.itemId}`, d.versions.length, uses, seed)] : value;
+}
 export function renderDataLineParts(d: DataDecisions, seed: string, uses?: PhraseUses): DataLinePart[] {
   const parts: DataLinePart[] = [];
   if (d.correction) parts.push({ kind: 'correction', ids: [], text: d.correction.text });
   const earlier = d.releases.filter(r => r.earlier);
   if (earlier.length > 0) parts.push({ kind: 'leadin', ids: [], text: phrase('earlier', '', uses, seed) });
-  for (const r of d.releases) parts.push({ kind: 'release', ids: [r.id], text: r.value });
+  for (const r of d.releases) parts.push({ kind: 'release', ids: [r.id], text: dataLine(r.value, uses, seed) });
   // Restated values carry no ids: nothing is booked as a new reveal.
-  d.restates.forEach((r, i) => parts.push({ kind: 'restate', ids: [], text: i === 0 ? phrase('restate', r.value, uses, seed) : r.value }));
+  d.restates.forEach((r, i) => { const v = dataLine(r.value, uses, seed); parts.push({ kind: 'restate', ids: [], text: i === 0 ? phrase('restate', v, uses, seed) : v }); });
   if (d.exhibit) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
   if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or'), uses, seed) });
   if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('defer', joinWhat(d.defers, 'and'), uses, seed) });

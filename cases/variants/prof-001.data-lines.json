@@ -1,0 +1,124 @@
+{
+ "caseId": "prof-001",
+ "items": {
+  "revenue_total": {
+   "versions": [
+    "Total revenue is $480M a year.",
+    "Total revenue comes to $480M a year.",
+    "The total revenue figure is $480M a year.",
+    "Each year, total revenue is $480M.",
+    "$480M a year — that's total revenue."
+   ]
+  },
+  "stores_count": {
+   "versions": [
+    "200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed.",
+    "The footprint hasn't changed: 200 stores today, and 200 stores two years ago.",
+    "There are 200 stores today, the same 200 stores as two years ago.",
+    "Two years ago it was 200 stores, and it's 200 stores today — no change in the footprint.",
+    "Today there are 200 stores, unchanged from 200 stores two years ago."
+   ]
+  },
+  "revenue_per_store": {
+   "versions": [
+    "Average revenue per store is $2.4M a year.",
+    "Revenue per store averages $2.4M a year.",
+    "Average revenue per store comes to $2.4M a year.",
+    "Each year, average revenue per store is $2.4M.",
+    "$2.4M a year is the average revenue per store."
+   ]
+  },
+  "cogs_pct": {
+   "versions": [
+    "COGS is 58% of revenue today, up from 42% two years ago.",
+    "Two years ago COGS was 42% of revenue; today it's up to 58%.",
+    "COGS has risen from 42% of revenue two years ago to 58% today.",
+    "Today COGS is 58% of revenue — up from 42% two years ago.",
+    "As a share of revenue, COGS is up to 58% today from 42% two years ago."
+   ]
+  },
+  "labor_pct": {
+   "versions": [
+    "Labor is 22% of revenue, and it’s been stable.",
+    "Labor has been stable at 22% of revenue.",
+    "At 22% of revenue, labor has held stable.",
+    "Labor sits at 22% of revenue, and it hasn't moved.",
+    "Labor is a stable 22% of revenue."
+   ]
+  },
+  "overhead_pct": {
+   "versions": [
+    "Overhead and rent are 14% of revenue, up slightly from 12%.",
+    "Overhead and rent have edged up from 12% to 14% of revenue.",
+    "At 14% of revenue, overhead and rent are up slightly from 12%.",
+    "Overhead and rent went from 12% of revenue to 14% — a slight rise.",
+    "Overhead and rent are up slightly, to 14% of revenue from 12%."
+   ],
+   "keep": [
+    "overhead and rent"
+   ]
+  },
+  "bean_price_change": {
+   "versions": [
+    "Raw coffee bean costs are up 40% over the past two years.",
+    "Over the past two years, raw coffee bean costs have risen 40%.",
+    "Raw coffee bean costs have gone up 40% in the past two years.",
+    "Raw coffee bean costs: up 40% over the past two years.",
+    "In the past two years, raw coffee bean costs rose 40%."
+   ],
+   "keep": [
+    "raw coffee bean"
+   ]
+  },
+  "avg_ticket": {
+   "versions": [
+    "The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit.",
+    "The average transaction has gone from $6.20 two years ago to $6.80 — about a 10% increase, because customers are buying more items per visit.",
+    "Customers are buying more items per visit, so the average transaction is up from $6.20 two years ago to $6.80 — about a 10% increase.",
+    "At $6.80, the average transaction is about 10% higher than the $6.20 of two years ago, because customers are buying more items per visit.",
+    "The average transaction rose about 10%, from $6.20 two years ago to $6.80, because customers are buying more items per visit."
+   ],
+   "keep": [
+    "more items per visit",
+    "average transaction"
+   ]
+  },
+  "menu_price_change": {
+   "versions": [
+    "Menu prices have not changed in two years.",
+    "There's been no change to menu prices in two years.",
+    "In two years, menu prices haven't changed.",
+    "Menu prices have stayed the same for two years.",
+    "Menu prices have held flat over the past two years."
+   ],
+   "keep": [
+    "menu prices"
+   ]
+  },
+  "bean_share_of_cogs": {
+   "versions": [
+    "Coffee beans were 25% of COGS two years ago.",
+    "Two years ago, coffee beans made up 25% of COGS.",
+    "Coffee beans accounted for 25% of COGS two years ago.",
+    "As of two years ago, coffee beans were 25% of COGS.",
+    "25% of COGS was coffee beans, two years ago."
+   ],
+   "keep": [
+    "coffee beans",
+    "COGS"
+   ]
+  },
+  "non_bean_input_change": {
+   "versions": [
+    "Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.",
+    "Over the past two years, the other input costs — dairy, packaging, and food — have risen 37.5%.",
+    "Dairy, packaging, and food — the other input costs — are up 37.5% over the past two years.",
+    "The other inputs — dairy, packaging, and food — have gone up 37.5% in the past two years.",
+    "In the past two years, costs for the other inputs — dairy, packaging, and food — rose 37.5%."
+   ],
+   "keep": [
+    "dairy, packaging, and food"
+   ]
+  }
+ }
+}

@@ -28,6 +28,8 @@ import { logEvent } from '@/lib/analytics';
 import { caseTotalMs, type Phase } from './state-machine';
 import { toCheckEventRows } from './check-log';
 import { line, phrase, recordPhraseUses, type PhraseUses } from './phrasing';
+import { dataLinePools } from '@/lib/cases/loader';
+import { dataLineVariantsOn } from '@/lib/cases/data-line-variants';
 import { asksForConclusion, analysisAskLine } from './spoken-close';
 import { updateStages, stageQuestions, type StageKey, type StageRecord } from './stage-evidence';
 import { renderDataLineParts, decisionRows, nextReadyExhibit } from './data-decisions';
@@ -874,7 +876,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
             ...(Object.keys(closeHoldSaved).length ? { closeHold: closeHoldSaved } : {}),
             recomputeAttempts,
             // The connecting words heard this turn (phrasing.ts): no variant again within its pool's last 3.
-            phraseUses: recordPhraseUses(savedLine, phraseUses),
+            phraseUses: recordPhraseUses(savedLine, phraseUses, dataLineVariantsOn() ? dataLinePools() : undefined),
             lastVerified: verifiedNow,
             flaggedFigures: state.flaggedFigures,
             explainProbed: [...explainProbedBefore, ...probeSaved.explainProbed],
