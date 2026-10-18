@@ -376,7 +376,10 @@ candidate-led case owes nothing. Only interviewer-led cases exist so far.
 could Hollis Bay do to get shoppers to try its chickpea snacks — and to keep
 buying them?"). Code asks it when the brainstorm is owed, the model's prompt
 shows it, and it counts as the brainstorm when the interviewer asks it in
-close wording. Several lines rotate (prof-001 keeps its three). Without it the
+close wording. Several lines rotate (prof-001 keeps its three). Code asks it
+whatever has been said, so it must not presume a topic came up ("Beyond
+pricing, …" was asked before pricing was mentioned — session 9813d6ce, 18 Oct;
+pinned by a test for prof-001). Without it the
 generic question is asked, which is case-neutral. `brainstorm.required: false`
 for a case with no brainstorm module (Quillpath): nothing is owed, and the
 case can close without one; scoring tells the judge the stage is "not part of

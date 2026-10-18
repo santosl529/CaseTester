@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { brainstormAsks, brainstormRequired, asksCaseBrainstorm, GENERIC_BRAINSTORM_ASKS } from '@/lib/orchestrator/brainstorm';
 import { getCaseById } from '@/lib/cases/loader';
-import { stageGateOpen } from '@/lib/orchestrator/spoken-close';
+import { stageGateOpen, asksBrainstorm } from '@/lib/orchestrator/spoken-close';
 import { missingRequiredStages, updateStages, INITIAL_STAGES, type StageTurn } from '@/lib/orchestrator/stage-evidence';
 import { INITIAL_PRESSURE_TEST } from '@/lib/orchestrator/pressure-test';
 
@@ -15,12 +15,23 @@ describe('a case brainstorm', () => {
     expect(GENERIC_BRAINSTORM_ASKS.join(' ')).not.toMatch(/margin|pricing/);
   });
 
-  it("prof-001 keeps its three lines, the profitability one among them (no prof-001 change)", () => {
+  it("prof-001 keeps its three lines, the profitability one among them", () => {
     expect(brainstormAsks(getCaseById('prof-001'))).toEqual([
       "Beyond what we've discussed, what else could the client do?",
       'What other levers could the client pull here?',
-      'Beyond pricing, what else could the client do to protect margin?',
+      'What else could the client do to protect margin?',
     ]);
+  });
+
+  // Session 9813d6ce (18 Oct): "Beyond pricing, what else…" was the first
+  // brainstorm question though pricing hadn't come up. Code asks one of these
+  // whatever was said, so none may name a lever — and each still reads as the
+  // brainstorm to the generic grammar.
+  it("no prof-001 ask presumes a lever was discussed, and each reads as the brainstorm", () => {
+    for (const a of brainstormAsks(getCaseById('prof-001'))) {
+      expect(a).not.toMatch(/pric|cost|cogs|procure|supplier|bean|labor|overhead/i);
+      expect(asksBrainstorm(a)).toBe(true);
+    }
   });
 
   it('is required unless the case says not (Quillpath has no brainstorm module)', () => {

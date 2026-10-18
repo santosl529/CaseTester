@@ -246,7 +246,7 @@ describe('Rule 9 — required stages before a normal end, and the closing line',
     endDue(STAGES({ brainstorm: { delivered: false } }));
     const asked = await say('Volume loss — I would pilot in 20 stores.');
     expect(asked.ended).toBe(false);
-    expect(asked.interviewerText).toMatch(/(what else could the client do|other levers could the client pull|what else could the client do to protect margin)\?/);
+    expect(asked.interviewerText).toMatch(/(what else could the client do|other levers could the client pull|what else could the client do to protect margin)\?/i);
     expect((flags().stageEvidence as Row).brainstorm).toMatchObject({ delivered: true, codeAsked: true });
     const closed = await say("I'd rather not — I think price is it.");
     expect(closed.ended).toBe(true);
