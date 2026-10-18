@@ -44,7 +44,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   const [local, setLocal] = useState<'idle' | 'connecting' | 'live' | 'ended'>('idle');
   const [needsClick, setNeedsClick] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
-  const [scoring, setScoring] = useState(false);
+  const [scoring, setScoring] = useState<false | 'finalizing' | 'scoring'>(false);
   const [endedWithReport, setEndedWithReport] = useState(false);
   // Thinking sounds and the "So," connector (item 3): on by default, remembered
   // in this browser, sent to the agent, applied from the next turn.
@@ -180,7 +180,10 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   }
 
   async function score() {
-    setScoring(true);
+    // A math check still running on the last message reaches the report (…/finalize waits for it, ≤30s).
+    setScoring('finalizing');
+    await fetch(`/api/channel/${sessionId}/finalize`, { method: 'POST' }).catch(() => null);
+    setScoring('scoring');
     const res = await fetch(`/api/channel/${sessionId}/score`, { method: 'POST' });
     if (res.ok) router.push(`/case/${sessionId}/report`);
     else { setScoring(false); setProblem('Scoring failed — try again.'); }
@@ -225,7 +228,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
           title="The interviewer's thinking sounds (“Hmm…”) and the “So,” that follows them. Applies from the next turn.">
           Thinking sounds: {fillers ? 'on' : 'off'}
         </Button>
-        {(view.canScore || endedWithReport) && <Button onClick={score} disabled={scoring}>{scoring ? 'Scoring…' : 'Score this interview'}</Button>}
+        {(view.canScore || endedWithReport) && <Button onClick={score} disabled={scoring !== false}>{scoring === 'finalizing' ? 'Finalizing your report…' : scoring ? 'Scoring…' : 'Score this interview'}</Button>}
         <span className="ml-auto text-xs text-neutral-400">
           {view.latency ? `first sound ${view.latency.firstSoundMs ?? '–'}ms · first useful ${view.latency.firstUsefulMs ?? '–'}ms` : ''}
         </span>
