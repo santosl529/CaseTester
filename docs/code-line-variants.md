@@ -335,10 +335,10 @@ Code asks for the structure (once), none on the table. First use by seed.
 The candidate's own figure, when a challenge of it is withheld. {x} = their figure as written.
 
 1. How did you get to {x}?
-2. Where does {x} come from?
+2. Where does that {x} come from?
 3. Can you walk me through {x}?
-4. How did you arrive at {x}?
-5. What's behind your {x}?
+4. How do you get to {x}?
+5. Could you walk me through where {x} comes from?
 
 ### advance_data
 
@@ -529,6 +529,56 @@ The opener's hand-off after a case prompt that ends in a question. First use by 
 3. Feel free to take a moment to gather your thoughts first. *(before)*
 4. Whenever you're ready, walk me through your thinking.
 5. Take whatever time you need, then talk me through it.
+
+### probe_got_to
+
+The checker's neutral probe of a figure (chosen when code selects the flag; also the wrap-up probe's ask). {x} = the candidate's figure. First use by seed.
+
+1. Walk me through how you got to {x}.
+2. Walk me through how you arrived at {x}.
+3. Show me how you got to {x}.
+4. Explain how you got to {x}.
+5. Walk me through the steps to {x}.
+
+### probe_calc
+
+The checker's neutral probe of a calculation with no figure of theirs to name. First use by seed.
+
+1. Walk me through that calculation.
+2. Walk me through that calculation one step at a time.
+3. Walk me through how that calculation goes.
+4. Walk me through that calculation for me.
+5. Walk me through the calculation there.
+
+### probe_there
+
+The checker's neutral probe of a claim with no figures. First use by seed.
+
+1. Walk me through how you got there.
+2. Take me through how you got there.
+3. Show me how you got there.
+4. Explain how you got there.
+5. Walk me through your steps to get there.
+
+### check_in
+
+Text mode: the check-in after a minute of silence (once a silence), before the question on the table.
+
+1. Still with me? Take your time.
+2. Are you still there? No rush.
+3. Still with me? There's no hurry.
+4. Just checking — are you still there? Take your time.
+5. Still there? Take whatever time you need.
+
+### pause
+
+Text mode: the technical pause after three minutes (again on a later silence while pause budget is left). {x} = the limit, e.g. "5 minutes".
+
+1. Looks like we may have lost you — I've paused the clock. If you're not back within {x}, we'll end the session here.
+2. It seems we may have lost you, so I've paused the clock. If you're not back within {x}, we'll end the session here.
+3. I've paused the clock — it looks like we may have lost you. We'll end the session here if you're not back within {x}.
+4. You may have dropped off, so the clock is paused. If you're not back within {x}, we'll end the session here.
+5. The clock is paused for now — we may have lost you. If you're not back within {x}, we'll end the session here.
 
 ### close_time_up
 

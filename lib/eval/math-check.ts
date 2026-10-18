@@ -33,7 +33,7 @@ export function mathErrors(text: string, c: CaseLike, revealed: Set<string>): Ma
   return out;
 }
 
-const PROBE = /\b(?:walk me through|how did you get|how do you get|how you got|where does|where did|check (?:that|your|the|this)|recheck|points of what|is that (?:right|correct)|does that (?:hold|follow|add up)|redo|re-?run|what does .{0,40} assume|what are you assuming|how does .{0,60} (?:get|translate|turn|become)|what base|of what|how .{0,40} gets? you)\b/i;
+export const PROBE = /\b(?:walk me through|how did you get|how do you get|how you got|where does|where did|check (?:that|your|the|this)|recheck|points of what|is that (?:right|correct)|does that (?:hold|follow|add up)|redo|re-?run|what does .{0,40} assume|what are you assuming|how does .{0,60} (?:get|translate|turn|become)|what base|of what|how .{0,40} gets? you)\b/i;
 export const CORRECTION = new RegExp(`\\b(?:it's|that's|it is) closer to\\b|\\bnot \\$?\\d|\\bthe (?:correct|right) figure\\b|${poolPattern('correct_one', 'correct_two').source}`, 'i');
 
 export function checkMathTurn(t: CorpusTurn, c: CaseLike): { error: MathError; handled: boolean }[] {

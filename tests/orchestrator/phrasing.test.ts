@@ -110,8 +110,8 @@ describe('the model saying a variant of code\'s line is still data talk', () => 
 // Brief B (18 Oct): every code-written line without case facts lives in one registry.
 import { pickScript } from '@/lib/agent/prompts/scripts';
 describe('the registry keeps the old choices', () => {
-  it('a pool that rotated by seed picks, on its first use, what pickScript picked', () => {
-    for (const pool of ALL) if (SEEDED_FIRST.has(pool)) for (const seed of ['s1:4', 'abc:12', 'x:0', '9ccf0836:31']) {
+  it('a pool that rotated by seed picks, on its first use, what pickScript picked (the neutral probes are new to it, 18 Oct)', () => {
+    for (const pool of ALL) if (SEEDED_FIRST.has(pool) && !['probe_got_to', 'probe_calc', 'probe_there'].includes(pool)) for (const seed of ['s1:4', 'abc:12', 'x:0', '9ccf0836:31']) {
       expect(phrase(pool, '', undefined, seed)).toBe(pickScript(PHRASE_POOLS[pool], seed));
     }
   });

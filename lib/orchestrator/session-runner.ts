@@ -30,7 +30,7 @@ import { settleTurn, commitScripted, logSessionEvent, type TurnUsage, type Model
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import { recMathLine } from './recompute';
 import { MATH_CHECKER_CATEGORY, type CheckerJob, type CheckerJobResult } from './math-checker-live';
-import { line, phrase, PHRASE_POOLS, type PhraseUses } from './phrasing';
+import { line, phrase, recordPhraseUses, PHRASE_POOLS, type PhraseUses } from './phrasing';
 import {
   isUsefulSegment, isCancelledTurn, TurnCancelled,
   type ConductFlags, type HeardReport, type ScriptedPlan, type SegmentSink, type TurnCtx, type TurnResult,
@@ -454,10 +454,11 @@ export function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[]
   // The math checker's flag in place of the close: its vetted line, said by code.
   // The wrap-up lead's connecting words vary (phrasing.ts); the probe's own words don't.
   const wrapUp = (x: string) => phrase('wrap_up', x, ctx.flags.phraseUses as PhraseUses | undefined, seed);
+  const gotTo = (fig: string) => phrase('probe_got_to', fig, ctx.flags.phraseUses as PhraseUses | undefined, seed);
   const recLine = (action: 'probe' | 'correct') => !recMath ? ''
     : 'checker' in recMath ? (action === 'probe' ? wrapUp(lowerFirst(recMath.checker.line)) : recMath.checker.line)
-      : 'closed' in recMath ? (action === 'probe' || !recMath.closed.correction ? wrapUp(`walk me through how you got to ${recMath.closed.said}.`) : recMath.closed.correction)
-        : recMathLine(recMath.flag, action, wrapUp);
+      : 'closed' in recMath ? (action === 'probe' || !recMath.closed.correction ? wrapUp(lowerFirst(gotTo(recMath.closed.said))) : recMath.closed.correction)
+        : recMathLine(recMath.flag, action, wrapUp, gotTo);
   const requests = (detected ?? [])
     .filter(r => r.explicit) // a code-written turn answers asks, it doesn't offer
     .map(r => ({ what: r.what, itemIds: r.ledgerItemIds, explicit: true, respond: 'release' as const }));
@@ -537,7 +538,9 @@ export async function runSilence(sessionId: string, silentMs: number): Promise<S
   }
 
   const storedQuestion = typeof flags.lastQuestion === 'string' ? flags.lastQuestion : null;
-  const interviewerText = decision.action === 'check_in' ? checkInText(lastInterviewer, storedQuestion) : pauseText(decision.state.pauseLimitMs ?? 0);
+  const silenceUses = flags.phraseUses as PhraseUses | undefined;
+  const silenceSeed = `${sessionId}:${nextTurnIndex}`;
+  const interviewerText = decision.action === 'check_in' ? checkInText(lastInterviewer, storedQuestion, silenceUses, silenceSeed) : pauseText(decision.state.pauseLimitMs ?? 0, silenceUses, silenceSeed);
 
   await db.insert(sessionTurns).values({ sessionId, turnIndex: nextTurnIndex, role: 'interviewer', text: interviewerText, timestampMs: now });
   // Not an assist: lib/scoring/assists.ts only counts ladder rungs.
@@ -551,6 +554,8 @@ export async function runSilence(sessionId: string, silentMs: number): Promise<S
     flagsJsonb: {
       ...flags,
       silence: decision.state,
+      // The scripted line's version, for the last-3 rule (it doesn't pass through Settle).
+      phraseUses: recordPhraseUses(interviewerText, silenceUses),
       // Rule 13: silence past tolerance is one no-progress turn (check-in only).
       stall: decision.action === 'check_in' ? recordSilenceStall(priorStall) : priorStall,
     },

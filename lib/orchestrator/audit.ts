@@ -1,3 +1,4 @@
+import { PHRASE_POOLS } from './phrasing';
 export type AuditResult = {
   passed: boolean;
   unexplainedNumbers: string[];
@@ -136,7 +137,10 @@ export type MetaLeakResult = { cleaned: string; strippedSentences: string[] };
 // the model's to say. Batch 4: the Sonnet interviewer copied it from history
 // into its own turns ("…walk me through that. Still with me? Take your time.
 // The question on the table: …") right after asking, with no silence at all.
-const COPIED_CHECK_IN = /\s*Still with me\?(?:\s*Take your time\.)?(?:\s*The question on the table:[^?.!]*[?.!])?/gi;
+// Any version of it (phrasing.ts check_in), and its first question alone as before ("Still with me?").
+const CHECK_IN_WORDS = [...PHRASE_POOLS.check_in, ...PHRASE_POOLS.check_in.map(v => v.split('?')[0] + '?')]
+  .sort((a, b) => b.length - a.length).map(v => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ +/g, '\\s+'));
+const COPIED_CHECK_IN = new RegExp(`\\s*(?:${CHECK_IN_WORDS.join('|')})(?:\\s*Take your time\\.)?(?:\\s*The question on the table:[^?.!]*[?.!])?`, 'gi');
 
 export function stripCopiedCheckIn(spokenText: string): { text: string; stripped: boolean } {
   const text = spokenText.replace(COPIED_CHECK_IN, '').trim();

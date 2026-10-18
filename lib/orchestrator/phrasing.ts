@@ -255,10 +255,10 @@ export const PHRASE_POOLS = {
   // settle-turn.ts: the candidate's own figure, when a challenge is withheld.
   got_to: [
     'How did you get to {x}?',
-    'Where does {x} come from?',
+    'Where does that {x} come from?',
     'Can you walk me through {x}?',
-    'How did you arrive at {x}?',
-    'What\'s behind your {x}?',
+    'How do you get to {x}?',
+    'Could you walk me through where {x} comes from?',
   ],
   // ask-intent.ts advanceLine: the third ask of one intent moves the case on.
   advance_data: [
@@ -399,6 +399,47 @@ export const PHRASE_POOLS = {
     'Whenever you\'re ready, walk me through your thinking.',
     'Take whatever time you need, then talk me through it.',
   ],
+  // math-checker.ts: the checker's neutral probes (no figure of its own), chosen when code
+  // selects the flag (math-checker-live.ts neutralProbe) — the decision carries the exact
+  // line, and the heard check reads that line. {x} = the candidate's figure as they wrote it.
+  probe_got_to: [
+    'Walk me through how you got to {x}.',
+    'Walk me through how you arrived at {x}.',
+    'Show me how you got to {x}.',
+    'Explain how you got to {x}.',
+    'Walk me through the steps to {x}.',
+  ],
+  probe_calc: [
+    'Walk me through that calculation.',
+    'Walk me through that calculation one step at a time.',
+    'Walk me through how that calculation goes.',
+    'Walk me through that calculation for me.',
+    'Walk me through the calculation there.',
+  ],
+  probe_there: [
+    'Walk me through how you got there.',
+    'Take me through how you got there.',
+    'Show me how you got there.',
+    'Explain how you got there.',
+    'Walk me through your steps to get there.',
+  ],
+  // silence.ts (text mode): the check-in, once a silence — again after the next silence;
+  // the question on the table follows it.
+  check_in: [
+    'Still with me? Take your time.',
+    'Are you still there? No rush.',
+    'Still with me? There\'s no hurry.',
+    'Just checking — are you still there? Take your time.',
+    'Still there? Take whatever time you need.',
+  ],
+  // …the technical pause, again on a later silence while pause budget is left. {x} = the limit ("5 minutes").
+  pause: [
+    'Looks like we may have lost you — I\'ve paused the clock. If you\'re not back within {x}, we\'ll end the session here.',
+    'It seems we may have lost you, so I\'ve paused the clock. If you\'re not back within {x}, we\'ll end the session here.',
+    'I\'ve paused the clock — it looks like we may have lost you. We\'ll end the session here if you\'re not back within {x}.',
+    'You may have dropped off, so the clock is paused. If you\'re not back within {x}, we\'ll end the session here.',
+    'The clock is paused for now — we may have lost you. If you\'re not back within {x}, we\'ll end the session here.',
+  ],
   // scripts.ts: the one goodbye, by why the case ended — "time" only at time-up.
   close_time_up: [
     'That\'s time. Thanks for working through it — your written report will follow.',
@@ -443,6 +484,8 @@ export const SEEDED_FIRST: ReadonlySet<string> = new Set([
   'stage_exhibit_q', 'brainstorm_generic', 'rec_ask', 'risk_ask', 'late_rec_ask', 'grace_ask', 'time_warning',
   'rec_revision', 'rec_math_revision', 'analysis_revision', 'after_risk', 'first_step', 'measure',
   'opener_invite', 'opener_after_q', 'close_time_up', 'close_complete', 'close_unresolved',
+  // The checker's neutral probes, the most repeated interviewer line across batches: varied from the first.
+  'probe_got_to', 'probe_calc', 'probe_there',
 ]);
 export type PhrasePool = keyof typeof PHRASE_POOLS;
 // The last uses of each pool this session, newest last (variant indexes).

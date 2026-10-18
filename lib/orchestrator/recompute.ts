@@ -167,12 +167,15 @@ export function figureAsWritten(text: string, figure: number): string {
 // quantity and its period (unitCorrectionLine; Lorenzo, 15 Oct). Only a unit
 // flag is corrected by code (codeMayCorrect): any other kind stays a probe.
 // `wrapUp`: the lead (phrasing.ts wrap_up); by default "Before we wrap up — ".
-export function recMathLine(f: RecomputeFlag, action: 'probe' | 'correct', wrapUp: (x: string) => string = x => `Before we wrap up — ${x}`): string {
+// \`gotTo\`: the neutral probe of the figure (phrasing.ts probe_got_to), lower-cased after the lead.
+export function recMathLine(f: RecomputeFlag, action: 'probe' | 'correct', wrapUp: (x: string) => string = x => `Before we wrap up — ${x}`,
+  gotTo: (fig: string) => string = fig => `Walk me through how you got to ${fig}.`): string {
   if (action === 'correct' && f.kind === 'unit' && f.unit) return unitCorrectionLine(f.unit);
   {
     if (f.kind === 'pricing') return wrapUp(`you said ${f.claim?.quantity}. Walk me through how you sized that.`);
     const fig = f.kind === 'unit' ? `${f.candidateValue} ${f.claim?.units}` : figureAsWritten(f.span, f.candidateValue);
-    return wrapUp(`walk me through how you got to ${fig}.`);
+    const ask = gotTo(fig);
+    return wrapUp(ask.charAt(0).toLowerCase() + ask.slice(1));
   }
 }
 

@@ -10,7 +10,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { CheckerClaim, CheckerResult } from '@/lib/orchestrator/math-checker';
-import { poolPattern } from '@/lib/orchestrator/phrasing';
+import { fill, poolPattern, PHRASE_POOLS } from '@/lib/orchestrator/phrasing';
 
 type Row = Record<string, unknown>;
 const store = { session: {} as Row, turns: [] as Row[], revealed: [] as Row[], exhibits: [] as Row[], events: [] as Row[] };
@@ -169,7 +169,7 @@ const BLAKE_T15_CLAIM: CheckerClaim = {
   pointer: 'How does that fit with the overhead and rent line you were given, 14% of revenue, up from 12%?',
   codeQuantity: { kind: 'none', stepId: null, price: null, target: null }, actualShare: null,
 };
-const PROBE = 'Walk me through how you got to 12-13 points.';
+// Code's neutral probe of his "12-13 points" (any of its versions since 18 Oct): 'Walk me through how you got to 12-13 points.'
 const LOW = { structure: 20, quantitative: 20, dataExhibit: 20, judgment: 20, creativity: 20, synthesis: 20, communication: 20, pushback: 20 };
 
 function seedBlake() {
@@ -212,7 +212,7 @@ describe("Blake 4755c03a, checker on, on his real clock: the risk is asked befor
     MODEL.turn = { move: 'analysis', requests: [], exhibit: null, rescueItem: null, say: 'Understood.', question: 'How does that fit with the overhead and rent line you were given, 14% of revenue, up from 12%?' };
     const r17 = await runTurn('s1', SAID.t17);
     expect(kindOf(17)).toBe('model');
-    expect(r17.interviewerText).toContain(PROBE);
+    expect(PHRASE_POOLS.probe_got_to.some(v => r17.interviewerText.includes(fill(v, '12-13 points')))).toBe(true);   // PROBE, in any version (brief B rulings)
 
     at(BLAKE.t19);
     const r19 = await runTurn('s1', SAID.t19);

@@ -32,7 +32,10 @@ import { statesQuantitativeClaim } from '@/lib/orchestrator/math-checker';
 import { CLOSE_WAIT_FIRST, CLOSE_WAIT_MITIGATED } from '@/lib/orchestrator/close-hold';
 import { factBaseFor, findFalseRefusals, findUndeliveredClaims, findFalseFacts } from '@/lib/orchestrator/fact-check';
 import { DEFER, EARLIER } from '@/lib/eval/data-check';
-import { CORRECTION } from '@/lib/eval/math-check';
+import { CORRECTION, PROBE } from '@/lib/eval/math-check';
+import { ECHO_PROBE } from '@/lib/orchestrator/fact-check';
+import { isSilenceLine } from '@/lib/orchestrator/silence';
+import { stripCopiedCheckIn } from '@/lib/orchestrator/audit';
 import { getCaseById } from '@/lib/cases/loader';
 
 const POOLS = Object.keys(PHRASE_POOLS) as PhrasePool[];
@@ -47,7 +50,7 @@ const SLOT: Partial<Record<PhrasePool, string>> = {
   correct_two: 'COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable.',
   wrap_up: 'walk me through how you got to 38%.', gate_defer: 'the cost breakdown', offer: 'the cost breakdown',
   before_data: ASK, reask_more: ASK, reask_answer: ASK, reask_back: ASK, concrete: "name one thing your structure doesn't cover yet.",
-  got_to: '38%', stall_lead: "The question on the table is how you'd size the margin gap.",
+  got_to: '38%', probe_got_to: '38%', pause: '5 minutes', stall_lead: "The question on the table is how you'd size the margin gap.",
 };
 const filled = (p: PhrasePool, v: string) => fill(v, SLOT[p] ?? '');
 const template = (v: string) => v.replace(/\{[xX]\}/g, ' ');
@@ -133,6 +136,11 @@ const RECOGNIZERS: [string, (t: string) => unknown][] = [
   ['eval: data-check DEFER', t => DEFER.test(t)],
   ['eval: data-check EARLIER', t => EARLIER.test(t)],
   ['eval: math-check CORRECTION', t => CORRECTION.test(t)],
+  ['eval: math-check PROBE', t => PROBE.test(t)],
+  ['F2 echo probe', t => ECHO_PROBE.test(t)],
+  ['classifyMathTalk (their 38%)', t => [...new Set(sentencesOf(t).map(s => classifyMathTalk(s, [38]).kind))].sort().join(',')],
+  ['isSilenceLine', isSilenceLine],
+  ['stripCopiedCheckIn', t => stripCopiedCheckIn(t).stripped],
 ];
 const reading = (t: string) => RECOGNIZERS.map(([name, f]) => `${name}=${JSON.stringify(f(t))}`);
 

@@ -224,5 +224,20 @@
  ],
  "close_unresolved": [
   "We'll stop there. Thanks for working through the case — your written report will follow."
+ ],
+ "probe_got_to": [
+  "Walk me through how you got to {x}."
+ ],
+ "probe_calc": [
+  "Walk me through that calculation."
+ ],
+ "probe_there": [
+  "Walk me through how you got there."
+ ],
+ "check_in": [
+  "Still with me? Take your time."
+ ],
+ "pause": [
+  "Looks like we may have lost you — I've paused the clock. If you're not back within {x}, we'll end the session here."
  ]
 }
