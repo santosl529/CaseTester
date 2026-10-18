@@ -6,7 +6,8 @@ export type ClassifierWaits = { distress: number; ptJudge: number; structureJudg
 export type TurnRecord = {
   turnSeq: number; at: string; candidateText: string; carried: boolean;
   ack: string | null;                                   // the acknowledgment that played
-  ackSkipped?: { ack: string; why: string } | null;     // picked, then not played (17 Oct): cut, speech_resumed, reply_ready
+  ackSkipped?: { ack: string; why: string } | null;     // picked, then not played (17 Oct): cut, speech_resumed, reply_ready, fillers_off
+  fillers?: boolean;                                    // the filler toggle for this turn (thinking sounds + "So,"; item 3, 17 Oct)
   cutMs?: number | null;                                // end of turn → the cut, for a cut or cancelled turn
   phase: string | null; ended: boolean;
   speechEndAt: number | null; finalAt: number; endpointMs: number | null; queueWaitMs: number;

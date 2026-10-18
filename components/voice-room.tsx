@@ -4,10 +4,11 @@
 // natural end. The browser tells the agent when audio can play (ready /
 // audio_blocked), confirms each exhibit once rendered, and measures its own
 // end-of-speech → first-sound time as a cross-check (headphones required).
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { useEffect, useReducer, useRef, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { Room, RoomEvent, Track, type RemoteTrack } from 'livekit-client';
 import { Button } from '@/components/ui/button';
+import { fillerPrefStore } from '@/lib/voice/filler-pref';
 import { ExhibitTable } from '@/components/exhibit-table';
 import { applyMessage, initialView } from '@/components/voice-view';
 import { DATA_TOPIC, type ClientMessage, type ServerMessage } from '@/lib/voice/protocol';
@@ -33,6 +34,10 @@ function levelMeter(ctx: AudioContext, track: MediaStreamTrack): () => number {
   };
 }
 
+// One per page: the browser's filler setting (item 3).
+// Reading localStorage itself can throw when site data is blocked: then memory.
+const fillerPref = fillerPrefStore(() => { try { return typeof window === 'undefined' ? null : window.localStorage; } catch { return null; } });
+
 export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePrompt: string | null }) {
   const router = useRouter();
   const [view, dispatch] = useReducer(applyMessage, initialView);
@@ -41,6 +46,9 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   const [problem, setProblem] = useState<string | null>(null);
   const [scoring, setScoring] = useState(false);
   const [endedWithReport, setEndedWithReport] = useState(false);
+  // Thinking sounds and the "So," connector (item 3): on by default, remembered
+  // in this browser, sent to the agent, applied from the next turn.
+  const fillers = useSyncExternalStore(fillerPref.subscribe, fillerPref.get, () => true);
   const roomRef = useRef<Room | null>(null);
   const audioBox = useRef<HTMLDivElement | null>(null);
   const confirmed = useRef(new Set<string>());
@@ -52,6 +60,12 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     const room = roomRef.current;
     if (!room) return;
     void room.localParticipant.publishData(new TextEncoder().encode(JSON.stringify(m)), { reliable: true, topic: DATA_TOPIC }).catch(() => {});
+  };
+
+  // `ready`, with the filler toggle first: an agent that (re)joins learns it before its first turn.
+  const sendReady = () => {
+    send({ type: 'fillers', on: fillerPref.get() });
+    send({ type: 'ready' });
   };
 
   // An exhibit counts as shown once it has rendered (spec §5.3): confirm after commit.
@@ -96,7 +110,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
       try { m = JSON.parse(dec.decode(payload)) as ServerMessage; } catch { return; }
       // The agent may join after us: its hello is when our `ready` can arrive.
       if (m.type === 'hello') {
-        if (room.canPlaybackAudio) send({ type: 'ready' });
+        if (room.canPlaybackAudio) sendReady();
         else setNeedsClick(true);
       }
       dispatch(m);
@@ -136,7 +150,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
       }
     }, 20);
     setLocal('live');
-    if (room.canPlaybackAudio) send({ type: 'ready' });
+    if (room.canPlaybackAudio) sendReady();
     else setNeedsClick(true);
   }
 
@@ -146,8 +160,14 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     await room.startAudio();
     if (room.canPlaybackAudio) {
       setNeedsClick(false);
-      send({ type: 'ready' });
+      sendReady();
     }
+  }
+
+  function toggleFillers() {
+    const on = !fillerPref.get();
+    fillerPref.set(on);
+    send({ type: 'fillers', on });
   }
 
   // Rule 18A: ending keeps a report on what was covered, when there is one.
@@ -201,6 +221,10 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
         {local === 'idle' && <Button onClick={start}>Start</Button>}
         {needsClick && local === 'live' && <Button onClick={enableAudio}>Click to enable audio</Button>}
         {local === 'live' && !caseOver && <Button variant="outline" onClick={end}>End</Button>}
+        <Button variant="outline" size="sm" onClick={toggleFillers} aria-pressed={fillers}
+          title="The interviewer's thinking sounds (“Hmm…”) and the “So,” that follows them. Applies from the next turn.">
+          Thinking sounds: {fillers ? 'on' : 'off'}
+        </Button>
         {(view.canScore || endedWithReport) && <Button onClick={score} disabled={scoring}>{scoring ? 'Scoring…' : 'Score this interview'}</Button>}
         <span className="ml-auto text-xs text-neutral-400">
           {view.latency ? `first sound ${view.latency.firstSoundMs ?? '–'}ms · first useful ${view.latency.firstUsefulMs ?? '–'}ms` : ''}

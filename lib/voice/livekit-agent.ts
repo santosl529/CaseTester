@@ -161,6 +161,7 @@ export default defineAgent({
       if (m.type === 'ready') void controller.ready(opening);
       else if (m.type === 'audio_blocked') controller.audioBlocked();
       else if (m.type === 'exhibit_shown') controller.exhibitShown(m.turnSeq, m.exhibitId);
+      else if (m.type === 'fillers') controller.setFillers(m.on);
       else if (m.type === 'timing') {
         const r = records.find(x => x.turnSeq === m.turnSeq);
         if (r) r.clientFirstSoundMs = m.clientFirstSoundMs;

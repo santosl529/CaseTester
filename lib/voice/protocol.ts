@@ -26,7 +26,11 @@ export type ClientMessage =
   | { type: 'ready' }                                            // audio can play (§5.1)
   | { type: 'audio_blocked' }                                    // it no longer can
   | { type: 'exhibit_shown'; turnSeq: number; exhibitId: string } // rendered (§5.3)
-  | { type: 'timing'; turnSeq: number; clientFirstSoundMs: number };
+  | { type: 'timing'; turnSeq: number; clientFirstSoundMs: number }
+  // The interview screen's toggle for the thinking sounds and the "So,"
+  // connector (item 3, 17 Oct): sent when changed and with every `ready`, so an
+  // agent that (re)joins learns it; the agent applies it from the next turn.
+  | { type: 'fillers'; on: boolean };
 
 // A browser message, or null for anything else.
 export function parseClientMessage(raw: string): ClientMessage | null {
@@ -37,6 +41,7 @@ export function parseClientMessage(raw: string): ClientMessage | null {
   if (m.type === 'exhibit_shown' && Number.isInteger(m.turnSeq) && typeof m.exhibitId === 'string') {
     return { type: 'exhibit_shown', turnSeq: m.turnSeq as number, exhibitId: m.exhibitId };
   }
+  if (m.type === 'fillers' && typeof m.on === 'boolean') return { type: 'fillers', on: m.on };
   if (m.type === 'timing' && Number.isInteger(m.turnSeq) && typeof m.clientFirstSoundMs === 'number') {
     return { type: 'timing', turnSeq: m.turnSeq as number, clientFirstSoundMs: m.clientFirstSoundMs };
   }

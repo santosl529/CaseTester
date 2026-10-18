@@ -59,6 +59,7 @@ type CutKind = 'barge' | 'blocked' | 'end';
 type Live = {
   seq: number; text: string; carried: boolean; replaces: number | null; opening: boolean;
   ack: string | null; prevAck: string | null;
+  fillers: boolean;            // the filler toggle as it stood when the turn began (item 3)
   connectorDecided: boolean;   // the first spoken segment has been given its connector (or none)
   ackState: 'none' | 'pending' | 'played' | 'skipped';
   ackSkipped: string | null;   // why a planned acknowledgment didn't play
@@ -82,6 +83,9 @@ export class VoiceTurnController {
   private carry: { text: string; seq: number } | null = null;   // barge-in before anything was heard
   private pending: string | null = null;                        // audio blocked before anything was heard
   private lastAck: string | null = null;
+  // The thinking sounds and the "So," connector (Lorenzo's brief, 17 Oct, item 3):
+  // the interview screen's toggle, on by default; a turn keeps the setting it began with.
+  private fillers = true;
   private connectors: string[] = [];   // the connector chosen on each of the last two filler turns
 
   constructor(private d: ControllerDeps) {}
@@ -89,6 +93,13 @@ export class VoiceTurnController {
   // The browser can play audio (§5.1). The first time, the opening (already
   // persisted) is replayed, interruptible and unbooked; after audio_blocked,
   // a turn nobody heard runs again.
+  // The browser's toggle: from the next turn (the live turn keeps its own).
+  setFillers(on: boolean): void {
+    if (this.fillers === on) return;
+    this.fillers = on;
+    this.d.trace?.('fillers', { on });
+  }
+
   async ready(opening: string): Promise<void> {
     if (this.state === 'ended') return;
     if (this.blocked) {
@@ -201,7 +212,7 @@ export class VoiceTurnController {
 
   private newLive(text: string, finalAt: number, opening: boolean): Live {
     const t: Live = {
-      seq: ++this.seq, text, carried: false, replaces: null, opening, ack: null, prevAck: this.lastAck, connectorDecided: false, ackState: 'none', ackSkipped: null,
+      seq: ++this.seq, text, carried: false, replaces: null, opening, ack: null, prevAck: this.lastAck, fillers: this.fillers, connectorDecided: false, ackState: 'none', ackSkipped: null,
       finalAt, speechEndAt: null, startedAt: null, entries: [],
       cutAt: null, cutKind: null, cutOutcome: null, finalizing: false, report: null, waiters: [],
       firstSoundAt: null, firstUsefulAt: null, firstAcceptedAt: null, ttsFirstAudioAt: null,
@@ -221,6 +232,12 @@ export class VoiceTurnController {
   private playAck(t: Live): void {
     if (!shouldAcknowledge(t.text)) return;
     const ack = pickAck(`${this.d.sessionSeed}:${t.seq}`, this.lastAck, ackKind(t.text));
+    // Toggled off: no thinking sound (the comfort line "Take your time." is words, and stays).
+    if (!t.fillers && isThinkingFiller(ack)) {
+      t.ack = ack;
+      this.skipAck(t, 'fillers_off');
+      return;
+    }
     const pcm = this.d.ackPcm(ack);
     if (!pcm) return;
     this.lastAck = ack;
@@ -300,7 +317,7 @@ export class VoiceTurnController {
     let skipWords = 0;
     if (text && !t.connectorDecided) {
       t.connectorDecided = true;
-      if (t.ackState === 'played' && isThinkingFiller(t.ack)) {
+      if (t.fillers && t.ackState === 'played' && isThinkingFiller(t.ack)) {
         const c = pickConnector({ seed: `${this.d.sessionSeed}:${t.seq}:connector`, filler: t.ack!, segmentText: text, recent: this.connectors });
         this.connectors = [...this.connectors, c].slice(-2);
         spoken = spokenWithConnector(c, speech.text);
@@ -444,7 +461,7 @@ export class VoiceTurnController {
     const rel = (x: number | null) => (x !== null && from !== null ? x - from : null);
     const rec: TurnRecord = {
       turnSeq: t.seq, at: new Date(this.d.now()).toISOString(), candidateText: t.text, carried: t.carried,
-      ack: t.ackState === 'skipped' ? null : t.ack, ackSkipped: t.ackSkipped ? { ack: t.ack!, why: t.ackSkipped } : null,
+      ack: t.ackState === 'skipped' ? null : t.ack, ackSkipped: t.ackSkipped ? { ack: t.ack!, why: t.ackSkipped } : null, fillers: t.fillers,
       cutMs: t.cutAt !== null ? t.cutAt - t.finalAt : null,
       phase: r?.phase ?? null, ended: r?.ended ?? false,
       speechEndAt: from, finalAt: t.finalAt, endpointMs: from !== null ? t.finalAt - from : null,

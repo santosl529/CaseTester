@@ -559,3 +559,47 @@ describe('audio blocked, End, the opening, the TTS cap', () => {
     expect(h.sent.at(-1)).toMatchObject({ type: 'ended', reason: 'case_complete' });
   });
 });
+
+// Item 3 (Lorenzo's brief, 17 Oct): one button for the thinking sounds and the
+// "So," connector — on by default, from the next turn, logged per turn.
+describe('the filler toggle', () => {
+  const ANSWER = "I'd start with costs, specifically COGS.";
+  const LINE = 'There are 120 stores.';
+  it('on by default: the thinking filler and the connector; the record says so', async () => {
+    const tts = new RecordingTTS(10, 0);
+    const h = harness([[seg('tail', LINE)]], { tts, sessionSeed: seedFor(ANSWER, LINE, 'So,') });
+    await h.c.ready(''); h.c.onStt(final(ANSWER));
+    await h.advance(3000);
+    expect(tts.pushed).toEqual([`So, ${LINE}`]);
+    expect(h.records[0]).toMatchObject({ fillers: true });
+    expect((h.records[0] as { ack: string | null }).ack).not.toBeNull();
+  });
+  it('off: no thinking filler, no connector, the reply unchanged; logged off with why the filler was skipped', async () => {
+    const tts = new RecordingTTS(10, 0);
+    const h = harness([[seg('tail', LINE)]], { tts, sessionSeed: seedFor(ANSWER, LINE, 'So,') });
+    await h.c.ready(''); h.c.setFillers(false); h.c.onStt(final(ANSWER));
+    await h.advance(3000);
+    expect(tts.pushed).toEqual([LINE]);
+    expect(h.records[0]).toMatchObject({ fillers: false, ack: null, ackSkipped: { why: 'fillers_off' } });
+    expect(h.texts).toEqual([ANSWER]);
+  });
+  it('off keeps the comfort line "Take your time." (words, not a thinking sound)', async () => {
+    const h = harness([[seg('tail', 'Where would you start?')]]);
+    await h.c.ready(''); h.c.setFillers(false); h.c.onStt(final('Sorry. Hold on.'));
+    await h.advance(3000);
+    expect(ACK_POOLS.stuck).toContain((h.records[0] as { ack: string }).ack);
+  });
+  it('a toggle mid-turn takes effect from the next turn', async () => {
+    const tts = new RecordingTTS(10, 0);
+    const h = harness([{ segs: [seg('tail', LINE)], delayMs: 800 }, [seg('tail', LINE)]], { tts, sessionSeed: seedFor(ANSWER, LINE, 'So,') });
+    await h.c.ready(''); h.c.onStt(final(ANSWER));
+    await h.advance(400);
+    h.c.setFillers(false);                    // while the first turn is thinking
+    await h.advance(3000);
+    h.c.onStt(final('And then labor.'));
+    await h.advance(3000);
+    expect(h.records.map(r => (r as { fillers: boolean }).fillers)).toEqual([true, false]);
+    expect(tts.pushed[0]).toBe(`So, ${LINE}`);
+    expect(tts.pushed[1]).toBe(LINE);
+  });
+});
