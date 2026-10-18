@@ -34,7 +34,7 @@ export const INITIAL_PRESSURE_TEST: PressureTestState = { state: 'not_asked', re
 // Rule 7 intents. Read from the question text; callers limit it to the early
 // stages (a "which line first" question during the analysis is not a probe).
 const INTENTS: [ProbeIntent, RegExp][] = [
-  ['mece', /\b(mece|mutually exclusive|collectively exhaustive)\b|\bwhat('?s| is| might be| could be)\s+(missing|not in)\b|\bmissing from (your|the|that)\b|\b(anything|something)\s+(missing|left out)\b|\boverlap\b/i],
+  ['mece', /\b(mece|mutually exclusive|collectively exhaustive)\b|\bwhat('?s| is| might be| could be)\s+(missing|not in)\b|\bmissing from (your|the|that)\b|\b(anything|something)\s+(missing|left out)\b|\bdoes your structure leave out\b|\boverlap\b/i],
   ['prioritize', /\bwhich\s+(branch|bucket|area|part|piece|of those)\b[^?]*\b(first|prioriti[sz]e|start)\b|\bprioriti[sz]e\b[^?]*\b(first|which|why)\b/i],
   ['robustness', /\bwhat\s+(result|finding|data|evidence)\s+would\s+(break|change|invalidate|disprove)\b|\bbreak\s+(this|your|that)\s+(structure|framework)\b/i],
 ];

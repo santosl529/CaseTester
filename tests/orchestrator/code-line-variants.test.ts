@@ -32,8 +32,9 @@ import { statesQuantitativeClaim } from '@/lib/orchestrator/math-checker';
 import { CLOSE_WAIT_FIRST, CLOSE_WAIT_MITIGATED } from '@/lib/orchestrator/close-hold';
 import { factBaseFor, findFalseRefusals, findUndeliveredClaims, findFalseFacts } from '@/lib/orchestrator/fact-check';
 import { DEFER, EARLIER } from '@/lib/eval/data-check';
-import { CORRECTION, PROBE } from '@/lib/eval/math-check';
+import { CORRECTION, asksWorking } from '@/lib/eval/math-check';
 import { ECHO_PROBE } from '@/lib/orchestrator/fact-check';
+import { asOriginalProbe, PROBE_POOLS } from '@/lib/orchestrator/phrasing';
 import { isSilenceLine } from '@/lib/orchestrator/silence';
 import { stripCopiedCheckIn } from '@/lib/orchestrator/audit';
 import { getCaseById } from '@/lib/cases/loader';
@@ -58,14 +59,16 @@ const template = (v: string) => v.replace(/\{[xX]\}/g, ' ');
 // ---- what a line says: figures and case terms ----
 const NUMBER_WORDS = /\b(?:two|three|four|five|six|seven|eight|nine|ten|twelve|twenty|hundred|thousand|million|billion|half|double|twice)\b/gi;
 const figuresOf = (t: string) => [...(t.match(/\d+(?:\.\d+)?%?/g) ?? []), ...(t.match(NUMBER_WORDS) ?? []).map(w => w.toLowerCase())].sort().join(',');
-// The interview's own nouns: naming one a line didn't is a lead or a claim.
+// The interview's own nouns: naming one a line didn't is a lead or a claim
+// ("case" as in "working through the case" is none: it names the interview; nor
+// "calculation" / "math": the candidate's own working).
 // Synonyms share a class (a figure is a number).
 const TERM_CLASSES: [string, RegExp][] = [
   ['figure', /\b(?:figures?|numbers?)\b/i], ['data', /\bdata\b/i], ['exhibit', /\bexhibits?\b/i],
   ['structure', /\bstructur(?:e|es|ing)\b/i], ['analysis', /\banalys[ie]s\b/i], ['recommendation', /\brecommend(?:ation|ations|ed|ing)?\b/i],
-  ['risk', /\brisks?\b|\bde-?risk\b/i], ['ceo', /\bCEO\b/], ['client', /\bclient'?s?\b/i], ['case', /\bcase\b/i],
+  ['risk', /\brisks?\b|\bde-?risk\b/i], ['ceo', /\bCEO\b/], ['client', /\bclient'?s?\b/i],
   ['branch', /\bbranch(?:es)?\b/i], ['hypothesis', /\bhypothes[ie]s\b/i], ['lever', /\blevers?\b/i], ['report', /\breports?\b/i],
-  ['calculation', /\bcalculat\w*\b/i], ['correct', /\bcorrect(?:ed|ion|ions|ing)?\b/i],
+ ['correct', /\bcorrect(?:ed|ion|ions|ing)?\b/i],
   // The clock ("we're at time"), not "take your time".
   ['time', /\b(?:at|near|close to|out of|our) time\b|\btime'?s (?:up|nearly up)\b|\btime limit\b|\bthat'?s (?:our )?time\b|\bclock\b|\btime left\b/i],
   ['margin', /\bmargins?\b/i], ['cost', /\bcosts?\b|\bCOGS\b/i], ['price', /\bpric(?:e|es|ing)\b/i], ['revenue', /\brevenue\b/i],
@@ -136,19 +139,27 @@ const RECOGNIZERS: [string, (t: string) => unknown][] = [
   ['eval: data-check DEFER', t => DEFER.test(t)],
   ['eval: data-check EARLIER', t => EARLIER.test(t)],
   ['eval: math-check CORRECTION', t => CORRECTION.test(t)],
-  ['eval: math-check PROBE', t => PROBE.test(t)],
-  ['F2 echo probe', t => ECHO_PROBE.test(t)],
+  ['eval: math-check probe', t => sentencesOf(t).some(asksWorking)],
+  ['F2 echo probe', t => ECHO_PROBE.test(asOriginalProbe(t))],
   ['classifyMathTalk (their 38%)', t => [...new Set(sentencesOf(t).map(s => classifyMathTalk(s, [38]).kind))].sort().join(',')],
   ['isSilenceLine', isSilenceLine],
   ['stripCopiedCheckIn', t => stripCopiedCheckIn(t).stripped],
 ];
 const reading = (t: string) => RECOGNIZERS.map(([name, f]) => `${name}=${JSON.stringify(f(t))}`);
 
+// A checker probe is the whole question code asks that turn (settle-turn.ts:
+// it replaces the model's), so a question form ("How did you get there?") is the
+// same single ask as the original statement: the style audit's question count
+// and the say veto's question_in_say read the form, not the ask.
+const FORM_ONLY = new Set(['auditTurnStyle', 'vetoReason (the model saying it)']);
+const asStatement = (t: string) => t.replace(/\?$/, '.');
 describe('every recognizer reads each version as it reads a line said before', () => {
   it.each(POOLS)('%s', pool => {
-    const known = before[pool].map(v => reading(filled(pool, v)));
+    const probe = (PROBE_POOLS as readonly string[]).includes(pool);
+    const read = (t: string) => probe ? RECOGNIZERS.map(([name, f]) => `${name}=${JSON.stringify(f(FORM_ONLY.has(name) ? asStatement(t) : t))}`) : reading(t);
+    const known = before[pool].map(v => read(filled(pool, v)));
     for (const v of versions(pool)) {
-      const r = reading(filled(pool, v));
+      const r = read(filled(pool, v));
       const match = known.some(k => k.every((x, i) => x === r[i]));
       if (!match) {
         // The closest line said before, and where this version reads differently.

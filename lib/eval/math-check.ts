@@ -9,7 +9,7 @@ import type { CorpusTurn } from './run-corpus';
 import { checkRecomputeForTurn } from '@/lib/orchestrator/recompute';
 import { checkStatedArithmetic } from '@/lib/orchestrator/arithmetic-check';
 import { checkNestedConversions } from '@/lib/orchestrator/unit-check';
-import { poolPattern } from '@/lib/orchestrator/phrasing';
+import { asOriginalProbe, poolPattern } from '@/lib/orchestrator/phrasing';
 import { checkPricingClaims, pricingValues } from '@/lib/orchestrator/pricing-check';
 
 export type MathError = { kind: 'step' | 'arithmetic' | 'unit' | 'pricing'; what: string; stated: number; expected: number[]; span: string };
@@ -34,6 +34,8 @@ export function mathErrors(text: string, c: CaseLike, revealed: Set<string>): Ma
 }
 
 export const PROBE = /\b(?:walk me through|how did you get|how do you get|how you got|where does|where did|check (?:that|your|the|this)|recheck|points of what|is that (?:right|correct)|does that (?:hold|follow|add up)|redo|re-?run|what does .{0,40} assume|what are you assuming|how does .{0,60} (?:get|translate|turn|become)|what base|of what|how .{0,40} gets? you)\b/i;
+// Code's neutral probes in any version, by exact match against the registry (phrasing.ts), as their original.
+export const asksWorking = (sentence: string) => PROBE.test(asOriginalProbe(sentence));
 export const CORRECTION = new RegExp(`\\b(?:it's|that's|it is) closer to\\b|\\bnot \\$?\\d|\\bthe (?:correct|right) figure\\b|${poolPattern('correct_one', 'correct_two').source}`, 'i');
 
 export function checkMathTurn(t: CorpusTurn, c: CaseLike): { error: MathError; handled: boolean }[] {
@@ -48,5 +50,5 @@ export function checkMathTurn(t: CorpusTurn, c: CaseLike): { error: MathError; h
     || (e.kind === 'unit' && /\b(?:points? of what|of what|which base|what base|share of what|which year'?s?|what year|two years ago)\b/i.test(x))
     || /\b(?:that|this|your) (?:calculation|math|number|figure|sizing|estimate|step)\b/i.test(x);
   // The subject may sit in the sentence before ("You said a 10% price rise recovers 6 points. Walk me through how you sized that.").
-  return errors.map(e => ({ error: e, handled: sentences.some((x, i) => (PROBE.test(x) || CORRECTION.test(x)) && (about(e, x) || about(e, sentences[i - 1] ?? ''))) }));
+  return errors.map(e => ({ error: e, handled: sentences.some((x, i) => (asksWorking(x) || CORRECTION.test(x)) && (about(e, x) || about(e, sentences[i - 1] ?? ''))) }));
 }

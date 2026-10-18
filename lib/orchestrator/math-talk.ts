@@ -15,6 +15,7 @@
 // It EXPLAINS when it asks for the working ("walk me through", "how did you
 // get there?") without doubting. Whether a doubt may be spoken is decided by
 // what code verified (probe-guard.ts), never by the sentence.
+import { asOriginalProbe } from './phrasing';
 import { normalizeNumberWords } from '@/lib/number-words';
 
 export type MathTalkKind = 'doubt' | 'explain' | 'none';
@@ -73,7 +74,8 @@ function consistencyOnFigure(s: string, figures: number[]): boolean {
 // `previous`: the sentence before it in the same turn — a bare doubt ("Is that
 // right?") is about the figure just named there.
 export function classifyMathTalk(sentence: string, candidateFigures: number[], previous?: string): MathTalk {
-  const s = normalizeNumberWords(sentence.trim());
+  // Code's neutral probes in any version read as their original (phrasing.ts asOriginalProbe).
+  const s = normalizeNumberWords(asOriginalProbe(sentence.trim()));
   const figures = [...new Set(numbersIn(s).filter(n => candidateFigures.some(c => same(n, c))))];
   if (BARE_DOUBT.test(s)) {
     const before = previous ? numbersIn(normalizeNumberWords(previous)).filter(n => candidateFigures.some(c => same(n, c))) : [];

@@ -25,10 +25,10 @@ Data asked for that the case holds but not yet: the deferral. {x} = what was ask
 Data the case doesn't hold. {x} = what was asked.
 
 1. I don't have {x}.
-2. That's not something I have — {x}.
-3. When it comes to {x}, I'm afraid I don't have that.
+2. I'm afraid I don't have {x}. *(before)*
+3. When it comes to {x}, I don't have that.
 4. As for {x}, that's not something I have.
-5. {X} — I'm afraid that's not something I have.
+5. {X} — that's not something I have.
 
 ### exhibit
 
@@ -58,7 +58,7 @@ Before data asked for earlier and released now (the stage reached).
 2. You asked about this earlier: *(before)*
 3. Here's what you asked for earlier:
 4. Back to your earlier question: *(before)*
-5. This answers your earlier question:
+5. This is on your earlier question:
 
 ### correct_one
 
@@ -177,7 +177,7 @@ A fallback question in the last minutes. First use by seed.
 1. Briefly, where does that leave you?
 2. In a sentence, what does that tell you? *(before)*
 3. Short version: what does that tell you?
-4. Where does that leave you, in a word?
+4. Where does that leave you, briefly?
 5. Quickly — where does that leave you?
 
 ### hypothesis_q
@@ -208,7 +208,7 @@ The probe's ask: what's missing (MECE).
 2. what's missing from your structure, if anything?
 3. is anything missing from your structure?
 4. is something left out of your structure?
-5. what's not in your structure that should be?
+5. what, if anything, does your structure leave out?
 
 ### ask_branch
 
@@ -297,7 +297,7 @@ The narrowed ask: what would drop a branch.
 1. what one finding would make you drop one of your branches?
 2. which single finding would make you drop a branch?
 3. what would you need to find to drop one of your branches?
-4. if you dropped one of your branches, what finding would have made you do it?
+4. which finding would be enough for you to drop a branch?
 5. what finding would lead you to drop one of your branches?
 
 ### waiver_awaiting
@@ -336,7 +336,7 @@ The candidate's own figure, when a challenge of it is withheld. {x} = their figu
 
 1. How did you get to {x}?
 2. Where does that {x} come from?
-3. Can you walk me through {x}?
+3. Can you walk me through how you got {x}?
 4. How do you get to {x}?
 5. Could you walk me through where {x} comes from?
 
@@ -488,7 +488,7 @@ While a final answer's check lands: otherwise. First use by seed.
 2. What's the first step you'd want the client to take? *(before)*
 3. Where should the client start — what's the first step?
 4. What's the very first thing you'd have the client do?
-5. If the client acted tomorrow, what would they do first?
+5. If the client started tomorrow, what would they do first?
 
 ### measure
 
@@ -535,30 +535,30 @@ The opener's hand-off after a case prompt that ends in a question. First use by 
 The checker's neutral probe of a figure (chosen when code selects the flag; also the wrap-up probe's ask). {x} = the candidate's figure. First use by seed.
 
 1. Walk me through how you got to {x}.
-2. Walk me through how you arrived at {x}.
-3. Show me how you got to {x}.
-4. Explain how you got to {x}.
-5. Walk me through the steps to {x}.
+2. How did you arrive at {x}?
+3. Talk me through the math behind {x}.
+4. What steps got you to {x}?
+5. Show me how you got to {x}.
 
 ### probe_calc
 
 The checker's neutral probe of a calculation with no figure of theirs to name. First use by seed.
 
 1. Walk me through that calculation.
-2. Walk me through that calculation one step at a time.
-3. Walk me through how that calculation goes.
-4. Walk me through that calculation for me.
-5. Walk me through the calculation there.
+2. How did you do that calculation?
+3. Take me through the math there.
+4. Can you show me that calculation step by step?
+5. What were the steps in that calculation?
 
 ### probe_there
 
 The checker's neutral probe of a claim with no figures. First use by seed.
 
 1. Walk me through how you got there.
-2. Take me through how you got there.
-3. Show me how you got there.
-4. Explain how you got there.
-5. Walk me through your steps to get there.
+2. How did you get there?
+3. Take me through your reasoning there.
+4. What got you there?
+5. Talk me through how you got there.
 
 ### check_in
 
@@ -598,7 +598,7 @@ The goodbye when the case is complete. First use by seed.
 2. That covers what I wanted to get to. Thanks for working through the case — your written report will follow. *(before)*
 3. That's everything I wanted to cover. Thanks for working through the case — your written report will follow.
 4. We've gotten through what I wanted to. Thank you for working through the case; your written report will follow.
-5. I have what I need from the case. Thanks for working through it — your written report will follow.
+5. I have what I need. Thanks for working through it — your written report will follow.
 
 ### close_unresolved
 
@@ -619,14 +619,14 @@ Each item's line as released or restated. **1** is the ledger line. Checked on l
 1. Total revenue is $480M a year.
 2. Total revenue comes to $480M a year.
 3. The total revenue figure is $480M a year.
-4. Each year, total revenue is $480M.
+4. Total revenue: $480M a year.
 5. $480M a year — that's total revenue.
 
 ### stores_count — Number of stores
 
 1. 200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed.
 2. The footprint hasn't changed: 200 stores today, and 200 stores two years ago.
-3. There are 200 stores today, the same 200 stores as two years ago.
+3. There are 200 stores today, the same count as two years ago.
 4. Two years ago it was 200 stores, and it's 200 stores today — no change in the footprint.
 5. Today there are 200 stores, unchanged from 200 stores two years ago.
 
@@ -635,7 +635,7 @@ Each item's line as released or restated. **1** is the ledger line. Checked on l
 1. Average revenue per store is $2.4M a year.
 2. Revenue per store averages $2.4M a year.
 3. Average revenue per store comes to $2.4M a year.
-4. Each year, average revenue per store is $2.4M.
+4. Average revenue per store: $2.4M a year.
 5. $2.4M a year is the average revenue per store.
 
 ### cogs_pct — COGS as % of revenue
@@ -702,7 +702,7 @@ Keeps: "coffee beans", "COGS".
 2. Two years ago, coffee beans made up 25% of COGS.
 3. Coffee beans accounted for 25% of COGS two years ago.
 4. As of two years ago, coffee beans were 25% of COGS.
-5. 25% of COGS was coffee beans, two years ago.
+5. Coffee beans made up 25% of COGS two years ago.
 
 ### non_bean_input_change — Price change of the other inputs (dairy, packaging, food) over 2 years
 
@@ -711,5 +711,5 @@ Keeps: "dairy, packaging, and food".
 1. Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.
 2. Over the past two years, the other input costs — dairy, packaging, and food — have risen 37.5%.
 3. Dairy, packaging, and food — the other input costs — are up 37.5% over the past two years.
-4. The other inputs — dairy, packaging, and food — have gone up 37.5% in the past two years.
+4. The other input costs — dairy, packaging, and food — have gone up 37.5% in the past two years.
 5. In the past two years, costs for the other inputs — dairy, packaging, and food — rose 37.5%.

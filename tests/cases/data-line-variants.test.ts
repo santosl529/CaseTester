@@ -37,6 +37,15 @@ describe('the file', () => {
   });
 });
 
+// Lorenzo, 18 Oct: "Each year, total revenue is $480M." reads as flat revenue (the
+// case grew 15%) — a recurring-period phrase only where the ledger line has one.
+describe('no recurring period the ledger line lacks', () => {
+  it.each(ITEMS)('%s', (_id, { versions }) => {
+    const recurring = /\b(?:each|every) year\b/i;
+    for (const v of versions) if (!recurring.test(versions[0])) expect(v).not.toMatch(recurring);
+  });
+});
+
 describe('every version says what its ledger line says, to the checks', () => {
   const revealed = new Set(prof.dataLedger.map(i => i.id));
   it.each(ITEMS)('%s: names the same items, and no false fact once revealed', (id, { versions }) => {

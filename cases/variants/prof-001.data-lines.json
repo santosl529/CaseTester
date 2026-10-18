@@ -6,7 +6,7 @@
     "Total revenue is $480M a year.",
     "Total revenue comes to $480M a year.",
     "The total revenue figure is $480M a year.",
-    "Each year, total revenue is $480M.",
+    "Total revenue: $480M a year.",
     "$480M a year — that's total revenue."
    ]
   },
@@ -14,7 +14,7 @@
    "versions": [
     "200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed.",
     "The footprint hasn't changed: 200 stores today, and 200 stores two years ago.",
-    "There are 200 stores today, the same 200 stores as two years ago.",
+    "There are 200 stores today, the same count as two years ago.",
     "Two years ago it was 200 stores, and it's 200 stores today — no change in the footprint.",
     "Today there are 200 stores, unchanged from 200 stores two years ago."
    ]
@@ -24,7 +24,7 @@
     "Average revenue per store is $2.4M a year.",
     "Revenue per store averages $2.4M a year.",
     "Average revenue per store comes to $2.4M a year.",
-    "Each year, average revenue per store is $2.4M.",
+    "Average revenue per store: $2.4M a year.",
     "$2.4M a year is the average revenue per store."
    ]
   },
@@ -101,7 +101,7 @@
     "Two years ago, coffee beans made up 25% of COGS.",
     "Coffee beans accounted for 25% of COGS two years ago.",
     "As of two years ago, coffee beans were 25% of COGS.",
-    "25% of COGS was coffee beans, two years ago."
+    "Coffee beans made up 25% of COGS two years ago."
    ],
    "keep": [
     "coffee beans",
@@ -113,7 +113,7 @@
     "Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.",
     "Over the past two years, the other input costs — dairy, packaging, and food — have risen 37.5%.",
     "Dairy, packaging, and food — the other input costs — are up 37.5% over the past two years.",
-    "The other inputs — dairy, packaging, and food — have gone up 37.5% in the past two years.",
+    "The other input costs — dairy, packaging, and food — have gone up 37.5% in the past two years.",
     "In the past two years, costs for the other inputs — dairy, packaging, and food — rose 37.5%."
    ],
    "keep": [

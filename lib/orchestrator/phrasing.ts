@@ -27,10 +27,10 @@ export const PHRASE_POOLS = {
   // …and what the case doesn't hold.
   refuse: [
     'I don\'t have {x}.',
-    'That\'s not something I have — {x}.',
-    'When it comes to {x}, I\'m afraid I don\'t have that.',
+    'I\'m afraid I don\'t have {x}.',
+    'When it comes to {x}, I don\'t have that.',
     'As for {x}, that\'s not something I have.',
-    '{X} — I\'m afraid that\'s not something I have.',
+    '{X} — that\'s not something I have.',
   ],
   // The exhibit handover: its title.
   exhibit: [
@@ -54,7 +54,7 @@ export const PHRASE_POOLS = {
     'You asked about this earlier:',
     'Here\'s what you asked for earlier:',
     'Back to your earlier question:',
-    'This answers your earlier question:',
+    'This is on your earlier question:',
   ],
   // A misquote's correction (misquote.ts): the ledger's own words follow.
   correct_one: [
@@ -141,7 +141,7 @@ export const PHRASE_POOLS = {
     'Briefly, where does that leave you?',
     'In a sentence, what does that tell you?',
     'Short version: what does that tell you?',
-    'Where does that leave you, in a word?',
+    'Where does that leave you, briefly?',
     'Quickly — where does that leave you?',
   ],
   hypothesis_q: [
@@ -164,7 +164,7 @@ export const PHRASE_POOLS = {
     'what\'s missing from your structure, if anything?',
     'is anything missing from your structure?',
     'is something left out of your structure?',
-    'what\'s not in your structure that should be?',
+    'what, if anything, does your structure leave out?',
   ],
   ask_branch: [
     'which branch would you start with, and why?',
@@ -227,7 +227,7 @@ export const PHRASE_POOLS = {
     'what one finding would make you drop one of your branches?',
     'which single finding would make you drop a branch?',
     'what would you need to find to drop one of your branches?',
-    'if you dropped one of your branches, what finding would have made you do it?',
+    'which finding would be enough for you to drop a branch?',
     'what finding would lead you to drop one of your branches?',
   ],
   waiver_awaiting: [
@@ -256,7 +256,7 @@ export const PHRASE_POOLS = {
   got_to: [
     'How did you get to {x}?',
     'Where does that {x} come from?',
-    'Can you walk me through {x}?',
+    'Can you walk me through how you got {x}?',
     'How do you get to {x}?',
     'Could you walk me through where {x} comes from?',
   ],
@@ -367,7 +367,7 @@ export const PHRASE_POOLS = {
     'What\'s the first step you\'d want the client to take?',
     'Where should the client start — what\'s the first step?',
     'What\'s the very first thing you\'d have the client do?',
-    'If the client acted tomorrow, what would they do first?',
+    'If the client started tomorrow, what would they do first?',
   ],
   measure: [
     'How would you know, six months in, that it was working?',
@@ -404,24 +404,24 @@ export const PHRASE_POOLS = {
   // line, and the heard check reads that line. {x} = the candidate's figure as they wrote it.
   probe_got_to: [
     'Walk me through how you got to {x}.',
-    'Walk me through how you arrived at {x}.',
+    'How did you arrive at {x}?',
+    'Talk me through the math behind {x}.',
+    'What steps got you to {x}?',
     'Show me how you got to {x}.',
-    'Explain how you got to {x}.',
-    'Walk me through the steps to {x}.',
   ],
   probe_calc: [
     'Walk me through that calculation.',
-    'Walk me through that calculation one step at a time.',
-    'Walk me through how that calculation goes.',
-    'Walk me through that calculation for me.',
-    'Walk me through the calculation there.',
+    'How did you do that calculation?',
+    'Take me through the math there.',
+    'Can you show me that calculation step by step?',
+    'What were the steps in that calculation?',
   ],
   probe_there: [
     'Walk me through how you got there.',
-    'Take me through how you got there.',
-    'Show me how you got there.',
-    'Explain how you got there.',
-    'Walk me through your steps to get there.',
+    'How did you get there?',
+    'Take me through your reasoning there.',
+    'What got you there?',
+    'Talk me through how you got there.',
   ],
   // silence.ts (text mode): the check-in, once a silence — again after the next silence;
   // the question on the table follows it.
@@ -453,7 +453,7 @@ export const PHRASE_POOLS = {
     'That covers what I wanted to get to. Thanks for working through the case — your written report will follow.',
     'That\'s everything I wanted to cover. Thanks for working through the case — your written report will follow.',
     'We\'ve gotten through what I wanted to. Thank you for working through the case; your written report will follow.',
-    'I have what I need from the case. Thanks for working through it — your written report will follow.',
+    'I have what I need. Thanks for working through it — your written report will follow.',
   ],
   close_unresolved: [
     'We\'ll stop there. Thanks for working through the case — your written report will follow.',
@@ -469,7 +469,7 @@ export const PHRASE_POOLS = {
 // the saved runs read as they did.
 export const RETIRED_POOLS: Partial<Record<PhrasePool, readonly string[]>> = {
   defer: ['We\'ll get to {x} in a bit.', 'I\'ll get to {x} a little later.', 'We\'ll come back to {x} in a moment.'],
-  refuse: ['I don\'t have {x} to share.', 'Unfortunately, I don\'t have {x}.', 'I\'m afraid I don\'t have {x}.'],
+  refuse: ['I don\'t have {x} to share.', 'Unfortunately, I don\'t have {x}.'],
   exhibit: ['Take a look at this exhibit: {x}.', 'Have a look at this exhibit: {x}.', 'I\'ll put up an exhibit: {x}.'],
   restate: ['As I said earlier: {x}', 'To repeat: {x}', 'Just to restate: {x}'],
   earlier: ['Coming back to what you asked for earlier:'],
@@ -587,6 +587,29 @@ export function slotOf(pool: PhrasePool, text: string): string | null {
     if (m && /\w/.test(m[1]) && (!best || m[0].length - m[1].length > best.len)) best = { slot: m[1].trim(), len: m[0].length - m[1].length };
   }
   return best?.slot ?? null;
+}
+
+// The checker's neutral probes read by exact match against the registry
+// (Lorenzo, 18 Oct): any version in a text, as its pool's original line with
+// the same slot — so the checks that read probes (the eval's probe pattern,
+// math talk, F2's echo probe) read every version as they read the original,
+// without knowing its words.
+export const PROBE_POOLS = ['probe_got_to', 'probe_calc', 'probe_there'] as const;
+const PROBE_READERS: [RegExp, string][] = PROBE_POOLS.flatMap(pool => (PHRASE_POOLS[pool] as readonly string[]).slice(1).map(v => {
+  const { before, after } = fixedParts(v);
+  const exact = (t: string) => words(t).replace(/\\\.$/, '\\.(?!\\d)');
+  const body = SLOT.test(v) ? `${before ? `${exact(before)}\\s*` : ''}(.+?)${after ? `\\s*${exact(after)}` : ''}` : exact(v.trim());
+  return [new RegExp(`(?<![\\w'])${body}`, 'gi'), (PHRASE_POOLS[pool] as readonly string[])[0]] as [RegExp, string];
+}));
+export function asOriginalProbe(text: string): string {
+  let out = text;
+  for (const [re, original] of PROBE_READERS) {
+    out = out.replace(re, (m: string, slot?: string) => {
+      const line = typeof slot === 'string' && original.includes('{x}') ? fill(original, slot) : original;
+      return /^[a-z]/.test(m) ? line.charAt(0).toLowerCase() + line.slice(1) : line;
+    });
+  }
+  return out;
 }
 
 // The session's uses after a turn that said \`spoken\`: each variant heard, by pool, the last PHRASE_MEMORY kept.
