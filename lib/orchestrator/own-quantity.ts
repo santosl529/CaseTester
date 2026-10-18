@@ -17,11 +17,15 @@
 import { normalizeNumberWords, articleFor } from '@/lib/number-words';
 import { numbersOf, boundInput, quantityWords, type CheckerClaim, type VetContext } from './math-checker';
 
+export type Reading = { quantity: string; value: number };
 export type QuantityFrame =
-  | { kind: 'own_right'; quantity: string; value: number }   // right on their own quantity: the conversion line
-  | { kind: 'code' }                                          // code's quantity or unit, said: today's correction
+  | { kind: 'own_right'; quantity: string; value: number }   // right on their own quantity: the conversion line, the step closes
+  | { kind: 'code'; basis: string }                           // code's quantity or unit, said: today's correction
   | { kind: 'own_wrong'; quantity: string; value: number }    // wrong on their own stated quantity: corrected on it
-  | { kind: 'unstated' };                                     // no quantity stated: the conversion line
+  // No quantity stated (Lorenzo, 17 Oct, ruling b): right on a reading code
+  // computes → the conversion line, the step closes; wrong on every reading →
+  // code's figure without "not X", the step stays open.
+  | { kind: 'unstated'; rightOn: Reading | null };
 
 // The corrections' agreement rule: 3% or 0.5.
 const agrees = (x: number, y: number) => Math.abs(x - y) <= Math.max(0.5, 0.03 * Math.abs(y));
@@ -61,11 +65,37 @@ export function theirFigure(c: CheckerClaim): number | undefined {
   return numbersOf(c.candidateValue).find(n => input === null || Math.abs(n - input) > 1e-9);
 }
 
+// Every reading of the claim's quantity code computes: code's own figure, and
+// for a revenue-points step its share base's (prof-001's COGS: points of COGS
+// growth on the step's base level, a share of the line's increase); for a
+// price rise, a cost line back to its prior level (current share / prior − 1).
+export function readingsOf(c: CheckerClaim & { correctionFigure?: string | null }, ctx: VetContext): Reading[] {
+  const value = codeValueOf(c);
+  if (value === null) return [];
+  const out: Reading[] = [{ quantity: "code's quantity", value }];
+  const q = c.codeQuantity;
+  if (q.kind === 'step') {
+    const st = ctx.caseData.mathSteps.find(s => s.id === q.stepId) as Step | undefined;
+    if (inRevenuePoints(st)) for (const b of basesOf(ctx, st)) {
+      const level = st?.timeframe === 'current' ? b.current : b.prior;
+      if (level) out.push({ quantity: `points of ${b.name}`, value: value / level * 100 });
+      if (b.current !== undefined && b.prior !== undefined && b.current !== b.prior) out.push({ quantity: `a share of the ${b.name} increase`, value: value / Math.abs(b.current - b.prior) * 100 });
+    }
+  }
+  if (q.kind === 'needed_for_gain' || q.kind === 'needed_for_margin') {
+    for (const l of costLines(ctx)) if (l.prior !== undefined && l.prior > 0 && l.prior !== l.current) out.push({ quantity: `${l.name} back to ${l.prior}% of revenue`, value: (l.current / l.prior - 1) * 100 });
+  }
+  return out;
+}
+// Whether a figure is right on one of those readings.
+export const rightOnSome = (figure: number, readings: Reading[]) => readings.find(r => agrees(figure, r.value)) ?? null;
+
 // How the candidate framed the claim's figure. `window`: the claim's sentence
 // and the one before it, then their next two messages.
 export function frameOfClaim(c: CheckerClaim & { correctionFigure?: string | null }, window: string, ctx: VetContext): QuantityFrame {
   const theirs = theirFigure(c);
-  if (theirs === undefined) return { kind: 'unstated' };
+  if (theirs === undefined) return { kind: 'unstated', rightOn: null };
+  const unstated = (): QuantityFrame => ({ kind: 'unstated', rightOn: rightOnSome(theirs, readingsOf(c, ctx)) });
   const text = normalizeNumberWords(window);
   const tails = tailsOf(text, theirs);
   const q = c.codeQuantity;
@@ -93,8 +123,11 @@ export function frameOfClaim(c: CheckerClaim & { correctionFigure?: string | nul
         if (attached) return { kind: 'own_wrong', quantity, value: onBase };
       }
     }
-    if (codeUnitSaid(tails, unit, st)) return { kind: 'code' };
-    return { kind: 'unstated' };
+    // A bare "points" is code's unit only where the step has no other points
+    // reading (Lorenzo, 17 Oct, ruling c): on a share-base step it is ambiguous — the 9ccf0836 shape.
+    const basis = codeUnitSaid(tails, unit, st, { barePoints: !(inRevenuePoints(st) && basesOf(ctx, st).length > 0) });
+    if (basis) return { kind: 'code', basis };
+    return unstated();
   }
   if (q.kind === 'needed_for_gain' || q.kind === 'needed_for_margin') {
     // A price rise that takes a cost line back to a level: current share / target − 1.
@@ -110,27 +143,30 @@ export function frameOfClaim(c: CheckerClaim & { correctionFigure?: string | nul
       }
     }
   }
-  if (q.kind !== 'none' && marginSaid(c, text, tails)) return { kind: 'code' };
-  if ((q.kind === 'new_margin' || q.kind === 'breakeven') && tails.some(t => /^\s*(?:%|percent\b)/i.test(t.tail))) return { kind: 'code' };
-  if (q.kind === 'gain' && tails.some(t => /^\s*(?:-|\s)?(?:percentage\s+)?(?:points?|pp|pts)\b(?!\s+of\s+(?!(?:the\s+)?margin|(?:total\s+)?revenue))/i.test(t.tail))) return { kind: 'code' };
-  return { kind: 'unstated' };
+  if (q.kind !== 'none' && marginSaid(c, text, tails)) return { kind: 'code', basis: 'margin named' };
+  if ((q.kind === 'new_margin' || q.kind === 'breakeven') && tails.some(t => /^\s*(?:%|percent\b)/i.test(t.tail))) return { kind: 'code', basis: 'percent' };
+  // A margin gain has no other points reading: a bare "points" is its unit.
+  if (q.kind === 'gain' && tails.some(t => /^\s*(?:-|\s)?(?:percentage\s+)?(?:points?|pp|pts)\b(?!\s+of\s+(?!(?:the\s+)?margin|(?:total\s+)?revenue))/i.test(t.tail))) return { kind: 'code', basis: 'bare points (a margin gain)' };
+  return unstated();
 }
 
 // The step's unit, said with their figure: a bare unit, "of revenue", or the quantity's own noun.
-function codeUnitSaid(tails: { tail: string; before: string }[], unit: string | undefined, st: Step | undefined): boolean {
+// Returns what showed it (logged), or null.
+function codeUnitSaid(tails: { tail: string; before: string }[], unit: string | undefined, st: Step | undefined, opts: { barePoints: boolean }): string | null {
   const ofOther = (t: string) => /^\s*(?:%|percent(?:age)?(?:\s+points?)?|points?|pp|pts)?\s*(?:of|in)\s+(?!(?:the\s+)?(?:total\s+)?(?:revenue|sales|margin)\b)/i.test(t);
   const revenue = /^\s*(?:%|percent(?:age)?(?:\s+points?)?|points?|pp|pts)?\s*(?:of\s+(?:total\s+)?(?:revenue|sales)|(?:of|off)\s+(?:the\s+)?margin)\b|^\s*(?:revenue|margin)\s+points?\b/i;
   const words = quantityWords(st?.quantity ?? '');
-  return tails.some(({ tail, before }) => {
-    if (NOT_BEFORE.test(before)) return false;
-    if (revenue.test(tail)) return true;
-    if (ofOther(tail)) return false;
-    if (unit === 'points') return /^\s*(?:-|\s)?(?:percentage\s+)?(?:points?|pp|pts)\b/i.test(tail);
-    if (unit === 'percent') return /^\s*(?:%|percent\b)/i.test(tail);
-    if (unit === 'usd') return /\$\s?$/.test(before) || /^\s*(?:m|mn|million|bn|billion|k|thousand|dollars?)\b/i.test(tail);
+  for (const { tail, before } of tails) {
+    if (NOT_BEFORE.test(before)) continue;
+    if (revenue.test(tail)) return 'revenue or margin units attached';
+    if (ofOther(tail)) continue;
+    if (unit === 'points' && opts.barePoints && /^\s*(?:-|\s)?(?:percentage\s+)?(?:points?|pp|pts)\b/i.test(tail)) return 'bare points';
+    if (unit === 'percent' && /^\s*(?:%|percent\b)/i.test(tail)) return 'percent';
+    if (unit === 'usd' && (/\$\s?$/.test(before) || /^\s*(?:m|mn|million|bn|billion|k|thousand|dollars?)\b/i.test(tail))) return 'money';
     const next = (tail.match(/^\s*([a-z]+)/i)?.[1] ?? '').toLowerCase().replace(/s$/, '');
-    return next.length >= 3 && words.has(next);
-  });
+    if (unit !== 'points' && unit !== 'percent' && unit !== 'usd' && next.length >= 3 && words.has(next)) return `the quantity's noun (${next})`;
+  }
+  return null;
 }
 
 // A margin quantity named: in the claim's sentence or right after the figure.
@@ -143,17 +179,18 @@ function marginSaid(c: CheckerClaim, text: string, tails: { tail: string; before
 }
 
 // The pricing model's cost lines with today's level and their names (the share bases' too).
-function costLines(ctx: VetContext): { name: string; names: string; current: number }[] {
+function costLines(ctx: VetContext): { name: string; names: string; current: number; prior?: number }[] {
   const ids = ctx.caseData.pricingModel?.costItems ?? [];
   return ids.flatMap(id => {
     const d = ctx.caseData.dataLedger.find(x => x.id === id);
     const k = Object.entries(d?.timeframes ?? {}).find(([, p]) => p === 'current' || p === 'both')?.[0];
+    const pk = Object.entries(d?.timeframes ?? {}).find(([, p]) => p === 'prior' || p === 'both')?.[0];
     if (!d || k === undefined) return [];
     const base = (ctx.caseData.shareBases ?? []).find(b => b.item === id);
     const head = d.label.split(/\s+(?:as|\/|\()\s*/)[0].trim();
     const name = base?.name ?? (/^[A-Z]{2,}/.test(head) ? head : head.toLowerCase());
     const names = [name, ...(base?.aliases ?? [])].map(esc).join('|');
-    return [{ name, names, current: Number(k) }];
+    return [{ name, names, current: Number(k), ...(pk !== undefined ? { prior: Number(pk) } : {}) }];
   });
 }
 
@@ -168,21 +205,26 @@ const spoken = (x: number) => String(Math.abs(x) >= 1 ? Math.round(x * 10) / 10 
 // correction, a conversion (no "not"), or the correction on their quantity.
 // null: say nothing new (no line can be written).
 export function framedCorrection(c: CheckerClaim & { correctionLine: string | null; correctionFigure: string | null }, frame: QuantityFrame, ctx: VetContext):
-  { line: string; derived: string[]; converted: boolean } | null {
+  { line: string; derived: string[]; converted: boolean; note: string } | null {
   if (!c.correctionLine || !c.correctionFigure) return null;
   const figure = c.correctionFigure;
   // Code's quantity said — or a line with no "not X" in it (a relative change stated as points): as written.
   const statement = c.correctionLine.replace(/,\s+not\s+[^,.]*?(?:\.\d+[^,.]*)?\.$/, '.');
-  if (frame.kind === 'code' || statement === c.correctionLine) return { line: c.correctionLine, derived: [figure], converted: false };
+  if (frame.kind === 'code') return { line: c.correctionLine, derived: [figure], converted: false, note: `code's quantity stated (${frame.basis})` };
+  if (statement === c.correctionLine) return { line: c.correctionLine, derived: [figure], converted: false, note: 'no "not X" in the line' };
   const q = c.codeQuantity;
   const st = q.kind === 'step' ? ctx.caseData.mathSteps.find(s => s.id === q.stepId) as Step | undefined : undefined;
+  // Wrong on every reading, no quantity stated: code's figure, no "not X", the step open.
+  if (frame.kind === 'unstated' && !frame.rightOn) return { line: statement, derived: [figure], converted: false, note: 'no quantity stated, wrong on every reading: code\'s figure without "not X"' };
   if (frame.kind === 'own_right' || frame.kind === 'unstated') {
-    if (frame.kind === 'own_right' && st && inRevenuePoints(st)) {
+    const on = frame.kind === 'own_right' ? frame.quantity : frame.rightOn!.quantity;
+    const note = frame.kind === 'own_right' ? `right on their own quantity (${on})` : `no quantity stated, right on ${on}`;
+    if (st && inRevenuePoints(st) && /^points of |^a share of /.test(on)) {
       const unit = firstUnit(st) === 'percent' ? '%' : ' points';
-      return { line: `In revenue terms, that's about ${figure}${unit}.`, derived: [figure], converted: true };
+      return { line: `In revenue terms, that's about ${figure}${unit}.`, derived: [figure], converted: true, note };
     }
     // The correction without its "not X": a statement of code's figure for code's quantity.
-    return { line: statement, derived: [figure], converted: true };
+    return { line: statement, derived: [figure], converted: true, note };
   }
   // Wrong on their own quantity: corrected on it, naming it.
   const said = numbersOf(c.candidateValue)[0];
@@ -192,12 +234,12 @@ export function framedCorrection(c: CheckerClaim & { correctionLine: string | nu
     const name = st.quantity.replace(/\s*\([^)]*\)/g, '').replace(/,?\s*(?:in\s+)?(?:points|share|percent) of revenue\b/i, '').trim();
     const base = frame.quantity.replace(/^points of /, '');
     const unit = /%|percent/i.test(c.candidateValue) ? '%' : ' points';
-    return { line: `In ${base} terms, ${name} is about ${x}${unit}, not ${spoken(said)}.`, derived: [x], converted: false };
+    return { line: `In ${base} terms, ${name} is about ${x}${unit}, not ${spoken(said)}.`, derived: [x], converted: false, note: `wrong on their own quantity (${frame.quantity})` };
   }
   if (q.kind === 'needed_for_gain' || q.kind === 'needed_for_margin') {
-    return { line: `Getting ${frame.quantity} takes about ${articleFor(x)} ${x}% price rise, not ${spoken(said)}%.`, derived: [x], converted: false };
+    return { line: `Getting ${frame.quantity} takes about ${articleFor(x)} ${x}% price rise, not ${spoken(said)}%.`, derived: [x], converted: false, note: `wrong on their own quantity (${frame.quantity})` };
   }
-  return { line: c.correctionLine, derived: [figure], converted: false };
+  return { line: c.correctionLine, derived: [figure], converted: false, note: `wrong on their own quantity (${frame.quantity}); no wording on it` };
 }
 
 // The window a claim is read in: its sentence and the one before, then the next two messages.

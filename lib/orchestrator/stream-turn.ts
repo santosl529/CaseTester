@@ -10,6 +10,7 @@
 import { growthProbeOnRatio, growthProbeUnchecked } from './growth-probe';
 import type { TurnTimer } from './turn-timer';
 import type { TurnEvent, TurnValidation } from '@/lib/agent/models/interface';
+import { normalizeNumberWords } from '@/lib/number-words';
 import { toRequests, type ModelTurn } from '@/lib/agent/models/turn-schema';
 import { NEUTRAL_TURN } from '@/lib/agent/models/turn-events';
 import type { ModelPlan } from './plan-turn';
@@ -42,6 +43,7 @@ export type GateContext = {
   flaggedThisTurn: boolean;
   flagged?: number[];              // figures a check flagged wrong this turn
   closed?: number[];               // figures of a checker flag past Rule 14: not asked about again
+  converted?: number[];            // figures a conversion closed (own-quantity.ts): never negated ("not 38")
   candidateFigures?: number[];     // the figures the candidate derived (math-talk.ts)
   openItems: OpenRequestItem[];
   phase: Phase;
@@ -64,6 +66,13 @@ export function repeatsAck(sentence: string, ack: string): boolean {
   const mine = words(sentence);
   const theirs = new Set(words(ack));
   return mine.length > 0 && mine.length <= 5 && !sentence.trim().endsWith('?') && mine.every(w => theirs.has(w));
+}
+
+// "not 38", "isn't 38%", "rather than 38", "instead of about 38" — a figure negated.
+const NEGATED_FIGURE = /\b(?:not|isn't|is not|aren't|are not|wasn't|was not|rather than|instead of)\s+(?:about\s+|roughly\s+|around\s+|~\s*)?(?:the\s+|your\s+)?\$?(\d+(?:\.\d+)?)/gi;
+export function negatesFigure(sentence: string, figures: readonly number[]): boolean {
+  if (figures.length === 0) return false;
+  return [...normalizeNumberWords(sentence).matchAll(NEGATED_FIGURE)].some(m => figures.some(f => Math.abs(parseFloat(m[1]) - f) < 1e-9));
 }
 
 // A code-written question's opening sentence that repeats the filler ("Take
@@ -140,6 +149,10 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   // exhibit" before any was shown, "with those figures" when none were given.
   // Settle only — it knows this turn's data line.
   if (opts.inQuestion && g.facts?.delivery && findUndeliveredClaims(sentence, g.facts.fb, g.facts.delivery).length > 0) return 'undelivered_claim';
+  // A figure a conversion closed, negated in the model's words — "…20.5% price
+  // rise, not 38%." beside code's conversion line (Lorenzo, 17 Oct, gap 2): the
+  // "not X" code withheld, said by the model. Code then says its line itself.
+  if (negatesFigure(sentence, g.converted ?? [])) return 'negates_converted';
   // Doubt on the candidate's math only with a flag behind it (probe-guard.ts):
   // on a verified figure "probe_guard", on an unverified one "unsupported_challenge".
   const challenge = challengeVerdict(sentence, {
@@ -188,6 +201,7 @@ export function gateContext(plan: ModelPlan, extraRevealed: string[] = [], extra
     flaggedThisTurn: state.recomputeFlags.length > 0,
     flagged: state.flaggedFigures,
     closed: state.closedFigures,
+    converted: state.convertedFigures,
     candidateFigures: state.candidateFigures,
     openItems: state.openDataRequests.map(r => ({ ledgerItemId: r.ledgerItemId, label: r.label })),
     phase: ctx.currentPhase,

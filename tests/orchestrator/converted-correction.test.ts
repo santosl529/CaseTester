@@ -21,6 +21,17 @@ import { planTurn, type TurnReads } from '@/lib/orchestrator/plan-turn';
 import { getCaseById } from '@/lib/cases/loader';
 import { readsFixture } from './fixtures/turn-reads';
 import { challengeVerdict } from '@/lib/orchestrator/probe-guard';
+import { vetoReason, negatesFigure, type GateContext } from '@/lib/orchestrator/stream-turn';
+import { settleTurn, type ModelOutcome } from '@/lib/orchestrator/settle-turn';
+import type { ModelTurn } from '@/lib/agent/models/turn-schema';
+import { modelPlanFixture } from './fixtures/model-plan';
+
+const gate = (converted: number[]): GateContext => ({
+  allowedTexts: ["COGS is 58% of revenue today, up from 42% two years ago.", '20.5', '4.2', '38', '10', 'margin fell from 24% to 6%, 16 points, 25 points'], verified: [], alreadyProbed: new Set(), flaggedThisTurn: false,
+  openItems: [], phase: 'ANALYSIS', converted,
+});
+const usage = { model: '', actualModels: [] as string[], inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, apiCalls: 0 };
+const outcome = (turn: ModelTurn): ModelOutcome => ({ turn, validation: null, modelCallStart: 0, modelLatencyMs: 0, distressWaitMs: 0, turnUsage: usage, delivered: [], undeliveredRevealIds: [] });
 
 const prof = getCaseById('prof-001');
 const COSTS = ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'menu_price_change', 'bean_price_change', 'non_bean_input_change', 'revenue_total', 'avg_ticket', 'stores_count'];
@@ -77,15 +88,28 @@ describe('the step a conversion closed', () => {
     rows: [row(27, [vetted(value, text)])], closed, keys: { 'bean_points_added@10': { figures: [10], since: 17 } },
     turnRows: [{ turnIndex: 27, role: 'candidate', text }], candidateText: 'Wait, let me think about the base.', candidateTurnIndex: 29, attempts: {},
   });
-  it('a later figure on it, no unit: left for the report (27\'s "five point eight")', () => {
+  // Lorenzo, 17 Oct (ruling d): a new figure, wrong on every reading code computes, reopens the step — the probe first.
+  it('27\'s "five point eight" (not 4.2, 10 or 26): reopened, one probe', () => {
     const p = planCheckerFlags(later('5.8', "So fifty eight percent times the ten percent. That's five point eight."));
+    expect(p.selected).toMatchObject({ action: 'probe', key: 'bean_points_added@5.8', attempt: 1 });
+    expect(p.flaggedFigures).toContain(5.8);
+  });
+  it('past the probe, no unit stated: code\'s figure without "not X"', () => {
+    const p = planCheckerFlags({ ...later('5.8', "So fifty eight percent times the ten percent. That's five point eight."), attempts: { 'bean_points_added@5.8': 1 } });
+    expect(p.selected).toMatchObject({ action: 'correct', line: "Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points." });
+    expect(p.selected?.converted).toBeUndefined();
+  });
+  it('past the probe, stated in revenue points: "not X"', () => {
+    const p = planCheckerFlags({ ...later('5.8 points of revenue', "So that's five point eight points of revenue."), attempts: { 'bean_points_added@5.8': 1 } });
+    expect(p.selected).toMatchObject({ action: 'correct', line: "Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points, not 5.8." });
+  });
+  it.each([
+    ['his 10 restated', '10', 'Like I said, beans are ten.'],
+    ['a figure right on another reading (26% of the COGS increase)', '26%', 'So beans are about 26% of the increase.'],
+  ])('%s: stays closed', (_n, value, text) => {
+    const p = planCheckerFlags({ ...later(value, text), convertedFigures: [10] });
     expect(p.selected).toBeNull();
     expect(p.decisions).toContainEqual(expect.objectContaining({ outcome: 'unresolved', reason: expect.stringMatching(/closed by a conversion/) }));
-    expect(p.flaggedFigures).not.toContain(5.8);
-  });
-  it('a later figure stated in revenue points reopens it: one probe', () => {
-    const p = planCheckerFlags(later('5.8 points of revenue', "So that's five point eight points of revenue."));
-    expect(p.selected).toMatchObject({ action: 'probe' });
   });
   it('a restatement in the recommendation is no closed error to raise again', () => {
     const flagRow: CheckerRow = { category: MATH_CHECKER_CATEGORY, subtype: 'flag', turnIndex: 23, payloadJsonb: { id: '21:0', candidateTurnIndex: 21, outcome: 'converted', reason: 'attempt 2; a conversion: right on their own quantity', span: T21, candidateValue: '10 points of a 37.5% COGS increase', key: 'bean_points_added@10', changesConclusion: false, line: "In revenue terms, that's about 4.2 points." } };
@@ -95,8 +119,7 @@ describe('the step a conversion closed', () => {
 
 describe('the report', () => {
   const flag = (reason: string): CheckerRow => ({ category: MATH_CHECKER_CATEGORY, subtype: 'flag', turnIndex: 23, payloadJsonb: { id: '21:0', candidateTurnIndex: 21, outcome: 'converted', reason, span: T21, candidateValue: '10', key: 'bean_points_added@10', changesConclusion: false, line: 'L.' } });
-  it('right on their own quantity: no error listed', () => expect(formatCheckerSection([row(21, [t21]), flag('attempt 2; a conversion: right on their own quantity')])).toBe(''));
-  it('no quantity stated: listed, with code\'s figure', () => expect(formatCheckerSection([row(21, [t21]), flag('attempt 2; a conversion: no quantity stated')])).toMatch(/No unit was stated; code gave its own figure: "L\."/));
+  it('a conversion (right on a reading code computes): no error listed', () => expect(formatCheckerSection([row(21, [t21]), flag('attempt 2; a conversion: right on their own quantity (points of COGS)')])).toBe(''));
 });
 
 describe('planTurn: the conversion closes the step for code\'s probes too', () => {
@@ -135,5 +158,38 @@ describe('after the conversion, the model\'s own doubts on the figure are withhe
   ])('%s', sentence => {
     const v = challengeVerdict(sentence, { verified: [], alreadyProbed: new Set(), flaggedThisTurn: false, flagged: [], closed: [10], candidateFigures: [10, 9.3] });
     expect(v).toMatchObject({ test: 'closed_to_report' });
+  });
+});
+
+// Lorenzo, 17 Oct (gap 2): a model line that negates a figure a conversion
+// closed is withheld, as an unsupported doubt is; code then says its line.
+describe('the model saying the "not X" code withheld', () => {
+  it.each([
+    "From today's 6% margin, recovering 16 points of margin takes about a 20.5% price rise, not 38%.",
+    "It isn't 38%, it's closer to 20.5%.",
+    'So the rise is 20.5% rather than 38.',
+    'Use 20.5% instead of 38.',
+    "In revenue terms, that's about 4.2 points, not ten.",
+  ])('%s', sentence => {
+    const fig = /38/.test(sentence) ? 38 : 10;
+    expect(negatesFigure(sentence, [fig])).toBe(true);
+    expect(vetoReason(sentence, gate([fig]))).toBe('negates_converted');
+    expect(vetoReason(sentence, gate([fig]), { inQuestion: true })).toBe('negates_converted');
+  });
+  it.each([
+    "From today's 6% margin, recovering 16 points of margin takes about a 20.5% price rise.",
+    'Not quite — walk me through the 20.5%.',
+    'That is not 25 points of revenue.',
+  ])('kept: %s', sentence => expect(vetoReason(sentence, gate([38]))).toBeNull());
+  it('Settle: the model added "not 38%" to the conversion line — withheld, code says the line', async () => {
+    const LINE = "From today's 6% margin, recovering 16 points of margin takes about a 20.5% price rise.";
+    const plan = modelPlanFixture({ distress: null, candidateText: 'I held COGS dollars constant and asked what revenue would need to be.' });
+    plan.state.requiredExhibit = undefined; plan.state.analysisOwed = false; plan.state.owedStage = undefined;
+    plan.state.checkerLine = { id: '9:1', key: 'pricing:needed@38', action: 'correct', line: LINE, undo: { attempt: undefined, step: null, mathChecker: { handled: [] } } };
+    plan.state.convertedFigures = [38];
+    plan.state.derivedValueTexts.push('20.5');
+    const s = await settleTurn(plan, outcome({ move: 'analysis', requests: [], exhibit: null, rescueItem: null, say: `${LINE.slice(0, -1)}, not 38%.`, question: 'What would you recommend?' }));
+    expect(s.spokenText).toContain(LINE);
+    expect(s.spokenText).not.toMatch(/not 38/);
   });
 });

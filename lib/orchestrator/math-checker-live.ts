@@ -24,7 +24,7 @@ import { recomputeAction, attemptKey, type CandidateMath, type RecomputeAttempts
 import { checkPricingClaims, pricingAnswers, pricingValues } from './pricing-check';
 import { changeFigures } from './numeric-provenance';
 import { classifyMathTalk } from './math-talk';
-import { frameOfClaim, framedCorrection, claimWindow } from './own-quantity';
+import { frameOfClaim, framedCorrection, claimWindow, readingsOf, rightOnSome, theirFigure } from './own-quantity';
 
 export const MATH_CHECKER_CATEGORY = 'math_checker';
 // Lorenzo, 13 Oct (approved): 30 s — the slowest call in the evaluation took
@@ -329,6 +329,7 @@ export type CheckerSelection = {
   // A correction said as a conversion — the figure right on the candidate's own
   // quantity, or no quantity stated (own-quantity.ts): no "not X", and its step closes.
   converted?: boolean;
+  framing?: string;   // how the candidate framed the figure, for the log
 };
 export type CheckerPlanInput = {
   rows: CheckerRow[];                 // the session's math_checker events
@@ -347,6 +348,7 @@ export type CheckerPlanInput = {
   finalAnswer?: (candidateTurnIndex: number) => boolean;
   // Among the final answers' flags, which first (close-hold.ts holdRank): the recommendation reply's, then the largest error.
   rank?: (candidateTurnIndex: number, c: VettedClaim) => number;
+  convertedFigures?: number[];        // the figures conversions closed (plan-turn's checker memory)
   underTimePressure: boolean;
   candidateFigures: number[];
   caseData: CheckerCase; revealedIds: string[];
@@ -411,11 +413,18 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const frameOf = (c: VettedClaim, n: number) => frameOfClaim(c, claimWindow(c.span, messageOf(n), laterMessages(n).map(x => x.text)), vetCtx);
   const correction = (id: string, n: number, c: VettedClaim, key: string, attempt: number): CheckerSelection | null => {
     const framed = framedCorrection(c, frameOf(c, n), vetCtx);
-    return framed ? { id, candidateTurnIndex: n, key, attempt, action: 'correct', line: framed.line, derived: framed.derived, claim: c, ...(framed.converted ? { converted: true } : {}) } : null;
+    return framed ? { id, candidateTurnIndex: n, key, attempt, action: 'correct', line: framed.line, derived: framed.derived, claim: c, framing: framed.note, ...(framed.converted ? { converted: true } : {}) } : null;
   };
-  // Steps a conversion closed: a later flag on one is left for the report,
-  // unless the candidate states it in code's quantity or unit (it reopens).
+  // Steps a conversion closed: a later flag on one is left for the report —
+  // unless it is a new figure, wrong on every reading code computes (Lorenzo,
+  // 17 Oct, ruling d): then it reopens, the probe first. A restated right figure stays closed.
   const convertedSteps = new Set([...closed].filter(k => k.startsWith(CONVERTED)).map(k => k.slice(CONVERTED.length)));
+  const reopens = (c: VettedClaim) => {
+    const f = theirFigure(c);
+    if (f === undefined || (p.convertedFigures ?? []).some(x => same(f, x))) return false;
+    const readings = readingsOf(c, vetCtx);
+    return readings.length > 0 && rightOnSome(f, readings) === null;
+  };
   for (const v of verdicts) {
     for (const f of v.codeFlags.filter(x => x.key.startsWith('misquote:'))) {
       const m = misreads.find(x => x.key === f.key);
@@ -450,8 +459,8 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       if (c.flag) flaggedSoFar.push({ id, n: v.candidateTurnIndex, c });
       if (handled.has(id)) return;
       const figs = claimFigures(c, caseNumbers);
-      if (c.flag && convertedSteps.has(stepOfKey(checkerKey(c))) && frameOf(c, v.candidateTurnIndex).kind !== 'code') {
-        decisions.push(decision(id, v.candidateTurnIndex, c, 'unresolved', `its step was closed by a conversion (${stepOfKey(checkerKey(c))}); not stated in code's quantity`));
+      if (c.flag && convertedSteps.has(stepOfKey(checkerKey(c))) && !reopens(c)) {
+        decisions.push(decision(id, v.candidateTurnIndex, c, 'unresolved', `its step was closed by a conversion (${stepOfKey(checkerKey(c))}); the figure is a restatement or right on a reading code computes`));
         handled.add(id);
         return;
       }
@@ -582,7 +591,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     closedNow.push(key);
   }
   if (selected) decisions.push(decision(selected.id, selected.candidateTurnIndex, selected.claim, selected.converted ? 'converted' : selected.action,
-    `attempt ${selected.attempt}${selected.converted ? `; a conversion: ${frameOf(selected.claim, selected.candidateTurnIndex).kind === 'own_right' ? 'right on their own quantity' : 'no quantity stated'}` : ''}`, selected.line, selected.key));
+    `attempt ${selected.attempt}${selected.framing ? `; ${selected.converted ? 'a conversion: ' : ''}${selected.framing}` : ''}`, selected.line, selected.key));
   return {
     selected, waiting: waiting.map(w => ({ id: w.id, candidateTurnIndex: w.n, claim: w.c })), decisions, flaggedFigures: [...new Set(flaggedFigures)], droppedStamps,
     handledNow: [...handled].filter(id => !p.handled.includes(id)), keys, closedNow,
