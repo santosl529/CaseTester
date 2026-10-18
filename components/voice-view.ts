@@ -52,7 +52,7 @@ export function applyMessage(v: VoiceView, m: ServerMessage): VoiceView {
     case 'latency':
       return { ...v, latency: { turnSeq: m.turnSeq, firstSoundMs: m.firstSoundMs, firstUsefulMs: m.firstUsefulMs } };
     case 'ended':
-      return { ...v, phase: 'ended', endedReason: m.reason, canScore: m.reason === 'case_complete' && !m.scoringSuppressed };
+      return { ...v, phase: 'ended', endedReason: m.reason, canScore: (m.reason === 'case_complete' || m.reason === 'tts_cap') && !m.scoringSuppressed };
     case 'error':
       return { ...v, error: m.message };
   }

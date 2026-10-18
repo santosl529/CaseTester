@@ -77,7 +77,6 @@ Required:
 | `CARTESIA_API_KEY` | TTS |
 | `DATABASE_URL` | the Supabase **pooler, transaction mode** (port 6543), the same URL Vercel uses |
 | `SUPABASE_SECRET_KEY` | required by `db/client.ts` at import |
-| `VOICE_TTS_RUN_CAP` | Cartesia characters per session (a voice session uses ≈ 3,700–4,000; suggest `6000`). Real TTS refuses to start without it |
 
 Only on Railway/Render (LiveKit Cloud injects these): `LIVEKIT_URL`,
 `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`.
@@ -87,6 +86,7 @@ Optional (the defaults are in code):
 | Name | Default |
 |---|---|
 | `LLM_BUDGET_USD` | `1.00` — per session (each job is its own process; `lib/voice/session-budget.ts`) |
+| `VOICE_TTS_RUN_CAP` | `8000` — Cartesia characters per session (a voice session uses ≈ 3,700–4,000). At the cap the interviewer says a closing line and the session ends like the End button, with a report when assessable — never silence (below) |
 | `VOICE_TTS_CHAR_CAP` | `90000` — the monthly cap, shared through the table |
 | `VOICE_MAX_SESSION_MIN` | `25` |
 | `VOICE_BARGE_MIN_WORDS` | `2` |
@@ -105,6 +105,21 @@ rooms before a new Start gets "Voice is busy right now. Try again in a few
 minutes." Already there: `LIVEKIT_URL`, `LIVEKIT_API_KEY`,
 `LIVEKIT_API_SECRET` (the token route dispatches and now lists rooms with
 them).
+
+## When a session hits its TTS cap
+
+A turn starts only with room left for a whole turn (600 characters; the
+longest interviewer turn in batches 30–31 was 478) plus the closing line,
+which is held back from every other segment. When there isn't room — or a
+segment is refused mid-turn — nothing more of that turn plays; the
+interviewer says *"We need to stop here: this session has reached its voice
+limit. Thank you for working through the case with me."*; the session ends as
+the End button ends it (completed with a partial report when something
+assessable was done; `endReason: voice_tts_cap`); the screen shows "This
+session reached its voice limit, so it ended here." and, with a report, the
+Score button. If even the closing line can't be spoken (the monthly ledger
+exhausted), the caption and the message still appear. The monthly cap
+(`VOICE_TTS_CHAR_CAP`) ends a session the same way.
 
 ## Database: pooler, transaction mode
 

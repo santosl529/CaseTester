@@ -59,18 +59,27 @@ export class SharedTtsBudget {
 
 export const ledgerMonth = (d = new Date()) => d.toISOString().slice(0, 7);
 
-// Each paid run's own character cap (spec §9): required whenever the TTS is
-// real — the plan upgrade is not a test budget. null for the fake TTS.
+// Each session's own character cap (spec §9): VOICE_TTS_RUN_CAP, default
+// 8,000 (Lorenzo, 18 Oct; a voice session uses ≈ 3,700–4,000). null for the
+// fake TTS. A set value that isn't a positive number is refused.
+export const DEFAULT_TTS_RUN_CAP = 8000;
+// What a turn may need (batches 30–31: the longest interviewer turn 478
+// characters) — a turn starts only with this much left, plus the closing line's.
+export const TURN_TTS_RESERVE = 600;
+
 export function ttsRunCap(env: Record<string, string | undefined>): number | null {
   if (env.VOICE_TTS === 'fake') return null;
-  const cap = Number(env.VOICE_TTS_RUN_CAP);
-  if (!(cap > 0)) throw new Error('real TTS spends characters: set VOICE_TTS_RUN_CAP (characters for this run), or VOICE_TTS=fake');
+  const raw = env.VOICE_TTS_RUN_CAP?.trim();
+  if (!raw) return DEFAULT_TTS_RUN_CAP;
+  const cap = Number(raw);
+  if (!(cap > 0)) throw new Error(`VOICE_TTS_RUN_CAP must be a positive number of characters per session (got ${raw}), or VOICE_TTS=fake`);
   return cap;
 }
 
 export class RunCharCap {
   used = 0;
   constructor(private cap: number) {}
+  get left(): number { return this.cap - this.used; }
   take(chars: number): boolean {
     if (this.used + chars > this.cap) return false;
     this.used += chars;

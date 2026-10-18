@@ -18,6 +18,12 @@ const STATE_LABEL: Record<string, string> = {
   idle: 'Not started', connecting: 'Connecting…', waiting: 'Waiting for audio', listening: 'Listening',
   thinking: 'Thinking', speaking: 'Speaking', ended: 'Ended',
 };
+// Why a session ended early, on screen (the TTS cap's line is also spoken).
+const ENDED_TEXT: Record<string, string> = {
+  tts_cap: 'This session reached its voice limit, so it ended here.',
+  time_limit: 'This session reached its time limit, so it ended here.',
+  error: 'The session ended because of a technical problem.',
+};
 const MIC_LOUD = 0.02;       // the agent's VAD threshold
 const REMOTE_LOUD = 0.01;
 
@@ -234,7 +240,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
 
       {(problem || view.error) && <p className="text-sm text-red-600">{problem ?? view.error}</p>}
       {view.endedReason && view.endedReason !== 'case_complete' && (
-        <p className="text-sm text-neutral-600">The session ended ({view.endedReason.replace('_', ' ')}).</p>
+        <p className="text-sm text-neutral-600">{ENDED_TEXT[view.endedReason] ?? 'The session ended.'}{view.canScore ? ' You can score it for a report on what you covered.' : ''}</p>
       )}
 
       <div className="flex items-center gap-2">

@@ -20,6 +20,12 @@ import { speechTextFor, WordFolder } from './pronounce';
 // How long heard() waits for the browser to confirm an exhibit it was sent.
 export const EXHIBIT_CONFIRM_MS = 1500;
 
+// What the interviewer says when the session's TTS allowance runs out (voice
+// deploy, 18 Oct): never silence. A scripted line — no case figures — spoken
+// from a reserve the agent keeps for it (ttsAllowClosing), then the session
+// ends as the End button ends it (endEarly) and the browser shows why.
+export const TTS_CAP_CLOSING = 'We need to stop here: this session has reached its voice limit. Thank you for working through the case with me.';
+
 export type RunTurnFn = (text: string, opts: {
   onSegment: (s: Segment) => Promise<void>;
   heard: () => Promise<HeardReport>;
@@ -40,8 +46,12 @@ export type ControllerDeps = {
   send: (m: ServerMessage) => void;
   record: (r: TurnRecord) => void;
   speechEndAt: () => number | null;              // SpeechEndTracker
-  ttsAllow: (chars: number) => boolean;          // run cap + monthly ledger
-  canStartTurn: () => boolean;                   // the ledger's reserve
+  ttsAllow: (chars: number) => boolean;          // run cap + monthly ledger, keeping the closing line's reserve
+  canStartTurn: () => boolean;                   // room for a whole turn plus the closing line
+  // The closing line's own allowance (the reserve); default ttsAllow.
+  ttsAllowClosing?: (chars: number) => boolean;
+  // Ends the session for the cap (completed with a report when assessable); default: no report.
+  endEarly?: (reason: 'tts_cap') => Promise<{ scoringSuppressed: boolean }>;
   bargeMinWords: number;
   sessionSeed: string;
   // How long after end of turn the acknowledgment waits (FILLER_DELAY_MS); 0 plays it at once.
@@ -91,6 +101,8 @@ export class VoiceTurnController {
   // Turns in a row, ending with the last, on which a thinking filler played (the rate's memory).
   private fillerRun = 0;
   private connectors: string[] = [];   // the connector chosen on each of the last two filler turns
+  private capHit = false;              // a segment was refused for the TTS allowance
+  private closing = false;             // the cap's closing line is under way
 
   constructor(private d: ControllerDeps) {}
 
@@ -182,6 +194,7 @@ export class VoiceTurnController {
   }
 
   private onFinal(transcript: string, atMs: number): void {
+    if (this.closing) return;                    // the cap's closing line: no new turn
     const t = this.live;
     const scripted = this.d.playout.hasPendingNonInterruptible();
     if (t && t.cutAt === null && !scripted) {
@@ -193,7 +206,7 @@ export class VoiceTurnController {
     const text = join(carry?.text ?? null, transcript);
     if (!text) return;
     this.d.trace?.('final', { text: transcript, carried: carry?.text ?? null });
-    if (!this.d.canStartTurn()) { this.end('tts_cap', true); return; }
+    if (!this.d.canStartTurn()) { void this.capEnd(); return; }
     this.startTurn(text, { carried: carry !== null, replaces: carry?.seq ?? null, finalAt: atMs });
   }
 
@@ -308,14 +321,18 @@ export class VoiceTurnController {
     this.writeRecord(t, result, false);
     this.d.send({ type: 'caption', who: 'interviewer', turnSeq: t.seq, text: this.captionText(t), final: true });
     if (result.ended) this.end('case_complete', Boolean(result.scoringSuppressed));
+    else if (this.capHit) void this.capEnd();
     else if (this.live === t && t.cutAt === null) this.setState('listening', t.seq);
   }
 
   // The sink: resolves on acceptance (the stream stays pipelined); rejects once
   // the turn was cut — except a scripted line, which still plays (§5.6) unless
   // the session ended or audio is blocked.
-  private async accept(t: Live, seg: Segment): Promise<void> {
+  private async accept(t: Live, seg: Segment, closingLine = false): Promise<void> {
+    const allow = closingLine ? (this.d.ttsAllowClosing ?? this.d.ttsAllow) : this.d.ttsAllow;
     if (this.state === 'ended' || this.blocked) throw new Error('not speaking');
+    // Past the cap nothing more of the turn plays — no fragment after a refused segment.
+    if ((this.closing || this.capHit) && !closingLine) throw new Error('tts cap');
     if (t.cutAt !== null && seg.kind !== 'scripted') throw new Error('cut');
     const text = seg.text.trim();
     if (!text && !seg.exhibitId) return;
@@ -337,7 +354,7 @@ export class VoiceTurnController {
         this.d.trace?.('connector', { seq: t.seq, connector: c });
       }
     }
-    if (text && !this.d.ttsAllow(spoken.length)) throw new Error('tts cap');
+    if (text && !allow(spoken.length)) { if (!closingLine) this.capHit = true; throw new Error('tts cap'); }
     const e: Entry = { id: `${t.seq}:${t.entries.length}`, seg, heardChars: 0, shownFull: false, exhibitSentAt: null, exhibitConfirmed: false, cancel: () => {} };
     t.entries.push(e);
     t.firstAcceptedAt ??= this.d.now();
@@ -454,6 +471,26 @@ export class VoiceTurnController {
 
   private sendCaption(t: Live): void {
     this.d.send({ type: 'caption', who: 'interviewer', turnSeq: t.seq, text: this.captionText(t), final: false });
+  }
+
+  // The TTS allowance is spent (no room for another turn, or a segment was
+  // refused): stop what is playing, say the closing line, end the session.
+  // If the line can't be spoken, the browser still shows why.
+  private async capEnd(): Promise<void> {
+    if (this.state === 'ended' || this.closing) return;
+    this.closing = true;
+    const t = this.live;
+    if (t && t.cutAt === null && (this.state === 'thinking' || this.state === 'speaking')) this.cut(t, 'end');
+    this.d.trace?.('tts_cap', { seq: this.seq });
+    const c = this.newLive('', this.d.now(), true);
+    this.setState('speaking', c.seq);
+    await this.accept(c, { kind: 'scripted', text: TTS_CAP_CLOSING, revealIds: [] }, true).catch(() => {});
+    await this.d.playout.whenIdle();
+    await new Promise<void>(r => this.d.clock.at(this.d.now() + HEARD_MARGIN_MS, r));   // the last heard update first
+    this.d.send({ type: 'caption', who: 'interviewer', turnSeq: c.seq, text: TTS_CAP_CLOSING, final: true });
+    const { scoringSuppressed } = await (this.d.endEarly?.('tts_cap') ?? Promise.resolve({ scoringSuppressed: true }))
+      .catch(() => ({ scoringSuppressed: true }));
+    this.end('tts_cap', scoringSuppressed);
   }
 
   private end(reason: 'case_complete' | 'tts_cap' | 'time_limit' | 'error', scoringSuppressed: boolean): void {

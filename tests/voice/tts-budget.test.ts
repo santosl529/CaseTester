@@ -81,9 +81,10 @@ it('names one ledger row per calendar month (UTC)', () => {
 
 import { ttsRunCap, RunCharCap } from '@/lib/voice/tts-budget';
 
-it('requires a per-run character cap for real TTS, not for the fake one', () => {
+it('a per-session character cap for real TTS: 8,000 by default, none for the fake one', () => {
   expect(ttsRunCap({ VOICE_TTS: 'fake' })).toBeNull();
-  expect(() => ttsRunCap({})).toThrow(/VOICE_TTS_RUN_CAP/);
+  expect(ttsRunCap({})).toBe(8000);
+  expect(() => ttsRunCap({ VOICE_TTS_RUN_CAP: 'x' })).toThrow(/VOICE_TTS_RUN_CAP/);
   expect(() => ttsRunCap({ VOICE_TTS_RUN_CAP: '0' })).toThrow(/VOICE_TTS_RUN_CAP/);
   expect(ttsRunCap({ VOICE_TTS_RUN_CAP: '15000' })).toBe(15000);
 });

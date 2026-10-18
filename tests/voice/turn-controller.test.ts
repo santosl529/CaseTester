@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { Playout } from '@/lib/voice/playout';
 import { FakeTTS } from '@/lib/voice/fake-tts';
-import { VoiceTurnController, EXHIBIT_CONFIRM_MS, type ControllerDeps, type RunTurnFn } from '@/lib/voice/turn-controller';
+import { VoiceTurnController, EXHIBIT_CONFIRM_MS, TTS_CAP_CLOSING, type ControllerDeps, type RunTurnFn } from '@/lib/voice/turn-controller';
 import { TurnCancelled, isCancelledTurn, type HeardReport, type Segment } from '@/lib/orchestrator/turn-types';
 import type { ServerMessage } from '@/lib/voice/protocol';
 import type { TTSProvider } from '@/lib/voice/types';
@@ -546,7 +546,7 @@ describe('audio blocked, End, the opening, the TTS cap', () => {
   it('starts no turn once the TTS allowance is spent', async () => {
     const h = harness([[seg('tail', 'Go on.')]], { canStartTurn: () => false });
     await h.c.ready(''); h.c.onStt(final('Hello'));
-    await h.advance(1000);
+    await h.advance(5000);                        // the closing line plays first (below)
     expect(h.texts).toEqual([]);
     expect(h.sent.some(m => m.type === 'ended' && m.reason === 'tts_cap')).toBe(true);
   });
@@ -632,3 +632,50 @@ describe('the filler rate', () => {
     expect((h.records as { ack: string | null; ackSkipped: { why: string } | null }[]).map(r => r.ackSkipped?.why ?? 'played')).toEqual(['rate', 'played']);
   });
 });
+
+describe('the TTS allowance runs out (voice deploy, 18 Oct): never silence', () => {
+  const ended = (h: ReturnType<typeof harness>) => h.sent.filter(m => m.type === 'ended');
+
+  it('no room for another turn: the closing line plays, the session ends with its report', async () => {
+    const calls: string[] = [];
+    const h = harness([[seg('tail', 'Go on.')]], { ...noAck, canStartTurn: () => false,
+      endEarly: async r => { calls.push(r); return { scoringSuppressed: false }; } });
+    await h.c.ready(''); h.c.onStt(final('Hello'));
+    await h.advance(100);
+    expect(ended(h)).toEqual([]);                 // still speaking the closing line
+    await h.advance(5000);
+    expect(h.texts).toEqual([]);
+    expect(h.captions('interviewer').at(-1)).toMatchObject({ text: TTS_CAP_CLOSING, final: true });
+    expect(calls).toEqual(['tts_cap']);
+    expect(ended(h)).toEqual([{ type: 'ended', reason: 'tts_cap', scoringSuppressed: false }]);
+  });
+
+  it('a segment refused mid-turn: nothing more of that turn plays, then the closing line and the end', async () => {
+    let n = 0;
+    const said: string[] = [];
+    const h = harness([[seg('say', 'First part.'), seg('data', 'A long data line.'), seg('tail', 'Short.')]], {
+      ...noAck,
+      ttsAllow: () => ++n === 1,                  // the first segment fits, nothing after it
+      ttsAllowClosing: c => { said.push(`closing:${c}`); return true; },
+    });
+    await h.c.ready(''); h.c.onStt(final('What are the costs?'));
+    await h.advance(8000);
+    const lines = h.captions('interviewer').filter(c => c.final).map(c => c.text);
+    expect(lines).toEqual(['First part.', TTS_CAP_CLOSING]);
+    expect(said).toEqual([`closing:${TTS_CAP_CLOSING.length}`]);
+    expect(ended(h)).toEqual([{ type: 'ended', reason: 'tts_cap', scoringSuppressed: true }]);
+    // The candidate speaking during or after the closing starts no turn.
+    h.c.onStt(final('Wait, one more thing.'));
+    await h.advance(2000);
+    expect(h.texts).toEqual(['What are the costs?']);
+  });
+
+  it('if even the closing line can’t be spoken, the browser still gets its caption and the end', async () => {
+    const h = harness([], { ...noAck, canStartTurn: () => false, ttsAllowClosing: () => false });
+    await h.c.ready(''); h.c.onStt(final('Hello'));
+    await h.advance(2000);
+    expect(h.captions('interviewer').at(-1)).toMatchObject({ text: TTS_CAP_CLOSING, final: true });
+    expect(ended(h)).toEqual([{ type: 'ended', reason: 'tts_cap', scoringSuppressed: true }]);
+  });
+});
+

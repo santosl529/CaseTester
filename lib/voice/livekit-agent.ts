@@ -27,10 +27,11 @@ import { FILLER_DELAY_MS, fillerRateFrom, FILLER_GAP_MS, FILLER_TAIL_MS } from '
 import { loadAcks } from './ack-audio';
 import { Playout } from './playout';
 import { SpeechEndTracker } from './pcm';
-import { RunCharCap, ttsRunCap } from './tts-budget';
+import { RunCharCap, ttsRunCap, TURN_TTS_RESERVE } from './tts-budget';
 import { installSessionBudget } from './session-budget';
 import { openTtsLedger } from './tts-ledger-store';
-import { VoiceTurnController } from './turn-controller';
+import { TTS_CAP_CLOSING, VoiceTurnController } from './turn-controller';
+import { endByCandidate } from '@/lib/orchestrator/session-end';
 import { DATA_TOPIC, parseClientMessage, type ServerMessage } from './protocol';
 import { summarize, type TurnRecord } from './records';
 import { SessionLines } from './session-lines';
@@ -120,7 +121,11 @@ export default defineAgent({
     if (tts instanceof CartesiaTTS) await tts.connect();
     const ledger = await openTtsLedger();   // the month's row in voice_tts_usage, shared by every job
     const run = runCap === null ? null : new RunCharCap(runCap);
-    const ttsAllow = (n: number) => fake || (run!.take(n) && ledger.take(n));
+    // The session's cap keeps the closing line's characters back: when it runs
+    // out the interviewer says so (TTS_CAP_CLOSING) instead of going silent.
+    const closingReserve = TTS_CAP_CLOSING.length;
+    const ttsAllow = (n: number) => fake || (run!.left - n >= closingReserve && run!.take(n) && ledger.take(n));
+    const ttsAllowClosing = (n: number) => fake || (run!.take(n) && ledger.take(n));
     // Shipped clips first; the hosted worker synthesizes none (VOICE_ACK_SYNTH=0).
     const missingClips: string[] = [];
     const acks = await loadAcks(tts, voice, ttsAllow, { sampleRate: OUT_RATE, gapMs: num('VOICE_FILLER_GAP_MS', FILLER_GAP_MS), tailMs: num('VOICE_FILLER_TAIL_MS', FILLER_TAIL_MS),
@@ -153,7 +158,9 @@ export default defineAgent({
       ackPcm: ack => acks.get(ack) ?? null,
       exhibitById: id => exhibits.get(id) ?? null,
       send, record, speechEndAt: () => vad.lastVoicedAt,
-      ttsAllow, canStartTurn: () => fake || ledger.canStartTurn(),
+      ttsAllow, ttsAllowClosing, canStartTurn: () => fake || (ledger.canStartTurn() && run!.left >= TURN_TTS_RESERVE + closingReserve),
+      // Ended for the cap as the End button ends it: completed with a report when assessable.
+      endEarly: async () => ({ scoringSuppressed: !(await endByCandidate(session.id, session.userId, 'voice_tts_cap')).report }),
       bargeMinWords: num('VOICE_BARGE_MIN_WORDS', 2), sessionSeed: session.id, fillerDelayMs: num('VOICE_FILLER_DELAY_MS', FILLER_DELAY_MS), fillerRate,
       trace: rec ? (type, data) => rec.event(type, data) : undefined,
     });

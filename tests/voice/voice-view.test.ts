@@ -42,6 +42,9 @@ describe('voice view', () => {
     expect(run([{ type: 'ended', reason: 'case_complete', scoringSuppressed: false }])).toMatchObject({ phase: 'ended', canScore: true });
     expect(run([{ type: 'ended', reason: 'case_complete', scoringSuppressed: true }]).canScore).toBe(false);
     expect(run([{ type: 'ended', reason: 'time_limit', scoringSuppressed: true }]).canScore).toBe(false);
+    // The TTS cap ends like the End button: scorable when the session has a report (voice deploy).
+    expect(run([{ type: 'ended', reason: 'tts_cap', scoringSuppressed: false }]).canScore).toBe(true);
+    expect(run([{ type: 'ended', reason: 'tts_cap', scoringSuppressed: true }]).canScore).toBe(false);
   });
 
   it('a hello from the agent changes nothing on screen', () => {
