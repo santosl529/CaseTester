@@ -117,6 +117,41 @@ export function planSources(data: ReportData) {
   };
 }
 
+// ----------------------------------------------------------- feedback timing
+
+const quantile = (xs: number[], p: number) => {
+  const s = [...xs].sort((a, b) => a - b);
+  return s.length ? s[Math.min(s.length - 1, Math.ceil(p * s.length) - 1)] : null;
+};
+
+// Results by feedback mode (Feedback timing). A set's mode is the confirmed
+// choice from timer_chosen (logged at Start), not the default drill_set_started
+// records before the intro screen (Matt, 2026-10-18); sets with no
+// timer_chosen (diagnostic parts, sets left on the intro) are left out.
+export function feedbackModes(data: ReportData) {
+  const chosen = new Map<string, string>();
+  for (const e of [...data.events].filter(e => e.type === 'timer_chosen').sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())) {
+    if (typeof e.payload.feedback_mode === 'string') chosen.set(String(e.payload.set_id), e.payload.feedback_mode);
+  }
+  const sets = data.sets.filter(s => inRange(s.startedAt, data) && chosen.has(s.id));
+  const waits = data.events.filter(e => e.type === 'answer_graded' && e.payload.job === 'answer' && inRange(e.createdAt, data)).map(e => Number(e.payload.wait_ms)).filter(Number.isFinite);
+  const row = (mode: string) => {
+    const of = sets.filter(s => chosen.get(s.id) === mode);
+    const done = of.filter(s => s.status === 'completed');
+    const scored = done.filter(s => s.setScore !== null);
+    return {
+      mode, students: new Set(of.map(s => s.studentId)).size, sets: of.length, completion_rate: rate(done.length, of.length),
+      avg_score: scored.length ? scored.reduce((n, s) => n + s.setScore!, 0) / scored.length : null,
+      pass_rate: rate(scored.filter(s => s.passed).length, scored.length),
+    };
+  };
+  return {
+    how: "Sets started in the period, by the feedback mode confirmed at Start (timer_chosen), not the default on drill_set_started. Diagnostic parts and sets never started past the intro have no timer_chosen and are left out. Score and pass rate cover completed sets with a score. Immediate wait: written answers graded as submitted (answer_graded, job 'answer'), submit to saved.",
+    modes: [row('immediate'), row('end')],
+    immediate_wait_ms: { answers: waits.length, p50: quantile(waits, 0.5), p95: quantile(waits, 0.95) },
+  };
+}
+
 // ------------------------------------------------------------------ pauses
 
 // Timer pauses while Report a problem or the feedback box is open (D6 round

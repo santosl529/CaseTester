@@ -381,7 +381,7 @@ const ANSWER_KEY = 'answer';
 export type CallSlot = 'main' | 'family' | 'followup' | 'followup_data';
 export type RequestOutcome = 'ok' | 'invalid_output' | 'refused' | 'billing' | 'error';
 export type UngradedReason = 'request_cap' | 'refused' | 'billing' | 'over_word_limit' | 'error';
-export interface RequestRecord { key: string; call: CallSlot; model: GraderModel; outcome: RequestOutcome; usage: RequestUsage; cost_usd: number; error?: string }
+export interface RequestRecord { key: string; call: CallSlot; model: GraderModel; outcome: RequestOutcome; usage: RequestUsage; cost_usd: number; latency_ms: number; error?: string }
 
 // Where the request counts and the spend go: the database for real jobs
 // (jobs.ts), memory for the golden and comparison scripts and tests.
@@ -455,19 +455,20 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
   // One request for an answer's call, if its cap allows. 'capped' once the
   // call has used its requests; 'retry' after an error worth retrying. A
   // refusal, a billing error or a request the API rejects throws CallFailed.
-  type Sent = { kind: 'capped' } | { kind: 'retry'; error: string } | { kind: 'response'; res: Awaited<ReturnType<CallModel>>; cost: number };
+  type Sent = { kind: 'capped' } | { kind: 'retry'; error: string } | { kind: 'response'; res: Awaited<ReturnType<CallModel>>; cost: number; ms: number };
   const send = async (e: GradingEntry, slot: CallSlot, model: GraderModel, system: string, user: string, kind: CallKind, attempt: number): Promise<Sent> => {
     if (halted) throw new CallFailed('billing', halted);
     assertDrillGraderModel(model);
     if (!(await ledger.reserve(e.key, slot))) return { kind: 'capped' };
     if (halted) throw new CallFailed('billing', halted);
     let res: Awaited<ReturnType<CallModel>>;
+    const started = Date.now();
     try {
       res = await call(system, user, kind, model);
     } catch (err) {
       const message = (err instanceof Error ? err.message : String(err)).slice(0, 500);
       const kindOf = classifyGradingError(err);
-      await ledger.record({ key: e.key, call: slot, model, outcome: kindOf === 'billing' ? 'billing' : 'error', usage: NO_USAGE, cost_usd: 0, error: message });
+      await ledger.record({ key: e.key, call: slot, model, outcome: kindOf === 'billing' ? 'billing' : 'error', usage: NO_USAGE, cost_usd: 0, latency_ms: Date.now() - started, error: message });
       if (kindOf === 'billing') {
         halted = `spend limit or billing error: ${message}`;
         throw new CallFailed('billing', halted);
@@ -477,13 +478,14 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
       if (wait) await new Promise(r => setTimeout(r, wait));
       return { kind: 'retry', error: message };
     }
+    const ms = Date.now() - started;
     const c = tally(res, model);
     answerModels.set(e.key, (answerModels.get(e.key) ?? new Set<GraderModel>()).add(model));
     if (res.refused) {
-      await ledger.record({ key: e.key, call: slot, model, outcome: 'refused', usage: res.usage, cost_usd: c });
+      await ledger.record({ key: e.key, call: slot, model, outcome: 'refused', usage: res.usage, cost_usd: c, latency_ms: ms });
       throw new CallFailed('refused', 'the grader declined to grade this answer');
     }
-    return { kind: 'response', res, cost: c };
+    return { kind: 'response', res, cost: c, ms };
   };
 
   // One call: the main answer, or (PRD "Defend step") the follow-up reply.
@@ -546,7 +548,7 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
       }
       if (sent.kind === 'retry') { last = sent.error; continue; }
       const out = parse(e, part, sent.res.output);
-      await ledger.record({ key: e.key, call: part.slot, model: part.model, outcome: typeof out === 'string' ? 'invalid_output' : 'ok', usage: sent.res.usage, cost_usd: sent.cost, ...(typeof out === 'string' && { error: out }) });
+      await ledger.record({ key: e.key, call: part.slot, model: part.model, outcome: typeof out === 'string' ? 'invalid_output' : 'ok', usage: sent.res.usage, cost_usd: sent.cost, latency_ms: sent.ms, ...(typeof out === 'string' && { error: out }) });
       if (typeof out === 'string') { last = out; continue; }
       const bad = badQuotes(e, out);
       if (!bad.length || first) return { out, bad: new Set(bad) };
@@ -570,7 +572,7 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
       if (sent.kind === 'retry') continue;
       const out = sent.res.output && OutputSchema.safeParse(sent.res.output);
       const item = out?.success ? out.data.items[0] : undefined;
-      await ledger.record({ key: e.key, call: 'family', model, outcome: item?.hypothesis_family ? 'ok' : 'invalid_output', usage: sent.res.usage, cost_usd: sent.cost });
+      await ledger.record({ key: e.key, call: 'family', model, outcome: item?.hypothesis_family ? 'ok' : 'invalid_output', usage: sent.res.usage, cost_usd: sent.cost, latency_ms: sent.ms });
       if (item?.hypothesis_family) return item;
     }
     throw new GradingError('family classification failed');

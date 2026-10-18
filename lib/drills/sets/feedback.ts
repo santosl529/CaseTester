@@ -1,8 +1,10 @@
 // What the student sees after answering (docs/prd-drills.md "Feedback timing"
-// and "Set results screen"). Auto-checked items: right away, per step.
-// AI-graded items: nothing per item; the checks, quoted evidence, red flags
-// and model answer appear on the results screen once the set is graded.
-// Built from the item's key, so only ever sent after the item is submitted.
+// and "Set results screen"). The student picks the timing per set: Immediate
+// (auto-checked items right away, per step; written answers graded as each is
+// submitted, then the same checks, evidence, red flags and model answer as the
+// results screen) or At the end (everything held for the results screen; the
+// held versions below carry no verdict or key). Built from the item's key, so
+// only ever sent after the item is submitted.
 import 'server-only';
 import { DRILLS_CONFIG, getDrill } from '../config';
 import { formatEstimate } from '../numeric';
@@ -35,6 +37,8 @@ export interface StepFeedback {
   followup?: { type: 'justify' | 'challenge'; text: string };
   // QN-5: the driver cards the next steps use.
   drivers?: { id: string; text: string }[];
+  // Feedback at the end of the set: saved, no verdict until the results.
+  held?: boolean;
 }
 
 export interface GradedCheck { check_id: string; question: string; pass: boolean; evidence: string; feedback: string }
@@ -52,6 +56,10 @@ export interface ItemFeedback {
   pending?: boolean;
   // AI grading gave up on it ("Grading delayed"): no score, counted nowhere.
   ungraded?: boolean;
+  // Feedback at the end of the set: saved, nothing more until the results.
+  held?: boolean;
+  // Immediate feedback on a written answer: being graded; poll for it.
+  grading_now?: boolean;
   // AI-graded items with no grade (skipped): the model answer to learn from.
   model_answer?: string | null;
   grading?: {
@@ -216,3 +224,19 @@ export function itemFeedback(item: Item, result: ItemResult, checkResults: Check
 }
 
 export const passBar = (drillId: string) => DRILLS_CONFIG.drills.drills.find(d => d.id === drillId)?.pass_bar ?? DRILLS_CONFIG.rules.pass_bar;
+
+// Feedback at the end of the set (Feedback timing): an answer is saved and
+// nothing about it is shown until the results screen. A step keeps only what
+// the next step needs: HY-2's new fact, the follow-up, and QN-5's drivers
+// (step 2 asks about them, so they are shown, with no verdict).
+export function heldStepFeedback(f: StepFeedback): StepFeedback {
+  return {
+    type: f.type, correct: false, correct_option_id: null, your_answer: f.your_answer, feedback: '', held: true,
+    correct_answer: f.drivers ? f.correct_answer : '',
+    ...(f.pending && { pending: true }), ...(f.reveal && { reveal: f.reveal }), ...(f.followup && { followup: f.followup }), ...(f.drivers && { drivers: f.drivers }),
+  };
+}
+
+export function heldItemFeedback(result: Pick<ItemResult, 'skipped' | 'timed_out'>): ItemFeedback {
+  return { done: true, correct: false, score: 0, skipped: result.skipped, timed_out: result.timed_out, steps: [], mistakes: [], explanation: '', held: true };
+}

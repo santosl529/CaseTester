@@ -6,7 +6,7 @@
 // (minutes_actual before a workout is done). Extra properties are allowed.
 export const DRILL_EVENT_PROPS = {
   drills_home_viewed: ['track', 'week', 'open_prescriptions', 'interview_days_out'],
-  drill_set_started: ['set_id', 'drill_id', 'level', 'stage', 'tier', 'source', 'prescription_id', 'focus_tag', 'slot', 'suggested', 'untimed'],
+  drill_set_started: ['set_id', 'drill_id', 'level', 'stage', 'tier', 'source', 'prescription_id', 'focus_tag', 'slot', 'suggested', 'untimed', 'feedback_mode'],
   drill_example_viewed: ['drill_id'],
   drill_example_skipped: ['drill_id'],
   drill_item_served: ['set_id', 'position', 'item_ref'],
@@ -14,6 +14,8 @@ export const DRILL_EVENT_PROPS = {
   drill_set_completed: ['set_id', 'set_score', 'passed', 'duration_ms', 'skill_scores'],
   drill_set_expired: ['set_id', 'items_completed'],
   grading_job_completed: ['job_id', 'status', 'retries', 'latency_ms', 'input_tokens', 'output_tokens', 'cost_usd'],
+  // Feedback timing: one per written answer a grading job saves.
+  answer_graded: ['attempt_id', 'drill_id', 'feedback_mode', 'job', 'grading_ms', 'wait_ms', 'status'],
   grading_injection_suspected: ['attempt_id'],
   // D3: the loop.
   skill_state_changed: ['skill_id', 'from_state', 'to_state', 'source_type'],
@@ -51,7 +53,7 @@ export const DRILL_EVENT_PROPS = {
   // D6 round 2: plans, timer options and pauses.
   questionnaire_completed: ['questionnaire_id', 'ratings', 'hardest'],
   plan_created: ['source', 'track', 'previous_source', 'focus_skills'],
-  timer_chosen: ['set_id', 'untimed', 'timer_hidden'],
+  timer_chosen: ['set_id', 'untimed', 'timer_hidden', 'feedback_mode'],
   timer_visibility_changed: ['set_id', 'position', 'timer_hidden'],
   timer_paused: ['set_id', 'position', 'reason'],
   timer_resumed: ['set_id', 'position', 'reason', 'paused_ms'],

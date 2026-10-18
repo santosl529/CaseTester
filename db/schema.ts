@@ -179,6 +179,9 @@ export const studentDrillSettings = pgTable('student_drill_settings', {
   untimed: boolean('untimed').notNull().default(false),
   // "Hide timer" (D6 round 2): the student's last choice, the default for new sets.
   hideTimer: boolean('hide_timer').notNull().default(false),
+  // Feedback timing: 'immediate' or 'end', the student's last choice and the
+  // default for new sets; null until they choose (Immediate).
+  feedbackMode: text('feedback_mode'),
   interviewDate: date('interview_date'),
   skippedExamples: text('skipped_examples').array().notNull().default(sql`'{}'::text[]`),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -254,6 +257,11 @@ export const drillSets = pgTable('drill_sets', {
   // paused_at while paused; paused_ms totals the set's pauses (for reports).
   pausedAt: timestamp('paused_at', { withTimezone: true }),
   pausedMs: integer('paused_ms').notNull().default(0),
+  // Feedback timing: 'immediate' (after each question; written answers graded
+  // as each is submitted) or 'end' (everything on the results screen), chosen
+  // on the intro and fixed once the first item is served. Null on diagnostic
+  // parts (no feedback) and on sets from before the choice existed.
+  feedbackMode: text('feedback_mode'),
   // A short check of a questionnaire placement; its score re-places the skill.
   isPlacementCheck: boolean('is_placement_check').notNull().default(false),
   source: drillSetSourceEnum('source').notNull(),
@@ -349,6 +357,9 @@ export const drillAttempts = pgTable('drill_attempts', {
 export const gradingJobs = pgTable('grading_jobs', {
   id: uuid('id').primaryKey().defaultRandom(),
   setId: uuid('set_id').notNull().references(() => drillSets.id),
+  // Feedback timing: set on a job that grades one answer as it is submitted
+  // (Immediate feedback); null on the job that grades the set at the end.
+  attemptId: uuid('attempt_id').references(() => drillAttempts.id, { onDelete: 'cascade' }),
   status: gradingJobStatusEnum('status').notNull().default('queued'),
   retries: integer('retries').notNull().default(0),
   inputTokens: integer('input_tokens'),
@@ -392,6 +403,8 @@ export const drillGradingSpend = pgTable('drill_grading_spend', {
   cacheWriteTokens: integer('cache_write_tokens').notNull().default(0),
   cacheReadTokens: integer('cache_read_tokens').notNull().default(0),
   costUsd: doublePrecision('cost_usd').notNull().default(0),
+  // How long the request took, sent to answered (null on rows from before).
+  latencyMs: integer('latency_ms'),
   error: text('error'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, t => [index('drill_grading_spend_created_idx').on(t.createdAt), index('drill_grading_spend_set_idx').on(t.setId)]).enableRLS();

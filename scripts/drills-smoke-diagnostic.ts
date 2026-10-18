@@ -9,6 +9,7 @@
 //   npm run drills:smoke:diagnostic
 import './smoke-log';
 import { checkSmokeEvents } from './smoke-events';
+import { printSmokeSpend } from './smoke-spend';
 import { randomUUID } from 'crypto';
 import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
@@ -114,6 +115,7 @@ async function main() {
     const pe = await db.select().from(drillTiers).where(and(eq(drillTiers.studentId, b), eq(drillTiers.drillId, 'PS-1')));
     check(pe[0]?.currentTier === 1, 'B: Recognize placement at tier 1');
   } finally {
+    await printSmokeSpend(students);
     for (const s of students) {
       const sets = await db.select({ id: drillSets.id }).from(drillSets).where(eq(drillSets.studentId, s));
       const ids = sets.map(x => x.id);

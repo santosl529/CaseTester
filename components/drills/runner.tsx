@@ -38,7 +38,15 @@ export interface RunnerView {
   timer_hidden: boolean;
   // Timed or No timer can still be chosen (no item served yet).
   timer_choice_open: boolean;
+  // Feedback after each question or at the end of the set (chosen with the
+  // timer); null on a diagnostic part, and on sets from before the choice.
+  feedback_mode: 'immediate' | 'end' | null;
 }
+
+// Immediate feedback on a written answer: poll for the grade this long, then
+// say it's delayed and let the student go on (Feedback timing: ~15 s).
+const GRADING_WAIT_MS = 15_000;
+const POLL_MS = 1_000;
 
 interface LoadedItem {
   position: number;
@@ -104,7 +112,7 @@ function responseFor(step: Step, draft: Draft, timedOut: boolean): { response: u
 // this screen shows them and submits.
 export function DrillRunner({ view }: { view: RunnerView }) {
   const router = useRouter();
-  const [phase, setPhase] = useState<'intro' | 'item' | 'feedback' | 'finishing'>('intro');
+  const [phase, setPhase] = useState<'intro' | 'item' | 'grading' | 'feedback' | 'finishing'>('intro');
   const [loaded, setLoaded] = useState<LoadedItem | null>(null);
   const [deadline, setDeadline] = useState(0);
   const [limitMs, setLimitMs] = useState(0);
@@ -118,8 +126,16 @@ export function DrillRunner({ view }: { view: RunnerView }) {
   const [untimed, setUntimed] = useState(view.untimed);
   const [hidden, setHidden] = useState(view.timer_hidden);
   const [paused, setPaused] = useState(false);
+  // Feedback timing, chosen on the intro with the timer.
+  const [feedbackMode, setFeedbackMode] = useState(view.feedback_mode);
+  // Immediate feedback: grading took too long or failed; it's on the results.
+  const [gradingDelayed, setGradingDelayed] = useState(false);
+  // What a screen reader announces when feedback arrives (or doesn't).
+  const [announce, setAnnounce] = useState('');
   const keys = useRef(new Map<string, string>());
   const headingRef = useRef<HTMLHeadingElement>(null);
+  // Focus while an answer is graded: the Submit button is gone.
+  const gradingRef = useRef<HTMLDivElement>(null);
   const patch = (p: Partial<Draft>) => setDraft(d => ({ ...d, ...p }));
 
   // One idempotency key per item step, reused on retries of the same submit.
@@ -130,7 +146,7 @@ export function DrillRunner({ view }: { view: RunnerView }) {
 
   // Saves the timer choice (Timed / No timer before the first item; Hide
   // timer any time); the server keeps them as the student's defaults.
-  const saveTimer = (body: { untimed?: boolean; hidden?: boolean; at_start?: boolean }) =>
+  const saveTimer = (body: { untimed?: boolean; hidden?: boolean; at_start?: boolean; feedback?: 'immediate' | 'end' }) =>
     fetch(`/api/drills/sets/${view.set_id}/timer`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
   const toggleHidden = (next: boolean) => {
     setHidden(next);
@@ -198,6 +214,8 @@ export function DrillRunner({ view }: { view: RunnerView }) {
     // A resumed item past its first step continues with an empty answer box.
     setDraft(item.completed_steps.length ? emptyDraft() : firstDraft(item.item));
     setFinal(null);
+    setGradingDelayed(false);
+    setAnnounce('');
     setPhase('item');
     requestAnimationFrame(() => headingRef.current?.focus());
   }, [finish, view.set_id]);
@@ -205,7 +223,7 @@ export function DrillRunner({ view }: { view: RunnerView }) {
   // Start (or Resume): the timer choice is saved before the first item, so the
   // server's clock knows whether this set is timed.
   const startOrResume = async () => {
-    if (view.timer_choice_open) await saveTimer({ untimed, hidden: untimed ? false : hidden, at_start: true });
+    if (view.timer_choice_open) await saveTimer({ untimed, hidden: untimed ? false : hidden, at_start: true, ...(feedbackMode && { feedback: feedbackMode }) });
     else if (hidden !== view.timer_hidden) await saveTimer({ hidden });
     await loadItem(view.position);
   };
@@ -254,10 +272,48 @@ export function DrillRunner({ view }: { view: RunnerView }) {
       else finish();
       return;
     }
-    setFinal(data as ItemFeedback);
+    const fb = data as ItemFeedback;
+    setFinal(fb);
+    // Immediate feedback on a written answer: wait for its grade.
+    if (fb.grading_now) {
+      setAnnounce('Grading your answer.');
+      setPhase('grading');
+      requestAnimationFrame(() => gradingRef.current?.focus());
+      return;
+    }
+    setAnnounce(fb.held ? 'Answer saved. Feedback is on your results.' : 'Feedback is below.');
     setPhase('feedback');
-    requestAnimationFrame(() => headingRef.current?.focus());
   }, [busy, current, draft, finish, loadItem, loaded, phase, stepIndex, view.diagnostic, view.set_id]);
+
+  // Immediate feedback: poll for the grade; after GRADING_WAIT_MS, or if
+  // grading failed, say it's delayed and let the student go on (never block).
+  useEffect(() => {
+    if (phase !== 'grading' || !loaded) return;
+    let stop = false;
+    const startedAt = Date.now();
+    const delayed = () => {
+      setGradingDelayed(true);
+      setAnnounce('Grading delayed. You will see it on your results.');
+      setPhase('feedback');
+    };
+    const poll = async () => {
+      if (stop) return;
+      const res = await fetch(`/api/drills/sets/${view.set_id}/items/${loaded.position}/feedback`).catch(() => null);
+      const data = res?.ok ? await res.json().catch(() => null) : null;
+      if (stop) return;
+      if (data?.status === 'ready') {
+        const fb = data.feedback as ItemFeedback;
+        setFinal(fb);
+        setAnnounce(fb.ungraded ? 'Grading delayed. You will see it on your results.' : 'Your feedback is ready below.');
+        setPhase('feedback');
+        return;
+      }
+      if (data?.status === 'delayed' || Date.now() - startedAt >= GRADING_WAIT_MS) return delayed();
+      setTimeout(poll, POLL_MS);
+    };
+    const first = setTimeout(poll, POLL_MS);
+    return () => { stop = true; clearTimeout(first); };
+  }, [phase, loaded, view.set_id]);
 
   const next = () => {
     if (!loaded) return;
@@ -307,7 +363,7 @@ export function DrillRunner({ view }: { view: RunnerView }) {
             {untimed ? `Write up to ${view.defend.max_words} words.` : `You get ${view.defend.seconds} s and up to ${view.defend.max_words} words.`}
           </p>
         )}
-        {!view.diagnostic && view.ai_graded && (
+        {!view.diagnostic && view.ai_graded && feedbackMode !== 'immediate' && (
           <p className="text-sm text-muted-foreground">Your written answers are graded together after the last item, so there is no feedback until then.</p>
         )}
         {view.example && showExample && (
@@ -351,6 +407,31 @@ export function DrillRunner({ view }: { view: RunnerView }) {
           )}
           <p className="text-xs text-muted-foreground">{untimed ? 'Untimed sets count fully toward your progress, and your results show how long you took.' : 'You can show or hide the timer during the set.'}</p>
         </fieldset>
+        {feedbackMode && (
+          <fieldset className="space-y-2">
+            <legend className="mb-1 text-sm font-medium">Feedback</legend>
+            {view.timer_choice_open ? (
+              <div className="flex flex-wrap gap-2">
+                {([['immediate', 'After each question'], ['end', 'At the end of the set']] as const).map(([v, label]) => (
+                  <label key={v} className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm has-checked:border-foreground has-focus-visible:ring-3 has-focus-visible:ring-ring/50">
+                    <input type="radio" name="feedback" checked={feedbackMode === v} onChange={() => setFeedbackMode(v)} />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">{feedbackMode === 'immediate' ? 'Feedback after each question.' : 'Feedback at the end of the set.'}</p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              {feedbackMode === 'end' && view.drill.id === 'QN-5' && <span className="block">You&apos;ll see which drivers to use before entering your numbers.</span>}
+              {feedbackMode === 'immediate'
+                ? view.ai_graded
+                  ? `Each answer is graded as soon as you submit it${view.defend ? ', after its follow-up' : ''}, usually in a few seconds.`
+                  : 'You see whether you were right after each question.'
+                : 'Everything is on your results screen. Your score and progress are the same either way.'}
+            </p>
+          </fieldset>
+        )}
         <Button size="lg" onClick={startOrResume}>{view.position > 0 ? 'Resume' : 'Start'}</Button>
         {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       </section>
@@ -398,7 +479,12 @@ export function DrillRunner({ view }: { view: RunnerView }) {
           student's own words, read-only, once a follow-up asks about them. */}
       {steps.map((s, i) => i >= mainSteps ? null : (
         <div key={i} className="space-y-1 rounded-lg border p-3 text-sm">
-          {s.pending || view.diagnostic ? (
+          {s.held && !s.pending && !view.diagnostic ? (
+            <>
+              <p className="font-medium">{multi ? `Step ${i + 1}: saved` : 'Your answer: saved'}</p>
+              {s.drivers && <p>Use these drivers for the next steps: <span className="font-medium">{s.correct_answer}</span></p>}
+            </>
+          ) : s.pending || view.diagnostic ? (
             <>
               <p className="font-medium">{multi ? `Step ${i + 1}: saved` : 'Your answer: saved'}</p>
               {followup && s.your_answer && <p className="whitespace-pre-line text-muted-foreground">{s.your_answer}</p>}
@@ -460,7 +546,20 @@ export function DrillRunner({ view }: { view: RunnerView }) {
         </div>
       )}
 
-      {phase === 'feedback' && final && <ItemFeedbackPanel feedback={final} />}
+      <p role="status" aria-live="polite" className="sr-only">{announce}</p>
+      {phase === 'grading' && (
+        <div ref={gradingRef} tabIndex={-1} className="flex items-center gap-3 rounded-lg border p-4 text-sm outline-none">
+          <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+          <span>Grading your answer…</span>
+        </div>
+      )}
+      {phase === 'feedback' && gradingDelayed && (
+        <div className="space-y-1 rounded-lg border p-4 text-sm">
+          <p className="font-medium">Grading delayed</p>
+          <p className="text-muted-foreground">You&apos;ll see it on your results. Carry on with the set.</p>
+        </div>
+      )}
+      {phase === 'feedback' && final && !gradingDelayed && <section aria-label="Feedback"><ItemFeedbackPanel feedback={final} /></section>}
       {phase === 'feedback' && (
         <Button size="lg" onClick={next} autoFocus>{loaded.position + 1 < loaded.size ? 'Next item' : 'See results'}</Button>
       )}
@@ -471,6 +570,14 @@ export function DrillRunner({ view }: { view: RunnerView }) {
 }
 
 export function ItemFeedbackPanel({ feedback }: { feedback: ItemFeedback }) {
+  if (feedback.held) {
+    return (
+      <div className="space-y-1 rounded-lg border p-4 text-sm">
+        <p className="font-medium">{feedback.skipped ? 'Skipped' : 'Answer saved'}</p>
+        <p className="text-muted-foreground">You chose feedback at the end of the set: it&apos;s all on your results screen.</p>
+      </div>
+    );
+  }
   if (feedback.pending) {
     return (
       <div role="status" className="space-y-1 rounded-lg border p-4 text-sm">

@@ -57,6 +57,11 @@ function print(r: Reports) {
     console.log(`  ${g}: ${x.students} students, ${num(x.sets_per_student_per_week)} sets/week, ${num(x.skills_mastered_per_student)} skills mastered, transfer ${pct(x.transfer_pass_rate)}, rubric gain ${num(x.rubric_gain.avg, 2)} (n=${x.rubric_gain.students})`);
   }
 
+  h('Feedback timing', r.feedback_modes.how);
+  for (const m of r.feedback_modes.modes) console.log(`  ${m.mode}: ${m.students} students, ${m.sets} sets, ${pct(m.completion_rate)} completed, average score ${pct(m.avg_score)}, ${pct(m.pass_rate)} passed`);
+  const w = r.feedback_modes.immediate_wait_ms;
+  console.log(`  Immediate grading wait: ${w.answers} answers, p50 ${w.p50 === null ? '–' : `${(w.p50 / 1000).toFixed(1)} s`}, p95 ${w.p95 === null ? '–' : `${(w.p95 / 1000).toFixed(1)} s`}`);
+
   h('Engagement', r.engagement.how);
   const e = r.engagement;
   console.log(`  ${e.active_students} active students, ${num(e.sets_per_active_student_per_week)} sets/week each, ${pct(e.returned_within_7_days)} returned within 7 days, sessions ${num(e.avg_session_minutes)} min`);

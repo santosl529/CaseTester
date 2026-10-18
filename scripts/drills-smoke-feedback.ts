@@ -7,6 +7,7 @@
 //   npm run drills:smoke:feedback
 import './smoke-log';
 import { checkSmokeEvents } from './smoke-events';
+import { printSmokeSpend } from './smoke-spend';
 import { randomUUID } from 'crypto';
 import { eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
@@ -128,6 +129,7 @@ async function main() {
     check(fbr.weeks.some(w => w.answered >= 1), 'reports page: check-in week missing');
     console.log(`feedback: ${FEEDBACK_PER_DAY} messages and reports, ${reports.length} reports, check-ins once a week and once each`);
   } finally {
+    await printSmokeSpend([student]);
     // Feedback rows reference sets: delete them first.
     for (const t of [drillFeedback, drillItemReports, drillCheckins]) await db.delete(t).where(eq(t.studentId, student));
     await db.delete(sessions).where(eq(sessions.userId, student));

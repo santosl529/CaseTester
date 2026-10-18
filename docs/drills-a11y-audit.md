@@ -69,6 +69,16 @@ Use VoiceOver (macOS: Cmd+F5) in Safari, and do one full set of PS-1, EX-1 and C
 - [ ] On an AI-graded set, "Grading your answers…" and then the results are announced.
 - [ ] A chart's "Show data table" opens with the keyboard and the table is read with its headers.
 - [ ] A whole set can be completed with the keyboard alone, with focus never lost after Submit or Next.
+- [ ] **Immediate feedback: the grading wait** (the automated audit can't reach it). Start a CL-3 set, choose **After each question** on the intro, answer item 1 and press Submit (at tier 2–3, also answer the follow-up and press Submit).
+  - You should hear "Grading your answer." right after Submit, and focus should land on the "Grading your answer…" box (VoiceOver reads it), not jump to the top of the page.
+  - Pressing Tab during the wait shouldn't lose focus or reach a hidden control.
+  - Within a few seconds you should hear "Your feedback is ready below.", and focus should be on the **Next item** button ("Next item, button").
+  - To hear the delayed path, run the app locally and turn off Wi-Fi just before pressing Submit: you should hear "Grading delayed. You will see it on your results.", see the Grading delayed note, and **Next item** should still work with the keyboard.
+- [ ] **Immediate feedback: the panel on the question screen** (the audit checks the same panel only on the results screen). With the feedback from the check above showing, open the VoiceOver rotor (VO+U), go to Landmarks and choose **Feedback**.
+  - You should hear the verdict first ("Partly correct (60%)", or "Correct" or "Not quite").
+  - Then each check in order, read as "Passed:" or "Missed:", then the check's question, then the quoted evidence or the tip.
+  - Then any red flag, "A strong answer" with the model answer, and for a follow-up, the follow-up, your reply and its checks.
+  - VO+Right should move through all of it in that order, and Tab should go from the panel to **Next item** without skipping it.
 - [ ] At 200% browser zoom, nothing is cut off or overlaps (WCAG 1.4.4).
 - [ ] With the text-spacing bookmarklet (WCAG 1.4.12), no text is cut off.
 

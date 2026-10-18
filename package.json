@@ -28,6 +28,7 @@
     "drills:smoke:feedback": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-feedback.ts",
     "drills:smoke:plan": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-plan.ts",
     "drills:smoke:cost": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-cost.ts",
+    "drills:smoke:feedback-timing": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-feedback-timing.ts",
     "drills:a11y": "tsx --conditions=react-server --env-file=.env.local scripts/drills-a11y.ts",
     "drills:reports": "tsx --conditions=react-server --env-file=.env.local scripts/drills-reports.ts",
     "drills:export-disputes": "tsx --conditions=react-server --env-file=.env.local scripts/drills-export-disputes.ts",
@@ -35,7 +36,8 @@
     "drills:industry": "tsx --env-file=.env.local scripts/drills-industry.ts",
     "drills:review-sheet": "tsx --conditions=react-server scripts/drills-review-sheet.ts",
     "drills:lessons-doc": "tsx scripts/lessons-review-doc.ts",
-    "drills:models": "tsx --conditions=react-server --env-file=.env.local scripts/drills-models.ts"
+    "drills:models": "tsx --conditions=react-server --env-file=.env.local scripts/drills-models.ts",
+    "drills:timing": "tsx --conditions=react-server --env-file=.env.local scripts/drills-timing.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",

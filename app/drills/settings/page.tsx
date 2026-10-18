@@ -21,7 +21,8 @@ export default async function DrillSettingsPage() {
         <Link href="/drills" className="text-sm text-muted-foreground underline-offset-4 hover:underline">Training home</Link>
       </header>
       <ProgramSettings track={program.track} interviewDate={program.interviewDate} availabilityId={current.id}
-        availability={availability} today={today} timeMultiplier={settings.timeMultiplier} untimed={settings.untimed} />
+        availability={availability} today={today} timeMultiplier={settings.timeMultiplier} untimed={settings.untimed}
+        feedbackMode={settings.feedbackMode} />
     </main>
   );
 }

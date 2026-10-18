@@ -17,6 +17,7 @@
 //   npm run drills:smoke:d5      (makes Haiku calls, about $0.05)
 import './smoke-log';
 import { checkSmokeEvents } from './smoke-events';
+import { printSmokeSpend } from './smoke-spend';
 import { randomUUID } from 'crypto';
 import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
@@ -175,6 +176,7 @@ async function main() {
     await fourteenDayRule();
     for (const drillId of ['PS-3', 'HY-2', 'SY-2', 'CL-3']) await defendSet(drillId);
   } finally {
+    await printSmokeSpend([student]);
     const sets = await db.select({ id: drillSets.id }).from(drillSets).where(eq(drillSets.studentId, student));
     const ids = sets.map(s => s.id);
     if (ids.length) {

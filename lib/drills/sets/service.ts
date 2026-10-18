@@ -9,7 +9,7 @@ import 'server-only';
 import { randomUUID } from 'crypto';
 import { and, asc, desc, eq, inArray, isNull, lt, max, sql } from 'drizzle-orm';
 import { db } from '@/db/client';
-import { drillAttempts, drillItems, drillSets, drillTiers, prescriptions, skillStateEvents, skillStates, studentDrillSettings, studentProfiles, workouts } from '@/db/schema';
+import { drillAttempts, drillItems, drillSets, drillTiers, gradingJobs, prescriptions, skillStateEvents, skillStates, studentDrillSettings, studentProfiles, workouts } from '@/db/schema';
 import { DRILLS_CONFIG, TAXONOMY_VERSION, getDrill, getSkill, type Drill } from '../config';
 import { ItemSchema, type Item, type Tier } from '../item-schema';
 import { toPublicItem, type PublicItem } from '../public-item';
@@ -18,9 +18,9 @@ import { aiAnswersInPlan, planAuthored, planGenerated, type ItemRef } from './pl
 import { ScoringError, StepResponseSchema, itemSteps, scoreItem, scoreStep, type ItemResult, type StepResponse, type StepResult } from './scoring';
 import { mistakeSummary, nextTier, passed, setScore } from './summary';
 import { drillLimitsMs, itemLimitsMs, startsStage, stepLimitMs, stepStartedAt } from './timing';
-import { formatNumericAnswer, itemFeedback, stepFeedback, type ItemFeedback, type StepFeedback } from './feedback';
+import { formatNumericAnswer, heldItemFeedback, heldStepFeedback, itemFeedback, stepFeedback, type ItemFeedback, type StepFeedback } from './feedback';
 import {
-  enqueueGrading, finalizeSet, kickGrading, planOf, resolveItem, resultOf, runAfterResponse,
+  enqueueAnswerGrading, enqueueGrading, finalizeSet, kickGrading, planOf, resolveItem, resultOf, runAfterResponse,
 } from '../grading/jobs';
 import type { CheckResults } from '../grading/apply';
 import { breakerMessage, capBlock } from '../grading/limits';
@@ -58,8 +58,20 @@ export { previewDrafts };
 
 async function settingsFor(studentId: string) {
   const [row] = await db.select().from(studentDrillSettings).where(eq(studentDrillSettings.studentId, studentId));
-  return { timeMultiplier: row?.timeMultiplier ?? 1, untimed: row?.untimed ?? false, hideTimer: row?.hideTimer ?? false, skippedExamples: row?.skippedExamples ?? [] };
+  return {
+    timeMultiplier: row?.timeMultiplier ?? 1, untimed: row?.untimed ?? false, hideTimer: row?.hideTimer ?? false, skippedExamples: row?.skippedExamples ?? [],
+    // Immediate until the student first chooses.
+    feedbackMode: (row?.feedbackMode ?? 'immediate') as FeedbackMode,
+  };
 }
+
+// Feedback timing: after each question, or all at the end of the set.
+export type FeedbackMode = 'immediate' | 'end';
+// Auto-checked answers hold their feedback only in an At the end set (a set
+// from before the choice, null, shows it right away as it always did);
+// written answers are graded as submitted only in an Immediate set.
+const holdsFeedback = (set: SetRow, drill: Drill) => !isAiGraded(drill) && set.feedbackMode === 'end';
+const gradesAsSubmitted = (set: SetRow, drill: Drill) => isAiGraded(drill) && set.feedbackMode === 'immediate';
 
 async function loadSet(studentId: string, setId: string): Promise<SetRow> {
   if (!z.uuid().safeParse(setId).success) throw new DrillError('not_found', 404, 'Set not found');
@@ -258,7 +270,9 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
   const setId = randomUUID();
   // The student's last timer choices are the set's defaults; "No time limit"
   // is fixed once the first item is served. Whether it runs Defend is fixed now.
-  const { untimed, hideTimer } = await settingsFor(studentId);
+  const { untimed, hideTimer, feedbackMode: defaultFeedback } = await settingsFor(studentId);
+  // A diagnostic part shows no feedback, so it has no choice.
+  const feedbackMode = choice.source === 'diagnostic' ? null : defaultFeedback;
   const defend = defendRuns(drill, tier, choice.source);
   const size = choice.size ?? setSizeFor(drill, kind, tier, defend);
   const fresh = kind === 'transfer' ? 'transfer' : choice.slot === 'unfamiliar' ? 'unfamiliar' : null;
@@ -275,7 +289,7 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
 
   try {
     await db.insert(drillSets).values({
-      id: setId, studentId, drillId: drill.id, level: drill.level, stage, tier, size: plan.length, untimed, timerHidden: hideTimer,
+      id: setId, studentId, drillId: drill.id, level: drill.level, stage, tier, size: plan.length, untimed, timerHidden: hideTimer, feedbackMode,
       source: choice.source, prescriptionId: choice.prescriptionId, isTransferCheck: kind === 'transfer',
       focusSkill: choice.focusSkill, focusTag: choice.focusTag, itemPlan: plan, taxonomyVersion: TAXONOMY_VERSION,
       isPlacementCheck: choice.check === true,
@@ -293,7 +307,7 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
     set_id: setId, drill_id: drill.id, level: drill.level, stage, tier, source: choice.source,
     prescription_id: choice.prescriptionId, focus_tag: choice.focusTag, transfer_check: kind === 'transfer',
     slot: choice.slot ?? null, workout_id: choice.workoutId ?? null, quick_start: input.quick_start ?? false,
-    defend: plan.some(r => r.kind === 'authored' && r.defend), untimed,
+    defend: plan.some(r => r.kind === 'authored' && r.defend), untimed, feedback_mode: feedbackMode,
     browse: input.browse ?? false, suggested: input.browse ? await hasOpenPrescription(studentId, choice.focusSkill) : null,
   });
   if (input.suggestion) {
@@ -456,6 +470,9 @@ export async function setView(studentId: string, setId: string) {
     timer_hidden: set.timerHidden,
     // The timed/untimed choice is open until the first item is served.
     timer_choice_open: set.currentPosition === 0 && set.currentServedAt === null,
+    // Feedback after each question or at the end; null on a diagnostic part.
+    // Chosen with the timer, and fixed at the same moment.
+    feedback_mode: set.feedbackMode as FeedbackMode | null,
     time_limit_ms: limits[0],
     stage_limits_ms: limits,
     ai_graded: isAiGraded(drill),
@@ -514,7 +531,10 @@ export async function fetchItem(studentId: string, setId: string, position: numb
     position, size: set.size, ai_graded: isAiGraded(drill), untimed: set.untimed,
     item: toPublicItem(item, set.tier) satisfies PublicItem,
     ...timing,
-    completed_steps: (pending?.steps ?? []).map((s, i) => stepFeedback(item, i, s, pending!.steps.slice(0, i))),
+    completed_steps: (pending?.steps ?? []).map((s, i) => {
+      const f = stepFeedback(item, i, s, pending!.steps.slice(0, i));
+      return holdsFeedback(set, drill) ? heldStepFeedback(f) : f;
+    }),
   };
 }
 
@@ -562,7 +582,12 @@ export async function submitAttempt(studentId: string, setId: string, body: z.in
   if (set.pausedAt && !prior && await resumePaused(set.id, studentId, 'submit')) return submitAttempt(studentId, setId, body, retried);
 
   // A repeated key returns the original result.
-  if (prior) return itemFeedback(await resolveItem(planOf(set)[prior.position], set.tier as Tier), resultOf(prior), prior.checkResults as CheckResults | null);
+  if (prior) {
+    const priorDrill = getDrill(set.drillId);
+    if (holdsFeedback(set, priorDrill)) return heldItemFeedback(resultOf(prior));
+    const fb = itemFeedback(await resolveItem(planOf(set)[prior.position], set.tier as Tier), resultOf(prior), prior.checkResults as CheckResults | null);
+    return fb.pending && gradesAsSubmitted(set, priorDrill) ? { ...fb, grading_now: true } : fb;
+  }
 
   if (set.status !== 'in_progress') throw new DrillError('set_closed', 409, `This set is ${set.status}`);
   if (body.position !== set.currentPosition) throw new DrillError('out_of_order', 409, 'Answer the current item', { position: set.currentPosition });
@@ -578,8 +603,9 @@ export async function submitAttempt(studentId: string, setId: string, body: z.in
   const steps = itemSteps(item);
   if (pending.keys.includes(body.idempotency_key)) {
     const i = pending.keys.indexOf(body.idempotency_key);
+    const f = stepFeedback(item, i, pending.steps[i], pending.steps.slice(0, i));
     return {
-      done: false, step: stepFeedback(item, i, pending.steps[i], pending.steps.slice(0, i)), next_step: pending.steps.length,
+      done: false, step: holdsFeedback(set, drill) ? heldStepFeedback(f) : f, next_step: pending.steps.length,
       ...stepTiming(drill, item, set.tier as Tier, mult, pending.steps.length, servedAt, pending.stage_started_at),
     };
   }
@@ -631,8 +657,9 @@ export async function submitAttempt(studentId: string, setId: string, body: z.in
           set.pendingStep === null ? isNull(drillSets.pendingStep) : sql`${drillSets.pendingStep} = ${JSON.stringify(set.pendingStep)}::jsonb`))
         .returning({ id: drillSets.id });
       if (saved.length === 0) return retry();
+      const f = stepFeedback(item, index, done[index], done.slice(0, index));
       return {
-        done: false, step: stepFeedback(item, index, done[index], done.slice(0, index)), next_step: done.length,
+        done: false, step: holdsFeedback(set, drill) ? heldStepFeedback(f) : f, next_step: done.length,
         ...stepTiming(drill, item, set.tier as Tier, mult, done.length, servedAt, next.stage_started_at),
       };
     }
@@ -689,7 +716,39 @@ export async function submitAttempt(studentId: string, setId: string, body: z.in
     attempt_id: inserted[0].id, score: awaiting ? null : result.score, time_ms: elapsed, timed_out: result.timed_out,
     skipped: result.skipped, mistake_tags: awaiting ? [] : result.mistake_tags, grading: awaiting ? 'pending' : 'not_needed',
   });
+  if (holdsFeedback(set, drill)) return heldItemFeedback(result);
+  // Immediate feedback: this answer is graded now (the same calls the set's
+  // job would make); the item screen polls answerFeedback for the result.
+  if (gradesAsSubmitted(set, drill)) {
+    const jobId = await enqueueAnswerGrading(set.id, inserted[0].id);
+    await runAfterResponse(jobId);
+    return { ...itemFeedback(item, { ...result, pending: true }), grading_now: true };
+  }
   return itemFeedback(item, awaiting ? { ...result, pending: true } : result);
+}
+
+// Immediate feedback on a written answer (Feedback timing): its grade once in
+// ('ready', the same feedback as the results screen), 'grading' while its job
+// runs, or 'delayed' if grading failed, gave up, or its job died. The item
+// screen stops waiting after about 15 s either way; the results have it.
+export async function answerFeedback(studentId: string, setId: string, position: number):
+  Promise<{ status: 'grading' } | { status: 'delayed' } | { status: 'ready'; feedback: ItemFeedback }> {
+  const set = await loadSet(studentId, setId);
+  const drill = getDrill(set.drillId);
+  const [attempt] = await db.select().from(drillAttempts).where(and(eq(drillAttempts.setId, set.id), eq(drillAttempts.position, position)));
+  if (!attempt) throw new DrillError('not_found', 404, 'No answer at that position');
+  // Nothing is shown before the results in an At the end set.
+  if (!gradesAsSubmitted(set, drill)) return { status: 'delayed' };
+  if (attempt.gradingStatus === 'graded' || attempt.gradingStatus === 'not_needed') {
+    const item = await resolveItem(planOf(set)[position], set.tier as Tier);
+    return { status: 'ready', feedback: itemFeedback(item, resultOf(attempt), attempt.checkResults as CheckResults | null) };
+  }
+  if (attempt.gradingStatus !== 'pending') return { status: 'delayed' };
+  const [job] = await db.select().from(gradingJobs).where(and(eq(gradingJobs.setId, set.id), eq(gradingJobs.attemptId, attempt.id)))
+    .orderBy(desc(gradingJobs.createdAt)).limit(1);
+  const dead = !job || job.status === 'failed' || job.status === 'succeeded'
+    || Date.now() - (job.startedAt ?? job.createdAt).getTime() > 2 * 60_000;
+  return { status: dead ? 'delayed' : 'grading' };
 }
 
 // ------------------------------------------------------------ complete a set
@@ -806,6 +865,8 @@ export const SettingsSchema = z.object({
   untimed: z.boolean().optional(),
   // "Hide timer": the default for new sets.
   hide_timer: z.boolean().optional(),
+  // Feedback after each question or at the end: the default for new sets.
+  feedback_mode: z.enum(['immediate', 'end']).optional(),
   skip_example_for: z.string().optional(),
 });
 
@@ -816,12 +877,12 @@ export async function updateSettings(studentId: string, body: z.infer<typeof Set
     ? [...current.skippedExamples, body.skip_example_for] : current.skippedExamples;
   const values = {
     timeMultiplier: body.time_multiplier ?? current.timeMultiplier, untimed: body.untimed ?? current.untimed, hideTimer: body.hide_timer ?? current.hideTimer,
-    skippedExamples: skipped, updatedAt: new Date(),
+    feedbackMode: body.feedback_mode ?? current.feedbackMode, skippedExamples: skipped, updatedAt: new Date(),
   };
   await db.insert(studentDrillSettings).values({ studentId, ...values })
     .onConflictDoUpdate({ target: studentDrillSettings.studentId, set: values });
   if (body.skip_example_for) await logDrillEvent(studentId, 'drill_example_skipped', { drill_id: body.skip_example_for });
-  return { time_multiplier: values.timeMultiplier, untimed: values.untimed, hide_timer: values.hideTimer, skipped_examples: skipped };
+  return { time_multiplier: values.timeMultiplier, untimed: values.untimed, hide_timer: values.hideTimer, feedback_mode: values.feedbackMode, skipped_examples: skipped };
 }
 
 export { settingsFor, formatNumericAnswer };
@@ -834,6 +895,9 @@ export { settingsFor, formatNumericAnswer };
 export const TimerSchema = z.object({
   untimed: z.boolean().optional(),
   hidden: z.boolean().optional(),
+  // Feedback after each question or at the end (Feedback timing): chosen
+  // with the timer on the intro screen, fixed at the same moment.
+  feedback: z.enum(['immediate', 'end']).optional(),
   // Sent with the intro screen's Start: logs the choice.
   at_start: z.boolean().default(false),
 });
@@ -845,11 +909,16 @@ export async function setTimer(studentId: string, setId: string, body: z.input<t
   const open = set.currentPosition === 0 && set.currentServedAt === null;
   const untimed = body.untimed !== undefined && open ? body.untimed : set.untimed;
   const hidden = body.hidden ?? set.timerHidden;
-  await db.update(drillSets).set({ untimed, timerHidden: hidden }).where(eq(drillSets.id, set.id));
-  await updateSettings(studentId, { hide_timer: hidden, ...(body.untimed !== undefined && open && { untimed }) });
-  if (body.at_start) await logDrillEvent(studentId, 'timer_chosen', { set_id: set.id, untimed, timer_hidden: hidden });
+  // A diagnostic part has no feedback to time.
+  const feedback = body.feedback !== undefined && open && set.feedbackMode !== null ? body.feedback : set.feedbackMode as FeedbackMode | null;
+  await db.update(drillSets).set({ untimed, timerHidden: hidden, feedbackMode: feedback }).where(eq(drillSets.id, set.id));
+  await updateSettings(studentId, {
+    hide_timer: hidden, ...(body.untimed !== undefined && open && { untimed }),
+    ...(body.feedback !== undefined && open && feedback !== null && { feedback_mode: feedback }),
+  });
+  if (body.at_start) await logDrillEvent(studentId, 'timer_chosen', { set_id: set.id, untimed, timer_hidden: hidden, feedback_mode: feedback });
   else if (hidden !== set.timerHidden) await logDrillEvent(studentId, 'timer_visibility_changed', { set_id: set.id, position: set.currentPosition, timer_hidden: hidden });
-  return { untimed, timer_hidden: hidden };
+  return { untimed, timer_hidden: hidden, feedback_mode: feedback };
 }
 
 // ------------------------------------------------------------------ pauses

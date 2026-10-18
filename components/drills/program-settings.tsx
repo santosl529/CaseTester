@@ -15,8 +15,9 @@ const TRACKS: { id: Track; label: string; hint: string }[] = [
 // Settings (docs/prd-drills.md "Interview date", "Tracks"): switching track
 // or changing the interview date or time per week rebuilds the plan from
 // today; skill states are kept.
-export function ProgramSettings({ track, interviewDate, availabilityId, availability, today, timeMultiplier, untimed }: {
+export function ProgramSettings({ track, interviewDate, availabilityId, availability, today, timeMultiplier, untimed, feedbackMode }: {
   track: Track; interviewDate: string | null; availabilityId: string; availability: AvailabilityOption[]; today: string; timeMultiplier: number; untimed: boolean;
+  feedbackMode: 'immediate' | 'end';
 }) {
   const router = useRouter();
   const [t, setT] = useState(track);
@@ -25,6 +26,8 @@ export function ProgramSettings({ track, interviewDate, availabilityId, availabi
   // One choice: a time multiplier, or no time limit (WCAG 2.2.1).
   const savedTime = untimed ? 'untimed' : String(timeMultiplier);
   const [time, setTime] = useState(savedTime);
+  // Feedback timing: the default each set's intro screen starts from.
+  const [feedback, setFeedback] = useState(feedbackMode);
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -38,8 +41,11 @@ export function ProgramSettings({ track, interviewDate, availabilityId, availabi
     if (hours !== availabilityId) changes.availability = hours;
     const calls: Promise<Response>[] = [];
     if (Object.keys(changes).length) calls.push(fetch('/api/drills/program', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(changes) }));
-    if (time !== savedTime) {
-      const body = time === 'untimed' ? { untimed: true } : { time_multiplier: Number(time), untimed: false };
+    if (time !== savedTime || feedback !== feedbackMode) {
+      const body = {
+        ...(time !== savedTime && (time === 'untimed' ? { untimed: true } : { time_multiplier: Number(time), untimed: false })),
+        ...(feedback !== feedbackMode && { feedback_mode: feedback }),
+      };
       calls.push(fetch('/api/me/drill-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }));
     }
     const results = await Promise.all(calls);
@@ -91,6 +97,18 @@ export function ProgramSettings({ track, interviewDate, availabilityId, availabi
           ))}
         </div>
         <p className="text-sm text-muted-foreground">No time limit hides the timer. Your results still show how long you took against the timed target, so you can work on pace.</p>
+      </fieldset>
+      <fieldset className="space-y-2">
+        <legend className="mb-2 font-medium">Feedback</legend>
+        <div className="flex flex-wrap gap-2">
+          {([['immediate', 'After each question'], ['end', 'At the end of the set']] as const).map(([value, label]) => (
+            <label key={value} className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm has-[:checked]:border-foreground">
+              <input type="radio" name="feedback" checked={feedback === value} onChange={() => setFeedback(value)} />
+              {label}
+            </label>
+          ))}
+        </div>
+        <p className="text-sm text-muted-foreground">The default for new sets; you can change it on each set&apos;s first screen. Scores and progress are the same either way.</p>
       </fieldset>
       <p className="text-sm text-muted-foreground">Changes rebuild your plan from today. Your skill progress is kept.</p>
       {msg && <p role="alert" className="text-sm text-destructive">{msg}</p>}

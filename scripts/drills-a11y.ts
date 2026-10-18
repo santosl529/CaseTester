@@ -12,6 +12,7 @@
 // Automated checks find about a third of WCAG problems. A person still has to
 // run the manual checklist in docs/drills-a11y-audit.md (screen reader, zoom).
 import { randomUUID } from 'crypto';
+import { printSmokeSpend } from './smoke-spend';
 import fs from 'fs';
 import path from 'path';
 import { eq, inArray } from 'drizzle-orm';
@@ -182,6 +183,9 @@ async function main() {
     // Before onboarding: the onboarding form.
     await scan(page, 'Onboarding', '/drills/start', p => p.waitForSelector('main form', { timeout: 15_000 }));
     await onboard(student, { wants_plan: true, interview_date: null, cases_done: '1-5', availability: 'standard', timezone: 'America/New_York' });
+    // A stub grader grades this run's written answers at the end of each set;
+    // Immediate feedback would grade them as submitted, with the real grader.
+    await updateSettings(student, { feedback_mode: 'end' });
 
     await scan(page, 'Training home (no plan yet: Get your plan)', '/drills');
     await scan(page, 'Questionnaire', '/drills/questionnaire', p => p.waitForSelector('main form', { timeout: 15_000 }));
@@ -302,6 +306,7 @@ async function main() {
     }
   } finally {
     await browser.close();
+    await printSmokeSpend([student], { stub: true });
     // Feedback rows reference sets: delete them first.
     for (const t of [drillFeedback, drillItemReports, drillCheckins]) await db.delete(t).where(eq(t.studentId, student));
     await db.delete(sessions).where(eq(sessions.userId, student));

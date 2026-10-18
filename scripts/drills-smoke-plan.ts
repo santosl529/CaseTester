@@ -8,6 +8,7 @@
 //   npm run drills:smoke:plan
 import './smoke-log';
 import { checkSmokeEvents } from './smoke-events';
+import { printSmokeSpend } from './smoke-spend';
 import { randomUUID } from 'crypto';
 import { count, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
@@ -137,6 +138,7 @@ async function main() {
     check(rowsBefore.n === rowsAfter.n, 'the extra workout must not be saved as a workout');
     console.log('plan: questionnaire, quick checks, source priority; timer options and pauses; self-directed checks');
   } finally {
+    await printSmokeSpend(students);
     for (const s of students) {
       for (const t of [drillFeedback, drillItemReports, drillCheckins]) await db.delete(t).where(eq(t.studentId, s));
       const sets = await db.select({ id: drillSets.id }).from(drillSets).where(eq(drillSets.studentId, s));

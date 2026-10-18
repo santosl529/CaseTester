@@ -11,6 +11,7 @@
 // transfer_pool_exhausted, repair_pool_exhausted.
 import './smoke-log';
 import { checkSmokeEvents } from './smoke-events';
+import { printSmokeSpend } from './smoke-spend';
 import { randomUUID } from 'crypto';
 import { eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
@@ -52,6 +53,9 @@ async function main() {
   try {
     await db.insert(studentProfiles).values({ userId: student, orgId: 'smoke-test' });
     await onboard(student, { wants_plan: false, interview_date: null, cases_done: '1-5', timezone: 'America/New_York' });
+    // A stub grader grades this run's written answers at the end of each set;
+    // Immediate feedback would grade them as submitted, with the real grader.
+    await updateSettings(student, { feedback_mode: 'end' });
 
     // drill_example_skipped
     await updateSettings(student, { skip_example_for: 'PS-1' });
@@ -109,6 +113,7 @@ async function main() {
     check(reports.program_funnel.tracks.find(t => t.track === 'self_directed')!.steps[0].n >= 1, 'reports: self-directed student not onboarded');
     console.log(`reports: ${reports.students} student(s), ${reports.engagement.active_students} active, ${reports.grading_cost.jobs} grading job(s)`);
   } finally {
+    await printSmokeSpend([student], { stub: true });
     const sets = await db.select({ id: drillSets.id }).from(drillSets).where(eq(drillSets.studentId, student));
     const ids = sets.map(s => s.id);
     if (ids.length) {

@@ -11,6 +11,7 @@
 //   npm run drills:smoke:tracks
 import './smoke-log';
 import { checkSmokeEvents } from './smoke-events';
+import { printSmokeSpend } from './smoke-spend';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
@@ -94,6 +95,7 @@ async function main() {
     check(ws?.targetMinutes === 15, `S day 3 target: ${ws?.targetMinutes}`);
     check(bs.length > 0 && bs.every(b => b.tier >= 2 && b.stage !== 'recognize'), `S day 3 blocks: ${bs.map(b => `${b.drill_id}/T${b.tier}/${b.stage}`)}`);
   } finally {
+    await printSmokeSpend(students);
     for (const id of students) {
       await db.delete(workouts).where(eq(workouts.studentId, id));
       await db.delete(studentPrograms).where(eq(studentPrograms.studentId, id));

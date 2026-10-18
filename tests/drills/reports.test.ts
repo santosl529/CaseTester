@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  costAlert, defend, drillEffectiveness, engagement, gradingCost, itemHealth, lessons, loopFunnel, planVsSelf, programFunnel, stuckRule,
+  costAlert, defend, drillEffectiveness, engagement, feedbackModes, gradingCost, itemHealth, lessons, loopFunnel, planVsSelf, programFunnel, stuckRule,
   transfer, workoutMix, itemKey, type ReportData,
 } from '@/lib/drills/reports/compute';
 
@@ -216,5 +216,23 @@ describe('pilot reports (PRD "MVP reports")', () => {
     // $2.14 a month is over $1.25 + 25%.
     expect(costAlert(d).alert).toBe(true);
     expect(costAlert(data()).alert).toBe(false);
+  });
+
+  it('compares feedback modes by the choice confirmed at Start, not the default', () => {
+    const ev = (type: string, payload: Record<string, unknown>, day = 2) => ({ type, studentId: 's1', payload, createdAt: at(day) });
+    const d = data({
+      from: at(0), to: at(28),
+      sets: [set({ id: 'a', setScore: 0.9, passed: true, startedAt: at(2) }), set({ id: 'b', setScore: 0.5, passed: false, startedAt: at(2) }), set({ id: 'c', startedAt: at(2) })],
+      events: [
+        // Set a started with the default 'end', then Immediate was chosen.
+        ev('drill_set_started', { set_id: 'a', feedback_mode: 'end' }), ev('timer_chosen', { set_id: 'a', feedback_mode: 'immediate' }),
+        ev('timer_chosen', { set_id: 'b', feedback_mode: 'end' }),
+        ev('answer_graded', { job: 'answer', wait_ms: 3000 }), ev('answer_graded', { job: 'set', wait_ms: 90000 }),
+      ],
+    });
+    const r = feedbackModes(d);
+    expect(r.modes.find(m => m.mode === 'immediate')).toMatchObject({ sets: 1, avg_score: 0.9, pass_rate: 1 });
+    expect(r.modes.find(m => m.mode === 'end')).toMatchObject({ sets: 1, avg_score: 0.5, pass_rate: 0 });
+    expect(r.immediate_wait_ms).toEqual({ answers: 1, p50: 3000, p95: 3000 });
   });
 });

@@ -9,6 +9,7 @@
 //   npm run drills:smoke:d2      (makes a few Haiku calls, about $0.02)
 import './smoke-log';
 import { checkSmokeEvents } from './smoke-events';
+import { printSmokeSpend } from './smoke-spend';
 import { randomUUID } from 'crypto';
 import { eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
@@ -140,6 +141,7 @@ async function main() {
     check(/unfinished set: 0 of \d+ items answered/.test(job.error ?? ''), `grading an unfinished set failed without saying why (${job.error})`);
     console.log('empty grading run: failed, with the reason recorded');
   } finally {
+    await printSmokeSpend([student]);
     const sets = await db.select({ id: drillSets.id }).from(drillSets).where(eq(drillSets.studentId, student));
     const ids = sets.map(s => s.id);
     if (ids.length) {

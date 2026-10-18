@@ -6,6 +6,7 @@
 //   npx tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke.ts
 import './smoke-log';
 import { checkSmokeEvents } from './smoke-events';
+import { printSmokeSpend } from './smoke-spend';
 import { randomUUID } from 'crypto';
 import { and, eq } from 'drizzle-orm';
 import { db } from '@/db/client';
@@ -171,6 +172,7 @@ async function main() {
     // CR.volume is trained only by CR-1 (P1), which isn't live yet.
     await expectError('no_live_drill', () => startSet(student, { skill_id: 'CR.volume' }), 'skill with no live drill');
   } finally {
+    await printSmokeSpend([student]);
     const sets = await db.select({ id: drillSets.id }).from(drillSets).where(eq(drillSets.studentId, student));
     await db.delete(drillAttempts).where(eq(drillAttempts.studentId, student));
     for (const s of sets) await db.delete(drillSets).where(eq(drillSets.id, s.id));

@@ -10,7 +10,7 @@
 // with whatever is left marked failed.
 import 'server-only';
 import { after } from 'next/server';
-import { and, asc, desc, eq, inArray, lt, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNotNull, isNull, lt, or, sql } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { drillAttempts, drillGradingCalls, drillGradingSpend, drillItems, drillSets, drillTiers, gradingJobs } from '@/db/schema';
 import { getDrill } from '../config';
@@ -83,12 +83,13 @@ export const resultOf = (row: AttemptRow): ItemResult => {
 };
 
 // Scores a set whose attempts are all scored: set score, pass, skill scores,
-// the next tier, then runs the progress engine. Idempotent: a completed set is
-// left alone.
+// the next tier, then runs the progress engine. Only a set the student has
+// finished (status 'grading'): an answer graded as it is submitted
+// (Immediate feedback) mustn't complete a set still in progress. Idempotent.
 export async function finalizeSet(setId: string): Promise<boolean> {
   const event = await db.transaction(async tx => {
     const [set] = await tx.select().from(drillSets).where(eq(drillSets.id, setId)).for('update');
-    if (!set || set.status === 'completed') return null;
+    if (!set || set.status !== 'grading') return null;
     const attempts = await tx.select().from(drillAttempts).where(eq(drillAttempts.setId, set.id)).orderBy(asc(drillAttempts.position));
     if (attempts.some(a => a.gradingStatus === 'pending' || a.gradingStatus === 'delayed')) return null;
     const items = await Promise.all(planOf(set).map(ref => resolveItem(ref, set.tier as Tier)));
@@ -163,11 +164,28 @@ export async function healDiagnostic(studentId: string): Promise<boolean> {
 export async function enqueueGrading(setId: string): Promise<string> {
   return db.transaction(async tx => {
     await tx.update(drillSets).set({ status: 'grading' }).where(and(eq(drillSets.id, setId), eq(drillSets.status, 'in_progress')));
-    const [existing] = await tx.select().from(gradingJobs).where(eq(gradingJobs.setId, setId)).orderBy(desc(gradingJobs.createdAt)).limit(1);
+    const [existing] = await tx.select().from(gradingJobs).where(and(eq(gradingJobs.setId, setId), isNull(gradingJobs.attemptId)))
+      .orderBy(desc(gradingJobs.createdAt)).limit(1);
     if (existing && existing.status !== 'failed') return existing.id;
     const [job] = await tx.insert(gradingJobs).values({ setId }).returning({ id: gradingJobs.id });
     return job.id;
   });
+}
+
+// Immediate feedback: queues the job that grades one answer as soon as it is
+// submitted (the same calls the set's job would make). Returns the job id.
+export async function enqueueAnswerGrading(setId: string, attemptId: string): Promise<string> {
+  const [job] = await db.insert(gradingJobs).values({ setId, attemptId }).returning({ id: gradingJobs.id });
+  return job.id;
+}
+
+// Answers a live per-answer job is grading (queued or running, not stale):
+// the set's job leaves them to it.
+async function answersBeingGraded(setId: string): Promise<Set<string>> {
+  const rows = await db.select({ attemptId: gradingJobs.attemptId }).from(gradingJobs)
+    .where(and(eq(gradingJobs.setId, setId), isNotNull(gradingJobs.attemptId), inArray(gradingJobs.status, ['queued', 'running']),
+      sql`coalesce(${gradingJobs.startedAt}, ${gradingJobs.createdAt}) > ${new Date(Date.now() - STALE_MS).toISOString()}::timestamptz`));
+  return new Set(rows.map(r => r.attemptId!));
 }
 
 // Runs a job after the current response is sent; straight away outside a
@@ -204,7 +222,7 @@ export function dbLedger(job: { id: string; setId: string }, attemptOf: (key: st
         setId: job.setId, jobId: job.id, attemptId: attemptOf(r.key), call: r.call, modelId: r.model, outcome: r.outcome,
         inputTokens: r.usage.input_tokens, outputTokens: r.usage.output_tokens,
         cacheWriteTokens: r.usage.cache_creation_input_tokens, cacheReadTokens: r.usage.cache_read_input_tokens,
-        costUsd: r.cost_usd, error: r.error?.slice(0, 500) ?? null,
+        costUsd: r.cost_usd, latencyMs: r.latency_ms, error: r.error?.slice(0, 500) ?? null,
       });
     },
   };
@@ -243,15 +261,24 @@ export async function runGradingJob(jobId: string, call?: CallModel): Promise<'s
   if (!job) return 'skipped';
 
   const [set] = await db.select().from(drillSets).where(eq(drillSets.id, job.setId));
-  const attempts = await db.select().from(drillAttempts)
-    .where(and(eq(drillAttempts.setId, job.setId), inArray(drillAttempts.gradingStatus, ['pending', 'delayed'])))
+  const waiting = await db.select().from(drillAttempts)
+    .where(and(eq(drillAttempts.setId, job.setId), inArray(drillAttempts.gradingStatus, ['pending', 'delayed']),
+      ...(job.attemptId ? [eq(drillAttempts.id, job.attemptId)] : [])))
     .orderBy(asc(drillAttempts.position));
+  // The set's job leaves answers a live per-answer job is grading to it.
+  const covered = job.attemptId ? new Set<string>() : await answersBeingGraded(job.setId);
+  const attempts = waiting.filter(a => !covered.has(a.id));
   const started = Date.now();
   // Nothing to grade is an error, not a success (run-checks.ts). If every
   // answer is already graded (a run that died after grading them), the set is
-  // still finished so the student isn't left waiting, but the job fails.
+  // still finished so the student isn't left waiting, but the job fails. A
+  // per-answer job checks none of this: its set is still in progress, and an
+  // answer the set's job graded first leaves it nothing to do. Nor does the
+  // set's job when per-answer jobs graded everything first.
   const [{ answered }] = await db.select({ answered: sql<number>`count(*)::int` }).from(drillAttempts).where(eq(drillAttempts.setId, job.setId));
-  const problem = gradingRunProblem(set.size, answered, attempts.length);
+  const byAnswerJobs = !job.attemptId && waiting.length === 0 && answered >= set.size
+    && (await db.select({ id: gradingJobs.id }).from(gradingJobs).where(and(eq(gradingJobs.setId, job.setId), isNotNull(gradingJobs.attemptId))).limit(1)).length > 0;
+  const problem = job.attemptId || byAnswerJobs ? null : gradingRunProblem(set.size, answered, waiting.length);
   if (problem) {
     await db.update(gradingJobs).set({ status: 'failed', retries: job.retries + 1, error: problem, latencyMs: Date.now() - started })
       .where(eq(gradingJobs.id, job.id));
@@ -270,10 +297,20 @@ export async function runGradingJob(jobId: string, call?: CallModel): Promise<'s
       && !unchangedRepair(e.item, e.steps));
     const sent = new Set(toGrade.map(e => e.key));
 
+    // Feedback timing: each answer's grading time (this run's start to its
+    // save) and the student's wait (submitted to saved).
+    const logGraded = (a: AttemptRow, status: string) => {
+      const now = Date.now();
+      void logDrillEvent(a.studentId, 'answer_graded', {
+        attempt_id: a.id, drill_id: set.drillId, feedback_mode: set.feedbackMode, job: job.attemptId ? 'answer' : 'set',
+        grading_ms: now - started, wait_ms: now - a.submittedAt.getTime(), status,
+      });
+    };
     const save = async (key: string, outcome: AnswerOutcome | null, meta: { prompt_version: string; model_id: string } | null) => {
       const { attempt: a, entry: e } = byKey.get(key)!;
       if (outcome && 'ungraded' in outcome) {
         await markUngraded([a.id], outcome.ungraded.reason);
+        logGraded(a, outcome.ungraded.reason);
         console.error(`drills: attempt ${a.id} not graded (${outcome.ungraded.reason})`, outcome.ungraded.error);
         return;
       }
@@ -287,6 +324,7 @@ export async function runGradingJob(jobId: string, call?: CallModel): Promise<'s
         ...defend,
         gradingStatus: 'graded', gradingIssue: null, graderPromptVersion: meta?.prompt_version ?? null, modelId: meta?.model_id ?? null,
       }).where(eq(drillAttempts.id, a.id));
+      logGraded(a, outcome ? 'graded' : 'not_sent');
       if (result.check_results?.injection_suspected) void logDrillEvent(a.studentId, 'grading_injection_suspected', { attempt_id: a.id });
       // Logged once the reply is graded, so the event carries its score.
       if (defend.defendScore !== null && a.defendResponse) {
@@ -305,6 +343,7 @@ export async function runGradingJob(jobId: string, call?: CallModel): Promise<'s
       const blocked: GradingIssue | null = breaker.open && breaker.reason === 'billing' ? 'billing' : null;
       if (blocked) {
         await markUngraded(toGrade.map(e => byKey.get(e.key)!.attempt.id), blocked);
+        for (const e of toGrade) logGraded(byKey.get(e.key)!.attempt, blocked);
         ungraded = toGrade.length;
         console.error(`drills: grading job ${job.id}: nothing sent (${blocked})`);
       } else {
@@ -338,13 +377,15 @@ export async function runGradingJob(jobId: string, call?: CallModel): Promise<'s
       ...(spend && { inputTokens: spend.input_tokens, outputTokens: spend.output_tokens, costUsd: spend.cost_usd }),
     }).where(eq(gradingJobs.id, job.id));
     await db.update(drillAttempts).set({ gradingStatus: 'delayed' })
-      .where(and(eq(drillAttempts.setId, job.setId), eq(drillAttempts.gradingStatus, 'pending')));
+      .where(and(eq(drillAttempts.setId, job.setId), eq(drillAttempts.gradingStatus, 'pending'), ...(job.attemptId ? [eq(drillAttempts.id, job.attemptId)] : [])));
     void logDrillEvent(set.studentId, 'grading_job_completed', {
       job_id: job.id, status: 'failed', retries, latency_ms: Date.now() - started,
       input_tokens: spend?.input_tokens ?? null, output_tokens: spend?.output_tokens ?? null, cost_usd: spend?.cost_usd ?? null, error: message.slice(0, 200),
     });
     console.error(`drills: grading job ${job.id} failed`, message);
-    if (retries >= MAX_RUNS) await giveUp(job.setId);
+    // A failed per-answer job isn't re-run: the set's job grades the answer.
+    if (!job.attemptId && retries >= MAX_RUNS) await giveUp(job.setId);
+    if (job.attemptId) await finalizeSet(job.setId).catch(() => false);
     return 'failed';
   }
 }
@@ -365,7 +406,8 @@ export interface GradingState { status: 'queued' | 'running' | 'succeeded' | 'fa
 // job that failed (after a pause) or died mid-run, or gives up after
 // MAX_RUNS. Returns what the student should see.
 export async function kickGrading(setId: string, call?: CallModel): Promise<GradingState> {
-  const [job] = await db.select().from(gradingJobs).where(eq(gradingJobs.setId, setId)).orderBy(desc(gradingJobs.createdAt)).limit(1);
+  const [job] = await db.select().from(gradingJobs).where(and(eq(gradingJobs.setId, setId), isNull(gradingJobs.attemptId)))
+    .orderBy(desc(gradingJobs.createdAt)).limit(1);
   if (!job) return { status: 'none', delayed: false };
   const age = Date.now() - (job.startedAt ?? job.createdAt).getTime();
   if (job.status === 'failed' && job.retries >= MAX_RUNS) {
@@ -375,6 +417,17 @@ export async function kickGrading(setId: string, call?: CallModel): Promise<Grad
   const rerun = (job.status === 'failed' && age > RETRY_AFTER_MS)
     || ((job.status === 'queued' || job.status === 'running') && age > STALE_MS);
   if (rerun) await runAfterResponse(job.id, call);
+  // The set's job left answers to per-answer jobs that then died or failed:
+  // a new set job grades them.
+  if (job.status === 'succeeded') {
+    const covered = await answersBeingGraded(setId);
+    const left = await db.select({ id: drillAttempts.id }).from(drillAttempts)
+      .where(and(eq(drillAttempts.setId, setId), inArray(drillAttempts.gradingStatus, ['pending', 'delayed'])));
+    if (left.some(a => !covered.has(a.id))) {
+      const [fresh] = await db.insert(gradingJobs).values({ setId }).returning({ id: gradingJobs.id });
+      await runAfterResponse(fresh.id, call);
+    }
+  }
   return { status: job.status, delayed: job.status === 'failed' || job.retries > 0 };
 }
 

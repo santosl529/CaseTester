@@ -14,6 +14,7 @@
 // few seconds (the breaker is global), which would fail a parallel smoke.
 import './smoke-log';
 import { checkSmokeEvents } from './smoke-events';
+import { printSmokeSpend } from './smoke-spend';
 import { randomUUID } from 'crypto';
 import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
@@ -27,7 +28,7 @@ import type { CallModel } from '@/lib/drills/grading/grader';
 import { gradingBreaker } from '@/lib/drills/grading/spend';
 import { monthStart } from '@/lib/drills/grading/limits';
 import { reportProblem } from '@/lib/drills/feedback';
-import { DrillError, fetchItem, setResults, startSet, submitAttempt } from '@/lib/drills/sets/service';
+import { DrillError, fetchItem, setResults, startSet, submitAttempt, updateSettings } from '@/lib/drills/sets/service';
 import type { StepResult } from '@/lib/drills/sets/scoring';
 
 const failures: string[] = [];
@@ -85,6 +86,9 @@ async function startError(drillId: string): Promise<DrillError | null> {
 
 async function main() {
   await db.insert(studentProfiles).values({ userId: student, orgId: 'smoke-test', timezone: TZ });
+  // Every set here is graded at the end by the stub; Immediate feedback would
+  // grade each answer as submitted, with the real grader.
+  await updateSettings(student, { feedback_mode: 'end' });
   try {
     // 1. One run, four outcomes: a call already at its cap (an earlier run used
     // its requests), a refusal, an answer over its limits, and graded answers.
@@ -200,6 +204,7 @@ async function main() {
       await db.delete(drillGradingSpend).where(eq(drillGradingSpend.setId, f.setId));
     }
   } finally {
+    await printSmokeSpend([student], { stub: true });
     const sets = await db.select({ id: drillSets.id }).from(drillSets).where(eq(drillSets.studentId, student));
     const ids = sets.map(x => x.id);
     await db.delete(drillItemReports).where(eq(drillItemReports.studentId, student));

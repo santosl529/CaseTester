@@ -145,6 +145,12 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
           rows={[['A full case', r.plan_sources.case], ['The diagnostic', r.plan_sources.diagnostic], ['The questionnaire', r.plan_sources.questionnaire], ['No plan yet', r.plan_sources.none]]} />
       </Section>
 
+      <Section id="feedback-timing" title="Feedback timing" how={r.feedback_modes.how}>
+        <Table caption="Results by feedback mode" head={['Mode', 'Students', 'Sets', 'Completed', 'Average score', 'Passed']}
+          rows={r.feedback_modes.modes.map(m => [m.mode === 'immediate' ? 'After each question' : 'At the end of the set', m.students, m.sets, pct(m.completion_rate), pct(m.avg_score), pct(m.pass_rate)])} />
+        <p className="text-sm">Immediate grading wait: {r.feedback_modes.immediate_wait_ms.answers} answers, p50 {r.feedback_modes.immediate_wait_ms.p50 === null ? '–' : `${(r.feedback_modes.immediate_wait_ms.p50 / 1000).toFixed(1)} s`}, p95 {r.feedback_modes.immediate_wait_ms.p95 === null ? '–' : `${(r.feedback_modes.immediate_wait_ms.p95 / 1000).toFixed(1)} s`}.</p>
+      </Section>
+
       <Section id="pauses" title={`Timer pauses (${r.pauses.total})`} how={r.pauses.how}>
         <Table caption="Timer pauses by student" head={['Student', 'Club', 'Pauses', 'Total paused', 'Longest', 'Reasons']}
           rows={r.pauses.students.map(p => [p.student.slice(0, 8), p.club ?? '–', p.pauses, `${Math.round(p.total_ms / 1000)} s`, `${Math.round(p.longest_ms / 1000)} s`, Object.entries(p.reasons).map(([k, n]) => `${k} ×${n}`).join(', ')])} />

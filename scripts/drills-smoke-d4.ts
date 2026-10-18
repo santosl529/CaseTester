@@ -10,6 +10,7 @@
 //   npm run drills:smoke:d4
 import './smoke-log';
 import { checkSmokeEvents } from './smoke-events';
+import { printSmokeSpend } from './smoke-spend';
 import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
@@ -117,6 +118,7 @@ async function main() {
     const programsRows = await db.select().from(studentPrograms).where(eq(studentPrograms.studentId, student));
     check(programsRows.filter(p => p.status === 'active').length === 1 && programsRows.some(p => p.status === 'switched'), 'one active program after the switch');
   } finally {
+    await printSmokeSpend([student]);
     const sets = await db.select({ id: drillSets.id }).from(drillSets).where(eq(drillSets.studentId, student));
     const ids = sets.map(s => s.id);
     if (ids.length) {
