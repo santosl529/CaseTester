@@ -11,7 +11,7 @@ import { growthProbeOnRatio, growthProbeUnchecked } from './growth-probe';
 import type { TurnTimer } from './turn-timer';
 import type { TurnEvent, TurnValidation } from '@/lib/agent/models/interface';
 import { normalizeNumberWords } from '@/lib/number-words';
-import type { PhraseUses } from './phrasing';
+import { poolPattern, type PhraseUses } from './phrasing';
 import { toRequests, type ModelTurn } from '@/lib/agent/models/turn-schema';
 import { NEUTRAL_TURN } from '@/lib/agent/models/turn-events';
 import type { ModelPlan } from './plan-turn';
@@ -108,11 +108,19 @@ const REFUSAL_TALK = /\b(?:i don'?t have|we don'?t have|(?:isn'?t|aren'?t|is not
 // pricing aren't something I have in this case." then code's own "I don't have …").
 export const DATA_TALK = /\b(i don'?t have|we don'?t have|that'?s not in the information|(?:isn'?t|aren'?t|is not|are not|not) (?:something|anything|data|information) (?:i|we) (?:have|hold)|(?:isn'?t|aren'?t|is not|are not) (?:available|part of (?:this|the) case|in (?:this|the) case)|i'?ll come back to|come back to (that|it)|(is|are) available|i'?ll (give|share|show) you|let me (give|share|show|pull)|being sent|on (its|their) way|(come|came|coming) through|in front of you|i'?ve (sent|shared)|(sending|pasting) (them|those|it|that)|here (they|it|that|those) (are|is)|(let me|i'?ll) (repeat|restate|re-?share)|(in|on) my (last|previous|earlier) message|(they'?re|they are|it'?s|it is) on the table)\b/i;
 
+// Code's own data lines in any of their variants (phrasing.ts; Lorenzo, 18 Oct):
+// the model hears them in the transcript and may say one in its "say" — data
+// talk, as the original wording is. The lead-ins and deferrals by their fixed words.
+const CODE_LINE_TALK = new RegExp([
+  String.raw`\b(?:we'?ll|i'?ll) (?:get|come back) to\b[^.?!]{0,80}\b(?:shortly|in a bit|a little later|in a moment|later)\b`,
+  poolPattern('restate', 'earlier').source,
+].join('|'), 'i');
+
 // A statement in the question that hands something over ("Here's the cost
 // structure over time.", "Take a look at this exhibit.") — code already
 // announced the exhibit or data (batch 13: Daniel t10, Jordan t14, Fiona t8).
 // Withheld only when another sentence of the question is left (Settle).
-const HANDOVER_OPENER = /^(here'?s|here is|take a look|let me (show|bring|put|pull))\b/i;
+const HANDOVER_OPENER = /^(here'?s|here is|take a look|have a look|i'?ll put up|let me (show|bring|put|pull))\b/i;
 // A claim that something is being handed over now (v4.10): only true when the
 // turn delivers it.
 const DELIVERY_CLAIM = /\b(?:here (?:they|it|that|those|these) (?:are|is)|being sent|on (?:its|their) way|i'?ve (?:sent|shared|put)|(?:sending|pasting|sharing) (?:them|those|it|that|the)|(?:let me|i'?ll) (?:repeat|restate|re-?share|resend))\b/i;
@@ -171,7 +179,7 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   // Data lines come between "say" and the question, so only "say" can double
   // them; a probe question about data ("what would be available to test
   // that?") is the interviewer's job.
-  if (!opts.inQuestion && (DATA_TALK.test(sentence) || handoffSentences(sentence).length > 0 || promisesExhibit(sentence))) return 'data_talk';
+  if (!opts.inQuestion && (DATA_TALK.test(sentence) || CODE_LINE_TALK.test(sentence) || handoffSentences(sentence).length > 0 || promisesExhibit(sentence))) return 'data_talk';
   // …and a refusal statement in the question doubles code's own refusal on a
   // turn whose data line refuses (Settle only — it knows the data line).
   if (opts.inQuestion && g.facts?.delivery?.refusedNow && !sentence.trim().endsWith('?') && REFUSAL_TALK.test(sentence)) return 'data_talk';

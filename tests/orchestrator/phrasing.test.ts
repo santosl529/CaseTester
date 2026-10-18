@@ -86,3 +86,19 @@ describe('the evaluators read every variant', () => {
     for (const v of PHRASE_POOLS[pool]) expect(re.test(v.replace('{x}', 'the ticket'))).toBe(true);
   });
 });
+
+// Lorenzo, 18 Oct: no live check may match only the old wording. The model
+// hears code's variants in the transcript; said in its own "say", each is data
+// talk (withheld), as the original wording always was.
+import { vetoReason, isHandoverAnnouncement, type GateContext } from '@/lib/orchestrator/stream-turn';
+describe('the model saying a variant of code\'s line is still data talk', () => {
+  const g: GateContext = { allowedTexts: ['The cost structure over time.'], verified: [], alreadyProbed: new Set(), flaggedThisTurn: false, openItems: [], phase: 'ANALYSIS' };
+  it.each([
+    ...PHRASE_POOLS.defer.map(v => v.replace('{x}', 'the cost structure')),
+    ...PHRASE_POOLS.refuse.map(v => v.replace('{x}', 'competitor pricing')),
+    ...PHRASE_POOLS.restate.map(v => v.replace('{x}', 'menu prices have not changed in two years.')),
+    ...PHRASE_POOLS.earlier.map(v => `${v} menu prices have not changed in two years.`),
+  ])('%s', s => expect(vetoReason(s, g)).toBe('data_talk'));
+  it.each(["Here's an exhibit.", 'Take a look at this exhibit.', 'Have a look at this exhibit.', "I'll put up an exhibit."])('a handover in the question: %s', s => expect(isHandoverAnnouncement(s)).toBe(true));
+  it.each(['Let me get to the point.', 'You repeated the 16 points.', 'Got it, a cost-first view.'])('not data talk: %s', s => expect(vetoReason(s, g)).not.toBe('data_talk'));
+});
