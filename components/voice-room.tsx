@@ -12,6 +12,7 @@ import { fillerPrefStore } from '@/lib/voice/filler-pref';
 import { ExhibitTable } from '@/components/exhibit-table';
 import { applyMessage, initialView } from '@/components/voice-view';
 import { DATA_TOPIC, type ClientMessage, type ServerMessage } from '@/lib/voice/protocol';
+import { agentAudioWatchdog, VOICE_BUSY_MESSAGE } from '@/lib/voice/capacity';
 
 const STATE_LABEL: Record<string, string> = {
   idle: 'Not started', connecting: 'Connecting…', waiting: 'Waiting for audio', listening: 'Listening',
@@ -56,6 +57,10 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     { ctx: null, mic: null, remote: null, lastMicLoudAt: 0, pending: null, timer: null },
   );
 
+  // No interviewer audio within 15s of connecting (or of the audio-unlock
+  // click): the agent never came — capacity — so say so and leave (lib/voice/capacity.ts).
+  const watchdog = useRef<ReturnType<typeof agentAudioWatchdog> | null>(null);
+
   const send = (m: ClientMessage) => {
     const room = roomRef.current;
     if (!room) return;
@@ -86,6 +91,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   }, [view.phase, view.stateTurnSeq]);
 
   useEffect(() => () => {
+    watchdog.current?.stop();
     if (timing.current.timer !== null) window.clearInterval(timing.current.timer);
     void timing.current.ctx?.close();
     roomRef.current?.disconnect();
@@ -96,7 +102,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     setProblem(null);
     const res = await fetch(`/api/voice/${sessionId}/token`, { method: 'POST' });
     if (!res.ok) {
-      setProblem(res.status === 409 ? 'This case is no longer active.' : res.status === 503 ? 'Voice is not configured on the server.' : 'Could not start the voice session.');
+      setProblem(res.status === 429 ? VOICE_BUSY_MESSAGE : res.status === 409 ? 'This case is no longer active.' : res.status === 503 ? 'Voice is not configured on the server.' : 'Could not start the voice session.');
       setLocal('idle');
       return;
     }
@@ -111,7 +117,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
       // The agent may join after us: its hello is when our `ready` can arrive.
       if (m.type === 'hello') {
         if (room.canPlaybackAudio) sendReady();
-        else setNeedsClick(true);
+        else { setNeedsClick(true); watchdog.current?.stop(); }
       }
       dispatch(m);
     });
@@ -125,6 +131,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
       if (room.canPlaybackAudio) return;
       send({ type: 'audio_blocked' });
       setNeedsClick(true);
+      watchdog.current?.stop();
     });
     room.on(RoomEvent.Disconnected, () => setLocal(l => (l === 'live' ? 'ended' : l)));
     try {
@@ -144,13 +151,21 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
       const t = timing.current;
       const now = performance.now();
       if (t.mic && t.mic() > MIC_LOUD) t.lastMicLoudAt = now;
+      if (t.remote && !watchdog.current?.wasHeard && t.remote() > REMOTE_LOUD) watchdog.current?.heard();
       if (t.pending && t.remote && t.remote() > REMOTE_LOUD) {
         send({ type: 'timing', turnSeq: t.pending.turnSeq, clientFirstSoundMs: Math.round(now - t.pending.from) });
         t.pending = null;
       }
     }, 20);
     setLocal('live');
-    if (room.canPlaybackAudio) sendReady();
+    watchdog.current = agentAudioWatchdog({ onTimeout: () => {
+      setProblem(VOICE_BUSY_MESSAGE);
+      if (timing.current.timer !== null) window.clearInterval(timing.current.timer);
+      timing.current.timer = null;
+      room.disconnect();
+      setLocal('idle');
+    } });
+    if (room.canPlaybackAudio) { sendReady(); watchdog.current.arm(); }
     else setNeedsClick(true);
   }
 
@@ -161,6 +176,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     if (room.canPlaybackAudio) {
       setNeedsClick(false);
       sendReady();
+      watchdog.current?.arm();
     }
   }
 
@@ -174,6 +190,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   async function end() {
     const res = await fetch(`/api/voice/${sessionId}/end`, { method: 'POST' }).catch(() => null);
     const data = res?.ok ? await res.json().catch(() => null) as { report?: boolean } | null : null;
+    watchdog.current?.stop();
     roomRef.current?.disconnect();
     setLocal('ended');
     setEndedWithReport(Boolean(data?.report));
