@@ -5,7 +5,6 @@
 // leaves, the time limit hits, or a budget refuses. Haiku 5.5 interviews here
 // (INTERVIEWER_PROVIDER, set by `npm run voice:agent`); background checks are
 // the production mix.
-import { appendFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { defineAgent, type JobContext } from '@livekit/agents';
 import {
@@ -34,6 +33,8 @@ import { openTtsLedger } from './tts-ledger-store';
 import { VoiceTurnController } from './turn-controller';
 import { DATA_TOPIC, parseClientMessage, type ServerMessage } from './protocol';
 import { summarize, type TurnRecord } from './records';
+import { SessionLines } from './session-lines';
+import { dbLineWriter } from './session-lines-db';
 import { LiveKitSink } from './livekit-media';
 import { SessionRecorder } from './recorder';
 import { findCandidateTrack, pickCandidateTrack, realClock } from './room-rules';
@@ -121,13 +122,13 @@ export default defineAgent({
     const ttsAllow = (n: number) => fake || (run!.take(n) && ledger.take(n));
     const acks = await loadAcks(tts, voice, ttsAllow, { sampleRate: OUT_RATE, gapMs: num('VOICE_FILLER_GAP_MS', FILLER_GAP_MS), tailMs: num('VOICE_FILLER_TAIL_MS', FILLER_TAIL_MS) });
 
-    // Timing records (spec §7).
-    const recFile = path.join('Case Interview Runs/voice-live', new Date().toISOString().slice(0, 10), `${session.id}.jsonl`);
-    mkdirSync(path.dirname(recFile), { recursive: true });
+    // Timing records (spec §7): voice_session_lines, and the local jsonl when
+    // VOICE_RECORDS_DIR is set (scripts/voice-export.ts rebuilds it from the rows).
+    const lines = new SessionLines(dbLineWriter(session.id), { sessionId: session.id, dir: process.env.VOICE_RECORDS_DIR || null });
     const records: TurnRecord[] = [];
     const record = (r: TurnRecord) => {
       records.push(r);
-      appendFileSync(recFile, JSON.stringify(r) + '\n');
+      lines.add(r);
       console.log(`[voice] t${r.turnSeq} firstSound=${r.firstSoundMs}ms firstUseful=${r.firstUsefulMs}ms endpoint=${r.endpointMs}ms queue=${r.queueWaitMs}ms waits=${JSON.stringify(r.waits)}${r.interrupted ? ' CUT' : ''}${r.cancelled ? ' CANCELLED' : ''}`);
     };
 
@@ -169,7 +170,7 @@ export default defineAgent({
       else if (m.type === 'timing') {
         const r = records.find(x => x.turnSeq === m.turnSeq);
         if (r) r.clientFirstSoundMs = m.clientFirstSoundMs;
-        appendFileSync(recFile, JSON.stringify({ turnSeq: m.turnSeq, clientFirstSoundMs: m.clientFirstSoundMs }) + '\n');
+        lines.add({ turnSeq: m.turnSeq, clientFirstSoundMs: m.clientFirstSoundMs });
       }
     });
 
@@ -185,8 +186,11 @@ export default defineAgent({
       await Promise.allSettled(background);
       if (tts instanceof CartesiaTTS) tts.close();
       await ledger.flush();
-      const summary = { why, ...summarize(records), ttsCharsThisRun: run?.used ?? 0, ttsCharsThisMonth: ledger.used, ...(ledger.writeErrors ? { ttsLedgerWriteErrors: ledger.writeErrors } : {}) };
-      appendFileSync(recFile, JSON.stringify({ summary }) + '\n');
+      await lines.flush();
+      const summary = { why, ...summarize(records), ttsCharsThisRun: run?.used ?? 0, ttsCharsThisMonth: ledger.used, ...(ledger.writeErrors ? { ttsLedgerWriteErrors: ledger.writeErrors } : {}),
+        ...(lines.writeErrors ? { recordWriteErrors: lines.writeErrors } : {}) };
+      lines.add({ summary });
+      await lines.flush();
       if (rec) {
         const dir = path.join('.voice-cache/recordings', `${session.id}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`);
         rec.flush(dir);
