@@ -2,6 +2,12 @@
 // disk (.voice-cache/acks). A thinking filler is its beats, each its own
 // clip, joined with silence (ackBeats, joinBeats; Lorenzo, 17 Oct); any other
 // acknowledgment is one clip. Used by the agent and scripts/voice-filler-demo.ts.
+//
+// Shipped clips (voice deploy, 18 Oct): the default voice's clips are
+// pre-rendered into assets/voice/acks (scripts/voice-render-acks.ts) and
+// tracked, so they are in the worker's image; they are read first. The hosted
+// worker passes synthesize: false (VOICE_ACK_SYNTH=0) — nothing is synthesized
+// at cold start; an ack with a missing clip is left out and reported.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
@@ -9,9 +15,19 @@ import { ALL_ACKS, FILLER_GAP_MS, FILLER_TAIL_MS, ackBeats, ackSpeechText, isThi
 import { trimSilence } from './pcm';
 import type { TTSProvider } from './types';
 
+export const SHIPPED_ACKS_DIR = 'assets/voice/acks';
+
+export const ackClipFile = (ttsName: string, voice: string, speech: string) =>
+  `${ttsName}-${voice}-${createHash('sha1').update(speech).digest('hex').slice(0, 10)}.pcm`;
+
+// Every clip the acks need, as the TTS reads it (one per beat, deduplicated).
+export const ackClipTexts = (acks: readonly string[] = ALL_ACKS): string[] =>
+  [...new Set(acks.flatMap(a => ackBeats(a).map(ackSpeechText)))];
+
 export async function loadAcks(
   tts: TTSProvider, voice: string, take: (n: number) => boolean,
-  o: { sampleRate: number; gapMs?: number; tailMs?: number; acks?: readonly string[]; cacheDir?: string },
+  o: { sampleRate: number; gapMs?: number; tailMs?: number; acks?: readonly string[]; cacheDir?: string;
+    shippedDir?: string | null; synthesize?: boolean; onMissing?: (text: string) => void },
 ): Promise<Map<string, Uint8Array>> {
   const rate = o.sampleRate;
   const clips = new Map<string, Uint8Array | null>();
@@ -19,9 +35,13 @@ export async function loadAcks(
     if (clips.has(text)) return clips.get(text)!;
     // Keyed on the text the TTS reads (a filler beat spells its ellipsis out).
     const speech = ackSpeechText(text);
-    const file = path.join(o.cacheDir ?? '.voice-cache/acks', `${tts.name}-${voice}-${createHash('sha1').update(speech).digest('hex').slice(0, 10)}.pcm`);
+    const name = ackClipFile(tts.name, voice, speech);
+    const file = path.join(o.cacheDir ?? '.voice-cache/acks', name);
+    const shipped = o.shippedDir === null ? null : path.join(o.shippedDir ?? SHIPPED_ACKS_DIR, name);
     let pcm: Uint8Array | null = null;
-    if (existsSync(file)) pcm = new Uint8Array(readFileSync(file));
+    if (shipped && existsSync(shipped)) pcm = new Uint8Array(readFileSync(shipped));
+    else if (existsSync(file)) pcm = new Uint8Array(readFileSync(file));
+    else if (o.synthesize === false) o.onMissing?.(speech);
     else if (take(speech.length)) {
       const utt = await tts.open({ encoding: 'pcm_s16le', sampleRate: rate });
       const parts: Uint8Array[] = [];

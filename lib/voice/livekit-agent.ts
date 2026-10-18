@@ -120,7 +120,11 @@ export default defineAgent({
     const ledger = await openTtsLedger();   // the month's row in voice_tts_usage, shared by every job
     const run = runCap === null ? null : new RunCharCap(runCap);
     const ttsAllow = (n: number) => fake || (run!.take(n) && ledger.take(n));
-    const acks = await loadAcks(tts, voice, ttsAllow, { sampleRate: OUT_RATE, gapMs: num('VOICE_FILLER_GAP_MS', FILLER_GAP_MS), tailMs: num('VOICE_FILLER_TAIL_MS', FILLER_TAIL_MS) });
+    // Shipped clips first; the hosted worker synthesizes none (VOICE_ACK_SYNTH=0).
+    const missingClips: string[] = [];
+    const acks = await loadAcks(tts, voice, ttsAllow, { sampleRate: OUT_RATE, gapMs: num('VOICE_FILLER_GAP_MS', FILLER_GAP_MS), tailMs: num('VOICE_FILLER_TAIL_MS', FILLER_TAIL_MS),
+      synthesize: process.env.VOICE_ACK_SYNTH !== '0', onMissing: t => missingClips.push(t) });
+    if (missingClips.length) console.warn(`[voice-agent] ${missingClips.length} acknowledgment clip(s) not shipped for ${tts.name} ${voice}, left out: ${missingClips.join(' | ')} — render with scripts/voice-render-acks.ts`);
 
     // Timing records (spec §7): voice_session_lines, and the local jsonl when
     // VOICE_RECORDS_DIR is set (scripts/voice-export.ts rebuilds it from the rows).
