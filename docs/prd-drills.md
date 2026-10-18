@@ -1278,7 +1278,7 @@ v2 adds about 110 Repair items, 150 Defend follow-ups and 22 lessons to review b
 
 ## Data model
 
-The drills system needs 17 tables (18 with P1 disputes) plus 4 versioned config files; the `drill_attempts` table is the most important, because it is the item-level record everything else is computed from.
+The drills system needs 20 tables (with the pilot feedback tables) plus 4 versioned config files; the `drill_attempts` table is the most important, because it is the item-level record everything else is computed from.
 
 ### Config files (versioned, loaded at startup)
 
@@ -1310,7 +1310,9 @@ Config files live in the repo and are validated with zod at startup. Changing a 
 | `lessons` (new) | lesson\_id, skill\_id, version, status, body, worked\_example, mistakes (JSON), authorship (JSON) | Versioned like items |
 | `lesson_views` (new) | student\_id, lesson\_id, version, source (auto, intro, library, low\_score, follow\_up), seconds\_open, skipped, viewed\_at | The intro is logged as `lesson-intro` (no lessons row). |
 | `diagnostics` (new) | diagnostic\_id, student\_id, parts (JSON: drill\_id, size, set\_id, and per finished part its skill totals, item scores and missed tags), status (in\_progress, completed, skipped), overall\_score, placements (JSON), moved\_to\_track, started\_at, completed\_at | One in-progress diagnostic per student. Placement is redone as parts finish; a skipped one can be resumed |
-| `grade_disputes` (P1) | dispute\_id, attempt\_id, student\_comment, status, reviewer\_notes, created\_at | QA queue |
+| `drill_feedback` (D6) | id, student\_id, category (broken, confusing, idea), comment, page, set\_id, position, item\_id, item\_version, template\_id, device, app\_version, created\_at | The feedback button. The set and item in play are resolved on the server |
+| `drill_item_reports` (D6) | id, student\_id, set\_id, position, attempt\_id, item\_id, item\_version, template\_id, screen (item, results), reason (answer\_key\_wrong, question\_confusing, grade\_unfair, other), comment, status (open, labeled, resolved, dismissed), labels (JSON), red\_flags (JSON), reviewer\_notes, reviewed\_by, reviewed\_at, exported\_at, created\_at | "Report a problem", grade disputes included. The review queue: Matt's labels per check, exported to the golden sets |
+| `drill_checkins` (D6) | id, student\_id, kind (set\_usefulness, first\_case, week\_1), set\_id, rating (1–5), comment, status (shown, answered, dismissed), created\_at, answered\_at | Written when shown. One usefulness check-in per set; each open question once per student |
 
 The student's `org_id` (school or club) lives on `student_profiles`. It is set from the club code the first time the student passes the club-code gate (today, when starting a case) and isn't changed afterwards. Events read it from there.
 
@@ -1374,8 +1376,11 @@ Route handlers live under `/api`. Each endpoint is marked with the phase that bu
 | `GET /api/drills/sets/{id}/results` | Results screen data. Clients poll every 2 s while status is `grading` | Set score, pass, mistake summary, time against target, tier change, per-item results, skill state changes (D3), next action |
 | `GET /api/skills/profile` (D3) | Skill profile | States, progress, program progress, top mistakes, rubric trends, history |
 | `PATCH /api/prescriptions/{id}` (D3) | Dismiss a prescription | Updated prescription |
-| `PUT /api/me/drill-settings` | Time multiplier, example preferences | Updated settings |
-| `POST /api/attempts/{id}/dispute` (P1) | Dispute a grade | Dispute record |
+| `PUT /api/me/drill-settings` | Time setting (multiplier or No time limit), example preferences | Updated settings |
+| `POST /api/drills/feedback` (D6) | The feedback button: category, optional comment, page, set id, device | `{ ok }` |
+| `POST /api/drills/sets/{id}/reports` (D6) | Report a problem with an item: position, reason, optional comment, screen. Grade disputes use the reason "My grade seems unfair" | `{ ok }` |
+| `POST /api/drills/checkins/{id}` (D6) | Answer (rating and/or comment) or dismiss a check-in | `{ ok }` |
+| `PUT /api/drills/review/reports/{id}` (D6, local development only) | Label or close a report in the review queue | `{ ok }` |
 
 The club-code check has its own route, `POST /api/club`, called at the club step. It records `org_id` and gates drills; case start still checks the code too.
 
@@ -1403,6 +1408,19 @@ The case library list (`GET /cases`, with filters and the Suggested mark) belong
 2. The Progress engine updates skill scores, stage, tier, skill states, transfer dates and review dates, and applies the stuck rule.
 3. The Progress engine refreshes prescriptions; the Program engine updates weekly targets and milestones and the rest of today's workout.
 4. The results screen shows everything in one response.
+
+## Pilot feedback (D6)
+
+Pilot students should find it easy to tell us what's wrong or missing. None of this calls a model.
+
+- **Feedback button** on every drills page, fixed in the bottom-right corner: an icon on phones, "Feedback" with the icon on wider screens. Keyboard-reachable and labeled for screen readers; pages leave room under their content so it never hides the end of a page. It opens a small dialog: Something's broken / Something's confusing / Idea, an optional comment (500 characters) and Send. The page, the set and the item in play (id and version), the device and the app version are attached automatically.
+- **Report a problem** on every item screen (next to "Item N of M", during the item and its feedback) and on each item of the results screen. Reasons: Answer key is wrong / Question is confusing / My grade seems unfair / Other, plus an optional comment. "My grade seems unfair" is the grade dispute (moved from P1 into the pilot); it doesn't change the score.
+- **Review queue** (`/drills/review/reports`, local development only): each report with the item, the student's answer, the score and the grader's verdict per check. Matt labels a disputed AI grade check by check (and red flags), or marks a report resolved or dismissed. `npm run drills:export-disputes` writes labeled disputes to the golden sets (`drill-golden/<drill>/dispute-*.json`, answer type `dispute`; a follow-up reply's labels as a separate `defend` part), so the next gate run includes them. Items are pulled by hand (see Item health).
+- **Check-ins** (each can be dismissed with "Not now"):
+  - After a completed set, at most once a week per student: "How useful was today's practice?" (1–5, optional "Why?"). Not on diagnostic parts.
+  - On the training home, once each: "What would make this more useful?" after the student's first completed full case, and at the end of week 1 (week 2 reached on a weekly plan; otherwise 7 days after the first program started).
+- **Limits:** 30 feedback messages and reports per student per day.
+- **Reports:** see MVP reports (Feedback, and reported items beside the flagged items).
 
 ## Analytics and event logging
 
@@ -1440,8 +1458,10 @@ Every event carries `student_id`, `org_id` (school or club, if any), `timestamp`
 | `suggestion_shown` / `_started` | Suggested next card (self-directed) | drill\_id, reason, source |
 | `drill_catalog_viewed` | Browse drills opens | — |
 | `weekly_summary_viewed` | Monday recap shown | week (the Monday's date) |
+| `feedback_submitted` | Feedback button sent | feedback\_id, category, page |
+| `item_report_submitted` | "Report a problem" sent (a grade dispute when the reason is grade\_unfair) | report\_id, reason, screen, item\_id, attempt\_id |
+| `checkin_shown` / `_answered` / `_dismissed` | Check-in lifecycle | kind, rating |
 | `repair_pool_exhausted` | A Repair set had to use items derived from ones seen in the last 14 days | drill\_id, available |
-| `grade_dispute_submitted` (P1) | Student disputes a grade | attempt\_id |
 
 ### MVP reports
 
@@ -1458,6 +1478,7 @@ Every event carries `student_id`, `org_id` (school or club, if any), `timestamp`
 | Plan vs self-directed | Practice volume, skills reaching Mastered, transfer pass rates and case rubric gains between the two groups | Students grouped by their latest program. Sets per week cover the period; Mastered and transfer cover all time. Rubric gain: average rating (needs work 0, meets bar 1, strong 2) on the last case minus the first, for students with two or more cases |
 | Engagement | Sets per active student per week, share of students returning within 7 days, average session length | Students with a set started in the period. Returning: another set on a later day within 7 days of their first set in the period. A session is a run of sets less than 30 minutes apart |
 | Item health | Correct rate, average time and distractor pull per item; items flagged for review | Authored items, answered (not skipped) attempts; correct means a full score. Flags follow the Item health rules; in the pilot they need 20+ attempts and items are pulled by hand |
+| Feedback (D6) | Feedback button entries, item reports and check-in answers; reported items; check-in average by week | Newest first (latest 100), filterable by type, page and club. Reported items appear beside the flagged items. Usefulness check-ins: answers, average (1–5) and dismissals per week (weeks start Monday) |
 | Grading quality and cost | Agreement with human labels per check, retry and failure rates, cost per graded answer and per active student | Grading jobs created in the period. Cost per workout counts workouts with a graded set; cost per active student per month scales the period to 30 days. Agreement comes from the golden-set gate (`npm run drills:golden`); the monthly human sample is not built yet |
 
 The reports page is `/drills/reports`, local development only, filterable by club and period (7, 28 or 90 days); `npm run drills:reports` prints the same in the terminal. Flagged items and the cost alert are at the top. An event-health section lists events with missing key properties or no rows yet.
@@ -1523,9 +1544,9 @@ Until D5 ships, Construct sets have no Defend step (so PS-3, HY-2 and CL-3 keep 
 | D2 AI-graded drills (done) | PS-3, HY-2, SY-2, CL-3, plus QN-5; grading worker (one call per answer), golden sets, quote verification, failure handling | At least 90% agreement per check on every golden set; results < 10 s p95; cost per answer within budget |
 | D3 The loop | Taxonomy prerequisites and Defend tags; progress engine (states including Practiced, stages, tiers, reviews, transfer checks, stuck rule), prescription engine, case results ingestion, skill profile | Scripted scenarios produce the exact state changes and prescriptions defined in this PRD |
 | D4 Training program | Onboarding (with time zone), diagnostic, tracks and plans, Practice on my own, Browse drills, Program engine, workouts with the 50/25/25 mix, training home, Learn library, 22 P0 lessons | Scripted Foundations, Standard and Sprint students get the plans, workouts and milestone results defined in this PRD; lessons reviewed |
-| D6 Pilot launch (after D3 and D4) | Analytics events and reports, WCAG 2.1 AA audit, pilot with the university club | Audit passed; all events firing; pilot students finish Week 0 and Week 1 of a plan and complete the full loop |
+| D6 Pilot launch (after D3 and D4) | Analytics events and reports, WCAG 2.1 AA audit, pilot feedback (feedback button, Report a problem with grade disputes, check-ins), pilot with the university club | Audit passed; all events firing; pilot students finish Week 0 and Week 1 of a plan and complete the full loop |
 | D5 Chains and Defend (during the pilot) | Repair drills PS-4, HY-3, SY-3; Defend step on PS-3, HY-2, SY-2, CL-3; follow-ups written for existing items | At least 90% agreement per check on every new golden set; pools at launch size |
-| P1 Fast follow | PS-2, QN-2, BJ-1, BJ-2, CR-1, CL-2, EX-4, EX-5, CL-4, QN-5 Defend, drawn skill-tree view, P1 lessons, grade disputes, 360 px support | Same gates as D1, D2 and D5 for the new drills |
+| P1 Fast follow | PS-2, QN-2, BJ-1, BJ-2, CR-1, CL-2, EX-4, EX-5, CL-4, QN-5 Defend, drawn skill-tree view, P1 lessons, 360 px support | Same gates as D1, D2 and D5 for the new drills |
 
 ### Definition of done for MVP
 

@@ -14,7 +14,7 @@
 
 **Next steps** (in this order):
 1. **D6, before the pilot:** a person runs the manual accessibility checklist (`docs/drills-a11y-audit.md`); the landing page's placeholder-only labels are fixed on `main`; the club code is in `CLUB_CODES` on Vercel; `CRON_SECRET` and a Vercel Cron for `/api/internal/drills/grading`. Then the pilot itself (gate: students finish Week 0 and Week 1 and complete the full loop).
-2. **Merging `drills` into `main`:** agree migration numbering with the teammate first (see Database notes). Drills migrations are 0009–0018. Matt was given a note for the teammate about the `next.config.ts` change (traces `lessons/intro/**` into the drills routes).
+2. **Merging `drills` into `main`:** agree migration numbering with the teammate first (see Database notes). Drills migrations are 0009–0019. Matt was given a note for the teammate about the `next.config.ts` change (traces `lessons/intro/**` into the drills routes).
 3. **Watch:** SY-2's reasons check is at 91% (3 misses in 34), and CL-3 specific requests is at 90% (28/31); flag either if it drops below 90% once real student answers arrive.
 4. **Later (P1):** EX-5, PS-2 Clarifying questions, CL-2 Hold or fold, and the BJ, CR and CM drills; each skill's lesson ships with its drill. PS-2 would give Clarifying questions its lesson, the only intro skill without one.
 
@@ -39,10 +39,13 @@
 - `npm run drills:smoke:d5`: Repair sets, the 14-day rule and Defend sets end to end (preview drafts, about $0.05).
 - `npm run drills:golden -- --part defend` runs only the follow-up gates; `npm run drills:models -- --d5` only the Repair and follow-up model answers.
 - `npm run drills:smoke:events`: the events the other smokes don't reach, plus the reports on real rows (free; stub grader).
+- `npm run drills:smoke:feedback`: the feedback button, Report a problem, check-in rules, the review queue, the daily limit and the feedback reports (free).
 - After UI changes: `npm run dev`, then `npm run drills:a11y` (free; see `docs/drills-a11y-audit.md`).
 - Free: `npm run typecheck`, `npm test` (includes the model-answer unit test and the cross-drill scenario check), `npm run lint`, then `npm run db:seed-drill-items`.
 
 **Gotchas:**
+- Don't fire ~10+ queries at once through the Supabase pooler: `loadReportData`'s 11-way Promise.all stalled with no query reaching Postgres (2026-10-18); the report loaders now run in sequence.
+- Feedback, report and check-in rows reference `drill_sets`: delete them before a test student's sets (the smokes and the audit do).
 - After switching branches, run `npm ci`: `main`'s packages lack `server-only`, and tests and smokes fail to load with them (2026-10-17). Delete `.next/dev` if typecheck reports missing voice pages from `main`.
 - Changing the stored shape of an answer key breaks grading for items already in the database until re-seeded (live items need new versions).
 - Each grader-wording change shifts a few borderline answers; re-run the gates and `drills:models`.
@@ -631,4 +634,17 @@ Matt lifted the D6 hold ("build D6"). Answers: reports location "not sure yet"; 
 - **PRD updated (Matt's go-ahead):** time setting and No time limit (Accessibility, timeouts, integrity rules, data model, NFR row); events table (`repair_pool_exhausted`, `weekly_summary_viewed.week` is the Monday's date, `drill_set_started.untimed`); MVP reports with a "How it's computed" column and the reports page; item health's pilot rule; Monitoring's pilot banner; DoD links the audit. `EVENTS_NOT_IN_PRD` is now empty.
 - **Audit:** 34 pages, 0 axe violations, focus shown on every stop, no sideways scrolling at 320 px. 2.2.1 marked resolved in `docs/drills-a11y-audit.md`; the manual checklist remains.
 - Checks: typecheck, 1595 tests, lint, all eight smokes and the production build pass.
+
+## D6: pilot feedback (2026-10-18)
+
+- **Migration 0019** (additive, applied to the shared project): tables `drill_feedback`, `drill_item_reports`, `drill_checkins`; enums `drill_feedback_category`, `drill_report_reason`, `drill_report_status`, `drill_checkin_kind`, `drill_checkin_status`; unique indexes so each open question is asked once and each set gets one usefulness check-in.
+- **Feedback button** (`components/drills/feedback.tsx`, in the new `app/drills/layout.tsx`): fixed bottom-right, icon-only on phones, native `<dialog>`; Something's broken / confusing / Idea, 500-character comment. The server attaches the page, the set's item in play (id, version, or template), device and app version (`lib/drills/feedback.ts`). 30 messages and reports per student per day.
+- **Report a problem**: next to "Item N of M" on the item screen, and on each results item. Reasons: answer key wrong / question confusing / grade unfair / other. Links the attempt once answered. "Grade unfair" is the grade dispute, moved from P1.
+- **Review queue** `/drills/review/reports` (local dev): item, the student's answer, score, grader verdict per check and red flag with Y/N labels, notes; Save labels / Resolved / Dismiss / Reopen. `npm run drills:export-disputes [-- --dry]` writes labeled disputes to `drill-golden/<drill>/dispute-<id>.json` (answer type `dispute` added to the golden schema; follow-up labels as a `defend` part; family left empty). Tested with a dry run.
+- **Check-ins**: usefulness (1–5, optional why) on results after a completed set, at most once a week, not on diagnostic parts, kept on refresh; "What would make this more useful?" on the home after the first completed case session (the case product's `sessions`) and at the end of week 1 (week 2 on a weekly plan; otherwise 7 days after the first program). "Not now" dismisses for good.
+- **Reports page**: reported items beside the flagged ones; a Feedback section (newest first, latest 100, filter by type and page, club from the top filter); usefulness average by week. A test club can be named in the URL (`?org=a11y-test`).
+- **Events** (PRD table and `event-props.ts`): `feedback_submitted`, `item_report_submitted` (replaces `grade_dispute_submitted`), `checkin_shown` / `_answered` / `_dismissed`.
+- **PRD**: new "Pilot feedback (D6)" section; data model (20 tables; the three new ones replace `grade_disputes`); API rows; events; a Feedback row in MVP reports; D6 phase row; grade disputes dropped from P1.
+- **Audit**: 40 pages including the open dialogs, both check-ins and the review queue; 0 axe violations, focus on every stop, no sideways scrolling; phone-width screenshots of every page. Screens for Matt: `logs/a11y/2026-10-18T00-58-14-366Z/`.
+- Checks: typecheck, 1599 tests, lint, all nine smokes and the production build pass.
 

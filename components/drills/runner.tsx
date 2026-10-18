@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { DrillChart } from '@/components/drills/chart';
 import { NumericInput } from '@/components/drills/numeric-input';
 import { Timer } from '@/components/drills/timer';
+import { ReportProblem } from '@/components/drills/feedback';
 import { BucketsEditor, CardPicker, ChoiceList, NumberFields, WrittenAnswer, type Bucket } from '@/components/drills/step-inputs';
 import { parseNumericInput } from '@/lib/drills/numeric';
 import type { ChartSpec } from '@/lib/drills/chart-spec';
@@ -305,7 +306,10 @@ export function DrillRunner({ view }: { view: RunnerView }) {
     <section className="space-y-5">
       <div className="flex items-baseline justify-between text-sm text-muted-foreground">
         <span>{view.diagnostic ? `Diagnostic · Part ${view.diagnostic.part} of ${view.diagnostic.of}` : view.drill.name}</span>
-        <span>Item {loaded.position + 1} of {loaded.size}</span>
+        <span className="flex items-baseline gap-3">
+          <ReportProblem setId={view.set_id} position={loaded.position} screen="item" />
+          <span>Item {loaded.position + 1} of {loaded.size}</span>
+        </span>
       </div>
       <h1 ref={headingRef} tabIndex={-1} className="whitespace-pre-line text-base font-medium leading-relaxed outline-none">{item.prompt}</h1>
       {item.exhibit && <DrillChart spec={item.exhibit} />}

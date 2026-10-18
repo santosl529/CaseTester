@@ -20,9 +20,10 @@ import { chromium, type Page } from 'playwright';
 import { AxeBuilder } from '@axe-core/playwright';
 import { db } from '@/db/client';
 import {
-  analyticsEvents, diagnostics, drillAttempts, drillSets, drillTiers, gradingJobs, lessonViews, prescriptions, skillStateEvents, skillStates,
-  studentDrillSettings, studentPrograms, studentProfiles, workouts,
+  analyticsEvents, diagnostics, drillAttempts, drillCheckins, drillFeedback, drillItemReports, drillSets, drillTiers, gradingJobs, lessonViews,
+  prescriptions, sessions, skillStateEvents, skillStates, studentDrillSettings, studentPrograms, studentProfiles, workouts,
 } from '@/db/schema';
+import { reportProblem } from '@/lib/drills/feedback';
 import { DRILLS_CONFIG } from '@/lib/drills/config';
 import { enqueueGrading, planOf, resolveItem, runGradingJob } from '@/lib/drills/grading/jobs';
 import type { CallModel } from '@/lib/drills/grading/grader';
@@ -112,7 +113,13 @@ async function scan(page: Page, name: string, url: string, ready?: (p: Page) => 
     await page.goto(BASE + url, { waitUntil: 'networkidle' });
     if (ready) await ready(page);
     fs.mkdirSync(SHOTS, { recursive: true });
-    await page.screenshot({ path: path.join(SHOTS, `${results.length + 1}-${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.png`), fullPage: true });
+    const shot = `${results.length + 1}-${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`;
+    await page.screenshot({ path: path.join(SHOTS, `${shot}.png`), fullPage: true });
+    // And at phone width (the feedback button's corner), back to desktop after.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(200);
+    await page.screenshot({ path: path.join(SHOTS, `${shot}-phone.png`) });
+    await page.setViewportSize({ width: 1280, height: 900 });
     const axe = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze();
     result.violations = axe.violations.map(v => ({
       rule: v.id, impact: v.impact ?? null, help: v.help,
@@ -136,6 +143,12 @@ async function scan(page: Page, name: string, url: string, ready?: (p: Page) => 
 // A set opens on its intro screen; Start (or Resume) shows the item, ready
 // once its Submit button is there.
 const introReady = (p: Page) => p.getByRole('button', { name: /^(Start|Resume)$/ }).waitFor({ timeout: 15_000 });
+// Opens a dialog (feedback, Report a problem) and waits for it.
+const openDialog = (button: RegExp, before?: (p: Page) => Promise<unknown>) => async (p: Page) => {
+  if (before) await before(p);
+  await p.getByRole('button', { name: button }).first().click();
+  await p.locator('dialog[open]').waitFor({ timeout: 10_000 });
+};
 const setReady = async (p: Page) => {
   await introReady(p);
   await p.getByRole('button', { name: /^(Start|Resume)$/ }).click();
@@ -176,6 +189,10 @@ async function main() {
     await scan(page, 'Your skills', '/drills/profile');
     await scan(page, 'Settings', '/drills/settings');
     await scan(page, 'Pilot reports (local dev)', '/drills/reports');
+    await scan(page, 'Feedback dialog (on the training home)', '/drills', openDialog(/^Feedback$/));
+    // The home check-in after a first full case.
+    await db.insert(sessions).values({ userId: student, caseId: 'prof-001', status: 'completed', completedAt: new Date() });
+    await scan(page, 'Training home with a check-in', '/drills', p => p.getByText('What would make this more useful?').waitFor({ timeout: 10_000 }));
 
     const expire = async (setId: string) => {
       await db.update(drillSets).set({ startedAt: new Date(Date.now() - 25 * 3_600_000) }).where(eq(drillSets.id, setId));
@@ -183,7 +200,10 @@ async function main() {
     };
     for (const [i, drill] of DRILLS_CONFIG.drills.drills.filter(d => d.live).entries()) {
       const { set_id } = await startSet(student, { drill_id: drill.id });
-      if (i === 0) await scan(page, `Set intro: ${drill.id} (with worked example)`, `/drills/sets/${set_id}`, introReady);
+      if (i === 0) {
+        await scan(page, `Set intro: ${drill.id} (with worked example)`, `/drills/sets/${set_id}`, introReady);
+        await scan(page, 'Report a problem (item screen)', `/drills/sets/${set_id}`, openDialog(/^Report a problem$/, setReady));
+      }
       await scan(page, `Set: ${drill.id} ${drill.name}`, `/drills/sets/${set_id}`, setReady);
       await expire(set_id);
     }
@@ -235,7 +255,9 @@ async function main() {
         await submitAttempt(student, set_id, { position: p, idempotency_key: `a11y-ps1-${p}`, step: 0, skip: false, timed_out: false, response: { type: 'choice', option_id: (p % 2 ? wrong : right).id } });
       }
       await completeSet(student, set_id);
-      await scan(page, 'Results: PS-1', `/drills/sets/${set_id}/results`);
+      await scan(page, 'Results: PS-1 (with the usefulness check-in)', `/drills/sets/${set_id}/results`);
+      await scan(page, 'Report a problem (results screen)', `/drills/sets/${set_id}/results`, openDialog(/^Report a problem$/));
+      await reportProblem(student, set_id, { position: 1, reason: 'answer_key_wrong', comment: 'Option B fits too.', screen: 'results' });
     }
     {
       const { set_id } = await startSet(student, { drill_id: 'CL-3' });
@@ -245,9 +267,15 @@ async function main() {
       }
       await runGradingJob(await enqueueGrading(set_id), stubGrader);
       await scan(page, 'Results: CL-3 (graded)', `/drills/sets/${set_id}/results`);
+      await reportProblem(student, set_id, { position: 0, reason: 'grade_unfair', comment: 'I asked for costs by month.', screen: 'results' });
+      await scan(page, 'Review queue (local dev)', '/drills/review/reports');
+      await scan(page, 'Pilot reports with feedback (the audit club)', '/drills/reports?org=a11y-test');
     }
   } finally {
     await browser.close();
+    // Feedback rows reference sets: delete them first.
+    for (const t of [drillFeedback, drillItemReports, drillCheckins]) await db.delete(t).where(eq(t.studentId, student));
+    await db.delete(sessions).where(eq(sessions.userId, student));
     const sets = await db.select({ id: drillSets.id }).from(drillSets).where(eq(drillSets.studentId, student));
     const ids = sets.map(s => s.id);
     if (ids.length) {

@@ -77,7 +77,7 @@ export const GoldenAnswerSchema = z.object({
   answer_id: z.string(),
   item_id: z.string(),
   drill_id: z.string(),
-  answer_type: z.enum(['normal', 'borderline', 'short', 'off_topic', 'injection']),
+  answer_type: z.enum(['normal', 'borderline', 'short', 'off_topic', 'injection', 'dispute']),   // dispute: a student's disputed answer, labeled by Matt (D6)
   responses: z.array(z.unknown()),         // StepResponse per step
   labels: z.record(z.string(), z.boolean()),   // check_id → passes
   red_flags: z.record(z.string(), z.boolean()), // red flag id → present

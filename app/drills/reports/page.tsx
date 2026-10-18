@@ -2,8 +2,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { studentOrRedirect } from '@/lib/drills/session';
 import { reportsPageEnabled } from '@/lib/drills/review';
-import { buildReports, listOrgs } from '@/lib/drills/reports';
+import { buildReports, listOrgs, TEST_ORGS } from '@/lib/drills/reports';
 import { getSkill } from '@/lib/drills/config';
+import { FEED_TYPES, feedbackReports, loadFeedback } from '@/lib/drills/reports/feedback';
 
 // The pilot reports (docs/prd-drills.md "MVP reports"), local development
 // only: every student's data from the database the dev server points at.
@@ -43,16 +44,20 @@ function Table({ head, rows, caption }: { head: string[]; rows: (string | number
   );
 }
 
-export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ org?: string; days?: string }> }) {
+export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ org?: string; days?: string; type?: string; page?: string }> }) {
   if (!reportsPageEnabled()) notFound();
   await studentOrRedirect();
   const q = await searchParams;
   const days = PERIODS.find(p => String(p) === q.days) ?? 28;
   const orgs = await listOrgs();
-  const org = q.org && orgs.includes(q.org) ? q.org : null;
+  // A test club (smokes, the accessibility audit) only when named in the URL.
+  const org = q.org && (orgs.includes(q.org) || TEST_ORGS.includes(q.org)) ? q.org : null;
   const to = new Date();
   const r = await buildReports({ orgId: org, from: new Date(to.getTime() - days * 86_400_000), to });
   const flagged = r.item_health.items.filter(i => i.flags.length);
+  const type = q.type && q.type in FEED_TYPES ? q.type : undefined;
+  const fb = feedbackReports(await loadFeedback(org), { type, page: q.page || undefined });
+  const date = (d: Date) => d.toISOString().slice(0, 16).replace('T', ' ');
 
   return (
     <main className="mx-auto w-full max-w-4xl space-y-8 p-4 sm:p-6">
@@ -87,10 +92,43 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         {r.cost_alert.alert && ' That is more than 25% over budget.'}
       </p>
 
-      <Section id="flagged" title={`Items to review (${flagged.length})`} how={r.item_health.how}>
+      <Section id="flagged" title={`Items to review (${flagged.length} flagged, ${fb.reported.length} reported)`} how={r.item_health.how}>
+        <h3 className="text-sm font-medium">Flagged by their numbers</h3>
         <Table caption="Flagged items" head={['Item', 'Drill', 'Attempts', 'Correct', 'Avg time', 'Flags']}
           rows={flagged.map(i => [i.item, i.drill_id ?? '–', i.attempts, pct(i.correct_rate), `${num(i.avg_time_s, 0)} s`, i.flags.join('; ')])} />
+        <h3 className="pt-2 text-sm font-medium">Reported by students</h3>
+        <Table caption="Reported items" head={['Item', 'Drill', 'Reports', 'Open', 'Reasons', 'Latest comment']}
+          rows={fb.reported.map(i => [i.item, i.drill_id, i.reports, i.open, Object.entries(i.reasons).map(([k, n]) => `${k} ×${n}`).join('; '), i.latest ?? '–'])} />
+        <p className="text-xs text-muted-foreground">Review and label reports in the <Link href="/drills/review/reports" className="underline underline-offset-4">review queue</Link>.</p>
         <p className="text-xs text-muted-foreground">To pull an item: set its <code>&quot;status&quot;</code> to <code>&quot;in_review&quot;</code> in <code>drill-items/&lt;drill&gt;/&lt;item&gt;.json</code>, then run <code>npm run db:seed-drill-items</code>.</p>
+      </Section>
+
+      <Section id="feedback" title="Feedback" how="The feedback button, item reports and answered check-ins, newest first (latest 100). The club filter above applies.">
+        <form className="flex flex-wrap items-end gap-3 text-sm">
+          {org && <input type="hidden" name="org" value={org} />}
+          <input type="hidden" name="days" value={days} />
+          <label className="space-y-1">
+            <span className="block text-muted-foreground">Type</span>
+            <select name="type" defaultValue={type ?? ''} className="rounded-md border bg-background px-2 py-1">
+              <option value="">All types</option>
+              {Object.entries(FEED_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
+          </label>
+          <label className="space-y-1">
+            <span className="block text-muted-foreground">Page</span>
+            <select name="page" defaultValue={q.page ?? ''} className="rounded-md border bg-background px-2 py-1">
+              <option value="">All pages</option>
+              {fb.feed.pages.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </label>
+          <button type="submit" className="rounded-md border px-3 py-1 font-medium hover:bg-muted">Filter</button>
+        </form>
+        <p className="text-sm text-muted-foreground">{fb.feed.total} entries{fb.feed.total > fb.feed.entries.length ? `, showing the latest ${fb.feed.entries.length}` : ''}.</p>
+        <Table caption="Feedback" head={['When', 'Type', 'Page', 'Item', 'Comment', 'Club']}
+          rows={fb.feed.entries.map(e => [date(e.at), e.detail, e.page, e.item ?? '–', e.comment ?? '–', e.club ?? '–'])} />
+        <h3 className="pt-2 text-sm font-medium">How useful was today’s practice? (1–5, by week)</h3>
+        <Table caption="Check-in average by week" head={['Week of', 'Answers', 'Average', 'Dismissed']}
+          rows={fb.weeks.map(w => [w.week, w.answered, num(w.average), w.dismissed])} />
       </Section>
 
       <Section id="loop" title="Loop funnel" how={r.loop_funnel.how}>

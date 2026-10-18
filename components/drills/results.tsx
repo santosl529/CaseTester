@@ -5,6 +5,8 @@ import { ItemFeedbackPanel } from '@/components/drills/runner';
 import { RetryButton } from '@/components/drills/retry-button';
 import { LessonBody } from '@/components/drills/lesson';
 import { LessonViewLog } from '@/components/drills/lesson-actions';
+import { CheckIn, ReportProblem } from '@/components/drills/feedback';
+import type { Checkin } from '@/lib/drills/feedback';
 import type { setResults } from '@/lib/drills/sets/service';
 
 type Results = Extract<Awaited<ReturnType<typeof setResults>>, { status: 'completed' }>;
@@ -18,7 +20,7 @@ const STATE_LABEL = {
 // Set results (docs/prd-drills.md "Set results screen"): score against the
 // bar, time against target, the mistake summary, the per-item breakdown and
 // next actions, and any skill state change. Workouts arrive in D4.
-export function SetResults({ results }: { results: Results }) {
+export function SetResults({ results, checkin }: { results: Results; checkin?: Checkin | null }) {
   const pct = Math.round(results.score * 100);
   const tierMoved = results.tier.after !== results.tier.before;
   return (
@@ -64,14 +66,19 @@ export function SetResults({ results }: { results: Results }) {
         <Link href="/drills/profile" className={buttonVariants({ variant: 'ghost', size: 'lg' })}>Your skills</Link>
       </div>
 
+      {checkin && <CheckIn id={checkin.id} kind={checkin.kind} />}
+
       <section aria-labelledby="breakdown" className="space-y-4">
         <h2 id="breakdown" className="text-base font-medium">Item by item</h2>
         <ol className="space-y-4">
           {results.items.map(item => (
             <li key={item.position} className="space-y-3 rounded-lg border p-4">
-              <p className="text-sm text-muted-foreground">Item {item.position + 1} · {results.untimed
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+  <p className="text-sm text-muted-foreground">Item {item.position + 1} · {results.untimed
                 ? `${seconds(item.time_ms)} (timed target ${seconds(item.time_limit_ms)})`
                 : `${seconds(Math.min(item.time_ms, item.time_limit_ms))} of ${seconds(item.time_limit_ms)}`}</p>
+                <ReportProblem setId={results.set_id} position={item.position} screen="results" />
+              </div>
               <p className="whitespace-pre-line text-sm font-medium">{item.prompt}</p>
               {item.exhibit && <DrillChart spec={item.exhibit} />}
               <ItemFeedbackPanel feedback={item.feedback} />

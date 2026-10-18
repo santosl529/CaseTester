@@ -5,6 +5,8 @@ import { homeView } from '@/lib/drills/program/home';
 import { getDrill } from '@/lib/drills/config';
 import { buttonVariants } from '@/components/ui/button';
 import { StartSetButton } from '@/components/drills/start-set-button';
+import { CheckIn } from '@/components/drills/feedback';
+import { homeCheckin } from '@/lib/drills/feedback';
 
 const TRACK = { foundations: 'Foundations', standard: 'Standard', sprint: 'Sprint', self_directed: 'Practice on my own' } as const;
 const SLOT = { review: 'Review', weak: 'Weak spot', unfamiliar: 'Something new' } as const;
@@ -18,6 +20,9 @@ export default async function DrillsHomePage() {
   const studentId = await studentOrRedirect();
   const home = await homeView(studentId);
   if (home.kind === 'onboarding') redirect('/drills/start');
+  // "What would make this more useful?" after the first full case and week 1.
+  const checkin = await homeCheckin(studentId);
+  const checkinCard = checkin && <CheckIn id={checkin.id} kind={checkin.kind} />;
 
   const nav = (
     <nav className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
@@ -58,6 +63,7 @@ export default async function DrillsHomePage() {
           {nav}
         </header>
         {resume}
+        {checkinCard}
         {(d.status === 'not_started' || (d.status !== 'completed' && d.done > 0)) && diagnosticCard('A 15-minute check that shows where each skill starts, so suggestions fit you from day one.')}
         {home.summary && (
           <section aria-labelledby="summary" className="space-y-1 rounded-lg border p-4">
@@ -127,6 +133,7 @@ export default async function DrillsHomePage() {
         {nav}
       </header>
       {resume}
+      {checkinCard}
 
       {home.intro_first && (
         <section aria-labelledby="start-here" className="space-y-3 rounded-lg border p-4">

@@ -13,7 +13,7 @@ import { DRILL_EVENT_PROPS, type DrillEvent, type EventProps, type PendingEvent 
 
 export type { DrillEvent, EventProps, PendingEvent } from './event-props';
 
-const APP_VERSION = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'dev';
+export const APP_VERSION = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'dev';
 
 // Inside a request, the event is written after the response is sent (Next's
 // after()), so logging adds no latency for the student. Outside one (scripts),

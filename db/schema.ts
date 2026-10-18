@@ -497,3 +497,79 @@ export const diagnostics = pgTable('diagnostics', {
   uniqueIndex('diagnostics_one_in_progress').on(t.studentId).where(sql`${t.status} = 'in_progress'`),
 ]).enableRLS();
 
+
+// ---------------------------------------------------------------------------
+// D6 pilot feedback (docs/prd-drills.md "Pilot feedback"): the feedback
+// button, "Report a problem" on items and results (grade disputes included),
+// and check-ins. Students' text, never sent to a model.
+
+export const feedbackCategoryEnum = pgEnum('drill_feedback_category', ['broken', 'confusing', 'idea']);
+export const reportReasonEnum = pgEnum('drill_report_reason', ['answer_key_wrong', 'question_confusing', 'grade_unfair', 'other']);
+export const reportStatusEnum = pgEnum('drill_report_status', ['open', 'labeled', 'resolved', 'dismissed']);
+export const checkinKindEnum = pgEnum('drill_checkin_kind', ['set_usefulness', 'first_case', 'week_1']);
+export const checkinStatusEnum = pgEnum('drill_checkin_status', ['shown', 'answered', 'dismissed']);
+
+// The feedback button on every drills page. The page, set and item in play,
+// device and app version are attached automatically.
+export const drillFeedback = pgTable('drill_feedback', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  studentId: uuid('student_id').notNull(),
+  category: feedbackCategoryEnum('category').notNull(),
+  comment: text('comment'),
+  page: text('page').notNull(),
+  setId: uuid('set_id').references(() => drillSets.id),
+  position: integer('position'),
+  itemId: text('item_id'),
+  itemVersion: integer('item_version'),
+  templateId: text('template_id'),
+  device: text('device'),
+  appVersion: text('app_version'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, t => [index('drill_feedback_created_idx').on(t.createdAt)]).enableRLS();
+
+// "Report a problem" on an item or results screen. A report on an answered
+// item links its attempt; Matt labels disputed AI grades check by check
+// (labels, red_flags) and exports them to the golden sets.
+export const drillItemReports = pgTable('drill_item_reports', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  studentId: uuid('student_id').notNull(),
+  setId: uuid('set_id').notNull().references(() => drillSets.id),
+  position: integer('position').notNull(),
+  attemptId: uuid('attempt_id').references(() => drillAttempts.id),
+  itemId: text('item_id'),
+  itemVersion: integer('item_version'),
+  templateId: text('template_id'),
+  screen: text('screen').notNull(),             // item | results
+  reason: reportReasonEnum('reason').notNull(),
+  comment: text('comment'),
+  status: reportStatusEnum('status').notNull().default('open'),
+  labels: jsonb('labels'),                      // check_id → passes (Matt's labels)
+  redFlags: jsonb('red_flags'),                 // red flag id → present
+  reviewerNotes: text('reviewer_notes'),
+  reviewedBy: text('reviewed_by'),
+  reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+  exportedAt: timestamp('exported_at', { withTimezone: true }),   // written to /drill-golden
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, t => [index('drill_item_reports_status_idx').on(t.status, t.createdAt)]).enableRLS();
+
+// Check-ins: "How useful was today's practice?" after a completed set (at
+// most once a week), and one open question after the first full case and at
+// the end of week 1. A row is written when shown; dismissing is allowed.
+export const drillCheckins = pgTable('drill_checkins', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  studentId: uuid('student_id').notNull(),
+  kind: checkinKindEnum('kind').notNull(),
+  setId: uuid('set_id').references(() => drillSets.id),
+  rating: integer('rating'),
+  comment: text('comment'),
+  status: checkinStatusEnum('status').notNull().default('shown'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  answeredAt: timestamp('answered_at', { withTimezone: true }),
+}, t => [
+  index('drill_checkins_student_idx').on(t.studentId, t.createdAt),
+  // The open questions are asked once each.
+  uniqueIndex('drill_checkins_once').on(t.studentId, t.kind).where(sql`${t.kind} <> 'set_usefulness'`),
+  // One usefulness check-in per set (the results page refreshes while grading).
+  uniqueIndex('drill_checkins_per_set').on(t.studentId, t.setId).where(sql`${t.kind} = 'set_usefulness'`),
+  check('drill_checkins_rating', sql`${t.rating} is null or ${t.rating} between 1 and 5`),
+]).enableRLS();

@@ -21,7 +21,7 @@ export interface ReportFilter {
 
 // Students the smoke tests and the accessibility audit create (and delete);
 // left out unless their org is asked for by name.
-const TEST_ORGS = ['smoke-test', 'a11y-test'];
+export const TEST_ORGS = ['smoke-test', 'a11y-test'];
 
 export async function loadReportData(filter: ReportFilter): Promise<ReportData> {
   const profiles = await db.select({ id: studentProfiles.userId, orgId: studentProfiles.orgId }).from(studentProfiles)
@@ -35,24 +35,24 @@ export async function loadReportData(filter: ReportFilter): Promise<ReportData> 
   if (ids.length === 0) return empty;
   const of = <T extends { studentId: unknown }>(t: T) => inArray(t.studentId as never, ids);
 
-  const [programs, sets, attempts, skillEvents, rx, cases, views, lessonRows, workoutRows, diags, events] = await Promise.all([
-    db.select().from(studentPrograms).where(of(studentPrograms)),
-    db.select().from(drillSets).where(of(drillSets)),
-    db.select({
-      setId: drillAttempts.setId, studentId: drillAttempts.studentId, itemId: drillAttempts.itemId, itemVersion: drillAttempts.itemVersion,
-      response: drillAttempts.response, score: drillAttempts.score, timeMs: drillAttempts.timeMs, skipped: drillAttempts.skipped,
-      defendScore: drillAttempts.defendScore, checkResults: drillAttempts.checkResults, modelId: drillAttempts.modelId,
-      gradingStatus: drillAttempts.gradingStatus, submittedAt: drillAttempts.submittedAt,
-    }).from(drillAttempts).where(of(drillAttempts)),
-    db.select().from(skillStateEvents).where(of(skillStateEvents)),
-    db.select().from(prescriptions).where(of(prescriptions)),
-    db.select().from(caseResults).where(of(caseResults)),
-    db.select().from(lessonViews).where(of(lessonViews)),
-    db.select({ lessonId: lessonsTable.lessonId, skillId: lessonsTable.skillId }).from(lessonsTable),
-    db.select().from(workouts).where(of(workouts)),
-    db.select({ studentId: diagnostics.studentId }).from(diagnostics).where(and(of(diagnostics), eq(diagnostics.status, 'completed'))),
-    db.select().from(analyticsEvents).where(and(inArray(analyticsEvents.userId, ids), inArray(analyticsEvents.eventType, Object.keys(DRILL_EVENT_PROPS)))),
-  ]);
+  // One query at a time: eleven at once through the Supabase pooler stalled
+  // (2026-10-18); in sequence they take about a second at pilot scale.
+  const programs = await db.select().from(studentPrograms).where(of(studentPrograms));
+  const sets = await db.select().from(drillSets).where(of(drillSets));
+  const attempts = await db.select({
+    setId: drillAttempts.setId, studentId: drillAttempts.studentId, itemId: drillAttempts.itemId, itemVersion: drillAttempts.itemVersion,
+    response: drillAttempts.response, score: drillAttempts.score, timeMs: drillAttempts.timeMs, skipped: drillAttempts.skipped,
+    defendScore: drillAttempts.defendScore, checkResults: drillAttempts.checkResults, modelId: drillAttempts.modelId,
+    gradingStatus: drillAttempts.gradingStatus, submittedAt: drillAttempts.submittedAt,
+  }).from(drillAttempts).where(of(drillAttempts));
+  const skillEvents = await db.select().from(skillStateEvents).where(of(skillStateEvents));
+  const rx = await db.select().from(prescriptions).where(of(prescriptions));
+  const cases = await db.select().from(caseResults).where(of(caseResults));
+  const views = await db.select().from(lessonViews).where(of(lessonViews));
+  const lessonRows = await db.select({ lessonId: lessonsTable.lessonId, skillId: lessonsTable.skillId }).from(lessonsTable);
+  const workoutRows = await db.select().from(workouts).where(of(workouts));
+  const diags = await db.select({ studentId: diagnostics.studentId }).from(diagnostics).where(and(of(diagnostics), eq(diagnostics.status, 'completed')));
+  const events = await db.select().from(analyticsEvents).where(and(inArray(analyticsEvents.userId, ids), inArray(analyticsEvents.eventType, Object.keys(DRILL_EVENT_PROPS))));
   const setIds = sets.map(s => s.id);
   const jobs = setIds.length
     ? await db.select({ setId: gradingJobs.setId, status: gradingJobs.status, retries: gradingJobs.retries, costUsd: gradingJobs.costUsd, createdAt: gradingJobs.createdAt })

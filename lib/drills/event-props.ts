@@ -42,6 +42,12 @@ export const DRILL_EVENT_PROPS = {
   weekly_summary_viewed: ['week'],
   // D5: Repair drills and Defend.
   defend_submitted: ['attempt_id', 'type', 'decision', 'score'],
+  // D6: pilot feedback.
+  feedback_submitted: ['feedback_id', 'category', 'page'],
+  item_report_submitted: ['report_id', 'reason', 'screen', 'item_id', 'attempt_id'],
+  checkin_shown: ['kind'],
+  checkin_answered: ['kind', 'rating'],
+  checkin_dismissed: ['kind'],
   // A Repair set had to use items derived from ones seen in the last 14 days.
   repair_pool_exhausted: ['drill_id', 'available'],
 } as const satisfies Record<string, readonly string[]>;
