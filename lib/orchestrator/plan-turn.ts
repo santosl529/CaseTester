@@ -32,7 +32,8 @@ import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
 import { brainstormRequired, brainstormDue } from './brainstorm';
 import { correctionLines } from './misquote';
 import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-checker';
-import { startMathCheck, planCheckerFlags, gateCodeFindings, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
+import { startMathCheck, planCheckerFlags, gateCodeFindings, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, convertedMarker, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
+import { theirFigure } from './own-quantity';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { formatPeriodQuestionLine } from './unit-check';
 import { finalAnswersFrom, inFinalScope, pendingFinalChecks, probedAlready, answersWait, isRedo, wrapUpsLeft, claimError, relativeError, holdRank, type CloseHoldMemory } from './close-hold';
@@ -82,7 +83,8 @@ export type CheckerLinePlan = {
   undo: { attempt: number | undefined; step: string | null; mathChecker: CheckerMemory };
 };
 // flags.mathChecker. held: a line a due stage question held back (Settle), until it is raised or decided.
-export type CheckerMemory = { handled: string[]; keys?: Record<string, CheckerKeyEntry>; closed?: string[]; held?: string };
+// convertedFigures: the figures a conversion closed (own-quantity.ts) — a case figure too ("10 points of COGS"), which no key keeps.
+export type CheckerMemory = { handled: string[]; keys?: Record<string, CheckerKeyEntry>; closed?: string[]; held?: string; convertedFigures?: number[] };
 // A stage the model's question may ask, and whether it is due (Lorenzo, 15 Oct): a due one wins over a checker probe.
 export type StagesDue = { brainstorm: boolean; recommendation: boolean; risk: boolean };
 export type RecMathProbe = { flag: RecomputeFlag; action: RecomputeAction } | { checker: CheckerSelection; action: 'probe' | 'correct' } | { closed: ClosedRestatement; action: 'probe' | 'correct' };
@@ -462,7 +464,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // twice says nothing, and its figure licenses no doubt. Unit lines are code's restatements, not probes.
   const stepProbes: Record<string, number> = { ...((flags.stepProbes as Record<string, number> | undefined) ?? {}) };
   const wouldProbe = (f: RecomputeFlag) => f.kind !== 'unit' && recomputeAction(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)) === 'probe';
-  const cappedFlags = recomputeFlags.filter(f => wouldProbe(f) && (stepProbes[f.stepId] ?? 0) >= STEP_PROBE_CAP);
+  // A step a conversion closed (own-quantity.ts; Lorenzo, 17 Oct) takes no more of code's probes either.
+  const convertedSteps = new Set(((flags.mathChecker as Partial<CheckerMemory> | undefined)?.closed ?? []).filter(k => k.startsWith(CONVERTED)).map(k => k.slice(CONVERTED.length)));
+  const cappedFlags = recomputeFlags.filter(f => wouldProbe(f) && ((stepProbes[f.stepId] ?? 0) >= STEP_PROBE_CAP || convertedSteps.has(f.stepId)));
   const liveFlags = recomputeFlags.filter(f => !cappedFlags.includes(f));
   checks.record('step_probe_cap', cappedFlags.length > 0, 'two probes on the step already — no probe', {
     capped: cappedFlags.map(f => ({ step: f.stepId, value: f.candidateValue, span: f.span })),
@@ -631,7 +635,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // its figures may not be probed again — the case moves on (Lorenzo, 13 Oct;
   // Jordan 099f33e9, seven probes on one "40 points").
   const closedKeys = [...new Set([...(checkerMemory.closed ?? []), ...checkerPlan.closedNow])];
-  const closedFigures = closedKeys.flatMap(k => checkerPlan.keys[k]?.figures ?? []);
+  const closedFigures = [...closedKeys.flatMap(k => checkerPlan.keys[k]?.figures ?? []), ...(checkerMemory.convertedFigures ?? [])];
   // Deterministic first: a stamp the checker found wrong no longer protects
   // the figure; a landed flag's figure may be doubted (Rule 14).
   if (checkerPlan.droppedStamps.length > 0) {
@@ -916,7 +920,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     if (kind === 'model') recomputeHint = [recomputeHint, formatCheckerHint(checkerUsed)].filter(Boolean).join('\n\n');
   }
   // The correction is said once: its flag closes after this turn.
-  const closedAfter = [...new Set([...closedKeys, ...(checkerUsed?.action === 'correct' ? [checkerUsed.key] : [])])];
+  // A conversion closes its whole step (Lorenzo, 17 Oct).
+  const closedAfter = [...new Set([...closedKeys, ...(checkerUsed?.action === 'correct' ? [checkerUsed.key, ...(checkerUsed.converted ? [convertedMarker(checkerUsed.key)] : [])] : [])])];
   const leftForReport = checkerDecisions.filter(d => d.outcome === 'unresolved' && closedKeys.includes(d.key));
   if (kind === 'model' && leftForReport.length > 0) {
     recomputeHint = [recomputeHint, `LEFT FOR THE REPORT: ${leftForReport.map(d => `"${d.candidateValue}"`).join(', ')} has been probed twice and goes in the written report. Don't ask about it again — move the case on.`].filter(Boolean).join('\n\n');
@@ -933,8 +938,11 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const checkerKeys = Object.fromEntries(Object.entries(checkerPlan.keys).filter(([k, e]) => raised.has(k) && e.figures.length > 0));
   const keysChanged = JSON.stringify(checkerKeys) !== JSON.stringify(checkerMemory.keys ?? {});
   const heldAfter = heldLine && !checkerHandledNow.includes(heldLine) ? heldLine : undefined;
-  if (checkerHandledNow.length > 0 || keysChanged || closedAfter.length !== (checkerMemory.closed ?? []).length || heldAfter !== checkerMemory.held) {
-    flags.mathChecker = { handled: [...checkerHandled, ...checkerHandledNow], ...(Object.keys(checkerKeys).length ? { keys: checkerKeys } : {}), ...(closedAfter.length ? { closed: closedAfter } : {}), ...(heldAfter ? { held: heldAfter } : {}) };
+  const convertedFigure = checkerUsed?.converted ? theirFigure(checkerUsed.claim) : undefined;
+  const convertedAfter = [...(checkerMemory.convertedFigures ?? []), ...(convertedFigure !== undefined ? [convertedFigure] : [])];
+  const convertedKept = checkerMemory.convertedFigures?.length ? { convertedFigures: checkerMemory.convertedFigures } : {};
+  if (checkerHandledNow.length > 0 || keysChanged || closedAfter.length !== (checkerMemory.closed ?? []).length || heldAfter !== checkerMemory.held || convertedFigure !== undefined) {
+    flags.mathChecker = { handled: [...checkerHandled, ...checkerHandledNow], ...(Object.keys(checkerKeys).length ? { keys: checkerKeys } : {}), ...(closedAfter.length ? { closed: closedAfter } : {}), ...(heldAfter ? { held: heldAfter } : {}), ...(convertedAfter.length ? { convertedFigures: convertedAfter } : {}) };
   }
   // The probes this turn puts out, one per step: code's (in the model's hint,
   // or its recommendation probe) and the checker's probe, pointer or hint.
@@ -961,7 +969,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       id: checkerUsed.id, key: checkerUsed.key, action: checkerUsed.action, line: checkerUsed.line, ...(checkerUsed.id === heldLine ? { wasHeld: true } : {}),
       undo: {
         attempt: attemptBeforeChecker, step: checkerStepOwn,
-        mathChecker: { handled: handledUndo, ...(Object.keys(keysUndo).length ? { keys: keysUndo } : {}), ...(closedKeys.length ? { closed: closedKeys } : {}), ...(heldLine ? { held: heldLine } : {}) },
+        mathChecker: { handled: handledUndo, ...(Object.keys(keysUndo).length ? { keys: keysUndo } : {}), ...(closedKeys.length ? { closed: closedKeys } : {}), ...(heldLine ? { held: heldLine } : {}), ...convertedKept },
       },
     };
   }
